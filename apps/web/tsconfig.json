@@ -1,0 +1,16 @@
+{
+  "extends": "@zenith/config/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "allowJs": true,
+    "incremental": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

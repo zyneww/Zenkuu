@@ -1,0 +1,28 @@
+{
+  "name": "@zenith/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@zenith/data": "workspace:*",
+    "@zenith/ui": "workspace:*",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@zenith/config": "workspace:*",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}

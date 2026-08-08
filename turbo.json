@@ -1,0 +1,30 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "COINGECKO_API_KEY",
+    "TWELVE_DATA_API_KEY",
+    "ALPHA_VANTAGE_API_KEY",
+    "MARKETSTACK_API_KEY",
+    "FRED_API_KEY",
+    "NEWSDATA_API_KEY",
+    "RESERVOIR_API_KEY"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {},
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

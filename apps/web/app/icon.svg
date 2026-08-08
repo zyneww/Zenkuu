@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>ZENITH</title>
+  <!--
+    Favicon — variante SIMPLIFIÉE du logo, pas le logo complet.
+
+    Le logo (personnage + zigzag + drapeau) compte 8 sous-chemins : réduit à 16 px
+    dans un onglet, il devient une tache illisible. On ne garde donc que l'élément
+    réductible du logo — la courbe ascendante — sur un aplat de marque qui tient sur
+    un onglet clair comme sombre. C'est la même logique que Kraken ou CoinGecko, dont
+    le favicon n'est jamais le logo complet.
+  -->
+  <rect width="32" height="32" rx="7" fill="#EA580C"/>
+  <path d="M6 22.5 L12.5 15 L17.5 19.5 L25.5 9.5"
+        fill="none" stroke="#FFFFFF" stroke-width="3.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19.5 9 L26 9 L26 15.5"
+        fill="none" stroke="#FFFFFF" stroke-width="3.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

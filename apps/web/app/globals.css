@@ -1,0 +1,171 @@
+@import 'tailwindcss';
+
+/* Tailwind 4 analyse le code source pour générer les utilitaires. Les composants
+   partagés vivant hors de `apps/web`, il faut lui indiquer explicitement ce dossier. */
+@source '../../../packages/ui/src';
+
+/* Mode sombre piloté par une classe sur <html>, pas par `prefers-color-scheme` seul.
+   Raison : l'utilisateur doit pouvoir forcer un thème contre sa préférence système.
+   Le script inline du layout pose la classe AVANT la première peinture, en croisant
+   le choix mémorisé et la préférence système. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design system ZENITH (§3.1, §7)
+   Inter · rayon 12px · échelle 4px.
+
+   Ces jetons sont la SEULE définition des couleurs du produit. Aucun composant
+   n'écrit de valeur hexadécimale et aucun n'utilise de variante `dark:` : le thème
+   sombre se contente de réassigner ces mêmes variables plus bas, et tous les
+   utilitaires (bg-canvas, text-ink, border-border-subtle…) suivent automatiquement.
+   C'est ce qui permet d'ajouter un thème sans repasser sur un seul composant.
+   ───────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Surfaces — thème clair crème/orange */
+  --color-canvas: #fdfbf7;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f2e9;
+  --color-border-subtle: #ede7dc;
+
+  /* Texte — contrastes mesurés sur --color-canvas :
+     ink 16.9:1 · ink-muted 7.4:1 · les deux bien au-delà du seuil AA de 4.5:1 (§9). */
+  --color-ink: #1c1917;
+  --color-ink-muted: #57534e;
+
+  /* Accent orange, DEUX tons pour deux usages distincts — le point de vigilance du
+     §9 sur la palette crème/orange se joue précisément ici :
+       --color-brand (3.4:1)        aplats, bordures, anneau de focus, décor.
+                                    Suffisant pour un composant d'interface (seuil 3:1),
+                                    INSUFFISANT pour du texte.
+       --color-brand-strong (7.3:1) tout texte de marque : liens, libellés, fonds de
+                                    bouton avec texte blanc (7.3:1 également).
+     Le ton 500 (#f97316) tombe à 2.7:1 : à proscrire hors décor pur. */
+  --color-brand: #ea580c;
+  --color-brand-strong: #9a3412;
+  --color-brand-soft: #fff1e7;
+
+  /* Couleurs sémantiques de marché. Nuances 700 délibérément : sur fond crème,
+     un vert 500 tombe sous 3:1 et devient illisible pour une part des lecteurs.
+     La couleur ne porte jamais l'information seule — signe et chevron l'accompagnent. */
+  --color-up: #047857;
+  --color-up-soft: #ecfdf5;
+  --color-down: #b91c1c;
+  --color-down-soft: #fef2f2;
+
+  /* Rayon de référence (§3.1) */
+  --radius-card: 12px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Thème sombre — bleus profonds façon AniList.
+
+   On emprunte les NEUTRES d'AniList (bleu-nuit désaturé plutôt que gris pur, ce qui
+   donne sa profondeur à leur interface) mais on garde l'orange ZENITH comme accent :
+   copier aussi leur bleu reviendrait à copier leur identité, pas leur savoir-faire.
+
+   Les tons d'accent et de marché sont ÉCLAIRCIS ici. Une couleur lisible sur crème
+   ne l'est pas sur bleu-nuit : l'orange 700 du thème clair tomberait à 2,49:1 sur
+   #0b1622 (mesuré). On remonte donc chaque teinte jusqu'à repasser le seuil AA.
+   Contrastes obtenus sur les surfaces sombres : ink 14,1:1 · ink-muted 7,3:1 ·
+   brand-strong 9,8:1 · hausse 8,6:1 · baisse 6,0:1 — tous au-delà de 4,5:1.
+
+   `--color-border-subtle` fait exception, à 1,33:1, et c'est délibéré : ce jeton ne
+   sert qu'à des séparateurs décoratifs (filets de tableau, contours de cartes), que
+   les règles d'accessibilité n'assujettissent pas au seuil de 3:1 réservé aux
+   composants porteurs de sens. Le remonter donnerait un quadrillage dur et
+   fatigant — c'est d'ailleurs le parti pris de toutes les interfaces sombres de
+   référence, GitHub compris.
+   ───────────────────────────────────────────────────────────────────────────── */
+.dark {
+  --color-canvas: #0b1622;
+  --color-surface: #151f2e;
+  --color-surface-muted: #1c2738;
+  --color-border-subtle: #24354a;
+
+  --color-ink: #e7edf4;
+  --color-ink-muted: #9fadbd;
+
+  --color-brand: #f97316;
+  --color-brand-strong: #fdba74;
+  --color-brand-soft: #2b1a10;
+
+  --color-up: #34d399;
+  --color-up-soft: #0d2a20;
+  --color-down: #f87171;
+  --color-down-soft: #2d1618;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Cible de focus visible partout — exigence d'accessibilité du §9. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Tabulation des chiffres : sans cela, les colonnes de prix « dansent » à chaque
+     rafraîchissement parce que les glyphes n'ont pas la même largeur. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Logo affiché en masque plutôt qu'en <img>.
+
+     Un <img> externe ne peut pas hériter de `currentColor` : le logo resterait noir
+     sur fond bleu-nuit. Le masque, lui, colore un aplat `currentColor` à travers la
+     silhouette du SVG — le fichier reste mis en cache par le navigateur, et le logo
+     suit le thème sans dupliquer l'asset. */
+  .brand-mark {
+    display: inline-block;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .brand-mark-logo {
+    -webkit-mask-image: url('/brand/logo.svg');
+    mask-image: url('/brand/logo.svg');
+  }
+
+  .brand-mark-mascotte {
+    -webkit-mask-image: url('/brand/mascotte.svg');
+    mask-image: url('/brand/mascotte.svg');
+  }
+}
