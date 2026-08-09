@@ -1,9 +1,10 @@
 import Link from 'next/link'
 
 import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, EmptyState, formatCurrency, formatRate } from '@zenith/ui'
+import { ChangeBadge, EmptyState } from '@zenith/ui'
 
 import { AssetLogo } from '@/components/AssetTile'
+import { Money } from '@/components/locale/Money'
 import { fr } from '@/content/fr'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -68,9 +69,11 @@ export function HighlightPanel({
                   {asset.name}
                 </span>
                 <span className="tabular shrink-0 text-xs text-ink">
-                  {asset.assetClass === 'forex'
-                    ? formatRate(asset.price)
-                    : formatCurrency(asset.price, asset.currency)}
+                  <Money
+                    value={asset.price}
+                    from={asset.currency}
+                    asRate={asset.assetClass === 'forex'}
+                  />
                 </span>
                 <span className="w-16 shrink-0 text-right">
                   <ChangeBadge value={asset.change24h} size="sm" />

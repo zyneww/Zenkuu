@@ -167,7 +167,7 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 
 Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du sommet (« nouveaux sommets », « en route vers le zenith »).
 
-> ⚠️ **À faire** : déposer les deux visuels dans `apps/web/public/brand/` (`logo.svg` ou `logo.png`, `mascotte.png`). Tant qu'ils sont absents, le header et les états vides utilisent un chevron géométrique neutre — un placeholder assumé, qui ne prétend pas reproduire l'identité. Voir `LogoMark` dans `apps/web/components/Header.tsx` et `AscentMark` dans `packages/ui/src/EmptyState.tsx`.
+> ✅ **Fait** : les visuels sont en place dans `apps/web/public/brand/` (`logo.svg`, `footer-logo.svg`, `mascotte.svg`). Ils sont appliqués en masque CSS (`.brand-mark`) et suivent donc le thème clair/sombre sans duplication de fichier. Le favicon dérive du même tracé, simplifié pour rester lisible à 16 px (`app/icon.svg`).
 >
 > *(Nom de la mascotte à valider : « Zeni » ou « Cimo » — point ouvert, non bloquant.)*
 
@@ -183,61 +183,58 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 
 ## État d'avancement
 
-### Livré
-
-| Élément | Emplacement |
-|---|---|
-| Monorepo Turborepo + Bun, TypeScript strict | racine, `packages/config` |
-| Couche d'adaptateurs (§4) avec interface commune | `packages/data/src/types.ts`, `registry.ts` |
-| Cache TTL 5 min + déduplication des appels concurrents | `packages/data/src/cache.ts` |
-| Limitation de débit à fenêtre glissante, gestion des 429 | `packages/data/src/http.ts` |
-| Adaptateur CoinGecko (crypto) — sans clé, clé optionnelle | `packages/data/src/providers/coingecko.ts` |
-| Adaptateur Frankfurter/BCE (forex) — sans clé | `packages/data/src/providers/frankfurter.ts` |
-| Design system crème/orange, contrastes AA | `apps/web/app/globals.css` |
-| Header centré (§7) | `apps/web/components/Header.tsx` |
-| Accueil : stats globales, tendances, gainers/losers, forex, couverture, watchlist vide | `apps/web/app/page.tsx` |
-| Classement crypto : tri serveur, pagination, sparklines | `apps/web/app/crypto/page.tsx` |
-| Page 404 | `apps/web/app/not-found.tsx` |
-
-### Décisions prises
-
-- **Thème clair crème/orange** confirmé (et non le thème sombre d'AniList).
-- **QuestDB, Dragonfly, BullMQ, Docker différés** jusqu'à l'ingestion planifiée. Le cache mémoire actuel implémente `CacheStore` : la bascule vers Dragonfly ne touchera qu'un point d'instanciation.
-- **Tri par variation non exposé** sur le classement : CoinGecko ne sait pas trier par variation à l'échelle du marché, et trier une page de 50 lignes ressemblerait à un classement global sans en être un. Les plus fortes hausses/baisses sont calculées sur un univers explicitement annoncé (250 plus grandes capitalisations).
-
-### Reste à faire — par ordre logique
-
-1. Page de détail d'un actif (§3.3) — à concevoir avec une 2ᵉ classe d'actif en tête pour ne pas figer le template.
-2. Recherche universelle.
-3. Clerk + Turso/Drizzle → watchlist réellement persistée.
-4. Adaptateur Twelve Data (actions/ETF/indices), puis Alpha Vantage (matières premières).
-5. SEO : sitemap dynamique, JSON-LD par type d'actif.
-6. Dragonfly + QuestDB + BullMQ quand l'ingestion d'historique OHLC démarre.
-7. Heatmap sectorielle, convertisseur, comparateur, calendrier, actualités.
-
+> Section unique et faisant foi. Elle a été fusionnée le 9 août 2026 : le fichier
+> portait jusque-là **deux** blocs « Livré » et **deux** blocs « Reste à faire »
+> empilés, sans indication de celui qui primait — et le §10 réclamait des visuels
+> déjà livrés. Une carte fausse coûte plus cher qu'une carte absente : n'ajoutez pas
+> un bloc par-dessus, modifiez celui-ci.
 
 ### Livré
 
 | Élément | Emplacement |
 |---|---|
 | Monorepo Turborepo + Bun, TypeScript strict | racine, `packages/config` |
-| Couche d'adaptateurs avec interface commune (§4) | `packages/data/src/types.ts`, `registry.ts` |
+| Couche d'adaptateurs à interface commune (§4) | `packages/data/src/types.ts`, `registry.ts` |
 | Cache à TTL étagés + déduplication des appels concurrents | `packages/data/src/cache.ts`, `queries.ts` |
 | Limitation de débit à fenêtre glissante, gestion des 429 | `packages/data/src/http.ts` |
-| **CoinGecko** — crypto : classements, fiches, historiques, catégories, tendances | `providers/coingecko.ts` |
+| **CoinGecko** — crypto : classements, fiches, historiques, catégories, tendances, **OHLC** | `providers/coingecko.ts` |
 | **Frankfurter/BCE** — devises, sans clé | `providers/frankfurter.ts` |
-| **Yahoo Finance** — actions, ETF, matières premières, indices, sans clé | `providers/yahoo.ts` |
+| **Yahoo Finance** — actions, ETF, matières premières, indices, **OHLC + volume** | `providers/yahoo.ts` |
 | **RSS** — actualités (Cointelegraph, CoinDesk) | `providers/news.ts` |
 | **Alternative.me** — indice Fear & Greed | `providers/sentiment.ts` |
-| Design system clair crème/orange **+ thème sombre type AniList** | `apps/web/app/globals.css` |
+| Design system clair crème/orange **+ thème sombre** | `apps/web/app/globals.css` |
 | Bascule de thème, suivi système, sans flash au chargement | `components/ThemeScript.tsx`, `ThemeToggle.tsx` |
 | Header centré avec 4 menus déroulants accessibles | `components/NavBar.tsx`, `content/navigation.ts` |
+| Sélecteur langue/devise (globe), 2 colonnes + recherche | `components/locale/LocalePanel.tsx` |
 | Logo et mascotte en masque CSS (suivent le thème) | `public/brand/`, `.brand-mark` |
 | Favicon simplifié, lisible à 16 px | `app/icon.svg` |
+| Recherche universelle toutes classes d'actifs | `app/api/recherche/`, overlay du header |
 | Accueil : synthèse, tendances, hausses/baisses, narratifs, actus, sentiment | `app/page.tsx`, `components/home/` |
-| Six classements + six fiches d'actif façon Kraken | `app/{crypto,devises,actions,etf,matieres-premieres,indices}/` |
+| Six classements + six fiches d'actif | `app/{crypto,devises,actions,etf,matieres-premieres,indices}/` |
 | Catégories, actualités, sentiment, mouvements | `app/{categories,actualites,sentiment}/` |
-| Titres d'onglet « Zenith \| Page » | `app/layout.tsx` |
+| **Comptes utilisateurs (Clerk)** — dégradation propre sans clé | `lib/auth.ts`, `components/auth/`, `app/{connexion,inscription}/` |
+| **Graphiques enrichis** — 5 types, volume, moyenne mobile, lignes de prix, légende | `components/asset/PriceChartInteractive.tsx` |
+| **Centre d'aide** — 12 articles, 4 catégories, recherche locale, 1 page par article | `content/aide.ts`, `app/aide/` |
+| **Apprendre** — 9 fiches par thème et par niveau | `content/apprendre.ts`, `app/apprendre/` |
+| **Pourquoi ZENITH**, **Bien démarrer**, **API & développeurs**, **Nouveautés** | `app/{pourquoi-zenith,bien-demarrer,developpeurs,nouveautes}/` |
+| **SEO** — sitemap dynamique (189 URL), `robots.txt`, JSON-LD, canoniques | `app/sitemap.ts`, `app/robots.ts`, `components/seo/JsonLd.tsx`, `lib/site.ts` |
+| **Turso + Drizzle** — watchlist persistée, préférences | `packages/db/`, `app/suivi/`, `lib/watchlist-actions.ts` |
+| **Contexte Clerk serveur** (`proxy.ts`, conditionné à `AUTH_ENABLED`) | `apps/web/proxy.ts` |
+| **Listings refondus** — onglets inter-classes, synthèse, filtre et vues rapides | `components/market/{AssetClassTabs,MarketStatsStrip,MarketBrowser}.tsx` |
+| **Secteurs refondus** — bandeau de tête, grille/tableau filtrable | `components/categories/` |
+| **Actualités refondues** — cartes, article en tête, filtres de rubrique | `components/news/NewsFeed.tsx` |
+| **4 flux RSS, 3 rubriques réelles** (crypto, marchés, économie) | `packages/data/src/providers/news.ts` |
+| **Fiches actif** — statistiques clés hors onglets, historique daté | `components/asset/{AssetKeyStats,PriceHistoryTable}.tsx` |
+| **Aide** — tuiles de rubriques + pages `/aide/rubrique/[id]` | `app/aide/`, `content/aide.ts` |
+| **Apprendre** — parcours conseillé, recherche, sommaire des thèmes | `app/apprendre/`, `components/learn/` |
+| **Pourquoi ZENITH** — garanties, sections alternées, tableau comparatif | `app/pourquoi-zenith/page.tsx` |
+| **À propos** — récit + chiffres produit calculés depuis le code | `components/about/KeyFigures.tsx` |
+| **Panneau paramètres unifié** (langue / devise / thème 3 états) | `components/settings/SettingsPanel.tsx`, `lib/stores/settings.ts` |
+| **Filtres « mouvements »** — période × univers, en pilules | `components/market/MoversFilters.tsx`, `content/movers.ts` |
+| **`/crypto/all-coins`** — classement complet, 100 par page | `app/crypto/all-coins/page.tsx` |
+| **Widgets natifs** — ticker, convertisseur, classement compact + intégration | `components/widgets/`, `app/{widgets,embed}/` |
+| **Attribution CoinGecko conforme aux CGU** | `components/Footer.tsx`, `app/embed/ticker/page.tsx` |
+| **Tests** — Vitest sur la logique de classement | `packages/data/src/queries.test.ts` |
 
 ### Contraintes externes mesurées
 
@@ -245,6 +242,20 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
   L'accueil a été ramené de 8 à 5 appels et les fiches de 3 à 2 pour tenir dans ce budget.
   Une clé Demo gratuite porte le plafond à 30/min et devient nécessaire dès qu'un robot
   d'indexation parcourt plusieurs fiches d'affilée (§9). Voir `.env.example`.
+- **L'OHLC de CoinGecko vit derrière un endpoint séparé et NE CONTIENT PAS de volume.**
+  D'où deux décisions : les bougies ne sont chargées qu'au clic sur « Chandeliers »
+  (jamais au rendu de la fiche), et la case « Volume » est grisée dans cette vue.
+  Le volume des vues en ligne, lui, est extrait de `total_volumes` déjà présent dans la
+  réponse `market_chart` — coût API nul.
+- **CoinGecko n'accepte que 1, 7, 14, 30, 90, 180 et 365 jours** sur `/ohlc` ; toute autre
+  valeur renvoie 401. `getOhlc` aligne donc la demande sur la fenêtre autorisée supérieure.
+- **`per_page` plafonne à 250 chez CoinGecko.** D'où les univers de « mouvements » limités à
+  Top 100 / 250 / 500 : 1 000 coûterait quatre appels et « toutes les cryptomonnaies » une
+  soixantaine, sur un budget de cinq par minute. Proposer une option irréalisable serait pire
+  que de ne pas l'offrir.
+- **Les fenêtres de variation sont GRATUITES.** `price_change_percentage=1h,24h,7d,14d,30d,1y`
+  est servi dans la même réponse que le classement : changer de période sur `/crypto/mouvements`
+  ne déclenche aucun appel.
 - **Yahoo Finance est un endpoint non officiel** : il exige un User-Agent de navigateur et
   peut fermer sans préavis. `v7/quote` (requêtes groupées) est déjà fermé, d'où une requête
   par symbole. Le registre place les fournisseurs sous clé AVANT lui : écrire l'adaptateur
@@ -255,15 +266,83 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 - **Thème clair par défaut, sombre disponible**, préférence système respectée au premier chargement.
 - **Widgets CoinGecko reconstruits nativement** plutôt qu'embarqués : les widgets officiels sont
   des iframes non thémables, chargent du JavaScript tiers et ne suivraient pas le mode sombre.
+  L'attribution exigée par leurs CGU est portée par le pied de page.
 - **Panneau « Tendances » sans colonne de prix** : la source ne cote qu'en dollars et un second
   appel dépasserait le quota. Rang et variation sont réellement publiés en euros, le prix non.
+- **Tri par variation non exposé** sur les classements : la source ne sait pas trier par variation
+  à l'échelle du marché. Les hausses/baisses sont calculées sur un univers explicitement annoncé.
+- **Pas de page `/compte`** : le `<UserButton>` de Clerk porte déjà profil et déconnexion. Une page
+  dédiée n'aura de contenu propre qu'avec la watchlist persistée — elle exigera alors un
+  `clerkMiddleware()`, lui-même à conditionner à `AUTH_ENABLED` sous peine de faire tomber
+  TOUTES les routes en l'absence de clé.
+- **`AUTH_ENABLED` est figé à la compilation.** `NEXT_PUBLIC_*` est substitué par le bundler et
+  `/connexion` est prérendue statiquement : ajouter les clés Clerk à un déploiement déjà bâti
+  ne suffit pas, il faut **rebâtir**.
+- **Graphiques : périmètre volontairement restreint.** Sont écartés heatmap, aire empilée,
+  historique infini, temps réel (aucun flux WebSocket gratuit ; le cache est à 5 min), alertes
+  de prix (elles supposent la persistance) et loupe. Ce sont des démos de lightweight-charts,
+  pas des besoins du site.
+- **Blog non indexé tant qu'il est vide** (`robots: index: false`) : une page vide indexée dégrade
+  la perception de qualité du domaine entier. Aucun article fictif n'est publié (§5).
+- **Attribution CoinGecko AJOUTÉE, pas retirée.** Les CGU de l'API (§4.1.4) imposent
+  « Powered by CoinGecko » en police ≥ 10 px, sans distinguer le palier gratuit des offres
+  payantes, et aucun plan n'autorise le retrait. La consigne initiale de suppression du
+  watermark visait les *widgets* embarqués — or ZENITH n'en utilise aucun, ils sont
+  reconstruits nativement. Le white-label Pro contredirait par ailleurs le §7 (tout gratuit).
+- **Widgets natifs plutôt qu'iframes** : une iframe ne suit pas le thème sombre, charge du
+  JavaScript tiers sur chaque page hôte et impose un watermark non contrôlé. Les nôtres
+  partagent le cache et le limiteur de débit du site. Route `/embed/ticker` pour l'intégration,
+  avec attribution reproduite — la page hôte n'affiche pas notre pied de page.
+- **Zustand pour les préférences**, avec DOUBLE ÉCRITURE de la clé `zenith-theme` :
+  `ThemeScript` s'exécute avant l'hydratation et lit un format brut que `persist` ne produit
+  pas. Sans cette double écriture, le flash de thème clair revenait au rechargement.
+- **Les données partagées serveur/client vivent hors des modules `'use client'`.**
+  Next.js transforme TOUS les exports d'un tel module en références client : un composant
+  serveur qui les importe reçoit un stub, et l'indexation y renvoie `undefined` — sans que
+  TypeScript le voie. Cas réel corrigé : `content/movers.ts`.
+- **Grille de langues affichée sans traduction**, sur décision explicite du porteur du projet.
+  Réserve maintenue et matérialisée dans l'interface : chaque langue non traduite porte la
+  mention « interface en français », pour ne pas promettre une traduction inexistante.
 - **QuestDB, Dragonfly, BullMQ, Docker différés** jusqu'à l'ingestion planifiée.
 
 ### Reste à faire
 
-1. Recherche universelle.
-2. Clerk + Turso/Drizzle → watchlist réellement persistée.
-3. Adaptateurs Twelve Data / Finnhub pour sortir de la dépendance à Yahoo.
-4. SEO : sitemap dynamique, JSON-LD par type d'actif.
-5. Comparateur, convertisseur, screener, heatmap sectorielle, calendrier économique.
-6. Dragonfly + QuestDB + BullMQ quand l'ingestion d'historique OHLC démarre.
+1. **Configuration ESLint absente** : `bun run lint` est déclaré dans les `package.json`
+   mais aucune configuration n'existe — la commande ne peut pas s'exécuter.
+2. **Alertes de prix** — le schéma et l'authentification sont en place ; il manque la
+   table d'alertes et l'exécution planifiée (donc BullMQ, point 7).
+3. Adaptateurs **Twelve Data / Finnhub** pour sortir de la dépendance à Yahoo.
+4. Comparateur, screener, heatmap sectorielle, calendrier économique.
+   *(Le convertisseur existe désormais comme widget ; reste à en faire une page dédiée.)*
+5. **NFT** (Reservoir) — classe d'actif du §2 non encore abordée.
+6. Couverture de test : seule `rankMovers` est testée. Le store de paramètres ne l'est pas
+   (`persist` demande un environnement DOM non configuré).
+7. Dragonfly + QuestDB + BullMQ quand l'ingestion d'historique OHLC démarre.
+
+### Mise en service — à faire par l'exploitant
+
+Trois variables conditionnent des fonctionnalités entières. Le site tourne sans elles,
+mais en annonçant explicitement ce qui manque (§5) :
+
+| Variable | Sans elle |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | `robots.txt` interdit TOUTE indexation, et le sitemap publie des URL `localhost`. **À renseigner impérativement en production.** |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` | Pas de comptes ; `/connexion` et `/inscription` affichent un état vide. Rappel : la valeur est figée **à la compilation**, un redéploiement ne suffit pas, il faut **rebâtir**. |
+| `TURSO_DATABASE_URL` (+ `TURSO_AUTH_TOKEN`) | Le bouton « Suivre » signale que le suivi n'est pas conservé. Après configuration : `cd packages/db && bun run db:push`. |
+
+### Vérifié / non vérifié
+
+- ✅ `tsc --noEmit` et `next build` passent ; **59 pages** générées.
+- ✅ `bun run test` — 4 tests Vitest sur `rankMovers` (tri par période, exclusion des
+  variations absentes, non-mutation de l'entrée).
+- ✅ Filtres `/crypto/mouvements` vérifiés en HTTP sur quatre combinaisons période × univers.
+- ✅ Graphiques testés dans le navigateur : chandeliers, volume, moyenne mobile et lignes
+  de prix rendus avec des données CoinGecko réelles.
+- ✅ `robots.txt`, `sitemap.xml` (189 URL) et le JSON-LD (`Dataset`, `Article`,
+  `BreadcrumbList`, `WebSite`) vérifiés dans la sortie HTTP réelle.
+- ❌ **Le chemin Clerk n'a jamais été exercé** : sans `.env.local`, seule la branche
+  « non configuré » est testée. `<SignIn />`, `<UserButton>` et `proxy.ts` compilent,
+  mais leur fonctionnement n'est pas prouvé.
+- ❌ **Les écritures Turso n'ont jamais été exercées** : sans base configurée, seul le
+  chemin « non disponible » est testé. Le schéma, les requêtes Drizzle et les actions
+  serveur compilent ; aucune insertion réelle n'a été effectuée.

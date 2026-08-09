@@ -1,10 +1,16 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
+import { getExchangeRates } from '@zenith/data'
+
+import { AuthProvider } from '@/components/auth/AuthProvider'
+import { CurrencyProvider } from '@/components/locale/CurrencyProvider'
 import { Footer } from '@/components/Footer'
 import { NavBar } from '@/components/NavBar'
+import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
 import { fr } from '@/content/fr'
+import { SITE_URL } from '@/lib/site'
 
 import './globals.css'
 
@@ -17,8 +23,13 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  // Sans `metadataBase`, Next.js émet les URL canoniques et les images Open Graph en
+  // chemin RELATIF — invalides pour un moteur de recherche comme pour un aperçu de
+  // partage. C'est le prérequis de toutes les balises `alternates.canonical` posées
+  // dans les pages.
+  metadataBase: new URL(SITE_URL),
   title: {
-    // Gabarit d'onglet demandé : « Zenith | Accueil », « Zenith | Compte »…
+    // Gabarit d'onglet demandé : « Zenith | Accueil », « Zenith | Cryptomonnaies »…
     // La marque en tête reste lisible même quand l'onglet est réduit à quelques
     // caractères — c'est justement l'intérêt de la mettre devant plutôt que derrière.
     default: `${fr.site.name} | ${fr.site.tagline}`,
@@ -40,29 +51,41 @@ export const metadata: Metadata = {
 // 5 minutes placé ici ramènerait l'ensemble du site à 5 minutes, y compris les pages
 // qui n'ont besoin d'être régénérées qu'une fois par demi-heure. Les tendances de
 // l'overlay de recherche sont donc chargées à la demande, via /api/tendances.
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Les taux de change sont le SEUL chargement du layout, et c'est assumé : la
+  // devise d'affichage vaut pour tout le site, il faut donc les connaître avant de
+  // rendre quoi que ce soit. Le TTL d'une heure les aligne sur la cadence réelle de
+  // publication de la BCE — un taux par jour ouvré — sans écraser le `revalidate`
+  // des pages plus rapides.
+  const rates = await getExchangeRates()
+
   return (
     // `suppressHydrationWarning` : ThemeScript modifie `class` avant l'hydratation,
     // React signalerait donc un écart serveur/client sur cet attribut précis.
     <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <OrganizationJsonLd />
       </head>
       <body className="min-h-screen bg-canvas text-ink antialiased">
-        <a
-          href="#contenu"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-card focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:shadow"
-        >
-          {fr.nav.skipToContent}
-        </a>
+        <AuthProvider>
+          <CurrencyProvider rates={rates.ok ? rates.data : null}>
+            <a
+              href="#contenu"
+              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-card focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:shadow"
+            >
+              {fr.nav.skipToContent}
+            </a>
 
-        <NavBar />
+            <NavBar />
 
-        <main id="contenu" className="mx-auto max-w-[1280px] px-4 py-6">
-          {children}
-        </main>
+            <main id="contenu" className="mx-auto max-w-[1280px] px-4 py-6">
+              {children}
+            </main>
 
-        <Footer />
+            <Footer />
+          </CurrencyProvider>
+        </AuthProvider>
       </body>
     </html>
   )

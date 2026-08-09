@@ -1,12 +1,7 @@
 import type { DataResult, GlobalMarketStats, MarketCapSeriesState } from '@zenith/data'
-import {
-  ChangeBadge,
-  EmptyState,
-  Sparkline,
-  formatCompact,
-  formatCurrency,
-  formatNumber,
-} from '@zenith/ui'
+import { ChangeBadge, EmptyState, Sparkline, formatCompact, formatNumber } from '@zenith/ui'
+
+import { Money } from '@/components/locale/Money'
 
 import { fr } from '@/content/fr'
 
@@ -43,8 +38,7 @@ export function MarketOverviewCard({
   }
 
   const stats = result.data
-  const marketCap = formatCurrency(stats.totalMarketCap, stats.currency, { compact: true })
-  const volume = formatCurrency(stats.totalVolume24h, stats.currency, { compact: true })
+  // Les deux gros chiffres passent par <Money> pour suivre la devise choisie.
   const btc = stats.dominance['btc']
   const eth = stats.dominance['eth']
 
@@ -52,7 +46,9 @@ export function MarketOverviewCard({
     <div className="flex h-full flex-col justify-between rounded-card border border-border-subtle bg-surface p-4">
       <div>
         <p className="text-xs text-ink-muted">{fr.home.marketCapCardTitle}</p>
-        <p className="tabular mt-1 text-2xl font-bold text-ink">{marketCap ?? '—'}</p>
+        <p className="tabular mt-1 text-2xl font-bold text-ink">
+          <Money value={stats.totalMarketCap} from={stats.currency} compact />
+        </p>
         <div className="mt-1">
           <ChangeBadge value={stats.marketCapChange24h} size="sm" />
         </div>
@@ -83,7 +79,9 @@ export function MarketOverviewCard({
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border-subtle pt-3 text-xs">
         <div>
           <dt className="text-ink-muted">{fr.globalStats.volume}</dt>
-          <dd className="tabular font-semibold text-ink">{volume ?? '—'}</dd>
+          <dd className="tabular font-semibold text-ink">
+            <Money value={stats.totalVolume24h} from={stats.currency} compact />
+          </dd>
         </div>
         <div>
           <dt className="text-ink-muted">{fr.globalStats.activeAssets}</dt>

@@ -41,6 +41,34 @@ export const fr = {
     hint: 'Ctrl + K pour rouvrir la recherche',
   },
 
+  locale: {
+    open: 'Langue et devise',
+    language: 'Langue',
+    languageHint:
+      'Le site est publié en français. Les autres langues arriveront avec les fichiers de traduction — nous préférons ne rien proposer plutôt qu’une traduction automatique.',
+    currency: 'Devise locale',
+    currencyHint: (date: string) =>
+      `Conversion au taux de référence BCE du ${date}. Les sources cotent en euros ; la devise choisie est appliquée à tout le site.`,
+    search: 'Rechercher',
+    noMatch: 'Aucune devise ne correspond.',
+    convertedFrom: (from: string, date: string) => `converti depuis ${from} · taux BCE du ${date}`,
+  },
+
+  auth: {
+    signIn: 'Connexion',
+    signUp: 'S’inscrire',
+    // Pas de libellés « Mon compte » / « Déconnexion » ici : le <UserButton> de Clerk
+    // porte son propre menu, déjà traduit par la localisation frFR du fournisseur.
+    unavailableTitle: 'Comptes bientôt disponibles',
+    unavailableBody:
+      'L’authentification n’est pas encore configurée sur cette instance. Les comptes débloqueront la watchlist persistante, les alertes de prix et les préférences d’affichage.',
+    signInTitle: 'Se connecter à ZENITH',
+    signInSubtitle: 'Retrouvez votre watchlist et vos préférences.',
+    signUpTitle: 'Créer un compte ZENITH',
+    signUpSubtitle:
+      'Gratuit. Aucune donnée bancaire demandée — ZENITH ne gère ni fonds ni transaction.',
+  },
+
   theme: {
     switchToDark: 'Passer en thème sombre',
     switchToLight: 'Passer en thème clair',
@@ -59,7 +87,6 @@ export const fr = {
     news: 'Actualités',
     sentiment: 'Sentiment de marché',
     movers: 'Hausses et baisses',
-    account: 'Compte',
     notFound: 'Page introuvable',
     learn: 'Apprendre',
     getStarted: 'Bien démarrer',
@@ -134,6 +161,8 @@ export const fr = {
       volume: 'Volume 24 h',
       marketCap: 'Capitalisation',
       chart: '7 jours',
+      /** Amplitude de la séance — remplace la capitalisation quand la source ne la publie pas. */
+      dayRange: 'Plus bas / plus haut 24 h',
     },
     sortByMarketCap: 'Trier par capitalisation',
     sortByVolume: 'Trier par volume',
@@ -183,6 +212,25 @@ export const fr = {
     similarTitle: 'Actifs comparables',
     rangeTitle: 'Période',
     ranges: { d1: '24 h', d7: '7 j', d30: '30 j', d90: '90 j', y1: '1 an' },
+    chart: {
+      kindTitle: 'Type de graphique',
+      kinds: {
+        area: 'Aire',
+        line: 'Ligne',
+        baseline: 'Écart',
+        candles: 'Chandeliers',
+        bars: 'Barres',
+      },
+      optionsTitle: 'Affichage',
+      volume: 'Volume',
+      movingAverage: 'Moyenne mobile',
+      priceLines: 'Extrêmes',
+      loadingCandles: 'Chargement des bougies…',
+      /** Message affiché quand la source ne publie pas d'OHLC pour cet actif. */
+      candlesUnavailable:
+        'Cette source ne publie pas de bougies pour cet actif — les vues Chandeliers et Barres sont donc indisponibles.',
+      volumeUnavailable: 'Volume non publié par la source pour cette période.',
+    },
     tabs: {
       overview: 'Aperçu',
       history: 'Historique',
@@ -304,6 +352,12 @@ export const fr = {
     disclaimer:
       'ZENITH est une plateforme d’information en lecture seule. Aucune fonction d’achat, de vente ou de connexion à un portefeuille. Les informations affichées ne constituent pas un conseil en investissement.',
     dataNote: 'Données de marché fournies par des sources publiques, actualisées toutes les 5 minutes.',
+    /**
+     * Formulation imposée par les CGU de l'API CoinGecko — à conserver telle quelle,
+     * en anglais. C'est une mention d'attribution contractuelle, pas un élément
+     * d'interface : la traduire ne satisferait pas l'obligation.
+     */
+    poweredByCoinGecko: 'Powered by CoinGecko',
     rights: (year: number) => `© ${year} ZENITH`,
   },
 

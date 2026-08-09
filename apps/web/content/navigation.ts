@@ -22,6 +22,7 @@ import {
   Newspaper,
   PenLine,
   Rocket,
+  Star,
   Sparkles,
   TrendingDown,
   TrendingUp,
@@ -148,10 +149,10 @@ export const NAV_MENUS: NavMenu[] = [
         label: 'Palmarès',
         items: [
           {
-            label: 'Top capitalisations',
-            description: 'Les plus grandes valorisations',
+            label: 'All Coins',
+            description: 'Le classement complet, page par page',
             icon: Trophy,
-            href: '/crypto',
+            href: '/crypto/all-coins',
             ready: true,
           },
           {
@@ -171,15 +172,12 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'Segments',
+        // « Catégories & secteurs » vivait aussi ici : le doublon est retiré au
+        // profit de l'entrée du menu Marchés, où la notion se range plus
+        // naturellement. La section est renommée en conséquence — « Segments »
+        // n'avait de sens qu'au pluriel.
+        label: 'Indicateurs',
         items: [
-          {
-            label: 'Catégories & secteurs',
-            description: 'Les narratifs qui portent le marché',
-            icon: LayoutGrid,
-            href: '/categories',
-            ready: true,
-          },
           {
             label: 'Indice de sentiment',
             description: 'Fear & Greed du marché crypto',
@@ -334,6 +332,20 @@ export const NAV_MENUS: NavMenu[] = [
       {
         label: 'ZENITH',
         items: [
+          {
+            label: 'Ma liste de suivi',
+            description: 'Les actifs rattachés à votre compte',
+            icon: Star,
+            href: '/suivi',
+            ready: true,
+          },
+          {
+            label: 'Pourquoi ZENITH',
+            description: 'Nos partis pris, et ce qu’on refuse de faire',
+            icon: Sparkles,
+            href: '/pourquoi-zenith',
+            ready: true,
+          },
           {
             label: 'Nouveautés',
             description: 'Ce qui a changé récemment',
