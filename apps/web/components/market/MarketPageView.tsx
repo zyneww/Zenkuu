@@ -2,7 +2,10 @@ import type { AssetClass } from '@zenith/data'
 import { getRanking } from '@zenith/data'
 import { EmptyState, SourceNote } from '@zenith/ui'
 
-import { MarketTable, type MarketSort, type SortDirection } from '@/components/market/MarketTable'
+import { AssetClassTabs } from '@/components/market/AssetClassTabs'
+import { MarketBrowser } from '@/components/market/MarketBrowser'
+import { MarketStatsStrip } from '@/components/market/MarketStatsStrip'
+import type { MarketSort, SortDirection } from '@/components/market/MarketTable'
 import { fr } from '@/content/fr'
 import { marketHref } from '@/lib/asset-routes'
 
@@ -43,6 +46,10 @@ export interface MarketPageViewProps {
   title: string
   subtitle: string
   searchParams: Record<string, string | string[] | undefined>
+  /** Surcharge la taille de page par défaut de la classe (voir `/crypto/all-coins`). */
+  perPage?: number
+  /** Surcharge la base des liens de tri et de pagination, pour les pages dérivées. */
+  basePath?: string
 }
 
 /** Lecture défensive des paramètres d'URL : ils sont saisissables à la main. */
@@ -57,8 +64,12 @@ export async function MarketPageView({
   title,
   subtitle,
   searchParams,
+  perPage,
+  basePath,
 }: MarketPageViewProps) {
-  const config = CONFIG[assetClass]
+  const base = CONFIG[assetClass]
+  const config = { ...base, perPage: perPage ?? base.perPage }
+  const listPath = basePath ?? marketHref(assetClass)
   const page = readPage(searchParams['page'])
   const sortBy: MarketSort = searchParams['tri'] === 'volume' ? 'volume24h' : 'marketCap'
   const direction: SortDirection = searchParams['sens'] === 'asc' ? 'asc' : 'desc'
@@ -73,15 +84,28 @@ export async function MarketPageView({
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
-        <p className="text-sm text-ink-muted">{subtitle}</p>
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{subtitle}</p>
       </header>
+
+      {/* Navigation inter-classes : le passage de /crypto à /actions ne devrait pas
+          imposer un détour par le menu de l'en-tête. */}
+      <AssetClassTabs current={assetClass} />
 
       {ranking.ok && ranking.data.length > 0 ? (
         <>
-          <MarketTable
+          <MarketStatsStrip
+            assets={ranking.data}
+            scopeLabel={
+              config.paginated
+                ? `les ${ranking.data.length} actifs de cette page`
+                : `les ${ranking.data.length} actifs suivis dans cette classe`
+            }
+          />
+
+          <MarketBrowser
             assets={ranking.data}
             assetClass={assetClass}
             page={page}
@@ -90,8 +114,9 @@ export async function MarketPageView({
             direction={direction}
             sortable={config.sortable}
             paginated={config.paginated}
-            basePath={marketHref(assetClass)}
+            basePath={listPath}
           />
+
           <SourceNote
             label={ranking.source.label}
             href={ranking.source.attributionUrl}

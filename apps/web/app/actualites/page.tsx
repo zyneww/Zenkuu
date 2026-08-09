@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 
 import { getNews } from '@zenith/data'
-import { EmptyState } from '@zenith/ui'
+import { EmptyState, SourceNote } from '@zenith/ui'
 
+import { NewsFeed } from '@/components/news/NewsFeed'
 import { fr } from '@/content/fr'
 
 // Les actualités se renouvellent plus vite que les cours : régénération à 3 minutes,
@@ -12,68 +13,50 @@ export const revalidate = 180
 export const metadata: Metadata = {
   title: fr.pages.news,
   description: fr.news.subtitle,
+  alternates: { canonical: '/actualites' },
 }
 
+/**
+ * Fil d'actualités.
+ *
+ * Refonte : la page servait une liste plate de liens, tous de même poids, et ne
+ * couvrait que la crypto alors que le site suit six classes d'actifs. Elle suit
+ * désormais l'organisation d'un hub d'actualités — un article en tête, des filtres
+ * de rubrique, puis une grille de cartes.
+ *
+ * Les rubriques sont RÉELLES : elles proviennent du périmètre éditorial de chaque
+ * flux, pas d'une devinette sur le titre de l'article. Deux flux non-crypto ont été
+ * ajoutés pour que ces filtres aient un sens.
+ */
 export default async function NewsPage() {
-  const news = await getNews(30)
+  const news = await getNews(36)
 
   return (
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-ink">{fr.news.title}</h1>
-        <p className="text-sm text-ink-muted">{fr.news.subtitle}</p>
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{fr.news.subtitle}</p>
       </header>
 
       {news.ok && news.data.length > 0 ? (
         <>
-          <ul className="space-y-3">
-            {news.data.map((item) => (
-              <li key={item.id}>
-                <a
-                  href={item.url}
-                  target="_blank"
-                  // `nofollow` : on cite des articles tiers sans leur transmettre
-                  // d'autorité de référencement, et sans se faire passer pour leur
-                  // éditeur (§8, positionnement d'agrégateur).
-                  rel="noopener noreferrer nofollow"
-                  className="group block rounded-card border border-border-subtle bg-surface p-4 transition-colors hover:border-brand/40"
-                >
-                  <h2 className="text-sm font-medium leading-snug text-ink group-hover:text-brand-strong">
-                    {item.title}
-                  </h2>
-                  {item.excerpt ? (
-                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">
-                      {item.excerpt}
-                    </p>
-                  ) : null}
-                  <p className="mt-2 text-[0.6875rem] text-ink-muted">
-                    {item.source} · <time dateTime={item.publishedAt}>{formatDate(item.publishedAt)}</time>{' '}
-                    · {fr.news.readOn(item.source)}
-                  </p>
-                </a>
-              </li>
-            ))}
-          </ul>
+          <NewsFeed articles={news.data} />
 
-          <p className="text-xs text-ink-muted">
-            Agrégé depuis les flux publics de {news.source.label}. ZENITH ne republie
-            aucun article : les liens ouvrent la page de l’éditeur d’origine.
+          <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
+            ZENITH agrège des titres publiés par des éditeurs tiers et renvoie vers
+            leurs articles. Aucun texte intégral n’est republié, et ZENITH n’est
+            l’auteur d’aucun de ces contenus.
           </p>
+
+          <SourceNote label={news.source.label} href={news.source.attributionUrl} />
         </>
       ) : (
         <EmptyState
-          title={fr.news.unavailable}
+          title={fr.states.unavailableTitle}
           description={news.ok ? null : news.reason}
           source={news.source?.label ?? null}
         />
       )}
     </div>
   )
-}
-
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(iso))
 }

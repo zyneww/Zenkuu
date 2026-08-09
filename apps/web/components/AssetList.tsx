@@ -1,19 +1,36 @@
 import Link from 'next/link'
 
 import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, formatCurrency, formatRate } from '@zenith/ui'
+import { ChangeBadge } from '@zenith/ui'
 
 import { AssetLogo } from '@/components/AssetTile'
+import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 
 interface AssetListProps {
   assets: MarketAsset[]
   /** Affiche le rang par capitalisation à gauche. */
   showRank?: boolean
+  /**
+   * Champ de variation à afficher.
+   *
+   * Par défaut la variation sur 24 h. Les « mouvements » filtrables classent sur
+   * d'autres fenêtres : afficher la variation 24 h à côté d'un classement établi
+   * sur un an ferait paraître le tri incohérent, alors qu'il serait simplement
+   * calculé sur une autre colonne.
+   */
+  changeField?: 'change1h' | 'change24h' | 'change7d' | 'change14d' | 'change30d' | 'change1y'
+  /** Libellé de période associé à `changeField`, pour l'accessibilité du badge. */
+  changeLabel?: string
 }
 
 /** Liste dense pour les widgets de la colonne latérale (§3.2). */
-export function AssetList({ assets, showRank = false }: AssetListProps) {
+export function AssetList({
+  assets,
+  showRank = false,
+  changeField = 'change24h',
+  changeLabel,
+}: AssetListProps) {
   return (
     <ul className="divide-y divide-border-subtle">
       {assets.map((asset) => (
@@ -43,13 +60,15 @@ export function AssetList({ assets, showRank = false }: AssetListProps) {
               <span className="tabular block text-sm text-ink">
                 {/* Une paire de devises se lit comme un taux, pas comme un prix en
                     euros : « 1,1535 » et non « 1,15 € », qui suggérerait un montant. */}
-                {asset.assetClass === 'forex'
-                  ? formatRate(asset.price)
-                  : formatCurrency(asset.price, asset.currency)}
+                <Money
+                  value={asset.price}
+                  from={asset.currency}
+                  asRate={asset.assetClass === 'forex'}
+                />
               </span>
               <ChangeBadge
-                value={asset.change24h}
-                periodLabel={asset.changePeriodLabel}
+                value={asset[changeField]}
+                periodLabel={changeLabel ?? asset.changePeriodLabel}
                 size="sm"
               />
             </span>

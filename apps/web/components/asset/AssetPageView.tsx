@@ -14,9 +14,14 @@ import {
 } from '@zenith/ui'
 
 import { AssetLogo } from '@/components/AssetTile'
+import { AssetKeyStats } from '@/components/asset/AssetKeyStats'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
+import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
+import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
+import { WatchlistButton } from '@/components/watchlist/WatchlistButton'
 import { fr } from '@/content/fr'
 import { assetHref, marketHref } from '@/lib/asset-routes'
+import { getWatchlistState } from '@/lib/watchlist-actions'
 
 /**
  * Fiche d'un actif — structure inspirée des pages de cotation de Kraken.
@@ -88,8 +93,39 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
 
   const comparables = peers.ok ? peers.data : []
 
+  // État de suivi lu au rendu serveur : le bouton arrive déjà dans le bon état,
+  // au lieu de basculer visiblement une fois la page hydratée.
+  const watchlist = await getWatchlistState(assetClass, data.id)
+
   return (
     <div className="space-y-6">
+      {/*
+        Données structurées : posées ici plutôt que dans chaque page de classe
+        d'actif, puisque ce composant sert les six. `Dataset` et non `Product` —
+        décrire un cours comme un produit assorti d'une offre ferait apparaître
+        ZENITH comme un point de vente dans les résultats de recherche, ce que le §7
+        interdit.
+      */}
+      {asset.source ? (
+        <AssetJsonLd
+          name={data.name}
+          symbol={data.symbol}
+          path={assetHref(assetClass, data.id)}
+          description={data.description}
+          sourceName={asset.source.label}
+          sourceUrl={asset.source.attributionUrl}
+          updatedAt={data.lastUpdated}
+        />
+      ) : null}
+
+      <BreadcrumbJsonLd
+        items={[
+          { name: fr.nav.home, path: '/' },
+          { name: fr.assetClass[assetClass], path: marketHref(assetClass) },
+          { name: data.name, path: assetHref(assetClass, data.id) },
+        ]}
+      />
+
       <Breadcrumb assetClass={assetClass} name={data.name} />
 
       {/* ── En-tête : identité et cours ─────────────────────────────────────── */}
@@ -112,14 +148,29 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="flex flex-col items-end gap-2">
           <p className="tabular text-3xl font-bold text-ink">
             {priceLabel}
             {isForex ? <span className="ml-1 text-base text-ink-muted">{data.currency}</span> : null}
           </p>
           <ChangeBadge value={data.change24h} periodLabel={data.changePeriodLabel} filled />
+
+          <WatchlistButton
+            assetClass={assetClass}
+            assetId={data.id}
+            label={data.name}
+            {...(data.symbol ? { symbol: data.symbol } : {})}
+            path={assetHref(assetClass, data.id)}
+            initialFollowing={watchlist.following}
+            signedIn={watchlist.available}
+          />
         </div>
       </header>
+
+      {/* Repères de marché remontés HORS des onglets : ils suivent immédiatement le
+          cours, comme sur une fiche de cotation. Enfermés dans un onglet, ils
+          restaient invisibles à qui ne cliquait pas. */}
+      <AssetKeyStats asset={data} assetClass={assetClass} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -140,6 +191,15 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
               label={history.source.label}
               href={history.source.attributionUrl}
               updatedAt={data.lastUpdated}
+            />
+          ) : null}
+
+          {/* Le graphique donne une forme, ce tableau donne les nombres. */}
+          {history.ok ? (
+            <PriceHistoryTable
+              history={history.data}
+              currency={data.currency}
+              isRate={isForex}
             />
           ) : null}
         </div>

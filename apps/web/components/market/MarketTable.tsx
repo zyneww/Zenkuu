@@ -1,9 +1,10 @@
 import Link from 'next/link'
 
 import type { AssetClass, MarketAsset } from '@zenith/data'
-import { ChangeBadge, Sparkline, formatCurrency, formatRate } from '@zenith/ui'
+import { ChangeBadge, Sparkline } from '@zenith/ui'
 
 import { AssetLogo } from '@/components/AssetTile'
+import { Money } from '@/components/locale/Money'
 import { fr } from '@/content/fr'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -64,6 +65,20 @@ export function MarketTable({
   const showRank = has('rank')
   const isForex = assetClass === 'forex'
 
+  /**
+   * Amplitude 24 h — colonne propre aux classes SANS capitalisation.
+   *
+   * Yahoo ne publie pas la capitalisation des actions, ETF, indices et matières
+   * premières (elle vit dans `quoteSummary`, fermé aux clients non authentifiés).
+   * Leur tableau perdait donc une colonne sans rien gagner en échange. L'amplitude
+   * du jour est en revanche disponible, et c'est une information utile sur ces
+   * classes : elle situe le cours dans la séance.
+   *
+   * Elle n'est pas affichée en plus de la capitalisation mais À SA PLACE — empiler
+   * les deux ferait déborder le tableau sur mobile sans bénéfice de lecture.
+   */
+  const showDayRange = !showMarketCap && has('high24h') && has('low24h')
+
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
@@ -112,6 +127,11 @@ export function MarketTable({
                   basePath={basePath}
                 />
               ) : null}
+              {showDayRange ? (
+                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium md:table-cell">
+                  {fr.market.columns.dayRange}
+                </th>
+              ) : null}
               {showChart ? (
                 <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
                   {fr.market.columns.chart}
@@ -146,9 +166,7 @@ export function MarketTable({
                   </th>
 
                   <td className="tabular px-3 py-2.5 text-right font-medium text-ink">
-                    {isForex
-                      ? formatRate(asset.price)
-                      : formatCurrency(asset.price, asset.currency)}
+                    <Money value={asset.price} from={asset.currency} asRate={isForex} />
                   </td>
 
                   <td className="px-3 py-2.5 text-right">
@@ -167,13 +185,27 @@ export function MarketTable({
 
                   {showVolume ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
-                      {formatCurrency(asset.volume24h, asset.currency, { compact: true }) ?? '—'}
+                      <Money value={asset.volume24h} from={asset.currency} compact />
                     </td>
                   ) : null}
 
                   {showMarketCap ? (
                     <td className="tabular px-3 py-2.5 text-right text-ink">
-                      {formatCurrency(asset.marketCap, asset.currency, { compact: true }) ?? '—'}
+                      <Money value={asset.marketCap} from={asset.currency} compact />
+                    </td>
+                  ) : null}
+
+                  {showDayRange ? (
+                    <td className="tabular hidden px-3 py-2.5 text-right text-xs text-ink-muted md:table-cell">
+                      {asset.low24h !== undefined && asset.high24h !== undefined ? (
+                        <>
+                          <Money value={asset.low24h} from={asset.currency} asRate={isForex} />
+                          <span aria-hidden="true"> – </span>
+                          <Money value={asset.high24h} from={asset.currency} asRate={isForex} />
+                        </>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                   ) : null}
 
