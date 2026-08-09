@@ -34,7 +34,7 @@ export default function ApprendrePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-10 py-6">
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Apprendre</h1>
+        <h1 className="display-lg text-ink">Apprendre</h1>
         <p className="max-w-2xl text-base leading-relaxed text-ink-muted">
           Comprendre ce que vous regardez : ce que chaque chiffre mesure réellement,
           et surtout ce qu’il ne mesure pas. Aucune de ces fiches ne recommande d’agir

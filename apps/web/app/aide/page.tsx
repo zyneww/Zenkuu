@@ -33,7 +33,7 @@ export default function AidePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-10 py-6">
       <header className="space-y-3 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Centre d’aide</h1>
+        <h1 className="display-lg text-ink">Centre d’aide</h1>
         <p className="mx-auto max-w-xl text-base leading-relaxed text-ink-muted">
           Comment lire les chiffres affichés sur ZENITH, d’où ils viennent, à quelle
           fréquence ils changent — et ce que le site ne fait délibérément pas.

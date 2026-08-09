@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 
 import { getExchangeRates } from '@zenith/data'
 
@@ -20,6 +20,24 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+})
+
+/**
+ * Police des nombres.
+ *
+ * DESIGN.md prescrit une police dédiée pour toute donnée tabulaire, et la raison
+ * est fonctionnelle plutôt qu'esthétique : en chasse proportionnelle, un « 1 » est
+ * plus étroit qu'un « 8 », si bien qu'une colonne de cotation se décale
+ * visuellement à chaque rafraîchissement. La chasse fixe supprime ce ballet.
+ *
+ * Deux graisses seulement : le poids d'une police chargée sur chaque page se paie
+ * en LCP (§9), et les nombres n'ont besoin ni de gras ni d'italique.
+ */
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500'],
+  variable: '--font-mono-numeric',
 })
 
 export const metadata: Metadata = {
@@ -62,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     // `suppressHydrationWarning` : ThemeScript modifie `class` avant l'hydratation,
     // React signalerait donc un écart serveur/client sur cet attribut précis.
-    <html lang="fr" className={inter.variable} suppressHydrationWarning>
+    <html lang="fr" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <ThemeScript />
         <OrganizationJsonLd />

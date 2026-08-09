@@ -56,7 +56,7 @@ export default function DeveloppeursPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-10 py-6">
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">API & développeurs</h1>
+        <h1 className="display-lg text-ink">API & développeurs</h1>
         <p className="text-base leading-relaxed text-ink-muted">
           ZENITH n’expose <strong className="text-ink">aucune API publique</strong> à ce
           jour. Les routes ci-dessous sont internes : elles servent les pages du site,

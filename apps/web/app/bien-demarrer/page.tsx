@@ -55,7 +55,7 @@ export default function BienDemarrerPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 py-6">
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Bien démarrer</h1>
+        <h1 className="display-lg text-ink">Bien démarrer</h1>
         <p className="text-base leading-relaxed text-ink-muted">
           Cinq étapes pour prendre en main ZENITH. Aucune ne demande de compte : tout
           ce qui suit est accessible sans inscription.

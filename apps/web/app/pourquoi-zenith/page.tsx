@@ -89,7 +89,7 @@ export default function PourquoiZenithPage() {
         <p className="text-xs font-medium uppercase tracking-wide text-brand-strong">
           Nos partis pris
         </p>
-        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+        <h1 className="display-xl text-ink">
           Pourquoi ZENITH
         </h1>
         <p className="mx-auto max-w-2xl text-base leading-relaxed text-ink-muted">
@@ -208,19 +208,19 @@ export default function PourquoiZenithPage() {
       <section className="flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/bien-demarrer"
-          className="rounded-card bg-brand-strong px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink"
+          className="rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
         >
           Bien démarrer
         </Link>
         <Link
           href="/apprendre"
-          className="rounded-card border border-border-subtle px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand"
+          className="rounded-pill border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
         >
           Apprendre à lire les chiffres
         </Link>
         <Link
           href="/methodologie"
-          className="rounded-card border border-border-subtle px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand"
+          className="rounded-pill border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
         >
           Méthodologie & sources
         </Link>

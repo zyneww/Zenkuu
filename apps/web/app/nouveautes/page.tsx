@@ -71,7 +71,7 @@ export default function NouveautesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 py-6">
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Nouveautés</h1>
+        <h1 className="display-lg text-ink">Nouveautés</h1>
         <p className="text-base leading-relaxed text-ink-muted">
           Ce qui a été livré, dans l’ordre. Les limites connues sont signalées au même
           titre que les ajouts — une fonctionnalité partielle est annoncée comme telle.

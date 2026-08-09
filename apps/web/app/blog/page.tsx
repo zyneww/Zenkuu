@@ -27,7 +27,7 @@ export default function BlogPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 py-6">
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Blog</h1>
+        <h1 className="display-lg text-ink">Blog</h1>
         <p className="text-base leading-relaxed text-ink-muted">
           Analyses de fond, notes méthodologiques et retours sur la construction de
           ZENITH.
@@ -41,7 +41,7 @@ export default function BlogPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               href="/apprendre"
-              className="rounded-card bg-brand-strong px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink"
+              className="rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
             >
               Fiches Apprendre
             </Link>

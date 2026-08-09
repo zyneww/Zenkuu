@@ -56,6 +56,94 @@
 
   /* Rayon de référence (§3.1) */
   --radius-card: 12px;
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     Système repris de DESIGN.md (template « coinbase »).
+
+     On en importe la GRAMMAIRE — échelle de rayons, rythme éditorial, hiérarchie
+     typographique, tiers d'élévation — et RIEN de sa palette. Le bleu #0052ff,
+     le near-black #0a0b0d et les verts/rouges du template sont l'identité d'une
+     marque tierce : les reprendre serait du plagiat, alors que reprendre une
+     échelle de rayons ne l'est pas — c'est une convention de mise en forme.
+     Les couleurs ci-dessus restent celles de ZENITH (§7).
+     ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Échelle de rayons complète. `--radius-card` (12px) reste le rayon de
+     référence du §3.1 et devient le cran `md` de cette échelle. */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  /* Géométrie en pilule : 100px suffit à arrondir totalement un contrôle de la
+     hauteur usuelle sans déformer un bouton large, ce que 9999px ferait. */
+  --radius-pill: 100px;
+
+  /* Rythme éditorial. L'échelle de 4px du §3.1 est conservée ; on ajoute le cran
+     de respiration entre bandes de contenu, absent jusqu'ici. */
+  --spacing-section: 96px;
+  --spacing-band: 64px;
+
+  /* Police tabulaire dédiée aux nombres. Un chiffre aligné dans une colonne de
+     cotation ne se lit pas comme du texte courant : la largeur fixe évite le
+     ballet des colonnes à chaque rafraîchissement de prix. */
+  --font-mono: var(--font-mono-numeric), ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Tier d'élévation UNIQUE, assumé. Empiler cinq niveaux d'ombre produit une
+     hiérarchie que personne ne perçoit ; un seul cran, utilisé au survol, suffit
+     à signaler qu'un élément est interactif. */
+  --shadow-soft: 0 4px 12px rgb(0 0 0 / 0.04);
+  --shadow-raised: 0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Échelle typographique d'affichage.
+
+   Le parti pris le plus distinctif retenu de DESIGN.md : les titres d'affichage
+   restent en GRAISSE 400, jamais 700. Sur un site de cotation, la graisse lourde
+   sonne « urgence de plateforme de trading » ; la graisse normale avec un
+   interlettrage négatif sonne « publication institutionnelle ». ZENITH étant un
+   site d'information et non un courtier (§7), c'est le registre juste.
+
+   Ces classes sont des utilitaires de composition, pas des styles d'élément :
+   on ne redéfinit pas <h1>, pour que le niveau de titre reste choisi par la
+   sémantique du document et non par son apparence.
+   ───────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .display-mega {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.025em;
+  }
+
+  .display-xl {
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.022em;
+  }
+
+  .display-lg {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .display-md {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+  }
+
+  /* Nombres : police tabulaire et chasse fixe. Complète `.tabular` existant. */
+  .numeric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -137,9 +225,23 @@
 @layer utilities {
   /* Tabulation des chiffres : sans cela, les colonnes de prix « dansent » à chaque
      rafraîchissement parce que les glyphes n'ont pas la même largeur. */
+  /*
+   * Chiffres tabulaires.
+   *
+   * La classe est déjà posée sur chaque cotation du site : y brancher la police à
+   * chasse fixe applique la prescription de DESIGN.md partout d'un coup, sans
+   * repasser sur un seul composant. C'est exactement le bénéfice recherché quand
+   * la mise en forme est centralisée dans des jetons plutôt que dispersée.
+   *
+   * `font-feature-settings` est conservé en plus de `font-variant-numeric` pour
+   * les navigateurs qui n'appliquent pas la seconde propriété aux polices
+   * proportionnelles de repli.
+   */
   .tabular {
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
+    letter-spacing: -0.01em;
   }
 
   /* Logo affiché en masque plutôt qu'en <img>.

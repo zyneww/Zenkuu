@@ -48,7 +48,7 @@ export default async function SuiviPage() {
           action={
             <Link
               href="/connexion"
-              className="inline-block rounded-card bg-brand-strong px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink"
+              className="inline-block rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
             >
               Se connecter
             </Link>
@@ -81,7 +81,7 @@ export default async function SuiviPage() {
           action={
             <Link
               href="/crypto"
-              className="inline-block rounded-card bg-brand-strong px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink"
+              className="inline-block rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
             >
               Parcourir les cryptomonnaies
             </Link>
@@ -134,7 +134,7 @@ function HomeLink() {
   return (
     <Link
       href="/"
-      className="inline-block rounded-card bg-brand-strong px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink"
+      className="inline-block rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
     >
       Retour à l’accueil
     </Link>

@@ -52,6 +52,32 @@ Objectif business : devenir une référence d'analyse de marché généraliste, 
 
 Les jetons sont définis dans `apps/web/app/globals.css` (bloc `@theme`) et nulle part ailleurs.
 
+**Système de mise en forme — `DESIGN.md`.** Le fichier `DESIGN.md` à la racine, installé via
+`npx getdesign@latest add coinbase`, sert de référence de GRAMMAIRE visuelle : échelle de
+rayons, rythme éditorial, hiérarchie typographique, tiers d'élévation, géométrie des
+composants.
+
+Il en est repris le système, **jamais la palette**. Les couleurs du template (bleu `#0052ff`,
+near-black `#0a0b0d`, verts/rouges de marché) sont l'identité d'une marque tierce : les
+reprendre serait du plagiat, alors qu'adopter une échelle de rayons ou un rythme de section
+ne l'est pas — ce sont des conventions de mise en forme. ZENITH conserve intégralement sa
+palette crème/orange (§7).
+
+Éléments effectivement adoptés :
+
+- **Titres d'affichage en graisse 400**, avec interlettrage négatif (`.display-*`). Sur un
+  site de cotation, la graisse lourde sonne « urgence de plateforme de trading » ; la graisse
+  normale sonne « publication institutionnelle ». ZENITH étant un site d'information et non
+  un courtier, c'est le registre juste.
+- **Police à chasse fixe sur tous les nombres** (JetBrains Mono, branchée sur la classe
+  `.tabular` déjà présente partout). En chasse proportionnelle, un « 1 » est plus étroit
+  qu'un « 8 » : une colonne de cotation se décale visuellement à chaque rafraîchissement.
+- **Géométrie en pilule** sur les boutons d'action principaux.
+- **Échelle de rayons complète** (`xs` 4 → `xl` 24 + `pill`), dont `--radius-card` (12 px)
+  reste le cran de référence du §3.1.
+- **Un seul tier d'ombre** : empiler cinq niveaux produit une hiérarchie que personne ne
+  perçoit.
+
 ### 3.2 Ce qu'on emprunte à AniList — et ce qu'on n'emprunte PAS
 
 La capture de référence AniList est en thème sombre ; ZENITH est en thème clair. On reprend la **structure**, pas la palette :
