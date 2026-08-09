@@ -313,6 +313,57 @@ export function getTrendingCrypto(currency = 'eur'): Promise<DataResult<Trending
   )
 }
 
+/**
+ * Tendances ENRICHIES : les mêmes actifs, avec prix, capitalisation et courbe.
+ *
+ * L'endpoint des tendances ne publie qu'un nom, un rang et une variation — d'où la
+ * pauvreté assumée de `TrendingAsset`. Pour afficher ces actifs dans le même tableau
+ * que les autres vues, on recharge donc la liste par identifiants via `listAssets`.
+ *
+ * C'est UN appel réseau de plus, et il est assumé : la vue n'est chargée que si le
+ * lecteur ouvre l'onglet, et le résultat est mis en cache comme les autres. La
+ * solution sans appel — croiser les tendances avec les 250 premières
+ * capitalisations déjà chargées — a été écartée parce qu'un actif en tendance est
+ * précisément, le plus souvent, une petite capitalisation absente de ce tableau :
+ * l'onglet se serait vidé au moment où il devient intéressant.
+ *
+ * L'ORDRE des tendances est celui de la source, et il est reconstruit ici : c'est un
+ * classement par popularité que `coins/markets` ignore et remplacerait par un tri
+ * par capitalisation.
+ */
+export async function getTrendingCryptoAssets(
+  currency = 'eur',
+): Promise<DataResult<MarketAsset[]>> {
+  const trending = await getTrendingCrypto(currency)
+  if (!trending.ok) return trending
+  if (trending.data.length === 0) return { ...trending, data: [] }
+
+  const order = new Map(trending.data.map((asset, index) => [asset.id, index]))
+
+  const enriched = await run(
+    'crypto',
+    `crypto:trending-assets:${currency}:${[...order.keys()].join(',')}`,
+    (provider) =>
+      provider.listAssets({
+        assetClass: 'crypto',
+        currency,
+        ids: [...order.keys()],
+        withSparkline: true,
+      }),
+    TRENDING_TTL_SECONDS,
+  )
+
+  if (!enriched.ok) return enriched
+
+  // Un fournisseur qui ignore `ids` renverrait plus large : on refiltre ici plutôt
+  // que de faire confiance à la source.
+  const ordered = enriched.data
+    .filter((asset) => order.has(asset.id))
+    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+
+  return { ...enriched, data: ordered }
+}
+
 export interface CryptoOverview {
   gainers: MarketAsset[]
   losers: MarketAsset[]

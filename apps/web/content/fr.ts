@@ -161,6 +161,9 @@ export const fr = {
       volume: 'Volume 24 h',
       marketCap: 'Capitalisation',
       chart: '7 jours',
+      /** En-tête de la colonne unique de variation, quand un sélecteur de période la pilote. */
+      variation: 'Variation',
+      watch: 'Suivi',
       /** Amplitude de la séance — remplace la capitalisation quand la source ne la publie pas. */
       dayRange: 'Plus bas / plus haut 24 h',
     },

@@ -34,8 +34,19 @@ export function AssetTile({ asset }: { asset: MarketAsset }) {
  * Toutes les sources ne fournissent pas d'image (le forex n'en a pas du tout). Le
  * repli affiche les initiales du symbole plutôt qu'une icône générique, ce qui
  * reste lisible et n'invente aucune identité visuelle.
+ *
+ * Le paramètre est typé par les DEUX champs réellement lus, et non par `MarketAsset`
+ * entier : c'est ce qui permet d'afficher aussi le logo d'un `TrendingAsset`, plus
+ * pauvre par conception puisque sa source ne publie ni prix ni devise. Exiger un
+ * type complet pour en lire deux propriétés obligerait à fabriquer un actif factice.
  */
-export function AssetLogo({ asset, size = 24 }: { asset: MarketAsset; size?: number }) {
+export function AssetLogo({
+  asset,
+  size = 24,
+}: {
+  asset: Pick<MarketAsset, 'symbol'> & Partial<Pick<MarketAsset, 'image' | 'name'>>
+  size?: number
+}) {
   if (!asset.image) {
     // Pour une paire de devises, c'est la contrepartie qui distingue les lignes :
     // « EUR/USD » et « EUR/GBP » afficheraient sinon le même « EUR » partout.

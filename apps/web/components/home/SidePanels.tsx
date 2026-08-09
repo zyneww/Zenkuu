@@ -184,7 +184,15 @@ export function SentimentPanel({ result }: { result: DataResult<SentimentIndex> 
 }
 
 /** Traduction de l'échelle publiée en anglais par la source. */
-function classify(value: number): string {
+/**
+ * Libellé français d'une valeur de l'indice.
+ *
+ * Exporté parce que la carte de synthèse de `/crypto` affiche le même indice sous
+ * une forme condensée : dupliquer les seuils garantirait qu'ils divergent au premier
+ * ajustement, et deux pages annonceraient alors « Avidité » et « Neutre » pour la
+ * même valeur.
+ */
+export function classify(value: number): string {
   if (value <= 24) return fr.sentiment.scale.extremeFear
   if (value <= 44) return fr.sentiment.scale.fear
   if (value <= 55) return fr.sentiment.scale.neutral

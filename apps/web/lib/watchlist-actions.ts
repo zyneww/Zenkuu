@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { addToWatchlist, isInWatchlist, removeFromWatchlist } from '@zenith/db'
+import { addToWatchlist, isInWatchlist, listWatchlist, removeFromWatchlist } from '@zenith/db'
 
 import { AUTH_ENABLED } from '@/lib/auth'
 
@@ -81,4 +81,31 @@ export async function getWatchlistState(
   if (!userId) return { available: false, following: false }
 
   return { available: true, following: await isInWatchlist(userId, assetClass, assetId) }
+}
+
+/**
+ * Identifiants suivis pour une classe d'actif — lecture GROUPÉE.
+ *
+ * `getWatchlistState` interroge la base par actif : correct sur une fiche, ruineux
+ * dans un tableau de cinquante lignes, où il produirait cinquante allers-retours
+ * pour un état qu'une seule requête suffit à connaître. On lit donc la liste
+ * complète une fois et on la réduit à un ensemble d'identifiants.
+ *
+ * `available: false` ne signifie pas « rien de suivi » mais « le suivi n'est pas
+ * disponible » — pas de compte, ou pas de base configurée. Les deux cas appellent un
+ * affichage différent de celui d'une liste simplement vide.
+ */
+export async function getWatchlistIds(
+  assetClass: string,
+): Promise<{ available: boolean; ids: string[] }> {
+  const userId = await currentUserId()
+  if (!userId) return { available: false, ids: [] }
+
+  const result = await listWatchlist(userId)
+  if (!result.ok) return { available: false, ids: [] }
+
+  return {
+    available: true,
+    ids: result.data.filter((item) => item.assetClass === assetClass).map((item) => item.assetId),
+  }
 }

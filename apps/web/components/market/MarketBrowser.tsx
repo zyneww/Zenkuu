@@ -6,7 +6,13 @@ import { useMemo, useState } from 'react'
 import type { AssetClass, MarketAsset } from '@zenith/data'
 import { EmptyState } from '@zenith/ui'
 
-import { MarketTable, type MarketSort, type SortDirection } from '@/components/market/MarketTable'
+import type { ChangePeriod } from '@/components/market/crypto-views'
+import {
+  MarketTable,
+  type MarketSort,
+  type SortDirection,
+  type WatchlistContext,
+} from '@/components/market/MarketTable'
 
 type QuickView = 'all' | 'gainers' | 'losers'
 
@@ -26,6 +32,19 @@ interface MarketBrowserProps {
   sortable: boolean
   paginated: boolean
   basePath: string
+  period?: ChangePeriod
+  watchlist?: WatchlistContext
+  chartPosition?: 'inline' | 'end'
+  /**
+   * Vues rapides « Tous / En hausse / En baisse ».
+   *
+   * Désactivées sur la page crypto, où des onglets « Gagnants » et « Perdants »
+   * remplissent déjà ce rôle — et le remplissent MIEUX : ils classent l'univers
+   * entier côté serveur, là où ces boutons ne filtrent que les lignes de la page
+   * affichée. Laisser les deux offrirait au lecteur deux réponses différentes à la
+   * même question.
+   */
+  quickViews?: boolean
 }
 
 /**
@@ -45,7 +64,11 @@ interface MarketBrowserProps {
  * effet sur le référencement : Next.js rend les composants client dans le HTML
  * initial — le tableau part complet, la recherche s'y greffe après hydratation.
  */
-export function MarketBrowser({ assets, ...tableProps }: MarketBrowserProps) {
+export function MarketBrowser({
+  assets,
+  quickViews = true,
+  ...tableProps
+}: MarketBrowserProps) {
   const [query, setQuery] = useState('')
   const [view, setView] = useState<QuickView>('all')
 
@@ -86,23 +109,25 @@ export function MarketBrowser({ assets, ...tableProps }: MarketBrowserProps) {
           />
         </div>
 
-        <div className="flex items-center gap-1" role="group" aria-label="Vue rapide">
-          {QUICK_VIEWS.map((entry) => (
-            <button
-              key={entry.key}
-              type="button"
-              onClick={() => setView(entry.key)}
-              aria-pressed={view === entry.key}
-              className={`rounded-card px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                view === entry.key
-                  ? 'bg-brand-soft text-brand-strong'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-              }`}
-            >
-              {entry.label}
-            </button>
-          ))}
-        </div>
+        {quickViews ? (
+          <div className="flex items-center gap-1" role="group" aria-label="Vue rapide">
+            {QUICK_VIEWS.map((entry) => (
+              <button
+                key={entry.key}
+                type="button"
+                onClick={() => setView(entry.key)}
+                aria-pressed={view === entry.key}
+                className={`rounded-card px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  view === entry.key
+                    ? 'bg-brand-soft text-brand-strong'
+                    : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                }`}
+              >
+                {entry.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {filtering ? (

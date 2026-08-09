@@ -268,6 +268,20 @@ export interface ListAssetsParams {
    * ne saurait pas s'il doit renvoyer des actions ou des indices.
    */
   assetClass?: AssetClass
+  /**
+   * Restreindre à des identifiants précis, dans l'ordre du fournisseur.
+   *
+   * Sert aux listes dont une AUTRE source ne donne que les identifiants — les
+   * tendances CoinGecko en sont le cas type : leur endpoint ne cote qu'en dollars
+   * et ne publie ni capitalisation ni volume. Sans ce paramètre, un onglet
+   * « Tendance » ne pourrait afficher qu'un nom et une variation, là où recharger
+   * ces mêmes actifs par identifiant rend un tableau complet et cohérent avec les
+   * autres vues.
+   *
+   * Un fournisseur qui ne sait pas filtrer par identifiant IGNORE ce paramètre : il
+   * renverra plus large, jamais faux. L'appelant reste donc tenu de filtrer.
+   */
+  ids?: string[]
 }
 
 /**

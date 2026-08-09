@@ -5,11 +5,20 @@ import { ChangeBadge, Sparkline } from '@zenith/ui'
 
 import { AssetLogo } from '@/components/AssetTile'
 import { Money } from '@/components/locale/Money'
+import { periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
+import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { fr } from '@/content/fr'
 import { assetHref } from '@/lib/asset-routes'
 
 export type MarketSort = 'marketCap' | 'volume24h'
 export type SortDirection = 'asc' | 'desc'
+
+/** Liste de suivi de l'utilisateur, pour la colonne d'étoiles. */
+export interface WatchlistContext {
+  /** Faux sans compte ou sans base : l'étoile devient un lien vers la connexion. */
+  available: boolean
+  ids: string[]
+}
 
 interface MarketTableProps {
   assets: MarketAsset[]
@@ -23,6 +32,26 @@ interface MarketTableProps {
   /** Pagination masquée pour les univers courts (devises, indices…). */
   paginated: boolean
   basePath: string
+  /**
+   * Période de variation à afficher, quand la page en propose un sélecteur.
+   *
+   * Absente, le tableau garde ses DEUX colonnes historiques (24 h et 7 j) : c'est le
+   * comportement des cinq autres classes d'actifs, qui n'ont pas de sélecteur et
+   * gagnent à montrer les deux fenêtres d'un coup d'œil. Présente, elle les remplace
+   * par une colonne unique — empiler un sélecteur ET deux colonnes fixes ferait
+   * afficher trois fois la même nature d'information.
+   */
+  period?: ChangePeriod
+  /** Fournie, une colonne d'étoiles de suivi est ajoutée en fin de ligne. */
+  watchlist?: WatchlistContext
+  /**
+   * Position de la colonne graphique.
+   *
+   * `inline` la place juste après la variation, au milieu du tableau — la courbe
+   * illustre alors la variation qu'elle jouxte. `end` la renvoie en fin de ligne,
+   * où elle se lit comme une vignette de complément.
+   */
+  chartPosition?: 'inline' | 'end'
 }
 
 function buildHref(
@@ -48,6 +77,9 @@ export function MarketTable({
   sortable,
   paginated,
   basePath,
+  period,
+  watchlist,
+  chartPosition = 'end',
 }: MarketTableProps) {
   /**
    * Colonnes déduites de la donnée réellement présente.
@@ -60,10 +92,21 @@ export function MarketTable({
   const has = (field: keyof MarketAsset) => assets.some((asset) => asset[field] !== undefined)
   const showMarketCap = has('marketCap')
   const showVolume = has('volume24h')
-  const show7d = has('change7d')
   const showChart = has('sparkline7d')
   const showRank = has('rank')
   const isForex = assetClass === 'forex'
+
+  /**
+   * Colonne de variation : une seule pilotée par le sélecteur, ou les deux fenêtres
+   * fixes historiques. La seconde branche reste le défaut des classes sans sélecteur.
+   */
+  const selected = period ? periodMeta(period) : null
+  const show7d = !selected && has('change7d')
+
+  // La colonne graphique se place à un seul des deux endroits, jamais aux deux.
+  const chartInline = showChart && chartPosition === 'inline'
+  const chartAtEnd = showChart && chartPosition === 'end'
+  const followed = new Set(watchlist?.ids ?? [])
 
   /**
    * Amplitude 24 h — colonne propre aux classes SANS capitalisation.
@@ -99,11 +142,18 @@ export function MarketTable({
                 {fr.market.columns.price}
               </th>
               <th scope="col" className="px-3 py-2.5 text-right font-medium">
-                {fr.market.columns.change24h}
+                {selected
+                  ? `${fr.market.columns.variation} (${selected.label})`
+                  : fr.market.columns.change24h}
               </th>
               {show7d ? (
                 <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
                   {fr.market.columns.change7d}
+                </th>
+              ) : null}
+              {chartInline ? (
+                <th scope="col" className="hidden px-3 py-2.5 font-medium lg:table-cell">
+                  {fr.market.columns.chart}
                 </th>
               ) : null}
               {showVolume ? (
@@ -132,9 +182,14 @@ export function MarketTable({
                   {fr.market.columns.dayRange}
                 </th>
               ) : null}
-              {showChart ? (
+              {chartAtEnd ? (
                 <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
                   {fr.market.columns.chart}
+                </th>
+              ) : null}
+              {watchlist ? (
+                <th scope="col" className="px-3 py-2.5 text-right font-medium">
+                  <span className="sr-only">{fr.market.columns.watch}</span>
                 </th>
               ) : null}
             </tr>
@@ -171,8 +226,11 @@ export function MarketTable({
 
                   <td className="px-3 py-2.5 text-right">
                     <ChangeBadge
-                      value={asset.change24h}
-                      periodLabel={asset.changePeriodLabel}
+                      value={selected ? asset[selected.field] : asset.change24h}
+                      // Hors sélecteur, la source peut déclarer couvrir autre chose
+                      // que 24 h (la BCE ne publie qu'un taux par jour ouvré) : on
+                      // reprend alors son libellé plutôt que d'affirmer « 24 h ».
+                      periodLabel={selected ? selected.longLabel : asset.changePeriodLabel}
                       size="sm"
                     />
                   </td>
@@ -180,6 +238,12 @@ export function MarketTable({
                   {show7d ? (
                     <td className="hidden px-3 py-2.5 text-right sm:table-cell">
                       <ChangeBadge value={asset.change7d} periodLabel="sur 7 jours" size="sm" />
+                    </td>
+                  ) : null}
+
+                  {chartInline ? (
+                    <td className="hidden px-3 py-2.5 lg:table-cell">
+                      <Sparkline values={asset.sparkline7d} label={`Évolution de ${asset.name}`} />
                     </td>
                   ) : null}
 
@@ -209,7 +273,7 @@ export function MarketTable({
                     </td>
                   ) : null}
 
-                  {showChart ? (
+                  {chartAtEnd ? (
                     <td className="hidden px-3 py-2.5 text-right lg:table-cell">
                       <span className="inline-flex justify-end">
                         <Sparkline
@@ -217,6 +281,20 @@ export function MarketTable({
                           label={`Évolution de ${asset.name}`}
                         />
                       </span>
+                    </td>
+                  ) : null}
+
+                  {watchlist ? (
+                    <td className="px-3 py-2.5 text-right">
+                      <WatchlistStar
+                        assetClass={asset.assetClass}
+                        assetId={asset.id}
+                        label={asset.name}
+                        symbol={asset.symbol}
+                        path={basePath}
+                        initialFollowing={followed.has(asset.id)}
+                        available={watchlist.available}
+                      />
                     </td>
                   ) : null}
                 </tr>

@@ -261,17 +261,24 @@ export const coinGeckoProvider: MarketDataProvider = {
       : 'marketCap'
     const direction = params.sortDirection === 'asc' ? 'asc' : 'desc'
 
+    // Filtrage par identifiants : l'endpoint accepte une liste séparée par des
+    // virgules. On la borne à 250 comme `per_page`, la limite de la source.
+    const ids = params.ids?.slice(0, 250) ?? []
+
     const rows = await http.getJson<CoinGeckoMarket[]>('coins/markets', {
       vs_currency: currency,
       order: SORT_MAP[sortField][direction],
-      per_page: Math.min(Math.max(params.perPage ?? 50, 1), 250),
-      page: Math.max(params.page ?? 1, 1),
+      // Une liste d'identifiants fixe déjà la taille du résultat : demander une
+      // page plus petite qu'elle tronquerait la réponse en silence.
+      per_page: ids.length > 0 ? ids.length : Math.min(Math.max(params.perPage ?? 50, 1), 250),
+      page: ids.length > 0 ? 1 : Math.max(params.page ?? 1, 1),
       sparkline: params.withSparkline ?? false,
       // Fenêtres supplémentaires demandées DANS LE MÊME APPEL : l'endpoint les
       // renvoie comme champs additionnels, sans requête ni quota supplémentaires.
       // C'est ce qui rend le filtre de période des « mouvements » gratuit.
       price_change_percentage: '1h,24h,7d,14d,30d,1y',
       locale: 'fr',
+      ...(ids.length > 0 ? { ids: ids.join(',') } : {}),
     })
 
     if (!Array.isArray(rows)) {

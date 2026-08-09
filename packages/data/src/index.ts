@@ -34,6 +34,7 @@ export {
   getSentiment,
   getTopNarratives,
   getTrendingCrypto,
+  getTrendingCryptoAssets,
 } from './queries'
 export type {
   CryptoOverview,

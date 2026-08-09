@@ -134,6 +134,55 @@ donc des **dénombrements** (combien de secteurs, combien en hausse), qui resten
 quand les ensembles se recoupent. Afficher une « capitalisation totale » exigerait une
 déduplication par actif que la source ne fournit pas (§5).
 
+#### Page de cotation crypto (`/crypto`)
+
+Seule des six pages de classement à **ne pas** passer par `MarketPageView`, le corps commun.
+Tout ce qui la caractérise — capitalisation mondiale, sentiment, tendances, plus fortes
+hausses — repose sur des requêtes qui n'existent que pour la crypto ; les glisser dans le
+corps commun aurait imposé cinq gardes conditionnelles à des pages qui n'en ont que faire.
+Les onglets de classes d'actifs y disparaissent aussi : la page ne parle que de crypto, et le
+saut vers les autres classes reste assuré par le menu de l'en-tête.
+
+Structure : bande de tête centrée (titre 48 px + capitalisation mondiale en une phrase) →
+trois cartes (capitalisation + sentiment, tendances, meilleures performances) → onglets de vue
+et sélecteur de période → tableau.
+
+| Élément de la référence | Traitement chez ZENITH |
+|---|---|
+| Bouton « Acheter » par ligne | **Écarté** — §7, plateforme 100 % lecture seule. Remplacé par l'étoile de suivi |
+| Carte « Biais de trading » (% achat/vente) | **Écartée** — aucune source ne publie la pression acheteur/vendeur. Remplacée par l'indice Fear & Greed, réel et cité |
+| Sélecteur `1H · 24h · 1S · 1M · 1A · 5A` | Cinq crans réels ; **le cran 5 ans est omis**, la source ne le publie pas (§5) |
+| Onglet « Nouveautés » | **Écarté** — pas de date d'ajout dans la source |
+| Chips « Échangeables (652) » | **Écartés** — ZENITH n'est pas une place de marché |
+| Prix dans la carte « Tendance » | **Absents** — l'endpoint des tendances ne cote qu'en dollars |
+
+Trois pièges que toute évolution de cette page doit respecter :
+
+- **« Gagnants » se filtre par SIGNE, pas par rang.** `getCryptoOverview` trie l'univers par
+  variation puis en découpe les extrémités : demander 50 lignes d'un univers de
+  `MOVERS_UNIVERSE_SIZE` = 100 ferait se rejoindre les deux listes au milieu, et le bas de
+  « Gagnants » afficherait des actifs en baisse. La liste raccourcit les jours de marché
+  atone — c'est l'information à ne pas masquer par une longueur fixe.
+- **La portée du classement s'écrit à l'écran.** Ce n'est pas « les plus fortes hausses du
+  marché » mais « parmi les 100 plus grandes capitalisations » : une hausse de +900 % sur un
+  jeton illiquide n'a pas le même sens, et taire le filtre reviendrait à le laisser croire.
+- **Vues et périodes vivent dans l'URL** (`?vue=`, `?periode=`), pas dans un état React — une
+  vue « plus fortes hausses sur 1 an » doit être partageable, mettable en favori et indexable.
+  Les onglets sont donc des `<Link>`, pas des boutons.
+
+Deux ajouts de plomberie que cette page a rendus nécessaires :
+
+- `ListAssetsParams.ids` — filtrage par identifiants. Sans lui, l'onglet « Tendance » n'aurait
+  affiché qu'un nom et une variation, la source des tendances ne publiant ni prix ni
+  capitalisation. Coûte **un** appel réseau, mis en cache et payé seulement si l'onglet est
+  ouvert. Un fournisseur qui ignore ce paramètre renvoie plus large, jamais faux : l'appelant
+  reste tenu de refiltrer.
+- `getWatchlistIds(assetClass)` — lecture **groupée** de la liste de suivi. `getWatchlistState`
+  interroge la base par actif : correct sur une fiche, ruineux sur cinquante lignes.
+
+Le sélecteur de période, lui, ne coûte **rien** : CoinGecko renvoie déjà
+`1h,24h,7d,14d,30d,1y` dans l'appel du classement.
+
 ### 3.2 Ce qu'on emprunte à AniList — et ce qu'on n'emprunte PAS
 
 La capture de référence AniList est en thème sombre ; ZENITH est en thème clair. On reprend la **structure**, pas la palette :
