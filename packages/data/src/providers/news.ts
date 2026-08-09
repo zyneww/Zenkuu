@@ -33,6 +33,8 @@ const http = createHttpClient({
   maxRequestsPerWindow: 20,
   minIntervalMs: 200,
   timeoutMs: 12_000,
+  // Aligné sur le TTL du fil d'actualités, plus court que le défaut.
+  revalidateSeconds: 180,
   headers: {
     Accept: 'application/rss+xml, application/xml, text/xml',
     'User-Agent': 'ZenithBot/1.0 (+https://zenith.example; agrégateur RSS)',

@@ -47,6 +47,37 @@ function isoDaysAgo(days: number): string {
   return date.toISOString().slice(0, 10)
 }
 
+/**
+ * Taux de change bruts, base euro.
+ *
+ * Sert au sélecteur de devise des fiches actif. On expose ici les taux plutôt que de
+ * refaire un appel marché dans chaque devise : CoinGecko coterait certes nativement
+ * en dollars, mais cela coûterait deux requêtes par changement de devise sur un
+ * quota qui n'en tolère que cinq par minute. Un seul taux BCE, mis en cache, permet
+ * de convertir toute la page instantanément — à condition de le DIRE à l'utilisateur,
+ * ce que fait la fiche en affichant la date du taux appliqué.
+ */
+export async function fetchExchangeRates(
+  symbols: string[],
+): Promise<{ base: string; date: string; rates: Record<string, number> }> {
+  const payload = await http.getJson<{ base: string; date: string; rates: Record<string, number> }>(
+    'latest',
+    { base: BASE_CURRENCY, symbols: symbols.filter((code) => code !== BASE_CURRENCY).join(',') },
+  )
+
+  if (!payload?.rates) {
+    throw new ProviderError(PROVIDER_ID, 'Taux de change illisibles')
+  }
+
+  // L'euro n'est pas renvoyé par l'API puisqu'il est la base : on l'ajoute pour que
+  // l'appelant dispose d'une table complète et n'ait pas à traiter ce cas à part.
+  return {
+    base: BASE_CURRENCY,
+    date: payload.date,
+    rates: { [BASE_CURRENCY]: 1, ...payload.rates },
+  }
+}
+
 export const frankfurterProvider: MarketDataProvider = {
   id: PROVIDER_ID,
   label: 'Frankfurter (BCE)',

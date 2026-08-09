@@ -14,6 +14,8 @@ export type { AssetClassAvailability } from './registry'
 
 export {
   MOVERS_UNIVERSE_SIZE,
+  SUPPORTED_CURRENCIES,
+  getExchangeRates,
   getAsset,
   getAssetHistory,
   getCategories,
@@ -32,8 +34,20 @@ export type {
   CryptoOverview,
   DataResult,
   DataSource,
+  ExchangeRates,
   RankingParams,
+  SupportedCurrency,
 } from './queries'
+
+export {
+  MIN_POINTS_FOR_CHART,
+  getMarketCapSeries,
+  getMarketCapSeriesState,
+} from './market-cap-series'
+export type { MarketCapPoint, MarketCapSeriesState } from './market-cap-series'
+
+export { MIN_QUERY_LENGTH, searchAssets } from './search'
+export type { SearchResponse } from './search'
 
 export { YAHOO_UNIVERSE, findUniverseEntry, toSlug } from './providers/yahoo-universe'
 
@@ -48,6 +62,7 @@ export type {
   MarketDataProvider,
   NewsItem,
   PriceHistory,
+  SearchResult,
   SentimentIndex,
   SortDirection,
   SortField,

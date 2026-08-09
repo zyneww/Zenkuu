@@ -1,19 +1,36 @@
-import type { DataResult, GlobalMarketStats } from '@zenith/data'
-import { ChangeBadge, EmptyState, formatCompact, formatCurrency, formatNumber } from '@zenith/ui'
+import type { DataResult, GlobalMarketStats, MarketCapSeriesState } from '@zenith/data'
+import {
+  ChangeBadge,
+  EmptyState,
+  Sparkline,
+  formatCompact,
+  formatCurrency,
+  formatNumber,
+} from '@zenith/ui'
 
 import { fr } from '@/content/fr'
 
 /**
  * Carte de synthèse du marché — équivalent du bloc « Market Cap » de CoinGecko.
  *
- * Une différence assumée avec le modèle : CoinGecko accompagne le chiffre d'une
- * courbe de la capitalisation mondiale. Cette série n'existe que sur leurs offres
- * payantes (`/global/market_cap_chart` répond 401 sur le palier gratuit). Plutôt
- * qu'un tracé approximatif — celui de Bitcoin, par exemple, présenté comme celui du
- * marché entier — la carte se concentre sur les chiffres réellement sourcés et
- * consacre la place gagnée à la dominance (§5).
+ * La courbe pose un problème de source : CoinGecko ne publie l'historique de la
+ * capitalisation mondiale que sur ses offres payantes (401 sur le palier gratuit),
+ * et aucune alternative gratuite n'existe. Plutôt qu'un tracé approximatif — celui
+ * de Bitcoin, par exemple, présenté comme celui du marché entier — la courbe est
+ * construite à partir de NOS PROPRES RELEVÉS, un point à chaque lecture des
+ * statistiques globales (cf. `market-cap-series.ts`). Chaque point est donc une
+ * valeur réellement lue à un instant daté, jamais interpolée.
+ *
+ * Conséquence visible : la courbe est absente au démarrage et se remplit au fil des
+ * heures. La carte le dit, au lieu de laisser un vide inexpliqué.
  */
-export function MarketOverviewCard({ result }: { result: DataResult<GlobalMarketStats> }) {
+export function MarketOverviewCard({
+  result,
+  series,
+}: {
+  result: DataResult<GlobalMarketStats>
+  series: MarketCapSeriesState
+}) {
   if (!result.ok) {
     return (
       <EmptyState
@@ -38,6 +55,28 @@ export function MarketOverviewCard({ result }: { result: DataResult<GlobalMarket
         <p className="tabular mt-1 text-2xl font-bold text-ink">{marketCap ?? '—'}</p>
         <div className="mt-1">
           <ChangeBadge value={stats.marketCapChange24h} size="sm" />
+        </div>
+
+        <div className="mt-3">
+          {series.ready ? (
+            <>
+              <Sparkline
+                values={series.points.map((point) => point.value)}
+                width={260}
+                height={44}
+                label={fr.home.marketCapSeriesLabel(series.spanMinutes)}
+              />
+              <p className="mt-1 text-[0.625rem] text-ink-muted">
+                {fr.home.marketCapSeriesHint(series.spanMinutes)}
+              </p>
+            </>
+          ) : (
+            /* Série trop courte : on explique pourquoi plutôt que de laisser un
+               espace vide, et surtout plutôt que de tracer une courbe estimée. */
+            <p className="rounded-lg bg-surface-muted px-2.5 py-2 text-[0.625rem] leading-relaxed text-ink-muted">
+              {fr.home.marketCapSeriesBuilding(series.points.length)}
+            </p>
+          )}
         </div>
       </div>
 

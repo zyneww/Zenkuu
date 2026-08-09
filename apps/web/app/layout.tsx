@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
+import { Footer } from '@/components/Footer'
 import { NavBar } from '@/components/NavBar'
 import { ThemeScript } from '@/components/ThemeScript'
 import { fr } from '@/content/fr'
@@ -34,6 +35,11 @@ export const metadata: Metadata = {
   },
 }
 
+// Le layout ne charge AUCUNE donnée, volontairement. Next.js aligne le `revalidate`
+// d'une page sur le plus court de tous les appels de son rendu : un seul fetch à
+// 5 minutes placé ici ramènerait l'ensemble du site à 5 minutes, y compris les pages
+// qui n'ont besoin d'être régénérées qu'une fois par demi-heure. Les tendances de
+// l'overlay de recherche sont donc chargées à la demande, via /api/tendances.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // `suppressHydrationWarning` : ThemeScript modifie `class` avant l'hydratation,
@@ -59,28 +65,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
       </body>
     </html>
-  )
-}
-
-/**
- * Pied de page.
- *
- * L'avertissement « lecture seule » n'est pas décoratif : c'est ce qui matérialise
- * le positionnement du §1 et tient ZENITH à distance du conseil en investissement.
- */
-function Footer() {
-  return (
-    <footer className="mt-12 border-t border-border-subtle bg-surface-muted">
-      <div className="mx-auto max-w-[1040px] px-4 py-8 text-center text-xs text-ink-muted">
-        <span
-          className="brand-mark brand-mark-mascotte mx-auto mb-3 block h-10 w-12 text-brand opacity-70"
-          role="img"
-          aria-label={`Mascotte ${fr.site.name}`}
-        />
-        <p className="mx-auto max-w-2xl leading-relaxed">{fr.footer.disclaimer}</p>
-        <p className="mt-2">{fr.footer.dataNote}</p>
-        <p className="pt-3 font-medium text-ink">{fr.footer.rights(new Date().getFullYear())}</p>
-      </div>
-    </footer>
   )
 }

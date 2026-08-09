@@ -168,4 +168,9 @@
     -webkit-mask-image: url('/brand/mascotte.svg');
     mask-image: url('/brand/mascotte.svg');
   }
+
+  .brand-mark-footer {
+    -webkit-mask-image: url('/brand/footer-logo.svg');
+    mask-image: url('/brand/footer-logo.svg');
+  }
 }

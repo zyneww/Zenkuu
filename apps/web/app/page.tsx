@@ -6,6 +6,7 @@ import {
   getCryptoGlobalStats,
   getCryptoOverview,
   getForexRates,
+  getMarketCapSeriesState,
   getNews,
   getSentiment,
   getTopNarratives,
@@ -70,6 +71,10 @@ export default async function HomePage() {
   // le même top 10, courbes comprises, pour un appel réseau de moins (§9).
   const topCrypto = overview.ok ? overview.data.topByMarketCap : []
 
+  // Lu APRÈS `getCryptoGlobalStats` : c'est cet appel qui vient d'ajouter le point
+  // du jour à la série. L'ordre compte, sinon la carte afficherait un relevé de retard.
+  const marketCapSeries = getMarketCapSeriesState('EUR')
+
   const availability = getAvailability()
   const chips = availability
     .filter((entry) => entry.assetClass !== 'nft')
@@ -83,7 +88,7 @@ export default async function HomePage() {
     <div className="space-y-6">
       {/* ── Rangée de synthèse : capitalisation, tendances, hausses ──────────── */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <MarketOverviewCard result={globalStats} />
+        <MarketOverviewCard result={globalStats} series={marketCapSeries} />
 
         <TrendingPanel
           assets={trending.ok ? trending.data : null}

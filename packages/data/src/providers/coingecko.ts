@@ -16,6 +16,7 @@ import type {
   MarketCategory,
   MarketDataProvider,
   PriceHistory,
+  SearchResult,
   TrendingAsset,
 } from '../types'
 import { ProviderError } from '../types'
@@ -123,6 +124,17 @@ interface CoinGeckoCoin {
     atl_date?: Record<string, string>
     last_updated?: string
   }
+}
+
+interface CoinGeckoSearch {
+  coins?: {
+    id: string
+    name: string
+    symbol?: string
+    market_cap_rank?: number | null
+    thumb?: string
+    large?: string
+  }[]
 }
 
 interface CoinGeckoCategory {
@@ -414,6 +426,25 @@ export const coinGeckoProvider: MarketDataProvider = {
     }
 
     return { points, currency: currency.toUpperCase(), days }
+  },
+
+  async search(query: string, limit = 8): Promise<SearchResult[]> {
+    const payload = await http.getJson<CoinGeckoSearch>('search', { query })
+
+    return (payload.coins ?? [])
+      .filter((coin) => coin.id && coin.name)
+      .slice(0, limit)
+      .map((coin) => {
+        const result: SearchResult = {
+          id: coin.id,
+          name: coin.name,
+          symbol: (coin.symbol ?? '').toUpperCase(),
+          assetClass: 'crypto',
+        }
+        if (coin.thumb || coin.large) result.image = coin.large ?? coin.thumb
+        if (typeof coin.market_cap_rank === 'number') result.rank = coin.market_cap_rank
+        return result
+      })
   },
 
   async getCategories(currency = DEFAULT_CURRENCY): Promise<MarketCategory[]> {

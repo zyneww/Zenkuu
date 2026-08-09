@@ -22,6 +22,11 @@ const http = createHttpClient({
   baseUrl: 'https://api.alternative.me',
   maxRequestsPerWindow: 20,
   minIntervalMs: 200,
+  // Aligné sur le TTL applicatif de cet indice (30 min). Sans cela, le client HTTP
+  // appliquerait son défaut de 5 minutes, et Next.js — qui retient le plus court
+  // `revalidate` d'un rendu — ramènerait la page /sentiment à 5 minutes malgré son
+  // `export const revalidate = 1800`.
+  revalidateSeconds: 1_800,
 })
 
 interface FearGreedResponse {

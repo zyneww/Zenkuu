@@ -8,6 +8,8 @@
  */
 
 import { CACHE_TTL_SECONDS, cached } from './cache'
+import { recordMarketCap } from './market-cap-series'
+import { fetchExchangeRates } from './providers/frankfurter'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
 import { SENTIMENT_SOURCE, fetchSentiment } from './providers/sentiment'
 import { getDeclaredProvider, getProvider } from './registry'
@@ -64,6 +66,9 @@ const CATEGORIES_TTL_SECONDS = 1_800
 
 /** Le palmarès des tendances est stable à l'échelle de la dizaine de minutes. */
 const TRENDING_TTL_SECONDS = 600
+
+/** La BCE ne publie qu'un taux par jour ouvré : le redemander plus souvent est vain. */
+const FX_TTL_SECONDS = 3_600
 
 function describe(assetClass: AssetClass): DataSource | null {
   const provider = getDeclaredProvider(assetClass)
@@ -135,13 +140,26 @@ async function runStandalone<T>(
 
 /* ── Statistiques globales ─────────────────────────────────────────────────── */
 
-export function getCryptoGlobalStats(currency = 'eur'): Promise<DataResult<GlobalMarketStats>> {
-  return run('crypto', `crypto:global:${currency}`, (provider) => {
+export async function getCryptoGlobalStats(
+  currency = 'eur',
+): Promise<DataResult<GlobalMarketStats>> {
+  const result = await run('crypto', `crypto:global:${currency}`, (provider) => {
     if (!provider.getGlobalStats) {
       throw new ProviderError(provider.id, 'Statistiques globales non supportées')
     }
     return provider.getGlobalStats(currency)
   })
+
+  // Chaque lecture réussie alimente notre propre série historique — seule façon
+  // d'obtenir une courbe de capitalisation globale sans source payante.
+  // L'enregistrement est volontairement placé ICI plutôt que dans l'adaptateur :
+  // il doit capter aussi les lectures servies par le cache, sinon la série se
+  // limiterait aux rares instants où le cache expire.
+  if (result.ok) {
+    recordMarketCap(result.data.currency, result.data.totalMarketCap)
+  }
+
+  return result
 }
 
 /* ── Classements ───────────────────────────────────────────────────────────── */
@@ -383,6 +401,26 @@ export function getNews(limit = 8): Promise<DataResult<NewsItem[]>> {
     { label: NEWS_SOURCES, attributionUrl: 'https://cointelegraph.com' },
     () => fetchNews(limit),
     NEWS_TTL_SECONDS,
+  )
+}
+
+/** Devises proposées par le sélecteur des fiches actif. */
+export const SUPPORTED_CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY'] as const
+export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number]
+
+export interface ExchangeRates {
+  base: string
+  /** Date de publication du taux — affichée, car un taux BCE date du jour ouvré précédent. */
+  date: string
+  rates: Record<string, number>
+}
+
+export function getExchangeRates(): Promise<DataResult<ExchangeRates>> {
+  return runStandalone(
+    'fx:rates:eur',
+    { label: 'Frankfurter (BCE)', attributionUrl: 'https://frankfurter.dev' },
+    () => fetchExchangeRates([...SUPPORTED_CURRENCIES]),
+    FX_TTL_SECONDS,
   )
 }
 

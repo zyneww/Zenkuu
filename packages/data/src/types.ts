@@ -142,6 +142,24 @@ export interface NewsItem {
   excerpt?: string
 }
 
+/**
+ * Résultat de recherche universelle.
+ *
+ * Volontairement minimal : la recherche doit répondre vite et sur beaucoup de
+ * candidats. Aller chercher le prix de chaque résultat coûterait un appel par ligne
+ * — inenvisageable sur le quota gratuit. La liste affiche donc identité et rang, et
+ * c'est la fiche de l'actif qui porte les chiffres.
+ */
+export interface SearchResult {
+  id: string
+  name: string
+  symbol: string
+  assetClass: AssetClass
+  image?: string
+  /** Rang par capitalisation, quand la source le fournit — sert à ordonner. */
+  rank?: number
+}
+
 /** Indice de sentiment composite (Fear & Greed). */
 export interface SentimentIndex {
   /** 0 = peur extrême, 100 = avidité extrême. */
@@ -228,6 +246,8 @@ export interface MarketDataProvider {
   ): Promise<PriceHistory>
   /** Secteurs / narratifs, quand la source en publie. */
   getCategories?(currency?: string): Promise<MarketCategory[]>
+  /** Recherche par nom ou symbole, quand la source expose un index. */
+  search?(query: string, limit?: number): Promise<SearchResult[]>
 }
 
 /** Erreur normalisée remontée par la couche adaptateur. */

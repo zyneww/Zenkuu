@@ -1,12 +1,48 @@
+import {
+  Activity,
+  ArrowRightLeft,
+  Bitcoin,
+  BookOpen,
+  Building2,
+  CalendarClock,
+  CalendarDays,
+  ChartCandlestick,
+  Code2,
+  Filter,
+  Fuel,
+  Gauge,
+  GitCompareArrows,
+  GraduationCap,
+  Grid3x3,
+  Info,
+  Layers,
+  LayoutGrid,
+  LifeBuoy,
+  Network,
+  Newspaper,
+  PenLine,
+  Rocket,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  type LucideIcon,
+} from 'lucide-react'
+
 /**
  * Structure de la navigation principale.
  *
  * Conçue depuis notre propre positionnement, pas recopiée : CoinGecko range son
- * menu par TYPE D'OBJET (Cryptomonnaies, Exchanges, RWA, Products, API) parce qu'il
- * vend de la donnée et référence des plateformes d'échange. ZENITH ne vend rien et
- * n'échange rien — on range donc par INTENTION DE LECTURE : « qu'est-ce que je
- * regarde ? » (Marchés), « qui monte, qui descend ? » (Classements), « qu'est-ce que
- * j'en déduis ? » (Analyse), « que s'est-il passé ? » (Actualités).
+ * menu par TYPE D'OBJET (Cryptocurrencies, Exchanges, RWA, Products, API) parce
+ * qu'il vend de la donnée et référence des plateformes d'échange. ZENITH ne vend
+ * rien et n'échange rien — on range donc par INTENTION DE LECTURE : « qu'est-ce que
+ * je regarde ? » (Marchés), « qui monte, qui descend ? » (Classements), « qu'est-ce
+ * que j'en déduis ? » (Analyse), « que s'est-il passé ? » (Actualités), « comment ça
+ * marche ? » (Plus).
+ *
+ * Ce qu'on emprunte à leur structure en revanche, c'est le DÉCOUPAGE EN SECTIONS
+ * avec libellés discrets : au-delà de quatre entrées, une liste plate se parcourt
+ * mal. Les sections donnent un point d'accroche visuel et rendent le menu balayable.
  *
  * Aucune entrée ne mène ni ne fait référence à un achat, une vente ou un ordre (§7).
  *
@@ -18,143 +54,305 @@
 export interface NavItem {
   label: string
   description: string
+  icon: LucideIcon
   href?: string
   ready: boolean
 }
 
+export interface NavSection {
+  /** Libellé discret ; omis pour un groupe qui se passe d'intitulé. */
+  label?: string
+  items: NavItem[]
+}
+
 export interface NavMenu {
   label: string
-  /** Destination du libellé du menu lui-même, quand elle existe. */
-  href?: string
-  items: NavItem[]
+  sections: NavSection[]
 }
 
 export const NAV_MENUS: NavMenu[] = [
   {
     label: 'Marchés',
-    items: [
+    sections: [
       {
-        label: 'Cryptomonnaies',
-        description: 'Classement, capitalisations et volumes',
-        href: '/crypto',
-        ready: true,
+        label: 'Cryptoactifs',
+        items: [
+          {
+            label: 'Cryptomonnaies',
+            description: 'Classement, capitalisations et volumes',
+            icon: Bitcoin,
+            href: '/crypto',
+            ready: true,
+          },
+          {
+            label: 'Catégories & secteurs',
+            description: 'Performance par narratif',
+            icon: LayoutGrid,
+            href: '/categories',
+            ready: true,
+          },
+        ],
       },
       {
-        label: 'Devises',
-        description: 'Paires majeures, taux de référence BCE',
-        href: '/devises',
-        ready: true,
+        label: 'Marchés traditionnels',
+        items: [
+          {
+            label: 'Actions',
+            description: 'Cours et principales valeurs cotées',
+            icon: Building2,
+            href: '/actions',
+            ready: true,
+          },
+          {
+            label: 'ETF',
+            description: 'Fonds indiciels cotés',
+            icon: Layers,
+            href: '/etf',
+            ready: true,
+          },
+          {
+            label: 'Indices',
+            description: 'CAC 40, S&P 500, DAX et autres',
+            icon: ChartCandlestick,
+            href: '/indices',
+            ready: true,
+          },
+        ],
       },
       {
-        label: 'Actions',
-        description: 'Cours, capitalisation et fondamentaux',
-        href: '/actions',
-        ready: true,
-      },
-      {
-        label: 'ETF',
-        description: 'Frais, encours et performance',
-        href: '/etf',
-        ready: true,
-      },
-      {
-        label: 'Matières premières',
-        description: 'Énergie, métaux et agricoles',
-        href: '/matieres-premieres',
-        ready: true,
-      },
-      {
-        label: 'Indices',
-        description: 'Grands indices et leur composition',
-        href: '/indices',
-        ready: true,
+        label: 'Autres classes',
+        items: [
+          {
+            label: 'Devises',
+            description: 'Paires majeures, taux de référence BCE',
+            icon: ArrowRightLeft,
+            href: '/devises',
+            ready: true,
+          },
+          {
+            label: 'Matières premières',
+            description: 'Énergie, métaux et agricoles',
+            icon: Fuel,
+            href: '/matieres-premieres',
+            ready: true,
+          },
+        ],
       },
     ],
   },
+
   {
     label: 'Classements',
-    items: [
+    sections: [
       {
-        label: 'Top capitalisations',
-        description: 'Les plus grandes valorisations du marché',
-        href: '/crypto',
-        ready: true,
+        label: 'Palmarès',
+        items: [
+          {
+            label: 'Top capitalisations',
+            description: 'Les plus grandes valorisations',
+            icon: Trophy,
+            href: '/crypto',
+            ready: true,
+          },
+          {
+            label: 'Plus fortes hausses',
+            description: 'Meilleures performances sur 24 h',
+            icon: TrendingUp,
+            href: '/crypto/mouvements',
+            ready: true,
+          },
+          {
+            label: 'Plus fortes baisses',
+            description: 'Plus forts reculs sur 24 h',
+            icon: TrendingDown,
+            href: '/crypto/mouvements',
+            ready: true,
+          },
+        ],
       },
       {
-        label: 'Plus fortes hausses',
-        description: 'Meilleures performances sur 24 heures',
-        href: '/crypto/mouvements',
-        ready: true,
-      },
-      {
-        label: 'Plus fortes baisses',
-        description: 'Plus forts reculs sur 24 heures',
-        href: '/crypto/mouvements',
-        ready: true,
-      },
-      {
-        label: 'Catégories & secteurs',
-        description: 'Performance par narratif et par secteur',
-        href: '/categories',
-        ready: true,
-      },
-      {
-        label: 'Indice de sentiment',
-        description: 'Fear & Greed du marché crypto',
-        href: '/sentiment',
-        ready: true,
+        label: 'Segments',
+        items: [
+          {
+            label: 'Catégories & secteurs',
+            description: 'Les narratifs qui portent le marché',
+            icon: LayoutGrid,
+            href: '/categories',
+            ready: true,
+          },
+          {
+            label: 'Indice de sentiment',
+            description: 'Fear & Greed du marché crypto',
+            icon: Gauge,
+            href: '/sentiment',
+            ready: true,
+          },
+        ],
       },
     ],
   },
+
   {
     label: 'Analyse',
-    items: [
+    sections: [
       {
-        label: 'Comparateur',
-        description: 'Deux à quatre actifs côte à côte',
-        ready: false,
+        label: 'Outils',
+        items: [
+          {
+            label: 'Comparateur',
+            description: 'Deux à quatre actifs côte à côte',
+            icon: GitCompareArrows,
+            ready: false,
+          },
+          {
+            label: 'Convertisseur',
+            description: 'Conversion entre devises et actifs',
+            icon: ArrowRightLeft,
+            ready: false,
+          },
+          {
+            label: 'Screener',
+            description: 'Filtrer le marché sur vos critères',
+            icon: Filter,
+            ready: false,
+          },
+        ],
       },
       {
-        label: 'Convertisseur',
-        description: 'Conversion entre devises et actifs',
-        ready: false,
-      },
-      {
-        label: 'Screener',
-        description: 'Filtrer le marché sur vos critères',
-        ready: false,
-      },
-      {
-        label: 'Heatmap sectorielle',
-        description: 'Vue d’ensemble des secteurs en un coup d’œil',
-        ready: false,
-      },
-      {
-        label: 'Corrélations',
-        description: 'Comment les actifs évoluent les uns par rapport aux autres',
-        ready: false,
+        label: 'Visualisations',
+        items: [
+          {
+            label: 'Heatmap sectorielle',
+            description: 'Les secteurs en un coup d’œil',
+            icon: Grid3x3,
+            ready: false,
+          },
+          {
+            label: 'Corrélations',
+            description: 'Comment les actifs évoluent ensemble',
+            icon: Network,
+            ready: false,
+          },
+        ],
       },
     ],
   },
+
   {
     label: 'Actualités',
-    items: [
+    sections: [
       {
-        label: 'Toute l’actualité',
-        description: 'Le fil complet, toutes sources confondues',
-        href: '/actualites',
-        ready: true,
+        items: [
+          {
+            label: 'Toute l’actualité',
+            description: 'Le fil complet, toutes sources confondues',
+            icon: Newspaper,
+            href: '/actualites',
+            ready: true,
+          },
+        ],
       },
       {
-        label: 'Calendrier économique',
-        description: 'Publications macro et événements à venir',
-        ready: false,
+        label: 'Agenda',
+        items: [
+          {
+            label: 'Calendrier économique',
+            description: 'Publications macro à venir',
+            icon: CalendarDays,
+            ready: false,
+          },
+          {
+            label: 'Événements crypto',
+            description: 'Halvings, déblocages, mises à jour réseau',
+            icon: CalendarClock,
+            ready: false,
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    label: 'Plus',
+    sections: [
+      {
+        label: 'Apprendre',
+        items: [
+          {
+            label: 'Apprendre',
+            description: 'Comprendre les marchés, pas à pas',
+            icon: GraduationCap,
+            href: '/apprendre',
+            ready: true,
+          },
+          {
+            label: 'Bien démarrer',
+            description: 'Prendre en main ZENITH en cinq minutes',
+            icon: Rocket,
+            href: '/bien-demarrer',
+            ready: true,
+          },
+          {
+            label: 'Blog',
+            description: 'Analyses et coulisses du produit',
+            icon: PenLine,
+            href: '/blog',
+            ready: true,
+          },
+        ],
       },
       {
-        label: 'Événements crypto',
-        description: 'Halvings, déblocages de jetons, mises à jour réseau',
-        ready: false,
+        label: 'Ressources',
+        items: [
+          {
+            // Remplace le « En savoir plus » initial, trop vague pour une entrée de
+            // menu. Sur un site de données financières, la question que se pose
+            // réellement le lecteur est « d'où viennent ces chiffres ? » — et y
+            // répondre sert directement notre règle « zéro donnée inventée » (§5).
+            label: 'Méthodologie & sources',
+            description: 'D’où viennent nos chiffres, et à quelle fréquence',
+            icon: BookOpen,
+            href: '/methodologie',
+            ready: true,
+          },
+          {
+            label: 'API & développeurs',
+            description: 'Accéder aux données par programme',
+            icon: Code2,
+            href: '/developpeurs',
+            ready: true,
+          },
+          {
+            label: 'Centre d’aide',
+            description: 'Questions fréquentes et assistance',
+            icon: LifeBuoy,
+            href: '/aide',
+            ready: true,
+          },
+        ],
+      },
+      {
+        label: 'ZENITH',
+        items: [
+          {
+            label: 'Nouveautés',
+            description: 'Ce qui a changé récemment',
+            icon: Sparkles,
+            href: '/nouveautes',
+            ready: true,
+          },
+          {
+            label: 'À propos',
+            description: 'Notre positionnement et nos limites',
+            icon: Info,
+            href: '/a-propos',
+            ready: true,
+          },
+        ],
       },
     ],
   },
 ]
+
+/** Icône générique des classes d'actifs, réutilisée hors navigation. */
+export const ASSET_CLASS_ICON = Activity

@@ -25,6 +25,22 @@ export const fr = {
     skipToContent: 'Aller au contenu principal',
   },
 
+  search: {
+    title: 'Recherche universelle',
+    open: 'Ouvrir la recherche',
+    close: 'Fermer la recherche',
+    placeholder: 'Rechercher un actif, un symbole…',
+    trendingTitle: 'Tendances',
+    trendingHint: 'les plus consultés ces 24 h',
+    trendingEmpty: 'Tendances momentanément indisponibles.',
+    otherAssets: 'Actions, ETF, indices et matières premières',
+    loading: 'Recherche en cours…',
+    noResult: (query: string) => `Aucun actif ne correspond à « ${query} ».`,
+    cryptoUnavailable:
+      'La source crypto est momentanément saturée. Les autres classes d’actifs restent consultables.',
+    hint: 'Ctrl + K pour rouvrir la recherche',
+  },
+
   theme: {
     switchToDark: 'Passer en thème sombre',
     switchToLight: 'Passer en thème clair',
@@ -45,6 +61,14 @@ export const fr = {
     movers: 'Hausses et baisses',
     account: 'Compte',
     notFound: 'Page introuvable',
+    learn: 'Apprendre',
+    getStarted: 'Bien démarrer',
+    blog: 'Blog',
+    methodology: 'Méthodologie & sources',
+    developers: 'API & développeurs',
+    help: 'Centre d’aide',
+    changelog: 'Nouveautés',
+    about: 'À propos',
   },
 
   globalStats: {
@@ -66,6 +90,16 @@ export const fr = {
     moversHint: (size: number) => `Parmi les ${size} plus grandes capitalisations`,
     topMarketCapTitle: 'Top capitalisations',
     marketCapCardTitle: 'Capitalisation du marché',
+    marketCapSeriesLabel: (minutes: number) =>
+      `Évolution de la capitalisation totale sur les ${minutes} dernières minutes`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `Relevés ZENITH sur ${Math.round(minutes / 60)} h`
+        : `Relevés ZENITH sur ${minutes} min`,
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? 'Courbe en cours de constitution : aucune source gratuite ne publie l’historique de la capitalisation mondiale, nous enregistrons donc nos propres relevés.'
+        : `Courbe en cours de constitution — ${count} relevé${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''}. Nous traçons nos propres mesures, faute de source gratuite pour cet historique.`,
     volumeCardTitle: 'Volume négocié 24 h',
     narrativesTitle: 'Narratifs du jour',
     narrativesHint: 'Les secteurs qui bougent le plus sur 24 heures',
@@ -149,6 +183,46 @@ export const fr = {
     similarTitle: 'Actifs comparables',
     rangeTitle: 'Période',
     ranges: { d1: '24 h', d7: '7 j', d30: '30 j', d90: '90 j', y1: '1 an' },
+    tabs: {
+      overview: 'Aperçu',
+      history: 'Historique',
+      stats: 'Statistiques',
+      about: 'À propos',
+      faq: 'FAQ',
+    },
+    currencyLabel: 'Devise d’affichage',
+    convertedNotice: (from: string, to: string, date: string) =>
+      `Montants convertis de ${from} vers ${to} au taux de référence BCE du ${date}. La source cote cet actif en ${from}.`,
+    loadingSeries: 'Chargement de la série…',
+    performanceTitle: 'Performance par période',
+    performanceNote:
+      'Variations calculées sur la série d’un an chargée pour cet actif ; celle de 24 h est reprise telle quelle de la source.',
+    rangeYearTitle: 'Extrêmes sur un an',
+    lowest: 'Plus bas',
+    highest: 'Plus haut',
+    faq: {
+      priceQ: (name: string) => `Quel est le cours de ${name} aujourd’hui ?`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} s’échange à ${price}. Dernière valeur publiée par notre source le ${updated}.`,
+      capQ: (name: string) => `Quelle est la capitalisation de ${name} ?`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `Sa capitalisation s’élève à ${cap}, ce qui le place au rang ${rank} de sa classe d’actif.`
+          : `Sa capitalisation s’élève à ${cap}.`,
+      athQ: (name: string) => `Quel est le plus haut historique de ${name} ?`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `Son plus haut historique est de ${price}, atteint le ${date}.`
+          : `Son plus haut historique est de ${price}.`,
+      supplyQ: (name: string) => `Combien d’unités de ${name} existeront au maximum ?`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `L’offre maximale est de ${max} ${symbol}, dont ${circulating} ${symbol} sont actuellement en circulation.`
+          : `L’offre maximale est de ${max} ${symbol}.`,
+      buyQ: (name: string) => `Peut-on acheter ${name} sur ZENITH ?`,
+      buyA:
+        'Non. ZENITH est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.',
+    },
     stats: {
       marketCap: 'Capitalisation',
       volume: 'Volume 24 h',
@@ -162,6 +236,8 @@ export const fr = {
       high24h: 'Plus haut 24 h',
       previousClose: 'Clôture précédente',
       exchange: 'Place de cotation',
+      high52w: 'Plus haut 52 semaines',
+      low52w: 'Plus bas 52 semaines',
     },
     noDescription: 'Aucune description n’est fournie par la source pour cet actif.',
     readOnly:
@@ -219,10 +295,24 @@ export const fr = {
   },
 
   footer: {
+    positioning:
+      'Plateforme d’information, sans exécution d’ordres ni conservation de fonds.',
+    community: 'Communauté',
+    locale: 'Français · EUR',
+    localeHint:
+      'Le site est publié en français, avec l’euro comme devise de référence. D’autres langues et devises suivront.',
     disclaimer:
       'ZENITH est une plateforme d’information en lecture seule. Aucune fonction d’achat, de vente ou de connexion à un portefeuille. Les informations affichées ne constituent pas un conseil en investissement.',
     dataNote: 'Données de marché fournies par des sources publiques, actualisées toutes les 5 minutes.',
     rights: (year: number) => `© ${year} ZENITH`,
+  },
+
+  placeholder: {
+    plannedTitle: 'Ce que cette page contiendra',
+    meanwhileTitle: 'En attendant',
+    meanwhileBody:
+      'La page Méthodologie détaille dès maintenant d’où viennent nos chiffres, à quelle fréquence ils sont actualisés et ce que nous n’affichons pas faute de source.',
+    meanwhileCta: 'Voir la méthodologie',
   },
 
   notFound: {
