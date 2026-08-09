@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { IBM_Plex_Sans, Inter, JetBrains_Mono } from 'next/font/google'
 
 import { getExchangeRates } from '@zenith/data'
 
@@ -38,6 +38,27 @@ const mono = JetBrains_Mono({
   display: 'swap',
   weight: ['400', '500'],
   variable: '--font-mono-numeric',
+})
+
+/**
+ * Police d'affichage — titres uniquement.
+ *
+ * kraken/DESIGN.md décrit un système à DEUX polices : une fonte de marque pour les
+ * titres, une fonte produit pour l'interface. C'est ce dédoublement qui donne à une
+ * page sa voix, davantage que le choix de l'une ou l'autre fonte prise isolément.
+ * La fonte de marque étant propriétaire, on retient le repli que le template
+ * désigne lui-même — IBM Plex Sans, sous licence libre.
+ *
+ * DEUX GRAISSES SEULEMENT, et c'est un arbitrage de performance assumé : chaque
+ * graisse est un fichier téléchargé sur toutes les pages, et le LCP est une
+ * exigence du §9. 600 sert au cran « Feature Title », 700 à tous les titres
+ * d'affichage — aucun autre poids n'est utilisé par le système.
+ */
+const display = IBM_Plex_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['600', '700'],
+  variable: '--font-display-brand',
 })
 
 export const metadata: Metadata = {
@@ -80,7 +101,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     // `suppressHydrationWarning` : ThemeScript modifie `class` avant l'hydratation,
     // React signalerait donc un écart serveur/client sur cet attribut précis.
-    <html lang="fr" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html
+      lang="fr"
+      className={`${inter.variable} ${mono.variable} ${display.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <ThemeScript />
         <OrganizationJsonLd />

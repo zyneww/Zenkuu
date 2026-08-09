@@ -17,13 +17,13 @@ export function CategoryCard({ category }: { category: MarketCategory }) {
   const logos = (category.topAssets ?? []).slice(0, 4)
 
   return (
-    <article className="flex h-full flex-col justify-between gap-3 rounded-card border border-border-subtle bg-surface p-4 transition-colors hover:border-brand">
+    <article className="flex h-full flex-col justify-between gap-4 rounded-card border border-border-subtle bg-surface p-5 transition-colors hover:border-brand">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-sm font-semibold leading-snug text-ink">{category.name}</h3>
+        <h3 className="text-base font-semibold leading-snug text-ink">{category.name}</h3>
         <ChangeBadge value={category.marketCapChange24h} size="sm" />
       </div>
 
-      <dl className="space-y-1 text-xs">
+      <dl className="space-y-1.5 text-xs">
         <div className="flex items-baseline justify-between gap-2">
           <dt className="text-ink-muted">Capitalisation</dt>
           <dd className="tabular font-medium text-ink">

@@ -21,7 +21,7 @@ export default function NotFound() {
         action={
           <Link
             href="/"
-            className="inline-block rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
+            className="inline-block rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
           >
             {fr.notFound.cta}
           </Link>

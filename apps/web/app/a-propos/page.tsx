@@ -144,13 +144,13 @@ export default function AProposPage() {
         </p>
         <Link
           href="/pourquoi-zenith"
-          className="rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
+          className="rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
         >
           Pourquoi ZENITH
         </Link>
         <Link
           href="/methodologie"
-          className="rounded-pill border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
+          className="rounded-card border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
         >
           Méthodologie
         </Link>

@@ -57,11 +57,15 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
   }, [categories, query, sort])
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[12rem] flex-1">
+    <section className="space-y-5" aria-labelledby="explorer-secteurs">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 id="explorer-secteurs" className="display-md text-ink">
+          Tous les secteurs
+        </h2>
+
+        <div className="relative w-full sm:w-72">
           <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
             aria-hidden="true"
           />
           <input
@@ -70,26 +74,33 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Filtrer les secteurs…"
             aria-label="Filtrer les secteurs par nom"
-            className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
+            className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
+      </div>
 
-        <label className="flex items-center gap-2 text-xs text-ink-muted">
-          Trier par
-          <select
-            value={sort}
-            onChange={(event) => setSort(event.target.value as SortKey)}
-            className="rounded-card border border-border-subtle bg-surface px-2.5 py-2 text-xs text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
-          >
-            {SORTS.map((entry) => (
-              <option key={entry.key} value={entry.key}>
-                {entry.label}
-              </option>
-            ))}
-          </select>
-        </label>
+      {/* Le tri passe d'un <select> à une rangée de puces : à quatre options, les
+          rendre toutes visibles supprime un clic et montre d'emblée sur quoi la
+          liste peut être ordonnée. Au-delà d'une poignée d'options le <select>
+          resterait préférable — une rangée qui déborde ne se lit plus.
 
-        <div className="flex items-center gap-1" role="group" aria-label="Mode d’affichage">
+          `aria-pressed` plutôt qu'un groupe de boutons radio : ce sont des
+          commandes qui réordonnent la liste, pas la saisie d'une valeur dans un
+          formulaire. Le lecteur d'écran annonce donc « activé », ce qui décrit
+          l'état réel du bouton. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Trier les secteurs">
+          {SORTS.map((entry) => (
+            <SortChip
+              key={entry.key}
+              active={sort === entry.key}
+              onClick={() => setSort(entry.key)}
+              label={entry.label}
+            />
+          ))}
+        </div>
+
+        <div className="ml-auto flex items-center gap-1" role="group" aria-label="Mode d’affichage">
           <ViewButton
             active={view === 'grid'}
             onClick={() => setView('grid')}
@@ -117,7 +128,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           compact
         />
       ) : view === 'grid' ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}
@@ -157,7 +168,40 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           </table>
         </div>
       )}
-    </div>
+    </section>
+  )
+}
+
+/**
+ * Puce de tri.
+ *
+ * Géométrie en PILULE, alors que les boutons du site sont désormais à 12px :
+ * kraken/DESIGN.md plafonne les boutons à 12px mais garde la pilule pour les
+ * pastilles et puces de filtre. La distinction est utile — elle sépare
+ * visuellement ce qui déclenche une action de ce qui bascule un état.
+ */
+function SortChip({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded-pill border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+        active
+          ? 'border-brand bg-brand text-on-brand'
+          : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
+      }`}
+    >
+      {label}
+    </button>
   )
 }
 

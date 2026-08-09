@@ -471,9 +471,9 @@ function readPalette(): Palette {
   return {
     up: token('--color-up', '#047857'),
     down: token('--color-down', '#b91c1c'),
-    accent: token('--color-brand-strong', '#ea580c'),
-    muted: token('--color-ink-muted', '#57534e'),
-    border: token('--color-border-subtle', '#ede7dc'),
+    accent: token('--color-brand', '#0369a1'),
+    muted: token('--color-ink-muted', '#475569'),
+    border: token('--color-border-subtle', '#e2e8f0'),
   }
 }
 

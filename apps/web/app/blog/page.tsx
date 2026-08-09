@@ -41,7 +41,7 @@ export default function BlogPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               href="/apprendre"
-              className="rounded-pill bg-brand-strong px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink"
+              className="rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
             >
               Fiches Apprendre
             </Link>

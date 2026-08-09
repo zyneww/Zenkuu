@@ -44,39 +44,95 @@ Objectif business : devenir une référence d'analyse de marché généraliste, 
 
 ### 3.1 Design system (tranché, en place)
 
-- Police : **Inter**
-- Rayon de bordure : **12 px**
+- Police d'interface : **Inter** · police d'affichage : **IBM Plex Sans** · nombres : **JetBrains Mono**
+- Rayon de bordure : **12 px** (plafond des boutons)
 - Échelle d'espacement : **4 px**
-- Palette : **claire, crème/orange**
+- Palette : **« ciel au zénith » — azur et or, sur blanc froid**
 - **Header horizontalement centré** (écart volontaire par rapport à CoinGecko, aligné à gauche)
 
 Les jetons sont définis dans `apps/web/app/globals.css` (bloc `@theme`) et nulle part ailleurs.
 
-**Système de mise en forme — `DESIGN.md`.** Le fichier `DESIGN.md` à la racine, installé via
-`npx getdesign@latest add coinbase`, sert de référence de GRAMMAIRE visuelle : échelle de
-rayons, rythme éditorial, hiérarchie typographique, tiers d'élévation, géométrie des
-composants.
+#### Palette « ciel au zénith »
 
-Il en est repris le système, **jamais la palette**. Les couleurs du template (bleu `#0052ff`,
-near-black `#0a0b0d`, verts/rouges de marché) sont l'identité d'une marque tierce : les
-reprendre serait du plagiat, alors qu'adopter une échelle de rayons ou un rythme de section
-ne l'est pas — ce sont des conventions de mise en forme. ZENITH conserve intégralement sa
-palette crème/orange (§7).
+Lecture littérale du nom du site : le zénith est le point du ciel à la verticale de
+l'observateur, celui que le soleil atteint à midi. D'où deux couleurs, et une hiérarchie
+stricte entre elles.
+
+| Rôle | Clair | Sombre | Emploi |
+|---|---|---|---|
+| `--color-brand` | `#0369a1` | `#0ea5e9` | Liens, boutons, focus — **porte l'interface** |
+| `--color-brand-strong` | `#075985` | `#7dd3fc` | Survol et emphase |
+| `--color-on-brand` | `#ffffff` | `#0b1622` | Texte **sur** aplat de marque |
+| `--color-accent` | `#f59e0b` | `#fbbf24` | Or solaire — **décor seul en thème clair** |
+| `--color-accent-strong` | `#b45309` | `#fcd34d` | Or porteur de sens |
+
+Trois points qu'une évolution ne doit pas défaire :
+
+- **L'azur porte, l'or ponctue.** Inverser les rôles donnerait un site jaune, illisible et
+  criard. En thème clair l'or plafonne à **2,05:1** — sous le seuil de 3:1 exigé même d'un
+  composant d'interface : il ne peut porter ni texte, ni bordure signifiante, ni icône seule.
+- **`--color-on-brand` existe parce que `text-white` en dur ne peut pas être correct dans les
+  deux thèmes.** L'azur est sombre en clair (blanc dessus : 5,93:1) et lumineux en sombre
+  (blanc dessus : 2,77:1, sous le seuil AA). La couleur du texte doit basculer avec le fond.
+- **Un jeton déclaré n'existe pas forcément à l'exécution.** Tailwind 4 élague de `:root` tout
+  jeton de thème qu'aucune classe utilitaire ne consomme, alors que le bloc `.dark` sort
+  toujours en entier. Toute lecture de ces variables en JavaScript doit prévoir la valeur vide.
+
+Contrastes mesurés dans le navigateur, clair puis sombre : ink 17,1 / 15,5 · ink-muted
+7,2 / 8,0 · brand 5,7 / 6,6 · on-brand sur brand 5,9 / 6,6 · hausse 5,2 / 9,5 · baisse
+6,2 / 6,6 — tous au-delà de 4,5:1.
+
+**Système de mise en forme — `kraken/DESIGN.md`.** Installé via
+`npx getdesign@latest add kraken`, il sert de référence de GRAMMAIRE visuelle : échelle de
+rayons, rythme de page, hiérarchie typographique, tiers d'élévation, géométrie des composants.
+
+Il en est repris le système, **jamais la palette**. Le violet `#7132f5` et le near-black
+`#101114` sont l'identité d'une marque tierce : les reprendre serait du plagiat, alors
+qu'adopter une échelle de rayons ou un rythme de bande ne l'est pas — ce sont des conventions
+de mise en forme.
+
+Ce template **remplace** la grammaire « coinbase » appliquée précédemment (conservée pour
+mémoire dans `DESIGN.md`), sur deux points où les deux se contredisaient frontalement et où
+aucune superposition n'était possible :
+
+| | coinbase (avant) | kraken (retenu) |
+|---|---|---|
+| Graisse d'affichage | 400 | **700** |
+| Géométrie des boutons | pilule | **12 px** (« Don't use pill buttons ») |
 
 Éléments effectivement adoptés :
 
-- **Titres d'affichage en graisse 400**, avec interlettrage négatif (`.display-*`). Sur un
-  site de cotation, la graisse lourde sonne « urgence de plateforme de trading » ; la graisse
-  normale sonne « publication institutionnelle ». ZENITH étant un site d'information et non
-  un courtier, c'est le registre juste.
+- **Titres d'affichage en graisse 700**, interlettrage négatif, plafonnés à 48 px (`.display-*`).
+  Les tailles plafonnent plus bas qu'avant parce que graisse et taille se compensent : un titre
+  de 80 px en graisse 400 reste aéré, le même en 700 devient un mur.
+- **Système à deux polices** : IBM Plex Sans pour les titres, Inter pour l'interface. C'est ce
+  dédoublement qui donne à une page sa voix, davantage que le choix de l'une ou l'autre fonte
+  prise isolément. La fonte de marque de Kraken étant propriétaire, on retient le repli que le
+  template désigne lui-même.
 - **Police à chasse fixe sur tous les nombres** (JetBrains Mono, branchée sur la classe
   `.tabular` déjà présente partout). En chasse proportionnelle, un « 1 » est plus étroit
   qu'un « 8 » : une colonne de cotation se décale visuellement à chaque rafraîchissement.
-- **Géométrie en pilule** sur les boutons d'action principaux.
+- **Boutons à 12 px.** La pilule survit, mais son domaine se réduit aux pastilles et puces de
+  filtre — la distinction sépare visuellement ce qui déclenche une action de ce qui bascule
+  un état.
 - **Échelle de rayons complète** (`xs` 4 → `xl` 24 + `pill`), dont `--radius-card` (12 px)
   reste le cran de référence du §3.1.
 - **Un seul tier d'ombre** : empiler cinq niveaux produit une hiérarchie que personne ne
   perçoit.
+
+**Coquille de page.** Le rythme, plus que la couleur, est ce qui éloignait les pages de leur
+référence : elles ouvraient sur un titre de 24 px collé en haut, sans respiration ni point
+d'entrée. La coquille reprise est : bande de tête large (titre 48 px, chapô, repères chiffrés)
+→ bandes espacées → renvoi méthodologique. **Aucune bande promotionnelle** : ZENITH informe,
+il ne vend rien — la place qu'occuperait un appel à l'inscription sur une plateforme d'échange
+renvoie ici à la méthodologie.
+
+⚠️ **Les capitalisations par secteur ne s'additionnent pas.** Un même actif appartient à
+plusieurs secteurs — Bitcoin relève de « Layer 1 » comme de « Proof of Work ». Toute somme le
+compterait deux fois et publierait un total faux. Les repères chiffrés d'une bande de tête sont
+donc des **dénombrements** (combien de secteurs, combien en hausse), qui restent exacts même
+quand les ensembles se recoupent. Afficher une « capitalisation totale » exigerait une
+déduplication par actif que la source ne fournit pas (§5).
 
 ### 3.2 Ce qu'on emprunte à AniList — et ce qu'on n'emprunte PAS
 
@@ -160,7 +216,7 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 - **Zéro donnée mock/test/placeholder**, à aucun stade du développement.
 - **Toutes les API et outils utilisés doivent être 100 % gratuits**.
 - **Header horizontalement centré**.
-- Le design system (Inter, rayon 12 px, échelle 4 px, palette crème/orange claire) est la base par défaut ; tout changement de thème doit être explicitement demandé.
+- Le design system (Inter + IBM Plex Sans, rayon 12 px, échelle 4 px, palette azur/or « ciel au zénith ») est la base par défaut ; tout changement de thème doit être explicitement demandé.
 
 ---
 
@@ -181,7 +237,7 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 - **Performance** : SSR/ISR, cache en amont des API externes (TTL 5 min), Core Web Vitals soignés, logos optimisés.
 - **SEO** : une page indexable par actif, sitemap dynamique, meta et JSON-LD par type d'actif, URLs canoniques. Le SEO organique est le principal moteur d'acquisition.
 - **Sécurité** : clés d'API en variables d'environnement uniquement, rate limiting côté ZENITH pour ne jamais dépasser les quotas gratuits.
-- **Accessibilité** : contrastes suffisants (vigilance particulière sur la palette crème/orange claire), navigation clavier, alternatives textuelles.
+- **Accessibilité** : contrastes suffisants (vigilance particulière sur l'or, décoratif seul en thème clair, et sur tout texte posé sur un aplat de marque — voir `--color-on-brand` au §3.1), navigation clavier, alternatives textuelles.
 - **Internationalisation** : français au lancement ; structure permettant d'ajouter des langues plus tard sans refonte, sans l'implémenter au MVP.
 
 ---
@@ -228,7 +284,7 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Yahoo Finance** — actions, ETF, matières premières, indices, **OHLC + volume** | `providers/yahoo.ts` |
 | **RSS** — actualités (Cointelegraph, CoinDesk) | `providers/news.ts` |
 | **Alternative.me** — indice Fear & Greed | `providers/sentiment.ts` |
-| Design system clair crème/orange **+ thème sombre** | `apps/web/app/globals.css` |
+| Design system clair azur/or **+ thème sombre** | `apps/web/app/globals.css` |
 | Bascule de thème, suivi système, sans flash au chargement | `components/ThemeScript.tsx`, `ThemeToggle.tsx` |
 | Header centré avec 4 menus déroulants accessibles | `components/NavBar.tsx`, `content/navigation.ts` |
 | Sélecteur langue/devise (globe), 2 colonnes + recherche | `components/locale/LocalePanel.tsx` |

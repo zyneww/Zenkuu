@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variables: {
           // Les écrans Clerk reprennent les jetons de la charte plutôt que leur
           // bleu par défaut, pour ne pas donner l'impression d'un site tiers.
-          colorPrimary: '#ea580c',
+          colorPrimary: '#0369a1',
           borderRadius: '12px',
           fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif',
         },

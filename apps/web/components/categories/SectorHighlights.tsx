@@ -24,17 +24,20 @@ export function SectorHighlights({ categories }: { categories: MarketCategory[] 
   const laggards = ranked.slice(-3).reverse()
 
   return (
-    <section className="space-y-2" aria-labelledby="secteurs-en-vue">
-      <h2 id="secteurs-en-vue" className="sr-only">
+    // Le titre était en `sr-only` tant que la page empilait des blocs serrés.
+    // Dans un rythme de bandes espacées, une bande sans titre visible flotte :
+    // le lecteur ne sait plus si elle prolonge la précédente ou en ouvre une autre.
+    <section className="space-y-5" aria-labelledby="secteurs-en-vue">
+      <h2 id="secteurs-en-vue" className="display-md text-ink">
         Secteurs en vue
       </h2>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <HighlightGroup title="Secteurs en tête" tone="up" categories={leaders} />
         <HighlightGroup title="Secteurs en repli" tone="down" categories={laggards} />
       </div>
 
-      <p className="text-[0.6875rem] text-ink-muted">
+      <p className="text-xs text-ink-muted">
         Classement établi sur les {categories.length} secteurs publiés par la source, et
         non sur l’ensemble du marché.
       </p>
@@ -54,16 +57,16 @@ function HighlightGroup({
   const Icon = tone === 'up' ? ArrowUpRight : ArrowDownRight
 
   return (
-    <div className="rounded-card border border-border-subtle bg-surface p-4">
-      <h3 className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-ink">
+    <div className="rounded-card border border-border-subtle bg-surface p-5">
+      <h3 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-ink">
         <Icon
-          className={`h-3.5 w-3.5 ${tone === 'up' ? 'text-up' : 'text-down'}`}
+          className={`h-4 w-4 ${tone === 'up' ? 'text-up' : 'text-down'}`}
           aria-hidden="true"
         />
         {title}
       </h3>
 
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {categories.map((category) => (
           <li key={category.id} className="flex items-baseline justify-between gap-3">
             <span className="truncate text-sm text-ink">{category.name}</span>

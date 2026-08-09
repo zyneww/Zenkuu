@@ -33,7 +33,7 @@ function ConnectedAuthButtons() {
     return (
       <UserButton
         appearance={{ elements: { avatarBox: 'h-7 w-7' } }}
-        userProfileProps={{ appearance: { variables: { colorPrimary: '#ea580c' } } }}
+        userProfileProps={{ appearance: { variables: { colorPrimary: '#0369a1' } } }}
       />
     )
   }
@@ -64,7 +64,7 @@ function AuthLink({
       href={href}
       className={
         primary
-          ? 'rounded-card bg-brand-strong px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-ink'
+          ? 'rounded-card bg-brand px-3 py-1.5 text-xs font-medium text-on-brand transition-colors hover:bg-brand-strong'
           : 'rounded-card px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink'
       }
     >

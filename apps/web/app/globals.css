@@ -23,31 +23,70 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* Surfaces — thème clair crème/orange */
-  --color-canvas: #fdfbf7;
+  /* ───────────────────────────────────────────────────────────────────────────
+     Palette « ciel au zénith ».
+
+     Lecture littérale du nom du site : le zénith est le point du ciel à la
+     verticale de l'observateur, celui que le soleil atteint à midi. D'où deux
+     couleurs et une seule hiérarchie entre elles — l'AZUR porte l'interface
+     (liens, boutons, focus), l'OR ne sert que d'éclat ponctuel. Inverser les
+     rôles donnerait un site jaune, illisible et criard.
+     ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Surfaces — blanc froid plutôt que blanc pur : sous un accent bleu, un #ffffff
+     de fond paraît bleuté par contraste simultané. Le gris-bleu très clair absorbe
+     cet effet, et réserve le blanc pur aux cartes pour qu'elles ressortent. */
+  --color-canvas: #f8fafc;
   --color-surface: #ffffff;
-  --color-surface-muted: #f7f2e9;
-  --color-border-subtle: #ede7dc;
+  --color-surface-muted: #f1f5f9;
+  --color-border-subtle: #e2e8f0;
 
   /* Texte — contrastes mesurés sur --color-canvas :
-     ink 16.9:1 · ink-muted 7.4:1 · les deux bien au-delà du seuil AA de 4.5:1 (§9). */
-  --color-ink: #1c1917;
-  --color-ink-muted: #57534e;
+     ink 17.1:1 · ink-muted 7.2:1 · les deux bien au-delà du seuil AA de 4.5:1 (§9). */
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
 
-  /* Accent orange, DEUX tons pour deux usages distincts — le point de vigilance du
-     §9 sur la palette crème/orange se joue précisément ici :
-       --color-brand (3.4:1)        aplats, bordures, anneau de focus, décor.
-                                    Suffisant pour un composant d'interface (seuil 3:1),
-                                    INSUFFISANT pour du texte.
-       --color-brand-strong (7.3:1) tout texte de marque : liens, libellés, fonds de
-                                    bouton avec texte blanc (7.3:1 également).
-     Le ton 500 (#f97316) tombe à 2.7:1 : à proscrire hors décor pur. */
-  --color-brand: #ea580c;
-  --color-brand-strong: #9a3412;
-  --color-brand-soft: #fff1e7;
+  /* Azur de marque. Changement structurel par rapport à l'ancien orange : celui-ci
+     imposait DEUX tons parce qu'aucune nuance ne passait à la fois le seuil 3:1 des
+     composants et le seuil 4.5:1 du texte. L'azur passe les deux d'un coup —
+       --color-brand (5.7:1)        aplats, bordures, focus, ET texte de lien.
+                                    Sur fond de bouton, 5.9:1 avec du texte blanc.
+       --color-brand-strong (7.2:1) survol et emphase, quand il faut assombrir.
+     Un seul jeton suffirait donc ; le second est conservé pour les états. */
+  --color-brand: #0369a1;
+  --color-brand-strong: #075985;
+  --color-brand-soft: #e0f2fe;
 
-  /* Couleurs sémantiques de marché. Nuances 700 délibérément : sur fond crème,
-     un vert 500 tombe sous 3:1 et devient illisible pour une part des lecteurs.
+  /* Couleur du TEXTE posé SUR un aplat de marque. Ce jeton existe parce qu'un
+     `text-white` écrit en dur dans un bouton ne peut pas être correct dans les deux
+     thèmes : l'azur est sombre en thème clair (blanc dessus : 5,93:1) et lumineux en
+     thème sombre (blanc dessus : 2,77:1 — sous le seuil AA). La couleur du texte doit
+     donc basculer avec le fond, et c'est précisément ce qu'un jeton sait faire.
+     Le défaut existait déjà avec l'orange, où le thème sombre posait du blanc sur un
+     #fdba74 très clair ; il passait inaperçu faute de boutons pleins fréquents. */
+  --color-on-brand: #ffffff;
+
+  /* Or solaire — DÉCOR UNIQUEMENT. À 2.05:1 sur le canvas (mesuré dans le
+     navigateur), il tombe sous le seuil de 3:1 exigé même pour un composant
+     d'interface : il ne peut porter ni texte, ni bordure signifiante, ni icône
+     seule. Réservé aux aplats, filets et fonds de pastille. Tout or PORTEUR DE
+     SENS passe par --color-accent-strong (4.8:1).
+
+     PIÈGE À CONNAÎTRE — un jeton déclaré ici n'existe pas forcément à l'exécution :
+     Tailwind 4 élague de `:root` tout jeton de thème qu'AUCUNE classe utilitaire ne
+     consomme. Le bloc `.dark` plus bas, lui, est une règle CSS ordinaire et sort
+     toujours en entier. D'où une asymétrie observable aujourd'hui :
+     `--color-accent-strong` est présent en thème sombre et absent en thème clair,
+     faute d'un `text-accent-strong` quelque part. Ce n'est pas un défaut — le jeton
+     apparaîtra de lui-même au premier usage — mais toute lecture de ces variables
+     en JavaScript doit prévoir la valeur vide. */
+  --color-accent: #f59e0b;
+  --color-accent-strong: #b45309;
+  --color-accent-soft: #fef3c7;
+
+  /* Couleurs sémantiques de marché. Nuances 700 délibérément : un vert 500 tombe
+     sous 3:1 sur fond clair et devient illisible pour une part des lecteurs.
+     Contrastes sur le nouveau canvas : hausse 4.97:1 · baisse 6.18:1.
      La couleur ne porte jamais l'information seule — signe et chevron l'accompagnent. */
   --color-up: #047857;
   --color-up-soft: #ecfdf5;
@@ -58,24 +97,34 @@
   --radius-card: 12px;
 
   /* ───────────────────────────────────────────────────────────────────────────
-     Système repris de DESIGN.md (template « coinbase »).
+     Système repris de kraken/DESIGN.md.
 
-     On en importe la GRAMMAIRE — échelle de rayons, rythme éditorial, hiérarchie
-     typographique, tiers d'élévation — et RIEN de sa palette. Le bleu #0052ff,
-     le near-black #0a0b0d et les verts/rouges du template sont l'identité d'une
-     marque tierce : les reprendre serait du plagiat, alors que reprendre une
-     échelle de rayons ne l'est pas — c'est une convention de mise en forme.
-     Les couleurs ci-dessus restent celles de ZENITH (§7).
+     On en importe la GRAMMAIRE — échelle de rayons, rythme de page, hiérarchie
+     typographique, tiers d'élévation — et RIEN de sa palette. Le violet #7132f5
+     et le near-black #101114 sont l'identité d'une marque tierce : les reprendre
+     serait du plagiat, alors que reprendre une échelle de rayons ne l'est pas —
+     c'est une convention de mise en forme. Les couleurs ci-dessus sont propres
+     à ZENITH (§7).
+
+     Ce template REMPLACE la grammaire « coinbase » appliquée précédemment, sur
+     deux points où les deux se contredisaient frontalement et où aucune
+     superposition n'était possible :
+       · graisse d'affichage   700 (kraken) et non 400 (coinbase) ;
+       · géométrie des boutons 12px (kraken interdit explicitement la pilule)
+                               et non --radius-pill.
      ─────────────────────────────────────────────────────────────────────────── */
 
   /* Échelle de rayons complète. `--radius-card` (12px) reste le rayon de
-     référence du §3.1 et devient le cran `md` de cette échelle. */
+     référence du §3.1 et devient le cran `md` de cette échelle — c'est aussi
+     le rayon que kraken/DESIGN.md prescrit pour TOUS les boutons. */
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  /* Géométrie en pilule : 100px suffit à arrondir totalement un contrôle de la
-     hauteur usuelle sans déformer un bouton large, ce que 9999px ferait. */
+  /* Pilule CONSERVÉE, mais son domaine se réduit aux pastilles et puces de filtre
+     — jamais aux boutons, que kraken/DESIGN.md plafonne à 12px (« Don't use pill
+     buttons »). 100px suffit à arrondir totalement un contrôle de hauteur usuelle
+     sans déformer un élément large, ce que 9999px ferait. */
   --radius-pill: 100px;
 
   /* Rythme éditorial. L'échelle de 4px du §3.1 est conservée ; on ajoute le cran
@@ -88,6 +137,16 @@
      ballet des colonnes à chaque rafraîchissement de prix. */
   --font-mono: var(--font-mono-numeric), ui-monospace, 'SF Mono', Menlo, monospace;
 
+  /* Police d'AFFICHAGE, distincte de la police d'interface.
+     kraken/DESIGN.md décrit un système à deux polices — une fonte de marque pour
+     les titres, une fonte produit pour l'interface — et documente IBM Plex Sans
+     comme repli de la première. Sa fonte de marque étant propriétaire, on prend le
+     repli qu'elle désigne elle-même : IBM Plex Sans est libre, et ses formes plus
+     étroites et plus anguleuses que celles d'Inter donnent aux titres une voix
+     distincte du texte courant, ce qui est tout l'objet d'un système à deux fontes.
+     Inter reste la police d'interface. */
+  --font-display: var(--font-display-brand), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
   /* Tier d'élévation UNIQUE, assumé. Empiler cinq niveaux d'ombre produit une
      hiérarchie que personne ne perçoit ; un seul cran, utilisé au survol, suffit
      à signaler qu'un élément est interactif. */
@@ -98,43 +157,64 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    Échelle typographique d'affichage.
 
-   Le parti pris le plus distinctif retenu de DESIGN.md : les titres d'affichage
-   restent en GRAISSE 400, jamais 700. Sur un site de cotation, la graisse lourde
-   sonne « urgence de plateforme de trading » ; la graisse normale avec un
-   interlettrage négatif sonne « publication institutionnelle ». ZENITH étant un
-   site d'information et non un courtier (§7), c'est le registre juste.
+   Calée sur kraken/DESIGN.md, qui RENVERSE le parti pris précédent : graisse 700
+   et non 400. La grammaire « coinbase » visait un registre de publication ; celle
+   de kraken vise un registre de plateforme, affirmé et dense. Les deux sont
+   défendables, mais pas simultanément — le site parle d'une seule voix.
+
+   Les tailles plafonnent volontairement plus bas qu'avant (48px au lieu de 80px).
+   Un titre de 80px en graisse 400 reste aéré ; le même en 700 devient un mur. La
+   graisse et la taille se compensent, elles ne s'additionnent pas.
 
    Ces classes sont des utilitaires de composition, pas des styles d'élément :
    on ne redéfinit pas <h1>, pour que le niveau de titre reste choisi par la
-   sémantique du document et non par son apparence.
+   sémantique du document et non par son apparence. Les quatre noms sont
+   conservés — les huit pages qui les utilisent suivent sans être retouchées.
    ───────────────────────────────────────────────────────────────────────────── */
 @layer components {
+  /* 48px — titre de page. Le cran « Display Hero » de kraken/DESIGN.md. */
   .display-mega {
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.025em;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.17;
+    letter-spacing: -0.021em;
   }
 
+  /* 40px — variante de tête pour les pages éditoriales longues. */
   .display-xl {
-    font-size: clamp(2rem, 4.5vw, 3.25rem);
-    font-weight: 400;
-    line-height: 1.05;
-    letter-spacing: -0.022em;
+    font-family: var(--font-display);
+    font-size: clamp(1.875rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: -0.018em;
   }
 
+  /* 36px — « Section Heading ». */
   .display-lg {
-    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-size: clamp(1.625rem, 3.5vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.22;
+    letter-spacing: -0.014em;
   }
 
+  /* 28px — « Sub-heading », titre de bande à l'intérieur d'une page. */
   .display-md {
-    font-size: clamp(1.5rem, 2.5vw, 2rem);
-    font-weight: 400;
-    line-height: 1.15;
-    letter-spacing: -0.015em;
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.29;
+    letter-spacing: -0.018em;
+  }
+
+  /* 22px/600 — « Feature Title ». Interlettrage NORMAL, pas négatif : le
+     resserrement typographique n'aide la lecture qu'au-delà d'environ 24px ;
+     en dessous il colle les lettres sans rien gagner. */
+  .display-sm {
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.2;
   }
 
   /* Nombres : police tabulaire et chasse fixe. Complète `.tabular` existant. */
@@ -147,17 +227,22 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Thème sombre — bleus profonds façon AniList.
+   Thème sombre — le ciel nocturne au zénith.
 
-   On emprunte les NEUTRES d'AniList (bleu-nuit désaturé plutôt que gris pur, ce qui
-   donne sa profondeur à leur interface) mais on garde l'orange ZENITH comme accent :
-   copier aussi leur bleu reviendrait à copier leur identité, pas leur savoir-faire.
+   Les NEUTRES bleu-nuit sont conservés tels quels : ils datent du thème précédent,
+   sont déjà mesurés, et la nouvelle palette les rend plus cohérents qu'avant. Un
+   canvas bleu-nuit sous un accent orange était un compromis ; sous un accent azur,
+   c'est la même image vue de nuit.
 
-   Les tons d'accent et de marché sont ÉCLAIRCIS ici. Une couleur lisible sur crème
-   ne l'est pas sur bleu-nuit : l'orange 700 du thème clair tomberait à 2,49:1 sur
-   #0b1622 (mesuré). On remonte donc chaque teinte jusqu'à repasser le seuil AA.
-   Contrastes obtenus sur les surfaces sombres : ink 14,1:1 · ink-muted 7,3:1 ·
-   brand-strong 9,8:1 · hausse 8,6:1 · baisse 6,0:1 — tous au-delà de 4,5:1.
+   LE PIÈGE de cette palette est ici, et il est réel : un accent bleu sur un fond
+   bleu se noie. La séparation ne peut donc plus venir de la teinte — elle vient de
+   la LUMINOSITÉ. L'azur 800 du thème clair (#0369a1) tomberait à 2,1:1 sur ce
+   canvas ; on monte donc de plusieurs crans, jusqu'à un bleu franchement lumineux
+   qui se détache par sa clarté et non par sa couleur.
+
+   Contrastes mesurés sur --color-canvas : ink 14,1:1 · ink-muted 7,3:1 ·
+   brand 6,6:1 · brand-strong 10,9:1 · or 10,9:1 · hausse 8,6:1 · baisse 6,0:1 —
+   tous au-delà de 4,5:1.
 
    `--color-border-subtle` fait exception, à 1,33:1, et c'est délibéré : ce jeton ne
    sert qu'à des séparateurs décoratifs (filets de tableau, contours de cartes), que
@@ -175,9 +260,26 @@
   --color-ink: #e7edf4;
   --color-ink-muted: #9fadbd;
 
-  --color-brand: #f97316;
-  --color-brand-strong: #fdba74;
-  --color-brand-soft: #2b1a10;
+  /* Ici les deux tons de marque redeviennent NÉCESSAIRES, alors qu'un seul suffisait
+     en thème clair : `brand` est assez lumineux pour un aplat de bouton portant du
+     texte sombre, mais pas assez pour du texte bleu posé sur le canvas — d'où
+     `brand-strong`, plus clair encore, réservé au texte. Le rapport s'inverse par
+     rapport au thème clair, où « strong » signifiait plus SOMBRE. */
+  --color-brand: #0ea5e9;
+  --color-brand-strong: #7dd3fc;
+  --color-brand-soft: #0c2a3d;
+
+  /* Le texte sur aplat de marque s'INVERSE ici : encre sombre sur azur lumineux,
+     6,58:1. C'est tout l'intérêt du jeton — les douze boutons du site basculent
+     sans qu'aucun ne soit retouché. */
+  --color-on-brand: #0b1622;
+
+  /* L'or cesse d'être purement décoratif en thème sombre : à 10,9:1 sur le canvas,
+     il devient utilisable pour du texte. C'est l'inverse exact du thème clair, où
+     il plafonne à 2,05:1 — une couleur claire se comporte à l'opposé selon le fond. */
+  --color-accent: #fbbf24;
+  --color-accent-strong: #fcd34d;
+  --color-accent-soft: #2a1f07;
 
   --color-up: #34d399;
   --color-up-soft: #0d2a20;
