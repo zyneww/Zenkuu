@@ -1,5 +1,5 @@
 import type { AssetClass, AssetDetail } from '@zenith/data'
-import { formatCompact } from '@zenith/ui'
+import { formatCompact, formatPercent } from '@zenith/ui'
 
 import { Money } from '@/components/locale/Money'
 
@@ -56,16 +56,54 @@ export function AssetKeyStats({
       node: <Money value={asset.low24h} from={asset.currency} asRate={isForex} />,
     })
   }
+  // Valorisation totalement diluée : reprise telle quelle de la source, jamais
+  // recalculée en `prix × offre totale` (§5). Omise quand elle égale la
+  // capitalisation — c'est le cas des actifs dont toute l'offre circule déjà, et la
+  // répéter à l'identique deux cellules plus loin n'apprend rien.
+  if (asset.fdv !== undefined && asset.fdv !== asset.marketCap) {
+    cells.push({
+      label: 'Valorisation diluée',
+      node: <Money value={asset.fdv} from={asset.currency} compact />,
+    })
+  }
+  // N'existe que pour les protocoles de finance décentralisée.
+  if (asset.tvl !== undefined) {
+    cells.push({
+      label: 'Valeur verrouillée',
+      node: <Money value={asset.tvl} from={asset.currency} compact />,
+    })
+  }
   if (asset.ath !== undefined) {
     cells.push({
       label: `Plus haut ${extremeLabel}`,
-      node: <Money value={asset.ath} from={asset.currency} asRate={isForex} />,
+      node: (
+        <>
+          <Money value={asset.ath} from={asset.currency} asRate={isForex} />
+          {/* L'écart au record en dit plus que le record seul : « 661 € » ne situe
+              rien sans savoir qu'on en est à −86 %. Affiché en second, plus discret,
+              pour rester une précision et non un second chiffre concurrent. */}
+          {asset.athChangePercent !== undefined ? (
+            <span className="ml-1.5 text-xs font-normal text-ink-muted">
+              {formatPercent(asset.athChangePercent)}
+            </span>
+          ) : null}
+        </>
+      ),
     })
   }
   if (asset.atl !== undefined) {
     cells.push({
       label: `Plus bas ${extremeLabel}`,
-      node: <Money value={asset.atl} from={asset.currency} asRate={isForex} />,
+      node: (
+        <>
+          <Money value={asset.atl} from={asset.currency} asRate={isForex} />
+          {asset.atlChangePercent !== undefined ? (
+            <span className="ml-1.5 text-xs font-normal text-ink-muted">
+              {formatPercent(asset.atlChangePercent)}
+            </span>
+          ) : null}
+        </>
+      ),
     })
   }
   if (asset.circulatingSupply !== undefined) {

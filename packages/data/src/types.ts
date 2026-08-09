@@ -114,13 +114,75 @@ export interface TrendingAsset {
   change24h?: number
 }
 
-/** Fiche détaillée d'un actif — enrichit `MarketAsset` de ce qui n'a de sens que sur sa page. */
+/**
+ * Fiche détaillée d'un actif — enrichit `MarketAsset` de ce qui n'a de sens que sur sa page.
+ *
+ * La plupart des champs ajoutés ici ne coûtent AUCUN appel réseau : la réponse de
+ * `/coins/{id}`, déjà récupérée pour le prix et la description, transporte les liens,
+ * les adresses de contrat, la valorisation diluée et les prix dans toutes les devises.
+ * Ils étaient simplement jetés faute d'être typés.
+ */
 export interface AssetDetail extends MarketAsset {
   /** Texte de présentation fourni par la source, déjà nettoyé de son HTML. */
   description?: string
   homepageUrl?: string
   /** Identifiants d'actifs de la même catégorie, pour la colonne « comparables ». */
   categories?: string[]
+
+  /**
+   * Valorisation totalement diluée : capitalisation si l'offre maximale circulait.
+   *
+   * Reprise TELLE QUELLE de la source, jamais recalculée en `prix × offre totale` —
+   * la source applique ses propres règles sur les jetons verrouillés ou brûlés, et
+   * un produit maison divergerait du chiffre publié partout ailleurs (§5).
+   */
+  fdv?: number
+  /** Valeur totale verrouillée — n'existe que pour les protocoles de finance décentralisée. */
+  tvl?: number
+  /** Écart en pourcentage au plus haut / plus bas historique, publié par la source. */
+  athChangePercent?: number
+  atlChangePercent?: number
+
+  /** Adresses de contrat par chaîne, ex. { ethereum: '0x7fc6…' }. */
+  contracts?: Record<string, string>
+  /** Explorateurs de blocs, livre blanc, code source, forum — liens vérifiés non vides. */
+  explorerUrls?: string[]
+  whitepaperUrl?: string
+  sourceCodeUrl?: string
+  /** Réseaux communautaires : libellé lisible → URL. */
+  communityUrls?: Record<string, string>
+
+  /**
+   * Cours dans toutes les devises publiées par la source, en minuscules (`{ usd, eur… }`).
+   *
+   * Ce sont des cotations RÉELLES et non des conversions maison : la source publie le
+   * prix devise par devise. Elles sont donc préférables à un produit par un taux de
+   * change, qui introduirait un second niveau d'approximation.
+   */
+  pricesByCurrency?: Record<string, number>
+}
+
+/**
+ * Une place de cotation pour un actif — une ligne du tableau « où se négocie… ».
+ *
+ * `spreadPercent` et `volumePercent` peuvent manquer : la source ne les calcule pas
+ * pour toutes les paires. Absent signifie absent, jamais zéro (§5).
+ */
+export interface AssetTicker {
+  exchange: string
+  base: string
+  target: string
+  /** Prix converti dans la devise demandée par l'appelant. */
+  price: number
+  currency: string
+  volume24h?: number
+  spreadPercent?: number
+  /** Part de cette place dans le volume total de l'actif. */
+  volumePercent?: number
+  /** Lien direct vers la paire chez la place, quand la source le fournit. */
+  tradeUrl?: string
+  /** Horodatage ISO 8601 de la dernière cotation reçue. */
+  lastTraded?: string
 }
 
 /** Série de prix pour les graphiques de la fiche actif. */
@@ -339,6 +401,11 @@ export interface MarketDataProvider {
   ): Promise<OhlcHistory>
   /** Secteurs / narratifs, quand la source en publie. */
   getCategories?(currency?: string): Promise<MarketCategory[]>
+  /**
+   * Places de cotation d'un actif — le seul module de la fiche qui coûte un appel
+   * réseau dédié, d'où sa méthode séparée plutôt qu'un champ de `getAsset`.
+   */
+  getTickers?(id: string, currency?: string, limit?: number): Promise<AssetTicker[]>
   /** Recherche par nom ou symbole, quand la source expose un index. */
   search?(query: string, limit?: number): Promise<SearchResult[]>
 }

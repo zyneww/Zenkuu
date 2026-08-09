@@ -29,12 +29,23 @@ const CHART_KINDS = [
   { key: 'baseline', label: fr.asset.chart.kinds.baseline },
 ] as const satisfies readonly { key: ChartKind; label: string }[]
 
-/** Onglets du widget. Le clic remplace le contenu en place, sans navigation ni défilement. */
+/**
+ * Onglets du widget. Le clic remplace le contenu en place, sans navigation ni défilement.
+ *
+ * Les onglets « Statistiques » et « À propos » ont été RETIRÉS de cette barre : la
+ * refonte de la fiche les a sortis en bandes horizontales pleine largeur, où ils
+ * sont visibles sans clic. Les laisser ici afficherait deux fois la même
+ * information dans la même page — et la version enfermée dans un onglet serait la
+ * moins consultée des deux.
+ *
+ * Les trois restants portent chacun un contenu qui n'existe nulle part ailleurs :
+ * le graphique, les extrêmes calculés sur un an (dont la série n'est chargée qu'à
+ * l'ouverture de l'onglet, pour ne pas la payer à chaque visite) et la foire aux
+ * questions.
+ */
 const TABS = [
   { key: 'apercu', label: fr.asset.tabs.overview },
   { key: 'historique', label: fr.asset.tabs.history },
-  { key: 'statistiques', label: fr.asset.tabs.stats },
-  { key: 'apropos', label: fr.asset.tabs.about },
   { key: 'faq', label: fr.asset.tabs.faq },
 ] as const
 
@@ -321,12 +332,6 @@ export function AssetWorkspace({
             currency={currency}
           />
         ) : null}
-
-        {tab === 'statistiques' ? (
-          <StatsTab asset={asset} rate={rate} currency={currency} />
-        ) : null}
-
-        {tab === 'apropos' ? <AboutTab asset={asset} /> : null}
 
         {tab === 'faq' ? <FaqTab asset={asset} rate={rate} currency={currency} /> : null}
       </div>
@@ -625,95 +630,13 @@ function HistoryTab({
   )
 }
 
-function StatsTab({
-  asset,
-  rate,
-  currency,
-}: {
-  asset: AssetDetail
-  rate: number
-  currency: string
-}) {
-  const isCrypto = asset.assetClass === 'crypto'
-
-  const money = (value: number | undefined, compact = true) => {
-    if (value === undefined) return null
-    const scaled = value * rate
-    return compact && Math.abs(scaled) >= 1_000_000
-      ? `${formatCompact(scaled)} ${currency}`
-      : `${formatNumber(scaled, Math.abs(scaled) >= 100 ? 2 : 6)} ${currency}`
-  }
-
-  const entries: { label: string; value: string | null; hint?: string }[] = [
-    { label: fr.asset.stats.marketCap, value: money(asset.marketCap) },
-    { label: fr.asset.stats.volume, value: money(asset.volume24h) },
-    { label: fr.asset.stats.high24h, value: money(asset.high24h, false) },
-    { label: fr.asset.stats.low24h, value: money(asset.low24h, false) },
-    {
-      // Yahoo ne publie pas de plus haut absolu : ses champs couvrent 52 semaines.
-      // On adapte le libellé plutôt que de laisser croire à un record historique.
-      label: isCrypto ? fr.asset.stats.ath : fr.asset.stats.high52w,
-      value: money(asset.ath, false),
-      ...(asset.athDate ? { hint: formatDateTime(asset.athDate) ?? undefined } : {}),
-    },
-    {
-      label: isCrypto ? fr.asset.stats.atl : fr.asset.stats.low52w,
-      value: money(asset.atl, false),
-      ...(asset.atlDate ? { hint: formatDateTime(asset.atlDate) ?? undefined } : {}),
-    },
-    { label: fr.asset.stats.circulating, value: formatCompact(asset.circulatingSupply), hint: asset.symbol },
-    { label: fr.asset.stats.total, value: formatCompact(asset.totalSupply), hint: asset.symbol },
-    { label: fr.asset.stats.max, value: formatCompact(asset.maxSupply), hint: asset.symbol },
-    { label: fr.asset.stats.rank, value: asset.rank ? `#${formatNumber(asset.rank, 0)}` : null },
-    { label: fr.asset.stats.exchange, value: asset.exchange ?? null },
-  ]
-
-  const visible = entries.filter((entry) => entry.value !== null)
-  if (visible.length === 0) return <EmptyState title={fr.states.unavailableTitle} compact />
-
-  return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
-      {visible.map((entry) => (
-        <div key={entry.label}>
-          <dt className="text-xs text-ink-muted">{entry.label}</dt>
-          <dd className="tabular text-sm font-semibold text-ink">
-            {entry.value}
-            {entry.hint ? (
-              <span className="ml-1 text-xs font-normal text-ink-muted">{entry.hint}</span>
-            ) : null}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
-
-function AboutTab({ asset }: { asset: AssetDetail }) {
-  if (!asset.description) {
-    return <EmptyState title={fr.asset.noDescription} compact />
-  }
-
-  return (
-    <div className="space-y-3 text-sm leading-relaxed text-ink-muted">
-      {asset.description.split('\n\n').map((paragraph, index) => (
-        <p key={index}>{paragraph}</p>
-      ))}
-      {asset.homepageUrl ? (
-        <p className="pt-1 text-xs">
-          <span>{fr.asset.officialLinks} : </span>
-          <a
-            href={asset.homepageUrl}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="font-medium text-brand-strong underline underline-offset-2"
-          >
-            {fr.asset.website}
-          </a>
-        </p>
-      ) : null}
-    </div>
-  )
-}
+/*
+ * `StatsTab` et `AboutTab` ont été SUPPRIMÉS de ce fichier, pas seulement retirés
+ * de la barre d'onglets : leur contenu vit désormais en bandes pleine largeur dans
+ * `AssetPageView` (`AssetKeyStats`, `AssetChangeGrid`, la section « À propos » et
+ * `AssetTechSheet`). Les garder ici aurait laissé deux implémentations d'un même
+ * affichage, qui auraient divergé au premier ajustement.
+ */
 
 /**
  * FAQ entièrement DÉRIVÉE de la donnée réelle de l'actif.

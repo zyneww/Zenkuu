@@ -95,14 +95,45 @@ export function NavBar() {
               className="flex shrink-0 items-center text-ink transition-opacity hover:opacity-80"
               aria-label={`${fr.site.name} — ${fr.site.tagline}`}
             >
-              {/* Masque CSS plutôt qu'<img> : le logo prend la couleur du texte et
-                  suit donc le thème sombre sans second fichier (cf. globals.css). */}
-              <span
-                className="brand-mark brand-mark-logo h-8 w-7"
-                role="img"
-                aria-label={fr.site.name}
+              {/*
+                Image RÉELLE, et non plus masque CSS.
+
+                Le logo précédent était une silhouette monochrome : le masque le
+                colorait en `currentColor`, ce qui le faisait suivre le thème sans
+                second fichier. `logo2.svg` ne peut pas être traité ainsi — c'est un
+                dessin tracé qui mêle des aplats quasi noirs (259 chemins) et quasi
+                blancs (117), et un masque, qui ne lit que la silhouette, l'écraserait
+                en une seule teinte et le rendrait méconnaissable.
+
+                `dark:invert` règle le seul vrai problème que pose ce fichier : le
+                logotype est dessiné en sombre pour un fond blanc, et il disparaissait
+                presque entièrement sur l'ardoise du thème sombre (vérifié à l'écran).
+                L'inversion est ici EXACTE et non approchée — le fichier ne contient
+                aucune couleur saturée, ses 382 aplats sont tous en niveaux de gris
+                (vérifié : aucun dont les canaux R, G et B s'écartent de plus de 12).
+                Inverser une image en gris ne fait que permuter le noir et le blanc,
+                sans dérive de teinte. Sur un logo coloré, ce serait à proscrire.
+
+                Le `viewBox` du fichier a été RECADRÉ sur le dessin. La zone de dessin
+                d'origine (1152×767) n'était remplie qu'à 32 % : le logotype, mesuré à
+                917×310, flottait avec 28 % de marge au-dessus de lui. Affiché à
+                hauteur d'en-tête, il se réduisait donc à une vignette illisible. Le
+                `viewBox` ramené à `99 206 933 326` cadre le dessin, ce qui lui rend
+                sa largeur utile sans toucher à un seul chemin.
+
+                Dimensions écrites en dur : sans elles, le navigateur ne réserve pas
+                la place du logo avant son chargement et l'en-tête tressaute au
+                premier rendu (décalage de mise en page, pénalisé au §9). 92×32
+                respecte le rapport 933:326 du cadrage.
+              */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- SVG local : l'optimiseur de Next ne traite pas ce format */}
+              <img
+                src="/brand/logo2.svg"
+                alt={fr.site.name}
+                width={92}
+                height={32}
+                className="h-8 w-[92px] shrink-0 dark:invert"
               />
-              <span className="sr-only">{fr.site.name}</span>
             </Link>
           </div>
 

@@ -22,6 +22,7 @@ export {
   getExchangeRates,
   getAsset,
   getAssetHistory,
+  getAssetTickers,
   getAssetOhlc,
   getCategories,
   getCryptoGlobalStats,
@@ -66,6 +67,7 @@ export { ASSET_CLASSES, ProviderError } from './types'
 export type {
   AssetClass,
   AssetDetail,
+  AssetTicker,
   Candle,
   GlobalMarketStats,
   ListAssetsParams,

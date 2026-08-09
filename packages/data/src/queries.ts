@@ -16,6 +16,7 @@ import { getDeclaredProvider, getProvider } from './registry'
 import type {
   AssetClass,
   AssetDetail,
+  AssetTicker,
   GlobalMarketStats,
   MarketAsset,
   MarketCategory,
@@ -463,6 +464,37 @@ export function getAsset(
     }
     return provider.getAsset(id, assetClass, currency)
   })
+}
+
+/**
+ * Places de cotation d'un actif.
+ *
+ * TTL long (30 min) et volontairement plus généreux que celui du cours : la liste
+ * des places qui négocient un actif, et leur poids relatif, bougent à l'échelle de
+ * la journée — pas de la minute. C'est ce qui rend acceptable le seul appel réseau
+ * supplémentaire de la fiche sur un quota mesuré à cinq requêtes par minute (§9).
+ *
+ * Un fournisseur sans `getTickers` — Yahoo pour les actions, la BCE pour les
+ * devises — fait simplement disparaître la section, comme n'importe quelle autre
+ * donnée absente.
+ */
+export function getAssetTickers(
+  id: string,
+  assetClass: AssetClass,
+  currency = 'eur',
+  limit = 10,
+): Promise<DataResult<AssetTicker[]>> {
+  return run(
+    assetClass,
+    `${assetClass}:tickers:${id}:${currency}:${limit}`,
+    (provider) => {
+      if (!provider.getTickers) {
+        throw new ProviderError(provider.id, 'Places de cotation non publiées par la source')
+      }
+      return provider.getTickers(id, currency, limit)
+    },
+    1800,
+  )
 }
 
 export function getAssetHistory(

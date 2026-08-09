@@ -1,11 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import type { AssetClass, MarketAsset } from '@zenith/data'
-import { getAsset, getAssetHistory, getExchangeRates, getPeers } from '@zenith/data'
+import type { AssetClass } from '@zenith/data'
 import {
-  Card,
-  CardHeader,
+  getAsset,
+  getAssetHistory,
+  getAssetTickers,
+  getExchangeRates,
+  getPeers,
+} from '@zenith/data'
+import {
   ChangeBadge,
   EmptyState,
   SourceNote,
@@ -14,7 +18,13 @@ import {
 } from '@zenith/ui'
 
 import { AssetLogo } from '@/components/AssetTile'
+import { AssetChangeGrid } from '@/components/asset/AssetChangeGrid'
+import { AssetConverter } from '@/components/asset/AssetConverter'
+import { AssetGlobalPrices } from '@/components/asset/AssetGlobalPrices'
 import { AssetKeyStats } from '@/components/asset/AssetKeyStats'
+import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
+import { AssetTechSheet } from '@/components/asset/AssetTechSheet'
+import { AssetTickers } from '@/components/asset/AssetTickers'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
@@ -24,13 +34,27 @@ import { assetHref, marketHref } from '@/lib/asset-routes'
 import { getWatchlistState } from '@/lib/watchlist-actions'
 
 /**
- * Fiche d'un actif — structure inspirée des pages de cotation de Kraken.
+ * Fiche d'un actif.
  *
- * On en reprend l'ordre de lecture, qui est le bon : identité et prix d'abord,
- * graphique ensuite, statistiques, puis contexte éditorial et comparables. On en
- * retire évidemment tout le tunnel d'achat — ZENITH n'exécute aucun ordre (§7), et
- * c'est précisément cette partie-là qui occupe la moitié droite de leurs pages.
- * L'espace ainsi libéré revient au graphique et aux statistiques.
+ * DISPOSITION DÉLIBÉRÉMENT DIFFÉRENTE de la référence du secteur, qui empile trois
+ * colonnes — rail de statistiques à gauche, graphique au centre, actualités à
+ * droite. Ici le graphique passe en bandeau PLEINE LARGEUR juste sous l'en-tête,
+ * parce que c'est lui qu'on vient voir ; les repères se déroulent en grille
+ * horizontale dessous, puis le contexte se répartit en deux colonnes. Le rail
+ * vertical est donc renversé en bandes horizontales : même information, ordre de
+ * lecture inverse.
+ *
+ * Ce qui est repris de la référence, ce sont les FONCTIONNALITÉS — amplitude 24 h,
+ * variations multi-fenêtres, valorisation diluée, contrats par chaîne,
+ * explorateurs, convertisseur, cours mondiaux, places de cotation. Une convention
+ * de contenu se reprend ; une mise en page se réinvente.
+ *
+ * Trois onglets de la référence sont ABSENTS et le resteront : Tokenomics, Holders
+ * et Financials reposent sur des données propriétaires qu'aucune source gratuite ne
+ * publie. Les afficher supposerait de les estimer (§5).
+ *
+ * Aucun tunnel d'achat non plus — c'est ce qui occupe la moitié droite des pages de
+ * plateformes d'échange. L'espace libéré revient au graphique et aux repères.
  */
 
 /**
@@ -50,7 +74,7 @@ export interface AssetPageViewProps {
 }
 
 export async function AssetPageView({ assetClass, id, searchParams }: AssetPageViewProps) {
-  const [asset, history, peers, rates] = await Promise.all([
+  const [asset, history, peers, rates, tickers] = await Promise.all([
     getAsset(id, assetClass, 'eur'),
     getAssetHistory(id, assetClass, SERVER_RANGE_DAYS, 'eur'),
     // `getPeers` dérive de l'aperçu déjà mis en cache par l'accueil : les
@@ -59,6 +83,10 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
     // par minute (mesuré).
     getPeers(assetClass, id, 6),
     getExchangeRates(),
+    // SEUL appel supplémentaire de la fiche, et il est mis en cache 30 minutes :
+    // la liste des places et leur poids relatif bougent à l'échelle de la journée.
+    // Un fournisseur sans `getTickers` fait disparaître la section.
+    getAssetTickers(id, assetClass, 'eur', 10),
   ])
 
   // Identifiant inconnu de la source : c'est un 404 au sens propre, pas une panne.
@@ -167,32 +195,60 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
         </div>
       </header>
 
-      {/* Repères de marché remontés HORS des onglets : ils suivent immédiatement le
-          cours, comme sur une fiche de cotation. Enfermés dans un onglet, ils
-          restaient invisibles à qui ne cliquait pas. */}
+      {/* Position du cours dans son amplitude, accolée au prix : c'est le seul
+          élément dont l'emplacement est dicté par la lecture et non par le style —
+          un curseur ne situe rien s'il est éloigné du chiffre qu'il situe. */}
+      <AssetRangeBar asset={data} isRate={isForex} />
+
+      {/* ── Graphique PLEINE LARGEUR ────────────────────────────────────────────
+          C'est le renversement principal par rapport aux fiches du secteur, qui le
+          coincent dans une colonne centrale entre deux rails. Il occupe ici toute
+          la largeur parce que c'est l'élément qu'on vient consulter ; le reste se
+          lit après lui, jamais à côté. */}
+      <section className="space-y-3">
+        <AssetWorkspace
+          asset={data}
+          assetClass={assetClass}
+          initialHistory={history.ok ? history.data : null}
+          initialDays={SERVER_RANGE_DAYS}
+          rates={rates.ok ? rates.data : null}
+        />
+
+        {history.ok ? (
+          <SourceNote
+            label={history.source.label}
+            href={history.source.attributionUrl}
+            updatedAt={data.lastUpdated}
+          />
+        ) : null}
+      </section>
+
+      {/* Variations puis repères, en bandes horizontales : le rail vertical de la
+          référence, couché. Même information, ordre de lecture inverse. */}
+      <AssetChangeGrid asset={data} />
+
       <AssetKeyStats asset={data} assetClass={assetClass} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          {/* Widget central : onglets, période et devise, tous pilotés côté client.
-              Le graphique de la première période arrive déjà rendu depuis le
-              serveur, de sorte que la page n'attend pas le JavaScript pour montrer
-              quelque chose d'utile. */}
-          <AssetWorkspace
-            asset={data}
-            assetClass={assetClass}
-            initialHistory={history.ok ? history.data : null}
-            initialDays={SERVER_RANGE_DAYS}
-            rates={rates.ok ? rates.data : null}
-          />
+      {tickers.ok && tickers.data.length > 0 ? (
+        <AssetTickers tickers={tickers.data} assetName={data.name} />
+      ) : null}
 
-          {history.ok ? (
-            <SourceNote
-              label={history.source.label}
-              href={history.source.attributionUrl}
-              updatedAt={data.lastUpdated}
-            />
+      {/* ── Contexte : deux colonnes ─────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+        <div className="space-y-10 lg:col-span-2">
+          {data.description ? (
+            <section className="space-y-3">
+              <h2 className="display-sm text-ink">À propos {frenchOf(data.name)}</h2>
+              {/* `whitespace-pre-line` : la source sépare ses paragraphes par des
+                  sauts de ligne, pas par du balisage. Sans cette règle, le texte
+                  arriverait en un seul pavé compact. */}
+              <p className="max-w-2xl whitespace-pre-line text-base leading-relaxed text-ink-muted">
+                {data.description}
+              </p>
+            </section>
           ) : null}
+
+          <AssetTechSheet asset={data} />
 
           {/* Le graphique donne une forme, ce tableau donne les nombres. */}
           {history.ok ? (
@@ -204,20 +260,25 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
           ) : null}
         </div>
 
-        {/* ── Colonne latérale : comparables ──────────────────────────────────── */}
-        <aside className="space-y-6">
-          <Card>
-            <CardHeader
-              title={fr.asset.similarTitle}
-              action={
-                <Link
-                  href={marketHref(assetClass)}
-                  className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
-                >
-                  {fr.home.seeAll}
-                </Link>
-              }
-            />
+        <aside className="space-y-8">
+          {data.pricesByCurrency ? (
+            <>
+              <AssetConverter symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
+              <AssetGlobalPrices symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
+            </>
+          ) : null}
+
+          <section className="space-y-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-sm font-semibold text-ink">{fr.asset.similarTitle}</h2>
+              <Link
+                href={marketHref(assetClass)}
+                className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+              >
+                {fr.home.seeAll}
+              </Link>
+            </div>
+
             {comparables.length > 0 ? (
               <ul className="divide-y divide-border-subtle">
                 {comparables.map((peer) => (
@@ -243,7 +304,7 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
             ) : (
               <EmptyState title={fr.states.unavailableTitle} compact />
             )}
-          </Card>
+          </section>
 
           {/* Rappel du positionnement : sur une page de cotation, c'est exactement
               là que les plateformes d'échange placent leur bouton d'achat. */}
@@ -254,6 +315,18 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
       </div>
     </div>
   )
+}
+
+/**
+ * Élision de « de » devant un nom d'actif.
+ *
+ * Les noms viennent de la source et couvrent des milliers d'actifs : « À propos de
+ * Aave » se lit comme une chaîne assemblée par une machine, ce qui est précisément
+ * l'impression à éviter. La règle porte sur le SON initial, d'où le « h » traité
+ * comme une voyelle — « d'Hedera » et non « de Hedera ».
+ */
+function frenchOf(name: string): string {
+  return /^[aeiouyàâéèêëîïôöûüh]/i.test(name) ? `d’${name}` : `de ${name}`
 }
 
 function Breadcrumb({ assetClass, name }: { assetClass: AssetClass; name: string }) {

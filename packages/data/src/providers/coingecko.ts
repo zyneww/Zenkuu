@@ -10,6 +10,7 @@
 import { createHttpClient } from '../http'
 import type {
   AssetDetail,
+  AssetTicker,
   GlobalMarketStats,
   ListAssetsParams,
   MarketAsset,
@@ -108,7 +109,18 @@ interface CoinGeckoCoin {
   name: string
   image?: { large?: string }
   description?: { fr?: string; en?: string }
-  links?: { homepage?: string[] }
+  links?: {
+    homepage?: string[]
+    blockchain_site?: string[]
+    whitepaper?: string
+    repos_url?: { github?: string[] }
+    subreddit_url?: string
+    twitter_screen_name?: string
+    telegram_channel_identifier?: string
+    official_forum_url?: string[]
+  }
+  /** Adresses de contrat par chaîne : { ethereum: '0x7fc6…', 'polygon-pos': '0x…' }. */
+  platforms?: Record<string, string | null>
   categories?: (string | null)[]
   market_cap_rank?: number | null
   market_data?: {
@@ -119,6 +131,15 @@ interface CoinGeckoCoin {
     low_24h?: Record<string, number>
     price_change_percentage_24h?: number | null
     price_change_percentage_7d?: number | null
+    /* Fenêtres longues : déjà dans la réponse, simplement jamais lues jusqu'ici. */
+    price_change_percentage_1h_in_currency?: Record<string, number>
+    price_change_percentage_14d?: number | null
+    price_change_percentage_30d?: number | null
+    price_change_percentage_1y?: number | null
+    fully_diluted_valuation?: Record<string, number>
+    total_value_locked?: Record<string, number> | null
+    ath_change_percentage?: Record<string, number>
+    atl_change_percentage?: Record<string, number>
     circulating_supply?: number | null
     total_supply?: number | null
     max_supply?: number | null
@@ -128,6 +149,24 @@ interface CoinGeckoCoin {
     atl_date?: Record<string, string>
     last_updated?: string
   }
+}
+
+/** Réponse de `/coins/{id}/tickers` — les places où l'actif se négocie. */
+interface CoinGeckoTickers {
+  tickers?: {
+    base?: string
+    target?: string
+    market?: { name?: string; identifier?: string }
+    volume?: number | null
+    converted_last?: Record<string, number>
+    converted_volume?: Record<string, number>
+    bid_ask_spread_percentage?: number | null
+    trade_url?: string | null
+    last_traded_at?: string | null
+    /** Cotation périmée ou aberrante selon la source — on ne les affiche pas. */
+    is_stale?: boolean
+    is_anomaly?: boolean
+  }[]
 }
 
 interface CoinGeckoSearch {
@@ -383,6 +422,58 @@ export const coinGeckoProvider: MarketDataProvider = {
       detail.categories = raw.categories.filter((category): category is string => Boolean(category))
     }
 
+    /* ── Liens, contrats et prix mondiaux ─────────────────────────────────────
+       Tout ce qui suit était DÉJÀ dans la réponse et simplement jeté faute d'être
+       typé : aucun appel réseau supplémentaire, uniquement du mappage. La source
+       renvoie beaucoup de chaînes vides et de `null` dans ces tableaux — d'où le
+       filtrage systématique, qui évite d'afficher un lien mort. */
+
+    const links = raw.links
+    const httpUrls = (values: (string | undefined)[] | undefined) =>
+      (values ?? []).filter((url): url is string => Boolean(url?.startsWith('http')))
+
+    const explorers = httpUrls(links?.blockchain_site)
+    if (explorers.length > 0) detail.explorerUrls = explorers.slice(0, 6)
+
+    if (links?.whitepaper?.startsWith('http')) detail.whitepaperUrl = links.whitepaper
+
+    const github = httpUrls(links?.repos_url?.github)[0]
+    if (github) detail.sourceCodeUrl = github
+
+    // Les réseaux communautaires arrivent en trois formats distincts : URL complète
+    // (Reddit), identifiant nu (Twitter, Telegram) ou tableau (forum officiel). On
+    // reconstruit l'URL plutôt que d'afficher un identifiant brut, illisible.
+    const community: Record<string, string> = {}
+    if (links?.subreddit_url?.startsWith('http')) community['Reddit'] = links.subreddit_url
+    if (links?.twitter_screen_name) community['X'] = `https://x.com/${links.twitter_screen_name}`
+    if (links?.telegram_channel_identifier) {
+      community['Telegram'] = `https://t.me/${links.telegram_channel_identifier}`
+    }
+    const forum = httpUrls(links?.official_forum_url)[0]
+    if (forum) community['Forum'] = forum
+    if (Object.keys(community).length > 0) detail.communityUrls = community
+
+    // `platforms` contient souvent une clé vide pour les actifs sans contrat (les
+    // chaînes natives comme Bitcoin) : elle est écartée, sinon la fiche technique
+    // afficherait une ligne sans nom de chaîne.
+    if (raw.platforms) {
+      const contracts: Record<string, string> = {}
+      for (const [chain, address] of Object.entries(raw.platforms)) {
+        if (chain && address) contracts[chain] = address
+      }
+      if (Object.keys(contracts).length > 0) detail.contracts = contracts
+    }
+
+    // Cotations RÉELLES par devise, et non des conversions maison : la source
+    // publie le prix devise par devise, ce qui vaut mieux qu'un produit par un taux.
+    if (market?.current_price) {
+      const prices: Record<string, number> = {}
+      for (const [code, value] of Object.entries(market.current_price)) {
+        if (typeof value === 'number' && Number.isFinite(value)) prices[code] = value
+      }
+      if (Object.keys(prices).length > 0) detail.pricesByCurrency = prices
+    }
+
     // Champs numériques optionnels : ils partagent tous le type `number | undefined`,
     // ce qui permet une affectation typée sans cast — et donc sans risque d'écrire
     // dans un champ qui n'attend pas un nombre.
@@ -399,6 +490,14 @@ export const coinGeckoProvider: MarketDataProvider = {
       | 'ath'
       | 'atl'
       | 'rank'
+      | 'change1h'
+      | 'change14d'
+      | 'change30d'
+      | 'change1y'
+      | 'fdv'
+      | 'tvl'
+      | 'athChangePercent'
+      | 'atlChangePercent'
 
     const assign = (field: NumericField, value: number | undefined) => {
       if (value !== undefined) detail[field] = value
@@ -417,10 +516,117 @@ export const coinGeckoProvider: MarketDataProvider = {
     assign('atl', optional(market?.atl?.[key]))
     assign('rank', optional(raw.market_cap_rank))
 
+    // Fenêtres longues et repères étendus, tous présents dans la même réponse.
+    // Seule la variation 1 h est publiée par devise ; les autres sont globales.
+    assign('change1h', optional(market?.price_change_percentage_1h_in_currency?.[key]))
+    assign('change14d', optional(market?.price_change_percentage_14d))
+    assign('change30d', optional(market?.price_change_percentage_30d))
+    assign('change1y', optional(market?.price_change_percentage_1y))
+
+    // FDV reprise telle quelle, JAMAIS recalculée en `prix × offre totale` : la
+    // source applique ses propres règles sur les jetons verrouillés ou brûlés, et
+    // un produit maison divergerait du chiffre publié partout ailleurs (§5).
+    assign('fdv', optional(market?.fully_diluted_valuation?.[key]))
+    // La TVL n'existe que pour les protocoles de finance décentralisée : `null`
+    // pour tous les autres, et le module disparaît alors de la fiche.
+    assign('tvl', optional(market?.total_value_locked?.[key]))
+    assign('athChangePercent', optional(market?.ath_change_percentage?.[key]))
+    assign('atlChangePercent', optional(market?.atl_change_percentage?.[key]))
+
     if (market?.ath_date?.[key]) detail.athDate = market.ath_date[key]
     if (market?.atl_date?.[key]) detail.atlDate = market.atl_date[key]
 
     return detail
+  },
+
+  /**
+   * Places de cotation d'un actif.
+   *
+   * Deux filtres appliqués AVANT tout affichage, et ils ne sont pas cosmétiques :
+   * la source marque elle-même les cotations périmées (`is_stale`) et aberrantes
+   * (`is_anomaly`). Les laisser passer afficherait un prix faux à côté de prix
+   * justes, ce qui est pire que de ne rien afficher — un lecteur n'a aucun moyen
+   * de distinguer les deux (§5).
+   *
+   * On lit `converted_last` plutôt que `last` : `last` est libellé dans la devise
+   * de cotation de la paire (souvent USDT), et le mélanger à des prix en euros dans
+   * une même colonne produirait un tableau incomparable.
+   *
+   * LIMITE DE LA SOURCE, vérifiée sur l'API : cet endpoint ne convertit QUE vers
+   * `btc`, `eth` et `usd` — jamais vers l'euro, contrairement au reste de l'API.
+   * Demander « eur » ne renvoyait donc aucune ligne exploitable et vidait la
+   * section entière en silence. On se rabat sur le dollar et on le DÉCLARE dans
+   * `currency`, de sorte que l'affichage sache qu'il montre des dollars et puisse
+   * l'écrire. Convertir nous-mêmes vers l'euro empilerait le cours et un taux de
+   * change horodatés différemment (§5).
+   */
+  async getTickers(
+    id: string,
+    currency = DEFAULT_CURRENCY,
+    limit = 10,
+  ): Promise<AssetTicker[]> {
+    const payload = await http.getJson<CoinGeckoTickers>(
+      `coins/${encodeURIComponent(id)}/tickers`,
+      {
+        // Trié par volume : les premières places sont les plus liquides, donc les
+        // plus représentatives du prix réel.
+        order: 'volume_desc',
+        depth: false,
+      },
+    )
+
+    if (!Array.isArray(payload.tickers)) {
+      throw new ProviderError(PROVIDER_ID, 'Format des places de cotation inattendu')
+    }
+
+    // Devise résolue sur ce que la réponse contient RÉELLEMENT, et non sur ce qui a
+    // été demandé : on inspecte la première ligne plutôt que de coder « usd » en
+    // dur, pour que l'ajout éventuel de l'euro par la source soit pris tout seul.
+    const requested = currency.toLowerCase()
+    const available = payload.tickers.find((row) => row.converted_last)?.converted_last ?? {}
+    const key = available[requested] !== undefined ? requested : 'usd'
+
+    const rows: AssetTicker[] = []
+
+    for (const raw of payload.tickers) {
+      if (raw.is_stale || raw.is_anomaly) continue
+
+      const price = optional(raw.converted_last?.[key])
+      const exchange = raw.market?.name?.trim()
+      if (price === undefined || !exchange || !raw.base || !raw.target) continue
+
+      const ticker: AssetTicker = {
+        exchange,
+        base: raw.base,
+        target: raw.target,
+        price,
+        currency: key.toUpperCase(),
+      }
+
+      const volume = optional(raw.converted_volume?.[key])
+      if (volume !== undefined) ticker.volume24h = volume
+
+      const spread = optional(raw.bid_ask_spread_percentage)
+      if (spread !== undefined) ticker.spreadPercent = spread
+
+      if (raw.trade_url?.startsWith('http')) ticker.tradeUrl = raw.trade_url
+      if (raw.last_traded_at) ticker.lastTraded = raw.last_traded_at
+
+      rows.push(ticker)
+      if (rows.length >= limit) break
+    }
+
+    // Part de volume calculée sur les lignes RETENUES, et l'interface l'écrit :
+    // rapportée au volume total de l'actif, une part calculée sur dix places
+    // donnerait des pourcentages qui ne somment pas à 100 sans explication.
+    const total = rows.reduce((sum, row) => sum + (row.volume24h ?? 0), 0)
+    if (total > 0) {
+      for (const row of rows) {
+        if (row.volume24h !== undefined) row.volumePercent = (row.volume24h / total) * 100
+      }
+    }
+
+    return rows
   },
 
   async getHistory(

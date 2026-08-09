@@ -208,6 +208,69 @@ Deux ajouts de plomberie que cette page a rendus nécessaires :
 Le sélecteur de période, lui, ne coûte **rien** : CoinGecko renvoie déjà
 `1h,24h,7d,14d,30d,1y` dans l'appel du classement.
 
+#### Fiche d'un actif (`/crypto/[id]` et les cinq autres classes)
+
+**La moitié des modules était déjà payée.** L'appel `/coins/{id}` récupérait la réponse
+complète mais n'en typait qu'une fraction : `links`, `platforms`,
+`fully_diluted_valuation`, `total_value_locked`, `ath_change_percentage` et
+`current_price` (un dictionnaire de toutes les devises) étaient reçus puis jetés. Les
+contrats, explorateurs, valorisation diluée, écart au record, convertisseur et cours
+mondiaux ne coûtent donc **aucun appel réseau** — c'est du mappage, pas de la collecte.
+
+Disposition **délibérément différente** de la référence du secteur, qui empile trois
+colonnes (rail de statistiques, graphique, actualités). Ici : graphique **pleine largeur**
+sous l'en-tête → bandes horizontales (variations, repères, places) → contexte en deux
+colonnes. Le rail vertical est couché en bandes : même information, ordre de lecture
+inverse. Une convention de contenu se reprend ; une mise en page se réinvente.
+
+| Module | Coût réseau |
+|---|---|
+| Amplitude 24 h, variations 1 h → 1 an, FDV, TVL, écart aux extrêmes | aucun |
+| Contrats par chaîne, explorateurs, livre blanc, code source, communauté | aucun |
+| Convertisseur, cours dans d'autres devises | aucun |
+| **Places de cotation** | **un appel**, mis en cache 30 min |
+
+Quatre points à ne pas défaire :
+
+- **`/coins/{id}/tickers` ne convertit QUE vers `btc`, `eth` et `usd`** — jamais l'euro,
+  contrairement au reste de l'API. Demander « eur » renvoyait zéro ligne exploitable et
+  vidait la section en silence. Le provider résout la devise sur ce que la réponse
+  contient réellement et la déclare dans `currency` ; convertir nous-mêmes empilerait un
+  cours et un taux horodatés différemment (§5).
+- **Les cotations `is_stale` et `is_anomaly` sont écartées dans l'adaptateur.** La source
+  les signale elle-même : un prix faux à côté de prix justes est pire que pas de prix, le
+  lecteur n'ayant aucun moyen de les distinguer.
+- **La FDV est reprise telle quelle, jamais recalculée** en `prix × offre totale` : la
+  source applique ses propres règles sur les jetons verrouillés ou brûlés.
+- **`StatsTab` et `AboutTab` ont été supprimés** d'`AssetWorkspace`, pas seulement retirés
+  de sa barre d'onglets : leur contenu vit désormais en bandes pleine largeur. Deux
+  implémentations d'un même affichage auraient divergé au premier ajustement. Les trois
+  onglets restants portent chacun un contenu unique.
+
+Trois modules de la référence sont **absents et le resteront** : Tokenomics, Holders et
+Financials reposent sur des données propriétaires qu'aucune source gratuite ne publie.
+
+**Liens sortants vers les places de cotation** : prévus par le §8 (« liens sortants vers
+des exchanges tiers — jamais de widget de trading intégré »). La distinction tient — ZENITH
+n'exécute rien, ne détient rien, n'intègre aucun tunnel d'achat. `nofollow` marque
+l'absence de caution, `noopener` protège de `window.opener`.
+
+#### Logo de l'en-tête
+
+`logo2.svg` est un **bitmap tracé**, pas un logo vectoriel natif : 382 chemins, 222 Ko à
+l'origine. Trois traitements ont été nécessaires, et chacun répond à un défaut mesuré :
+
+- **Optimisé à 65 Ko** (`svgo --precision=1 --multipass`, −71 %) sans perte visible. Le
+  fichier d'origine faisait expirer le rendu du navigateur.
+- **`viewBox` recadré** de `0 0 1152 767` à `99 206 933 326`. La zone de dessin n'était
+  remplie qu'à 32 % — le logotype (917×310) flottait sous 28 % de marge et se réduisait à
+  une vignette illisible à hauteur d'en-tête. Aucun chemin n'a été touché.
+- **`dark:invert`** plutôt que le masque CSS de l'ancien logo. Un masque ne lit que la
+  silhouette et aurait aplati en une teinte un dessin qui mêle 259 aplats sombres et 117
+  clairs. L'inversion est ici **exacte** : le fichier ne contient aucune couleur saturée
+  (vérifié — aucun aplat dont R, G et B s'écartent de plus de 12). Sur un logo coloré, ce
+  serait à proscrire.
+
 ### 3.1.1 Ce qui fait « gabarit généré » — et qui est proscrit
 
 Une passe a retiré du site les conventions qui signalent une page produite à partir
