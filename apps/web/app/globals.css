@@ -174,3 +174,19 @@
     mask-image: url('/brand/footer-logo.svg');
   }
 }
+
+/*
+ * Défilement du bandeau de cotations (`TickerWidget`).
+ *
+ * La translation vaut -50 % parce que la liste est rendue DEUX FOIS : à mi-course,
+ * la copie occupe exactement la position de départ de l'originale, et la boucle se
+ * referme sans saut. Toute autre valeur produirait un à-coup visible.
+ */
+@keyframes zenith-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

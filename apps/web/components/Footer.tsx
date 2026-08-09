@@ -23,14 +23,14 @@ export function Footer() {
           <div className="col-span-2 lg:col-span-2">
             <Link href="/" className="inline-flex items-center text-ink" aria-label={fr.site.name}>
               <span
-                className="brand-mark brand-mark-footer h-10 w-10"
+                className="brand-mark brand-mark-footer h-14 w-14"
                 role="img"
                 aria-label={fr.site.name}
               />
-              <span className="ml-2 text-lg font-bold tracking-tight">{fr.site.name}</span>
+              <span className="ml-2.5 text-2xl font-bold tracking-tight">{fr.site.name}</span>
             </Link>
 
-            <p className="mt-3 max-w-xs text-xs leading-relaxed text-ink-muted">
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-muted">
               {fr.site.tagline}. {fr.footer.positioning}
             </p>
 
@@ -101,6 +101,26 @@ export function Footer() {
                 </a>
               </span>
             ))}
+          </p>
+
+          {/*
+            Attribution EXIGÉE par les CGU de l'API CoinGecko (§4.1.4) : la mention
+            « Powered by CoinGecko » doit apparaître dans une police lisible d'au
+            moins 10 px, et cette obligation ne distingue pas le palier gratuit des
+            offres payantes. Aucun plan n'autorise son retrait.
+
+            D'où `text-xs` (12 px) et non la taille `0.6875rem` des lignes voisines :
+            la contrainte est chiffrée, on garde une marge au-dessus du minimum.
+          */}
+          <p className="text-xs text-ink-muted">
+            <a
+              href="https://www.coingecko.com/en/api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-brand-strong"
+            >
+              {fr.footer.poweredByCoinGecko}
+            </a>
           </p>
 
           <p className="text-[0.6875rem] font-medium text-ink">{fr.footer.rights(year)}</p>

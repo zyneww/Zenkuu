@@ -6,8 +6,9 @@ import { ChevronDown, Menu, Search } from 'lucide-react'
 
 import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { fr } from '@/content/fr'
+import { AuthButtons } from '@/components/auth/AuthButtons'
+import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
-import { ThemeToggle } from '@/components/ThemeToggle'
 
 /**
  * Barre de navigation — bande centrée façon AniList (§3.2).
@@ -81,7 +82,7 @@ export function NavBar() {
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/95 backdrop-blur">
         <div
           ref={navRef}
-          className="mx-auto flex h-16 max-w-[1120px] items-center justify-between gap-4 px-4"
+          className="mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-4 px-4"
         >
           {/* `flex-1 basis-0` sur les deux groupes latéraux pour qu'ils partagent
               l'espace à parts strictement égales : c'est la condition pour que la
@@ -130,7 +131,12 @@ export function NavBar() {
               <Search className="h-4 w-4" aria-hidden="true" />
             </button>
 
-            <ThemeToggle />
+            {/* Sélecteur de devise et bascule de thème fusionnés en une seule
+                entrée : trois réglages d'affichage pour trois contrôles distincts
+                encombraient l'en-tête sans que leur parenté soit lisible. */}
+            <SettingsPanel />
+
+            <AuthButtons />
 
             <button
               type="button"
