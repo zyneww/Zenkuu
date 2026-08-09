@@ -76,6 +76,11 @@ export const metadata: Metadata = {
   },
   description: fr.site.description,
   applicationName: fr.site.name,
+  // Découverte du flux déclarée à la RACINE et non sur la seule page du blog : c'est
+  // ce qui permet à l'extension d'un navigateur ou à un lecteur de flux de proposer
+  // l'abonnement depuis n'importe quelle page du site. Les pages qui redéfinissent
+  // `alternates` doivent penser à le réémettre — d'où sa présence sur `/blog`.
+  alternates: { types: { 'application/rss+xml': '/blog/rss.xml' } },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',

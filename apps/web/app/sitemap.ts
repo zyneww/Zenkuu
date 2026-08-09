@@ -4,6 +4,7 @@ import { YAHOO_UNIVERSE, getCryptoRanking, toSlug } from '@zenith/data'
 
 import { HELP_ARTICLES } from '@/content/aide'
 import { LESSONS } from '@/content/apprendre'
+import { ARTICLES } from '@/content/blog'
 import { absoluteUrl } from '@/lib/site'
 
 /**
@@ -82,6 +83,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.5,
+    })
+  }
+
+  // Articles du blog. La boucle ne produit rien tant qu'aucun n'est publié, et se
+  // remplit d'elle-même à la première parution : `lastModified` reprend la date de
+  // révision réelle plutôt que l'heure de génération, sans quoi chaque
+  // reconstruction du site annoncerait à tort que tous les articles ont changé.
+  for (const article of ARTICLES) {
+    entries.push({
+      url: absoluteUrl(`/blog/${article.slug}`),
+      lastModified: new Date(article.updatedAt ?? article.publishedAt),
+      changeFrequency: 'yearly',
+      priority: 0.6,
     })
   }
 

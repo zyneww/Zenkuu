@@ -255,6 +255,50 @@ des exchanges tiers — jamais de widget de trading intégré »). La distinctio
 n'exécute rien, ne détient rien, n'intègre aucun tunnel d'achat. `nofollow` marque
 l'absence de caution, `noopener` protège de `window.opener`.
 
+#### Blog (`/blog`) — système complet, contenu à zéro
+
+Le système entier est en place ; **`ARTICLES` est vide** et le reste (§5 : de faux billets
+signés de faux auteurs à de fausses dates sont exactement ce que la règle proscrit). Tout se
+peuple **de lui-même** à la première entrée ajoutée au tableau : aucun composant à retoucher.
+
+Disposition **volontairement différente** de la référence, qui empile sous-barre collante,
+héro, puis carrousel « Featured » à flèches. Ici : une à la une en pleine largeur → filtres
+intégrés au flux → grille à deux colonnes → archives en liste compacte au-delà de six
+articles. Le carrousel est écarté pour une raison de lecture, pas de style : il cache
+derrière des flèches ce qu'une grille montre d'un coup, et sur un blog peu fourni il simule
+un volume inexistant.
+
+| Ce qui dérive automatiquement | De quoi |
+|---|---|
+| Temps de lecture | nombre de mots / 200 — **jamais saisi à la main**, un chiffre écrit en dur diverge dès la première relecture |
+| Ancres du sommaire | titre de section, diacritiques retirés (`#methodologie`, pas `#m%C3%A9thodologie`) |
+| Flux RSS, plan du site, articles liés | le tableau `ARTICLES` |
+| Indexation de `/blog` | `robots: noindex` **tant que le tableau est vide**, rouvert seul à la première publication |
+
+Points à ne pas défaire :
+
+- **Le flux RSS répond même à vide.** Un abonné d'aujourd'hui recevra les articles du jour où
+  ils paraîtront ; un flux qui répondrait 404 en attendant obligerait à se réabonner.
+- **`dc:creator` et non `<author>`** : la spécification RSS 2.0 attend une adresse e-mail dans
+  `<author>`, un nom y rend le flux non conforme.
+- **La découverte RSS est déclarée à la racine** (`app/layout.tsx`). Toute page qui redéfinit
+  `alternates` écrase l'objet hérité et doit la réémettre — c'est le cas de `/blog` et de
+  `/blog/[slug]`.
+- **`generateStaticParams` renvoie un tableau vide**, donc toute URL `/blog/<quoi-que-ce-soit>`
+  répond 404. C'est le comportement juste : une adresse d'article inexistant ne doit pas
+  rendre une page vide indexable.
+- **Pas de vignette sur les cartes.** ZENITH n'a pas de banque d'illustrations : une image
+  générique par billet est du remplissage visuel, un cadre « image à venir » est pire.
+- **Deux destinations de partage seulement** (copier le lien, X), sans script tiers. Les
+  boutons officiels des réseaux embarquent des traceurs ; un lien `intent` fait le même
+  travail. Une rangée de six pastilles colorées est par ailleurs un ornement de gabarit
+  (§3.1.1).
+
+**Infolettre volontairement inactive.** Aucune infrastructure d'envoi n'existe. Collecter
+réellement stockerait des adresses personnelles sans finalité ; faire semblant d'accepter
+serait un mensonge. Le champ est donc `disabled`, la raison écrite dessous, et l'alternative
+qui **fonctionne** — le flux RSS — est mise en avant à côté, pas reléguée en note.
+
 #### Logo de l'en-tête
 
 `logo2.svg` est un **bitmap tracé**, pas un logo vectoriel natif : 382 chemins, 222 Ko à

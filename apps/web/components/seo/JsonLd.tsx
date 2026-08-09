@@ -122,10 +122,17 @@ export function ArticleJsonLd({
   title,
   description,
   path,
+  publishedAt,
+  updatedAt,
+  author,
 }: {
   title: string
   description: string
   path: string
+  /** Date de parution, ISO 8601. Omise pour les contenus sans date de publication. */
+  publishedAt?: string
+  updatedAt?: string
+  author?: string
 }) {
   return (
     <JsonLdScript
@@ -137,7 +144,16 @@ export function ArticleJsonLd({
         url: absoluteUrl(path),
         inLanguage: 'fr-FR',
         isAccessibleForFree: true,
-        author: { '@type': 'Organization', name: 'ZENITH' },
+        // Les dates ne sont émises QUE si elles existent réellement : un
+        // `datePublished` inventé pour satisfaire le validateur de données
+        // structurées ferait afficher une fausse date dans les résultats de
+        // recherche, ce qui est du même ordre qu'un chiffre inventé (§5).
+        ...(publishedAt ? { datePublished: publishedAt } : {}),
+        ...(updatedAt ?? publishedAt ? { dateModified: updatedAt ?? publishedAt } : {}),
+        // `Organization` et non `Person`, même quand un nom est fourni : la
+        // signature par défaut est « Équipe ZENITH », qui est un collectif. Déclarer
+        // une personne qui n'existe pas serait une affirmation fausse de plus.
+        author: { '@type': 'Organization', name: author ?? 'ZENITH' },
         publisher: { '@type': 'Organization', name: 'ZENITH', url: absoluteUrl('/') },
       }}
     />
