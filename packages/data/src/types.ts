@@ -52,6 +52,16 @@ export interface MarketAsset {
   change24h?: number
   change7d?: number
   /**
+   * Fenêtres longues, renvoyées par le même appel que les précédentes.
+   *
+   * Toutes les sources ne les publient pas — Yahoo n'expose que la variation du
+   * jour. Un classement demandé sur une période absente doit donc l'annoncer au
+   * lieu de retomber silencieusement sur 24 h (§5).
+   */
+  change14d?: number
+  change30d?: number
+  change1y?: number
+  /**
    * Période réelle couverte par `change24h` lorsqu'elle n'est pas 24 h.
    *
    * La BCE, par exemple, ne publie qu'un taux par jour ouvré : parler de « 24 h »
@@ -115,10 +125,57 @@ export interface AssetDetail extends MarketAsset {
 
 /** Série de prix pour les graphiques de la fiche actif. */
 export interface PriceHistory {
-  points: { timestamp: number; price: number }[]
+  /**
+   * `volume` accompagne le prix quand la source le publie DANS LA MÊME réponse.
+   *
+   * C'est le cas de `market_chart` chez CoinGecko, dont le champ `total_volumes`
+   * était jusqu'ici ignoré : le sous-graphique de volume ne coûte donc aucun appel
+   * supplémentaire. Absent = la source ne l'a pas fourni, et le module disparaît.
+   */
+  points: { timestamp: number; price: number; volume?: number }[]
   currency: string
   /** Fenêtre demandée, en jours — utile pour libeller l'axe. */
   days: number
+}
+
+/**
+ * Une bougie : ouverture, plus haut, plus bas, clôture sur un intervalle.
+ *
+ * `volume` est optionnel, et ce n'est pas de la prudence de façade : CoinGecko
+ * publie l'OHLC et les volumes par DEUX endpoints distincts, et son endpoint OHLC
+ * n'inclut aucun volume. Un `volume` absent signifie donc « la source ne le donne
+ * pas pour cet actif » — le sous-graphique de volume est alors omis, jamais dessiné
+ * à partir d'une valeur reconstituée (§5).
+ */
+export interface Candle {
+  timestamp: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volume?: number
+}
+
+/**
+ * Série de bougies pour le graphique en chandeliers.
+ *
+ * Type SÉPARÉ de `PriceHistory`, et non une extension : une série de prix ne peut
+ * pas être convertie en bougies sans inventer trois valeurs sur quatre. Garder les
+ * deux formes distinctes rend cette impossibilité visible dans le typage — un
+ * appelant qui veut des chandeliers doit disposer d'une vraie source OHLC.
+ */
+export interface OhlcHistory {
+  candles: Candle[]
+  currency: string
+  days: number
+  /**
+   * Granularité réellement renvoyée par la source, en minutes.
+   *
+   * CoinGecko l'impose selon la fenêtre demandée (30 min jusqu'à 30 jours, 4 h
+   * au-delà) au lieu de la laisser choisir. L'exposer évite que l'interface annonce
+   * une précision que la donnée n'a pas.
+   */
+  intervalMinutes?: number
 }
 
 /** Un secteur / narratif de marché (« Layer 1 », « IA », « RWA »…). */
@@ -140,6 +197,14 @@ export interface NewsItem {
   source: string
   publishedAt: string
   excerpt?: string
+  /**
+   * Rubrique héritée du FLUX d'origine, jamais déduite du texte de l'article.
+   *
+   * Un flux « marchés » ne publie que de l'actualité marchés : l'étiquette est donc
+   * exacte par construction. La déduire par mots-clés dans un titre produirait des
+   * classements faux, c'est-à-dire de la donnée inventée (§5).
+   */
+  category?: string
 }
 
 /**
@@ -244,6 +309,20 @@ export interface MarketDataProvider {
     assetClass?: AssetClass,
     currency?: string,
   ): Promise<PriceHistory>
+  /**
+   * Bougies OHLC sur `days` jours, quand la source en publie.
+   *
+   * Distinct de `getHistory` parce que la disponibilité l'est réellement : la BCE
+   * ne cote qu'un taux de référence par jour ouvré, elle n'a ni ouverture ni plus
+   * haut. Un fournisseur qui n'implémente pas cette méthode fait simplement
+   * disparaître le type « chandeliers » du sélecteur, sans dégrader le reste.
+   */
+  getOhlc?(
+    id: string,
+    days: number,
+    assetClass?: AssetClass,
+    currency?: string,
+  ): Promise<OhlcHistory>
   /** Secteurs / narratifs, quand la source en publie. */
   getCategories?(currency?: string): Promise<MarketCategory[]>
   /** Recherche par nom ou symbole, quand la source expose un index. */

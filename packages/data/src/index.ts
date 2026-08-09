@@ -13,11 +13,16 @@ export { getAvailability, getDeclaredProvider, getProvider } from './registry'
 export type { AssetClassAvailability } from './registry'
 
 export {
+  MOVERS_PERIODS,
+  MOVERS_UNIVERSES,
   MOVERS_UNIVERSE_SIZE,
   SUPPORTED_CURRENCIES,
+  getMoversUniverse,
+  rankMovers,
   getExchangeRates,
   getAsset,
   getAssetHistory,
+  getAssetOhlc,
   getCategories,
   getCryptoGlobalStats,
   getCryptoOverview,
@@ -33,6 +38,8 @@ export {
 export type {
   CryptoOverview,
   DataResult,
+  MoversPeriod,
+  MoversUniverse,
   DataSource,
   ExchangeRates,
   RankingParams,
@@ -51,16 +58,21 @@ export type { SearchResponse } from './search'
 
 export { YAHOO_UNIVERSE, findUniverseEntry, toSlug } from './providers/yahoo-universe'
 
+export { NEWS_CATEGORY_LABELS } from './providers/news'
+export type { NewsCategory } from './providers/news'
+
 export { ASSET_CLASSES, ProviderError } from './types'
 export type {
   AssetClass,
   AssetDetail,
+  Candle,
   GlobalMarketStats,
   ListAssetsParams,
   MarketAsset,
   MarketCategory,
   MarketDataProvider,
   NewsItem,
+  OhlcHistory,
   PriceHistory,
   SearchResult,
   SentimentIndex,

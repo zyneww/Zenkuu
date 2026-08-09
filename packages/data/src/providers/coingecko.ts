@@ -15,6 +15,7 @@ import type {
   MarketAsset,
   MarketCategory,
   MarketDataProvider,
+  OhlcHistory,
   PriceHistory,
   SearchResult,
   TrendingAsset,
@@ -59,6 +60,9 @@ interface CoinGeckoMarket {
   price_change_percentage_1h_in_currency?: number | null
   price_change_percentage_24h_in_currency?: number | null
   price_change_percentage_7d_in_currency?: number | null
+  price_change_percentage_14d_in_currency?: number | null
+  price_change_percentage_30d_in_currency?: number | null
+  price_change_percentage_1y_in_currency?: number | null
   price_change_percentage_24h?: number | null
   circulating_supply: number | null
   total_supply: number | null
@@ -186,6 +190,15 @@ function toMarketAsset(raw: CoinGeckoMarket, currency: string): MarketAsset {
   const change7d = optional(raw.price_change_percentage_7d_in_currency)
   if (change7d !== undefined) asset.change7d = change7d
 
+  const change14d = optional(raw.price_change_percentage_14d_in_currency)
+  if (change14d !== undefined) asset.change14d = change14d
+
+  const change30d = optional(raw.price_change_percentage_30d_in_currency)
+  if (change30d !== undefined) asset.change30d = change30d
+
+  const change1y = optional(raw.price_change_percentage_1y_in_currency)
+  if (change1y !== undefined) asset.change1y = change1y
+
   const sparkline = raw.sparkline_in_7d?.price
   if (Array.isArray(sparkline) && sparkline.length > 1) asset.sparkline7d = sparkline
 
@@ -254,7 +267,10 @@ export const coinGeckoProvider: MarketDataProvider = {
       per_page: Math.min(Math.max(params.perPage ?? 50, 1), 250),
       page: Math.max(params.page ?? 1, 1),
       sparkline: params.withSparkline ?? false,
-      price_change_percentage: '1h,24h,7d',
+      // Fenêtres supplémentaires demandées DANS LE MÊME APPEL : l'endpoint les
+      // renvoie comme champs additionnels, sans requête ni quota supplémentaires.
+      // C'est ce qui rend le filtre de période des « mouvements » gratuit.
+      price_change_percentage: '1h,24h,7d,14d,30d,1y',
       locale: 'fr',
     })
 
@@ -406,26 +422,81 @@ export const coinGeckoProvider: MarketDataProvider = {
     _assetClass,
     currency = DEFAULT_CURRENCY,
   ): Promise<PriceHistory> {
-    const payload = await http.getJson<{ prices?: [number, number][] }>(
-      `coins/${encodeURIComponent(id)}/market_chart`,
-      {
-        vs_currency: currency.toLowerCase(),
-        days,
-        // CoinGecko choisit seul la granularité selon la fenêtre (5 min sous 1 jour,
-        // horaire jusqu'à 90 jours, quotidienne au-delà). Forcer `interval` est
-        // réservé aux offres payantes et provoque un 401 sur le palier gratuit.
-      },
-    )
+    const payload = await http.getJson<{
+      prices?: [number, number][]
+      total_volumes?: [number, number][]
+    }>(`coins/${encodeURIComponent(id)}/market_chart`, {
+      vs_currency: currency.toLowerCase(),
+      days,
+      // CoinGecko choisit seul la granularité selon la fenêtre (5 min sous 1 jour,
+      // horaire jusqu'à 90 jours, quotidienne au-delà). Forcer `interval` est
+      // réservé aux offres payantes et provoque un 401 sur le palier gratuit.
+    })
+
+    // Les volumes arrivent dans CETTE réponse, horodatés comme les prix. Les indexer
+    // plutôt que de les apparier par position : les deux tableaux ont la même
+    // longueur en pratique, mais rien dans le contrat de l'API ne le garantit, et un
+    // décalage d'un cran attribuerait silencieusement le volume au mauvais instant.
+    const volumeAt = new Map<number, number>()
+    for (const entry of payload.total_volumes ?? []) {
+      if (Array.isArray(entry) && Number.isFinite(entry[1])) volumeAt.set(entry[0], entry[1])
+    }
 
     const points = (payload.prices ?? [])
       .filter((entry) => Array.isArray(entry) && Number.isFinite(entry[1]))
-      .map(([timestamp, price]) => ({ timestamp, price }))
+      .map(([timestamp, price]) => {
+        const volume = volumeAt.get(timestamp)
+        return volume === undefined ? { timestamp, price } : { timestamp, price, volume }
+      })
 
     if (points.length < 2) {
       throw new ProviderError(PROVIDER_ID, `Historique insuffisant pour « ${id} »`)
     }
 
     return { points, currency: currency.toUpperCase(), days }
+  },
+
+  /**
+   * Bougies réelles, via l'endpoint `/ohlc` dédié.
+   *
+   * Appel SUPPLÉMENTAIRE, déclenché uniquement quand l'utilisateur bascule en
+   * chandeliers — jamais au rendu initial de la fiche. Sur un quota mesuré à
+   * ~5 requêtes/minute sans clé, faire porter ce coût au seul visiteur qui demande
+   * la vue est la différence entre un module utilisable et un module qui déclenche
+   * des 429 pour tout le monde.
+   *
+   * `days` n'est pas libre : CoinGecko n'accepte que 1, 7, 14, 30, 90, 180 et 365 sur
+   * le palier gratuit, et répond 401 pour toute autre valeur. On aligne donc la
+   * demande sur la fenêtre autorisée la plus proche par le haut.
+   */
+  async getOhlc(
+    id: string,
+    days: number,
+    _assetClass,
+    currency = DEFAULT_CURRENCY,
+  ): Promise<OhlcHistory> {
+    const allowed = [1, 7, 14, 30, 90, 180, 365]
+    const window = allowed.find((value) => value >= days) ?? 365
+
+    const payload = await http.getJson<[number, number, number, number, number][]>(
+      `coins/${encodeURIComponent(id)}/ohlc`,
+      { vs_currency: currency.toLowerCase(), days: window },
+    )
+
+    const candles = (Array.isArray(payload) ? payload : [])
+      .filter((entry) => Array.isArray(entry) && entry.length >= 5 && entry.every(Number.isFinite))
+      .map(([timestamp, open, high, low, close]) => ({ timestamp, open, high, low, close }))
+
+    if (candles.length < 2) {
+      throw new ProviderError(PROVIDER_ID, `Bougies indisponibles pour « ${id} »`)
+    }
+
+    // Granularité imposée par la source, pas choisie : 30 min jusqu'à 2 jours, 4 h
+    // jusqu'à 30 jours, 4 jours au-delà. L'annoncer évite que l'axe laisse croire à
+    // une précision que la donnée n'a pas.
+    const intervalMinutes = window <= 2 ? 30 : window <= 30 ? 240 : 5_760
+
+    return { candles, currency: currency.toUpperCase(), days: window, intervalMinutes }
   },
 
   async search(query: string, limit = 8): Promise<SearchResult[]> {

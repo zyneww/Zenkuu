@@ -20,6 +20,7 @@ import type {
   MarketAsset,
   MarketCategory,
   NewsItem,
+  OhlcHistory,
   PriceHistory,
   SentimentIndex,
   SortDirection,
@@ -46,6 +47,100 @@ export type DataResult<T> =
  * taille réelle, jamais une valeur codée en dur.
  */
 export const MOVERS_UNIVERSE_SIZE = 100
+
+/**
+ * Tailles d'univers proposées au filtre des « mouvements ».
+ *
+ * PLAFOND DE LA SOURCE : CoinGecko limite `per_page` à 250. Au-delà, il faut
+ * enchaîner les pages — 500 coûte deux appels, 1 000 en coûterait quatre, sur un
+ * quota mesuré à cinq par minute. On s'arrête donc à 500, et « toutes les
+ * cryptomonnaies » n'est pas proposé : l'univers complet dépasse quinze mille
+ * jetons, soit une soixantaine d'appels par affichage. Annoncer une option
+ * irréalisable serait pire que de ne pas l'offrir (§5).
+ */
+export const MOVERS_UNIVERSES = [100, 250, 500] as const
+export type MoversUniverse = (typeof MOVERS_UNIVERSES)[number]
+
+/** Fenêtres de variation exploitables — celles que la source publie réellement. */
+export const MOVERS_PERIODS = ['1h', '24h', '7d', '14d', '30d', '1y'] as const
+export type MoversPeriod = (typeof MOVERS_PERIODS)[number]
+
+/** Champs de variation exploitables — sous-ensemble strict de `MarketAsset`. */
+export type ChangeField =
+  | 'change1h'
+  | 'change24h'
+  | 'change7d'
+  | 'change14d'
+  | 'change30d'
+  | 'change1y'
+
+const PERIOD_FIELD: Record<MoversPeriod, ChangeField> = {
+  '1h': 'change1h',
+  '24h': 'change24h',
+  '7d': 'change7d',
+  '14d': 'change14d',
+  '30d': 'change30d',
+  '1y': 'change1y',
+}
+
+/**
+ * Univers de calcul des plus fortes hausses et baisses.
+ *
+ * Renvoie la LISTE BRUTE, triée par capitalisation ; le classement par variation est
+ * fait par l'appelant, qui connaît la période choisie. Séparer les deux évite une
+ * clé de cache par combinaison période × univers, alors que la donnée sous-jacente
+ * est strictement la même.
+ */
+export function getMoversUniverse(
+  universe: MoversUniverse = 100,
+  currency = 'eur',
+): Promise<DataResult<MarketAsset[]>> {
+  return run('crypto', `crypto:movers:${universe}:${currency}`, async (provider) => {
+    const pageSize = Math.min(universe, 250)
+    const pages = Math.ceil(universe / pageSize)
+
+    const batches: MarketAsset[] = []
+    for (let page = 1; page <= pages; page += 1) {
+      // Séquentiel et non parallèle : le limiteur de débit du client HTTP espace
+      // déjà les appels, et les lancer d'un coup ne ferait qu'avancer l'instant du
+      // 429 sans rien gagner.
+      const batch = await provider.listAssets({
+        assetClass: 'crypto',
+        page,
+        perPage: pageSize,
+        sortBy: 'marketCap',
+        sortDirection: 'desc',
+        currency,
+      })
+      batches.push(...batch)
+      if (batch.length < pageSize) break
+    }
+
+    return batches.slice(0, universe)
+  })
+}
+
+/** Classe un univers par variation sur la période demandée. */
+export function rankMovers(
+  assets: MarketAsset[],
+  period: MoversPeriod,
+  limit = 15,
+): { gainers: MarketAsset[]; losers: MarketAsset[]; field: ChangeField } {
+  const field = PERIOD_FIELD[period]
+
+  // Un actif sans variation sur CETTE période est écarté, pas traité comme 0 % :
+  // l'absence de donnée n'est pas une stabilité.
+  const usable = assets.filter((asset) => typeof asset[field] === 'number')
+  const sorted = [...usable].sort(
+    (a, b) => (b[field] as number) - (a[field] as number),
+  )
+
+  return {
+    gainers: sorted.slice(0, limit),
+    losers: sorted.slice(-limit).reverse(),
+    field,
+  }
+}
 
 /**
  * Durées de vie ÉTALÉES selon la vitesse réelle de chaque donnée.
@@ -330,6 +425,32 @@ export function getAssetHistory(
       throw new ProviderError(provider.id, 'Historique non supporté')
     }
     return provider.getHistory(id, days, assetClass, currency)
+  })
+}
+
+/**
+ * Bougies OHLC — requête DISTINCTE de l'historique, et à la demande.
+ *
+ * Elle n'est jamais appelée au rendu de la fiche : seule la bascule vers la vue
+ * chandeliers la déclenche. Chez CoinGecko elle consomme un appel supplémentaire
+ * (endpoint `/ohlc` séparé), chez Yahoo elle réutilise la même réponse `chart`.
+ *
+ * Le `DataResult` renvoyé porte l'indisponibilité comme n'importe quelle autre
+ * absence de donnée : un fournisseur sans `getOhlc` — la BCE, qui ne publie qu'un
+ * taux de référence par jour ouvré — fait disparaître l'option du sélecteur au lieu
+ * de produire des bougies reconstituées.
+ */
+export function getAssetOhlc(
+  id: string,
+  assetClass: AssetClass,
+  days: number,
+  currency = 'eur',
+): Promise<DataResult<OhlcHistory>> {
+  return run(assetClass, `${assetClass}:ohlc:${id}:${days}:${currency}`, (provider) => {
+    if (!provider.getOhlc) {
+      throw new ProviderError(provider.id, 'Bougies non supportées')
+    }
+    return provider.getOhlc(id, days, assetClass, currency)
   })
 }
 

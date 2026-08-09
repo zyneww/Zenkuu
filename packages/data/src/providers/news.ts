@@ -19,11 +19,54 @@ interface FeedSource {
   id: string
   label: string
   url: string
+  /**
+   * Rubrique du flux.
+   *
+   * Elle est portée par le FLUX, pas déduite de l'article. C'est la différence entre
+   * une catégorie vraie et une catégorie devinée : un flux « marchés actions » ne
+   * publie que de l'actualité actions, tandis que deviner la rubrique en cherchant
+   * des mots-clés dans un titre produirait des étiquettes fausses — donc de la
+   * donnée inventée, que le §5 proscrit au même titre qu'un chiffre inventé.
+   */
+  category: NewsCategory
+}
+
+export type NewsCategory = 'crypto' | 'marches' | 'economie'
+
+/** Libellés affichés — définis ici pour rester alignés sur les flux eux-mêmes. */
+export const NEWS_CATEGORY_LABELS: Record<NewsCategory, string> = {
+  crypto: 'Cryptomonnaies',
+  marches: 'Marchés & entreprises',
+  economie: 'Économie & macro',
 }
 
 const FEEDS: FeedSource[] = [
-  { id: 'cointelegraph', label: 'Cointelegraph', url: 'https://cointelegraph.com/rss' },
-  { id: 'coindesk', label: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/' },
+  {
+    id: 'cointelegraph',
+    label: 'Cointelegraph',
+    url: 'https://cointelegraph.com/rss',
+    category: 'crypto',
+  },
+  {
+    id: 'coindesk',
+    label: 'CoinDesk',
+    url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
+    category: 'crypto',
+  },
+  // Flux non-crypto : jusqu'ici le fil ne couvrait que la crypto alors que le site
+  // suit six classes d'actifs. Ces deux-là sont publics, sans clé et sans quota.
+  {
+    id: 'yahoo-finance',
+    label: 'Yahoo Finance',
+    url: 'https://finance.yahoo.com/news/rssindex',
+    category: 'marches',
+  },
+  {
+    id: 'ft-economie',
+    label: 'France Info éco',
+    url: 'https://www.francetvinfo.fr/economie.rss',
+    category: 'economie',
+  },
 ]
 
 const http = createHttpClient({
@@ -97,6 +140,7 @@ function parseFeed(xml: string, source: FeedSource): NewsItem[] {
       title,
       url: link,
       source: source.label,
+      category: source.category,
       publishedAt:
         parsed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : new Date().toISOString(),
     }

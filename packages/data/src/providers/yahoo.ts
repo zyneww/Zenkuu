@@ -22,6 +22,7 @@ import type {
   ListAssetsParams,
   MarketAsset,
   MarketDataProvider,
+  OhlcHistory,
   PriceHistory,
 } from '../types'
 import { ProviderError } from '../types'
@@ -67,7 +68,18 @@ interface YahooChartResponse {
             regularMarketTime?: number
           }
           timestamp?: number[]
-          indicators: { quote: { close?: (number | null)[] }[] }
+          // Yahoo renvoie ouverture, extrêmes et volume dans la MÊME réponse que les
+          // clôtures : les bougies ne coûtent donc aucun appel de plus ici, à la
+          // différence de CoinGecko qui les sert par un endpoint séparé.
+          indicators: {
+            quote: {
+              open?: (number | null)[]
+              high?: (number | null)[]
+              low?: (number | null)[]
+              close?: (number | null)[]
+              volume?: (number | null)[]
+            }[]
+          }
         }[]
       | null
     error: { description?: string } | null
@@ -213,40 +225,27 @@ export const yahooProvider: MarketDataProvider = {
   },
 
   async getHistory(id: string, days: number, assetClass?: AssetClass): Promise<PriceHistory> {
-    const classes: AssetClass[] = assetClass ? [assetClass] : SUPPORTED
-    let entry: UniverseEntry | undefined
-
-    for (const candidate of classes) {
-      entry = YAHOO_UNIVERSE[candidate as keyof typeof YAHOO_UNIVERSE]?.find(
-        (item) => toSlug(item.symbol) === id,
-      )
-      if (entry) break
-    }
-    if (!entry) throw new ProviderError(PROVIDER_ID, `Actif « ${id} » hors univers suivi`)
-
-    // Granularité adaptée à la fenêtre : une journée en pas horaire, une année en
-    // pas quotidien. Demander un pas horaire sur un an renverrait des milliers de
-    // points pour un graphique large de 700 pixels.
-    const { range, interval } =
-      days <= 1
-        ? { range: '1d', interval: '5m' }
-        : days <= 7
-          ? { range: '7d', interval: '60m' }
-          : days <= 30
-            ? { range: '1mo', interval: '1d' }
-            : days <= 90
-              ? { range: '3mo', interval: '1d' }
-              : { range: '1y', interval: '1d' }
+    const entry = resolveEntry(id, assetClass)
+    const { range, interval } = windowFor(days)
 
     const result = await fetchChart(entry.symbol, range, interval)
-    const closes = result.indicators?.quote?.[0]?.close ?? []
+    const quote = result.indicators?.quote?.[0]
+    const closes = quote?.close ?? []
+    const volumes = quote?.volume ?? []
     const stamps = result.timestamp ?? []
 
-    const points = stamps
-      .map((timestamp, index) => ({ timestamp: timestamp * 1000, price: closes[index] }))
-      .filter((point): point is { timestamp: number; price: number } =>
-        typeof point.price === 'number' && Number.isFinite(point.price),
+    const points: PriceHistory['points'] = []
+    for (const [index, timestamp] of stamps.entries()) {
+      const price = closes[index]
+      if (typeof price !== 'number' || !Number.isFinite(price)) continue
+
+      const volume = volumes[index]
+      points.push(
+        typeof volume === 'number' && Number.isFinite(volume)
+          ? { timestamp: timestamp * 1000, price, volume }
+          : { timestamp: timestamp * 1000, price },
       )
+    }
 
     if (points.length < 2) {
       throw new ProviderError(PROVIDER_ID, `Historique insuffisant pour « ${id} »`)
@@ -254,4 +253,77 @@ export const yahooProvider: MarketDataProvider = {
 
     return { points, currency: (result.meta.currency ?? 'USD').toUpperCase(), days }
   },
+
+  /**
+   * Bougies réelles, extraites de la même réponse `v8/chart` que l'historique.
+   *
+   * Une bougie n'est retenue que si ses QUATRE valeurs sont présentes. Yahoo insère
+   * des `null` sur les séances creuses et les périodes de suspension de cotation :
+   * compléter un plus-haut manquant par la clôture produirait une bougie plate qui
+   * ressemble à une vraie séance sans en être une (§5).
+   */
+  async getOhlc(id: string, days: number, assetClass?: AssetClass): Promise<OhlcHistory> {
+    const entry = resolveEntry(id, assetClass)
+    const { range, interval } = windowFor(days)
+
+    const result = await fetchChart(entry.symbol, range, interval)
+    const quote = result.indicators?.quote?.[0]
+    const stamps = result.timestamp ?? []
+
+    const candles: OhlcHistory['candles'] = []
+    for (const [index, timestamp] of stamps.entries()) {
+      const open = quote?.open?.[index]
+      const high = quote?.high?.[index]
+      const low = quote?.low?.[index]
+      const close = quote?.close?.[index]
+
+      if (![open, high, low, close].every((v) => typeof v === 'number' && Number.isFinite(v))) {
+        continue
+      }
+
+      const volume = quote?.volume?.[index]
+      const candle = {
+        timestamp: timestamp * 1000,
+        open: open as number,
+        high: high as number,
+        low: low as number,
+        close: close as number,
+      }
+      candles.push(
+        typeof volume === 'number' && Number.isFinite(volume) ? { ...candle, volume } : candle,
+      )
+    }
+
+    if (candles.length < 2) {
+      throw new ProviderError(PROVIDER_ID, `Bougies indisponibles pour « ${id} »`)
+    }
+
+    return { candles, currency: (result.meta.currency ?? 'USD').toUpperCase(), days }
+  },
+}
+
+/** Retrouve le symbole Yahoo derrière un identifiant de route ZENITH. */
+function resolveEntry(id: string, assetClass?: AssetClass): UniverseEntry {
+  const classes: AssetClass[] = assetClass ? [assetClass] : SUPPORTED
+
+  for (const candidate of classes) {
+    const entry = YAHOO_UNIVERSE[candidate as keyof typeof YAHOO_UNIVERSE]?.find(
+      (item) => toSlug(item.symbol) === id,
+    )
+    if (entry) return entry
+  }
+  throw new ProviderError(PROVIDER_ID, `Actif « ${id} » hors univers suivi`)
+}
+
+/**
+ * Granularité adaptée à la fenêtre : une journée en pas fin, une année en pas
+ * quotidien. Demander un pas de 5 minutes sur un an renverrait des dizaines de
+ * milliers de points pour un graphique large de 700 pixels.
+ */
+function windowFor(days: number): { range: string; interval: string } {
+  if (days <= 1) return { range: '1d', interval: '5m' }
+  if (days <= 7) return { range: '7d', interval: '60m' }
+  if (days <= 30) return { range: '1mo', interval: '1d' }
+  if (days <= 90) return { range: '3mo', interval: '1d' }
+  return { range: '1y', interval: '1d' }
 }
