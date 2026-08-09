@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Compass, Layers, ShieldCheck } from 'lucide-react'
 
 import { KeyFigures } from '@/components/about/KeyFigures'
 import { fr } from '@/content/fr'
@@ -27,19 +26,25 @@ export const metadata: Metadata = {
  *    `KeyFigures`.
  */
 
+/**
+ * Les trois principes, SANS icône ni carte.
+ *
+ * Chacun portait une icône choisie par synonymie — des calques pour « une grille de
+ * lecture », un bouclier pour « donnée absente », une boussole pour « aucun
+ * intérêt » — qui n'ajoutait aucune information et signalait surtout que la page
+ * avait été remplie à partir d'un gabarit. Trois cartes bordées de même poids
+ * aplatissaient par ailleurs la hiérarchie : le texte fait le travail seul.
+ */
 const PRINCIPLES = [
   {
-    icon: Layers,
     title: 'Une grille de lecture, toutes les classes d’actifs',
     body: 'Les mêmes colonnes, les mêmes graphiques et les mêmes conventions d’affichage, qu’il s’agisse d’une cryptomonnaie, d’une action ou d’une paire de devises. Comparer ne devrait pas imposer de changer de site ni de repères.',
   },
   {
-    icon: ShieldCheck,
     title: 'Une donnée absente reste absente',
     body: 'Quand une source ne publie pas une information, elle apparaît comme indisponible. Aucune estimation, aucune valeur de remplissage. La règle est portée par la structure du code, pas laissée à la vigilance de qui l’écrit.',
   },
   {
-    icon: Compass,
     title: 'Aucun intérêt à ce que vous agissiez',
     body: 'ZENITH n’exécute pas d’ordres et ne détient pas de fonds. Le site ne gagne rien à ce que vous achetiez ou vendiez quoi que ce soit, ce qui lui permet d’afficher les chiffres sans les orienter.',
   },
@@ -48,14 +53,14 @@ const PRINCIPLES = [
 export default function AProposPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-12 py-6">
+      {/* Sans surtitre. « Notre mission » en petites capitales colorées au-dessus du
+          titre est une convention de page d'accueil logicielle : elle occupe une
+          ligne pour annoncer que la ligne suivante est un titre. */}
       <header className="space-y-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-brand-strong">
-          Notre mission
-        </p>
         <h1 className="display-xl text-ink">
           Rendre lisible n’importe quel marché, au même endroit
         </h1>
-        <p className="max-w-2xl text-base leading-relaxed text-ink-muted">
+        <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">
           ZENITH réunit les cryptomonnaies, les devises, les actions, les ETF, les
           matières premières et les indices — avec la même profondeur de lecture pour
           chacun, et sans jamais vous demander d’ouvrir un compte pour consulter un
@@ -63,15 +68,11 @@ export default function AProposPage() {
         </p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="max-w-2xl space-y-6">
         {PRINCIPLES.map((principle) => (
-          <article
-            key={principle.title}
-            className="space-y-2 rounded-card border border-border-subtle bg-surface p-5"
-          >
-            <principle.icon className="h-5 w-5 text-brand-strong" aria-hidden="true" />
-            <h2 className="text-sm font-semibold leading-snug text-ink">{principle.title}</h2>
-            <p className="text-sm leading-relaxed text-ink-muted">{principle.body}</p>
+          <article key={principle.title} className="space-y-1.5">
+            <h2 className="text-base font-semibold leading-snug text-ink">{principle.title}</h2>
+            <p className="text-base leading-relaxed text-ink-muted">{principle.body}</p>
           </article>
         ))}
       </section>
@@ -137,22 +138,15 @@ export default function AProposPage() {
         </p>
       </Section>
 
-      <section className="flex flex-wrap items-center gap-3 rounded-card border border-border-subtle bg-surface-muted p-6">
-        <p className="flex-1 text-sm leading-relaxed text-ink-muted">
-          Pour aller plus loin : les partis pris détaillés, ou les sources et leurs
-          limites, source par source.
-        </p>
-        <Link
-          href="/pourquoi-zenith"
-          className="rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-        >
-          Pourquoi ZENITH
+      {/* Deux renvois en texte, sur un filet. Un encadré coloré contenant une
+          phrase d'accroche et deux boutons de même poids est un pied de page
+          promotionnel : ici, ce sont deux liens vers deux pages, rien de plus. */}
+      <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
+        <Link href="/pourquoi-zenith" className="text-sm text-brand hover:underline">
+          Les partis pris, en détail
         </Link>
-        <Link
-          href="/methodologie"
-          className="rounded-card border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-        >
-          Méthodologie
+        <Link href="/methodologie" className="text-sm text-brand hover:underline">
+          Les sources et leurs limites
         </Link>
       </section>
     </div>
@@ -161,9 +155,9 @@ export default function AProposPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-ink">{title}</h2>
-      <div className="space-y-3 text-sm leading-relaxed text-ink-muted">{children}</div>
+    <section className="max-w-2xl space-y-3">
+      <h2 className="display-sm text-ink">{title}</h2>
+      <div className="space-y-3 text-base leading-relaxed text-ink-muted">{children}</div>
     </section>
   )
 }

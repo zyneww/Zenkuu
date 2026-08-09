@@ -54,8 +54,13 @@ export function ChangeBadge({
   const readable = `${direction === 'up' ? 'en hausse de' : direction === 'down' ? 'en baisse de' : 'stable,'} ${formatted.replace('−', 'moins ').replace('+', '')} ${periodLabel ?? 'sur 24 heures'}`
 
   return (
+    // `whitespace-nowrap` en complément de l'espace insécable posée par
+    // `formatPercent` : celle-ci protège le pourcent, mais le chevron et le nombre
+    // restent séparés par un `gap` de flex, donc coupables. Les colonnes de variation
+    // vivent dans des largeurs fixes (`w-16`) où la coupure est certaine sans cette
+    // règle — un nombre séparé de son signe se lit comme un affichage cassé.
     <span
-      className={`tabular inline-flex items-center gap-1 font-medium ${textSize} ${tone} ${spacing}`}
+      className={`tabular inline-flex items-center gap-1 whitespace-nowrap font-medium ${textSize} ${tone} ${spacing}`}
       aria-label={readable}
       title={periodLabel ? `Variation ${periodLabel}` : 'Variation sur 24 heures'}
     >

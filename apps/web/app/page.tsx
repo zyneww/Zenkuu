@@ -97,7 +97,6 @@ export default async function HomePage() {
 
         <HighlightPanel
           title={fr.home.gainersTitle}
-          icon="🚀"
           hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
           assets={overview.ok ? overview.data.gainers : null}
           href="/crypto"
@@ -112,10 +111,11 @@ export default async function HomePage() {
         <div className="space-y-6 lg:col-span-2">
           <section>
             <div className="mb-3 flex items-end justify-between gap-4">
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-ink">{fr.crypto.title}</h1>
-                <p className="text-xs text-ink-muted">{fr.crypto.subtitle}</p>
-              </div>
+              {/* Le sous-titre de la page /crypto ne se répète pas ici : sur
+                  l'accueil, ce bloc est un EXTRAIT du classement, et son périmètre
+                  est déjà dit par le lien « Tout voir ». La fraîcheur des cours,
+                  elle, est portée par la ligne de source sous le tableau. */}
+              <h1 className="text-xl font-bold tracking-tight text-ink">{fr.crypto.title}</h1>
               <Link
                 href="/crypto"
                 className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
@@ -154,14 +154,12 @@ export default async function HomePage() {
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <HighlightPanel
               title={fr.home.losersTitle}
-              icon="📉"
               hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
               assets={overview.ok ? overview.data.losers : null}
               unavailableReason={overview.ok ? undefined : overview.reason}
             />
             <HighlightPanel
               title={fr.home.topMarketCapTitle}
-              icon="🏔️"
               assets={overview.ok ? overview.data.topByMarketCap : null}
               href="/crypto"
               unavailableReason={overview.ok ? undefined : overview.reason}
@@ -196,7 +194,7 @@ export default async function HomePage() {
           </Card>
 
           <Card>
-            <CardHeader title={fr.home.coverageTitle} hint={fr.home.coverageHint} />
+            <CardHeader title={fr.home.coverageTitle} />
             <CoverageList availability={availability} />
           </Card>
 

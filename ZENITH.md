@@ -183,6 +183,46 @@ Deux ajouts de plomberie que cette page a rendus nécessaires :
 Le sélecteur de période, lui, ne coûte **rien** : CoinGecko renvoie déjà
 `1h,24h,7d,14d,30d,1y` dans l'appel du classement.
 
+### 3.1.1 Ce qui fait « gabarit généré » — et qui est proscrit
+
+Une passe a retiré du site les conventions qui signalent une page produite à partir
+d'un modèle plutôt qu'écrite. Elles sont listées ici **pour ne pas revenir** :
+
+| Proscrit | Pourquoi |
+|---|---|
+| **Emoji dans l'interface de données** (🔥 🚀 📉 🏔️) | Registre de réseau social. Aucune page de cotation professionnelle n'en pose sur un panneau de marché |
+| **Surtitre en petites capitales colorées** au-dessus d'un titre (« NOS PARTIS PRIS ») | Occupe une ligne pour annoncer que la ligne suivante est un titre |
+| **Sous-titre qui paraphrase son titre** | « Tendances / Les actifs les plus consultés » : un panneau qui explique ce qu'il vient d'annoncer traite son lecteur en débutant permanent |
+| **Bandeau de N garanties** icône-au-dessus-du-libellé | Annonce en quatre mots ce que les sections développent juste en dessous |
+| **Alternance gauche/droite** pilotée par `index % 2` | Symétrie décidée par la parité d'un compteur, pas par le propos |
+| **Une icône par section**, choisie par synonymie | Un œil pour « donnée absente », une boussole pour « aucun intérêt » : n'ajoute aucune information |
+| **Encadré identique répété** en fin de chaque section | Répété quatre fois, il cesse d'être lu |
+| **Filet ou pastille colorée décorative** au-dessus d'un titre | Ornement de gabarit ; ne distingue rien que le titre ne dise |
+| **Rangée de N boutons de même poids** centrée en bas de page | Ne hiérarchise rien : demande au lecteur de choisir à la place de l'auteur |
+| **Titre vague + glose** | Préférer un titre précis qui se lit seul (« Secteurs les plus actifs · 24 h », pas « Narratifs du jour » + explication) |
+
+**Ce qui reste, en revanche** : les précisions de PÉRIMÈTRE (« parmi les 100 plus
+grandes capitalisations ») et de FRAÎCHEUR (« taux publiés une fois par jour ouvré »).
+Elles ne glosent pas le titre, elles empêchent une lecture fausse — c'est le §5, pas
+de la décoration. Elles restent typographiquement subordonnées.
+
+**Registre : vouvoiement, partout.** Le site en comptait 29 occurrences et trois
+passages tutoyaient (« Ajoute ton premier actif », « Ta watchlist est vide »). Un
+produit qui change de registre d'un écran à l'autre n'a pas été relu. De même,
+« watchlist » disparaît du texte affiché au profit de « liste de suivi » : la
+navigation dit « Suivi », et un produit sérieux n'emploie pas deux mots pour la même
+chose.
+
+**Typographie des nombres — deux règles non négociables :**
+
+- `formatPercent` pose une **espace fine insécable** (U+202F) devant le signe pourcent.
+  Typographie française, et surtout : une espace ordinaire est un point de coupure.
+- Tout montant est enveloppé par `Amount` dans `Money.tsx` (`whitespace-nowrap`), et
+  `ChangeBadge` porte la même règle. Un montant formaté contient jusqu'à trois espaces
+  (« 11,8 Md $ ») : dans les colonnes étroites, « Md $ » atterrissait sous son nombre.
+  **Un nombre séparé de son unité se lit comme un affichage cassé** — c'est le défaut
+  qui trahissait le plus sûrement un produit inachevé.
+
 ### 3.2 Ce qu'on emprunte à AniList — et ce qu'on n'emprunte PAS
 
 La capture de référence AniList est en thème sombre ; ZENITH est en thème clair. On reprend la **structure**, pas la palette :

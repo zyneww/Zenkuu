@@ -25,13 +25,10 @@ interface TrendingPanelProps {
 export function TrendingPanel({ assets, unavailableReason }: TrendingPanelProps) {
   return (
     <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
-      <div className="mb-2">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-          <span aria-hidden="true">🔥</span>
-          {fr.home.trendingTitle}
-        </h2>
-        <p className="mt-0.5 text-[0.6875rem] text-ink-muted">{fr.home.trendingHint}</p>
-      </div>
+      {/* Ni emoji ni sous-titre : « Tendances » se suffit, et le sous-titre qui
+          l'accompagnait — « Les actifs les plus consultés ces dernières 24 heures » —
+          ne faisait que paraphraser le mot au-dessus. */}
+      <h2 className="mb-2 text-sm font-semibold text-ink">{fr.home.trendingTitle}</h2>
 
       {assets && assets.length > 0 ? (
         <ol className="flex-1 divide-y divide-border-subtle">

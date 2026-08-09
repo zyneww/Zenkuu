@@ -90,12 +90,10 @@ function CategoriesHero({ categories }: { categories: MarketCategory[] | null })
   return (
     <header className="border-b border-border-subtle pb-10">
       <div className="max-w-3xl space-y-4">
-        {/* Filet solaire — le seul emploi de l'or, et il est purement décoratif.
-            À 2,05:1 sur le canvas clair, cet or ne peut porter ni texte ni sens ;
-            un aplat de quelques pixels est exactement ce qu'il sait faire. Il donne
-            au passage une existence au jeton : Tailwind 4 élague du CSS final tout
-            jeton de thème qu'aucune classe ne consomme. */}
-        <div className="h-1 w-12 rounded-pill bg-accent" aria-hidden="true" />
+        {/* Le petit filet coloré au-dessus du titre a été RETIRÉ : c'est un ornement
+            de gabarit, au même titre que le surtitre en petites capitales, et il ne
+            distinguait rien que le titre ne dise déjà. L'or reste défini dans les
+            jetons, disponible le jour où un usage porteur de sens se présente. */}
         <h1 className="display-mega text-ink">{fr.categories.title}</h1>
         <p className="text-base leading-relaxed text-ink-muted sm:text-lg">
           {fr.categories.subtitle}

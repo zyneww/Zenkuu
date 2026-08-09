@@ -16,7 +16,7 @@ import { fr } from '@/content/fr'
 export function NarrativesPanel({ result }: { result: DataResult<MarketCategory[]> }) {
   return (
     <Card>
-      <CardHeader title={fr.home.narrativesTitle} hint={fr.home.narrativesHint} />
+      <CardHeader title={fr.home.narrativesTitle} />
 
       {result.ok && result.data.length > 0 ? (
         <>

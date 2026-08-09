@@ -38,14 +38,30 @@ export function Money({
 
   // Un taux de change ne se convertit pas : « EUR/USD = 1,1535 » est un rapport,
   // pas un montant en euros. Le multiplier par un taux produirait un non-sens.
-  if (asRate) return <>{formatRate(value) ?? fallback}</>
+  if (asRate) return <Amount>{formatRate(value) ?? fallback}</Amount>
 
   const converted = convert(value, from)
   const formatted = compact
     ? formatCurrency(converted, currency, { compact: true })
     : formatCurrency(converted, currency)
 
-  return <>{formatted ?? fallback}</>
+  return <Amount>{formatted ?? fallback}</Amount>
+}
+
+/**
+ * Enveloppe insécable d'un montant.
+ *
+ * Un montant formaté contient jusqu'à trois espaces — séparateur de milliers, préfixe
+ * d'ordre de grandeur, symbole monétaire : « 11,8 Md $ ». Chacune est un point de
+ * coupure pour le navigateur, et les colonnes de volume et de capitalisation sont
+ * étroites : sans cette règle, « Md $ » se retrouve sur la ligne du dessous, séparé de
+ * son nombre. Le montant devient alors illisible et l'affichage paraît cassé.
+ *
+ * Corrigé ICI plutôt que dans chaque cellule appelante : une trentaine de sites
+ * d'appel auraient chacun pu l'oublier.
+ */
+function Amount({ children }: { children: React.ReactNode }) {
+  return <span className="whitespace-nowrap">{children}</span>
 }
 
 /** Variante sans symbole monétaire, pour les quantités (offre en circulation…). */

@@ -80,7 +80,15 @@ export function formatPercent(value: number | undefined): string | null {
   }).format(Math.abs(value))
 
   const sign = value > 0 ? '+' : value < 0 ? '−' : ''
-  return `${sign}${formatted} %`
+
+  // Espace fine INSÉCABLE (U+202F) devant le signe pourcent, et non une espace
+  // ordinaire. Deux raisons qui vont dans le même sens :
+  //   · typographie française — le pourcent se sépare du nombre par une espace
+  //     insécable, de préférence fine ;
+  //   · rendu — une espace ordinaire est un point de coupure pour le navigateur.
+  //     Dans les colonnes de variation, posées en largeur fixe, « +3,89 % » se
+  //     cassait en deux lignes avec le pourcent seul sous son nombre.
+  return `${sign}${formatted} %`
 }
 
 /** Taux de change : 4 décimales, sauf pour les paires à forte valeur nominale (JPY). */

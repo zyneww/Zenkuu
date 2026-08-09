@@ -61,9 +61,9 @@ export const fr = {
     // porte son propre menu, déjà traduit par la localisation frFR du fournisseur.
     unavailableTitle: 'Comptes bientôt disponibles',
     unavailableBody:
-      'L’authentification n’est pas encore configurée sur cette instance. Les comptes débloqueront la watchlist persistante, les alertes de prix et les préférences d’affichage.',
+      'L’authentification n’est pas encore configurée sur cette instance. Les comptes rendront la liste de suivi persistante et donneront accès aux alertes de prix et aux préférences d’affichage.',
     signInTitle: 'Se connecter à ZENITH',
-    signInSubtitle: 'Retrouvez votre watchlist et vos préférences.',
+    signInSubtitle: 'Retrouvez votre liste de suivi et vos préférences.',
     signUpTitle: 'Créer un compte ZENITH',
     signUpSubtitle:
       'Gratuit. Aucune donnée bancaire demandée — ZENITH ne gère ni fonds ni transaction.',
@@ -111,7 +111,6 @@ export const fr = {
 
   home: {
     trendingTitle: 'Tendances',
-    trendingHint: 'Les actifs les plus consultés ces dernières 24 heures',
     gainersTitle: 'Plus fortes hausses',
     losersTitle: 'Plus fortes baisses',
     moversHint: (size: number) => `Parmi les ${size} plus grandes capitalisations`,
@@ -128,18 +127,24 @@ export const fr = {
         ? 'Courbe en cours de constitution : aucune source gratuite ne publie l’historique de la capitalisation mondiale, nous enregistrons donc nos propres relevés.'
         : `Courbe en cours de constitution — ${count} relevé${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''}. Nous traçons nos propres mesures, faute de source gratuite pour cet historique.`,
     volumeCardTitle: 'Volume négocié 24 h',
-    narrativesTitle: 'Narratifs du jour',
-    narrativesHint: 'Les secteurs qui bougent le plus sur 24 heures',
+    // Titre PRÉCIS plutôt que titre vague suivi d'une glose. « Narratifs du jour »
+    // ne disait rien sans son sous-titre ; « Secteurs les plus actifs » se lit seul.
+    narrativesTitle: 'Secteurs les plus actifs · 24 h',
     newsTitle: 'Dernières actualités',
     sentimentTitle: 'Sentiment du marché',
     coverageTitle: 'Couverture par classe d’actif',
-    coverageHint: 'Ce qui est branché aujourd’hui, et ce qui reste à connecter',
     forexTitle: 'Devises · référence BCE',
+    // Conservé : ce n'est pas une glose du titre mais une information de FRAÎCHEUR.
+    // Sans elle, un lecteur peut croire ces taux rafraîchis comme des cotations.
     forexHint: 'Taux publiés une fois par jour ouvré',
-    watchlistTitle: 'Ma watchlist',
-    watchlistEmptyTitle: 'Ta watchlist est vide',
+    // « Watchlist » disparaît du texte affiché : la navigation dit « Suivi », et un
+    // produit sérieux n'emploie pas deux mots pour la même chose. Le vouvoiement
+    // s'aligne sur le reste du site — le tutoiement de ces trois libellés était le
+    // seul du produit.
+    watchlistTitle: 'Ma liste de suivi',
+    watchlistEmptyTitle: 'Votre liste de suivi est vide',
     watchlistEmptyBody:
-      'Ajoute ton premier actif pour commencer ton ascension. Le suivi personnalisé arrive avec les comptes utilisateurs.',
+      'Les actifs ajoutés depuis une fiche apparaîtront ici. La liste est rattachée à votre compte.',
     seeAll: 'Tout voir',
     tabs: {
       all: 'Tout',
@@ -174,7 +179,7 @@ export const fr = {
     previous: 'Page précédente',
     next: 'Page suivante',
     pageLabel: (page: number) => `Page ${page}`,
-    emptyPage: 'Aucun actif sur cette page du classement. Reviens à la première page.',
+    emptyPage: 'Aucun actif sur cette page du classement. Revenez à la première page.',
   },
 
   crypto: {
