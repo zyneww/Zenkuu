@@ -12,8 +12,22 @@ import {
   formatNumber,
 } from '@zenith/ui'
 
-import { PriceChartInteractive } from '@/components/asset/PriceChartInteractive'
+import {
+  OHLC_KINDS,
+  PriceChartInteractive,
+  type ChartCandle,
+  type ChartKind,
+} from '@/components/asset/PriceChartInteractive'
 import { fr } from '@/content/fr'
+
+/** Types proposés dans la barre d'outils, dans l'ordre d'affichage. */
+const CHART_KINDS = [
+  { key: 'area', label: fr.asset.chart.kinds.area },
+  { key: 'line', label: fr.asset.chart.kinds.line },
+  { key: 'candles', label: fr.asset.chart.kinds.candles },
+  { key: 'bars', label: fr.asset.chart.kinds.bars },
+  { key: 'baseline', label: fr.asset.chart.kinds.baseline },
+] as const satisfies readonly { key: ChartKind; label: string }[]
 
 /** Onglets du widget. Le clic remplace le contenu en place, sans navigation ni défilement. */
 const TABS = [
@@ -64,6 +78,20 @@ export function AssetWorkspace({
   const [loading, setLoading] = useState(false)
   const [yearHistory, setYearHistory] = useState<PriceHistory | null>(null)
 
+  const [kind, setKind] = useState<ChartKind>('area')
+  const [candles, setCandles] = useState<ChartCandle[] | null>(null)
+  const [candlesLoading, setCandlesLoading] = useState(false)
+  /**
+   * `false` tant qu'on ne sait pas. Passe à `true` dès qu'une source répond qu'elle
+   * ne publie pas d'OHLC — les entrées Chandeliers et Barres disparaissent alors du
+   * sélecteur au lieu de rester cliquables et de ne rien produire.
+   */
+  const [candlesUnavailable, setCandlesUnavailable] = useState(false)
+
+  const [showVolume, setShowVolume] = useState(false)
+  const [showMovingAverage, setShowMovingAverage] = useState(false)
+  const [showPriceLines, setShowPriceLines] = useState(false)
+
   /**
    * Facteur de conversion vers la devise choisie.
    *
@@ -110,8 +138,65 @@ export function AssetWorkspace({
   function selectRange(targetDays: number) {
     if (targetDays === days) return
     setDays(targetDays)
+    // Les bougies déjà chargées portent sur l'ANCIENNE fenêtre : les conserver
+    // afficherait un mois de bougies sous un axe libellé « 24 h ».
+    setCandles(null)
     void fetchHistory(targetDays)
   }
+
+  /**
+   * Bougies chargées À LA DEMANDE, jamais au rendu initial.
+   *
+   * C'est le point qui protège le quota : chez CoinGecko l'OHLC vit derrière un
+   * endpoint distinct, donc un appel externe de plus. Le faire porter au seul
+   * visiteur qui bascule en chandeliers évite de le facturer à tous les autres, sur
+   * un plafond mesuré à ~5 requêtes/minute sans clé.
+   */
+  useEffect(() => {
+    if (!OHLC_KINDS.includes(kind) || candles || candlesUnavailable) return
+
+    let cancelled = false
+    setCandlesLoading(true)
+
+    fetch(`/api/bougies?classe=${assetClass}&id=${encodeURIComponent(asset.id)}&jours=${days}`)
+      .then((response) => response.json())
+      .then((payload) => {
+        if (cancelled) return
+        if (payload.ok && Array.isArray(payload.candles)) {
+          setCandles(payload.candles as ChartCandle[])
+        } else {
+          // La source n'a pas d'OHLC : on le retient pour ne pas redemander à chaque
+          // changement de période, et on repasse sur une vue que la donnée permet.
+          setCandlesUnavailable(true)
+          setKind('area')
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCandlesUnavailable(true)
+          setKind('area')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCandlesLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [kind, candles, candlesUnavailable, assetClass, asset.id, days])
+
+  /**
+   * Le volume n'est proposé que si la série en contient réellement.
+   *
+   * Toutes les sources n'en publient pas — la BCE n'a pas de volume, et CoinGecko ne
+   * le renvoie que dans `market_chart`. Griser la case plutôt que l'afficher active
+   * pour un graphique vide (§5).
+   */
+  const volumeAvailable = useMemo(() => {
+    if (OHLC_KINDS.includes(kind)) return (candles ?? []).some((c) => c.volume !== undefined)
+    return (history?.points ?? []).some((point) => point.volume !== undefined)
+  }, [kind, candles, history])
 
   // L'onglet « Historique » a besoin d'une année de données pour calculer ses
   // performances. On ne la charge qu'à son ouverture : la plupart des visiteurs ne
@@ -198,14 +283,34 @@ export function AssetWorkspace({
         ) : null}
 
         {tab === 'apercu' ? (
-          <OverviewTab
-            history={history}
-            loading={loading}
-            rate={rate}
-            currency={currency}
-            days={days}
-            assetName={asset.name}
-          />
+          <>
+            <ChartToolbar
+              kind={kind}
+              onKindChange={setKind}
+              ohlcUnavailable={candlesUnavailable}
+              volumeAvailable={volumeAvailable}
+              showVolume={showVolume}
+              showMovingAverage={showMovingAverage}
+              showPriceLines={showPriceLines}
+              onToggleVolume={setShowVolume}
+              onToggleMovingAverage={setShowMovingAverage}
+              onTogglePriceLines={setShowPriceLines}
+            />
+
+            <OverviewTab
+              history={history}
+              candles={candles}
+              kind={kind}
+              loading={loading || candlesLoading}
+              rate={rate}
+              currency={currency}
+              days={days}
+              assetName={asset.name}
+              showVolume={showVolume && volumeAvailable}
+              showMovingAverage={showMovingAverage}
+              showPriceLines={showPriceLines}
+            />
+          </>
         ) : null}
 
         {tab === 'historique' ? (
@@ -229,6 +334,123 @@ export function AssetWorkspace({
   )
 }
 
+/* ── Barre d'outils du graphique ──────────────────────────────────────────── */
+
+/**
+ * Sélecteur de type et options d'affichage.
+ *
+ * Les options sont des cases à cocher et non des boutons-bascule stylés : elles sont
+ * cumulables et leur état doit être lisible d'un coup d'œil, y compris au clavier et
+ * au lecteur d'écran (§9). Une option dont la donnée manque est DÉSACTIVÉE avec un
+ * `title` qui l'explique, plutôt que masquée — l'absence silencieuse laisserait
+ * croire à un oubli.
+ */
+function ChartToolbar({
+  kind,
+  onKindChange,
+  ohlcUnavailable,
+  volumeAvailable,
+  showVolume,
+  showMovingAverage,
+  showPriceLines,
+  onToggleVolume,
+  onToggleMovingAverage,
+  onTogglePriceLines,
+}: {
+  kind: ChartKind
+  onKindChange: (kind: ChartKind) => void
+  ohlcUnavailable: boolean
+  volumeAvailable: boolean
+  showVolume: boolean
+  showMovingAverage: boolean
+  showPriceLines: boolean
+  onToggleVolume: (value: boolean) => void
+  onToggleMovingAverage: (value: boolean) => void
+  onTogglePriceLines: (value: boolean) => void
+}) {
+  const kinds = CHART_KINDS.filter(
+    (entry) => !(ohlcUnavailable && OHLC_KINDS.includes(entry.key)),
+  )
+
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-1" role="group" aria-label={fr.asset.chart.kindTitle}>
+        {kinds.map((entry) => (
+          <button
+            key={entry.key}
+            type="button"
+            onClick={() => onKindChange(entry.key)}
+            aria-pressed={entry.key === kind}
+            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+              entry.key === kind
+                ? 'bg-brand-soft text-brand-strong'
+                : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+            }`}
+          >
+            {entry.label}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className="flex flex-wrap items-center gap-3"
+        role="group"
+        aria-label={fr.asset.chart.optionsTitle}
+      >
+        <ChartOption
+          label={fr.asset.chart.volume}
+          checked={showVolume && volumeAvailable}
+          onChange={onToggleVolume}
+          disabled={!volumeAvailable}
+          hint={volumeAvailable ? undefined : fr.asset.chart.volumeUnavailable}
+        />
+        <ChartOption
+          label={fr.asset.chart.movingAverage}
+          checked={showMovingAverage}
+          onChange={onToggleMovingAverage}
+        />
+        <ChartOption
+          label={fr.asset.chart.priceLines}
+          checked={showPriceLines}
+          onChange={onTogglePriceLines}
+        />
+      </div>
+    </div>
+  )
+}
+
+function ChartOption({
+  label,
+  checked,
+  onChange,
+  disabled = false,
+  hint,
+}: {
+  label: string
+  checked: boolean
+  onChange: (value: boolean) => void
+  disabled?: boolean
+  hint?: string
+}) {
+  return (
+    <label
+      className={`flex items-center gap-1.5 text-xs ${
+        disabled ? 'cursor-not-allowed text-ink-muted/60' : 'cursor-pointer text-ink-muted'
+      }`}
+      title={hint}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-3.5 w-3.5 rounded border-border-subtle accent-brand-strong"
+      />
+      {label}
+    </label>
+  )
+}
+
 /* ── Onglets ──────────────────────────────────────────────────────────────── */
 
 /**
@@ -247,18 +469,28 @@ export function AssetWorkspace({
  */
 function OverviewTab({
   history,
+  candles,
+  kind,
   loading,
   rate,
   currency,
   days,
   assetName,
+  showVolume,
+  showMovingAverage,
+  showPriceLines,
 }: {
   history: PriceHistory | null
+  candles: ChartCandle[] | null
+  kind: ChartKind
   loading: boolean
   rate: number
   currency: string
   days: number
   assetName: string
+  showVolume: boolean
+  showMovingAverage: boolean
+  showPriceLines: boolean
 }) {
   const [interactive, setInteractive] = useState(false)
 
@@ -283,10 +515,15 @@ function OverviewTab({
       {interactive ? (
         <PriceChartInteractive
           points={history.points}
+          candles={candles ?? undefined}
+          kind={kind}
           rate={rate}
           currency={currency}
           days={days}
           label={label}
+          showVolume={showVolume}
+          showMovingAverage={showMovingAverage}
+          showPriceLines={showPriceLines}
         />
       ) : (
         <PriceChart
