@@ -78,9 +78,34 @@ Trois points qu'une évolution ne doit pas défaire :
   jeton de thème qu'aucune classe utilitaire ne consomme, alors que le bloc `.dark` sort
   toujours en entier. Toute lecture de ces variables en JavaScript doit prévoir la valeur vide.
 
-Contrastes mesurés dans le navigateur, clair puis sombre : ink 17,1 / 15,5 · ink-muted
-7,2 / 8,0 · brand 5,7 / 6,6 · on-brand sur brand 5,9 / 6,6 · hausse 5,2 / 9,5 · baisse
-6,2 / 6,6 — tous au-delà de 4,5:1.
+**Neutres du thème sombre — d'après `companiesmarketcap.com`.** Les deux tons sont
+relevés au navigateur sur ce site (mesurés, pas estimés) : `#2b2d3e` pour ses tableaux
+et sa barre haute, `#343e59` pour son fond de page. Une ardoise bleutée nettement plus
+claire que le bleu-nuit précédent — moins « terminal de nuit », plus « application de
+bureau ». Les accents azur sont inchangés.
+
+Deux choses à ne pas défaire :
+
+- **Leur hiérarchie de surfaces est inversée ; la nôtre ne l'est pas.** Chez eux le
+  fond de page est plus CLAIR que le tableau. Copier cette inversion casserait le
+  contrat de `bg-surface` (« surface surélevée, donc plus claire ») dans une trentaine
+  de composants, et ferait tomber le rouge de baisse à 3,83:1 — sous le seuil AA. Leurs
+  deux tons sont donc repris à l'identique mais **dans l'ordre inverse** : leur ton de
+  tableau devient le canvas, leur ton de page devient la surface des cartes.
+- **C'est l'ÉCART entre les deux qui compte, pas leur valeur absolue** : 1,28:1 chez eux
+  comme ici. Une première tentative avait glissé un troisième ton sous les deux leurs ;
+  elle gardait leurs couleurs mais écrasait la séparation à 1,07:1, et les cartes
+  cessaient de se détacher du fond. `surface-muted` part donc **en retrait** (`#232532`)
+  plutôt qu'en surélévation.
+
+Contrastes vérifiés au navigateur sur les trois surfaces, texte par texte. La plus
+exigeante en sombre est `surface` (#343e59) : ink 9,0 · ink-muted 5,1 · brand-strong 6,4
+· hausse 5,5 · baisse 4,8. En clair : ink 17,1 · ink-muted 7,2 · brand 5,7 · hausse 5,2
+· baisse 6,2. Aucun couple sous 4,5:1.
+
+⚠️ `--color-brand` n'est qu'à **3,8:1** sur la surface des cartes en thème sombre :
+suffisant pour un composant d'interface (seuil 3:1), **insuffisant pour du texte**. Tout
+texte de marque posé sur une carte passe par `--color-brand-strong`.
 
 **Système de mise en forme — `kraken/DESIGN.md`.** Installé via
 `npx getdesign@latest add kraken`, il sert de référence de GRAMMAIRE visuelle : échelle de

@@ -227,24 +227,46 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Thème sombre — le ciel nocturne au zénith.
+   Thème sombre — ardoise bleutée, d'après companiesmarketcap.com.
 
-   Les NEUTRES bleu-nuit sont conservés tels quels : ils datent du thème précédent,
-   sont déjà mesurés, et la nouvelle palette les rend plus cohérents qu'avant. Un
-   canvas bleu-nuit sous un accent orange était un compromis ; sous un accent azur,
-   c'est la même image vue de nuit.
+   Les NEUTRES reprennent les deux tons relevés sur ce site (mesurés au navigateur,
+   pas estimés à l'œil) : #2b2d3e pour ses tableaux et sa barre haute, #343e59 pour
+   son fond de page. Le bleu-nuit très sombre du thème précédent (#0b1622) laisse
+   place à une ardoise nettement plus claire et légèrement violacée — moins « terminal
+   de nuit », plus « application de bureau ». Les accents azur sont INCHANGÉS.
 
-   LE PIÈGE de cette palette est ici, et il est réel : un accent bleu sur un fond
-   bleu se noie. La séparation ne peut donc plus venir de la teinte — elle vient de
-   la LUMINOSITÉ. L'azur 800 du thème clair (#0369a1) tomberait à 2,1:1 sur ce
-   canvas ; on monte donc de plusieurs crans, jusqu'à un bleu franchement lumineux
-   qui se détache par sa clarté et non par sa couleur.
+   LEUR HIÉRARCHIE DE SURFACES EST INVERSÉE, et on ne la reprend pas : chez eux le
+   fond de page (#343e59) est plus CLAIR que le tableau (#2b2d3e). Deux raisons de ne
+   pas copier cette inversion :
+     · `bg-surface` signifie « surface surélevée, donc plus claire » dans une
+       trentaine de composants ; inverser le contrat obligerait à tous les relire ;
+     · sur leur fond de page clair, notre rouge de baisse tombe à 3,83:1 — sous le
+       seuil AA (mesuré). L'inversion coûterait donc en lisibilité.
+   Leurs deux tons sont donc repris tels quels mais dans l'ORDRE INVERSE du leur :
+   leur ton de tableau (#2b2d3e) devient notre canvas, leur ton de page (#343e59)
+   devient notre surface de carte. L'ÉCART entre les deux est ainsi conservé au
+   pixel près — et c'est lui, plus que les valeurs absolues, qui fait qu'une carte se
+   lit comme une carte : 1,28:1 chez eux comme ici. Une première tentative avait
+   glissé un troisième ton sous les deux leurs ; elle gardait leurs couleurs mais
+   écrasait la séparation à 1,07:1, et les cartes cessaient de se détacher.
 
-   Contrastes mesurés sur --color-canvas : ink 14,1:1 · ink-muted 7,3:1 ·
-   brand 6,6:1 · brand-strong 10,9:1 · or 10,9:1 · hausse 8,6:1 · baisse 6,0:1 —
-   tous au-delà de 4,5:1.
+   Le ton sourd (`surface-muted`) part donc EN RETRAIT, plus sombre que le canvas,
+   au lieu de continuer à monter. Sur une ardoise déjà claire, un cran de plus
+   ferait passer le texte secondaire sous le seuil AA ; en retrait, il gagne au
+   contraire de la marge, et un survol de ligne légèrement plus sombre se lit aussi
+   bien qu'un survol plus clair.
 
-   `--color-border-subtle` fait exception, à 1,33:1, et c'est délibéré : ce jeton ne
+   Le piège de cette palette reste le même qu'avant : un accent bleu sur un fond bleu
+   se noie. La séparation ne vient pas de la teinte mais de la LUMINOSITÉ — l'azur du
+   thème clair (#0369a1) tomberait à 2,4:1 ici ; on garde donc les bleus lumineux, qui
+   se détachent par leur clarté.
+
+   Contrastes vérifiés au navigateur sur les TROIS surfaces, texte par texte. La
+   surface la plus exigeante est `surface` (#343e59, la plus claire) : ink 9,0:1 ·
+   ink-muted 5,1:1 · brand-strong 6,4:1 · hausse 5,5:1 · baisse 4,8:1. Tous les
+   autres couples sont au-dessus. Aucun ne descend sous 4,5:1.
+
+   `--color-border-subtle` fait exception, à 1,3:1, et c'est délibéré : ce jeton ne
    sert qu'à des séparateurs décoratifs (filets de tableau, contours de cartes), que
    les règles d'accessibilité n'assujettissent pas au seuil de 3:1 réservé aux
    composants porteurs de sens. Le remonter donnerait un quadrillage dur et
@@ -252,13 +274,20 @@
    référence, GitHub compris.
    ───────────────────────────────────────────────────────────────────────────── */
 .dark {
-  --color-canvas: #0b1622;
-  --color-surface: #151f2e;
-  --color-surface-muted: #1c2738;
-  --color-border-subtle: #24354a;
+  /* Les deux tons relevés sur companiesmarketcap.com, repris à l'identique et dans
+     l'ordre inverse du leur — voir l'explication ci-dessus. */
+  --color-canvas: #2b2d3e;
+  --color-surface: #343e59;
+  /* En RETRAIT plutôt qu'en surélévation : survols de ligne et bandes sourdes. */
+  --color-surface-muted: #232532;
+  --color-border-subtle: #414b68;
 
   --color-ink: #e7edf4;
-  --color-ink-muted: #9fadbd;
+  /* Éclairci d'un cran (#9fadbd → #a8b6c6) : sur la surface de carte, désormais la
+     plus claire des trois, l'ancien ton tombait à 4,64:1 — conforme, mais sans
+     aucune marge sur le seuil de 4,5:1, alors qu'il porte la majorité du texte
+     secondaire du site. */
+  --color-ink-muted: #a8b6c6;
 
   /* Ici les deux tons de marque redeviennent NÉCESSAIRES, alors qu'un seul suffisait
      en thème clair : `brand` est assez lumineux pour un aplat de bouton portant du
@@ -267,24 +296,39 @@
      rapport au thème clair, où « strong » signifiait plus SOMBRE. */
   --color-brand: #0ea5e9;
   --color-brand-strong: #7dd3fc;
-  --color-brand-soft: #0c2a3d;
+  /* Remonté avec le reste : sur une ardoise plus claire, l'ancien #0c2a3d creusait
+     un trou sombre là où ce jeton doit se lire comme une teinte POSÉE sur la surface. */
+  --color-brand-soft: #1c3549;
 
   /* Le texte sur aplat de marque s'INVERSE ici : encre sombre sur azur lumineux,
-     6,58:1. C'est tout l'intérêt du jeton — les douze boutons du site basculent
+     5,8:1. C'est tout l'intérêt du jeton — les douze boutons du site basculent
      sans qu'aucun ne soit retouché. */
-  --color-on-brand: #0b1622;
+  --color-on-brand: #1e2030;
 
-  /* L'or cesse d'être purement décoratif en thème sombre : à 10,9:1 sur le canvas,
+  /* L'or cesse d'être purement décoratif en thème sombre : à 8,7:1 sur le canvas,
      il devient utilisable pour du texte. C'est l'inverse exact du thème clair, où
      il plafonne à 2,05:1 — une couleur claire se comporte à l'opposé selon le fond. */
   --color-accent: #fbbf24;
   --color-accent-strong: #fcd34d;
-  --color-accent-soft: #2a1f07;
+  --color-accent-soft: #3a2e11;
 
+  /* Les fonds sémantiques suivent le même mouvement que `brand-soft`. Une pastille
+     verte très sombre sur une ardoise claire se lit comme un trou, pas comme un
+     aplat teinté. Contrastes du texte sur sa pastille : hausse 6,4:1 · baisse 6,5:1.
+
+     LE ROUGE EST ÉCLAIRCI (#f87171 → #fb8f8f) et ce n'est pas un choix esthétique :
+     l'ancien tombait à 3,84:1 sur la surface la plus claire, mesuré au navigateur.
+     Or cette surface porte les cartes et les lignes de tableau — donc précisément
+     des variations chiffrées. Une baisse y devenait illisible.
+
+     Point de vigilance pour la suite : `--color-brand` n'est qu'à 3,8:1 sur
+     `--color-surface`. Suffisant pour un composant d'interface (seuil 3:1),
+     INSUFFISANT pour du texte — tout texte de marque posé sur une carte doit passer
+     par `--color-brand-strong` (6,4:1). */
   --color-up: #34d399;
-  --color-up-soft: #0d2a20;
-  --color-down: #f87171;
-  --color-down-soft: #2d1618;
+  --color-up-soft: #1b3b30;
+  --color-down: #fb8f8f;
+  --color-down-soft: #3d2226;
 
   color-scheme: dark;
 }
