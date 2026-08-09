@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenith/data'
 import {
@@ -128,19 +128,48 @@ export function AssetWorkspace({
     return Object.keys(rates.rates)
   }, [rates, asset.currency])
 
+  /**
+   * Jeton de la dernière requête d'historique émise.
+   *
+   * Il protège d'une COURSE bien réelle : deux clics rapprochés sur le sélecteur de
+   * période lancent deux requêtes concurrentes, et rien ne garantit qu'elles
+   * reviennent dans l'ordre. Sans ce garde-fou, la réponse « 24 h » arrivant après
+   * la réponse « 1 an » écrasait cette dernière — le graphique affichait alors une
+   * journée de données sous un axe libellé « 1 an », sans le moindre signe d'erreur.
+   *
+   * Un `ref` plutôt qu'un `state` : le compteur ne doit pas déclencher de rendu, et
+   * doit être lisible par une fermeture créée avant sa mise à jour.
+   *
+   * Les effets voisins (bougies, historique annuel) utilisent un booléen `cancelled`
+   * de nettoyage, ce qui est le motif adapté à un `useEffect`. Ici l'appel est
+   * impératif et déclenché par un clic : il n'a pas de fonction de nettoyage à
+   * laquelle s'accrocher, d'où le compteur.
+   */
+  const historyRequestId = useRef(0)
+
   const fetchHistory = useCallback(
     async (targetDays: number) => {
+      const requestId = historyRequestId.current + 1
+      historyRequestId.current = requestId
+
       setLoading(true)
       try {
         const response = await fetch(
           `/api/historique?classe=${assetClass}&id=${encodeURIComponent(asset.id)}&jours=${targetDays}`,
         )
         const payload = await response.json()
+        // Une réponse dépassée est jetée en silence : elle décrit une période que le
+        // lecteur ne regarde plus.
+        if (historyRequestId.current !== requestId) return
         setHistory(payload.ok ? (payload as PriceHistory) : null)
       } catch {
+        if (historyRequestId.current !== requestId) return
         setHistory(null)
       } finally {
-        setLoading(false)
+        // `loading` n'est relâché que par la requête la plus récente : sinon la
+        // première réponse arrivée éteindrait l'indicateur alors qu'une autre
+        // requête est encore en vol.
+        if (historyRequestId.current === requestId) setLoading(false)
       }
     },
     [assetClass, asset.id],

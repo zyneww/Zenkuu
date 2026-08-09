@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 
-import { ASSET_CLASSES, getAssetHistory, type AssetClass } from '@zenith/data'
+import {
+  ASSET_CLASSES,
+  SUPPORTED_CURRENCIES,
+  getAssetHistory,
+  type AssetClass,
+} from '@zenith/data'
 
 /**
  * Historique de cours, servi au changement de période sur une fiche actif.
@@ -16,6 +21,17 @@ import { ASSET_CLASSES, getAssetHistory, type AssetClass } from '@zenith/data'
 /** Fenêtres autorisées. Une valeur libre ouvrirait autant de clés de cache que d'entiers. */
 const ALLOWED_DAYS = [1, 7, 30, 90, 365]
 
+/**
+ * Devises autorisées — même raison que `ALLOWED_DAYS`, et le garde-fou manquait.
+ *
+ * `devise` alimente lui aussi la clé du cache applicatif. Sans liste blanche, une
+ * suite d'appels `?devise=aaa`, `?devise=aab`… crée autant d'entrées et finit par
+ * évincer les entrées légitimes d'un cache borné à 500 éléments. Le service resterait
+ * debout, mais chaque page se remettrait à taper la source externe, sur un quota
+ * mesuré à cinq requêtes par minute.
+ */
+const ALLOWED_CURRENCIES = new Set(SUPPORTED_CURRENCIES.map((code) => code.toLowerCase()))
+
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
   const id = params.get('id')?.trim()
@@ -29,6 +45,10 @@ export async function GET(request: Request) {
 
   if (!ALLOWED_DAYS.includes(days)) {
     return NextResponse.json({ erreur: 'Période non supportée' }, { status: 400 })
+  }
+
+  if (!ALLOWED_CURRENCIES.has(currency)) {
+    return NextResponse.json({ erreur: 'Devise non supportée' }, { status: 400 })
   }
 
   const history = await getAssetHistory(id, assetClass, days, currency)

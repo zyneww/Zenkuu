@@ -50,11 +50,15 @@ describe('rankMovers', () => {
 
     // « sans » n'a pas de variation à 30 jours : le compter comme 0 % le placerait
     // devant « avec » et inventerait une stabilité que la source n'affirme pas.
-    expect(ranked.gainers.map((entry) => entry.id)).toEqual(['avec'])
     expect(ranked.losers.map((entry) => entry.id)).toEqual(['avec'])
+
+    // `avec` recule de 5 % : il n'a rien à faire parmi les hausses. Cette assertion
+    // attendait auparavant `['avec']` — elle CONSACRAIT le défaut de chevauchement,
+    // où un même actif figurait dans les deux listes.
+    expect(ranked.gainers).toEqual([])
   })
 
-  it('renvoie les hausses en tête et les baisses en queue, dans l’ordre', () => {
+  it('sépare hausses et baisses PAR SIGNE, sans les faire se rejoindre', () => {
     const assets = [
       asset('haut', { change1h: 9 }),
       asset('milieu', { change1h: 1 }),
@@ -64,8 +68,23 @@ describe('rankMovers', () => {
     const ranked = rankMovers(assets, '1h', 2)
 
     expect(ranked.gainers.map((entry) => entry.id)).toEqual(['haut', 'milieu'])
-    // Les baisses sont les derniers du tri, réordonnés du plus négatif au moins.
-    expect(ranked.losers.map((entry) => entry.id)).toEqual(['bas', 'milieu'])
+
+    // `milieu` progresse de 1 % : c'est une hausse, même modeste. L'ancienne version
+    // découpait les deux extrémités du tri (`slice(0, 2)` et `slice(-2)`), si bien
+    // que sur trois actifs les tranches se recouvraient et que « plus fortes
+    // baisses » affichait un actif EN HAUSSE. Le test l'attendait explicitement —
+    // il consacrait le défaut au lieu de le détecter.
+    expect(ranked.losers.map((entry) => entry.id)).toEqual(['bas'])
+  })
+
+  it('renvoie une liste vide plutôt que d’inventer des baisses quand tout monte', () => {
+    const assets = [asset('a', { change24h: 5 }), asset('b', { change24h: 2 })]
+
+    const ranked = rankMovers(assets, '24h', 5)
+
+    expect(ranked.gainers.map((entry) => entry.id)).toEqual(['a', 'b'])
+    // Une liste courte dit la vérité du marché ; une liste de longueur fixe la masque.
+    expect(ranked.losers).toEqual([])
   })
 
   it('ne mute pas le tableau reçu', () => {

@@ -15,6 +15,7 @@ export type { AssetClassAvailability } from './registry'
 export {
   MOVERS_PERIODS,
   MOVERS_UNIVERSES,
+  CATEGORY_RANKING_FLOOR_USD,
   MOVERS_UNIVERSE_SIZE,
   SUPPORTED_CURRENCIES,
   getMoversUniverse,

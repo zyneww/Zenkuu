@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 
-import { ASSET_CLASSES, getAssetOhlc, type AssetClass } from '@zenith/data'
+import {
+  ASSET_CLASSES,
+  SUPPORTED_CURRENCIES,
+  getAssetOhlc,
+  type AssetClass,
+} from '@zenith/data'
 
 /**
  * Bougies OHLC, servies à la bascule vers la vue chandeliers d'une fiche actif.
@@ -17,6 +22,9 @@ import { ASSET_CLASSES, getAssetOhlc, type AssetClass } from '@zenith/data'
 /** Mêmes fenêtres que l'historique, pour que le sélecteur de période reste commun. */
 const ALLOWED_DAYS = [1, 7, 30, 90, 365]
 
+/** Même liste blanche que la route d'historique, et pour la même raison de cache. */
+const ALLOWED_CURRENCIES = new Set(SUPPORTED_CURRENCIES.map((code) => code.toLowerCase()))
+
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
   const id = params.get('id')?.trim()
@@ -30,6 +38,10 @@ export async function GET(request: Request) {
 
   if (!ALLOWED_DAYS.includes(days)) {
     return NextResponse.json({ erreur: 'Période non supportée' }, { status: 400 })
+  }
+
+  if (!ALLOWED_CURRENCIES.has(currency)) {
+    return NextResponse.json({ erreur: 'Devise non supportée' }, { status: 400 })
   }
 
   const ohlc = await getAssetOhlc(id, assetClass, days, currency)

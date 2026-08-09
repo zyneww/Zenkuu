@@ -255,6 +255,38 @@ des exchanges tiers — jamais de widget de trading intégré »). La distinctio
 n'exécute rien, ne détient rien, n'intègre aucun tunnel d'achat. `nofollow` marque
 l'absence de caution, `noopener` protège de `window.opener`.
 
+#### Page des secteurs (`/categories`)
+
+**Toutes les catégories cotées** — environ 400, contre douze auparavant. La source en
+publie ~750 dans **un seul appel sans pagination** : la limite précédente coûtait donc
+exactement le même appel réseau tout en jetant 98 % du contenu. Les ~350 écartées sont
+**totalement vides** (ni capitalisation, ni volume, ni actif — vérifié sur la réponse
+brute) : ce sont des rubriques de taxonomie sans actif valorisé.
+
+Disposition **volontairement différente** de la référence, qui empile titre centré →
+trois onglets → quatre cartes à courbes → tableau. Ici : bande de tête avec repères →
+bande « secteurs en forte hausse » **nommée** → secteurs en vue → tableau complet avec
+tri réversible, recherche et affichage progressif (50 par 50) → renvoi méthodologique.
+
+⚠️ **La capitalisation totale n'est pas une somme.** La référence additionne ses
+secteurs pour annoncer « 6,26 T$ ». C'est un double comptage — un actif appartient à
+plusieurs catégories. ZENITH affiche la **capitalisation mondiale publiée par la
+source**, dédupliquée par construction.
+
+Trois garde-fous à ne pas retirer :
+
+- **`marketCap > 0`**, pas `!== undefined` : 39 catégories arrivent valorisées à zéro et
+  remontaient en tête des baisses à « −100 % ». Une variation calculée sur zéro n'est pas
+  une variation.
+- **`CATEGORY_RANKING_FLOOR_USD` = 10 M$** sur les *palmarès* seulement, jamais sur le
+  tableau. Sans plancher, la tête du classement affichait « Printr Launchpad »
+  (65 000 $, +52 %) — du bruit présenté comme un fait de marché. Un tableau est un
+  annuaire, un palmarès est une affirmation.
+- **Les clés de cache sont versionnées** (`…:raw:v3`, `…:view:v2`). Le cache vit sur
+  `globalThis` : sans version, un enregistrement à l'ancien format continue d'être servi
+  pendant sa durée de vie et les nouveaux champs paraissent absents. **Toute évolution de
+  la forme de `MarketCategory` doit incrémenter ces numéros.**
+
 #### Blog (`/blog`) — système complet, contenu à zéro
 
 Le système entier est en place ; **`ARTICLES` est vide** et le reste (§5 : de faux billets

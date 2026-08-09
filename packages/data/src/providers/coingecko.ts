@@ -187,6 +187,10 @@ interface CoinGeckoCategory {
   market_cap_change_24h?: number | null
   volume_24h?: number | null
   top_3_coins?: string[]
+  /** Identifiants des trois actifs, alignés sur `top_3_coins`. */
+  top_3_coins_id?: string[]
+  /** Définition du secteur, rédigée par la source. */
+  content?: string | null
 }
 
 /** `null` et `undefined` restent absents : le §5 interdit de les remplacer par 0. */
@@ -754,6 +758,13 @@ export const coinGeckoProvider: MarketDataProvider = {
         const volume = optional(row.volume_24h)
         if (volume !== undefined) category.volume24h = volume
         if (Array.isArray(row.top_3_coins)) category.topAssets = row.top_3_coins.slice(0, 3)
+        if (Array.isArray(row.top_3_coins_id)) {
+          category.topAssetIds = row.top_3_coins_id.slice(0, 3)
+        }
+        // La source livre parfois une chaîne vide plutôt que d'omettre le champ :
+        // `trim()` évite de créer une description qui n'afficherait rien.
+        const description = row.content?.trim()
+        if (description) category.description = description
         return category
       })
   },

@@ -249,6 +249,16 @@ export interface MarketCategory {
   volume24h?: number
   /** Quelques logos représentatifs, pour illustrer la ligne. */
   topAssets?: string[]
+  /**
+   * Identifiants des mêmes actifs, alignés sur `topAssets`.
+   *
+   * Ce sont eux qui rendent les logos CLIQUABLES vers la fiche de l'actif : sans
+   * eux, une vignette n'est qu'un ornement. La source les publie dans la même
+   * réponse (`top_3_coins_id`), ils ne coûtent donc aucun appel.
+   */
+  topAssetIds?: string[]
+  /** Définition du secteur, publiée par la source (champ `content`). */
+  description?: string
 }
 
 /** Article d'actualité agrégé depuis un flux public. */

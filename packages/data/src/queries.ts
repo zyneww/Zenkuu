@@ -136,9 +136,20 @@ export function rankMovers(
     (a, b) => (b[field] as number) - (a[field] as number),
   )
 
+  // Découpage PAR SIGNE et non aux seules extrémités. Trancher `slice(0, limit)` et
+  // `slice(-limit)` d'un univers plus petit que `2 × limit` fait se rejoindre les
+  // deux listes au milieu : « plus fortes baisses » se remplit alors d'actifs en
+  // HAUSSE, ceux qui montent le moins. Le défaut ne se voit que les jours où le
+  // marché va dans un seul sens, ce qui le rend d'autant plus pernicieux.
+  //
+  // Conséquence assumée : une liste plus courte quand peu d'actifs baissent. C'est
+  // l'information à ne pas masquer par une longueur fixe.
   return {
-    gainers: sorted.slice(0, limit),
-    losers: sorted.slice(-limit).reverse(),
+    gainers: sorted.filter((asset) => (asset[field] as number) > 0).slice(0, limit),
+    losers: sorted
+      .filter((asset) => (asset[field] as number) < 0)
+      .slice(-limit)
+      .reverse(),
     field,
   }
 }
@@ -407,9 +418,16 @@ export function getCryptoOverview(
       .filter((asset) => typeof asset.change24h === 'number')
       .sort((a, b) => (b.change24h as number) - (a.change24h as number))
 
+    // Filtrage PAR SIGNE, comme `rankMovers` : sans lui, « plus fortes baisses » se
+    // remplit d'actifs en hausse dès que l'univers est plus petit que `2 × limit`
+    // ou que le marché monte partout. Corrigé ICI plutôt qu'au point d'affichage,
+    // pour que tous les appelants en bénéficient — l'accueil comme /crypto.
     return {
-      gainers: ranked.slice(0, limit),
-      losers: ranked.slice(-limit).reverse(),
+      gainers: ranked.filter((asset) => (asset.change24h as number) > 0).slice(0, limit),
+      losers: ranked
+        .filter((asset) => (asset.change24h as number) < 0)
+        .slice(-limit)
+        .reverse(),
       topByMarketCap: universe.slice(0, 10),
       universeSize: universe.length,
     }
@@ -555,20 +573,62 @@ function fetchCategories(
   if (!provider.getCategories) {
     throw new ProviderError(provider.id, 'Catégories non supportées')
   }
-  return cached('crypto:categories:raw', () => provider.getCategories!(), CATEGORIES_TTL_SECONDS)
+  // Clé VERSIONNÉE. Le cache vit sur `globalThis` et survit au rechargement à chaud :
+  // sans ce suffixe, un enregistrement antérieur à l'ajout de `topAssetIds` et
+  // `description` continuerait d'être servi pendant sa demi-heure de validité, et les
+  // nouveaux champs paraîtraient absents alors que le code les mappe. Toute évolution
+  // de la forme de `MarketCategory` doit incrémenter ce numéro.
+  return cached('crypto:categories:raw:v3', () => provider.getCategories!(), CATEGORIES_TTL_SECONDS)
 }
 
-export function getCategories(limit = 12): Promise<DataResult<MarketCategory[]>> {
+/**
+ * Secteurs de marché.
+ *
+ * `limit` est facultatif et n'est plus borné par défaut : la source publie ses
+ * quelque 750 catégories dans UN SEUL appel, sans pagination. Les tronquer à douze
+ * coûtait donc exactement le même appel réseau tout en privant la page de 98 % de
+ * son contenu. Les appelants qui n'ont besoin que d'un aperçu passent leur propre
+ * limite ; la page de secteurs, elle, les prend toutes.
+ *
+ * Le filtre exige une capitalisation STRICTEMENT POSITIVE, et pas seulement
+ * définie. Mesuré sur la réponse : 349 catégories arrivent sans capitalisation et
+ * 39 autres avec une capitalisation de zéro — des rubriques de taxonomie dont plus
+ * aucun actif n'est valorisé. Le test `!== undefined` laissait passer les secondes,
+ * qui remontaient ensuite en tête des baisses à « −100 % » sur une base nulle. Une
+ * variation calculée sur zéro n'est pas une variation (§5).
+ */
+export function getCategories(limit?: number): Promise<DataResult<MarketCategory[]>> {
   return run(
     'crypto',
-    `crypto:categories:view:${limit}`,
+    // Versionnée comme la clé brute : le critère de filtrage est passé de
+    // « capitalisation définie » à « capitalisation strictement positive », donc le
+    // contenu associé à la clé n'a plus le même sens. Réutiliser l'ancienne clé
+    // servirait des catégories à zéro pendant toute la durée de vie du cache.
+    `crypto:categories:view:v2:${limit ?? 'all'}`,
     async (provider) => {
       const categories = await fetchCategories(provider)
-      return categories.filter((category) => category.marketCap !== undefined).slice(0, limit)
+      const rated = categories.filter((category) => (category.marketCap ?? 0) > 0)
+      return limit === undefined ? rated : rated.slice(0, limit)
     },
     CATEGORIES_TTL_SECONDS,
   )
 }
+
+/**
+ * Plancher de capitalisation des CLASSEMENTS par variation.
+ *
+ * Dix millions de dollars. Il ne filtre pas le tableau — un annuaire doit être
+ * complet — mais uniquement les palmarès « plus fortes hausses / baisses », qui sont
+ * une affirmation éditoriale et non une liste.
+ *
+ * La raison est arithmétique : sur une base de quelques milliers de dollars, un seul
+ * échange déplace le pourcentage de plusieurs dizaines de points. Sans plancher, la
+ * tête du classement était occupée par « Printr Launchpad » (65 000 $, +52 %) et
+ * « Kumbaya Launchpad » (54 000 $, +49 %) — du bruit présenté comme un fait de
+ * marché. Au-dessus du plancher, 286 des 361 secteurs subsistent et la tête devient
+ * lisible : « Arcade Games » (1,3 Md$, +34 %).
+ */
+export const CATEGORY_RANKING_FLOOR_USD = 10_000_000
 
 /**
  * Catégories triées par variation 24 h — les « narratifs du jour ».

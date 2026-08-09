@@ -161,21 +161,12 @@ async function loadListing(view: CryptoView, page: number): Promise<Listing> {
   if (view === 'gagnants' || view === 'perdants') {
     const overview = await getCryptoOverview('eur', PER_PAGE)
 
-    /**
-     * Filtrage PAR SIGNE, et pas seulement par rang.
-     *
-     * `getCryptoOverview` trie l'univers par variation puis en découpe les deux
-     * extrémités. Demander cinquante lignes d'un univers qui en compte cent ferait
-     * donc se rejoindre les deux listes au milieu : le bas de « Gagnants »
-     * afficherait des actifs en baisse, ce qui vide le mot de son sens.
-     *
-     * On coupe donc au changement de signe. La liste raccourcit les jours où le
-     * marché monte peu — c'est précisément l'information à ne pas masquer par une
-     * longueur fixe.
+    /*
+     * Le filtrage par signe a été REMONTÉ dans `getCryptoOverview` : il y profite à
+     * tous les appelants, l'accueil comme cette page, au lieu d'être refait — ou
+     * oublié — à chaque point d'affichage. Les listes reçues ici ne contiennent donc
+     * déjà que des variations du bon signe.
      */
-    const positive = (asset: MarketAsset) => (asset.change24h ?? 0) > 0
-    const negative = (asset: MarketAsset) => (asset.change24h ?? 0) < 0
-
     const scope = overview.ok
       ? `Classement établi parmi les ${overview.data.universeSize} plus grandes capitalisations, et non sur l’ensemble du marché. Seuls les actifs réellement ${view === 'gagnants' ? 'en hausse' : 'en baisse'} sur 24 h y figurent.`
       : ''
@@ -184,15 +175,12 @@ async function loadListing(view: CryptoView, page: number): Promise<Listing> {
       result: overview.ok
         ? {
             ...overview,
-            data:
-              view === 'gagnants'
-                ? overview.data.gainers.filter(positive)
-                : overview.data.losers.filter(negative),
+            data: view === 'gagnants' ? overview.data.gainers : overview.data.losers,
           }
         : overview,
       paginated: false,
       scopeNote: scope,
-      gainers: overview.ok ? overview.data.gainers.filter(positive) : [],
+      gainers: overview.ok ? overview.data.gainers : [],
     }
   }
 
