@@ -11,7 +11,11 @@ import { CACHE_TTL_SECONDS, cached } from './cache'
 import { recordMarketCap } from './market-cap-series'
 import { fetchExchangeRates } from './providers/frankfurter'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
-import { SENTIMENT_SOURCE, fetchSentiment } from './providers/sentiment'
+import {
+  SENTIMENT_SOURCE,
+  fetchSentiment,
+  fetchSentimentHistory,
+} from './providers/sentiment'
 import { getDeclaredProvider, getProvider } from './registry'
 import type {
   AssetClass,
@@ -23,7 +27,9 @@ import type {
   NewsItem,
   OhlcHistory,
   PriceHistory,
+  DerivativeMarket,
   SentimentIndex,
+  SentimentPoint,
   SortDirection,
   TrendingAsset,
 } from './types'
@@ -690,4 +696,41 @@ export function getExchangeRates(): Promise<DataResult<ExchangeRates>> {
 
 export function getSentiment(): Promise<DataResult<SentimentIndex>> {
   return runStandalone('sentiment:fng', SENTIMENT_SOURCE, fetchSentiment, SENTIMENT_TTL_SECONDS)
+}
+
+/**
+ * Historique de l'indice de sentiment.
+ *
+ * Aucune source supplémentaire : c'est le même endpoint que `getSentiment`, appelé
+ * avec un `limit` plus large. L'indice n'étant publié qu'une fois par jour, un TTL
+ * de 30 minutes est déjà généreux.
+ */
+export function getSentimentHistory(days = 365): Promise<DataResult<SentimentPoint[]>> {
+  return runStandalone(
+    `sentiment:fng:history:${days}`,
+    SENTIMENT_SOURCE,
+    () => fetchSentimentHistory(days),
+    SENTIMENT_TTL_SECONDS,
+  )
+}
+
+/**
+ * Marchés de dérivés.
+ *
+ * TTL de 10 minutes : l'intérêt ouvert et les taux de financement bougent plus
+ * lentement qu'un cours, et l'endpoint renvoie plus de 24 000 lignes — un appel de
+ * plus est coûteux sur un quota mesuré à cinq requêtes par minute.
+ */
+export function getDerivatives(limit = 60): Promise<DataResult<DerivativeMarket[]>> {
+  return run(
+    'crypto',
+    `crypto:derivatives:${limit}`,
+    (provider) => {
+      if (!provider.getDerivatives) {
+        throw new ProviderError(provider.id, 'Dérivés non publiés par la source')
+      }
+      return provider.getDerivatives(limit)
+    },
+    600,
+  )
 }

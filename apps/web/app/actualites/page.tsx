@@ -32,10 +32,10 @@ export default async function NewsPage() {
   const news = await getNews(36)
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{fr.news.title}</h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{fr.news.subtitle}</p>
+    <div className="space-y-8">
+      <header className="max-w-2xl space-y-3">
+        <h1 className="display-xl text-ink">{fr.news.title}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{fr.news.subtitle}</p>
       </header>
 
       {news.ok && news.data.length > 0 ? (

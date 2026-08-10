@@ -4,6 +4,8 @@ import {
   CACHE_TTL_SECONDS,
   MOVERS_PERIODS,
   MOVERS_UNIVERSES,
+  getCryptoGlobalStats,
+  getDerivatives,
   getMoversUniverse,
   rankMovers,
   type MoversPeriod,
@@ -12,6 +14,8 @@ import {
 import { Card, CardHeader, EmptyState, SourceNote } from '@zenith/ui'
 
 import { AssetList } from '@/components/AssetList'
+import { DerivativesPanel } from '@/components/market/DerivativesPanel'
+import { MacroBand } from '@/components/market/MacroBand'
 import { MoversFilters } from '@/components/market/MoversFilters'
 import { fr } from '@/content/fr'
 import { PERIOD_LABELS, UNIVERSE_LABELS } from '@/content/movers'
@@ -21,11 +25,29 @@ const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
 export const metadata: Metadata = {
-  title: fr.pages.movers,
+  title: 'Données de marché',
   description:
-    'Les plus fortes hausses et baisses du marché crypto, sur la période et l’univers de capitalisation de votre choix.',
+    'Vue macro, produits dérivés et classements de variation du marché crypto : capitalisation, dominance, intérêt ouvert, taux de financement, plus fortes hausses et baisses.',
   alternates: { canonical: '/crypto/mouvements' },
 }
+
+/**
+ * Données de marché.
+ *
+ * La page ne se limite plus aux classements de variation : elle ouvre sur une vue
+ * MACRO (capitalisation, volume, dominance), enchaîne sur les produits DÉRIVÉS
+ * (intérêt ouvert, taux de financement) puis conserve les palmarès filtrables.
+ *
+ * Trois modules de la référence sont absents et le resteront tant qu'aucune source
+ * gratuite ne les publie : flux d'ETF Bitcoin, calendrier économique et ratio
+ * long/short. Aucun n'est remplacé par une approximation (§5) — l'espace revient aux
+ * dérivés, qui sont, eux, réellement sourcés.
+ *
+ * Disposition différente de la référence, qui empile un grand graphique macro, une
+ * colonne « calendrier » à droite, puis des blocs de graphiques. Ici : bandes
+ * horizontales pleine largeur, du plus général au plus précis — macro, dérivés,
+ * palmarès. Aucun rail latéral, puisque le calendrier qui l'occupait n'existe pas.
+ */
 
 /** Lecture défensive : ces paramètres sont saisissables à la main dans l'URL. */
 function readPeriod(raw: string | string[] | undefined): MoversPeriod {
@@ -47,34 +69,56 @@ export default async function MoversPage({
   const period = readPeriod(params['periode'])
   const universe = readUniverse(params['univers'])
 
-  // Un seul appel alimente les deux colonnes : hausses et baisses sont les deux
-  // extrémités d'un même classement. Le changement de PÉRIODE ne recharge rien —
-  // la source publie toutes les fenêtres dans la même réponse.
-  const result = await getMoversUniverse(universe, 'eur')
+  // Les trois requêtes partent ENSEMBLE : séquentielles, leurs latences
+  // s'additionneraient. Chacune peut échouer seule — sa bande disparaît alors sans
+  // emporter le reste de la page.
+  const [result, globalStats, derivatives] = await Promise.all([
+    // Un seul appel alimente les deux colonnes de palmarès : hausses et baisses sont
+    // les deux extrémités d'un même classement. Le changement de PÉRIODE ne recharge
+    // rien — la source publie toutes les fenêtres dans la même réponse.
+    getMoversUniverse(universe, 'eur'),
+    getCryptoGlobalStats('eur'),
+    getDerivatives(60),
+  ])
 
   const ranked = result.ok ? rankMovers(result.data, period, 15) : null
   const usable = ranked ? ranked.gainers.length : 0
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">{fr.pages.movers}</h1>
-          <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
-            Classement sur <strong className="text-ink">{PERIOD_LABELS[period]}</strong>, parmi les{' '}
-            <strong className="text-ink">{UNIVERSE_LABELS[universe].toLowerCase()}</strong>{' '}
-            capitalisations — un périmètre volontairement borné, pour que le classement
-            reflète le marché plutôt qu’un jeton illiquide.
-          </p>
-        </div>
-
-        <MoversFilters
-          period={period}
-          universe={universe}
-          periods={MOVERS_PERIODS}
-          universes={MOVERS_UNIVERSES}
-        />
+    <div className="space-y-12 sm:space-y-16">
+      <header className="max-w-3xl space-y-3">
+        <h1 className="display-xl text-ink">Données de marché</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">
+          L’état du marché crypto en trois plans : les agrégats mondiaux, l’exposition
+          sur les produits dérivés, puis les mouvements de la période.
+        </p>
       </header>
+
+      {globalStats.ok ? <MacroBand stats={globalStats.data} /> : null}
+
+      {derivatives.ok ? <DerivativesPanel markets={derivatives.data} /> : null}
+
+      <section className="space-y-5" aria-labelledby="mouvements-titre">
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <h2 id="mouvements-titre" className="display-md text-ink">
+              {fr.pages.movers}
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
+              Classement sur <strong className="text-ink">{PERIOD_LABELS[period]}</strong>, parmi les{' '}
+              <strong className="text-ink">{UNIVERSE_LABELS[universe].toLowerCase()}</strong>{' '}
+              capitalisations — un périmètre volontairement borné, pour que le classement
+              reflète le marché plutôt qu’un jeton illiquide.
+            </p>
+          </div>
+
+          <MoversFilters
+            period={period}
+            universe={universe}
+            periods={MOVERS_PERIODS}
+            universes={MOVERS_UNIVERSES}
+          />
+        </div>
 
       {result.ok && ranked && usable > 0 ? (
         <>
@@ -109,6 +153,14 @@ export default async function MoversPage({
           tone={result.ok ? 'neutral' : 'warning'}
         />
       )}
+      </section>
+
+      {derivatives.ok ? (
+        <SourceNote
+          label={`${derivatives.source.label} · dérivés en USD`}
+          href={derivatives.source.attributionUrl}
+        />
+      ) : null}
     </div>
   )
 }

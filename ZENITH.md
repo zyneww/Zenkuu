@@ -255,6 +255,44 @@ des exchanges tiers — jamais de widget de trading intégré »). La distinctio
 n'exécute rien, ne détient rien, n'intègre aucun tunnel d'achat. `nofollow` marque
 l'absence de caution, `noopener` protège de `window.opener`.
 
+#### Trois sources gratuites qui étaient sous-exploitées
+
+Aucune n'a demandé de nouvelle dépendance ni de clé — seulement de lire ce que l'API
+renvoyait déjà :
+
+| Donnée | Endpoint | Ce qu'elle débloque |
+|---|---|---|
+| **Historique Fear & Greed** | `alternative.me/fng/?limit=N` — vérifié à 400 jours | Le graphique d'évolution de `/sentiment`. Même appel, autre `limit` |
+| **Produits dérivés** | `coingecko /derivatives` — 24 000 lignes, gratuit | Intérêt ouvert et taux de financement sur `/crypto/mouvements` |
+| **Vignettes et auteurs d'articles** | `media:content`, `enclosure`, `dc:creator` des flux RSS | Les cartes illustrées de `/actualites` |
+
+Restent **hors d'atteinte**, et ne doivent pas être approximées : flux d'ETF Bitcoin,
+calendrier économique, ratio long/short, liquidations, historique de la dominance.
+
+#### Répartition des pages de marché
+
+Chaque page a une vocation distincte — c'est ce qui les empêche de faire doublon :
+
+| Page | Vocation |
+|---|---|
+| `/` | **Exploration** : barre de repères, tableau dominant à onglets, widgets en rail |
+| `/crypto` | **Cotations** : cartes de synthèse, vues, sélecteur de période, tableau |
+| `/crypto/all-coins` | **Classements** : quatre palmarès simultanés à période commune |
+| `/crypto/mouvements` | **Données de marché** : macro, dérivés, palmarès filtrables |
+| `/categories` | **Secteurs** : ~400 catégories cotées |
+| `/sentiment` | **Fear & Greed** : cadran, comparaisons, historique |
+| `/actualites` | **Fil** : rubriques, sources, recherche, vignettes |
+
+Trois règles transversales, chacune née d'un défaut constaté :
+
+- **`/crypto/all-coins` affiche quatre classements à UNE SEULE période.** Comparer des
+  hausses sur 1 h à des baisses sur 7 j n'a aucun sens ; une période par colonne rendrait
+  l'erreur facile.
+- **La « rotation » (volume / capitalisation) est un RAPPORT de deux valeurs publiées**,
+  pas une estimation. C'est ce qui la distingue d'une donnée inventée.
+- **`GlobalStatsBar` est partagé** entre `/` et `/crypto`. Deux implémentations auraient
+  fini par annoncer deux chiffres différents pour la même chose.
+
 #### Page des secteurs (`/categories`)
 
 **Toutes les catégories cotées** — environ 400, contre douze auparavant. La source en

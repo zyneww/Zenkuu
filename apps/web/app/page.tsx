@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 import {
   CACHE_TTL_SECONDS,
   getAvailability,
@@ -16,16 +14,12 @@ import { Card, CardHeader, EmptyState, SourceNote } from '@zenith/ui'
 
 import { AssetList } from '@/components/AssetList'
 import { CoverageList } from '@/components/CoverageList'
+import { ExploreTable } from '@/components/home/ExploreTable'
+import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { HighlightPanel } from '@/components/home/HighlightPanel'
 import { MarketOverviewCard } from '@/components/home/MarketOverviewCard'
 import { TrendingPanel } from '@/components/home/TrendingPanel'
-import {
-  AssetClassChips,
-  NarrativesPanel,
-  NewsPanel,
-  SentimentPanel,
-} from '@/components/home/SidePanels'
-import { MarketTable } from '@/components/market/MarketTable'
+import { AssetClassChips, NarrativesPanel, NewsPanel } from '@/components/home/SidePanels'
 import { fr } from '@/content/fr'
 import { marketHref } from '@/lib/asset-routes'
 
@@ -85,93 +79,71 @@ export default async function HomePage() {
     }))
 
   return (
-    <div className="space-y-6">
-      {/* ── Rangée de synthèse : capitalisation, tendances, hausses ──────────── */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <MarketOverviewCard result={globalStats} series={marketCapSeries} />
+    <div className="space-y-8">
+      {/*
+        ── Barre de repères, puis TABLEAU DOMINANT ───────────────────────────────
 
-        <TrendingPanel
-          assets={trending.ok ? trending.data : null}
-          unavailableReason={trending.ok ? undefined : trending.reason}
-        />
+        Renversement par rapport à la version précédente, qui ouvrait sur trois
+        cartes de widgets et reléguait le tableau en dessous. Une page d'exploration
+        d'actifs a pour sujet les actifs : la barre situe le marché en une ligne, le
+        tableau occupe l'espace, et les widgets passent en colonne latérale — ils
+        complètent la lecture au lieu de la précéder.
+      */}
+      <h1 className="sr-only">{fr.site.name} — explorer les marchés</h1>
 
-        <HighlightPanel
-          title={fr.home.gainersTitle}
-          hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
-          assets={overview.ok ? overview.data.gainers : null}
-          href="/crypto"
-          unavailableReason={overview.ok ? undefined : overview.reason}
-        />
-      </section>
+      <GlobalStatsBar
+        stats={globalStats.ok ? globalStats.data : null}
+        sentiment={sentiment.ok ? sentiment.data : null}
+      />
 
       <AssetClassChips items={chips} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* ── Colonne principale ─────────────────────────────────────────────── */}
-        <div className="space-y-6 lg:col-span-2">
-          <section>
-            <div className="mb-3 flex items-end justify-between gap-4">
-              {/* Le sous-titre de la page /crypto ne se répète pas ici : sur
-                  l'accueil, ce bloc est un EXTRAIT du classement, et son périmètre
-                  est déjà dit par le lien « Tout voir ». La fraîcheur des cours,
-                  elle, est portée par la ligne de source sous le tableau. */}
-              <h1 className="text-xl font-bold tracking-tight text-ink">{fr.crypto.title}</h1>
-              <Link
-                href="/crypto"
-                className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
-              >
-                {fr.home.seeAll}
-              </Link>
-            </div>
-
-            {topCrypto.length > 0 ? (
-              <>
-                <MarketTable
-                  assets={topCrypto}
-                  assetClass="crypto"
-                  page={1}
-                  perPage={10}
-                  sortBy="marketCap"
-                  direction="desc"
-                  sortable={false}
-                  paginated={false}
-                  basePath="/crypto"
-                />
-                <SourceNote
-                  label={overview.ok ? overview.source.label : ''}
-                  href={overview.ok ? overview.source.attributionUrl : '#'}
-                  updatedAt={topCrypto[0]?.lastUpdated}
-                />
-              </>
-            ) : (
-              <EmptyState
-                title={fr.states.unavailableTitle}
-                description={overview.ok ? null : overview.reason}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-8">
+          {topCrypto.length > 0 ? (
+            <>
+              <ExploreTable assets={topCrypto} />
+              <SourceNote
+                label={overview.ok ? overview.source.label : ''}
+                href={overview.ok ? overview.source.attributionUrl : '#'}
+                updatedAt={topCrypto[0]?.lastUpdated}
               />
-            )}
-          </section>
+            </>
+          ) : (
+            <EmptyState
+              title={fr.states.unavailableTitle}
+              description={overview.ok ? null : overview.reason}
+            />
+          )}
 
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <HighlightPanel
-              title={fr.home.losersTitle}
-              hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
-              assets={overview.ok ? overview.data.losers : null}
-              unavailableReason={overview.ok ? undefined : overview.reason}
-            />
-            <HighlightPanel
-              title={fr.home.topMarketCapTitle}
-              assets={overview.ok ? overview.data.topByMarketCap : null}
-              href="/crypto"
-              unavailableReason={overview.ok ? undefined : overview.reason}
-            />
-          </section>
+          <MarketOverviewCard result={globalStats} series={marketCapSeries} />
         </div>
 
-        {/* ── Colonne latérale — widgets compacts (§3.2) ──────────────────────── */}
+        {/* ── Colonne latérale — widgets condensés ────────────────────────────── */}
         <aside className="space-y-6">
+          <TrendingPanel
+            assets={trending.ok ? trending.data : null}
+            unavailableReason={trending.ok ? undefined : trending.reason}
+          />
+
+          <HighlightPanel
+            title={fr.home.gainersTitle}
+            hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
+            assets={overview.ok ? overview.data.gainers : null}
+            href="/crypto?vue=gagnants"
+            unavailableReason={overview.ok ? undefined : overview.reason}
+          />
+
+          <HighlightPanel
+            title={fr.home.losersTitle}
+            hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
+            assets={overview.ok ? overview.data.losers : null}
+            href="/crypto?vue=perdants"
+            unavailableReason={overview.ok ? undefined : overview.reason}
+          />
+
           <NarrativesPanel result={narratives} />
           <NewsPanel result={news} />
-          <SentimentPanel result={sentiment} />
 
           <Card>
             <CardHeader title={fr.home.forexTitle} hint={fr.home.forexHint} />
@@ -196,15 +168,6 @@ export default async function HomePage() {
           <Card>
             <CardHeader title={fr.home.coverageTitle} />
             <CoverageList availability={availability} />
-          </Card>
-
-          <Card>
-            <CardHeader title={fr.home.watchlistTitle} />
-            <EmptyState
-              title={fr.home.watchlistEmptyTitle}
-              description={fr.home.watchlistEmptyBody}
-              compact
-            />
           </Card>
         </aside>
       </div>

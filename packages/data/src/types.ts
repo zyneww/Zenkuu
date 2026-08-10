@@ -277,6 +277,16 @@ export interface NewsItem {
    * classements faux, c'est-à-dire de la donnée inventée (§5).
    */
   category?: string
+  /**
+   * Vignette hébergée par l'ÉDITEUR, jamais recopiée chez nous.
+   *
+   * L'afficher fait donc appeler son serveur depuis le navigateur du lecteur —
+   * d'où `referrerPolicy="no-referrer"` au point de rendu, qui empêche l'éditeur de
+   * savoir depuis quelle page l'image est chargée.
+   */
+  imageUrl?: string
+  /** Signature publiée par le flux (`dc:creator`), quand elle existe. */
+  author?: string
 }
 
 /**
@@ -298,6 +308,42 @@ export interface SearchResult {
 }
 
 /** Indice de sentiment composite (Fear & Greed). */
+/** Un relevé quotidien de l'indice de sentiment. */
+export interface SentimentPoint {
+  /** Millisecondes depuis l'époque — prêt pour `new Date()` sans conversion. */
+  timestamp: number
+  value: number
+  /** Libellé publié par la source, en anglais — traduit à l'affichage. */
+  classification: string
+}
+
+/**
+ * Une place de cotation de produits dérivés.
+ *
+ * `openInterest` et `fundingRate` ne sont pas des dérivations maison : la source les
+ * publie place par place. Le taux de financement est un pourcentage par période de
+ * financement (8 h chez la plupart des places), pas un taux annuel — l'afficher
+ * comme annualisé sans le dire serait trompeur.
+ */
+export interface DerivativeMarket {
+  /** Nom de la place, ex. « Binance (Futures) ». */
+  market: string
+  symbol: string
+  /** Identifiant de l'indice sous-jacent, ex. « BTC ». */
+  indexId?: string
+  price: number
+  change24h?: number
+  /** `perpetual` ou `futures`. */
+  contractType?: string
+  openInterest?: number
+  volume24h?: number
+  /** Taux de financement en pourcentage, par période de financement. */
+  fundingRate?: number
+  /** Écart entre le contrat et son indice, en pourcentage. */
+  basis?: number
+  spread?: number
+}
+
 export interface SentimentIndex {
   /** 0 = peur extrême, 100 = avidité extrême. */
   value: number
@@ -416,6 +462,8 @@ export interface MarketDataProvider {
    * réseau dédié, d'où sa méthode séparée plutôt qu'un champ de `getAsset`.
    */
   getTickers?(id: string, currency?: string, limit?: number): Promise<AssetTicker[]>
+  /** Marchés de dérivés — intérêt ouvert et taux de financement, quand la source les publie. */
+  getDerivatives?(limit?: number): Promise<DerivativeMarket[]>
   /** Recherche par nom ou symbole, quand la source expose un index. */
   search?(query: string, limit?: number): Promise<SearchResult[]>
 }

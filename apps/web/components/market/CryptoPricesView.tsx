@@ -10,6 +10,7 @@ import {
 } from '@zenith/data'
 import { EmptyState, SourceNote } from '@zenith/ui'
 
+import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { Money } from '@/components/locale/Money'
 import { CryptoSummaryCards } from '@/components/market/CryptoSummaryCards'
 import { CryptoViewControls } from '@/components/market/CryptoViewControls'
@@ -64,6 +65,15 @@ export async function CryptoPricesView({
   return (
     <div className="space-y-8">
       <CryptoHeader stats={stats} />
+
+      {/* Barre de repères partagée avec l'accueil : capitalisation, volume,
+          dominances et sentiment sur une ligne. Le même composant aux deux endroits
+          garantit que les deux pages annoncent les mêmes chiffres — deux
+          implémentations auraient divergé au premier ajustement. */}
+      <GlobalStatsBar
+        stats={stats.ok ? stats.data : null}
+        sentiment={sentiment.ok ? sentiment.data : null}
+      />
 
       <CryptoSummaryCards
         stats={stats}

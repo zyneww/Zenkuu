@@ -11,6 +11,7 @@ import { createHttpClient } from '../http'
 import type {
   AssetDetail,
   AssetTicker,
+  DerivativeMarket,
   GlobalMarketStats,
   ListAssetsParams,
   MarketAsset,
@@ -149,6 +150,29 @@ interface CoinGeckoCoin {
     atl_date?: Record<string, string>
     last_updated?: string
   }
+}
+
+/**
+ * Réponse de `/derivatives`.
+ *
+ * Les nombres arrivent tantôt en `number`, tantôt en CHAÎNE (`"64992.8"`) selon le
+ * champ — c'est le format réel de la source, pas une hypothèse défensive. D'où le
+ * type union et la conversion explicite plus bas.
+ */
+interface CoinGeckoDerivative {
+  market?: string
+  symbol?: string
+  index_id?: string
+  price?: string | number | null
+  price_percentage_change_24h?: number | null
+  contract_type?: string
+  index?: number | null
+  basis?: number | null
+  spread?: number | null
+  funding_rate?: number | null
+  open_interest?: number | null
+  volume_24h?: number | null
+  expired_at?: string | null
 }
 
 /** Réponse de `/coins/{id}/tickers` — les places où l'actif se négocie. */
@@ -733,6 +757,69 @@ export const coinGeckoProvider: MarketDataProvider = {
         if (typeof coin.market_cap_rank === 'number') result.rank = coin.market_cap_rank
         return result
       })
+  },
+
+  /**
+   * Marchés de produits dérivés — intérêt ouvert, financement, base.
+   *
+   * L'endpoint renvoie plus de 24 000 lignes (tous contrats de toutes les places) en
+   * un seul appel : il est donc BORNÉ ici, après tri par intérêt ouvert. Renvoyer
+   * l'intégralité ferait transiter plusieurs mégaoctets jusqu'au navigateur pour un
+   * tableau qui en affiche quelques dizaines.
+   *
+   * Deux filtres appliqués avant tout :
+   *  · les contrats EXPIRÉS sont écartés — leur prix est figé et n'informe plus ;
+   *  · les lignes sans intérêt ouvert le sont aussi, puisque c'est le critère de
+   *    classement : sans lui, la ligne ne peut pas être située.
+   */
+  async getDerivatives(limit = 60): Promise<DerivativeMarket[]> {
+    const rows = await http.getJson<CoinGeckoDerivative[]>('derivatives')
+
+    if (!Array.isArray(rows)) {
+      throw new ProviderError(PROVIDER_ID, 'Format des dérivés inattendu')
+    }
+
+    // `price` arrive en chaîne sur cet endpoint, contrairement au reste de l'API.
+    const numeric = (value: string | number | null | undefined): number | undefined => {
+      if (value === null || value === undefined) return undefined
+      const parsed = typeof value === 'string' ? Number(value) : value
+      return Number.isFinite(parsed) ? parsed : undefined
+    }
+
+    const markets: DerivativeMarket[] = []
+
+    for (const row of rows) {
+      if (row.expired_at) continue
+
+      const price = numeric(row.price)
+      const openInterest = optional(row.open_interest)
+      if (price === undefined || openInterest === undefined || !row.market || !row.symbol) continue
+
+      const market: DerivativeMarket = {
+        market: row.market,
+        symbol: row.symbol,
+        price,
+        openInterest,
+      }
+
+      if (row.index_id) market.indexId = row.index_id
+      if (row.contract_type) market.contractType = row.contract_type
+
+      const change = optional(row.price_percentage_change_24h)
+      if (change !== undefined) market.change24h = change
+      const volume = optional(row.volume_24h)
+      if (volume !== undefined) market.volume24h = volume
+      const funding = optional(row.funding_rate)
+      if (funding !== undefined) market.fundingRate = funding
+      const basis = optional(row.basis)
+      if (basis !== undefined) market.basis = basis
+      const spread = optional(row.spread)
+      if (spread !== undefined) market.spread = spread
+
+      markets.push(market)
+    }
+
+    return markets.sort((a, b) => (b.openInterest ?? 0) - (a.openInterest ?? 0)).slice(0, limit)
   },
 
   async getCategories(currency = DEFAULT_CURRENCY): Promise<MarketCategory[]> {
