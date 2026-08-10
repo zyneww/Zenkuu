@@ -558,16 +558,37 @@ export class ProviderError extends Error {
   readonly providerId: string
   readonly status?: number
   readonly retryable: boolean
+  /**
+   * L'identifiant demandé N'EXISTE PAS chez cette source — par opposition à une
+   * panne, un quota atteint ou un format inattendu.
+   *
+   * Drapeau explicite et non déduit du message : l'appelant en tire un 404 HTTP, et
+   * un 404 ne doit pas dépendre du libellé d'une phrase que quelqu'un reformulera un
+   * jour. La version précédente cherchait le mot « introuvable » dans le message
+   * remonté — or ce message est remplacé par une phrase générique avant d'atteindre
+   * l'appelant, si bien que le test ne pouvait jamais réussir : toute URL d'actif
+   * inventée renvoyait 200 avec une page d'erreur, indexable et impossible à
+   * distinguer d'une vraie panne.
+   */
+  readonly notFound: boolean
 
   constructor(
     providerId: string,
     message: string,
-    options: { status?: number; retryable?: boolean; cause?: unknown } = {},
+    options: {
+      status?: number
+      retryable?: boolean
+      notFound?: boolean
+      cause?: unknown
+    } = {},
   ) {
     super(message, { cause: options.cause })
     this.name = 'ProviderError'
     this.providerId = providerId
     this.status = options.status
     this.retryable = options.retryable ?? false
+    // Un 404 de la source vaut déclaration d'inexistence sans avoir à le répéter à
+    // chaque appel : c'est exactement ce que le code signifie.
+    this.notFound = options.notFound ?? options.status === 404
   }
 }

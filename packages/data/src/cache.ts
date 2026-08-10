@@ -96,6 +96,23 @@ const inFlight: Map<string, Promise<unknown>> =
   globalForFlight.__zenithInFlight ?? new Map()
 
 if (process.env.NODE_ENV !== 'production') {
+  /*
+   * Table VIDÉE à chaque rechargement à chaud, contrairement au cache juste au-dessus.
+   *
+   * Les deux n'ont pas la même raison de survivre. Le cache doit tenir : le revider à
+   * chaque sauvegarde de fichier ferait retaper la source externe en boucle, et le
+   * quota gratuit n'y résisterait pas. Cette table-ci ne contient que des requêtes de
+   * quelques centaines de millisecondes ; en garder le contenu à travers un
+   * rechargement n'économise rien, et fait courir un risque réel — une promesse créée
+   * par une version PRÉCÉDENTE du module resterait attendue par la nouvelle, corrigée.
+   * C'est ce qui s'est produit ici : une clé rejetée est restée en place après le
+   * correctif, et la fiche concernée est demeurée en panne quand ses voisines
+   * fonctionnaient.
+   *
+   * Le seul coût est un appel sortant dupliqué si deux requêtes identiques encadrent
+   * exactement un rechargement — en développement, et une fois.
+   */
+  inFlight.clear()
   globalForFlight.__zenithInFlight = inFlight
 }
 
@@ -112,17 +129,36 @@ export async function cached<T>(
   if (pending) return pending as Promise<T>
 
   const request = (async () => {
-    try {
-      const value = await fetcher()
-      await cache.set(key, value, ttlSeconds)
-      return value
-    } finally {
-      // Retiré dans tous les cas : un échec ne doit pas laisser une clé bloquée,
-      // sans quoi la prochaine tentative attendrait une promesse déjà rejetée.
-      inFlight.delete(key)
-    }
+    const value = await fetcher()
+    await cache.set(key, value, ttlSeconds)
+    return value
   })()
 
   inFlight.set(key, request)
+
+  /*
+   * NETTOYAGE ATTACHÉ APRÈS L'ENREGISTREMENT — l'ordre est tout.
+   *
+   * La version précédente retirait la clé depuis un `finally` PLACÉ DANS le corps
+   * de la fonction asynchrone. Le corps d'une fonction `async` s'exécute de façon
+   * synchrone jusqu'au premier `await` : si `fetcher()` lève AVANT d'attendre quoi
+   * que ce soit — ce que font tous nos gardes de contrat, du genre « fiche non
+   * supportée par cette source » — le `finally` s'exécutait pendant l'appel de
+   * l'expression, donc avant le `inFlight.set` de la ligne suivante. Il supprimait
+   * une clé qui n'existait pas encore, puis la promesse REJETÉE était enregistrée…
+   * et n'en repartait jamais.
+   *
+   * Conséquence, et elle est vicieuse : la clé restait empoisonnée pour toute la
+   * durée de vie du processus. Chaque requête suivante recevait la même erreur, y
+   * compris après correction de la cause. C'est exactement ce qui s'est produit ici —
+   * une fiche devises est restée en panne après le correctif quand ses sept voisines,
+   * jamais demandées avant, fonctionnaient.
+   *
+   * Le `catch` vide ne masque rien : le rejet est délivré à l'appelant par `request`,
+   * qui est la promesse retournée. Cette branche-ci n'existe que pour retirer la clé,
+   * et sans elle Node signalerait un rejet non traité sur une promesse dérivée.
+   */
+  void request.finally(() => inFlight.delete(key)).catch(() => {})
+
   return request
 }

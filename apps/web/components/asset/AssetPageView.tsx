@@ -96,10 +96,12 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
   // Identifiant inconnu de la source : c'est un 404 au sens propre, pas une panne.
   // Renvoyer une page d'erreur laisserait croire à un incident temporaire, et
   // laisserait surtout l'URL indexable pour un actif qui n'existe pas (§9).
-  if (!asset.ok && asset.kind === 'error') {
-    const detail = asset.reason
-    if (detail.includes('introuvable') || detail.includes('inconnu')) notFound()
-  }
+  //
+  // La condition portait auparavant sur la PRÉSENCE DU MOT « introuvable » dans le
+  // message — un test qui ne pouvait jamais réussir, la couche données remplaçant ce
+  // message par une phrase générique avant de le remonter. Résultat : toute URL
+  // inventée répondait 200. L'état est désormais porté par le type.
+  if (!asset.ok && asset.kind === 'notFound') notFound()
 
   if (!asset.ok) {
     return (

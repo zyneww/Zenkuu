@@ -216,9 +216,13 @@ export const yahooProvider: MarketDataProvider = {
   },
 
   async getAsset(id: string, assetClass: AssetClass): Promise<MarketAsset> {
-    const universe = YAHOO_UNIVERSE[assetClass as keyof typeof YAHOO_UNIVERSE] ?? []
-    const entry = universe.find((candidate) => toSlug(candidate.symbol) === id)
-    if (!entry) throw new ProviderError(PROVIDER_ID, `Actif « ${id} » hors univers suivi`)
+    // `resolveEntry` plutôt qu'une recherche recopiée : les deux faisaient la même
+    // chose, mais seule celle de `resolveEntry` marquait l'erreur comme une
+    // inexistence. La copie locale renvoyait donc une erreur ordinaire, et les fiches
+    // d'actions inconnues répondaient 200 là où les fiches crypto répondaient 404.
+    // Deux implémentations d'une même règle finissent toujours par diverger — celle-ci
+    // avait divergé sur le seul détail qui comptait.
+    const entry = resolveEntry(id, assetClass)
 
     const result = await fetchChart(entry.symbol, '1mo', '1d')
     return toMarketAsset(result, entry, assetClass)
@@ -312,7 +316,10 @@ function resolveEntry(id: string, assetClass?: AssetClass): UniverseEntry {
     )
     if (entry) return entry
   }
-  throw new ProviderError(PROVIDER_ID, `Actif « ${id} » hors univers suivi`)
+  // `notFound` : l'univers Yahoo est une liste FIXE. Un identifiant qui n'y figure
+  // pas n'existe pas pour nous — ce n'est pas une panne passagère, et l'URL doit
+  // répondre 404 plutôt que d'afficher un message d'indisponibilité indexable.
+  throw new ProviderError(PROVIDER_ID, `Actif « ${id} » hors univers suivi`, { notFound: true })
 }
 
 /**

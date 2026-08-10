@@ -9,7 +9,12 @@
  */
 
 import { createHttpClient } from '../http'
-import type { ListAssetsParams, MarketAsset, MarketDataProvider } from '../types'
+import type {
+  ListAssetsParams,
+  MarketAsset,
+  MarketDataProvider,
+  PriceHistory,
+} from '../types'
 import { ProviderError } from '../types'
 
 const PROVIDER_ID = 'frankfurter'
@@ -39,6 +44,27 @@ interface FrankfurterTimeSeries {
   start_date: string
   end_date: string
   rates: Record<string, Record<string, number>>
+}
+
+/**
+ * Retrouve la paire derrière un identifiant de route ZENITH (`eur-usd` → USD).
+ *
+ * Point UNIQUE de résolution, volontairement : chez Yahoo, deux copies de cette même
+ * règle avaient divergé, et seule l'une des deux marquait l'erreur comme une
+ * inexistence — les fiches d'actions inconnues répondaient donc 200 quand les fiches
+ * crypto répondaient 404. Une seule fonction, un seul comportement.
+ */
+function resolvePair(id: string): (typeof MAJOR_PAIRS)[number] {
+  const code = id.replace(/^eur-/, '').toUpperCase()
+  const pair = MAJOR_PAIRS.find((candidate) => candidate.code === code)
+
+  if (!pair) {
+    throw new ProviderError(PROVIDER_ID, `Paire « ${id} » hors des majeures suivies`, {
+      notFound: true,
+    })
+  }
+
+  return pair
 }
 
 function isoDaysAgo(days: number): string {
@@ -137,5 +163,71 @@ export const frankfurterProvider: MarketDataProvider = {
 
     const perPage = params.perPage ?? assets.length
     return assets.slice(0, perPage)
+  },
+
+  /**
+   * Fiche d'une paire.
+   *
+   * ⚠️ CETTE MÉTHODE MANQUAIT, et son absence rendait mortes TOUTES les fiches
+   * devises : la page de classement listait huit paires cliquables dont chacune
+   * menait à « Actif introuvable ». Le défaut ne se voyait pas dans un audit de
+   * statut HTTP — la page répondait bien 200 — ni dans le typage, `getAsset` étant
+   * facultatif sur le contrat de fournisseur. Il fallait suivre un lien.
+   *
+   * L'implémentation ne coûte RIEN de plus : `listAssets` construit déjà la paire
+   * complète, en un seul appel qui les couvre toutes. On la réutilise donc plutôt
+   * que d'écrire une seconde façon de bâtir le même objet — c'est exactement la
+   * divergence qui, chez Yahoo, faisait répondre 200 aux actions inconnues.
+   */
+  async getAsset(id: string): Promise<MarketAsset> {
+    // Identifiant validé AVANT toute requête : un identifiant fabriqué ne doit pas
+    // déclencher d'appel sortant. C'est la différence entre une URL inventée qui
+    // coûte zéro et une qui consomme du quota — et sur une page indexable, les URLs
+    // inventées arrivent par paquets.
+    resolvePair(id)
+
+    const assets = await frankfurterProvider.listAssets({ assetClass: 'forex' })
+    const asset = assets.find((candidate) => candidate.id === id)
+
+    if (!asset) {
+      throw new ProviderError(PROVIDER_ID, `Paire « ${id} » sans taux publié aujourd’hui`)
+    }
+
+    return asset
+  },
+
+  /**
+   * Série historique d'une paire.
+   *
+   * La BCE ne publie qu'un taux par JOUR OUVRÉ : une fenêtre d'un jour ne contient
+   * donc qu'un point, parfois zéro le week-end. On élargit la fenêtre demandée d'une
+   * marge fixe pour que « 7 jours » rende bien sept relevés et non cinq — sans quoi
+   * le graphique le plus court paraîtrait vide le samedi.
+   *
+   * Aucune donnée n'est inventée pour combler les jours fermés : les points manquants
+   * restent manquants, et la courbe relie les relevés réels.
+   */
+  async getHistory(id: string, days: number): Promise<PriceHistory> {
+    const pair = resolvePair(id)
+
+    // Marge de 40 % : c'est un peu plus que la proportion de jours non ouvrés d'une
+    // semaine (2/7 ≈ 29 %), de quoi absorber aussi un jour férié.
+    const span = Math.max(2, Math.ceil(days * 1.4))
+    const series = await http.getJson<FrankfurterTimeSeries>(`${isoDaysAgo(span)}..`, {
+      base: BASE_CURRENCY,
+      symbols: pair.code,
+    })
+
+    const points = Object.entries(series.rates ?? {})
+      .map(([date, rates]) => ({ date, rate: rates[pair.code] }))
+      .filter((entry): entry is { date: string; rate: number } => entry.rate !== undefined)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((entry) => ({ timestamp: Date.parse(`${entry.date}T00:00:00.000Z`), price: entry.rate }))
+
+    if (points.length < 2) {
+      throw new ProviderError(PROVIDER_ID, `Historique insuffisant pour « ${id} »`)
+    }
+
+    return { points, currency: pair.code, days }
   },
 }

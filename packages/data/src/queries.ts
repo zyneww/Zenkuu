@@ -43,9 +43,23 @@ export interface DataSource {
   attributionUrl: string
 }
 
+/**
+ * `notFound` est un état À PART, distinct de `error`.
+ *
+ * « Cet actif n'existe pas » et « la source ne répond pas » appellent deux réactions
+ * opposées : la première doit produire un 404 et sortir l'URL de l'index, la seconde
+ * doit garder l'URL et inviter à revenir. Les confondre, c'est soit indexer des
+ * milliers de pages d'actifs imaginaires, soit désindexer un catalogue entier le jour
+ * d'une panne.
+ */
 export type DataResult<T> =
   | { ok: true; data: T; source: DataSource }
-  | { ok: false; kind: 'unconfigured' | 'error'; reason: string; source: DataSource | null }
+  | {
+      ok: false
+      kind: 'unconfigured' | 'error' | 'notFound'
+      reason: string
+      source: DataSource | null
+    }
 
 /**
  * Univers sur lequel sont calculées les plus fortes hausses et baisses.
@@ -226,6 +240,18 @@ async function run<T>(
   } catch (error) {
     const detail = error instanceof ProviderError ? error.message : String(error)
     console.error(`[zenith:data] ${cacheKey} — ${detail}`)
+
+    // Inexistence AVANT panne : un identifiant inconnu n'est pas un incident, et le
+    // confondre avec une indisponibilité produit une page « revenez plus tard » pour
+    // une ressource qui ne reviendra jamais.
+    if (error instanceof ProviderError && error.notFound) {
+      return {
+        ok: false,
+        kind: 'notFound',
+        reason: `Cet identifiant n’existe pas chez ${provider.label}.`,
+        source,
+      }
+    }
 
     return {
       ok: false,
