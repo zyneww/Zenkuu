@@ -701,7 +701,19 @@ mais en annonçant explicitement ce qui manque (§5) :
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | `robots.txt` interdit TOUTE indexation, et le sitemap publie des URL `localhost`. **À renseigner impérativement en production.** |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` | Pas de comptes ; `/connexion` et `/inscription` affichent un état vide. Rappel : la valeur est figée **à la compilation**, un redéploiement ne suffit pas, il faut **rebâtir**. |
-| `TURSO_DATABASE_URL` (+ `TURSO_AUTH_TOKEN`) | Le bouton « Suivre » signale que le suivi n'est pas conservé. Après configuration : `cd packages/db && bun run db:push`. |
+| `TURSO_DATABASE_URL` (+ `TURSO_AUTH_TOKEN`) | Le bouton « Suivre » signale que le suivi n'est pas conservé. Après configuration : `cd packages/db && bun run db:migrate`. |
+
+⚠️ **`TURSO_DATABASE_URL` doit commencer par `libsql://`**, jamais `turso://`. Le client
+n'accepte que `libsql:`, `wss:`, `ws:`, `https:`, `http:` et `file:` — tout autre schéma
+échoue à la connexion avec `URL_SCHEME_NOT_SUPPORTED`. Le tableau de bord Turso affiche
+parfois l'hôte sous une autre forme ; c'est bien `libsql://` qu'attend le client.
+
+**Migrations : `db:migrate`, pas `db:push`.** `drizzle-kit push` compare le schéma au
+vivant et ouvre une **invite interactive** dès qu'il rencontre une table qu'il ne connaît
+pas — c'est le cas de `__turso_internal_mvcc_meta`, créée par Turso lui-même. Cette invite
+exige un terminal et échoue donc dans tout contexte automatisé. `db:migrate` applique des
+fichiers SQL versionnés (`packages/db/migrations/`), tient son propre journal et est
+rejouable sans risque.
 
 ### Vérifié / non vérifié
 
@@ -713,9 +725,14 @@ mais en annonçant explicitement ce qui manque (§5) :
   de prix rendus avec des données CoinGecko réelles.
 - ✅ `robots.txt`, `sitemap.xml` (189 URL) et le JSON-LD (`Dataset`, `Article`,
   `BreadcrumbList`, `WebSite`) vérifiés dans la sortie HTTP réelle.
-- ❌ **Le chemin Clerk n'a jamais été exercé** : sans `.env.local`, seule la branche
-  « non configuré » est testée. `<SignIn />`, `<UserButton>` et `proxy.ts` compilent,
-  mais leur fonctionnement n'est pas prouvé.
-- ❌ **Les écritures Turso n'ont jamais été exercées** : sans base configurée, seul le
-  chemin « non disponible » est testé. Le schéma, les requêtes Drizzle et les actions
-  serveur compilent ; aucune insertion réelle n'a été effectuée.
+- ✅ **Chemin Clerk exercé.** Avec les clés en place, `/connexion` et `/inscription`
+  rendent les formulaires Clerk (OAuth GitHub/Google/X, localisation `frFR`, ton de
+  marque appliqué). Les huit routes testées répondent 200, y compris celles qui
+  appellent `auth()` côté serveur — donc `clerkMiddleware()` et son matcher fonctionnent.
+- ✅ **Écritures Turso exercées** contre la vraie base : insertion, lecture, refus de
+  doublon par l'index unique (c'est lui qui absorbe un double clic sur l'étoile), puis
+  suppression. Base laissée vide, aucune ligne de vérification conservée.
+- ❌ **Le parcours d'inscription de bout en bout reste à faire par un humain** : créer un
+  compte et saisir un mot de passe sortent de ce qu'un agent doit faire. Ce qui n'est
+  donc pas prouvé : la bascule `<UserButton>`, et l'étoile de suivi vue depuis une
+  session réellement authentifiée.
