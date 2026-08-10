@@ -4,7 +4,9 @@ node_modules/
 .pnp.js
 
 # Build
-.next/
+# `.next*/` et non `.next/` : `ZENITH_DIST_DIR` permet de bâtir dans un dossier
+# parallèle (`.next-verify`) sans perturber un serveur de développement en cours.
+.next*/
 out/
 dist/
 build/

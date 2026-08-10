@@ -67,6 +67,31 @@ export const fr = {
     signUpTitle: 'Créer un compte ZENITH',
     signUpSubtitle:
       'Gratuit. Aucune donnée bancaire demandée — ZENITH ne gère ni fonds ni transaction.',
+
+    // ── Fenêtre de compte ───────────────────────────────────────────────────
+    close: 'Fermer',
+    // Titres PLUS COURTS que ceux des pages : dans une fenêtre modale, le contexte
+    // est déjà donné par le site autour. Une page, elle, peut être atteinte
+    // directement depuis un moteur de recherche et doit se présenter seule.
+    overlaySignInTitle: 'Bienvenue sur ZENITH',
+    overlaySignInSubtitle: 'Connexion ou inscription en quelques secondes.',
+    overlaySignUpTitle: 'Créer votre compte',
+    overlaySignUpSubtitle: 'Gratuit, sans donnée bancaire.',
+    switchToSignUp: 'Pas encore de compte ?',
+    switchToSignIn: 'Vous avez déjà un compte ?',
+
+    benefitsTitle: 'Ce que le compte apporte',
+    benefits: [
+      'Votre liste de suivi conservée et retrouvée sur tous vos appareils',
+      'Devise d’affichage et thème mémorisés',
+      'Vos réglages appliqués dès l’ouverture, sans reparamétrage',
+    ],
+    // La phrase qui nous sépare d'une plateforme d'échange. Elle est à cet endroit
+    // précis — au moment de créer un compte — parce que c'est là que le doute existe.
+    benefitsNote:
+      'ZENITH n’exécute aucun ordre, ne détient aucun fonds et ne revend aucune donnée. Un compte ne sert qu’à retrouver vos réglages.',
+    legalPrefix: 'En continuant, vous acceptez nos conditions d’utilisation, décrites',
+    legalLink: 'sur la page À propos',
   },
 
   theme: {

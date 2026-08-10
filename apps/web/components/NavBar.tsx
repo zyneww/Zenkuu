@@ -6,7 +6,8 @@ import { ChevronDown, Menu, Search } from 'lucide-react'
 
 import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { fr } from '@/content/fr'
-import { AuthButtons } from '@/components/auth/AuthButtons'
+import { AuthButtons, MobileAuthLinks } from '@/components/auth/AuthButtons'
+import { AuthOverlay, type AuthMode } from '@/components/auth/AuthOverlay'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
@@ -22,10 +23,22 @@ export function NavBar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  /*
+   * L'état de la fenêtre de compte vit ICI, pas dans le composant qui l'affiche.
+   *
+   * Deux entrées l'ouvrent — les boutons de l'en-tête et le menu mobile — et une
+   * troisième la fait changer d'onglet depuis l'intérieur. Un état interne au
+   * composant obligerait chacune de ces entrées à passer par un contexte, pour un
+   * seul niveau de profondeur. `null` = fermée, ce qui évite d'avoir à tenir un
+   * booléen d'ouverture ET un mode en parallèle : deux variables dont l'une peut
+   * contredire l'autre.
+   */
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const closeSearch = useCallback(() => setSearchOpen(false), [])
+  const closeAuth = useCallback(() => setAuthMode(null), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
   // tout menu, et l'échappatoire indispensable pour une navigation au clavier.
@@ -167,7 +180,7 @@ export function NavBar() {
                 encombraient l'en-tête sans que leur parenté soit lisible. */}
             <SettingsPanel />
 
-            <AuthButtons />
+            <AuthButtons onOpen={setAuthMode} />
 
             <button
               type="button"
@@ -181,10 +194,13 @@ export function NavBar() {
           </div>
         </div>
 
-        {mobileOpen ? <MobileMenu onNavigate={() => setMobileOpen(false)} /> : null}
+        {mobileOpen ? (
+          <MobileMenu onNavigate={() => setMobileOpen(false)} onOpenAuth={setAuthMode} />
+        ) : null}
       </header>
 
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
+      <AuthOverlay mode={authMode} onClose={closeAuth} onSwitch={setAuthMode} />
     </>
   )
 }
@@ -295,9 +311,24 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
   )
 }
 
-function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
+function MobileMenu({
+  onNavigate,
+  onOpenAuth,
+}: {
+  onNavigate: () => void
+  onOpenAuth: (mode: AuthMode) => void
+}) {
   return (
     <div className="max-h-[70vh] overflow-y-auto border-t border-border-subtle bg-surface px-4 py-3 lg:hidden">
+      <MobileAuthLinks
+        onOpen={(mode) => {
+          // Le menu se referme AVANT l'ouverture de la fenêtre : les deux se
+          // superposeraient sinon, et le menu resterait ouvert derrière au retour.
+          onNavigate()
+          onOpenAuth(mode)
+        }}
+      />
+
       {NAV_MENUS.map((menu) => (
         <section key={menu.label} className="mb-4 last:mb-0">
           <h2 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">

@@ -3,6 +3,23 @@ import type { NextConfig } from 'next'
 const config: NextConfig = {
   reactStrictMode: true,
 
+  /**
+   * Dossier de sortie surchargeable, pour pouvoir construire SANS perturber un
+   * serveur de développement en cours.
+   *
+   * `next build` et `next dev` écrivent tous deux dans `.next`. Lancer un build
+   * pendant qu'un serveur tourne lui retire donc le sol sous les pieds : il continue
+   * de servir des morceaux remplacés, et les symptômes — pages en 404, modules
+   * introuvables — ressemblent à des défauts applicatifs. Le piège est d'autant plus
+   * traître que le build, lui, réussit.
+   *
+   *   ZENITH_DIST_DIR=.next-verify bun run build
+   *
+   * Vaut aussi pour l'intégration continue, où deux tâches peuvent bâtir en
+   * parallèle sur la même copie de travail.
+   */
+  distDir: process.env.ZENITH_DIST_DIR || '.next',
+
   // Les paquets internes sont consommés en TypeScript source, sans étape de build
   // intermédiaire : une modification dans `packages/data` est visible immédiatement
   // en développement.

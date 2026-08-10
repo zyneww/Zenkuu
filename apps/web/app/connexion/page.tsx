@@ -5,6 +5,7 @@ import { SignIn } from '@clerk/nextjs'
 import { EmptyState } from '@zenith/ui'
 
 import { AUTH_ENABLED } from '@/lib/auth'
+import { CLERK_PAGE_ELEMENTS } from '@/lib/clerk-appearance'
 import { fr } from '@/content/fr'
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function Page() {
       </header>
 
       {AUTH_ENABLED ? (
-        <SignIn routing="hash" />
+        <SignIn routing="hash" appearance={{ elements: CLERK_PAGE_ELEMENTS }} />
       ) : (
         /* Clerk non configuré : on l'annonce au lieu de faire tomber la page. */
         <EmptyState

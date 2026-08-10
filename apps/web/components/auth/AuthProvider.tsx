@@ -3,6 +3,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { frFR } from '@clerk/localizations'
 
 import { AUTH_ENABLED, AUTH_ROUTES } from '@/lib/auth'
+import { CLERK_VARIABLES } from '@/lib/clerk-appearance'
 
 /**
  * Enveloppe d'authentification, montée CONDITIONNELLEMENT.
@@ -19,18 +20,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <ClerkProvider
-      localization={frFR}
+      /*
+       * Traduction du fournisseur, COMPLÉTÉE.
+       *
+       * Le paquet `frFR` laisse passer quelques chaînes en anglais — relevé à
+       * l'écran : « Create a password » sous un libellé « Mot de passe » traduit,
+       * lui. Une seule phrase anglaise au milieu d'un formulaire français suffit à
+       * donner l'impression d'un écran tiers greffé sur le site, ce que tout le
+       * travail d'habillage cherche précisément à éviter.
+       *
+       * L'objet étale `frFR` puis surcharge : les corrections futures du paquet
+       * continuent d'arriver, seules les clés listées ici sont figées.
+       */
+      localization={{
+        ...frFR,
+        formFieldInputPlaceholder__password: 'Choisissez un mot de passe',
+      }}
       signInUrl={AUTH_ROUTES.signIn}
       signUpUrl={AUTH_ROUTES.signUp}
-      appearance={{
-        variables: {
-          // Les écrans Clerk reprennent les jetons de la charte plutôt que leur
-          // bleu par défaut, pour ne pas donner l'impression d'un site tiers.
-          colorPrimary: '#0369a1',
-          borderRadius: '12px',
-          fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif',
-        },
-      }}
+      appearance={{ variables: CLERK_VARIABLES }}
     >
       {children}
     </ClerkProvider>
