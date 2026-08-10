@@ -73,7 +73,11 @@ export default async function RankingsPage() {
               </Link>{' '}
               ·{' '}
               <Link href="/crypto/mouvements" className="text-brand hover:underline">
-                données de marché
+                données de trading
+              </Link>{' '}
+              ·{' '}
+              <Link href="/crypto/highlights" className="text-brand hover:underline">
+                points marquants
               </Link>
             </p>
           </section>

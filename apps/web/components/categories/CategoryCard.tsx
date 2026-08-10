@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import { ChangeBadge, formatCurrency } from '@zenith/ui'
 
 import type { MarketCategory } from '@zenith/data'
@@ -17,9 +19,25 @@ export function CategoryCard({ category }: { category: MarketCategory }) {
   const logos = (category.topAssets ?? []).slice(0, 4)
 
   return (
-    <article className="flex h-full flex-col justify-between gap-4 rounded-card border border-border-subtle bg-surface p-5 transition-colors hover:border-brand">
+    <article className="relative flex h-full flex-col justify-between gap-4 rounded-card border border-border-subtle bg-surface p-5 transition-colors hover:border-brand">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-base font-semibold leading-snug text-ink">{category.name}</h3>
+        <h3 className="text-base font-semibold leading-snug">
+          {/*
+            Le lien s'étend à toute la carte via `after:absolute inset-0` plutôt que
+            d'envelopper le contenu. Deux raisons : la carte reste un `<article>` et
+            non un bloc de lien géant, ce qui préserve sa structure pour les lecteurs
+            d'écran ; et le clavier n'a qu'UNE cible — le nom — au lieu de traverser
+            chaque élément de la carte. La souris, elle, atteint toute la surface.
+            Le parent porte donc `relative`, sans quoi la surcouche se calerait sur
+            l'ancêtre positionné le plus proche, quelque part dans la page.
+          */}
+          <Link
+            href={`/categories/${category.id}`}
+            className="text-ink transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand-strong"
+          >
+            {category.name}
+          </Link>
+        </h3>
         <ChangeBadge value={category.marketCapChange24h} size="sm" />
       </div>
 

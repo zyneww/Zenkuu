@@ -251,8 +251,16 @@ function CategoryTable({
           {categories.map((category, index) => (
             <tr key={category.id} className="transition-colors hover:bg-surface-muted/60">
               <td className="tabular px-3 py-2.5 text-xs text-ink-muted">{startRank + index}</td>
-              <th scope="row" className="px-3 py-2.5 text-left font-medium text-ink">
-                {category.name}
+              <th scope="row" className="px-3 py-2.5 text-left font-medium">
+                {/* Le nom porte le lien, pas la ligne entière : la ligne contient déjà
+                    les logos des actifs, eux-mêmes cliquables. Deux zones cliquables
+                    imbriquées produisent un HTML invalide et un piège au clavier. */}
+                <Link
+                  href={`/categories/${category.id}`}
+                  className="text-ink transition-colors hover:text-brand-strong hover:underline"
+                >
+                  {category.name}
+                </Link>
               </th>
               <td className="hidden px-3 py-2.5 sm:table-cell">
                 <TopAssets category={category} />

@@ -186,6 +186,15 @@ interface CoinGeckoTickers {
     converted_last?: Record<string, number>
     converted_volume?: Record<string, number>
     bid_ask_spread_percentage?: number | null
+    /**
+     * Profondeur du carnet à ±2 % — montant qu'il faudrait exécuter pour déplacer le
+     * cours de deux pour cent. Renvoyée uniquement si `depth=true` est demandé, et
+     * disponible sur le palier gratuit (vérifié).
+     */
+    cost_to_move_up_usd?: number | null
+    cost_to_move_down_usd?: number | null
+    /** Note de confiance de la place POUR CETTE PAIRE : `green`, `yellow` ou `red`. */
+    trust_score?: string | null
     trade_url?: string | null
     last_traded_at?: string | null
     /** Cotation périmée ou aberrante selon la source — on ne les affiche pas. */
@@ -360,6 +369,10 @@ export const coinGeckoProvider: MarketDataProvider = {
       price_change_percentage: '1h,24h,7d,14d,30d,1y',
       locale: 'fr',
       ...(ids.length > 0 ? { ids: ids.join(',') } : {}),
+      // Restriction à un secteur. L'endpoint applique le filtre AVANT la pagination :
+      // la page 1 d'une catégorie contient donc bien ses plus grandes
+      // capitalisations, et non les lignes de la page 1 globale qui s'y trouveraient.
+      ...(params.category ? { category: params.category } : {}),
     })
 
     if (!Array.isArray(rows)) {
@@ -613,7 +626,10 @@ export const coinGeckoProvider: MarketDataProvider = {
         // Trié par volume : les premières places sont les plus liquides, donc les
         // plus représentatives du prix réel.
         order: 'volume_desc',
-        depth: false,
+        // `depth=true` ajoute la profondeur du carnet à ±2 % SANS coût
+        // supplémentaire : c'est le même appel, avec deux champs de plus. Vérifié
+        // disponible sur le palier gratuit.
+        depth: true,
       },
     )
 
@@ -650,6 +666,17 @@ export const coinGeckoProvider: MarketDataProvider = {
 
       const spread = optional(raw.bid_ask_spread_percentage)
       if (spread !== undefined) ticker.spreadPercent = spread
+
+      const depthUp = optional(raw.cost_to_move_up_usd)
+      if (depthUp !== undefined) ticker.depthUpUsd = depthUp
+      const depthDown = optional(raw.cost_to_move_down_usd)
+      if (depthDown !== undefined) ticker.depthDownUsd = depthDown
+
+      // Liste blanche plutôt que transtypage : la source pourrait introduire une
+      // quatrième valeur, qui traverserait sinon jusqu'à l'interface sans style.
+      if (raw.trust_score === 'green' || raw.trust_score === 'yellow' || raw.trust_score === 'red') {
+        ticker.trust = raw.trust_score
+      }
 
       if (raw.trade_url?.startsWith('http')) ticker.tradeUrl = raw.trade_url
       if (raw.last_traded_at) ticker.lastTraded = raw.last_traded_at

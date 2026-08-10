@@ -38,7 +38,7 @@ import {
  * menu par TYPE D'OBJET (Cryptocurrencies, Exchanges, RWA, Products, API) parce
  * qu'il vend de la donnée et référence des plateformes d'échange. ZENITH ne vend
  * rien et n'échange rien — on range donc par INTENTION DE LECTURE : « qu'est-ce que
- * je regarde ? » (Marchés), « qui monte, qui descend ? » (Classements), « qu'est-ce
+ * je regarde ? » (Marchés), « que mesure-t-on ? » (Données), « qu'est-ce
  * que j'en déduis ? » (Analyse), « que s'est-il passé ? » (Actualités), « comment ça
  * marche ? » (Plus).
  *

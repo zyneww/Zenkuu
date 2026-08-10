@@ -49,7 +49,10 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     title: 'Données & analyse',
     links: [
       { label: 'Catégories & secteurs', href: '/categories' },
-      { label: 'Hausses et baisses', href: '/crypto/mouvements' },
+      { label: 'Données de trading', href: '/crypto/mouvements' },
+      { label: 'Points marquants', href: '/crypto/highlights' },
+      { label: 'Graphiques globaux', href: '/crypto/graphiques' },
+      { label: 'Nouvelles cryptomonnaies', href: '/crypto/nouvelles' },
       { label: 'Indice de sentiment', href: '/sentiment' },
       { label: 'Actualités', href: '/actualites' },
     ],

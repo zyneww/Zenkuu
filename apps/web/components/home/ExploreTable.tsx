@@ -40,7 +40,17 @@ const PERIODS: { key: string; label: string; field: keyof MarketAsset; long: str
 
 const PAGE_SIZE = 15
 
-export function ExploreTable({ assets }: { assets: MarketAsset[] }) {
+export function ExploreTable({
+  assets,
+  title = 'Explorer les cryptomonnaies',
+  moreHref = '/crypto',
+}: {
+  assets: MarketAsset[]
+  /** Le tableau sert désormais toutes les classes d'actifs : le titre les suit. */
+  title?: string
+  /** Classement complet de la classe affichée — paginé et trié côté serveur. */
+  moreHref?: string
+}) {
   const [tab, setTab] = useState<Tab>('marketCap')
   const [periodKey, setPeriodKey] = useState('24h')
   const [query, setQuery] = useState('')
@@ -89,7 +99,7 @@ export function ExploreTable({ assets }: { assets: MarketAsset[] }) {
     <section className="space-y-4" aria-labelledby="explorer-titre">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="explorer-titre" className="display-md text-ink">
-          Explorer les cryptomonnaies
+          {title}
         </h2>
 
         <div className="relative w-full sm:w-64">
@@ -163,7 +173,7 @@ export function ExploreTable({ assets }: { assets: MarketAsset[] }) {
         <>
           <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
             <table className="w-full min-w-[680px] border-collapse text-sm">
-              <caption className="sr-only">Cryptomonnaies par {tab}</caption>
+              <caption className="sr-only">{title}</caption>
               <thead>
                 <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
                   <th scope="col" className="px-3 py-2.5 font-medium">#</th>
@@ -244,7 +254,7 @@ export function ExploreTable({ assets }: { assets: MarketAsset[] }) {
               <span />
             )}
 
-            <Link href="/crypto" className="text-sm font-medium text-brand hover:underline">
+            <Link href={moreHref} className="text-sm font-medium text-brand hover:underline">
               Voir toutes les cotations
             </Link>
           </div>

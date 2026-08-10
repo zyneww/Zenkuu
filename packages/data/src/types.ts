@@ -183,6 +183,28 @@ export interface AssetTicker {
   tradeUrl?: string
   /** Horodatage ISO 8601 de la dernière cotation reçue. */
   lastTraded?: string
+  /**
+   * Profondeur du carnet à ±2 %, en DOLLARS.
+   *
+   * Montant qu'il faudrait exécuter, à l'achat ou à la vente, pour déplacer le cours
+   * de deux pour cent. C'est la mesure de liquidité la plus parlante d'un carnet :
+   * l'écart achat-vente dit ce que coûte une petite transaction, la profondeur dit ce
+   * que le marché absorbe. Deux places au même écart peuvent différer d'un facteur
+   * cent sur ce point.
+   *
+   * L'unité est le dollar quelle que soit la devise d'affichage : la source ne
+   * publie ce champ qu'ainsi, et le convertir mêlerait deux horodatages (§5).
+   */
+  depthUpUsd?: number
+  depthDownUsd?: number
+  /**
+   * Note de confiance de la source POUR CETTE PAIRE — `green`, `yellow` ou `red`.
+   *
+   * C'est un jugement publié sur la crédibilité du volume annoncé, pas une mesure.
+   * Repris tel quel et attribué ; jamais transformé en score chiffré, ce qui lui
+   * donnerait une précision qu'il n'a pas.
+   */
+  trust?: 'green' | 'yellow' | 'red'
 }
 
 /** Série de prix pour les graphiques de la fiche actif. */
@@ -452,6 +474,15 @@ export interface ListAssetsParams {
    * renverra plus large, jamais faux. L'appelant reste donc tenu de filtrer.
    */
   ids?: string[]
+  /**
+   * Restreindre à un secteur (« layer-1 », « meme-token »…).
+   *
+   * Un fournisseur qui ne connaît pas la notion de secteur IGNORE ce paramètre et
+   * renverra plus large — jamais faux, mais l'appelant reste tenu de vérifier. En
+   * pratique, seule la crypto en dispose : les classes traditionnelles n'ont pas de
+   * taxonomie équivalente chez nos sources.
+   */
+  category?: string
 }
 
 /**

@@ -143,7 +143,7 @@ export default async function HighlightsPage() {
               title="Volumes les plus élevés"
               hint="Montants échangés sur 24 h"
               assets={byVolume}
-              href="/crypto/all-coins?tri=volume24h"
+              href="/crypto/all-coins"
             />
 
             <HighlightPanel
@@ -230,7 +230,7 @@ export default async function HighlightsPage() {
             <ul className="grid grid-cols-1 gap-px overflow-hidden border border-border-subtle bg-border-subtle sm:grid-cols-2 lg:grid-cols-3">
               {narratives.data.map((category) => (
                 <li key={category.id} className="bg-surface p-3">
-                  <Link href={`/categories?secteur=${encodeURIComponent(category.id)}`} className="group block">
+                  <Link href={`/categories/${category.id}`} className="group block">
                     <p className="truncate text-sm font-medium text-ink group-hover:text-brand-strong">
                       {category.name}
                     </p>

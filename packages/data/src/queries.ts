@@ -272,7 +272,15 @@ export async function getCryptoGlobalStats(
   // il doit capter aussi les lectures servies par le cache, sinon la série se
   // limiterait aux rares instants où le cache expire.
   if (result.ok) {
-    recordMarketCap(result.data.currency, result.data.totalMarketCap)
+    // Le volume voyage dans la MÊME réponse : le relever au même instant garantit
+    // que les deux courbes portent sur le même point de mesure, ce qu'un second
+    // enregistrement ailleurs ne pourrait pas assurer.
+    recordMarketCap(
+      result.data.currency,
+      result.data.totalMarketCap,
+      Date.now(),
+      result.data.totalVolume24h,
+    )
   }
 
   return result
@@ -646,6 +654,56 @@ export const CATEGORY_RANKING_FLOOR_USD = 10_000_000
  * petits paniers, une variation de +40 % ne raconte rien du marché, seulement le
  * mouvement d'un jeton isolé.
  */
+/**
+ * Les actifs qui COMPOSENT un secteur.
+ *
+ * C'est ce qui transforme une ligne de classement sectoriel en objet consultable :
+ * sans cela, « IA » est un nom et un pourcentage, et le lecteur n'a aucun moyen de
+ * savoir de quels jetons on parle.
+ *
+ * `categoryId` finit dans la clé de cache. Il vient d'un segment d'URL, donc de
+ * l'extérieur : sans borne, chaque identifiant inventé ouvrirait une entrée de cache
+ * et un appel réseau. La longueur est donc plafonnée, et le jeu de caractères réduit
+ * à celui que la source emploie réellement pour ses identifiants.
+ */
+export function getCategoryAssets(
+  categoryId: string,
+  currency = 'eur',
+  perPage = 50,
+  page = 1,
+): Promise<DataResult<MarketAsset[]>> {
+  const safeId = categoryId.slice(0, 64).toLowerCase()
+
+  if (!/^[a-z0-9-]+$/.test(safeId)) {
+    return Promise.resolve({
+      ok: false,
+      kind: 'error',
+      reason: 'Identifiant de secteur invalide.',
+      source: describe('crypto'),
+    })
+  }
+
+  const size = Math.min(Math.max(perPage, 1), 250)
+  const index = Math.max(page, 1)
+
+  return run(
+    'crypto',
+    `crypto:category:${safeId}:${currency}:${size}:${index}`,
+    (provider) =>
+      provider.listAssets({
+        assetClass: 'crypto',
+        category: safeId,
+        currency,
+        perPage: size,
+        page: index,
+        sortBy: 'marketCap',
+        sortDirection: 'desc',
+        withSparkline: true,
+      }),
+    CATEGORIES_TTL_SECONDS,
+  )
+}
+
 export function getTopNarratives(limit = 6): Promise<DataResult<MarketCategory[]>> {
   return run(
     'crypto',

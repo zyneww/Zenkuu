@@ -23,12 +23,14 @@ export function NarrativesPanel({ result }: { result: DataResult<MarketCategory[
           <ul className="divide-y divide-border-subtle">
             {result.data.map((category) => (
               <li key={category.id} className="flex items-center justify-between gap-3 py-2">
-                <span className="min-w-0">
-                  <span className="block truncate text-sm text-ink">{category.name}</span>
+                <Link href={`/categories/${category.id}`} className="min-w-0 group">
+                  <span className="block truncate text-sm text-ink group-hover:text-brand-strong">
+                    {category.name}
+                  </span>
                   <span className="tabular block text-[0.6875rem] text-ink-muted">
                     {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
                   </span>
-                </span>
+                </Link>
                 <ChangeBadge value={category.marketCapChange24h} size="sm" filled />
               </li>
             ))}
@@ -215,27 +217,51 @@ function relativeTime(iso: string): string {
   return `il y a ${days} j`
 }
 
-/** Chips de navigation par classe d'actif — la rangée d'onglets de CoinGecko, en plus sobre. */
+/**
+ * Barre de classes d'actifs — un FILTRE, plus une simple rangée de raccourcis.
+ *
+ * Elle renvoyait auparavant vers `/actions`, `/etf`… c'est-à-dire qu'elle faisait
+ * quitter la page. Le lecteur qui clique sur « Actions » depuis un tableau d'accueil
+ * ne demande pourtant pas à partir ailleurs : il demande à voir le MÊME tableau,
+ * peuplé d'autre chose. La barre pilote donc désormais le contenu de la page.
+ *
+ * Ce sont de vrais liens `<Link>` et non des boutons : chaque état du filtre est une
+ * URL partageable et indexable (§9), le retour arrière du navigateur revient à la
+ * classe précédente, et le clic milieu ouvre un onglet. Un état porté par `useState`
+ * perdrait les trois.
+ *
+ * Une classe sans source configurée reste visible mais inerte : masquer les classes
+ * non couvertes donnerait à croire que ZENITH ne les traite pas, alors que la
+ * couverture est l'information (§5).
+ */
 export function AssetClassChips({
   items,
+  activeHref,
 }: {
   items: { label: string; href: string; available: boolean }[]
+  /** `href` de l'entrée en cours, pour marquer l'état actif. */
+  activeHref?: string
 }) {
   return (
-    <nav aria-label="Classes d’actifs" className="flex flex-wrap gap-2">
+    <nav aria-label="Filtrer par classe d’actif" className="flex flex-wrap gap-2">
       {items.map((item) =>
         item.available ? (
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
+            aria-current={item.href === activeHref ? 'page' : undefined}
+            className={`border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+              item.href === activeHref
+                ? 'border-brand bg-brand text-on-brand'
+                : 'border-border-subtle bg-surface text-ink hover:border-brand hover:text-brand-strong'
+            }`}
           >
             {item.label}
           </Link>
         ) : (
           <span
             key={item.href}
-            className="cursor-default rounded-card border border-dashed border-border-subtle px-3 py-1.5 text-xs text-ink-muted/60"
+            className="cursor-default border border-dashed border-border-subtle px-3 py-1.5 text-xs text-ink-muted/60"
             title={fr.nav.soon}
           >
             {item.label}

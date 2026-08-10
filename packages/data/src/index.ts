@@ -26,6 +26,7 @@ export {
   getAssetTickers,
   getAssetOhlc,
   getCategories,
+  getCategoryAssets,
   getCryptoGlobalStats,
   getCryptoOverview,
   getCryptoRanking,

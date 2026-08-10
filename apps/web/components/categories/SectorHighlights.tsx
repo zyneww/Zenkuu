@@ -1,4 +1,5 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
+import Link from 'next/link'
 
 import type { MarketCategory } from '@zenith/data'
 import { ChangeBadge, formatCurrency } from '@zenith/ui'
@@ -87,7 +88,12 @@ function HighlightGroup({
       <ul className="space-y-3">
         {categories.map((category) => (
           <li key={category.id} className="flex items-baseline justify-between gap-3">
-            <span className="truncate text-sm text-ink">{category.name}</span>
+            <Link
+              href={`/categories/${category.id}`}
+              className="truncate text-sm text-ink transition-colors hover:text-brand-strong hover:underline"
+            >
+              {category.name}
+            </Link>
             <span className="flex shrink-0 items-baseline gap-2">
               <span className="tabular text-xs text-ink-muted">
                 {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}

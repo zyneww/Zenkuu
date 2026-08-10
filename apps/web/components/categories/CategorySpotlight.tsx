@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import type { MarketCategory } from '@zenith/data'
 import { ChangeBadge, formatCurrency } from '@zenith/ui'
 
@@ -43,7 +45,16 @@ export function CategorySpotlight({
             className="flex flex-col gap-3 rounded-card border border-border-subtle bg-surface p-4"
           >
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm font-semibold leading-snug text-ink">{category.name}</h3>
+              <h3 className="text-sm font-semibold leading-snug">
+                {/* Lien sur le NOM seul : la carte contient déjà les logos des actifs
+                    représentatifs, eux-mêmes cliquables vers leurs fiches. */}
+                <Link
+                  href={`/categories/${category.id}`}
+                  className="text-ink transition-colors hover:text-brand-strong hover:underline"
+                >
+                  {category.name}
+                </Link>
+              </h3>
               <ChangeBadge value={category.marketCapChange24h} size="sm" />
             </div>
 

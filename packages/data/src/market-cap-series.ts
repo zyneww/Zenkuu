@@ -34,6 +34,15 @@ export const MIN_POINTS_FOR_CHART = 6
 export interface MarketCapPoint {
   timestamp: number
   value: number
+  /**
+   * Volume mondial sur 24 h, relevé au même instant que la capitalisation.
+   *
+   * OPTIONNEL, et pas par excès de prudence : les points enregistrés avant que le
+   * volume ne soit relevé n'en portent pas. Une série mixte est donc normale au
+   * redémarrage, et le graphique de volume doit écarter ces points plutôt que les
+   * lire comme des zéros — un creux à zéro se lirait comme un arrêt du marché.
+   */
+  volume?: number
 }
 
 /**
@@ -58,8 +67,15 @@ if (process.env.NODE_ENV !== 'production') {
  * évite qu'une rafale de rendus concurrents n'empile dix points identiques à la
  * même seconde, ce qui donnerait une courbe visuellement plate suivie d'un saut.
  */
-export function recordMarketCap(currency: string, value: number, at: number = Date.now()): void {
+export function recordMarketCap(
+  currency: string,
+  value: number,
+  at: number = Date.now(),
+  volume?: number,
+): void {
   if (!Number.isFinite(value) || value <= 0) return
+
+  const usableVolume = Number.isFinite(volume) && (volume as number) > 0 ? volume : undefined
 
   const key = currency.toUpperCase()
   const points = series.get(key) ?? []
@@ -69,10 +85,15 @@ export function recordMarketCap(currency: string, value: number, at: number = Da
     // Trop rapproché du précédent : on met à jour la valeur plutôt que d'ajouter un
     // point, pour que la courbe reflète la dernière lecture sans se densifier.
     last.value = value
+    if (usableVolume !== undefined) last.volume = usableVolume
     return
   }
 
-  points.push({ timestamp: at, value })
+  points.push(
+    usableVolume === undefined
+      ? { timestamp: at, value }
+      : { timestamp: at, value, volume: usableVolume },
+  )
 
   const cutoff = at - RETENTION_MS
   while (points.length > 0 && (points[0] as MarketCapPoint).timestamp < cutoff) {

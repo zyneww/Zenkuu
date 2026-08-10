@@ -86,7 +86,11 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
     // SEUL appel supplémentaire de la fiche, et il est mis en cache 30 minutes :
     // la liste des places et leur poids relatif bougent à l'échelle de la journée.
     // Un fournisseur sans `getTickers` fait disparaître la section.
-    getAssetTickers(id, assetClass, 'eur', 10),
+    //
+    // 100 et non 10 : la source renvoie cent lignes dans la même réponse. En jeter
+    // quatre-vingt-dix côté serveur n'économisait aucun octet sur le réseau sortant,
+    // et privait le tableau de sa pagination et de son filtre par devise.
+    getAssetTickers(id, assetClass, 'eur', 100),
   ])
 
   // Identifiant inconnu de la source : c'est un 404 au sens propre, pas une panne.
