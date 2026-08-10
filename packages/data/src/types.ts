@@ -194,7 +194,11 @@ export interface PriceHistory {
    * était jusqu'ici ignoré : le sous-graphique de volume ne coûte donc aucun appel
    * supplémentaire. Absent = la source ne l'a pas fourni, et le module disparaît.
    */
-  points: { timestamp: number; price: number; volume?: number }[]
+  /**
+   * `marketCap` suit la même règle que `volume` : présent quand la source le publie
+   * dans la même réponse, absent sinon. Jamais reconstitué en `prix × offre`.
+   */
+  points: { timestamp: number; price: number; volume?: number; marketCap?: number }[]
   currency: string
   /** Fenêtre demandée, en jours — utile pour libeller l'axe. */
   days: number
@@ -259,6 +263,54 @@ export interface MarketCategory {
   topAssetIds?: string[]
   /** Définition du secteur, publiée par la source (champ `content`). */
   description?: string
+}
+
+/**
+ * Un actif récemment référencé par la source.
+ *
+ * Type SÉPARÉ de `MarketAsset` et non une extension, pour deux raisons de fond :
+ * la source n'est pas la même (Coinpaprika, pas CoinGecko), donc les identifiants ne
+ * sont pas interchangeables — un `id` d'ici ne mène à aucune fiche du site ; et
+ * `firstDataAt` est la RAISON D'ÊTRE de la liste, alors qu'elle serait un détail
+ * optionnel de plus sur `MarketAsset`. Confondre les deux ferait tôt ou tard passer
+ * un identifiant Coinpaprika dans une URL `/crypto/{id}` qui ne résout pas.
+ */
+export interface NewListing {
+  id: string
+  symbol: string
+  name: string
+  price: number
+  currency: string
+  rank?: number
+  marketCap?: number
+  volume24h?: number
+  change24h?: number
+  change7d?: number
+  change30d?: number
+  /** Premier relevé de prix connu de la source (ISO 8601) — pas la date de création. */
+  firstDataAt: string
+  lastUpdated: string
+}
+
+/**
+ * Une place de marché au comptant, telle que la source la classe.
+ *
+ * `volume24hBtc` est libellé en BITCOIN et non en devise : c'est l'unité dans
+ * laquelle la source publie ce chiffre. Le convertir en euros supposerait de choisir
+ * un taux et un instant, ce qui transformerait une mesure en estimation (§5). Le
+ * tableau affiche donc l'unité réelle, et le convertisseur reste ailleurs.
+ */
+export interface SpotExchange {
+  id: string
+  name: string
+  image?: string
+  country?: string
+  yearEstablished?: number
+  /** Note de confiance publiée par la source, de 1 à 10. */
+  trustScore?: number
+  trustRank?: number
+  volume24hBtc: number
+  url?: string
 }
 
 /** Article d'actualité agrégé depuis un flux public. */
@@ -464,6 +516,8 @@ export interface MarketDataProvider {
   getTickers?(id: string, currency?: string, limit?: number): Promise<AssetTicker[]>
   /** Marchés de dérivés — intérêt ouvert et taux de financement, quand la source les publie. */
   getDerivatives?(limit?: number): Promise<DerivativeMarket[]>
+  /** Places de marché au comptant, classées par la source selon sa note de confiance. */
+  getExchanges?(limit?: number): Promise<SpotExchange[]>
   /** Recherche par nom ou symbole, quand la source expose un index. */
   search?(query: string, limit?: number): Promise<SearchResult[]>
 }

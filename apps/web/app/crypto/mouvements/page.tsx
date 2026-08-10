@@ -7,6 +7,7 @@ import {
   getCryptoGlobalStats,
   getDerivatives,
   getMoversUniverse,
+  getSpotExchanges,
   rankMovers,
   type MoversPeriod,
   type MoversUniverse,
@@ -17,6 +18,7 @@ import { AssetList } from '@/components/AssetList'
 import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { MacroBand } from '@/components/market/MacroBand'
 import { MoversFilters } from '@/components/market/MoversFilters'
+import { SpotExchangesPanel } from '@/components/market/SpotExchangesPanel'
 import { fr } from '@/content/fr'
 import { PERIOD_LABELS, UNIVERSE_LABELS } from '@/content/movers'
 
@@ -25,18 +27,22 @@ const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
 export const metadata: Metadata = {
-  title: 'Données de marché',
+  title: 'Données de trading',
   description:
-    'Vue macro, produits dérivés et classements de variation du marché crypto : capitalisation, dominance, intérêt ouvert, taux de financement, plus fortes hausses et baisses.',
+    'Vue macro, places au comptant, produits dérivés et classements de variation du marché crypto : capitalisation, dominance, volumes par plateforme, intérêt ouvert, taux de financement, plus fortes hausses et baisses.',
   alternates: { canonical: '/crypto/mouvements' },
 }
 
 /**
- * Données de marché.
+ * Données de trading.
  *
  * La page ne se limite plus aux classements de variation : elle ouvre sur une vue
- * MACRO (capitalisation, volume, dominance), enchaîne sur les produits DÉRIVÉS
- * (intérêt ouvert, taux de financement) puis conserve les palmarès filtrables.
+ * MACRO (capitalisation, volume, dominance), montre OÙ le marché s'échange
+ * (répartition du volume au comptant entre les places), enchaîne sur les produits
+ * DÉRIVÉS (intérêt ouvert, taux de financement) puis conserve les palmarès filtrables.
+ *
+ * L'ordre suit une seule question, de plus en plus précise : combien s'échange-t-il,
+ * où, sur quels contrats, et sur quels actifs.
  *
  * Trois modules de la référence sont absents et le resteront tant qu'aucune source
  * gratuite ne les publie : flux d'ETF Bitcoin, calendrier économique et ratio
@@ -72,13 +78,16 @@ export default async function MoversPage({
   // Les trois requêtes partent ENSEMBLE : séquentielles, leurs latences
   // s'additionneraient. Chacune peut échouer seule — sa bande disparaît alors sans
   // emporter le reste de la page.
-  const [result, globalStats, derivatives] = await Promise.all([
+  const [result, globalStats, derivatives, exchanges] = await Promise.all([
     // Un seul appel alimente les deux colonnes de palmarès : hausses et baisses sont
     // les deux extrémités d'un même classement. Le changement de PÉRIODE ne recharge
     // rien — la source publie toutes les fenêtres dans la même réponse.
     getMoversUniverse(universe, 'eur'),
     getCryptoGlobalStats('eur'),
     getDerivatives(60),
+    // TTL d'une heure côté données : cette quatrième requête ne repart donc pas à
+    // chaque régénération de la page, contrairement aux trois autres.
+    getSpotExchanges(25),
   ])
 
   const ranked = result.ok ? rankMovers(result.data, period, 15) : null
@@ -87,14 +96,22 @@ export default async function MoversPage({
   return (
     <div className="space-y-12 sm:space-y-16">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Données de marché</h1>
+        <h1 className="display-xl text-ink">Données de trading</h1>
         <p className="text-lg leading-relaxed text-ink-muted">
-          L’état du marché crypto en trois plans : les agrégats mondiaux, l’exposition
-          sur les produits dérivés, puis les mouvements de la période.
+          L’activité du marché crypto en quatre plans : les agrégats mondiaux, la
+          répartition du volume entre les places, l’exposition sur les produits dérivés,
+          puis les mouvements de la période.
         </p>
       </header>
 
       {globalStats.ok ? <MacroBand stats={globalStats.data} /> : null}
+
+      {exchanges.ok && exchanges.data.length > 0 ? (
+        <>
+          <SpotExchangesPanel exchanges={exchanges.data} />
+          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} />
+        </>
+      ) : null}
 
       {derivatives.ok ? <DerivativesPanel markets={derivatives.data} /> : null}
 

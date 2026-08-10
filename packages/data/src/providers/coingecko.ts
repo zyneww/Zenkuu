@@ -20,6 +20,7 @@ import type {
   OhlcHistory,
   PriceHistory,
   SearchResult,
+  SpotExchange,
   TrendingAsset,
 } from '../types'
 import { ProviderError } from '../types'
@@ -191,6 +192,19 @@ interface CoinGeckoTickers {
     is_stale?: boolean
     is_anomaly?: boolean
   }[]
+}
+
+/** Réponse brute de `/exchanges`. */
+interface CoinGeckoExchange {
+  id?: string
+  name?: string
+  image?: string
+  country?: string | null
+  url?: string
+  year_established?: number | null
+  trust_score?: number | null
+  trust_score_rank?: number | null
+  trade_volume_24h_btc?: number | null
 }
 
 interface CoinGeckoSearch {
@@ -666,6 +680,7 @@ export const coinGeckoProvider: MarketDataProvider = {
     const payload = await http.getJson<{
       prices?: [number, number][]
       total_volumes?: [number, number][]
+      market_caps?: [number, number][]
     }>(`coins/${encodeURIComponent(id)}/market_chart`, {
       vs_currency: currency.toLowerCase(),
       days,
@@ -683,11 +698,24 @@ export const coinGeckoProvider: MarketDataProvider = {
       if (Array.isArray(entry) && Number.isFinite(entry[1])) volumeAt.set(entry[0], entry[1])
     }
 
+    // `market_caps` voyage dans la MÊME réponse et était jusqu'ici jeté. C'est ce qui
+    // rend possible une courbe de capitalisation sur un an sans le moindre appel
+    // supplémentaire — et c'est une mesure publiée, pas un produit `prix × offre`,
+    // lequel divergerait du chiffre officiel dès qu'un jeton est brûlé ou verrouillé.
+    const marketCapAt = new Map<number, number>()
+    for (const entry of payload.market_caps ?? []) {
+      if (Array.isArray(entry) && Number.isFinite(entry[1])) marketCapAt.set(entry[0], entry[1])
+    }
+
     const points = (payload.prices ?? [])
       .filter((entry) => Array.isArray(entry) && Number.isFinite(entry[1]))
       .map(([timestamp, price]) => {
+        const point: PriceHistory['points'][number] = { timestamp, price }
         const volume = volumeAt.get(timestamp)
-        return volume === undefined ? { timestamp, price } : { timestamp, price, volume }
+        if (volume !== undefined) point.volume = volume
+        const marketCap = marketCapAt.get(timestamp)
+        if (marketCap !== undefined) point.marketCap = marketCap
+        return point
       })
 
     if (points.length < 2) {
@@ -820,6 +848,56 @@ export const coinGeckoProvider: MarketDataProvider = {
     }
 
     return markets.sort((a, b) => (b.openInterest ?? 0) - (a.openInterest ?? 0)).slice(0, limit)
+  },
+
+  /**
+   * Places de marché au comptant.
+   *
+   * L'endpoint classe déjà les places par note de confiance décroissante — une note
+   * composite maison (liquidité réelle, qualité du carnet, échelle de l'activité,
+   * conformité) destinée à ne pas mettre sur un pied d'égalité un volume vérifié et
+   * un volume déclaré. On la reprend TELLE QUELLE, attribuée : la recalculer
+   * supposerait des données de carnet d'ordres qu'aucune source gratuite ne publie.
+   *
+   * `trade_volume_24h_btc` est libellé en bitcoin, pas en devise. On ne le convertit
+   * pas : appliquer un cours choisi par nous transformerait la mesure en estimation.
+   */
+  async getExchanges(limit = 50): Promise<SpotExchange[]> {
+    const rows = await http.getJson<CoinGeckoExchange[]>('exchanges', {
+      // Plafond de l'endpoint, comme partout ailleurs dans cette API.
+      per_page: Math.min(Math.max(limit, 1), 250),
+      page: 1,
+    })
+
+    if (!Array.isArray(rows)) {
+      throw new ProviderError(PROVIDER_ID, 'Format des places de marché inattendu')
+    }
+
+    const exchanges: SpotExchange[] = []
+
+    for (const row of rows) {
+      const volume = optional(row.trade_volume_24h_btc)
+      // Sans volume, la ligne ne peut être ni classée ni comparée : elle est écartée
+      // plutôt que ramenée à zéro, ce qui la placerait en bas comme une place inactive.
+      if (!row.id || !row.name || volume === undefined) continue
+
+      const exchange: SpotExchange = { id: row.id, name: row.name, volume24hBtc: volume }
+
+      if (row.image) exchange.image = row.image
+      if (row.country) exchange.country = row.country
+      if (row.url) exchange.url = row.url
+
+      const year = optional(row.year_established)
+      if (year !== undefined) exchange.yearEstablished = year
+      const score = optional(row.trust_score)
+      if (score !== undefined) exchange.trustScore = score
+      const rank = optional(row.trust_score_rank)
+      if (rank !== undefined) exchange.trustRank = rank
+
+      exchanges.push(exchange)
+    }
+
+    return exchanges.slice(0, limit)
   },
 
   async getCategories(currency = DEFAULT_CURRENCY): Promise<MarketCategory[]> {

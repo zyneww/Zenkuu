@@ -9,6 +9,7 @@
 
 import { CACHE_TTL_SECONDS, cached } from './cache'
 import { recordMarketCap } from './market-cap-series'
+import { COINPAPRIKA_SOURCE, fetchNewListings } from './providers/coinpaprika'
 import { fetchExchangeRates } from './providers/frankfurter'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
 import {
@@ -24,7 +25,9 @@ import type {
   GlobalMarketStats,
   MarketAsset,
   MarketCategory,
+  NewListing,
   NewsItem,
+  SpotExchange,
   OhlcHistory,
   PriceHistory,
   DerivativeMarket,
@@ -732,5 +735,47 @@ export function getDerivatives(limit = 60): Promise<DataResult<DerivativeMarket[
       return provider.getDerivatives(limit)
     },
     600,
+  )
+}
+
+/**
+ * Places de marché au comptant, classées par note de confiance.
+ *
+ * TTL d'une heure : le palmarès des places est l'une des données les plus lentes du
+ * site — une plateforme ne change ni de pays ni d'année de création, et son volume
+ * quotidien ne se réordonne pas en cinq minutes.
+ */
+export function getSpotExchanges(limit = 50): Promise<DataResult<SpotExchange[]>> {
+  return run(
+    'crypto',
+    `crypto:exchanges:${limit}`,
+    (provider) => {
+      if (!provider.getExchanges) {
+        throw new ProviderError(provider.id, 'Places de marché non publiées par la source')
+      }
+      return provider.getExchanges(limit)
+    },
+    3_600,
+  )
+}
+
+/**
+ * Actifs référencés le plus récemment.
+ *
+ * Seule requête du site à ne PAS passer par le registre : sa source répond à une
+ * question que le fournisseur crypto principal ne couvre pas gratuitement (voir
+ * l'en-tête de `providers/coinpaprika`). `runStandalone` existe exactement pour ces
+ * sources hors registre.
+ *
+ * TTL de 30 minutes : une cotation n'apparaît que quelques fois par jour, et la
+ * réponse complète pèse près de deux mégaoctets — la redemander toutes les cinq
+ * minutes serait payer cher une liste qui n'a pas bougé.
+ */
+export function getNewListings(limit = 100): Promise<DataResult<NewListing[]>> {
+  return runStandalone(
+    `crypto:new-listings:${limit}`,
+    COINPAPRIKA_SOURCE,
+    () => fetchNewListings(limit),
+    1_800,
   )
 }

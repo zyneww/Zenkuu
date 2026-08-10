@@ -9,6 +9,7 @@ import {
   ChartCandlestick,
   Code2,
   Filter,
+  Flame,
   Fuel,
   Gauge,
   GitCompareArrows,
@@ -18,14 +19,14 @@ import {
   Layers,
   LayoutGrid,
   LifeBuoy,
+  LineChart,
   Network,
   Newspaper,
   PenLine,
   Rocket,
   Star,
   Sparkles,
-  TrendingDown,
-  TrendingUp,
+  Sprout,
   Trophy,
   type LucideIcon,
 } from 'lucide-react'
@@ -143,30 +144,57 @@ export const NAV_MENUS: NavMenu[] = [
   },
 
   {
-    label: 'Classements',
+    /*
+     * « Données » plutôt que « Classements ».
+     *
+     * Le menu ne contient plus seulement des palmarès : il réunit maintenant tout ce
+     * qui se lit comme une MESURE du marché — un classement, des flux d'échange, des
+     * courbes longues, des arrivées récentes, des faits saillants. « Classements »
+     * redevient ce qu'il est réellement : une entrée parmi d'autres, pas un chapeau.
+     */
+    label: 'Données',
     sections: [
       {
         label: 'Palmarès',
         items: [
           {
-            label: 'All Coins',
+            label: 'Classements',
             description: 'Le classement complet, page par page',
             icon: Trophy,
             href: '/crypto/all-coins',
             ready: true,
           },
           {
-            label: 'Plus fortes hausses',
-            description: 'Meilleures performances sur 24 h',
-            icon: TrendingUp,
+            label: 'Données de trading',
+            description: 'Volumes, flux et déséquilibres du marché',
+            icon: Activity,
             href: '/crypto/mouvements',
             ready: true,
           },
           {
-            label: 'Plus fortes baisses',
-            description: 'Plus forts reculs sur 24 h',
-            icon: TrendingDown,
-            href: '/crypto/mouvements',
+            label: 'Points marquants',
+            description: 'Hausses, baisses, tendances et nouveautés',
+            icon: Flame,
+            href: '/crypto/highlights',
+            ready: true,
+          },
+        ],
+      },
+      {
+        label: 'Suivi du marché',
+        items: [
+          {
+            label: 'Graphiques globaux',
+            description: 'Capitalisation, volumes et dominance dans la durée',
+            icon: LineChart,
+            href: '/crypto/graphiques',
+            ready: true,
+          },
+          {
+            label: 'Nouvelles cryptomonnaies',
+            description: 'Les actifs référencés le plus récemment',
+            icon: Sprout,
+            href: '/crypto/nouvelles',
             ready: true,
           },
         ],
