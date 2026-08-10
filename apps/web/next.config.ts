@@ -17,6 +17,13 @@ const config: NextConfig = {
    *
    * Vaut aussi pour l'intégration continue, où deux tâches peuvent bâtir en
    * parallèle sur la même copie de travail.
+   *
+   * ⚠️ EFFET DE BORD À CONNAÎTRE : Next réécrit `next-env.d.ts` — fichier SUIVI par
+   * git — pour qu'il pointe vers le dossier de sortie utilisé. Après un build
+   * isolé, ce fichier référence donc un dossier temporaire, et un `git commit`
+   * distrait publierait une référence morte que personne d'autre ne peut résoudre.
+   * Vérifier `git status` après coup, et rétablir `./.next/types/...` — ce que fait
+   * de toute façon le prochain `next dev`.
    */
   distDir: process.env.ZENITH_DIST_DIR || '.next',
 

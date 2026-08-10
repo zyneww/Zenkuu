@@ -4,9 +4,22 @@ node_modules/
 .pnp.js
 
 # Build
-# `.next*/` et non `.next/` : `ZENITH_DIST_DIR` permet de bâtir dans un dossier
-# parallèle (`.next-verify`) sans perturber un serveur de développement en cours.
-.next*/
+#
+# ⚠️ MOTIFS LITTÉRAUX, PAS DE JOKER. La forme condensée `.next*/` paraissait plus
+# élégante — elle a cassé le serveur de développement : « Parsing CSS source code
+# failed » sur un sélecteur au nom illisible, contenant un octet invalide en UTF-8.
+#
+# Cause : Tailwind 4 détecte SEUL ses fichiers sources et s'appuie sur ce fichier
+# pour savoir quoi ignorer. Son implémentation ne traite pas `.next*/` comme git le
+# fait ; le dossier de build cessait donc d'être exclu, et le scanner extrayait des
+# « noms de classe » depuis des morceaux compilés binaires, dont il générait ensuite
+# des règles CSS invalides.
+#
+# Le coût d'une ligne de plus est nul. Celui d'un joker mal interprété par un outil
+# tiers se paie en une heure de recherche sur une erreur qui ne désigne pas sa cause.
+.next/
+.next-verify/
+.next-err/
 out/
 dist/
 build/
