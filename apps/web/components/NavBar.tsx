@@ -2,13 +2,15 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronDown, Menu, Search } from 'lucide-react'
+import { ChevronDown, Menu } from 'lucide-react'
 
 import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { fr } from '@/content/fr'
-import { AuthButtons, MobileAuthLinks } from '@/components/auth/AuthButtons'
+import { AuthButtons } from '@/components/auth/AuthButtons'
 import { AuthOverlay, type AuthMode } from '@/components/auth/AuthOverlay'
-import { SettingsPanel } from '@/components/settings/SettingsPanel'
+import { HeaderMenu } from '@/components/HeaderMenu'
+import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
+import { SearchTrigger } from '@/components/search/SearchTrigger'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
 /**
@@ -21,7 +23,6 @@ import { SearchOverlay } from '@/components/search/SearchOverlay'
  */
 export function NavBar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   /*
    * L'état de la fenêtre de compte vit ICI, pas dans le composant qui l'affiche.
@@ -34,11 +35,15 @@ export function NavBar() {
    * contredire l'autre.
    */
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [preferenceTab, setPreferenceTab] = useState<PreferenceTab | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closeAuth = useCallback(() => setAuthMode(null), [])
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  const closePreference = useCallback(() => setPreferenceTab(null), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
   // tout menu, et l'échappatoire indispensable pour une navigation au clavier.
@@ -46,18 +51,34 @@ export function NavBar() {
     function onPointerDown(event: MouseEvent) {
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setOpenMenu(null)
-        setMobileOpen(false)
       }
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setOpenMenu(null)
-        setMobileOpen(false)
       }
       // Ctrl/Cmd + K : le raccourci que tout habitué d'un site de marché essaie en
       // premier. `preventDefault` évite que Firefox n'ouvre sa propre barre de
       // recherche par-dessus la nôtre.
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setSearchOpen(true)
+      }
+
+      /*
+       * « / » seul — le raccourci annoncé par la pastille du champ de recherche.
+       *
+       * Il n'ouvre RIEN si le curseur est déjà dans une zone de saisie : sans ce
+       * garde-fou, taper une barre oblique dans le filtre d'un tableau — ou dans le
+       * champ de recherche de la fenêtre elle-même — la ferait disparaître au profit
+       * d'une nouvelle fenêtre. `isContentEditable` couvre les zones riches, que le
+       * test sur le nom de balise ne voit pas.
+       */
+      if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const target = event.target as HTMLElement | null
+        const tag = target?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        if (target?.isContentEditable) return
         event.preventDefault()
         setSearchOpen(true)
       }
@@ -93,9 +114,17 @@ export function NavBar() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/95 backdrop-blur">
+        {/*
+          `relative` porte l'ancrage du menu de l'en-tête, et il doit être ICI.
+
+          Posé sur le `<header>`, qui s'étend sur toute la largeur, le tiroir se collait
+          au bord droit de l'écran — donc à plusieurs centaines de pixels du bouton qui
+          l'ouvre, sur un écran large. Ancré au conteneur centré, il tombe sous son
+          bouton quelle que soit la largeur.
+        */}
         <div
           ref={navRef}
-          className="mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-4 px-4"
+          className="relative mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-4 px-4"
         >
           {/* `flex-1 basis-0` sur les deux groupes latéraux pour qu'ils partagent
               l'espace à parts strictement égales : c'est la condition pour que la
@@ -164,43 +193,45 @@ export function NavBar() {
             ))}
           </nav>
 
-          <div className="flex flex-1 basis-0 items-center justify-end gap-1">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-card text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-              aria-label={fr.search.open}
-              title={`${fr.search.open} (Ctrl + K)`}
-            >
-              <Search className="h-4 w-4" aria-hidden="true" />
-            </button>
-
-            {/* Sélecteur de devise et bascule de thème fusionnés en une seule
-                entrée : trois réglages d'affichage pour trois contrôles distincts
-                encombraient l'en-tête sans que leur parenté soit lisible. */}
-            <SettingsPanel />
+          <div className="flex flex-1 basis-0 items-center justify-end gap-2">
+            <SearchTrigger onOpen={() => setSearchOpen(true)} />
 
             <AuthButtons onOpen={setAuthMode} />
 
+            {/* Un seul bouton de menu, à toutes les tailles : il porte le compte et
+                les réglages partout, et y ajoute la navigation sous le seuil où la
+                barre de menus est masquée. La roue dentée qui doublait ce tiroir a
+                disparu — deux icônes voisines pour deux tiroirs, sans que rien
+                n'indique lequel contient quoi. */}
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-card text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink lg:hidden"
+              className="flex h-9 w-9 shrink-0 items-center justify-center border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
               aria-label={fr.nav.openMenu}
-              aria-expanded={mobileOpen}
-              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              onClick={() => setMenuOpen((value) => !value)}
             >
               <Menu className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
+
+          <HeaderMenu
+            open={menuOpen}
+            onClose={closeMenu}
+            onOpenAuth={setAuthMode}
+            onOpenPreference={setPreferenceTab}
+          />
         </div>
 
-        {mobileOpen ? (
-          <MobileMenu onNavigate={() => setMobileOpen(false)} onOpenAuth={setAuthMode} />
-        ) : null}
       </header>
 
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
       <AuthOverlay mode={authMode} onClose={closeAuth} onSwitch={setAuthMode} />
+      <PreferenceOverlay
+        tab={preferenceTab}
+        onTabChange={setPreferenceTab}
+        onClose={closePreference}
+      />
     </>
   )
 }
@@ -311,60 +342,3 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
   )
 }
 
-function MobileMenu({
-  onNavigate,
-  onOpenAuth,
-}: {
-  onNavigate: () => void
-  onOpenAuth: (mode: AuthMode) => void
-}) {
-  return (
-    <div className="max-h-[70vh] overflow-y-auto border-t border-border-subtle bg-surface px-4 py-3 lg:hidden">
-      <MobileAuthLinks
-        onOpen={(mode) => {
-          // Le menu se referme AVANT l'ouverture de la fenêtre : les deux se
-          // superposeraient sinon, et le menu resterait ouvert derrière au retour.
-          onNavigate()
-          onOpenAuth(mode)
-        }}
-      />
-
-      {NAV_MENUS.map((menu) => (
-        <section key={menu.label} className="mb-4 last:mb-0">
-          <h2 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            {menu.label}
-          </h2>
-          <ul>
-            {menu.sections.flatMap((section) =>
-              section.items.map((item) => {
-                const Icon = item.icon
-                return (
-                  <li key={`${menu.label}-${item.label}`}>
-                    {item.ready && item.href ? (
-                      <Link
-                        href={item.href}
-                        onClick={onNavigate}
-                        className="flex items-center gap-2 py-1.5 text-sm text-ink"
-                      >
-                        <Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
-                        {item.label}
-                      </Link>
-                    ) : (
-                      <span className="flex items-center gap-2 py-1.5 text-sm text-ink-muted opacity-60">
-                        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                        {item.label}
-                        <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[0.625rem] uppercase">
-                          {fr.nav.soonShort}
-                        </span>
-                      </span>
-                    )}
-                  </li>
-                )
-              }),
-            )}
-          </ul>
-        </section>
-      ))}
-    </div>
-  )
-}
