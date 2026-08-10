@@ -89,7 +89,12 @@ export default async function HomePage({
       getSentiment(),
       assetClass === 'crypto'
         ? Promise.resolve(null)
-        : getRanking({ assetClass, currency: 'eur', perPage: 50 }),
+        : // `perPage: 20` est celui des pages de classement de ces classes : la clé de
+          // cache est donc PARTAGÉE avec `/actions`, `/etf`, `/indices` et
+          // `/matieres-premieres`. Une taille propre à l'accueil ouvrirait une seconde
+          // entrée pour la même donnée — et chez Yahoo, un classement se construit
+          // symbole par symbole, soit une requête sortante par ligne.
+          getRanking({ assetClass, currency: 'eur', perPage: 20 }),
     ])
 
   const cryptoTop = overview.ok ? overview.data.topByMarketCap : []

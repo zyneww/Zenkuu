@@ -29,7 +29,18 @@ export const metadata: Metadata = {
  * pas. Les nôtres partagent le cache et les limiteurs de débit du reste du site.
  */
 export default async function WidgetsPage() {
-  const ranking = await getCryptoRanking({ perPage: 12 })
+  /*
+   * 50 puis découpe locale, plutôt que 12 demandés à la source.
+   *
+   * La taille de page entre dans la clé de cache : demander douze lignes ouvrait une
+   * entrée que PERSONNE d'autre ne partageait, donc un appel sortant à chaque
+   * expiration — mesuré à plus de dix-sept secondes en période de quota atteint, pour
+   * une donnée que `/crypto` venait de charger. Cinquante est la taille de page du
+   * classement crypto : cette requête est donc, en pratique, toujours servie par le
+   * cache. Les trente-huit lignes en trop ne coûtent rien — elles sont déjà en mémoire.
+   */
+  const ranking = await getCryptoRanking({ perPage: 50 })
+  const assets = ranking.ok ? ranking.data.slice(0, 12) : []
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 py-6">
@@ -42,7 +53,7 @@ export default async function WidgetsPage() {
         </p>
       </header>
 
-      {!ranking.ok || ranking.data.length === 0 ? (
+      {!ranking.ok || assets.length === 0 ? (
         <EmptyState
           title={fr.states.unavailableTitle}
           description={ranking.ok ? null : ranking.reason}
@@ -52,21 +63,21 @@ export default async function WidgetsPage() {
         <>
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-ink">Bandeau de cotations</h2>
-            <TickerWidget assets={ranking.data} />
+            <TickerWidget assets={assets} />
             <EmbedHint path="/embed/ticker" />
           </section>
 
           <div className="grid gap-6 md:grid-cols-2">
             <section className="space-y-2">
               <h2 className="text-sm font-semibold text-ink">Convertisseur</h2>
-              <ConverterWidget assets={ranking.data} />
+              <ConverterWidget assets={assets} />
             </section>
 
             <section className="space-y-2">
               <h2 className="text-sm font-semibold text-ink">Classement compact</h2>
               <Card>
                 <CardHeader title="Top capitalisations" />
-                <AssetList assets={ranking.data.slice(0, 8)} showRank />
+                <AssetList assets={assets.slice(0, 8)} showRank />
               </Card>
             </section>
           </div>

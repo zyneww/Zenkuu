@@ -27,9 +27,13 @@ export const metadata: Metadata = {
  * imposent que la mention accompagne la donnée là où elle est affichée.
  */
 export default async function EmbedTickerPage() {
-  const ranking = await getCryptoRanking({ perPage: 12 })
+  // Même taille de page que le classement crypto, pour partager sa clé de cache : une
+  // taille propre à cette route provoquerait un appel sortant dédié à chaque
+  // expiration, pour une donnée déjà en mémoire (voir `/widgets`).
+  const ranking = await getCryptoRanking({ perPage: 50 })
+  const assets = ranking.ok ? ranking.data.slice(0, 12) : []
 
-  if (!ranking.ok || ranking.data.length === 0) {
+  if (!ranking.ok || assets.length === 0) {
     return (
       <p className="p-2 text-xs text-ink-muted">
         Cotations momentanément indisponibles.
@@ -39,7 +43,7 @@ export default async function EmbedTickerPage() {
 
   return (
     <div className="space-y-1 p-1">
-      <TickerWidget assets={ranking.data} />
+      <TickerWidget assets={assets} />
       <p className="text-center text-[0.625rem] text-ink-muted">
         <a
           href="https://www.coingecko.com/en/api"

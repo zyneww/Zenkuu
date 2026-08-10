@@ -200,9 +200,21 @@ export function AssetTickers({
           </thead>
 
           <tbody className="divide-y divide-border-subtle">
-            {rows.map((ticker) => (
+            {rows.map((ticker, index) => (
               <tr
-                key={`${ticker.exchange}-${ticker.base}-${ticker.target}`}
+                /*
+                 * L'INDEX fait partie de la clé, et il le faut.
+                 *
+                 * `place + paire` n'est pas unique : une place décentralisée cote la
+                 * même paire sur plusieurs pools, et la source les publie comme
+                 * autant de lignes distinctes. Vu à l'écran dès le passage de dix à
+                 * cent lignes — React signalait deux enfants de même clé, ce qui
+                 * l'autorise à dupliquer ou à omettre des lignes silencieusement.
+                 *
+                 * L'index est stable ici parce que l'ordre l'est : la liste est triée
+                 * par volume côté serveur, et le filtre ne fait que retrancher.
+                 */
+                key={`${ticker.exchange}-${ticker.base}-${ticker.target}-${index}`}
                 className="transition-colors duration-150 hover:bg-surface-muted/60"
               >
                 <th scope="row" className="px-3 py-2.5 text-left font-medium text-ink">

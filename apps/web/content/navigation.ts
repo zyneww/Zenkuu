@@ -4,8 +4,6 @@ import {
   Bitcoin,
   BookOpen,
   Building2,
-  CalendarClock,
-  CalendarDays,
   ChartCandlestick,
   Code2,
   Filter,
@@ -20,7 +18,6 @@ import {
   LayoutGrid,
   LifeBuoy,
   LineChart,
-  Network,
   Newspaper,
   PenLine,
   Rocket,
@@ -228,19 +225,22 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Comparateur',
             description: 'Deux à quatre actifs côte à côte',
             icon: GitCompareArrows,
-            ready: false,
+            href: '/comparateur',
+            ready: true,
           },
           {
             label: 'Convertisseur',
-            description: 'Conversion entre devises et actifs',
+            description: 'Conversion entre actifs et devises',
             icon: ArrowRightLeft,
-            ready: false,
+            href: '/convertisseur',
+            ready: true,
           },
           {
             label: 'Screener',
             description: 'Filtrer le marché sur vos critères',
             icon: Filter,
-            ready: false,
+            href: '/screener',
+            ready: true,
           },
         ],
       },
@@ -251,13 +251,8 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Heatmap sectorielle',
             description: 'Les secteurs en un coup d’œil',
             icon: Grid3x3,
-            ready: false,
-          },
-          {
-            label: 'Corrélations',
-            description: 'Comment les actifs évoluent ensemble',
-            icon: Network,
-            ready: false,
+            href: '/heatmap',
+            ready: true,
           },
         ],
       },
@@ -278,23 +273,24 @@ export const NAV_MENUS: NavMenu[] = [
           },
         ],
       },
-      {
-        label: 'Agenda',
-        items: [
-          {
-            label: 'Calendrier économique',
-            description: 'Publications macro à venir',
-            icon: CalendarDays,
-            ready: false,
-          },
-          {
-            label: 'Événements crypto',
-            description: 'Halvings, déblocages, mises à jour réseau',
-            icon: CalendarClock,
-            ready: false,
-          },
-        ],
-      },
+      /*
+       * SECTION « AGENDA » RETIRÉE — calendrier économique et événements crypto.
+       *
+       * Les deux entrées étaient marquées « bientôt » depuis l'origine. Elles le
+       * seraient restées : aucune source gratuite et sans clé ne publie ni le
+       * calendrier des publications macroéconomiques, ni les dates de halving, de
+       * déblocage de jetons ou de mise à jour réseau. Les reconstituer à la main
+       * reviendrait à saisir des dates que rien ne vérifie — c'est-à-dire à publier de
+       * la donnée non sourcée, ce que le §5 interdit précisément.
+       *
+       * Une entrée « bientôt » est une promesse. Deux promesses qu'on sait ne pas
+       * pouvoir tenir coûtent plus cher, en confiance, que leur absence. Le jour où une
+       * source paraît, la section revient — et il y aura alors quelque chose derrière.
+       *
+       * Même raisonnement pour « Corrélations », retiré du menu Analyse : le calcul
+       * exige l'historique de chaque actif comparé, soit un appel par actif sur un
+       * quota qui en tolère cinq par minute.
+       */
     ],
   },
 
