@@ -86,6 +86,21 @@ bun run test
 bun run build
 ```
 
+### Purger les caches
+
+```bash
+bun run clean              # .turbo, .next et dist de tous les paquets
+bun run clean --keep-next  # caches Turborepo seuls — sans gêner un serveur de dev
+```
+
+**À faire périodiquement.** `.turbo/cache` reçoit une entrée par exécution de tâche et
+Turborepo n'en supprime jamais aucune — il n'existe pas d'option de purge automatique.
+Sur ce dépôt, il avait atteint **32 Go pour 387 entrées** avant qu'on y regarde. Le
+dossier étant ignoré par git, rien ne le signale.
+
+`node_modules` n'est jamais supprimé, même par `bun run clean` : sa réinstallation
+dépend du réseau, alors que tout le reste se régénère hors ligne.
+
 ---
 
 ## Architecture
