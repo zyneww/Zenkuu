@@ -27,6 +27,17 @@ export const config = {
     // Tout sauf les fichiers statiques et les artefacts de build : les faire passer
     // ici n'apporte rien et alourdit chaque chargement d'image.
     '/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|txt|xml|webmanifest)).*)',
+    /*
+     * Chemin d'auto-proxy de Clerk, déclaré EXPLICITEMENT.
+     *
+     * Le motif précédent l'excluait sans qu'on l'ait voulu : `/__clerk/…` sert à
+     * relayer les appels vers l'API de Clerk depuis notre propre domaine, et
+     * certaines de ces routes se terminent par une extension que la négation
+     * ci-dessus écarte. Sans cette ligne, ces requêtes ne traversent pas le
+     * middleware et le relais échoue — un défaut qui ne se voit qu'à l'usage des
+     * écrans de compte, jamais à la compilation.
+     */
+    '/__clerk/:path*',
     '/(api|trpc)(.*)',
   ],
 }
