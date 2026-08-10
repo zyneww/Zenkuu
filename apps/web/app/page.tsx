@@ -10,10 +10,13 @@ import {
   getTopNarratives,
   getTrendingCrypto,
 } from '@zenith/data'
-import { Card, CardHeader, EmptyState, SourceNote } from '@zenith/ui'
+import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote } from '@zenith/ui'
 
 import { AssetList } from '@/components/AssetList'
+import { dataColor } from '@/components/charts/chart-theme'
+import { MetricCard } from '@/components/charts/MetricCard'
 import { CoverageList } from '@/components/CoverageList'
+import { Money } from '@/components/locale/Money'
 import { ExploreTable } from '@/components/home/ExploreTable'
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { HighlightPanel } from '@/components/home/HighlightPanel'
@@ -95,6 +98,26 @@ export default async function HomePage() {
         stats={globalStats.ok ? globalStats.data : null}
         sentiment={sentiment.ok ? sentiment.data : null}
       />
+
+      {/* Rangée de cartes de métrique — le widget signature du design system.
+          Les quatre premières capitalisations, chacune dans sa teinte de données,
+          avec leur courbe 7 jours en fond de carte. La série est celle déjà chargée
+          pour le tableau : aucune requête supplémentaire. */}
+      {topCrypto.length >= 4 ? (
+        <section aria-label="Principales capitalisations" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {topCrypto.slice(0, 4).map((asset, index) => (
+            <MetricCard
+              key={asset.id}
+              label={`${asset.name} · ${asset.symbol}`}
+              color={dataColor(index)}
+              value={<Money value={asset.price} from={asset.currency} />}
+              hint={<ChangeBadge value={asset.change24h} size="sm" />}
+              series={(asset.sparkline7d ?? []).map((y, x) => ({ x, y }))}
+              format="currency"
+            />
+          ))}
+        </section>
+      ) : null}
 
       <AssetClassChips items={chips} />
 

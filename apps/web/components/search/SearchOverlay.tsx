@@ -152,7 +152,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-card border border-border-subtle bg-surface shadow-2xl">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-card border border-border-subtle bg-overlay shadow-overlay">
         <div className="flex items-center gap-3 border-b border-border-subtle px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
           <input

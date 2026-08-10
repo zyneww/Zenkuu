@@ -33,18 +33,32 @@
      rôles donnerait un site jaune, illisible et criard.
      ─────────────────────────────────────────────────────────────────────────── */
 
-  /* Surfaces — blanc froid plutôt que blanc pur : sous un accent bleu, un #ffffff
-     de fond paraît bleuté par contraste simultané. Le gris-bleu très clair absorbe
-     cet effet, et réserve le blanc pur aux cartes pour qu'elles ressortent. */
-  --color-canvas: #f8fafc;
+  /* ───────────────────────────────────────────────────────────────────────────
+     SURFACE UNIQUE — le principe le plus structurant du design system.
+
+     `canvas` et `surface` sont volontairement ÉGAUX. Une carte ne se distingue
+     donc plus par un fond plus clair mais par son seul FILET. C'est l'inverse de
+     la convention habituelle, et c'est ce qui donne aux tableaux de bord de
+     données leur allure d'instrument : tout vit sur un même plan, la structure est
+     tracée et non empilée. Une pile de surfaces surélevées, elle, évoque le
+     document — registre juste pour un article, faux pour un poste de lecture.
+
+     Conséquence à ne pas défaire : `bg-surface` ne fait plus RESSORTIR un bloc.
+     Un composant qui a besoin d'être délimité doit porter `border`. C'est aussi
+     pourquoi `surface-muted` existe encore — il reste le seul ton qui marque une
+     différence, réservé aux survols de ligne et aux bandes de contraste.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-canvas: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-muted: #f1f5f9;
-  --color-border-subtle: #e2e8f0;
+  --color-surface-muted: #f4f4f5;
+  --color-border-subtle: #e4e4e7;
 
   /* Texte — contrastes mesurés sur --color-canvas :
-     ink 17.1:1 · ink-muted 7.2:1 · les deux bien au-delà du seuil AA de 4.5:1 (§9). */
-  --color-ink: #0f172a;
-  --color-ink-muted: #475569;
+     ink 18.1:1 · ink-muted 7.0:1 · les deux bien au-delà du seuil AA de 4.5:1 (§9).
+     Neutres NEUTRES et non bleutés : sous une grammaire à filets, une teinte
+     froide dans le gris fait paraître les filets sales. */
+  --color-ink: #09090b;
+  --color-ink-muted: #52525b;
 
   /* Azur de marque. Changement structurel par rapport à l'ancien orange : celui-ci
      imposait DEUX tons parce qu'aucune nuance ne passait à la fois le seuil 3:1 des
@@ -93,8 +107,54 @@
   --color-down: #b91c1c;
   --color-down-soft: #fef2f2;
 
-  /* Rayon de référence (§3.1) */
-  --radius-card: 12px;
+  /* ───────────────────────────────────────────────────────────────────────────
+     Palette de DONNÉES — distincte de la palette d'interface.
+
+     Ces six teintes servent EXCLUSIVEMENT à distinguer des séries dans un
+     graphique ou à identifier une carte de métrique. L'interface — liens, boutons,
+     anneau de focus — reste azur, et c'est ce qui garde l'identité lisible : un
+     lecteur doit pouvoir dire « la couleur du site », ce qui devient impossible si
+     chaque bloc porte la sienne.
+
+     Elles sont ordonnées par distance perceptuelle : deux séries voisines dans un
+     graphique prennent les deux premières, qui sont les plus dissemblables. Un
+     ordre arbitraire mettrait côte à côte le violet et le rose.
+
+     Aucune ne porte de sens intrinsèque — le vert n'y signifie pas « hausse ».
+     La hausse et la baisse ont leurs propres jetons (`up` / `down`), et les
+     confondre ferait lire une série violette comme neutre et une verte comme
+     positive alors qu'elles ne décrivent que deux actifs différents.
+
+     ⚠️ CES VALEURS SONT CELLES DU THÈME CLAIR, et elles sont nettement plus sombres
+     que leurs équivalentes du thème sombre. Un premier jeu, choisi pour un fond noir
+     (#0ea5e9, #f59e0b, #14b8a6, #84cc16), tombait entre 1,98:1 et 2,77:1 sur blanc —
+     sous le seuil de 3:1 des éléments graphiques, mesuré au navigateur. Une courbe à
+     2:1 sur blanc se devine plus qu'elle ne se lit.
+
+     Chaque teinte conserve donc sa TEINTE mais descend en luminosité jusqu'à passer
+     le seuil. Contrastes obtenus sur blanc : 4,0 · 4,8 · 5,6 · 3,4 · 3,5 · 5,0.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-data-1: #0284c7;
+  --color-data-2: #b45309;
+  --color-data-3: #7c3aed;
+  --color-data-4: #0d9488;
+  --color-data-5: #db2777;
+  --color-data-6: #4d7c0f;
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     RAYON ZÉRO — second pilier de la grammaire, avec la surface unique.
+
+     Les angles vifs sont ce qui sépare visuellement un instrument de lecture d'une
+     application grand public. Un rayon arrondi adoucit et rapproche du bouton
+     tactile ; un angle vif aligne les blocs sur une grille et laisse la donnée
+     seule porter l'attention.
+
+     `--radius-card` est conservé comme NOM pour ne pas avoir à réécrire les
+     centaines de `rounded-card` du projet — seule sa valeur change. C'est tout
+     l'intérêt d'avoir centralisé la mise en forme dans des jetons : un changement
+     de cette ampleur tient en une ligne.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --radius-card: 0px;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Système repris de kraken/DESIGN.md.
@@ -114,17 +174,19 @@
                                et non --radius-pill.
      ─────────────────────────────────────────────────────────────────────────── */
 
-  /* Échelle de rayons complète. `--radius-card` (12px) reste le rayon de
-     référence du §3.1 et devient le cran `md` de cette échelle — c'est aussi
-     le rayon que kraken/DESIGN.md prescrit pour TOUS les boutons. */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  /* Pilule CONSERVÉE, mais son domaine se réduit aux pastilles et puces de filtre
-     — jamais aux boutons, que kraken/DESIGN.md plafonne à 12px (« Don't use pill
-     buttons »). 100px suffit à arrondir totalement un contrôle de hauteur usuelle
-     sans déformer un élément large, ce que 9999px ferait. */
+  /* Échelle de rayons RAMENÉE À ZÉRO, sauf la pilule.
+     L'échelle graduée de kraken/DESIGN.md est neutralisée : sous une grammaire à
+     angles vifs, un bloc arrondi au milieu de blocs carrés ne se lit pas comme une
+     variante mais comme une erreur. Les noms survivent pour ne pas réécrire le
+     projet ; leurs valeurs sont nulles. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  /* SEULE EXCEPTION conservée. Une pastille de filtre ou d'état est un objet de
+     nature différente d'un bloc de contenu : sa forme dit « je suis un jeton
+     cliquable », et c'est précisément le contraste avec les angles vifs alentour
+     qui le signale. La référence fait le même choix pour ses badges. */
   --radius-pill: 100px;
 
   /* Rythme éditorial. L'échelle de 4px du §3.1 est conservée ; on ajoute le cran
@@ -147,11 +209,35 @@
      Inter reste la police d'interface. */
   --font-display: var(--font-display-brand), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  /* Tier d'élévation UNIQUE, assumé. Empiler cinq niveaux d'ombre produit une
-     hiérarchie que personne ne perçoit ; un seul cran, utilisé au survol, suffit
-     à signaler qu'un élément est interactif. */
-  --shadow-soft: 0 4px 12px rgb(0 0 0 / 0.04);
-  --shadow-raised: 0 8px 24px rgb(0 0 0 / 0.08);
+  /* ───────────────────────────────────────────────────────────────────────────
+     Couches FLOTTANTES — la seule exception à la surface unique.
+
+     Menus déroulants, panneau de recherche, boîtes de dialogue. Ils survolent
+     réellement la page, et rien ne les distinguerait autrement : avec `canvas`
+     égal à `surface`, un menu posé sur `bg-surface` disparaîtrait dans le fond.
+     Ce ton, plus clair en sombre et légèrement grisé en clair, est donc porteur
+     de sens — il dit « ceci est au-dessus ».
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-overlay: #ffffff;
+
+  /* Ombre RÉSERVÉE aux couches flottantes, jamais aux cartes. Une carte qui se
+     soulève au survol contredirait la surface unique ; une couche qui flotte
+     réellement gagne au contraire à être détachée. */
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.12);
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     Durées d'animation, relevées sur la référence.
+
+     Deux crans seulement : 0,15 s pour les changements d'état d'un contrôle
+     (couleur, bordure au survol) et 0,3 s pour les mouvements de bloc. La courbe
+     `cubic-bezier(0.4, 0, 0.2, 1)` démarre vite et finit lentement, ce qui rend un
+     survol immédiat sans le rendre sec.
+
+     Les deux sont neutralisées par la règle `prefers-reduced-motion` plus bas.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-state: 150ms;
+  --duration-move: 300ms;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -227,108 +313,94 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Thème sombre — ardoise bleutée, d'après companiesmarketcap.com.
+   Thème sombre — quasi-noir de tableau de bord.
 
-   Les NEUTRES reprennent les deux tons relevés sur ce site (mesurés au navigateur,
-   pas estimés à l'œil) : #2b2d3e pour ses tableaux et sa barre haute, #343e59 pour
-   son fond de page. Le bleu-nuit très sombre du thème précédent (#0b1622) laisse
-   place à une ardoise nettement plus claire et légèrement violacée — moins « terminal
-   de nuit », plus « application de bureau ». Les accents azur sont INCHANGÉS.
+   L'ardoise bleutée précédente laisse place à un gris NEUTRE très sombre. Trois
+   raisons, dans l'ordre d'importance :
 
-   LEUR HIÉRARCHIE DE SURFACES EST INVERSÉE, et on ne la reprend pas : chez eux le
-   fond de page (#343e59) est plus CLAIR que le tableau (#2b2d3e). Deux raisons de ne
-   pas copier cette inversion :
-     · `bg-surface` signifie « surface surélevée, donc plus claire » dans une
-       trentaine de composants ; inverser le contrat obligerait à tous les relire ;
-     · sur leur fond de page clair, notre rouge de baisse tombe à 3,83:1 — sous le
-       seuil AA (mesuré). L'inversion coûterait donc en lisibilité.
-   Leurs deux tons sont donc repris tels quels mais dans l'ORDRE INVERSE du leur :
-   leur ton de tableau (#2b2d3e) devient notre canvas, leur ton de page (#343e59)
-   devient notre surface de carte. L'ÉCART entre les deux est ainsi conservé au
-   pixel près — et c'est lui, plus que les valeurs absolues, qui fait qu'une carte se
-   lit comme une carte : 1,28:1 chez eux comme ici. Une première tentative avait
-   glissé un troisième ton sous les deux leurs ; elle gardait leurs couleurs mais
-   écrasait la séparation à 1,07:1, et les cartes cessaient de se détacher.
+   1. La surface unique n'est lisible qu'en quasi-noir. Le principe posé plus haut —
+      canvas et carte au même ton, structure tracée par un filet — suppose un fond
+      assez sombre pour qu'un filet à 1,6:1 suffise à délimiter. Sur une ardoise
+      claire, le même filet disparaît et les cartes cessent d'exister.
+   2. Une dominante froide se voit dès qu'on pose des couleurs de données. Six
+      teintes saturées sur un fond bleuté prennent toutes un voile violet ; sur un
+      neutre, chacune reste elle-même.
+   3. Le quasi-noir est ce qui distingue un instrument de lecture d'une application
+      de bureau. C'est un choix de registre, cohérent avec les angles vifs.
 
-   Le ton sourd (`surface-muted`) part donc EN RETRAIT, plus sombre que le canvas,
-   au lieu de continuer à monter. Sur une ardoise déjà claire, un cran de plus
-   ferait passer le texte secondaire sous le seuil AA ; en retrait, il gagne au
-   contraire de la marge, et un survol de ligne légèrement plus sombre se lit aussi
-   bien qu'un survol plus clair.
+   `--color-surface-muted` MONTE ici (#161616) au lieu de descendre : sur un
+   quasi-noir, un ton plus sombre encore serait imperceptible.
 
-   Le piège de cette palette reste le même qu'avant : un accent bleu sur un fond bleu
-   se noie. La séparation ne vient pas de la teinte mais de la LUMINOSITÉ — l'azur du
-   thème clair (#0369a1) tomberait à 2,4:1 ici ; on garde donc les bleus lumineux, qui
-   se détachent par leur clarté.
+   Contrastes sur le canvas (#0a0a0a) : ink 19,3:1 · ink-muted 9,7:1 · brand 8,6:1 ·
+   on-brand sur brand 8,6:1 · hausse 10,2:1 · baisse 7,3:1. Tous très au-delà de
+   4,5:1 — c'est le confort que procure un fond aussi sombre.
 
-   Contrastes vérifiés au navigateur sur les TROIS surfaces, texte par texte. La
-   surface la plus exigeante est `surface` (#343e59, la plus claire) : ink 9,0:1 ·
-   ink-muted 5,1:1 · brand-strong 6,4:1 · hausse 5,5:1 · baisse 4,8:1. Tous les
-   autres couples sont au-dessus. Aucun ne descend sous 4,5:1.
-
-   `--color-border-subtle` fait exception, à 1,3:1, et c'est délibéré : ce jeton ne
-   sert qu'à des séparateurs décoratifs (filets de tableau, contours de cartes), que
-   les règles d'accessibilité n'assujettissent pas au seuil de 3:1 réservé aux
-   composants porteurs de sens. Le remonter donnerait un quadrillage dur et
-   fatigant — c'est d'ailleurs le parti pris de toutes les interfaces sombres de
-   référence, GitHub compris.
+   `--color-border-subtle` fait exception, à 1,6:1, et c'est délibéré : ce jeton ne
+   sert qu'à des séparateurs (filets de tableau, contours de cartes), que les règles
+   d'accessibilité n'assujettissent pas au seuil de 3:1 réservé aux composants
+   porteurs de sens. Le remonter transformerait la page en grille de tableur.
    ───────────────────────────────────────────────────────────────────────────── */
 .dark {
-  /* Les deux tons relevés sur companiesmarketcap.com, repris à l'identique et dans
-     l'ordre inverse du leur — voir l'explication ci-dessus. */
-  --color-canvas: #2b2d3e;
-  --color-surface: #343e59;
-  /* En RETRAIT plutôt qu'en surélévation : survols de ligne et bandes sourdes. */
-  --color-surface-muted: #232532;
-  --color-border-subtle: #414b68;
+  /* SURFACE UNIQUE, ici aussi : canvas et surface sont égaux, et la carte n'existe
+     que par son filet. Le quasi-noir remplace l'ardoise bleutée précédente — un gris
+     neutre et non teinté, parce qu'une dominante froide dans un noir se voit
+     immédiatement dès qu'on y pose des couleurs de données saturées. */
+  --color-canvas: #0a0a0a;
+  --color-surface: #0a0a0a;
+  /* Seul ton qui marque une différence : survols de ligne, bandes de contraste.
+     Il MONTE ici — sur un quasi-noir, descendre encore serait imperceptible. */
+  --color-surface-muted: #161616;
+  /* Filet à 1,6:1 sur le fond. Assez pour tracer une structure, assez peu pour ne
+     pas quadriller l'écran. C'est LUI qui dessine les cartes désormais : le
+     remonter davantage transformerait la page en grille de tableur. */
+  --color-border-subtle: #2e2e2e;
 
-  --color-ink: #e7edf4;
-  /* Éclairci d'un cran (#9fadbd → #a8b6c6) : sur la surface de carte, désormais la
-     plus claire des trois, l'ancien ton tombait à 4,64:1 — conforme, mais sans
-     aucune marge sur le seuil de 4,5:1, alors qu'il porte la majorité du texte
-     secondaire du site. */
-  --color-ink-muted: #a8b6c6;
+  --color-ink: #fafafa;
+  /* Remonté (#a8b6c6 → #b3b3b3) et DÉSATURÉ : sur un noir neutre, un gris bleuté
+     tire au violet. Contraste 9,7:1 sur le canvas. */
+  --color-ink-muted: #b3b3b3;
 
-  /* Ici les deux tons de marque redeviennent NÉCESSAIRES, alors qu'un seul suffisait
-     en thème clair : `brand` est assez lumineux pour un aplat de bouton portant du
-     texte sombre, mais pas assez pour du texte bleu posé sur le canvas — d'où
-     `brand-strong`, plus clair encore, réservé au texte. Le rapport s'inverse par
-     rapport au thème clair, où « strong » signifiait plus SOMBRE. */
-  --color-brand: #0ea5e9;
+  /* Sur un quasi-noir, un SEUL ton de marque suffit à nouveau : l'azur lumineux
+     passe à la fois le seuil des composants et celui du texte (8,6:1), ce qui
+     n'était pas le cas sur l'ardoise claire. `brand-strong` est conservé pour les
+     états de survol. */
+  --color-brand: #38bdf8;
   --color-brand-strong: #7dd3fc;
-  /* Remonté avec le reste : sur une ardoise plus claire, l'ancien #0c2a3d creusait
-     un trou sombre là où ce jeton doit se lire comme une teinte POSÉE sur la surface. */
-  --color-brand-soft: #1c3549;
+  --color-brand-soft: #0c2a3d;
 
-  /* Le texte sur aplat de marque s'INVERSE ici : encre sombre sur azur lumineux,
-     5,8:1. C'est tout l'intérêt du jeton — les douze boutons du site basculent
-     sans qu'aucun ne soit retouché. */
-  --color-on-brand: #1e2030;
+  /* Encre TRÈS sombre sur azur lumineux : 8,6:1. */
+  --color-on-brand: #0a0a0a;
 
-  /* L'or cesse d'être purement décoratif en thème sombre : à 8,7:1 sur le canvas,
-     il devient utilisable pour du texte. C'est l'inverse exact du thème clair, où
-     il plafonne à 2,05:1 — une couleur claire se comporte à l'opposé selon le fond. */
   --color-accent: #fbbf24;
   --color-accent-strong: #fcd34d;
-  --color-accent-soft: #3a2e11;
+  --color-accent-soft: #2a2008;
 
-  /* Les fonds sémantiques suivent le même mouvement que `brand-soft`. Une pastille
-     verte très sombre sur une ardoise claire se lit comme un trou, pas comme un
-     aplat teinté. Contrastes du texte sur sa pastille : hausse 6,4:1 · baisse 6,5:1.
+  /* Palette de données ÉCLAIRCIE pour le fond sombre. Les teintes du thème clair
+     sont choisies pour trancher sur du blanc ; les mêmes sur un quasi-noir
+     paraissent ternes. Chacune est remontée d'un cran de luminosité, en conservant
+     l'ordre de dissemblance. */
+  --color-data-1: #38bdf8;
+  --color-data-2: #fbbf24;
+  --color-data-3: #a78bfa;
+  --color-data-4: #2dd4bf;
+  --color-data-5: #f472b6;
+  --color-data-6: #a3e635;
 
-     LE ROUGE EST ÉCLAIRCI (#f87171 → #fb8f8f) et ce n'est pas un choix esthétique :
-     l'ancien tombait à 3,84:1 sur la surface la plus claire, mesuré au navigateur.
-     Or cette surface porte les cartes et les lignes de tableau — donc précisément
-     des variations chiffrées. Une baisse y devenait illisible.
+  /* Sémantique de marché. Sur un quasi-noir, les tons vifs redeviennent lisibles
+     sans être remontés à l'extrême : hausse 10,2:1 · baisse 7,3:1 sur le canvas. */
+  --color-up: #22c55e;
+  --color-up-soft: #0d2818;
+  --color-down: #f87171;
+  --color-down-soft: #2a1213;
 
-     Point de vigilance pour la suite : `--color-brand` n'est qu'à 3,8:1 sur
-     `--color-surface`. Suffisant pour un composant d'interface (seuil 3:1),
-     INSUFFISANT pour du texte — tout texte de marque posé sur une carte doit passer
-     par `--color-brand-strong` (6,4:1). */
-  --color-up: #34d399;
-  --color-up-soft: #1b3b30;
-  --color-down: #fb8f8f;
-  --color-down-soft: #3d2226;
+  /* Couche flottante : ici elle MONTE nettement au-dessus du fond, alors qu'en
+     thème clair elle descend à peine. Sur un quasi-noir, c'est la clarté qui dit
+     « au-dessus » ; sur du blanc, il n'y a pas de place au-dessus, d'où l'ombre. */
+  /* Mesuré : #18181b ne donnait que 1,12:1 sur le canvas — un menu déroulant s'y
+     confondait avec la page, le filet seul le retenant. Ce ton monte à 1,35:1, ce
+     qui suffit à dire « au-dessus » sans créer une seconde surface de contenu. */
+  --color-overlay: #212124;
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.6);
 
   color-scheme: dark;
 }

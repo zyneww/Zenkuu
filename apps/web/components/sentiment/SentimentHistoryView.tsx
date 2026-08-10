@@ -71,7 +71,7 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
         </div>
       </div>
 
-      <SentimentChart points={visible} label={`sur ${days} jours`} />
+      <SentimentChart points={visible} />
 
       {stats ? (
         <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle">

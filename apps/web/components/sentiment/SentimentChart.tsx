@@ -1,137 +1,142 @@
+'use client'
+
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { useId } from 'react'
+
 import type { SentimentPoint } from '@zenith/data'
+
+import {
+  AXIS_TICK,
+  CHART_MARGIN,
+  ENTER_DURATION,
+  GRID_STROKE,
+  TOOLTIP_LABEL_STYLE,
+  TOOLTIP_STYLE,
+} from '@/components/charts/chart-theme'
+import { useReducedMotion } from '@/components/charts/useReducedMotion'
 
 /**
  * Courbe historique de l'indice de sentiment.
  *
- * Rendue en SVG côté serveur, sans bibliothèque : la série est une simple suite de
- * valeurs entre 0 et 100, et l'axe vertical est FIXE — c'est même le point qui
- * distingue ce graphique d'une courbe de prix. Une échelle auto-ajustée ferait
- * paraître spectaculaire une oscillation entre 45 et 55, alors que l'intérêt de
- * l'indice est justement de situer une valeur sur une échelle connue et invariable.
+ * ÉCHELLE VERTICALE FIXE de 0 à 100, et c'est le point qui distingue ce graphique
+ * d'une courbe de prix. Une échelle auto-ajustée ferait paraître spectaculaire une
+ * oscillation entre 45 et 55, alors que tout l'intérêt de l'indice est de situer une
+ * valeur sur une échelle connue et invariable.
  *
- * Les bandes de fond rappellent cette échelle sans avoir à la lire : peur en bas,
- * avidité en haut. Elles remplacent une légende, qu'il faudrait sinon parcourir des
- * yeux à chaque lecture.
+ * Les lignes de référence remplacent une légende : elles marquent les frontières
+ * entre bandes (peur / neutre / avidité) à même le graphique, là où une légende
+ * obligerait à faire l'aller-retour du regard à chaque lecture.
  */
 
-const WIDTH = 800
-const HEIGHT = 240
-const PADDING = { top: 8, right: 8, bottom: 22, left: 30 }
-
-/** Bandes de l'échelle, alignées sur les seuils de `classify` (§ SidePanels). */
-const BANDS = [
-  { from: 0, to: 24, label: 'Peur extrême', color: 'var(--color-down)' },
-  { from: 25, to: 44, label: 'Peur', color: 'var(--color-down)' },
-  { from: 45, to: 55, label: 'Neutre', color: 'var(--color-ink-muted)' },
-  { from: 56, to: 74, label: 'Avidité', color: 'var(--color-up)' },
-  { from: 75, to: 100, label: 'Avidité extrême', color: 'var(--color-up)' },
+/** Seuils de `classify` — voir `SidePanels`. Ce sont eux qui portent le sens. */
+const THRESHOLDS = [
+  { value: 25, label: 'Peur' },
+  { value: 45, label: 'Neutre' },
+  { value: 56, label: 'Avidité' },
+  { value: 75, label: 'Avidité extrême' },
 ]
 
 export function SentimentChart({
   points,
-  label,
+  height = 260,
 }: {
   points: SentimentPoint[]
-  label: string
+  height?: number
 }) {
+  const gradientId = useId()
+  const reduced = useReducedMotion()
+
   if (points.length < 2) return null
 
-  const plotWidth = WIDTH - PADDING.left - PADDING.right
-  const plotHeight = HEIGHT - PADDING.top - PADDING.bottom
-
-  const toX = (index: number) => PADDING.left + (index / (points.length - 1)) * plotWidth
-  // Échelle FIXE de 0 à 100 : voir l'explication en tête de fichier.
-  const toY = (value: number) => PADDING.top + plotHeight - (value / 100) * plotHeight
-
-  const line = points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'}${toX(index).toFixed(1)},${toY(point.value).toFixed(1)}`)
-    .join(' ')
-
-  const area = `${line} L${toX(points.length - 1).toFixed(1)},${(PADDING.top + plotHeight).toFixed(1)} L${PADDING.left},${(PADDING.top + plotHeight).toFixed(1)} Z`
+  const data = points.map((point) => ({
+    // Formaté ICI plutôt que dans l'axe : Recharts appelle son formateur à chaque
+    // rendu, y compris pendant l'animation, ce qui recalculerait la date des
+    // centaines de fois pour un résultat invariable.
+    date: formatDay(point.timestamp),
+    valeur: point.value,
+    classification: point.classification,
+  }))
 
   const last = points[points.length - 1] as SentimentPoint
   const first = points[0] as SentimentPoint
 
-  // Quatre repères de date au maximum : au-delà, les libellés se chevauchent sur
-  // mobile et deviennent illisibles.
-  const ticks = [0, Math.floor(points.length / 3), Math.floor((points.length * 2) / 3), points.length - 1]
-
   return (
-    <figure className="space-y-2">
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="w-full"
-        role="img"
-        aria-label={`Évolution de l’indice de sentiment ${label}. Du ${formatDay(first.timestamp)} au ${formatDay(last.timestamp)}, valeur finale ${last.value} sur 100.`}
-      >
-        {BANDS.map((band) => {
-          const y = toY(band.to)
-          const height = toY(band.from) - toY(band.to)
-          return (
-            <rect
-              key={band.label}
-              x={PADDING.left}
-              y={y}
-              width={plotWidth}
-              height={height}
-              fill={band.color}
-              opacity={0.06}
-            />
-          )
-        })}
+    <figure
+      style={{ height }}
+      role="img"
+      aria-label={`Évolution de l’indice de sentiment du ${formatDay(first.timestamp)} au ${formatDay(last.timestamp)}. Valeur finale : ${last.value} sur 100.`}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={CHART_MARGIN}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-brand)" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="var(--color-brand)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
 
-        {/* Graduations horizontales aux seuils, pas tous les 20 : ce sont les
-            frontières entre bandes qui donnent du sens, pas des paliers réguliers. */}
-        {[25, 45, 56, 75].map((value) => (
-          <g key={value}>
-            <line
-              x1={PADDING.left}
-              y1={toY(value)}
-              x2={WIDTH - PADDING.right}
-              y2={toY(value)}
-              stroke="var(--color-border-subtle)"
-              strokeWidth="1"
+          {/* Grille HORIZONTALE seule : les verticales n'apporteraient rien sur un
+              axe de dates déjà gradué, et doubleraient la densité de traits. */}
+          <CartesianGrid stroke={GRID_STROKE} vertical={false} />
+
+          <XAxis
+            dataKey="date"
+            tick={AXIS_TICK}
+            tickLine={false}
+            axisLine={false}
+            minTickGap={48}
+          />
+
+          <YAxis
+            domain={[0, 100]}
+            ticks={[0, 25, 50, 75, 100]}
+            tick={AXIS_TICK}
+            tickLine={false}
+            axisLine={false}
+            width={28}
+          />
+
+          {THRESHOLDS.map((threshold) => (
+            <ReferenceLine
+              key={threshold.value}
+              y={threshold.value}
+              stroke={GRID_STROKE}
               strokeDasharray="3 3"
             />
-            <text
-              x={PADDING.left - 6}
-              y={toY(value) + 3}
-              textAnchor="end"
-              className="fill-[var(--color-ink-muted)] text-[9px]"
-            >
-              {value}
-            </text>
-          </g>
-        ))}
+          ))}
 
-        <path d={area} fill="var(--color-brand)" opacity={0.1} />
-        <path
-          d={line}
-          fill="none"
-          stroke="var(--color-brand)"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
+          <Tooltip
+            contentStyle={TOOLTIP_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
+            cursor={{ stroke: 'var(--color-border-subtle)', strokeWidth: 1 }}
+            formatter={(value, _name, item) => [
+              `${value} / 100 · ${item?.payload?.classification ?? ''}`,
+              '',
+            ]}
+          />
 
-        <circle cx={toX(points.length - 1)} cy={toY(last.value)} r="3.5" fill="var(--color-brand)" />
-
-        {ticks.map((index) => {
-          const point = points[index]
-          if (!point) return null
-          return (
-            <text
-              key={index}
-              x={toX(index)}
-              y={HEIGHT - 6}
-              textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'}
-              className="fill-[var(--color-ink-muted)] text-[9px]"
-            >
-              {formatDay(point.timestamp)}
-            </text>
-          )
-        })}
-      </svg>
+          <Area
+            type="monotone"
+            dataKey="valeur"
+            stroke="var(--color-brand)"
+            strokeWidth={1.8}
+            fill={`url(#${gradientId})`}
+            isAnimationActive={!reduced}
+            animationDuration={ENTER_DURATION}
+            dot={false}
+            activeDot={{ r: 3.5, strokeWidth: 0, fill: 'var(--color-brand)' }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </figure>
   )
 }

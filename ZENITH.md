@@ -52,6 +52,83 @@ Objectif business : devenir une référence d'analyse de marché généraliste, 
 
 Les jetons sont définis dans `apps/web/app/globals.css` (bloc `@theme`) et nulle part ailleurs.
 
+#### Grammaire d'instrument — surface unique et angles vifs
+
+Deux règles gouvernent tout le reste. Elles s'appliquent aux **deux thèmes**, et les
+défaire l'une sans l'autre casse l'ensemble.
+
+**1. Surface unique.** `--color-canvas` et `--color-surface` sont **égaux**. Une carte
+ne se distingue plus par un fond plus clair mais par son seul **filet**. C'est
+l'inverse de la convention habituelle, et c'est ce qui donne l'allure d'instrument :
+tout vit sur un même plan, la structure est tracée et non empilée. Une pile de
+surfaces surélevées évoque le document — registre juste pour un article, faux pour un
+poste de lecture.
+
+Conséquence à ne pas oublier : **`bg-surface` ne fait plus ressortir un bloc.** Un
+composant qui doit être délimité porte `border`. `--color-surface-muted` reste le seul
+ton qui marque une différence : survols de ligne et bandes de contraste.
+
+**2. Rayon zéro.** `--radius-card` vaut `0px`, ainsi que toute l'échelle. Les noms
+survivent pour ne pas réécrire les centaines de `rounded-card` du projet — c'est le
+bénéfice d'avoir centralisé la mise en forme dans des jetons. **Seule exception :**
+`--radius-pill`, réservé aux pastilles de filtre et d'état, dont la forme dit « je suis
+un jeton cliquable ». C'est le contraste avec les angles vifs alentour qui le signale.
+
+**Exception à la surface unique : les couches flottantes.** Menus, recherche, boîtes de
+dialogue survolent réellement la page ; avec `canvas` égal à `surface`, elles s'y
+confondraient. D'où `--color-overlay` et `--shadow-overlay`, réservés à ces couches et
+jamais appliqués à une carte.
+
+| Jeton | Clair | Sombre |
+|---|---|---|
+| canvas = surface | `#ffffff` | `#0a0a0a` |
+| surface-muted | `#f4f4f5` | `#161616` (monte, au lieu de descendre) |
+| border-subtle | `#e4e4e7` | `#2e2e2e` |
+| overlay | `#ffffff` (l'ombre fait le travail) | `#212124` |
+
+Le thème sombre est un gris **neutre**, pas bleuté : une dominante froide fait prendre
+un voile violet aux couleurs de données, et rend les filets sales.
+
+#### Palette de données — distincte de la palette d'interface
+
+Six teintes (`--color-data-1` à `-6`) servent **exclusivement** à distinguer des séries
+de graphique ou à identifier une carte de métrique. L'interface — liens, boutons,
+focus — reste **azur**, et c'est ce qui garde l'identité lisible : un lecteur doit
+pouvoir nommer « la couleur du site ».
+
+Elles sont ordonnées par **distance perceptuelle** : deux séries voisines prennent les
+deux premières, les plus dissemblables.
+
+⚠️ **Aucune ne porte de sens.** Le vert n'y signifie pas « hausse » — la hausse et la
+baisse ont leurs propres jetons (`up` / `down`).
+
+⚠️ **Le jeu clair est nettement plus sombre que le jeu sombre.** Un premier jeu choisi
+pour fond noir tombait entre **1,98:1 et 2,77:1 sur blanc**, sous le seuil de 3:1 des
+éléments graphiques (mesuré). Toute nouvelle teinte doit être vérifiée **sur les deux
+fonds**.
+
+#### Graphiques — Recharts
+
+Adopté pour les graphiques substantiels : dégradé sous la courbe, grille à 8 %,
+infobulle, animation d'entrée de 800 ms.
+
+- **Les couleurs passent par des `var(--color-…)`**, jamais en dur. Recharts reçoit la
+  chaîne, le navigateur la résout à la peinture : les graphiques suivent la bascule de
+  thème sans qu'aucun composant ne s'en préoccupe.
+- **`useReducedMotion` est obligatoire.** Les animations de Recharts sont pilotées en
+  JavaScript et ignorent totalement la règle CSS `prefers-reduced-motion` du site.
+- **`ResponsiveContainer` exige un parent de largeur définie** (`width: '100%'`). Dans
+  une colonne flex, la mesure renvoie ~0 et la courbe se tasse dans un coin — le
+  graphique s'affiche, simplement minuscule, ce qui ressemble à un problème de données.
+- **L'identifiant de dégradé passe par `useId()`.** Sans cela, deux cartes partagent le
+  même `<linearGradient id>` et prennent toutes la couleur de la première.
+- **Les fonctions ne franchissent pas la frontière serveur/client** : le format
+  d'infobulle est un mot-clé (`'currency' | 'compact' | …`), pas une fonction.
+
+**Les sparklines de tableau restent en SVG maison**, et c'est délibéré : un tableau en
+compte jusqu'à 50 par page, et 50 instances Recharts y coûteraient bien plus que le
+gain visuel.
+
 #### Palette « ciel au zénith »
 
 Lecture littérale du nom du site : le zénith est le point du ciel à la verticale de

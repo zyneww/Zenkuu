@@ -132,7 +132,7 @@ function PillDropdown({
         <ul
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute left-0 top-full z-40 mt-1 min-w-[10rem] overflow-hidden rounded-card border border-border-subtle bg-surface py-1 shadow-lg"
+          className="absolute left-0 top-full z-40 mt-1 min-w-[10rem] overflow-hidden rounded-card border border-border-subtle bg-overlay py-1 shadow-overlay"
         >
           {options.map((option) => (
             <li key={option.value} role="option" aria-selected={option.value === selected}>

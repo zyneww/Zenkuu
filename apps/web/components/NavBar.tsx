@@ -223,7 +223,7 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
 
       {isOpen ? (
         <div id={panelId} className="absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-2">
-          <div className="overflow-hidden rounded-card border border-border-subtle bg-surface p-1.5 shadow-lg">
+          <div className="overflow-hidden rounded-card border border-border-subtle bg-overlay p-1.5 shadow-overlay">
             {menu.sections.map((section, sectionIndex) => (
               <div key={section.label ?? sectionIndex}>
                 {/* Séparateur entre sections, jamais avant la première : une ligne en

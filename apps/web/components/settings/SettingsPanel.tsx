@@ -108,7 +108,7 @@ export function SettingsPanel() {
             role="dialog"
             aria-modal="true"
             aria-label="Paramètres d’affichage"
-            className="w-full max-w-md overflow-hidden rounded-card border border-border-subtle bg-surface shadow-lg"
+            className="w-full max-w-md overflow-hidden rounded-card border border-border-subtle bg-overlay shadow-overlay"
           >
             <header className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
               <h2 className="text-sm font-semibold text-ink">
