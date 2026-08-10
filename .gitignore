@@ -37,6 +37,20 @@ desktop.ini
 archive-*/
 .claude/data/
 
+# Compétences d'agent installées par `npx skills add`.
+#
+# Seul `skills-lock.json` est versionné : il porte la source et l'empreinte de
+# chaque compétence, donc `npx skills add` reconstruit à l'identique. Les deux
+# dossiers ci-dessous sont des artefacts régénérables, et les versionner poserait
+# deux problèmes concrets :
+#   · `.agents/skills/` pèse près d'un mégaoctet de contenu récupéré, au même titre
+#     que `node_modules/` ;
+#   · `.claude/skills/` ne contient que des liens symboliques ABSOLUS
+#     (`/c/Users/…/zenith/.agents/…`), qui pointeraient dans le vide sur toute
+#     autre machine — et que Git gère mal entre Windows et Unix.
+.agents/
+.claude/skills/
+
 # Assets de marque bruts en attente de traitement.
 # Le pipeline est : déposer ici → resserrer le viewBox sur l'encre, passer le fill
 # en currentColor → installer dans apps/web/public/brand/. Seule la version traitée
