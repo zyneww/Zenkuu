@@ -70,6 +70,39 @@ function tickFormatter(timestamp: number, spanDays: number): string {
   return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
 }
 
+/**
+ * Graduations imposées sur les DÉBUTS DE MOIS, au-delà de quatre mois de profondeur.
+ *
+ * Laissée libre, la répartition automatique de Recharts espace les graduations
+ * régulièrement dans le TEMPS, sans savoir que le libellé, lui, est arrondi au mois.
+ * Deux graduations distantes de trois semaines produisent alors deux fois « oct. 25 »
+ * côte à côte — un axe qui a l'air cassé alors que la courbe est juste.
+ *
+ * En posant nous-mêmes une graduation par premier du mois, chaque libellé devient
+ * unique par construction. Le pas s'élargit si les mois sont trop nombreux pour tenir
+ * côte à côte : douze libellés passent, vingt-quatre se chevaucheraient.
+ */
+function monthlyTicks(from: number, to: number, maxTicks = 12): number[] {
+  const ticks: number[] = []
+  const cursor = new Date(from)
+  cursor.setDate(1)
+  cursor.setHours(0, 0, 0, 0)
+  // Le premier du mois EN COURS est antérieur au début de la série : on part du
+  // suivant, sinon la première graduation tomberait hors du domaine et Recharts la
+  // collerait au bord gauche.
+  if (cursor.getTime() < from) cursor.setMonth(cursor.getMonth() + 1)
+
+  while (cursor.getTime() <= to) {
+    ticks.push(cursor.getTime())
+    cursor.setMonth(cursor.getMonth() + 1)
+  }
+
+  if (ticks.length <= maxTicks) return ticks
+
+  const step = Math.ceil(ticks.length / maxTicks)
+  return ticks.filter((_, index) => index % step === 0)
+}
+
 export function TrendChart({
   points,
   color = 'var(--color-data-1)',
@@ -127,6 +160,9 @@ export function TrendChart({
             tickLine={false}
             axisLine={false}
             minTickGap={40}
+            {...(spanDays > 120
+              ? { ticks: monthlyTicks(first.timestamp, last.timestamp) }
+              : {})}
           />
 
           <YAxis

@@ -117,7 +117,9 @@ export default async function CategoryPage({
           <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
             Les cinquante plus grandes capitalisations rattachées à ce secteur. Le
             rattachement est décidé par la source, pas par ZENITH : un même actif relève
-            souvent de plusieurs secteurs à la fois.
+            souvent de plusieurs secteurs à la fois. La colonne <strong className="text-ink">#</strong>{' '}
+            reprend le rang MONDIAL par capitalisation — d’où ses sauts : elle situe
+            chaque actif dans l’ensemble du marché, pas dans ce seul secteur.
           </p>
         </div>
 
