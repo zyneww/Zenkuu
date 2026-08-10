@@ -16,7 +16,24 @@ export interface CacheStore {
   get<T>(key: string): Promise<T | null>
   set<T>(key: string, value: T, ttlSeconds: number): Promise<void>
   delete(key: string): Promise<void>
+  /**
+   * Dernière valeur connue, MÊME EXPIRÉE — le filet de sécurité.
+   *
+   * Distinct de `get`, et il doit le rester : `get` répond à « cette valeur est-elle
+   * encore fraîche ? », celle-ci à « qu'avions-nous en dernier ? ». Les confondre
+   * ferait servir du périmé sans que personne ne l'ait demandé.
+   */
+  getStale<T>(key: string): Promise<T | null>
 }
+
+/**
+ * Durée pendant laquelle une valeur expirée reste disponible comme filet.
+ *
+ * Six heures : assez pour couvrir une panne de source d'une demi-journée, trop peu
+ * pour qu'un cours affiché puisse passer pour actuel. Au-delà, l'entrée est
+ * réellement supprimée — mieux vaut un état vide qu'un chiffre de la veille.
+ */
+const STALE_GRACE_MS = 6 * 60 * 60 * 1000
 
 interface CacheEntry {
   value: unknown
@@ -37,7 +54,9 @@ export function createMemoryCache(maxEntries = 500): CacheStore {
   function sweep(): void {
     const now = Date.now()
     for (const [key, entry] of store) {
-      if (entry.expiresAt <= now) store.delete(key)
+      // On ne purge qu'au-delà du DÉLAI DE GRÂCE, pas à l'expiration : une entrée
+      // périmée reste le dernier recours si la source tombe.
+      if (entry.expiresAt + STALE_GRACE_MS <= now) store.delete(key)
     }
   }
 
@@ -45,7 +64,16 @@ export function createMemoryCache(maxEntries = 500): CacheStore {
     async get<T>(key: string): Promise<T | null> {
       const entry = store.get(key)
       if (!entry) return null
-      if (entry.expiresAt <= Date.now()) {
+      // Expirée : on répond « rien », mais on NE SUPPRIME PLUS. La valeur reste
+      // disponible via `getStale` tant que le délai de grâce court.
+      if (entry.expiresAt <= Date.now()) return null
+      return entry.value as T
+    },
+
+    async getStale<T>(key: string): Promise<T | null> {
+      const entry = store.get(key)
+      if (!entry) return null
+      if (entry.expiresAt + STALE_GRACE_MS <= Date.now()) {
         store.delete(key)
         return null
       }
@@ -116,7 +144,27 @@ if (process.env.NODE_ENV !== 'production') {
   globalForFlight.__zenithInFlight = inFlight
 }
 
-/** Lit depuis le cache, sinon exécute `fetcher` une seule fois et mémorise le résultat. */
+/**
+ * Lit depuis le cache, sinon exécute `fetcher` une seule fois et mémorise le résultat.
+ *
+ * ── FILET DE SÉCURITÉ SUR ÉCHEC ────────────────────────────────────────────────
+ *
+ * Quand le rafraîchissement échoue et qu'une valeur PÉRIMÉE existe, on sert celle-ci
+ * plutôt que de propager l'erreur. Une source lente ou momentanément muette faisait
+ * jusqu'ici disparaître tout un module de la page, alors qu'un relevé vieux de dix
+ * minutes restait parfaitement utilisable — le cas s'est présenté avec les taux BCE,
+ * qui ne changent qu'une fois par jour ouvré et dont l'API a traversé une période à
+ * vingt secondes de latence.
+ *
+ * ⚠️ EN QUOI CE N'EST PAS UNE ENTORSE AU « ZÉRO DONNÉE INVENTÉE » : rien n'est
+ * fabriqué. C'est une valeur RÉELLEMENT lue chez la source, à un instant daté, et
+ * chaque module affiche cet horodatage (`SourceNote`). Le lecteur voit donc l'âge de
+ * ce qu'il regarde. La règle interdit d'inventer un chiffre, pas d'en montrer un
+ * ancien en le datant.
+ *
+ * Le filet a une fin : au-delà du délai de grâce, l'entrée disparaît et l'erreur
+ * repart normalement. Mieux vaut un état vide qu'un cours de la veille.
+ */
 export async function cached<T>(
   key: string,
   fetcher: () => Promise<T>,
@@ -129,9 +177,21 @@ export async function cached<T>(
   if (pending) return pending as Promise<T>
 
   const request = (async () => {
-    const value = await fetcher()
-    await cache.set(key, value, ttlSeconds)
-    return value
+    try {
+      const value = await fetcher()
+      await cache.set(key, value, ttlSeconds)
+      return value
+    } catch (error) {
+      const stale = await cache.getStale<T>(key)
+      if (stale === null) throw error
+
+      // `warn` et non `error` : la page reste complète et juste. Le signaler comme
+      // une panne noierait les vraies pannes — celles où il n'y a rien à servir.
+      console.warn(
+        `[zenith:cache] ${key} — source indisponible, dernière valeur connue servie`,
+      )
+      return stale
+    }
   })()
 
   inFlight.set(key, request)

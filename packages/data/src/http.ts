@@ -75,6 +75,15 @@ export interface HttpClientOptions {
   windowMs?: number
   minIntervalMs?: number
   timeoutMs?: number
+  /**
+   * Reprendre après un DÉLAI DÉPASSÉ ? Vrai par défaut.
+   *
+   * À passer à `false` sur les sources au délai généreux : la reprise doublerait un
+   * pire cas déjà long, et c'est la page qui attend. Sans effet sur les reprises
+   * après 429 ou 5xx, qui restent toujours actives — ce sont des refus immédiats,
+   * dont la reprise ne coûte que son attente délibérée.
+   */
+  retryOnTimeout?: boolean
   /** Durée de vie côté cache HTTP de Next.js. Doit valoir `CACHE_TTL_SECONDS`. */
   revalidateSeconds?: number
   /** En-têtes constants (clé d'API, Accept…). */
@@ -95,6 +104,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     windowMs = 60_000,
     minIntervalMs = 150,
     timeoutMs = 10_000,
+    retryOnTimeout = true,
     revalidateSeconds = CACHE_TTL_SECONDS,
     headers = {},
   } = options
@@ -177,6 +187,21 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       return await attempt<T>(url, as)
     } catch (error) {
       if (!(error instanceof ProviderError) || !error.retryable) throw error
+
+      /*
+       * DÉLAI DÉPASSÉ : la reprise est conditionnelle.
+       *
+       * Reprendre multiplie le pire cas par deux — et c'est la PAGE qui attend, pas
+       * une tâche de fond. Sur une source au délai généreux, l'addition devient
+       * franchement longue : 25 s de délai deviennent 50 s d'attente pour un
+       * visiteur, alors qu'une source qui vient d'ignorer 25 secondes n'a guère de
+       * chances de répondre dans les 25 suivantes.
+       *
+       * La distinction avec un 429 ou un 5xx est nette : ceux-là sont des refus
+       * IMMÉDIATS, la reprise ne coûte que son attente délibérée et réussit souvent.
+       */
+      const timedOut = error.message.startsWith('Délai dépassé')
+      if (timedOut && !retryOnTimeout) throw error
 
       // Une seule nouvelle tentative : au-delà, on préfère afficher un état vide
       // rapidement plutôt que faire patienter l'utilisateur (§5, §9).

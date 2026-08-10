@@ -25,6 +25,26 @@ const http = createHttpClient({
   baseUrl: 'https://api.frankfurter.dev/v1',
   maxRequestsPerWindow: 20,
   minIntervalMs: 200,
+  /*
+   * Délai porté de 10 à 25 secondes — POUR CETTE SOURCE SEULEMENT.
+   *
+   * Frankfurter est un service public bénévole, sans clé et sans quota annoncé. Il
+   * répond d'ordinaire en moins d'une seconde, mais traverse des périodes où il monte
+   * à quinze ou vingt (mesuré : 13,6 s et 20,9 s sur deux appels consécutifs). Le
+   * délai commun de dix secondes le déclarait alors en panne, et le bandeau de
+   * devises disparaissait de l'accueil alors que la source finissait par répondre.
+   *
+   * Attendre est ici sans conséquence, et c'est ce qui rend le réglage défendable :
+   * la BCE ne publie qu'un taux par jour ouvré, ces valeurs sont mises en cache une
+   * heure, et l'attente ne concerne donc qu'un rendu par heure. Le même délai sur la
+   * source crypto, sollicitée à chaque page, serait au contraire inacceptable.
+   */
+  timeoutMs: 25_000,
+  // Pas de reprise après délai dépassé : elle porterait le pire cas à cinquante
+  // secondes d'attente pour un visiteur, alors qu'une source qui vient d'ignorer
+  // vingt-cinq secondes n'a guère de chances de répondre dans les vingt-cinq
+  // suivantes. Le filet, ici, c'est la dernière valeur connue (voir `cache.ts`).
+  retryOnTimeout: false,
 })
 
 /** Paires majeures cotées contre l'euro, dans l'ordre d'affichage. */

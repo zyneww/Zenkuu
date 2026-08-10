@@ -47,6 +47,37 @@ describe('cached', () => {
     await expect(cached(key, async () => 'ok')).resolves.toBe('ok')
   })
 
+  it('sert la dernière valeur connue quand le rafraîchissement échoue', async () => {
+    const key = `test:stale:${process.hrtime.bigint()}`
+
+    // TTL nul : la valeur est mémorisée puis immédiatement périmée.
+    await expect(cached(key, async () => 'frais', 0)).resolves.toBe('frais')
+
+    // La source tombe. Sans filet, tout le module concerné disparaîtrait de la page
+    // alors qu'un relevé de dix minutes reste parfaitement lisible.
+    await expect(
+      cached(
+        key,
+        async () => {
+          throw new Error('source muette')
+        },
+        0,
+      ),
+    ).resolves.toBe('frais')
+  })
+
+  it('propage l’erreur quand il n’y a AUCUNE valeur antérieure', async () => {
+    const key = `test:no-stale:${process.hrtime.bigint()}`
+
+    // Le filet ne doit pas transformer une absence en silence : sans rien à servir,
+    // l'appelant doit voir l'échec et rendre un état vide explicite (§5).
+    await expect(
+      cached(key, async () => {
+        throw new Error('source muette')
+      }),
+    ).rejects.toThrow('source muette')
+  })
+
   it('déduplique bien les appels concurrents sur une même clé', async () => {
     const key = `test:dedupe:${process.hrtime.bigint()}`
     let calls = 0
