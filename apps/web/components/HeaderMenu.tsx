@@ -1,13 +1,13 @@
 'use client'
 
-import { ChevronRight, LayoutDashboard } from 'lucide-react'
+import { ChevronRight, LayoutDashboard, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 
 import type { AuthMode } from '@/components/auth/AuthOverlay'
 import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
-import { AccountSection } from '@/components/auth/AuthButtons'
+import { AccountSection, SignOutRow } from '@/components/auth/AuthButtons'
 import { useSettings, type ThemeMode } from '@/lib/stores/settings'
 import { NAV_MENUS } from '@/content/navigation'
 import { fr } from '@/content/fr'
@@ -112,6 +112,18 @@ export function HeaderMenu({
           <LayoutDashboard className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
           Tableau de bord
         </Link>
+
+        {/* « Paramètres » remplace « Ajouter un compte » du menu d'origine. Le
+            multi-compte est une fonction de plateforme d'entreprise ; sur un site de
+            lecture de marché, personne ne jongle entre deux identités. */}
+        <Link
+          href="/parametres"
+          onClick={onClose}
+          className="flex items-center gap-2.5 px-2 py-2 text-sm text-ink transition-colors duration-150 hover:bg-surface-muted"
+        >
+          <Settings className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+          Paramètres
+        </Link>
       </div>
 
       {/* ── Réglages d'affichage ────────────────────────────────────────────── */}
@@ -158,6 +170,9 @@ export function HeaderMenu({
           </div>
         </div>
       </div>
+
+      {/* ── Déconnexion ─────────────────────────────────────────────────────── */}
+      <SignOutRow onClose={onClose} />
 
       {/* ── Navigation, SOUS LE SEUIL seulement ─────────────────────────────── */}
       <div className="p-2 lg:hidden">

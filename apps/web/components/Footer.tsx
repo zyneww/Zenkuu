@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Globe } from 'lucide-react'
+import { LocaleBadge } from '@/components/settings/LocaleBadge'
 
 import { DATA_SOURCES, FOOTER_COLUMNS, SOCIAL_LINKS } from '@/content/footer'
 import { fr } from '@/content/fr'
@@ -34,7 +34,7 @@ export function Footer() {
               {fr.site.tagline}. {fr.footer.positioning}
             </p>
 
-            <LocaleBadge />
+            <LocaleBadge hint={fr.footer.localeHint} />
           </div>
 
           {FOOTER_COLUMNS.map((column) => (
@@ -130,23 +130,3 @@ export function Footer() {
   )
 }
 
-/**
- * Indicateur de langue et de devise.
- *
- * Volontairement NON interactif tant qu'il n'y a qu'une langue et qu'une devise de
- * référence. Un sélecteur qui n'ouvre rien, ou qui n'offre qu'une seule option, est
- * pire qu'une simple mention : il promet un réglage inexistant. Le jour où une
- * seconde langue arrive (structure prête, cf. `content/fr.ts`), ce badge devient un
- * vrai menu sans changer de place.
- */
-function LocaleBadge() {
-  return (
-    <p
-      className="mt-4 inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted"
-      title={fr.footer.localeHint}
-    >
-      <Globe className="h-3.5 w-3.5" aria-hidden="true" />
-      {fr.footer.locale}
-    </p>
-  )
-}

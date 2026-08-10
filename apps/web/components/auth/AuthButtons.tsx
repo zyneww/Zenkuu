@@ -1,7 +1,8 @@
 'use client'
 
+import { LogOut } from 'lucide-react'
 import Link from 'next/link'
-import { UserButton, useUser } from '@clerk/nextjs'
+import { useClerk, useUser } from '@clerk/nextjs'
 
 import type { AuthMode } from '@/components/auth/AuthOverlay'
 import { AUTH_ENABLED, AUTH_ROUTES } from '@/lib/auth'
@@ -38,6 +39,46 @@ function ConnectedAuthButton({ onOpen }: { onOpen: (mode: AuthMode) => void }) {
   if (isSignedIn) return null
 
   return <StaticSignUpLink onOpen={() => onOpen('signUp')} />
+}
+
+/**
+ * Ligne de déconnexion du menu.
+ *
+ * Rend `null` hors session — une déconnexion proposée à qui n'est pas connecté est
+ * une action sans effet, et une entrée de menu sans effet finit par être cliquée.
+ *
+ * Comme le reste, elle sort avant tout appel de hook quand Clerk n'est pas
+ * configuré : le composant interne porte les hooks, l'enveloppe porte la condition.
+ */
+export function SignOutRow({ onClose }: { onClose: () => void }) {
+  if (!AUTH_ENABLED) return null
+  return <ConnectedSignOutRow onClose={onClose} />
+}
+
+function ConnectedSignOutRow({ onClose }: { onClose: () => void }) {
+  const { isLoaded, isSignedIn } = useUser()
+  const { signOut } = useClerk()
+
+  if (!isLoaded || !isSignedIn) return null
+
+  return (
+    <div className="border-b border-border-subtle p-2">
+      <button
+        type="button"
+        onClick={() => {
+          onClose()
+          // Retour à l'accueil : rester sur place renverrait une page personnelle
+          // — tableau de bord, liste de suivi — dans son état « non connecté »,
+          // ce qui ressemble à une perte de données plutôt qu'à une déconnexion.
+          void signOut({ redirectUrl: '/' })
+        }}
+        className="flex w-full items-center gap-2.5 px-2 py-2 text-sm font-medium text-down transition-colors duration-150 hover:bg-down-soft"
+      >
+        <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+        Déconnexion
+      </button>
+    </div>
+  )
 }
 
 /**
@@ -112,6 +153,7 @@ function ConnectedAccountSection({
   onClose: () => void
 }) {
   const { isLoaded, user } = useUser()
+  const { openUserProfile } = useClerk()
 
   // Réserve la hauteur pendant le chargement : sans cela, le menu se réorganise sous
   // le curseur au moment où Clerk répond.
@@ -119,19 +161,56 @@ function ConnectedAccountSection({
 
   if (user) {
     return (
-      <div className="flex items-center gap-3">
-        {/* Le bouton de Clerk est CONSERVÉ ici plutôt que remplacé par nos propres
-            entrées : il porte déjà la gestion du profil, des connexions tierces, du
-            mot de passe et de la déconnexion. Les réécrire ne gagnerait qu'un peu
-            d'homogénéité visuelle, au prix de tout ce qui s'y rattache. */}
-        <UserButton appearance={{ elements: { avatarBox: 'h-9 w-9' } }} />
-        <span className="min-w-0">
+      <div className="flex items-start gap-3">
+        {/*
+          AVATAR SIMPLE, et non le `<UserButton>` de Clerk.
+
+          Celui-ci porte sa propre liste déroulante — profil, ajout de compte,
+          déconnexion. Posé DANS notre tiroir, il ouvrait un second menu par-dessus le
+          premier : deux panneaux superposés, aux styles différents, pour le même
+          sujet. On garde donc l'avatar et l'on rebranche ses actions sur nos propres
+          entrées, plus bas dans ce même tiroir.
+
+          Ce qui n'est PAS réécrit : la gestion du compte elle-même. « Gérer le
+          compte » ouvre l'écran de Clerk — profil, mot de passe, connexions tierces,
+          double authentification. Réimplémenter cela ne gagnerait qu'un peu
+          d'homogénéité visuelle, au prix de tout ce qui s'y rattache.
+        */}
+        {user.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- avatar servi par Clerk, hors domaines optimisés
+          <img
+            src={user.imageUrl}
+            alt=""
+            width={40}
+            height={40}
+            className="h-10 w-10 shrink-0 rounded-pill object-cover"
+          />
+        ) : (
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-sm font-semibold text-brand-strong"
+            aria-hidden="true"
+          >
+            {(user.fullName ?? user.username ?? '?').slice(0, 1).toUpperCase()}
+          </span>
+        )}
+
+        <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-ink">
             {user.fullName ?? user.username ?? 'Mon compte'}
           </span>
           <span className="block truncate text-xs text-ink-muted">
             {user.primaryEmailAddress?.emailAddress ?? ''}
           </span>
+          <button
+            type="button"
+            onClick={() => {
+              onClose()
+              openUserProfile()
+            }}
+            className="mt-1 text-xs font-medium text-brand hover:underline"
+          >
+            Gérer le compte
+          </button>
         </span>
       </div>
     )
