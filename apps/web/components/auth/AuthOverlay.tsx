@@ -2,12 +2,13 @@
 
 import { SignIn, SignUp } from '@clerk/nextjs'
 import { Check, X } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useEffect, useRef } from 'react'
 
 import { AUTH_ROUTES } from '@/lib/auth'
 import { CLERK_OVERLAY_ELEMENTS } from '@/lib/clerk-appearance'
-import { fr } from '@/content/fr'
+import { ZenkuuMark } from '@/components/BrandMark'
+import { useContent } from '@/components/locale/ContentProvider'
 
 export type AuthMode = 'signIn' | 'signUp'
 
@@ -17,7 +18,7 @@ export type AuthMode = 'signIn' | 'signUp'
  * ── CE QUI EST À NOUS, CE QUI EST À CLERK ──────────────────────────────────────
  *
  * La coque est à nous : fond, cadre, titre, mascotte, bascule connexion/inscription,
- * bloc de bas. Le FORMULAIRE est celui de Clerk, restylé aux jetons ZENITH.
+ * bloc de bas. Le FORMULAIRE est celui de Clerk, restylé aux jetons ZENKUU.
  *
  * Ce partage n'est pas de la paresse, c'est le seul choix défendable. Derrière trois
  * boutons se cachent une redirection OAuth, une saisie de code à usage unique, un mot
@@ -47,6 +48,7 @@ export function AuthOverlay({
   onClose: () => void
   onSwitch: (mode: AuthMode) => void
 }) {
+  const fr = useContent()
   const panelRef = useRef<HTMLDivElement>(null)
   const open = mode !== null
 
@@ -104,13 +106,13 @@ export function AuthOverlay({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="relative w-full max-w-md border border-border-subtle bg-overlay shadow-overlay outline-none"
+        className="relative w-full max-w-md rounded-card border border-border-subtle bg-overlay shadow-overlay outline-none"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={fr.auth.close}
-          className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+          className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-sm text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -141,9 +143,9 @@ export function AuthOverlay({
             · `aria-hidden` — c'est un ornement. Annoncée, elle ferait précéder le
               premier bouton d'un bruit sans contenu à chaque lecture d'écran.
 
-            · `text-brand` — la silhouette est un masque appliqué à `currentColor`
-              (voir `.brand-mark` dans globals.css). Elle suit donc la bascule de
-              thème sans qu'aucune image ne soit rechargée.
+            · `text-brand` — le monogramme est un tracé en `currentColor` (voir
+              components/BrandMark.tsx). Il suit donc la bascule de thème sans
+              qu'aucune image ne soit rechargée.
           */}
           {/*
             CALÉE À GAUCHE, et non centrée. Les boutons de fournisseur forment une
@@ -155,7 +157,11 @@ export function AuthOverlay({
             tenir sur le bord, pas assez pour manger l'icône en dessous.
           */}
           <div className="relative z-10 -mb-2 mt-6 flex justify-start pl-3" aria-hidden="true">
-            <span className="brand-mark brand-mark-mascotte h-10 w-12 text-brand" />
+            {/* La MASCOTTE a cédé la place au MONOGRAMME. Elle appartenait au jeu de
+                marque précédent, retiré en entier ; garder ici le seul personnage d'une
+                identité par ailleurs remplacée aurait laissé deux marques dans la même
+                fenêtre. */}
+            <ZenkuuMark className="h-8 w-auto text-brand" />
           </div>
 
           <div className="relative">

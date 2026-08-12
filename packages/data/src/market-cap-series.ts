@@ -50,14 +50,14 @@ export interface MarketCapPoint {
  * en développement — sans quoi la série se viderait à chaque sauvegarde de fichier.
  */
 const globalForSeries = globalThis as unknown as {
-  __zenithMarketCapSeries?: Map<string, MarketCapPoint[]>
+  __zenkuuMarketCapSeries?: Map<string, MarketCapPoint[]>
 }
 
 const series: Map<string, MarketCapPoint[]> =
-  globalForSeries.__zenithMarketCapSeries ?? new Map()
+  globalForSeries.__zenkuuMarketCapSeries ?? new Map()
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForSeries.__zenithMarketCapSeries = series
+  globalForSeries.__zenkuuMarketCapSeries = series
 }
 
 /**

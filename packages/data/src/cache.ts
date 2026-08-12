@@ -9,8 +9,19 @@
  * aucun adaptateur ne bouge.
  */
 
-/** TTL de référence (§4). Aligné avec `revalidate` des pages Next.js. */
-export const CACHE_TTL_SECONDS = 300
+/**
+ * TTL de référence (§4). Aligné avec `revalidate` des pages Next.js.
+ *
+ * Abaissé de 300 à 180 s pour rapprocher la cadence perçue de sites comme
+ * CoinGecko, SANS dépasser le quota mesuré côté CoinGecko sans clé (~5 req/min,
+ * §9 — voir `providers/coingecko.ts`) : le nombre d'appels par page ne change pas,
+ * seule la fenêtre qui les redéclenche se resserre, et la marge reste comparable à
+ * celle mesurée à 300 s. Descendre plus bas exigerait `COINGECKO_API_KEY` (30
+ * req/min) — voir `FAST_REVALIDATE_SECONDS` dans `providers/coingecko.ts` pour le
+ * palier appliqué aux requêtes à fort trafic et faible cardinalité (classement,
+ * statistiques globales) quand la clé est présente.
+ */
+export const CACHE_TTL_SECONDS = 180
 
 export interface CacheStore {
   get<T>(key: string): Promise<T | null>
@@ -99,12 +110,12 @@ export function createMemoryCache(maxEntries = 500): CacheStore {
  * l'API externe à chaque sauvegarde de fichier — ce qui épuiserait le quota
  * gratuit en quelques minutes.
  */
-const globalForCache = globalThis as unknown as { __zenithCache?: CacheStore }
+const globalForCache = globalThis as unknown as { __zenkuuCache?: CacheStore }
 
-export const cache: CacheStore = globalForCache.__zenithCache ?? createMemoryCache()
+export const cache: CacheStore = globalForCache.__zenkuuCache ?? createMemoryCache()
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForCache.__zenithCache = cache
+  globalForCache.__zenkuuCache = cache
 }
 
 /**
@@ -117,11 +128,11 @@ if (process.env.NODE_ENV !== 'production') {
  * les suivants attendent la même promesse.
  */
 const globalForFlight = globalThis as unknown as {
-  __zenithInFlight?: Map<string, Promise<unknown>>
+  __zenkuuInFlight?: Map<string, Promise<unknown>>
 }
 
 const inFlight: Map<string, Promise<unknown>> =
-  globalForFlight.__zenithInFlight ?? new Map()
+  globalForFlight.__zenkuuInFlight ?? new Map()
 
 if (process.env.NODE_ENV !== 'production') {
   /*
@@ -141,7 +152,7 @@ if (process.env.NODE_ENV !== 'production') {
    * exactement un rechargement — en développement, et une fois.
    */
   inFlight.clear()
-  globalForFlight.__zenithInFlight = inFlight
+  globalForFlight.__zenkuuInFlight = inFlight
 }
 
 /**
@@ -188,7 +199,7 @@ export async function cached<T>(
       // `warn` et non `error` : la page reste complète et juste. Le signaler comme
       // une panne noierait les vraies pannes — celles où il n'y a rien à servir.
       console.warn(
-        `[zenith:cache] ${key} — source indisponible, dernière valeur connue servie`,
+        `[zenkuu:cache] ${key} — source indisponible, dernière valeur connue servie`,
       )
       return stale
     }

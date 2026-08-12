@@ -1,13 +1,32 @@
-import Link from 'next/link'
+'use client'
 
-import type { AssetClass, MarketAsset } from '@zenith/data'
-import { ChangeBadge, Sparkline } from '@zenith/ui'
+/*
+ * Composant CLIENT, et il faut dire pourquoi — la directive n'a pas été ajoutée par
+ * préférence mais par nécessité.
+ *
+ * `MarketBrowser` est marqué « use client » et importe ce tableau : il entre donc
+ * dans le graphe client, que ce fichier le déclare ou non. Tant qu'il lisait un
+ * dictionnaire figé, cela ne se voyait pas. Depuis qu'il lit le dictionnaire de la
+ * requête, la version serveur (`await getContent()`) lève à l'exécution —
+ * « getLocale is not supported in Client Components » — et fait tomber toutes les
+ * pages de classement.
+ *
+ * Il lit donc le dictionnaire par contexte, comme les autres composants client. La
+ * directive explicite évite en prime qu'un futur import depuis un composant serveur
+ * ne recrée l'ambiguïté.
+ */
 
-import { AssetLogo } from '@/components/AssetTile'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
+
+import type { AssetClass, MarketAsset } from '@zenkuu/data'
+import { ChangeBadge, Sparkline } from '@zenkuu/ui'
+
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
-import { fr } from '@/content/fr'
+import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
 
 export type MarketSort = 'marketCap' | 'volume24h'
@@ -81,6 +100,7 @@ export function MarketTable({
   watchlist,
   chartPosition = 'end',
 }: MarketTableProps) {
+  const fr = useContent()
   /**
    * Colonnes déduites de la donnée réellement présente.
    *
@@ -307,21 +327,45 @@ export function MarketTable({
       {sortable ? <p className="text-xs text-ink-muted">{fr.market.sortNotSupported}</p> : null}
 
       {paginated ? (
-        <nav className="flex items-center justify-between gap-4" aria-label="Pagination">
-          <PaginationLink
+        <nav className="flex items-center justify-center gap-1" aria-label="Pagination">
+          <PagerArrow
             href={buildHref(basePath, { page: page - 1, sortBy, direction })}
             disabled={page <= 1}
             label={fr.market.previous}
-          />
-          <span className="tabular text-sm text-ink-muted">{fr.market.pageLabel(page)}</span>
-          <PaginationLink
-            // On ne connaît pas le nombre total de pages : la source ne le renvoie
-            // pas. On propose « suivant » tant que la page est pleine, plutôt que
-            // d'afficher un total estimé qui serait faux.
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </PagerArrow>
+
+          {/* On ne connaît pas le nombre total de pages : la source ne le renvoie pas.
+              On numérote donc seulement les pages dont on est CERTAIN qu'elles existent —
+              la précédente, la courante, et la suivante si celle-ci est pleine — plutôt
+              que d'afficher un total estimé qui serait faux. */}
+          {page > 1 ? (
+            <PagerNumber href={buildHref(basePath, { page: page - 1, sortBy, direction })}>
+              {page - 1}
+            </PagerNumber>
+          ) : null}
+
+          <span
+            aria-current="page"
+            className="tabular flex h-8 min-w-8 items-center justify-center border border-brand bg-brand px-2 text-xs font-medium text-on-brand"
+          >
+            {page}
+          </span>
+
+          {assets.length >= perPage ? (
+            <PagerNumber href={buildHref(basePath, { page: page + 1, sortBy, direction })}>
+              {page + 1}
+            </PagerNumber>
+          ) : null}
+
+          <PagerArrow
             href={buildHref(basePath, { page: page + 1, sortBy, direction })}
             disabled={assets.length < perPage}
             label={fr.market.next}
-          />
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </PagerArrow>
         </nav>
       ) : null}
     </div>
@@ -347,6 +391,7 @@ function SortableHeader({
   basePath,
   className = '',
 }: SortableHeaderProps) {
+  const fr = useContent()
   if (!sortable) {
     return (
       <th scope="col" className={`px-3 py-2.5 text-right font-medium ${className}`}>
@@ -382,19 +427,24 @@ function SortableHeader({
   )
 }
 
-function PaginationLink({
+function PagerArrow({
   href,
   disabled,
   label,
+  children,
 }: {
   href: string
   disabled: boolean
   label: string
+  children: React.ReactNode
 }) {
   if (disabled) {
     return (
-      <span className="rounded-card border border-border-subtle px-3 py-1.5 text-sm text-ink-muted/50">
-        {label}
+      <span
+        aria-hidden="true"
+        className="flex h-8 w-8 items-center justify-center border border-border-subtle text-ink-muted/40"
+      >
+        {children}
       </span>
     )
   }
@@ -402,9 +452,21 @@ function PaginationLink({
   return (
     <Link
       href={href}
-      className="rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-sm text-ink transition-colors hover:border-brand hover:text-brand-strong"
+      aria-label={label}
+      className="flex h-8 w-8 items-center justify-center border border-border-subtle bg-surface text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
     >
-      {label}
+      {children}
+    </Link>
+  )
+}
+
+function PagerNumber({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="tabular flex h-8 min-w-8 items-center justify-center border border-border-subtle bg-surface px-2 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
+    >
+      {children}
     </Link>
   )
 }

@@ -38,7 +38,7 @@ export function MetricCard({
   action?: ReactNode
 }) {
   return (
-    <article className="flex flex-col overflow-hidden border border-border-subtle bg-surface transition-colors duration-150 hover:border-ink-muted/40">
+    <article className="flex flex-col overflow-hidden rounded-card border border-border-subtle bg-surface transition-colors duration-150 hover:border-ink-muted/40">
       <div className="flex flex-1 flex-col gap-1 p-4">
         <div className="flex items-center justify-between gap-2">
           <h3 className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">

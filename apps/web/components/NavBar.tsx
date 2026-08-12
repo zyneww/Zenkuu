@@ -1,48 +1,58 @@
 'use client'
 
-import Link from 'next/link'
+import { Link, usePathname } from '@/i18n/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronDown, Menu } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 
 import { NAV_MENUS, type NavMenu } from '@/content/navigation'
-import { fr } from '@/content/fr'
+import { ZenkuuWordmark } from '@/components/BrandMark'
+import { useContent } from '@/components/locale/ContentProvider'
+import { AccountMenu } from '@/components/auth/AccountMenu'
 import { AuthButtons } from '@/components/auth/AuthButtons'
 import { AuthOverlay, type AuthMode } from '@/components/auth/AuthOverlay'
-import { HeaderMenu } from '@/components/HeaderMenu'
+import { UpgradeButton } from '@/components/billing/UpgradeButton'
+import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
+import { SettingsMenu } from '@/components/settings/SettingsMenu'
 import { SearchTrigger } from '@/components/search/SearchTrigger'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
 /**
- * Barre de navigation — bande centrée façon AniList (§3.2).
+ * Barre de navigation — bande pleine largeur, alignée à gauche.
  *
- * La disposition reprend celle d'AniList : un conteneur de largeur limitée, centré
- * dans la page, avec le logo calé à son bord gauche, les menus au centre et les
- * actions à droite. C'est l'écart voulu par rapport à CoinGecko, dont le contenu
- * d'en-tête part du bord gauche de l'écran (§7).
+ * La disposition suit Token Terminal : logo au bord gauche de l'écran, menus
+ * immédiatement à sa droite, filet, accès rapides, puis actions rejetées à
+ * l'extrême droite. Elle REMPLACE une bande centrée de 1240px calquée sur AniList,
+ * dont les deux vides symétriques ne se justifiaient plus une fois le contenu
+ * élargi.
+ *
+ * La barre traverse l'écran alors que le contenu, lui, reste borné à 1440px : les
+ * deux ne s'alignent donc pas, et c'est voulu — un filet qui s'arrête à mi-écran se
+ * lit comme un défaut d'alignement. Voir `.shell` et `.shell-bleed` dans
+ * globals.css, seuls endroits où ces largeurs sont définies.
  */
 export function NavBar() {
+  const fr = useContent()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   /*
-   * L'état de la fenêtre de compte vit ICI, pas dans le composant qui l'affiche.
+   * L'état des deux fenêtres vit ICI, pas dans les composants qui les déclenchent.
    *
-   * Deux entrées l'ouvrent — les boutons de l'en-tête et le menu mobile — et une
-   * troisième la fait changer d'onglet depuis l'intérieur. Un état interne au
-   * composant obligerait chacune de ces entrées à passer par un contexte, pour un
-   * seul niveau de profondeur. `null` = fermée, ce qui évite d'avoir à tenir un
-   * booléen d'ouverture ET un mode en parallèle : deux variables dont l'une peut
-   * contredire l'autre.
+   * Plusieurs entrées les ouvrent — les boutons de session, le menu de réglages, le
+   * menu de compte — et la fenêtre de préférences change d'onglet depuis
+   * l'intérieur. Un état local à chacun obligerait à passer par un contexte pour un
+   * seul niveau de profondeur.
+   *
+   * `null` = fermée, ce qui évite de tenir un booléen d'ouverture ET un mode en
+   * parallèle : deux variables dont l'une peut contredire l'autre.
    */
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [preferenceTab, setPreferenceTab] = useState<PreferenceTab | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closeAuth = useCallback(() => setAuthMode(null), [])
-  const closeMenu = useCallback(() => setMenuOpen(false), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
@@ -98,6 +108,33 @@ export function NavBar() {
     [],
   )
 
+  /*
+   * LE TIROIR NE SURVIT PAS À LA NAVIGATION QU'IL A PROVOQUÉE.
+   *
+   * Chaque entrée le referme déjà par son propre `onClick`, et cela suffit tant que
+   * toutes les entrées sont des liens ordinaires. Mais la fermeture repose alors sur
+   * un rappel recâblé à la main sur CHAQUE entrée : une entrée qui l'oublierait — un
+   * lien externe, une destination pas encore construite, un jour une entrée qui fait
+   * autre chose que naviguer — laisserait le panneau ouvert par-dessus la page
+   * d'arrivée. Et comme il ne se ferme sinon qu'au survol, il faudrait alors repasser
+   * la souris dessus pour s'en débarrasser.
+   *
+   * Observer le chemin énonce la règle une fois pour toutes, et au bon niveau : ce
+   * tiroir sert à PARTIR d'ici, il n'a plus d'objet une fois qu'on est ailleurs.
+   *
+   * L'ajustement se fait PENDANT le rendu et non dans un effet — même motif, et
+   * pour la même raison, que `usePresence` : un effet peindrait d'abord le panneau
+   * ouvert sur la page d'arrivée, puis le corrigerait à l'image suivante. React
+   * interrompt au contraire ce rendu-ci et le relance sans rien peindre entre les
+   * deux. Le compilateur React refuse d'ailleurs la version en effet.
+   */
+  const pathname = usePathname()
+  const [previousPathname, setPreviousPathname] = useState(pathname)
+  if (previousPathname !== pathname) {
+    setPreviousPathname(pathname)
+    setOpenMenu(null)
+  }
+
   /* Ouverture au survol avec une temporisation à la fermeture : sans ce délai, le
      menu se referme dès que le curseur traverse le vide de quelques pixels entre le
      bouton et le panneau — un défaut classique et très irritant. */
@@ -113,71 +150,41 @@ export function NavBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/95 backdrop-blur">
-        {/*
-          `relative` porte l'ancrage du menu de l'en-tête, et il doit être ICI.
+      {/* `data-site-header` : point d'ancrage STABLE pour les barres qui doivent se
+          poser juste en dessous — aujourd'hui la barre d'identité collante des fiches
+          d'actif. Un attribut plutôt qu'un sélecteur de classe : `header.sticky`
+          marcherait jusqu'au jour où quelqu'un remplacerait `sticky` par autre chose,
+          et la barre se glisserait alors silencieusement sous la navigation. */}
+      <header
+        data-site-header
+        className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/95 backdrop-blur"
+      >
+        <div ref={navRef} className="shell-bleed flex h-16 items-center gap-4">
+          {/* GROUPE 1 — logo puis menus, collés à gauche. Les deux `flex-1 basis-0`
+              qui encadraient la navigation ont disparu : ils servaient à la poser sur
+              l'axe exact de la page, ce qui n'est plus l'objectif. */}
+          <Link
+            href="/"
+            className="flex shrink-0 items-center text-ink transition-opacity hover:opacity-80"
+            aria-label={`${fr.site.name} — ${fr.site.tagline}`}
+          >
+            {/*
+              UN SEUL DESSIN, TEINTÉ PAR L'ENCRE DU THÈME.
 
-          Posé sur le `<header>`, qui s'étend sur toute la largeur, le tiroir se collait
-          au bord droit de l'écran — donc à plusieurs centaines de pixels du bouton qui
-          l'ouvre, sur un écran large. Ancré au conteneur centré, il tombe sous son
-          bouton quelle que soit la largeur.
-        */}
-        <div
-          ref={navRef}
-          className="relative mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-4 px-4"
-        >
-          {/* `flex-1 basis-0` sur les deux groupes latéraux pour qu'ils partagent
-              l'espace à parts strictement égales : c'est la condition pour que la
-              navigation tombe sur l'axe exact de la page. Avec un simple
-              `justify-between`, le groupe de droite étant plus étroit que le logo,
-              les menus se retrouvaient décalés de 27 pixels vers la gauche (mesuré). */}
-          <div className="flex flex-1 basis-0 items-center">
-            <Link
-              href="/"
-              className="flex shrink-0 items-center text-ink transition-opacity hover:opacity-80"
-              aria-label={`${fr.site.name} — ${fr.site.tagline}`}
-            >
-              {/*
-                Image RÉELLE, et non plus masque CSS.
+              Deux PNG se relayaient ici, l'un masqué par l'autre selon le thème. Ce
+              montage répondait à une contrainte du logo précédent, qui mêlait une
+              fleur en dégradé rose-violet à un mot quasi noir : l'inverser aurait
+              blanchi le mot mais fait virer la fleur au vert.
 
-                Le logo précédent était une silhouette monochrome : le masque le
-                colorait en `currentColor`, ce qui le faisait suivre le thème sans
-                second fichier. `logo2.svg` ne peut pas être traité ainsi — c'est un
-                dessin tracé qui mêle des aplats quasi noirs (259 chemins) et quasi
-                blancs (117), et un masque, qui ne lit que la silhouette, l'écraserait
-                en une seule teinte et le rendrait méconnaissable.
+              Le logo actuel est monochrome. Un tracé qui prend `currentColor` suit
+              donc l'encre sans qu'aucune variante n'ait à exister — et sans qu'une
+              image soit chargée pour rien dans le thème qui ne l'affiche pas.
 
-                `dark:invert` règle le seul vrai problème que pose ce fichier : le
-                logotype est dessiné en sombre pour un fond blanc, et il disparaissait
-                presque entièrement sur l'ardoise du thème sombre (vérifié à l'écran).
-                L'inversion est ici EXACTE et non approchée — le fichier ne contient
-                aucune couleur saturée, ses 382 aplats sont tous en niveaux de gris
-                (vérifié : aucun dont les canaux R, G et B s'écartent de plus de 12).
-                Inverser une image en gris ne fait que permuter le noir et le blanc,
-                sans dérive de teinte. Sur un logo coloré, ce serait à proscrire.
-
-                Le `viewBox` du fichier a été RECADRÉ sur le dessin. La zone de dessin
-                d'origine (1152×767) n'était remplie qu'à 32 % : le logotype, mesuré à
-                917×310, flottait avec 28 % de marge au-dessus de lui. Affiché à
-                hauteur d'en-tête, il se réduisait donc à une vignette illisible. Le
-                `viewBox` ramené à `99 206 933 326` cadre le dessin, ce qui lui rend
-                sa largeur utile sans toucher à un seul chemin.
-
-                Dimensions écrites en dur : sans elles, le navigateur ne réserve pas
-                la place du logo avant son chargement et l'en-tête tressaute au
-                premier rendu (décalage de mise en page, pénalisé au §9). 92×32
-                respecte le rapport 933:326 du cadrage.
-              */}
-              {/* eslint-disable-next-line @next/next/no-img-element -- SVG local : l'optimiseur de Next ne traite pas ce format */}
-              <img
-                src="/brand/logo2.svg"
-                alt={fr.site.name}
-                width={92}
-                height={32}
-                className="h-8 w-[92px] shrink-0 dark:invert"
-              />
-            </Link>
-          </div>
+              La hauteur seule est fixée : la largeur découle du `viewBox`, ce qui
+              interdit toute déformation. Voir components/BrandMark.tsx.
+            */}
+            <ZenkuuWordmark className="h-7 w-auto shrink-0" />
+          </Link>
 
           <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 lg:flex">
             {NAV_MENUS.map((menu) => (
@@ -193,36 +200,56 @@ export function NavBar() {
             ))}
           </nav>
 
-          <div className="flex flex-1 basis-0 items-center justify-end gap-2">
+          {/*
+            Le SECOND GROUPE a disparu, et le filet qui le précédait avec lui.
+
+            Il portait trois raccourcis — Heatmap, Screener, Sentiment — dont les trois
+            destinations figurent déjà dans les menus ci-dessus. Le filet ne survit pas
+            au groupe qu'il séparait : un trait entre les menus et les actions ne
+            sépare plus rien, il se lit comme une erreur de rendu.
+
+            Il ne reste donc que deux groupes, et `ml-auto` suffit à les tenir aux deux
+            bords. Voir content/navigation.ts pour le motif du retrait.
+          */}
+
+          {/*
+            GROUPE 2 — actions, rejetées à droite par `ml-auto`.
+
+            `relative` est ICI, et l'endroit compte. Il portait auparavant sur le
+            conteneur de la barre, alors borné à 1240px : posé sur le `<header>`
+            pleine largeur, le tiroir se collait au bord droit de l'écran, donc à
+            plusieurs centaines de pixels du bouton qui l'ouvre. Or ce conteneur est
+            DÉSORMAIS pleine largeur lui aussi — l'ancienne parade ne protégeait plus
+            de rien. Ancré au groupe qui contient le bouton, le tiroir tombe sous lui
+            quelle que soit la largeur de la fenêtre.
+          */}
+          {/*
+            Quatre éléments, dans l'ordre de lecture : recherche, offre, session,
+            réglages. Le tiroir hamburger a été DÉMONTÉ — il portait trois sujets sans
+            rapport (compte, réglages, navigation repliée) derrière une seule icône
+            muette, ce qui obligeait à l'ouvrir pour savoir ce qu'il contenait.
+            Chaque bouton annonce désormais ce qu'il fait.
+          */}
+          <div className="relative ml-auto flex items-center gap-2">
             <SearchTrigger onOpen={() => setSearchOpen(true)} />
 
+            {/* S'efface de lui-même pour un abonné, et sans boutique configurée. */}
+            <UpgradeButton />
+
+            {/* Hors session seulement — `AccountMenu` prend le relais une fois connecté. */}
             <AuthButtons onOpen={setAuthMode} />
 
-            {/* Un seul bouton de menu, à toutes les tailles : il porte le compte et
-                les réglages partout, et y ajoute la navigation sous le seuil où la
-                barre de menus est masquée. La roue dentée qui doublait ce tiroir a
-                disparu — deux icônes voisines pour deux tiroirs, sans que rien
-                n'indique lequel contient quoi. */}
-            <button
-              type="button"
-              className="flex h-9 w-9 shrink-0 items-center justify-center border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
-              aria-label={fr.nav.openMenu}
-              aria-expanded={menuOpen}
-              aria-haspopup="menu"
-              onClick={() => setMenuOpen((value) => !value)}
-            >
-              <Menu className="h-4 w-4" aria-hidden="true" />
-            </button>
+            {/*
+              Les deux se relaient sans jamais coexister : chacun rend `null` dans
+              l'état de session qui ne le concerne pas. La décision vit dans les
+              composants et non ici, parce qu'elle exige `useUser()` — un hook qui
+              lève sans fournisseur Clerk, et que cette barre ne peut donc pas appeler
+              (voir l'en-tête d'`AuthButtons`).
+            */}
+            <SettingsMenu onOpenPreference={setPreferenceTab} />
+            <AccountMenu onOpenPreference={setPreferenceTab} />
           </div>
-
-          <HeaderMenu
-            open={menuOpen}
-            onClose={closeMenu}
-            onOpenAuth={setAuthMode}
-            onOpenPreference={setPreferenceTab}
-          />
         </div>
-
       </header>
 
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
@@ -246,7 +273,12 @@ interface DropdownMenuProps {
 }
 
 function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: DropdownMenuProps) {
+  const fr = useContent()
   const panelId = `menu-${menu.label.toLowerCase().replace(/\W+/g, '-')}`
+
+  /* Le panneau survit à sa propre fermeture : `mounted` reste vrai pendant la
+     disparition, le temps que la transition se joue. Voir components/nav/presence.ts. */
+  const { state, mounted, onTransitionEnd } = usePresence(isOpen)
 
   return (
     <div className="relative" onMouseEnter={onOpen} onMouseLeave={onClose}>
@@ -268,8 +300,34 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
         />
       </button>
 
-      {isOpen ? (
-        <div id={panelId} className="absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-2">
+      {mounted ? (
+        <div
+          id={panelId}
+          data-state={state}
+          onTransitionEnd={onTransitionEnd}
+          /*
+           * LA FERMETURE EST POSÉE ICI, SUR LE PANNEAU, ET PLUS SUR CHAQUE ENTRÉE.
+           *
+           * Elle était recâblée à la main sur le `onClick` de chaque lien. Le tiroir
+           * se refermait donc tant que toutes les entrées étaient des liens ordinaires
+           * qui n'oubliaient pas le rappel — deux conditions qu'aucun code ne
+           * garantissait. Les entrées `ready: false` sont d'ailleurs des `<span>` SANS
+           * `onClick` : cliquer l'une d'elles laissait le panneau ouvert, et comme il
+           * ne se ferme sinon qu'au départ du curseur, il fallait repasser la souris
+           * dessus pour s'en débarrasser.
+           *
+           * Un clic sur le panneau signifie « j'ai choisi » quelle que soit l'entrée
+           * touchée : la règle vaut donc pour le panneau entier. Elle survit à l'ajout
+           * d'une entrée d'un genre nouveau — un lien externe, un bouton qui ouvre une
+           * fenêtre — sans que personne n'ait à y penser.
+           *
+           * `onClick` et non `onPointerDown` : la navigation part du clic, et fermer
+           * dès l'enfoncement retirerait le lien de sous le doigt avant qu'il ne soit
+           * relâché.
+           */
+          onClick={onNavigate}
+          className="menu-panel absolute left-1/2 top-full z-50 ml-[-10rem] w-80 pt-2"
+        >
           <div className="overflow-hidden rounded-card border border-border-subtle bg-overlay p-1.5 shadow-overlay">
             {menu.sections.map((section, sectionIndex) => (
               <div key={section.label ?? sectionIndex}>
@@ -292,9 +350,11 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
                     return (
                       <li key={`${section.label ?? ''}-${item.label}`}>
                         {item.ready && item.href ? (
+                          // Pas de `onClick` ici : le panneau ferme pour tout le monde,
+                          // voir son en-tête. Le remettre créerait une seconde source
+                          // de vérité — celle qui manquait aux entrées d'un autre genre.
                           <Link
                             href={item.href}
-                            onClick={onNavigate}
                             className="group flex items-start gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-surface-muted"
                           >
                             <Icon

@@ -1,9 +1,10 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { DataResult, MarketCategory, NewsItem, SentimentIndex } from '@zenith/data'
-import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenith/ui'
+import type { DataResult, MarketCategory, NewsItem, SentimentIndex } from '@zenkuu/data'
+import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
-import { fr } from '@/content/fr'
+import type { Content } from '@/content/locales'
+import { getContent } from '@/lib/content'
 
 /**
  * Narratifs du jour — équivalent du panneau « Narratives Today » de CoinGecko.
@@ -13,7 +14,8 @@ import { fr } from '@/content/fr'
  * cosmétique : sans lui, le panneau afficherait en permanence des paniers minuscules
  * à +300 %, ce qui ne renseigne en rien sur l'état du marché.
  */
-export function NarrativesPanel({ result }: { result: DataResult<MarketCategory[]> }) {
+export async function NarrativesPanel({ result }: { result: DataResult<MarketCategory[]> }) {
+  const fr = await getContent()
   return (
     <Card>
       <CardHeader title={fr.home.narrativesTitle} />
@@ -60,7 +62,8 @@ export function NarrativesPanel({ result }: { result: DataResult<MarketCategory[
  * RSS sont publiés pour annoncer les articles, pas pour permettre de les republier :
  * reprendre le texte intégral dépasserait ce que la syndication autorise.
  */
-export function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) {
+export async function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) {
+  const fr = await getContent()
   return (
     <Card>
       <CardHeader title={fr.home.newsTitle} />
@@ -108,7 +111,8 @@ export function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) {
  * coup d'œil la position sur l'échelle 0–100, ce qu'une barre linéaire fait moins
  * bien pour une valeur sans unité.
  */
-export function SentimentPanel({ result }: { result: DataResult<SentimentIndex> }) {
+export async function SentimentPanel({ result }: { result: DataResult<SentimentIndex> }) {
+  const fr = await getContent()
   if (!result.ok) {
     return (
       <Card>
@@ -119,7 +123,7 @@ export function SentimentPanel({ result }: { result: DataResult<SentimentIndex> 
   }
 
   const { value, previousValue, updatedAt } = result.data
-  const label = classify(value)
+  const label = classify(value, fr.sentiment.scale)
   const tone = value < 45 ? 'text-down' : value > 55 ? 'text-up' : 'text-ink-muted'
 
   // Demi-cercle de 180°, orienté de la peur (gauche) à l'avidité (droite).
@@ -135,7 +139,7 @@ export function SentimentPanel({ result }: { result: DataResult<SentimentIndex> 
       <div className="flex flex-col items-center">
         <svg viewBox="0 0 120 72" width="160" height="96" role="img" aria-label={`${value} sur 100, ${label}`}>
           <defs>
-            <linearGradient id="zenith-fng" x1="0" y1="0" x2="1" y2="0">
+            <linearGradient id="zenkuu-fng" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="var(--color-down)" />
               <stop offset="50%" stopColor="var(--color-brand)" />
               <stop offset="100%" stopColor="var(--color-up)" />
@@ -144,7 +148,7 @@ export function SentimentPanel({ result }: { result: DataResult<SentimentIndex> 
           <path
             d="M8 62 A52 52 0 0 1 112 62"
             fill="none"
-            stroke="url(#zenith-fng)"
+            stroke="url(#zenkuu-fng)"
             strokeWidth="8"
             strokeLinecap="round"
             opacity="0.35"
@@ -194,7 +198,16 @@ export function SentimentPanel({ result }: { result: DataResult<SentimentIndex> 
  * ajustement, et deux pages annonceraient alors « Avidité » et « Neutre » pour la
  * même valeur.
  */
-export function classify(value: number): string {
+/**
+ * L'ÉCHELLE est passée en argument, et non lue depuis le dictionnaire.
+ *
+ * Cette fonction est appelée depuis quatre endroits, dont trois en plein JSX
+ * (`{classify(value)}`). La rendre asynchrone pour qu'elle aille chercher elle-même
+ * la traduction aurait imposé de sortir l'appel de son JSX aux trois endroits — pour
+ * un gain nul. L'appelant, lui, dispose déjà du dictionnaire.
+ */
+export function classify(value: number, scale: Content['sentiment']['scale']): string {
+  const fr = { sentiment: { scale } }
   if (value <= 24) return fr.sentiment.scale.extremeFear
   if (value <= 44) return fr.sentiment.scale.fear
   if (value <= 55) return fr.sentiment.scale.neutral
@@ -231,10 +244,10 @@ function relativeTime(iso: string): string {
  * perdrait les trois.
  *
  * Une classe sans source configurée reste visible mais inerte : masquer les classes
- * non couvertes donnerait à croire que ZENITH ne les traite pas, alors que la
+ * non couvertes donnerait à croire que ZENKUU ne les traite pas, alors que la
  * couverture est l'information (§5).
  */
-export function AssetClassChips({
+export async function AssetClassChips({
   items,
   activeHref,
 }: {
@@ -242,6 +255,7 @@ export function AssetClassChips({
   /** `href` de l'entrée en cours, pour marquer l'état actif. */
   activeHref?: string
 }) {
+  const fr = await getContent()
   return (
     <nav aria-label="Filtrer par classe d’actif" className="flex flex-wrap gap-2">
       {items.map((item) =>
@@ -250,7 +264,7 @@ export function AssetClassChips({
             key={item.href}
             href={item.href}
             aria-current={item.href === activeHref ? 'page' : undefined}
-            className={`border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+            className={`rounded-card border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
               item.href === activeHref
                 ? 'border-brand bg-brand text-on-brand'
                 : 'border-border-subtle bg-surface text-ink hover:border-brand hover:text-brand-strong'
@@ -261,7 +275,7 @@ export function AssetClassChips({
         ) : (
           <span
             key={item.href}
-            className="cursor-default border border-dashed border-border-subtle px-3 py-1.5 text-xs text-ink-muted/60"
+            className="cursor-default rounded-card border border-dashed border-border-subtle px-3 py-1.5 text-xs text-ink-muted/60"
             title={fr.nav.soon}
           >
             {item.label}

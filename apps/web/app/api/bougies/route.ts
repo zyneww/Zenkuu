@@ -5,7 +5,7 @@ import {
   SUPPORTED_CURRENCIES,
   getAssetOhlc,
   type AssetClass,
-} from '@zenith/data'
+} from '@zenkuu/data'
 
 /**
  * Bougies OHLC, servies à la bascule vers la vue chandeliers d'une fiche actif.

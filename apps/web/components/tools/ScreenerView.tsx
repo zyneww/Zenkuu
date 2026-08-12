@@ -1,14 +1,19 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, EmptyState } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
+import { ExportMenu } from '@/components/billing/ExportMenu'
+import { ProGate, UpgradeCallout } from '@/components/billing/ProGate'
 import { Money } from '@/components/locale/Money'
+import { SavedScreens } from '@/components/tools/SavedScreens'
 import { assetHref } from '@/lib/asset-routes'
+import { FEATURES } from '@/lib/billing'
+import type { ScreenCriteria } from '@/lib/screen-actions'
 
 /**
  * Filtre multicritère sur l'univers déjà chargé.
@@ -38,6 +43,14 @@ const PRESETS: { id: Preset; label: string; hint: string }[] = [
 const MARKET_CAP_STEPS = [0, 10_000_000, 100_000_000, 1_000_000_000, 10_000_000_000]
 const VOLUME_STEPS = [0, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000]
 
+/** Rotation quotidienne : volume 24 h ÷ capitalisation, en fraction. */
+const TURNOVER_STEPS = [0, 0.01, 0.05, 0.1, 0.25, 0.5]
+
+/** Ramène un indice de curseur dans les bornes de son barème. */
+function clamp(value: number, max: number): number {
+  return Math.min(Math.max(Math.round(value), 0), max)
+}
+
 function compact(value: number): string {
   if (value === 0) return 'aucun'
   return new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 0 }).format(
@@ -52,8 +65,21 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
   const [minChange24h, setMinChange24h] = useState(-100)
   const [query, setQuery] = useState('')
 
+  /*
+   * Critères avancés — offre Pro.
+   *
+   * Leur état vit ICI et non dans le bloc gardé, volontairement. Un lecteur qui
+   * s'abonne, règle ses seuils, puis navigue et revient retrouverait sinon un
+   * formulaire remonté à zéro à chaque démontage du bloc. Leurs valeurs par défaut
+   * sont neutres : sans abonnement, le bloc n'est pas rendu, les seuils restent à
+   * leur valeur d'origine et ne filtrent donc rien.
+   */
+  const [minChange7d, setMinChange7d] = useState(-100)
+  const [minTurnoverIndex, setMinTurnoverIndex] = useState(0)
+
   const minCap = MARKET_CAP_STEPS[minCapIndex] ?? 0
   const minVolume = VOLUME_STEPS[minVolumeIndex] ?? 0
+  const minTurnover = TURNOVER_STEPS[minTurnoverIndex] ?? 0
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -67,6 +93,17 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
       if (minCap > 0 && (asset.marketCap ?? -1) < minCap) return false
       if (minVolume > 0 && (asset.volume24h ?? -1) < minVolume) return false
       if (minChange24h > -100 && (asset.change24h ?? -Infinity) < minChange24h) return false
+      if (minChange7d > -100 && (asset.change7d ?? -Infinity) < minChange7d) return false
+
+      // Rotation = volume 24 h rapporté à la capitalisation. C'est la mesure qui
+      // distingue un gros actif somnolent d'un petit actif très échangé — invisible
+      // sur les deux colonnes prises séparément, d'où sa place parmi les critères
+      // avancés plutôt qu'un troisième curseur de montant.
+      if (minTurnover > 0) {
+        const cap = asset.marketCap ?? 0
+        if (cap <= 0) return false
+        if ((asset.volume24h ?? 0) / cap < minTurnover) return false
+      }
 
       switch (preset) {
         case 'solides':
@@ -84,18 +121,59 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
           return true
       }
     })
-  }, [assets, preset, minCap, minVolume, minChange24h, query])
+  }, [assets, preset, minCap, minVolume, minChange24h, minChange7d, minTurnover, query])
 
   function reset() {
     setPreset('tout')
     setMinCapIndex(0)
     setMinVolumeIndex(0)
     setMinChange24h(-100)
+    setMinChange7d(-100)
+    setMinTurnoverIndex(0)
     setQuery('')
   }
 
+  /*
+   * État courant sous forme sérialisable, pour les écrans enregistrés.
+   *
+   * Il réplique les sept variables d'état plutôt que de les remplacer par un objet
+   * unique. Un objet unique obligerait chaque curseur à recréer tout l'état à chaque
+   * mouvement, ce qui ferait re-rendre le tableau de deux cent cinquante lignes à
+   * chaque pixel de déplacement. Le coût de la réplication est un objet reconstruit
+   * par rendu ; celui de l'inverse serait une interface qui accroche.
+   */
+  const criteria: ScreenCriteria = {
+    preset,
+    minCapIndex,
+    minVolumeIndex,
+    minChange24h,
+    minChange7d,
+    minTurnoverIndex,
+    query,
+  }
+
+  function apply(saved: ScreenCriteria) {
+    // Le préréglage est revalidé contre la liste connue : un écran enregistré avant
+    // qu'un préréglage soit retiré porterait sinon une valeur qui ne filtre rien et
+    // n'allume aucune pastille — un état que le lecteur ne pourrait pas comprendre.
+    const known = PRESETS.some((entry) => entry.id === saved.preset)
+    setPreset(known ? (saved.preset as Preset) : 'tout')
+    setMinCapIndex(clamp(saved.minCapIndex, MARKET_CAP_STEPS.length - 1))
+    setMinVolumeIndex(clamp(saved.minVolumeIndex, VOLUME_STEPS.length - 1))
+    setMinChange24h(saved.minChange24h)
+    setMinChange7d(saved.minChange7d)
+    setMinTurnoverIndex(clamp(saved.minTurnoverIndex, TURNOVER_STEPS.length - 1))
+    setQuery(saved.query)
+  }
+
   const filtering =
-    preset !== 'tout' || minCapIndex > 0 || minVolumeIndex > 0 || minChange24h > -100 || query !== ''
+    preset !== 'tout' ||
+    minCapIndex > 0 ||
+    minVolumeIndex > 0 ||
+    minChange24h > -100 ||
+    minChange7d > -100 ||
+    minTurnoverIndex > 0 ||
+    query !== ''
 
   return (
     <div className="space-y-5">
@@ -107,7 +185,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             onClick={() => setPreset(entry.id)}
             aria-pressed={preset === entry.id}
             title={entry.hint}
-            className={`border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+            className={`rounded-card border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
               preset === entry.id
                 ? 'border-brand bg-brand text-on-brand'
                 : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
@@ -118,7 +196,17 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         ))}
       </div>
 
-      <div className="grid gap-4 border border-border-subtle bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/*
+        Barre des écrans enregistrés, placée SOUS les préréglages et AU-DESSUS des
+        curseurs. C'est l'ordre de lecture : « un départ rapide », puis « un départ que
+        j'ai moi-même défini », puis le réglage fin. La placer en bas la ferait
+        découvrir après avoir refait à la main ce qu'elle rappelle en un clic.
+      */}
+      <ProGate feature={FEATURES.savedScreens} fallback={null}>
+        <SavedScreens criteria={criteria} onApply={apply} />
+      </ProGate>
+
+      <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Slider
           label="Capitalisation minimale"
           value={minCapIndex}
@@ -160,10 +248,65 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Filtrer…"
-            className="w-full border border-border-subtle bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+            className="w-full rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
           />
         </label>
       </div>
+
+      {/*
+        CRITÈRES AVANCÉS — offre Pro.
+
+        Ce qui les sépare des critères de base n'est pas leur difficulté technique mais
+        leur PUBLIC : la variation à 7 jours et la rotation ne servent qu'à qui suit le
+        marché dans la durée. Le lecteur occasionnel filtre par taille et par variation
+        du jour, et ces deux-là restent gratuits — conformément à l'engagement de la
+        page /tarifs : Pro AJOUTE, il ne reprend rien.
+
+        L'encart de repli est en version compacte : à cet endroit de la page, un pavé
+        publicitaire pleine hauteur entre les filtres et les résultats couperait
+        précisément le geste qu'on est en train de faire.
+      */}
+      <ProGate
+        feature={FEATURES.advancedScreener}
+        fallback={
+          <UpgradeCallout
+            title="Critères avancés : variation 7 jours et rotation"
+            compact
+          />
+        }
+      >
+        <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
+              Variation 7 j minimale
+              <span className="tabular text-ink">
+                {minChange7d <= -100 ? 'aucune' : `${minChange7d} %`}
+              </span>
+            </span>
+            <input
+              type="range"
+              min={-100}
+              max={50}
+              step={5}
+              value={minChange7d}
+              onChange={(event) => setMinChange7d(Number(event.target.value))}
+              className="w-full accent-[var(--color-brand)]"
+            />
+          </label>
+
+          <Slider
+            label="Rotation quotidienne minimale"
+            value={minTurnoverIndex}
+            max={TURNOVER_STEPS.length - 1}
+            onChange={setMinTurnoverIndex}
+            display={
+              minTurnover === 0
+                ? 'aucune'
+                : `${new Intl.NumberFormat('fr-FR', { style: 'percent' }).format(minTurnover)} de la capitalisation`
+            }
+          />
+        </div>
+      </ProGate>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="tabular text-sm text-ink-muted" aria-live="polite">
@@ -171,15 +314,41 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
           {assets.length} retenus
         </p>
 
-        {filtering ? (
-          <button
-            type="button"
-            onClick={reset}
-            className="border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
-          >
-            Réinitialiser les filtres
-          </button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {/*
+            L'export porte sur `rows` ENTIER, pas sur les cent lignes affichées plus
+            bas. C'est tout l'intérêt de la fonction : le tableau plafonne à cent lignes
+            pour ne pas peser sur le rendu, le fichier n'a pas cette contrainte.
+          */}
+          <ProGate feature={FEATURES.exportData} fallback={null}>
+            <ExportMenu
+              filename="zenkuu-screener"
+              sheetName="Screener"
+              rows={rows}
+              columns={[
+                { header: 'Rang', value: (asset) => asset.rank ?? '' },
+                { header: 'Nom', value: (asset) => asset.name },
+                { header: 'Symbole', value: (asset) => asset.symbol.toUpperCase() },
+                { header: 'Devise', value: (asset) => asset.currency },
+                { header: 'Prix', value: (asset) => asset.price ?? '' },
+                { header: 'Variation 24 h (%)', value: (asset) => asset.change24h ?? '' },
+                { header: 'Variation 7 j (%)', value: (asset) => asset.change7d ?? '' },
+                { header: 'Volume 24 h', value: (asset) => asset.volume24h ?? '' },
+                { header: 'Capitalisation', value: (asset) => asset.marketCap ?? '' },
+              ]}
+            />
+          </ProGate>
+
+          {filtering ? (
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+            >
+              Réinitialiser les filtres
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {rows.length === 0 ? (
@@ -189,7 +358,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
           compact
         />
       ) : (
-        <div className="overflow-x-auto border border-border-subtle">
+        <div className="overflow-x-auto rounded-card border border-border-subtle">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <caption className="sr-only">Résultats du filtre</caption>
             <thead>

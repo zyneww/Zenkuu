@@ -52,7 +52,7 @@ export function SettingsPreferences() {
         </p>
       </div>
 
-      <div className="divide-y divide-border-subtle border border-border-subtle">
+      <div className="divide-y divide-border-subtle rounded-card border border-border-subtle">
         <Row
           label="Langue"
           description="Seul le français est traduit à ce jour. Choisir une autre langue enregistre votre préférence sans changer l’interface."
@@ -60,7 +60,7 @@ export function SettingsPreferences() {
           <button
             type="button"
             onClick={() => setTab('language')}
-            className="border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+            className="rounded-card border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
           >
             {LANGUAGE_LABELS[language] ?? 'Français'}
           </button>
@@ -73,7 +73,7 @@ export function SettingsPreferences() {
           <button
             type="button"
             onClick={() => setTab('currency')}
-            className="border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+            className="rounded-card border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
           >
             {currency}
           </button>
@@ -84,7 +84,7 @@ export function SettingsPreferences() {
           description="« Système » suit le réglage de votre appareil, y compris sa bascule automatique le soir."
         >
           <div
-            className="flex items-center gap-0.5 border border-border-subtle p-0.5"
+            className="flex items-center gap-0.5 rounded-card border border-border-subtle p-0.5"
             role="group"
             aria-label="Thème"
           >
@@ -95,7 +95,7 @@ export function SettingsPreferences() {
                 onClick={() => setTheme(entry.value)}
                 aria-pressed={theme === entry.value}
                 title={entry.hint}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+                className={`rounded-sm px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
                   theme === entry.value
                     ? 'bg-brand text-on-brand'
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

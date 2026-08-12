@@ -11,4 +11,5 @@ export {
   formatNumber,
   formatPercent,
   formatRate,
+  formatShare,
 } from './format'

@@ -1,4 +1,4 @@
-import type { MoversPeriod, MoversUniverse } from '@zenith/data'
+import type { MoversPeriod, MoversUniverse } from '@zenkuu/data'
 
 /**
  * Libellés des filtres de « mouvements ».

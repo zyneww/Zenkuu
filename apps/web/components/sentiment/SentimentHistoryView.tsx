@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-import type { SentimentPoint } from '@zenith/data'
+import type { SentimentPoint } from '@zenkuu/data'
 
 import { SentimentChart } from '@/components/sentiment/SentimentChart'
 
@@ -59,7 +59,7 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
               type="button"
               onClick={() => setDays(range.days)}
               aria-pressed={days === range.days}
-              className={`tabular rounded-[0.5rem] px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`tabular rounded-none px-2.5 py-1 text-xs font-medium transition-colors ${
                 days === range.days
                   ? 'bg-brand text-on-brand'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

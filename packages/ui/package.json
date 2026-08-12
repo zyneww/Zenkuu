@@ -1,5 +1,5 @@
 {
-  "name": "@zenith/ui",
+  "name": "@zenkuu/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,8 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
-    "@zenith/config": "workspace:*",
+    "@zenkuu/config": "workspace:*",
+    "@zenkuu/data": "workspace:*",
     "react": "^19.2.8",
     "typescript": "^5.9.3"
   }

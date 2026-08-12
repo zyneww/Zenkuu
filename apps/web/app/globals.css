@@ -11,7 +11,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Design system ZENITH (§3.1, §7)
+   Design system ZENKUU (§3.1, §7)
    Inter · rayon 12px · échelle 4px.
 
    Ces jetons sont la SEULE définition des couleurs du produit. Aucun composant
@@ -47,37 +47,102 @@
      Un composant qui a besoin d'être délimité doit porter `border`. C'est aussi
      pourquoi `surface-muted` existe encore — il reste le seul ton qui marque une
      différence, réservé aux survols de ligne et aux bandes de contraste.
+
+     ── L'EXCEPTION, ET POURQUOI ELLE EST UN JETON À PART ──────────────────────
+
+     `--color-panel` ouvre un SECOND plan, au-dessus du canvas. Il ne remplace pas
+     la surface unique : il la borne. Le besoin est venu des fiches d'actif, où
+     une colonne de dix blocs de chiffres empilés doit se lire comme dix objets
+     distincts — et où le filet seul n'y suffit plus. Sur une page qui porte trois
+     cartes, un filet délimite ; sur une page qui en porte quinze, quinze filets
+     font une grille de tableur, exactement ce que la note sur `border-subtle`
+     redoute plus bas.
+
+     Le jeton est SÉPARÉ de `surface` au lieu d'être obtenu en écartant `canvas` et
+     `surface`, et ce n'est pas un détail d'implémentation : 124 blocs du site
+     portent aujourd'hui `bg-surface` en comptant sur son égalité avec le canvas.
+     Les élever tous d'un coup n'aurait pas été une décision de design, mais un
+     effet de bord. Un composant réclame le second plan en le nommant.
+     ─────────────────────────────────────────────────────────────────────────── */
+  /* ───────────────────────────────────────────────────────────────────────────
+     THÈME CLAIR — celui de CoinGecko, relevé au navigateur.
+
+     Les valeurs ci-dessous ne sont pas inspirées, elles sont MESURÉES sur
+     coingecko.com/en/coins/solana en mode clair, par recensement des couleurs
+     réellement calculées sur la page. Elles remplacent une gamme de blancs
+     légèrement chauds (#faf8f9 et suivants) qui accompagnait le magenta sakura de
+     l'ancien logo — teinte qui n'existe plus.
+
+     Le blanc redevient donc PUR. La justification du blanc chaud tenait à une
+     symétrie avec un noir chaud en thème sombre ; le thème sombre passe au noir
+     neutre de Token Terminal, et l'argument tombe avec lui.
      ─────────────────────────────────────────────────────────────────────────── */
   --color-canvas: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-muted: #f4f4f5;
-  --color-border-subtle: #e4e4e7;
+  --color-panel: #ffffff;
+  /* Le gris de CoinGecko — de loin son aplat le plus fréquent : en-têtes de
+     tableau, survols de ligne, bandes de contraste. */
+  --color-surface-muted: #eff2f5;
+  /* Filet à 1,24:1 sur le blanc. CoinGecko trace ses séparateurs de tableau en
+     #eff2f5, soit 1,09:1 — presque rien. Ce serait tenable chez eux, où les blocs
+     sont posés sur des fonds gris ; ici les cartes n'existent QUE par leur filet
+     (voir la note sur la surface unique ci-dessus), et un filet à 1,09:1 les
+     ferait disparaître. On retient donc l'autre valeur mesurée sur leur page,
+     celle de leur en-tête. */
+  --color-border-subtle: #e5e7eb;
 
-  /* Texte — contrastes mesurés sur --color-canvas :
-     ink 18.1:1 · ink-muted 7.0:1 · les deux bien au-delà du seuil AA de 4.5:1 (§9).
-     Neutres NEUTRES et non bleutés : sous une grammaire à filets, une teinte
-     froide dans le gris fait paraître les filets sales. */
-  --color-ink: #09090b;
-  --color-ink-muted: #52525b;
+  /* Texte — les deux teintes les plus employées de leur page, dans leurs rôles :
+     #0f172a pour le titre et les chiffres, #64748b pour tout le secondaire.
+     Contrastes sur le blanc : ink 17,85:1 · ink-muted 4,76:1. Le second est juste
+     au-dessus du seuil AA de 4,5:1 (§9) — c'est serré, et c'est le prix de la
+     ressemblance ; il ne porte que du texte secondaire, jamais une valeur. */
+  --color-ink: #0f172a;
+  --color-ink-muted: #64748b;
 
-  /* Azur de marque. Changement structurel par rapport à l'ancien orange : celui-ci
-     imposait DEUX tons parce qu'aucune nuance ne passait à la fois le seuil 3:1 des
-     composants et le seuil 4.5:1 du texte. L'azur passe les deux d'un coup —
-       --color-brand (5.7:1)        aplats, bordures, focus, ET texte de lien.
-                                    Sur fond de bouton, 5.9:1 avec du texte blanc.
-       --color-brand-strong (7.2:1) survol et emphase, quand il faut assombrir.
-     Un seul jeton suffirait donc ; le second est conservé pour les états. */
-  --color-brand: #0369a1;
-  --color-brand-strong: #075985;
-  --color-brand-soft: #e0f2fe;
+  /* ───────────────────────────────────────────────────────────────────────────
+     BLEU DE MARQUE — la teinte du logo, ramenée aux seuils de contraste.
+
+     Le magenta qui occupait cette place avait été mesuré sur le logo PRÉCÉDENT, un
+     sakura rose-violet. Ce logo n'existe plus : la marque est désormais un
+     monogramme ZK monochrome, et un accent magenta n'aurait plus rien à quoi se
+     raccrocher — exactement le défaut que le magenta était venu corriger du temps
+     de l'azur.
+
+     La méthode, elle, ne change pas, parce que c'est elle qui vaut. La teinte est
+     MESURÉE et non choisie à l'œil : moyenne des pixels du dessin, lus là où le
+     masque déclare du plein. Résultat #1e2025, soit la teinte 223° à 10 % de
+     saturation et 13 % de clarté — un quasi-noir froid.
+
+     Une couleur d'interface ne peut pas rester à ces valeurs. À 10 % de saturation
+     elle se lit comme un gris, et à 13 % de clarté elle est INDISCERNABLE de l'encre
+     (#0f172a) : un lien de la couleur du texte qui l'entoure n'est plus un lien.
+     Saturation et clarté montent donc du minimum nécessaire, la TEINTE restant
+     rigoureusement celle du logo :
+       --color-brand (5,58:1)        aplats, bordures, focus, ET texte de lien.
+                                     Le contraste étant symétrique vis-à-vis du
+                                     blanc, du texte blanc posé dessus donne le
+                                     même 5,58:1 — un seul réglage sert les deux.
+       --color-brand-strong (7,22:1) survol et emphase, quand il faut assombrir.
+
+     Ce que ce changement ne touche PAS : la palette de DONNÉES plus bas. Elle reste
+     multicolore et indépendante, pour la raison qu'elle documente elle-même — une
+     série de graphique n'est pas un élément d'interface, et les teindre toutes en
+     bleu rendrait deux courbes voisines indiscernables. `--color-data-1` est
+     d'ailleurs proche de la marque : c'est un voisinage à surveiller, pas un
+     conflit, les deux ne se rencontrant jamais sur le même objet.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-brand: #3d63c2;
+  --color-brand-strong: #3353a3;
+  --color-brand-soft: #ebeffa;
 
   /* Couleur du TEXTE posé SUR un aplat de marque. Ce jeton existe parce qu'un
      `text-white` écrit en dur dans un bouton ne peut pas être correct dans les deux
-     thèmes : l'azur est sombre en thème clair (blanc dessus : 5,93:1) et lumineux en
-     thème sombre (blanc dessus : 2,77:1 — sous le seuil AA). La couleur du texte doit
-     donc basculer avec le fond, et c'est précisément ce qu'un jeton sait faire.
-     Le défaut existait déjà avec l'orange, où le thème sombre posait du blanc sur un
-     #fdba74 très clair ; il passait inaperçu faute de boutons pleins fréquents. */
+     thèmes : le magenta est sombre en thème clair (blanc dessus : 6,16:1) et le rose
+     lumineux en thème sombre (blanc dessus : 2,4:1 — sous le seuil AA). La couleur du
+     texte doit donc basculer avec le fond, et c'est précisément ce qu'un jeton sait
+     faire. Le défaut existait déjà du temps de l'orange, où le thème sombre posait du
+     blanc sur un #fdba74 très clair ; il passait inaperçu faute de boutons pleins
+     fréquents. */
   --color-on-brand: #ffffff;
 
   /* Or solaire — DÉCOR UNIQUEMENT. À 2.05:1 sur le canvas (mesuré dans le
@@ -98,23 +163,38 @@
   --color-accent-strong: #b45309;
   --color-accent-soft: #fef3c7;
 
-  /* Couleurs sémantiques de marché. Nuances 700 délibérément : un vert 500 tombe
-     sous 3:1 sur fond clair et devient illisible pour une part des lecteurs.
-     Contrastes sur le nouveau canvas : hausse 4.97:1 · baisse 6.18:1.
-     La couleur ne porte jamais l'information seule — signe et chevron l'accompagnent. */
-  --color-up: #047857;
-  --color-up-soft: #ecfdf5;
-  --color-down: #b91c1c;
-  --color-down-soft: #fef2f2;
+  /* ───────────────────────────────────────────────────────────────────────────
+     HAUSSE ET BAISSE — les valeurs EXACTES de CoinGecko, y compris leur défaut.
+
+     Ces deux teintes remplacent des nuances 700 (#047857 / #b91c1c) choisies pour
+     franchir le seuil AA sur fond clair. Le vert de CoinGecko le franchit aussi
+     (#00a83e, 4,53:1). Son rouge NON : #ff3a33 donne 3,44:1 sur blanc, sous les
+     4,5:1 exigés pour du texte.
+
+     L'écart est ASSUMÉ et il faut dire à quelles conditions. La couleur ne porte
+     jamais l'information seule sur ce site : un chevron et un signe accompagnent
+     systématiquement la valeur, et c'est cette redondance — pas le contraste de la
+     teinte — qui rend une baisse lisible pour un lecteur daltonien. Le rouge reste
+     donc réservé à des CHIFFRES accompagnés de leur signe ; il ne doit jamais
+     porter seul une phrase, un libellé ou un message d'erreur, où le seuil
+     s'appliquerait pleinement.
+
+     Le fond teinté de hausse est mesuré chez eux aussi ; celui de baisse en est le
+     pendant, leur page n'en exposant pas au moment du relevé.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-up: #00a83e;
+  --color-up-soft: #e4fae3;
+  --color-down: #ff3a33;
+  --color-down-soft: #ffecea;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Palette de DONNÉES — distincte de la palette d'interface.
 
      Ces six teintes servent EXCLUSIVEMENT à distinguer des séries dans un
      graphique ou à identifier une carte de métrique. L'interface — liens, boutons,
-     anneau de focus — reste azur, et c'est ce qui garde l'identité lisible : un
-     lecteur doit pouvoir dire « la couleur du site », ce qui devient impossible si
-     chaque bloc porte la sienne.
+     anneau de focus — garde le magenta de marque, et c'est ce qui rend l'identité
+     lisible : un lecteur doit pouvoir dire « la couleur du site », ce qui devient
+     impossible si chaque bloc porte la sienne.
 
      Elles sont ordonnées par distance perceptuelle : deux séries voisines dans un
      graphique prennent les deux premières, qui sont les plus dissemblables. Un
@@ -142,19 +222,37 @@
   --color-data-6: #4d7c0f;
 
   /* ───────────────────────────────────────────────────────────────────────────
-     RAYON ZÉRO — second pilier de la grammaire, avec la surface unique.
+     RAYON — second pilier de la grammaire, avec la surface unique.
 
-     Les angles vifs sont ce qui sépare visuellement un instrument de lecture d'une
-     application grand public. Un rayon arrondi adoucit et rapproche du bouton
-     tactile ; un angle vif aligne les blocs sur une grille et laisse la donnée
-     seule porter l'attention.
+     Choix RENVERSÉ, et il faut le dire nettement parce que ce bloc soutenait
+     exactement l'inverse : les angles étaient VIFS partout, toute l'échelle
+     ramenée à 0, au motif qu'un angle à 90° distingue l'instrument de lecture de
+     l'application de bureau. La conviction n'était pas fausse, elle était
+     incomplète. Elle décrivait une page à SURFACE UNIQUE, où rien ne se détache
+     et où le coin n'a donc rien à adoucir. Dès qu'on empile des panneaux élevés
+     — ce que fait désormais la fiche d'actif — l'angle vif produit l'effet
+     contraire de celui qu'on cherchait : quatre pointes noires par carte, et une
+     colonne de cartes se lit comme une pile de fenêtres.
 
-     `--radius-card` est conservé comme NOM pour ne pas avoir à réécrire les
-     centaines de `rounded-card` du projet — seule sa valeur change. C'est tout
-     l'intérêt d'avoir centralisé la mise en forme dans des jetons : un changement
-     de cette ampleur tient en une ligne.
+     8px : c'est la valeur relevée au navigateur sur la référence de cette
+     refonte, et c'est le cran juste : assez pour que le coin cesse de piquer,
+     trop peu pour évoquer le bouton d'application mobile.
+
+     `--radius-card` garde son NOM — les centaines de `rounded-card` du projet
+     suivent sans être retouchées. C'est tout l'intérêt d'avoir centralisé la
+     mise en forme dans des jetons : un changement de cette ampleur tient en
+     quelques lignes.
+
+     On écrase aussi l'échelle par défaut de Tailwind (--radius, --radius-xs à
+     --radius-4xl) pour que le moindre `rounded`/`rounded-md` isolé dans le code
+     suive la même règle sans avoir à être traqué composant par composant.
      ─────────────────────────────────────────────────────────────────────────── */
-  --radius-card: 0px;
+  --radius-card: 8px;
+  --radius: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
+  --radius-4xl: 8px;
+  --radius-md: 8px;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Système repris de kraken/DESIGN.md.
@@ -164,7 +262,7 @@
      et le near-black #101114 sont l'identité d'une marque tierce : les reprendre
      serait du plagiat, alors que reprendre une échelle de rayons ne l'est pas —
      c'est une convention de mise en forme. Les couleurs ci-dessus sont propres
-     à ZENITH (§7).
+     à ZENKUU (§7).
 
      Ce template REMPLACE la grammaire « coinbase » appliquée précédemment, sur
      deux points où les deux se contredisaient frontalement et où aucune
@@ -174,20 +272,51 @@
                                et non --radius-pill.
      ─────────────────────────────────────────────────────────────────────────── */
 
-  /* Échelle de rayons RAMENÉE À ZÉRO, sauf la pilule.
-     L'échelle graduée de kraken/DESIGN.md est neutralisée : sous une grammaire à
-     angles vifs, un bloc arrondi au milieu de blocs carrés ne se lit pas comme une
-     variante mais comme une erreur. Les noms survivent pour ne pas réécrire le
-     projet ; leurs valeurs sont nulles. */
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  /* SEULE EXCEPTION conservée. Une pastille de filtre ou d'état est un objet de
-     nature différente d'un bloc de contenu : sa forme dit « je suis un jeton
-     cliquable », et c'est précisément le contraste avec les angles vifs alentour
-     qui le signale. La référence fait le même choix pour ses badges. */
-  --radius-pill: 100px;
+  /* Échelle de rayons RÉTABLIE, reprise de kraken/DESIGN.md : progression douce
+     du plus petit jeton (xs) au plus grand conteneur (xl), cohérente avec
+     --radius-card ci-dessus. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  /* ───────────────────────────────────────────────────────────────────────────
+     SURFACES DENSES — angle vif, et c'est une TROISIÈME position, pas un retour
+     en arrière.
+
+     Le bloc ci-dessus raconte un aller-retour : angles vifs partout, puis 8px
+     partout. Les deux avaient tort pour la même raison — ils traitaient toutes
+     les surfaces comme une seule famille.
+
+     Il y en a deux, et la référence de cette refonte le montre nettement : chez
+     OKX, les CARTES sont arrondies et les INSTRUMENTS sont carrés. Ce n'est pas
+     un caprice graphique, c'est une distinction de nature :
+
+       · une CARTE est un objet posé sur la page. On la prend en entier, elle a
+         un début et une fin, et son coin adouci dit « ceci est un bloc ». Cartes
+         éditoriales, panneaux de groupe, encadrés d'absence, encadrés d'alerte.
+
+       · un INSTRUMENT est une surface qu'on parcourt. Barre d'outils, menu
+         déroulant, carnet d'ordres, tableau de cotations, calendrier, infobulle
+         de graphique. Il est fait de rangées et de colonnes qui doivent
+         S'ABOUTER : entre deux lignes de carnet ou deux cellules de tableau,
+         chaque arrondi creuse une encoche et casse la continuité de la colonne.
+         Le rayon y coûte de la lisibilité sans rien apporter.
+
+     Le test qui tranche : « est-ce que deux exemplaires de cette surface se
+     touchent ? » Si oui, angle vif.
+
+     Zéro et non 2px : un rayon d'un ou deux pixels ne se lit pas comme un choix,
+     il se lit comme un défaut de rendu — l'angle paraît sale plutôt qu'adouci.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --radius-dense: 0px;
+
+  /* Pilule RÉTABLIE. Elle avait été abandonnée avec les angles vifs, par cohérence ;
+     elle redevient nécessaire pour la même raison. Une pastille de catégorie
+     (« DeFi », « Layer 1 ») et une jauge d'amplitude ne sont pas des conteneurs :
+     ce sont des formes closes dont l'arrondi complet EST la lecture — la première
+     dit « étiquette » et non « bouton », la seconde dit « cette barre a une fin ».
+     Un rayon de 8px sur une barre de 6px de haut ne se voit pas. */
+  --radius-pill: 9999px;
 
   /* Rythme éditorial. L'échelle de 4px du §3.1 est conservée ; on ajoute le cran
      de respiration entre bandes de contenu, absent jusqu'ici. */
@@ -199,15 +328,34 @@
      ballet des colonnes à chaque rafraîchissement de prix. */
   --font-mono: var(--font-mono-numeric), ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* Police d'AFFICHAGE, distincte de la police d'interface.
-     kraken/DESIGN.md décrit un système à deux polices — une fonte de marque pour
-     les titres, une fonte produit pour l'interface — et documente IBM Plex Sans
-     comme repli de la première. Sa fonte de marque étant propriétaire, on prend le
-     repli qu'elle désigne elle-même : IBM Plex Sans est libre, et ses formes plus
-     étroites et plus anguleuses que celles d'Inter donnent aux titres une voix
-     distincte du texte courant, ce qui est tout l'objet d'un système à deux fontes.
-     Inter reste la police d'interface. */
-  --font-display: var(--font-display-brand), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Police d'AFFICHAGE — la MÊME famille que l'interface, en graisse 700.
+
+     Elle était jusqu'ici distincte : kraken/DESIGN.md décrit un système à deux
+     polices, une fonte de marque pour les titres et une fonte produit pour
+     l'interface, et la voix d'une page y naît du contraste entre les deux. On fait
+     désormais porter ce contraste par la GRAISSE d'une seule famille — Geist étant
+     variable, toute l'échelle de 100 à 900 vient d'une ressource unique, ce qui
+     rend le dédoublement de familles coûteux sans être plus expressif.
+
+     Le jeton SUBSISTE malgré tout, et ce n'est pas de l'indécision : les quatre
+     classes `.display-*` le consomment. Le supprimer obligerait à les retoucher
+     toutes pour un résultat identique. */
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     ÉCHELLE DE TEXTE — réglée ICI, et surtout pas par `html { font-size }`.
+
+     Tailwind 4 exprime tout son barème d'espacement en `rem` : `p-4`, `gap-6`,
+     `h-16`, `space-y-8`… Passer la racine de 16 à 15px multiplierait donc chaque
+     marge, chaque hauteur et chaque gouttière du site par 0,9375. Ce ne serait pas
+     un réglage typographique mais une réduction silencieuse de toute la grille de
+     4px que le §3.1 définit.
+
+     Ce jeton n'atteint que le texte : l'espacement reste calé sur une racine à
+     16px. Un seul suffit — `--text-sm` vaut déjà 0.875rem (14px) par défaut chez
+     Tailwind, et le redéclarer à sa propre valeur n'aurait rien réglé.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --text-base: 0.9375rem; /* 15px — corps de texte, appliqué à body plus bas */
 
   /* ───────────────────────────────────────────────────────────────────────────
      Couches FLOTTANTES — la seule exception à la surface unique.
@@ -238,6 +386,12 @@
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --duration-state: 150ms;
   --duration-move: 300ms;
+
+  /* Menus déroulants — deux durées ASYMÉTRIQUES, et c'est délibéré : une fermeture
+     aussi lente que l'ouverture donne l'impression que le panneau colle au curseur.
+     Neutralisées elles aussi par `prefers-reduced-motion` plus bas. */
+  --duration-menu-in: 180ms;
+  --duration-menu-out: 120ms;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -258,6 +412,163 @@
    conservés — les huit pages qui les utilisent suivent sans être retouchées.
    ───────────────────────────────────────────────────────────────────────────── */
 @layer components {
+  /* ───────────────────────────────────────────────────────────────────────────
+     COQUE DE PAGE — largeur unique du contenu.
+
+     Remplace trois plafonds contradictoires qui coexistaient : 1240px dans
+     l'en-tête, 1280px dans le contenu, 1120px dans le pied de page. Trois valeurs
+     pour une seule intention, d'où le désalignement visible entre la barre de
+     navigation et le contenu qu'elle surmonte.
+
+     1440px : la largeur relevée sur Token Terminal, notre référence de mise en
+     page. Mesurée sur une capture en 1919px de large, leur contenu court de x=260
+     à x=1655 — soit un conteneur de 1440px centré, moins 24px de marge interne de
+     chaque côté. C'est plus large que les 1280px d'avant, ce qui était la demande,
+     sans aller bord à bord.
+
+     Ne PAS confondre avec `.shell-bleed` ci-dessous : chez Token Terminal comme
+     ici, la barre de navigation traverse tout l'écran alors que le contenu reste
+     centré. Les deux ne s'alignent donc pas, et c'est voulu.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .shell {
+    width: 100%;
+    max-inline-size: 1440px;
+    margin-inline: auto;
+    padding-inline: 24px;
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     BANDE PLEINE LARGEUR — l'en-tête, et rien d'autre pour l'instant.
+
+     Une barre de navigation qui s'arrête à 1440px laisse, sur un grand écran, deux
+     vides de part et d'autre d'un filet qui, lui, traverse : le résultat se lit
+     comme un défaut d'alignement plutôt que comme une intention. D'où la
+     séparation entre la largeur du CONTENU et celle des BANDES.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .shell-bleed {
+    width: 100%;
+    padding-inline: 24px;
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     MESURE DE LECTURE — la seule exception à la pleine largeur.
+
+     Réservée au TEXTE COURANT des pages éditoriales. Au-delà d'environ 90
+     caractères, l'œil ne retrouve plus le début de la ligne suivante en revenant à
+     la marge : c'est une limite physiologique, pas une préférence de mise en page.
+
+     Elle ne s'applique QU'AUX PARAGRAPHES. Titres, images, tableaux et encadrés de
+     ces mêmes pages restent en pleine largeur — les brider ferait un site à deux
+     largeurs, ce qui est précisément ce qu'on vient de supprimer.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .prose-measure {
+    max-inline-size: 75ch;
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     PANNEAU DE MENU DÉROULANT — apparition et disparition.
+
+     L'état est porté par `data-state` et NON par une classe ajoutée au montage. La
+     raison est mécanique : pour qu'une transition se joue, l'état de DÉPART doit
+     avoir été peint avant que celui d'arrivée ne soit appliqué. Une classe ajoutée
+     dans le même cycle que le montage laisse le navigateur regrouper les deux en une
+     seule peinture, et l'animation d'entrée est tout simplement sautée. L'attribut,
+     lui, est présent dès le premier rendu.
+
+     Le démontage effectif est piloté par `usePresence`, qui attend `transitionend` —
+     voir components/nav/presence.ts.
+
+     Le centrage sous le bouton passe par une marge négative et non par
+     `-translate-x-1/2` : cet utilitaire écrit `transform`, la propriété même que ces
+     règles réécrivent en `translateY`. Les deux ne peuvent pas coexister, et le
+     panneau partirait vers la droite dès la première image.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .menu-panel {
+    /* ÉTAT DE DÉPART posé ici, et surtout pas par un `opacity-0` sur l'élément.
+
+       Les COUCHES CSS priment sur la spécificité : `utilities` est déclarée après
+       `components` chez Tailwind 4, si bien que `.opacity-0` bat
+       `.menu-panel[data-state='open']` malgré une spécificité pourtant plus faible.
+       Le panneau restait donc invisible en permanence — vérifié dans le navigateur.
+       Déclaré dans la même couche que les états d'arrivée, l'ordre redevient celui
+       des déclarations. */
+    opacity: 0;
+    transform: translateY(-8px);
+    transition-property: opacity, transform;
+    transition-timing-function: var(--ease-standard);
+  }
+
+  .menu-panel[data-state='open'] {
+    opacity: 1;
+    transform: translateY(0);
+    transition-duration: var(--duration-menu-in);
+  }
+
+  .menu-panel[data-state='closing'] {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition-duration: var(--duration-menu-out);
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     Trait de l'onglet actif — UN SEUL élément pour toute une rangée.
+
+     Sa position et sa largeur sont posées en style en ligne par le composant, qui
+     seul peut les mesurer. Tout le reste est ici, parce que c'est du dessin : la
+     couleur de marque, l'épaisseur, et la durée de déplacement.
+
+     `--duration-move` et non `--duration-state` : ce trait ne change pas d'état,
+     il PARCOURT la rangée d'un onglet à l'autre. Les deux crans sont décrits en
+     tête de ce fichier.
+
+     `transform` plutôt que `left` : la première est composée par le processeur
+     graphique sans repasser par la mise en page, la seconde recalcule la rangée à
+     chaque image. Sur une bande qui peut défiler horizontalement, la différence se
+     voit. Elle impose en revanche de ne PAS poser `left` autrement qu'à zéro —
+     les deux se cumuleraient.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--color-brand);
+    transition-property: transform, width;
+    transition-duration: var(--duration-move);
+    transition-timing-function: var(--ease-standard);
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     Apparition d'une courbe — le tracé se dévoile de la gauche vers la droite.
+
+     C'est le sens de lecture d'une série temporelle : la courbe se construit dans
+     l'ordre où les valeurs sont arrivées. Une simple apparition en fondu dirait
+     seulement « voici un graphique » ; celle-ci donne à voir la FORME avant de la
+     figer.
+
+     `clip-path` et non un tracé animé par `stroke-dasharray` : ce dernier ne
+     fonctionne que sur une ligne, pas sur l'aire remplie sous elle, et il faudrait
+     mesurer la longueur du chemin en JavaScript pour l'amorcer.
+
+     800 ms, comme la référence. Volontairement plus long que les transitions
+     d'interface (150 ms) : un état de bouton doit répondre instantanément, une
+     courbe a le droit de se raconter. Neutralisée par la règle
+     `prefers-reduced-motion` en fin de fichier, qui ramène toute animation à
+     0,01 ms — le tracé apparaît alors d'un coup, entier.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .plot-reveal {
+    animation: plot-reveal 800ms var(--ease-standard) both;
+  }
+
+  @keyframes plot-reveal {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
   /* 48px — titre de page. Le cran « Display Hero » de kraken/DESIGN.md. */
   .display-mega {
     font-family: var(--font-display);
@@ -303,73 +614,106 @@
     line-height: 1.2;
   }
 
-  /* Nombres : police tabulaire et chasse fixe. Complète `.tabular` existant. */
+  /* Nombres : police tabulaire et chasse fixe. Complète `.tabular` existant.
+     La graisse 500 est la MAXIMALE de DM Mono — voir la note de `.tabular`. */
   .numeric {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: 500;
     letter-spacing: -0.01em;
+    font-synthesis-weight: none;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Thème sombre — quasi-noir de tableau de bord.
 
-   L'ardoise bleutée précédente laisse place à un gris NEUTRE très sombre. Trois
-   raisons, dans l'ordre d'importance :
+   Le quasi-noir NEUTRE de Token Terminal. Trois raisons, dans l'ordre d'importance :
 
    1. La surface unique n'est lisible qu'en quasi-noir. Le principe posé plus haut —
       canvas et carte au même ton, structure tracée par un filet — suppose un fond
-      assez sombre pour qu'un filet à 1,6:1 suffise à délimiter. Sur une ardoise
+      assez sombre pour qu'un filet à 1,3:1 suffise à délimiter. Sur une ardoise
       claire, le même filet disparaît et les cartes cessent d'exister.
-   2. Une dominante froide se voit dès qu'on pose des couleurs de données. Six
-      teintes saturées sur un fond bleuté prennent toutes un voile violet ; sur un
-      neutre, chacune reste elle-même.
+   2. Un fond NEUTRE ne dispute son quadrant à aucune couleur de données. Six teintes
+      saturées sur un fond teinté prennent toutes son voile ; sur un neutre, chacune
+      reste elle-même. C'est l'argument qui avait fait choisir un noir chaud contre
+      un noir froid ; #060606 le règle mieux que l'un ou l'autre, en n'ayant aucune
+      dominante du tout.
    3. Le quasi-noir est ce qui distingue un instrument de lecture d'une application
-      de bureau. C'est un choix de registre, cohérent avec les angles vifs.
+      de bureau. C'est un choix de registre.
 
-   `--color-surface-muted` MONTE ici (#161616) au lieu de descendre : sur un
-   quasi-noir, un ton plus sombre encore serait imperceptible.
-
-   Contrastes sur le canvas (#0a0a0a) : ink 19,3:1 · ink-muted 9,7:1 · brand 8,6:1 ·
-   on-brand sur brand 8,6:1 · hausse 10,2:1 · baisse 7,3:1. Tous très au-delà de
+   Contrastes sur le canvas (#060606) : ink 19,9:1 · ink-muted 8,0:1 · brand 7,1:1 ·
+   on-brand sur brand 7,1:1 · hausse 11,4:1 · baisse 8,0:1. Tous très au-delà de
    4,5:1 — c'est le confort que procure un fond aussi sombre.
 
-   `--color-border-subtle` fait exception, à 1,6:1, et c'est délibéré : ce jeton ne
+   `--color-border-subtle` fait exception, à 1,34:1, et c'est délibéré : ce jeton ne
    sert qu'à des séparateurs (filets de tableau, contours de cartes), que les règles
    d'accessibilité n'assujettissent pas au seuil de 3:1 réservé aux composants
    porteurs de sens. Le remonter transformerait la page en grille de tableur.
    ───────────────────────────────────────────────────────────────────────────── */
 .dark {
-  /* SURFACE UNIQUE, ici aussi : canvas et surface sont égaux, et la carte n'existe
-     que par son filet. Le quasi-noir remplace l'ardoise bleutée précédente — un gris
-     neutre et non teinté, parce qu'une dominante froide dans un noir se voit
-     immédiatement dès qu'on y pose des couleurs de données saturées. */
-  --color-canvas: #0a0a0a;
-  --color-surface: #0a0a0a;
-  /* Seul ton qui marque une différence : survols de ligne, bandes de contraste.
-     Il MONTE ici — sur un quasi-noir, descendre encore serait imperceptible. */
-  --color-surface-muted: #161616;
-  /* Filet à 1,6:1 sur le fond. Assez pour tracer une structure, assez peu pour ne
-     pas quadriller l'écran. C'est LUI qui dessine les cartes désormais : le
-     remonter davantage transformerait la page en grille de tableur. */
-  --color-border-subtle: #2e2e2e;
+  /* ───────────────────────────────────────────────────────────────────────────
+     THÈME SOMBRE — celui de Token Terminal, relevé au navigateur.
 
-  --color-ink: #fafafa;
-  /* Remonté (#a8b6c6 → #b3b3b3) et DÉSATURÉ : sur un noir neutre, un gris bleuté
-     tire au violet. Contraste 9,7:1 sur le canvas. */
-  --color-ink-muted: #b3b3b3;
+     Valeurs mesurées sur tokenterminal.com/explorer, par recensement des couleurs
+     réellement calculées sur la page. Elles remplacent un quasi-noir CHAUD
+     (#110d0f) emprunté à Tokenomist.
 
-  /* Sur un quasi-noir, un SEUL ton de marque suffit à nouveau : l'azur lumineux
-     passe à la fois le seuil des composants et celui du texte (8,6:1), ce qui
-     n'était pas le cas sur l'ardoise claire. `brand-strong` est conservé pour les
-     états de survol. */
-  --color-brand: #38bdf8;
-  --color-brand-strong: #7dd3fc;
-  --color-brand-soft: #0c2a3d;
+     LA DOMINANTE CHAUDE ÉTAIT ARGUMENTÉE, et l'argument mérite une réponse plutôt
+     qu'un silence. Il disait : la palette de données compte quatre teintes froides
+     sur six, un fond froid les tire à lui, un fond chaud les en détache. C'est
+     juste. Mais il vaut contre un fond TEINTÉ froid, pas contre un fond NEUTRE :
+     #060606 n'a aucune dominante — rouge, vert et bleu y sont rigoureusement
+     égaux — et ne dispute donc son quadrant à aucune courbe. Le raisonnement ne
+     s'applique pas, il devient sans objet.
 
-  /* Encre TRÈS sombre sur azur lumineux : 8,6:1. */
-  --color-on-brand: #0a0a0a;
+     Le gain, lui, est réel : une dominante chaude ne pouvait pas accompagner un
+     logo froid (223°) sans que l'un fasse paraître l'autre sale.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-canvas: #060606;
+  --color-surface: #060606;
+  /* SECOND PLAN — le ton des panneaux, mesuré chez eux. À 1,10:1 du canvas, il
+     élève BEAUCOUP moins que le #1c1719 précédent (1,35:1), et c'est le parti de
+     la référence : leurs cartes se distinguent d'abord par leur filet, la nuance de
+     fond ne faisant que confirmer. */
+  --color-panel: #0d0d0d;
+  /* Seul ton qui marque une différence SANS élever : survols de ligne, bandes de
+     contraste. Il reste AU-DESSUS de `panel`, sans quoi le survol d'une ligne à
+     l'intérieur d'un panneau serait plus sombre que le panneau qui la contient.
+     Correspond à leur `rgba(245,245,245,.1)` aplati sur le canvas. */
+  --color-surface-muted: #1c1c1c;
+  /* Filet à 1,34:1 sur le fond — sensiblement le rapport retenu jusqu'ici (1,6:1),
+     et #262626 est une valeur mesurée chez eux. Leur filet le plus courant,
+     `rgba(163,163,163,.1)`, tombe à 1,12:1 une fois aplati : tenable sur une page
+     dont les blocs portent aussi un fond, trop faible ici où le filet dessine seul
+     l'essentiel des délimitations (voir la note sur la surface unique). */
+  --color-border-subtle: #262626;
+
+  /* Blanc PUR, comme chez eux : sur un noir neutre, rien ne justifie de teinter
+     l'encre. Le blanc rosé précédent corrigeait la dominante chaude du fond, qui
+     n'existe plus. Contraste 19,9:1 sur le canvas. */
+  --color-ink: #ffffff;
+  /* Leur gris secondaire, de loin le plus employé de leur page. Contraste 8,03:1
+     sur le canvas — au-dessus du seuil AAA de 7:1 tout en restant nettement en
+     retrait de l'encre, ce qui est exactement ce qu'on demande à une seconde voix. */
+  --color-ink-muted: #a3a3a3;
+
+  /* Même teinte qu'en clair (223°, celle du logo), même méthode : on part de la
+     clarté du dessin et l'on s'en écarte du minimum nécessaire — vers le HAUT
+     cette fois, puisque le fond a changé de côté. Un bleu clair là où le thème
+     clair pose un bleu profond : ce sont les deux extrémités d'une même rampe,
+     pas deux couleurs.
+
+     Contrastes sur le canvas : brand 7,14:1 · brand-strong 9,6:1. Le premier passe
+     à la fois le seuil des composants et celui du texte. */
+  --color-brand: #7c98de;
+  --color-brand-strong: #9ab1ea;
+  --color-brand-soft: #151f37;
+
+  /* Encre TRÈS sombre sur bleu lumineux : 7,14:1. Le canvas lui-même, et non un
+     noir arbitraire — un bouton plein doit rendre la couleur du fond, pas une
+     seconde nuance de noir à côté. */
+  --color-on-brand: #060606;
 
   --color-accent: #fbbf24;
   --color-accent-strong: #fcd34d;
@@ -386,21 +730,29 @@
   --color-data-5: #f472b6;
   --color-data-6: #a3e635;
 
-  /* Sémantique de marché. Sur un quasi-noir, les tons vifs redeviennent lisibles
-     sans être remontés à l'extrême : hausse 10,2:1 · baisse 7,3:1 sur le canvas. */
-  --color-up: #22c55e;
-  --color-up-soft: #0d2818;
+  /* Sémantique de marché — les valeurs de Token Terminal, mesurées. Sur un fond
+     aussi sombre, la contrainte de contraste disparaît : hausse 11,4:1 · baisse
+     8,0:1. Le rouge est d'ailleurs le MÊME jeton que celui du thème clair au ton
+     près, ce qui n'est pas un hasard — les deux références partent du même rouge
+     vif et ne divergent que sur la clarté du fond. */
+  --color-up: #34d399;
+  --color-up-soft: #0c2a20;
   --color-down: #f87171;
-  --color-down-soft: #2a1213;
+  --color-down-soft: #2c1516;
 
   /* Couche flottante : ici elle MONTE nettement au-dessus du fond, alors qu'en
      thème clair elle descend à peine. Sur un quasi-noir, c'est la clarté qui dit
      « au-dessus » ; sur du blanc, il n'y a pas de place au-dessus, d'où l'ombre. */
   /* Mesuré : #18181b ne donnait que 1,12:1 sur le canvas — un menu déroulant s'y
-     confondait avec la page, le filet seul le retenant. Ce ton monte à 1,35:1, ce
-     qui suffit à dire « au-dessus » sans créer une seconde surface de contenu. */
-  --color-overlay: #212124;
-  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.6);
+     confondait avec la page, le filet seul le retenant. Ce ton monte à 1,29:1, ce
+     qui suffit à dire « au-dessus » sans créer une seconde surface de contenu.
+     Il passe SOUS `--color-border-subtle` (#262626) et non au-dessus : c'est ce qui
+     laisse le filet dessiner le contour du panneau flottant plutôt que de s'y
+     dissoudre. */
+  --color-overlay: #232323;
+  /* Ombre RENFORCÉE — le canvas ayant perdu six points de clarté, une ombre à 0,6
+     n'avait plus assez de noir sous elle pour se voir. */
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.75);
 
   color-scheme: dark;
 }
@@ -414,6 +766,16 @@
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
+
+    /* Corps à 15px, posé sur BODY et non sur HTML — la distinction est tout sauf
+       cosmétique. `rem` se résout contre la racine, et Tailwind exprime en `rem`
+       l'intégralité de son barème d'espacement : toucher `html` rétrécirait chaque
+       marge et chaque hauteur du site de 6,25 %. Posée ici, la taille n'atteint que
+       le texte, et la grille de 4px du §3.1 reste intacte.
+
+       Le jeton plutôt que la valeur, pour que `text-base` et le texte hérité ne
+       puissent pas diverger. */
+    font-size: var(--text-base);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -422,7 +784,9 @@
   :focus-visible {
     outline: 2px solid var(--color-brand);
     outline-offset: 2px;
-    border-radius: 4px;
+    /* Suit le rayon des conteneurs : un anneau à angles vifs autour d'une carte
+       arrondie laisse quatre pointes dépasser des coins. */
+    border-radius: var(--radius-card);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -460,39 +824,39 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
     letter-spacing: -0.01em;
+
+    /*
+     * PAS DE GRAS SYNTHÉTIQUE. DM Mono n'existe qu'en 300, 400 et 500 ; le site en
+     * charge 400 et 500. Or cette classe est posée sur des éléments qui portent
+     * souvent `font-semibold` (600) ou `font-bold` (700) — le prix en tête de fiche,
+     * les totaux de tableau.
+     *
+     * Sans cette déclaration, le navigateur ÉPAISSIT LUI-MÊME le tracé de la 500
+     * pour simuler la graisse manquante. Le résultat est un gras baveux, aux
+     * contre-formes bouchées, et surtout PLUS LARGE que la fonte d'origine : une
+     * chasse fixe qui cesse d'être fixe, c'est-à-dire l'exact contraire de ce
+     * qu'on est venu chercher ici.
+     *
+     * `none` fait retomber toute demande supérieure sur la 500 réelle. Un prix en
+     * 600 sera donc rendu en 500 : un cran de graisse en moins, des colonnes qui
+     * restent alignées.
+     */
+    font-synthesis-weight: none;
   }
 
-  /* Logo affiché en masque plutôt qu'en <img>.
-
-     Un <img> externe ne peut pas hériter de `currentColor` : le logo resterait noir
-     sur fond bleu-nuit. Le masque, lui, colore un aplat `currentColor` à travers la
-     silhouette du SVG — le fichier reste mis en cache par le navigateur, et le logo
-     suit le thème sans dupliquer l'asset. */
-  .brand-mark {
-    display: inline-block;
-    background-color: currentColor;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-position: center;
-    -webkit-mask-size: contain;
-    mask-size: contain;
-  }
-
-  .brand-mark-logo {
-    -webkit-mask-image: url('/brand/logo.svg');
-    mask-image: url('/brand/logo.svg');
-  }
-
-  .brand-mark-mascotte {
-    -webkit-mask-image: url('/brand/mascotte.svg');
-    mask-image: url('/brand/mascotte.svg');
-  }
-
-  .brand-mark-footer {
-    -webkit-mask-image: url('/brand/footer-logo.svg');
-    mask-image: url('/brand/footer-logo.svg');
-  }
+  /*
+   * LES MASQUES DE MARQUE ONT ÉTÉ RETIRÉS.
+   *
+   * Quatre règles posaient ici la silhouette du logo, de la mascotte et du logo de
+   * pied de page en `mask-image`, pour qu'un aplat `currentColor` les traverse. Le
+   * détour existait parce qu'un `<img>` ne peut PAS hériter de la couleur du texte :
+   * le document SVG y est étranger, `currentColor` s'y résout sur son propre contexte.
+   *
+   * Le tracé est désormais RENDU EN LIGNE par components/BrandMark.tsx, où il hérite
+   * de l'encre directement. Le masque n'apportait plus qu'un aller-retour réseau et
+   * une silhouette pleine — incapable, au passage, de rendre une contre-forme comme
+   * celle du « e ». Voir l'en-tête de ce composant.
+   */
 }
 
 /*
@@ -502,11 +866,183 @@
  * la copie occupe exactement la position de départ de l'originale, et la boucle se
  * referme sans saut. Toute autre valeur produirait un à-coup visible.
  */
-@keyframes zenith-ticker {
+@keyframes zenkuu-ticker {
   from {
     transform: translateX(0);
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — mode expérimental, désactivé par défaut.
+
+   ── CE QUE C'EST, ET CE QUE CE N'EST PAS ────────────────────────────────────
+
+   Ce n'est PAS un quatrième thème. Le thème décide de la clarté du fond (clair,
+   sombre, système) ; ceci décide de la MATIÈRE des surfaces posées dessus. Les
+   deux réglages sont orthogonaux et se combinent : verre sur fond clair, verre
+   sur fond sombre. C'est la raison pour laquelle l'interrupteur vit à côté des
+   trois boutons de thème plutôt que parmi eux — en faire un quatrième bouton
+   aurait forcé à abandonner clair/sombre pour l'activer.
+
+   ── POURQUOI CETTE COUCHE EST ANNONCÉE COMME EXPÉRIMENTALE ──────────────────
+
+   `backdrop-filter` demande au navigateur de re-flouter, à chaque image, tout ce
+   qui se trouve DERRIÈRE l'élément. Sur une page qui empile des dizaines de
+   cartes translucides au-dessus d'un tableau qui défile, le coût est réel et il
+   est porté par le processeur graphique — invisible sur une machine récente, très
+   sensible sur un portable d'entrée de gamme ou une tablette ancienne.
+   L'avertissement affiché dans le menu n'est pas une précaution de style : il dit
+   ce qui peut réellement arriver.
+
+   ── COMMENT C'EST BRANCHÉ ───────────────────────────────────────────────────
+
+   Par les JETONS, et non composant par composant. Une seule classe posée sur la
+   racine rend translucides les quatre tons de surface du système ; les règles qui
+   suivent n'ajoutent que le flou, sur les classes utilitaires qui portent ces
+   tons. Aucun composant n'a à savoir que ce mode existe, et un composant écrit
+   demain en héritera sans une ligne de plus — c'est la condition pour qu'un
+   réglage d'apparence reste tenable dans le temps.
+   ── ET POURQUOI CE BLOC N'EST DANS AUCUNE COUCHE ────────────────────────────
+
+   Point vérifié à l'écran, pas déduit : les couches CSS l'emportent sur la
+   spécificité, et une règle HORS couche bat toute règle en couche. Or le bloc
+   `.dark` de ce fichier est lui-même hors couche. Écrites dans `@layer base`, les
+   redéfinitions ci-dessous perdaient donc contre lui : le verre s'appliquait en
+   thème clair et restait sans effet en sombre, alors que `:root.glass.dark`
+   l'emporte pourtant trois fois sur `.dark` en spécificité.
+
+   Ce bloc suit donc la convention déjà en place pour le thème sombre — hors
+   couche, départagé par la seule spécificité.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * `color-mix` plutôt que des valeurs `rgba` réécrites à la main.
+ *
+ * Les tons de surface sont définis en hexadécimal dans les deux thèmes, et les
+ * transcrire en `rgba` obligerait à maintenir DEUX jeux de valeurs supplémentaires
+ * qui devraient suivre à la main chaque retouche de palette. Le mélange, lui,
+ * dérive l'opacité du jeton existant : la teinte reste la source unique.
+ *
+ * Les taux ne sont pas symétriques entre les deux thèmes. Sur fond sombre, une
+ * surface trop transparente laisse le texte du dessous transparaître à travers le
+ * sien et devient illisible ; sur fond clair, la même valeur donne un verre à peine
+ * perceptible. Chaque thème a donc son dosage, relevé à l'écran.
+ */
+:root.glass {
+  --color-surface: color-mix(in srgb, #ffffff 62%, transparent);
+  --color-panel: color-mix(in srgb, #ffffff 68%, transparent);
+  --color-overlay: color-mix(in srgb, #ffffff 72%, transparent);
+  --color-surface-muted: color-mix(in srgb, #eff2f5 70%, transparent);
+  --color-border-subtle: color-mix(in srgb, #ffffff 55%, transparent);
+
+  /* Ombre plus diffuse et plus basse qu'en mode plein : une plaque de verre ne
+     projette pas l'ombre franche d'un carton. Le liseré clair du haut simule le
+     reflet spéculaire de la tranche — c'est lui, plus que le flou, qui donne
+     l'impression d'une épaisseur de matière. */
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.65);
+}
+
+:root.glass.dark {
+  --color-surface: color-mix(in srgb, #1c1c1c 55%, transparent);
+  --color-panel: color-mix(in srgb, #232323 58%, transparent);
+  --color-overlay: color-mix(in srgb, #2e2e2e 65%, transparent);
+  --color-surface-muted: color-mix(in srgb, #3a3a3a 55%, transparent);
+  --color-border-subtle: color-mix(in srgb, #ffffff 12%, transparent);
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+/*
+ * Le FOND DE PAGE reçoit une nappe colorée, sans quoi il n'y a rien à flouter.
+ *
+ * C'est le point que l'on rate en implémentant cet effet : du verre posé sur un
+ * aplat uni ne se voit pas, puisque flouter une couleur unie la laisse identique.
+ * Ce qui donne sa vie à la matière, c'est ce qui se déplace DERRIÈRE elle. Deux
+ * halos très étalés aux couleurs de la marque suffisent à créer ce dégradé de fond,
+ * et le défilement de la page les fait glisser sous les cartes.
+ *
+ * `fixed` et non `absolute` : attaché au document, le fond défilerait avec lui et
+ * l'effet s'éteindrait dès le bas de page.
+ */
+:root.glass body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60rem 40rem at 15% -10%,
+      color-mix(in srgb, var(--color-brand) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50rem 35rem at 85% 10%,
+      color-mix(in srgb, var(--color-data-3) 16%, transparent),
+      transparent 70%
+    );
+}
+
+/*
+ * Le flou, appliqué aux classes utilitaires qui portent les tons de surface.
+ *
+ * Sélectionner des classes Tailwind depuis une feuille de style est inhabituel et
+ * mérite sa justification : c'est le SEUL moyen d'atteindre toutes les surfaces du
+ * site sans toucher aux composants. L'alternative — une classe `glass-surface`
+ * ajoutée partout — se serait périmée au premier composant écrit ensuite.
+ *
+ * `saturate(180%)` accompagne le flou, et n'est pas décoratif : flouter mélange les
+ * couleurs voisines et les délave. Ressaturer rend au fond la vivacité que
+ * l'opération lui a prise — c'est précisément la recette d'Apple.
+ *
+ * AUCUN PRÉFIXE ÉCRIT À LA MAIN, et ce n'est pas un oubli. Constaté en lisant le CSS
+ * réellement servi : écrire la paire `backdrop-filter` + `-webkit-backdrop-filter`
+ * faisait supprimer la forme STANDARD par Lightning CSS, qui déduit de la présence
+ * des deux que la variante préfixée suffit à couvrir les cibles. Il ne restait donc
+ * que `-webkit-`, perdu dans la cascade face aux utilitaires Tailwind. La forme
+ * standard seule le laisse préfixer lui-même, ce qui est précisément son rôle.
+ */
+:root.glass :is(.bg-surface, .bg-panel, .bg-overlay) {
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* L'en-tête collant est la surface la plus visible du site — le contenu défile en
+   permanence dessous. Il mérite un flou plus prononcé, à la façon des barres
+   translucides d'iOS. */
+:root.glass [data-site-header] {
+  background: var(--color-overlay);
+  backdrop-filter: blur(28px) saturate(200%);
+}
+
+/*
+ * REPLI pour les navigateurs sans `backdrop-filter`.
+ *
+ * Firefox l'a longtemps désactivé par défaut, et certains navigateurs mobiles le
+ * coupent en mode économie d'énergie. Sans ce garde-fou, on n'obtiendrait pas « du
+ * verre en moins joli » mais des surfaces simplement TRANSPARENTES, avec le texte du
+ * dessous visible au travers : illisible. On remonte alors les tons à leur opacité
+ * pleine, et le site retrouve exactement son apparence normale.
+ */
+@supports not (backdrop-filter: blur(1px)) {
+  :root.glass {
+    --color-surface: #ffffff;
+    --color-panel: #ffffff;
+    --color-overlay: #ffffff;
+    --color-surface-muted: #eff2f5;
+    --color-border-subtle: #e5e7eb;
+  }
+
+  :root.glass.dark {
+    --color-surface: #060606;
+    --color-panel: #0d0d0d;
+    --color-overlay: #232323;
+    --color-surface-muted: #1c1c1c;
+    --color-border-subtle: #262626;
+  }
+
+  :root.glass body::before {
+    display: none;
   }
 }

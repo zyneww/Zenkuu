@@ -1,4 +1,4 @@
-import { formatCurrency } from '@zenith/ui'
+import { formatCurrency } from '@zenkuu/ui'
 
 /**
  * Cours dans les autres devises.

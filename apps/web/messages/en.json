@@ -1,0 +1,124 @@
+{
+  "metric": {
+    "price": {
+      "label": "Price",
+      "help": "Latest price published by the source, converted into the currency you selected. This is not an execution price: depending on the venue and the moment, a real order would fill at a nearby but different level."
+    },
+    "marketCap": {
+      "label": "Market cap",
+      "help": "Total value of the circulating supply at the current price. It is the most common size measure, but it ignores tokens not yet issued — see fully diluted valuation."
+    },
+    "volume24h": {
+      "label": "Volume 24h",
+      "help": "Total amount traded over the last 24 hours across every venue. Thin volume makes the price far more sensitive to a single order."
+    },
+    "fdv": {
+      "label": "Fully diluted valuation",
+      "help": "Market cap the asset would reach if its entire maximum supply were circulating. Taken from the source as published, never recomputed: the rules on locked or burned tokens are theirs."
+    },
+    "tvl": {
+      "label": "Total value locked",
+      "help": "Amount deposited in the protocol's contracts. Exists only for decentralised finance, and measures usage rather than price."
+    },
+    "rank": {
+      "label": "Rank",
+      "help": "Position by market cap within its asset class, as published by the source."
+    },
+    "exchange": {
+      "label": "Listing venue",
+      "help": "Market from which the source takes this asset's reference price."
+    },
+    "high24h": {
+      "label": "24h high",
+      "help": "Highest price reached over the last 24 hours."
+    },
+    "low24h": {
+      "label": "24h low",
+      "help": "Lowest price reached over the last 24 hours."
+    },
+    "ath": {
+      "label": "All-time high",
+      "help": "Highest price ever reached. The percentage shows how far the current price sits below that record."
+    },
+    "athWindow": {
+      "label": "52-week high",
+      "help": "Highest price of the past year. The source does not publish an all-time record for this asset class."
+    },
+    "atl": {
+      "label": "All-time low",
+      "help": "Lowest price ever reached. The percentage shows the gain since that floor."
+    },
+    "atlWindow": {
+      "label": "52-week low",
+      "help": "Lowest price of the past year. The source does not publish an all-time floor for this asset class."
+    },
+    "circulatingSupply": {
+      "label": "Circulating supply",
+      "help": "Units actually in circulation, excluding locked, reserved or destroyed tokens."
+    },
+    "totalSupply": {
+      "label": "Total supply",
+      "help": "Units created to date, including locked tokens, net of those that have been burned."
+    },
+    "maxSupply": {
+      "label": "Max supply",
+      "help": "Ceiling of units the protocol will ever allow. Absent when no cap is written into the protocol."
+    },
+    "issuedShare": {
+      "label": "Supply issued",
+      "help": "Share of the maximum supply already circulating. Derived from two figures the source publishes, never estimated."
+    },
+    "change1h": {
+      "label": "1 hour",
+      "help": "Price change over the last hour. The noisiest window: on a thinly traded asset it often reflects a single order rather than a real move."
+    },
+    "change24h": {
+      "label": "24 hours",
+      "help": "Price change over the last 24 hours, as published by the source. This is the reference window for rankings."
+    },
+    "change7d": {
+      "label": "7 days",
+      "help": "Price change over the past week."
+    },
+    "change14d": {
+      "label": "14 days",
+      "help": "Price change over the past two weeks."
+    },
+    "change30d": {
+      "label": "30 days",
+      "help": "Price change over the past month."
+    },
+    "change1y": {
+      "label": "1 year",
+      "help": "Price change over the past year. A missing period means the source does not publish it — never that it is zero."
+    }
+  },
+
+  "metricPage": {
+    "breadcrumb": "Metrics",
+    "definitionTitle": "Definition",
+    "sourceTitle": "Source and freshness",
+    "noSeriesTitle": "No history for this measure",
+    "noSeriesBody": "The source publishes only a point-in-time value for this metric, with no time series. No chart is shown: drawing a curve would mean inventing the missing points.",
+    "otherMetrics": "Other metrics for {name}",
+    "backToAsset": "Back to the asset page",
+    "currentValue": "Current value"
+  },
+
+  "chartCard": {
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "settings": "Chart settings",
+    "latest": "Latest",
+    "share": "% Share",
+    "total": "Total",
+    "other": "Other",
+    "noData": "Series not published by the source for this period."
+  },
+
+  "search": {
+    "placeholder": "Search",
+    "shortcut": "Ctrl + K",
+    "open": "Open search"
+  }
+}

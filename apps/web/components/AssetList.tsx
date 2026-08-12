@@ -1,9 +1,9 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 

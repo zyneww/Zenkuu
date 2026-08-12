@@ -1,12 +1,38 @@
 /**
- * Formatage des nombres en français (§6 : site en français au lancement).
+ * Formatage des nombres.
  *
  * Toutes les fonctions renvoient `null` quand la valeur est absente, plutôt qu'un
  * « 0 » ou un « 0,00 € ». C'est l'application de la règle §5 au niveau de
  * l'affichage : une donnée manquante se voit, elle ne se déguise pas en zéro.
+ *
+ * ── LOCALE ────────────────────────────────────────────────────────────────────
+ *
+ * Chaque fonction accepte une locale en dernier argument, et retombe sur le
+ * français. Le paramètre est optionnel PAR COMPATIBILITÉ — une quarantaine de sites
+ * d'appel existaient avant l'internationalisation — mais toute nouvelle écriture
+ * devrait le passer, faute de quoi un lecteur anglophone lira « 1 234,50 » là où il
+ * attend « 1,234.50 ».
  */
 
-const LOCALE = 'fr-FR'
+import { currencyDecimals, currencySymbol, getCurrency } from '@zenkuu/data/currencies'
+
+const DEFAULT_LOCALE = 'fr-FR'
+
+/**
+ * Espace fine INSÉCABLE (U+202F), posée devant le signe pourcent.
+ *
+ * Écrite en séquence d'échappement et non au caractère : à l'œil nu, dans un
+ * éditeur, elle est indistinguable d'une espace ordinaire — laquelle serait un point
+ * de coupure pour le navigateur et casserait « +3,89 % » en deux lignes au milieu
+ * d'une colonne étroite. La forme échappée rend la nuance visible en relecture.
+ */
+const PERCENT_GAP = '\u202F'
+
+interface CompactUnit {
+  threshold: number
+  suffix: string
+  divisor: number
+}
 
 /**
  * Échelle française — « Md » pour milliard, pas « B ».
@@ -17,64 +43,164 @@ const LOCALE = 'fr-FR'
  * capitalisation de 1,99 × 10¹² s'affiche donc « 1 991 Md € », qui ne se lit que
  * d'une seule manière.
  */
-const COMPACT_UNITS = [
+const COMPACT_FR: readonly CompactUnit[] = [
   { threshold: 1e9, suffix: ' Md', divisor: 1e9 },
   { threshold: 1e6, suffix: ' M', divisor: 1e6 },
   { threshold: 1e3, suffix: ' k', divisor: 1e3 },
-] as const
+]
 
+/**
+ * Échelle anglo-saxonne.
+ *
+ * Le raisonnement du bloc précédent NE SE TRANSPOSE PAS : l'ambiguïté « billion »
+ * qui interdit d'aller au-delà du milliard en français n'existe pas en anglais, où
+ * « B » vaut sans discussion 10⁹. On s'arrête pourtant au même rang, pour que les
+ * deux langues affichent la MÊME grandeur au même endroit — un tableau comparé
+ * entre deux onglets de langue différente doit donner les mêmes nombres.
+ *
+ * Suffixes collés au nombre, sans espace : « $1.99B » et non « 1,99 Md $ ». C'est la
+ * convention typographique anglaise, et l'espace française s'y remarque aussitôt.
+ */
+const COMPACT_EN: readonly CompactUnit[] = [
+  { threshold: 1e9, suffix: 'B', divisor: 1e9 },
+  { threshold: 1e6, suffix: 'M', divisor: 1e6 },
+  { threshold: 1e3, suffix: 'K', divisor: 1e3 },
+]
+
+/**
+ * Échelle abrégée selon la langue.
+ *
+ * Deux échelles seulement, et non vingt-huit : les abréviations d'ordre de grandeur
+ * ne sont pas normalisées et `Intl.NumberFormat({ notation: 'compact' })` produit des
+ * résultats hétérogènes selon la langue — « 1,9 Bn », « 19億 », « 1,9 مليار » — dont
+ * la largeur de colonne varie du simple au triple. Sur des tableaux à colonnes fixes,
+ * cela casse la mise en page.
+ *
+ * Le partage se fait donc sur la seule distinction qui compte ici : le français,
+ * qui a sa propre convention documentée ci-dessus, et TOUT LE RESTE, qui lit
+ * couramment la notation anglo-saxonne des marchés. C'est un choix assumé, et
+ * révisable langue par langue si un lecteur le signale.
+ */
+function compactUnits(locale: string): readonly CompactUnit[] {
+  return locale.toLowerCase().startsWith('fr') ? COMPACT_FR : COMPACT_EN
+}
+
+/**
+ * La langue met-elle une espace devant le signe pourcent ?
+ *
+ * Le français l'exige, l'anglais l'interdit. La liste suit les conventions
+ * typographiques nationales plutôt qu'une donnée d'`Intl`, qui n'expose pas cette
+ * information séparément du formatage complet.
+ */
+function usesSpaceBeforePercent(locale: string): boolean {
+  const language = locale.toLowerCase().split('-')[0] ?? ''
+  return ['fr', 'cs', 'sv', 'fi', 'de', 'da', 'nb', 'no', 'tr', 'sk', 'sl'].includes(language)
+}
+
+/**
+ * Montant monétaire.
+ *
+ * ── POURQUOI DEUX CHEMINS DE FORMATAGE ────────────────────────────────────────
+ *
+ * `Intl.NumberFormat({ style: 'currency' })` n'accepte QUE des codes de trois
+ * lettres. Depuis que le sélecteur propose les 62 devises du catalogue, trois
+ * d'entre elles en comptent quatre — LINK, BITS, SATS — et le constructeur lève une
+ * `RangeError`. Ce n'est pas une dégradation d'affichage : c'est une exception non
+ * rattrapée qui fait tomber le rendu de la page entière. Un lecteur qui choisit
+ * « Satoshi » perdait le site.
+ *
+ * Les codes crypto à trois lettres, eux, passent — mais mal. `Intl` ne les connaît
+ * pas et applique son défaut de deux décimales : 0,00004 BTC s'affichait « 0,00 BTC ».
+ * Un chiffre faux, ce que le §5 proscrit au même titre qu'un zéro inventé.
+ *
+ * D'où la bifurcation : les monnaies et les métaux (codes ISO 4217) passent par le
+ * style monétaire d'`Intl`, qui place correctement le symbole selon la langue ; les
+ * unités crypto sont formatées en décimal puis suffixées de leur propre code, avec
+ * un nombre de décimales tiré de l'ORDRE DE GRANDEUR (cf. `currencyDecimals`).
+ */
 export function formatCurrency(
   value: number | undefined,
   currency: string,
-  options: { compact?: boolean } = {},
+  options: { compact?: boolean; locale?: string } = {},
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
+  const locale = options.locale ?? DEFAULT_LOCALE
+  const code = currency.toUpperCase()
+
   if (options.compact) {
-    const compact = formatCompact(Math.abs(value))
+    const compact = formatCompact(Math.abs(value), locale)
     if (compact === null) return null
-    const symbol = currencySymbol(currency)
-    return `${value < 0 ? '−' : ''}${compact} ${symbol}`
+    return `${value < 0 ? '−' : ''}${compact} ${currencySymbol(code, locale)}`
   }
 
-  // Les cryptos à très faible valeur unitaire ont besoin de plus de décimales,
-  // sans quoi une ligne entière afficherait « 0,00 € » — un chiffre faux.
-  const absolute = Math.abs(value)
-  const fractionDigits = absolute >= 1 ? 2 : absolute >= 0.01 ? 4 : 8
+  const digits = currencyDecimals(code, value)
 
-  return new Intl.NumberFormat(LOCALE, {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: fractionDigits,
-  }).format(value)
+  // Chemin des unités crypto : décimal + suffixe. On ne PEUT PAS déléguer à `Intl`,
+  // qui refuse les codes hors ISO ou leur impose ses décimales.
+  if (getCurrency(code)?.kind === 'crypto') {
+    const amount = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: digits,
+    }).format(value)
+    return `${amount} ${currencySymbol(code, locale)}`
+  }
+
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: Math.min(2, digits),
+      maximumFractionDigits: digits,
+    }).format(value)
+  } catch {
+    // Filet pour un code absent du catalogue — un actif dont la source annonce une
+    // devise que nous ne connaissons pas. Mieux vaut « 1 234,50 XYZ » qu'une page
+    // blanche : le montant reste juste, seul le symbole manque.
+    const amount = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: Math.min(2, digits),
+      maximumFractionDigits: digits,
+    }).format(value)
+    return `${amount} ${code}`
+  }
 }
 
-export function formatCompact(value: number | undefined): string | null {
+export function formatCompact(
+  value: number | undefined,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
   const absolute = Math.abs(value)
-  const unit = COMPACT_UNITS.find((candidate) => absolute >= candidate.threshold)
+  const units = compactUnits(locale)
+  const unit = units.find((candidate) => absolute >= candidate.threshold)
 
-  if (!unit) return formatNumber(value, 2)
+  if (!unit) return formatNumber(value, 2, locale)
 
   const scaled = value / unit.divisor
-  return `${new Intl.NumberFormat(LOCALE, {
+  return `${new Intl.NumberFormat(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: scaled >= 100 ? 0 : scaled >= 10 ? 1 : 2,
   }).format(scaled)}${unit.suffix}`
 }
 
-export function formatNumber(value: number | undefined, maximumFractionDigits = 2): string | null {
+export function formatNumber(
+  value: number | undefined,
+  maximumFractionDigits = 2,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
-  return new Intl.NumberFormat(LOCALE, { maximumFractionDigits }).format(value)
+  return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(value)
 }
 
 /** Variation en pourcentage, signe explicite compris : « +2,34 % », « −1,10 % ». */
-export function formatPercent(value: number | undefined): string | null {
+export function formatPercent(
+  value: number | undefined,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
-  const formatted = new Intl.NumberFormat(LOCALE, {
+  const formatted = new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Math.abs(value))
@@ -88,31 +214,60 @@ export function formatPercent(value: number | undefined): string | null {
   //   · rendu — une espace ordinaire est un point de coupure pour le navigateur.
   //     Dans les colonnes de variation, posées en largeur fixe, « +3,89 % » se
   //     cassait en deux lignes avec le pourcent seul sous son nombre.
-  return `${sign}${formatted} %`
+  //
+  // L'anglais colle au contraire le signe au nombre — « +3.89% ». Conserver l'espace
+  // française dans un texte anglais se remarque immédiatement.
+  const gap = usesSpaceBeforePercent(locale) ? PERCENT_GAP : ''
+  return `${sign}${formatted}${gap}%`
+}
+
+/**
+ * Part d'un total — « 98,5 % », SANS signe.
+ *
+ * Distinct de `formatPercent`, et la distinction n'est pas cosmétique : une
+ * VARIATION porte un signe explicite parce que son sens dépend de sa direction,
+ * quand une PART est positive par construction. « +98,5 % » sur une répartition se
+ * lit comme une hausse de 98,5 %, ce qui est un contresens.
+ *
+ * Une décimale et non deux : sur une légende d'anneau, la seconde décimale n'aide
+ * aucune décision et allonge une colonne déjà étroite.
+ */
+export function formatShare(
+  value: number | undefined,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
+  if (value === undefined || !Number.isFinite(value)) return null
+
+  const formatted = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: value < 10 ? 1 : 0,
+    maximumFractionDigits: 1,
+  }).format(value)
+
+  return `${formatted}${usesSpaceBeforePercent(locale) ? PERCENT_GAP : ''}%`
 }
 
 /** Taux de change : 4 décimales, sauf pour les paires à forte valeur nominale (JPY). */
-export function formatRate(value: number | undefined): string | null {
+export function formatRate(
+  value: number | undefined,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
-  return new Intl.NumberFormat(LOCALE, {
+  return new Intl.NumberFormat(locale, {
     minimumFractionDigits: value >= 100 ? 2 : 4,
     maximumFractionDigits: value >= 100 ? 2 : 4,
   }).format(value)
 }
 
-export function formatDateTime(iso: string | undefined): string | null {
+export function formatDateTime(
+  iso: string | undefined,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
   if (!iso) return null
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return null
 
-  return new Intl.DateTimeFormat(LOCALE, {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date)
-}
-
-function currencySymbol(currency: string): string {
-  const upper = currency.toUpperCase()
-  const symbols: Record<string, string> = { EUR: '€', USD: '$', GBP: '£', JPY: '¥' }
-  return symbols[upper] ?? upper
 }

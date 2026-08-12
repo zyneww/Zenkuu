@@ -10,9 +10,10 @@ import {
   type ReactNode,
 } from 'react'
 
-import type { ExchangeRates } from '@zenith/data'
+import type { ExchangeRates, RateOrigin } from '@zenkuu/data'
+import { CURRENCY_CODES } from '@zenkuu/data/currencies'
 
-export const CURRENCY_STORAGE_KEY = 'zenith-currency'
+export const CURRENCY_STORAGE_KEY = 'zenkuu-currency'
 
 /** Devise de référence du site : celle dans laquelle les sources sont interrogées. */
 export const BASE_CURRENCY = 'EUR'
@@ -20,12 +21,27 @@ export const BASE_CURRENCY = 'EUR'
 interface CurrencyContextValue {
   currency: string
   setCurrency: (code: string) => void
-  /** Devises réellement convertibles — dérivées des taux BCE disponibles. */
+  /**
+   * Devises réellement convertibles.
+   *
+   * Dérivées des TAUX REÇUS, jamais du catalogue : proposer une devise dont le taux
+   * manque afficherait des montants inchangés sans le signaler — exactement le genre
+   * de chiffre faux que le §5 proscrit. Si une source est en panne, sa part de la
+   * liste disparaît du sélecteur, et c'est le comportement voulu.
+   */
   available: string[]
   /** Facteur à appliquer à un montant exprimé dans `from`. */
   convert: (amount: number, from?: string) => number
   /** Date de publication du taux, affichée partout où une conversion a lieu. */
   ratesDate: string | null
+  /**
+   * Provenance du taux de la devise courante.
+   *
+   * La table mélange un fixing de banque centrale et des cours de marché : une
+   * attribution unique en pied de page mentirait sur une moitié des devises. Chaque
+   * affichage converti peut donc nommer SA source.
+   */
+  origin: RateOrigin | null
   /** L'utilisateur regarde-t-il une autre devise que celle des sources ? */
   isConverted: boolean
 }
@@ -61,6 +77,7 @@ export function CurrencyProvider({
   useEffect(() => {
     try {
       const stored = localStorage.getItem(CURRENCY_STORAGE_KEY)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- voir commentaire ci-dessus
       if (stored && rates?.rates[stored]) setCurrencyState(stored)
     } catch {
       /* Stockage refusé : on reste sur la devise de référence. */
@@ -77,7 +94,12 @@ export function CurrencyProvider({
   }, [])
 
   const value = useMemo<CurrencyContextValue>(() => {
-    const available = rates ? Object.keys(rates.rates).sort() : [BASE_CURRENCY]
+    // Ordre du CATALOGUE et non alphabétique : le sélecteur affiche des groupes
+    // (courantes, monnaies, crypto, métaux) dont l'ordre porte du sens. Un tri
+    // alphabétique brut mélangerait le bitcoin et le bolívar.
+    const available = rates
+      ? CURRENCY_CODES.filter((code) => rates.rates[code] !== undefined)
+      : [BASE_CURRENCY]
 
     const convert = (amount: number, from: string = BASE_CURRENCY): number => {
       if (from === currency) return amount
@@ -94,7 +116,8 @@ export function CurrencyProvider({
       setCurrency,
       available,
       convert,
-      ratesDate: rates?.date ?? null,
+      ratesDate: rates?.origins[currency]?.date ?? rates?.date ?? null,
+      origin: rates?.origins[currency] ?? null,
       isConverted: currency !== BASE_CURRENCY,
     }
   }, [currency, rates, setCurrency])
@@ -117,6 +140,7 @@ export function useCurrency(): CurrencyContextValue {
       available: [BASE_CURRENCY],
       convert: (amount: number) => amount,
       ratesDate: null,
+      origin: null,
       isConverted: false,
     }
   )

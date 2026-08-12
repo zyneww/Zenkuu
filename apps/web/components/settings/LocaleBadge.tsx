@@ -44,7 +44,7 @@ export function LocaleBadge({ hint }: { hint: string }) {
         type="button"
         onClick={() => setTab('language')}
         title={hint}
-        className="mt-4 inline-flex items-center gap-1.5 border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
       >
         <Globe className="h-3.5 w-3.5" aria-hidden="true" />
         {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}

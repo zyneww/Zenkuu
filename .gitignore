@@ -61,7 +61,7 @@ archive-*/
 #   · `.agents/skills/` pèse près d'un mégaoctet de contenu récupéré, au même titre
 #     que `node_modules/` ;
 #   · `.claude/skills/` ne contient que des liens symboliques ABSOLUS
-#     (`/c/Users/…/zenith/.agents/…`), qui pointeraient dans le vide sur toute
+#     (`/c/Users/…/zenkuu/.agents/…`), qui pointeraient dans le vide sur toute
 #     autre machine — et que Git gère mal entre Windows et Unix.
 .agents/
 .claude/skills/
@@ -74,3 +74,9 @@ archive-*/
 
 # Tests / couverture
 coverage/
+
+# Sortie de compilation redirigée vers un fichier — voir next.config.ts, qui
+# recommande `ZENKUU_DIST_DIR=… bun run build > build-output.txt` pour ne pas
+# perturber un serveur de développement en cours. Le journal d'une compilation
+# locale n'a aucune raison d'entrer dans l'historique.
+build-output.txt

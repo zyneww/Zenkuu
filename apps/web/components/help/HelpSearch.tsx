@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { BookOpen, Database, Scale, Search, User, type LucideIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 

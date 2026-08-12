@@ -1,6 +1,6 @@
 'use client'
 
-import { formatCompact, formatCurrency, formatRate } from '@zenith/ui'
+import { formatCompact, formatCurrency, formatRate } from '@zenkuu/ui'
 
 import { BASE_CURRENCY, useCurrency } from '@/components/locale/CurrencyProvider'
 

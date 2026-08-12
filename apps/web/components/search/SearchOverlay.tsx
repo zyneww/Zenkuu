@@ -1,12 +1,13 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Search, TrendingUp, X } from 'lucide-react'
 
-import type { SearchResult, TrendingAsset } from '@zenith/data'
+import type { SearchResult, TrendingAsset } from '@zenkuu/data'
 
-import { fr } from '@/content/fr'
+import { monogram } from '@/components/asset/monogram'
+import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
 
 interface SearchResponse {
@@ -32,6 +33,7 @@ interface SearchOverlayProps {
 const DEBOUNCE_MS = 250
 
 export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
+  const fr = useContent()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
@@ -71,6 +73,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
     } else {
       // `trending` n'est PAS réinitialisé : le rouvrir doit être instantané, et ces
       // données ne se démodent pas en quelques secondes.
+      //
+      // `open` est une prop contrôlée par le parent (plusieurs déclencheurs de
+      // fermeture — Échap, clic sur le fond, bouton) : remettre l'état à zéro ICI,
+      // en réaction à son changement, évite de dupliquer la même réinitialisation
+      // dans chaque déclencheur.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery('')
       setResults(null)
       setLoading(false)
@@ -93,6 +101,9 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
     const term = query.trim()
     if (term.length < 2) {
+      // Réaction à `query` en dessous du seuil de recherche : vide le résultat
+      // précédent sans attendre une réponse réseau qui n'aura pas lieu.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults(null)
       setLoading(false)
       return
@@ -308,13 +319,13 @@ function ResultRow({
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element -- vignettes 32px hors domaines optimisés
-          <img src={image} alt="" width={22} height={22} className="shrink-0 rounded-full" loading="lazy" />
+          <img src={image} alt="" width={22} height={22} className="shrink-0 rounded-none" loading="lazy" />
         ) : (
           <span
-            className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
+            className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-none bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
             aria-hidden="true"
           >
-            {symbol.replace(/[^A-Z0-9]/gi, '').slice(0, 3)}
+            {monogram(name, symbol)}
           </span>
         )}
 

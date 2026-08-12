@@ -7,7 +7,7 @@
  * dessert les deux.
  *
  * Comme pour l'aide, ces fiches expliquent des NOTIONS. Aucune ne recommande d'agir
- * — ZENITH ne fournit pas de conseil en investissement (§7).
+ * — ZENKUU ne fournit pas de conseil en investissement (§7).
  */
 
 export type Level = 'debutant' | 'intermediaire' | 'avance'
@@ -60,7 +60,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
         body: [
           'Le volume mesure ce qui a réellement changé de mains sur une période. La liquidité, elle, décrit la facilité à échanger sans faire bouger le cours.',
           'Une hausse de 40 % sur un actif dont le volume quotidien est faible peut résulter de quelques transactions. La même hausse sur un actif très échangé traduit un mouvement de marché autrement plus large.',
-          'C’est la raison pour laquelle les classements de plus fortes hausses de ZENITH sont calculés sur les 100 plus grandes capitalisations : sans ce garde-fou, ils seraient dominés en permanence par des actifs minuscules.',
+          'C’est la raison pour laquelle les classements de plus fortes hausses de ZENKUU sont calculés sur les 100 plus grandes capitalisations : sans ce garde-fou, ils seraient dominés en permanence par des actifs minuscules.',
         ],
       },
       {
@@ -71,7 +71,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
         body: [
           'L’offre en circulation désigne les unités effectivement disponibles. L’offre totale inclut ce qui existe mais reste bloqué ou non distribué. L’offre maximale est le plafond, quand il en existe un.',
           'L’écart entre circulation et total indique ce qui pourrait arriver sur le marché à l’avenir. Un écart important signale une dilution potentielle, que la capitalisation courante ne reflète pas.',
-          'Certains actifs n’ont aucun plafond. Dans ce cas, ZENITH affiche l’information comme absente plutôt que d’inscrire un nombre arbitraire.',
+          'Certains actifs n’ont aucun plafond. Dans ce cas, ZENKUU affiche l’information comme absente plutôt que d’inscrire un nombre arbitraire.',
         ],
       },
     ],
@@ -89,7 +89,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
         body: [
           'Chaque bougie résume un intervalle de temps par quatre valeurs. Le corps relie l’ouverture à la clôture ; les mèches marquent les extrêmes atteints pendant l’intervalle.',
           'La couleur indique seulement si la clôture est au-dessus ou en dessous de l’ouverture. Elle ne dit rien de la tendance plus large, ni de la comparaison avec la bougie précédente.',
-          'L’intervalle est décisif : la même série affichée en bougies de 30 minutes ou de 4 heures raconte deux histoires différentes. ZENITH indique la granularité réellement fournie par la source, qui l’impose selon la fenêtre demandée.',
+          'L’intervalle est décisif : la même série affichée en bougies de 30 minutes ou de 4 heures raconte deux histoires différentes. ZENKUU indique la granularité réellement fournie par la source, qui l’impose selon la fenêtre demandée.',
         ],
       },
       {
@@ -100,7 +100,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
         body: [
           'Une moyenne mobile calcule la moyenne des dernières valeurs, recalculée à chaque nouveau point. Elle atténue le bruit pour rendre une tendance plus lisible.',
           'Elle est par construction en retard : elle intègre des valeurs passées, donc elle réagit après le cours. Ce retard croît avec la période choisie.',
-          'Elle ne prédit rien. Les croisements de moyennes sont des faits arithmétiques sur des données passées, pas des signaux — et ZENITH ne les présente jamais comme tels.',
+          'Elle ne prédit rien. Les croisements de moyennes sont des faits arithmétiques sur des données passées, pas des signaux — et ZENKUU ne les présente jamais comme tels.',
         ],
       },
       {
@@ -119,7 +119,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
   {
     id: 'contexte',
     title: 'Contexte et indicateurs',
-    description: 'Les indicateurs agrégés que publie ZENITH, et leur portée réelle.',
+    description: 'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.',
     lessons: [
       {
         slug: 'indice-de-sentiment',
@@ -129,7 +129,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
         body: [
           'L’indice de peur et d’avidité agrège plusieurs mesures — volatilité, volume, tendances de recherche — en un seul nombre de 0 à 100.',
           'Il décrit un climat, pas une valorisation. Un indice bas signifie que le marché est nerveux, pas qu’un actif est bon marché.',
-          'Sa méthodologie est celle de la source qui le publie, Alternative.me, et non celle de ZENITH. Comme tout indicateur composite, il dépend entièrement des pondérations choisies par son auteur.',
+          'Sa méthodologie est celle de la source qui le publie, Alternative.me, et non celle de ZENKUU. Comme tout indicateur composite, il dépend entièrement des pondérations choisies par son auteur.',
         ],
       },
       {
@@ -149,7 +149,7 @@ export const LESSON_TOPICS: LessonTopic[] = [
         level: 'avance',
         summary: 'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.',
         body: [
-          'ZENITH convertit les montants avec le taux de référence publié chaque jour ouvré par la Banque centrale européenne.',
+          'ZENKUU convertit les montants avec le taux de référence publié chaque jour ouvré par la Banque centrale européenne.',
           'Ce n’est pas un cours de marché en continu : c’est un point de référence unique par jour. L’avantage est la stabilité et la vérifiabilité — deux visiteurs consultant la même page voient le même montant, traçable à une publication officielle.',
           'La contrepartie est assumée : un montant converti n’est pas un cours réellement coté. C’est pourquoi la devise d’origine et la date du taux appliqué sont toujours affichées à côté.',
         ],

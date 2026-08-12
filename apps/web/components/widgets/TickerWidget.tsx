@@ -1,16 +1,16 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 
 /**
  * Bandeau de cotations défilant.
  *
- * Équivalent natif d'un widget de ticker, construit sur `@zenith/data` plutôt que
+ * Équivalent natif d'un widget de ticker, construit sur `@zenkuu/data` plutôt que
  * sur une iframe tierce : il suit le thème clair/sombre, ne charge aucun JavaScript
  * externe, et n'impose pas de watermark.
  *
@@ -26,7 +26,7 @@ export function TickerWidget({ assets }: { assets: MarketAsset[] }) {
 
   return (
     <div className="group relative overflow-hidden rounded-card border border-border-subtle bg-surface">
-      <div className="flex w-max animate-[zenith-ticker_60s_linear_infinite] gap-6 py-2.5 group-hover:[animation-play-state:paused] motion-reduce:animate-none">
+      <div className="flex w-max animate-[zenkuu-ticker_60s_linear_infinite] gap-6 py-2.5 group-hover:[animation-play-state:paused] motion-reduce:animate-none">
         {loop.map((asset, index) => (
           <Link
             key={`${asset.id}-${index}`}

@@ -9,6 +9,7 @@ import {
   HistogramSeries,
   LineSeries,
   LineStyle,
+  PriceScaleMode,
   createChart,
   type IChartApi,
   type IPriceLine,
@@ -18,10 +19,43 @@ import {
 } from 'lightweight-charts'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { ChartNavigator } from '@/components/asset/ChartNavigator'
+
 export interface ChartPoint {
   timestamp: number
   price: number
   volume?: number
+}
+
+/**
+ * Repère horizontal posé à une valeur fixe.
+ *
+ * Sert aux extrêmes HISTORIQUES — le plus haut de tous les temps, le plus bas — qui
+ * ne se déduisent pas de la fenêtre affichée et doivent donc être fournis de
+ * l'extérieur, contrairement aux lignes de `showPriceLines` qui, elles, se calculent
+ * sur les points visibles.
+ *
+ * Une valeur hors de l'amplitude tracée est SILENCIEUSEMENT ignorée par la
+ * bibliothèque : la ligne existe mais sort du cadre. C'est le bon comportement — un
+ * graphique sur sept jours n'a aucune raison de s'écraser pour faire tenir un record
+ * daté d'il y a deux ans.
+ */
+export interface ChartReferenceLine {
+  value: number
+  label: string
+  tone: 'up' | 'down' | 'muted'
+}
+
+/** Ce que le parent peut demander au graphique une fois monté. */
+export interface ChartHandle {
+  /**
+   * Image composée de toutes les couches du graphique.
+   *
+   * Passe par `takeScreenshot` de la bibliothèque et non par un `querySelector` sur
+   * le canevas : le rendu est réparti sur PLUSIEURS canevas superposés (grille,
+   * séries, échelles), et n'en capturer qu'un rendrait une image partielle.
+   */
+  screenshot: () => HTMLCanvasElement | null
 }
 
 export interface ChartCandle {
@@ -62,9 +96,67 @@ interface PriceChartInteractiveProps {
   showMovingAverage?: boolean
   /** Lignes horizontales plus haut / moyenne / plus bas. */
   showPriceLines?: boolean
+  /**
+   * Échelle des prix en logarithmique.
+   *
+   * Indispensable dès qu'on regarde plusieurs années : en linéaire, un actif passé
+   * de 4 à 76 écrase toute son histoire ancienne contre l'axe, et un doublement de 4
+   * à 8 y devient invisible à côté d'une hausse de 70 à 74 — pourtant deux fois
+   * moins significative. Le logarithme rend les VARIATIONS RELATIVES comparables,
+   * ce qui est la seule lecture qui ait un sens sur longue période.
+   */
+  logScale?: boolean
+  /** Repères historiques (plus haut / plus bas de tous les temps). */
+  referenceLines?: ChartReferenceLine[]
+  /**
+   * Second actif superposé, pour comparaison.
+   *
+   * ── LES DEUX COURBES PASSENT EN BASE 100 ──────────────────────────────────
+   *
+   * C'est le point délicat de cette fonctionnalité, et il se joue en une phrase :
+   * un jeton à 54 $ et un bitcoin à 64 000 $ n'ont AUCUNE échelle commune. Deux
+   * solutions existent, et une seule est honnête.
+   *
+   * La solution répandue — poser la seconde courbe sur une échelle invisible propre,
+   * à droite — produit deux tracés dont les hauteurs relatives ne veulent RIEN dire :
+   * on peut faire passer l'une au-dessus de l'autre en changeant seulement les bornes
+   * d'un axe qu'on n'affiche pas. Un croisement visuel y suggère un dépassement qui
+   * n'a pas eu lieu.
+   *
+   * Celle retenue ramène les DEUX séries à 100 à leur premier point commun. L'axe ne
+   * porte plus des montants mais un indice, et une courbe au-dessus de l'autre
+   * signifie exactement ce qu'elle a l'air de signifier : elle a plus progressé
+   * depuis le début de la fenêtre. Le coût assumé : tant que la comparaison est
+   * active, on ne lit plus de prix — d'où la mention dans la légende.
+   */
+  compare?: { label: string; points: ChartPoint[] } | null
+  /** Poignée rendue au parent pour la capture d'image. */
+  handleRef?: React.MutableRefObject<ChartHandle | null>
+  /**
+   * Bande de navigation sous la courbe.
+   *
+   * Retirée quand le cadre n'est pas fait pour être exploré : la vue « profondeur »
+   * n'a pas de temps en abscisse, et un aperçu de trois points sur une série presque
+   * vide n'aiderait personne.
+   */
+  showNavigator?: boolean
 }
 
-/** Valeurs suivies par la croix de visée, affichées dans la légende. */
+/**
+ * Valeurs suivies par la croix de visée.
+ *
+ * Elles alimentent DEUX affichages distincts, et c'est volontaire :
+ *
+ *   · le BANDEAU DE LECTURE, ancré au-dessus du tracé, qui reprend la ligne
+ *     « O H L C Variation » des plateformes de trading — il ne bouge jamais, on peut
+ *     donc y lire un chiffre en déplaçant le curseur d'un point à l'autre ;
+ *   · l'INFOBULLE FLOTTANTE, attachée au curseur, qui reprend la boîte de CoinGecko —
+ *     elle dit à quel POINT du tracé se rapporte ce qu'on lit, ce qu'un bandeau fixe
+ *     ne peut pas montrer quand la courbe est dense.
+ *
+ * Les deux ensemble, parce qu'ils répondent à deux questions différentes : « combien »
+ * et « où ». C'est exactement le partage qu'opèrent les deux références.
+ */
 interface LegendState {
   price?: number
   open?: number
@@ -72,13 +164,21 @@ interface LegendState {
   low?: number
   volume?: number
   time?: string
+  /** Écart à l'ouverture (bougies) ou au point précédent (courbe), en valeur puis en %. */
+  changeAbs?: number
+  changePct?: number
+  /** Amplitude du point, en % — la colonne « Plage » d'OKX. Bougies seulement. */
+  rangePct?: number
+  /** Position du curseur dans le canevas, pour poser l'infobulle flottante. */
+  x?: number
+  y?: number
 }
 
 /**
  * Graphique de cours interactif — lightweight-charts (Apache 2.0, TradingView).
  *
  * Pourquoi cette bibliothèque plutôt que Highcharts, qu'utilise CoinGecko ?
- * Highcharts exige une licence payante pour un usage commercial, ce que ZENITH est
+ * Highcharts exige une licence payante pour un usage commercial, ce que ZENKUU est
  * destiné à devenir (§8) — s'aligner sur eux aurait contredit la contrainte « tout
  * gratuit » du §7. Parmi les alternatives libres, celle-ci est la seule conçue pour
  * le financier : croix de visée, infobulle et échelle temporelle sont natives, pour
@@ -100,17 +200,62 @@ export function PriceChartInteractive({
   showVolume = false,
   showMovingAverage = false,
   showPriceLines = false,
+  logScale = false,
+  referenceLines,
+  handleRef,
+  compare,
+  showNavigator = true,
 }: PriceChartInteractiveProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const mainRef = useRef<ISeriesApi<SeriesType> | null>(null)
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   const averageRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const compareRef = useRef<ISeriesApi<'Line'> | null>(null)
   const priceLinesRef = useRef<IPriceLine[]>([])
+
+  /** Comparaison active : l'axe cesse de porter des montants (voir `compare`). */
+  const indexed = (compare?.points.length ?? 0) > 1
+
+  /**
+   * L'axe porte-t-il une HEURE, ou seulement une date ?
+   *
+   * Cette question commande DEUX choses qui doivent impérativement répondre de la
+   * même façon, d'où la constante partagée plutôt que deux `days <= 7` recopiés :
+   *
+   *   · l'affichage de l'heure sur les graduations (`timeVisible`) ;
+   *   · le décalage horaire appliqué aux données (voir `toChartTime`).
+   *
+   * Le second n'a de sens que si le premier est vrai. Sous la semaine, les points
+   * sont infra-journaliers et désignent des INSTANTS, qu'il faut ramener au fuseau du
+   * lecteur. Au-delà, la source ne publie qu'un point par jour et cet horodatage
+   * désigne une DATE DE CALENDRIER : le décaler ferait basculer le point de la veille
+   * pour tout lecteur situé à l'ouest de Greenwich — le 12 août à 00:00 UTC deviendrait
+   * le 11 août à 19:00 à New York, et l'axe afficherait franchement le mauvais jour.
+   */
+  const showsTime = days <= 7
 
   const [legend, setLegend] = useState<LegendState>({})
 
   const usesCandles = OHLC_KINDS.includes(kind) && (candles?.length ?? 0) > 1
+
+  /**
+   * Fenêtre de la bande de navigation, en fractions de la série.
+   *
+   * `{ 0, 1 }` — toute la période — est aussi l'état de repos : tant que le lecteur
+   * n'a rien déplacé, la bande n'impose rien et la bibliothèque garde son cadrage
+   * automatique. Voir l'effet qui l'applique.
+   */
+  const [navWindow, setNavWindow] = useState({ from: 0, to: 1 })
+
+  /** Valeurs dessinées dans la bande — clôtures en OHLC, prix sinon. */
+  const navValues = useMemo(() => {
+    if (usesCandles && candles) return candles.map((candle) => candle.close)
+    return points.map((point) => point.price)
+  }, [usesCandles, candles, points])
+
+  /** Début de la série — sert d'empreinte pour détecter un vrai changement de période. */
+  const seriesStart = usesCandles ? candles?.[0]?.timestamp : points[0]?.timestamp
 
   /* ── Création de l'instance : une seule fois par hauteur ──────────────────── */
   useEffect(() => {
@@ -132,6 +277,11 @@ export function PriceChartInteractive({
 
     chartRef.current = chart
 
+    // La poignée est posée ICI et retirée au nettoyage : elle a exactement la durée
+    // de vie de l'instance, si bien qu'un parent ne peut jamais capturer un graphique
+    // détruit.
+    if (handleRef) handleRef.current = { screenshot: () => chart.takeScreenshot() }
+
     // `ResizeObserver` plutôt qu'un écouteur sur `window` : le graphique vit dans une
     // colonne dont la largeur change aussi quand la mise en page se réorganise, sans
     // que la fenêtre soit redimensionnée.
@@ -149,14 +299,36 @@ export function PriceChartInteractive({
       volumeRef.current = null
       averageRef.current = null
       priceLinesRef.current = []
+      if (handleRef) handleRef.current = null
     }
-  }, [height])
+  }, [height, handleRef])
+
+  /* ── Échelle logarithmique ────────────────────────────────────────────── */
+  useEffect(() => {
+    // Effet SÉPARÉ de la création : basculer l'échelle ne doit pas détruire
+    // l'instance, sans quoi le niveau de zoom et la position de l'utilisateur
+    // seraient perdus à chaque clic sur la bascule.
+    chartRef.current
+      ?.priceScale('right')
+      .applyOptions({ mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal })
+  }, [logScale])
+
+  /* ── Unité de l'axe ─────────────────────────────────────────────────── */
+  useEffect(() => {
+    // En comparaison, l'axe porte un INDICE et non un montant. Laisser le formateur
+    // de prix ferait lire « 112 € » là où la valeur signifie « +12 % depuis le début
+    // de la fenêtre » — un contresens complet, et précisément le genre d'unité fausse
+    // que le §5 proscrit.
+    chartRef.current?.applyOptions({
+      localization: { priceFormatter: indexed ? formatIndex : formatPrice },
+    })
+  }, [indexed])
 
   /* ── Format de l'axe temporel : une option, pas une reconstruction ────────── */
   useEffect(() => {
     // Sous la semaine, l'heure porte l'information ; au-delà, elle sature l'axe.
-    chartRef.current?.applyOptions({ timeScale: { timeVisible: days <= 7 } })
-  }, [days])
+    chartRef.current?.applyOptions({ timeScale: { timeVisible: showsTime } })
+  }, [showsTime])
 
   /* ── Séries : recréées quand le TYPE change ───────────────────────────────── */
   useEffect(() => {
@@ -196,11 +368,27 @@ export function PriceChartInteractive({
       : null
     averageRef.current = average
 
+    // Trait TIRETÉ pour la comparaison : les deux courbes portent la même unité
+    // (l'indice) et ne peuvent donc pas se distinguer par leur échelle. Le style du
+    // trait fait ce travail, et il reste lisible pour qui ne perçoit pas les
+    // couleurs — ce qu'une seconde teinte seule n'aurait pas garanti (§9).
+    const comparison = indexed
+      ? chart.addSeries(LineSeries, {
+          lineWidth: 1,
+          lineStyle: LineStyle.Dashed,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+        })
+      : null
+    compareRef.current = comparison
+
     return () => {
       priceLinesRef.current = []
       mainRef.current = null
       volumeRef.current = null
       averageRef.current = null
+      compareRef.current = null
 
       // Sentinelle indispensable. React nettoie les effets DANS LEUR ORDRE DE
       // DÉCLARATION : au démontage, l'effet de création ci-dessus s'exécute en
@@ -217,8 +405,9 @@ export function PriceChartInteractive({
       chart.removeSeries(main)
       if (volume) chart.removeSeries(volume)
       if (average) chart.removeSeries(average)
+      if (comparison) chart.removeSeries(comparison)
     }
-  }, [kind, showVolume, showMovingAverage])
+  }, [kind, showVolume, showMovingAverage, indexed])
 
   /* ── Données ──────────────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -244,7 +433,7 @@ export function PriceChartInteractive({
     if (usesCandles && candles) {
       main.setData(
         candles.map((candle) => ({
-          time: toUtc(candle.timestamp),
+          time: toChartTime(showsTime, candle.timestamp),
           open: candle.open * rate,
           high: candle.high * rate,
           low: candle.low * rate,
@@ -254,7 +443,25 @@ export function PriceChartInteractive({
     } else {
       if (points.length < 2) return
       main.setData(
-        points.map((point) => ({ time: toUtc(point.timestamp), value: point.price * rate })),
+        // En base 100, le facteur de change se SIMPLIFIE : l'indice est un rapport
+        // entre deux prix de la même série, et multiplier numérateur et dénominateur
+        // par le même taux ne change rien. C'est aussi ce qui rend la comparaison
+        // indépendante de la devise choisie, ce qui est le comportement attendu.
+        indexed
+          ? indexSeries(points).map((row) => ({ time: toChartTime(showsTime, row.timestamp), value: row.value }))
+          : points.map((point) => ({ time: toChartTime(showsTime, point.timestamp), value: point.price * rate })),
+      )
+    }
+
+    /* Second actif — même traitement, même échelle. */
+    const comparison = compareRef.current
+    if (comparison && compare) {
+      comparison.applyOptions({ color: palette.muted })
+      comparison.setData(
+        indexSeries(compare.points).map((row) => ({
+          time: toChartTime(showsTime, row.timestamp),
+          value: row.value,
+        })),
       )
     }
 
@@ -280,7 +487,7 @@ export function PriceChartInteractive({
         source
           .filter((row): row is typeof row & { volume: number } => row.volume !== undefined)
           .map((row) => ({
-            time: toUtc(row.timestamp),
+            time: toChartTime(showsTime, row.timestamp),
             value: row.volume * rate,
             color: withAlpha(row.up ? palette.up : palette.down, 0.45),
           })),
@@ -295,7 +502,7 @@ export function PriceChartInteractive({
         : points
       const sma = movingAverage(closes, smaPeriod(closes.length))
       average.applyOptions({ color: palette.accent })
-      average.setData(sma.map((row) => ({ time: toUtc(row.timestamp), value: row.value * rate })))
+      average.setData(sma.map((row) => ({ time: toChartTime(showsTime, row.timestamp), value: row.value * rate })))
     }
 
     /* Lignes de prix plus haut / moyenne / plus bas. */
@@ -331,8 +538,99 @@ export function PriceChartInteractive({
       }
     }
 
+    /* Repères historiques fournis par la page (plus haut / plus bas de tous les
+       temps). Ils s'ajoutent aux lignes calculées ci-dessus et partagent leur
+       registre, pour être retirés ensemble au prochain rendu. */
+    for (const line of referenceLines ?? []) {
+      if (!Number.isFinite(line.value) || line.value <= 0) continue
+      priceLinesRef.current.push(
+        main.createPriceLine({
+          price: line.value * rate,
+          color: line.tone === 'up' ? palette.up : line.tone === 'down' ? palette.down : palette.muted,
+          lineWidth: 1,
+          // Pointillé large plutôt que tirets : les lignes calculées sur la fenêtre
+          // utilisent déjà les tirets, et deux repères de même facture dans le même
+          // cadre se liraient comme deux mesures de même nature — ce qu'ils ne sont
+          // pas : l'un décrit la période affichée, l'autre toute l'histoire de l'actif.
+          lineStyle: LineStyle.LargeDashed,
+          axisLabelVisible: true,
+          title: line.label,
+        }),
+      )
+    }
+
     chart.timeScale().fitContent()
-  }, [points, candles, kind, rate, currency, usesCandles, showPriceLines, showVolume, showMovingAverage])
+  }, [
+    points,
+    candles,
+    kind,
+    rate,
+    currency,
+    usesCandles,
+    showPriceLines,
+    showVolume,
+    showMovingAverage,
+    referenceLines,
+    indexed,
+    compare,
+    // Le décalage horaire fait partie de la donnée remise à la bibliothèque : passer
+    // de « 7 j » à « 1 M » change les horodatages eux-mêmes, pas seulement le format.
+    showsTime,
+  ])
+
+  /* ── Fenêtre de navigation appliquée au cadre ─────────────────────────────── */
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart) return
+
+    /*
+      LA FENÊTRE PLEINE REND LA MAIN, ELLE NE LA PREND PAS.
+
+      `{ 0, 1 }` appelle `fitContent()` au lieu de poser une plage explicite de zéro à
+      N−1. Les deux donnent le même cadrage à l'instant présent, mais pas ensuite :
+      une plage explicite FIGE le cadre, et la série s'allongeant à chaque tique du
+      direct, le dernier point sortirait progressivement du champ sans que rien ne le
+      signale. `fitContent` suit l'allongement, ce qui est le comportement d'origine.
+    */
+    if (navWindow.from <= 0.001 && navWindow.to >= 0.999) {
+      chart.timeScale().fitContent()
+      return
+    }
+
+    const count = navValues.length
+    if (count < 2) return
+
+    // Indices LOGIQUES et non horodatages : la bibliothèque les accepte fractionnaires
+    // et les interpole, là où une plage temporelle exigerait de retrouver le point le
+    // plus proche de chaque borne — un calcul de plus pour un résultat identique.
+    chart.timeScale().setVisibleLogicalRange({
+      from: navWindow.from * (count - 1),
+      to: navWindow.to * (count - 1),
+    })
+  }, [navWindow, navValues.length])
+
+  /* ── Remise à zéro de la fenêtre au changement de série ───────────────────── */
+  useEffect(() => {
+    /*
+      Une fenêtre exprimée en FRACTIONS n'a de sens que rapportée à une série donnée.
+      Conservée telle quelle en passant de « 7 j » à « 1 A », elle désignerait le même
+      tiers d'une série cinquante fois plus longue — le lecteur qui vient d'élargir sa
+      période se retrouverait cadré sur quatre mois au hasard, sans avoir rien
+      demandé, et sans comprendre pourquoi son clic sur « 1 A » n'a pas fait ce qu'il
+      annonçait.
+
+      Le déclencheur est le PREMIER HORODATAGE de la série, et non sa longueur : le
+      cours en direct allonge la série par la fin toutes les quelques secondes, et
+      surveiller la longueur remettrait donc la fenêtre à zéro sous les doigts du
+      lecteur à chaque tique. Le début, lui, ne bouge que si la période change
+      vraiment.
+
+      Un changement de GRANDEUR — prix vers capitalisation — ne réinitialise
+      volontairement rien : l'axe des temps est le même, la fenêtre reste valide.
+    */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNavWindow({ from: 0, to: 1 })
+  }, [seriesStart, kind])
 
   /* ── Légende suivie par la croix de visée ─────────────────────────────────── */
   useEffect(() => {
@@ -354,13 +652,40 @@ export function PriceChartInteractive({
         return
       }
 
-      const next: LegendState = { time: formatStamp(param.time as UTCTimestamp, days) }
+      const next: LegendState = {
+        time: formatStamp(param.time as UTCTimestamp, days),
+        x: param.point.x,
+        y: param.point.y,
+      }
 
       if ('close' in value) {
-        next.price = value.close as number
-        next.open = value.open as number
-        next.high = value.high as number
-        next.low = value.low as number
+        const open = value.open as number
+        const high = value.high as number
+        const low = value.low as number
+        const close = value.close as number
+
+        next.price = close
+        next.open = open
+        next.high = high
+        next.low = low
+
+        /*
+          VARIATION MESURÉE SUR LA BOUGIE ELLE-MÊME — clôture moins ouverture.
+
+          Et non par rapport à la bougie précédente, qui serait l'autre lecture
+          possible. La raison est que la couleur du chandelier obéit déjà à cette
+          règle-là : un chandelier vert est un chandelier dont la clôture dépasse
+          l'ouverture. Mesurer la variation autrement afficherait un nombre négatif
+          sous un chandelier vert — deux signaux contradictoires pour un même point.
+        */
+        if (open > 0) {
+          next.changeAbs = close - open
+          next.changePct = ((close - open) / open) * 100
+        }
+        // « Plage » d'OKX : l'amplitude de la bougie rapportée à son plus bas. Elle
+        // dit la nervosité du point là où la variation ne dit que sa direction — une
+        // bougie peut clôturer à son ouverture après avoir bougé de 3 %.
+        if (low > 0) next.rangePct = ((high - low) / low) * 100
       } else if ('value' in value) {
         next.price = value.value as number
       }
@@ -398,39 +723,230 @@ export function PriceChartInteractive({
     return () => observer.disconnect()
   }, [points, candles, kind, usesCandles])
 
-  const hasLegend = legend.price !== undefined
+  const hovering = legend.price !== undefined
+
+  /*
+    ── LE BANDEAU NE SE VIDE PAS QUAND LE CURSEUR PART ──────────────────────────
+
+    Il affichait les valeurs survolées, et rien du tout au repos. Un bandeau qui
+    n'existe qu'au survol a deux défauts : il apparaît et disparaît sous le curseur —
+    donc la mise en page saute — et il n'apprend rien à qui regarde le graphique sans
+    y toucher, ce qui est le cas le plus fréquent.
+
+    Au repos, il montre donc le DERNIER point de la série : l'état courant, qui est la
+    réponse par défaut à « où en est-on ». C'est ce que font les plateformes de
+    trading, et c'est aussi ce qui rend la hauteur du bandeau constante.
+  */
+  const resting = restingValues(usesCandles, candles, points)
+  const shown: LegendState = hovering ? legend : resting
 
   return (
     <div className="relative w-full">
       {/*
-        Légende en surimpression plutôt qu'infobulle flottante attachée au curseur :
-        une infobulle qui suit la souris masque précisément la zone du graphique que
-        l'utilisateur est en train d'examiner. Position fixe, lecture stable.
+        ── BANDEAU DE LECTURE ────────────────────────────────────────────────────
+
+        La ligne « date · O H L C · Variation · Plage · Vol » d'OKX, posée AU-DESSUS
+        du tracé et non par-dessus lui. La surimpression était le choix précédent, au
+        motif qu'une infobulle flottante masque la zone examinée ; l'argument valait
+        contre une bulle qui suit le curseur, pas contre un bandeau — celui-ci ne
+        recouvre rien puisqu'il occupe sa propre bande.
+
+        Et il libère la surimpression pour ce qu'elle sait faire de mieux, l'infobulle
+        de CoinGecko, dont le rôle n'est pas de porter les chiffres mais de dire à
+        QUEL POINT ils se rapportent.
       */}
-      <div
-        className="pointer-events-none absolute left-2 top-2 z-10 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs"
-        aria-hidden="true"
-      >
-        {hasLegend ? (
-          <>
-            <span className="font-medium text-ink">{formatPrice(legend.price ?? 0)}</span>
-            {legend.open !== undefined && (
-              <span className="text-ink-muted">
-                O {formatPrice(legend.open)} · H {formatPrice(legend.high ?? 0)} · B{' '}
-                {formatPrice(legend.low ?? 0)}
-              </span>
-            )}
-            {legend.volume !== undefined && (
-              <span className="text-ink-muted">Vol {formatCompact(legend.volume)}</span>
-            )}
-            <span className="text-ink-muted">{legend.time}</span>
-          </>
+      <ReadoutStrip shown={shown} />
+
+      <div className="relative">
+        <div ref={containerRef} role="img" aria-label={label} className="w-full" />
+
+        {hovering ? (
+          <FloatingTooltip
+            legend={legend}
+            indexed={indexed}
+            frameWidth={containerRef.current?.clientWidth ?? 0}
+          />
         ) : null}
       </div>
 
-      <div ref={containerRef} role="img" aria-label={label} className="w-full" />
+      {showNavigator ? (
+        <ChartNavigator values={navValues} window={navWindow} onChange={setNavWindow} />
+      ) : null}
     </div>
   )
+}
+
+/* ── Affichages de lecture ─────────────────────────────────────────────────── */
+
+/** Le bandeau « date · O H L C · Variation · Plage · Vol ». */
+function ReadoutStrip({ shown }: { shown: LegendState }) {
+  return (
+    <div
+      className="mb-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-[0.6875rem] leading-5"
+      aria-hidden="true"
+    >
+      {shown.time ? <span className="tabular text-ink-muted">{shown.time}</span> : null}
+
+      {/* Les quatre valeurs OHLC sont formatées sur la précision de la CLÔTURE, et
+          non chacune sur la sienne. Elles décrivent le même instrument au même
+          instant : leur accorder des décimales différentes ferait sautiller les
+          quatre colonnes d'une bougie à l'autre, sur la seule ligne du cadre qu'on
+          lit en déplaçant le curseur. */}
+      {shown.open !== undefined ? (
+        <span className="tabular text-ink-muted">
+          <Ohlc label="O" value={shown.open} reference={shown.price ?? 0} />
+          <Ohlc label="H" value={shown.high ?? 0} reference={shown.price ?? 0} />
+          <Ohlc label="B" value={shown.low ?? 0} reference={shown.price ?? 0} />
+          <Ohlc label="C" value={shown.price ?? 0} reference={shown.price ?? 0} />
+        </span>
+      ) : shown.price !== undefined ? (
+        <span className="tabular font-semibold text-ink">{formatPrice(shown.price)}</span>
+      ) : null}
+
+      {shown.changeAbs !== undefined && shown.changePct !== undefined ? (
+        // Le signe est composé à la main plutôt que laissé au formateur : « − » est
+        // le signe moins typographique (U+2212), pas le trait d'union du clavier. Sur
+        // une colonne de chiffres tabulaires, le second est trop court et fait
+        // sautiller l'alignement d'un point à l'autre.
+        <span className={`tabular font-medium ${shown.changeAbs >= 0 ? 'text-up' : 'text-down'}`}>
+          {shown.changeAbs >= 0 ? '+' : '−'}
+          {formatAgainst(Math.abs(shown.changeAbs), shown.price ?? 0)} (
+          {shown.changeAbs >= 0 ? '+' : '−'}
+          {Math.abs(shown.changePct).toFixed(2)} %)
+        </span>
+      ) : null}
+
+      {shown.rangePct !== undefined ? (
+        <span className="tabular text-ink-muted">
+          Plage <span className="text-ink">{shown.rangePct.toFixed(2)} %</span>
+        </span>
+      ) : null}
+
+      {shown.volume !== undefined ? (
+        <span className="tabular text-ink-muted">
+          Vol <span className="text-ink">{formatCompact(shown.volume)}</span>
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * Infobulle attachée au curseur, façon CoinGecko.
+ *
+ * ── ELLE CHANGE DE CÔTÉ AU MILIEU DU CADRE ────────────────────────────────────
+ *
+ * Posée invariablement à droite du curseur, elle sortirait du cadre sur le dernier
+ * tiers de la courbe — c'est-à-dire précisément sur les points récents, les plus
+ * consultés. Le basculement se décide sur la moitié du cadre, ce qui suffit : la
+ * bulle fait 160 pixels au minimum, un cadre en fait au moins 600.
+ *
+ * ── `pointer-events-none` EST INDISPENSABLE, PAS DÉCORATIF ────────────────────
+ *
+ * Sans lui, la bulle passe sous le curseur et intercepte le survol. La croix de visée
+ * se croit alors sortie du graphique, la bulle disparaît, le curseur retrouve la
+ * toile, la bulle revient — un clignotement à la fréquence de rafraîchissement, dont
+ * la cause est invisible en lisant le code de la croix de visée.
+ */
+function FloatingTooltip({
+  legend,
+  indexed,
+  frameWidth,
+}: {
+  legend: LegendState
+  indexed: boolean
+  frameWidth: number
+}) {
+  if (legend.x === undefined || legend.y === undefined) return null
+
+  const flip = legend.x > frameWidth / 2
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute z-20 min-w-[10rem] rounded-dense border border-border-subtle bg-overlay px-2.5 py-1.5 text-[0.6875rem] shadow-overlay"
+      style={{
+        left: legend.x,
+        top: legend.y,
+        transform: `translate(${flip ? 'calc(-100% - 12px)' : '12px'}, -50%)`,
+      }}
+    >
+      <p className="tabular mb-1 text-ink-muted">{legend.time}</p>
+      <p className="tabular flex items-baseline justify-between gap-3">
+        {/* « Indice » et non « Cours » en comparaison : l'axe ne porte alors plus des
+            montants mais une base 100, et l'infobulle ne doit pas contredire la
+            mention qui l'explique sous le graphique. */}
+        <span className="text-ink-muted">{indexed ? 'Indice' : 'Cours'}</span>
+        <span className="font-semibold text-ink">{formatPrice(legend.price ?? 0)}</span>
+      </p>
+      {legend.volume !== undefined ? (
+        <p className="tabular flex items-baseline justify-between gap-3">
+          <span className="text-ink-muted">Volume</span>
+          <span className="font-medium text-ink">{formatCompact(legend.volume)}</span>
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+/** Une paire « libellé valeur » du bandeau OHLC — l'espacement est le même partout. */
+function Ohlc({ label, value, reference }: { label: string; value: number; reference: number }) {
+  return (
+    <>
+      <span className="ml-2 first:ml-0">{label} </span>
+      <span className="font-medium text-ink">{formatAgainst(value, reference)}</span>
+    </>
+  )
+}
+
+/**
+ * Valeurs du DERNIER point, pour le bandeau au repos.
+ *
+ * La variation d'une courbe simple se mesure ici contre le point PRÉCÉDENT, alors
+ * qu'une bougie la mesure contre sa propre ouverture. Ce n'est pas une incohérence :
+ * un point de courbe n'a pas d'ouverture, et la seule variation qu'on puisse lui
+ * attribuer est celle du pas qui l'a amené là.
+ */
+function restingValues(
+  usesCandles: boolean,
+  candles: ChartCandle[] | undefined,
+  points: ChartPoint[],
+): LegendState {
+  if (usesCandles && candles && candles.length > 0) {
+    const last = candles[candles.length - 1]
+    if (!last) return {}
+    return {
+      time: formatStamp(toChartTime(false, last.timestamp), 9999),
+      open: last.open,
+      high: last.high,
+      low: last.low,
+      price: last.close,
+      ...(last.open > 0
+        ? {
+            changeAbs: last.close - last.open,
+            changePct: ((last.close - last.open) / last.open) * 100,
+          }
+        : {}),
+      ...(last.low > 0 ? { rangePct: ((last.high - last.low) / last.low) * 100 } : {}),
+      ...(last.volume !== undefined ? { volume: last.volume } : {}),
+    }
+  }
+
+  const last = points[points.length - 1]
+  const previous = points[points.length - 2]
+  if (!last) return {}
+
+  return {
+    time: formatStamp(toChartTime(false, last.timestamp), 9999),
+    price: last.price,
+    ...(previous && previous.price > 0
+      ? {
+          changeAbs: last.price - previous.price,
+          changePct: ((last.price - previous.price) / previous.price) * 100,
+        }
+      : {}),
+    ...(last.volume !== undefined ? { volume: last.volume } : {}),
+  }
 }
 
 /* ── Fabrique de séries ────────────────────────────────────────────────────── */
@@ -469,11 +985,11 @@ function readPalette(): Palette {
   const token = (name: string, fallback: string) => styles.getPropertyValue(name).trim() || fallback
 
   return {
-    up: token('--color-up', '#047857'),
-    down: token('--color-down', '#b91c1c'),
-    accent: token('--color-brand', '#0369a1'),
-    muted: token('--color-ink-muted', '#475569'),
-    border: token('--color-border-subtle', '#e2e8f0'),
+    up: token('--color-up', '#00a83e'),
+    down: token('--color-down', '#ff3a33'),
+    accent: token('--color-brand', '#3d63c2'),
+    muted: token('--color-ink-muted', '#64748b'),
+    border: token('--color-border-subtle', '#e5e7eb'),
   }
 }
 
@@ -574,11 +1090,99 @@ function movingAverage(
 
 /* ── Formatage ─────────────────────────────────────────────────────────────── */
 
-const toUtc = (timestamp: number) => Math.floor(timestamp / 1000) as UTCTimestamp
+/**
+ * Horodatage epoch (ms) → seconde que la bibliothèque doit AFFICHER, fuseau local compris.
+ *
+ * ── LE DÉFAUT QUE CECI CORRIGE ────────────────────────────────────────────────
+ *
+ * `lightweight-charts` ne connaît pas les fuseaux : un `UTCTimestamp` est toujours
+ * rendu en UTC sur l'axe et sur l'étiquette de la croix de visée. La légende, elle,
+ * passait par `toLocaleString` — donc par le fuseau du navigateur. Le même instant
+ * s'affichait ainsi à deux endroits du même cadre avec deux heures d'écart à Paris
+ * en été : « 19:46 » en légende, « 17:46 » sous le dernier point.
+ *
+ * ── POURQUOI DÉCALER LA DONNÉE PLUTÔT QUE REFORMATER L'AXE ────────────────────
+ *
+ * Reformater les graduations en local aurait corrigé le TEXTE sans corriger les
+ * POSITIONS : la bibliothèque place ses repères sur les minuits et les heures rondes
+ * UTC, et l'on aurait obtenu une graduation « 12 août » posée à 02:00 du matin.
+ *
+ * On décale donc les horodatages de l'offset local avant de les remettre, ce que la
+ * documentation de la bibliothèque recommande explicitement. Elle continue de croire
+ * qu'elle affiche de l'UTC ; ce qu'elle affiche est l'heure locale, graduations
+ * comprises.
+ *
+ * ── L'OFFSET EST CALCULÉ PAR POINT, ET C'EST INDISPENSABLE ────────────────────
+ *
+ * `getTimezoneOffset()` est interrogé sur la date DU POINT et non sur l'instant
+ * présent. Un graphique d'un an traverse deux changements d'heure : un offset unique
+ * pris « maintenant » décalerait d'une heure toute la moitié de la série située de
+ * l'autre côté du basculement — une erreur d'autant plus vicieuse qu'elle ne se voit
+ * que sur les fenêtres longues.
+ */
+const toChartTime = (shift: boolean, timestamp: number) =>
+  // `getTimezoneOffset` compte les minutes de RETARD sur UTC (−120 à Paris en été) :
+  // le soustraire avance donc l'horodatage, ce qui est bien le sens voulu.
+  Math.floor(
+    (shift ? timestamp - new Date(timestamp).getTimezoneOffset() * 60_000 : timestamp) / 1000,
+  ) as UTCTimestamp
+
+/**
+ * Série ramenée à 100 sur son premier point exploitable.
+ *
+ * Les points dont le prix est nul ou négatif sont écartés AVANT de choisir la base :
+ * diviser par zéro produirait un `Infinity` que la bibliothèque trace comme une
+ * verticale sur toute la hauteur du cadre, ce qui détruit l'échelle des deux courbes.
+ */
+function indexSeries(points: ChartPoint[]): { timestamp: number; value: number }[] {
+  const usable = points.filter((point) => Number.isFinite(point.price) && point.price > 0)
+  const base = usable[0]?.price
+  if (base === undefined) return []
+  return usable.map((point) => ({ timestamp: point.timestamp, value: (point.price / base) * 100 }))
+}
+
+/** Indice sans symbole monétaire — 100 = niveau au début de la fenêtre. */
+function formatIndex(value: number): string {
+  return value.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+}
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: value >= 100 ? 0 : value >= 1 ? 2 : 6,
+    maximumFractionDigits: priceDigits(value),
+  }).format(value)
+}
+
+/** Décimales utiles pour un montant, selon son ordre de grandeur. */
+function priceDigits(value: number): number {
+  const size = Math.abs(value)
+  return size >= 100 ? 0 : size >= 1 ? 2 : 6
+}
+
+/**
+ * Un montant formaté à la précision d'un AUTRE montant, sa référence.
+ *
+ * ── LE DÉFAUT QUE CECI CORRIGE ────────────────────────────────────────────────
+ *
+ * `formatPrice` choisit ses décimales d'après la magnitude de la valeur qu'il reçoit.
+ * C'est le bon calcul pour un cours isolé, et le mauvais dès que plusieurs nombres
+ * liés se lisent sur la même ligne :
+ *
+ *   · une VARIATION de 0,079 sur un actif coté 49 € tombe sous l'unité et recevait
+ *     donc six décimales — le bandeau affichait « 49 » et « −0,079104 » côte à côte,
+ *     alors que le second est la différence du premier ;
+ *   · les quatre valeurs OHLC d'une même bougie peuvent tomber de part et d'autre
+ *     d'un seuil et changer de précision entre elles, ce qui fait sautiller les
+ *     colonnes d'un point à l'autre — sur la seule ligne du cadre qu'on lit
+ *     précisément en déplaçant le curseur.
+ *
+ * Chaque valeur hérite donc de la précision de la CLÔTURE, avec un plancher à deux
+ * décimales : sur un actif à 63 000 €, `priceDigits` renverrait zéro et un mouvement
+ * de quarante centimes s'afficherait « +0 ».
+ */
+function formatAgainst(value: number, reference: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: Math.max(2, priceDigits(reference)),
   }).format(value)
 }
 
@@ -588,13 +1192,21 @@ function formatCompact(value: number): string {
   )
 }
 
+/**
+ * Horodatage RENVOYÉ par le graphique → texte de la légende.
+ *
+ * `timeZone: 'UTC'` n'est pas une erreur, c'est la contrepartie exacte de
+ * `toChartTime` : la valeur qui ressort de la croix de visée a déjà été décalée du
+ * fuseau local à l'aller. La relire en local la décalerait une seconde fois, et la
+ * légende afficherait quatre heures d'avance là où elle en affichait deux de retard.
+ */
 function formatStamp(time: UTCTimestamp, days: number): string {
   const date = new Date((time as number) * 1000)
   return date.toLocaleString(
     'fr-FR',
     days <= 7
-      ? { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
-      : { day: 'numeric', month: 'short', year: 'numeric' },
+      ? { timeZone: 'UTC', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
+      : { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' },
   )
 }
 

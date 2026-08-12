@@ -1,11 +1,11 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, EmptyState } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 import { assetHref } from '@/lib/asset-routes'
 
 interface HighlightPanelProps {
@@ -36,13 +36,14 @@ interface HighlightPanelProps {
  * de marché : aucun terminal ni aucune page de cotation professionnelle n'en pose
  * sur un panneau de cotation. Le titre suffit à identifier le panneau.
  */
-export function HighlightPanel({
+export async function HighlightPanel({
   title,
   assets,
   hint,
   href,
   unavailableReason,
 }: HighlightPanelProps) {
+  const fr = await getContent()
   return (
     <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
       <div className="mb-2 flex items-start justify-between gap-3">

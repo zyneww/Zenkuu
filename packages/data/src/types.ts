@@ -153,6 +153,47 @@ export interface AssetDetail extends MarketAsset {
   communityUrls?: Record<string, string>
 
   /**
+   * Part de votes HAUSSIERS parmi les votes exprimés, en pourcentage.
+   *
+   * C'est un sondage d'audience publié par la source, PAS un indicateur de marché :
+   * il mesure ce que pensent les gens qui ont cliqué, population qui n'a aucune
+   * raison d'être représentative des porteurs. L'affichage doit le dire (§5).
+   *
+   * La part baissière n'est pas stockée : la source garantit que les deux somment à
+   * 100, et conserver un champ dérivable ouvre la porte à ce que les deux divergent.
+   */
+  sentimentUpPercent?: number
+
+  /**
+   * Audience sur les réseaux, telle que publiée par la source.
+   *
+   * Chaque champ est absent s'il n'est pas renseigné — jamais zéro. Un projet sans
+   * Telegram n'a pas zéro abonné Telegram, il n'a pas de Telegram, et afficher
+   * « 0 » ferait lire un échec là où il n'y a qu'une absence.
+   */
+  community?: {
+    twitterFollowers?: number
+    redditSubscribers?: number
+    telegramUsers?: number
+  }
+
+  /**
+   * Activité du dépôt public principal, telle que publiée par la source.
+   *
+   * Ne concerne que les projets à code ouvert dont la source connaît le dépôt. Un
+   * projet fermé n'a pas d'activité nulle : il n'a pas de dépôt observable.
+   */
+  developer?: {
+    stars?: number
+    forks?: number
+    contributors?: number
+    /** Commits sur les quatre dernières semaines — la seule mesure de RYTHME du lot. */
+    commits4Weeks?: number
+    issuesOpen?: number
+    issuesClosed?: number
+  }
+
+  /**
    * Cours dans toutes les devises publiées par la source, en minuscules (`{ usd, eur… }`).
    *
    * Ce sont des cotations RÉELLES et non des conversions maison : la source publie le
@@ -170,6 +211,18 @@ export interface AssetDetail extends MarketAsset {
  */
 export interface AssetTicker {
   exchange: string
+  /**
+   * Identifiant de la place chez la source — `binance`, `gdax`, `kraken`…
+   *
+   * C'est la CLÉ DE JOINTURE avec le palmarès des places (`SpotExchange`), seul
+   * endroit où la source publie leur logo : la réponse des cotations, elle, ne porte
+   * que le nom. Sans cet identifiant, il faudrait rapprocher les deux listes par leur
+   * libellé — un rapprochement qui échoue dès qu'une place est écrite « Coinbase
+   * Exchange » d'un côté et « Coinbase Pro » de l'autre.
+   *
+   * Facultatif : la source ne le publie pas systématiquement.
+   */
+  exchangeId?: string
   base: string
   target: string
   /** Prix converti dans la devise demandée par l'appelant. */
@@ -352,6 +405,14 @@ export interface NewsItem {
    */
   category?: string
   /**
+   * Langue de publication, héritée du FLUX — même raisonnement que la rubrique.
+   *
+   * Déclarée par la source et jamais devinée : détecter la langue d'un titre de
+   * huit mots est un exercice à l'aveugle, et une étiquette fausse enverrait un
+   * article français dans un fil anglais sans que rien ne le signale.
+   */
+  lang?: string
+  /**
    * Vignette hébergée par l'ÉDITEUR, jamais recopiée chez nous.
    *
    * L'afficher fait donc appeler son serveur depuis le navigateur du lecteur —
@@ -511,6 +572,14 @@ export interface MarketDataProvider {
   isConfigured(): boolean
   /** Raison lisible de l'indisponibilité, affichée à l'utilisateur. */
   unavailableReason(): string | null
+
+  /**
+   * TTL à préférer pour les requêtes à fort trafic et faible cardinalité de ce
+   * fournisseur (classement, statistiques globales) — voir `run(..., preferFast)`
+   * dans `queries.ts`. `undefined` : ces requêtes utilisent `CACHE_TTL_SECONDS`
+   * comme les autres, sans traitement particulier.
+   */
+  readonly fastTtlSeconds?: number
 
   listAssets(params?: ListAssetsParams): Promise<MarketAsset[]>
   getGlobalStats?(currency?: string): Promise<GlobalMarketStats>

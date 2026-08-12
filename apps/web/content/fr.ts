@@ -9,7 +9,7 @@
 
 export const fr = {
   site: {
-    name: 'Zenith',
+    name: 'Zenkuu',
     tagline: 'Suivi et analyse de marché multi-actifs',
     description:
       'Cryptomonnaies, forex, actions, ETF, matières premières et indices — prix, capitalisations et tendances au même endroit. Plateforme d’analyse en lecture seule.',
@@ -62,18 +62,18 @@ export const fr = {
     unavailableTitle: 'Comptes bientôt disponibles',
     unavailableBody:
       'L’authentification n’est pas encore configurée sur cette instance. Les comptes rendront la liste de suivi persistante et donneront accès aux alertes de prix et aux préférences d’affichage.',
-    signInTitle: 'Se connecter à ZENITH',
+    signInTitle: 'Se connecter à ZENKUU',
     signInSubtitle: 'Retrouvez votre liste de suivi et vos préférences.',
-    signUpTitle: 'Créer un compte ZENITH',
+    signUpTitle: 'Créer un compte ZENKUU',
     signUpSubtitle:
-      'Gratuit. Aucune donnée bancaire demandée — ZENITH ne gère ni fonds ni transaction.',
+      'Gratuit. Aucune donnée bancaire demandée — ZENKUU ne gère ni fonds ni transaction.',
 
     // ── Fenêtre de compte ───────────────────────────────────────────────────
     close: 'Fermer',
     // Titres PLUS COURTS que ceux des pages : dans une fenêtre modale, le contexte
     // est déjà donné par le site autour. Une page, elle, peut être atteinte
     // directement depuis un moteur de recherche et doit se présenter seule.
-    overlaySignInTitle: 'Bienvenue sur ZENITH',
+    overlaySignInTitle: 'Bienvenue sur ZENKUU',
     overlaySignInSubtitle: 'Connexion ou inscription en quelques secondes.',
     overlaySignUpTitle: 'Créer votre compte',
     overlaySignUpSubtitle: 'Gratuit, sans donnée bancaire.',
@@ -89,7 +89,7 @@ export const fr = {
     // La phrase qui nous sépare d'une plateforme d'échange. Elle est à cet endroit
     // précis — au moment de créer un compte — parce que c'est là que le doute existe.
     benefitsNote:
-      'ZENITH n’exécute aucun ordre, ne détient aucun fonds et ne revend aucune donnée. Un compte ne sert qu’à retrouver vos réglages.',
+      'ZENKUU n’exécute aucun ordre, ne détient aucun fonds et ne revend aucune donnée. Un compte ne sert qu’à retrouver vos réglages.',
     legalPrefix: 'En continuant, vous acceptez nos conditions d’utilisation, décrites',
     legalLink: 'sur la page À propos',
   },
@@ -99,7 +99,7 @@ export const fr = {
     switchToLight: 'Passer en thème clair',
   },
 
-  /** Titres d'onglet — le gabarit « Zenith | %s » est posé dans le layout. */
+  /** Titres d'onglet — le gabarit « Zenkuu | %s » est posé dans le layout. */
   pages: {
     home: 'Accueil',
     crypto: 'Cryptomonnaies',
@@ -145,8 +145,8 @@ export const fr = {
       `Évolution de la capitalisation totale sur les ${minutes} dernières minutes`,
     marketCapSeriesHint: (minutes: number) =>
       minutes >= 120
-        ? `Relevés ZENITH sur ${Math.round(minutes / 60)} h`
-        : `Relevés ZENITH sur ${minutes} min`,
+        ? `Relevés ZENKUU sur ${Math.round(minutes / 60)} h`
+        : `Relevés ZENKUU sur ${minutes} min`,
     marketCapSeriesBuilding: (count: number) =>
       count === 0
         ? 'Courbe en cours de constitution : aucune source gratuite ne publie l’historique de la capitalisation mondiale, nous enregistrons donc nos propres relevés.'
@@ -264,9 +264,23 @@ export const fr = {
         'Cette source ne publie pas de bougies pour cet actif — les vues Chandeliers et Barres sont donc indisponibles.',
       volumeUnavailable: 'Volume non publié par la source pour cette période.',
     },
+    /**
+     * Onglets INTERNES au graphique — à ne pas confondre avec ceux de la fiche.
+     *
+     * La fiche porte désormais sa propre barre (Aperçu · Marchés · Historique) au
+     * niveau de la page. Les deux barres se retrouvaient donc empilées avec des
+     * intitulés IDENTIQUES : deux « Aperçu » et deux « Historique » à quinze pixels
+     * l'un de l'autre, désignant des contenus différents.
+     *
+     * Le partage est désormais explicite : la barre de la page dit CE QU'ON REGARDE
+     * (les repères, les places, l'historique), celle du graphique dit COMMENT on
+     * regarde le cours (sa courbe, ses performances, les questions courantes).
+     * D'où « Graphique » et « Performances » à la place d'« Aperçu » et
+     * « Historique » — plus précis, en plus d'être distincts.
+     */
     tabs: {
-      overview: 'Aperçu',
-      history: 'Historique',
+      overview: 'Graphique',
+      history: 'Performances',
       stats: 'Statistiques',
       about: 'À propos',
       faq: 'FAQ',
@@ -300,9 +314,9 @@ export const fr = {
         circulating
           ? `L’offre maximale est de ${max} ${symbol}, dont ${circulating} ${symbol} sont actuellement en circulation.`
           : `L’offre maximale est de ${max} ${symbol}.`,
-      buyQ: (name: string) => `Peut-on acheter ${name} sur ZENITH ?`,
+      buyQ: (name: string) => `Peut-on acheter ${name} sur ZENKUU ?`,
       buyA:
-        'Non. ZENITH est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.',
+        'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.',
     },
     stats: {
       marketCap: 'Capitalisation',
@@ -322,7 +336,7 @@ export const fr = {
     },
     noDescription: 'Aucune description n’est fournie par la source pour cet actif.',
     readOnly:
-      'Page d’information uniquement. ZENITH ne permet ni achat, ni vente, ni passage d’ordre.',
+      'Page d’information uniquement. ZENKUU ne permet ni achat, ni vente, ni passage d’ordre.',
     officialLinks: 'Liens officiels',
     website: 'Site officiel',
     notFoundTitle: 'Actif introuvable',
@@ -383,7 +397,7 @@ export const fr = {
     localeHint:
       'Le site est publié en français, avec l’euro comme devise de référence. D’autres langues et devises suivront.',
     disclaimer:
-      'ZENITH est une plateforme d’information en lecture seule. Aucune fonction d’achat, de vente ou de connexion à un portefeuille. Les informations affichées ne constituent pas un conseil en investissement.',
+      'ZENKUU est une plateforme d’information en lecture seule. Aucune fonction d’achat, de vente ou de connexion à un portefeuille. Les informations affichées ne constituent pas un conseil en investissement.',
     dataNote: 'Données de marché fournies par des sources publiques, actualisées toutes les 5 minutes.',
     /**
      * Formulation imposée par les CGU de l'API CoinGecko — à conserver telle quelle,
@@ -391,7 +405,7 @@ export const fr = {
      * d'interface : la traduire ne satisferait pas l'obligation.
      */
     poweredByCoinGecko: 'Powered by CoinGecko',
-    rights: (year: number) => `© ${year} ZENITH`,
+    rights: (year: number) => `© ${year} ZENKUU`,
   },
 
   placeholder: {

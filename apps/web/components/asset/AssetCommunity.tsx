@@ -1,0 +1,107 @@
+import type { AssetDetail } from '@zenkuu/data'
+import { formatCompact } from '@zenkuu/ui'
+
+import { Panel } from '@/components/ui/Panel'
+
+/**
+ * Audience et activité de développement.
+ *
+ * ── DEUX BLOCS DANS UNE SEULE CARTE, ET C'EST UN CHOIX ────────────────────────
+ *
+ * Abonnés et commits n'ont rien à voir : l'un mesure une attention, l'autre un
+ * travail. Ils partagent pourtant la même carte parce qu'ils répondent à la même
+ * question, celle qu'aucun chiffre de marché ne traite — « y a-t-il quelqu'un
+ * derrière ? ». Un jeton dont le cours monte sans compte social ni dépôt vivant ne
+ * raconte pas la même histoire qu'un jeton au même cours suivi par cent mille
+ * personnes et commité chaque semaine.
+ *
+ * Deux cartes séparées auraient dispersé cette lecture sur deux blocs de trois
+ * lignes, dont chacun est trop maigre pour exister seul.
+ *
+ * ── CE QUE CES CHIFFRES NE DISENT PAS ─────────────────────────────────────────
+ *
+ * Des abonnés s'achètent, et des commits se fabriquent. Ces mesures sont des
+ * indices d'activité, pas des preuves de qualité, et la fiche ne les présente jamais
+ * comme un jugement — pas de seuil, pas de note, pas de code couleur. Les nombres
+ * bruts, et le lecteur conclut.
+ *
+ * Chaque ligne dont la source n'a rien publié DISPARAÎT (voir `positive` dans
+ * l'adaptateur CoinGecko) : un « 0 abonné » ferait lire un échec là où il n'y a
+ * qu'un projet sans ce réseau.
+ */
+export function AssetCommunity({ asset }: { asset: AssetDetail }) {
+  const community = asset.community
+  const developer = asset.developer
+
+  const rows: { label: string; value: number; hint?: string }[] = []
+
+  if (community?.twitterFollowers !== undefined) {
+    rows.push({ label: 'Abonnés X', value: community.twitterFollowers })
+  }
+  if (community?.redditSubscribers !== undefined) {
+    rows.push({ label: 'Membres Reddit', value: community.redditSubscribers })
+  }
+  if (community?.telegramUsers !== undefined) {
+    rows.push({ label: 'Membres Telegram', value: community.telegramUsers })
+  }
+
+  const devRows: { label: string; value: number; hint?: string }[] = []
+
+  if (developer?.stars !== undefined) devRows.push({ label: 'Étoiles', value: developer.stars })
+  if (developer?.forks !== undefined) devRows.push({ label: 'Bifurcations', value: developer.forks })
+  if (developer?.contributors !== undefined) {
+    devRows.push({ label: 'Contributeurs', value: developer.contributors })
+  }
+  if (developer?.commits4Weeks !== undefined) {
+    devRows.push({
+      label: 'Commits',
+      value: developer.commits4Weeks,
+      // La seule ligne du lot qui mesure un RYTHME et non un cumul. Sans cette
+      // précision, « 312 » se lirait comme un total depuis l'origine du projet.
+      hint: '4 sem.',
+    })
+  }
+  if (developer?.issuesOpen !== undefined) {
+    devRows.push({ label: 'Tickets ouverts', value: developer.issuesOpen })
+  }
+
+  if (rows.length === 0 && devRows.length === 0) return null
+
+  return (
+    <Panel title="Communauté et code">
+      {rows.length > 0 ? <StatList rows={rows} /> : null}
+
+      {devRows.length > 0 ? (
+        <>
+          {rows.length > 0 ? (
+            <p className="mb-1.5 mt-4 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+              Dépôt public
+            </p>
+          ) : null}
+          <StatList rows={devRows} />
+        </>
+      ) : null}
+    </Panel>
+  )
+}
+
+function StatList({ rows }: { rows: { label: string; value: number; hint?: string }[] }) {
+  return (
+    <dl>
+      {rows.map((row) => (
+        <div
+          key={row.label}
+          className="flex items-baseline justify-between gap-1.5 border-b border-border-subtle/60 py-1.5 last:border-0"
+        >
+          <dt className="min-w-0 flex-1 truncate text-xs text-ink-muted">
+            {row.label}
+            {row.hint ? <span className="ml-1 opacity-60">· {row.hint}</span> : null}
+          </dt>
+          <dd className="tabular shrink-0 text-xs font-medium text-ink">
+            {formatCompact(row.value)}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

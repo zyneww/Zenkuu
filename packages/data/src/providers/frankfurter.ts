@@ -67,7 +67,7 @@ interface FrankfurterTimeSeries {
 }
 
 /**
- * Retrouve la paire derrière un identifiant de route ZENITH (`eur-usd` → USD).
+ * Retrouve la paire derrière un identifiant de route ZENKUU (`eur-usd` → USD).
  *
  * Point UNIQUE de résolution, volontairement : chez Yahoo, deux copies de cette même
  * règle avaient divergé, et seule l'une des deux marquait l'erreur comme une
@@ -102,6 +102,22 @@ function isoDaysAgo(days: number): string {
  * quota qui n'en tolère que cinq par minute. Un seul taux BCE, mis en cache, permet
  * de convertir toute la page instantanément — à condition de le DIRE à l'utilisateur,
  * ce que fait la fiche en affichant la date du taux appliqué.
+ *
+ * ── ON PEUT DEMANDER PLUS QUE CE QUE LA BCE PUBLIE ────────────────────────────
+ *
+ * L'appelant (`getExchangeRates`) passe désormais les 62 codes du catalogue, dont
+ * une trentaine que la BCE ne cote pas : bitcoin, or, dông, droits de tirage.
+ * Comportement MESURÉ de l'API, et sur lequel s'appuie la fusion des deux sources :
+ *
+ *   • symboles connus et inconnus mélangés → 200, les inconnus sont ignorés ;
+ *   • QUE des symboles inconnus            → 404 « not found » ;
+ *   • paramètre `symbols` vide             → 404 également.
+ *
+ * Autrement dit, filtrer la liste en amont serait du travail inutile tant qu'elle
+ * contient au moins une monnaie cotée — ce que garantit le catalogue. En revanche,
+ * les deux cas 404 justifient à eux seuls que l'appelant traite cette source comme
+ * faillible et la compose avec `Promise.allSettled` : un 404 ici ne doit pas faire
+ * disparaître les devises que l'autre source, elle, sait convertir.
  */
 export async function fetchExchangeRates(
   symbols: string[],

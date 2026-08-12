@@ -1,4 +1,4 @@
-import type { MarketAsset } from '@zenith/data'
+import type { MarketAsset } from '@zenkuu/data'
 
 import { Money } from '@/components/locale/Money'
 

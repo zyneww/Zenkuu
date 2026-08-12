@@ -50,6 +50,21 @@ const http = createHttpClient({
   headers: apiKey ? { 'x-cg-demo-api-key': apiKey } : {},
 })
 
+/**
+ * Fenêtre de fraîcheur pour le classement et les statistiques globales — les deux
+ * requêtes à la fois les plus VISIBLES (quasi toutes les pages du site en
+ * dépendent) et les moins nombreuses (une poignée de clés de cache, partagées
+ * entre pages plutôt que multipliées par actif). C'est ce qui rend un
+ * rafraîchissement plus rapide sûr : resserrer la fenêtre ici ne multiplie pas le
+ * nombre d'appels par le nombre de fiches, contrairement à `getAsset`/`getHistory`.
+ *
+ * Sans clé, on reste sur `CACHE_TTL_SECONDS` (déjà resserré, §9) : le quota mesuré
+ * à ~5 req/min ne laisse pas de marge pour aller plus vite. Avec la clé Demo
+ * (30/min), 45 s est confortable — c'est l'ordre de grandeur auquel CoinGecko
+ * rafraîchit lui-même son propre tableau des marchés.
+ */
+const FAST_REVALIDATE_SECONDS = apiKey ? 45 : undefined
+
 /** Réponse brute de `/coins/markets` — telle que renvoyée par l'API. */
 interface CoinGeckoMarket {
   id: string
@@ -125,6 +140,20 @@ interface CoinGeckoCoin {
   platforms?: Record<string, string | null>
   categories?: (string | null)[]
   market_cap_rank?: number | null
+  sentiment_votes_up_percentage?: number | null
+  community_data?: {
+    twitter_followers?: number | null
+    reddit_subscribers?: number | null
+    telegram_channel_user_count?: number | null
+  } | null
+  developer_data?: {
+    stars?: number | null
+    forks?: number | null
+    pull_request_contributors?: number | null
+    commit_count_4_weeks?: number | null
+    total_issues?: number | null
+    closed_issues?: number | null
+  } | null
   market_data?: {
     current_price?: Record<string, number>
     market_cap?: Record<string, number>
@@ -245,6 +274,75 @@ function optional(value: number | null | undefined): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
+/**
+ * Comme `optional`, mais ZÉRO est également écarté.
+ *
+ * La distinction n'est pas de la coquetterie. Sur les blocs sociaux et de
+ * développement, la source renvoie `0` dans DEUX situations qu'elle ne distingue
+ * pas : « ce compte existe et n'a aucun abonné » et « ce projet n'a pas ce réseau ».
+ * Le second cas est de très loin le plus fréquent, et afficher « 0 abonné Telegram »
+ * pour un projet qui n'a jamais ouvert de Telegram fait lire un échec là où il n'y a
+ * qu'une absence. Entre un zéro potentiellement faux et un silence, le §5 tranche.
+ *
+ * Ce raisonnement ne vaut PAS pour les chiffres de marché — un volume à zéro est un
+ * volume à zéro — d'où deux fonctions plutôt qu'un drapeau sur une seule.
+ */
+function positive(value: number | null | undefined): number | undefined {
+  const parsed = optional(value)
+  return parsed !== undefined && parsed > 0 ? parsed : undefined
+}
+
+/** Audience sur les réseaux. `undefined` si la source n'en mesure aucune. */
+function readCommunity(
+  raw: CoinGeckoCoin['community_data'],
+): AssetDetail['community'] | undefined {
+  if (!raw) return undefined
+
+  const community: NonNullable<AssetDetail['community']> = {}
+  const twitter = positive(raw.twitter_followers)
+  const reddit = positive(raw.reddit_subscribers)
+  const telegram = positive(raw.telegram_channel_user_count)
+
+  if (twitter !== undefined) community.twitterFollowers = twitter
+  if (reddit !== undefined) community.redditSubscribers = reddit
+  if (telegram !== undefined) community.telegramUsers = telegram
+
+  return Object.keys(community).length > 0 ? community : undefined
+}
+
+/** Activité du dépôt public. `undefined` si la source n'observe aucun dépôt. */
+function readDeveloper(
+  raw: CoinGeckoCoin['developer_data'],
+): AssetDetail['developer'] | undefined {
+  if (!raw) return undefined
+
+  const developer: NonNullable<AssetDetail['developer']> = {}
+  const stars = positive(raw.stars)
+  const forks = positive(raw.forks)
+  const contributors = positive(raw.pull_request_contributors)
+  const commits = positive(raw.commit_count_4_weeks)
+
+  if (stars !== undefined) developer.stars = stars
+  if (forks !== undefined) developer.forks = forks
+  if (contributors !== undefined) developer.contributors = contributors
+  if (commits !== undefined) developer.commits4Weeks = commits
+
+  /*
+   * Les issues font exception à la règle du `positive` ci-dessus, et c'est
+   * délibéré : sur un dépôt dont le TOTAL est renseigné, un compte de fermées à
+   * zéro est une information réelle — « personne n'a rien clos » — et non une
+   * absence de mesure. On conditionne donc au total, pas à chaque terme.
+   */
+  const total = positive(raw.total_issues)
+  if (total !== undefined) {
+    const closed = optional(raw.closed_issues) ?? 0
+    developer.issuesClosed = closed
+    developer.issuesOpen = Math.max(total - closed, 0)
+  }
+
+  return Object.keys(developer).length > 0 ? developer : undefined
+}
+
 function toMarketAsset(raw: CoinGeckoMarket, currency: string): MarketAsset {
   const price = optional(raw.current_price)
   if (price === undefined) {
@@ -335,11 +433,82 @@ export function isSupportedSort(field: string): field is SupportedSortField {
   return field in SORT_MAP
 }
 
+/** Une ligne de `/exchange_rates` — cotée en BITCOIN, jamais en euro. */
+interface CoinGeckoRate {
+  name: string
+  unit: string
+  value: number
+  type: 'fiat' | 'crypto' | 'commodity'
+}
+
+/**
+ * Table de change complète — les 60 et quelques devises que la source sait coter.
+ *
+ * COMPLÉMENT de la BCE, pas remplacement. La BCE publie un taux de référence
+ * officiel et daté, mais pour 30 monnaies seulement : ni l'or, ni l'argent, ni le
+ * bitcoin, ni le dông vietnamien, ni les droits de tirage spéciaux. Ces 33 devises
+ * manquantes ne sont pas une longue traîne négligeable — ce sont précisément celles
+ * que réclame un lecteur de marché crypto (cf. `getExchangeRates`).
+ *
+ * ── UN SEUL APPEL POUR TOUTE LA TABLE ─────────────────────────────────────────
+ *
+ * L'endpoint cote tout en bitcoin : `value` répond à « combien de cette devise
+ * vaut 1 BTC ». Ce détournement du bitcoin en unité de compte n'est pas une
+ * bizarrerie de la source, c'est ce qui rend la table utile — un pivot commun
+ * permet le taux croisé de n'importe quelle paire :
+ *
+ *     A → B  =  montant × (value[B] / value[A])
+ *
+ * Un appel, mis en cache, couvre donc les 3 700 paires possibles. L'alternative —
+ * redemander les cours dans la devise cible à chaque bascule — coûterait un appel
+ * par table sur un quota qui n'en tolère qu'une poignée par minute (§9).
+ *
+ * Le prix à payer est réel et doit être dit : ces taux sont des cours de MARCHÉ
+ * relevés en continu, pas un fixing de banque centrale. D'où la préséance donnée à
+ * la BCE partout où elle publie, et l'attribution portée devise par devise.
+ */
+export async function fetchCoinGeckoRates(): Promise<{
+  /** Valeur de 1 BTC exprimée dans chaque devise, code en MAJUSCULES. */
+  perBtc: Record<string, number>
+  /** Nature déclarée par la source — sert à recouper notre propre catalogue. */
+  kinds: Record<string, 'fiat' | 'crypto' | 'commodity'>
+}> {
+  const payload = await http.getJson<{ rates: Record<string, CoinGeckoRate> }>('exchange_rates')
+
+  if (!payload?.rates) {
+    throw new ProviderError(PROVIDER_ID, 'Table de change illisible')
+  }
+
+  const perBtc: Record<string, number> = {}
+  const kinds: Record<string, 'fiat' | 'crypto' | 'commodity'> = {}
+
+  for (const [code, rate] of Object.entries(payload.rates)) {
+    // Un taux nul ou négatif rendrait toute division silencieusement absurde : on
+    // écarte la ligne plutôt que de propager un infini dans les montants affichés.
+    if (!Number.isFinite(rate?.value) || rate.value <= 0) continue
+    perBtc[code.toUpperCase()] = rate.value
+    kinds[code.toUpperCase()] = rate.type
+  }
+
+  if (perBtc.EUR === undefined) {
+    // L'euro est notre base : sans lui, aucune conversion n'est possible. Échouer
+    // ici laisse le cache servir la dernière table connue, ce qui vaut mieux qu'une
+    // table amputée dont les montants seraient faux sans le dire.
+    throw new ProviderError(PROVIDER_ID, 'Table de change sans euro — conversion impossible')
+  }
+
+  return { perBtc, kinds }
+}
+
 export const coinGeckoProvider: MarketDataProvider = {
   id: PROVIDER_ID,
   label: 'CoinGecko',
   assetClasses: ['crypto'],
   attributionUrl: 'https://www.coingecko.com',
+  // Repris par `run()` (packages/data/src/queries.ts) pour les requêtes marquées
+  // « fast » — le classement et les statistiques globales. `undefined` sans clé :
+  // le cache applicatif retombe alors sur `CACHE_TTL_SECONDS`, sans changement.
+  fastTtlSeconds: FAST_REVALIDATE_SECONDS,
 
   isConfigured: () => true,
   unavailableReason: () => null,
@@ -355,25 +524,29 @@ export const coinGeckoProvider: MarketDataProvider = {
     // virgules. On la borne à 250 comme `per_page`, la limite de la source.
     const ids = params.ids?.slice(0, 250) ?? []
 
-    const rows = await http.getJson<CoinGeckoMarket[]>('coins/markets', {
-      vs_currency: currency,
-      order: SORT_MAP[sortField][direction],
-      // Une liste d'identifiants fixe déjà la taille du résultat : demander une
-      // page plus petite qu'elle tronquerait la réponse en silence.
-      per_page: ids.length > 0 ? ids.length : Math.min(Math.max(params.perPage ?? 50, 1), 250),
-      page: ids.length > 0 ? 1 : Math.max(params.page ?? 1, 1),
-      sparkline: params.withSparkline ?? false,
-      // Fenêtres supplémentaires demandées DANS LE MÊME APPEL : l'endpoint les
-      // renvoie comme champs additionnels, sans requête ni quota supplémentaires.
-      // C'est ce qui rend le filtre de période des « mouvements » gratuit.
-      price_change_percentage: '1h,24h,7d,14d,30d,1y',
-      locale: 'fr',
-      ...(ids.length > 0 ? { ids: ids.join(',') } : {}),
-      // Restriction à un secteur. L'endpoint applique le filtre AVANT la pagination :
-      // la page 1 d'une catégorie contient donc bien ses plus grandes
-      // capitalisations, et non les lignes de la page 1 globale qui s'y trouveraient.
-      ...(params.category ? { category: params.category } : {}),
-    })
+    const rows = await http.getJson<CoinGeckoMarket[]>(
+      'coins/markets',
+      {
+        vs_currency: currency,
+        order: SORT_MAP[sortField][direction],
+        // Une liste d'identifiants fixe déjà la taille du résultat : demander une
+        // page plus petite qu'elle tronquerait la réponse en silence.
+        per_page: ids.length > 0 ? ids.length : Math.min(Math.max(params.perPage ?? 50, 1), 250),
+        page: ids.length > 0 ? 1 : Math.max(params.page ?? 1, 1),
+        sparkline: params.withSparkline ?? false,
+        // Fenêtres supplémentaires demandées DANS LE MÊME APPEL : l'endpoint les
+        // renvoie comme champs additionnels, sans requête ni quota supplémentaires.
+        // C'est ce qui rend le filtre de période des « mouvements » gratuit.
+        price_change_percentage: '1h,24h,7d,14d,30d,1y',
+        locale: 'fr',
+        ...(ids.length > 0 ? { ids: ids.join(',') } : {}),
+        // Restriction à un secteur. L'endpoint applique le filtre AVANT la pagination :
+        // la page 1 d'une catégorie contient donc bien ses plus grandes
+        // capitalisations, et non les lignes de la page 1 globale qui s'y trouveraient.
+        ...(params.category ? { category: params.category } : {}),
+      },
+      FAST_REVALIDATE_SECONDS,
+    )
 
     if (!Array.isArray(rows)) {
       throw new ProviderError(PROVIDER_ID, 'Format de classement inattendu')
@@ -384,7 +557,7 @@ export const coinGeckoProvider: MarketDataProvider = {
 
   async getGlobalStats(currency = DEFAULT_CURRENCY): Promise<GlobalMarketStats> {
     const key = currency.toLowerCase()
-    const { data } = await http.getJson<CoinGeckoGlobal>('global')
+    const { data } = await http.getJson<CoinGeckoGlobal>('global', undefined, FAST_REVALIDATE_SECONDS)
 
     const totalMarketCap = data.total_market_cap?.[key]
     const totalVolume = data.total_volume?.[key]
@@ -443,8 +616,18 @@ export const coinGeckoProvider: MarketDataProvider = {
       localization: 'true',
       tickers: false,
       market_data: true,
-      community_data: false,
-      developer_data: false,
+      /*
+       * Deux drapeaux RENVERSÉS, et le coût réseau du changement est nul : ces blocs
+       * voyagent dans la MÊME réponse que les données de marché, l'API se contente de
+       * les omettre quand on ne les demande pas. Aucun appel supplémentaire, donc
+       * aucune pression sur le quota gratuit (~5 requêtes/minute) — c'est ce qui
+       * rend l'arbitrage évident, là où il aurait été discutable au prix d'un appel.
+       *
+       * Ce qu'on y gagne : le vote communautaire, l'audience des réseaux et
+       * l'activité du dépôt — trois angles que le marché seul ne donne pas.
+       */
+      community_data: true,
+      developer_data: true,
       sparkline: false,
     })
 
@@ -591,6 +774,19 @@ export const coinGeckoProvider: MarketDataProvider = {
     if (market?.ath_date?.[key]) detail.athDate = market.ath_date[key]
     if (market?.atl_date?.[key]) detail.atlDate = market.atl_date[key]
 
+    const sentiment = optional(raw.sentiment_votes_up_percentage)
+    if (sentiment !== undefined) detail.sentimentUpPercent = sentiment
+
+    // `communityStats` et non `community` : ce dernier nom est déjà pris plus haut
+    // par la table des LIENS communautaires. Les deux décrivent le même réseau vu
+    // sous deux angles — où le trouver, et combien ils sont — et se retrouveraient
+    // volontiers confondus sous un nom identique.
+    const communityStats = readCommunity(raw.community_data)
+    if (communityStats) detail.community = communityStats
+
+    const developerStats = readDeveloper(raw.developer_data)
+    if (developerStats) detail.developer = developerStats
+
     return detail
   },
 
@@ -660,6 +856,11 @@ export const coinGeckoProvider: MarketDataProvider = {
         price,
         currency: key.toUpperCase(),
       }
+
+      // Clé de jointure vers le logo de la place — voir `AssetTicker.exchangeId`.
+      // Le champ voyageait déjà dans la réponse et était jeté.
+      const identifier = raw.market?.identifier?.trim()
+      if (identifier) ticker.exchangeId = identifier
 
       const volume = optional(raw.converted_volume?.[key])
       if (volume !== undefined) ticker.volume24h = volume

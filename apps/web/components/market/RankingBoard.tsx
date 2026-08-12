@@ -1,12 +1,12 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, EmptyState, Sparkline } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge, EmptyState, Sparkline } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -95,7 +95,7 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
               type="button"
               onClick={() => setPeriod(entry.key)}
               aria-pressed={period === entry.key}
-              className={`tabular rounded-[0.5rem] px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`tabular rounded-none px-2.5 py-1 text-xs font-medium transition-colors ${
                 period === entry.key
                   ? 'bg-brand text-on-brand'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
@@ -170,7 +170,7 @@ function Board({
             <li key={asset.id}>
               <Link
                 href={assetHref(asset.assetClass, asset.id)}
-                className="group flex items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-surface-muted/60"
+                className="group flex items-center gap-2.5 rounded-sm px-3 py-2.5 transition-colors hover:bg-surface-muted/60"
               >
                 <span className="tabular w-4 shrink-0 text-xs text-ink-muted">{index + 1}</span>
                 <AssetLogo asset={asset} size={22} />
@@ -233,7 +233,7 @@ function TurnoverBoard({
             <li key={row.asset.id}>
               <Link
                 href={assetHref(row.asset.assetClass, row.asset.id)}
-                className="group flex items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-surface-muted/60"
+                className="group flex items-center gap-2.5 rounded-sm px-3 py-2.5 transition-colors hover:bg-surface-muted/60"
               >
                 <span className="tabular w-4 shrink-0 text-xs text-ink-muted">{index + 1}</span>
                 <AssetLogo asset={row.asset} size={22} />

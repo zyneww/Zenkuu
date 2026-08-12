@@ -1,9 +1,9 @@
-# ZENITH
+# ZENKUU
 
 Plateforme francophone de suivi de marché multi-actifs : cryptomonnaies, actions,
 ETF, indices, devises et matières premières.
 
-**Lecture seule, par construction.** ZENITH n'exécute aucun ordre, ne détient aucun
+**Lecture seule, par construction.** ZENKUU n'exécute aucun ordre, ne détient aucun
 fonds, ne connecte aucun portefeuille et n'intègre aucun tunnel d'achat. Les liens
 sortants vers des plateformes tierces sont cités sans recommandation.
 
@@ -127,7 +127,7 @@ dizaines de requêtes sortantes. Les tailles sont donc alignées entre pages.
 
 ---
 
-## Ce que ZENITH ne fera pas
+## Ce que ZENKUU ne fera pas
 
 - Exécuter, router ou simuler un ordre
 - Connecter un portefeuille, détenir ou transférer des fonds

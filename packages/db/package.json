@@ -1,5 +1,5 @@
 {
-  "name": "@zenith/db",
+  "name": "@zenkuu/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
-    "@zenith/config": "workspace:*",
+    "@zenkuu/config": "workspace:*",
     "drizzle-kit": "^0.31.10",
     "typescript": "^5.9.3"
   }

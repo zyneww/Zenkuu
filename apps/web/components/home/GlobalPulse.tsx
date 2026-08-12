@@ -1,5 +1,5 @@
-import type { GlobalMarketStats, MarketCapSeriesState } from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+import type { GlobalMarketStats, MarketCapSeriesState } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { MetricCard } from '@/components/charts/MetricCard'
 import { Money } from '@/components/locale/Money'

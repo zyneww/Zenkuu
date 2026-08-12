@@ -1,6 +1,6 @@
-import type { AssetClassAvailability } from '@zenith/data'
+import type { AssetClassAvailability } from '@zenkuu/data'
 
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 
 /**
  * Couverture par classe d'actif.
@@ -11,7 +11,8 @@ import { fr } from '@/content/fr'
  * ce qui répond en outre à la question que se pose tout visiteur d'un site
  * multi-actifs : « qu'est-ce qui est réellement dedans ? »
  */
-export function CoverageList({ availability }: { availability: AssetClassAvailability[] }) {
+export async function CoverageList({ availability }: { availability: AssetClassAvailability[] }) {
+  const fr = await getContent()
   return (
     <ul className="space-y-1.5">
       {availability.map((entry) => (

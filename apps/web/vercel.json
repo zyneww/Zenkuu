@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "//regions": "Paris. NON NÉGOCIABLE tant que le secours crypto existe : Binance répond 451 aux IP des États-Unis, et la région par défaut de Vercel est iad1 (Washington). Sans cette ligne, packages/data/src/providers/binance.ts fonctionne en développement et échoue en production — au seul moment où il sert.",
+  "regions": ["cdg1"],
+  "crons": [
+    {
+      "path": "/api/cron/alertes",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/actualites",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

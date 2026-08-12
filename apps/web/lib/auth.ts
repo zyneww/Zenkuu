@@ -23,7 +23,7 @@ export const AUTH_ENABLED = Boolean(publishableKey && publishableKey.trim())
 /**
  * Volontairement limité aux deux routes qui existent. Il n'y a pas d'entrée
  * `/compte` : le `<UserButton>` de Clerk expose déjà profil et déconnexion dans son
- * propre menu, une page dédiée ferait doublon tant que ZENITH n'a pas de données
+ * propre menu, une page dédiée ferait doublon tant que ZENKUU n'a pas de données
  * propres à y afficher (watchlist persistante, alertes). Le jour où ce sera le cas,
  * elle demandera aussi un `clerkMiddleware()` — sans lui les helpers serveur
  * (`auth()`, `currentUser()`) lèvent une exception —, lui-même à conditionner à

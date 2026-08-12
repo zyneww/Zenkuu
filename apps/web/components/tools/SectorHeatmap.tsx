@@ -1,7 +1,7 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { MarketCategory } from '@zenith/data'
-import { formatCurrency, formatPercent } from '@zenith/ui'
+import type { MarketCategory } from '@zenkuu/data'
+import { formatCurrency, formatPercent } from '@zenkuu/ui'
 
 /**
  * Carte thermique des secteurs — pavage calculé CÔTÉ SERVEUR, sans bibliothèque.
@@ -186,13 +186,13 @@ export function SectorHeatmap({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 border border-border-subtle p-0.5" role="group" aria-label="Nombre de secteurs">
+        <div className="flex items-center gap-1 rounded-card border border-border-subtle p-0.5" role="group" aria-label="Nombre de secteurs">
           {[20, 40, 80].map((size) => (
             <Link
               key={size}
               href={size === 40 ? '/heatmap' : `/heatmap?secteurs=${size}`}
               aria-current={count === size ? 'page' : undefined}
-              className={`px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+              className={`rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
                 count === size
                   ? 'bg-brand text-on-brand'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
@@ -209,7 +209,7 @@ export function SectorHeatmap({
       {/* Hauteur fixe en pixels, positions en pourcentages : la carte s'adapte en
           largeur sans que rien ne soit recalculé, et reste lisible en hauteur. */}
       <div
-        className="relative w-full overflow-hidden border border-border-subtle bg-surface"
+        className="relative w-full overflow-hidden rounded-card border border-border-subtle bg-surface"
         style={{ height: 'min(70vh, 560px)' }}
       >
         {tiles.map((tile) => (
@@ -263,7 +263,7 @@ function Legend() {
   return (
     <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
       <span>−10 %</span>
-      <span className="flex h-2.5 w-32 overflow-hidden border border-border-subtle" aria-hidden="true">
+      <span className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle" aria-hidden="true">
         {[-10, -6, -3, 0, 3, 6, 10].map((step) => (
           <span key={step} className="flex-1" style={{ backgroundColor: toneFor(step) }} />
         ))}

@@ -1,9 +1,10 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
+import { FREE_WATCHLIST_LIMIT } from '@/lib/billing'
 import { toggleWatchlist } from '@/lib/watchlist-actions'
 
 /**
@@ -41,6 +42,7 @@ export function WatchlistStar({
   available: boolean
 }) {
   const [following, setFollowing] = useState(initialFollowing)
+  const [capped, setCapped] = useState(false)
   const [pending, startTransition] = useTransition()
 
   if (!available) {
@@ -71,26 +73,49 @@ export function WatchlistStar({
 
       // Échec silencieux à dessein : l'étoile revient à son état réel, sans pousser
       // de message qui déplacerait la ligne. L'action est sans enjeu et réessayable.
-      if (!result.ok) setFollowing(previous)
-      else setFollowing(result.following)
+      //
+      // UNE exception : le plafond de l'offre gratuite. Ce refus-là ne se réessaie pas
+      // — recliquer donnera le même résultat indéfiniment —, et une étoile qui revient
+      // en arrière sans un mot passe alors pour une panne. L'explication est portée par
+      // l'infobulle et par une région vocale masquée : aucune des deux n'occupe de
+      // place, donc aucune ne décale les lignes suivantes.
+      if (!result.ok) {
+        setFollowing(previous)
+        setCapped(result.reason === 'limit-reached')
+        return
+      }
+
+      setCapped(false)
+      setFollowing(result.following)
     })
   }
 
+  const action = following ? `Ne plus suivre ${label}` : `Suivre ${label}`
+  const cappedLabel = `Liste de suivi limitée à ${FREE_WATCHLIST_LIMIT} actifs dans l’offre gratuite`
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pending}
-      aria-pressed={following}
-      title={following ? `Ne plus suivre ${label}` : `Suivre ${label}`}
-      aria-label={following ? `Ne plus suivre ${label}` : `Suivre ${label}`}
-      className={`inline-flex rounded-card p-1.5 transition-colors disabled:opacity-60 ${
-        following
-          ? 'text-brand hover:bg-brand-soft'
-          : 'text-ink-muted/60 hover:bg-surface-muted hover:text-ink'
-      }`}
-    >
-      <Star className={`h-4 w-4 ${following ? 'fill-current' : ''}`} aria-hidden="true" />
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={pending}
+        aria-pressed={following}
+        title={capped ? cappedLabel : action}
+        aria-label={capped ? cappedLabel : action}
+        className={`inline-flex rounded-card p-1.5 transition-colors disabled:opacity-60 ${
+          following
+            ? 'text-brand hover:bg-brand-soft'
+            : 'text-ink-muted/60 hover:bg-surface-muted hover:text-ink'
+        }`}
+      >
+        <Star className={`h-4 w-4 ${following ? 'fill-current' : ''}`} aria-hidden="true" />
+      </button>
+
+      {capped ? (
+        <span role="status" className="sr-only">
+          {cappedLabel}. L’offre Zenkuu Pro la libère.
+        </span>
+      ) : null}
+    </>
   )
 }

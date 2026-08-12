@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-import { YAHOO_UNIVERSE, getCryptoRanking, toSlug } from '@zenith/data'
+import { YAHOO_UNIVERSE, getCryptoRanking, toSlug } from '@zenkuu/data'
 
 import { HELP_ARTICLES } from '@/content/aide'
 import { LESSONS } from '@/content/apprendre'
@@ -50,7 +50,11 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/sentiment', changeFrequency: 'daily', priority: 0.6 },
   { path: '/apprendre', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/aide', changeFrequency: 'monthly', priority: 0.6 },
-  { path: '/pourquoi-zenith', changeFrequency: 'monthly', priority: 0.6 },
+  { path: '/pourquoi-zenkuu', changeFrequency: 'monthly', priority: 0.6 },
+  // Priorité haute pour une page qui ne bouge presque jamais : « tarif » est la
+  // requête d'un lecteur déjà décidé, et c'est la seule page du site dont la visite
+  // se convertit directement.
+  { path: '/tarifs', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/bien-demarrer', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/methodologie', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/developpeurs', changeFrequency: 'monthly', priority: 0.4 },

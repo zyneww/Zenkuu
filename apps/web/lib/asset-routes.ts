@@ -1,4 +1,4 @@
-import type { AssetClass } from '@zenith/data'
+import type { AssetClass } from '@zenkuu/data'
 
 /**
  * Correspondance entre classe d'actif et segment d'URL.

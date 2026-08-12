@@ -1,11 +1,12 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { EmptyState } from '@zenith/ui'
+import { EmptyState } from '@zenkuu/ui'
 
+import { CoverArt } from '@/components/editorial/CoverArt'
 import { LESSON_TOPICS, LEVELS, levelLabel, type Level } from '@/content/apprendre'
 
 /**
@@ -20,6 +21,18 @@ import { LESSON_TOPICS, LEVELS, levelLabel, type Level } from '@/content/apprend
  * créerait sinon une URL distincte servant le même corpus, donc autant de pages
  * quasi dupliquées à indexer. Les fiches, elles, ont chacune leur URL propre — c'est
  * là que l'indexation doit porter (§9).
+ *
+ * ── UNE FICHE DE TÊTE PAR THÈME, PUIS DES ENTRÉES COMPACTES ──────────────────
+ *
+ * La disposition reprend celle de CoinGecko Learn, et pour la raison qui la rend
+ * bonne : une grille où toutes les fiches se valent oblige à lire dix titres pour
+ * choisir par où entrer dans un thème. Une fiche mise en avant donne un point
+ * d'entrée évident, les autres restent atteignables d'un coup d'œil à côté.
+ *
+ * Le critère de mise en avant est l'ORDRE DU CORPUS — la première fiche du thème,
+ * telle que la rédaction l'a rangée. Pas un « plus lu » : ZENKUU ne mesure pas
+ * l'audience de ses pages, et afficher un classement sans donnée derrière serait de
+ * la donnée inventée (§5). La note sous le parcours de départ le dit déjà.
  */
 export function LessonBrowser() {
   const [level, setLevel] = useState<Level | 'tous'>('tous')
@@ -102,33 +115,71 @@ export function LessonBrowser() {
           compact
         />
       ) : (
-        topics.map((topic) => (
-          <section key={topic.id} id={topic.id} className="scroll-mt-24 space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-ink">{topic.title}</h2>
-              <p className="text-sm text-ink-muted">{topic.description}</p>
-            </div>
+        topics.map((topic) => {
+          const [lead, ...others] = topic.lessons
+          if (!lead) return null
 
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {topic.lessons.map((lesson) => (
-                <li key={lesson.slug}>
-                  <Link
-                    href={`/apprendre/${lesson.slug}`}
-                    className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-3 transition-colors hover:border-brand"
-                  >
-                    <span className="text-[0.6875rem] font-medium uppercase tracking-wide text-brand-strong">
-                      {levelLabel(lesson.level)}
+          return (
+            <section
+              key={topic.id}
+              id={topic.id}
+              className="scroll-mt-24 space-y-4 border-t border-border-subtle pt-7 first:border-0 first:pt-0"
+            >
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-ink">{topic.title}</h2>
+                <p className="text-sm text-ink-muted">{topic.description}</p>
+              </div>
+
+              <div className="grid gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+                {/* Fiche de tête : la seule à porter une couverture. Illustrer les
+                    dix entrées d'un thème rendrait la page à la fois plus lourde à
+                    lire et moins hiérarchisée — dix repères visuels ne repèrent rien. */}
+                <Link href={`/apprendre/${lead.slug}`} className="group flex flex-col gap-3">
+                  <span className="block overflow-hidden rounded-card">
+                    <CoverArt seed={lead.slug} label={levelLabel(lead.level)} ratio="16/10" />
+                  </span>
+                  <span className="space-y-1.5">
+                    <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-brand">
+                      {levelLabel(lead.level)}
                     </span>
-                    <span className="mt-0.5 text-sm font-medium text-ink">{lesson.title}</span>
-                    <span className="mt-1 text-xs leading-relaxed text-ink-muted">
-                      {lesson.summary}
+                    <span className="block text-base font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                      {lead.title}
                     </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
+                    <span className="block text-sm leading-relaxed text-ink-muted">
+                      {lead.summary}
+                    </span>
+                  </span>
+                </Link>
+
+                {/* Les autres fiches en deux colonnes de texte, séparées par des
+                    filets — la grammaire de la référence, et celle du design system :
+                    on trace la structure au lieu d'empiler des cartes. */}
+                {others.length > 0 ? (
+                  <ul className="grid gap-x-8 sm:grid-cols-2">
+                    {others.map((lesson) => (
+                      <li key={lesson.slug} className="border-b border-border-subtle last:border-0 sm:[&:nth-last-child(2)]:border-0">
+                        <Link
+                          href={`/apprendre/${lesson.slug}`}
+                          className="group flex flex-col gap-1 py-3.5"
+                        >
+                          <span className="text-[0.6875rem] font-medium uppercase tracking-wide text-ink-muted">
+                            {levelLabel(lesson.level)}
+                          </span>
+                          <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                            {lesson.title}
+                          </span>
+                          <span className="text-xs leading-relaxed text-ink-muted">
+                            {lesson.summary}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </section>
+          )
+        })
       )}
     </div>
   )

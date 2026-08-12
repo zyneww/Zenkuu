@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getTrendingCrypto } from '@zenith/data'
+import { getTrendingCrypto } from '@zenkuu/data'
 
 /**
  * Tendances servies à la demande, pour l'état par défaut de l'overlay de recherche.

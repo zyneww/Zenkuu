@@ -1,10 +1,11 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { GlobalMarketStats, SentimentIndex } from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+import type { GlobalMarketStats, SentimentIndex } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
 import { Money } from '@/components/locale/Money'
+import { getContent } from '@/lib/content'
 
 /**
  * Barre de statistiques globales, en tête de l'accueil.
@@ -21,13 +22,14 @@ import { Money } from '@/components/locale/Money'
  * qui parle de l'état d'esprit du marché plutôt que de sa taille, et il complète les
  * autres au lieu de les répéter.
  */
-export function GlobalStatsBar({
+export async function GlobalStatsBar({
   stats,
   sentiment,
 }: {
   stats: GlobalMarketStats | null
   sentiment: SentimentIndex | null
 }) {
+  const fr = await getContent()
   if (!stats && !sentiment) return null
 
   const btc = stats?.dominance?.['btc']
@@ -67,7 +69,7 @@ export function GlobalStatsBar({
         <Stat label="Sentiment">
           <Link href="/sentiment" className="flex items-baseline gap-1.5 hover:text-brand">
             <span className="tabular font-semibold">{sentiment.value}</span>
-            <span className="text-xs text-ink-muted">{classify(sentiment.value)}</span>
+            <span className="text-xs text-ink-muted">{classify(sentiment.value, fr.sentiment.scale)}</span>
           </Link>
         </Stat>
       ) : null}

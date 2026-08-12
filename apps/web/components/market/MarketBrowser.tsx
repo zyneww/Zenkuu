@@ -3,8 +3,8 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import type { AssetClass, MarketAsset } from '@zenith/data'
-import { EmptyState } from '@zenith/ui'
+import type { AssetClass, MarketAsset } from '@zenkuu/data'
+import { EmptyState } from '@zenkuu/ui'
 
 import type { ChangePeriod } from '@/components/market/crypto-views'
 import {

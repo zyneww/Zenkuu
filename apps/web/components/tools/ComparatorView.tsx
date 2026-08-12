@@ -1,32 +1,16 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, formatPercent } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
-import {
-  AXIS_TICK,
-  CHART_MARGIN,
-  ENTER_DURATION,
-  GRID_STROKE,
-  TOOLTIP_LABEL_STYLE,
-  TOOLTIP_STYLE,
-  dataColor,
-} from '@/components/charts/chart-theme'
-import { useReducedMotion } from '@/components/charts/useReducedMotion'
+import { AssetLogo } from '@/components/asset/AssetLogo'
+import { useFeature } from '@/components/billing/ProGate'
+import { FEATURES, FREE_COMPARE_LIMIT, PRO_COMPARE_LIMIT } from '@/lib/billing'
+import { AreaPlot } from '@/components/charts/AreaPlot'
+import { dataColor } from '@/components/charts/chart-theme'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -42,14 +26,23 @@ import { assetHref } from '@/lib/asset-routes'
  * Conséquence à dire : l'axe des ordonnées n'affiche pas des euros. C'est écrit sous
  * le graphique, faute de quoi le lecteur lira « 118 » comme un prix.
  *
- * Quatre actifs au maximum, et ce n'est pas un choix technique : au-delà, les courbes
- * se croisent trop pour qu'on suive une trajectoire, et la palette de données n'offre
- * pas plus de teintes réellement distinguables entre elles.
+ * ── POURQUOI LE PLAFOND S'ARRÊTE À SIX, MÊME EN OFFRE PRO ────────────────────
+ *
+ * Ce n'est pas une limite technique mais une limite de LISIBILITÉ, et c'est pour ça
+ * qu'elle existe des deux côtés. La palette de données compte six teintes ordonnées
+ * par distance perceptuelle (§3.1) : à la septième, deux courbes deviendraient
+ * indiscernables et la comparaison — l'objet même de la page — cesserait de
+ * fonctionner. Vendre « jusqu'à dix actifs » serait vendre un graphique illisible.
+ *
+ * Quatre en offre gratuite, six en offre Pro : le §2 promet « 2 à 4 », la promesse
+ * est donc tenue sans abonnement, et l'abonnement AJOUTE deux emplacements plutôt
+ * que d'en reprendre.
  */
 
-const MAX = 4
-
 export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
+  const extended = useFeature(FEATURES.deepData)
+  const max = extended ? PRO_COMPARE_LIMIT : FREE_COMPARE_LIMIT
+
   const [selected, setSelected] = useState<string[]>(() =>
     assets.slice(0, 2).map((asset) => asset.id),
   )
@@ -124,7 +117,28 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
     return [min - pad, max + pad]
   }, [series])
 
-  const reduced = useReducedMotion()
+  /*
+   * Une série par actif, chacune indexée par son RANG et non par une date.
+   *
+   * La source ne date pas les points de ses sparklines : elle en garantit seulement
+   * l'ordre et le pas régulier. Inventer des horodatages pour faire joli sur l'axe
+   * afficherait des dates fausses ; l'axe des abscisses est donc masqué, et la
+   * légende sous le graphique dit ce qu'on regarde — sept jours, base 100.
+   */
+  const plotSeries = useMemo(
+    () =>
+      chosen
+        .map((asset, index) => ({
+          id: asset.id,
+          label: asset.name,
+          color: dataColor(index),
+          points: series
+            .map((point) => ({ x: point.index as number, y: point[asset.id] }))
+            .filter((point): point is { x: number; y: number } => point.y !== undefined),
+        }))
+        .filter((entry) => entry.points.length > 1),
+    [chosen, series],
+  )
 
   function toggle(id: string) {
     setSelected((current) => {
@@ -133,7 +147,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
         // graphique disparaîtrait sans que le lecteur comprenne pourquoi.
         return current.length > 1 ? current.filter((entry) => entry !== id) : current
       }
-      return current.length >= MAX ? current : [...current, id]
+      return current.length >= max ? current : [...current, id]
     })
   }
 
@@ -142,7 +156,22 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">
-            Actifs comparés ({chosen.length}/{MAX})
+            Actifs comparés ({chosen.length}/{max})
+            {/*
+              L'invitation n'apparaît QU'AU plafond, jamais avant : annoncée d'entrée,
+              elle ferait passer un outil complet pour une démonstration bridée.
+            */}
+            {!extended && chosen.length >= max ? (
+              <>
+                {' — '}
+                <Link
+                  href="/tarifs"
+                  className="text-xs font-normal text-brand hover:text-brand-strong"
+                >
+                  Zenkuu Pro en compare {PRO_COMPARE_LIMIT}
+                </Link>
+              </>
+            ) : null}
           </h2>
           <input
             type="search"
@@ -150,7 +179,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Chercher un actif…"
             aria-label="Chercher un actif à comparer"
-            className="w-56 border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+            className="w-56 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
           />
         </div>
 
@@ -160,7 +189,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               key={asset.id}
               type="button"
               onClick={() => toggle(asset.id)}
-              className="flex items-center gap-2 border px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-down"
+              className="flex items-center gap-2 rounded-card border px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-down"
               style={{ borderColor: dataColor(index) }}
             >
               <span
@@ -182,8 +211,8 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
                 key={asset.id}
                 type="button"
                 onClick={() => toggle(asset.id)}
-                disabled={chosen.length >= MAX}
-                className="border border-border-subtle bg-surface px-2.5 py-1 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={chosen.length >= max}
+                className="rounded-card border border-border-subtle bg-surface px-2.5 py-1 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
               >
                 + {asset.symbol.toUpperCase()}
               </button>
@@ -192,56 +221,23 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
       </div>
 
       {series.length > 1 ? (
-        <div className="border border-border-subtle bg-surface p-3">
-          <div style={{ height: 320, width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={series} margin={CHART_MARGIN}>
-                <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-                <XAxis dataKey="index" hide />
-                <YAxis
-                  domain={domain}
-                  tick={AXIS_TICK}
-                  tickLine={false}
-                  axisLine={false}
-                  width={44}
-                  tickFormatter={(value: number) => value.toFixed(1).replace('.', ',')}
-                />
-                {/* Repère à 100 : la ligne de départ commune. Sans elle, on lit des
-                    courbes sans savoir de quel côté de la référence elles passent. */}
-                <ReferenceLine
-                  y={100}
-                  stroke="var(--color-ink-muted)"
-                  strokeDasharray="3 3"
-                  strokeOpacity={0.5}
-                />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  labelStyle={TOOLTIP_LABEL_STYLE}
-                  cursor={{ stroke: 'var(--color-border-subtle)', strokeWidth: 1 }}
-                  labelFormatter={() => 'Base 100 au début de la période'}
-                  formatter={(value, name) => {
-                    const asset = chosen.find((entry) => entry.id === name)
-                    return [
-                      `${Number(value).toFixed(1).replace('.', ',')} (${formatPercent(Number(value) - 100)})`,
-                      asset?.name ?? String(name),
-                    ]
-                  }}
-                />
-                {chosen.map((asset, index) => (
-                  <Line
-                    key={asset.id}
-                    type="monotone"
-                    dataKey={asset.id}
-                    stroke={dataColor(index)}
-                    strokeWidth={1.75}
-                    dot={false}
-                    isAnimationActive={!reduced}
-                    animationDuration={ENTER_DURATION}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="rounded-card border border-border-subtle bg-surface p-3">
+          {/* Repère à 100 : la ligne de départ commune. Sans elle, on lit des courbes
+              sans savoir de quel côté de la référence elles passent. */}
+          <AreaPlot
+            series={plotSeries}
+            height={320}
+            axes
+            grid
+            yDomain={domain}
+            referenceLines={[100]}
+            formatY={(value) => value.toFixed(1).replace('.', ',')}
+            formatX={() => ''}
+            formatTooltipX={() => 'Base 100 au début de la période'}
+            formatTooltipY={(value) =>
+              `${value.toFixed(1).replace('.', ',')} (${formatPercent(value - 100)})`
+            }
+          />
 
           <p className="mt-2 text-xs leading-relaxed text-ink-muted">
             Sept jours, chaque série ramenée à <strong className="text-ink">100</strong> à
@@ -251,12 +247,12 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           </p>
         </div>
       ) : (
-        <p className="border border-border-subtle bg-surface px-4 py-10 text-center text-sm text-ink-muted">
+        <p className="rounded-card border border-border-subtle bg-surface px-4 py-10 text-center text-sm text-ink-muted">
           La source ne publie pas de série sur sept jours pour les actifs sélectionnés.
         </p>
       )}
 
-      <div className="overflow-x-auto border border-border-subtle">
+      <div className="overflow-x-auto rounded-card border border-border-subtle">
         <table className="w-full min-w-[36rem] border-collapse text-sm">
           <caption className="sr-only">Comparaison chiffrée</caption>
           <thead>

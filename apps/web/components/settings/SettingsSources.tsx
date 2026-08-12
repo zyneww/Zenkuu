@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 /**
  * Rubrique « Données & sources ».
@@ -54,13 +54,13 @@ export function SettingsSources() {
           Données &amp; sources
         </h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Chaque chiffre affiché sur ZENITH vient de l’une de ces sources et lui est
+          Chaque chiffre affiché sur ZENKUU vient de l’une de ces sources et lui est
           attribué à l’endroit où il apparaît. Aucune valeur n’est estimée, interpolée
           ni comblée : une donnée absente est rendue comme absente.
         </p>
       </div>
 
-      <ul className="divide-y divide-border-subtle border border-border-subtle">
+      <ul className="divide-y divide-border-subtle rounded-card border border-border-subtle">
         {SOURCES.map((source) => (
           <li key={source.name} className="p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -82,7 +82,7 @@ export function SettingsSources() {
 
       <div className="border-l-2 border-accent bg-surface-muted p-4">
         <p className="text-xs leading-relaxed text-ink-muted">
-          <strong className="text-ink">Ce que ZENITH ne fait pas.</strong> Aucun ordre
+          <strong className="text-ink">Ce que ZENKUU ne fait pas.</strong> Aucun ordre
           n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et
           aucune donnée personnelle n’est revendue. Les liens vers des plateformes
           tierces sont cités sans recommandation.

@@ -1,5 +1,5 @@
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
 /**
  * Variations sur toutes les fenêtres publiées.

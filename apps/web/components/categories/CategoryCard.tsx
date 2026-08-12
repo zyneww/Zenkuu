@@ -1,8 +1,8 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import { ChangeBadge, formatCurrency } from '@zenith/ui'
+import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
-import type { MarketCategory } from '@zenith/data'
+import type { MarketCategory } from '@zenkuu/data'
 
 /**
  * Carte d'un secteur de marché.
@@ -69,7 +69,7 @@ export function CategoryCard({ category }: { category: MarketCategory }) {
                 loading="lazy"
                 width={20}
                 height={20}
-                className="h-5 w-5 rounded-full border border-surface bg-surface-muted object-contain"
+                className="h-5 w-5 rounded-none border border-surface bg-surface-muted object-contain"
               />
             ))}
           </div>

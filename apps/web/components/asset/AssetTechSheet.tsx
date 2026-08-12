@@ -1,6 +1,6 @@
 import { ExternalLink } from 'lucide-react'
 
-import type { AssetDetail } from '@zenith/data'
+import type { AssetDetail } from '@zenkuu/data'
 
 import { CopyButton } from '@/components/asset/CopyButton'
 
@@ -15,7 +15,7 @@ import { CopyButton } from '@/components/asset/CopyButton'
  * gabarit fixe afficherait des rangées vides là où l'absence est la donnée (§5).
  *
  * Les liens sortent en `nofollow noopener` : ce sont des ressources tierces que
- * ZENITH cite sans les cautionner, et `noopener` empêche la page ouverte d'accéder
+ * ZENKUU cite sans les cautionner, et `noopener` empêche la page ouverte d'accéder
  * à `window.opener`.
  */
 
@@ -72,7 +72,7 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
           <h3 className="text-sm font-semibold text-ink">
             Contrats {contracts.length > 1 ? `· ${contracts.length} chaînes` : null}
           </h3>
-          <ul className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-surface">
+          <ul className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-panel">
             {contracts.map(([chain, address]) => (
               <li key={chain} className="flex items-center gap-3 px-3 py-2.5">
                 <span className="w-28 shrink-0 text-xs font-medium text-ink">

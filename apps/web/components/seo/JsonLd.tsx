@@ -5,12 +5,12 @@ import { absoluteUrl } from '@/lib/site'
  *
  * Choix du type : un cours de marché n'est PAS un `Product` avec une `Offer`, même
  * si la tentation est grande — cette paire déclencherait les extraits enrichis
- * « prix / disponibilité / acheter », qui présenteraient ZENITH comme un point de
+ * « prix / disponibilité / acheter », qui présenteraient ZENKUU comme un point de
  * vente. Le site n'exécute aucun ordre (§7) ; annoncer une offre commerciale à un
  * moteur de recherche serait une déclaration fausse en plus d'une faute de
  * positionnement.
  *
- * On utilise donc `Dataset` pour les fiches d'actif — ce que ZENITH publie
+ * On utilise donc `Dataset` pour les fiches d'actif — ce que ZENKUU publie
  * réellement est un jeu de données de marché, avec sa source et sa date — et
  * `FAQPage` / `Article` là où le contenu s'y prête vraiment.
  */
@@ -36,14 +36,14 @@ export function OrganizationJsonLd() {
       data={{
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'ZENITH',
+        name: 'ZENKUU',
         url: absoluteUrl('/'),
         inLanguage: 'fr-FR',
         description:
           'Plateforme d’information de marché multi-actifs en lecture seule : cryptomonnaies, devises, actions, ETF, matières premières et indices.',
         publisher: {
           '@type': 'Organization',
-          name: 'ZENITH',
+          name: 'ZENKUU',
           url: absoluteUrl('/'),
         },
       }}
@@ -92,7 +92,7 @@ export function AssetJsonLd({
         isAccessibleForFree: true,
         ...(updatedAt ? { dateModified: updatedAt } : {}),
         creator: { '@type': 'Organization', name: sourceName, url: sourceUrl },
-        publisher: { '@type': 'Organization', name: 'ZENITH', url: absoluteUrl('/') },
+        publisher: { '@type': 'Organization', name: 'ZENKUU', url: absoluteUrl('/') },
       }}
     />
   )
@@ -151,10 +151,10 @@ export function ArticleJsonLd({
         ...(publishedAt ? { datePublished: publishedAt } : {}),
         ...(updatedAt ?? publishedAt ? { dateModified: updatedAt ?? publishedAt } : {}),
         // `Organization` et non `Person`, même quand un nom est fourni : la
-        // signature par défaut est « Équipe ZENITH », qui est un collectif. Déclarer
+        // signature par défaut est « Équipe ZENKUU », qui est un collectif. Déclarer
         // une personne qui n'existe pas serait une affirmation fausse de plus.
-        author: { '@type': 'Organization', name: author ?? 'ZENITH' },
-        publisher: { '@type': 'Organization', name: 'ZENITH', url: absoluteUrl('/') },
+        author: { '@type': 'Organization', name: author ?? 'ZENKUU' },
+        publisher: { '@type': 'Organization', name: 'ZENKUU', url: absoluteUrl('/') },
       }}
     />
   )

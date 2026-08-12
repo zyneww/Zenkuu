@@ -5,7 +5,7 @@ import {
   SUPPORTED_CURRENCIES,
   getAssetHistory,
   type AssetClass,
-} from '@zenith/data'
+} from '@zenkuu/data'
 
 /**
  * Historique de cours, servi au changement de période sur une fiche actif.
@@ -18,8 +18,20 @@ import {
  * aucun appel externe : c'est ce qui rend le va-et-vient entre 7 j et 30 j gratuit.
  */
 
-/** Fenêtres autorisées. Une valeur libre ouvrirait autant de clés de cache que d'entiers. */
-const ALLOWED_DAYS = [1, 7, 30, 90, 365]
+/**
+ * Fenêtres autorisées. Une valeur libre ouvrirait autant de clés de cache que d'entiers.
+ *
+ * QUATRE PALIERS ONT ÉTÉ AJOUTÉS — 180, 730, 1825 et 3650 jours — pour servir les
+ * périodes « Depuis janvier », « Max » et les bornes libres du calendrier, qu'aucune
+ * valeur existante ne couvrait : la fiche s'arrêtait à un an.
+ *
+ * La liste blanche est CONSERVÉE, et son élargissement reste borné : neuf valeurs
+ * possibles au lieu de cinq. C'est l'appelant qui arrondit sa profondeur au palier
+ * immédiatement supérieur (voir `snapToAllowedDepth`), plutôt que le service qui
+ * accepte n'importe quel entier — sans quoi le garde-fou de cache tomberait, avec
+ * les conséquences décrites juste en dessous pour les devises.
+ */
+const ALLOWED_DAYS = [1, 7, 30, 90, 180, 365, 730, 1825, 3650]
 
 /**
  * Devises autorisées — même raison que `ALLOWED_DAYS`, et le garde-fou manquait.

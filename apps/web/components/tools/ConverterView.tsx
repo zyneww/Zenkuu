@@ -3,7 +3,9 @@
 import { ArrowLeftRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenith/data'
+import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenkuu/data'
+
+import { AssetPicker } from '@/components/tools/AssetPicker'
 
 /**
  * Convertisseur multi-actifs.
@@ -32,26 +34,11 @@ export function ConverterView({
   const [assetId, setAssetId] = useState(assets[0]?.id ?? '')
   const [currency, setCurrency] = useState<string>('EUR')
   const [reversed, setReversed] = useState(false)
-  const [query, setQuery] = useState('')
 
   const asset = useMemo(
     () => assets.find((entry) => entry.id === assetId) ?? assets[0],
     [assets, assetId],
   )
-
-  const options = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    const matching = needle
-      ? assets.filter((entry) =>
-          `${entry.name} ${entry.symbol}`.toLowerCase().includes(needle),
-        )
-      : assets
-    // L'actif sélectionné reste TOUJOURS dans la liste, même s'il ne correspond plus
-    // au filtre : sans cela le `select` afficherait la première option tout en
-    // conservant l'autre valeur, et le résultat porterait sur un actif invisible.
-    if (asset && !matching.some((entry) => entry.id === asset.id)) return [asset, ...matching]
-    return matching
-  }, [assets, query, asset])
 
   const parsed = Number(amount.replace(/\s/g, '').replace(',', '.'))
   const rate = currency === 'EUR' ? 1 : rates?.rates[currency]
@@ -74,7 +61,7 @@ export function ConverterView({
   return (
     <div className="space-y-5">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-end">
-        <div className="space-y-3 border border-border-subtle bg-surface p-4">
+        <div className="space-y-3 rounded-card border border-border-subtle bg-surface p-4">
           <label className="block">
             <span className="mb-1 block text-xs text-ink-muted">Montant en {fromLabel}</span>
             <input
@@ -82,47 +69,31 @@ export function ConverterView({
               inputMode="decimal"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="tabular w-full border border-border-subtle bg-surface px-3 py-2.5 text-lg text-ink focus:border-brand focus:outline-none"
+              className="tabular w-full rounded-card border border-border-subtle bg-surface px-3 py-2.5 text-lg text-ink focus:border-brand focus:outline-none"
             />
           </label>
 
-          <label className="block">
-            <span className="mb-1 block text-xs text-ink-muted">Filtrer les actifs</span>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Nom ou symbole…"
-              className="w-full border border-border-subtle bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 block text-xs text-ink-muted">Actif</span>
-            <select
-              value={asset.id}
-              onChange={(event) => setAssetId(event.target.value)}
-              className="w-full border border-border-subtle bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none"
-            >
-              {options.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.name} ({entry.symbol.toUpperCase()})
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* Un seul contrôle là où il y en avait deux — un champ de filtrage puis
+              une liste déroulante. Chercher et choisir sont un seul geste : les
+              séparer obligeait à taper dans un endroit pour agir sur un autre. */}
+          <AssetPicker
+            assets={assets}
+            selected={asset}
+            onSelect={(entry) => setAssetId(entry.id)}
+            label="Actif"
+          />
         </div>
 
         <button
           type="button"
           onClick={() => setReversed((value) => !value)}
           aria-label="Inverser le sens de conversion"
-          className="mx-auto flex h-10 w-10 items-center justify-center border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+          className="mx-auto flex h-10 w-10 items-center justify-center rounded-card border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand-strong"
         >
           <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
         </button>
 
-        <div className="space-y-3 border border-border-subtle bg-surface p-4">
+        <div className="space-y-3 rounded-card border border-border-subtle bg-surface p-4">
           <div aria-live="polite">
             <span className="mb-1 block text-xs text-ink-muted">Résultat en {toLabel}</span>
             <p className="tabular text-3xl font-semibold text-ink">
@@ -139,7 +110,7 @@ export function ConverterView({
             <select
               value={currency}
               onChange={(event) => setCurrency(event.target.value)}
-              className="w-full border border-border-subtle bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none"
+              className="w-full rounded-card border border-border-subtle bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none"
             >
               {currencies.map((code) => (
                 <option key={code} value={code} disabled={code !== 'EUR' && rates?.rates[code] === undefined}>

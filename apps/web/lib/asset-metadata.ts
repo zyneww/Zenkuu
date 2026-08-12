@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
-import type { AssetClass } from '@zenith/data'
-import { getAsset } from '@zenith/data'
+import type { AssetClass } from '@zenkuu/data'
+import { getAsset } from '@zenkuu/data'
 
-import { fr } from '@/content/fr'
+import { extremeMessage, getMetric } from '@/lib/asset-metrics'
+import { getContent } from '@/lib/content'
 
 /**
  * Métadonnées d'une page d'actif.
  *
- * Le titre porte le nom réel : « Zenith | Bitcoin (BTC) » se reconnaît dans une
- * barre d'onglets encombrée, là où « Zenith | Cryptomonnaies » serait identique pour
+ * Le titre porte le nom réel : « Zenkuu | Bitcoin (BTC) » se reconnaît dans une
+ * barre d'onglets encombrée, là où « Zenkuu | Cryptomonnaies » serait identique pour
  * les milliers de fiches — et sans valeur pour le référencement, qui est le premier
  * moteur d'acquisition du site (§9).
  *
@@ -20,6 +22,7 @@ export async function buildAssetMetadata(
   assetClass: AssetClass,
   id: string,
 ): Promise<Metadata> {
+  const fr = await getContent()
   const asset = await getAsset(id, assetClass, 'eur')
 
   if (!asset.ok) {
@@ -39,6 +42,56 @@ export async function buildAssetMetadata(
     openGraph: {
       title: `${fr.site.name} | ${title}`,
       description: `Cours et statistiques de ${name} — plateforme d’analyse en lecture seule.`,
+    },
+  }
+}
+
+/**
+ * Métadonnées d'une page de métrique.
+ *
+ * Le titre combine la MESURE et l'ACTIF — « Capitalisation de Bitcoin (BTC) » — parce
+ * que c'est exactement la requête qu'on tape. Un titre générique du type « Métrique »
+ * rendrait interchangeables des milliers de pages et gaspillerait la seule chose que
+ * ces pages apportent au référencement : leur spécificité (§9).
+ *
+ * La description reprend l'EXPLICATION de la métrique et non un texte de remplissage.
+ * C'est du texte durable, contrairement aux nombres de la fiche qui changent toutes
+ * les heures — c'est précisément ce qui justifie ces pages.
+ */
+export async function buildMetricMetadata(
+  assetClass: AssetClass,
+  id: string,
+  slug: string,
+): Promise<Metadata> {
+  const fr = await getContent()
+  const metric = getMetric(slug)
+
+  // Slug hors registre : la page répondra 404, la métadonnée ne doit surtout pas
+  // laisser croire l'inverse à un robot qui l'aurait atteinte autrement.
+  if (!metric) return { title: fr.asset.notFoundTitle, robots: { index: false } }
+
+  const [asset, t] = await Promise.all([
+    getAsset(id, assetClass, 'eur'),
+    getTranslations('metric'),
+  ])
+
+  if (!asset.ok) return { title: fr.asset.notFoundTitle, robots: { index: false } }
+
+  const message =
+    metric.message === 'ath' || metric.message === 'atl'
+      ? extremeMessage(metric.message, assetClass)
+      : metric.message
+
+  const label = t(`${message}.label`)
+  const { name, symbol } = asset.data
+  const title = `${label} — ${name} (${symbol})`
+
+  return {
+    title,
+    description: t(`${message}.help`).slice(0, 155),
+    openGraph: {
+      title: `${fr.site.name} | ${title}`,
+      description: t(`${message}.help`).slice(0, 200),
     },
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Habillage des composants Clerk aux jetons ZENITH.
+ * Habillage des composants Clerk aux jetons ZENKUU.
  *
  * ── POURQUOI DES OBJETS DE STYLE ET NON DES CLASSES TAILWIND ───────────────────
  *
@@ -17,7 +17,7 @@
  *
  * ── POURQUOI DES `var()` ET NON DES COULEURS FIGÉES ────────────────────────────
  *
- * ZENITH a deux thèmes, et la bascule se fait côté navigateur sans re-rendu React.
+ * ZENKUU a deux thèmes, et la bascule se fait côté navigateur sans re-rendu React.
  * Une couleur en dur serait juste dans un thème et fausse dans l'autre. Les `var()`
  * sont résolues à la peinture : les écrans Clerk suivent donc la bascule sans une
  * ligne de JavaScript, comme les graphiques.
@@ -27,7 +27,10 @@
  * chaîne que le navigateur n'a pas encore résolue.
  */
 
-const BRAND = '#0369a1'
+/* La valeur du thème CLAIR de `--color-brand`, recopiée ici faute de pouvoir la
+   résoudre — voir la note ci-dessus. Elle suit donc les retouches de globals.css à la
+   main : c'est le seul endroit du site où la palette est dupliquée côté interface. */
+const BRAND = '#3d63c2'
 
 export const CLERK_VARIABLES = {
   colorPrimary: BRAND,

@@ -3,8 +3,8 @@
 import { ArrowLeftRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { SUPPORTED_CURRENCIES } from '@zenith/data'
-import { formatCurrency } from '@zenith/ui'
+import { SUPPORTED_CURRENCIES } from '@zenkuu/data'
+import { formatCurrency } from '@zenkuu/ui'
 
 /**
  * Convertisseur actif ↔ devise.

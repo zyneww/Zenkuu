@@ -1,4 +1,4 @@
-import { ASSET_CLASSES, SUPPORTED_CURRENCIES, YAHOO_UNIVERSE } from '@zenith/data'
+import { ASSET_CLASSES, SUPPORTED_CURRENCIES, YAHOO_UNIVERSE } from '@zenkuu/data'
 
 import { HELP_ARTICLES } from '@/content/aide'
 import { LESSONS } from '@/content/apprendre'
@@ -11,7 +11,7 @@ import { LESSONS } from '@/content/apprendre'
  *
  * ÉCART DÉLIBÉRÉ ET IMPORTANT. Les références du secteur affichent ici des
  * métriques d'audience — millions d'utilisateurs, volumes échangés, pays couverts.
- * ZENITH n'a ni audience publiée ni volume à afficher, et inventer ces nombres
+ * ZENKUU n'a ni audience publiée ni volume à afficher, et inventer ces nombres
  * serait exactement ce que le §5 interdit : des chiffres invérifiables présentés
  * comme des faits.
  *
@@ -58,7 +58,7 @@ const FIGURES: { value: string; label: string; detail: string }[] = [
   {
     value: String(HELP_ARTICLES.length + LESSONS.length),
     label: 'articles publiés',
-    detail: 'Fiches pédagogiques et articles d’aide rédigés pour ZENITH, sans contenu généré de remplissage.',
+    detail: 'Fiches pédagogiques et articles d’aide rédigés pour ZENKUU, sans contenu généré de remplissage.',
   },
 ]
 
@@ -66,7 +66,7 @@ export function KeyFigures() {
   return (
     <section className="space-y-3" aria-labelledby="chiffres-cles">
       <h2 id="chiffres-cles" className="text-lg font-semibold text-ink">
-        ZENITH en quelques chiffres
+        ZENKUU en quelques chiffres
       </h2>
 
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -86,7 +86,7 @@ export function KeyFigures() {
 
       <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
         Ces chiffres décrivent le produit, pas une audience. Vous ne trouverez ici ni
-        nombre d’utilisateurs ni volume échangé : ZENITH n’exécute aucune transaction,
+        nombre d’utilisateurs ni volume échangé : ZENKUU n’exécute aucune transaction,
         et publier des métriques invérifiables contredirait la règle qui interdit
         d’afficher une donnée qu’on ne peut pas sourcer.
       </p>

@@ -29,58 +29,170 @@ interface FeedSource {
    * donnée inventée, que le §5 proscrit au même titre qu'un chiffre inventé.
    */
   category: NewsCategory
+  /** Langue de publication, déclarée par le flux. Même raisonnement que la rubrique. */
+  lang: NewsLang
 }
 
-export type NewsCategory = 'crypto' | 'marches' | 'economie'
+export type NewsCategory = 'crypto' | 'marches' | 'economie' | 'regulation'
+
+export type NewsLang = 'fr' | 'en'
 
 /** Libellés affichés — définis ici pour rester alignés sur les flux eux-mêmes. */
 export const NEWS_CATEGORY_LABELS: Record<NewsCategory, string> = {
   crypto: 'Cryptomonnaies',
   marches: 'Marchés & entreprises',
   economie: 'Économie & macro',
+  regulation: 'Régulation & banques centrales',
 }
 
+export const NEWS_LANG_LABELS: Record<NewsLang, string> = {
+  fr: 'Français',
+  en: 'Anglais',
+}
+
+/**
+ * Flux suivis — 29 sources, contre 4 auparavant.
+ *
+ * ── CHACUN A ÉTÉ INTERROGÉ AVANT D'ÊTRE INSCRIT ICI ───────────────────────────
+ *
+ * Un flux mort ne coûte pas qu'une source manquante : il fait apparaître une case à
+ * cocher dans les filtres qui ne renverra jamais rien. Le lecteur croit alors avoir
+ * filtré alors qu'il a vidé sa page, et rien ne le lui dit.
+ *
+ * Neuf candidats ont été écartés à ce titre, tous par refus du serveur et non par
+ * choix éditorial : Les Échos, Boursorama, le FMI, BFM Bourse, Zonebourse, ABC
+ * Bourse, Capital et Les Échos Investir répondent 403 ou 404 à un agrégateur.
+ * Certains reviendront peut-être avec une autre adresse ; les réessayer coûte une
+ * requête, les inscrire à l'aveugle coûte un filtre trompeur.
+ *
+ * ── RÉPARTITION ───────────────────────────────────────────────────────────────
+ *
+ *   crypto      12   (8 anglais, 4 français)
+ *   marchés      6   (6 anglais)
+ *   économie     8   (8 français)
+ *   régulation   3   (3 anglais)
+ *
+ * Le déséquilibre anglais/français sur les marchés est SUBI, pas choisi : les trois
+ * quotidiens économiques français de référence refusent tous l'accès à leur flux.
+ * Le filtre de langue permet au lecteur francophone de s'en tenir au français, au
+ * prix d'un fil plus étroit — un arbitrage qui lui appartient.
+ */
 const FEEDS: FeedSource[] = [
-  {
-    id: 'cointelegraph',
-    label: 'Cointelegraph',
-    url: 'https://cointelegraph.com/rss',
-    category: 'crypto',
-  },
-  {
-    id: 'coindesk',
-    label: 'CoinDesk',
-    url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
-    category: 'crypto',
-  },
-  // Flux non-crypto : jusqu'ici le fil ne couvrait que la crypto alors que le site
-  // suit six classes d'actifs. Ces deux-là sont publics, sans clé et sans quota.
-  {
-    id: 'yahoo-finance',
-    label: 'Yahoo Finance',
-    url: 'https://finance.yahoo.com/news/rssindex',
-    category: 'marches',
-  },
-  {
-    id: 'ft-economie',
-    label: 'France Info éco',
-    url: 'https://www.francetvinfo.fr/economie.rss',
-    category: 'economie',
-  },
+  // ── Cryptomonnaies, anglais ───────────────────────────────────────────────
+  { id: 'coindesk', label: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', category: 'crypto', lang: 'en' },
+  { id: 'cointelegraph', label: 'Cointelegraph', url: 'https://cointelegraph.com/rss', category: 'crypto', lang: 'en' },
+  { id: 'theblock', label: 'The Block', url: 'https://www.theblock.co/rss.xml', category: 'crypto', lang: 'en' },
+  { id: 'decrypt', label: 'Decrypt', url: 'https://decrypt.co/feed', category: 'crypto', lang: 'en' },
+  { id: 'bitcoinmag', label: 'Bitcoin Magazine', url: 'https://bitcoinmagazine.com/feed', category: 'crypto', lang: 'en' },
+  { id: 'cryptoslate', label: 'CryptoSlate', url: 'https://cryptoslate.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'bitcoinist', label: 'Bitcoinist', url: 'https://bitcoinist.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'newsbtc', label: 'NewsBTC', url: 'https://www.newsbtc.com/feed/', category: 'crypto', lang: 'en' },
+
+  // ── Cryptomonnaies, français ──────────────────────────────────────────────
+  { id: 'journalducoin', label: 'Journal du Coin', url: 'https://journalducoin.com/feed/', category: 'crypto', lang: 'fr' },
+  { id: 'cryptoast', label: 'Cryptoast', url: 'https://cryptoast.fr/feed/', category: 'crypto', lang: 'fr' },
+  { id: 'cointribune', label: 'Cointribune', url: 'https://www.cointribune.com/feed/', category: 'crypto', lang: 'fr' },
+  { id: 'bitcoinfr', label: 'Bitcoin.fr', url: 'https://bitcoin.fr/feed/', category: 'crypto', lang: 'fr' },
+
+  // ── Marchés & entreprises ─────────────────────────────────────────────────
+  { id: 'yahoo-finance', label: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssindex', category: 'marches', lang: 'en' },
+  { id: 'cnbc-markets', label: 'CNBC Markets', url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', category: 'marches', lang: 'en' },
+  { id: 'cnbc-business', label: 'CNBC Business', url: 'https://www.cnbc.com/id/10001147/device/rss/rss.html', category: 'marches', lang: 'en' },
+  { id: 'marketwatch', label: 'MarketWatch', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', category: 'marches', lang: 'en' },
+  { id: 'investing', label: 'Investing.com', url: 'https://www.investing.com/rss/news_25.rss', category: 'marches', lang: 'en' },
+  { id: 'seekingalpha', label: 'Seeking Alpha', url: 'https://seekingalpha.com/market_currents.xml', category: 'marches', lang: 'en' },
+
+  // ── Régulation & banques centrales ────────────────────────────────────────
+  // Sources primaires : ce que l'autorité publie elle-même, avant tout commentaire.
+  { id: 'sec', label: 'SEC', url: 'https://www.sec.gov/news/pressreleases.rss', category: 'regulation', lang: 'en' },
+  { id: 'fed', label: 'Federal Reserve', url: 'https://www.federalreserve.gov/feeds/press_all.xml', category: 'regulation', lang: 'en' },
+  { id: 'ecb', label: 'BCE', url: 'https://www.ecb.europa.eu/rss/press.html', category: 'regulation', lang: 'en' },
+
+  // ── Économie & macro ──────────────────────────────────────────────────────
+  { id: 'francetvinfo', label: 'France Info éco', url: 'https://www.francetvinfo.fr/economie.rss', category: 'economie', lang: 'fr' },
+  { id: 'lemonde-eco', label: 'Le Monde Économie', url: 'https://www.lemonde.fr/economie/rss_full.xml', category: 'economie', lang: 'fr' },
+  { id: 'challenges', label: 'Challenges', url: 'https://www.challenges.fr/rss.xml', category: 'economie', lang: 'fr' },
+  { id: 'latribune', label: 'La Tribune', url: 'https://www.latribune.fr/feed.xml', category: 'economie', lang: 'fr' },
+  { id: 'lefigaro-eco', label: 'Le Figaro Économie', url: 'https://www.lefigaro.fr/rss/figaro_economie.xml', category: 'economie', lang: 'fr' },
+  { id: 'rfi-eco', label: 'RFI Économie', url: 'https://www.rfi.fr/fr/économie/rss', category: 'economie', lang: 'fr' },
+  { id: 'cafedelabourse', label: 'Café de la Bourse', url: 'https://www.cafedelabourse.com/feed', category: 'economie', lang: 'fr' },
+  { id: 'euronews-eco', label: 'Euronews Business', url: 'https://fr.euronews.com/rss?level=theme&name=business', category: 'economie', lang: 'fr' },
 ]
 
 const http = createHttpClient({
   providerId: 'rss-news',
   // Les flux vivent sur des domaines différents : on passe l'URL absolue à chaque appel.
   baseUrl: 'https://example.invalid',
-  maxRequestsPerWindow: 20,
-  minIntervalMs: 200,
-  timeoutMs: 12_000,
+  /*
+   * ⚠️ CE PLAFOND EST PAR MINUTE, PAS PAR APPEL — la confusion coûte cher.
+   *
+   * `fetchNews` interroge les VINGT-NEUF flux à chaque appel, quel que soit le nombre
+   * d'articles demandé : l'accueil qui en affiche six paie autant que la page
+   * d'actualités qui en affiche soixante-douze. Deux pages consultées dans la même
+   * minute font donc 58 requêtes.
+   *
+   * Réglé à 40, le limiteur ENDORMAIT tout le reste de la fenêtre — mesuré : cent
+   * secondes d'attente sur l'accueil, contre trois secondes pour les mêmes flux
+   * interrogés directement. Le symptôme ne désignait pas sa cause, la page semblant
+   * simplement « lente ».
+   *
+   * 240 laisse passer huit collectes complètes par minute. Le risque habituel d'un
+   * plafond haut — épuiser le quota d'une API — n'existe pas ici : ces requêtes vont
+   * vers vingt-neuf domaines DISTINCTS, dont aucun n'en reçoit plus d'une par appel.
+   * Le plafond ne sert donc que de garde-fou contre un emballement.
+   */
+  maxRequestsPerWindow: 240,
+  /*
+   * ZÉRO ESPACEMENT, et c'est le contraire d'une négligence.
+   *
+   * Le limiteur SÉRIALISE les requêtes et attend `minIntervalMs` entre chacune. À
+   * 200 ms — valeur calibrée quand la liste comptait quatre flux, soit 0,8 s — la
+   * facture passe à 5,8 secondes pour vingt-neuf, avant même qu'une seule réponse
+   * n'arrive. Mesuré : le premier rendu de la page dépassait la minute.
+   *
+   * Or un espacement protège un SERVEUR, en évitant de le marteler. Ici les
+   * vingt-neuf requêtes partent vers vingt-neuf DOMAINES DISTINCTS, dont aucun n'en
+   * reçoit plus d'une : il n'y a rien à ménager, et le délai ne fait que retarder.
+   *
+   * `maxRequestsPerWindow` reste, lui, à 40 : il borne le volume total par fenêtre,
+   * ce qui garde son sens quelle que soit la répartition des domaines.
+   */
+  minIntervalMs: 0,
+  timeoutMs: 8_000,
+
+  /*
+   * AUCUNE SECONDE TENTATIVE APRÈS EXPIRATION — le seul réglage qui compte pour le
+   * temps de réponse de la page.
+   *
+   * Le client réessaie par défaut, ce qui est juste pour une source UNIQUE dont
+   * l'échec vide la page. Ici l'échec d'un flux sur vingt-neuf ne coûte qu'une
+   * source, tandis que sa reprise fait attendre TOUT LE FIL une seconde fois.
+   *
+   * Mesuré avant correction : le premier rendu dépassait les trois minutes, chaque
+   * flux lent comptant deux fois douze secondes. Un flux absent est rattrapé au
+   * passage suivant de la collecte horaire ; un lecteur qui attend, non.
+   */
+  retryOnTimeout: false,
   // Aligné sur le TTL du fil d'actualités, plus court que le défaut.
   revalidateSeconds: 180,
+
+  /*
+   * PAS DE CACHE DISQUE POUR CES FLUX — la correction la plus déterminante du lot.
+   *
+   * Vingt-neuf flux RSS pèsent environ six méga-octets de XML par collecte. Écrits
+   * un à un dans le cache de Next, ils dominaient tout le reste : `fetchNews(72)`
+   * prend 5,7 secondes en direct et dépassait 90 secondes à travers Next, mesuré sur
+   * cette machine. La page ne semblait pas cassée, seulement lente — le pire
+   * symptôme, celui qu'on attribue au réseau ou à la source.
+   *
+   * Rien n'est perdu : `runStandalone` met en cache le RÉSULTAT PARSÉ pour les mêmes
+   * 180 secondes. C'est le même effet utile, sur un objet des dizaines de fois plus
+   * petit que les XML dont il est tiré.
+   */
+  bypassNextCache: true,
   headers: {
     Accept: 'application/rss+xml, application/xml, text/xml',
-    'User-Agent': 'ZenithBot/1.0 (+https://zenith.example; agrégateur RSS)',
+    'User-Agent': 'ZenkuuBot/1.0 (+https://zenkuu.example; agrégateur RSS)',
   },
 })
 
@@ -210,6 +322,7 @@ function parseFeed(xml: string, source: FeedSource): NewsItem[] {
       url: link,
       source: source.label,
       category: source.category,
+      lang: source.lang,
       publishedAt:
         parsed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : new Date().toISOString(),
     }
@@ -229,6 +342,95 @@ function parseFeed(xml: string, source: FeedSource): NewsItem[] {
   }
 
   return items
+}
+
+/**
+ * Récupère la vignette d'un article sur SA PROPRE PAGE, quand le flux n'en donne pas.
+ *
+ * ── POURQUOI C'EST NÉCESSAIRE ─────────────────────────────────────────────────
+ *
+ * Mesuré sur les vingt-neuf flux : huit ne publient AUCUNE image — The Block, les
+ * deux CNBC, Seeking Alpha, la Fed, la SEC, la BCE, Cryptoast. Ce n'est pas un
+ * oubli de leur part : un flux RSS n'a jamais eu vocation à illustrer, et la balise
+ * `media:content` est une extension que chacun adopte ou non.
+ *
+ * Or ces pages ont bien une image — celle que Slack, Discord ou Twitter affichent en
+ * aperçu, déclarée en `<meta property="og:image">`. On lit la même.
+ *
+ * ── CE QUE ÇA COÛTE, ET COMMENT C'EST BORNÉ ───────────────────────────────────
+ *
+ * Une requête HTTP par article sans image. Trois précautions la rendent supportable :
+ *
+ *   · `Range: bytes=0-65535` — les balises `meta` sont dans le `<head>`, donc dans
+ *     les tout premiers kilo-octets. On ne télécharge pas l'article entier. Un
+ *     serveur qui ignore l'en-tête enverra tout, d'où la limite de taille ci-dessous.
+ *   · 6 secondes de délai maximal — au-delà, l'article part sans image plutôt que
+ *     de retarder tout le fil.
+ *   · échec TOUJOURS silencieux — une vignette manquante n'est pas une panne, et le
+ *     rendu prévoit déjà ce cas.
+ */
+async function fetchOgImage(articleUrl: string): Promise<string | undefined> {
+  try {
+    const response = await fetch(articleUrl, {
+      headers: {
+        Accept: 'text/html',
+        'User-Agent': 'ZenkuuBot/1.0 (+https://zenkuu.example; agrégateur RSS)',
+        Range: 'bytes=0-65535',
+      },
+      signal: AbortSignal.timeout(6_000),
+      redirect: 'follow',
+    })
+    if (!response.ok && response.status !== 206) return undefined
+
+    const head = (await response.text()).slice(0, 65_536)
+
+    /*
+     * L'ordre des attributs varie d'un site à l'autre : `property` peut précéder ou
+     * suivre `content`. Deux expressions plutôt qu'une seule permissive, qui
+     * accepterait aussi n'importe quelle balise entre les deux.
+     */
+    const match =
+      head.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ??
+      head.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ??
+      head.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+
+    const found = match?.[1]?.trim()
+    if (!found) return undefined
+
+    /* Certains sites déclarent un chemin relatif, que le navigateur résoudrait
+       contre SA page — donc contre la nôtre, où il ne mène nulle part. */
+    const absolute = new URL(found, articleUrl).toString()
+    return absolute.startsWith('http') ? absolute : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Complète les vignettes manquantes, en bornant le nombre de requêtes.
+ *
+ * Le plafond n'est pas une précaution abstraite : sans lui, un lot de trente-six
+ * articles dont trente sans image déclencherait trente requêtes tierces avant que
+ * la page ne puisse être rendue. On sert donc les premiers articles — ceux qui sont
+ * vus en haut de page — et les suivants s'affichent sans vignette, ce que la mise en
+ * page prévoit déjà.
+ */
+async function fillMissingImages(items: NewsItem[], budget = 8): Promise<NewsItem[]> {
+  const targets = items.filter((item) => !item.imageUrl).slice(0, budget)
+  if (targets.length === 0) return items
+
+  const resolved = new Map<string, string>()
+  await Promise.all(
+    targets.map(async (item) => {
+      const image = await fetchOgImage(item.url)
+      if (image) resolved.set(item.id, image)
+    }),
+  )
+
+  return items.map((item) => {
+    const image = resolved.get(item.id)
+    return image ? { ...item, imageUrl: image } : item
+  })
 }
 
 export async function fetchNews(limit = 12): Promise<NewsItem[]> {
@@ -277,7 +479,9 @@ export async function fetchNews(limit = 12): Promise<NewsItem[]> {
     merged.push(...round)
   }
 
-  return merged.slice(0, limit)
+  /* Les vignettes se complètent APRÈS la sélection, pas avant : compléter d'abord
+     dépenserait des requêtes pour des articles qui n'entrent pas dans le lot. */
+  return fillMissingImages(merged.slice(0, limit))
 }
 
 export const NEWS_SOURCES = FEEDS.map((feed) => feed.label).join(', ')

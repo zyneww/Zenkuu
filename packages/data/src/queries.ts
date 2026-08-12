@@ -8,7 +8,9 @@
  */
 
 import { CACHE_TTL_SECONDS, cached } from './cache'
+import { CURRENCY_CODES } from './currencies'
 import { recordMarketCap } from './market-cap-series'
+import { fetchCoinGeckoRates } from './providers/coingecko'
 import { COINPAPRIKA_SOURCE, fetchNewListings } from './providers/coinpaprika'
 import { fetchExchangeRates } from './providers/frankfurter'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
@@ -17,7 +19,12 @@ import {
   fetchSentiment,
   fetchSentimentHistory,
 } from './providers/sentiment'
-import { getDeclaredProvider, getProvider } from './registry'
+import {
+  getDeclaredProvider,
+  getFallbackProviders,
+  getProvider,
+  type ProviderCapability,
+} from './registry'
 import type {
   AssetClass,
   AssetDetail,
@@ -216,6 +223,22 @@ async function run<T>(
   cacheKey: string,
   fetcher: (provider: NonNullable<ReturnType<typeof getProvider>>) => Promise<T>,
   ttlSeconds: number = CACHE_TTL_SECONDS,
+  /**
+   * Préfère `provider.fastTtlSeconds` à `ttlSeconds` quand le fournisseur en
+   * déclare un. Réservé aux requêtes à faible cardinalité (classement,
+   * statistiques globales) : c'est le fournisseur, pas cet appelant générique, qui
+   * sait si sa source a la marge de quota pour aller plus vite (§4 — isolation par
+   * adaptateur).
+   */
+  preferFast = false,
+  /**
+   * Méthode réellement appelée par `fetcher`, quand un SECOURS est souhaité.
+   *
+   * Omise, la requête garde le comportement historique : un échec produit un état
+   * d'erreur. Renseignée, l'échec déclenche une tentative auprès des fournisseurs
+   * qui couvrent la même classe et implémentent cette méthode (voir plus bas).
+   */
+  capability?: ProviderCapability,
 ): Promise<DataResult<T>> {
   const source = describe(assetClass)
   const provider = getProvider(assetClass)
@@ -230,8 +253,10 @@ async function run<T>(
     }
   }
 
+  const effectiveTtl = preferFast && provider.fastTtlSeconds ? provider.fastTtlSeconds : ttlSeconds
+
   try {
-    const data = await cached(cacheKey, () => fetcher(provider), ttlSeconds)
+    const data = await cached(cacheKey, () => fetcher(provider), effectiveTtl)
     return {
       ok: true,
       data,
@@ -239,7 +264,7 @@ async function run<T>(
     }
   } catch (error) {
     const detail = error instanceof ProviderError ? error.message : String(error)
-    console.error(`[zenith:data] ${cacheKey} — ${detail}`)
+    console.error(`[zenkuu:data] ${cacheKey} — ${detail}`)
 
     // Inexistence AVANT panne : un identifiant inconnu n'est pas un incident, et le
     // confondre avec une indisponibilité produit une page « revenez plus tard » pour
@@ -250,6 +275,47 @@ async function run<T>(
         kind: 'notFound',
         reason: `Cet identifiant n’existe pas chez ${provider.label}.`,
         source,
+      }
+    }
+
+    /*
+     * ── SECOURS AUPRÈS D'UNE AUTRE SOURCE ──────────────────────────────────────
+     *
+     * On n'arrive ici QUE si `cached` n'avait aucune valeur périmée à servir : son
+     * propre filet s'est déjà appliqué en amont. Autrement dit, ce chemin est celui
+     * d'une page FROIDE dont la source principale est muette — exactement le cas
+     * du robot d'indexation qui ouvre des fiches en rafale et déclenche un 429.
+     *
+     * CLÉ DE CACHE DISTINCTE, et c'est important : mémoriser la réponse du secours
+     * sous la clé du fournisseur principal ferait resservir plus tard de la donnée
+     * Binance sous l'attribution CoinGecko. Chaque source garde donc son propre
+     * filet, et l'attribution renvoyée suit la source qui a RÉELLEMENT répondu.
+     */
+    if (capability) {
+      for (const fallback of getFallbackProviders(assetClass, capability)) {
+        try {
+          const data = await cached(
+            `${cacheKey}:via-${fallback.id}`,
+            () => fetcher(fallback),
+            effectiveTtl,
+          )
+
+          console.warn(
+            `[zenkuu:data] ${cacheKey} — ${provider.label} muet, servi par ${fallback.label}`,
+          )
+
+          return {
+            ok: true,
+            data,
+            source: { label: fallback.label, attributionUrl: fallback.attributionUrl },
+          }
+        } catch (fallbackError) {
+          // Un secours qui échoue à son tour ne doit pas masquer la panne d'origine :
+          // on note, et on laisse la boucle tenter le suivant s'il y en a un.
+          console.error(
+            `[zenkuu:data] ${cacheKey} — secours ${fallback.label} en échec : ${String(fallbackError)}`,
+          )
+        }
       }
     }
 
@@ -275,7 +341,7 @@ async function runStandalone<T>(
   try {
     return { ok: true, data: await cached(cacheKey, fetcher, ttlSeconds), source }
   } catch (error) {
-    console.error(`[zenith:data] ${cacheKey} — ${String(error)}`)
+    console.error(`[zenkuu:data] ${cacheKey} — ${String(error)}`)
     return { ok: false, kind: 'error', reason: `Source ${source.label} indisponible.`, source }
   }
 }
@@ -285,12 +351,18 @@ async function runStandalone<T>(
 export async function getCryptoGlobalStats(
   currency = 'eur',
 ): Promise<DataResult<GlobalMarketStats>> {
-  const result = await run('crypto', `crypto:global:${currency}`, (provider) => {
-    if (!provider.getGlobalStats) {
-      throw new ProviderError(provider.id, 'Statistiques globales non supportées')
-    }
-    return provider.getGlobalStats(currency)
-  })
+  const result = await run(
+    'crypto',
+    `crypto:global:${currency}`,
+    (provider) => {
+      if (!provider.getGlobalStats) {
+        throw new ProviderError(provider.id, 'Statistiques globales non supportées')
+      }
+      return provider.getGlobalStats(currency)
+    },
+    CACHE_TTL_SECONDS,
+    true,
+  )
 
   // Chaque lecture réussie alimente notre propre série historique — seule façon
   // d'obtenir une courbe de capitalisation globale sans source payante.
@@ -346,6 +418,17 @@ export function getRanking(params: RankingParams = {}): Promise<DataResult<Marke
         currency,
         withSparkline: true,
       }),
+    CACHE_TTL_SECONDS,
+    // Le classement crypto est LA page la plus visitée et la moins nombreuse en
+    // clés de cache (quelques tris × devises) : c'est le cas idéal pour la
+    // fraîcheur accélérée. Les autres classes d'actifs (Yahoo) gardent le TTL
+    // standard — source non officielle, marge de quota différente (§9).
+    assetClass === 'crypto',
+    // Secours autorisé : c'est la requête la plus exposée du site, et la seule que
+    // Binance sache servir en entier. Le classement de secours est plus court (les
+    // actifs de la table de correspondance) et sans capitalisation — dégradé, mais
+    // juste et attribué.
+    'listAssets',
   )
 }
 
@@ -564,12 +647,22 @@ export function getAssetHistory(
   days: number,
   currency = 'eur',
 ): Promise<DataResult<PriceHistory>> {
-  return run(assetClass, `${assetClass}:history:${id}:${days}:${currency}`, (provider) => {
-    if (!provider.getHistory) {
-      throw new ProviderError(provider.id, 'Historique non supporté')
-    }
-    return provider.getHistory(id, days, assetClass, currency)
-  })
+  return run(
+    assetClass,
+    `${assetClass}:history:${id}:${days}:${currency}`,
+    (provider) => {
+      if (!provider.getHistory) {
+        throw new ProviderError(provider.id, 'Historique non supporté')
+      }
+      return provider.getHistory(id, days, assetClass, currency)
+    },
+    CACHE_TTL_SECONDS,
+    false,
+    // Le graphique d'une fiche froide est la seconde victime d'un 429 après le
+    // classement. Binance rend une série de clôtures pour les actifs de sa table ;
+    // hors table, il lève et l'état d'erreur d'origine reprend la main.
+    'getHistory',
+  )
 }
 
 /**
@@ -590,12 +683,19 @@ export function getAssetOhlc(
   days: number,
   currency = 'eur',
 ): Promise<DataResult<OhlcHistory>> {
-  return run(assetClass, `${assetClass}:ohlc:${id}:${days}:${currency}`, (provider) => {
-    if (!provider.getOhlc) {
-      throw new ProviderError(provider.id, 'Bougies non supportées')
-    }
-    return provider.getOhlc(id, days, assetClass, currency)
-  })
+  return run(
+    assetClass,
+    `${assetClass}:ohlc:${id}:${days}:${currency}`,
+    (provider) => {
+      if (!provider.getOhlc) {
+        throw new ProviderError(provider.id, 'Bougies non supportées')
+      }
+      return provider.getOhlc(id, days, assetClass, currency)
+    },
+    CACHE_TTL_SECONDS,
+    false,
+    'getOhlc',
+  )
 }
 
 /* ── Secteurs, actualités, sentiment ───────────────────────────────────────── */
@@ -761,22 +861,143 @@ export function getNews(limit = 8): Promise<DataResult<NewsItem[]>> {
   )
 }
 
-/** Devises proposées par le sélecteur des fiches actif. */
-export const SUPPORTED_CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY'] as const
-export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number]
+/**
+ * Devises proposées par le sélecteur.
+ *
+ * Ce n'était qu'une liste de cinq codes, et cette liste était la vraie limite du
+ * sélecteur : la fenêtre de préférences n'affichait que ce qu'elle trouvait ici.
+ * Elle est désormais dérivée du catalogue (`currencies.ts`), qui en porte 62.
+ *
+ * Le nom et le type sont conservés pour ne pas casser les appelants existants —
+ * routes d'API qui filtrent les paramètres reçus, convertisseur, page « à propos ».
+ */
+export const SUPPORTED_CURRENCIES = CURRENCY_CODES
+export type SupportedCurrency = string
+
+/**
+ * Provenance d'un taux, devise par devise.
+ *
+ * Portée ligne à ligne et non pour la table entière, parce que la table est
+ * MIXTE : impossible d'écrire une attribution unique en pied de page sans mentir
+ * sur la moitié des lignes (§5).
+ */
+export interface RateOrigin {
+  source: 'ecb' | 'coingecko'
+  /** Date de publication. Un fixing BCE date du jour ouvré précédent ; un cours de marché, de l'instant. */
+  date: string
+}
 
 export interface ExchangeRates {
   base: string
-  /** Date de publication du taux — affichée, car un taux BCE date du jour ouvré précédent. */
+  /**
+   * Date de la table — celle du fixing BCE quand il est disponible.
+   *
+   * Conservée telle quelle pour les appelants qui l'affichent déjà. Elle ne décrit
+   * plus toute la table depuis que CoinGecko en complète une partie : c'est
+   * `origins` qui fait foi devise par devise.
+   */
   date: string
+  /** Valeur de 1 EUR dans chaque devise. */
   rates: Record<string, number>
+  /** Provenance et fraîcheur, par code de devise. */
+  origins: Record<string, RateOrigin>
 }
 
+/**
+ * Table de change du site — deux sources, une seule table.
+ *
+ * ── POURQUOI DEUX SOURCES ─────────────────────────────────────────────────────
+ *
+ * La BCE est la référence à privilégier : taux officiel, daté, opposable. Mais elle
+ * ne publie que 30 monnaies. Les 32 autres devises du catalogue — l'or, l'argent,
+ * les 14 unités crypto, le dông, le naira, les DTS — n'y figurent tout simplement
+ * pas. Se limiter à la BCE, c'était le sélecteur à cinq devises d'avant.
+ *
+ * La règle de composition tient en une phrase : LA BCE GAGNE PARTOUT OÙ ELLE PUBLIE,
+ * CoinGecko ne comble que les trous. Un lecteur qui convertit en dollars obtient
+ * donc toujours le fixing officiel, jamais un cours de marché relevé au hasard de
+ * l'heure de la requête.
+ *
+ * ── CE QUE COÛTE LE MÉLANGE, ET POURQUOI IL EST ACCEPTABLE ────────────────────
+ *
+ * Convertir USD → BTC emprunte les deux sources : USD → EUR par la BCE, puis
+ * EUR → BTC par CoinGecko. Le résultat est un taux croisé, légèrement différent de
+ * ce qu'afficherait une place cotant directement la paire. L'écart est de l'ordre
+ * du dixième de pour cent sur les monnaies majeures — négligeable devant l'écart
+ * entre deux plateformes crypto au même instant, et sans commune mesure avec
+ * l'alternative, qui serait de ne pas proposer la conversion.
+ *
+ * Ce qui n'est PAS acceptable, en revanche, serait de le taire : `origins` remonte
+ * la provenance de chaque devise jusqu'à l'interface, qui l'affiche.
+ *
+ * ── DÉGRADATION ───────────────────────────────────────────────────────────────
+ *
+ * Les deux sources sont interrogées en parallèle et échouent indépendamment.
+ * Une seule qui répond suffit à rendre la table utilisable ; le sélecteur n'affiche
+ * alors que les devises réellement convertibles, au lieu d'en proposer qui
+ * renverraient un montant inchangé sans le signaler.
+ */
 export function getExchangeRates(): Promise<DataResult<ExchangeRates>> {
   return runStandalone(
-    'fx:rates:eur',
-    { label: 'Frankfurter (BCE)', attributionUrl: 'https://frankfurter.dev' },
-    () => fetchExchangeRates([...SUPPORTED_CURRENCIES]),
+    'fx:rates:merged',
+    { label: 'Frankfurter (BCE) et CoinGecko', attributionUrl: 'https://frankfurter.dev' },
+    async () => {
+      // `allSettled` et non `all` : une source en panne ne doit pas emporter l'autre.
+      // Avec `all`, une indisponibilité de Frankfurter — qui est un service bénévole,
+      // et qui a été mesuré à plus de vingt secondes de latence — supprimerait aussi
+      // l'or et le bitcoin de la table, sans aucun rapport de cause à effet.
+      const [ecb, cg] = await Promise.allSettled([
+        fetchExchangeRates([...CURRENCY_CODES]),
+        fetchCoinGeckoRates(),
+      ])
+
+      const rates: Record<string, number> = {}
+      const origins: Record<string, RateOrigin> = {}
+
+      // 1. CoinGecko d'abord : il pose le socle large, y compris les devises que la
+      //    BCE ignore. Ses valeurs sont cotées en bitcoin, on les ramène en euro par
+      //    le pivot — value[X] / value[EUR] donne bien « combien de X vaut 1 EUR ».
+      if (cg.status === 'fulfilled') {
+        const { perBtc } = cg.value
+        const eurPerBtc = perBtc.EUR
+        const stamp = new Date().toISOString().slice(0, 10)
+
+        for (const code of CURRENCY_CODES) {
+          const value = perBtc[code]
+          if (value === undefined || eurPerBtc === undefined) continue
+          rates[code] = value / eurPerBtc
+          origins[code] = { source: 'coingecko', date: stamp }
+        }
+      }
+
+      // 2. La BCE écrase ensuite ce qu'elle couvre. L'ordre est le cœur de la règle :
+      //    inverser ces deux blocs donnerait la préséance au cours de marché, ce qui
+      //    est exactement ce qu'on veut éviter sur les monnaies.
+      if (ecb.status === 'fulfilled') {
+        for (const [code, value] of Object.entries(ecb.value.rates)) {
+          if (!Number.isFinite(value) || value <= 0) continue
+          rates[code] = value
+          origins[code] = { source: 'ecb', date: ecb.value.date }
+        }
+      }
+
+      if (Object.keys(rates).length === 0) {
+        throw new Error('Aucune source de change disponible')
+      }
+
+      // L'euro vaut l'euro. Écrit explicitement plutôt que laissé aux sources : la
+      // BCE l'omet (c'est sa base) et une division par elle-même chez CoinGecko
+      // donnerait 1 à l'arrondi près, pas 1 exactement.
+      rates.EUR = 1
+      origins.EUR = { source: 'ecb', date: ecb.status === 'fulfilled' ? ecb.value.date : '' }
+
+      return {
+        base: 'EUR',
+        date: ecb.status === 'fulfilled' ? ecb.value.date : new Date().toISOString().slice(0, 10),
+        rates,
+        origins,
+      } satisfies ExchangeRates
+    },
     FX_TTL_SECONDS,
   )
 }

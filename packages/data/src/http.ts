@@ -1,7 +1,7 @@
 /**
  * Client HTTP des adaptateurs : limitation de débit, délais, erreurs normalisées.
  *
- * Le §9 impose un rate limiting côté ZENITH pour ne jamais dépasser les quotas des
+ * Le §9 impose un rate limiting côté ZENKUU pour ne jamais dépasser les quotas des
  * fournisseurs gratuits. Le point important : ce garde-fou est ici, dans le client
  * partagé, et non dans chaque adaptateur — un nouveau fournisseur en hérite en
  * déclarant simplement son quota.
@@ -86,12 +86,42 @@ export interface HttpClientOptions {
   retryOnTimeout?: boolean
   /** Durée de vie côté cache HTTP de Next.js. Doit valoir `CACHE_TTL_SECONDS`. */
   revalidateSeconds?: number
+  /**
+   * Contourner le cache HTTP de Next.js pour ce fournisseur ? Faux par défaut.
+   *
+   * ── QUAND LE METTRE À VRAI, ET POURQUOI ───────────────────────────────────
+   *
+   * Le cache de Next écrit CHAQUE RÉPONSE BRUTE sur le disque. C'est excellent pour
+   * une API JSON compacte interrogée souvent ; c'est ruineux pour un agrégat de
+   * vingt-neuf flux RSS, dont chaque réponse pèse des centaines de kilo-octets.
+   *
+   * Mesuré sur cette machine : `fetchNews(72)` prend 5,7 secondes en direct et
+   * dépassait 90 secondes à travers Next — l'écriture d'environ six méga-octets de
+   * XML dominait entièrement le temps de réponse, et la page paraissait « lente »
+   * sans que rien ne désigne le cache.
+   *
+   * Le rendre facultatif suppose qu'un AUTRE cache prenne le relais. C'est le cas
+   * ici : `runStandalone` mémorise le résultat PARSÉ, incomparablement plus léger
+   * que les XML dont il est tiré, et pour la même durée.
+   */
+  bypassNextCache?: boolean
   /** En-têtes constants (clé d'API, Accept…). */
   headers?: Record<string, string>
 }
 
 export interface HttpClient {
-  getJson<T>(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<T>
+  /**
+   * `revalidateOverrideSeconds` remplace, pour ce seul appel, le `revalidateSeconds`
+   * du client — utile aux requêtes à forte visibilité et faible cardinalité (un
+   * classement, des statistiques globales) qu'on veut rafraîchir plus vite que le
+   * reste du fournisseur SANS ouvrir un second limiteur de débit : le quota reste
+   * unique et partagé, seule la fraîcheur du cache HTTP change.
+   */
+  getJson<T>(
+    path: string,
+    query?: Record<string, string | number | boolean | undefined>,
+    revalidateOverrideSeconds?: number,
+  ): Promise<T>
   /** Réponse brute — nécessaire pour les flux RSS, qui sont du XML et non du JSON. */
   getText(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<string>
 }
@@ -106,6 +136,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     timeoutMs = 10_000,
     retryOnTimeout = true,
     revalidateSeconds = CACHE_TTL_SECONDS,
+    bypassNextCache = false,
     headers = {},
   } = options
 
@@ -124,19 +155,38 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     return url.toString()
   }
 
-  async function attempt<T>(url: string, as: 'json' | 'text' = 'json'): Promise<T> {
+  async function attempt<T>(
+    url: string,
+    as: 'json' | 'text' = 'json',
+    revalidateOverrideSeconds?: number,
+  ): Promise<T> {
     let response: Response
     try {
       // `next.revalidate` plutôt que `cache: 'no-store'` : `no-store` fait basculer
       // toute page qui l'utilise en rendu dynamique, ce qui supprimerait l'ISR
       // demandé au §9. On aligne donc cette durée sur celle du cache applicatif et
       // sur le `revalidate` des pages — un seul et même nombre partout, si bien que
-      // les trois couches expirent ensemble au lieu de cumuler leurs latences.
+      // les trois couches expirent ensemble au lieu de cumuler leurs latences (sauf
+      // override explicite, voir `HttpClient.getJson`).
       // La propriété est ignorée hors Next.js (scripts, tests), sans effet de bord.
       const init: RequestInit & { next?: { revalidate: number } } = {
         headers: { Accept: 'application/json', ...headers },
         signal: AbortSignal.timeout(timeoutMs),
-        next: { revalidate: revalidateSeconds },
+      }
+
+      /*
+       * `no-store` plutôt que `next.revalidate` quand le contournement est demandé.
+       *
+       * Le compromis est explicite : `no-store` rend dynamique toute page qui en
+       * dépend, ce que le §9 cherche justement à éviter — mais il n'est activé que
+       * par les fournisseurs dont les réponses sont trop volumineuses pour le cache
+       * disque, et dont le résultat parsé est mis en cache un cran plus haut. Voir
+       * `bypassNextCache` pour les mesures qui ont motivé cette porte de sortie.
+       */
+      if (bypassNextCache) {
+        init.cache = 'no-store'
+      } else {
+        init.next = { revalidate: revalidateOverrideSeconds ?? revalidateSeconds }
       }
 
       response = await fetch(url, init)
@@ -179,12 +229,13 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     path: string,
     query: Record<string, string | number | boolean | undefined> | undefined,
     as: 'json' | 'text',
+    revalidateOverrideSeconds?: number,
   ): Promise<T> {
     const url = buildUrl(path, query)
 
     await limiter.acquire()
     try {
-      return await attempt<T>(url, as)
+      return await attempt<T>(url, as, revalidateOverrideSeconds)
     } catch (error) {
       if (!(error instanceof ProviderError) || !error.retryable) throw error
 
@@ -208,7 +259,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       const hint = error.cause as { retryAfterMs?: number } | undefined
       await sleep(hint?.retryAfterMs ?? 1_000)
       await limiter.acquire()
-      return attempt<T>(url, as)
+      return attempt<T>(url, as, revalidateOverrideSeconds)
     }
   }
 
@@ -216,8 +267,9 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     getJson<T>(
       path: string,
       query?: Record<string, string | number | boolean | undefined>,
+      revalidateOverrideSeconds?: number,
     ): Promise<T> {
-      return request<T>(path, query, 'json')
+      return request<T>(path, query, 'json', revalidateOverrideSeconds)
     },
     getText(
       path: string,

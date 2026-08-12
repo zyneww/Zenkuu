@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "zenith-web",
+      "name": "zenkuu-web",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "--cwd", "apps/web", "dev"],
       "port": 3000

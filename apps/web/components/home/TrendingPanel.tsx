@@ -1,9 +1,9 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { TrendingAsset } from '@zenith/data'
-import { ChangeBadge, EmptyState } from '@zenith/ui'
+import type { TrendingAsset } from '@zenkuu/data'
+import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 import { assetHref } from '@/lib/asset-routes'
 
 interface TrendingPanelProps {
@@ -22,7 +22,8 @@ interface TrendingPanelProps {
  * trompeur. On montre donc le rang et la variation — qui sont, eux, réellement
  * publiés dans la devise affichée.
  */
-export function TrendingPanel({ assets, unavailableReason }: TrendingPanelProps) {
+export async function TrendingPanel({ assets, unavailableReason }: TrendingPanelProps) {
+  const fr = await getContent()
   return (
     <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
       {/* Ni emoji ni sous-titre : « Tendances » se suffit, et le sous-titre qui
@@ -49,11 +50,11 @@ export function TrendingPanel({ assets, unavailableReason }: TrendingPanelProps)
                     alt=""
                     width={20}
                     height={20}
-                    className="shrink-0 rounded-full"
+                    className="shrink-0 rounded-none"
                     loading="lazy"
                   />
                 ) : (
-                  <span className="h-5 w-5 shrink-0 rounded-full bg-surface-muted" aria-hidden="true" />
+                  <span className="h-5 w-5 shrink-0 rounded-none bg-surface-muted" aria-hidden="true" />
                 )}
 
                 <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink group-hover:text-brand-strong">

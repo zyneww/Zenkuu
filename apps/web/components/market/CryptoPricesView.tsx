@@ -7,8 +7,8 @@ import {
   getTrendingCryptoAssets,
   type DataResult,
   type MarketAsset,
-} from '@zenith/data'
-import { EmptyState, SourceNote } from '@zenith/ui'
+} from '@zenkuu/data'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { Money } from '@/components/locale/Money'
@@ -21,7 +21,7 @@ import {
   type CryptoView,
 } from '@/components/market/crypto-views'
 import { MarketBrowser } from '@/components/market/MarketBrowser'
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 import { getWatchlistIds } from '@/lib/watchlist-actions'
 
 const PER_PAGE = 50
@@ -47,6 +47,7 @@ export async function CryptoPricesView({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const fr = await getContent()
   const view = readView(searchParams['vue'])
   const period = readPeriod(searchParams['periode'])
   const page = readPage(searchParams['page'])
@@ -150,7 +151,7 @@ interface Listing {
  * Charge la liste correspondant à la vue demandée.
  *
  * Les trois vues classées partagent UN SEUL appel — `getCryptoOverview` trie côté
- * ZENITH les 250 premières capitalisations, faute pour CoinGecko de savoir trier par
+ * ZENKUU les 250 premières capitalisations, faute pour CoinGecko de savoir trier par
  * variation. La portée réelle de ce classement est donc écrite sous le tableau :
  * « parmi les N plus grandes capitalisations », et non « du marché ». Une hausse de
  * +900 % sur un jeton illiquide n'a pas le même sens qu'un classement filtré, et
@@ -158,13 +159,20 @@ interface Listing {
  */
 async function loadListing(view: CryptoView, page: number): Promise<Listing> {
   if (view === 'tendance') {
-    const result = await getTrendingCryptoAssets('eur')
+    // Deux appels indépendants : le classement de tendance n'a pas de lien avec les
+    // plus fortes hausses, mais la carte « meilleures performances » doit exister sur
+    // TOUTES les vues (cf. l'interface `Listing` ci-dessus) — d'où ce second appel,
+    // identique à celui de la vue par défaut plus bas.
+    const [result, overview] = await Promise.all([
+      getTrendingCryptoAssets('eur'),
+      getCryptoOverview('eur', 3),
+    ])
     return {
       result,
       paginated: false,
       scopeNote:
         'Actifs les plus consultés sur la source ces dernières 24 heures, dans son ordre de popularité.',
-      gainers: [],
+      gainers: overview.ok ? overview.data.gainers : [],
     }
   }
 
@@ -216,11 +224,12 @@ async function loadListing(view: CryptoView, page: number): Promise<Listing> {
  * Sans statistiques globales, la phrase disparaît — elle n'est pas remplacée par une
  * formule vague, qui occuperait la place sans rien dire.
  */
-function CryptoHeader({
+async function CryptoHeader({
   stats,
 }: {
   stats: Awaited<ReturnType<typeof getCryptoGlobalStats>>
 }) {
+  const fr = await getContent()
   return (
     <header className="mx-auto max-w-3xl space-y-4 text-center">
       <h1 className="display-mega text-ink">{fr.crypto.title}</h1>

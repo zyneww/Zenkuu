@@ -1,0 +1,115 @@
+{
+  "metric": {
+    "price": {
+      "label": "Preis",
+      "help": "Zuletzt von der Quelle veröffentlichter Kurs, umgerechnet in die von Ihnen gewählte Währung. Kein Ausführungskurs: je nach Handelsplatz und Zeitpunkt würde eine reale Order zu einem ähnlichen, aber anderen Kurs ausgeführt."
+    },
+    "marketCap": {
+      "label": "Marktkapitalisierung",
+      "help": "Gesamtwert des umlaufenden Angebots zum aktuellen Kurs. Das gängigste Größenmaß, das jedoch noch nicht ausgegebene Token außer Acht lässt — siehe voll verwässerte Bewertung."
+    },
+    "volume24h": {
+      "label": "Volumen 24 Std.",
+      "help": "Gesamtbetrag, der in den letzten 24 Stunden über alle Handelsplätze gehandelt wurde. Bei dünnem Volumen reagiert der Kurs weit empfindlicher auf eine einzelne Order."
+    },
+    "fdv": {
+      "label": "Voll verwässerte Bewertung",
+      "help": "Marktkapitalisierung, die der Wert erreichen würde, wenn sein gesamtes Maximalangebot im Umlauf wäre. Unverändert von der Quelle übernommen, nie nachgerechnet: die Regeln zu gesperrten oder verbrannten Token gehören ihr."
+    },
+    "tvl": {
+      "label": "Gebundener Gesamtwert",
+      "help": "In den Verträgen des Protokolls hinterlegter Betrag. Existiert nur im dezentralen Finanzwesen und misst die Nutzung, nicht den Kurs."
+    },
+    "rank": {
+      "label": "Rang",
+      "help": "Position nach Marktkapitalisierung innerhalb der Anlageklasse, wie von der Quelle veröffentlicht."
+    },
+    "exchange": {
+      "label": "Handelsplatz",
+      "help": "Markt, von dem die Quelle den Referenzkurs dieses Werts bezieht."
+    },
+    "high24h": {
+      "label": "Hoch 24 Std.",
+      "help": "Höchster Kurs der letzten 24 Stunden."
+    },
+    "low24h": {
+      "label": "Tief 24 Std.",
+      "help": "Niedrigster Kurs der letzten 24 Stunden."
+    },
+    "ath": {
+      "label": "Allzeithoch",
+      "help": "Höchster jemals erreichter Kurs. Der Prozentwert zeigt den Abstand des aktuellen Kurses zu diesem Rekord."
+    },
+    "athWindow": {
+      "label": "52-Wochen-Hoch",
+      "help": "Höchster Kurs des vergangenen Jahres. Die Quelle veröffentlicht für diese Anlageklasse keinen absoluten Rekord."
+    },
+    "atl": {
+      "label": "Allzeittief",
+      "help": "Niedrigster jemals erreichter Kurs. Der Prozentwert zeigt den Anstieg seit diesem Tiefpunkt."
+    },
+    "atlWindow": {
+      "label": "52-Wochen-Tief",
+      "help": "Niedrigster Kurs des vergangenen Jahres. Die Quelle veröffentlicht für diese Anlageklasse keinen absoluten Tiefpunkt."
+    },
+    "circulatingSupply": {
+      "label": "Umlaufendes Angebot",
+      "help": "Tatsächlich im Umlauf befindliche Einheiten, ohne gesperrte, reservierte oder vernichtete Token."
+    },
+    "totalSupply": {
+      "label": "Gesamtangebot",
+      "help": "Bis heute erzeugte Einheiten einschließlich gesperrter Token, abzüglich der verbrannten."
+    },
+    "maxSupply": {
+      "label": "Maximales Angebot",
+      "help": "Obergrenze der Einheiten, die das Protokoll je zulassen wird. Fehlt, wenn im Protokoll keine Obergrenze festgeschrieben ist."
+    },
+    "issuedShare": {
+      "label": "Ausgegebenes Angebot",
+      "help": "Anteil des Maximalangebots, der bereits im Umlauf ist. Aus zwei von der Quelle veröffentlichten Zahlen abgeleitet, nie geschätzt."
+    },
+    "change1h": {
+      "label": "1 Stunde",
+      "help": "Kursveränderung der letzten Stunde. Das unruhigste Zeitfenster: bei dünn gehandelten Werten spiegelt es oft eine einzelne Order statt einer echten Bewegung."
+    },
+    "change24h": {
+      "label": "24 Stunden",
+      "help": "Kursveränderung der letzten 24 Stunden, wie von der Quelle veröffentlicht. Das Referenzfenster der Ranglisten."
+    },
+    "change7d": { "label": "7 Tage", "help": "Kursveränderung der vergangenen Woche." },
+    "change14d": { "label": "14 Tage", "help": "Kursveränderung der letzten zwei Wochen." },
+    "change30d": { "label": "30 Tage", "help": "Kursveränderung des vergangenen Monats." },
+    "change1y": {
+      "label": "1 Jahr",
+      "help": "Kursveränderung des vergangenen Jahres. Ein fehlendes Zeitfenster bedeutet, dass die Quelle es nicht veröffentlicht — nie, dass es null ist."
+    }
+  },
+
+  "metricPage": {
+    "breadcrumb": "Kennzahlen",
+    "definitionTitle": "Definition",
+    "sourceTitle": "Quelle und Aktualität",
+    "noSeriesTitle": "Keine Historie für diese Kennzahl",
+    "noSeriesBody": "Die Quelle veröffentlicht für diese Kennzahl nur einen Momentanwert, ohne Zeitreihe. Es wird kein Diagramm gezeigt: eine Kurve zu zeichnen hieße, die fehlenden Punkte zu erfinden.",
+    "otherMetrics": "Weitere Kennzahlen zu {name}",
+    "backToAsset": "Zurück zur Detailseite",
+    "currentValue": "Aktueller Wert"
+  },
+
+  "chartCard": {
+    "expand": "Vergrößern",
+    "collapse": "Verkleinern",
+    "settings": "Diagrammeinstellungen",
+    "latest": "Zuletzt",
+    "share": "% Anteil",
+    "total": "Gesamt",
+    "other": "Sonstige",
+    "noData": "Zeitreihe für diesen Zeitraum nicht von der Quelle veröffentlicht."
+  },
+
+  "search": {
+    "placeholder": "Suchen",
+    "shortcut": "Strg + K",
+    "open": "Suche öffnen"
+  }
+}

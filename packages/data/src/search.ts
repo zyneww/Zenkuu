@@ -91,7 +91,7 @@ export async function searchAssets(query: string, limit = 8): Promise<SearchResp
     )
     return { crypto, autres, cryptoIndisponible: false }
   } catch (error) {
-    console.error(`[zenith:data] search:crypto:${trimmed} — ${String(error)}`)
+    console.error(`[zenkuu:data] search:crypto:${trimmed} — ${String(error)}`)
     // Le volet boursier reste servi : une panne côté crypto ne doit pas rendre la
     // recherche entièrement muette.
     return { crypto: [], autres, cryptoIndisponible: true }

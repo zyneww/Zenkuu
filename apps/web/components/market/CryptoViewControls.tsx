@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 import {
   CHANGE_PERIODS,
@@ -67,7 +67,7 @@ export function CryptoViewControls({
               href={cryptoHref(basePath, { view, period: entry.key })}
               aria-current={active ? 'page' : undefined}
               title={`Variation ${entry.longLabel}`}
-              className={`tabular rounded-[0.5rem] px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`tabular rounded-none px-2.5 py-1 text-xs font-medium transition-colors ${
                 active
                   ? 'bg-brand text-on-brand'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

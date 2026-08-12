@@ -1,5 +1,5 @@
 /**
- * @zenith/data — couche d'accès aux données de marché.
+ * @zenkuu/data — couche d'accès aux données de marché.
  *
  * Les pages n'importent QUE depuis ce point d'entrée. Aucun composant ne doit
  * importer un module `providers/*` directement : c'est ce qui garantit qu'un
@@ -11,6 +11,17 @@ export type { CacheStore } from './cache'
 
 export { getAvailability, getDeclaredProvider, getProvider } from './registry'
 export type { AssetClassAvailability } from './registry'
+
+export {
+  CURRENCIES,
+  CURRENCY_CODES,
+  currencyDecimals,
+  currencyName,
+  currencySymbol,
+  getCurrency,
+  isSupportedCurrency,
+} from './currencies'
+export type { CurrencyGroup, CurrencyKind, CurrencyMeta } from './currencies'
 
 export {
   MOVERS_PERIODS,
@@ -51,6 +62,7 @@ export type {
   DataSource,
   ExchangeRates,
   RankingParams,
+  RateOrigin,
   SupportedCurrency,
 } from './queries'
 
@@ -64,10 +76,16 @@ export type { MarketCapPoint, MarketCapSeriesState } from './market-cap-series'
 export { MIN_QUERY_LENGTH, searchAssets } from './search'
 export type { SearchResponse } from './search'
 
-export { YAHOO_UNIVERSE, findUniverseEntry, toSlug } from './providers/yahoo-universe'
+export {
+  YAHOO_UNIVERSE,
+  findUniverseEntry,
+  findUniverseEntryBySymbol,
+  toSlug,
+} from './providers/yahoo-universe'
+export type { CommodityFamily, UniverseEntry } from './providers/yahoo-universe'
 
-export { NEWS_CATEGORY_LABELS } from './providers/news'
-export type { NewsCategory } from './providers/news'
+export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
+export type { NewsCategory, NewsLang } from './providers/news'
 
 export { ASSET_CLASSES, ProviderError } from './types'
 export type {

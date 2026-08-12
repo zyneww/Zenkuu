@@ -1,4 +1,4 @@
-import type { SpotExchange } from '@zenith/data'
+import type { SpotExchange } from '@zenkuu/data'
 
 /**
  * Répartition du volume au comptant entre les places de marché.
@@ -30,12 +30,12 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
         </h2>
         <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
           Les {exchanges.length} premières places par note de confiance, et le volume
-          qu’elles déclarent sur 24 heures. ZENITH ne référence aucun carnet d’ordres et
+          qu’elles déclarent sur 24 heures. ZENKUU ne référence aucun carnet d’ordres et
           ne permet aucune transaction : ce tableau situe l’activité, il n’y donne pas accès.
         </p>
       </div>
 
-      <div className="overflow-x-auto border border-border-subtle">
+      <div className="overflow-x-auto rounded-card border border-border-subtle">
         <table className="w-full min-w-[38rem] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border-subtle text-left">
@@ -82,7 +82,7 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
                           width={20}
                           height={20}
                           loading="lazy"
-                          className="shrink-0 rounded-full"
+                          className="shrink-0 rounded-none"
                         />
                       ) : null}
                       <span className="truncate font-medium text-ink">{exchange.name}</span>
@@ -101,12 +101,12 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
                           concentration du marché immédiate là où une colonne de
                           pourcentages demande de comparer chiffre à chiffre. */}
                       <span
-                        className="h-1.5 flex-1 bg-surface-muted"
+                        className="h-1.5 flex-1 overflow-hidden rounded-pill bg-surface-muted"
                         role="img"
                         aria-label={`${share.toFixed(1)} % du volume affiché`}
                       >
                         <span
-                          className="block h-full bg-brand"
+                          className="block h-full rounded-pill bg-brand"
                           style={{ width: `${Math.min(100, share).toFixed(2)}%` }}
                         />
                       </span>
@@ -132,7 +132,7 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
 
       <p className="text-xs leading-relaxed text-ink-muted">
         La note de confiance est un jugement publié par la source sur la qualité de la
-        liquidité déclarée — pas une mesure, et pas un avis de ZENITH. Les volumes sont
+        liquidité déclarée — pas une mesure, et pas un avis de ZENKUU. Les volumes sont
         ceux annoncés par les places elles-mêmes.
       </p>
     </section>

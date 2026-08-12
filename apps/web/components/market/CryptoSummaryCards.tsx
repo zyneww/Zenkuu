@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 import type {
   DataResult,
@@ -6,13 +6,14 @@ import type {
   MarketAsset,
   SentimentIndex,
   TrendingAsset,
-} from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+} from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { classify } from '@/components/home/SidePanels'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
+import { getContent } from '@/lib/content'
 
 /**
  * Bandeau de trois cartes au-dessus du classement.
@@ -100,15 +101,16 @@ function GlobalCapCard({ stats }: { stats: GlobalMarketStats }) {
  *
  * La référence occupe cette place avec un « biais de trading » — une répartition
  * acheteurs/vendeurs qu'une place de marché lit dans son propre carnet d'ordres.
- * ZENITH n'en a pas, et aucune source gratuite ne la publie : l'afficher
+ * ZENKUU n'en a pas, et aucune source gratuite ne la publie : l'afficher
  * supposerait de l'inventer (§5). L'indice Fear & Greed occupe le même rôle — le
  * climat du marché en une jauge — avec une source réelle et citée.
  *
  * La valeur est répétée EN TEXTE sous la barre : une largeur ne se lit pas au
  * lecteur d'écran, et la couleur seule ne porte jamais l'information (§9).
  */
-function SentimentCard({ sentiment }: { sentiment: SentimentIndex }) {
-  const label = classify(sentiment.value)
+async function SentimentCard({ sentiment }: { sentiment: SentimentIndex }) {
+  const fr = await getContent()
+  const label = classify(sentiment.value, fr.sentiment.scale)
   const tone = sentiment.value < 45 ? 'text-down' : sentiment.value > 55 ? 'text-up' : 'text-ink'
 
   return (

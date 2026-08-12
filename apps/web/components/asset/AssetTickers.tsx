@@ -1,12 +1,14 @@
 'use client'
 
-import { ExternalLink } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import type { AssetTicker } from '@zenith/data'
-import { formatCurrency, formatPercent } from '@zenith/ui'
+import type { AssetTicker } from '@zenkuu/data'
+import { formatCurrency, formatPercent } from '@zenkuu/ui'
 
+import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Money } from '@/components/locale/Money'
+import { useRelativeTime } from '@/components/locale/useRelativeTime'
 
 /**
  * Places de cotation d'un actif.
@@ -17,7 +19,7 @@ import { Money } from '@/components/locale/Money'
  *
  * LIENS SORTANTS ASSUMÉS. Ils orientent vers des lieux de transaction, ce que le §8
  * prévoit explicitement (« liens sortants vers des exchanges tiers — jamais de
- * widget de trading intégré »). La distinction tient : ZENITH n'exécute rien, ne
+ * widget de trading intégré »). La distinction tient : ZENKUU n'exécute rien, ne
  * détient rien et n'intègre aucun tunnel d'achat ; il cite où un actif se négocie.
  * `nofollow` marque l'absence de caution éditoriale, `noopener` empêche la page
  * ouverte d'accéder à `window.opener`.
@@ -50,16 +52,20 @@ function unsigned(formatted: string | null): string {
   return formatted?.replace('+', '') ?? '—'
 }
 
-/** Fraîcheur de la cotation, en clair. */
-function freshness(iso: string | undefined): string {
-  if (!iso) return '—'
-  const minutes = Math.round((Date.now() - Date.parse(iso)) / 60_000)
-  if (!Number.isFinite(minutes) || minutes < 0) return '—'
-  if (minutes < 2) return 'à l’instant'
-  if (minutes < 60) return `il y a ${minutes} min`
-  const hours = Math.round(minutes / 60)
-  if (hours < 24) return `il y a ${hours} h`
-  return `il y a ${Math.round(hours / 24)} j`
+/**
+ * Fraîcheur de la cotation, en clair.
+ *
+ * Déléguée à `useRelativeTime` à la suite d'un ÉCART D'HYDRATATION repéré par
+ * Sentry : la version précédente appelait `Date.now()` pendant le rendu, qui a lieu
+ * une fois sur le serveur et une fois dans le navigateur. Une minute écoulée entre
+ * les deux suffisait à produire « il y a 23 min » d'un côté et « 22 » de l'autre,
+ * ce qui faisait rejeter et reconstruire tout le tableau. Voir l'en-tête du crochet.
+ *
+ * Un composant plutôt qu'un appel de fonction, parce qu'un crochet ne s'appelle pas
+ * dans une boucle de rendu de lignes.
+ */
+function Freshness({ iso }: { iso: string | undefined }) {
+  return <>{useRelativeTime(iso)}</>
 }
 
 const TRUST_LABEL: Record<'green' | 'yellow' | 'red', string> = {
@@ -77,9 +83,21 @@ const TRUST_CLASS: Record<'green' | 'yellow' | 'red', string> = {
 export function AssetTickers({
   tickers,
   assetName,
+  exchangeImages,
 }: {
   tickers: AssetTicker[]
   assetName: string
+  /**
+   * Logos des places, indexés par leur identifiant chez la source.
+   *
+   * Passé en TABLE et non résolu ligne par ligne : les cent cotations d'un actif se
+   * répartissent sur quelques dizaines de places seulement, et la table est construite
+   * une fois côté serveur à partir d'un appel partagé par toutes les fiches du site.
+   *
+   * Facultative : une place absente du palmarès — ou le palmarès indisponible — rend
+   * son monogramme, et le tableau reste complet.
+   */
+  exchangeImages?: Record<string, string>
 }) {
   const [target, setTarget] = useState<string>('toutes')
   const [pageSize, setPageSize] = useState<number>(10)
@@ -160,7 +178,7 @@ export function AssetTickers({
               setPageSize(Number(event.target.value))
               setPage(1)
             }}
-            className="border border-border-subtle bg-surface px-2 py-1 text-xs text-ink focus:border-brand focus:outline-none"
+            className="rounded-card border border-border-subtle bg-surface px-2 py-1 text-xs text-ink focus:border-brand focus:outline-none"
           >
             {PAGE_SIZES.map((size) => (
               <option key={size} value={size}>
@@ -171,7 +189,7 @@ export function AssetTickers({
         </label>
       </div>
 
-      <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
+      <div className="overflow-x-auto rounded-card border border-border-subtle bg-panel">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <caption className="sr-only">Places de cotation de {assetName}</caption>
           <thead>
@@ -227,6 +245,21 @@ export function AssetTickers({
                         aria-label={TRUST_LABEL[ticker.trust]}
                       />
                     ) : null}
+
+                    {/*
+                      L'ICÔNE EST HORS DU LIEN, et l'endroit compte.
+
+                      Placée dedans, elle agrandirait la cible cliquable d'une image
+                      décorative sans nom accessible — un lecteur d'écran annoncerait le
+                      lien, puis rien, puis son libellé. À côté, le lien reste le seul
+                      texte et l'icône reste ce qu'elle est : un repère visuel.
+                    */}
+                    <ExchangeLogo
+                      name={ticker.exchange}
+                      {...(ticker.exchangeId && exchangeImages?.[ticker.exchangeId]
+                        ? { src: exchangeImages[ticker.exchangeId] }
+                        : {})}
+                    />
 
                     {ticker.tradeUrl ? (
                       <a
@@ -290,7 +323,7 @@ export function AssetTickers({
                 </td>
 
                 <td className="hidden px-3 py-2.5 text-right text-xs text-ink-muted xl:table-cell">
-                  {freshness(ticker.lastTraded)}
+                  <Freshness iso={ticker.lastTraded} />
                 </td>
               </tr>
             ))}
@@ -299,43 +332,65 @@ export function AssetTickers({
       </div>
 
       {pageCount > 1 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <p className="tabular text-xs text-ink-muted" aria-live="polite">
             {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filtered.length)}{' '}
             sur {filtered.length} paires
           </p>
 
-          <div className="flex items-center gap-1">
-            <PageButton
+          <nav className="col-start-2 flex items-center gap-1 justify-self-center" aria-label="Pagination">
+            <PagerButton
               disabled={currentPage <= 1}
               onClick={() => setPage(currentPage - 1)}
               label="Page précédente"
             >
-              Précédent
-            </PageButton>
-            <span className="tabular px-2 text-xs text-ink-muted">
-              {currentPage} / {pageCount}
-            </span>
-            <PageButton
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </PagerButton>
+
+            {pageNumbers(currentPage, pageCount).map((entry, index) =>
+              entry === 'ellipsis' ? (
+                <span key={`ellipsis-${index}`} className="px-1.5 text-xs text-ink-muted">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={entry}
+                  type="button"
+                  onClick={() => setPage(entry)}
+                  aria-current={entry === currentPage ? 'page' : undefined}
+                  className={`tabular flex h-8 min-w-8 items-center justify-center border px-2 text-xs font-medium transition-colors duration-150 ${
+                    entry === currentPage
+                      ? 'border-brand bg-brand text-on-brand'
+                      : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
+                  }`}
+                >
+                  {entry}
+                </button>
+              ),
+            )}
+
+            <PagerButton
               disabled={currentPage >= pageCount}
               onClick={() => setPage(currentPage + 1)}
               label="Page suivante"
             >
-              Suivant
-            </PageButton>
-          </div>
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </PagerButton>
+          </nav>
+
+          <div aria-hidden="true" />
         </div>
       ) : null}
 
       <p className="text-xs leading-relaxed text-ink-muted">
         La pastille de couleur reprend le jugement de la source sur la crédibilité du
-        volume annoncé — ce n’est pas un avis de ZENITH. La profondeur ±2 % est le
+        volume annoncé — ce n’est pas un avis de ZENKUU. La profondeur ±2 % est le
         montant qu’il faudrait exécuter pour déplacer le cours de deux pour cent, à
         l’achat puis à la vente, en dollars.
       </p>
 
       <p className="text-xs text-ink-muted">
-        ZENITH n’exécute aucun ordre et ne détient aucun fonds. Ces liens mènent à des
+        ZENKUU n’exécute aucun ordre et ne détient aucun fonds. Ces liens mènent à des
         plateformes tierces, citées sans recommandation.
       </p>
     </section>
@@ -356,7 +411,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+      className={`rounded-card border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
         active
           ? 'border-brand bg-brand text-on-brand'
           : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
@@ -367,7 +422,7 @@ function FilterChip({
   )
 }
 
-function PageButton({
+function PagerButton({
   disabled,
   onClick,
   label,
@@ -384,9 +439,31 @@ function PageButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong disabled:cursor-not-allowed disabled:text-ink-muted/50 disabled:hover:border-border-subtle disabled:hover:text-ink-muted/50"
+      className="flex h-8 w-8 items-center justify-center border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand-strong disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border-subtle disabled:hover:text-ink-muted"
     >
       {children}
     </button>
   )
+}
+
+/**
+ * Fenêtre de pages à afficher : toujours la première et la dernière, plus les
+ * voisines immédiates de la page courante. Le reste se résume en ellipse — un
+ * classement de 26 pages ne doit pas afficher 26 boutons.
+ */
+function pageNumbers(current: number, total: number): (number | 'ellipsis')[] {
+  const pages = new Set<number>([1, total])
+  for (let p = current - 1; p <= current + 1; p++) {
+    if (p >= 1 && p <= total) pages.add(p)
+  }
+
+  const sorted = [...pages].sort((a, b) => a - b)
+  const result: (number | 'ellipsis')[] = []
+  let previous = 0
+  for (const p of sorted) {
+    if (previous && p - previous > 1) result.push('ellipsis')
+    result.push(p)
+    previous = p
+  }
+  return result
 }

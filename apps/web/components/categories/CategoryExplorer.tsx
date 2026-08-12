@@ -1,11 +1,11 @@
 'use client'
 
 import { LayoutGrid, List, Search } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
-import type { MarketCategory } from '@zenith/data'
-import { ChangeBadge, EmptyState, formatCurrency } from '@zenith/ui'
+import type { MarketCategory } from '@zenkuu/data'
+import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
 
 import { CategoryCard } from '@/components/categories/CategoryCard'
 
@@ -309,7 +309,7 @@ export function TopAssets({ category }: { category: MarketCategory }) {
             loading="lazy"
             width={20}
             height={20}
-            className="h-5 w-5 rounded-full border border-surface bg-surface-muted object-contain"
+            className="h-5 w-5 rounded-none border border-surface bg-surface-muted object-contain"
           />
         )
 

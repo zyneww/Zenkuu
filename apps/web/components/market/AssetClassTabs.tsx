@@ -1,8 +1,8 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import { ASSET_CLASSES, type AssetClass } from '@zenith/data'
+import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
 
 /**
@@ -21,7 +21,8 @@ import { marketHref } from '@/lib/asset-routes'
 /** `nft` est déclaré dans le domaine mais aucune source ne l'alimente encore. */
 const HIDDEN: readonly AssetClass[] = ['nft']
 
-export function AssetClassTabs({ current }: { current: AssetClass }) {
+export async function AssetClassTabs({ current }: { current: AssetClass }) {
+  const fr = await getContent()
   const classes = ASSET_CLASSES.filter((assetClass) => !HIDDEN.includes(assetClass))
 
   return (

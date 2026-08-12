@@ -1,33 +1,45 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
+import { ZenkuuWordmark } from '@/components/BrandMark'
 import { LocaleBadge } from '@/components/settings/LocaleBadge'
 
 import { DATA_SOURCES, FOOTER_COLUMNS, SOCIAL_LINKS } from '@/content/footer'
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 
 /**
  * Pied de page.
  *
  * L'avertissement « lecture seule » n'est pas décoratif : c'est ce qui matérialise
- * le positionnement du §1 et tient ZENITH à distance du conseil en investissement.
+ * le positionnement du §1 et tient ZENKUU à distance du conseil en investissement.
  * Il reste donc en bas de CHAQUE page, y compris les fiches d'actif, là où les
  * plateformes d'échange placent au contraire leur bouton d'achat.
  */
-export function Footer() {
+export async function Footer() {
+  const fr = await getContent()
   const year = new Date().getFullYear()
 
   return (
     <footer className="mt-16 border-t border-border-subtle bg-surface-muted">
-      <div className="mx-auto max-w-[1120px] px-4 py-10">
+      <div className="shell py-10">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
           {/* Bloc d'identité, sur deux colonnes pour laisser respirer la marque. */}
           <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="inline-flex items-center text-ink" aria-label={fr.site.name}>
-              <span
-                className="brand-mark brand-mark-footer h-14 w-14"
-                role="img"
-                aria-label={fr.site.name}
-              />
-              <span className="ml-2.5 text-2xl font-bold tracking-tight">{fr.site.name}</span>
+            {/*
+              MÊME DESSIN QUE L'EN-TÊTE, en plus grand.
+
+              La marque était ici composée en DEUX morceaux — une silhouette en masque
+              CSS, plus le mot « Zenkuu » écrit en texte — puis en deux PNG de thème.
+              Les deux montages avaient le même défaut : deux représentations d'une
+              seule marque, qui finissent toujours par diverger.
+
+              Il n'en reste qu'une, partagée avec l'en-tête, qui prend l'encre du thème
+              par `currentColor`. Voir components/BrandMark.tsx.
+            */}
+            <Link
+              href="/"
+              className="inline-flex items-center text-ink"
+              aria-label={fr.site.name}
+            >
+              <ZenkuuWordmark className="h-8 w-auto" />
             </Link>
 
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-muted">

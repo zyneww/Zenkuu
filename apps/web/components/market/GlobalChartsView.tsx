@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-import type { PriceHistory } from '@zenith/data'
+import type { PriceHistory } from '@zenkuu/data'
 
 import { TrendChart, type TrendPoint } from '@/components/charts/TrendChart'
 import { dataColor } from '@/components/charts/chart-theme'
@@ -58,7 +58,16 @@ export function GlobalChartsView({
   const points = useMemo<TrendPoint[]>(() => {
     if (!history) return []
 
-    const cutoff = Date.now() - days * 86_400_000
+    // Relatif au dernier point CONNU, pas à `Date.now()` : un appel impur pendant le
+    // rendu produirait une fenêtre qui dérive d'un rendu à l'autre sans que les
+    // dépendances du memo n'aient changé (react-hooks/purity). C'est aussi plus juste
+    // : la page peut être servie par le cache ISR (§9) quelques minutes après la
+    // relève, la fenêtre doit suivre la donnée affichée, pas l'horloge du visiteur.
+    const latest = history.points.reduce(
+      (max, point) => Math.max(max, point.timestamp),
+      0,
+    )
+    const cutoff = latest - days * 86_400_000
     const result: TrendPoint[] = []
 
     for (const point of history.points) {
@@ -106,7 +115,7 @@ export function GlobalChartsView({
         </Group>
       </div>
 
-      <div className="border border-border-subtle bg-surface">
+      <div className="rounded-card border border-border-subtle bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle p-3">
           <Group label="Actif">
             {available.map((entry) => (
@@ -158,7 +167,7 @@ function Group({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div className="flex items-center gap-2" role="group" aria-label={label}>
       <span className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">{label}</span>
-      <div className="flex items-center gap-1 border border-border-subtle p-0.5">{children}</div>
+      <div className="flex items-center gap-1 rounded-card border border-border-subtle p-0.5">{children}</div>
     </div>
   )
 }
@@ -177,7 +186,7 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+      className={`rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
         active ? 'bg-brand text-on-brand' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
       }`}
     >

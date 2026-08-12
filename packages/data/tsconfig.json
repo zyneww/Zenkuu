@@ -1,5 +1,5 @@
 {
-  "extends": "@zenith/config/tsconfig.base.json",
+  "extends": "@zenkuu/config/tsconfig.base.json",
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }

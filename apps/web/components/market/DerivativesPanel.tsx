@@ -1,5 +1,5 @@
-import type { DerivativeMarket } from '@zenith/data'
-import { ChangeBadge, formatCurrency, formatPercent } from '@zenith/ui'
+import type { DerivativeMarket } from '@zenkuu/data'
+import { ChangeBadge, formatCurrency, formatPercent } from '@zenkuu/ui'
 
 /**
  * Panneau des produits dérivés — intérêt ouvert et taux de financement.

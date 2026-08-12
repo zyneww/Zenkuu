@@ -3,7 +3,7 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { EmptyState } from '@zenith/ui'
+import { EmptyState } from '@zenkuu/ui'
 
 import { BlogCard } from '@/components/blog/BlogCard'
 import { BLOG_CATEGORIES, type Article, type BlogCategory } from '@/content/blog'
@@ -17,11 +17,16 @@ import { BLOG_CATEGORIES, type Article, type BlogCategory } from '@/content/blog
  * filtrer dix cartes serait une latence sans contrepartie. Les classements de marché
  * se comptent en milliers, d'où leur tri serveur.
  *
- * La grille passe en LISTE COMPACTE au-delà des six premiers résultats. Une grille
- * de cartes est faite pour parcourir, une liste pour balayer : au-delà d'un écran,
- * les cartes forcent à défiler longtemps pour peu de titres.
+ * La grille passe en LISTE COMPACTE au-delà des douze premiers résultats. Une grille
+ * de cartes est faite pour parcourir, une liste pour balayer : au-delà de quelques
+ * écrans, les cartes forcent à défiler longtemps pour peu de titres.
+ *
+ * Le seuil est passé de six à douze avec le passage à trois colonnes : six cartes
+ * remplissaient deux rangées sur deux colonnes, elles n'en remplissent plus que deux
+ * sur trois. Douze rend à la grille les quatre rangées qu'elle avait — le seuil
+ * compte des RANGÉES, pas des articles.
  */
-const GRID_SIZE = 6
+const GRID_SIZE = 12
 
 export function BlogBrowser({ articles }: { articles: Article[] }) {
   const [category, setCategory] = useState<BlogCategory | 'toutes'>('toutes')
@@ -94,7 +99,10 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
             {visible.length} article{visible.length > 1 ? 's' : ''}
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          {/* Trois colonnes séparées par des FILETS et non des cartes détachées — la
+              grammaire de la référence, et celle du design system : la structure se
+              trace, elle ne s'empile pas. */}
+          <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
             {grid.map((article) => (
               <BlogCard key={article.slug} article={article} />
             ))}

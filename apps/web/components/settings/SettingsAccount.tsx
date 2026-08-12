@@ -1,7 +1,7 @@
 'use client'
 
 import { UserProfile, useUser } from '@clerk/nextjs'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 import { AUTH_ENABLED } from '@/lib/auth'
 import { CLERK_PAGE_ELEMENTS } from '@/lib/clerk-appearance'
@@ -88,7 +88,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           Compte
         </h2>
       </div>
-      <div className="border border-border-subtle p-6">{children}</div>
+      <div className="rounded-card border border-border-subtle p-6">{children}</div>
     </section>
   )
 }

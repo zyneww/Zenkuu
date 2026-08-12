@@ -1,7 +1,7 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { MarketCategory } from '@zenith/data'
-import { ChangeBadge, formatCurrency } from '@zenith/ui'
+import type { MarketCategory } from '@zenkuu/data'
+import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
 import { TopAssets } from '@/components/categories/CategoryExplorer'
 

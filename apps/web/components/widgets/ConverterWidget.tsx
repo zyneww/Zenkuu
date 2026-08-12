@@ -3,7 +3,7 @@
 import { ArrowLeftRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import type { MarketAsset } from '@zenith/data'
+import type { MarketAsset } from '@zenkuu/data'
 
 /**
  * Convertisseur actif ↔ devise.

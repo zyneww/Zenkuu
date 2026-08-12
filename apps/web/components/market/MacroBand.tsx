@@ -1,5 +1,5 @@
-import type { GlobalMarketStats } from '@zenith/data'
-import { ChangeBadge, formatPercent } from '@zenith/ui'
+import type { GlobalMarketStats } from '@zenkuu/data'
+import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 
@@ -9,7 +9,7 @@ import { Money } from '@/components/locale/Money'
  * La référence accompagne chacun de ces chiffres d'une courbe sur 24 h à 1 an. On ne
  * le fait pas, et l'écart est une contrainte de source, non un choix : aucune API
  * gratuite ne publie l'historique de la capitalisation mondiale ni celui de la
- * dominance. ZENITH enregistre bien sa propre série de capitalisation (voir la carte
+ * dominance. ZENKUU enregistre bien sa propre série de capitalisation (voir la carte
  * de l'accueil), mais elle ne remonte qu'à la mise en service — la présenter comme
  * un historique de marché serait trompeur.
  *

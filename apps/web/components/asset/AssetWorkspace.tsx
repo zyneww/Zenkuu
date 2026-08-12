@@ -2,62 +2,132 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenith/data'
-import {
-  ChangeBadge,
-  EmptyState,
-  PriceChart,
-  formatCompact,
-  formatDateTime,
-  formatNumber,
-} from '@zenith/ui'
+import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenkuu/data'
+import { EmptyState, PriceChart, formatNumber } from '@zenkuu/ui'
 
 import {
   OHLC_KINDS,
   PriceChartInteractive,
   type ChartCandle,
+  type ChartHandle,
   type ChartKind,
+  type ChartReferenceLine,
 } from '@/components/asset/PriceChartInteractive'
-import { fr } from '@/content/fr'
-
-/** Types proposés dans la barre d'outils, dans l'ordre d'affichage. */
-const CHART_KINDS = [
-  { key: 'area', label: fr.asset.chart.kinds.area },
-  { key: 'line', label: fr.asset.chart.kinds.line },
-  { key: 'candles', label: fr.asset.chart.kinds.candles },
-  { key: 'bars', label: fr.asset.chart.kinds.bars },
-  { key: 'baseline', label: fr.asset.chart.kinds.baseline },
-] as const satisfies readonly { key: ChartKind; label: string }[]
+import {
+  ChartToolbar,
+  daysSinceJanuary,
+  snapToAllowedDepth,
+  type ChartView,
+  type ExportFormat,
+  type RangePreset,
+} from '@/components/asset/ChartToolbar'
+import { useContent } from '@/components/locale/ContentProvider'
+import { useLiveTicker } from '@/components/asset/useLiveTicker'
+import { appendLivePoint, mergeCandle } from '@/components/asset/live-series'
+import { AssetDepthChart } from '@/components/asset/AssetDepthChart'
+import { TradingViewChart } from '@/components/asset/TradingViewChart'
+import {
+  BINANCE_INTERVALS,
+  fetchBinanceKlines,
+  subscribeKline,
+  toBinancePair,
+  type BinanceInterval,
+  type LiveCandle,
+} from '@/components/asset/binance-market'
 
 /**
- * Onglets du widget. Le clic remplace le contenu en place, sans navigation ni défilement.
+ * Les constantes de ce fichier ne portent plus que des CLÉS, jamais des libellés.
  *
- * Les onglets « Statistiques » et « À propos » ont été RETIRÉS de cette barre : la
- * refonte de la fiche les a sortis en bandes horizontales pleine largeur, où ils
- * sont visibles sans clic. Les laisser ici afficherait deux fois la même
- * information dans la même page — et la version enfermée dans un onglet serait la
- * moins consultée des deux.
+ * Elles étaient évaluées au chargement du module — donc une seule fois pour tout le
+ * serveur, dans la langue du fichier importé. Un lecteur anglophone voyait
+ * « Chandeliers » et « Aire » au milieu d'une interface anglaise, et aucune bascule
+ * de langue n'y changeait rien : le module était déjà résolu.
  *
- * Les trois restants portent chacun un contenu qui n'existe nulle part ailleurs :
- * le graphique, les extrêmes calculés sur un an (dont la série n'est chargée qu'à
- * l'ouverture de l'onglet, pour ne pas la payer à chaque visite) et la foire aux
- * questions.
+ * Le libellé se lit désormais AU RENDU, depuis le dictionnaire de la requête. Les
+ * clés, elles, sont stables et servent aussi d'identifiants d'état — ce qui est leur
+ * vrai rôle.
  */
-const TABS = [
-  { key: 'apercu', label: fr.asset.tabs.overview },
-  { key: 'historique', label: fr.asset.tabs.history },
-  { key: 'faq', label: fr.asset.tabs.faq },
-] as const
 
-type TabKey = (typeof TABS)[number]['key']
+/** Types proposés dans la barre d'outils, dans l'ordre d'affichage. */
+const CHART_KINDS = ['area', 'line', 'candles', 'bars', 'baseline'] as const satisfies readonly ChartKind[]
 
-const RANGES = [
-  { days: 1, label: fr.asset.ranges.d1 },
-  { days: 7, label: fr.asset.ranges.d7 },
-  { days: 30, label: fr.asset.ranges.d30 },
-  { days: 90, label: fr.asset.ranges.d90 },
-  { days: 365, label: fr.asset.ranges.y1 },
-] as const
+/*
+ * ── LA BARRE DE SOUS-ONGLETS A ÉTÉ SUPPRIMÉE ─────────────────────────────────
+ *
+ * Ce composant portait une rangée « Graphique / Performances / FAQ » au-dessus de la
+ * barre d'outils du graphique. Elle a fondu par étapes — « Statistiques » et
+ * « À propos » en étaient déjà sortis vers des bandes pleine largeur — et il n'en
+ * reste rien.
+ *
+ * Le motif est de DISPOSITION : c'était la dernière chose qui séparait la fiche de
+ * la référence, chez qui la courbe démarre immédiatement sous les onglets
+ * principaux. Deux niveaux d'onglets empilés — sept en haut, trois en dessous —
+ * obligeaient en outre à se demander lequel commande quoi.
+ *
+ * Les deux contenus restants n'ont pas disparu, ils ont rejoint leur famille :
+ *
+ *   · les performances sur un an  → `AssetYearPerformance`, dans l'onglet Analyse,
+ *                                    avec les autres mesures dérivées d'une série ;
+ *   · la foire aux questions      → `AssetFaq`, en bas de page, où la référence la
+ *                                    met aussi et où elle est indexable sans clic.
+ *
+ * Ce composant ne rend donc plus QUE le graphique et ses commandes, ce qui est aussi
+ * ce que son nom promettait.
+ */
+
+/**
+ * Grandeur tracée.
+ *
+ * Les trois vivent dans la MÊME réponse (`market_chart` de CoinGecko renvoie prix,
+ * capitalisation et volume ensemble) : basculer de l'une à l'autre ne coûte aucun
+ * appel réseau. C'est ce qui rend ce sélecteur évident — la donnée était déjà là,
+ * seule la courbe manquait.
+ *
+ * `price` reste le défaut : c'est ce qu'on vient voir. Les deux autres répondent à
+ * des questions voisines mais distinctes — la capitalisation dit la TAILLE (elle
+ * monte quand des jetons sont émis, même à cours constant), le volume dit
+ * l'ACTIVITÉ.
+ */
+const METRICS = [
+  { key: 'price', message: 'price' },
+  { key: 'marketCap', message: 'marketCap' },
+  { key: 'volume', message: 'volume' },
+] as const satisfies readonly { key: string; message: string }[]
+
+type ChartMetric = (typeof METRICS)[number]['key']
+
+/**
+ * Cadence du rafraîchissement de fond, et fenêtre au-delà de laquelle il ne sert plus.
+ *
+ * Soixante secondes : sous le TTL du cache applicatif (180 s), donc la plupart de ces
+ * requêtes sont servies depuis le cache et ne touchent aucune source externe. Les
+ * resserrer davantage n'apporterait rien — la donnée, elle, n'aurait pas changé.
+ *
+ * Sept jours : au-delà, la source publie au mieux un point par heure, et souvent un
+ * par jour. Voir l'effet qui les utilise.
+ */
+const REFRESH_INTERVAL_MS = 60_000
+const REFRESH_MAX_DAYS = 7
+
+/**
+ * Bougies demandées à Binance pour un pas donné.
+ *
+ * Cinq cents et non le millier autorisé : au-delà, les bougies deviennent plus fines
+ * qu'un pixel sur un cadre de mille points de large, et l'on paie du réseau pour du
+ * détail qu'aucun écran ne peut montrer. Cinq cents bougies d'une minute couvrent
+ * plus de huit heures — largement la fenêtre qu'on regarde à ce pas.
+ */
+const KLINE_LIMIT = 500
+
+const METRIC_LABELS: Record<ChartMetric, string> = {
+  price: 'Prix',
+  marketCap: 'Capitalisation',
+  volume: 'Volume',
+}
+
+/* Les paliers de période vivent désormais dans `ChartToolbar`, avec « Depuis janv. »
+   et « Max » que cette liste ne portait pas. La garder ici en aurait fait une
+   seconde source de vérité, condamnée à diverger. */
 
 interface AssetWorkspaceProps {
   asset: AssetDetail
@@ -65,6 +135,14 @@ interface AssetWorkspaceProps {
   initialHistory: PriceHistory | null
   initialDays: number
   rates: ExchangeRates | null
+  /**
+   * Actifs proposables en comparaison.
+   *
+   * Fournis par la page plutôt que devinés ici : c'est elle qui connaît les
+   * comparables de la source, et coder « bitcoin, ethereum » en dur dans un widget
+   * qui sert aussi les actions et les devises n'aurait aucun sens.
+   */
+  compareOptions?: { id: string; label: string }[]
 }
 
 /**
@@ -81,13 +159,13 @@ export function AssetWorkspace({
   initialHistory,
   initialDays,
   rates,
+  compareOptions = [],
 }: AssetWorkspaceProps) {
-  const [tab, setTab] = useState<TabKey>('apercu')
+  const fr = useContent()
   const [days, setDays] = useState(initialDays)
   const [currency, setCurrency] = useState(asset.currency)
   const [history, setHistory] = useState<PriceHistory | null>(initialHistory)
   const [loading, setLoading] = useState(false)
-  const [yearHistory, setYearHistory] = useState<PriceHistory | null>(null)
 
   const [kind, setKind] = useState<ChartKind>('area')
   const [candles, setCandles] = useState<ChartCandle[] | null>(null)
@@ -102,6 +180,56 @@ export function AssetWorkspace({
   const [showVolume, setShowVolume] = useState(false)
   const [showMovingAverage, setShowMovingAverage] = useState(false)
   const [showPriceLines, setShowPriceLines] = useState(false)
+  const [metric, setMetric] = useState<ChartMetric>('price')
+  const [logScale, setLogScale] = useState(false)
+  const [compareId, setCompareId] = useState('')
+  /**
+   * Vue du cadre, et pas de bougie choisi.
+   *
+   * Les deux sont indépendants : on peut regarder la profondeur puis revenir sur la
+   * courbe et retrouver son pas. `null` en pas signifie « aucun » — ce sont alors les
+   * paliers de durée qui commandent, comportement d'origine de la fiche.
+   */
+  const [view, setView] = useState<ChartView>('original')
+  const [intervalId, setIntervalId] = useState<BinanceInterval | null>(null)
+  const [intervalCandles, setIntervalCandles] = useState<ChartCandle[] | null>(null)
+
+  /** Palier actif. Distinct de `days` : « Depuis janv. » et « Max » varient en jours. */
+  const [rangeId, setRangeId] = useState('7d')
+  const [customRange, setCustomRange] = useState<{ from: string; to: string } | null>(null)
+  /** Accusé de copie, effacé de lui-même — voir l'effet plus bas. */
+  const [linkCopied, setLinkCopied] = useState(false)
+  /**
+   * Série comparée, ÉTIQUETÉE de l'identifiant qui l'a produite.
+   *
+   * Stocker les points seuls ouvrait une course discrète : entre le choix d'Ethereum
+   * et l'arrivée de sa série, l'état contenait encore les points du Bitcoin tandis
+   * que le libellé, lui, se dérivait immédiatement du nouveau choix. Le graphique
+   * annonçait donc « Ethereum » sous la courbe du Bitcoin — une donnée fausse, pas
+   * un simple décalage d'affichage.
+   *
+   * L'identifiant voyage avec les points : la comparaison n'est rendue que si les
+   * deux concordent, et le désaccord transitoire n'affiche rien au lieu d'un
+   * mensonge.
+   */
+  const [compareSeries, setCompareSeries] = useState<{
+    id: string
+    points: { timestamp: number; price: number }[]
+  } | null>(null)
+
+  /** Poignée de capture, fournie par le graphique une fois monté. */
+  const chartHandle = useRef<ChartHandle | null>(null)
+  /** Cadre mis en plein écran — il englobe la barre d'outils, pas seulement la toile. */
+  const chartFrame = useRef<HTMLDivElement>(null)
+
+  /* L'accusé de copie s'efface seul au bout de deux secondes. Le laisser à l'écran
+     ferait croire, au réglage suivant, que le lien copié correspond à la nouvelle
+     vue — alors qu'il porte encore l'ancienne. */
+  useEffect(() => {
+    if (!linkCopied) return
+    const timer = setTimeout(() => setLinkCopied(false), 2000)
+    return () => clearTimeout(timer)
+  }, [linkCopied])
 
   /**
    * Facteur de conversion vers la devise choisie.
@@ -119,6 +247,57 @@ export function AssetWorkspace({
     if (!target || !source) return 1
     return target / source
   }, [currency, asset.currency, rates])
+
+  /**
+   * Cours en direct, dans la devise de la SÉRIE — pas dans celle de l'affichage.
+   *
+   * ── LE DÉFAUT QUE CECI CORRIGE ────────────────────────────────────────────────
+   *
+   * La courbe s'arrêtait là où s'arrêtait la réponse mise en cache : jusqu'à trois
+   * minutes en fonctionnement normal, et bien davantage quand la source elle-même
+   * publie avec du retard. Le cours affiché en tête de fiche, lui, tiquait déjà à la
+   * seconde. Le même écran montrait donc deux instants différents — et c'est le
+   * graphique qui avait tort, sans que rien ne le signale.
+   *
+   * ── POURQUOI PROLONGER PLUTÔT QUE REMPLACER ───────────────────────────────────
+   *
+   * Binance est UNE place parmi les soixante-cinq qui cotent un actif ; CoinGecko
+   * publie une moyenne pondérée par les volumes. Redessiner toute la courbe avec les
+   * bougies Binance changerait donc la nature de ce qui est tracé, silencieusement.
+   * On se contente d'AJOUTER un point à l'extrémité : la série reste celle de
+   * CoinGecko, elle atteint simplement l'instant présent.
+   *
+   * ── LA DEVISE EST CELLE DE LA SÉRIE, ET C'EST CE QUI COMPTE ───────────────────
+   *
+   * Le graphique reçoit ses points dans `asset.currency` puis leur applique `rate`
+   * pour l'affichage. Un point ajouté en dollars y subirait donc la conversion une
+   * seconde fois. On ramène le cours dans la devise de la série AVANT de l'ajouter,
+   * pour qu'il traverse exactement le même chemin que les autres points.
+   */
+  const tick = useLiveTicker(asset.symbol, assetClass === 'crypto')
+
+  /**
+   * Facteur USD → devise de la série, ou `null` si le taux manque.
+   *
+   * Il sert à DEUX entrées : le cours en direct et les bougies Binance. Le calculer
+   * une seule fois garantit qu'elles atterrissent sur la même échelle — un point
+   * converti par un chemin et une bougie par un autre finiraient par diverger d'un
+   * arrondi, et le direct trancherait alors une bougie en deux.
+   */
+  const usdToSeries = useMemo<number | null>(() => {
+    if (asset.currency === 'USD') return 1
+    const target = rates?.rates[asset.currency]
+    const usd = rates?.rates.USD
+    // Taux manquant : on ne convertit RIEN plutôt que de mêler des dollars à une
+    // courbe en euros, ce qui se lirait comme un décrochage du cours (§5).
+    if (!target || !usd) return null
+    return target / usd
+  }, [rates, asset.currency])
+
+  const livePrice = useMemo<{ timestamp: number; price: number } | null>(() => {
+    if (!tick || usdToSeries === null) return null
+    return { timestamp: tick.at, price: tick.price * usdToSeries }
+  }, [tick, usdToSeries])
 
   const convertible = useMemo(() => {
     if (!rates) return []
@@ -148,11 +327,14 @@ export function AssetWorkspace({
   const historyRequestId = useRef(0)
 
   const fetchHistory = useCallback(
-    async (targetDays: number) => {
+    async (targetDays: number, silent = false) => {
       const requestId = historyRequestId.current + 1
       historyRequestId.current = requestId
 
-      setLoading(true)
+      // Un rafraîchissement de fond n'allume PAS l'indicateur de chargement : le
+      // lecteur n'a rien demandé, et faire clignoter le graphique toutes les minutes
+      // sous ses yeux transformerait une amélioration invisible en gêne visible.
+      if (!silent) setLoading(true)
       try {
         const response = await fetch(
           `/api/historique?classe=${assetClass}&id=${encodeURIComponent(asset.id)}&jours=${targetDays}`,
@@ -161,10 +343,18 @@ export function AssetWorkspace({
         // Une réponse dépassée est jetée en silence : elle décrit une période que le
         // lecteur ne regarde plus.
         if (historyRequestId.current !== requestId) return
-        setHistory(payload.ok ? (payload as PriceHistory) : null)
+        // UN ÉCHEC DE FOND NE VIDE PAS LE GRAPHIQUE.
+        //
+        // Un rafraîchissement automatique qui échoue — une coupure réseau de deux
+        // secondes, un portable qui change de borne — remplaçait une courbe correcte
+        // par un état vide. Le lecteur n'avait rien demandé : il voyait sa page se
+        // dégrader toute seule. La série précédente reste donc en place, et la
+        // tentative suivante la remplacera si elle aboutit.
+        if (payload.ok) setHistory(payload as PriceHistory)
+        else if (!silent) setHistory(null)
       } catch {
         if (historyRequestId.current !== requestId) return
-        setHistory(null)
+        if (!silent) setHistory(null)
       } finally {
         // `loading` n'est relâché que par la requête la plus récente : sinon la
         // première réponse arrivée éteindrait l'indicateur alors qu'une autre
@@ -174,6 +364,113 @@ export function AssetWorkspace({
     },
     [assetClass, asset.id],
   )
+
+  /**
+   * Rafraîchissement de fond de la série — pour tout ce que le direct ne couvre pas.
+   *
+   * ── CE QU'IL SERT, ET CE QU'IL NE SERT PAS ────────────────────────────────────
+   *
+   * Le flux Binance ne connaît que les cryptos qu'il cote. Une action, une matière
+   * première, une crypto de la longue traîne n'en bénéficient pas : leur courbe
+   * restait figée sur la réponse mise en cache tant que la page n'était pas
+   * rechargée à la main. Une minute de cadence ramène leur retard sous celui du
+   * cache applicatif, qui est le vrai plancher (§4).
+   *
+   * ── POURQUOI SEULEMENT SUR LES COURTES PÉRIODES ───────────────────────────────
+   *
+   * Sur une vue d'un an, les points sont QUOTIDIENS : redemander la série chaque
+   * minute produirait 1 440 requêtes pour voir apparaître un point par jour. Le seuil
+   * ci-dessous borne le rafraîchissement aux fenêtres où un point neuf peut
+   * réellement arriver dans l'intervalle.
+   *
+   * ── L'ONGLET CACHÉ NE TRAVAILLE PAS ───────────────────────────────────────────
+   *
+   * `visibilitychange` évite qu'un onglet oublié pendant la nuit n'émette des
+   * centaines de requêtes pour une courbe que personne ne regarde. Le retour à
+   * l'onglet déclenche en revanche un rafraîchissement IMMÉDIAT : c'est précisément
+   * l'instant où le lecteur revient lire un chiffre, et où le retard accumulé est le
+   * plus grand.
+   */
+  useEffect(() => {
+    if (days > REFRESH_MAX_DAYS) return
+
+    function refresh(): void {
+      if (document.visibilityState !== 'visible') return
+      void fetchHistory(days, true)
+    }
+
+    const timer = setInterval(refresh, REFRESH_INTERVAL_MS)
+    document.addEventListener('visibilitychange', refresh)
+
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [days, fetchHistory])
+
+  /**
+   * Bougies Binance pour le pas choisi — chargement puis mise à jour en continu.
+   *
+   * ── DEUX TEMPS, ET ILS SONT COMPLÉMENTAIRES ───────────────────────────────────
+   *
+   * Une requête donne l'HISTOIRE (les cinq cents dernières bougies closes) ; le flux
+   * donne la bougie EN COURS, réécrite à chaque transaction. Sans la requête, le
+   * graphique partirait vide et se remplirait une bougie à la fois ; sans le flux, la
+   * dernière bougie resterait figée jusqu'au prochain changement de pas. C'est
+   * exactement le montage d'une page de trading.
+   *
+   * ── LA CONVERSION EST FAITE ICI, UNE FOIS ─────────────────────────────────────
+   *
+   * Binance cote en USDT ; la série de la fiche est libellée dans `asset.currency`.
+   * Les bougies sont donc ramenées à cette devise DÈS L'ENTRÉE, pour emprunter
+   * ensuite exactement le même chemin que les points de CoinGecko — y compris la
+   * conversion d'affichage appliquée plus loin par `rate`.
+   *
+   * ── L'ÉCHEC REND LA MAIN AUX PALIERS DE DURÉE ─────────────────────────────────
+   *
+   * Une paire absente n'est pas une panne : c'est le cas courant hors des grandes
+   * capitalisations. On repasse alors silencieusement en durées plutôt que d'afficher
+   * un cadre vide sous un bouton resté allumé.
+   */
+  useEffect(() => {
+    if (!intervalId || usdToSeries === null) return
+
+    const pair = toBinancePair(asset.symbol)
+    const controller = new AbortController()
+    let cancelled = false
+
+    const scale = (candle: LiveCandle): ChartCandle => ({
+      timestamp: candle.timestamp,
+      open: candle.open * usdToSeries,
+      high: candle.high * usdToSeries,
+      low: candle.low * usdToSeries,
+      close: candle.close * usdToSeries,
+      ...(candle.volume !== undefined ? { volume: candle.volume } : {}),
+    })
+
+    fetchBinanceKlines(pair, intervalId, KLINE_LIMIT, controller.signal)
+      .then((rows) => {
+        if (!cancelled) setIntervalCandles(rows.map(scale))
+      })
+      .catch(() => {
+        if (cancelled) return
+        setIntervalId(null)
+        setIntervalCandles(null)
+      })
+
+    const unsubscribe = subscribeKline(pair, intervalId, (candle) => {
+      if (cancelled) return
+      setIntervalCandles((current) =>
+        current ? mergeCandle(current, scale(candle), KLINE_LIMIT) : current,
+      )
+    })
+
+    return () => {
+      cancelled = true
+      controller.abort()
+      unsubscribe()
+    }
+  }, [intervalId, asset.symbol, usdToSeries])
 
   function selectRange(targetDays: number) {
     if (targetDays === days) return
@@ -196,6 +493,10 @@ export function AssetWorkspace({
     if (!OHLC_KINDS.includes(kind) || candles || candlesUnavailable) return
 
     let cancelled = false
+    // Indicateur de chargement immédiat pour CET appel : sans lui, changer de
+    // période affiche les anciennes bougies jusqu'à la réponse au lieu d'un état
+    // de chargement, ce qui se lit comme des données figées.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCandlesLoading(true)
 
     fetch(`/api/bougies?classe=${assetClass}&id=${encodeURIComponent(asset.id)}&jours=${days}`)
@@ -238,252 +539,477 @@ export function AssetWorkspace({
     return (history?.points ?? []).some((point) => point.volume !== undefined)
   }, [kind, candles, history])
 
-  // L'onglet « Historique » a besoin d'une année de données pour calculer ses
-  // performances. On ne la charge qu'à son ouverture : la plupart des visiteurs ne
-  // quitteront jamais l'aperçu, et cet appel serait alors gaspillé.
+  /* Le chargement de l'année de données a suivi les performances dans
+     `AssetYearPerformance`, qui les calcule : la série n'est demandée qu'à l'ouverture
+     de l'onglet Analyse, comme elle ne l'était qu'à l'ouverture du sous-onglet. */
+
+  const converted = currency !== asset.currency
+
+  /**
+   * Série réellement tracée, selon la grandeur choisie.
+   *
+   * La capitalisation et le volume sont OPTIONNELS point par point : une source peut
+   * publier le prix sans l'un ni l'autre. Les points dépourvus sont écartés plutôt
+   * que ramenés à zéro — un zéro tracerait une chute verticale là où il n'y a
+   * qu'une mesure manquante (§5).
+   */
+  /**
+   * Série des bougies Binance, quand un pas est actif.
+   *
+   * Elle SUPPLANTE celle de CoinGecko pour toute la durée du pas choisi, et c'est
+   * assumé : demander « cinq minutes » ne peut pas être servi par une source qui
+   * publie un point par heure. Le lecteur regarde alors le cours d'une place précise,
+   * ce que la mention de source affichée sous le graphique doit dire.
+   */
+  const intervalHistory = useMemo<PriceHistory | null>(() => {
+    if (!intervalId || !intervalCandles || intervalCandles.length < 2) return null
+
+    return {
+      points: intervalCandles.map((candle) => ({
+        timestamp: candle.timestamp,
+        price: candle.close,
+        ...(candle.volume !== undefined ? { volume: candle.volume } : {}),
+      })),
+      currency: asset.currency,
+      // La profondeur en jours découle du pas et du nombre de bougies ; elle ne sert
+      // ici qu'aux libellés d'axe, pas à une requête.
+      days: Math.max(
+        1,
+        Math.round(
+          ((intervalCandles[intervalCandles.length - 1]?.timestamp ?? 0) -
+            (intervalCandles[0]?.timestamp ?? 0)) /
+            86_400_000,
+        ),
+      ),
+    }
+  }, [intervalId, intervalCandles, asset.currency])
+
+  const chartHistory = useMemo<PriceHistory | null>(() => {
+    /*
+     * LE PAS NE COMMANDE QUE POUR LE PRIX.
+     *
+     * Une place d'échange cote un prix ; elle ne publie ni capitalisation, ni offre en
+     * circulation. Sans cette condition, choisir « Capitalisation » pendant qu'un pas
+     * de bougie était actif continuait d'afficher la courbe des PRIX Binance, sous un
+     * sélecteur qui annonçait la capitalisation — un chiffre juste présenté comme un
+     * autre, ce qui est pire qu'une absence (§5).
+     *
+     * Le pas est d'ailleurs remis à zéro au changement de grandeur (voir la barre
+     * d'outils) : ce garde-fou est la seconde barrière, pas la première.
+     */
+    if (metric === 'price' && intervalHistory) return intervalHistory
+
+    if (!history) return null
+    // Le point du ticker n'est ajouté qu'en l'absence de pas : la série des bougies
+    // est déjà tenue à jour par son propre flux, et l'y ajouter dupliquerait la
+    // dernière bougie sous forme de point.
+    if (metric === 'price') return appendLivePoint(history, livePrice)
+
+    const points = history.points
+      .map((point) => ({
+        timestamp: point.timestamp,
+        price: metric === 'marketCap' ? point.marketCap : point.volume,
+      }))
+      .filter((point): point is { timestamp: number; price: number } => point.price !== undefined)
+
+    return points.length > 1 ? { ...history, points } : null
+  }, [history, metric, livePrice, intervalHistory])
+
+  /** Une grandeur qui ne produit aucune courbe est retirée du sélecteur. */
+  const metricAvailable = useMemo<Record<ChartMetric, boolean>>(
+    () => ({
+      price: true,
+      marketCap: (history?.points ?? []).some((point) => point.marketCap !== undefined),
+      volume: (history?.points ?? []).some((point) => point.volume !== undefined),
+    }),
+    [history],
+  )
+
+  /**
+   * Vues réellement rendables pour CET actif.
+   *
+   * TradingView, la profondeur et le pas de bougie reposent tous trois sur la même
+   * supposition : que Binance cote la paire. On ne peut pas la vérifier sans appeler
+   * — et appeler pour construire une barre d'outils coûterait une requête par fiche,
+   * y compris à qui ne cliquera jamais ces vues.
+   *
+   * On les propose donc sur la seule condition évaluable à coût nul — la classe
+   * d'actif — et chaque vue se retire d'elle-même si la paire n'existe pas : la
+   * profondeur affiche son propre message, le pas de bougie retombe en durées. C'est
+   * le compromis inverse de celui du sélecteur de grandeur, qui dispose déjà de la
+   * donnée pour trancher.
+   *
+   * La capitalisation, elle, se vérifie VRAIMENT : la série l'a ou ne l'a pas.
+   */
+  const availableViews = useMemo(() => {
+    const entries: { id: ChartView; label: string }[] = [{ id: 'original', label: 'Original' }]
+    if (assetClass === 'crypto') {
+      entries.push({ id: 'tradingview', label: 'TradingView' })
+      entries.push({ id: 'depth', label: 'Profondeur' })
+    }
+    if (metricAvailable.marketCap) {
+      entries.push({ id: 'marketCap', label: 'Capitalisation' })
+    }
+    return entries
+  }, [assetClass, metricAvailable.marketCap])
+
+  const availableIntervals = useMemo(
+    () =>
+      assetClass === 'crypto'
+        ? BINANCE_INTERVALS.map((entry) => ({ id: entry.id, label: entry.label }))
+        : [],
+    [assetClass],
+  )
+
+  /**
+   * Vue ALLUMÉE dans la barre, qui n'est pas tout à fait l'état interne.
+   *
+   * La capitalisation n'est pas une vue mais une grandeur (voir `selectView`). Elle
+   * doit pourtant s'allumer comme les autres, sans quoi le lecteur qui vient de la
+   * choisir verrait « Original » rester actif — et conclurait que son clic a échoué.
+   */
+  const activeView: ChartView = metric === 'marketCap' ? 'marketCap' : view
+
+  /**
+   * Changement de grandeur — qui abandonne le pas de bougie s'il y en avait un.
+   *
+   * Binance ne cote qu'un prix. Garder « 15 m » allumé en passant à la capitalisation
+   * laisserait un bouton actif qui ne commande plus rien, et le lecteur attribuerait
+   * la finesse de la courbe à ce pas alors qu'elle vient d'une autre source. Le
+   * relâcher rallume le palier de durée, qui lui commande réellement.
+   */
+  function selectMetric(next: ChartMetric) {
+    setMetric(next)
+    if (next !== 'price') {
+      setIntervalId(null)
+      setIntervalCandles(null)
+    }
+  }
+
+  /**
+   * Bascule de vue — la capitalisation N'EST PAS une vue séparée, c'est une grandeur.
+   *
+   * OKX la présente au même rang que les autres, et ce classement se défend du point
+   * de vue du lecteur : les quatre entrées répondent bien à « qu'est-ce que je
+   * regarde ? ». Mais chez nous la capitalisation est déjà une valeur du sélecteur de
+   * grandeur, sur exactement le même graphique. La traiter comme une vue autonome
+   * créerait deux commandes pour un seul état, qui se contrediraient dès qu'on
+   * toucherait l'une sans l'autre.
+   *
+   * Le bouton pilote donc la grandeur, et l'affichage reste la vue « originale ».
+   */
+  function selectView(next: ChartView) {
+    if (next === 'marketCap') {
+      setView('original')
+      selectMetric('marketCap')
+      return
+    }
+
+    setView(next)
+    // Revenir sur la courbe après un détour par la capitalisation doit ramener le
+    // prix : sinon le bouton « Original » afficherait une courbe de capitalisation.
+    if (metric === 'marketCap') setMetric('price')
+  }
+
+  /*
+   * Les chandeliers n'existent que pour le PRIX : la source ne publie ni ouverture ni
+   * plus haut pour une capitalisation. Basculer de grandeur retombe donc sur l'aire,
+   * plutôt que de laisser un type sélectionné qui ne peut rien dessiner.
+   */
+  const effectiveKind: ChartKind =
+    metric === 'price' && !compareId ? kind : OHLC_KINDS.includes(kind) ? 'area' : kind
+
+  /** Extrêmes historiques — seulement sur la courbe de prix, où ils ont un sens. */
+  const referenceLines = useMemo<ChartReferenceLine[]>(() => {
+    if (metric !== 'price') return []
+    const lines: ChartReferenceLine[] = []
+    if (asset.ath !== undefined) lines.push({ value: asset.ath, label: 'record', tone: 'up' })
+    if (asset.atl !== undefined) lines.push({ value: asset.atl, label: 'plancher', tone: 'down' })
+    return lines
+  }, [metric, asset.ath, asset.atl])
+
+  /*
+   * Série de comparaison, rechargée quand l'actif OU la période change.
+   *
+   * La période compte autant que l'actif : comparer sept jours de l'un à un an de
+   * l'autre ne veut rien dire, et la base 100 est calculée sur le premier point de
+   * CHAQUE série — des fenêtres différentes donneraient deux origines différentes.
+   */
   useEffect(() => {
-    if (tab !== 'historique' || yearHistory) return
+    // Sortie IMMÉDIATE sans toucher à l'état quand aucune comparaison n'est demandée.
+    // Remettre la série à `null` ici serait un `setState` synchrone dans un effet,
+    // donc un rendu en cascade — et surtout ce serait inutile : la concordance
+    // d'identifiant plus bas suffit à neutraliser une série qui n'a plus cours.
+    if (!compareId) return
 
     let cancelled = false
-    fetch(`/api/historique?classe=${assetClass}&id=${encodeURIComponent(asset.id)}&jours=365`)
+    fetch(`/api/historique?classe=crypto&id=${encodeURIComponent(compareId)}&jours=${days}`)
       .then((response) => response.json())
       .then((payload) => {
-        if (!cancelled && payload.ok) setYearHistory(payload as PriceHistory)
+        if (cancelled) return
+        setCompareSeries(payload?.ok ? { id: compareId, points: payload.points } : null)
       })
-      .catch(() => undefined)
+      .catch(() => {
+        if (!cancelled) setCompareSeries(null)
+      })
 
     return () => {
       cancelled = true
     }
-  }, [tab, yearHistory, assetClass, asset.id])
+  }, [compareId, days])
 
-  const converted = currency !== asset.currency
+  const compareLabel = compareOptions.find((entry) => entry.id === compareId)?.label
+  const compare =
+    compareSeries && compareSeries.id === compareId && compareLabel
+      ? { label: compareLabel, points: compareSeries.points }
+      : null
+
+  /**
+   * Choix d'un palier de période.
+   *
+   * Deux paliers n'ont pas de profondeur fixe et se résolvent ici : « Depuis janv. »,
+   * qui dépend du jour où l'on regarde, et « Max », qui demande toute l'histoire.
+   * Ce dernier est borné à dix ans : au-delà, la source ne publie plus rien pour la
+   * quasi-totalité des actifs, et demander l'infini coûterait un appel plus lourd
+   * pour un résultat identique.
+   */
+  function selectPreset(preset: RangePreset) {
+    setRangeId(preset.id)
+    setCustomRange(null)
+
+    if (preset.days !== null) {
+      selectRange(preset.days)
+      return
+    }
+
+    selectRange(snapToAllowedDepth(preset.id === 'ytd' ? daysSinceJanuary() : 3650))
+  }
+
+  /**
+   * Bornes libres — converties en PROFONDEUR, seule chose que l'API comprend.
+   *
+   * `/api/historique` prend un nombre de jours depuis aujourd'hui, pas un intervalle.
+   * On demande donc la profondeur qui contient la borne de début ; le graphique se
+   * charge ensuite de ne montrer que la fenêtre demandée. C'est une approximation
+   * assumée : on télécharge un peu plus que nécessaire quand la borne de fin est
+   * ancienne, ce qui évite d'étendre le contrat de l'API pour un cas de confort.
+   */
+  function applyCustomRange(range: { from: string; to: string } | null) {
+    setCustomRange(range)
+    if (!range) return
+
+    const from = Date.parse(range.from)
+    if (!Number.isFinite(from)) return
+
+    const depth = Math.ceil((Date.now() - from) / 86_400_000)
+    selectRange(snapToAllowedDepth(Math.max(1, depth)))
+  }
+
+  function toggleFullscreen() {
+    const frame = chartFrame.current
+    if (!frame) return
+    if (document.fullscreenElement) void document.exitFullscreen()
+    else void frame.requestFullscreen().catch(() => undefined)
+  }
+
+  /**
+   * Export dans l'un des quatre formats.
+   *
+   * Le module est chargé À LA DEMANDE, au clic : il ne sert qu'à cet instant et le
+   * poser en import statique le ferait voyager dans le paquet de chaque visiteur de
+   * fiche, dont l'immense majorité n'exportera jamais rien.
+   */
+  async function handleExport(format: ExportFormat) {
+    const canvas = chartHandle.current?.screenshot()
+    if (!canvas) return
+
+    const { exportChart } = await import('@/components/asset/export-chart')
+    exportChart(canvas, format, `${asset.name}-${metric}`)
+  }
+
+  /**
+   * Copie l'adresse de la VUE COURANTE, pas celle de la page.
+   *
+   * Sans les paramètres, un lien partagé rouvre la fiche dans son état par défaut :
+   * le destinataire ne voit pas ce que l'expéditeur regardait. Les quatre réglages
+   * qui changent ce qu'on voit — grandeur, période, type, comparaison — sont donc
+   * inscrits dans l'adresse.
+   *
+   * `catch` silencieux : l'écriture dans le presse-papiers est refusée hors HTTPS et
+   * dans certains navigateurs intégrés. Échouer sans bruit vaut mieux que lever une
+   * exception dans la console pour une commande de confort.
+   */
+  function copyLink() {
+    const url = new URL(window.location.href)
+    url.searchParams.set('metrique', metric)
+    url.searchParams.set('jours', String(days))
+    url.searchParams.set('type', kind)
+    if (compareId) url.searchParams.set('comparer', compareId)
+    else url.searchParams.delete('comparer')
+
+    void navigator.clipboard?.writeText(url.toString()).then(
+      () => setLinkCopied(true),
+      () => undefined,
+    )
+  }
 
   return (
-    <div className="rounded-card border border-border-subtle bg-surface">
-      {/* Barre d'onglets */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-border-subtle px-2 pt-2">
-        {TABS.map((entry) => {
-          const active = entry.key === tab
-          return (
-            <button
-              key={entry.key}
-              type="button"
-              onClick={() => setTab(entry.key)}
-              aria-current={active ? 'true' : undefined}
-              className={`-mb-px rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? 'border-brand text-ink'
-                  : 'border-transparent text-ink-muted hover:text-ink'
-              }`}
-            >
-              {entry.label}
-            </button>
-          )
-        })}
-      </div>
-
+    <div className="rounded-card border border-border-subtle bg-panel">
       <div className="p-4">
-        {/* Contrôles : période à gauche (aperçu seulement), devise toujours visible. */}
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          {tab === 'apercu' ? (
-            <div className="flex items-center gap-1" role="group" aria-label={fr.asset.rangeTitle}>
-              {RANGES.map((range) => (
-                <button
-                  key={range.days}
-                  type="button"
-                  onClick={() => selectRange(range.days)}
-                  aria-current={range.days === days ? 'true' : undefined}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    range.days === days
-                      ? 'bg-brand-soft text-brand-strong'
-                      : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                  }`}
-                >
-                  {range.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <span />
-          )}
+        {/*
+          LA RANGÉE DE DEVISE A DISPARU — le sélecteur est passé DANS la barre.
 
-          <CurrencySelector
-            value={currency}
-            options={convertible}
-            onChange={setCurrency}
-            disabled={convertible.length < 2}
-          />
-        </div>
+          Il occupait ici une ligne entière, à lui seul, alignée à droite. C'était le
+          dernier vestige de la disposition en trois rangées que `ChartToolbar` a
+          supprimée : on avait ramené les commandes du graphique à une seule ligne
+          tout en laissant celle-ci au-dessus, si bien que le cadre en comptait
+          toujours deux.
 
+          Il rejoint donc les autres réglages de LECTURE, à droite de la barre — voir
+          `currencySlot`. La fiche gagne une trentaine de pixels de hauteur avant que
+          la courbe ne commence, ce qui était précisément l'objet de l'opération.
+        */}
         {converted && rates ? (
           <p className="mb-3 rounded-lg bg-surface-muted px-3 py-2 text-[0.6875rem] leading-relaxed text-ink-muted">
             {fr.asset.convertedNotice(asset.currency, currency, formatDay(rates.date))}
           </p>
         ) : null}
 
-        {tab === 'apercu' ? (
-          <>
+        {/* Le graphique est RENDU SANS CONDITION : il est désormais le seul contenu
+            de ce panneau, la barre de sous-onglets qui le mettait en concurrence avec
+            deux autres vues ayant été supprimée (voir l'en-tête du fichier).
+
+            `bg-panel` sur le cadre, et ce n'est pas redondant avec le panneau parent :
+            en plein écran, l'élément est extrait de son contexte et peint sur un fond
+            noir par défaut. Sans cette couleur, le graphique flotterait sur du vide et
+            les libellés d'axe deviendraient illisibles. */}
+        <div ref={chartFrame} className="bg-panel">
+            {/*
+              UNE SEULE BARRE, là où trois rangées s'empilaient. Voir l'en-tête de
+              `ChartToolbar` : le quart de la hauteur du cadre servait à choisir quoi
+              regarder plutôt qu'à regarder.
+            */}
             <ChartToolbar
-              kind={kind}
-              onKindChange={setKind}
-              ohlcUnavailable={candlesUnavailable}
-              volumeAvailable={volumeAvailable}
+              metric={metric}
+              metricOptions={METRICS.filter((entry) => metricAvailable[entry.key]).map((entry) => ({
+                key: entry.key,
+                label: METRIC_LABELS[entry.key],
+              }))}
+              onMetricChange={(key) => selectMetric(key as ChartMetric)}
+              compareId={compareId}
+              compareOptions={compareOptions}
+              onCompareChange={setCompareId}
+              kind={effectiveKind}
+              // Les chandeliers disparaissent aussi quand la grandeur tracée n'est pas
+              // le prix : la source ne publie d'OHLC que pour lui.
+              kindOptions={CHART_KINDS.filter(
+                (entry) =>
+                  !((candlesUnavailable || metric !== 'price') && OHLC_KINDS.includes(entry)),
+              ).map((entry) => ({ key: entry, label: fr.asset.chart.kinds[entry] }))}
+              onKindChange={(key) => setKind(key as ChartKind)}
+              view={activeView}
+              views={availableViews}
+              onViewChange={selectView}
+              intervals={availableIntervals}
+              intervalId={intervalId}
+              onIntervalChange={(id) => setIntervalId(id as BinanceInterval | null)}
+              rangeId={rangeId}
+              onRangeChange={selectPreset}
+              customRange={customRange}
+              onCustomRange={applyCustomRange}
+              logScale={logScale}
+              onToggleLog={() => setLogScale((value) => !value)}
               showVolume={showVolume}
+              volumeAvailable={volumeAvailable && metric === 'price'}
+              onToggleVolume={() => setShowVolume((value) => !value)}
               showMovingAverage={showMovingAverage}
+              onToggleMovingAverage={() => setShowMovingAverage((value) => !value)}
               showPriceLines={showPriceLines}
-              onToggleVolume={setShowVolume}
-              onToggleMovingAverage={setShowMovingAverage}
-              onTogglePriceLines={setShowPriceLines}
+              onTogglePriceLines={() => setShowPriceLines((value) => !value)}
+              onCopyLink={copyLink}
+              onExport={(format) => void handleExport(format)}
+              onFullscreen={toggleFullscreen}
+              currencySlot={
+                <CurrencySelector
+                  value={currency}
+                  options={convertible}
+                  onChange={setCurrency}
+                  disabled={convertible.length < 2}
+                />
+              }
             />
 
-            <OverviewTab
-              history={history}
-              candles={candles}
-              kind={kind}
-              loading={loading || candlesLoading}
-              rate={rate}
-              currency={currency}
-              days={days}
-              assetName={asset.name}
-              showVolume={showVolume && volumeAvailable}
-              showMovingAverage={showMovingAverage}
-              showPriceLines={showPriceLines}
-            />
-          </>
-        ) : null}
+            {/* Accusé de copie — une ligne discrète plutôt qu'une notification
+                flottante : la commande a réussi, ce n'est pas un événement. */}
+            {linkCopied ? (
+              <p className="mb-2 text-[0.6875rem] text-brand-strong" role="status">
+                Lien de cette vue copié.
+              </p>
+            ) : null}
 
-        {tab === 'historique' ? (
-          <HistoryTab
-            asset={asset}
-            history={yearHistory}
-            rate={rate}
-            currency={currency}
-          />
-        ) : null}
+            {/*
+              AIGUILLAGE DES VUES.
 
-        {tab === 'faq' ? <FaqTab asset={asset} rate={rate} currency={currency} /> : null}
+              Chacune remplace le tracé sans toucher au reste de la barre : les
+              commandes de grandeur, de type et de période restent visibles, parce
+              qu'elles reprendront leur effet dès le retour à la vue originale.
+
+              Les deux vues externes sont montées CONDITIONNELLEMENT et non masquées
+              en CSS : TradingView chargerait sinon ses centaines de kilooctets pour
+              tout le monde, et le carnet interrogerait Binance toutes les cinq
+              secondes derrière un écran que personne ne regarde.
+            */}
+            {view === 'tradingview' ? (
+              <TradingViewChart symbol={asset.symbol} />
+            ) : view === 'depth' ? (
+              <AssetDepthChart symbol={asset.symbol} />
+            ) : (
+              <OverviewTab
+                history={chartHistory}
+                candles={intervalId ? intervalCandles : candles}
+                kind={effectiveKind}
+                loading={loading || candlesLoading}
+                rate={rate}
+                currency={currency}
+                days={days}
+                assetName={asset.name}
+                showVolume={showVolume && volumeAvailable && metric === 'price'}
+                showMovingAverage={showMovingAverage}
+                showPriceLines={showPriceLines}
+                logScale={logScale}
+                referenceLines={referenceLines}
+                handleRef={chartHandle}
+                compare={compare}
+              />
+            )}
+
+            {/* La source change AVEC la vue, et le dire est une obligation (§5) : un
+                pas de bougie affiche le cours d'une seule place, là où la courbe par
+                défaut montre une moyenne pondérée de plusieurs dizaines. */}
+            {intervalId && view === 'original' ? (
+              <p className="mt-2 text-[0.6875rem] text-ink-muted">
+                Bougies de {asset.symbol}/USDT sur Binance, converties en {currency}. La
+                courbe par défaut agrège au contraire l’ensemble des places de cotation.
+              </p>
+            ) : null}
+
+            {compare ? (
+              <p className="mt-2 text-[0.6875rem] leading-relaxed text-ink-muted">
+                Les deux courbes sont ramenées à 100 au début de la période : l’axe montre une
+                progression relative, pas un montant. Trait plein : {asset.name}. Trait tireté :{' '}
+                {compare.label}.
+              </p>
+            ) : null}
+        </div>
       </div>
     </div>
   )
 }
 
-/* ── Barre d'outils du graphique ──────────────────────────────────────────── */
-
-/**
- * Sélecteur de type et options d'affichage.
- *
- * Les options sont des cases à cocher et non des boutons-bascule stylés : elles sont
- * cumulables et leur état doit être lisible d'un coup d'œil, y compris au clavier et
- * au lecteur d'écran (§9). Une option dont la donnée manque est DÉSACTIVÉE avec un
- * `title` qui l'explique, plutôt que masquée — l'absence silencieuse laisserait
- * croire à un oubli.
- */
-function ChartToolbar({
-  kind,
-  onKindChange,
-  ohlcUnavailable,
-  volumeAvailable,
-  showVolume,
-  showMovingAverage,
-  showPriceLines,
-  onToggleVolume,
-  onToggleMovingAverage,
-  onTogglePriceLines,
-}: {
-  kind: ChartKind
-  onKindChange: (kind: ChartKind) => void
-  ohlcUnavailable: boolean
-  volumeAvailable: boolean
-  showVolume: boolean
-  showMovingAverage: boolean
-  showPriceLines: boolean
-  onToggleVolume: (value: boolean) => void
-  onToggleMovingAverage: (value: boolean) => void
-  onTogglePriceLines: (value: boolean) => void
-}) {
-  const kinds = CHART_KINDS.filter(
-    (entry) => !(ohlcUnavailable && OHLC_KINDS.includes(entry.key)),
-  )
-
-  return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-1" role="group" aria-label={fr.asset.chart.kindTitle}>
-        {kinds.map((entry) => (
-          <button
-            key={entry.key}
-            type="button"
-            onClick={() => onKindChange(entry.key)}
-            aria-pressed={entry.key === kind}
-            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-              entry.key === kind
-                ? 'bg-brand-soft text-brand-strong'
-                : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-            }`}
-          >
-            {entry.label}
-          </button>
-        ))}
-      </div>
-
-      <div
-        className="flex flex-wrap items-center gap-3"
-        role="group"
-        aria-label={fr.asset.chart.optionsTitle}
-      >
-        <ChartOption
-          label={fr.asset.chart.volume}
-          checked={showVolume && volumeAvailable}
-          onChange={onToggleVolume}
-          disabled={!volumeAvailable}
-          hint={volumeAvailable ? undefined : fr.asset.chart.volumeUnavailable}
-        />
-        <ChartOption
-          label={fr.asset.chart.movingAverage}
-          checked={showMovingAverage}
-          onChange={onToggleMovingAverage}
-        />
-        <ChartOption
-          label={fr.asset.chart.priceLines}
-          checked={showPriceLines}
-          onChange={onTogglePriceLines}
-        />
-      </div>
-    </div>
-  )
-}
-
-function ChartOption({
-  label,
-  checked,
-  onChange,
-  disabled = false,
-  hint,
-}: {
-  label: string
-  checked: boolean
-  onChange: (value: boolean) => void
-  disabled?: boolean
-  hint?: string
-}) {
-  return (
-    <label
-      className={`flex items-center gap-1.5 text-xs ${
-        disabled ? 'cursor-not-allowed text-ink-muted/60' : 'cursor-pointer text-ink-muted'
-      }`}
-      title={hint}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-        className="h-3.5 w-3.5 rounded border-border-subtle accent-brand-strong"
-      />
-      {label}
-    </label>
-  )
-}
+/* Les deux fonctions de fusion du direct — `appendLivePoint` et `mergeCandle` —
+   vivent dans `live-series.ts`, avec leurs tests. Elles décident à chaque message
+   s'il faut allonger la série, en remplacer la fin ou ne rien faire, et leurs cas
+   limites ne se reproduisent pas à la main dans un navigateur. */
 
 /* ── Onglets ──────────────────────────────────────────────────────────────── */
 
@@ -513,6 +1039,10 @@ function OverviewTab({
   showVolume,
   showMovingAverage,
   showPriceLines,
+  logScale,
+  referenceLines,
+  handleRef,
+  compare,
 }: {
   history: PriceHistory | null
   candles: ChartCandle[] | null
@@ -525,9 +1055,17 @@ function OverviewTab({
   showVolume: boolean
   showMovingAverage: boolean
   showPriceLines: boolean
+  logScale: boolean
+  referenceLines: ChartReferenceLine[]
+  handleRef: React.MutableRefObject<ChartHandle | null>
+  compare: { label: string; points: { timestamp: number; price: number }[] } | null
 }) {
+  const fr = useContent()
   const [interactive, setInteractive] = useState(false)
 
+  // Interactivité (survol, infobulle) retardée après le montage : le rendu serveur
+  // n'a pas de souris à écouter, l'activer avant l'hydratation n'apporterait rien.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setInteractive(true), [])
 
   if (!history || history.points.length < 2) {
@@ -558,6 +1096,10 @@ function OverviewTab({
           showVolume={showVolume}
           showMovingAverage={showMovingAverage}
           showPriceLines={showPriceLines}
+          logScale={logScale}
+          referenceLines={referenceLines}
+          handleRef={handleRef}
+          compare={compare}
         />
       ) : (
         <PriceChart
@@ -579,164 +1121,26 @@ function OverviewTab({
   )
 }
 
-function HistoryTab({
-  asset,
-  history,
-  rate,
-  currency,
-}: {
-  asset: AssetDetail
-  history: PriceHistory | null
-  rate: number
-  currency: string
-}) {
-  if (!history || history.points.length < 2) {
-    return <EmptyState title={fr.asset.loadingSeries} compact />
-  }
-
-  const points = history.points
-  const last = points[points.length - 1]?.price ?? 0
-  const now = points[points.length - 1]?.timestamp ?? Date.now()
-
-  /** Performance sur une fenêtre, calculée depuis la série réellement chargée. */
-  function performance(daysBack: number): number | undefined {
-    const target = now - daysBack * 86_400_000
-    // Premier point à ou après la borne : la série étant quotidienne au-delà de
-    // 90 jours, viser exactement la date échouerait la plupart du temps.
-    const reference = points.find((point) => point.timestamp >= target)
-    if (!reference || reference.price === 0) return undefined
-    return ((last - reference.price) / reference.price) * 100
-  }
-
-  const prices = points.map((point) => point.price)
-  const min = Math.min(...prices)
-  const max = Math.max(...prices)
-
-  const rows = [
-    // La variation 24 h vient de la SOURCE, pas de notre série : sur une année en pas
-    // quotidien, deux points consécutifs ne représentent pas exactement 24 heures.
-    { label: fr.asset.ranges.d1, value: asset.change24h, sourced: true },
-    { label: fr.asset.ranges.d7, value: performance(7) },
-    { label: fr.asset.ranges.d30, value: performance(30) },
-    { label: fr.asset.ranges.d90, value: performance(90) },
-    { label: fr.asset.ranges.y1, value: performance(365) },
-  ]
-
-  const money = (value: number) =>
-    `${formatNumber(value * rate, value * rate >= 100 ? 2 : 6)} ${currency}`
-
-  return (
-    <div className="space-y-5">
-      <section>
-        <h3 className="mb-2 text-sm font-semibold text-ink">{fr.asset.performanceTitle}</h3>
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {rows.map((row) => (
-            <div key={row.label} className="rounded-lg bg-surface-muted px-3 py-2">
-              <dt className="text-[0.6875rem] text-ink-muted">{row.label}</dt>
-              <dd className="mt-0.5">
-                <ChangeBadge value={row.value} size="sm" periodLabel={`sur ${row.label}`} />
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-2 text-[0.6875rem] text-ink-muted">{fr.asset.performanceNote}</p>
-      </section>
-
-      <section>
-        <h3 className="mb-2 text-sm font-semibold text-ink">{fr.asset.rangeYearTitle}</h3>
-        <dl className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-surface-muted px-3 py-2">
-            <dt className="text-[0.6875rem] text-ink-muted">{fr.asset.lowest}</dt>
-            <dd className="tabular text-sm font-semibold text-ink">{money(min)}</dd>
-          </div>
-          <div className="rounded-lg bg-surface-muted px-3 py-2">
-            <dt className="text-[0.6875rem] text-ink-muted">{fr.asset.highest}</dt>
-            <dd className="tabular text-sm font-semibold text-ink">{money(max)}</dd>
-          </div>
-        </dl>
-      </section>
-    </div>
-  )
-}
-
 /*
- * `StatsTab` et `AboutTab` ont été SUPPRIMÉS de ce fichier, pas seulement retirés
- * de la barre d'onglets : leur contenu vit désormais en bandes pleine largeur dans
- * `AssetPageView` (`AssetKeyStats`, `AssetChangeGrid`, la section « À propos » et
- * `AssetTechSheet`). Les garder ici aurait laissé deux implémentations d'un même
- * affichage, qui auraient divergé au premier ajustement.
- */
-
-/**
- * FAQ entièrement DÉRIVÉE de la donnée réelle de l'actif.
+ * `HistoryTab`, `FaqTab`, `StatsTab` et `AboutTab` ONT TOUS QUITTÉ CE FICHIER.
  *
- * Aucune réponse n'est rédigée à l'avance : chaque entrée reprend une valeur
- * effectivement chargée, et les questions dont la donnée manque ne sont pas
- * affichées. Une FAQ écrite « en dur » sur une fiche générique finirait
- * inévitablement par affirmer quelque chose de faux sur l'un des milliers d'actifs.
+ * Les quatre rendaient un contenu qui n'avait rien à voir avec un graphique, et qui
+ * n'était atteignable qu'en le remplaçant. Ils vivent désormais là où on les cherche,
+ * chacun dans son propre fichier :
+ *
+ *   Statistiques  → `AssetMetricRail` et `AssetChangeGrid`
+ *   À propos      → la section « À propos » et `AssetTechSheet`
+ *   Performances  → `AssetYearPerformance`, dans l'onglet Analyse
+ *   FAQ           → `AssetFaq`, en bas de page
+ *
+ * Les garder ici aurait laissé deux implémentations d'un même affichage, qui auraient
+ * divergé au premier ajustement. C'est déjà ce qui avait été constaté avec les
+ * statistiques, d'où la règle.
+ *
+ * Les deux derniers ne prennent plus de `rate` ni de `currency` : ils lisent la devise
+ * du site (`useCurrency`) au lieu du sélecteur local de la barre d'outils, qui est une
+ * commande du graphique et n'avait pas vocation à régler le libellé d'une phrase.
  */
-function FaqTab({
-  asset,
-  rate,
-  currency,
-}: {
-  asset: AssetDetail
-  rate: number
-  currency: string
-}) {
-  const price = `${formatNumber(asset.price * rate, asset.price * rate >= 100 ? 2 : 6)} ${currency}`
-
-  const entries: { question: string; answer: string }[] = [
-    {
-      question: fr.asset.faq.priceQ(asset.name),
-      answer: fr.asset.faq.priceA(asset.name, price, formatDateTime(asset.lastUpdated) ?? '—'),
-    },
-  ]
-
-  if (asset.marketCap !== undefined) {
-    entries.push({
-      question: fr.asset.faq.capQ(asset.name),
-      answer: fr.asset.faq.capA(
-        `${formatCompact(asset.marketCap * rate)} ${currency}`,
-        asset.rank,
-      ),
-    })
-  }
-
-  if (asset.ath !== undefined && asset.assetClass === 'crypto') {
-    entries.push({
-      question: fr.asset.faq.athQ(asset.name),
-      answer: fr.asset.faq.athA(
-        `${formatNumber(asset.ath * rate, 2)} ${currency}`,
-        asset.athDate ? formatDay(asset.athDate) : null,
-      ),
-    })
-  }
-
-  if (asset.maxSupply !== undefined) {
-    entries.push({
-      question: fr.asset.faq.supplyQ(asset.name),
-      answer: fr.asset.faq.supplyA(
-        formatCompact(asset.maxSupply) ?? '—',
-        asset.symbol,
-        formatCompact(asset.circulatingSupply),
-      ),
-    })
-  }
-
-  entries.push({ question: fr.asset.faq.buyQ(asset.name), answer: fr.asset.faq.buyA })
-
-  return (
-    <dl className="space-y-4">
-      {entries.map((entry) => (
-        <div key={entry.question}>
-          <dt className="text-sm font-semibold text-ink">{entry.question}</dt>
-          <dd className="mt-1 text-sm leading-relaxed text-ink-muted">{entry.answer}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
 
 function CurrencySelector({
   value,
@@ -749,6 +1153,7 @@ function CurrencySelector({
   onChange: (currency: string) => void
   disabled: boolean
 }) {
+  const fr = useContent()
   return (
     <label className="flex items-center gap-2 text-xs text-ink-muted">
       <span className="sr-only">{fr.asset.currencyLabel}</span>
@@ -756,7 +1161,12 @@ function CurrencySelector({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-card border border-border-subtle bg-surface px-2 py-1 text-xs font-medium text-ink disabled:opacity-50"
+        /* Aligné sur la grammaire de la barre d'outils qui l'accueille désormais :
+           28 pixels de haut comme tous ses voisins, coins vifs, pas de bordure au
+           repos. Un `<select>` natif reste un `<select>` natif — c'est le seul
+           contrôle de la barre dont le navigateur dessine encore le menu — mais son
+           bouton, lui, ne doit plus jurer avec les six commandes d'à côté. */
+        className="h-7 cursor-pointer bg-transparent px-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
         aria-label={fr.asset.currencyLabel}
       >
         {options.map((code) => (

@@ -1,10 +1,12 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
-import type { MoversPeriod, MoversUniverse } from '@zenith/data'
+import type { MoversPeriod, MoversUniverse } from '@zenkuu/data'
+
+import { useRouter } from '@/i18n/navigation'
+import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 
 /**
  * Barre de filtres des « mouvements » : période et univers, en boutons-pilules.
@@ -93,6 +95,10 @@ function PillDropdown({
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  /* Le curseur qui s'éloigne referme la liste, au même titre que le clic extérieur et
+     la touche Échap ci-dessous. Voir components/nav/useHoverDismiss.ts. */
+  const hoverDismiss = useHoverDismiss(() => setOpen(false), open)
+
   useEffect(() => {
     if (!open) return
 
@@ -112,7 +118,7 @@ function PillDropdown({
   }, [open])
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" {...hoverDismiss}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}

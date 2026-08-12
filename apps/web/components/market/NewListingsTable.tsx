@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react'
 
-import type { NewListing } from '@zenith/data'
-import { ChangeBadge, formatCurrency } from '@zenith/ui'
+import type { NewListing } from '@zenkuu/data'
+import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
 /**
  * Tableau des cotations récentes.
@@ -70,7 +70,7 @@ export function NewListingsTable({ listings }: { listings: NewListing[] }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Filtrer par nom ou symbole"
-            className="w-56 border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+            className="w-56 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
           />
         </label>
 
@@ -80,7 +80,7 @@ export function NewListingsTable({ listings }: { listings: NewListing[] }) {
         </p>
       </div>
 
-      <div className="overflow-x-auto border border-border-subtle">
+      <div className="overflow-x-auto rounded-card border border-border-subtle">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border-subtle text-left">

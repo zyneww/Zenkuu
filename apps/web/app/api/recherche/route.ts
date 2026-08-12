@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { MIN_QUERY_LENGTH, searchAssets } from '@zenith/data'
+import { MIN_QUERY_LENGTH, searchAssets } from '@zenkuu/data'
 
 /**
  * Route de recherche, appelée par l'overlay du header à chaque frappe (débattue).

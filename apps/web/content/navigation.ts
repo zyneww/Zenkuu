@@ -1,6 +1,7 @@
 import {
   Activity,
   ArrowRightLeft,
+  Bell,
   Bitcoin,
   BookOpen,
   Building2,
@@ -10,6 +11,7 @@ import {
   Flame,
   Fuel,
   Gauge,
+  Gem,
   GitCompareArrows,
   GraduationCap,
   Grid3x3,
@@ -33,7 +35,7 @@ import {
  *
  * Conçue depuis notre propre positionnement, pas recopiée : CoinGecko range son
  * menu par TYPE D'OBJET (Cryptocurrencies, Exchanges, RWA, Products, API) parce
- * qu'il vend de la donnée et référence des plateformes d'échange. ZENITH ne vend
+ * qu'il vend de la donnée et référence des plateformes d'échange. ZENKUU ne vend
  * rien et n'échange rien — on range donc par INTENTION DE LECTURE : « qu'est-ce que
  * je regarde ? » (Marchés), « que mesure-t-on ? » (Données), « qu'est-ce
  * que j'en déduis ? » (Analyse), « que s'est-il passé ? » (Actualités), « comment ça
@@ -309,7 +311,7 @@ export const NAV_MENUS: NavMenu[] = [
           },
           {
             label: 'Bien démarrer',
-            description: 'Prendre en main ZENITH en cinq minutes',
+            description: 'Prendre en main ZENKUU en cinq minutes',
             icon: Rocket,
             href: '/bien-demarrer',
             ready: true,
@@ -354,7 +356,7 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'ZENITH',
+        label: 'ZENKUU',
         items: [
           {
             label: 'Ma liste de suivi',
@@ -364,10 +366,34 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
-            label: 'Pourquoi ZENITH',
+            label: 'Mes alertes',
+            description: 'Un courriel au franchissement d’un seuil de prix',
+            icon: Bell,
+            href: '/alertes',
+            ready: true,
+          },
+          {
+            /*
+             * L'offre payante vit dans « Plus », pas dans un bouton du bandeau haut.
+             *
+             * C'est un choix de positionnement autant que de mise en page : le site se
+             * vend d'abord par son contenu gratuit (§1), et un appel à l'abonnement
+             * planté dans l'en-tête de toutes les pages contredirait cette promesse à
+             * chaque chargement. L'invitation apparaît là où elle a du sens — quand une
+             * limite est réellement rencontrée —, et l'entrée de menu sert à ceux qui
+             * la cherchent d'eux-mêmes.
+             */
+            label: 'Zenkuu Pro',
+            description: 'L’offre qui finance le site, et ce qu’elle ajoute',
+            icon: Gem,
+            href: '/tarifs',
+            ready: true,
+          },
+          {
+            label: 'Pourquoi ZENKUU',
             description: 'Nos partis pris, et ce qu’on refuse de faire',
             icon: Sparkles,
-            href: '/pourquoi-zenith',
+            href: '/pourquoi-zenkuu',
             ready: true,
           },
           {
@@ -392,3 +418,17 @@ export const NAV_MENUS: NavMenu[] = [
 
 /** Icône générique des classes d'actifs, réutilisée hors navigation. */
 export const ASSET_CLASS_ICON = Activity
+
+/*
+ * LES RACCOURCIS DIRECTS DE L'EN-TÊTE ONT ÉTÉ RETIRÉS.
+ *
+ * Trois liens — Heatmap, Screener, Sentiment — occupaient un second groupe après le
+ * filet. Ils se justifiaient tant qu'ils ne doublaient pas les menus ; ils les
+ * doublaient pourtant, chacune des trois destinations étant déjà annoncée plus haut
+ * dans ce fichier (voir `/sentiment`, `/screener` et `/heatmap` dans NAV_MENUS).
+ * Un même lien à deux endroits de la même barre n'accélère rien : il oblige à
+ * choisir entre deux chemins identiques.
+ *
+ * Aucune page n'est devenue inatteignable par ce retrait, et c'est la seule
+ * condition qui rendait la suppression sans risque.
+ */

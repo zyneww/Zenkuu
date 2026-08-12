@@ -1,10 +1,10 @@
 import { Rss } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 /**
  * Inscription à l'infolettre — VOLONTAIREMENT INACTIVE.
  *
- * ZENITH n'a aucune infrastructure d'envoi d'e-mails. Deux voies étaient possibles,
+ * ZENKUU n'a aucune infrastructure d'envoi d'e-mails. Deux voies étaient possibles,
  * et les deux ont été écartées : un formulaire qui collecte réellement stockerait des
  * adresses personnelles sans finalité, ce qui pose un problème juridique autant que
  * moral ; un formulaire qui fait semblant d'accepter est un mensonge à l'utilisateur.

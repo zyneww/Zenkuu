@@ -1,13 +1,13 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import type { MarketAsset } from '@zenith/data'
-import { ChangeBadge, EmptyState, Sparkline } from '@zenith/ui'
+import type { MarketAsset } from '@zenkuu/data'
+import { ChangeBadge, EmptyState, Sparkline } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/AssetTile'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -151,7 +151,7 @@ export function ExploreTable({
               type="button"
               onClick={() => setPeriodKey(entry.key)}
               aria-pressed={periodKey === entry.key}
-              className={`tabular rounded-[0.5rem] px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`tabular rounded-none px-2.5 py-1 text-xs font-medium transition-colors ${
                 periodKey === entry.key
                   ? 'bg-brand text-on-brand'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

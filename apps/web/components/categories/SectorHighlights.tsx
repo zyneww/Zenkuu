@@ -1,8 +1,8 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
-import type { MarketCategory } from '@zenith/data'
-import { ChangeBadge, formatCurrency } from '@zenith/ui'
+import type { MarketCategory } from '@zenkuu/data'
+import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
 /**
  * Bandeau de tête : les secteurs qui portent et qui pèsent sur le marché.

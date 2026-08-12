@@ -52,7 +52,7 @@ export function DashboardPreferences() {
         Préférences d’affichage
       </h2>
 
-      <dl className="divide-y divide-border-subtle border border-border-subtle">
+      <dl className="divide-y divide-border-subtle rounded-card border border-border-subtle">
         <Row label="Langue">
           <button
             type="button"
@@ -75,7 +75,7 @@ export function DashboardPreferences() {
 
         <Row label="Thème">
           <div
-            className="flex items-center gap-0.5 border border-border-subtle p-0.5"
+            className="flex items-center gap-0.5 rounded-card border border-border-subtle p-0.5"
             role="group"
             aria-label="Thème"
           >
@@ -85,7 +85,7 @@ export function DashboardPreferences() {
                 type="button"
                 onClick={() => setTheme(entry.value)}
                 aria-pressed={theme === entry.value}
-                className={`px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+                className={`rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
                   theme === entry.value
                     ? 'bg-brand text-on-brand'
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

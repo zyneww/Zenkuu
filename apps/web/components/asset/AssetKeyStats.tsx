@@ -1,5 +1,5 @@
-import type { AssetClass, AssetDetail } from '@zenith/data'
-import { formatCompact, formatPercent } from '@zenith/ui'
+import type { AssetClass, AssetDetail } from '@zenkuu/data'
+import { formatCompact, formatPercent } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 

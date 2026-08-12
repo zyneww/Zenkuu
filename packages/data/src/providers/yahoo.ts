@@ -306,7 +306,7 @@ export const yahooProvider: MarketDataProvider = {
   },
 }
 
-/** Retrouve le symbole Yahoo derrière un identifiant de route ZENITH. */
+/** Retrouve le symbole Yahoo derrière un identifiant de route ZENKUU. */
 function resolveEntry(id: string, assetClass?: AssetClass): UniverseEntry {
   const classes: AssetClass[] = assetClass ? [assetClass] : SUPPORTED
 

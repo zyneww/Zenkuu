@@ -1,44 +1,70 @@
 'use client'
 
 import { LogOut } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useClerk, useUser } from '@clerk/nextjs'
 
 import type { AuthMode } from '@/components/auth/AuthOverlay'
 import { AUTH_ENABLED, AUTH_ROUTES } from '@/lib/auth'
-import { fr } from '@/content/fr'
+import { useContent } from '@/components/locale/ContentProvider'
 
 /**
- * Bouton d'inscription de l'en-tête.
+ * Boutons de session de l'en-tête — « Connexion » puis « S'inscrire ».
  *
- * UN SEUL BOUTON, plus deux. « Connexion » et « S'inscrire » côte à côte, c'est deux
- * appels à l'action de même poids visuel pour deux publics différents : celui qui a
- * déjà un compte sait le chercher, celui qui n'en a pas doit être invité. On garde
- * donc l'invitation dans l'en-tête, et « Connexion » descend dans le menu — où il
- * reste à un clic.
+ * ── DEUX BOUTONS, ET LEUR POIDS N'EST PAS LE MÊME ─────────────────────────────
  *
- * Une fois connecté, l'en-tête n'affiche plus rien ici : le compte vit entièrement
- * dans le menu, avec les réglages.
+ * Ils s'adressent à deux publics : celui qui a déjà un compte SAIT qu'il doit se
+ * connecter et cherche l'entrée ; celui qui n'en a pas doit être invité. D'où deux
+ * traitements — « Connexion » en texte nu, « S'inscrire » en aplat de marque. Deux
+ * boutons pleins côte à côte se disputeraient l'attention sans qu'aucun ne guide.
+ *
+ * Une version précédente ne gardait que l'inscription et reléguait la connexion dans
+ * le tiroir. C'était défendable tant que ce tiroir existait ; il a été démonté, et
+ * une connexion enfouie derrière une roue dentée aurait été introuvable.
+ *
+ * Une fois connecté, ce composant s'efface entièrement : `AccountMenu` prend le
+ * relais dans l'en-tête.
  *
  * `useUser()` est un hook, donc non appelable conditionnellement : d'où deux
  * composants distincts plutôt qu'un `if`. Le choix entre les deux repose sur une
  * constante de module, stable d'un rendu à l'autre.
  */
 export function AuthButtons({ onOpen }: { onOpen: (mode: AuthMode) => void }) {
-  return AUTH_ENABLED ? <ConnectedAuthButton onOpen={onOpen} /> : <StaticSignUpLink />
+  return AUTH_ENABLED ? <ConnectedAuthButtons onOpen={onOpen} /> : <StaticAuthLinks />
 }
 
-function ConnectedAuthButton({ onOpen }: { onOpen: (mode: AuthMode) => void }) {
+function ConnectedAuthButtons({ onOpen }: { onOpen: (mode: AuthMode) => void }) {
   const { isLoaded, isSignedIn } = useUser()
 
-  // Tant que Clerk n'a pas répondu, on réserve la place plutôt que d'afficher le
-  // bouton puis de le retirer : l'en-tête sauterait à chaque chargement.
-  if (!isLoaded) return <span className="hidden h-8 w-[5.5rem] sm:block" aria-hidden="true" />
+  // Tant que Clerk n'a pas répondu, on réserve la place plutôt que d'afficher les
+  // boutons puis de les retirer : l'en-tête sauterait à chaque chargement.
+  if (!isLoaded) return <span className="hidden h-8 w-[10rem] sm:block" aria-hidden="true" />
 
-  // Connecté : rien dans l'en-tête. Le bouton de compte de Clerk est dans le menu.
+  // Connecté : rien ici. `AccountMenu` porte l'identité et les réglages.
   if (isSignedIn) return null
 
-  return <StaticSignUpLink onOpen={() => onOpen('signUp')} />
+  return <StaticAuthLinks onOpen={onOpen} />
+}
+
+/** Les deux liens, avec ou sans interception de clic selon que Clerk est configuré. */
+function StaticAuthLinks({ onOpen }: { onOpen?: (mode: AuthMode) => void }) {
+  const fr = useContent()
+  return (
+    <span className="hidden items-center gap-1 sm:flex">
+      <AuthLink
+        href={AUTH_ROUTES.signIn}
+        label={fr.auth.signIn}
+        className="whitespace-nowrap rounded-card px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+        {...(onOpen ? { onOpen: () => onOpen('signIn') } : {})}
+      />
+      <AuthLink
+        href={AUTH_ROUTES.signUp}
+        label={fr.auth.signUp}
+        className="whitespace-nowrap rounded-card bg-brand px-3 py-1.5 text-xs font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
+        {...(onOpen ? { onOpen: () => onOpen('signUp') } : {})}
+      />
+    </span>
+  )
 }
 
 /**
@@ -94,10 +120,20 @@ function ConnectedSignOutRow({ onClose }: { onClose: () => void }) {
  * transformerait « ouvrir dans un onglet » en « ouvrir une fenêtre ici », un geste
  * détourné de son sens.
  */
-function StaticSignUpLink({ onOpen }: { onOpen?: () => void }) {
+function AuthLink({
+  href,
+  label,
+  className,
+  onOpen,
+}: {
+  href: string
+  label: string
+  className: string
+  onOpen?: () => void
+}) {
   return (
     <Link
-      href={AUTH_ROUTES.signUp}
+      href={href}
       onClick={
         onOpen
           ? (event) => {
@@ -108,9 +144,9 @@ function StaticSignUpLink({ onOpen }: { onOpen?: () => void }) {
             }
           : undefined
       }
-      className="hidden whitespace-nowrap bg-brand px-3 py-1.5 text-xs font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong sm:block"
+      className={className}
     >
-      {fr.auth.signUp}
+      {label}
     </Link>
   )
 }
@@ -136,6 +172,7 @@ export function AccountSection({
   onOpenAuth: (mode: AuthMode) => void
   onClose: () => void
 }) {
+  const fr = useContent()
   if (!AUTH_ENABLED) {
     // Sans Clerk, on n'affiche pas deux boutons qui n'ouvriraient rien : les pages
     // dédiées expliquent ce qui manque.
@@ -152,6 +189,7 @@ function ConnectedAccountSection({
   onOpenAuth: (mode: AuthMode) => void
   onClose: () => void
 }) {
+  const fr = useContent()
   const { isLoaded, user } = useUser()
   const { openUserProfile } = useClerk()
 
@@ -234,7 +272,7 @@ function ConnectedAccountSection({
           onClose()
           onOpenAuth('signUp')
         }}
-        className="flex-1 border border-brand px-3 py-2 text-sm font-medium text-brand transition-colors duration-150 hover:bg-brand-soft"
+        className="flex-1 rounded-card border border-brand px-3 py-2 text-sm font-medium text-brand transition-colors duration-150 hover:bg-brand-soft"
       >
         {fr.auth.signUp}
       </button>

@@ -1,12 +1,13 @@
-import type { AssetClass } from '@zenith/data'
-import { getRanking } from '@zenith/data'
-import { EmptyState, SourceNote } from '@zenith/ui'
+import type { AssetClass } from '@zenkuu/data'
+import { getRanking } from '@zenkuu/data'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { AssetClassTabs } from '@/components/market/AssetClassTabs'
 import { MarketBrowser } from '@/components/market/MarketBrowser'
+import { MarketHighlights } from '@/components/market/MarketHighlights'
 import { MarketStatsStrip } from '@/components/market/MarketStatsStrip'
 import type { MarketSort, SortDirection } from '@/components/market/MarketTable'
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
 
 /**
@@ -67,6 +68,7 @@ export async function MarketPageView({
   perPage,
   basePath,
 }: MarketPageViewProps) {
+  const fr = await getContent()
   const base = CONFIG[assetClass]
   const config = { ...base, perPage: perPage ?? base.perPage }
   const listPath = basePath ?? marketHref(assetClass)
@@ -96,6 +98,11 @@ export async function MarketPageView({
 
       {ranking.ok && ranking.data.length > 0 ? (
         <>
+          {/* Bandeau AVANT la bande de statistiques : il répond à « que s'est-il
+              passé ? », elle à « sur quoi porte ce que je lis ? ». La question du
+              lecteur vient dans cet ordre. */}
+          <MarketHighlights assets={ranking.data} assetClass={assetClass} />
+
           <MarketStatsStrip
             assets={ranking.data}
             scopeLabel={

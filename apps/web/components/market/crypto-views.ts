@@ -1,4 +1,4 @@
-import type { MarketAsset } from '@zenith/data'
+import type { MarketAsset } from '@zenkuu/data'
 
 /**
  * Vocabulaire partagé de la page de cotation crypto.

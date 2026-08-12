@@ -67,7 +67,7 @@ export function PriceChart({
 
   // Identifiant de dégradé unique par sens de variation : deux graphiques sur la même
   // page (fiche + comparable) partageraient sinon la même définition SVG.
-  const gradientId = `zenith-chart-${rising ? 'up' : 'down'}`
+  const gradientId = `zenkuu-chart-${rising ? 'up' : 'down'}`
   const stroke = rising ? 'var(--color-up)' : 'var(--color-down)'
 
   return (

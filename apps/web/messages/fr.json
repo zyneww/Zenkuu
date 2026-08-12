@@ -1,0 +1,124 @@
+{
+  "metric": {
+    "price": {
+      "label": "Prix",
+      "help": "Dernier cours publié par la source, converti dans la devise que vous avez choisie. Ce n’est pas un prix d’exécution : selon la place et le moment, un ordre réel se traiterait à un cours voisin mais différent."
+    },
+    "marketCap": {
+      "label": "Capitalisation",
+      "help": "Valeur totale de l’offre en circulation, au cours actuel. C’est la mesure de taille la plus courante, mais elle ignore les jetons non encore émis — voir la valorisation diluée."
+    },
+    "volume24h": {
+      "label": "Volume 24 h",
+      "help": "Montant total échangé sur les dernières 24 heures, toutes places de cotation confondues. Un volume faible rend le cours plus sensible à un ordre isolé."
+    },
+    "fdv": {
+      "label": "Valorisation diluée",
+      "help": "Capitalisation que l’actif atteindrait si la totalité de son offre maximale circulait. Reprise telle quelle de la source, jamais recalculée : les règles sur les jetons verrouillés ou brûlés lui appartiennent."
+    },
+    "tvl": {
+      "label": "Valeur verrouillée",
+      "help": "Montant déposé dans les contrats du protocole. N’existe que pour la finance décentralisée, et mesure l’usage plutôt que le prix."
+    },
+    "rank": {
+      "label": "Rang",
+      "help": "Position par capitalisation au sein de sa classe d’actif, telle que la publie la source."
+    },
+    "exchange": {
+      "label": "Place de cotation",
+      "help": "Marché sur lequel la source relève le cours de référence de cet actif."
+    },
+    "high24h": {
+      "label": "Plus haut 24 h",
+      "help": "Cours le plus élevé atteint sur les dernières 24 heures."
+    },
+    "low24h": {
+      "label": "Plus bas 24 h",
+      "help": "Cours le plus bas atteint sur les dernières 24 heures."
+    },
+    "ath": {
+      "label": "Plus haut historique",
+      "help": "Cours le plus élevé jamais atteint. Le pourcentage indique l’écart entre le cours actuel et ce record."
+    },
+    "athWindow": {
+      "label": "Plus haut sur 52 semaines",
+      "help": "Cours le plus élevé de l’année écoulée. La source ne publie pas de record absolu pour cette classe d’actif."
+    },
+    "atl": {
+      "label": "Plus bas historique",
+      "help": "Cours le plus bas jamais atteint. Le pourcentage indique la progression depuis ce plancher."
+    },
+    "atlWindow": {
+      "label": "Plus bas sur 52 semaines",
+      "help": "Cours le plus bas de l’année écoulée. La source ne publie pas de plancher absolu pour cette classe d’actif."
+    },
+    "circulatingSupply": {
+      "label": "Offre en circulation",
+      "help": "Nombre d’unités effectivement en circulation, hors jetons verrouillés, réservés ou détruits."
+    },
+    "totalSupply": {
+      "label": "Offre totale",
+      "help": "Nombre d’unités créées à ce jour, jetons verrouillés compris, déduction faite de ceux qui ont été détruits."
+    },
+    "maxSupply": {
+      "label": "Offre maximale",
+      "help": "Plafond d’unités que le protocole autorisera jamais. Absent quand aucun plafond n’est inscrit dans le protocole."
+    },
+    "issuedShare": {
+      "label": "Offre émise",
+      "help": "Part de l’offre maximale déjà en circulation. Calculée à partir de deux nombres publiés par la source, jamais estimée."
+    },
+    "change1h": {
+      "label": "1 heure",
+      "help": "Variation du cours sur la dernière heure. La plus bruyante des fenêtres : sur un actif peu échangé, elle reflète souvent un ordre isolé plutôt qu’un mouvement de fond."
+    },
+    "change24h": {
+      "label": "24 heures",
+      "help": "Variation du cours sur les dernières 24 heures, telle que la publie la source. C’est la fenêtre de référence des classements."
+    },
+    "change7d": {
+      "label": "7 jours",
+      "help": "Variation du cours sur la semaine écoulée."
+    },
+    "change14d": {
+      "label": "14 jours",
+      "help": "Variation du cours sur les deux dernières semaines."
+    },
+    "change30d": {
+      "label": "30 jours",
+      "help": "Variation du cours sur le mois écoulé."
+    },
+    "change1y": {
+      "label": "1 an",
+      "help": "Variation du cours sur l’année écoulée. Une période absente signifie que la source ne la publie pas — jamais qu’elle vaut zéro."
+    }
+  },
+
+  "metricPage": {
+    "breadcrumb": "Métriques",
+    "definitionTitle": "Définition",
+    "sourceTitle": "Source et fraîcheur",
+    "noSeriesTitle": "Pas d’historique pour cette mesure",
+    "noSeriesBody": "La source ne publie qu’une valeur instantanée pour cette métrique, sans série temporelle. Aucun graphique n’est affiché : tracer une courbe supposerait d’inventer les points manquants.",
+    "otherMetrics": "Autres métriques de {name}",
+    "backToAsset": "Retour à la fiche",
+    "currentValue": "Valeur actuelle"
+  },
+
+  "chartCard": {
+    "expand": "Agrandir",
+    "collapse": "Réduire",
+    "settings": "Réglages du graphique",
+    "latest": "Dernier",
+    "share": "% Part",
+    "total": "Total",
+    "other": "Autres",
+    "noData": "Série non publiée par la source pour cette période."
+  },
+
+  "search": {
+    "placeholder": "Rechercher",
+    "shortcut": "Ctrl + K",
+    "open": "Ouvrir la recherche"
+  }
+}

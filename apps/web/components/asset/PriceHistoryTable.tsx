@@ -1,6 +1,7 @@
-import type { PriceHistory } from '@zenith/data'
-import { ChangeBadge } from '@zenith/ui'
+import type { PriceHistory } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
+import { HistoryExport, type HistoryRow } from '@/components/asset/HistoryExport'
 import { Money } from '@/components/locale/Money'
 
 /**
@@ -23,23 +24,55 @@ export function PriceHistoryTable({
   history,
   currency,
   isRate = false,
+  assetName,
 }: {
   history: PriceHistory
   currency: string
   isRate?: boolean
+  /** Sert à nommer le fichier exporté et l'onglet du classeur. */
+  assetName: string
 }) {
   const days = toDailyCloses(history)
   if (days.length < 2) return null
 
   const rows = days.slice(-MAX_ROWS).reverse()
 
+  /*
+   * Lignes destinées à l'export, calculées UNE FOIS et non dans le rendu du tableau.
+   *
+   * Elles portent des NOMBRES bruts là où le tableau affiche du texte mis en forme :
+   * c'est ce qui permet à Excel de trier et sommer la colonne, et à JSON de rester
+   * exploitable par un script. Exporter la chaîne « 43 125,94 € » reviendrait à
+   * exporter une image du chiffre.
+   */
+  const exportRows: HistoryRow[] = rows.map((row, index) => {
+    const previous = rows[index + 1]
+    return {
+      day: row.day,
+      price: row.price,
+      change:
+        previous && previous.price !== 0
+          ? ((row.price - previous.price) / previous.price) * 100
+          : null,
+    }
+  })
+
   return (
     <section className="space-y-2" aria-labelledby="historique-des-cours">
-      <h2 id="historique-des-cours" className="text-sm font-semibold text-ink">
-        Historique des cours
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="historique-des-cours" className="text-sm font-semibold text-ink">
+          Historique des cours
+        </h2>
 
-      <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
+        {/*
+          L'export porte sur le tableau affiché, pas sur une série plus large qu'il
+          faudrait aller rechercher. La donnée reste identique à ce qui est lu — c'est
+          la règle commune à tous les exports du site.
+        */}
+        <HistoryExport rows={exportRows} assetName={assetName} currency={currency} />
+      </div>
+
+      <div className="overflow-x-auto rounded-card border border-border-subtle bg-panel">
         <table className="w-full min-w-[380px] border-collapse text-sm">
           <caption className="sr-only">
             Dernière valeur connue par journée, sur les {rows.length} derniers jours

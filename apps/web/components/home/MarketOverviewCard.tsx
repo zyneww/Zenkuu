@@ -1,9 +1,9 @@
-import type { DataResult, GlobalMarketStats, MarketCapSeriesState } from '@zenith/data'
-import { ChangeBadge, EmptyState, Sparkline, formatCompact, formatNumber } from '@zenith/ui'
+import type { DataResult, GlobalMarketStats, MarketCapSeriesState } from '@zenkuu/data'
+import { ChangeBadge, EmptyState, Sparkline, formatCompact, formatNumber } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 
-import { fr } from '@/content/fr'
+import { getContent } from '@/lib/content'
 
 /**
  * Carte de synthèse du marché — équivalent du bloc « Market Cap » de CoinGecko.
@@ -19,13 +19,14 @@ import { fr } from '@/content/fr'
  * Conséquence visible : la courbe est absente au démarrage et se remplit au fil des
  * heures. La carte le dit, au lieu de laisser un vide inexpliqué.
  */
-export function MarketOverviewCard({
+export async function MarketOverviewCard({
   result,
   series,
 }: {
   result: DataResult<GlobalMarketStats>
   series: MarketCapSeriesState
 }) {
+  const fr = await getContent()
   if (!result.ok) {
     return (
       <EmptyState
@@ -43,7 +44,28 @@ export function MarketOverviewCard({
   const eth = stats.dominance['eth']
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-card border border-border-subtle bg-surface p-4">
+    /*
+      PAS DE `h-full` ICI, ET C'EST UNE CORRECTION DE FOND.
+
+      Cette carte portait `flex h-full flex-col justify-between`, dans l'intention
+      qu'elle comble le bas de sa colonne. Elle produisait l'inverse.
+
+      `h-full` vaut `height: 100%`, et ce pourcentage se résout sur la hauteur de la
+      BOÎTE PARENTE — pas sur la place qui reste. Sur l'accueil, cette carte ferme une
+      colonne de grille que la colonne voisine étire à 2196 pixels ; `h-full` lui
+      accordait donc 2196 pixels À PARTIR de son propre sommet, situé 800 pixels plus
+      bas. La carte débordait de 800 pixels sous sa colonne, se peignait par-dessus le
+      pied de page — les agrégats venaient recouvrir la mention de copyright — et
+      allongeait la page d'un millier de pixels de vide noir.
+
+      Le défaut ne se voyait que sur l'accueil : partout ailleurs, la colonne n'est pas
+      étirée, sa hauteur n'est donc pas définie, et `height: 100%` est simplement
+      ignoré. C'est ce qui l'a laissé passer.
+
+      La grille de l'accueil pose désormais `items-start`, ce qui supprime l'étirement
+      à la source ; cette carte prend sa hauteur naturelle, comme toutes ses voisines.
+    */
+    <div className="flex flex-col rounded-card border border-border-subtle bg-surface p-4">
       <div>
         <p className="text-xs text-ink-muted">{fr.home.marketCapCardTitle}</p>
         <p className="tabular mt-1 text-2xl font-bold text-ink">

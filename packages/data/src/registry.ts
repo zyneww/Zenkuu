@@ -5,14 +5,9 @@
  * source revient à écrire son adaptateur puis à l'inscrire ici (§4).
  */
 
+import { binanceProvider } from './providers/binance'
 import { coinGeckoProvider } from './providers/coingecko'
 import { frankfurterProvider } from './providers/frankfurter'
-import {
-  alphaVantageProvider,
-  finnhubProvider,
-  reservoirProvider,
-  twelveDataProvider,
-} from './providers/pending'
 import { yahooProvider } from './providers/yahoo'
 import type { AssetClass, MarketDataProvider } from './types'
 import { ASSET_CLASSES } from './types'
@@ -21,19 +16,37 @@ import { ASSET_CLASSES } from './types'
  * L'ORDRE FAIT LA POLITIQUE DE SÉLECTION.
  *
  * `getProvider` retient le premier fournisseur configuré qui couvre la classe
- * demandée. Les sources sous clé sont donc placées AVANT Yahoo : le jour où l'une
- * d'elles est écrite et sa clé renseignée, elle supplante l'endpoint non officiel
- * sans qu'aucune page ne change. Yahoo joue le rôle de filet — il permet au site de
- * fonctionner sans aucune clé aujourd'hui, tout en restant remplaçable demain.
+ * demandée ; les suivants qui la couvrent aussi deviennent ses SECOURS, dans cet
+ * ordre (voir `getFallbackProviders`).
+ *
+ * Politique retenue, et elle est volontairement courte :
+ *   • crypto      → CoinGecko, secouru par Binance
+ *   • devises     → Frankfurter (BCE)
+ *   • actions,
+ *     ETF, indices,
+ *     mat. premières → Yahoo Finance
+ *   • NFT         → aucune source retenue, la classe reste en état vide (§5)
+ *
+ * Les fournisseurs sous clé qui figuraient ici (Twelve Data, Alpha Vantage, Finnhub,
+ * Reservoir) ont été RETIRÉS, pour trois raisons distinctes qu'il vaut mieux ne pas
+ * confondre :
+ *   · Finnhub interdit la redistribution hors accord écrit — or afficher des
+ *     cotations à des visiteurs publics EST une redistribution ;
+ *   · Reservoir a fermé son API le 15 octobre 2025, et les créations de compte
+ *     étaient closes avant : sa clé ne pouvait donc plus être obtenue, et l'annoncer
+ *     comme configurable était une promesse intenable ;
+ *   · Twelve Data et Alpha Vantage n'ont simplement pas été retenus.
+ *
+ * Conséquence assumée pour les NFT : `getDeclaredProvider` ne trouve plus rien, et
+ * `getAvailability` retombe sur « Aucune source gratuite retenue à ce jour ». C'est
+ * exactement l'état réel — mieux vaut cette phrase qu'un nom de fournisseur qui
+ * ferait croire à une clé à renseigner.
  */
 const PROVIDERS: readonly MarketDataProvider[] = [
   coinGeckoProvider,
+  binanceProvider,
   frankfurterProvider,
-  finnhubProvider,
-  twelveDataProvider,
-  alphaVantageProvider,
   yahooProvider,
-  reservoirProvider,
 ]
 
 /**
@@ -47,6 +60,59 @@ export function getProvider(assetClass: AssetClass): MarketDataProvider | null {
     PROVIDERS.find(
       (provider) => provider.assetClasses.includes(assetClass) && provider.isConfigured(),
     ) ?? null
+  )
+}
+
+/**
+ * Méthodes de `MarketDataProvider` sur lesquelles un secours peut être tenté.
+ *
+ * Le type est restreint aux MÉTHODES DE DONNÉES, à l'exclusion des métadonnées et
+ * de `isConfigured` : demander un secours sur `label` n'a aucun sens, et le typage
+ * doit le rendre impossible plutôt que de compter sur la relecture.
+ */
+export type ProviderCapability = Extract<
+  keyof MarketDataProvider,
+  | 'listAssets'
+  | 'getGlobalStats'
+  | 'getTrending'
+  | 'getAsset'
+  | 'getHistory'
+  | 'getOhlc'
+  | 'getCategories'
+  | 'getTickers'
+  | 'getDerivatives'
+  | 'getExchanges'
+  | 'search'
+>
+
+/**
+ * Les fournisseurs de secours pour cette classe, dans l'ordre de préférence.
+ *
+ * ── POURQUOI LA CAPACITÉ EST UN PARAMÈTRE OBLIGATOIRE ─────────────────────────
+ *
+ * Un secours n'est pas un clone. Binance sait lister des paires et rendre des
+ * bougies ; il ne connaît ni les catégories, ni les places de cotation, ni la
+ * capitalisation. Basculer aveuglément vers lui sur une requête qu'il ne sait pas
+ * servir transformerait « CoinGecko a renvoyé 429 » en « méthode non supportée » —
+ * un message plus obscur pour l'utilisateur, et une requête réseau gâchée.
+ *
+ * On ne retourne donc que les fournisseurs qui IMPLÉMENTENT RÉELLEMENT la méthode
+ * visée. Le reste des requêtes conserve le comportement d'origine : erreur franche,
+ * ou dernière valeur connue servie par le cache.
+ */
+export function getFallbackProviders(
+  assetClass: AssetClass,
+  capability: ProviderCapability,
+): MarketDataProvider[] {
+  const primary = getProvider(assetClass)
+  if (!primary) return []
+
+  return PROVIDERS.filter(
+    (provider) =>
+      provider !== primary &&
+      provider.assetClasses.includes(assetClass) &&
+      provider.isConfigured() &&
+      typeof provider[capability] === 'function',
   )
 }
 

@@ -1,26 +1,27 @@
 {
-  "name": "@zenith/web",
+  "name": "@zenkuu/web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@clerk/localizations": "^4.14.2",
     "@clerk/nextjs": "^7.7.1",
-    "@zenith/data": "workspace:*",
-    "@zenith/db": "workspace:*",
-    "@zenith/ui": "workspace:*",
+    "@sentry/nextjs": "^10.70.0",
+    "@zenkuu/data": "workspace:*",
+    "@zenkuu/db": "workspace:*",
+    "@zenkuu/ui": "workspace:*",
     "lightweight-charts": "^5.2.0",
     "lucide-react": "^1.30.0",
     "next": "^16.3.0",
+    "next-intl": "^4.13.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "recharts": "^3.10.1",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -28,7 +29,9 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "@zenith/config": "workspace:*",
+    "@zenkuu/config": "workspace:*",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.3.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3"
   }

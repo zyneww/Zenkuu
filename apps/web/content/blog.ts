@@ -53,7 +53,7 @@ export interface Article {
   /** Chapô : sert de résumé de liste, de méta-description et d'extrait RSS. */
   summary: string
   category: BlogCategory
-  /** Signature. « Équipe ZENITH » tant qu'aucun auteur nommé n'existe réellement. */
+  /** Signature. « Équipe ZENKUU » tant qu'aucun auteur nommé n'existe réellement. */
   author: string
   /** Date de publication, ISO 8601 (`2026-08-10`). */
   publishedAt: string

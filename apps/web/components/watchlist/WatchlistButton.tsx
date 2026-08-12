@@ -1,9 +1,10 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
+import { FREE_WATCHLIST_LIMIT } from '@/lib/billing'
 import { toggleWatchlist, type WatchlistActionResult } from '@/lib/watchlist-actions'
 
 /**
@@ -32,7 +33,7 @@ export function WatchlistButton({
   signedIn: boolean
 }) {
   const [following, setFollowing] = useState(initialFollowing)
-  const [message, setMessage] = useState<string | null>(null)
+  const [failure, setFailure] = useState<FailureReason | null>(null)
   const [pending, startTransition] = useTransition()
 
   // Sans session, le bouton devient une invitation à se connecter plutôt qu'un
@@ -52,7 +53,7 @@ export function WatchlistButton({
   function onClick() {
     const previous = following
     setFollowing(!previous)
-    setMessage(null)
+    setFailure(null)
 
     startTransition(async () => {
       const result: WatchlistActionResult = await toggleWatchlist({
@@ -65,7 +66,7 @@ export function WatchlistButton({
 
       if (!result.ok) {
         setFollowing(previous)
-        setMessage(reasonLabel(result.reason))
+        setFailure(result.reason)
         return
       }
       setFollowing(result.following)
@@ -92,17 +93,34 @@ export function WatchlistButton({
         {following ? 'Suivi' : 'Suivre'}
       </button>
 
-      {message ? (
-        <p role="status" className="text-[0.6875rem] text-ink-muted">
-          {message}
+      {failure ? (
+        <p role="status" className="max-w-[16rem] text-right text-[0.6875rem] leading-snug text-ink-muted">
+          {reasonLabel(failure)}{' '}
+          {/*
+            Le plafond est le SEUL refus qui se résout par un geste du lecteur : les
+            trois autres décrivent une panne d'exploitation, sur laquelle il ne peut
+            rien. C'est aussi le seul moment où proposer l'abonnement est utile plutôt
+            qu'intrusif — la limite vient d'être rencontrée, pas annoncée à l'avance.
+          */}
+          {failure === 'limit-reached' || failure === 'list-limit' ? (
+            <Link href="/tarifs" className="text-brand hover:text-brand-strong">
+              Voir Zenkuu Pro
+            </Link>
+          ) : null}
         </p>
       ) : null}
     </div>
   )
 }
 
-function reasonLabel(reason: Exclude<WatchlistActionResult, { ok: true }>['reason']): string {
+type FailureReason = Exclude<WatchlistActionResult, { ok: true }>['reason']
+
+function reasonLabel(reason: FailureReason): string {
   switch (reason) {
+    case 'limit-reached':
+      return `Votre liste atteint ${FREE_WATCHLIST_LIMIT} actifs, le plafond de l’offre gratuite.`
+    case 'list-limit':
+      return 'L’offre gratuite ne comporte qu’une seule liste de suivi.'
     case 'auth-disabled':
       return 'Les comptes ne sont pas configurés sur cette instance.'
     case 'signed-out':

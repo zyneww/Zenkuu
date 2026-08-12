@@ -1,0 +1,115 @@
+{
+  "metric": {
+    "price": {
+      "label": "Precio",
+      "help": "Último precio publicado por la fuente, convertido a la divisa que hayas elegido. No es un precio de ejecución: según el mercado y el momento, una orden real se cerraría a un nivel próximo pero distinto."
+    },
+    "marketCap": {
+      "label": "Capitalización",
+      "help": "Valor total de la oferta en circulación al precio actual. Es la medida de tamaño más habitual, pero ignora los tokens aún no emitidos — véase la valoración diluida."
+    },
+    "volume24h": {
+      "label": "Volumen 24 h",
+      "help": "Importe total negociado en las últimas 24 horas, en todos los mercados. Un volumen bajo hace que el precio sea mucho más sensible a una sola orden."
+    },
+    "fdv": {
+      "label": "Valoración diluida",
+      "help": "Capitalización que alcanzaría el activo si toda su oferta máxima estuviera en circulación. Se toma tal cual de la fuente, nunca se recalcula: las reglas sobre tokens bloqueados o quemados son suyas."
+    },
+    "tvl": {
+      "label": "Valor bloqueado",
+      "help": "Importe depositado en los contratos del protocolo. Solo existe en las finanzas descentralizadas, y mide el uso más que el precio."
+    },
+    "rank": {
+      "label": "Puesto",
+      "help": "Posición por capitalización dentro de su clase de activo, según la publica la fuente."
+    },
+    "exchange": {
+      "label": "Mercado de cotización",
+      "help": "Mercado del que la fuente toma el precio de referencia de este activo."
+    },
+    "high24h": {
+      "label": "Máximo 24 h",
+      "help": "Precio más alto alcanzado en las últimas 24 horas."
+    },
+    "low24h": {
+      "label": "Mínimo 24 h",
+      "help": "Precio más bajo alcanzado en las últimas 24 horas."
+    },
+    "ath": {
+      "label": "Máximo histórico",
+      "help": "Precio más alto jamás alcanzado. El porcentaje indica la distancia entre el precio actual y ese récord."
+    },
+    "athWindow": {
+      "label": "Máximo en 52 semanas",
+      "help": "Precio más alto del último año. La fuente no publica un récord absoluto para esta clase de activo."
+    },
+    "atl": {
+      "label": "Mínimo histórico",
+      "help": "Precio más bajo jamás alcanzado. El porcentaje indica la subida desde ese suelo."
+    },
+    "atlWindow": {
+      "label": "Mínimo en 52 semanas",
+      "help": "Precio más bajo del último año. La fuente no publica un suelo absoluto para esta clase de activo."
+    },
+    "circulatingSupply": {
+      "label": "Oferta en circulación",
+      "help": "Unidades realmente en circulación, excluidos los tokens bloqueados, reservados o destruidos."
+    },
+    "totalSupply": {
+      "label": "Oferta total",
+      "help": "Unidades creadas hasta la fecha, incluidos los tokens bloqueados, descontando los quemados."
+    },
+    "maxSupply": {
+      "label": "Oferta máxima",
+      "help": "Límite de unidades que el protocolo permitirá jamás. Ausente cuando no hay ningún límite inscrito en el protocolo."
+    },
+    "issuedShare": {
+      "label": "Oferta emitida",
+      "help": "Parte de la oferta máxima ya en circulación. Calculada a partir de dos cifras publicadas por la fuente, nunca estimada."
+    },
+    "change1h": {
+      "label": "1 hora",
+      "help": "Variación del precio en la última hora. La ventana más ruidosa: en un activo poco negociado suele reflejar una sola orden más que un movimiento de fondo."
+    },
+    "change24h": {
+      "label": "24 horas",
+      "help": "Variación del precio en las últimas 24 horas, según la publica la fuente. Es la ventana de referencia de las clasificaciones."
+    },
+    "change7d": { "label": "7 días", "help": "Variación del precio en la semana transcurrida." },
+    "change14d": { "label": "14 días", "help": "Variación del precio en las dos últimas semanas." },
+    "change30d": { "label": "30 días", "help": "Variación del precio en el mes transcurrido." },
+    "change1y": {
+      "label": "1 año",
+      "help": "Variación del precio en el año transcurrido. Una ventana ausente significa que la fuente no la publica, nunca que vale cero."
+    }
+  },
+
+  "metricPage": {
+    "breadcrumb": "Métricas",
+    "definitionTitle": "Definición",
+    "sourceTitle": "Fuente y actualidad",
+    "noSeriesTitle": "Sin histórico para esta medida",
+    "noSeriesBody": "La fuente solo publica un valor puntual para esta métrica, sin serie temporal. No se muestra ningún gráfico: trazar una curva supondría inventar los puntos que faltan.",
+    "otherMetrics": "Otras métricas de {name}",
+    "backToAsset": "Volver a la ficha",
+    "currentValue": "Valor actual"
+  },
+
+  "chartCard": {
+    "expand": "Ampliar",
+    "collapse": "Reducir",
+    "settings": "Ajustes del gráfico",
+    "latest": "Último",
+    "share": "% Parte",
+    "total": "Total",
+    "other": "Otros",
+    "noData": "Serie no publicada por la fuente para este periodo."
+  },
+
+  "search": {
+    "placeholder": "Buscar",
+    "shortcut": "Ctrl + K",
+    "open": "Abrir la búsqueda"
+  }
+}
