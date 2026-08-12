@@ -82,7 +82,7 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
                           width={20}
                           height={20}
                           loading="lazy"
-                          className="shrink-0 rounded-none"
+                          className="shrink-0 rounded-pill"
                         />
                       ) : null}
                       <span className="truncate font-medium text-ink">{exchange.name}</span>

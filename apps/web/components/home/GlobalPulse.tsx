@@ -23,9 +23,12 @@ import { Money } from '@/components/locale/Money'
 export function GlobalPulse({
   stats,
   series,
+  sparkHeight,
 }: {
   stats: GlobalMarketStats
   series: MarketCapSeriesState
+  /** Transmis tel quel aux deux cartes — voir `MetricCard`. */
+  sparkHeight?: number
 }) {
   const capPoints = series.points.map((point) => ({ x: point.timestamp, y: point.value }))
 
@@ -51,6 +54,7 @@ export function GlobalPulse({
           </span>
         }
         {...(series.ready && capPoints.length > 1 ? { series: capPoints } : {})}
+        {...(sparkHeight ? { sparkHeight } : {})}
         format="compact"
       />
 
@@ -68,6 +72,7 @@ export function GlobalPulse({
           </span>
         }
         {...(volumePoints.length > 1 ? { series: volumePoints } : {})}
+        {...(sparkHeight ? { sparkHeight } : {})}
         format="compact"
       />
     </div>

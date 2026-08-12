@@ -79,7 +79,7 @@ export default function BienDemarrerPage() {
             className="flex gap-4 rounded-card border border-border-subtle bg-surface p-4"
           >
             <span
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none bg-brand-soft text-sm font-semibold text-brand-strong"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-sm font-semibold text-brand-strong"
               aria-hidden="true"
             >
               {index + 1}

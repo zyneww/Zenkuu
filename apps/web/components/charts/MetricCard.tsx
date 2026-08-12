@@ -24,6 +24,7 @@ export function MetricCard({
   color = 'var(--color-data-1)',
   icon,
   series,
+  sparkHeight = 56,
   format,
   action,
 }: {
@@ -33,6 +34,16 @@ export function MetricCard({
   color?: string
   icon?: ReactNode
   series?: { x: string | number; y: number }[]
+  /**
+   * Hauteur de la courbe, en pixels.
+   *
+   * Réglable parce que cette carte sert dans deux contextes de hauteurs très
+   * différentes. Dans une colonne étroite, 56 px suffisent à donner la forme de la
+   * série. Dans une bande étirée à la hauteur d'un voisin plus haut, la même valeur
+   * laisse cent pixels de vide entre le chiffre et la courbe — le tracé étant calé
+   * en bas, c'est le blanc du milieu qui absorbe tout l'étirement.
+   */
+  sparkHeight?: number
   /** Format de l'infobulle de la courbe — un mot-clé, non une fonction (voir `AreaSpark`). */
   format?: SparkFormat
   action?: ReactNode
@@ -63,7 +74,7 @@ export function MetricCard({
       </div>
 
       {series && series.length > 1 ? (
-        <AreaSpark data={series} color={color} height={56} {...(format ? { format } : {})} />
+        <AreaSpark data={series} color={color} height={sparkHeight} {...(format ? { format } : {})} />
       ) : null}
     </article>
   )

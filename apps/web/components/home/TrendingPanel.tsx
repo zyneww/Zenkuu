@@ -50,11 +50,11 @@ export async function TrendingPanel({ assets, unavailableReason }: TrendingPanel
                     alt=""
                     width={20}
                     height={20}
-                    className="shrink-0 rounded-none"
+                    className="shrink-0 rounded-pill"
                     loading="lazy"
                   />
                 ) : (
-                  <span className="h-5 w-5 shrink-0 rounded-none bg-surface-muted" aria-hidden="true" />
+                  <span className="h-5 w-5 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true" />
                 )}
 
                 <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink group-hover:text-brand-strong">

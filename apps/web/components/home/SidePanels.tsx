@@ -62,7 +62,15 @@ export async function NarrativesPanel({ result }: { result: DataResult<MarketCat
  * RSS sont publiés pour annoncer les articles, pas pour permettre de les republier :
  * reprendre le texte intégral dépasserait ce que la syndication autorise.
  */
-export async function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) {
+export async function NewsPanel({
+  result,
+  limit = 6,
+}: {
+  result: DataResult<NewsItem[]>
+  /** Nombre d'articles montrés. Réglable parce que ce panneau sert dans deux
+      emplacements de hauteurs très différentes. */
+  limit?: number
+}) {
   const fr = await getContent()
   return (
     <Card>
@@ -71,7 +79,7 @@ export async function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) 
       {result.ok && result.data.length > 0 ? (
         <>
           <ul className="divide-y divide-border-subtle">
-            {result.data.slice(0, 6).map((item) => (
+            {result.data.slice(0, limit).map((item) => (
               <li key={item.id} className="py-2">
                 <a
                   href={item.url}
@@ -89,9 +97,25 @@ export async function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) 
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[0.6875rem] text-ink-muted">
-            Sources : {result.source.label}. Les articles s’ouvrent chez leur éditeur.
-          </p>
+          {/*
+            ATTRIBUTION REPLIÉE, ET NON RACCOURCIE.
+
+            `result.source.label` énumère la vingtaine de flux agrégés — CoinDesk,
+            Cointelegraph, The Block, Decrypt, Bitcoin Magazine, CryptoSlate… Rendu à
+            plat, ce paragraphe faisait à lui seul près de la moitié de la hauteur de
+            la carte, et imposait cette hauteur aux deux cartes d'agrégat voisines,
+            dont les courbes se retrouvaient au fond d'un vide de quatre cents pixels.
+
+            Le §5 exige que la source soit nommée, pas qu'elle occupe le tiers du
+            bloc. `<details>` satisfait les deux : la liste reste dans le document —
+            donc lisible, sélectionnable, indexable — sans peser sur la mise en page.
+          */}
+          <details className="mt-3 text-[0.6875rem] text-ink-muted">
+            <summary className="cursor-pointer list-none transition-colors hover:text-ink">
+              Sources · les articles s’ouvrent chez leur éditeur
+            </summary>
+            <p className="mt-1.5 leading-relaxed">{result.source.label}</p>
+          </details>
         </>
       ) : (
         <EmptyState

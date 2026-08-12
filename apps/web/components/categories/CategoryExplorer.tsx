@@ -309,7 +309,7 @@ export function TopAssets({ category }: { category: MarketCategory }) {
             loading="lazy"
             width={20}
             height={20}
-            className="h-5 w-5 rounded-none border border-surface bg-surface-muted object-contain"
+            className="h-5 w-5 rounded-pill border border-surface bg-surface-muted object-contain"
           />
         )
 

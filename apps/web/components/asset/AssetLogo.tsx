@@ -96,7 +96,14 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
         alt=""
         width={size}
         height={size}
-        className="shrink-0 rounded-none"
+        /* ROND. Les quatre références de ce site — OKX, CoinGecko, Token Terminal,
+           Tokenomist — dessinent toutes le logo d'un actif en pastille circulaire,
+           et c'est d'ailleurs le rayon le plus fréquent de la page d'OKX (50 %, 32
+           occurrences relevées). Le carré hérité de l'époque « angles vifs partout »
+           passait inaperçu sur les PNG CoinGecko, déjà ronds sur fond transparent,
+           mais rendait carrés le monogramme de repli et la tuile des matières
+           premières — deux formes closes que rien ne justifiait d'anguler. */
+        className="shrink-0 rounded-pill"
         onError={() => setFailed(true)}
       />
     )
@@ -108,7 +115,7 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
   if (entry?.emoji) {
     return (
       <span
-        className={`flex shrink-0 items-center justify-center ${
+        className={`flex shrink-0 items-center justify-center rounded-pill ${
           entry.family ? FAMILY_TINT[entry.family] : 'bg-surface-muted'
         }`}
         style={{ width: size, height: size, fontSize: Math.round(size * 0.58) }}
@@ -128,7 +135,10 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
         alt=""
         width={size}
         height={size}
-        className="shrink-0 rounded-none"
+        /* CARRÉ ADOUCI et non rond, à la différence des cryptoactifs ci-dessus : un
+           logo d'entreprise servi par logo.dev est une marque cadrée au carré, dont
+           un masque circulaire rognerait les angles — et souvent une lettre. */
+        className="shrink-0 rounded-control"
         // Le service sert déjà la taille demandée : le repasser par l'optimiseur de
         // Next ajouterait un aller-retour serveur sans rien gagner.
         unoptimized
@@ -140,7 +150,7 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
   // ── 4. Monogramme — le repli de toutes les branches ───────────────────────
   return (
     <span
-      className="flex shrink-0 items-center justify-center bg-brand-soft font-bold text-brand-strong"
+      className="flex shrink-0 items-center justify-center rounded-pill bg-brand-soft font-bold text-brand-strong"
       style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }}
       aria-hidden="true"
     >

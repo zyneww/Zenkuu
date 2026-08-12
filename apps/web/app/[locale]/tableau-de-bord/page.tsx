@@ -135,7 +135,7 @@ export default async function DashboardPage() {
                       <AssetLogo asset={quote} size={24} />
                     ) : (
                       <span
-                        className="h-6 w-6 shrink-0 rounded-none bg-surface-muted"
+                        className="h-6 w-6 shrink-0 rounded-pill bg-surface-muted"
                         aria-hidden="true"
                       />
                     )}

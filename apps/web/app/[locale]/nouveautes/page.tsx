@@ -92,7 +92,7 @@ export default function NouveautesPage() {
         {RELEASES.map((release, index) => (
           <li key={index} className="relative space-y-3 border-l border-border-subtle pl-5">
             <span
-              className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-none bg-brand-strong"
+              className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-pill bg-brand-strong"
               aria-hidden="true"
             />
             <div className="space-y-1">
