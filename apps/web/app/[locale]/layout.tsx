@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { DM_Mono, Inter } from 'next/font/google'
+import { DM_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
@@ -26,33 +27,48 @@ import { SITE_URL } from '@/lib/site'
 import '@/app/globals.css'
 
 /**
- * Police d'INTERFACE ET D'AFFICHAGE — Inter.
+ * Police d'INTERFACE ET D'AFFICHAGE — Switzer.
  *
- * Elle remplace Geist, et le motif n'est pas typographique mais de RESSEMBLANCE : les
- * deux références retenues pour ce site composent en Inter. Relévé au navigateur sur
- * l'une et l'autre — CoinGecko sert `Inter, -apple-system, …` sur toute sa fiche de
- * cotation, Tokenomist charge `inter` en graisses 300 à 700. Geist appartient à Token
- * Terminal, dont on ne reprend que le THÈME SOMBRE.
+ * ── POURQUOI PAS CELLE D'OKX ─────────────────────────────────────────────────
  *
- * Le retour est d'ailleurs un retour : le site composait en Inter avant Geist, et le
- * nom de variable `--font-inter` — conservé à l'époque pour ne pas retoucher des
- * centaines de composants — redevient exact.
+ * La demande était « la même police qu'OKX ». Relevé au navigateur sur
+ * okx.com/fr-fr/markets/prices : ils composent en `OKXSans`, servie depuis
+ * `/cdn/assets/okfe/libs/fonts/OKX_Sans/*.woff2`. C'est une fonte PROPRIÉTAIRE,
+ * dessinée pour eux et distribuée sous leur seul nom de domaine. On ne peut ni
+ * l'héberger — ce serait une contrefaçon — ni la charger depuis chez eux : un lien
+ * direct vers le CDN d'un tiers casse le jour où ils changent d'empreinte, et fait
+ * dépendre le rendu de notre site de l'infrastructure d'un concurrent.
  *
- * AUCUN `weight` DÉCLARÉ, ET C'EST VOLONTAIRE.
+ * Switzer est le substitut LIBRE le plus proche : grotesque géométrique de l'Indian
+ * Type Foundry, sous ITF Free Font License (usage commercial autorisé), même
+ * hauteur d'x généreuse et mêmes terminaisons droites qu'OKX Sans. Elle remplace
+ * Inter, qui était le choix de CoinGecko et de Tokenomist — un site de marché qui
+ * compose comme tous les autres n'a pas de voix propre.
  *
- * Inter est une police VARIABLE (axe `wght`, de 100 à 900). Déclarer des graisses
- * ferait télécharger autant de fichiers STATIQUES, alors que l'omission charge une
- * ressource unique couvrant toute l'échelle — ce dont le site se sert réellement,
- * puisqu'il fait porter la voix des titres par la graisse et non par une seconde
- * famille. La documentation de `next/font` recommande explicitement les variables.
+ * ── UN SEUL FICHIER POUR TOUTE L'ÉCHELLE ─────────────────────────────────────
+ *
+ * `Switzer-Variable.woff2` porte l'axe `wght` de 100 à 900 en 42 ko. Les cinq
+ * graisses utilisées par le site viennent donc d'une ressource unique, là où les
+ * fichiers statiques équivalents en auraient demandé cinq. D'où `weight: '100 900'`
+ * — la plage, et non une valeur : c'est ce qui indique au navigateur qu'il peut
+ * interpoler plutôt que de synthétiser un gras artificiel.
+ *
+ * ── POURQUOI `app/fonts/` ET NON `public/` ───────────────────────────────────
+ *
+ * `next/font/local` traite le fichier à la compilation : il l'émet sous
+ * `/_next/static/media/` avec une empreinte de contenu, donc en cache immuable, et
+ * génère la règle `@font-face` avec les métriques de repli qui suppriment le
+ * décalage de mise en page au chargement. Déposé dans `public/`, il serait servi tel
+ * quel, sans empreinte et sans ces métriques.
  *
  * `display: 'swap'` évite le texte invisible pendant le chargement, qui pénalise le
  * LCP mesuré (§9).
  */
-const sans = Inter({
-  subsets: ['latin'],
+const sans = localFont({
+  src: '../fonts/Switzer-Variable.woff2',
+  weight: '100 900',
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-switzer',
 })
 
 /**

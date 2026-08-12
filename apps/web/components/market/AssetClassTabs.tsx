@@ -35,7 +35,7 @@ export async function AssetClassTabs({ current }: { current: AssetClass }) {
               <Link
                 href={marketHref(assetClass)}
                 aria-current={active ? 'page' : undefined}
-                className={`inline-block whitespace-nowrap rounded-card px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`inline-block whitespace-nowrap rounded-control px-3 py-1.5 text-xs font-medium transition-colors ${
                   active
                     ? 'bg-brand-soft text-brand-strong'
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

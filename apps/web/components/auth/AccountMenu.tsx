@@ -115,7 +115,7 @@ function ConnectedAccountMenu({
         <span className="hidden max-w-[8rem] truncate text-sm font-medium text-ink sm:block">
           {name}
         </span>
-        <ProBadge />
+        <PlanBadge />
         <ChevronDown
           className={`h-3 w-3 shrink-0 text-ink-muted transition-transform duration-150 ${
             open ? 'rotate-180' : ''
@@ -193,7 +193,7 @@ function ConnectedAccountMenu({
                          précisément ce que l'on vient de demander à voir. */
                       setOpen(false)
                     }}
-                    className={`flex flex-1 flex-col items-center gap-1 rounded-card border px-2 py-2 text-[0.6875rem] font-medium transition-colors duration-150 ${
+                    className={`flex flex-1 flex-col items-center gap-1 rounded-control border px-2 py-2 text-[0.6875rem] font-medium transition-colors duration-150 ${
                       active
                         ? 'border-brand bg-brand-soft text-brand-strong'
                         : 'border-transparent text-ink-muted hover:bg-surface-muted hover:text-ink'
@@ -222,7 +222,7 @@ function ConnectedAccountMenu({
                 // « non connecté », ce qui ressemble à une perte de données.
                 void signOut({ redirectUrl: '/' })
               }}
-              className="flex w-full items-center gap-2.5 rounded-card px-2 py-2 text-sm font-medium text-down transition-colors duration-150 hover:bg-down-soft"
+              className="flex w-full items-center gap-2.5 rounded-control px-2 py-2 text-sm font-medium text-down transition-colors duration-150 hover:bg-down-soft"
             >
               <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
               Déconnexion
@@ -235,24 +235,53 @@ function ConnectedAccountMenu({
 }
 
 /**
- * Pastille « Pro », affichée aux seuls abonnés.
+ * Pastille d'OFFRE — « Free » ou « Pro », jamais rien.
  *
- * Elle lit le PLAN et non une fonction, contrairement au reste du code qui préfère
- * `has({ feature })`. C'est justifié ici et seulement ici : il ne s'agit pas
- * d'ouvrir un droit mais de nommer l'offre souscrite, et une pastille « Pro » qui
- * s'allumerait parce qu'une fonction isolée est ouverte serait fausse.
+ * ── ELLE NE S'EFFACE PLUS ─────────────────────────────────────────────────────
+ *
+ * Elle ne s'allumait qu'aux abonnés, et l'absence portait alors l'information : pas
+ * de pastille, donc offre gratuite. C'est une lecture que personne ne fait. Un blanc
+ * ne se remarque pas, et surtout il ne se distingue pas d'un chargement en cours ou
+ * d'un défaut d'affichage — un abonné qui ne voit rien se demande légitimement si son
+ * paiement a été pris en compte. Nommer les deux états supprime la question.
+ *
+ * ── DEUX COULEURS, PARCE QU'ELLES DISENT DEUX CHOSES ──────────────────────────
+ *
+ * « Free » est un ÉTAT : vert de statut, celui qui ne veut rien dire d'autre que
+ * « en cours de validité » (voir `--color-status` dans globals.css). « Pro » est une
+ * OFFRE, et le système lui a déjà donné une couleur — l'or de `accent`, celui de la
+ * couronne du bouton d'abonnement. Les peindre du même vert reviendrait à faire de
+ * l'abonnement un simple état, et à effacer le seul repère visuel qui distingue
+ * aujourd'hui ce qui est vendu de ce qui ne l'est pas.
+ *
+ * ── CE QUE « FREE » SIGNIFIE QUAND LA BOUTIQUE N'EXISTE PAS ───────────────────
+ *
+ * Sans facturation configurée, `has()` renvoie faux et la pastille affiche « Free ».
+ * C'est littéralement exact — aucun abonnement n'existe — même si `<ProGate>` ouvre
+ * alors les fonctions à tout le monde. L'inverse, masquer la pastille, ramènerait le
+ * blanc ambigu qu'on vient de supprimer.
  *
  * `useAuth()` est appelé INCONDITIONNELLEMENT, comme la règle des hooks l'exige. Ce
  * composant n'est rendu que depuis `ConnectedAccountMenu`, lui-même gardé par
  * `AUTH_ENABLED` : le fournisseur Clerk est donc toujours au-dessus.
  */
-function ProBadge() {
-  const { has } = useAuth()
-  if (!BILLING_ENABLED || !has?.({ plan: PRO_PLAN })) return null
+function PlanBadge() {
+  const { isLoaded, has } = useAuth()
+
+  // Avant résolution, on ne rend RIEN plutôt que « Free » : afficher l'offre gratuite
+  // puis la corriger en « Pro » ferait clignoter le mot à chaque chargement de page,
+  // et sous les yeux de la seule personne que cela froisse.
+  if (!isLoaded) return null
+
+  const isPro = BILLING_ENABLED && has?.({ plan: PRO_PLAN }) === true
 
   return (
-    <span className="shrink-0 rounded-pill bg-accent-soft px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-accent-strong">
-      Pro
+    <span
+      className={`shrink-0 rounded-pill px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide ${
+        isPro ? 'bg-accent-soft text-accent-strong' : 'bg-status-soft text-status'
+      }`}
+    >
+      {isPro ? 'Pro' : 'Free'}
     </span>
   )
 }

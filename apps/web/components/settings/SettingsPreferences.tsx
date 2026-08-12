@@ -60,7 +60,7 @@ export function SettingsPreferences() {
           <button
             type="button"
             onClick={() => setTab('language')}
-            className="rounded-card border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+            className="rounded-control border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
           >
             {LANGUAGE_LABELS[language] ?? 'Français'}
           </button>
@@ -73,7 +73,7 @@ export function SettingsPreferences() {
           <button
             type="button"
             onClick={() => setTab('currency')}
-            className="rounded-card border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+            className="rounded-control border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
           >
             {currency}
           </button>

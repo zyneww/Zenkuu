@@ -34,11 +34,14 @@ const BRAND = '#3d63c2'
 
 export const CLERK_VARIABLES = {
   colorPrimary: BRAND,
-  // 0px et non 12px : le design system a supprimé tous les rayons sauf les pastilles.
-  // Un formulaire aux angles arrondis au milieu d'une interface à angles vifs se lit
-  // comme un encart importé d'ailleurs — ce qu'il est, et c'est ce qu'on évite.
-  borderRadius: '0px',
-  fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif',
+  // 4px : le rayon des CONTRÔLES du design system, celui des champs et des boutons
+  // (voir `--radius-control` dans globals.css). Le commentaire précédent affirmait
+  // que « tous les rayons sauf les pastilles » avaient été supprimés — c'était vrai
+  // d'une version antérieure du système, et l'écart s'était mis à se voir : un
+  // formulaire à angles vifs au milieu de champs adoucis se lit comme un encart
+  // importé d'ailleurs, exactement le défaut que cette ligne cherchait à éviter.
+  borderRadius: '4px',
+  fontFamily: 'var(--font-switzer), ui-sans-serif, system-ui, sans-serif',
 } as const
 
 /*

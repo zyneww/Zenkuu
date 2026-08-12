@@ -42,7 +42,7 @@ export function WatchlistButton({
     return (
       <Link
         href="/connexion"
-        className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
+        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
       >
         <Star className="h-3.5 w-3.5" aria-hidden="true" />
         Se connecter pour suivre
@@ -80,7 +80,7 @@ export function WatchlistButton({
         onClick={onClick}
         disabled={pending}
         aria-pressed={following}
-        className={`inline-flex items-center gap-1.5 rounded-card border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${
+        className={`inline-flex items-center gap-1.5 rounded-control border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${
           following
             ? 'border-brand bg-brand-soft text-brand-strong'
             : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'

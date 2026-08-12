@@ -41,7 +41,7 @@ export function CryptoViewControls({
               // extrait arbitraire d'un classement qui n'a plus rien à voir.
               href={cryptoHref(basePath, { view: entry.key, period })}
               aria-current={active ? 'page' : undefined}
-              className={`rounded-card px-3.5 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-control px-3.5 py-2 text-sm font-medium transition-colors ${
                 active
                   ? 'bg-surface-muted text-ink'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

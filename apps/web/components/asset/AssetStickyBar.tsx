@@ -128,7 +128,7 @@ export function AssetStickyBar({
             // `tabIndex={-1}` quand la barre est invisible : un contrôle transparent
             // mais focalisable piège la tabulation dans une zone que personne ne voit.
             tabIndex={shown ? 0 : -1}
-            className="shrink-0 rounded-card border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+            className="shrink-0 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
           >
             Haut de page
           </button>

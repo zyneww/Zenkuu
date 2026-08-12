@@ -45,7 +45,7 @@ export function ShareButtons({ title, path }: { title: string; path: string }) {
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
+        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
       >
         {copied ? (
           <Check className="h-3.5 w-3.5 text-up" aria-hidden="true" />
@@ -59,7 +59,7 @@ export function ShareButtons({ title, path }: { title: string; path: string }) {
         href={`https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`}
         target="_blank"
         rel="noopener noreferrer nofollow"
-        className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
+        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
       >
         Partager sur X
         <span className="sr-only">(nouvelle fenêtre)</span>

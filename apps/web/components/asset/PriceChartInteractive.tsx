@@ -207,6 +207,23 @@ export function PriceChartInteractive({
   showNavigator = true,
 }: PriceChartInteractiveProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+
+  /*
+   * LARGEUR DU CADRE, TENUE EN ÉTAT ET NON LUE SUR LA RÉFÉRENCE.
+   *
+   * Elle sert à décider de quel côté du curseur la bulle de survol se pose. Elle était
+   * lue en `containerRef.current?.clientWidth` AU MOMENT DU RENDU, ce qui est faux à
+   * deux titres : la référence vaut encore `null` au premier rendu — la largeur tombe
+   * alors à 0, et la bulle bascule à gauche même contre le bord gauche — et une
+   * référence ne déclenche aucun rendu quand elle change, si bien qu'un
+   * redimensionnement de la colonne n'était jamais répercuté.
+   *
+   * L'observateur de taille plus bas connaît déjà cette largeur — il la donne au
+   * graphique. On la range simplement en état au passage : aucune mesure de plus,
+   * aucun observateur de plus.
+   */
+  const [frameWidth, setFrameWidth] = useState(0)
+
   const chartRef = useRef<IChartApi | null>(null)
   const mainRef = useRef<ISeriesApi<SeriesType> | null>(null)
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null)
@@ -286,10 +303,13 @@ export function PriceChartInteractive({
     // colonne dont la largeur change aussi quand la mise en page se réorganise, sans
     // que la fenêtre soit redimensionnée.
     const observer = new ResizeObserver(([entry]) => {
-      if (entry) chart.applyOptions({ width: entry.contentRect.width })
+      if (!entry) return
+      chart.applyOptions({ width: entry.contentRect.width })
+      setFrameWidth(entry.contentRect.width)
     })
     observer.observe(container)
     chart.applyOptions({ width: container.clientWidth })
+    setFrameWidth(container.clientWidth)
 
     return () => {
       observer.disconnect()
@@ -764,7 +784,7 @@ export function PriceChartInteractive({
           <FloatingTooltip
             legend={legend}
             indexed={indexed}
-            frameWidth={containerRef.current?.clientWidth ?? 0}
+            frameWidth={frameWidth}
           />
         ) : null}
       </div>

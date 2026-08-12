@@ -189,7 +189,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               key={asset.id}
               type="button"
               onClick={() => toggle(asset.id)}
-              className="flex items-center gap-2 rounded-card border px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-down"
+              className="flex items-center gap-2 rounded-control border px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-down"
               style={{ borderColor: dataColor(index) }}
             >
               <span

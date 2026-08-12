@@ -54,13 +54,13 @@ function StaticAuthLinks({ onOpen }: { onOpen?: (mode: AuthMode) => void }) {
       <AuthLink
         href={AUTH_ROUTES.signIn}
         label={fr.auth.signIn}
-        className="whitespace-nowrap rounded-card px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+        className="whitespace-nowrap rounded-control px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
         {...(onOpen ? { onOpen: () => onOpen('signIn') } : {})}
       />
       <AuthLink
         href={AUTH_ROUTES.signUp}
         label={fr.auth.signUp}
-        className="whitespace-nowrap rounded-card bg-brand px-3 py-1.5 text-xs font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
+        className="whitespace-nowrap rounded-control bg-brand px-3 py-1.5 text-xs font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
         {...(onOpen ? { onOpen: () => onOpen('signUp') } : {})}
       />
     </span>
@@ -272,7 +272,7 @@ function ConnectedAccountSection({
           onClose()
           onOpenAuth('signUp')
         }}
-        className="flex-1 rounded-card border border-brand px-3 py-2 text-sm font-medium text-brand transition-colors duration-150 hover:bg-brand-soft"
+        className="flex-1 rounded-control border border-brand px-3 py-2 text-sm font-medium text-brand transition-colors duration-150 hover:bg-brand-soft"
       >
         {fr.auth.signUp}
       </button>

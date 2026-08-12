@@ -14,7 +14,7 @@ import { UpgradeButton } from '@/components/billing/UpgradeButton'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import { SettingsMenu } from '@/components/settings/SettingsMenu'
-import { SearchTrigger } from '@/components/search/SearchTrigger'
+import { HeaderSearch } from '@/components/search/HeaderSearch'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
 /**
@@ -51,6 +51,10 @@ export function NavBar() {
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  /* STABLES, et il le faut : `HeaderSearch` pose son écouteur de raccourcis dans un
+     effet qui dépend de `onOpenOverlay`. Une fonction recréée à chaque rendu ferait
+     démonter puis remonter cet écouteur à chaque frappe. */
+  const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closeAuth = useCallback(() => setAuthMode(null), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
@@ -67,31 +71,17 @@ export function NavBar() {
       if (event.key === 'Escape') {
         setOpenMenu(null)
       }
-      // Ctrl/Cmd + K : le raccourci que tout habitué d'un site de marché essaie en
-      // premier. `preventDefault` évite que Firefox n'ouvre sa propre barre de
-      // recherche par-dessus la nôtre.
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault()
-        setSearchOpen(true)
-      }
-
       /*
-       * « / » seul — le raccourci annoncé par la pastille du champ de recherche.
+       * LES RACCOURCIS DE RECHERCHE ONT QUITTÉ CE FICHIER.
        *
-       * Il n'ouvre RIEN si le curseur est déjà dans une zone de saisie : sans ce
-       * garde-fou, taper une barre oblique dans le filtre d'un tableau — ou dans le
-       * champ de recherche de la fenêtre elle-même — la ferait disparaître au profit
-       * d'une nouvelle fenêtre. `isContentEditable` couvre les zones riches, que le
-       * test sur le nom de balise ne voit pas.
+       * `Ctrl/⌘ + K` et `/` étaient traités ici, et ne savaient faire qu'une chose :
+       * ouvrir la fenêtre modale. Depuis que l'en-tête porte un VRAI champ, la bonne
+       * réaction dépend de ce qui est à l'écran — donner le focus au champ s'il est
+       * visible, ouvrir la fenêtre sinon. Cette barre ne peut pas trancher : elle ne
+       * sait pas si le champ est replié, et l'apprendre lui demanderait de recopier
+       * son point de rupture. La règle vit donc dans `HeaderSearch`, qui est le seul
+       * endroit d'où elle s'observe.
        */
-      if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        const target = event.target as HTMLElement | null
-        const tag = target?.tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-        if (target?.isContentEditable) return
-        event.preventDefault()
-        setSearchOpen(true)
-      }
     }
     document.addEventListener('mousedown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
@@ -231,7 +221,7 @@ export function NavBar() {
             Chaque bouton annonce désormais ce qu'il fait.
           */}
           <div className="relative ml-auto flex items-center gap-2">
-            <SearchTrigger onOpen={() => setSearchOpen(true)} />
+            <HeaderSearch onOpenOverlay={openSearch} />
 
             {/* S'efface de lui-même pour un abonné, et sans boutique configurée. */}
             <UpgradeButton />
@@ -289,7 +279,7 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-controls={panelId}
-        className={`flex items-center gap-1 rounded-card px-3 py-2 text-sm font-medium transition-colors ${
+        className={`flex items-center gap-1 rounded-control px-3 py-2 text-sm font-medium transition-colors ${
           isOpen ? 'bg-surface-muted text-ink' : 'text-ink-muted hover:text-ink'
         }`}
       >

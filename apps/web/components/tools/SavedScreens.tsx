@@ -136,7 +136,7 @@ export function SavedScreens({
           <button
             type="button"
             onClick={() => setNaming(true)}
-            className="inline-flex items-center gap-1.5 rounded-card border border-dashed border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-control border border-dashed border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
           >
             <BookmarkPlus className="h-3.5 w-3.5" aria-hidden="true" />
             Enregistrer cet écran

@@ -120,13 +120,13 @@ export default function BlogPage() {
               <div className="flex flex-wrap justify-center gap-3">
                 <Link
                   href="/apprendre"
-                  className="rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
+                  className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
                 >
                   Fiches Apprendre
                 </Link>
                 <Link
                   href="/methodologie"
-                  className="rounded-card border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
+                  className="rounded-control border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
                 >
                   Méthodologie &amp; sources
                 </Link>

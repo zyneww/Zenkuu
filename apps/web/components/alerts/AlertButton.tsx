@@ -74,7 +74,7 @@ export function AlertButton({
     return (
       <Link
         href="/alertes"
-        className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
+        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
       >
         <Bell className="h-3.5 w-3.5" aria-hidden="true" />
         Créer une alerte
@@ -125,7 +125,7 @@ export function AlertButton({
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className={`inline-flex items-center gap-1.5 rounded-card border px-3 py-1.5 text-xs font-medium transition-colors ${
+        className={`inline-flex items-center gap-1.5 rounded-control border px-3 py-1.5 text-xs font-medium transition-colors ${
           done
             ? 'border-brand bg-brand-soft text-brand-strong'
             : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
@@ -149,7 +149,7 @@ export function AlertButton({
                 type="button"
                 onClick={() => pick(value)}
                 aria-pressed={direction === value}
-                className={`flex-1 rounded-card border px-2 py-1.5 text-xs font-medium transition-colors ${
+                className={`flex-1 rounded-control border px-2 py-1.5 text-xs font-medium transition-colors ${
                   direction === value
                     ? 'border-brand bg-brand text-on-brand'
                     : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'

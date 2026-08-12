@@ -202,7 +202,7 @@ function FilterButton({
       onClick={onClick}
       aria-pressed={active}
       title={hint}
-      className={`rounded-card px-3 py-1.5 text-xs font-medium transition-colors ${
+      className={`rounded-control px-3 py-1.5 text-xs font-medium transition-colors ${
         active
           ? 'bg-brand-soft text-brand-strong'
           : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

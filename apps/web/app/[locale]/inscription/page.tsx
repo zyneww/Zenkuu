@@ -43,7 +43,7 @@ export default async function Page() {
           action={
             <Link
               href="/"
-              className="inline-block rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
+              className="inline-block rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
             >
               {fr.notFound.cta}
             </Link>

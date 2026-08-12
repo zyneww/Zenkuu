@@ -117,7 +117,7 @@ export function MarketBrowser({
                 type="button"
                 onClick={() => setView(entry.key)}
                 aria-pressed={view === entry.key}
-                className={`rounded-card px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-control px-2.5 py-1.5 text-xs font-medium transition-colors ${
                   view === entry.key
                     ? 'bg-brand-soft text-brand-strong'
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'

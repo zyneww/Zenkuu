@@ -105,7 +105,7 @@ export function ExportMenu<T>({
         disabled={disabled}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:opacity-50"
       >
         {copied ? (
           <Check className="h-3.5 w-3.5 text-up" aria-hidden="true" />

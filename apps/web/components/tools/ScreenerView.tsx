@@ -185,7 +185,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             onClick={() => setPreset(entry.id)}
             aria-pressed={preset === entry.id}
             title={entry.hint}
-            className={`rounded-card border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+            className={`rounded-control border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
               preset === entry.id
                 ? 'border-brand bg-brand text-on-brand'
                 : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
@@ -343,7 +343,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             <button
               type="button"
               onClick={reset}
-              className="rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+              className="rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
             >
               Réinitialiser les filtres
             </button>

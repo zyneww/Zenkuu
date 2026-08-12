@@ -75,6 +75,31 @@ export const NAV_MENUS: NavMenu[] = [
   {
     label: 'Marchés',
     sections: [
+      /*
+       * SECTION SANS TITRE, ET EN TÊTE — une seule entrée, qui domine les autres.
+       *
+       * Toutes les entrées qui suivent répondent à « quelle CLASSE d'actif ? ».
+       * Celle-ci répond à une autre question — « je veux tout voir, d'un coup, avec
+       * les filtres » — et la ranger sous « Cryptoactifs » la ferait lire comme une
+       * septième classe. Un intitulé de section au-dessus d'un seul élément
+       * n'apporterait rien qu'une ligne de bruit : la position en tête suffit à dire
+       * qu'elle traverse le reste.
+       */
+      {
+        items: [
+          {
+            label: 'Marchés avancés',
+            description: 'Classement filtrable, toutes classes',
+            icon: Gauge,
+            href: '/marches',
+            // `false` TANT QUE LA PAGE N'EXISTE PAS. C'est précisément à ça que sert
+            // ce drapeau : l'entrée se rend en `<span>` inerte plutôt qu'en lien, et
+            // aucun commit de l'historique ne contient un menu qui mène à un 404.
+            // À basculer dans le même commit que la page.
+            ready: false,
+          },
+        ],
+      },
       {
         label: 'Cryptoactifs',
         items: [

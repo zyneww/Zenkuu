@@ -264,7 +264,7 @@ export async function AssetClassChips({
             key={item.href}
             href={item.href}
             aria-current={item.href === activeHref ? 'page' : undefined}
-            className={`rounded-card border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+            className={`rounded-control border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
               item.href === activeHref
                 ? 'border-brand bg-brand text-on-brand'
                 : 'border-border-subtle bg-surface text-ink hover:border-brand hover:text-brand-strong'

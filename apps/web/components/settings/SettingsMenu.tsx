@@ -175,7 +175,7 @@ function SettingsMenuPanel({
                          le panneau masque la page dont on vient de changer le thème. */
                       setOpen(false)
                     }}
-                    className={`flex flex-1 flex-col items-center gap-1 rounded-card border px-2 py-2 text-[0.6875rem] font-medium transition-colors duration-150 ${
+                    className={`flex flex-1 flex-col items-center gap-1 rounded-control border px-2 py-2 text-[0.6875rem] font-medium transition-colors duration-150 ${
                       active
                         ? 'border-brand bg-brand-soft text-brand-strong'
                         : 'border-transparent text-ink-muted hover:bg-surface-muted hover:text-ink'

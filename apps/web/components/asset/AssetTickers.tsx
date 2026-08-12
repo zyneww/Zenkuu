@@ -411,7 +411,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-card border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+      className={`rounded-control border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
         active
           ? 'border-brand bg-brand text-on-brand'
           : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'

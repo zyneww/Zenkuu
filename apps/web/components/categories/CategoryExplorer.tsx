@@ -186,7 +186,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           <button
             type="button"
             onClick={() => setShown((current) => current + PAGE_SIZE)}
-            className="rounded-card border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
+            className="rounded-control border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
           >
             Afficher {Math.min(PAGE_SIZE, remaining)} secteurs de plus
             <span className="ml-1.5 text-ink-muted">({remaining} restants)</span>

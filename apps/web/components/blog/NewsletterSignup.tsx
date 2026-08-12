@@ -38,7 +38,7 @@ export function NewsletterSignup() {
           <div className="space-y-2">
             <Link
               href="/blog/rss.xml"
-              className="inline-flex items-center gap-2 rounded-card bg-brand px-4 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
+              className="inline-flex items-center gap-2 rounded-control bg-brand px-4 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
             >
               <Rss className="h-4 w-4" aria-hidden="true" />
               Flux RSS

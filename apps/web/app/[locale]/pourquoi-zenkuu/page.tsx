@@ -184,7 +184,7 @@ export default function PourquoiZenkuuPage() {
       <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
         <Link
           href="/bien-demarrer"
-          className="rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
+          className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
         >
           Bien démarrer
         </Link>

@@ -49,7 +49,7 @@ function ConnectedUpgradeButton() {
   return (
     <Link
       href="/tarifs"
-      className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-card bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent-strong transition-colors duration-150 hover:bg-accent hover:text-canvas sm:inline-flex"
+      className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent-strong transition-colors duration-150 hover:bg-accent hover:text-canvas sm:inline-flex"
     >
       <Crown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       Zenkuu Pro

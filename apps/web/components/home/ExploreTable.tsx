@@ -246,7 +246,7 @@ export function ExploreTable({
               <button
                 type="button"
                 onClick={() => setShown((current) => current + PAGE_SIZE)}
-                className="rounded-card border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
+                className="rounded-control border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
               >
                 Afficher {Math.min(PAGE_SIZE, remaining)} actifs de plus
               </button>

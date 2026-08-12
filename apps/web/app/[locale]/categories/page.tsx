@@ -229,13 +229,13 @@ function MethodologyBand() {
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           href="/methodologie"
-          className="rounded-card bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
+          className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
         >
           Méthodologie &amp; sources
         </Link>
         <Link
           href="/apprendre"
-          className="rounded-card border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
+          className="rounded-control border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
         >
           Apprendre à lire ces chiffres
         </Link>

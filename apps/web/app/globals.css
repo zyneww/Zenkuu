@@ -21,7 +21,7 @@
    C'est ce qui permet d'ajouter un thème sans repasser sur un seul composant.
    ───────────────────────────────────────────────────────────────────────────── */
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-switzer), ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Palette « ciel au zénith ».
@@ -188,6 +188,22 @@
   --color-down-soft: #ffecea;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     VERT DE STATUT — celui de la pastille d'offre, et de rien d'autre.
+
+     Il ne réutilise PAS `--color-up`, et la distinction n'est pas cosmétique. Le
+     vert de hausse appartient à la sémantique de marché : partout sur ce site, il
+     signifie « ce nombre a monté ». Une pastille « Free » teintée du même vert dirait
+     donc, à l'œil qui a parcouru trente lignes de cotation, que quelque chose a
+     progressé. C'est le même écueil que le §3.1 nomme pour la palette de données :
+     une couleur qui porte un SENS ne peut pas en porter deux.
+
+     Ton plus froid et plus sourd que le vert de hausse, pour cette raison précise :
+     il doit se lire comme un état stable, pas comme une variation.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-status: #0a7d55;
+  --color-status-soft: #e2f4ec;
+
+  /* ───────────────────────────────────────────────────────────────────────────
      Palette de DONNÉES — distincte de la palette d'interface.
 
      Ces six teintes servent EXCLUSIVEMENT à distinguer des séries dans un
@@ -234,25 +250,43 @@
      contraire de celui qu'on cherchait : quatre pointes noires par carte, et une
      colonne de cartes se lit comme une pile de fenêtres.
 
-     8px : c'est la valeur relevée au navigateur sur la référence de cette
-     refonte, et c'est le cran juste : assez pour que le coin cesse de piquer,
-     trop peu pour évoquer le bouton d'application mobile.
+     ── LES VALEURS SONT MESURÉES, PAS CHOISIES ────────────────────────────────
 
-     `--radius-card` garde son NOM — les centaines de `rounded-card` du projet
-     suivent sans être retouchées. C'est tout l'intérêt d'avoir centralisé la
-     mise en forme dans des jetons : un changement de cette ampleur tient en
-     quelques lignes.
+     Relevé au navigateur sur okx.com/fr-fr/markets/prices, en comptant le rayon
+     calculé de chaque élément de la page. La distribution ne laisse aucun doute :
 
-     On écrase aussi l'échelle par défaut de Tailwind (--radius, --radius-xs à
-     --radius-4xl) pour que le moindre `rounded`/`rounded-md` isolé dans le code
-     suive la même règle sans avoir à être traqué composant par composant.
+       4px ×31 · 3px ×25 · 6px ×21    ← contrôles et petites surfaces
+       16px ×6 · 12px ×4 · 8px ×2     ← cartes et panneaux
+       50%  ×32                        ← logos et pastilles rondes
+       999px ×1                        ← une seule vraie pilule
+
+     Deux familles, séparées par un vide franc entre 6 et 12. C'est ce vide qui
+     produit l'effet recherché : le contraste ne vient pas d'un mélange d'arrondis
+     voisins mais de deux ordres de grandeur qui ne se confondent jamais. Une
+     échelle continue de 4 à 16 par pas de deux, elle, se lit comme du flou.
+
+     La version précédente ramenait TOUT à 8px — c'est-à-dire précisément dans le
+     vide entre les deux familles, la seule valeur qui n'appartient ni aux contrôles
+     ni aux cartes. D'où une page où rien ne tranchait.
      ─────────────────────────────────────────────────────────────────────────── */
-  --radius-card: 8px;
-  --radius: 8px;
-  --radius-2xl: 8px;
-  --radius-3xl: 8px;
-  --radius-4xl: 8px;
-  --radius-md: 8px;
+
+  /* CARTES ET PANNEAUX — objets posés sur la page, qu'on prend en entier. */
+  --radius-card: 12px;
+  --radius-panel: 16px;
+
+  /* CONTRÔLES — boutons, champs, puces de filtre, cases à cocher. Tout ce qu'on
+     vise et qu'on active. Le cran juste sous la famille des cartes : à 8px un
+     bouton commence à se lire comme une carte miniature. */
+  --radius-control: 4px;
+
+  /* Échelle par défaut de Tailwind, RÉALIGNÉE sur les deux familles ci-dessus pour
+     qu'un `rounded`/`rounded-md` isolé dans le code tombe du bon côté du vide sans
+     avoir à être traqué composant par composant. */
+  --radius: 4px;
+  --radius-md: 6px;
+  --radius-2xl: 16px;
+  --radius-3xl: 16px;
+  --radius-4xl: 16px;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Système repris de kraken/DESIGN.md.
@@ -272,13 +306,15 @@
                                et non --radius-pill.
      ─────────────────────────────────────────────────────────────────────────── */
 
-  /* Échelle de rayons RÉTABLIE, reprise de kraken/DESIGN.md : progression douce
-     du plus petit jeton (xs) au plus grand conteneur (xl), cohérente avec
-     --radius-card ci-dessus. */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 12px;
+  /* Reste de l'échelle Tailwind. Elle ne décrit PLUS une progression douce du plus
+     petit au plus grand — c'était le principe repris de kraken/DESIGN.md, et il
+     contredit le vide mesuré chez OKX : une rampe continue 4·6·10·12 place deux
+     crans (8 et 10) exactement là où il ne doit rien y avoir. Chaque jeton tombe
+     désormais dans l'une des deux familles, jamais entre les deux. */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   /* ───────────────────────────────────────────────────────────────────────────
      SURFACES DENSES — angle vif, et c'est une TROISIÈME position, pas un retour
      en arrière.
@@ -340,7 +376,7 @@
      Le jeton SUBSISTE malgré tout, et ce n'est pas de l'indécision : les quatre
      classes `.display-*` le consomment. Le supprimer obligerait à les retoucher
      toutes pour un résultat identique. */
-  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-switzer), ui-sans-serif, system-ui, sans-serif;
 
   /* ───────────────────────────────────────────────────────────────────────────
      ÉCHELLE DE TEXTE — réglée ICI, et surtout pas par `html { font-size }`.
@@ -371,7 +407,12 @@
   /* Ombre RÉSERVÉE aux couches flottantes, jamais aux cartes. Une carte qui se
      soulève au survol contredirait la surface unique ; une couche qui flotte
      réellement gagne au contraire à être détachée. */
-  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.12);
+  /* Ombre des panneaux flottants — géométrie relevée chez OKX (`0 12px 60px` doublé
+     d'une ombre de contact `0 1px 2px`). Le très grand rayon de flou détache le
+     panneau sans dessiner de contour, et la seconde ombre, presque invisible, lui
+     donne l'épaisseur d'une feuille posée. Une ombre unique à 32px faisait les deux
+     à moitié : trop dure pour disparaître, trop diffuse pour poser le bord. */
+  --shadow-overlay: 0 12px 60px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.06);
 
   /* ───────────────────────────────────────────────────────────────────────────
      Durées d'animation, relevées sur la référence.
@@ -387,11 +428,28 @@
   --duration-state: 150ms;
   --duration-move: 300ms;
 
-  /* Menus déroulants — deux durées ASYMÉTRIQUES, et c'est délibéré : une fermeture
-     aussi lente que l'ouverture donne l'impression que le panneau colle au curseur.
-     Neutralisées elles aussi par `prefers-reduced-motion` plus bas. */
-  --duration-menu-in: 180ms;
-  --duration-menu-out: 120ms;
+  /* ───────────────────────────────────────────────────────────────────────────
+     MENUS DÉROULANTS — courbe et durées relevées chez OKX.
+
+     `cubic-bezier(0.645, 0.045, 0.355, 1)` est la valeur lue au navigateur sur
+     leurs panneaux de navigation (propriété `transition` calculée). C'est un
+     ease-in-out cubique : il démarre ET finit lentement, à la différence de
+     `--ease-standard`, qui part sec. La nuance se voit précisément sur un panneau
+     qui descend — l'accélération progressive lui donne du poids au lieu de le faire
+     surgir.
+
+     La DURÉE, elle, n'est pas copiée. OKX applique 300 ms dans les deux sens ; leurs
+     menus s'ouvrent au survol, et balayer la barre de navigation d'un bout à l'autre
+     y traîne visiblement une file de panneaux. On garde donc l'asymétrie déjà en
+     place — une fermeture aussi lente que l'ouverture donne l'impression que le
+     panneau colle au curseur — en allongeant seulement l'ouverture, où la courbe a
+     besoin de place pour se lire.
+
+     Toutes neutralisées par `prefers-reduced-motion` plus bas.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --ease-menu: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --duration-menu-in: 240ms;
+  --duration-menu-out: 140ms;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -493,20 +551,29 @@
        Déclaré dans la même couche que les états d'arrivée, l'ordre redevient celui
        des déclarations. */
     opacity: 0;
-    transform: translateY(-8px);
+    /* Un GLISSEMENT plus court qu'avant (6px au lieu de 8) doublé d'un LÉGER
+       agrandissement. Le déplacement seul fait tomber le panneau ; le facteur
+       d'échelle le fait DÉPLIER depuis son point d'attache, ce qui est le geste
+       d'OKX. 0,98 et non 0,95 : au-delà de deux centièmes, le texte du panneau se
+       met à respirer pendant la transition, et l'œil lit un défaut de rendu. */
+    transform: translateY(-6px) scale(0.98);
+    /* Le point fixe est le HAUT du panneau, c'est-à-dire son bord commun avec le
+       bouton qui l'ouvre. Laissé au centre — le défaut — le panneau grandirait
+       aussi vers le haut et paraîtrait se décoller de son déclencheur. */
+    transform-origin: top center;
     transition-property: opacity, transform;
-    transition-timing-function: var(--ease-standard);
+    transition-timing-function: var(--ease-menu);
   }
 
   .menu-panel[data-state='open'] {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     transition-duration: var(--duration-menu-in);
   }
 
   .menu-panel[data-state='closing'] {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-6px) scale(0.98);
     transition-duration: var(--duration-menu-out);
   }
 
@@ -740,6 +807,11 @@
   --color-down: #f87171;
   --color-down-soft: #2c1516;
 
+  /* Vert de statut — voir le thème clair. Décalé vers le bleu par rapport au vert de
+     hausse voisin, pour que les deux ne se confondent pas dans la barre d'en-tête. */
+  --color-status: #2dd4a7;
+  --color-status-soft: #0b2a24;
+
   /* Couche flottante : ici elle MONTE nettement au-dessus du fond, alors qu'en
      thème clair elle descend à peine. Sur un quasi-noir, c'est la clarté qui dit
      « au-dessus » ; sur du blanc, il n'y a pas de place au-dessus, d'où l'ombre. */
@@ -752,7 +824,7 @@
   --color-overlay: #232323;
   /* Ombre RENFORCÉE — le canvas ayant perdu six points de clarté, une ombre à 0,6
      n'avait plus assez de noir sous elle pour se voir. */
-  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.75);
+  --shadow-overlay: 0 12px 60px rgb(0 0 0 / 0.7), 0 1px 2px rgb(0 0 0 / 0.4);
 
   color-scheme: dark;
 }

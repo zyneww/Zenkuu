@@ -113,7 +113,7 @@ export function PanelTool({
     <button
       type="button"
       {...props}
-      className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle px-2 py-1 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-2 py-1 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children}
     </button>
