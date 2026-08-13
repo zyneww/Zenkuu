@@ -852,13 +852,45 @@ export function getTopNarratives(limit = 6): Promise<DataResult<MarketCategory[]
   )
 }
 
-export function getNews(limit = 8): Promise<DataResult<NewsItem[]>> {
-  return runStandalone(
-    `news:${limit}`,
+/**
+ * Taille du RÉSERVOIR mis en cache, indépendante de ce que demande l'appelant.
+ *
+ * 240 ≈ huit articles pour chacun des vingt-neuf flux. C'est le seuil à partir duquel
+ * une recherche par mention sur une fiche d'actif trouve quelque chose : à quarante
+ * articles, le tour à tour de `fetchNews` n'en garde qu'un ou deux par source, et un
+ * actif hors des dix premières capitalisations n'est nommé nulle part.
+ */
+const NEWS_POOL = 240
+
+/**
+ * Fil d'actualités agrégé.
+ *
+ * ── UNE SEULE CLÉ DE CACHE, QUELLE QUE SOIT LA LIMITE ─────────────────────────
+ *
+ * La clé valait `news:${limit}`. Elle produisait une entrée de cache PAR TAILLE
+ * demandée — et comme `fetchNews` interroge de toute façon les vingt-neuf flux avant
+ * de trancher, chaque taille déclenchait un balayage RSS complet. L'accueil en
+ * demandait 6, la fiche d'actif 40, la page d'actualités davantage : trois balayages
+ * de vingt-neuf requêtes sortantes chacun, pour exactement la même donnée.
+ *
+ * On met donc en cache le réservoir, une fois, et l'on tranche à la sortie. Le coût
+ * réseau du site est divisé par le nombre de tailles distinctes, et ajouter un
+ * appelant avec une nouvelle limite ne coûte plus rien.
+ *
+ * La découpe se fait APRÈS le cache et non dedans : `runStandalone` mémorise ce que
+ * lui rend le producteur, et trancher à l'intérieur reviendrait à mémoriser la
+ * découpe plutôt que le réservoir.
+ */
+export async function getNews(limit = 8): Promise<DataResult<NewsItem[]>> {
+  const result = await runStandalone(
+    'news',
     { label: NEWS_SOURCES, attributionUrl: 'https://cointelegraph.com' },
-    () => fetchNews(limit),
+    () => fetchNews(NEWS_POOL),
     NEWS_TTL_SECONDS,
   )
+
+  if (!result.ok) return result
+  return { ...result, data: result.data.slice(0, limit) }
 }
 
 /**

@@ -2,7 +2,7 @@ import type { NewsItem } from '@zenkuu/data'
 
 import { NewsFeed } from '@/components/news/NewsFeed'
 import { Panel } from '@/components/ui/Panel'
-import { mentions } from '@/lib/mentions'
+import { mentioning } from '@/lib/mentions'
 
 /**
  * Articles mentionnant l'actif.
@@ -38,13 +38,10 @@ export function AssetNewsPanel({
   /** Rendu de remplacement quand aucun article ne mentionne l'actif. */
   fallback?: React.ReactNode
 }) {
-  const matched = news
-    .filter((item) =>
-      // Titre ET chapeau : un article peut nommer l'actif dès la première phrase
-      // sans le mettre dans son titre, et l'inverse est rare.
-      mentions(`${item.title} ${item.excerpt ?? ''}`, { name, ...(symbol ? { symbol } : {}) }),
-    )
-    .slice(0, limit)
+  // La règle de sélection vit dans `lib/mentions.ts` — le rail chronologique de la
+  // même fiche l'applique aussi, et deux listes censées être identiques ne peuvent pas
+  // se permettre deux implémentations.
+  const matched = mentioning(news, { name, ...(symbol ? { symbol } : {}) }).slice(0, limit)
 
   /*
     AUCUNE MENTION : le panneau ne se rend pas, et l'appelant décide de la suite.

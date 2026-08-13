@@ -26,6 +26,8 @@ import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetYearPerformance } from '@/components/asset/AssetYearPerformance'
 import { AssetNewsPanel } from '@/components/asset/AssetNewsPanel'
+import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
+import { mentioning } from '@/lib/mentions'
 import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetRailIdentity } from '@/components/asset/AssetRailIdentity'
@@ -182,7 +184,12 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     // d'accueil — la fiche se branche sur le même cache. Sur un cache froid, la
     // tendance coûte un appel ; il est partagé par TOUTES les fiches et par l'accueil,
     // ce qui le rend négligeable à l'échelle du site.
-    getNews(40),
+    // 200 et non 40 : la fiche cherche les articles qui NOMMENT cet actif, et le tour
+    // à tour de `fetchNews` ne garde qu'un ou deux articles par source dans les
+    // quarante premiers — assez pour un fil d'accueil, pas pour une recherche par nom.
+    // Depuis que `getNews` met en cache un réservoir unique, demander plus ne coûte
+    // strictement rien de plus au réseau (voir son en-tête).
+    getNews(200),
     assetClass === 'crypto' ? getTrendingCryptoAssets('eur') : null,
     /*
      * Palmarès des places, uniquement pour en tirer les LOGOS du tableau « où se
@@ -675,6 +682,31 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         composant client ne peut pas construire — il peut seulement la placer.
       */}
       <AssetLayoutFrame
+        /*
+         * COLONNE D'ACTUALITÉS, dépliable par le bouton du bandeau de commande.
+         *
+         * Elle porte les MÊMES articles que l'onglet « Articles mentionnant X », dans
+         * une présentation qui répond à une autre question : l'onglet sert à LIRE,
+         * cette colonne à SITUER — on la parcourt en regardant le graphique, pour
+         * rattacher un décrochage à un événement daté. D'où la chronologie coupée par
+         * jour, sans vignette ni chapeau.
+         *
+         * Aucun appel réseau supplémentaire : `getNews(40)` est déjà chargé pour la
+         * page, et le filtrage par mention se fait ici, côté serveur.
+         */
+        news={
+          <AssetNewsRail
+            news={
+              news.ok
+                ? mentioning(news.data, {
+                    name: data.name,
+                    ...(data.symbol ? { symbol: data.symbol } : {}),
+                  })
+                : []
+            }
+            name={data.name}
+          />
+        }
         rail={
           /* Le rail passe EN PREMIER dans le document, et à gauche à l'écran. Sur
              téléphone, la grille s'effondre en une colonne et les chiffres arrivent

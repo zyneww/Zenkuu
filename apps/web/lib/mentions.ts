@@ -78,3 +78,24 @@ export function mentions(text: string, target: MentionTarget): boolean {
     text,
   )
 }
+
+/**
+ * Articles citant l'actif — la RÈGLE de sélection, écrite une seule fois.
+ *
+ * Deux surfaces s'en servent : l'onglet « Articles mentionnant X » et le rail
+ * chronologique de la fiche. Chacune appelait `mentions()` avec sa propre
+ * concaténation « titre + chapeau », et les deux auraient fini par diverger — il
+ * suffisait qu'une d'elles ajoute la rubrique au texte cherché, ou oublie le chapeau,
+ * pour que deux listes censées être identiques cessent de l'être sous les yeux du
+ * lecteur, sur la même page.
+ *
+ * TITRE ET CHAPEAU : un article peut nommer l'actif dès sa première phrase sans le
+ * mettre dans son titre. L'inverse est rare, mais chercher dans les deux ne coûte
+ * rien.
+ */
+export function mentioning<T extends { title: string; excerpt?: string }>(
+  items: T[],
+  target: MentionTarget,
+): T[] {
+  return items.filter((item) => mentions(`${item.title} ${item.excerpt ?? ''}`, target))
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, ChevronDown, Columns2, Rows2, PanelLeft } from 'lucide-react'
+import { Check, ChevronDown, Columns2, Newspaper, Rows2, PanelLeft } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -52,6 +52,7 @@ const LAYOUTS: { id: AssetLayout; label: string; hint: string; icon: React.React
 ]
 
 const STORAGE_KEY = 'zenkuu:asset-layout'
+const NEWS_KEY = 'zenkuu:asset-news'
 
 function isLayout(value: string | null): value is AssetLayout {
   return value === 'rail' || value === 'compact' || value === 'wide'
@@ -59,9 +60,19 @@ function isLayout(value: string | null): value is AssetLayout {
 
 export function AssetLayoutFrame({
   rail,
+  news,
   children,
 }: {
   rail: React.ReactNode
+  /**
+   * Colonne d'actualités, dépliable par le bouton du bandeau de commande.
+   *
+   * Reçue en NŒUD DÉJÀ RENDU et non en données : ce cadre ne sait rien des articles,
+   * il ne sait qu'ouvrir et fermer une colonne. C'est aussi ce qui permet à l'appelant
+   * de filtrer les mentions côté serveur — un travail qui n'a aucune raison de
+   * descendre dans un composant client.
+   */
+  news?: React.ReactNode
   children: React.ReactNode
 }) {
   /**
@@ -76,6 +87,11 @@ export function AssetLayoutFrame({
    */
   const [layout, setLayout] = useState<AssetLayout>('rail')
   const [open, setOpen] = useState(false)
+
+  /* Repliée par défaut, et pour le même motif que la disposition : le HTML du serveur
+     ne peut pas connaître la préférence, et partir déplié imposerait à tous ceux qui
+     ne s'en servent pas de voir une colonne apparaître puis disparaître. */
+  const [newsOpen, setNewsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -83,6 +99,7 @@ export function AssetLayoutFrame({
       const stored = window.localStorage.getItem(STORAGE_KEY)
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (isLayout(stored)) setLayout(stored)
+      if (window.localStorage.getItem(NEWS_KEY) === 'open') setNewsOpen(true)
     } catch {
       // Stockage refusé — navigation privée, cookies bloqués, iframe cloisonnée.
       // La fiche reste parfaitement utilisable sur la disposition par défaut ; ce
@@ -119,13 +136,85 @@ export function AssetLayoutFrame({
 
   const active = LAYOUTS.find((entry) => entry.id === layout) ?? LAYOUTS[0]!
 
+  /*
+   * ── LA COLONNE D'ACTUALITÉS S'INSÈRE DANS LE CONTENU, PAS DANS LE CADRE ─────
+   *
+   * Elle aurait pu être une TROISIÈME colonne du cadre — rail, contenu, actualités.
+   * C'est faux pour deux raisons. La disposition « pleine largeur » n'a pas de cadre à
+   * deux colonnes où l'ajouter ; et surtout, le rail et la colonne d'actualités ne
+   * jouent pas dans la même catégorie : le rail est un ATTRIBUT de la fiche, réglé une
+   * fois pour toutes, quand cette colonne s'ouvre et se ferme au fil de la lecture.
+   *
+   * Nichée dans le contenu, elle suit les trois dispositions sans qu'aucune n'ait à la
+   * connaître.
+   *
+   * `xl:` et non `lg:` : à 1024 px, le rail prend déjà 288 pixels ; une troisième
+   * colonne y laisserait moins de 400 px au graphique. En dessous du seuil, les
+   * actualités passent SOUS le contenu plutôt que de disparaître — le bouton a été
+   * pressé, il doit produire quelque chose.
+   */
+  const content =
+    newsOpen && news ? (
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
+        <div className="min-w-0">{children}</div>
+
+        {/* COLLANTE et défilante en propre : on lit ce rail EN REGARDANT le graphique,
+            pour rattacher un décrochage à un événement. S'il défilait avec la page, il
+            aurait disparu au moment où l'on en a besoin. `top-20` le pose sous
+            l'en-tête collant, dont la hauteur est de 4 rem. */}
+        <aside
+          aria-label="Actualités de l'actif"
+          className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
+        >
+          {news}
+        </aside>
+      </div>
+    ) : (
+      <div className="min-w-0">{children}</div>
+    )
+
   return (
     <>
       {/* Bandeau de commande : une seule commande, alignée à droite, au-dessus du
           cadre qu'elle règle. La poser dans la barre du graphique l'aurait rendue
           plus visible — mais elle ne règle pas le graphique, elle règle la PAGE, et
           la ranger avec les commandes de tracé l'aurait mal annoncée. */}
-      <div ref={rootRef} className="relative flex justify-end">
+      <div ref={rootRef} className="relative flex items-center justify-end gap-1">
+        {/*
+          ── BOUTON D'ACTUALITÉS ────────────────────────────────────────────────
+
+          Il ouvre une colonne, il ne navigue pas. D'où `aria-pressed` plutôt qu'un
+          lien : c'est un interrupteur à deux états, et un lecteur d'écran doit
+          entendre lequel est en cours.
+
+          Il ne se rend PAS si l'appelant n'a pas fourni de colonne — un bouton qui
+          déplierait un vide serait pire que son absence.
+        */}
+        {news ? (
+          <button
+            type="button"
+            onClick={() => {
+              const next = !newsOpen
+              setNewsOpen(next)
+              try {
+                window.localStorage.setItem(NEWS_KEY, next ? 'open' : 'closed')
+              } catch {
+                // Le choix vaut pour cette visite. Voir `choose`.
+              }
+            }}
+            aria-pressed={newsOpen}
+            title="Afficher les actualités de cet actif"
+            className={`flex h-7 items-center gap-1.5 px-2 text-xs font-medium transition-colors duration-150 ${
+              newsOpen
+                ? 'bg-surface-muted text-ink'
+                : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+            }`}
+          >
+            <Newspaper className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">Actualités</span>
+          </button>
+        ) : null}
+
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
@@ -184,7 +273,7 @@ export function AssetLayoutFrame({
       */}
       {layout === 'wide' ? (
         <div className="space-y-4">
-          <div className="min-w-0">{children}</div>
+          {content}
 
           {/* Le rail passe en bandeau : ses panneaux se répartissent sur trois
               colonnes plutôt que de s'empiler sur toute la largeur, où chaque ligne
@@ -202,7 +291,7 @@ export function AssetLayoutFrame({
           }`}
         >
           {rail}
-          <div className="min-w-0">{children}</div>
+          {content}
         </div>
       )}
     </>
