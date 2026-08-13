@@ -13,6 +13,12 @@ import { recordMarketCap } from './market-cap-series'
 import { fetchCoinGeckoRates } from './providers/coingecko'
 import { COINPAPRIKA_SOURCE, fetchNewListings } from './providers/coinpaprika'
 import { fetchExchangeRates } from './providers/frankfurter'
+import {
+  fetchPool,
+  fetchTokenPools,
+  fetchTrendingPools,
+  networkFromPlatform,
+} from './providers/geckoterminal'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
 import {
   SENTIMENT_SOURCE,
@@ -29,6 +35,7 @@ import type {
   AssetClass,
   AssetDetail,
   AssetTicker,
+  DexPool,
   GlobalMarketStats,
   MarketAsset,
   MarketCategory,
@@ -48,6 +55,19 @@ import { ProviderError } from './types'
 export interface DataSource {
   label: string
   attributionUrl: string
+}
+
+/**
+ * Attribution de la source on-chain.
+ *
+ * Déclarée ici plutôt que dans le fournisseur, comme `NEWS_SOURCES` l'est dans le
+ * sien : ce libellé est ce que le lecteur VOIT sous chaque tableau de pools, et le
+ * §5 en fait une obligation. Le laisser au fournisseur reviendrait à le rendre
+ * optionnel à l'appel.
+ */
+const GECKOTERMINAL_SOURCE: DataSource = {
+  label: 'GeckoTerminal',
+  attributionUrl: 'https://www.geckoterminal.com',
 }
 
 /**
@@ -891,6 +911,85 @@ export async function getNews(limit = 8): Promise<DataResult<NewsItem[]>> {
 
   if (!result.ok) return result
   return { ...result, data: result.data.slice(0, limit) }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ON-CHAIN — pools de liquidité (GeckoTerminal)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Une minute, et pas les trois du reste du site.
+ *
+ * Un pool de liquidité bouge à chaque bloc : sa réserve change dès qu'une
+ * transaction passe, et la page de référence affiche des variations à cinq minutes.
+ * Trois minutes de cache y afficheraient une variation « 5 min » vieille de trois —
+ * autrement dit un chiffre faux, pas seulement tiède.
+ *
+ * Une minute reste tenable pour le quota : à vingt-quatre appels par minute, il
+ * faudrait vingt-quatre pools DISTINCTS consultés dans la même minute pour saturer,
+ * et les pools consultés se comptent sur les doigts d'une main.
+ */
+const POOLS_TTL_SECONDS = 60
+
+/**
+ * Pools d'un jeton, pour une plateforme CoinGecko donnée.
+ *
+ * Prend l'identifiant de chaîne de CoinGecko — celui que porte `AssetDetail.contracts`
+ * — et non celui de GeckoTerminal : c'est le seul que l'appelant possède, et lui faire
+ * traduire reviendrait à disperser la table de correspondance dans les pages.
+ *
+ * Une plateforme inconnue n'est PAS une erreur de la source mais une limite de notre
+ * table. Le message le dit ainsi, pour qu'on ne cherche pas la panne du mauvais côté.
+ */
+export function getTokenPools(
+  platform: string,
+  tokenAddress: string,
+): Promise<DataResult<DexPool[]>> {
+  const network = networkFromPlatform(platform)
+
+  if (!network) {
+    return Promise.resolve({
+      ok: false,
+      /* `unconfigured` et non `error` : rien n'est en panne, il manque une ligne dans
+         notre table de correspondance. Les deux états ne se traitent pas pareil — une
+         erreur invite à réessayer, une lacune de configuration invite à l'écrire. */
+      kind: 'unconfigured',
+      reason: `La chaîne « ${platform} » n’est pas encore reliée à notre source on-chain.`,
+      source: GECKOTERMINAL_SOURCE,
+    })
+  }
+
+  return runStandalone(
+    `pools:${network}:${tokenAddress}`,
+    GECKOTERMINAL_SOURCE,
+    () => fetchTokenPools(network, tokenAddress),
+    POOLS_TTL_SECONDS,
+  )
+}
+
+/** Un pool précis — la fiche détaillée, par chaîne et adresse. */
+export function getPool(network: string, address: string): Promise<DataResult<DexPool>> {
+  return runStandalone(
+    `pool:${network}:${address}`,
+    GECKOTERMINAL_SOURCE,
+    () => fetchPool(network, address),
+    POOLS_TTL_SECONDS,
+  )
+}
+
+/**
+ * Pools en vue — toutes chaînes, ou une seule.
+ *
+ * Sans chaîne, l'API mêle les réseaux, et c'est l'intérêt : un jeton qui décolle sur
+ * une chaîne secondaire n'apparaît dans AUCUN classement centralisé.
+ */
+export function getTrendingPools(network?: string): Promise<DataResult<DexPool[]>> {
+  return runStandalone(
+    `pools:trending:${network ?? 'all'}`,
+    GECKOTERMINAL_SOURCE,
+    () => fetchTrendingPools(network),
+    POOLS_TTL_SECONDS,
+  )
 }
 
 /**

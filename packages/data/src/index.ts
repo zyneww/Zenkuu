@@ -45,7 +45,10 @@ export {
   getNews,
   getNewListings,
   getPeers,
+  getPool,
   getRanking,
+  getTokenPools,
+  getTrendingPools,
   getSpotExchanges,
   getDerivatives,
   getSentiment,
@@ -84,6 +87,8 @@ export {
 } from './providers/yahoo-universe'
 export type { CommodityFamily, UniverseEntry } from './providers/yahoo-universe'
 
+export { knownNetworks, networkFromPlatform } from './providers/geckoterminal'
+
 export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
 export type { NewsCategory, NewsLang } from './providers/news'
 
@@ -93,6 +98,7 @@ export type {
   AssetDetail,
   AssetTicker,
   Candle,
+  DexPool,
   GlobalMarketStats,
   ListAssetsParams,
   MarketAsset,

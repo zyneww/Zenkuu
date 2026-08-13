@@ -368,6 +368,56 @@ export interface NewListing {
 }
 
 /**
+ * Un POOL DE LIQUIDITÉ, tel que GeckoTerminal le publie.
+ *
+ * ── POURQUOI CE TYPE NE RESSEMBLE À AUCUN AUTRE ──────────────────────────────
+ *
+ * Ce n'est ni un `MarketAsset` ni un `AssetTicker`. Un ticker décrit une PAIRE sur
+ * une place centralisée — un carnet d'ordres tenu par une entreprise. Un pool décrit
+ * une réserve de deux jetons dans un contrat, sur une chaîne nommée, à une adresse
+ * précise. Les deux se ressemblent à l'affichage et n'ont rien en commun en dessous :
+ * un pool n'a pas d'écart acheteur-vendeur, il a une RÉSERVE ; il n'a pas de volume
+ * décidé par une place, il a des transactions signées, comptées à l'unité.
+ *
+ * Les fusionner en un type « lieu où ça s'échange » aurait produit un objet dont la
+ * moitié des champs seraient vides selon la branche — et le premier composant à
+ * l'afficher aurait dû redécouvrir laquelle.
+ *
+ * ── TOUT EST EN DOLLARS, ET C'EST LA SOURCE QUI L'IMPOSE ─────────────────────
+ *
+ * GeckoTerminal ne cote qu'en dollars. Convertir ici supposerait de choisir un taux
+ * et un instant, ce qui transformerait une mesure en estimation (§5). Les champs
+ * portent donc `Usd` dans leur nom : la conversion, si elle a lieu, est un choix
+ * d'affichage assumé par le composant — pas une propriété de la donnée.
+ */
+export interface DexPool {
+  /** `réseau_adresse`, tel que publié — sert de clé stable. */
+  id: string
+  /** Identifiant de chaîne GeckoTerminal : `eth`, `solana`, `base`… */
+  network: string
+  address: string
+  /** Nom court de la paire, ex. « SOL / USDC ». */
+  name: string
+  /** Protocole d'échange, ex. `aerodrome-slipstream-3`. */
+  dex?: string
+  priceUsd?: number
+  /** Réserve totale du pool, en dollars — la mesure de sa profondeur. */
+  liquidityUsd?: number
+  volume24hUsd?: number
+  fdvUsd?: number
+  marketCapUsd?: number
+  /** Frais du pool en pourcentage, ex. 0,03. */
+  feePercent?: number
+  createdAt?: string
+  /** Variation par fenêtre : `m5`, `m15`, `m30`, `h1`, `h6`, `h24`. */
+  priceChange?: Record<string, number>
+  /** Transactions des 24 h, comptées à l'unité — pas un volume. */
+  trades24h?: { buys: number; sells: number; buyers: number; sellers: number }
+  baseTokenAddress?: string
+  quoteTokenAddress?: string
+}
+
+/**
  * Une place de marché au comptant, telle que la source la classe.
  *
  * `volume24hBtc` est libellé en BITCOIN et non en devise : c'est l'unité dans
