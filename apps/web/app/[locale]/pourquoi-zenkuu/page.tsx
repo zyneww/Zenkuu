@@ -12,24 +12,37 @@ export const metadata: Metadata = {
 /**
  * Page argumentaire.
  *
- * DÉMONTÉE du gabarit de page d'accueil logicielle qu'elle reprenait, et dont
- * chaque élément était une convention sans contenu :
+ * ── UN ALLER-RETOUR, ET IL FAUT LE DIRE ───────────────────────────────────────
  *
- *   · le surtitre en petites capitales colorées (« NOS PARTIS PRIS ») au-dessus
- *     d'un titre centré — ouverture standard qui n'apprend rien ;
- *   · le bandeau de quatre garanties icône-au-dessus-du-libellé, qui annonçait en
- *     quatre mots ce que les sections développent juste en dessous ;
- *   · l'alternance gauche/droite pilotée par `index % 2`, c'est-à-dire une symétrie
- *     décidée par la parité d'un compteur et non par le propos ;
- *   · une icône par section, choisie par synonymie (un œil pour « donnée absente »,
- *     un portefeuille pour « aucun ordre »), qui n'ajoutait aucune information ;
- *   · un encadré « preuve » identique à la fin de chaque section, répété au point
- *     de devenir du papier peint.
+ * Cette page reprenait un gabarit de page d'accueil logicielle. Il a été DÉMONTÉ,
+ * parce que chacun de ses éléments était une convention sans contenu : surtitre en
+ * petites capitales colorées, bandeau de quatre garanties qui annonçait en quatre
+ * mots ce que les sections développaient juste dessous, alternance gauche/droite
+ * pilotée par `index % 2` — une symétrie décidée par la parité d'un compteur —, une
+ * icône par section choisie par synonymie, un encadré « preuve » répété jusqu'à
+ * devenir du papier peint.
  *
- * Ce qui reste : du texte aligné à gauche, une hiérarchie portée par la typographie,
- * et les exemples concrets rendus à leur statut de PHRASES plutôt que d'encadrés.
- * Le tableau comparatif est conservé — il porte de l'information, lui, et une grille
- * est la bonne forme pour comparer. Il oppose des CATÉGORIES de sites, jamais un
+ * La forme revient aujourd'hui, calée sur kraken.com/why-kraken : titre centré très
+ * large, puis GRILLE DE CARTES. Ce n'est pas un reniement, parce que ce qui était
+ * reproché n'était pas la forme mais le VIDE qu'elle habillait. Une grille de cartes
+ * dont chaque carte porte un parti pris, son développement et son exemple vérifiable
+ * n'est pas le même objet qu'une grille de six icônes et six slogans.
+ *
+ * Ce qui ne revient PAS, et la liste compte autant que ce qui revient : pas de
+ * surtitre décoratif, pas d'icône par carte, pas de bandeau de garanties, pas
+ * d'alternance mécanique. La page emprunte une mise en page, pas une rhétorique.
+ *
+ * ── POURQUOI LE CENTRAGE EST ACCEPTÉ ICI ET NULLE PART AILLEURS ───────────────
+ *
+ * Un titre centré au-dessus d'un paragraphe centré est une mise en page d'AFFICHE :
+ * l'œil y perd le bord d'appel qui lui sert de repère d'une ligne à l'autre. C'est
+ * disqualifiant sur un article, et c'est précisément ce qu'on veut sur les trois
+ * premières lignes d'une page dont le rôle est de POSER une position avant de
+ * l'argumenter. Le centrage s'arrête donc au héros ; tout ce qui se lit reste aligné
+ * à gauche.
+ *
+ * Le tableau comparatif est conservé — il porte de l'information, et une grille est
+ * la bonne forme pour comparer. Il oppose des CATÉGORIES de sites, jamais un
  * concurrent nommé : décrire nommément les pratiques d'un tiers supposerait de les
  * sourcer une par une.
  */
@@ -80,39 +93,76 @@ const COMPARISON = [
 
 export default function PourquoiZenkuuPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-12 py-6">
-      {/* Alignement à GAUCHE, comme le reste du site. Un titre centré au-dessus
-          d'un paragraphe centré est une mise en page d'affiche, pas d'article :
-          l'œil perd le bord d'appel qui lui sert de repère d'une ligne à l'autre. */}
-      <header className="space-y-4">
-        <h1 className="display-xl text-ink">Pourquoi ZENKUU</h1>
-        <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">
+    <div className="mx-auto max-w-5xl space-y-14 py-6">
+      {/* ── HÉROS ─────────────────────────────────────────────────────────────
+          Centré, et seul à l'être. Voir l'en-tête du fichier : le centrage sert à
+          POSER une position, il dessert tout ce qui se lit ensuite. */}
+      <header className="mx-auto max-w-3xl space-y-5 text-center">
+        <h1 className="display-xl text-brand-strong">Pourquoi ZENKUU</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">
           La plupart des plateformes de suivi de marché sont adossées à un service
           qu’elles cherchent à vous vendre. ZENKUU n’a rien à vous vendre : c’est un
           site d’information, et cela change ce qu’il peut se permettre d’afficher.
         </p>
+
+        <div className="flex flex-wrap justify-center gap-3 pt-1">
+          <Link
+            href="/crypto"
+            className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
+          >
+            Explorer les marchés
+          </Link>
+          <Link
+            href="/methodologie"
+            className="rounded-control border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
+          >
+            Méthodologie &amp; sources
+          </Link>
+        </div>
       </header>
 
-      <div className="space-y-10">
-        {SECTIONS.map((section) => (
-          <section key={section.title} className="space-y-3">
-            <h2 className="display-sm text-ink">{section.title}</h2>
+      {/* ── LES PARTIS PRIS, EN GRILLE ────────────────────────────────────────
 
-            {section.body.map((paragraph, index) => (
-              <p key={index} className="max-w-2xl text-base leading-relaxed text-ink-muted">
-                {paragraph}
+          Deux colonnes et non trois : chaque carte porte deux paragraphes et un
+          exemple, ce qui n'entre pas dans un tiers de largeur sans devenir une
+          colonne de six mots par ligne. La référence tient en trois colonnes parce
+          que ses cartes tiennent en une phrase.
+
+          L'étirement des cellules est LAISSÉ ACTIF, à l'inverse de l'accueil :
+          quatre cartes bordées qui finiraient à des hauteurs différentes se liraient
+          comme un défaut d'alignement, et une carte de texte n'a rien qui puisse
+          déborder d'une hauteur imposée. C'est l'exemple exact où `items-start`
+          serait le mauvais réflexe. */}
+      <section aria-labelledby="partis-pris" className="space-y-4">
+        <h2 id="partis-pris" className="display-sm text-center text-ink">
+          Quatre partis pris, et ce qui les rend vérifiables
+        </h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {SECTIONS.map((section) => (
+            <article
+              key={section.title}
+              className="flex flex-col gap-3 rounded-card border border-border-subtle bg-surface p-6 transition-colors duration-150 hover:border-ink-muted/40"
+            >
+              <h3 className="text-lg font-semibold leading-snug text-ink">{section.title}</h3>
+
+              {section.body.map((paragraph, index) => (
+                <p key={index} className="text-sm leading-relaxed text-ink-muted">
+                  {paragraph}
+                </p>
+              ))}
+
+              {/* L'exemple reste une PHRASE au filet, et non l'encadré coloré qu'il
+                  était : répété quatre fois, un encadré cesse d'être lu. Poussé en
+                  bas de carte par `mt-auto`, il occupe la même place dans les quatre
+                  — ce qui le rend repérable sans le rendre criard. */}
+              <p className="mt-auto border-l-2 border-brand/40 pl-3 text-xs leading-relaxed text-ink-muted">
+                {section.proof}
               </p>
-            ))}
-
-            {/* L'exemple concret redevient une phrase. En encadré répété quatre
-                fois, il cessait d'être lu — un filet suffit à le distinguer du
-                développement qui précède. */}
-            <p className="max-w-2xl border-l-2 border-border-subtle pl-4 text-sm leading-relaxed text-ink-muted">
-              {section.proof}
-            </p>
-          </section>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="space-y-3" aria-labelledby="comparatif">
         <h2 id="comparatif" className="display-sm text-ink">
@@ -178,18 +228,21 @@ export default function PourquoiZenkuuPage() {
         </ul>
       </section>
 
-      {/* Une seule action mise en avant, et deux renvois en texte. Trois boutons de
-          même poids centrés en bas de page ne hiérarchisent rien : ils demandent au
-          lecteur de choisir à la place de l'auteur. */}
+      {/*
+        PIED DE PAGE D'ARGUMENTAIRE — une action, et une seule.
+
+        Il portait trois boutons de même poids : le lecteur devait choisir à la place
+        de l'auteur. Il n'en reste qu'un, et il ne redit PAS ceux du héros —
+        « Explorer les marchés » et « Méthodologie » sont déjà là-haut. Quelqu'un qui
+        a lu la page entière n'a pas besoin qu'on lui repropose l'entrée : il a
+        besoin de la marche suivante.
+      */}
       <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
         <Link
           href="/bien-demarrer"
           className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
         >
           Bien démarrer
-        </Link>
-        <Link href="/methodologie" className="text-sm text-brand hover:underline">
-          Méthodologie &amp; sources
         </Link>
         <Link href="/apprendre" className="text-sm text-brand hover:underline">
           Apprendre à lire les chiffres
