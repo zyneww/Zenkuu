@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink } from 'lucide-react'
+import { ChevronLeft, ExternalLink } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { AssetTicker } from '@zenith/data'
