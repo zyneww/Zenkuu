@@ -1,5 +1,6 @@
 'use client'
 
+import { CalendarDays } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { NewListing } from '@zenkuu/data'
@@ -7,6 +8,7 @@ import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
+import { Calendar } from '@/components/ui/Calendar'
 import { matchListing, type ListingMatch } from '@/lib/listing-match'
 
 /**
@@ -56,14 +58,38 @@ export function NewListingsTable({
   const [sort, setSort] = useState<SortKey>('firstDataAt')
   const [query, setQuery] = useState('')
 
+  /**
+   * PÉRIODE DE RÉFÉRENCEMENT, bornée par un calendrier.
+   *
+   * Le tri par « suivi depuis » répond à « quoi de plus récent ». Il ne répond pas à
+   * « qu'est-ce qui est arrivé la semaine du 3 », qui est la question qu'on se pose
+   * quand on revient sur un mouvement de marché daté — et à laquelle un tri, par
+   * construction, ne répondra jamais : il ordonne, il ne délimite pas.
+   *
+   * Le filtre porte sur `firstDataAt`, seule date que la source publie.
+   */
+  const [range, setRange] = useState<{ from: string; to: string } | null>(null)
+
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    const filtered = needle
+    let filtered = needle
       ? listings.filter(
           (item) =>
             item.name.toLowerCase().includes(needle) || item.symbol.toLowerCase().includes(needle),
         )
       : listings
+
+    if (range) {
+      /* Comparaison sur les dix premiers caractères ISO — `2026-08-13`. Passer par
+         `Date.parse` introduirait le fuseau du lecteur dans une borne qu'il a choisie
+         sur un calendrier local : le 13 sélectionné à Tokyo exclurait les cotations
+         du 13 au matin à Paris. Les chaînes ISO se comparent lexicographiquement, et
+         c'est exactement la sémantique voulue. */
+      filtered = filtered.filter((item) => {
+        const day = item.firstDataAt.slice(0, 10)
+        return day >= range.from && day <= range.to
+      })
+    }
 
     return [...filtered].sort((a, b) => {
       if (sort === 'firstDataAt') return b.firstDataAt.localeCompare(a.firstDataAt)
@@ -77,25 +103,55 @@ export function NewListingsTable({
       if (right === undefined) return -1
       return right - left
     })
-  }, [listings, sort, query])
+  }, [listings, sort, query, range])
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="flex items-center gap-2 text-xs text-ink-muted">
-          <span className="sr-only">Filtrer par nom ou symbole</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filtrer par nom ou symbole"
-            className="w-56 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-          />
-        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-2 text-xs text-ink-muted">
+            <span className="sr-only">Filtrer par nom ou symbole</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Filtrer par nom ou symbole"
+              className="w-56 rounded-control border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+            />
+          </label>
+
+          {/*
+            ── LE CALENDRIER EST REPLIÉ ────────────────────────────────────────
+
+            `Calendar` est une grille de mois EN LIGNE, sans déclencheur : c'est la
+            bonne forme dans une colonne de filtres, où il est le sujet. Dans une barre
+            d'outils au-dessus d'un tableau, il occupait deux cents pixels de haut en
+            permanence et repoussait les cotations sous la ligne de flottaison — pour
+            un réglage dont la plupart des lecteurs ne se servent jamais.
+
+            `<details>` plutôt qu'un état React : le repli d'un panneau qui n'a aucune
+            conséquence ailleurs n'a pas besoin d'un rendu, et l'élément natif apporte
+            le clavier, `aria-expanded` et le fonctionnement sans JavaScript.
+
+            Le résumé porte la PÉRIODE CHOISIE quand il y en a une : un panneau replié
+            qui masque un filtre actif est le meilleur moyen de laisser quelqu'un
+            devant une liste tronquée sans qu'il comprenne pourquoi.
+          */}
+          <details className="group relative">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-control border border-border-subtle px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+              {range ? `${range.from} → ${range.to}` : 'Période'}
+            </summary>
+
+            <div className="absolute left-0 top-full z-30 mt-1 rounded-card border border-border-subtle bg-overlay p-3 shadow-overlay">
+              <Calendar value={range} onChange={setRange} />
+            </div>
+          </details>
+        </div>
 
         <p className="tabular text-xs text-ink-muted">
           {rows.length} actif{rows.length > 1 ? 's' : ''}
-          {query ? ` sur ${listings.length}` : ''}
+          {query || range ? ` sur ${listings.length}` : ''}
         </p>
       </div>
 
