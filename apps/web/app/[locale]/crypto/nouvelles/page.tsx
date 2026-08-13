@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { CACHE_TTL_SECONDS, getNewListings } from '@zenkuu/data'
+import { CACHE_TTL_SECONDS, getMoversUniverse, getNewListings } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { NewListingsTable } from '@/components/market/NewListingsTable'
+import { buildListingIndex } from '@/lib/listing-match'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -26,9 +27,16 @@ export const metadata: Metadata = {
  * permet de la reconstituer. Coinpaprika, lui, publie la date du premier relevé de
  * prix — une mesure, pas une déduction.
  *
- * La contrepartie est assumée et visible : les lignes ne mènent à aucune fiche, parce
- * que les identifiants des deux sources ne se correspondent pas (voir
- * `NewListingsTable`). Un lien fabriqué serait plus agréable et faux une fois sur deux.
+ * La contrepartie était assumée et visible : les lignes ne menaient à aucune fiche,
+ * parce que les identifiants des deux sources ne se correspondent pas. Elle est
+ * DEPUIS LEVÉE pour les actifs qu'on sait reconnaître — l'univers des 250 premières
+ * capitalisations, déjà en cache pour l'accueil et le convertisseur, sert d'index de
+ * rapprochement par symbole ET nom (voir `lib/listing-match.ts`). Les autres restent
+ * inertes, et cette inertie est INFORMATIVE : elle dit que l'actif n'est pas dans les
+ * 250 premières, ce qui est exactement ce qu'un lecteur de cette page veut savoir.
+ *
+ * Aucun appel réseau supplémentaire : `getMoversUniverse(250)` est partagé avec trois
+ * autres pages.
  *
  * Disposition volontairement différente de la référence, qui empile un grand tableau
  * sous une barre d'onglets : ici, un avertissement de risque D'ABORD — sur une page
@@ -36,15 +44,29 @@ export const metadata: Metadata = {
  * précéder les chiffres, pas les suivre en note de bas de page.
  */
 export default async function NewListingsPage() {
-  const listings = await getNewListings(100)
+  const [listings, universe] = await Promise.all([
+    /*
+     * 300 et non 100 — « remonter plus loin en arrière ».
+     *
+     * Coinpaprika ne pagine pas cet endpoint : il rend la liste, on la tronque. Le
+     * coût réseau est donc IDENTIQUE à 100, seule la clé de cache change — le même
+     * raisonnement que pour `getNews`. La profondeur supplémentaire recule d'environ
+     * un mois l'horizon des cotations visibles.
+     */
+    getNewListings(300),
+    getMoversUniverse(250, 'eur'),
+  ])
+
+  const index = buildListingIndex(universe.ok ? universe.data : [])
 
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">Nouvelles cryptomonnaies</h1>
         <p className="text-lg leading-relaxed text-ink-muted">
-          Les cent actifs dont la source a relevé un cours pour la première fois le plus
-          récemment, du plus récent au plus ancien.
+          Les trois cents actifs dont la source a relevé un cours pour la première fois
+          le plus récemment, du plus récent au plus ancien. Ceux que nous suivons par
+          ailleurs portent leur logo et mènent à leur fiche.
         </p>
       </header>
 
@@ -65,7 +87,7 @@ export default async function NewListingsPage() {
 
       {listings.ok && listings.data.length > 0 ? (
         <>
-          <NewListingsTable listings={listings.data} />
+          <NewListingsTable listings={listings.data} index={index} />
           <SourceNote
             label={`${listings.source.label} · montants en USD`}
             href={listings.source.attributionUrl}

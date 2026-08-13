@@ -5,17 +5,23 @@ import { useMemo, useState } from 'react'
 import type { NewListing } from '@zenkuu/data'
 import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
+import { Link } from '@/i18n/navigation'
+import { monogram } from '@/components/asset/monogram'
+import { matchListing, type ListingMatch } from '@/lib/listing-match'
+
 /**
  * Tableau des cotations récentes.
  *
  * Deux différences de fond avec les autres tableaux du site, toutes deux imposées par
  * la nature de la donnée :
  *
- * 1. AUCUNE LIGNE N'EST CLIQUABLE. Ces actifs viennent d'une source dont les
- *    identifiants ne sont pas ceux de nos fiches — `btc-bitcoin` ici, `bitcoin`
- *    ailleurs. Fabriquer un lien reviendrait à parier sur une correspondance, et une
- *    fiche sur deux tomberait en 404. Le jour où une table de correspondance existera,
- *    le lien apparaîtra ; en attendant, l'absence de lien est la réponse juste.
+ * 1. UNE LIGNE SUR DEUX EST CLIQUABLE, ET C'EST UN PROGRÈS RÉCENT. Ces actifs
+ *    viennent d'une source dont les identifiants ne sont pas ceux de nos fiches —
+ *    `btc-bitcoin` ici, `bitcoin` ailleurs — et aucune ligne ne menait donc nulle
+ *    part. Le rapprochement se fait désormais par SYMBOLE ET NOM (voir
+ *    `lib/listing-match.ts`), jamais par symbole seul : des dizaines de jetons
+ *    réutilisent « SOL » ou « BTC », et un lien plausible et faux est pire qu'un lien
+ *    absent. Les lignes sans correspondance restent inertes, comme avant.
  *
  * 2. LES MONTANTS SONT EN DOLLARS, quel que soit le réglage de devise du site. La
  *    source ne cote qu'en dollars sur cet endpoint ; convertir supposerait d'appliquer
@@ -33,7 +39,20 @@ const COLUMNS: { key: SortKey; label: string; hideOn?: string }[] = [
   { key: 'firstDataAt', label: 'Suivi depuis' },
 ]
 
-export function NewListingsTable({ listings }: { listings: NewListing[] }) {
+export function NewListingsTable({
+  listings,
+  index,
+}: {
+  listings: NewListing[]
+  /**
+   * Index de rapprochement avec l'univers des fiches.
+   *
+   * Passé en prop plutôt que construit ici : sa matière — l'univers CoinGecko — est
+   * chargée côté SERVEUR, et ce composant est client. Le lui faire récupérer
+   * ajouterait un aller-retour réseau pour une donnée que la page a déjà en main.
+   */
+  index: Map<string, ListingMatch>
+}) {
   const [sort, setSort] = useState<SortKey>('firstDataAt')
   const [query, setQuery] = useState('')
 
@@ -116,10 +135,7 @@ export function NewListingsTable({ listings }: { listings: NewListing[] }) {
             {rows.map((item) => (
               <tr key={item.id} className="transition-colors duration-150 hover:bg-surface-muted">
                 <td className="px-3 py-2.5">
-                  <span className="flex items-baseline gap-2">
-                    <span className="truncate font-medium text-ink">{item.name}</span>
-                    <span className="tabular text-xs text-ink-muted">{item.symbol}</span>
-                  </span>
+                  <Identity listing={item} match={matchListing(item, index)} />
                 </td>
                 <td className="tabular px-3 py-2.5 text-right text-ink">
                   {formatCurrency(item.price, 'USD') ?? '—'}
@@ -151,6 +167,62 @@ export function NewListingsTable({ listings }: { listings: NewListing[] }) {
         </p>
       ) : null}
     </div>
+  )
+}
+
+/**
+ * Identité d'une ligne — logo, nom, symbole, et lien SI la fiche existe.
+ *
+ * ── DEUX RENDUS, ET LA DIFFÉRENCE SE VOIT ────────────────────────────────────
+ *
+ * Avec correspondance : vignette servie par CoinGecko, et la ligne devient un lien.
+ * Sans : un monogramme sur aplat de marque, et rien de cliquable.
+ *
+ * Le monogramme n'est pas un pis-aller décoratif. Un emplacement d'image vide se lit
+ * comme un chargement bloqué ; deux lettres disent qu'il n'y a rien à charger. Et
+ * l'absence de lien, elle, est INFORMATIVE : elle signale que cet actif n'est pas
+ * dans les 250 premières capitalisations, ce qui est très exactement l'information
+ * qu'un lecteur de cette page a besoin d'avoir.
+ */
+function Identity({ listing, match }: { listing: NewListing; match?: ListingMatch }) {
+  const badge = match?.image ? (
+    // eslint-disable-next-line @next/next/no-img-element -- vignettes 20px hors domaines optimisés
+    <img
+      src={match.image}
+      alt=""
+      width={20}
+      height={20}
+      className="shrink-0 rounded-pill"
+      loading="lazy"
+    />
+  ) : (
+    <span
+      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5rem] font-bold text-brand-strong"
+      aria-hidden="true"
+    >
+      {monogram(listing.name, listing.symbol)}
+    </span>
+  )
+
+  const body = (
+    <>
+      {badge}
+      <span className="truncate font-medium text-ink">{listing.name}</span>
+      <span className="tabular shrink-0 text-xs uppercase text-ink-muted">{listing.symbol}</span>
+    </>
+  )
+
+  if (!match) {
+    return <span className="flex items-center gap-2">{body}</span>
+  }
+
+  return (
+    <Link
+      href={`/crypto/${match.id}`}
+      className="group flex items-center gap-2 transition-colors hover:text-brand-strong"
+    >
+      {body}
+    </Link>
   )
 }
 
