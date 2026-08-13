@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
+import { LifeBuoy } from 'lucide-react'
+
 import { HelpSearch } from '@/components/help/HelpSearch'
 import { HELP_ARTICLES, HELP_STARTING_POINTS } from '@/content/aide'
 import { getContent } from '@/lib/content'
@@ -41,16 +43,54 @@ export default function AidePage() {
   ).filter((article): article is (typeof HELP_ARTICLES)[number] => Boolean(article))
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10 py-6">
-      <header className="space-y-3 text-center">
-        <h1 className="display-lg text-ink">Centre d’aide</h1>
-        <p className="mx-auto max-w-xl text-base leading-relaxed text-ink-muted">
-          Comment lire les chiffres affichés sur ZENKUU, d’où ils viennent, à quelle
-          fréquence ils changent — et ce que le site ne fait délibérément pas.
-        </p>
+    <div className="mx-auto max-w-4xl space-y-12 py-6">
+      {/*
+        ── HÉROS : LA RECHERCHE EST L'ÉLÉMENT CENTRAL ────────────────────────────
+
+        Structure de support.kraken.com, et le déplacement compte. La recherche était
+        posée SOUS l'en-tête, au même rang que les sections suivantes. Elle remonte au
+        centre du héros parce que c'est ce qu'on vient faire ici : dans un centre
+        d'aide, on ne parcourt pas, on CHERCHE — le parcours est le repli de ceux qui
+        n'ont pas su formuler leur question.
+
+        Le pictogramme est une bouée et non un point d'interrogation : le second dit
+        « vous avez une question », ce que le lecteur sait déjà ; la première dit
+        « on va vous sortir de là », ce qu'il vient vérifier.
+      */}
+      <header className="space-y-5 text-center">
+        <span
+          className="mx-auto flex h-14 w-14 items-center justify-center rounded-pill bg-brand-soft text-brand-strong"
+          aria-hidden="true"
+        >
+          <LifeBuoy className="h-7 w-7" />
+        </span>
+
+        <div className="space-y-2">
+          <h1 className="display-lg text-ink">Centre d’aide</h1>
+          <p className="mx-auto max-w-xl text-base leading-relaxed text-ink-muted">
+            Comment lire les chiffres affichés sur ZENKUU, d’où ils viennent, à quelle
+            fréquence ils changent — et ce que le site ne fait délibérément pas.
+          </p>
+        </div>
+
+        <div className="mx-auto max-w-xl text-left">
+          <HelpSearch />
+        </div>
       </header>
 
-      <HelpSearch />
+      {/*
+        AUCUNE GRILLE DE RUBRIQUES ICI, ET C'EST DÉLIBÉRÉ.
+
+        La première version de cette refonte en ajoutait une, sur le modèle du
+        « Parcourir par produit » de la référence. Elle faisait DOUBLON : `HelpSearch`
+        en rend déjà une, et la sienne est meilleure — elle disparaît dès qu'on tape,
+        pour laisser la place aux résultats. Une seconde grille inerte sous la
+        première aurait montré quatre fois les mêmes rubriques, dont la moitié
+        continuerait de s'afficher pendant une recherche.
+
+        Ce que la référence apporte vraiment est donc pris ailleurs : la RECHERCHE au
+        centre du héros, et non reléguée sous l'en-tête au rang des sections.
+      */}
 
       <section className="space-y-3" aria-labelledby="a-lire-en-premier">
         <h2 id="a-lire-en-premier" className="text-sm font-semibold text-ink">
