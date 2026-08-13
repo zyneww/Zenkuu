@@ -1,6 +1,6 @@
 import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 
-import { Link } from '@/i18n/navigation'
+import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
 
@@ -13,6 +13,14 @@ import { marketHref } from '@/lib/asset-routes'
  * huitième onglet qui mènerait à la page où l'on est déjà, et l'œil chercherait
  * lequel des huit est sélectionné. Le filet vertical qui le suit dit exactement cela :
  * ce qui est à gauche nomme, ce qui est à droite choisit.
+ *
+ * ── L'ÉTAT ACTIF EST UN TRAIT QUI GLISSE, PAS UNE PASTILLE ──────────────────
+ *
+ * Il était rendu par un aplat arrondi sous l'onglet choisi. Un aplat DÉSIGNE un
+ * élément ; un trait sous la rangée désigne une POSITION dans une séquence. Et
+ * surtout, chaque onglet avait le sien : ils s'allumaient et s'éteignaient, sans
+ * qu'aucun mouvement ne relie « Dérivés » à « ETF ». Le trait unique de `LinkTabs`
+ * parcourt la distance, et c'est ce parcours qui rend le changement lisible.
  *
  * ── POURQUOI CENTRÉ, ALORS QUE TOUT LE SITE ALIGNE À GAUCHE ─────────────────
  *
@@ -71,45 +79,20 @@ export async function BrowseTabs({
     'commodity',
   ]
 
-  const tabs = ORDER.filter(
+  const tabs: LinkTab[] = ORDER.filter(
     (entry) => entry === DERIVATIVES_TAB || !HIDDEN.includes(entry as AssetClass),
-  ).filter((entry) => entry === DERIVATIVES_TAB || ASSET_CLASSES.includes(entry as AssetClass))
+  )
+    .filter((entry) => entry === DERIVATIVES_TAB || ASSET_CLASSES.includes(entry as AssetClass))
+    .map((entry) => ({
+      id: entry,
+      href: hrefFor(entry),
+      label: entry === DERIVATIVES_TAB ? 'Dérivés' : fr.assetClass[entry as AssetClass],
+    }))
 
   return (
-    <nav aria-label="Classes d’actifs" className="-mx-4 overflow-x-auto px-4">
-      <div className="flex min-w-max items-center justify-center gap-3">
-        <span className="shrink-0 text-sm font-semibold text-ink">Marchés</span>
-
-        {/* Filet vertical et non une barre oblique : le trait est un séparateur de
-            structure, le caractère serait du texte que les lecteurs d'écran
-            énonceraient au milieu d'une liste de liens. */}
-        <span className="h-4 w-px shrink-0 bg-border-subtle" aria-hidden="true" />
-
-        <ul className="flex items-center gap-1">
-          {tabs.map((entry) => {
-            const active = entry === current
-            const label =
-              entry === DERIVATIVES_TAB ? 'Dérivés' : fr.assetClass[entry as AssetClass]
-
-            return (
-              <li key={entry}>
-                <Link
-                  href={hrefFor(entry)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`inline-block whitespace-nowrap rounded-pill px-3.5 py-1.5 text-sm font-medium transition-colors duration-150 ${
-                    active
-                      ? 'bg-brand-soft text-brand-strong'
-                      : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                  }`}
-                >
-                  {label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    </nav>
+    <TabsBar ariaLabel="Classes d’actifs" lead="Marchés" center>
+      <LinkTabs tabs={tabs} active={current} />
+    </TabsBar>
   )
 }
 

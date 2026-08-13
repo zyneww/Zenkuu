@@ -1,4 +1,4 @@
-import { Link } from '@/i18n/navigation'
+import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
 
 /**
  * Onglets des graphiques globaux.
@@ -36,29 +36,25 @@ export function readChartView(raw: string | string[] | undefined): ChartView {
   return CHART_VIEWS.some((entry) => entry.id === value) ? (value as ChartView) : 'global'
 }
 
+/**
+ * La barre elle-même.
+ *
+ * Le trait actif était une bordure basse posée sur CHAQUE lien, allumée sur l'actif.
+ * Six traits dont un seul est visible ne peuvent pas se déplacer : ils clignotent.
+ * `LinkTabs` n'en porte qu'un pour toute la rangée, qui parcourt la distance — et le
+ * mouvement dit « d'ici vers là » là où deux allumages ne disaient que « plus ici,
+ * maintenant là ».
+ */
 export function ChartsTabs({ current }: { current: ChartView }) {
+  const tabs: LinkTab[] = CHART_VIEWS.map((view) => ({
+    id: view.id,
+    href: view.id === 'global' ? '/crypto/graphiques' : `/crypto/graphiques?vue=${view.id}`,
+    label: view.label,
+  }))
+
   return (
-    <nav aria-label="Vues du marché" className="-mx-1 overflow-x-auto border-b border-border-subtle">
-      <ul className="flex min-w-max items-center gap-1 px-1">
-        {CHART_VIEWS.map((view) => {
-          const active = view.id === current
-          return (
-            <li key={view.id}>
-              <Link
-                href={view.id === 'global' ? '/crypto/graphiques' : `/crypto/graphiques?vue=${view.id}`}
-                aria-current={active ? 'page' : undefined}
-                className={`inline-block whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-                  active
-                    ? 'border-brand text-ink'
-                    : 'border-transparent text-ink-muted hover:text-ink'
-                }`}
-              >
-                {view.label}
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
-    </nav>
+    <TabsBar ariaLabel="Vues du marché">
+      <LinkTabs tabs={tabs} active={current} />
+    </TabsBar>
   )
 }

@@ -63,8 +63,17 @@ export interface MarketPageViewProps {
    *
    * Un nœud déjà rendu plutôt qu'un drapeau : ce composant n'a pas à connaître la
    * liste des barres possibles, seulement où poser celle qu'on lui donne.
+   *
+   * `null` SUPPRIME la barre au lieu d'en poser une. C'est ce dont « Parcourir » a
+   * besoin : sa barre porte un trait qui GLISSE d'un onglet à l'autre, et un trait ne
+   * glisse que si son nœud survit à la navigation. Rendue ici, elle serait remontée
+   * puis démontée à chaque passage entre les dérivés et une classe d'actif, qui ne
+   * traversent pas le même arbre — le trait sauterait au lieu de parcourir.
+   *
+   * D'où la distinction entre `undefined` (aucun avis, on met la barre par défaut) et
+   * `null` (avis explicite : pas de barre ici).
    */
-  tabs?: React.ReactNode
+  tabs?: React.ReactNode | null
   /** Inséré entre les onglets et le bandeau de points saillants. */
   children?: React.ReactNode
 }
@@ -113,8 +122,10 @@ export async function MarketPageView({
 
       {/* Navigation inter-classes : le passage de /crypto à /actions ne devrait pas
           imposer un détour par le menu de l'en-tête. */}
-      {tabs ?? (
+      {tabs === undefined ? (
         <AssetClassTabs current={assetClass} {...(classHref ? { hrefFor: classHref } : {})} />
+      ) : (
+        tabs
       )}
 
       {children}

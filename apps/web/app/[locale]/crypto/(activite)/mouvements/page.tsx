@@ -17,7 +17,6 @@ import { Card, CardHeader, EmptyState, SourceNote } from '@zenkuu/ui'
 import { AssetList } from '@/components/AssetList'
 import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { MacroBand } from '@/components/market/MacroBand'
-import { MarketDataTabs } from '@/components/market/MarketDataTabs'
 import { RankingDetailLink } from '@/components/market/RankingDetailLink'
 import { MoversFilters } from '@/components/market/MoversFilters'
 import { SpotExchangesPanel } from '@/components/market/SpotExchangesPanel'
@@ -98,8 +97,6 @@ export default async function MoversPage({
 
   return (
     <div className="space-y-12 sm:space-y-16">
-      <MarketDataTabs />
-
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">Données de trading</h1>
         <p className="text-lg leading-relaxed text-ink-muted">

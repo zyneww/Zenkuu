@@ -80,45 +80,68 @@ export default async function Page({
    */
   const view = Array.isArray(params['vue']) ? params['vue'][0] : params['vue']
   const isDerivatives = view === DERIVATIVES_TAB
-
-  if (isDerivatives) {
-    return (
-      <div className="space-y-6">
-        <BrowseTabs current={DERIVATIVES_TAB} hrefFor={browseHref} />
-        <DerivativesView />
-      </div>
-    )
-  }
-
   const assetClass = readAssetClass(params['classe'])
 
-  return (
-    <MarketPageView
-      assetClass={assetClass}
-      title="Parcourir les marchés"
-      subtitle={
-        'Les sept marchés suivis, triables et paginés sur une seule page. ' +
-        'Lecture seule : aucun ordre ne part d’ici.'
-      }
-      searchParams={params}
-      basePath={browseHref(assetClass)}
-      /* La barre d'onglets REMPLACE `AssetClassTabs`, qui renvoyait vers les pages
-         dédiées. Rester sur place est tout l'intérêt de cette page. */
-      tabs={<BrowseTabs current={assetClass} hrefFor={browseHref} />}
-    >
-      {assetClass === 'crypto' ? <OnChainBand /> : null}
+  /*
+   * LA BARRE EST RENDUE UNE SEULE FOIS, AU-DESSUS DE L'EMBRANCHEMENT.
+   *
+   * Elle vivait dans chacune des deux branches. C'était invisible tant que l'onglet
+   * actif se signalait par un aplat : chaque branche repeignait le sien, et personne
+   * ne voyait que le composant avait été détruit entre-temps.
+   *
+   * Le trait glissant, lui, le rend visible. React ne conserve l'état d'un composant
+   * — ici, la position mesurée du trait — que s'il occupe la MÊME PLACE dans l'arbre
+   * d'un rendu à l'autre. Deux branches, deux places : le trait repartait de zéro et
+   * SAUTAIT à sa nouvelle position au lieu de la rejoindre. Or c'est exactement le
+   * passage « Dérivés → ETF » qui traverse cette frontière.
+   *
+   * La barre passe donc au-dessus du titre. Ce n'est pas un pis-aller : elle SÉLECTIONNE
+   * ce que la page montre, et un sélecteur placé sous le titre de ce qu'il vient de
+   * choisir se lit à l'envers.
+   */
+  const tabs = (
+    <BrowseTabs
+      current={isDerivatives ? DERIVATIVES_TAB : assetClass}
+      hrefFor={browseHref}
+    />
+  )
 
-      <p className="text-xs text-ink-muted">
-        Vue transversale.{' '}
-        <a
-          href={marketHref(assetClass)}
-          className="text-brand transition-colors hover:text-brand-strong"
+  return (
+    <div className="space-y-6">
+      {tabs}
+
+      {isDerivatives ? (
+        <DerivativesView />
+      ) : (
+        <MarketPageView
+          assetClass={assetClass}
+          title="Parcourir les marchés"
+          subtitle={
+            'Les sept marchés suivis, triables et paginés sur une seule page. ' +
+            'Lecture seule : aucun ordre ne part d’ici.'
+          }
+          searchParams={params}
+          basePath={browseHref(assetClass)}
+          /* `null` et non l'absence de prop : sans cela `AssetClassTabs` s'ajouterait
+             sous celle du dessus, et la page porterait deux barres d'onglets qui
+             disent la même chose en menant ailleurs. */
+          tabs={null}
         >
-          Page dédiée aux {fr.assetClass[assetClass].toLowerCase()}
-        </a>{' '}
-        pour la fiche complète de cette classe.
-      </p>
-    </MarketPageView>
+          {assetClass === 'crypto' ? <OnChainBand /> : null}
+
+          <p className="text-xs text-ink-muted">
+            Vue transversale.{' '}
+            <a
+              href={marketHref(assetClass)}
+              className="text-brand transition-colors hover:text-brand-strong"
+            >
+              Page dédiée aux {fr.assetClass[assetClass].toLowerCase()}
+            </a>{' '}
+            pour la fiche complète de cette classe.
+          </p>
+        </MarketPageView>
+      )}
+    </div>
   )
 }
 

@@ -1,7 +1,6 @@
-import { Link } from '@/i18n/navigation'
-
 import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 
+import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
 
@@ -16,6 +15,18 @@ import { marketHref } from '@/lib/asset-routes'
  * Ce sont de vrais liens `<Link>` et non des onglets JavaScript : chaque classe est
  * une URL indexable à part entière (§9), et le passage de l'une à l'autre doit
  * fonctionner sans JavaScript, au clic milieu comme en navigation clavier.
+ *
+ * ── LE TRAIT NE GLISSE PAS ICI, ET C'EST ASSUMÉ ─────────────────────────
+ *
+ * `LinkTabs` déplace son trait quand son nœud survit à la navigation. Ces six classes
+ * sont six ROUTES distinctes (`/crypto`, `/actions`…) : le composant est détruit puis
+ * reconstruit, et le trait reparaît directement à sa place.
+ *
+ * Les réunir sous une disposition commune le rétablirait, mais coûterait de déplacer
+ * six routes de premier niveau dont l'une porte toute une arborescence. La page
+ * « Parcourir » existe précisément pour parcourir les classes sur place, avec le
+ * mouvement ; cette barre-ci sert à SORTIR vers une autre page dédiée, où le lecteur
+ * s'attend de toute façon à un changement de contexte.
  */
 
 /** `nft` est déclaré dans le domaine mais aucune source ne l'alimente encore. */
@@ -40,30 +51,18 @@ export async function AssetClassTabs({
   hrefFor?: (assetClass: AssetClass) => string
 }) {
   const fr = await getContent()
-  const classes = ASSET_CLASSES.filter((assetClass) => !HIDDEN.includes(assetClass))
+
+  const tabs: LinkTab[] = ASSET_CLASSES.filter(
+    (assetClass) => !HIDDEN.includes(assetClass),
+  ).map((assetClass) => ({
+    id: assetClass,
+    href: hrefFor ? hrefFor(assetClass) : marketHref(assetClass),
+    label: fr.assetClass[assetClass],
+  }))
 
   return (
-    <nav aria-label="Classes d’actifs" className="-mx-1 overflow-x-auto pb-1">
-      <ul className="flex items-center gap-1 px-1">
-        {classes.map((assetClass) => {
-          const active = assetClass === current
-          return (
-            <li key={assetClass}>
-              <Link
-                href={hrefFor ? hrefFor(assetClass) : marketHref(assetClass)}
-                aria-current={active ? 'page' : undefined}
-                className={`inline-block whitespace-nowrap rounded-control px-3 py-1.5 text-xs font-medium transition-colors ${
-                  active
-                    ? 'bg-brand-soft text-brand-strong'
-                    : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                }`}
-              >
-                {fr.assetClass[assetClass]}
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
-    </nav>
+    <TabsBar ariaLabel="Classes d’actifs">
+      <LinkTabs tabs={tabs} active={current} />
+    </TabsBar>
   )
 }

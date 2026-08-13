@@ -1,6 +1,7 @@
 'use client'
 
-import { Link, usePathname } from '@/i18n/navigation'
+import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
+import { usePathname } from '@/i18n/navigation'
 
 /**
  * Barre d'onglets de l'ACTIVITÉ DU MARCHÉ — deux vues d'un même instant.
@@ -29,6 +30,14 @@ import { Link, usePathname } from '@/i18n/navigation'
  * Le drapeau `exact` subsiste alors qu'aucune des deux vues n'a de sous-chemin
  * aujourd'hui. Il coûte un booléen et évite le piège du jour où l'une en gagnera un :
  * une comparaison par préfixe allumerait alors l'onglet parent sur la page enfant.
+ *
+ * ── ET C'EST POURQUOI CETTE BARRE VIT DANS UNE DISPOSITION ────────────────
+ *
+ * Le trait de `LinkTabs` glisse d'un onglet à l'autre, ce qui suppose que son nœud
+ * SURVIVE au changement de page. Deux pages sœurs ne partagent rien par elles-mêmes :
+ * c'est le groupe de routes `(activite)` qui les réunit sous une disposition commune,
+ * où ce composant est rendu UNE SEULE FOIS. Le déplacer dans les pages annulerait le
+ * mouvement sans rien casser de visible — le piège est là.
  */
 
 const TABS = [
@@ -39,35 +48,21 @@ const TABS = [
 export function MarketDataTabs() {
   const pathname = usePathname()
 
-  return (
-    <nav
-      aria-label="Vues du marché crypto"
-      /* Le filet inférieur court sur TOUTE la largeur, pas seulement sous les onglets :
-         c'est lui qui fait lire la rangée comme une barre d'onglets plutôt que comme
-         une série de boutons. L'onglet actif l'interrompt de son propre trait. */
-      className="-mx-1 overflow-x-auto border-b border-border-subtle"
-    >
-      <ul className="flex items-center gap-1 px-1">
-        {TABS.map((tab) => {
-          const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
+  const active =
+    TABS.find((tab) => (tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)))?.href ??
+    TABS[0].href
 
-          return (
-            <li key={tab.href}>
-              <Link
-                href={tab.href}
-                aria-current={active ? 'page' : undefined}
-                className={`inline-block whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-                  active
-                    ? 'border-brand text-ink'
-                    : 'border-transparent text-ink-muted hover:text-ink'
-                }`}
-              >
-                {tab.label}
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
-    </nav>
+  /* L'identifiant EST le chemin : deux onglets ne peuvent pas mener au même endroit,
+     la clé est donc déjà unique et n'a pas à être inventée. */
+  const tabs: LinkTab[] = TABS.map((tab) => ({
+    id: tab.href,
+    href: tab.href,
+    label: tab.label,
+  }))
+
+  return (
+    <TabsBar ariaLabel="Vues du marché crypto">
+      <LinkTabs tabs={tabs} active={active} />
+    </TabsBar>
   )
 }

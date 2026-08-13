@@ -16,7 +16,6 @@ import { ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 import { MetricCard } from '@/components/charts/MetricCard'
 import { dataColor } from '@/components/charts/chart-theme'
 import { HighlightPanel } from '@/components/home/HighlightPanel'
-import { MarketDataTabs } from '@/components/market/MarketDataTabs'
 import { TrendingPanel } from '@/components/home/TrendingPanel'
 import { MacroBand } from '@/components/market/MacroBand'
 import { Money } from '@/components/locale/Money'
@@ -87,8 +86,6 @@ export default async function HighlightsPage() {
 
   return (
     <div className="space-y-12 sm:space-y-16">
-      <MarketDataTabs />
-
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">Points marquants</h1>
         <p className="text-lg leading-relaxed text-ink-muted">
