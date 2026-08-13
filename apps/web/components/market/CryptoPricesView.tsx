@@ -13,6 +13,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { Money } from '@/components/locale/Money'
 import { CryptoSummaryCards } from '@/components/market/CryptoSummaryCards'
+import { MarketDataTabs } from '@/components/market/MarketDataTabs'
 import { CryptoViewControls } from '@/components/market/CryptoViewControls'
 import {
   periodMeta,
@@ -65,6 +66,8 @@ export async function CryptoPricesView({
 
   return (
     <div className="space-y-8">
+      <MarketDataTabs />
+
       <CryptoHeader stats={stats} />
 
       {/* Barre de repères partagée avec l'accueil : capitalisation, volume,
