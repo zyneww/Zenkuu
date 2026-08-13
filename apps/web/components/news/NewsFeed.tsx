@@ -1,13 +1,13 @@
 'use client'
 
 import { ArrowUpRight, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 
 import { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS, type NewsItem } from '@zenkuu/data'
-import { EmptyState } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
 import { formatAbsolute, useRelativeTime } from '@/components/locale/useRelativeTime'
-import { availableMentions, mentions } from '@/components/news/mentions'
+import { availableMentions, citedAssets, mentions } from '@/components/news/mentions'
 
 /**
  * Fil d'actualités : rubriques, sources, recherche, vignettes.
@@ -53,7 +53,20 @@ const SORTS = [
 
 type SortId = (typeof SORTS)[number]['id']
 
-export function NewsFeed({ articles }: { articles: NewsItem[] }) {
+export function NewsFeed({
+  articles,
+  quotes,
+}: {
+  articles: NewsItem[]
+  /**
+   * Variation sur 24 h des actifs cités, par identifiant de fiche.
+   *
+   * Absente, les pastilles ne se rendent pas — ce qui est le bon comportement sur la
+   * fiche d'actif, où ce composant sert aussi : on est déjà sur l'actif dont parlent
+   * les articles, et lui coller sa propre variation sous chaque titre n'apprend rien.
+   */
+  quotes?: Record<string, number>
+}) {
   const [category, setCategory] = useState<string>('all')
   const [source, setSource] = useState<string>('all')
   const [lang, setLang] = useState<string>('all')
@@ -128,6 +141,7 @@ export function NewsFeed({ articles }: { articles: NewsItem[] }) {
   const [featured, ...rest] = ordered
 
   return (
+    <QuotesContext.Provider value={quotes ?? {}}>
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {categories.length > 1 ? (
@@ -289,6 +303,7 @@ export function NewsFeed({ articles }: { articles: NewsItem[] }) {
         </ul>
       ) : null}
     </div>
+    </QuotesContext.Provider>
   )
 }
 
@@ -316,6 +331,9 @@ function FeaturedArticle({ article }: { article: NewsItem }) {
         {article.excerpt ? (
           <p className="text-sm leading-relaxed text-ink-muted">{article.excerpt}</p>
         ) : null}
+
+        <CitedAssetChips article={article} />
+
         <span className="inline-flex items-center gap-1 text-xs font-medium text-brand">
           Lire chez {article.source}
           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -353,8 +371,10 @@ function ArticleCard({ article }: { article: NewsItem }) {
         <h3 className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
           {article.title}
         </h3>
+        <CitedAssetChips article={article} />
+
         {article.category ? (
-          <span className="mt-0.5 self-start rounded bg-brand-soft px-1.5 py-0.5 text-[0.625rem] font-medium text-brand-strong">
+          <span className="mt-0.5 self-start rounded-control bg-brand-soft px-1.5 py-0.5 text-[0.625rem] font-medium text-brand-strong">
             {NEWS_CATEGORY_LABELS[article.category as keyof typeof NEWS_CATEGORY_LABELS] ??
               article.category}
           </span>
@@ -527,6 +547,74 @@ function BrandTile({ source, className }: { source: string; className: string })
     <span className={`${className} ${tint} flex items-center justify-center px-3`} aria-hidden="true">
       <span className="truncate text-sm font-semibold tracking-tight">{source}</span>
     </span>
+  )
+}
+
+/**
+ * Variations des actifs cités, fournies par la page.
+ *
+ * Un CONTEXTE plutôt qu'une prop traversée de main en main : la carte d'article est
+ * rendue par trois composants différents (mis en avant, grille, méta), et faire
+ * descendre une table de cotations à travers les trois ajouterait un paramètre à
+ * chacun pour une donnée dont deux d'entre eux n'ont rien à faire.
+ *
+ * Vide par défaut : `NewsFeed` sert aussi la fiche d'actif, où les pastilles n'ont pas
+ * lieu d'être — on est déjà sur l'actif dont parlent les articles.
+ */
+const QuotesContext = createContext<Record<string, number>>({})
+
+/**
+ * Pastilles des actifs cités par l'article, avec leur variation du moment.
+ *
+ * ── CE QUE ÇA CHANGE POUR LE LECTEUR ───────────────────────────────────
+ *
+ * Repris de la référence, et c'est son meilleur trait. Un titre d'actualité dit ce
+ * qui s'est passé ; il ne dit pas si le marché y a réagi. La pastille met les deux
+ * côte à côte : « XRP, Zcash et Bitcoin testent des niveaux clés » suivi de
+ * « XRP ▾1,5 % » répond à la question qu'on se pose en lisant le titre, sans quitter
+ * la page.
+ *
+ * Elle ne s'affiche QUE si la variation est connue. Une pastille sans nombre au milieu
+ * de pastilles chiffrées ferait chercher un chiffre qui n'arrivera pas.
+ */
+function CitedAssetChips({ article }: { article: NewsItem }) {
+  const quotes = useContext(QuotesContext)
+  const cited = citedAssets(`${article.title} ${article.excerpt ?? ''}`)
+
+  const shown = cited.filter((mention) => quotes[mention.assetId!] !== undefined)
+  if (shown.length === 0) return null
+
+  return (
+    <p className="flex flex-wrap items-center gap-1.5">
+      {/*
+        DES `<span>`, ET SURTOUT PAS DES LIENS.
+
+        La référence en fait des liens vers ses fiches. Nous ne pouvons pas : la carte
+        d'article EST DÉJÀ un `<a>` qui part chez l'éditeur, et un lien dans un lien
+        est un HTML invalide — le navigateur défait l'imbrication à sa façon, ce qui
+        produit selon les cas un lien mort, un lien qui capture le clic de l'autre, ou
+        deux liens frères là où le balisage en décrivait un imbriqué.
+
+        La pastille garde l'essentiel de ce qu'elle apporte, qui est le CHIFFRE : « de
+        quoi parle cet article, et comment cet actif se comporte pendant qu'on le
+        lit ». Naviguer vers la fiche se fait par la recherche, à un raccourci d'ici.
+      */}
+      {shown.slice(0, 3).map((mention) => (
+        <span
+          key={mention.id}
+          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.625rem]"
+        >
+          <span className="font-medium text-ink">{mention.label}</span>
+          <ChangeBadge value={quotes[mention.assetId!]} size="sm" />
+        </span>
+      ))}
+
+      {/* Le compte des cités NON MONTRÉS, et non le compte total : trois pastilles plus
+          « 3 de plus » ferait croire à six actifs quand il y en a trois de plus. */}
+      {shown.length > 3 ? (
+        <span className="text-[0.625rem] text-ink-muted">+{shown.length - 3}</span>
+      ) : null}
+    </p>
   )
 }
 

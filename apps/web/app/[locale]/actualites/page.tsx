@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { getNews, type NewsItem } from '@zenkuu/data'
+import { getMoversUniverse, getNews, type NewsItem } from '@zenkuu/data'
 import { DB_ENABLED, listNewsBetween, newsArchiveReady, oldestNewsDate } from '@zenkuu/db'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
@@ -80,7 +80,34 @@ export default async function NewsPage({
    * proposaient qu'elles. 72 garantit près de trois tours complets, donc toutes les
    * sources représentées et des filtres qui portent sur un fil réel.
    */
-  const news = requestedDate ? null : await getNews(72)
+  /*
+   * L'UNIVERS EST CHARGÉ EN PARALLÈLE, POUR LES PASTILLES D'ACTIF.
+   *
+   * Chaque article porte la variation des actifs qu'il cite — c'est le meilleur trait
+   * de la référence : un titre dit ce qui s'est passé, la pastille dit si le marché y
+   * a réagi. Sans elle, la réponse est à deux clics et personne ne la cherche.
+   *
+   * ZÉRO APPEL SUPPLÉMENTAIRE : `getMoversUniverse(250)` est déjà chargé pour
+   * l'accueil, le convertisseur, les mouvements et les cotations récentes. Il est ici
+   * la cinquième lecture de la même entrée de cache.
+   */
+  const [news, universe] = await Promise.all([
+    requestedDate ? Promise.resolve(null) : getNews(72),
+    getMoversUniverse(250, 'eur'),
+  ])
+
+  /*
+   * Table `identifiant → variation 24 h`, réduite aux actifs que les pastilles savent
+   * nommer. La construire ici plutôt que de passer l'univers entier au composant
+   * client évite d'expédier 250 objets complets dans le paquet de la page pour en lire
+   * neuf nombres.
+   */
+  const quotes: Record<string, number> = {}
+  if (universe.ok) {
+    for (const asset of universe.data) {
+      if (asset.change24h !== undefined) quotes[asset.id] = asset.change24h
+    }
+  }
 
   const articles = archive ? archive.articles : (news?.ok ? news.data : [])
   const oldest = await archiveStart()
@@ -100,7 +127,7 @@ export default async function NewsPage({
 
       {articles.length > 0 ? (
         <>
-          <NewsFeed articles={articles} />
+          <NewsFeed articles={articles} quotes={quotes} />
 
           <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
             ZENKUU agrège des titres publiés par des éditeurs tiers et renvoie vers
