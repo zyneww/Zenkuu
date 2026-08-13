@@ -48,6 +48,14 @@ desktop.ini
 !.vscode/extensions.json
 .idea/
 
+# Rapports et captures de l'audit responsive (`scripts/audit-responsive.mjs`).
+#
+# Le SCRIPT est versionné, ses sorties non : ce sont des mesures d'un instant, sur
+# une machine, contre un serveur de développement. Les committer ferait passer un
+# relevé périmé pour un état de référence, et les captures alourdiraient l'historique
+# de plusieurs mégaoctets à chaque passage.
+.audit/
+
 # Divers (déposés par des plugins externes, hors projet)
 archive-*/
 .claude/data/

@@ -11,6 +11,7 @@ import { AccountMenu } from '@/components/auth/AccountMenu'
 import { AuthButtons } from '@/components/auth/AuthButtons'
 import { AuthOverlay, type AuthMode } from '@/components/auth/AuthOverlay'
 import { UpgradeButton } from '@/components/billing/UpgradeButton'
+import { MobileNav } from '@/components/nav/MobileNav'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import { SettingsMenu } from '@/components/settings/SettingsMenu'
@@ -149,7 +150,20 @@ export function NavBar() {
         data-site-header
         className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/95 backdrop-blur"
       >
-        <div ref={navRef} className="shell-bleed flex h-16 items-center gap-4">
+        {/* `gap-4` sur grand écran, `gap-2` en dessous : à 393 px, quatre écarts de
+            seize pixels coûtent un huitième de la largeur à des éléments déjà serrés. */}
+        <div ref={navRef} className="shell-bleed flex h-16 items-center gap-2 lg:gap-4">
+          {/*
+            LE TIROIR EST LE PREMIER ÉLÉMENT DE LA BARRE, avant le logo.
+
+            C'est la place qu'il occupe sur toutes les références, et ce n'est pas une
+            convention gratuite : le bouton qui OUVRE la navigation se lit comme le
+            point de départ de la barre, et le poser à droite le ferait confondre avec
+            les actions de compte. Il disparaît de lui-même au-dessus de `lg`, là où la
+            barre de menus reprend le relais.
+          */}
+          <MobileNav />
+
           {/* GROUPE 1 — logo puis menus, collés à gauche. Les deux `flex-1 basis-0`
               qui encadraient la navigation ont disparu : ils servaient à la poser sur
               l'axe exact de la page, ce qui n'est plus l'objectif. */}
@@ -176,7 +190,21 @@ export function NavBar() {
             <ZenkuuWordmark className="h-7 w-auto shrink-0" />
           </Link>
 
-          <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 lg:flex">
+          {/*
+            ── LE SEUIL EST À 1280 ET NON À 1024 ───────────────────────────────
+
+            Il était à `lg`, c'est-à-dire précisément la largeur d'un iPad en paysage.
+            Résultat mesuré : les TRENTE-SIX pages du site débordaient de 214 px sur ce
+            format, et sur celui-là seulement. La barre de menus s'allumait à 1024 px
+            alors que le compte y est intenable — logo 154, cinq menus 380, groupe
+            d'actions 615 : 1 149 px pour 1 024 disponibles.
+
+            Le tiroir couvre donc aussi les tablettes en paysage. Ce n'est pas un repli
+            par défaut : à 1024 px on tient une tablette à deux mains, le pouce atteint
+            le coin supérieur gauche, et un tiroir s'y manipule mieux qu'une rangée de
+            menus au survol — il n'y a pas de survol sur un écran tactile.
+          */}
+          <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 xl:flex">
             {NAV_MENUS.map((menu) =>
               /*
                * ── UN MENU SANS PANNEAU EST UN LIEN ───────────────────────────
@@ -251,7 +279,7 @@ export function NavBar() {
             muette, ce qui obligeait à l'ouvrir pour savoir ce qu'il contenait.
             Chaque bouton annonce désormais ce qu'il fait.
           */}
-          <div className="relative ml-auto flex items-center gap-2">
+          <div className="relative ml-auto flex items-center gap-1 sm:gap-2">
             <HeaderSearch onOpenOverlay={openSearch} />
 
             {/* S'efface de lui-même pour un abonné, et sans boutique configurée. */}

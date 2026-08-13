@@ -577,6 +577,89 @@
     transition-duration: var(--duration-menu-out);
   }
 
+  /* ──────────────────────────────────────────────────────────────
+     TIROIR MOBILE — la navigation repliée sous l'en-tête.
+
+     MÊME MÉCANIQUE QUE `.menu-panel`, autre GESTE. Le panneau de bureau se DÉPLIE
+     depuis son bouton : six pixels de descente, un léger agrandissement. Celui-ci
+     couvre l'écran, et un écran entier qui grandit de deux centièmes se lit comme un
+     tremblement. Il DESCEND donc, franchement, sans changer d'échelle.
+
+     ⚠️ LA HAUTEUR EST EN `dvh` ET NON EN `vh`. Sur mobile, `100vh` vaut la hauteur de
+     la fenêtre BARRES D'OUTILS MASQUÉES — c'est-à-dire plus que ce qu'on voit tant que
+     la barre d'adresse est là. Un tiroir en `100vh` passe donc son pied sous la barre
+     de Safari, et son dernier lien devient inatteignable. `dvh` suit la hauteur
+     réellement visible.
+
+     Le repli en `vh` sert les navigateurs antérieurs à Safari 15.4 : ils ignorent la
+     seconde déclaration et gardent la première. Écrire l'inverse les priverait des
+     deux.
+     ────────────────────────────────────────────────────────────── */
+  .drawer-sheet {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition-property: opacity, transform;
+    transition-timing-function: var(--ease-menu);
+    transition-duration: var(--duration-menu-out);
+  }
+
+  .drawer-sheet[data-state='open'] {
+    opacity: 1;
+    transform: translateY(0);
+    transition-duration: var(--duration-menu-in);
+  }
+
+  .drawer-sheet[data-state='closing'] {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  /* Voile derrière le tiroir. Il ne s'anime QU'EN OPACITÉ : le déplacer ferait
+     glisser une teinte sur toute la page, ce que l'œil lit comme un défaut de rendu
+     plutôt que comme une ouverture. */
+  .drawer-scrim {
+    opacity: 0;
+    transition: opacity var(--duration-menu-out) var(--ease-menu);
+  }
+
+  .drawer-scrim[data-state='open'] {
+    opacity: 1;
+    transition-duration: var(--duration-menu-in);
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     HAUTEUR VISIBLE, en une seule déclaration réutilisable.
+
+     Le même repli `vh` → `dvh` sert au tiroir, aux fenêtres modales et à tout ce qui
+     doit occuper l'écran. L'écrire à chaque fois garantit qu'un endroit l'oubliera.
+     ────────────────────────────────────────────────────────────── */
+  .h-visible {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .max-h-visible {
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     ZONE SÛRE — l'encoche et la barre d'accueil des téléphones récents.
+
+     Sur un iPhone en PAYSAGE, l'encoche mange une bande verticale sur un côté : un
+     panneau collé au bord y perd ses premiers caractères. En portrait, la barre
+     d'accueil recouvre les derniers pixels du bas. `env()` renvoie zéro partout
+     ailleurs — ces classes ne coûtent donc rien sur un écran d'ordinateur.
+     ────────────────────────────────────────────────────────────── */
+  .safe-x {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
   /* ───────────────────────────────────────────────────────────────────────────
      Trait de l'onglet actif — UN SEUL élément pour toute une rangée.
 
@@ -850,6 +933,43 @@
     font-size: var(--text-base);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     LA CAUSE UNIQUE DE CINQ DÉBORDEMENTS MOBILES.
+
+     Un enfant de grille a, par défaut, une largeur minimale ÉGALE À SON CONTENU
+     (`min-width: auto`). Sur grand écran cela ne se voit pas : les colonnes sont
+     larges. À 393 px, la colonne unique refuse de descendre sous la largeur du plus
+     long élément qu'elle contient — un libellé en `whitespace-nowrap`, un chiffre
+     tabulaire, une pastille `shrink-0` — et POUSSE LA PAGE ENTIÈRE. Le contenu
+     débordant devient alors inatteignable, puisque rien ne fait défiler la page
+     horizontalement.
+
+     Cinq pages en souffraient, avec cinq symptômes différents et une seule cause :
+     l'accueil (+66 px), les classements crypto (+139 px), la fiche d'actif (+69 px),
+     les réglages (+76 px) et les données de trading (+12 px). C'est aussi ce qui
+     empêchait `overflow-x-auto` de fonctionner sur `/parametres` : un conteneur qui
+     ne peut pas rétrécir n'a jamais rien à faire défiler.
+
+     ── POURQUOI UNE RÈGLE GLOBALE PLUTÔT QUE CINQ CORRECTIFS ────────────────
+
+     Poser `min-w-0` à cinq endroits corrigerait cinq pages et laisserait le piège
+     intact pour la sixième grille qu'on écrira. Le défaut n'est pas dans ces pages,
+     il est dans le comportement par défaut.
+
+     `:where()` maintient la SPÉCIFICITÉ À ZÉRO : n'importe quel utilitaire Tailwind
+     — `min-w-fit`, `w-max` — reprend la main sans avoir à lutter. La règle propose,
+     elle n'impose pas.
+
+     Elle ne vise QUE les enfants de grille. Les boîtes flexibles portent le même
+     piège, mais leurs cas légitimes de dimensionnement par le contenu sont bien plus
+     nombreux — une rangée d'icônes, une barre d'onglets qui défile — et une règle
+     globale y ferait plus de dégâts qu'elle n'en répare. Ceux-là se traitent un par
+     un, là où la mesure les désigne.
+     ────────────────────────────────────────────────────────────── */
+  :where(.grid) > * {
+    min-width: 0;
   }
 
   /* Cible de focus visible partout — exigence d'accessibilité du §9. */

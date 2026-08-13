@@ -305,7 +305,15 @@ export function ChartToolbar(props: ChartToolbarProps) {
         ferait croire à sept réglages du même genre, dont deux se contrediraient.
       */}
       {props.intervals.length > 0 ? (
-        <div className="flex items-center gap-0.5" role="group" aria-label="Pas de bougie">
+        /* `flex-wrap` sur les GROUPES autant que sur la barre : un groupe est un
+           élément flexible comme un autre, avec une largeur minimale égale à son
+           contenu. Sept boutons de palier tiennent à 1 200 px et POUSSENT LA PAGE à
+           393 — mesuré, la fiche d'actif débordait de 69 px par ce seul chemin. */
+        <div
+          className="flex min-w-0 flex-wrap items-center gap-0.5"
+          role="group"
+          aria-label="Pas de bougie"
+        >
           {props.intervals.map((interval) => (
             <button
               key={interval.id}
@@ -326,7 +334,11 @@ export function ChartToolbar(props: ChartToolbarProps) {
         </div>
       ) : null}
 
-      <div className="flex items-center gap-0.5" role="group" aria-label="Période affichée">
+      <div
+        className="flex min-w-0 flex-wrap items-center gap-0.5"
+        role="group"
+        aria-label="Période affichée"
+      >
         {RANGE_PRESETS.map((preset) => {
           // Un palier de durée n'est « actif » que si AUCUN pas ne l'est : sans cette
           // condition, deux boutons de la barre s'allumeraient en même temps pour
@@ -397,7 +409,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
         huit caractères, sur un panneau où l'on venait de tailler trois rangées de
         commandes : elle est ici, avec les autres réglages de lecture.
       */}
-      <span className="ml-auto flex items-center gap-0.5">
+      <span className="ml-auto flex min-w-0 flex-wrap items-center gap-0.5">
         {/*
           GROUPE DE VUES — un segment plein, et non des boutons détachés.
 

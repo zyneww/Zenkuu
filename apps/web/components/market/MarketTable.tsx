@@ -144,14 +144,32 @@ export function MarketTable({
 
   return (
     <div className="space-y-3">
+      {/*
+        ── COLONNES PRIORITAIRES PLUTÔT QUE DÉFILEMENT HORIZONTAL ──────────────
+
+        Le tableau imposait 640 px de large à toutes les tailles d'écran. Sur un
+        téléphone de 393 px, cela voulait dire faire glisser le tableau pour lire le
+        prix — un geste que beaucoup ne découvrent jamais, et que Safari iOS gère mal
+        dès qu'il est imbriqué dans le défilement vertical de la page.
+
+        Sous `sm`, le minimum tombe : le tableau TIENT dans l'écran, avec trois
+        colonnes seulement — l'actif, son cours, sa variation. C'est ce que montrent
+        OKX et CoinGecko sur mobile, et c'est ce que quelqu'un vient chercher.
+
+        Rien n'est PERDU : chaque colonne masquée reste sur la fiche de l'actif, à un
+        clic de là. Un tableau tronqué qui l'annonce vaut mieux qu'un tableau complet
+        qu'on ne peut pas atteindre.
+      */}
       <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+        <table className="w-full border-collapse text-sm sm:min-w-[640px]">
           <caption className="sr-only">{fr.assetClass[assetClass]}</caption>
 
           <thead>
             <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
+              {/* Le rang coûte quarante pixels pour redire ce que l'ORDRE des lignes
+                  dit déjà. Il part le premier. */}
               {showRank ? (
-                <th scope="col" className="px-3 py-2.5 font-medium">
+                <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
                   {fr.market.columns.rank}
                 </th>
               ) : null}
@@ -195,6 +213,7 @@ export function MarketTable({
                   direction={direction}
                   sortable={sortable}
                   basePath={basePath}
+                  className="hidden sm:table-cell"
                 />
               ) : null}
               {showDayRange ? (
@@ -222,7 +241,7 @@ export function MarketTable({
               return (
                 <tr key={asset.id} className="group transition-colors hover:bg-surface-muted/60">
                   {showRank ? (
-                    <td className="tabular px-3 py-2.5 text-xs text-ink-muted">
+                    <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
                       {asset.rank ?? '—'}
                     </td>
                   ) : null}
@@ -230,13 +249,19 @@ export function MarketTable({
                   <th scope="row" className="px-3 py-2.5 text-left font-normal">
                     {/* Le lien porte sur le nom plutôt que sur la ligne entière : une
                         ligne cliquable empêche de sélectionner un chiffre à la souris
-                        et n'est pas atteignable proprement au clavier. */}
-                    <Link href={href} className="flex items-center gap-2">
+                        et n'est pas atteignable proprement au clavier.
+
+                        `min-w-0` + `truncate` : à 393 px, « Wrapped liquid staked Ether »
+                        pousserait la colonne bien au-delà de l'écran. Le nom se coupe,
+                        le SYMBOLE reste — c'est lui qui identifie à coup sûr. */}
+                    <Link href={href} className="flex min-w-0 items-center gap-2">
                       <AssetLogo asset={asset} size={24} />
-                      <span className="font-medium text-ink group-hover:text-brand-strong">
+                      <span className="truncate font-medium text-ink group-hover:text-brand-strong">
                         {asset.name}
                       </span>
-                      <span className="text-xs uppercase text-ink-muted">{asset.symbol}</span>
+                      <span className="shrink-0 text-xs uppercase text-ink-muted">
+                        {asset.symbol}
+                      </span>
                     </Link>
                   </th>
 
@@ -274,7 +299,7 @@ export function MarketTable({
                   ) : null}
 
                   {showMarketCap ? (
-                    <td className="tabular px-3 py-2.5 text-right text-ink">
+                    <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
                       <Money value={asset.marketCap} from={asset.currency} compact />
                     </td>
                   ) : null}
