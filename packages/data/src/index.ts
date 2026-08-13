@@ -46,6 +46,7 @@ export {
   getNewListings,
   getPeers,
   getPool,
+  getPoolsOnNetwork,
   getRanking,
   getTokenPools,
   getTrendingPools,

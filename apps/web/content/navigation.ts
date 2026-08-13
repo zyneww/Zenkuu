@@ -92,11 +92,7 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Classement filtrable, toutes classes',
             icon: Gauge,
             href: '/marches',
-            // `false` TANT QUE LA PAGE N'EXISTE PAS. C'est précisément à ça que sert
-            // ce drapeau : l'entrée se rend en `<span>` inerte plutôt qu'en lien, et
-            // aucun commit de l'historique ne contient un menu qui mène à un 404.
-            // À basculer dans le même commit que la page.
-            ready: false,
+            ready: true,
           },
         ],
       },

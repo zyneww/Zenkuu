@@ -51,6 +51,10 @@ export interface MarketPageViewProps {
   perPage?: number
   /** Surcharge la base des liens de tri et de pagination, pour les pages dérivées. */
   basePath?: string
+  /** Destination des onglets de classe — voir `AssetClassTabs`. */
+  classHref?: (assetClass: AssetClass) => string
+  /** Inséré entre les onglets et le bandeau de points saillants. */
+  children?: React.ReactNode
 }
 
 /** Lecture défensive des paramètres d'URL : ils sont saisissables à la main. */
@@ -67,6 +71,8 @@ export async function MarketPageView({
   searchParams,
   perPage,
   basePath,
+  classHref,
+  children,
 }: MarketPageViewProps) {
   const fr = await getContent()
   const base = CONFIG[assetClass]
@@ -94,7 +100,9 @@ export async function MarketPageView({
 
       {/* Navigation inter-classes : le passage de /crypto à /actions ne devrait pas
           imposer un détour par le menu de l'en-tête. */}
-      <AssetClassTabs current={assetClass} />
+      <AssetClassTabs current={assetClass} {...(classHref ? { hrefFor: classHref } : {})} />
+
+      {children}
 
       {ranking.ok && ranking.data.length > 0 ? (
         <>

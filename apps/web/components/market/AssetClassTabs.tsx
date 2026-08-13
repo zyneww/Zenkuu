@@ -21,7 +21,24 @@ import { marketHref } from '@/lib/asset-routes'
 /** `nft` est déclaré dans le domaine mais aucune source ne l'alimente encore. */
 const HIDDEN: readonly AssetClass[] = ['nft']
 
-export async function AssetClassTabs({ current }: { current: AssetClass }) {
+export async function AssetClassTabs({
+  current,
+  hrefFor,
+}: {
+  current: AssetClass
+  /**
+   * Destination d'un onglet, quand elle n'est pas la page de classement de la classe.
+   *
+   * Sert à `/marches`, qui présente les six classes SUR PLACE : sans cette prise, ses
+   * onglets renverraient vers `/crypto` et `/actions`, et le lecteur quitterait la
+   * page avancée au premier clic sans comprendre pourquoi.
+   *
+   * Une PROP et non une détection du chemin courant : ce composant est rendu côté
+   * serveur à des endroits qu'il ne connaît pas, et deviner sa propre URL est
+   * exactement le genre de couplage qui casse au premier déplacement de route.
+   */
+  hrefFor?: (assetClass: AssetClass) => string
+}) {
   const fr = await getContent()
   const classes = ASSET_CLASSES.filter((assetClass) => !HIDDEN.includes(assetClass))
 
@@ -33,7 +50,7 @@ export async function AssetClassTabs({ current }: { current: AssetClass }) {
           return (
             <li key={assetClass}>
               <Link
-                href={marketHref(assetClass)}
+                href={hrefFor ? hrefFor(assetClass) : marketHref(assetClass)}
                 aria-current={active ? 'page' : undefined}
                 className={`inline-block whitespace-nowrap rounded-control px-3 py-1.5 text-xs font-medium transition-colors ${
                   active

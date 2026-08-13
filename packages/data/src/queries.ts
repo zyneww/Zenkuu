@@ -959,6 +959,24 @@ export function getTokenPools(
     })
   }
 
+  return getPoolsOnNetwork(network, tokenAddress)
+}
+
+/**
+ * Même chose, mais depuis l'identifiant de chaîne de GeckoTerminal.
+ *
+ * Séparée de `getTokenPools` plutôt que devinée par la forme de la chaîne reçue : les
+ * deux nomenclatures se recoupent — `base`, `solana`, `celo` s'écrivent pareil des
+ * deux côtés — et une fonction qui essaierait de reconnaître laquelle on lui passe se
+ * tromperait précisément sur ces cas-là, en silence.
+ *
+ * Sert la fiche de pool, qui tient sa chaîne de l'URL et n'a jamais vu de plateforme
+ * CoinGecko.
+ */
+export function getPoolsOnNetwork(
+  network: string,
+  tokenAddress: string,
+): Promise<DataResult<DexPool[]>> {
   return runStandalone(
     `pools:${network}:${tokenAddress}`,
     GECKOTERMINAL_SOURCE,
