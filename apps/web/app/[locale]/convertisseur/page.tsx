@@ -5,14 +5,14 @@ import {
   CACHE_TTL_SECONDS,
   SUPPORTED_CURRENCIES,
   getExchangeRates,
-  getForexRates,
   getMoversUniverse,
-  getRanking,
   type MarketAsset,
 } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { ConverterView } from '@/components/tools/ConverterView'
+import { assetHref } from '@/lib/asset-routes'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -26,57 +26,43 @@ export const metadata: Metadata = {
 }
 
 /**
- * Convertisseur.
+ * Convertisseur — CRYPTOMONNAIES SEULEMENT.
  *
- * L'entrée existait au menu depuis le début, marquée « bientôt ». Elle ne coûtait en
- * réalité AUCUN appel supplémentaire : les cours des 250 premières cryptomonnaies et
- * les taux BCE sont déjà chargés et mis en cache pour d'autres pages. Le convertisseur
- * n'est qu'une lecture de plus de la même donnée.
+ * ── POURQUOI LES QUATRE AUTRES CLASSES SONT PARTIES ───────────────────────────
  *
- * Les classes traditionnelles sont ajoutées à l'univers pour la même raison — leur
- * classement est déjà en cache. Une entrée de menu inerte pendant des semaines coûtait
- * donc plus cher, en confiance, que la page elle-même.
+ * La page couvrait aussi actions, ETF, indices et matières premières. Ce n'était pas
+ * une erreur de conception, c'était une extension gratuite : leurs classements étaient
+ * déjà en cache. Elle est retirée pour deux raisons qui se renforcent.
+ *
+ * D'ABORD LE SENS. « Convertir 3 actions Total en dollars » n'est pas une conversion,
+ * c'est une valorisation — et le mot « convertisseur » promet la première. Un indice
+ * est encore plus douteux : le CAC 40 n'est pas une quantité qu'on détient, multiplier
+ * sa valeur par un montant ne produit rien de nommable.
+ *
+ * ENSUITE LE COÛT. Ces quatre classes coûtaient quatre appels `getRanking` par rendu.
+ * Ils étaient certes partagés avec les pages de classement — mais uniquement si
+ * quelqu'un les avait ouvertes récemment. Sur un cache froid, chez Yahoo, un classement
+ * se construit SYMBOLE PAR SYMBOLE : quatre-vingts requêtes sortantes derrière un
+ * limiteur de débit, pour alimenter un menu déroulant dont trois entrées sur quatre
+ * n'avaient pas de sens.
+ *
+ * Reste ce que la page fait bien, et ce que demande la référence (okx.com/fr-fr/convert,
+ * qui s'intitule d'ailleurs « convertisseur et calculateur de CRYPTOS ») : un montant,
+ * une cryptomonnaie, une devise.
  */
 export default async function ConverterPage() {
-  /*
-   * ⚠️ `perPage: 20` N'EST PAS UN NOMBRE ARBITRAIRE — c'est celui des pages de
-   * classement (`/actions`, `/etf`, `/indices`, `/matieres-premieres`).
-   *
-   * La clé de cache d'un classement inclut sa taille de page. Demander 30 lignes
-   * plutôt que 20 ouvrirait donc une SECONDE entrée de cache pour la même donnée, et
-   * chez Yahoo un classement se construit symbole par symbole : une requête sortante
-   * par ligne. La première version de cette page en déclenchait jusqu'à quatre-vingt-dix
-   * sur un cache froid, derrière un limiteur de débit — la page mettait plus d'une
-   * minute à répondre. Alignées, ces quatre requêtes sont déjà en cache dès qu'un
-   * visiteur a ouvert l'une des pages de classement, et ne coûtent rien de plus.
-   */
-  const [crypto, forex, stocks, etf, indices, commodities, rates] = await Promise.all([
-    getMoversUniverse(250, 'eur'),
-    getForexRates(),
-    getRanking({ assetClass: 'stock', currency: 'eur', perPage: 20 }),
-    getRanking({ assetClass: 'etf', currency: 'eur', perPage: 20 }),
-    getRanking({ assetClass: 'index', currency: 'eur', perPage: 20 }),
-    getRanking({ assetClass: 'commodity', currency: 'eur', perPage: 20 }),
-    getExchangeRates(),
-  ])
+  const [crypto, rates] = await Promise.all([getMoversUniverse(250, 'eur'), getExchangeRates()])
 
-  // Les paires de devises sont ÉCARTÉES de l'univers : « 1 EUR/USD en dollars » n'a
-  // pas de sens, un taux n'est pas un actif qu'on convertit. Elles restent lisibles
-  // sur leur propre page.
-  void forex
-
-  const assets: MarketAsset[] = [crypto, stocks, etf, indices, commodities]
-    .filter((result) => result.ok)
-    .flatMap((result) => (result.ok ? result.data : []))
-    .filter((asset) => asset.price > 0)
+  const assets: MarketAsset[] = crypto.ok ? crypto.data.filter((asset) => asset.price > 0) : []
 
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Convertisseur</h1>
+        <h1 className="display-xl text-ink">Convertisseur et calculateur de cryptos</h1>
         <p className="text-lg leading-relaxed text-ink-muted">
-          Convertir un montant entre {assets.length} actifs suivis et cinq devises, au
-          dernier cours reçu de chaque source.
+          Convertir un montant entre {assets.length} cryptomonnaies et {SUPPORTED_CURRENCIES.length}{' '}
+          devises, au dernier cours reçu. Aucun compte n’est nécessaire, et rien ne
+          s’exécute : c’est un calcul, pas une offre.
         </p>
       </header>
 
@@ -93,6 +79,53 @@ export default async function ConverterPage() {
             href={crypto.ok ? crypto.source.attributionUrl : '#'}
             updatedAt={assets[0]?.lastUpdated}
           />
+
+          {/*
+            ── TAUX RAPIDES ──────────────────────────────────────────────
+
+            Repris de la référence, et ce n'est pas de la garniture. Le convertisseur
+            est un OUTIL : il exige qu'on choisisse, qu'on tape, qu'on lise. Or la
+            requête qui amène le plus de monde sur ce genre de page — « combien vaut
+            un bitcoin en euros » — a une réponse unique, qui ne mérite aucun
+            formulaire. Ces vingt pastilles la donnent d'un coup d'œil.
+
+            Elles ont un second effet, celui-là pour les moteurs de recherche : elles
+            mettent vingt réponses chiffrées dans le HTML SERVI, là où le convertisseur
+            lui-même est un îlot client qui n'existe qu'après hydratation. Une page
+            d'outil sans contenu servi n'est indexable sur aucune de ses réponses.
+
+            Chaque pastille mène à la FICHE de l'actif et non à une pré-sélection du
+            convertisseur : quelqu'un qui clique sur « BTC en EUR » a déjà sa réponse,
+            ce qu'il cherche ensuite est le contexte.
+          */}
+          <section className="space-y-3 border-t border-border-subtle pt-6">
+            <h2 className="text-sm font-semibold text-ink">
+              Les vingt premières cryptomonnaies en euros
+            </h2>
+
+            <ul className="flex flex-wrap gap-2">
+              {assets.slice(0, 20).map((asset) => (
+                <li key={asset.id}>
+                  <Link
+                    href={assetHref(asset.assetClass, asset.id)}
+                    className="flex items-center gap-2 rounded-pill border border-border-subtle px-3 py-1.5 text-xs transition-colors duration-150 hover:border-brand"
+                  >
+                    <AssetLogo asset={asset} size={18} />
+                    <span className="font-medium text-ink">
+                      {asset.symbol.toUpperCase()} en EUR
+                    </span>
+                    <span className="tabular text-ink-muted">
+                      {new Intl.NumberFormat('fr-FR', {
+                        style: 'currency',
+                        currency: 'EUR',
+                        maximumFractionDigits: asset.price >= 1 ? 2 : 6,
+                      }).format(asset.price)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         </>
       ) : (
         <EmptyState

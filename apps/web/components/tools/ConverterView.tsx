@@ -8,6 +8,18 @@ import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenkuu/data
 import { AssetPicker } from '@/components/tools/AssetPicker'
 
 /**
+ * Un nombre lisible quel que soit son ORDRE DE GRANDEUR.
+ *
+ * La réciproque d'un cours élevé est un nombre minuscule : 1 euro vaut 0,0000181 BTC.
+ * Deux décimales l'écriraient « 0,00 », c'est-à-dire un zéro affiché là où il y a une
+ * valeur. La précision suit donc la grandeur, jusqu'à huit décimales.
+ */
+function formatUnit(value: number): string {
+  const digits = value >= 100 ? 2 : value >= 1 ? 4 : 8
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: digits }).format(value)
+}
+
+/**
  * Convertisseur multi-actifs.
  *
  * Tout est calculé sur des cours DÉJÀ CHARGÉS : la frappe ne déclenche aucun appel
@@ -42,6 +54,9 @@ export function ConverterView({
 
   const parsed = Number(amount.replace(/\s/g, '').replace(',', '.'))
   const rate = currency === 'EUR' ? 1 : rates?.rates[currency]
+
+  /** Prix d'UNE unité de l'actif dans la devise choisie — la base des deux sens. */
+  const unitPrice = asset && rate !== undefined ? asset.price * rate : undefined
 
   const result = useMemo(() => {
     if (!asset || !Number.isFinite(parsed) || parsed < 0 || rate === undefined) return undefined
@@ -122,6 +137,29 @@ export function ConverterView({
           </label>
         </div>
       </div>
+
+      {/*
+        ── LIGNE DE TAUX RÉCIPROQUE ─────────────────────────────────────────────
+
+        « 1 Bitcoin ≈ 55 189,22 EUR · 1 EUR ≈ 0,0000181 BTC ». C'est la signature de
+        la référence, et elle répond à une question que le résultat ne traite pas :
+        le champ répond pour le MONTANT SAISI, cette ligne répond pour l'unité.
+
+        Le SECOND sens est le vrai apport. Il fait apparaître d'un coup l'ordre de
+        grandeur inverse — combien d'un jeton vaut un euro — que personne ne calcule
+        de tête, et qui est précisément ce qu'on cherche quand on hésite sur le nombre
+        de zéros.
+
+        Elle ne s'affiche pas si le taux manque : une réciproque calculée sur un taux
+        absent serait un nombre inventé (§5).
+      */}
+      {unitPrice !== undefined && unitPrice > 0 ? (
+        <p className="tabular text-center text-xs text-ink-muted">
+          1 {asset.name} ≈ {formatUnit(unitPrice)} {currency}
+          <span className="mx-2 text-border-subtle">·</span>1 {currency} ≈{' '}
+          {formatUnit(1 / unitPrice)} {asset.symbol.toUpperCase()}
+        </p>
+      ) : null}
 
       <div className="border-l-2 border-border-subtle pl-4 text-xs leading-relaxed text-ink-muted">
         <p>
