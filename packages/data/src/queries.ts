@@ -12,6 +12,12 @@ import { CURRENCY_CODES } from './currencies'
 import { recordMarketCap } from './market-cap-series'
 import { fetchCoinGeckoRates } from './providers/coingecko'
 import { COINPAPRIKA_SOURCE, fetchNewListings } from './providers/coinpaprika'
+import {
+  TRACKED_NFT_COLLECTIONS,
+  fetchNftCollection,
+  fetchTreasuries,
+  type TreasuryCoin,
+} from './providers/coingecko-extras'
 import { fetchExchangeRates } from './providers/frankfurter'
 import {
   fetchPool,
@@ -40,6 +46,8 @@ import type {
   MarketAsset,
   MarketCategory,
   NewListing,
+  NftCollection,
+  TreasuryReport,
   NewsItem,
   SpotExchange,
   OhlcHistory,
@@ -393,11 +401,14 @@ export async function getCryptoGlobalStats(
     // Le volume voyage dans la MÊME réponse : le relever au même instant garantit
     // que les deux courbes portent sur le même point de mesure, ce qu'un second
     // enregistrement ailleurs ne pourrait pas assurer.
+    /* La dominance suit le même raisonnement, et pour la même raison : elle voyage
+       dans cette réponse, et aucune source gratuite n'en publie l'historique. */
     recordMarketCap(
       result.data.currency,
       result.data.totalMarketCap,
       Date.now(),
       result.data.totalVolume24h,
+      result.data.dominance?.['btc'],
     )
   }
 
@@ -1008,6 +1019,86 @@ export function getTrendingPools(network?: string): Promise<DataResult<DexPool[]
     () => fetchTrendingPools(network),
     POOLS_TTL_SECONDS,
   )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   TRÉSORERIES D'ENTREPRISE ET COLLECTIONS NFT
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+const EXTRAS_SOURCE: DataSource = {
+  label: 'CoinGecko',
+  attributionUrl: 'https://www.coingecko.com',
+}
+
+/**
+ * Une heure, contre trois minutes pour les cotations.
+ *
+ * Une trésorerie d'entreprise bouge quand une société publie un achat — quelques fois
+ * par mois. Un prix plancher NFT bouge davantage, mais ces pages sont consultées
+ * rarement et partagent le quota CoinGecko avec tout le reste du site : rafraîchir
+ * toutes les trois minutes dépenserait la marge de l'adaptateur principal pour une
+ * précision que personne ne regarde.
+ */
+const EXTRAS_TTL_SECONDS = 3_600
+
+/** Sociétés cotées détenant l'actif à leur bilan. Registre DÉCLARATIF (voir le type). */
+export function getTreasuries(coin: TreasuryCoin): Promise<DataResult<TreasuryReport>> {
+  return runStandalone(
+    `treasuries:${coin}`,
+    EXTRAS_SOURCE,
+    () => fetchTreasuries(coin),
+    EXTRAS_TTL_SECONDS,
+  )
+}
+
+/**
+ * SÉLECTION de collections NFT — jamais un classement.
+ *
+ * ── UN APPEL PAR COLLECTION, ET C'EST LA CONTRAINTE QUI DICTE TOUT ──────────
+ *
+ * L'endpoint qui classe les collections est réservé à l'offre payante. Seule la fiche
+ * d'une collection NOMMÉE est gratuite — d'où une liste arrêtée à la main, et un appel
+ * par entrée.
+ *
+ * `Promise.allSettled` et non `Promise.all` : à dix appels derrière un limiteur à cinq
+ * par minute, il est NORMAL qu'une ou deux échouent sur un cache froid. `all`
+ * rejetterait alors la liste entière pour une collection manquante, et la page
+ * n'afficherait rien là où elle peut en afficher huit.
+ *
+ * Chaque collection porte sa PROPRE clé de cache : celles qui ont répondu sont
+ * conservées, et le rendu suivant ne redemande que les manquantes. Une clé unique pour
+ * la liste entière ferait tout retomber à chaque échec partiel.
+ */
+export async function getNftCollections(): Promise<DataResult<NftCollection[]>> {
+  const settled = await Promise.allSettled(
+    TRACKED_NFT_COLLECTIONS.map((id) =>
+      runStandalone(`nft:${id}`, EXTRAS_SOURCE, () => fetchNftCollection(id), EXTRAS_TTL_SECONDS),
+    ),
+  )
+
+  const collections = settled
+    .filter(
+      (outcome): outcome is PromiseFulfilledResult<DataResult<NftCollection>> =>
+        outcome.status === 'fulfilled',
+    )
+    .map((outcome) => outcome.value)
+    .filter((result): result is Extract<typeof result, { ok: true }> => result.ok)
+    .map((result) => result.data)
+
+  if (collections.length === 0) {
+    return {
+      ok: false,
+      kind: 'error',
+      reason: 'Aucune collection n’a répondu. La source limite fortement les appels gratuits.',
+      source: EXTRAS_SOURCE,
+    }
+  }
+
+  /* Tri par capitalisation décroissante — un ordre, pas un classement : la sélection
+     est arrêtée à la main, et l'affichage doit le dire. */
+  collections.sort((a, b) => (b.marketCapUsd ?? 0) - (a.marketCapUsd ?? 0))
+
+  return { ok: true, data: collections, source: EXTRAS_SOURCE }
 }
 
 /**

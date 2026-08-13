@@ -376,6 +376,73 @@ export interface NewListing {
 }
 
 /**
+ * Une société cotée détenant un cryptoactif à son bilan.
+ *
+ * ── C'EST UN REGISTRE DÉCLARATIF, PAS UNE MESURE ─────────────────────────────
+ *
+ * Il recense ce que des sociétés ont ANNONCÉ détenir, à la date de leur annonce. Ce
+ * n'est ni une lecture on-chain, ni un état vérifié : une société qui aurait vendu
+ * sans le publier y figure encore. Tout affichage doit le dire, faute de quoi le
+ * lecteur prendra un communiqué de presse pour une position vérifiée.
+ */
+export interface TreasuryHolder {
+  name: string
+  /** Symbole boursier, ex. `MSTR.US`. */
+  ticker?: string
+  country?: string
+  /** Quantité de l'actif détenue, dans son unité (BTC, ETH). */
+  holdings: number
+  /**
+   * Ce que la société a payé, en dollars.
+   *
+   * ABSENT quand la source publie zéro — ce qui signifie « non communiqué » et non
+   * « acquis gratuitement ». Le distinguer évite d'afficher une plus-value de 100 %.
+   */
+  entryValueUsd?: number
+  /** Ce que la position vaut au cours du jour, en dollars. */
+  currentValueUsd?: number
+  /** Part de l'offre totale de l'actif, en pourcentage. */
+  percentOfSupply?: number
+}
+
+/** Registre complet des détenteurs institutionnels d'un actif. */
+export interface TreasuryReport {
+  /** Identifiant CoinGecko de l'actif détenu. */
+  coin: string
+  totalHoldings: number
+  totalValueUsd?: number
+  /** Part de la capitalisation de l'actif que ces sociétés représentent. */
+  percentOfMarketCap?: number
+  holders: TreasuryHolder[]
+}
+
+/**
+ * Une collection NFT.
+ *
+ * ⚠️ ELLE N'EST JAMAIS OBTENUE PAR CLASSEMENT. L'endpoint qui classe les collections
+ * est réservé à l'offre payante ; seule la fiche d'une collection nommée est gratuite.
+ * Toute liste de `NftCollection` est donc une SÉLECTION arrêtée à la main, et
+ * l'affichage doit l'annoncer — voir `TRACKED_NFT_COLLECTIONS`.
+ */
+export interface NftCollection {
+  id: string
+  name: string
+  symbol?: string
+  image?: string
+  /** Devise dans laquelle le prix plancher est nativement coté, ex. `ETH`. */
+  nativeSymbol?: string
+  rank?: number
+  totalSupply?: number
+  floorPriceUsd?: number
+  floorPriceNative?: number
+  marketCapUsd?: number
+  /** Peut légitimement valoir zéro : une collection sans vente sur 24 h. */
+  volume24hUsd?: number
+  /** Variation du prix plancher en dollars sur 24 h, en pourcentage. */
+  floorChange24h?: number
+}
+
+/**
  * Un POOL DE LIQUIDITÉ, tel que GeckoTerminal le publie.
  *
  * ── POURQUOI CE TYPE NE RESSEMBLE À AUCUN AUTRE ──────────────────────────────

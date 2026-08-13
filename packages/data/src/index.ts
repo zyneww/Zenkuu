@@ -44,6 +44,8 @@ export {
   getForexRates,
   getNews,
   getNewListings,
+  getNftCollections,
+  getTreasuries,
   getPeers,
   getPool,
   getPoolsOnNetwork,
@@ -90,6 +92,9 @@ export type { CommodityFamily, UniverseEntry } from './providers/yahoo-universe'
 
 export { knownNetworks, networkFromPlatform } from './providers/geckoterminal'
 
+export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
+export type { TreasuryCoin } from './providers/coingecko-extras'
+
 export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
 export type { NewsCategory, NewsLang } from './providers/news'
 
@@ -107,6 +112,9 @@ export type {
   MarketDataProvider,
   NewListing,
   NewsItem,
+  NftCollection,
+  TreasuryHolder,
+  TreasuryReport,
   SpotExchange,
   OhlcHistory,
   PriceHistory,

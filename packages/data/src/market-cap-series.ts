@@ -43,6 +43,23 @@ export interface MarketCapPoint {
    * lire comme des zéros — un creux à zéro se lirait comme un arrêt du marché.
    */
   volume?: number
+  /**
+   * Dominance de Bitcoin au même instant, en pourcentage.
+   *
+   * OPTIONNELLE pour la même raison que le volume : les points enregistrés avant que
+   * ce champ n'existe n'en portent pas.
+   *
+   * ⚠️ C'EST LA SEULE FAÇON HONNÊTE DE TRACER UNE COURBE DE DOMINANCE. La référence en
+   * publie une sur plusieurs années ; l'endpoint correspondant de CoinGecko est
+   * payant. On pourrait la reconstituer en divisant l'historique de capitalisation de
+   * Bitcoin — gratuit — par celui du marché entier, mais ce dernier est précisément ce
+   * qui manque : le calculer depuis la dominance ACTUELLE reviendrait à supposer
+   * qu'elle n'a pas bougé, c'est-à-dire à supposer la réponse.
+   *
+   * On enregistre donc ce que la source publie, quand elle le publie. La courbe est
+   * courte, et sa profondeur réelle est affichée à côté.
+   */
+  btcDominance?: number
 }
 
 /**
@@ -72,10 +89,19 @@ export function recordMarketCap(
   value: number,
   at: number = Date.now(),
   volume?: number,
+  btcDominance?: number,
 ): void {
   if (!Number.isFinite(value) || value <= 0) return
 
   const usableVolume = Number.isFinite(volume) && (volume as number) > 0 ? volume : undefined
+
+  /* La dominance est bornée à ]0, 100] : une valeur hors de cet intervalle ne peut pas
+     venir d'une part de marché, et la tracer produirait une courbe dont l'échelle
+     écraserait tous les autres points. */
+  const usableDominance =
+    Number.isFinite(btcDominance) && (btcDominance as number) > 0 && (btcDominance as number) <= 100
+      ? btcDominance
+      : undefined
 
   const key = currency.toUpperCase()
   const points = series.get(key) ?? []
@@ -86,14 +112,15 @@ export function recordMarketCap(
     // point, pour que la courbe reflète la dernière lecture sans se densifier.
     last.value = value
     if (usableVolume !== undefined) last.volume = usableVolume
+    if (usableDominance !== undefined) last.btcDominance = usableDominance
     return
   }
 
-  points.push(
-    usableVolume === undefined
-      ? { timestamp: at, value }
-      : { timestamp: at, value, volume: usableVolume },
-  )
+  const point: MarketCapPoint = { timestamp: at, value }
+  if (usableVolume !== undefined) point.volume = usableVolume
+  if (usableDominance !== undefined) point.btcDominance = usableDominance
+
+  points.push(point)
 
   const cutoff = at - RETENTION_MS
   while (points.length > 0 && (points[0] as MarketCapPoint).timestamp < cutoff) {
