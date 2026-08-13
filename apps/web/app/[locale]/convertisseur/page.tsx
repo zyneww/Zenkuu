@@ -81,50 +81,54 @@ export default async function ConverterPage() {
           />
 
           {/*
-            ── TAUX RAPIDES ──────────────────────────────────────────────
+            ── COURS DE RÉFÉRENCE, EN TABLEAU ────────────────────────────────────
 
-            Repris de la référence, et ce n'est pas de la garniture. Le convertisseur
-            est un OUTIL : il exige qu'on choisisse, qu'on tape, qu'on lise. Or la
-            requête qui amène le plus de monde sur ce genre de page — « combien vaut
-            un bitcoin en euros » — a une réponse unique, qui ne mérite aucun
-            formulaire. Ces vingt pastilles la donnent d'un coup d'œil.
+            Ce bloc remplace une grille de pastilles « BTC en EUR · 55 139 € » reprise
+            telle quelle de la référence. Sa raison d'être ne change pas et reste
+            bonne : le convertisseur est un ÎLOT CLIENT, absent du HTML servi, et une
+            page d'outil sans contenu servi n'est indexable sur aucune de ses réponses.
+            Ces dix lignes portent donc le référencement, et répondent d'un coup d'œil
+            à « combien vaut un bitcoin en euros » — la requête qui amène le plus de
+            monde ici, et qui ne mérite aucun formulaire.
 
-            Elles ont un second effet, celui-là pour les moteurs de recherche : elles
-            mettent vingt réponses chiffrées dans le HTML SERVI, là où le convertisseur
-            lui-même est un îlot client qui n'existe qu'après hydratation. Une page
-            d'outil sans contenu servi n'est indexable sur aucune de ses réponses.
+            Ce qui change est la FORME. Une rangée de pastilles arrondies est leur
+            grammaire ; la nôtre est le tableau dense, aligné, à chiffres tabulaires —
+            celui de toutes les pages de cotation du site. Une même information dans
+            deux grammaires différentes sur le même site coûte plus qu'elle ne rapporte.
 
-            Chaque pastille mène à la FICHE de l'actif et non à une pré-sélection du
-            convertisseur : quelqu'un qui clique sur « BTC en EUR » a déjà sa réponse,
-            ce qu'il cherche ensuite est le contexte.
+            Chaque ligne mène à la FICHE et non à une pré-sélection du convertisseur :
+            qui clique a déjà sa réponse, ce qu'il cherche ensuite est le contexte.
           */}
-          <section className="space-y-3 border-t border-border-subtle pt-6">
-            <h2 className="text-sm font-semibold text-ink">
-              Les vingt premières cryptomonnaies en euros
-            </h2>
+          <section className="max-w-xl space-y-2 border-t border-border-subtle pt-6">
+            <h2 className="text-sm font-semibold text-ink">Cours de référence en euros</h2>
 
-            <ul className="flex flex-wrap gap-2">
-              {assets.slice(0, 20).map((asset) => (
-                <li key={asset.id}>
-                  <Link
-                    href={assetHref(asset.assetClass, asset.id)}
-                    className="flex items-center gap-2 rounded-pill border border-border-subtle px-3 py-1.5 text-xs transition-colors duration-150 hover:border-brand"
-                  >
-                    <AssetLogo asset={asset} size={18} />
-                    <span className="font-medium text-ink">
-                      {asset.symbol.toUpperCase()} en EUR
-                    </span>
-                    <span className="tabular text-ink-muted">
-                      {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR',
-                        maximumFractionDigits: asset.price >= 1 ? 2 : 6,
-                      }).format(asset.price)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-hidden rounded-card border border-border-subtle">
+              <ul className="divide-y divide-border-subtle">
+                {assets.slice(0, 10).map((asset) => (
+                  <li key={asset.id}>
+                    <Link
+                      href={assetHref(asset.assetClass, asset.id)}
+                      className="group flex items-center gap-3 px-3 py-2 transition-colors duration-150 hover:bg-surface-muted"
+                    >
+                      <AssetLogo asset={asset} size={20} />
+                      <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand-strong">
+                        {asset.name}
+                        <span className="ml-1.5 text-xs uppercase text-ink-muted">
+                          {asset.symbol}
+                        </span>
+                      </span>
+                      <span className="tabular shrink-0 text-sm text-ink">
+                        {new Intl.NumberFormat('fr-FR', {
+                          style: 'currency',
+                          currency: 'EUR',
+                          maximumFractionDigits: asset.price >= 1 ? 2 : 6,
+                        }).format(asset.price)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
         </>
       ) : (
