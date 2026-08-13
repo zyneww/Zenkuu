@@ -18,6 +18,7 @@ import { AssetList } from '@/components/AssetList'
 import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { MacroBand } from '@/components/market/MacroBand'
 import { MarketDataTabs } from '@/components/market/MarketDataTabs'
+import { RankingDetailLink } from '@/components/market/RankingDetailLink'
 import { MoversFilters } from '@/components/market/MoversFilters'
 import { SpotExchangesPanel } from '@/components/market/SpotExchangesPanel'
 import { getContent } from '@/lib/content'
@@ -143,13 +144,31 @@ export default async function MoversPage({
 
       {result.ok && ranked && usable > 0 ? (
         <>
+          {/*
+            ── « VOIR EN DÉTAIL » DANS L'EN-TÊTE DE CHAQUE PALMARÈS ───────────────
+
+            Quinze lignes suffisent à voir CE QUI BOUGE ; elles ne suffisent pas à
+            chercher un actif précis ni à voir où s'arrête la hausse. Le lien mène au
+            classement complet, paginé, et emporte la période choisie — arriver sur
+            « 24 h » après avoir consulté « 7 j » ferait perdre le réglage au moment
+            précis où l'on veut aller plus loin.
+
+            `CardHeader` accepte une `action` : c'est exactement l'emplacement prévu
+            pour un contrôle secondaire, et il évite d'inventer une rangée de plus.
+          */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
-              <CardHeader title={fr.home.gainersTitle} />
+              <CardHeader
+                title={fr.home.gainersTitle}
+                action={<RankingDetailLink type="hausses" period={period} />}
+              />
               <AssetList assets={ranked.gainers} changeField={ranked.field} changeLabel={`sur ${PERIOD_LABELS[period]}`} />
             </Card>
             <Card>
-              <CardHeader title={fr.home.losersTitle} />
+              <CardHeader
+                title={fr.home.losersTitle}
+                action={<RankingDetailLink type="baisses" period={period} />}
+              />
               <AssetList assets={ranked.losers} changeField={ranked.field} changeLabel={`sur ${PERIOD_LABELS[period]}`} />
             </Card>
           </div>

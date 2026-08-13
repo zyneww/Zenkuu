@@ -1,7 +1,9 @@
 'use client'
 
-import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
+
+import { Link } from '@/i18n/navigation'
+import { RankingDetailLink } from '@/components/market/RankingDetailLink'
 
 import type { MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, Sparkline } from '@zenkuu/ui'
@@ -114,6 +116,7 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
           assets={boards.gainers}
           field={field}
           periodLabel={meta.long}
+          detail={{ type: 'hausses', period }}
         />
         <Board
           title="Plus fortes baisses"
@@ -121,6 +124,7 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
           assets={boards.losers}
           field={field}
           periodLabel={meta.long}
+          detail={{ type: 'baisses', period }}
         />
         <Board
           title="Volumes les plus élevés"
@@ -129,8 +133,14 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
           field={field}
           periodLabel={meta.long}
           showVolume
+          detail={{ type: 'volumes', period }}
         />
-        <TurnoverBoard rows={boards.byTurnover} field={field} periodLabel={meta.long} />
+        <TurnoverBoard
+          rows={boards.byTurnover}
+          field={field}
+          periodLabel={meta.long}
+          period={period}
+        />
       </div>
     </div>
   )
@@ -143,6 +153,7 @@ function Board({
   field,
   periodLabel,
   showVolume = false,
+  detail,
 }: {
   title: string
   hint: string
@@ -150,12 +161,17 @@ function Board({
   field: keyof MarketAsset
   periodLabel: string
   showVolume?: boolean
+  /** Palmarès complet correspondant — omis, aucun lien n'est rendu. */
+  detail?: { type: string; period: Period }
 }) {
   return (
     <section className="space-y-3" aria-label={title}>
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-semibold text-ink">{title}</h3>
-        <span className="text-xs text-ink-muted">{hint}</span>
+        <span className="flex items-center gap-2">
+          <span className="text-xs text-ink-muted">{hint}</span>
+          {detail ? <RankingDetailLink type={detail.type} period={detail.period} /> : null}
+        </span>
       </div>
 
       {assets.length === 0 ? (
@@ -213,16 +229,21 @@ function TurnoverBoard({
   rows,
   field,
   periodLabel,
+  period,
 }: {
   rows: { asset: MarketAsset; ratio: number }[]
   field: keyof MarketAsset
   periodLabel: string
+  period: Period
 }) {
   return (
     <section className="space-y-3" aria-label="Rotation la plus forte">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-semibold text-ink">Rotation la plus forte</h3>
-        <span className="text-xs text-ink-muted">volume / capitalisation</span>
+        <span className="flex items-center gap-2">
+          <span className="text-xs text-ink-muted">volume / capitalisation</span>
+          <RankingDetailLink type="rotation" period={period} />
+        </span>
       </div>
 
       {rows.length === 0 ? (

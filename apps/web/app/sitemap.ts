@@ -37,7 +37,17 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/devises', changeFrequency: 'daily', priority: 0.8 },
   { path: '/matieres-premieres', changeFrequency: 'hourly', priority: 0.8 },
   { path: '/categories', changeFrequency: 'daily', priority: 0.7 },
+  /* « Parcourir » est la porte d'entrée des sept marchés depuis que le menu du même
+     nom a disparu. Priorité alignée sur `/crypto`, qu'elle englobe. */
+  { path: '/marches', changeFrequency: 'hourly', priority: 0.9 },
   { path: '/crypto/all-coins', changeFrequency: 'hourly', priority: 0.8 },
+  /* Les quatre classements complets. Écrits un par un plutôt que dérivés d'une
+     boucle : le fichier est une DÉCLARATION lue par un moteur de recherche, et une
+     liste explicite se relit sans exécuter le code qui l'engendre. */
+  { path: '/crypto/classement/hausses', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/crypto/classement/baisses', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/crypto/classement/volumes', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/crypto/classement/rotation', changeFrequency: 'hourly', priority: 0.6 },
   { path: '/crypto/mouvements', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/crypto/highlights', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/crypto/graphiques', changeFrequency: 'daily', priority: 0.6 },
