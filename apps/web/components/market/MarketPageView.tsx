@@ -53,6 +53,18 @@ export interface MarketPageViewProps {
   basePath?: string
   /** Destination des onglets de classe — voir `AssetClassTabs`. */
   classHref?: (assetClass: AssetClass) => string
+  /**
+   * Barre d'onglets de REMPLACEMENT.
+   *
+   * Les six pages de classement veulent `AssetClassTabs`, qui renvoie vers les pages
+   * dédiées. « Parcourir » veut la sienne, qui reste sur place et porte un onglet
+   * supplémentaire (les dérivés) dont `AssetClassTabs` ne sait rien — et ne doit rien
+   * savoir, puisqu'il énumère des CLASSES et qu'un contrat n'en est pas une.
+   *
+   * Un nœud déjà rendu plutôt qu'un drapeau : ce composant n'a pas à connaître la
+   * liste des barres possibles, seulement où poser celle qu'on lui donne.
+   */
+  tabs?: React.ReactNode
   /** Inséré entre les onglets et le bandeau de points saillants. */
   children?: React.ReactNode
 }
@@ -72,6 +84,7 @@ export async function MarketPageView({
   perPage,
   basePath,
   classHref,
+  tabs,
   children,
 }: MarketPageViewProps) {
   const fr = await getContent()
@@ -100,7 +113,9 @@ export async function MarketPageView({
 
       {/* Navigation inter-classes : le passage de /crypto à /actions ne devrait pas
           imposer un détour par le menu de l'en-tête. */}
-      <AssetClassTabs current={assetClass} {...(classHref ? { hrefFor: classHref } : {})} />
+      {tabs ?? (
+        <AssetClassTabs current={assetClass} {...(classHref ? { hrefFor: classHref } : {})} />
+      )}
 
       {children}
 

@@ -3,37 +3,35 @@
 import { Link, usePathname } from '@/i18n/navigation'
 
 /**
- * Barre d'onglets de la FAMILLE « données de marché ».
+ * Barre d'onglets de l'ACTIVITÉ DU MARCHÉ — deux vues d'un même instant.
  *
- * ── LE MANQUE QU'ELLE COMBLE ─────────────────────────────────────────────────
+ * ── DEUX ET NON QUATRE, APRÈS COUP ───────────────────────────────────────────
  *
- * Quatre pages traitent du marché crypto sous quatre angles — les cours, les
- * classements, les données de trading, les points marquants. Elles se renvoyaient
- * l'une à l'autre par des liens en fin de page, dans un paragraphe. Autrement dit :
- * on ne découvrait l'existence des trois autres qu'après avoir lu la première en
- * entier, et il fallait remonter pour y aller.
+ * Elle en portait quatre : cours, classements, données de trading, points marquants.
+ * C'était une lecture trop large. « Cours » relève désormais de « Parcourir », et
+ * « Classements » garde son entrée propre dans le menu Données — les mettre en
+ * onglets d'un même groupe laissait entendre qu'on ne les atteignait que par là,
+ * alors que chacun est une destination à part entière.
  *
- * C'est la structure d'OKX qui manquait ici, et c'est la partie de leur mise en page
- * qui vaut vraiment d'être reprise : `Marchés | Classements | Données de trad.` est
- * posé EN TÊTE, sur les quatre pages, et dit d'emblée que ce sont quatre vues d'un
- * même sujet plutôt que quatre destinations sans rapport.
+ * Ne restent que les deux qui répondent RÉELLEMENT à la même question — « que fait
+ * le marché en ce moment ? » — par deux angles qu'on ne peut pas regarder ensemble :
+ * les volumes et l'exposition d'un côté, les extrêmes du jour de l'autre. C'est
+ * exactement le cas où une barre d'onglets vaut mieux que deux entrées de menu :
+ * elles ne se complètent pas, elles s'alternent.
  *
  * ── DE VRAIS LIENS, ET L'ÉTAT VIENT DU CHEMIN ────────────────────────────────
  *
  * Pas d'onglets JavaScript : chaque vue est une URL indexable, partageable, ouvrable
  * au clic milieu. L'onglet actif est déduit de `usePathname()` plutôt que passé en
- * prop — une prop obligerait chacune des quatre pages à se nommer elle-même, et la
- * cinquième à ne pas oublier de le faire.
+ * prop — une prop obligerait chaque page à se nommer elle-même, et la troisième à ne
+ * pas oublier de le faire.
  *
- * `startsWith` et non l'égalité : `/crypto/bitcoin` n'est pas la page des cours, et
- * l'égalité stricte est donc juste ici — mais elle serait fausse le jour où l'une de
- * ces vues gagnerait un sous-chemin. On compare donc au chemin exact pour `/crypto`,
- * qui a des enfants, et par préfixe pour les autres, qui n'en ont pas.
+ * Le drapeau `exact` subsiste alors qu'aucune des deux vues n'a de sous-chemin
+ * aujourd'hui. Il coûte un booléen et évite le piège du jour où l'une en gagnera un :
+ * une comparaison par préfixe allumerait alors l'onglet parent sur la page enfant.
  */
 
 const TABS = [
-  { href: '/crypto', label: 'Cours', exact: true },
-  { href: '/crypto/all-coins', label: 'Classements', exact: false },
   { href: '/crypto/mouvements', label: 'Données de trading', exact: false },
   { href: '/crypto/highlights', label: 'Points marquants', exact: false },
 ] as const

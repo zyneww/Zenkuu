@@ -177,17 +177,48 @@ export function NavBar() {
           </Link>
 
           <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 lg:flex">
-            {NAV_MENUS.map((menu) => (
-              <DropdownMenu
-                key={menu.label}
-                menu={menu}
-                isOpen={openMenu === menu.label}
-                onOpen={() => openOnHover(menu.label)}
-                onClose={closeOnHover}
-                onToggle={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
-                onNavigate={() => setOpenMenu(null)}
-              />
-            ))}
+            {NAV_MENUS.map((menu) =>
+              /*
+               * ── UN MENU SANS PANNEAU EST UN LIEN ───────────────────────────
+               *
+               * Le tri se fait ICI, à l'itération, et non par une sortie anticipée
+               * dans `DropdownMenu`. La raison est la règle des hooks : une sortie
+               * avant `usePresence` rendrait cet appel conditionnel, et le nombre de
+               * hooks appelés varierait alors d'un menu à l'autre au sein du même
+               * rendu de la barre. React n'a aucun moyen de rattacher l'état au bon
+               * composant dans ce cas — c'est un des rares endroits où le linter
+               * signale un vrai défaut plutôt qu'une préférence de style.
+               *
+               * Un `<Link>` et non un `<button>` qui navigue : le clic milieu,
+               * l'ouverture dans un onglet, l'aperçu de la destination au survol et
+               * le pré-chargement de Next viennent alors gratuitement. Et aucun
+               * `aria-haspopup` : l'annoncer sur un élément qui n'ouvre rien ferait
+               * attendre à un lecteur d'écran un panneau qui ne viendra jamais.
+               *
+               * La classe est celle du bouton, moins le chevron — les deux formes
+               * doivent occuper la même hauteur, faute de quoi la barre se lit comme
+               * deux barres accolées.
+               */
+              menu.href && menu.sections.length === 0 ? (
+                <Link
+                  key={menu.label}
+                  href={menu.href}
+                  className="flex items-center rounded-control px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+                >
+                  {menu.label}
+                </Link>
+              ) : (
+                <DropdownMenu
+                  key={menu.label}
+                  menu={menu}
+                  isOpen={openMenu === menu.label}
+                  onOpen={() => openOnHover(menu.label)}
+                  onClose={closeOnHover}
+                  onToggle={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
+                  onNavigate={() => setOpenMenu(null)}
+                />
+              ),
+            )}
           </nav>
 
           {/*

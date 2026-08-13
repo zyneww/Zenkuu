@@ -4,7 +4,6 @@ import { Link } from '@/i18n/navigation'
 import { CACHE_TTL_SECONDS, getMoversUniverse } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
-import { MarketDataTabs } from '@/components/market/MarketDataTabs'
 import { RankingBoard } from '@/components/market/RankingBoard'
 
 export const revalidate = 180
@@ -42,8 +41,6 @@ export default async function RankingsPage() {
 
   return (
     <div className="space-y-8">
-      <MarketDataTabs />
-
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">Classements crypto</h1>
         <p className="text-lg leading-relaxed text-ink-muted">

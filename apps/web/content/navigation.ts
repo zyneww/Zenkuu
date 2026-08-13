@@ -2,22 +2,16 @@ import {
   Activity,
   ArrowRightLeft,
   Bell,
-  Bitcoin,
   BookOpen,
   Building2,
-  ChartCandlestick,
   Code2,
   Filter,
-  Flame,
-  Fuel,
   Gauge,
   Gem,
   GitCompareArrows,
   GraduationCap,
   Grid3x3,
   Info,
-  Layers,
-  LayoutGrid,
   LifeBuoy,
   LineChart,
   Newspaper,
@@ -68,100 +62,58 @@ export interface NavSection {
 
 export interface NavMenu {
   label: string
+  /**
+   * Destination du menu lui-même, quand il n'ouvre AUCUN panneau.
+   *
+   * ── POURQUOI UN MENU PEUT NE PAS ÊTRE UN MENU ─────────────────────────────
+   *
+   * « Parcourir » ne déroule rien : il mène à une page qui porte déjà, en onglets
+   * centrés, les sept classes d'actifs que son panneau énumérait. Garder le panneau
+   * reviendrait à faire choisir DEUX FOIS — une fois dans un menu qui se referme,
+   * une fois dans une barre d'onglets qui reste — et la première fois ne servirait
+   * qu'à décider par quel onglet on arrive.
+   *
+   * Le champ est optionnel plutôt que porté par un second type : les deux formes
+   * partagent tout le reste (libellé, place dans la barre, comportement au clavier),
+   * et une union de types obligerait chaque lecture de `NAV_MENUS` à distinguer les
+   * deux avant même de lire un libellé.
+   *
+   * `sections` reste alors VIDE, et c'est ce vide qui déclenche le rendu en lien.
+   * Un menu qui porterait les deux serait ambigu : cliquer navigue-t-il, ou ouvre-t-il ?
+   */
+  href?: string
   sections: NavSection[]
 }
 
 export const NAV_MENUS: NavMenu[] = [
+  /*
+   * ── « PARCOURIR » — UN BOUTON, PAS UN MENU ───────────────────────────────────
+   *
+   * Il s'appelait « Marchés » et déroulait onze entrées réparties en quatre sections :
+   * marchés avancés, cryptoactifs, marchés traditionnels, autres classes. Le panneau
+   * est SUPPRIMÉ, pas déplacé.
+   *
+   * Le motif est que la page d'arrivée porte désormais les mêmes classes en onglets
+   * centrés, et qu'elle les garde à l'écran. Le panneau faisait donc choisir deux fois
+   * — une fois dans un menu qui se referme, une fois dans une barre qui reste — et le
+   * premier choix ne décidait que de l'onglet d'arrivée. Un menu dont chaque entrée
+   * mène à la même page avec un paramètre différent n'est pas un menu, c'est une barre
+   * d'onglets qui se cache.
+   *
+   * « Parcourir » et non « Marchés » : le mot décrit le GESTE plutôt que l'objet, ce
+   * qui est juste pour un bouton unique — on ne choisit plus un marché dans une liste,
+   * on ouvre la surface où on les parcourt tous.
+   *
+   * Les sept classes ne perdent pas leur URL : `/crypto`, `/actions`, `/etf` et les
+   * autres restent des pages à part entière, indexables et partageables. Elles ne sont
+   * simplement plus énumérées dans une barre de navigation qui les redirait.
+   */
   {
-    label: 'Marchés',
-    sections: [
-      /*
-       * SECTION SANS TITRE, ET EN TÊTE — une seule entrée, qui domine les autres.
-       *
-       * Toutes les entrées qui suivent répondent à « quelle CLASSE d'actif ? ».
-       * Celle-ci répond à une autre question — « je veux tout voir, d'un coup, avec
-       * les filtres » — et la ranger sous « Cryptoactifs » la ferait lire comme une
-       * septième classe. Un intitulé de section au-dessus d'un seul élément
-       * n'apporterait rien qu'une ligne de bruit : la position en tête suffit à dire
-       * qu'elle traverse le reste.
-       */
-      {
-        items: [
-          {
-            label: 'Marchés avancés',
-            description: 'Classement filtrable, toutes classes',
-            icon: Gauge,
-            href: '/marches',
-            ready: true,
-          },
-        ],
-      },
-      {
-        label: 'Cryptoactifs',
-        items: [
-          {
-            label: 'Cryptomonnaies',
-            description: 'Classement, capitalisations et volumes',
-            icon: Bitcoin,
-            href: '/crypto',
-            ready: true,
-          },
-          {
-            label: 'Catégories & secteurs',
-            description: 'Performance par narratif',
-            icon: LayoutGrid,
-            href: '/categories',
-            ready: true,
-          },
-        ],
-      },
-      {
-        label: 'Marchés traditionnels',
-        items: [
-          {
-            label: 'Actions',
-            description: 'Cours et principales valeurs cotées',
-            icon: Building2,
-            href: '/actions',
-            ready: true,
-          },
-          {
-            label: 'ETF',
-            description: 'Fonds indiciels cotés',
-            icon: Layers,
-            href: '/etf',
-            ready: true,
-          },
-          {
-            label: 'Indices',
-            description: 'CAC 40, S&P 500, DAX et autres',
-            icon: ChartCandlestick,
-            href: '/indices',
-            ready: true,
-          },
-        ],
-      },
-      {
-        label: 'Autres classes',
-        items: [
-          {
-            label: 'Devises',
-            description: 'Paires majeures, taux de référence BCE',
-            icon: ArrowRightLeft,
-            href: '/devises',
-            ready: true,
-          },
-          {
-            label: 'Matières premières',
-            description: 'Énergie, métaux et agricoles',
-            icon: Fuel,
-            href: '/matieres-premieres',
-            ready: true,
-          },
-        ],
-      },
-    ],
+    label: 'Parcourir',
+    href: '/marches',
+    sections: [],
   },
+
 
   {
     /*
@@ -184,18 +136,30 @@ export const NAV_MENUS: NavMenu[] = [
             href: '/crypto/all-coins',
             ready: true,
           },
+          /*
+           * UNE ENTRÉE LÀ OÙ IL Y EN AVAIT DEUX.
+           *
+           * « Données de trading » et « Points marquants » figuraient côte à côte. Ce
+           * sont deux lectures du MÊME instant de marché — l'une par les volumes et
+           * l'exposition, l'autre par les extrêmes du jour — et rien dans les deux
+           * intitulés ne disait laquelle répondait à la question qu'on se pose. On les
+           * ouvrait donc l'une après l'autre pour trancher.
+           *
+           * Elles deviennent deux onglets d'une même page. Le menu porte la question
+           * (« que fait le marché en ce moment ? »), la page porte le choix de l'angle.
+           */
           {
-            label: 'Données de trading',
-            description: 'Volumes, flux et déséquilibres du marché',
+            label: 'Activité du marché',
+            description: 'Volumes et exposition, ou extrêmes du jour',
             icon: Activity,
+            /*
+             * Pointe sur `/crypto/mouvements`, qui EXISTE et porte désormais la barre
+             * à deux onglets. Créer `/crypto/activite` aurait été plus joli au regard
+             * du libellé, et aurait coûté deux redirections, douze liens à réécrire et
+             * deux entrées de sitemap déjà indexées — pour une adresse que personne ne
+             * lit. Le libellé du menu nomme la PAIRE, la barre d'onglets nomme la vue.
+             */
             href: '/crypto/mouvements',
-            ready: true,
-          },
-          {
-            label: 'Points marquants',
-            description: 'Hausses, baisses, tendances et nouveautés',
-            icon: Flame,
-            href: '/crypto/highlights',
             ready: true,
           },
         ],
@@ -205,9 +169,25 @@ export const NAV_MENUS: NavMenu[] = [
         items: [
           {
             label: 'Graphiques globaux',
-            description: 'Capitalisation, volumes et dominance dans la durée',
+            description: 'Capitalisation, dominance, secteurs et trésoreries',
             icon: LineChart,
             href: '/crypto/graphiques',
+            ready: true,
+          },
+          /*
+           * PLACES DE COTATION — la donnée existait, la page n'existait pas.
+           *
+           * `getSpotExchanges` alimentait un panneau enterré au milieu de la page de
+           * données de trading, entre les agrégats macro et les dérivés. C'est
+           * pourtant la réponse à une question qu'on se pose seule : « où ce marché
+           * s'échange-t-il vraiment, et à qui fait-on confiance ? ». Elle méritait une
+           * URL.
+           */
+          {
+            label: 'Places de cotation',
+            description: 'Où le marché s’échange, et avec quelle confiance',
+            icon: Building2,
+            href: '/places',
             ready: true,
           },
           {

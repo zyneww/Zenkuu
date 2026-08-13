@@ -1,8 +1,15 @@
 import type { Metadata } from 'next'
 
-import { CACHE_TTL_SECONDS, getTrendingPools, type AssetClass } from '@zenkuu/data'
+import {
+  CACHE_TTL_SECONDS,
+  getDerivatives,
+  getTrendingPools,
+  type AssetClass,
+} from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
+import { BrowseTabs, DERIVATIVES_TAB, browseHref } from '@/components/market/BrowseTabs'
+import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { MarketPageView } from '@/components/market/MarketPageView'
 import { getContent } from '@/lib/content'
@@ -15,10 +22,10 @@ void _ttlGuard
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
   return {
-    title: 'Marchés avancés',
+    title: 'Parcourir les marchés',
     description:
-      `Classement filtrable des six classes d’actifs suivies par ${fr.site.name}, ` +
-      'et pools de liquidité on-chain les plus actifs.',
+      `Les sept marchés suivis par ${fr.site.name} sur une seule page : cryptomonnaies, ` +
+      'dérivés, ETF, actions, indices, devises et matières premières.',
     alternates: { canonical: '/marches' },
   }
 }
@@ -37,28 +44,24 @@ function readAssetClass(raw: string | string[] | undefined): AssetClass {
 }
 
 /**
- * MARCHÉS AVANCÉS — les six classes sur une seule page, plus la chaîne.
+ * PARCOURIR — les sept marchés derrière une seule barre d'onglets.
  *
- * ── EN QUOI ELLE DIFFÈRE DES SIX PAGES DE CLASSEMENT ─────────────────────────
+ * ── C'EST LA PAGE QUI A REMPLACÉ UN MENU ─────────────────────────────────────
  *
- * `/crypto`, `/actions`, `/etf`… existent déjà et restent : chacune est une URL
- * indexable, avec son titre, sa description et son contenu propre. Elles répondent à
- * « montre-moi les cryptomonnaies ».
+ * L'en-tête portait un menu « Marchés » de onze entrées, dont sept menaient à une
+ * page de classement par classe d'actif. Ce menu a été supprimé au profit d'un bouton
+ * unique qui ouvre celle-ci. Le raisonnement tient en une phrase : un menu dont chaque
+ * entrée mène au même endroit avec un paramètre différent est une barre d'onglets qui
+ * se cache — et qui oblige à choisir avant de voir.
  *
- * Celle-ci répond à autre chose — « fais-moi voir le marché, et laisse-moi changer
- * d'angle sans recharger mon contexte ». D'où les onglets qui restent SUR PLACE
- * (`?classe=`) plutôt que de renvoyer vers les pages dédiées : le lecteur qui compare
- * les six classes ne veut pas six pages, il veut six vues.
+ * Les sept pages dédiées survivent et gardent leurs URL. Ce qui disparaît est
+ * l'obligation de passer par un menu pour changer d'angle.
  *
- * ── ET POURQUOI ELLE SEULE PORTE LES POOLS ───────────────────────────────────
+ * ── LE BANDEAU ON-CHAIN NE S'AFFICHE QUE SUR LA CRYPTO ──────────────────────
  *
- * Le bandeau on-chain est ce qui la rend « avancée ». Il montre où la liquidité se
- * déplace RÉELLEMENT, y compris sur des chaînes secondaires qu'aucun classement
- * centralisé ne voit — un jeton peut faire des millions de volume quotidien sans
- * figurer sur une seule place de cotation.
- *
- * Il ne s'affiche que sur l'onglet crypto, et c'est une contrainte de la matière :
- * une action Total n'a pas de pool de liquidité.
+ * Une action Total n'a pas de pool de liquidité. Le bandeau est donc conditionnel, et
+ * son absence sur les six autres onglets n'est pas un manque : c'est la nature de
+ * l'actif.
  */
 export default async function Page({
   searchParams,
@@ -66,28 +69,45 @@ export default async function Page({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const params = await searchParams
-  const assetClass = readAssetClass(params['classe'])
   const fr = await getContent()
+
+  /*
+   * L'ONGLET DÉRIVÉS EST LU SUR UN PARAMÈTRE DISTINCT (`vue`), ET NON SUR `classe`.
+   *
+   * Les faire partager le même paramètre obligerait `readAssetClass` à connaître une
+   * valeur qui n'est pas une classe d'actif, et donc à mentir sur son type de retour.
+   * Deux paramètres pour deux natures : `classe` désigne un actif, `vue` un angle.
+   */
+  const view = Array.isArray(params['vue']) ? params['vue'][0] : params['vue']
+  const isDerivatives = view === DERIVATIVES_TAB
+
+  if (isDerivatives) {
+    return (
+      <div className="space-y-6">
+        <BrowseTabs current={DERIVATIVES_TAB} hrefFor={browseHref} />
+        <DerivativesView />
+      </div>
+    )
+  }
+
+  const assetClass = readAssetClass(params['classe'])
 
   return (
     <MarketPageView
       assetClass={assetClass}
-      title="Marchés avancés"
+      title="Parcourir les marchés"
       subtitle={
-        'Les six classes d’actifs suivies, triables et paginées sur une seule page. ' +
+        'Les sept marchés suivis, triables et paginés sur une seule page. ' +
         'Lecture seule : aucun ordre ne part d’ici.'
       }
       searchParams={params}
-      basePath={assetClass === 'crypto' ? '/marches' : `/marches?classe=${marketHref(assetClass).slice(1)}`}
-      classHref={(target) =>
-        target === 'crypto' ? '/marches' : `/marches?classe=${marketHref(target).slice(1)}`
-      }
+      basePath={browseHref(assetClass)}
+      /* La barre d'onglets REMPLACE `AssetClassTabs`, qui renvoyait vers les pages
+         dédiées. Rester sur place est tout l'intérêt de cette page. */
+      tabs={<BrowseTabs current={assetClass} hrefFor={browseHref} />}
     >
       {assetClass === 'crypto' ? <OnChainBand /> : null}
 
-      {/* Renvoi vers la page dédiée : cette vue est une TRAVERSÉE des classes, pas un
-          remplacement. La page de classement garde ce que celle-ci ne peut pas offrir
-          — son propre titre indexable, ses métadonnées, son contenu éditorial. */}
       <p className="text-xs text-ink-muted">
         Vue transversale.{' '}
         <a
@@ -99,6 +119,53 @@ export default async function Page({
         pour la fiche complète de cette classe.
       </p>
     </MarketPageView>
+  )
+}
+
+/**
+ * Onglet DÉRIVÉS — contrats perpétuels et à échéance.
+ *
+ * Il ne passe pas par `MarketPageView` et ne le pouvait pas : cette vue ne liste pas
+ * des ACTIFS mais des CONTRATS, qui n'ont ni capitalisation, ni offre, ni fiche à
+ * ouvrir. Tri, pagination et colonnes du classement n'auraient rien à trier.
+ */
+async function DerivativesView() {
+  const derivatives = await getDerivatives(100)
+
+  return (
+    <div className="space-y-5">
+      <header className="max-w-3xl space-y-3">
+        <h1 className="display-xl text-ink">Dérivés</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">
+          Les contrats les plus actifs, leur intérêt ouvert et leur taux de financement.
+          Un contrat perpétuel n’a pas d’échéance : son taux de financement est ce qui
+          le raccroche au cours au comptant.
+        </p>
+      </header>
+
+      {derivatives.ok && derivatives.data.length > 0 ? (
+        <>
+          <DerivativesPanel markets={derivatives.data} />
+          <SourceNote
+            label={`${derivatives.source.label} · montants en USD`}
+            href={derivatives.source.attributionUrl}
+          />
+        </>
+      ) : (
+        <EmptyState
+          title="Dérivés momentanément indisponibles"
+          description={derivatives.ok ? null : derivatives.reason}
+          source={derivatives.source?.label ?? null}
+          tone={derivatives.ok ? 'neutral' : 'warning'}
+        />
+      )}
+
+      <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">
+        ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction. Un
+        produit dérivé porte un effet de levier : ce tableau situe l’exposition du
+        marché, il n’y donne pas accès.
+      </p>
+    </div>
   )
 }
 
