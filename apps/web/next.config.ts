@@ -54,6 +54,33 @@ const config: NextConfig = {
    */
   transpilePackages: ['@zenkuu/data', '@zenkuu/db', '@zenkuu/ui'],
 
+  /**
+   * En-têtes de réponse.
+   *
+   * ── `Document-Policy: js-profiling` — SANS LUI, LE PROFILAGE NE MESURE RIEN ──
+   *
+   * L'API `Profiler` du navigateur est protégée par une politique de document : elle
+   * n'existe tout simplement pas dans une page qui ne l'a pas demandée. Le piège est
+   * que rien ne le signale — `browserProfilingIntegration()` se charge, s'initialise,
+   * et n'échantillonne jamais. On croit profiler pendant des semaines, et le tableau
+   * de bord reste vide sans qu'aucune erreur ne soit remontée.
+   *
+   * L'en-tête est posé sur TOUTES les routes plutôt que sur une liste : le profilage
+   * suit `tracesSampleRate`, il peut donc se déclencher sur n'importe quelle page, et
+   * une liste serait un piège de plus le jour où une route s'ajoute.
+   *
+   * Il n'active rien par lui-même — il AUTORISE. Sans intégration de profilage côté
+   * client, il ne coûte que les trente octets de l'en-tête.
+   */
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [{ key: 'Document-Policy', value: 'js-profiling' }],
+      },
+    ]
+  },
+
   images: {
     // Logos d'actifs servis par CoinGecko. Liste explicite plutôt que joker : tout
     // nouvel hôte d'images doit être un ajout conscient.

@@ -64,4 +64,22 @@ Sentry.init({
    * en silence.
    */
   sendDefaultPii: false,
+
+  /*
+   * ── JOURNAUX STRUCTURÉS ──────────────────────────────────────────────────────
+   *
+   * Ouvre le flux de journaux, distinct des erreurs et des traces. Ce qui compte ici
+   * n'est pas la fonctionnalité mais ce qu'on décide d'y verser.
+   *
+   * `consoleLoggingIntegration` est bornée à `warn` et `error`. La couche de données
+   * écrit des lignes de diagnostic à chaque service dégradé — « source indisponible,
+   * dernière valeur connue servie » en est une, et elle sort plusieurs fois par
+   * minute en fonctionnement NORMAL. Tout envoyer reviendrait à payer un quota pour
+   * un journal que personne n'ouvrira, et surtout à noyer les lignes qui comptent.
+   *
+   * Le seuil retenu correspond exactement à ce qui mérite un réveil : un
+   * avertissement dit qu'une source a lâché, une erreur dit que la page a cassé.
+   */
+  enableLogs: true,
+  integrations: [Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] })],
 })
