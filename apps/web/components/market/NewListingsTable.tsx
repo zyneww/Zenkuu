@@ -9,6 +9,7 @@ import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
 import { Calendar } from '@/components/ui/Calendar'
+import { Pagination } from '@/components/ui/Pagination'
 import { matchListing, type ListingMatch } from '@/lib/listing-match'
 
 /**
@@ -70,6 +71,9 @@ export function NewListingsTable({
    */
   const [range, setRange] = useState<{ from: string; to: string } | null>(null)
 
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(25)
+
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase()
     let filtered = needle
@@ -104,6 +108,25 @@ export function NewListingsTable({
       return right - left
     })
   }, [listings, sort, query, range])
+
+  /*
+   * TOUT CHANGEMENT DE FILTRE OU DE TRI RAMÈNE EN PAGE 1.
+   *
+   * Sans cela, taper trois lettres en page 4 vide le tableau : la liste filtrée ne
+   * compte plus quatre pages, et rien à l'écran n'explique pourquoi. Le compteur dit
+   * alors « 76 à 100 sur 12 », c'est-à-dire un rang supérieur au total.
+   *
+   * L'ajustement se fait PENDANT le rendu, même motif que `usePresence` : un effet
+   * peindrait d'abord le tableau vide, puis le corrigerait à l'image suivante.
+   */
+  const signature = `${query}|${sort}|${range?.from ?? ''}|${range?.to ?? ''}|${perPage}`
+  const [previousSignature, setPreviousSignature] = useState(signature)
+  if (previousSignature !== signature) {
+    setPreviousSignature(signature)
+    setPage(1)
+  }
+
+  const pageRows = rows.slice((page - 1) * perPage, page * perPage)
 
   return (
     <div className="space-y-3">
@@ -188,7 +211,7 @@ export function NewListingsTable({
           </thead>
 
           <tbody className="divide-y divide-border-subtle">
-            {rows.map((item) => (
+            {pageRows.map((item) => (
               <tr key={item.id} className="transition-colors duration-150 hover:bg-surface-muted">
                 <td className="px-3 py-2.5">
                   <Identity listing={item} match={matchListing(item, index)} />
@@ -221,63 +244,96 @@ export function NewListingsTable({
         <p className="py-8 text-center text-sm text-ink-muted">
           Aucun actif ne correspond à « {query} ».
         </p>
-      ) : null}
+      ) : (
+        <Pagination
+          page={page}
+          perPage={perPage}
+          total={rows.length}
+          onPageChange={setPage}
+          onPerPageChange={setPerPage}
+        />
+      )}
     </div>
   )
 }
 
 /**
- * Identité d'une ligne — logo, nom, symbole, et lien SI la fiche existe.
+ * Identité d'une ligne — logo, nom, symbole, et un lien qui mène TOUJOURS quelque part.
  *
- * ── DEUX RENDUS, ET LA DIFFÉRENCE SE VOIT ────────────────────────────────────
+ * ── LE LOGO N'EST PLUS RÉSERVÉ AUX ACTIFS RECONNUS ───────────────────────────
  *
- * Avec correspondance : vignette servie par CoinGecko, et la ligne devient un lien.
- * Sans : un monogramme sur aplat de marque, et rien de cliquable.
+ * Il ne s'affichait que sur les lignes rapprochées de notre univers, soit une sur
+ * deux — et surtout la mauvaise moitié : sur une page dont le sujet EST le nouvel
+ * arrivant, un actif coté il y a trois jours n'est presque jamais dans les 250
+ * premières capitalisations. C'était donc l'exception qui portait une image.
  *
- * Le monogramme n'est pas un pis-aller décoratif. Un emplacement d'image vide se lit
- * comme un chargement bloqué ; deux lettres disent qu'il n'y a rien à charger. Et
- * l'absence de lien, elle, est INFORMATIVE : elle signale que cet actif n'est pas
- * dans les 250 premières capitalisations, ce qui est très exactement l'information
- * qu'un lecteur de cette page a besoin d'avoir.
+ * Coinpaprika sert ses logos à un chemin prévisible, déduit de l'identifiant. Toutes
+ * les lignes en ont un. Celui de CoinGecko garde la priorité quand il existe : c'est
+ * le même que sur la fiche d'arrivée, et une vignette qui change en cours de route
+ * fait douter d'être au bon endroit.
+ *
+ * ── LES 404 SONT PRÉVUS, ET C'EST LE POINT ───────────────────────────────────
+ *
+ * L'adresse est fabriquée, pas publiée : un actif sur quelques dizaines n'a pas
+ * d'image derrière. Sans `onError`, ces lignes afficheraient l'icône d'image cassée du
+ * navigateur — visuellement pire que l'absence de vignette qu'on vient de corriger.
+ * L'état de repli bascule alors sur le monogramme, qui dit « il n'y a rien à charger »
+ * là où un cadre vide dit « ça charge encore ».
+ *
+ * ── ET LE LIEN EXISTE MÊME SANS CORRESPONDANCE ───────────────────────────────
+ *
+ * Avec correspondance, il mène droit à la fiche. Sans, il passe par le résolveur, qui
+ * cherche à la demande et redirige — un appel par CLIC, mis en cache, au lieu de trois
+ * cents résolutions à chaque rendu. L'ancienne version laissait ces lignes inertes ;
+ * c'était honnête, mais cela revenait à ne pas répondre à la question la plus
+ * fréquente de la page.
  */
 function Identity({ listing, match }: { listing: NewListing; match?: ListingMatch }) {
-  const badge = match?.image ? (
-    // eslint-disable-next-line @next/next/no-img-element -- vignettes 20px hors domaines optimisés
-    <img
-      src={match.image}
-      alt=""
-      width={20}
-      height={20}
-      className="shrink-0 rounded-pill"
-      loading="lazy"
-    />
-  ) : (
-    <span
-      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5rem] font-bold text-brand-strong"
-      aria-hidden="true"
-    >
-      {monogram(listing.name, listing.symbol)}
-    </span>
-  )
+  const [failed, setFailed] = useState(false)
 
-  const body = (
-    <>
-      {badge}
-      <span className="truncate font-medium text-ink">{listing.name}</span>
-      <span className="tabular shrink-0 text-xs uppercase text-ink-muted">{listing.symbol}</span>
-    </>
-  )
+  const source = match?.image ?? listing.logo
+  const badge =
+    source && !failed ? (
+      // eslint-disable-next-line @next/next/no-img-element -- vignettes 20px hors domaines optimisés
+      <img
+        src={source}
+        alt=""
+        width={20}
+        height={20}
+        className="shrink-0 rounded-pill"
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    ) : (
+      <span
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5rem] font-bold text-brand-strong"
+        aria-hidden="true"
+      >
+        {monogram(listing.name, listing.symbol)}
+      </span>
+    )
 
-  if (!match) {
-    return <span className="flex items-center gap-2">{body}</span>
-  }
+  /*
+   * La destination est directe quand on sait, indirecte quand on cherche.
+   *
+   * Le terme envoyé au résolveur est le NOM et non le symbole : « Mumu The Bull »
+   * n'a qu'un candidat, « MUMU » en a plusieurs, et la recherche renverrait alors le
+   * plus gros plutôt que celui qu'on a cliqué.
+   */
+  const href = match
+    ? `/crypto/${match.id}`
+    : `/crypto/resoudre/${encodeURIComponent(listing.name)}`
 
   return (
     <Link
-      href={`/crypto/${match.id}`}
+      href={href}
       className="group flex items-center gap-2 transition-colors hover:text-brand-strong"
     >
-      {body}
+      {badge}
+      <span className="truncate font-medium text-ink group-hover:text-brand-strong">
+        {listing.name}
+      </span>
+      <span className="tabular shrink-0 text-xs uppercase text-ink-muted">{listing.symbol}</span>
     </Link>
   )
 }

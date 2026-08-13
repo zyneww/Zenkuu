@@ -365,6 +365,14 @@ export interface NewListing {
   /** Premier relevé de prix connu de la source (ISO 8601) — pas la date de création. */
   firstDataAt: string
   lastUpdated: string
+  /**
+   * Vignette, DÉDUITE de l'identifiant et non publiée par la réponse.
+   *
+   * Coinpaprika sert ses logos à un chemin prévisible. L'adresse existe donc toujours
+   * dans l'objet, mais l'IMAGE peut manquer : un actif sur quelques dizaines rend un
+   * 404. Tout affichage doit prévoir un repli — voir `NewListingsTable`.
+   */
+  logo?: string
 }
 
 /**

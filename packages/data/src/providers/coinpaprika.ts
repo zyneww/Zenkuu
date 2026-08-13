@@ -109,6 +109,22 @@ export async function fetchNewListings(limit: number): Promise<NewListing[]> {
       currency: 'USD',
       firstDataAt: ticker.first_data_at,
       lastUpdated: ticker.last_updated ?? new Date().toISOString(),
+      /*
+       * LOGO DÉDUIT DE L'IDENTIFIANT, ET NON DEMANDÉ.
+       *
+       * L'endpoint des cotations ne publie pas d'image ; celui d'un actif isolé le
+       * fait, mais il faudrait alors trois cents appels supplémentaires pour une
+       * page — sur une source qui en tolère quelques-uns par minute. Or le chemin est
+       * PRÉVISIBLE : `static.coinpaprika.com/coin/{id}/logo.png`, vérifié sur un
+       * échantillon.
+       *
+       * ⚠️ Il n'est pas garanti. Un actif sur quelques dizaines n'a pas d'image à cette
+       * adresse et rend un 404 — l'affichage DOIT donc prévoir un repli, et c'est le
+       * monogramme de `NewListingsTable`. Fabriquer une URL sans prévoir son échec
+       * remplacerait des vignettes manquantes par des icônes d'image cassée, ce qui
+       * est pire que rien.
+       */
+      logo: `https://static.coinpaprika.com/coin/${ticker.id}/logo.png`,
     }
 
     // `rank: 0` chez Coinpaprika signifie « non classé », pas « premier ». Le laisser
