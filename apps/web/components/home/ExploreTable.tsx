@@ -9,6 +9,7 @@ import { ChangeBadge, EmptyState, Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
+import { Pagination } from '@/components/ui/Pagination'
 import { assetHref } from '@/lib/asset-routes'
 
 /**
@@ -38,7 +39,16 @@ const PERIODS: { key: string; label: string; field: keyof MarketAsset; long: str
   { key: '7d', label: '7 j', field: 'change7d', long: 'sur 7 jours' },
 ]
 
+/*
+ * Quinze lignes par défaut, et des crans plus serrés qu'ailleurs.
+ *
+ * Ce tableau n'est pas une page de classement mais un APERÇU posé dans une page qui
+ * continue en dessous. Les crans de 25/50/100 des tableaux pleine page y feraient
+ * déborder le reste hors de l'écran ; ceux-ci laissent le choix d'en voir plus sans
+ * transformer l'aperçu en classement.
+ */
 const PAGE_SIZE = 15
+const PAGE_CHOICES = [15, 30, 50] as const
 
 export function ExploreTable({
   assets,
@@ -54,7 +64,8 @@ export function ExploreTable({
   const [tab, setTab] = useState<Tab>('marketCap')
   const [periodKey, setPeriodKey] = useState('24h')
   const [query, setQuery] = useState('')
-  const [shown, setShown] = useState(PAGE_SIZE)
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState<number>(PAGE_SIZE)
 
   const period = PERIODS.find((entry) => entry.key === periodKey) ?? PERIODS[1]!
   const field = period.field
@@ -87,12 +98,16 @@ export function ExploreTable({
     }
   }, [assets, tab, field, query])
 
-  const rows = visible.slice(0, shown)
-  const remaining = visible.length - rows.length
+  /* Le changement d'onglet ou de filtre peut rendre la page courante inexistante : on
+     la borne au rendu plutôt qu'en effet de bord, ce qui évite un rendu vide. */
+  const pageCount = Math.max(1, Math.ceil(visible.length / perPage))
+  const currentPage = Math.min(page, pageCount)
+  const start = (currentPage - 1) * perPage
+  const rows = visible.slice(start, start + perPage)
 
   function selectTab(next: Tab) {
     setTab(next)
-    setShown(PAGE_SIZE)
+    setPage(1)
   }
 
   return (
@@ -112,7 +127,7 @@ export function ExploreTable({
             value={query}
             onChange={(event) => {
               setQuery(event.target.value)
-              setShown(PAGE_SIZE)
+              setPage(1)
             }}
             placeholder="Filtrer par nom ou symbole…"
             aria-label="Filtrer les actifs affichés"
@@ -241,23 +256,28 @@ export function ExploreTable({
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {remaining > 0 ? (
-              <button
-                type="button"
-                onClick={() => setShown((current) => current + PAGE_SIZE)}
-                className="rounded-control border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
-              >
-                Afficher {Math.min(PAGE_SIZE, remaining)} actifs de plus
-              </button>
-            ) : (
-              <span />
-            )}
+          {/* La barre remplace un « Afficher 15 actifs de plus » qui ne savait
+              qu'avancer. Le lien vers le classement complet lui SURVIT et ne fait pas
+              double emploi : la barre parcourt ce qui est déjà chargé, le lien mène à
+              l'univers entier, trié et paginé côté serveur. */}
+          <Pagination
+            page={currentPage}
+            perPage={perPage}
+            total={visible.length}
+            unit="actif"
+            perPageChoices={PAGE_CHOICES}
+            onPageChange={setPage}
+            onPerPageChange={(size) => {
+              setPerPage(size)
+              setPage(1)
+            }}
+          />
 
+          <p className="text-right">
             <Link href={moreHref} className="text-sm font-medium text-brand hover:underline">
               Voir toutes les cotations
             </Link>
-          </div>
+          </p>
         </>
       )}
     </section>

@@ -8,6 +8,7 @@ import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
 
 import { CategoryCard } from '@/components/categories/CategoryCard'
+import { Pagination } from '@/components/ui/Pagination'
 
 type SortKey = 'marketCap' | 'volume' | 'change' | 'name'
 type Direction = 'asc' | 'desc'
@@ -20,17 +21,19 @@ const SORTS: { key: SortKey; label: string }[] = [
 ]
 
 /**
- * Pas de pagination, mais un affichage PROGRESSIF.
+ * Pagination EN MÉMOIRE, et c'est ce qui la distingue de celle des classements.
  *
- * La source publie près de 750 secteurs. Une pagination par pages numérotées
- * obligerait à quitter la page pour parcourir la suite, et casserait la recherche —
- * qui doit porter sur l'ensemble, pas sur la page courante. Un « voir plus » qui
- * allonge la liste conserve la position de lecture et laisse le filtre s'appliquer à
- * la totalité.
+ * La source publie près de 750 secteurs, et les envoie TOUS en une fois. Changer de
+ * page ne coûte donc aucun appel réseau, et surtout : le tri et la recherche portent
+ * sur les 750 lignes, pas sur la cinquantaine affichée. C'était l'objection classique
+ * à la pagination — « elle casse la recherche » — et elle ne tient pas ici.
  *
- * Le tri et le filtrage portent donc TOUJOURS sur les 750 lignes ; seul le nombre
- * d'éléments rendus est limité. C'est possible ici parce que tout est déjà en
- * mémoire — contrairement aux classements d'actifs, paginés côté serveur.
+ * Les classements d'actifs, eux, sont paginés PAR LA SOURCE : chaque page y est un
+ * appel, et leur barre ne connaît pas le total. Deux mécaniques, une seule barre.
+ *
+ * ⚠️ Ce nombre n'est plus qu'un DÉFAUT. Le lecteur le change dans la barre, et la
+ * valeur choisie doit rester l'une de celles qu'elle propose — sinon le sélecteur
+ * s'ouvrirait sur un choix vide.
  */
 const PAGE_SIZE = 50
 
@@ -39,7 +42,20 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
   const [sort, setSort] = useState<SortKey>('marketCap')
   const [direction, setDirection] = useState<Direction>('desc')
   const [view, setView] = useState<'grid' | 'table'>('table')
-  const [shown, setShown] = useState(PAGE_SIZE)
+
+  /*
+   * PAGINÉ PLUTÔT QU'ACCUMULÉ.
+   *
+   * Un bouton « Afficher 50 secteurs de plus » ne sait qu'AVANCER : arrivé au
+   * quatrième clic, on a deux cents lignes à l'écran, aucun moyen de revenir aux
+   * cinquante précédentes, et le numéro de rang n'a plus de repère. Il ne dit pas non
+   * plus où l'on en est — seulement combien il reste.
+   *
+   * Une page, elle, est un lieu : on y revient, on la quitte, et le compteur de la
+   * barre répond à « où suis-je » avant qu'on se le demande.
+   */
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState<number>(PAGE_SIZE)
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -74,8 +90,12 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
     return direction === 'desc' ? sorted : reverseKeepingMissingLast(sorted, sort)
   }, [categories, query, sort, direction])
 
-  const rendered = visible.slice(0, shown)
-  const remaining = visible.length - rendered.length
+  /* Le filtre peut rendre la page courante inexistante : on la borne au rendu plutôt
+     qu'en effet de bord, ce qui évite un rendu intermédiaire vide. */
+  const pageCount = Math.max(1, Math.ceil(visible.length / perPage))
+  const currentPage = Math.min(page, pageCount)
+  const start = (currentPage - 1) * perPage
+  const rendered = visible.slice(start, start + perPage)
 
   function applySort(key: SortKey) {
     if (key === sort) {
@@ -86,7 +106,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
       // sauf le nom, qui se lit naturellement de A à Z.
       setDirection(key === 'name' ? 'asc' : 'desc')
     }
-    setShown(PAGE_SIZE)
+    setPage(1)
   }
 
   return (
@@ -118,7 +138,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
             value={query}
             onChange={(event) => {
               setQuery(event.target.value)
-              setShown(PAGE_SIZE)
+              setPage(1)
             }}
             placeholder="Filtrer les secteurs…"
             aria-label="Filtrer les secteurs par nom ou par définition"
@@ -160,10 +180,15 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
         </div>
       </div>
 
-      <p className="text-xs text-ink-muted" aria-live="polite">
-        {visible.length} secteur{visible.length > 1 ? 's' : ''}
-        {query.trim() ? ` correspondant à « ${query.trim()} »` : ''}
-      </p>
+      {/* Ne subsiste que pour NOMMER le filtre : le décompte nu vit désormais dans le
+          compteur de la barre de pagination, et l'écrire deux fois ferait douter qu'il
+          s'agisse du même nombre. */}
+      {query.trim() ? (
+        <p className="text-xs text-ink-muted" aria-live="polite">
+          {visible.length} secteur{visible.length > 1 ? 's' : ''} correspondant à «{' '}
+          {query.trim()} »
+        </p>
+      ) : null}
 
       {visible.length === 0 ? (
         <EmptyState
@@ -178,20 +203,24 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           ))}
         </div>
       ) : (
-        <CategoryTable categories={rendered} startRank={1} />
+        /* Le rang REPART DU BON NUMÉRO à chaque page : en page 3 sur cinquante lignes,
+           la première ligne est la 101ᵉ du classement, pas la première. Une numérotation
+           qui recommence à 1 sur chaque page annulerait tout l'intérêt du rang. */
+        <CategoryTable categories={rendered} startRank={start + 1} />
       )}
 
-      {remaining > 0 ? (
-        <div className="flex justify-center pt-2">
-          <button
-            type="button"
-            onClick={() => setShown((current) => current + PAGE_SIZE)}
-            className="rounded-control border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand-strong"
-          >
-            Afficher {Math.min(PAGE_SIZE, remaining)} secteurs de plus
-            <span className="ml-1.5 text-ink-muted">({remaining} restants)</span>
-          </button>
-        </div>
+      {visible.length > 0 ? (
+        <Pagination
+          page={currentPage}
+          perPage={perPage}
+          total={visible.length}
+          unit="secteur"
+          onPageChange={setPage}
+          onPerPageChange={(size) => {
+            setPerPage(size)
+            setPage(1)
+          }}
+        />
       ) : null}
     </section>
   )

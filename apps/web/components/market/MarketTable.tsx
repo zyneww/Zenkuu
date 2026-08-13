@@ -16,7 +16,6 @@
  * ne recrée l'ambiguïté.
  */
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
@@ -25,6 +24,7 @@ import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
+import { Pagination } from '@/components/ui/Pagination'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
@@ -326,47 +326,32 @@ export function MarketTable({
 
       {sortable ? <p className="text-xs text-ink-muted">{fr.market.sortNotSupported}</p> : null}
 
+      {/*
+        LE TOTAL EST INCONNU, ET LA BARRE LE SAIT.
+
+        La source pagine elle-même et ne renvoie jamais le nombre d'actifs qu'elle
+        détient. `Pagination` reçoit donc `count` + `hasNext` plutôt que `total` : elle
+        n'écrit pas « sur 12 500 » et ne numérote que les pages démontrées.
+
+        `hasNext` se lit sur la PLÉNITUDE de la page. Une page pleine implique une
+        suivante ; une page incomplète est la dernière. C'est la seule déduction que la
+        réponse autorise, et elle est exacte — sauf au cas où le total serait un multiple
+        exact de la taille de page, où l'on proposera une dernière page vide. Elle
+        s'annoncera alors elle-même comme telle, ce qui reste préférable à masquer une
+        page qui existe.
+
+        `hrefFor` et non un rappel : la page vit dans l'adresse, chaque cran est donc un
+        vrai lien — ouvrable dans un onglet, indexable, fonctionnel sans JavaScript.
+      */}
       {paginated ? (
-        <nav className="flex items-center justify-center gap-1" aria-label="Pagination">
-          <PagerArrow
-            href={buildHref(basePath, { page: page - 1, sortBy, direction })}
-            disabled={page <= 1}
-            label={fr.market.previous}
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          </PagerArrow>
-
-          {/* On ne connaît pas le nombre total de pages : la source ne le renvoie pas.
-              On numérote donc seulement les pages dont on est CERTAIN qu'elles existent —
-              la précédente, la courante, et la suivante si celle-ci est pleine — plutôt
-              que d'afficher un total estimé qui serait faux. */}
-          {page > 1 ? (
-            <PagerNumber href={buildHref(basePath, { page: page - 1, sortBy, direction })}>
-              {page - 1}
-            </PagerNumber>
-          ) : null}
-
-          <span
-            aria-current="page"
-            className="tabular flex h-8 min-w-8 items-center justify-center border border-brand bg-brand px-2 text-xs font-medium text-on-brand"
-          >
-            {page}
-          </span>
-
-          {assets.length >= perPage ? (
-            <PagerNumber href={buildHref(basePath, { page: page + 1, sortBy, direction })}>
-              {page + 1}
-            </PagerNumber>
-          ) : null}
-
-          <PagerArrow
-            href={buildHref(basePath, { page: page + 1, sortBy, direction })}
-            disabled={assets.length < perPage}
-            label={fr.market.next}
-          >
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </PagerArrow>
-        </nav>
+        <Pagination
+          page={page}
+          perPage={perPage}
+          count={assets.length}
+          hasNext={assets.length >= perPage}
+          unit="actif"
+          hrefFor={(target) => buildHref(basePath, { page: target, sortBy, direction })}
+        />
       ) : null}
     </div>
   )
@@ -427,46 +412,3 @@ function SortableHeader({
   )
 }
 
-function PagerArrow({
-  href,
-  disabled,
-  label,
-  children,
-}: {
-  href: string
-  disabled: boolean
-  label: string
-  children: React.ReactNode
-}) {
-  if (disabled) {
-    return (
-      <span
-        aria-hidden="true"
-        className="flex h-8 w-8 items-center justify-center border border-border-subtle text-ink-muted/40"
-      >
-        {children}
-      </span>
-    )
-  }
-
-  return (
-    <Link
-      href={href}
-      aria-label={label}
-      className="flex h-8 w-8 items-center justify-center border border-border-subtle bg-surface text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
-    >
-      {children}
-    </Link>
-  )
-}
-
-function PagerNumber({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="tabular flex h-8 min-w-8 items-center justify-center border border-border-subtle bg-surface px-2 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
-    >
-      {children}
-    </Link>
-  )
-}

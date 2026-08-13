@@ -249,6 +249,7 @@ export function NewListingsTable({
           page={page}
           perPage={perPage}
           total={rows.length}
+          unit="cotation"
           onPageChange={setPage}
           onPerPageChange={setPerPage}
         />

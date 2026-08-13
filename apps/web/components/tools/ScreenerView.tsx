@@ -11,6 +11,7 @@ import { ExportMenu } from '@/components/billing/ExportMenu'
 import { ProGate, UpgradeCallout } from '@/components/billing/ProGate'
 import { Money } from '@/components/locale/Money'
 import { SavedScreens } from '@/components/tools/SavedScreens'
+import { Pagination } from '@/components/ui/Pagination'
 import { assetHref } from '@/lib/asset-routes'
 import { FEATURES } from '@/lib/billing'
 import type { ScreenCriteria } from '@/lib/screen-actions'
@@ -77,6 +78,9 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
   const [minChange7d, setMinChange7d] = useState(-100)
   const [minTurnoverIndex, setMinTurnoverIndex] = useState(0)
 
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(50)
+
   const minCap = MARKET_CAP_STEPS[minCapIndex] ?? 0
   const minVolume = VOLUME_STEPS[minVolumeIndex] ?? 0
   const minTurnover = TURNOVER_STEPS[minTurnoverIndex] ?? 0
@@ -122,6 +126,28 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
       }
     })
   }, [assets, preset, minCap, minVolume, minChange24h, minChange7d, minTurnover, query])
+
+  /*
+   * RETOUR EN PAGE 1 QUAND LES CRITÈRES CHANGENT.
+   *
+   * Sept curseurs composent ce filtre, et chacun peut réduire le résultat à trois
+   * lignes. Rester en page 4 afficherait alors un tableau vide — le lecteur croirait
+   * que son critère ne retient rien, alors qu'il regarde au-delà du dernier résultat.
+   *
+   * L'ajustement se fait PENDANT LE RENDU plutôt que dans un effet : un effet
+   * peindrait d'abord le tableau vide avant de le corriger.
+   */
+  const signature = `${preset}|${minCap}|${minVolume}|${minChange24h}|${minChange7d}|${minTurnover}|${query.trim()}`
+  const [lastSignature, setLastSignature] = useState(signature)
+  if (signature !== lastSignature) {
+    setLastSignature(signature)
+    setPage(1)
+  }
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / perPage))
+  const currentPage = Math.min(page, pageCount)
+  const start = (currentPage - 1) * perPage
+  const visible = rows.slice(start, start + perPage)
 
   function reset() {
     setPreset('tout')
@@ -316,9 +342,9 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
 
         <div className="flex flex-wrap items-center gap-2">
           {/*
-            L'export porte sur `rows` ENTIER, pas sur les cent lignes affichées plus
-            bas. C'est tout l'intérêt de la fonction : le tableau plafonne à cent lignes
-            pour ne pas peser sur le rendu, le fichier n'a pas cette contrainte.
+            L'export porte sur `rows` ENTIER, pas sur la page affichée plus bas. C'est
+            tout l'intérêt de la fonction : le tableau se lit page par page, le fichier
+            n'a pas cette contrainte.
           */}
           <ProGate feature={FEATURES.exportData} fallback={null}>
             <ExportMenu
@@ -383,7 +409,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             </thead>
 
             <tbody className="divide-y divide-border-subtle">
-              {rows.slice(0, 100).map((asset) => (
+              {visible.map((asset) => (
                 <tr key={asset.id} className="group transition-colors duration-150 hover:bg-surface-muted/60">
                   <td className="tabular px-3 py-2.5 text-xs text-ink-muted">{asset.rank ?? '—'}</td>
 
@@ -422,11 +448,29 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         </div>
       )}
 
-      {rows.length > 100 ? (
-        <p className="text-xs text-ink-muted">
-          Cent premières lignes affichées sur {rows.length} retenues — resserrez un critère
-          pour voir la suite.
-        </p>
+      {/*
+        LE PLAFOND DE CENT LIGNES A DISPARU, ET C'ÉTAIT UN DÉFAUT, PAS UNE PRÉCAUTION.
+
+        Le tableau s'arrêtait à cent lignes en invitant à « resserrer un critère pour
+        voir la suite ». Autrement dit : pour lire le résultat de son filtre, il fallait
+        en changer. Un filtre qui cache une partie de ce qu'il retient répond à côté de
+        la question qu'on lui pose.
+
+        La pagination tient la même promesse — borner ce que le navigateur dessine d'un
+        coup — sans rendre les lignes suivantes inatteignables.
+      */}
+      {rows.length > 0 ? (
+        <Pagination
+          page={currentPage}
+          perPage={perPage}
+          total={rows.length}
+          unit="actif"
+          onPageChange={setPage}
+          onPerPageChange={(size) => {
+            setPerPage(size)
+            setPage(1)
+          }}
+        />
       ) : null}
     </div>
   )

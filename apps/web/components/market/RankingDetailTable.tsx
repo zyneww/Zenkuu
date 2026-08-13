@@ -169,6 +169,7 @@ export function RankingDetailTable({
         page={page}
         perPage={perPage}
         total={assets.length}
+        unit="actif"
         onPageChange={setPage}
         onPerPageChange={changePerPage}
       />

@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { AssetTicker } from '@zenkuu/data'
@@ -9,6 +9,7 @@ import { formatCurrency, formatPercent } from '@zenkuu/ui'
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Money } from '@/components/locale/Money'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
+import { Pagination } from '@/components/ui/Pagination'
 
 /**
  * Places de cotation d'un actif.
@@ -147,46 +148,29 @@ export function AssetTickers({
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Devise de cotation">
+      {/* Le sélecteur de lignes qui accompagnait ces filtres est descendu dans la barre
+          de pagination, où il rejoint le compteur et les numéros. Une taille de page se
+          règle en regardant où l'on en est, pas avant d'avoir commencé à lire. */}
+      <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Devise de cotation">
+        <FilterChip
+          active={target === 'toutes'}
+          onClick={() => {
+            setTarget('toutes')
+            setPage(1)
+          }}
+          label="Toutes"
+        />
+        {targets.map((code) => (
           <FilterChip
-            active={target === 'toutes'}
+            key={code}
+            active={target === code}
             onClick={() => {
-              setTarget('toutes')
+              setTarget(code)
               setPage(1)
             }}
-            label="Toutes"
+            label={code}
           />
-          {targets.map((code) => (
-            <FilterChip
-              key={code}
-              active={target === code}
-              onClick={() => {
-                setTarget(code)
-                setPage(1)
-              }}
-              label={code}
-            />
-          ))}
-        </div>
-
-        <label className="flex items-center gap-2 text-xs text-ink-muted">
-          Lignes
-          <select
-            value={pageSize}
-            onChange={(event) => {
-              setPageSize(Number(event.target.value))
-              setPage(1)
-            }}
-            className="rounded-card border border-border-subtle bg-surface px-2 py-1 text-xs text-ink focus:border-brand focus:outline-none"
-          >
-            {PAGE_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
+        ))}
       </div>
 
       <div className="overflow-x-auto rounded-card border border-border-subtle bg-panel">
@@ -331,56 +315,20 @@ export function AssetTickers({
         </table>
       </div>
 
-      {pageCount > 1 ? (
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <p className="tabular text-xs text-ink-muted" aria-live="polite">
-            {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filtered.length)}{' '}
-            sur {filtered.length} paires
-          </p>
-
-          <nav className="col-start-2 flex items-center gap-1 justify-self-center" aria-label="Pagination">
-            <PagerButton
-              disabled={currentPage <= 1}
-              onClick={() => setPage(currentPage - 1)}
-              label="Page précédente"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            </PagerButton>
-
-            {pageNumbers(currentPage, pageCount).map((entry, index) =>
-              entry === 'ellipsis' ? (
-                <span key={`ellipsis-${index}`} className="px-1.5 text-xs text-ink-muted">
-                  …
-                </span>
-              ) : (
-                <button
-                  key={entry}
-                  type="button"
-                  onClick={() => setPage(entry)}
-                  aria-current={entry === currentPage ? 'page' : undefined}
-                  className={`tabular flex h-8 min-w-8 items-center justify-center border px-2 text-xs font-medium transition-colors duration-150 ${
-                    entry === currentPage
-                      ? 'border-brand bg-brand text-on-brand'
-                      : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
-                  }`}
-                >
-                  {entry}
-                </button>
-              ),
-            )}
-
-            <PagerButton
-              disabled={currentPage >= pageCount}
-              onClick={() => setPage(currentPage + 1)}
-              label="Page suivante"
-            >
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </PagerButton>
-          </nav>
-
-          <div aria-hidden="true" />
-        </div>
-      ) : null}
+      <Pagination
+        page={currentPage}
+        perPage={pageSize}
+        total={filtered.length}
+        unit="paire"
+        perPageChoices={PAGE_SIZES}
+        onPageChange={setPage}
+        onPerPageChange={(size) => {
+          setPageSize(size)
+          // Repartir en page 1 : la page 7 de dix lignes n'a pas d'équivalent en
+          // cinquante, et y rester ferait sauter le lecteur au milieu de la liste.
+          setPage(1)
+        }}
+      />
 
       <p className="text-xs leading-relaxed text-ink-muted">
         La pastille de couleur reprend le jugement de la source sur la crédibilité du
@@ -422,48 +370,4 @@ function FilterChip({
   )
 }
 
-function PagerButton({
-  disabled,
-  onClick,
-  label,
-  children,
-}: {
-  disabled: boolean
-  onClick: () => void
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      className="flex h-8 w-8 items-center justify-center border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand-strong disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border-subtle disabled:hover:text-ink-muted"
-    >
-      {children}
-    </button>
-  )
-}
 
-/**
- * Fenêtre de pages à afficher : toujours la première et la dernière, plus les
- * voisines immédiates de la page courante. Le reste se résume en ellipse — un
- * classement de 26 pages ne doit pas afficher 26 boutons.
- */
-function pageNumbers(current: number, total: number): (number | 'ellipsis')[] {
-  const pages = new Set<number>([1, total])
-  for (let p = current - 1; p <= current + 1; p++) {
-    if (p >= 1 && p <= total) pages.add(p)
-  }
-
-  const sorted = [...pages].sort((a, b) => a - b)
-  const result: (number | 'ellipsis')[] = []
-  let previous = 0
-  for (const p of sorted) {
-    if (previous && p - previous > 1) result.push('ellipsis')
-    result.push(p)
-    previous = p
-  }
-  return result
-}

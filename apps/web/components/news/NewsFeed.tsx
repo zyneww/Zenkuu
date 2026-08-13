@@ -8,6 +8,7 @@ import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
 import { formatAbsolute, useRelativeTime } from '@/components/locale/useRelativeTime'
 import { availableMentions, citedAssets, mentions } from '@/components/news/mentions'
+import { Pagination } from '@/components/ui/Pagination'
 
 /**
  * Fil d'actualités : rubriques, sources, recherche, vignettes.
@@ -74,6 +75,11 @@ export function NewsFeed({
   const [sort, setSort] = useState<SortId>('recent')
   const [query, setQuery] = useState('')
 
+  /* Vingt-quatre : huit rangées de la grille à trois colonnes. Un multiple du nombre
+     de colonnes évite la dernière rangée boiteuse à une ou deux cartes. */
+  const [perPage, setPerPage] = useState<number>(24)
+  const [page, setPage] = useState(1)
+
   // Seules les rubriques et sources réellement présentes dans le lot sont
   // proposées : un filtre qui ne renverrait jamais rien vaut moins qu'un filtre absent.
   const categories = useMemo(
@@ -138,7 +144,40 @@ export function NewsFeed({
     return sort === 'recent' ? copy.reverse() : copy
   }, [visible, sort])
 
-  const [featured, ...rest] = ordered
+  /*
+   * RETOUR EN PAGE 1 QUAND LE FIL CHANGE SOUS LES PIEDS.
+   *
+   * Six réglages composent ce fil, et chacun peut le raccourcir. Rester en page 7
+   * d'un fil qui n'en compte plus deux afficherait un vide sans explication.
+   *
+   * L'ajustement se fait PENDANT LE RENDU et non dans un effet : un effet peindrait
+   * d'abord la page vide, puis la corrigerait — le lecteur verrait le défaut. React
+   * documente ce motif, qui relance le rendu avant l'affichage. La signature est une
+   * chaîne plutôt qu'un tableau de dépendances parce qu'on la COMPARE, et deux
+   * tableaux de même contenu ne sont jamais égaux.
+   */
+  const signature = `${category}|${source}|${lang}|${mention}|${sort}|${query.trim()}`
+  const [lastSignature, setLastSignature] = useState(signature)
+  if (signature !== lastSignature) {
+    setLastSignature(signature)
+    setPage(1)
+  }
+
+  const pageCount = Math.max(1, Math.ceil(ordered.length / perPage))
+  const currentPage = Math.min(page, pageCount)
+  const start = (currentPage - 1) * perPage
+  const slice = ordered.slice(start, start + perPage)
+
+  /*
+   * L'ÉGARD DE LA MISE EN AVANT NE VAUT QU'EN PAGE 1.
+   *
+   * Il repose sur une propriété réelle — cet article EST le plus récent du fil filtré.
+   * Le vingt-cinquième ne l'est pas, et lui donner la même place inventerait un
+   * classement éditorial que nous ne mesurons pas. Reconduire le MÊME article en tête
+   * de chaque page serait l'autre travers : une répétition qui n'apprend rien.
+   */
+  const featured = currentPage === 1 ? slice[0] : undefined
+  const rest = currentPage === 1 ? slice.slice(1) : slice
 
   return (
     <QuotesContext.Provider value={quotes ?? {}}>
@@ -287,21 +326,42 @@ export function NewsFeed({
         </div>
       </div>
 
-      {!featured ? (
+      {ordered.length === 0 ? (
         <EmptyState
           title="Aucun article ne correspond"
           description="Essayez un autre terme, une autre rubrique ou une autre source."
           compact
         />
-      ) : rest.length > 0 ? (
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {rest.map((article) => (
-            <li key={article.id}>
-              <ArticleCard article={article} />
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      ) : (
+        <>
+          {rest.length > 0 ? (
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {rest.map((article) => (
+                <li key={article.id}>
+                  <ArticleCard article={article} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {/* Le fil rendait ses deux cent cinquante articles d'un bloc : autant de
+              vignettes distantes chargées pour une page qu'on parcourt rarement en
+              entier. La barre borne ce coût et rend la profondeur atteignable — sans
+              elle, « remonter plus loin » voulait dire faire défiler. */}
+          <Pagination
+            page={currentPage}
+            perPage={perPage}
+            total={ordered.length}
+            unit="article"
+            perPageChoices={[12, 24, 48]}
+            onPageChange={setPage}
+            onPerPageChange={(size) => {
+              setPerPage(size)
+              setPage(1)
+            }}
+          />
+        </>
+      )}
     </div>
     </QuotesContext.Provider>
   )
