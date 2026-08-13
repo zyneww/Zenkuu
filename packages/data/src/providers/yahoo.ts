@@ -153,7 +153,16 @@ function toMarketAsset(
   const change7d = percentChange(weekAgo, price)
   if (change7d !== undefined) asset.change7d = change7d
 
-  if (closes.length > 1) asset.sparkline7d = closes.slice(-30)
+  /* UN MOIS DE CLÔTURES QUOTIDIENNES, ET NON SEPT JOURS. La fenêtre demandée à la
+     source est `range=1mo, interval=1d` : trente séances au plus, donc environ six
+     semaines calendaires puisque les marchés ferment le week-end. La durée est
+     déclarée à côté de la série — sans elle, un appelant qui superpose deux classes
+     tracerait un mois et une semaine sur le même axe. */
+  if (closes.length > 1) {
+    const kept = closes.slice(-30)
+    asset.sparkline7d = kept
+    asset.sparklineSpanDays = Math.round((kept.length / 5) * 7)
+  }
   if (meta.regularMarketVolume !== undefined) asset.volume24h = meta.regularMarketVolume
   if (meta.regularMarketDayHigh !== undefined) asset.high24h = meta.regularMarketDayHigh
   if (meta.regularMarketDayLow !== undefined) asset.low24h = meta.regularMarketDayLow

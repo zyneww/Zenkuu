@@ -192,7 +192,23 @@ export const frankfurterProvider: MarketDataProvider = {
       const history = dates
         .map((date) => series.rates[date]?.[pair.code])
         .filter((value): value is number => value !== undefined)
-      if (history.length > 1) asset.sparkline7d = history
+      if (history.length > 1) {
+        asset.sparkline7d = history
+        /*
+         * DOUZE JOURS, ET LA DURÉE SE LIT SUR LES DATES PLUTÔT QUE SUR LE NOMBRE DE
+         * POINTS.
+         *
+         * La requête part de `isoDaysAgo(12)`, mais la BCE ne publie qu'en jour ouvré :
+         * douze jours calendaires ne donnent que huit ou neuf relevés. Compter les
+         * points annoncerait donc huit jours pour une série qui en couvre douze.
+         *
+         * L'écart entre la première et la dernière date, lui, est la durée réelle.
+         */
+        const first = Date.parse(`${dates[0] as string}T00:00:00Z`)
+        const last = Date.parse(`${lastDate}T00:00:00Z`)
+        const spanDays = Math.round((last - first) / 86_400_000)
+        if (spanDays > 0) asset.sparklineSpanDays = spanDays
+      }
 
       assets.push(asset)
     }

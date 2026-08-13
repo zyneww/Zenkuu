@@ -1,9 +1,10 @@
 'use client'
 
+import { Plus, X } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
-import type { MarketAsset } from '@zenkuu/data'
+import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
@@ -12,10 +13,17 @@ import { FEATURES, FREE_COMPARE_LIMIT, PRO_COMPARE_LIMIT } from '@/lib/billing'
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { dataColor } from '@/components/charts/chart-theme'
 import { Money } from '@/components/locale/Money'
+import { AssetPicker } from '@/components/tools/AssetPicker'
+import {
+  alignSeries,
+  offsetLabel,
+  offsetTick,
+  windowLabel,
+} from '@/components/tools/compare-series'
 import { assetHref } from '@/lib/asset-routes'
 
 /**
- * Comparateur de deux à quatre actifs.
+ * Comparateur de deux à six actifs, TOUTES CLASSES CONFONDUES.
  *
  * ⚠️ LE GRAPHIQUE EST EN BASE 100, PAS EN PRIX. Superposer les cours bruts de Bitcoin
  * et d'un jeton à 0,003 € donnerait une ligne plate et une ligne collée à l'axe :
@@ -25,6 +33,28 @@ import { assetHref } from '@/lib/asset-routes'
  *
  * Conséquence à dire : l'axe des ordonnées n'affiche pas des euros. C'est écrit sous
  * le graphique, faute de quoi le lecteur lira « 118 » comme un prix.
+ *
+ * ── LA RESTRICTION À LA CRYPTO EST LEVÉE, ET CE N'EST PAS UN SIMPLE ÉLARGISSEMENT ─
+ *
+ * La page annonçait auparavant : « Rapprocher une action et une cryptomonnaie
+ * supposerait de mettre en regard des champs que deux sources ne définissent pas de la
+ * même façon. » L'argument était bon, et il tenait sur DEUX obstacles distincts qu'il
+ * confondait en un seul.
+ *
+ *   1. LES CHAMPS ABSENTS. Yahoo ne publie pas la capitalisation d'une action — elle
+ *      vit derrière un endpoint fermé. Ce n'est pas une incompatibilité de définition,
+ *      c'est un trou : la ligne s'affiche « — », comme partout ailleurs sur le site.
+ *      Une ligne vide est honnête ; refuser toute la comparaison pour l'éviter ne
+ *      l'était pas davantage, cela cachait aussi les huit lignes qui, elles, se
+ *      comparent parfaitement.
+ *
+ *   2. LES CHAMPS QUI NE VEULENT PAS DIRE LA MÊME CHOSE. Le « volume » d'une place
+ *      boursière se compte en TITRES échangés, celui d'un agrégateur crypto en
+ *      monnaie. Les aligner dans une même ligne serait faux. Ceux-là sont donc
+ *      marqués : voir `Scope` plus bas, qui décide ligne par ligne.
+ *
+ * Le troisième obstacle, lui, n'avait pas été vu : les SÉRIES ne couvrent pas la même
+ * durée d'une source à l'autre. Il est traité dans `compare-series.ts`.
  *
  * ── POURQUOI LE PLAFOND S'ARRÊTE À SIX, MÊME EN OFFRE PRO ────────────────────
  *
@@ -39,6 +69,19 @@ import { assetHref } from '@/lib/asset-routes'
  * que d'en reprendre.
  */
 
+/**
+ * Ce qu'une ligne du tableau exige pour être comparable entre classes.
+ *
+ * `always` : la grandeur a le même sens partout — un cours est un cours, une variation
+ * en pourcentage aussi.
+ *
+ * `sameClass` : la grandeur existe partout mais ne se DÉFINIT pas pareil. Le volume en
+ * est le cas d'école — titres échangés d'un côté, montant en monnaie de l'autre — et
+ * le rang aussi : « 4ᵉ » ne dit rien si l'on ne sait pas 4ᵉ de quoi. Ces lignes ne
+ * s'affichent que si tous les actifs comparés relèvent d'une même classe.
+ */
+type Scope = 'always' | 'sameClass'
+
 export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
   const extended = useFeature(FEATURES.deepData)
   const max = extended ? PRO_COMPARE_LIMIT : FREE_COMPARE_LIMIT
@@ -46,7 +89,6 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
   const [selected, setSelected] = useState<string[]>(() =>
     assets.slice(0, 2).map((asset) => asset.id),
   )
-  const [query, setQuery] = useState('')
 
   const chosen = useMemo(
     () =>
@@ -56,40 +98,33 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
     [assets, selected],
   )
 
-  const options = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    if (!needle) return assets.slice(0, 12)
-    return assets
-      .filter((asset) => `${asset.name} ${asset.symbol}`.toLowerCase().includes(needle))
-      .slice(0, 12)
-  }, [assets, query])
+  /* Une seule classe parmi les actifs retenus : la condition d'affichage des lignes
+     `sameClass`. Calculé sur les actifs CHOISIS et non sur l'univers — c'est la
+     comparaison en cours qui décide, pas ce qui serait comparable en théorie. */
+  const classes = new Set(chosen.map((asset) => asset.assetClass))
+  const homogeneous = classes.size <= 1
 
-  /**
-   * Séries ramenées en base 100.
+  /*
+   * Une série sans durée déclarée est ÉCARTÉE, et non supposée de sept jours.
    *
-   * Les sparklines de la source comptent toutes le même nombre de points sur sept
-   * jours, mais on n'en fait pas l'hypothèse : la longueur retenue est la PLUS COURTE
-   * du lot, et chaque série est tronquée par la fin. Aligner par le début décalerait
-   * les courbes dans le temps sans que rien ne le signale.
+   * Le champ s'appelle `sparkline7d` par héritage, mais trois sources l'alimentent avec
+   * trois profondeurs différentes. Retomber sur sept jours pour celle qui ne le déclare
+   * pas reviendrait à inventer l'échelle de temps d'une courbe — exactement le défaut
+   * que `compare-series` existe pour corriger.
    */
-  const series = useMemo(() => {
-    const usable = chosen.filter((asset) => (asset.sparkline7d?.length ?? 0) > 1)
-    if (usable.length === 0) return []
-
-    const length = Math.min(...usable.map((asset) => asset.sparkline7d!.length))
-
-    return Array.from({ length }, (_, index) => {
-      const point: Record<string, number> = { index }
-      for (const asset of usable) {
-        const values = asset.sparkline7d!.slice(-length)
-        const base = values[0]
-        const value = values[index]
-        if (base === undefined || value === undefined || base === 0) continue
-        point[asset.id] = (value / base) * 100
-      }
-      return point
-    })
-  }, [chosen])
+  const alignment = useMemo(
+    () =>
+      alignSeries(
+        chosen
+          .filter((asset) => asset.sparkline7d && asset.sparklineSpanDays)
+          .map((asset) => ({
+            id: asset.id,
+            values: asset.sparkline7d as number[],
+            spanDays: asset.sparklineSpanDays as number,
+          })),
+      ),
+    [chosen],
+  )
 
   /**
    * Bornes de l'axe des ordonnées, calculées sur les séries réellement affichées.
@@ -101,10 +136,8 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
    * référence est 100, et c'est l'ÉCART à 100 qu'on lit.
    */
   const domain = useMemo<[number, number]>(() => {
-    const values = series.flatMap((point) =>
-      Object.entries(point)
-        .filter(([key]) => key !== 'index')
-        .map(([, value]) => value),
+    const values = (alignment?.series ?? []).flatMap((entry) =>
+      entry.points.map((point) => point.y),
     )
     if (values.length === 0) return [90, 110]
 
@@ -115,112 +148,111 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
     // ligne de pixels.
     const pad = Math.max((max - min) * 0.12, 1)
     return [min - pad, max + pad]
-  }, [series])
+  }, [alignment])
 
-  /*
-   * Une série par actif, chacune indexée par son RANG et non par une date.
-   *
-   * La source ne date pas les points de ses sparklines : elle en garantit seulement
-   * l'ordre et le pas régulier. Inventer des horodatages pour faire joli sur l'axe
-   * afficherait des dates fausses ; l'axe des abscisses est donc masqué, et la
-   * légende sous le graphique dit ce qu'on regarde — sept jours, base 100.
-   */
+  /* Les couleurs suivent l'ordre de SÉLECTION et non celui du tracé : un actif dont
+     la série manque ne sort pas du graphique en décalant la teinte de ses voisins. */
+  const colorOf = (id: string) => dataColor(selected.indexOf(id))
+
   const plotSeries = useMemo(
     () =>
-      chosen
-        .map((asset, index) => ({
-          id: asset.id,
-          label: asset.name,
-          color: dataColor(index),
-          points: series
-            .map((point) => ({ x: point.index as number, y: point[asset.id] }))
-            .filter((point): point is { x: number; y: number } => point.y !== undefined),
-        }))
-        .filter((entry) => entry.points.length > 1),
-    [chosen, series],
+      (alignment?.series ?? []).map((entry) => ({
+        id: entry.id,
+        label: chosen.find((asset) => asset.id === entry.id)?.name ?? entry.id,
+        color: colorOf(entry.id),
+        points: entry.points,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `colorOf` se recalcule avec `selected`
+    [alignment, chosen, selected],
   )
 
-  function toggle(id: string) {
-    setSelected((current) => {
-      if (current.includes(id)) {
-        // Toujours au moins un actif : une comparaison vide n'a rien à montrer, et le
-        // graphique disparaîtrait sans que le lecteur comprenne pourquoi.
-        return current.length > 1 ? current.filter((entry) => entry !== id) : current
-      }
-      return current.length >= max ? current : [...current, id]
-    })
+  function add(asset: MarketAsset) {
+    setSelected((current) =>
+      current.includes(asset.id) || current.length >= max ? current : [...current, asset.id],
+    )
+  }
+
+  function remove(id: string) {
+    // Toujours au moins un actif : une comparaison vide n'a rien à montrer, et le
+    // graphique disparaîtrait sans que le lecteur comprenne pourquoi.
+    setSelected((current) => (current.length > 1 ? current.filter((entry) => entry !== id) : current))
   }
 
   return (
     <div className="space-y-6">
+      {/*
+        ── LA SÉLECTION EST UNE RANGÉE DE CARTES, PLUS UNE LISTE DE PASTILLES ────
+
+        Elle tenait en deux rangées de puces : les actifs retenus d'un côté, une
+        douzaine de « + BTC » de l'autre, avec un champ de recherche entre les deux.
+        Trois défauts qui se voient à l'usage :
+
+          · les candidats proposés étaient les douze PREMIERS de l'univers, sans
+            logo ni classe — une liste de sigles qu'il fallait décoder ;
+          · rien ne reliait la couleur d'une courbe à l'actif qu'elle trace, sinon
+            un carré de deux pixels ;
+          · retirer un actif se faisait en cliquant sur son nom, ce qui est le geste
+            que tout le reste du site réserve à « ouvrir ».
+
+        Une carte par actif résout les trois : elle porte le logo, le nom, la classe,
+        le cours, sa teinte en bandeau, et une croix qui ne veut dire que « retirer ».
+        La dernière carte est le bouton d'ajout, qui ouvre le sélecteur commun du site
+        — celui du convertisseur, avec sa recherche, ses groupes et son clavier.
+      */}
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold text-ink">
             Actifs comparés ({chosen.length}/{max})
-            {/*
-              L'invitation n'apparaît QU'AU plafond, jamais avant : annoncée d'entrée,
-              elle ferait passer un outil complet pour une démonstration bridée.
-            */}
-            {!extended && chosen.length >= max ? (
-              <>
-                {' — '}
-                <Link
-                  href="/tarifs"
-                  className="text-xs font-normal text-brand hover:text-brand-strong"
-                >
-                  Zenkuu Pro en compare {PRO_COMPARE_LIMIT}
-                </Link>
-              </>
-            ) : null}
           </h2>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Chercher un actif…"
-            aria-label="Chercher un actif à comparer"
-            className="w-56 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-          />
+
+          {/*
+            L'invitation n'apparaît QU'AU plafond, jamais avant : annoncée d'entrée,
+            elle ferait passer un outil complet pour une démonstration bridée.
+          */}
+          {!extended && chosen.length >= max ? (
+            <Link href="/tarifs" className="text-xs text-brand hover:text-brand-strong">
+              Zenkuu Pro en compare {PRO_COMPARE_LIMIT}
+            </Link>
+          ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {chosen.map((asset, index) => (
-            <button
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {chosen.map((asset) => (
+            <SlotCard
               key={asset.id}
-              type="button"
-              onClick={() => toggle(asset.id)}
-              className="flex items-center gap-2 rounded-control border px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-down"
-              style={{ borderColor: dataColor(index) }}
-            >
-              <span
-                className="h-2 w-2 shrink-0"
-                style={{ backgroundColor: dataColor(index) }}
-                aria-hidden="true"
-              />
-              {asset.name}
-              <span className="text-ink-muted">retirer</span>
-            </button>
+              asset={asset}
+              color={colorOf(asset.id)}
+              onRemove={chosen.length > 1 ? () => remove(asset.id) : undefined}
+            />
           ))}
-        </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          {options
-            .filter((asset) => !selected.includes(asset.id))
-            .map((asset) => (
-              <button
-                key={asset.id}
-                type="button"
-                onClick={() => toggle(asset.id)}
-                disabled={chosen.length >= max}
-                className="rounded-card border border-border-subtle bg-surface px-2.5 py-1 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                + {asset.symbol.toUpperCase()}
-              </button>
-            ))}
+          {chosen.length < max ? (
+            <AssetPicker
+              assets={assets}
+              selectedIds={selected}
+              onSelect={add}
+              mode="multiple"
+              disabledReason={(asset) =>
+                selected.includes(asset.id)
+                  ? 'déjà comparé'
+                  : selected.length >= max
+                    ? 'limite atteinte'
+                    : null
+              }
+              triggerClassName="flex h-full min-h-[4.5rem] w-full items-center justify-center gap-2 rounded-card border border-dashed border-border-subtle bg-surface px-3 py-2.5 text-sm text-ink-muted transition-colors hover:border-brand hover:text-ink focus:border-brand focus:outline-none"
+            >
+              {() => (
+                <>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  Ajouter un actif
+                </>
+              )}
+            </AssetPicker>
+          ) : null}
         </div>
       </div>
 
-      {series.length > 1 ? (
+      {alignment ? (
         <div className="rounded-card border border-border-subtle bg-surface p-3">
           {/* Repère à 100 : la ligne de départ commune. Sans elle, on lit des courbes
               sans savoir de quel côté de la référence elles passent. */}
@@ -232,23 +264,33 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             yDomain={domain}
             referenceLines={[100]}
             formatY={(value) => value.toFixed(1).replace('.', ',')}
-            formatX={() => ''}
-            formatTooltipX={() => 'Base 100 au début de la période'}
+            formatX={offsetTick}
+            formatTooltipX={offsetLabel}
             formatTooltipY={(value) =>
               `${value.toFixed(1).replace('.', ',')} (${formatPercent(value - 100)})`
             }
           />
 
           <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-            Sept jours, chaque série ramenée à <strong className="text-ink">100</strong> à
-            son premier point. L’axe ne porte donc pas des euros mais un écart relatif :
-            118 signifie « +18 % depuis le début de la période ». C’est le seul moyen de
-            superposer des actifs dont les cours diffèrent d’un facteur mille.
+            <strong className="text-ink">{windowLabel(alignment.windowDays)}</strong>, chaque
+            série ramenée à <strong className="text-ink">100</strong> au début de la période.
+            L’axe ne porte donc pas des euros mais un écart relatif : 118 signifie « +18 %
+            depuis le début de la période ». C’est le seul moyen de superposer des actifs
+            dont les cours diffèrent d’un facteur mille.
+            {!homogeneous ? (
+              <>
+                {' '}
+                La fenêtre est celle de la série la plus courte : les sources ne publient
+                pas toutes la même profondeur, et l’étendre obligerait à inventer le début
+                des autres. Les actifs cotés en bourse n’y apparaissent qu’en paliers —
+                une clôture par séance, rien entre deux.
+              </>
+            ) : null}
           </p>
         </div>
       ) : (
         <p className="rounded-card border border-border-subtle bg-surface px-4 py-10 text-center text-sm text-ink-muted">
-          La source ne publie pas de série sur sept jours pour les actifs sélectionnés.
+          La source ne publie pas de série récente pour les actifs sélectionnés.
         </p>
       )}
 
@@ -260,7 +302,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
                 Indicateur
               </th>
-              {chosen.map((asset, index) => (
+              {chosen.map((asset) => (
                 <th key={asset.id} scope="col" className="px-3 py-2.5 text-right">
                   <Link
                     href={assetHref(asset.assetClass, asset.id)}
@@ -271,7 +313,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
                   </Link>
                   <span
                     className="mt-1 block h-0.5 w-full"
-                    style={{ backgroundColor: dataColor(index) }}
+                    style={{ backgroundColor: colorOf(asset.id) }}
                     aria-hidden="true"
                   />
                 </th>
@@ -280,33 +322,46 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           </thead>
 
           <tbody className="divide-y divide-border-subtle">
-            <Row label="Cours">
+            <Row label="Cours" scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.price} from={asset.currency} />
                 </Cell>
               ))}
             </Row>
-            <Row label="Rang">
+
+            {/* Le rang est INTERNE à une classe : « 4ᵉ » ne veut rien dire si l'un est
+                4ᵉ crypto et l'autre 4ᵉ action. */}
+            <Row label="Rang dans sa classe" scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>{asset.rank !== undefined ? `#${asset.rank}` : '—'}</Cell>
               ))}
             </Row>
-            <Row label="Capitalisation">
+
+            <Row label="Capitalisation" scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.marketCap} from={asset.currency} compact />
                 </Cell>
               ))}
             </Row>
-            <Row label="Volume 24 h">
+
+            {/* Volume : titres échangés en bourse, montant en monnaie chez les
+                agrégateurs crypto. Deux grandeurs, un seul mot — la ligne disparaît
+                dès que la comparaison mêle les classes. */}
+            <Row label="Volume 24 h" scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.volume24h} from={asset.currency} compact />
                 </Cell>
               ))}
             </Row>
-            <Row label="Rotation (volume / capitalisation)">
+
+            <Row
+              label="Rotation (volume / capitalisation)"
+              scope="sameClass"
+              homogeneous={homogeneous}
+            >
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {(asset.marketCap ?? 0) > 0 && asset.volume24h !== undefined
@@ -315,28 +370,48 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
                 </Cell>
               ))}
             </Row>
-            <Row label="Variation 24 h">
+
+            {/* Les variations en pourcentage se comparent SANS RÉSERVE : ce sont des
+                rapports sans unité, et le sens de « +3 % sur 24 h » est le même pour
+                une action et pour un jeton. C'est le socle du tableau multi-classes. */}
+            <Row label="Variation 24 h" scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <ChangeBadge value={asset.change24h} size="sm" />
                 </Cell>
               ))}
             </Row>
-            <Row label="Variation 7 j">
+            <Row label="Variation 7 j" scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <ChangeBadge value={asset.change7d} size="sm" />
                 </Cell>
               ))}
             </Row>
-            <Row label="Variation 30 j">
+            <Row label="Variation 30 j" scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <ChangeBadge value={asset.change30d} size="sm" />
                 </Cell>
               ))}
             </Row>
-            <Row label="Offre en circulation">
+
+            <Row label="Plus haut 24 h" scope="always" homogeneous={homogeneous}>
+              {chosen.map((asset) => (
+                <Cell key={asset.id}>
+                  <Money value={asset.high24h} from={asset.currency} />
+                </Cell>
+              ))}
+            </Row>
+            <Row label="Plus bas 24 h" scope="always" homogeneous={homogeneous}>
+              {chosen.map((asset) => (
+                <Cell key={asset.id}>
+                  <Money value={asset.low24h} from={asset.currency} />
+                </Cell>
+              ))}
+            </Row>
+
+            <Row label="Offre en circulation" scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {asset.circulatingSupply !== undefined
@@ -348,7 +423,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
                 </Cell>
               ))}
             </Row>
-            <Row label="Part de l’offre maximale">
+            <Row label="Part de l’offre maximale" scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {/* Rapport de deux valeurs publiées, pas une estimation : il dit
@@ -363,11 +438,99 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           </tbody>
         </table>
       </div>
+
+      {!homogeneous ? (
+        <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">
+          Certaines lignes disparaissent quand la comparaison mêle plusieurs classes —
+          volume, rang, offre. Ce n’est pas une donnée manquante mais une grandeur qui
+          change de définition : le volume d’une place boursière se compte en titres
+          échangés, celui d’un agrégateur crypto en monnaie. Les aligner donnerait un
+          rapport sans signification.
+        </p>
+      ) : null}
     </div>
   )
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * Carte d'un actif retenu.
+ *
+ * La teinte est un BANDEAU sur toute la largeur et non une pastille : c'est elle qui
+ * relie la carte à sa courbe, et une pastille de huit pixels perdue dans un coin ne
+ * fait pas ce lien à trois mètres d'un écran.
+ */
+function SlotCard({
+  asset,
+  color,
+  onRemove,
+}: {
+  asset: MarketAsset
+  color: string
+  /** Absent sur le dernier actif : une comparaison vide n'a rien à montrer. */
+  onRemove?: (() => void) | undefined
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-card border border-border-subtle bg-surface">
+      <span className="block h-1 w-full" style={{ backgroundColor: color }} aria-hidden="true" />
+
+      <div className="flex items-start gap-2.5 p-3">
+        <AssetLogo asset={asset} size={28} />
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-ink">{asset.name}</p>
+          <p className="text-xs text-ink-muted">
+            <span className="uppercase">{asset.symbol}</span>
+            <span className="mx-1.5 text-border-subtle">·</span>
+            {CLASS_SHORT[asset.assetClass]}
+          </p>
+          <p className="tabular mt-1 flex items-baseline gap-2 text-sm text-ink">
+            <Money value={asset.price} from={asset.currency} />
+            <ChangeBadge value={asset.change24h} size="sm" />
+          </p>
+        </div>
+
+        {onRemove ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`Retirer ${asset.name} de la comparaison`}
+            className="shrink-0 rounded-control p-1 text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+/** Libellés courts : la carte est étroite, « Matières premières » y tiendrait mal. */
+const CLASS_SHORT: Record<AssetClass, string> = {
+  crypto: 'Crypto',
+  stock: 'Action',
+  etf: 'ETF',
+  index: 'Indice',
+  commodity: 'Matière première',
+  forex: 'Devise',
+  nft: 'NFT',
+}
+
+function Row({
+  label,
+  scope,
+  homogeneous,
+  children,
+}: {
+  label: string
+  scope: Scope
+  homogeneous: boolean
+  children: React.ReactNode
+}) {
+  /* La ligne DISPARAÎT au lieu d'afficher « — » : un tiret dit « la source ne publie
+     pas », alors qu'ici la grandeur existe pour chaque actif — c'est sa comparaison
+     qui n'a pas de sens. Deux absences différentes ne doivent pas se ressembler. */
+  if (scope === 'sameClass' && !homogeneous) return null
+
   return (
     <tr className="transition-colors duration-150 hover:bg-surface-muted/60">
       <th scope="row" className="px-3 py-2.5 text-left text-xs font-normal text-ink-muted">

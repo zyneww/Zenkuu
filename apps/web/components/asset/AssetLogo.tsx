@@ -130,20 +130,45 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
   const isCompany = asset.assetClass === 'stock' || asset.assetClass === 'etf'
   if (isCompany && entry?.domain && LOGO_TOKEN && !failed) {
     return (
-      <Image
-        src={logoUrl(entry.domain, size)}
-        alt=""
-        width={size}
-        height={size}
+      /*
+       * PLAQUE CLAIRE SOUS LE LOGO, ET CE N'EST PAS UN ORNEMENT.
+       *
+       * Une marque déposée est dessinée pour UN fond, et c'est presque toujours le
+       * blanc : celle d'Apple est noire sur transparent, celle de Sony aussi, et une
+       * bonne moitié des dix-huit valeurs suivies sont dans ce cas. Posées directement
+       * sur le fond sombre du site, elles disparaîtraient — repéré sur la fiche Apple
+       * du comparateur, où le logo était bien chargé mais invisible.
+       *
+       * On ne peut pas le corriger par actif : le service ne dit pas si le fichier
+       * qu'il sert est clair ou sombre, et l'inverser au filtre CSS dénaturerait les
+       * marques en couleur. La plaque, elle, rend à chaque logo le fond pour lequel il
+       * a été dessiné, sans rien supposer de son contenu.
+       *
+       * Elle reste BLANCHE dans les deux thèmes, pour la même raison : c'est une
+       * propriété de l'image, pas de l'interface. Un cerne discret l'empêche de flotter
+       * en thème clair, où elle se confondrait avec la page.
+       */
+      <span
         /* CARRÉ ADOUCI et non rond, à la différence des cryptoactifs ci-dessus : un
            logo d'entreprise servi par logo.dev est une marque cadrée au carré, dont
            un masque circulaire rognerait les angles — et souvent une lettre. */
-        className="shrink-0 rounded-control"
-        // Le service sert déjà la taille demandée : le repasser par l'optimiseur de
-        // Next ajouterait un aller-retour serveur sans rien gagner.
-        unoptimized
-        onError={() => setFailed(true)}
-      />
+        className="flex shrink-0 items-center justify-center rounded-control bg-white ring-1 ring-inset ring-black/5"
+        style={{ width: size, height: size }}
+      >
+        <Image
+          src={logoUrl(entry.domain, size)}
+          alt=""
+          width={size}
+          height={size}
+          /* Légèrement plus petit que la plaque : un logo qui touche les bords de son
+             cadre paraît à l'étroit, et certains fichiers n'ont aucune marge propre. */
+          className="h-[86%] w-[86%] object-contain"
+          // Le service sert déjà la taille demandée : le repasser par l'optimiseur de
+          // Next ajouterait un aller-retour serveur sans rien gagner.
+          unoptimized
+          onError={() => setFailed(true)}
+        />
+      </span>
     )
   }
 

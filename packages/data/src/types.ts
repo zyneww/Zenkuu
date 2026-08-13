@@ -69,8 +69,29 @@ export interface MarketAsset {
    * qu'il couvre réellement, et l'UI reprend ce libellé tel quel (§5).
    */
   changePeriodLabel?: string
-  /** Série de prix 7 jours pour les mini-graphiques. */
+  /** Série de prix pour les mini-graphiques. Voir `sparklineSpanDays` pour sa durée. */
   sparkline7d?: number[]
+  /**
+   * Durée RÉELLE couverte par `sparkline7d`, en jours.
+   *
+   * ⚠️ LE NOM DU CHAMP VOISIN MENT, ET C'EST POURQUOI CELUI-CI EXISTE.
+   *
+   * `sparkline7d` s'appelle ainsi parce que la première source à l'alimenter publiait
+   * sept jours. Les autres n'ont pas suivi : Yahoo renvoie un MOIS de clôtures
+   * quotidiennes, la BCE une douzaine de jours ouvrés. Trois durées, trois pas de
+   * temps, un seul nom de champ.
+   *
+   * Tant qu'une vignette ne montrait qu'une FORME, l'ambiguïté ne coûtait rien. Elle
+   * devient une erreur dès qu'on superpose deux séries : aligner point par point les
+   * 168 relevés horaires d'une crypto avec les 22 clôtures d'une action revient à
+   * tracer sept jours et six semaines sur le même axe. Le comparateur multi-classes
+   * a rendu ce défaut visible — il était là avant lui.
+   *
+   * Le fournisseur déclare donc ce qu'il couvre, et l'appelant qui superpose peut
+   * ramener les séries à une fenêtre commune. Absent, on ne sait pas : il n'y a alors
+   * rien à supposer, et surtout pas sept jours.
+   */
+  sparklineSpanDays?: number
   circulatingSupply?: number
   totalSupply?: number
   maxSupply?: number

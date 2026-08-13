@@ -1,10 +1,11 @@
 'use client'
 
-import { ArrowDownUp } from 'lucide-react'
+import { ArrowDownUp, ChevronDown } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenkuu/data'
 
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { AssetPicker } from '@/components/tools/AssetPicker'
 
 /**
@@ -160,10 +161,12 @@ export function ConverterView({
               ) : (
                 <AssetPicker
                   assets={assets}
-                  selected={asset}
+                  selectedIds={[asset.id]}
                   onSelect={(entry) => setAssetId(entry.id)}
                   label="Actif"
-                />
+                >
+                  {(open) => <PickerFace asset={asset} open={open} />}
+                </AssetPicker>
               )}
             </div>
           </div>
@@ -205,10 +208,12 @@ export function ConverterView({
               {reversed ? (
                 <AssetPicker
                   assets={assets}
-                  selected={asset}
+                  selectedIds={[asset.id]}
                   onSelect={(entry) => setAssetId(entry.id)}
                   label="Actif"
-                />
+                >
+                  {(open) => <PickerFace asset={asset} open={open} />}
+                </AssetPicker>
               ) : (
                 <CurrencySelect
                   value={currency}
@@ -294,6 +299,27 @@ export function ConverterView({
         </section>
       ) : null}
     </div>
+  )
+}
+
+/**
+ * Face visible du sélecteur d'actif.
+ *
+ * Elle appartient à l'appelant depuis que `AssetPicker` sert aussi le comparateur,
+ * où le déclencheur n'est pas une case de formulaire mais une carte d'ajout. Le
+ * panneau, lui, reste commun — c'est la partie qu'on ne veut pas voir diverger.
+ */
+function PickerFace({ asset, open }: { asset: MarketAsset; open: boolean }) {
+  return (
+    <>
+      <AssetLogo asset={asset} size={22} />
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{asset.name}</span>
+      <span className="shrink-0 text-xs uppercase text-ink-muted">{asset.symbol}</span>
+      <ChevronDown
+        className={`h-3.5 w-3.5 shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`}
+        aria-hidden="true"
+      />
+    </>
   )
 }
 

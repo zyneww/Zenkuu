@@ -388,7 +388,13 @@ function toMarketAsset(raw: CoinGeckoMarket, currency: string): MarketAsset {
   if (change1y !== undefined) asset.change1y = change1y
 
   const sparkline = raw.sparkline_in_7d?.price
-  if (Array.isArray(sparkline) && sparkline.length > 1) asset.sparkline7d = sparkline
+  if (Array.isArray(sparkline) && sparkline.length > 1) {
+    asset.sparkline7d = sparkline
+    /* Sept jours, au pas horaire : le nom de l'endpoint le dit, et les 168 points
+       reçus le confirment. C'est la seule des trois sources dont le champ porte
+       vraiment la durée qu'il annonce. */
+    asset.sparklineSpanDays = 7
+  }
 
   const circulating = optional(raw.circulating_supply)
   if (circulating !== undefined) asset.circulatingSupply = circulating

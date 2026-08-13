@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, ChevronDown, Search } from 'lucide-react'
+import { Check, Search } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
@@ -35,6 +35,17 @@ import { usePresence } from '@/components/nav/usePresence'
  * et le défilement automatique vers l'option active. C'est le coût réel de ce
  * composant, et il est payé ci-dessous — un sélecteur inaccessible serait une
  * régression, pas une amélioration.
+ *
+ * ── UN SEUL PANNEAU POUR DEUX USAGES ─────────────────────────────────────────
+ *
+ * Le convertisseur choisit UN actif, le comparateur en accumule plusieurs. Écrire
+ * deux panneaux ferait diverger la navigation au clavier au premier correctif — et
+ * c'est justement la partie qu'on ne remarque pas quand elle se dégrade, parce qu'on
+ * la teste à la souris.
+ *
+ * Trois réglages suffisent à couvrir les deux : `mode` décide si le panneau se ferme
+ * au choix, `selectedIds` coche ce qui est déjà retenu, et le déclencheur est fourni
+ * par l'appelant. Tout le reste — recherche, groupes, clavier, survol — est commun.
  */
 
 /** Ordre d'affichage des sections. Le plus consulté en premier. */
@@ -62,12 +73,42 @@ const SHORTCUT_SYMBOLS = ['BTC', 'ETH', 'AAPL', 'GC=F', 'SPY']
 
 interface Props {
   assets: MarketAsset[]
-  selected: MarketAsset
   onSelect: (asset: MarketAsset) => void
-  label: string
+  /** Identifiants déjà retenus : cochés dans la liste. */
+  selectedIds: string[]
+  /**
+   * `single` referme le panneau au choix, `multiple` le laisse ouvert.
+   *
+   * Ce n'est pas un détail : accumuler quatre actifs en rouvrant le panneau quatre
+   * fois est quatre fois le même geste inutile, et on perd la recherche en cours à
+   * chaque fermeture.
+   */
+  mode?: 'single' | 'multiple'
+  /** Libellé au-dessus du déclencheur. Absent, rien n'est écrit. */
+  label?: string
+  /**
+   * Actifs qu'on ne peut pas ajouter, et la raison — affichée sur la ligne.
+   *
+   * Une ligne grisée SANS explication laisse croire à une panne. Le comparateur s'en
+   * sert pour dire « limite atteinte » plutôt que d'ignorer le clic en silence.
+   */
+  disabledReason?: (asset: MarketAsset) => string | null
+  /** Contenu du bouton qui ouvre le panneau. Reçoit l'état d'ouverture. */
+  children: (open: boolean) => React.ReactNode
+  /** Classes du bouton déclencheur — sa forme appartient à l'appelant. */
+  triggerClassName?: string
 }
 
-export function AssetPicker({ assets, selected, onSelect, label }: Props) {
+export function AssetPicker({
+  assets,
+  onSelect,
+  selectedIds,
+  mode = 'single',
+  label,
+  disabledReason,
+  children,
+  triggerClassName = 'flex w-full items-center gap-2 border border-border-subtle bg-surface px-3 py-2.5 text-left transition-colors hover:border-brand focus:border-brand focus:outline-none',
+}: Props) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
@@ -148,8 +189,13 @@ export function AssetPicker({ assets, selected, onSelect, label }: Props) {
   }, [open, close])
 
   function choose(asset: MarketAsset) {
+    if (disabledReason?.(asset)) return
     onSelect(asset)
-    close()
+    /* En mode multiple, le panneau reste ouvert MAIS la recherche est effacée : le
+       terme qui a servi à trouver le premier actif ne sert plus à trouver le second,
+       et le laisser ferait croire que la liste est vide. */
+    if (mode === 'single') close()
+    else setQuery('')
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
@@ -181,31 +227,26 @@ export function AssetPicker({ assets, selected, onSelect, label }: Props) {
 
   return (
     <div ref={containerRef} className="relative" {...hoverDismiss}>
-      <span className="mb-1 block text-xs text-ink-muted">{label}</span>
+      {label ? <span className="mb-1 block text-xs text-ink-muted">{label}</span> : null}
 
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex w-full items-center gap-2 border border-border-subtle bg-surface px-3 py-2.5 text-left transition-colors hover:border-brand focus:border-brand focus:outline-none"
+        className={triggerClassName}
       >
-        <AssetLogo asset={selected} size={22} />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
-          {selected.name}
-        </span>
-        <span className="shrink-0 text-xs uppercase text-ink-muted">{selected.symbol}</span>
-        <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden="true"
-        />
+        {children(open)}
       </button>
 
       {mounted ? (
         <div
           data-state={state}
           onTransitionEnd={onTransitionEnd}
-          className="menu-panel absolute left-0 right-0 top-full z-50 mt-1 border border-border-subtle bg-overlay shadow-overlay"
+          /* `min-w-full` et non `right-0` : en mode multiple le déclencheur est une
+             petite carte d'ajout, et un panneau calé sur sa largeur serait trop étroit
+             pour lire un nom d'actif. */
+          className="menu-panel absolute left-0 top-full z-50 mt-1 min-w-full max-w-[min(22rem,90vw)] border border-border-subtle bg-overlay shadow-overlay"
         >
           <div className="flex items-center gap-2 border-b border-border-subtle px-3 py-2">
             <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
@@ -253,6 +294,7 @@ export function AssetPicker({ assets, selected, onSelect, label }: Props) {
             ref={listRef}
             id="liste-actifs"
             role="listbox"
+            {...(mode === 'multiple' ? { 'aria-multiselectable': true } : {})}
             aria-label="Actifs disponibles"
             className="max-h-72 overflow-y-auto py-1"
           >
@@ -275,7 +317,8 @@ export function AssetPicker({ assets, selected, onSelect, label }: Props) {
                       flatIndex += 1
                       const index = flatIndex
                       const isActive = index === activeIndex
-                      const isSelected = asset.id === selected.id
+                      const isSelected = selectedIds.includes(asset.id)
+                      const blocked = disabledReason?.(asset) ?? null
 
                       return (
                         <li key={asset.id}>
@@ -285,9 +328,10 @@ export function AssetPicker({ assets, selected, onSelect, label }: Props) {
                             data-index={index}
                             role="option"
                             aria-selected={isSelected}
+                            disabled={blocked !== null}
                             onClick={() => choose(asset)}
                             onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                               isActive ? 'bg-surface-muted' : ''
                             }`}
                           >
@@ -295,9 +339,15 @@ export function AssetPicker({ assets, selected, onSelect, label }: Props) {
                             <span className="min-w-0 flex-1 truncate text-sm text-ink">
                               {asset.name}
                             </span>
-                            <span className="shrink-0 text-xs uppercase text-ink-muted">
-                              {asset.symbol}
-                            </span>
+                            {blocked ? (
+                              <span className="shrink-0 text-[0.625rem] text-ink-muted">
+                                {blocked}
+                              </span>
+                            ) : (
+                              <span className="shrink-0 text-xs uppercase text-ink-muted">
+                                {asset.symbol}
+                              </span>
+                            )}
                             {isSelected ? (
                               <Check className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />
                             ) : null}
