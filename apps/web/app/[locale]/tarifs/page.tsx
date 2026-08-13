@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { BellRing, CreditCard, Crown, Unlock } from 'lucide-react'
+
 import { Link } from '@/i18n/navigation'
 
 import { PlanGrid } from '@/components/billing/PlanGrid'
@@ -54,6 +56,10 @@ export default async function PricingPage() {
         la référence.
       */}
       <header className="mx-auto mb-8 max-w-2xl space-y-3 text-center">
+        <p className="inline-flex items-center gap-1.5 rounded-pill bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent-strong">
+          <Crown className="h-3.5 w-3.5" aria-hidden="true" />
+          Zenkuu Pro
+        </p>
         <h1 className="display-xl text-ink">Le marché en entier, gratuitement</h1>
         <p className="text-base leading-relaxed text-ink-muted">
           Toutes les classes d’actif, toutes les fiches, tous les classements. Zenkuu Pro
@@ -69,7 +75,24 @@ export default async function PricingPage() {
         </p>
       ) : null}
 
-      <PlanGrid />
+      {/*
+        ── DEUX COLONNES : CE QU'ON OBTIENT, ET CE QUI SE PASSE QUAND ON SOUSCRIT ──
+
+        Structure reprise de la page de référence, et elle résout un vrai défaut :
+        le tableau comparatif répond à « qu'est-ce que j'achète » et laisse entière la
+        seconde question, celle qui retient réellement la main au-dessus du bouton —
+        « et ensuite, il se passe quoi ? ». Elle était traitée trois écrans plus bas,
+        noyée dans la foire aux questions.
+
+        `items-start` : les deux colonnes n'ont aucune raison de finir à la même ligne.
+      */}
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0">
+          <PlanGrid />
+        </div>
+
+        <Timeline pro={billing.pro} />
+      </div>
 
       <section className="mt-10 space-y-4" aria-labelledby="souscrire">
         <h2 id="souscrire" className="display-sm text-ink">
@@ -148,6 +171,88 @@ export default async function PricingPage() {
         comme dans l’offre Pro, ne constitue un conseil en investissement.
       </p>
     </div>
+  )
+}
+
+/**
+ * Frise « comment ça se passe ».
+ *
+ * ── CE QU'ELLE RÉPOND, ET QUE LE TABLEAU NE RÉPOND PAS ──────────────────────
+ *
+ * Le comparatif dit CE QU'ON ACHÈTE. Il laisse entière la question qui retient
+ * réellement la main au-dessus du bouton : à partir de quand suis-je engagé, et
+ * comment j'en sors. Trois lignes suffisent à y répondre, et les cacher dans une
+ * foire aux questions trois écrans plus bas revient à ne pas y répondre.
+ *
+ * ── ELLE NE PROMET PAS D'ESSAI GRATUIT ─────────────────────────────────
+ *
+ * La référence rythme la sienne sur ses quatorze jours d'essai (« Aujourd'hui »,
+ * « J-11 », « J-14 »). Nous n'en proposons pas : reprendre la forme en inventant la
+ * période aurait été la promesse la plus coûteuse de la page. La frise dit donc ce
+ * qui se passe vraiment — souscription immédiate, débit, résiliation libre.
+ *
+ * ── ELLE CHANGE DE TEXTE POUR UN ABONNÉ ───────────────────────────────
+ *
+ * Expliquer à quelqu'un qui a déjà payé ce qui se passera quand il paiera est le
+ * genre de détail qui fait dire « ce site ne me connaît pas ». La dernière étape
+ * devient donc son mode d'emploi de sortie.
+ */
+function Timeline({ pro }: { pro: boolean }) {
+  const steps = [
+    {
+      Icon: Unlock,
+      title: 'Tout de suite',
+      body: 'Les listes illimitées, les alertes, l’export et les filtres avancés s’ouvrent à la seconde où le paiement passe. Rien à activer.',
+    },
+    {
+      Icon: BellRing,
+      title: 'Pendant l’abonnement',
+      body: 'Aucune fonction aujourd’hui gratuite ne passera derrière l’offre. Zenkuu Pro se construit en ajoutant, jamais en retirant.',
+    },
+    pro
+      ? {
+          Icon: CreditCard,
+          title: 'Pour résilier',
+          body: 'Depuis vos paramètres, en un clic et sans motif. L’abonnement court jusqu’à la fin de la période déjà réglée, et vos listes restent intactes.',
+        }
+      : {
+          Icon: CreditCard,
+          title: 'Quand vous voulez',
+          body: 'Résiliation en un clic depuis vos paramètres, sans motif. Vos listes et vos alertes sont conservées — rien n’est supprimé.',
+        },
+  ]
+
+  return (
+    <section
+      aria-labelledby="deroulement"
+      className="rounded-card border border-border-subtle bg-surface p-5"
+    >
+      <h2 id="deroulement" className="mb-4 text-sm font-semibold text-ink">
+        Comment ça se passe
+      </h2>
+
+      <ol className="space-y-5">
+        {steps.map((step) => (
+          <li key={step.title} className="relative flex gap-3">
+            {/* Pastille ronde et non carrée : c'est un jalon sur une frise, une forme
+                close — la même famille que les logos et les étiquettes. */}
+            <span
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-brand-strong"
+              aria-hidden="true"
+            >
+              <step.Icon className="h-3.5 w-3.5" />
+            </span>
+
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-ink">{step.title}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-ink-muted">
+                {step.body}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
