@@ -67,8 +67,15 @@ export default function BienDemarrerPage() {
       {/* Fil d'Ariane, comme sur la référence : cette page est une FEUILLE du centre
           d'aide, pas une page racine. Le dire en tête évite qu'on la quitte par le
           logo faute de savoir d'où elle dépend. */}
-      <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
-        <Link href="/aide" className="transition-colors hover:text-ink">
+      {/* La rangée passe en `flex` et le lien en élément de boîte : le plancher tactile
+          de globals.css repose sur `min-height`, sans effet sur une boîte en ligne. Un
+          fil d'Ariane est le premier recours de qui s'est perdu — il ne peut pas être la
+          cible la plus difficile de la page. */}
+      <nav
+        aria-label="Fil d’Ariane"
+        className="flex items-center text-xs text-ink-muted"
+      >
+        <Link href="/aide" className="inline-flex items-center transition-colors hover:text-ink">
           Centre d’aide
         </Link>
         <span className="mx-1.5" aria-hidden="true">

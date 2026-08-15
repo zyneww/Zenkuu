@@ -69,7 +69,11 @@ function CardShell({
       <header className="mb-3 flex items-baseline justify-between gap-3">
         <h2 className="text-sm font-semibold text-ink">
           {href ? (
-            <Link href={href} className="transition-colors hover:text-brand">
+            /* `inline-flex` pour que le plancher tactile de globals.css s'applique :
+               `min-height` n'a aucun effet sur une boîte en ligne. L'alignement sur la
+               ligne de base du bandeau est préservé — une boîte flexible en ligne expose
+               la ligne de base de son premier élément, ici le titre lui-même. */
+            <Link href={href} className="inline-flex items-center transition-colors hover:text-brand">
               {title}
             </Link>
           ) : (

@@ -50,7 +50,10 @@ export function CategorySpotlight({
                     représentatifs, eux-mêmes cliquables vers leurs fiches. */}
                 <Link
                   href={`/categories/${category.id}`}
-                  className="text-ink transition-colors hover:text-brand-strong hover:underline"
+                  /* `inline-flex` et non le `inline` par défaut : le plancher tactile
+                     de globals.css repose sur `min-height`, sans effet sur une boîte en
+                     ligne. Voir la même note dans `CategoryExplorer`. */
+                  className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
                 >
                   {category.name}
                 </Link>
