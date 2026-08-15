@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenkuu/data'
@@ -7,12 +8,40 @@ import { EmptyState, PriceChart, formatNumber } from '@zenkuu/ui'
 
 import {
   OHLC_KINDS,
-  PriceChartInteractive,
   type ChartCandle,
   type ChartHandle,
   type ChartKind,
   type ChartReferenceLine,
-} from '@/components/asset/PriceChartInteractive'
+} from '@/components/asset/chart-kinds'
+
+/**
+ * ── LES 240 Ko DU GRAPHIQUE NE PARTENT PLUS AVEC LA PAGE ────────────────────
+ *
+ * `lightweight-charts` est la plus grosse dépendance du site : 280 Ko bruts, 87 Ko une
+ * fois compressés, mesurés dans le morceau que le build lui réserve. Elle partait dans
+ * le premier chargement de CHAQUE fiche d'actif.
+ *
+ * C'était du poids pour rien, et le fichier le disait déjà sans en tirer la
+ * conséquence : la fiche rend d'abord une courbe SVG côté serveur — immédiate,
+ * indexable, sans JavaScript — puis bascule sur le canevas une fois montée. Le canevas
+ * n'est donc JAMAIS nécessaire avant l'hydratation. Un import statique le faisait
+ * pourtant télécharger avant, pendant le temps même où la page essaie de devenir
+ * interactive.
+ *
+ * `ssr: false` ne coûte aucun rendu serveur perdu : ce composant n'en produisait déjà
+ * aucun, il attendait `interactive`.
+ *
+ * ⚠️ LE PIÈGE ÉVITÉ, et il annulait tout le bénéfice. Basculer `interactive` à vrai dès
+ * le montage, comme avant, ferait disparaître la courbe SVG à l'instant où le module
+ * commence seulement à se télécharger : le lecteur verrait un trou de plusieurs
+ * centaines de millisecondes là où il voyait une courbe. On aurait gagné 87 Ko et perdu
+ * le LCP qu'ils servaient à protéger. La bascule attend donc que le module soit
+ * RÉELLEMENT arrivé — voir l'effet de `OverviewTab`.
+ */
+const PriceChartInteractive = dynamic(
+  () => import('@/components/asset/PriceChartInteractive').then((m) => m.PriceChartInteractive),
+  { ssr: false },
+)
 import {
   ChartToolbar,
   daysSinceJanuary,
@@ -1063,10 +1092,27 @@ function OverviewTab({
   const fr = useContent()
   const [interactive, setInteractive] = useState(false)
 
-  // Interactivité (survol, infobulle) retardée après le montage : le rendu serveur
-  // n'a pas de souris à écouter, l'activer avant l'hydratation n'apporterait rien.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setInteractive(true), [])
+  /*
+   * Interactivité (survol, infobulle) retardée après le montage : le rendu serveur n'a
+   * pas de souris à écouter, l'activer avant l'hydratation n'apporterait rien.
+   *
+   * ON ATTEND EN PLUS QUE LE MODULE SOIT ARRIVÉ. Le graphique interactif est désormais
+   * chargé à la demande (voir sa note en tête de fichier) : basculer dès le montage
+   * remplacerait la courbe SVG par du VIDE pendant le téléchargement des 87 Ko, c'est-
+   * à-dire exactement le trou que le rendu progressif existait pour éviter.
+   *
+   * L'`import()` résout depuis le cache de modules la seconde fois : celui de `dynamic`
+   * ne repaie donc rien, il retrouve ce que celui-ci vient de chercher.
+   */
+  useEffect(() => {
+    let cancelled = false
+    void import('@/components/asset/PriceChartInteractive').then(() => {
+      if (!cancelled) setInteractive(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (!history || history.points.length < 2) {
     return (

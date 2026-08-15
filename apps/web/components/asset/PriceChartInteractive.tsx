@@ -20,63 +20,33 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ChartNavigator } from '@/components/asset/ChartNavigator'
+import {
+  OHLC_KINDS,
+  type ChartCandle,
+  type ChartHandle,
+  type ChartKind,
+  type ChartPoint,
+  type ChartReferenceLine,
+} from '@/components/asset/chart-kinds'
 
-export interface ChartPoint {
-  timestamp: number
-  price: number
-  volume?: number
-}
-
-/**
- * Repère horizontal posé à une valeur fixe.
+/*
+ * Le vocabulaire du graphique a déménagé dans `chart-kinds.ts`, et il y est resté :
+ * `AssetWorkspace` a besoin de `OHLC_KINDS` alors qu'il charge CE module à la demande.
+ * L'importer d'ici le rappellerait tout entier, `lightweight-charts` compris, et le
+ * chargement différé ne servirait plus à rien. Voir la note en tête de ce fichier-là.
  *
- * Sert aux extrêmes HISTORIQUES — le plus haut de tous les temps, le plus bas — qui
- * ne se déduisent pas de la fenêtre affichée et doivent donc être fournis de
- * l'extérieur, contrairement aux lignes de `showPriceLines` qui, elles, se calculent
- * sur les points visibles.
- *
- * Une valeur hors de l'amplitude tracée est SILENCIEUSEMENT ignorée par la
- * bibliothèque : la ligne existe mais sort du cadre. C'est le bon comportement — un
- * graphique sur sept jours n'a aucune raison de s'écraser pour faire tenir un record
- * daté d'il y a deux ans.
+ * La ré-exportation garde les anciens chemins d'import valides — `live-series.ts` et
+ * ses tests lisent `ChartCandle` ici depuis toujours, et ce sont des types : effacés à
+ * la compilation, ils n'emportent rien avec eux.
  */
-export interface ChartReferenceLine {
-  value: number
-  label: string
-  tone: 'up' | 'down' | 'muted'
+export {
+  OHLC_KINDS,
+  type ChartCandle,
+  type ChartHandle,
+  type ChartKind,
+  type ChartPoint,
+  type ChartReferenceLine,
 }
-
-/** Ce que le parent peut demander au graphique une fois monté. */
-export interface ChartHandle {
-  /**
-   * Image composée de toutes les couches du graphique.
-   *
-   * Passe par `takeScreenshot` de la bibliothèque et non par un `querySelector` sur
-   * le canevas : le rendu est réparti sur PLUSIEURS canevas superposés (grille,
-   * séries, échelles), et n'en capturer qu'un rendrait une image partielle.
-   */
-  screenshot: () => HTMLCanvasElement | null
-}
-
-export interface ChartCandle {
-  timestamp: number
-  open: number
-  high: number
-  low: number
-  close: number
-  volume?: number
-}
-
-/**
- * Types de rendu proposés.
- *
- * `candles` et `bars` sont les seuls à exiger de l'OHLC réel ; les trois autres se
- * contentent d'une série de prix. C'est cette distinction qui permet à la fiche de
- * n'aller chercher les bougies que si l'utilisateur les demande.
- */
-export type ChartKind = 'area' | 'line' | 'baseline' | 'candles' | 'bars'
-
-export const OHLC_KINDS: readonly ChartKind[] = ['candles', 'bars']
 
 interface PriceChartInteractiveProps {
   points: ChartPoint[]
