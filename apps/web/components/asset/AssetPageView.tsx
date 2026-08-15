@@ -1,4 +1,4 @@
-import { Activity, History, Landmark, LayoutGrid, Newspaper, Shapes, Store } from 'lucide-react'
+import { Activity, LayoutGrid, Newspaper, Shapes, Store } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 
@@ -387,27 +387,68 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     </div>
   )
 
-  const similar = (
-    <section className="space-y-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="display-sm text-ink">{fr.asset.similarTitle}</h2>
-        <Link
-          href={marketHref(assetClass)}
-          className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
-        >
-          {fr.home.seeAll}
-        </Link>
-      </div>
+  /*
+   * ── ÉCOSYSTÈME : LES COMPARABLES ET LES DÉTENTEURS ────────────────────────
+   *
+   * Deux onglets ont fusionné ici, « Similaires » et « Trésorerie ». Ils posaient la
+   * même question sous deux angles — qui d'autre occupe ce terrain, et qui en détient
+   * — et aucun des deux ne remplissait un onglet à lui seul : le premier tient en une
+   * grille de six vignettes, le second n'a AUCUNE donnée à montrer, quelle que soit la
+   * fiche. Deux onglets à moitié vides coûtent plus cher qu'un onglet plein : ils
+   * allongent la rangée, donc le temps qu'il faut pour la lire, et chacun déçoit à
+   * l'ouverture.
+   */
+  const ecosystem = (
+    <div className="space-y-10">
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="display-sm text-ink">{fr.asset.similarTitle}</h2>
+          <Link
+            href={marketHref(assetClass)}
+            className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+          >
+            {fr.home.seeAll}
+          </Link>
+        </div>
 
-      {comparables.length > 0 ? (
-        <AssetPeerGrid peers={comparables} />
-      ) : (
-        <>
+        {comparables.length > 0 ? (
+          <AssetPeerGrid peers={comparables} />
+        ) : (
           <EmptyState title={fr.states.unavailableTitle} compact />
-          <AssetTabFiller asset={data} />
-        </>
-      )}
-    </section>
+        )}
+      </section>
+
+      {/*
+        ── DÉTENTIONS INSTITUTIONNELLES ────────────────────────────────────────
+
+        La section ANNONCE QU'ELLE EST VIDE, ce qui est une position et non un oubli.
+        La référence y liste les entreprises et fonds qui détiennent l'actif à leur
+        bilan ; aucune de nos sources ne publie cette donnée — ni CoinGecko sur son
+        palier gratuit, ni Yahoo, ni Binance.
+
+        Deux façons de traiter ce manque, et une seule est honnête. La déduire — de la
+        répartition de l'offre, des grands portefeuilles connus — reviendrait à publier
+        une estimation maison sous couvert de fait, ce que le §5 interdit. Dire qu'on ne
+        l'a pas apprend au moins au lecteur qu'il doit la chercher ailleurs.
+
+        Elle n'appelle plus `AssetTabFiller` : ce bouche-trou existait parce que cet
+        onglet-là était TOUJOURS réduit à son encadré d'absence. Adossée à la grille des
+        comparables, l'absence occupe désormais la place qu'elle mérite : un paragraphe,
+        pas un écran.
+      */}
+      <section className="space-y-3">
+        <h2 className="display-sm text-ink">Détentions institutionnelles</h2>
+        <EmptyState
+          title="Non publiées par nos sources"
+          description={`Aucune de nos sources ne publie les trésoreries d’entreprise exposées à ${data.name}. Nous préférons le dire plutôt que d’estimer : une détention déduite de la répartition de l’offre serait un chiffre inventé, pas un relevé.`}
+          compact
+        />
+      </section>
+
+      {/* Le bouche-trou ne subsiste que si la grille des comparables est vide elle
+          aussi — c'est-à-dire quand l'onglet entier n'aurait rien à montrer. */}
+      {comparables.length === 0 ? <AssetTabFiller asset={data} /> : null}
+    </div>
   )
 
   /*
@@ -445,59 +486,45 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   )
 
   /*
-   * ── TRÉSORERIE ────────────────────────────────────────────────────────────
+   * ── L'HISTORIQUE, DEVENU UNE SECTION DE L'ANALYSE ─────────────────────────
    *
-   * L'onglet existe et ANNONCE QU'IL EST VIDE, ce qui est une position et non un
-   * oubli. La référence y liste les entreprises et fonds qui détiennent l'actif à
-   * leur bilan ; aucune de nos sources ne publie cette donnée — ni CoinGecko sur son
-   * palier gratuit, ni Yahoo, ni Binance.
+   * Il occupait un onglet à lui seul. Or un tableau de cours jour par jour n'est pas
+   * une matière qu'on vient consulter : c'est une PIÈCE JUSTIFICATIVE, celle qu'on
+   * ouvre après avoir lu un indicateur pour vérifier d'où il sort. Le ranger derrière
+   * son propre onglet obligeait à quitter l'analyse pour aller chercher la série qui
+   * la fonde, puis à revenir.
    *
-   * Deux façons de traiter ce manque, et une seule est honnête. La déduire — de la
-   * répartition de l'offre, des grands portefeuilles connus — reviendrait à publier
-   * une estimation maison sous couvert de fait, ce que le §5 interdit. Dire qu'on ne
-   * l'a pas apprend au moins au lecteur qu'il doit la chercher ailleurs, et ne lui
-   * fait pas prendre une invention pour un relevé.
+   * Il ferme donc l'onglet Analyse, sous les mesures qu'il justifie. Le convertisseur
+   * et les cours mondiaux le suivent : ils vivent de la même série.
    */
-  const treasury = (
-    <div>
-      <EmptyState
-        title="Détentions institutionnelles non publiées"
-        description={`Aucune de nos sources ne publie les trésoreries d’entreprise exposées à ${data.name}. Nous préférons le dire plutôt que d’estimer : une détention déduite de la répartition de l’offre serait un chiffre inventé, pas un relevé.`}
-        compact
-      />
+  const historySection = (
+    <section className="space-y-4">
+      <h2 className="display-sm text-ink">Historique des cours</h2>
 
-      {/* L'onglet ne se réduit plus à son encadré d'absence. Voir `AssetTabFiller` :
-          l'aveu reste, mais il est suivi de ce qu'on a réellement sur cet actif plutôt
-          que de neuf cents pixels de vide. C'est celui des sept onglets où le cas se
-          présente TOUJOURS, aucune source ne publiant cette donnée. */}
-      <AssetTabFiller asset={data} />
-    </div>
-  )
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          {history.ok ? (
+            <PriceHistoryTable
+              history={history.data}
+              currency={data.currency}
+              assetName={data.name}
+              isRate={isForex}
+            />
+          ) : (
+            <EmptyState title={fr.states.unavailableTitle} compact />
+          )}
+        </div>
 
-  const historyPanel = (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-      <div className="lg:col-span-2">
-        {history.ok ? (
-          <PriceHistoryTable
-            history={history.data}
-            currency={data.currency}
-            assetName={data.name}
-            isRate={isForex}
-          />
-        ) : (
-          <EmptyState title={fr.states.unavailableTitle} compact />
-        )}
+        <aside className="space-y-8">
+          {data.pricesByCurrency ? (
+            <>
+              <AssetConverter symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
+              <AssetGlobalPrices symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
+            </>
+          ) : null}
+        </aside>
       </div>
-
-      <aside className="space-y-8">
-        {data.pricesByCurrency ? (
-          <>
-            <AssetConverter symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
-            <AssetGlobalPrices symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
-          </>
-        ) : null}
-      </aside>
-    </div>
+    </section>
   )
 
   // Icônes à 14px et trait de 1,5 : à 16px avec un trait de 2, un pictogramme posé
@@ -534,30 +561,39 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         {...(data.atl !== undefined ? { atl: data.atl } : {})}
         {...(data.atlDate ? { atlDate: data.atlDate } : {})}
       />
+
+      {/* La série qui fonde tout ce qui précède ferme l'onglet — voir sa note. */}
+      {historySection}
     </div>
   )
 
   /*
-   * ── LES SEPT ONGLETS ──────────────────────────────────────────────────────
+   * ── LES CINQ ONGLETS ──────────────────────────────────────────────────────
    *
-   * Six reprennent la découpe de la référence, le septième est le nôtre. Ce qu'on
-   * lui emprunte, c'est le DÉCOUPAGE — un sujet par onglet — et non ses libellés :
-   * les nôtres sont en français et disent ce qu'on montre réellement.
+   * Ils étaient sept. La rangée est une NAVIGATION, pas un sommaire : sa longueur se
+   * paie à chaque visite, en temps de lecture avant le premier clic, et sur un
+   * téléphone en défilement latéral. Sept onglets dont deux ne remplissaient pas leur
+   * écran coûtaient donc deux fois — une rangée plus longue, et deux déceptions à
+   * l'ouverture.
+   *
+   * Les deux annexes ont rejoint le voisin dont elles répondaient déjà à la question :
    *
    *   Aperçu       le graphique et les chiffres qui l'accompagnent
    *   Places       où l'actif se négocie — carnet et table des paires
-   *   Analyse      indicateurs techniques et mesures de risque · À NOUS
-   *   Trésorerie   détentions institutionnelles — vide et le disant
+   *   Analyse      indicateurs, mesures de risque · ET la série jour par jour
    *   Actualités   le fil d'articles qui mentionnent l'actif
-   *   Similaires   les comparables de sa catégorie
-   *   Historique   la série jour par jour, et son export
+   *   Écosystème   les comparables de sa catégorie · ET les détenteurs
+   *
+   * Aucun contenu n'a disparu dans l'opération : « Historique » et « Trésorerie » sont
+   * des SECTIONS titrées de leur onglet d'accueil, atteignables au défilement là où
+   * elles l'étaient au clic.
    *
    * L'ORDRE n'est pas celui de la référence, et c'est délibéré. Elle range par
    * familiarité décroissante ; on range par PROXIMITÉ AU COURS. « Places » suit
    * « Aperçu » parce que la question qui vient après « combien » est « où », et
    * « Analyse » prend le troisième rang — chez la référence il n'existe pas, et le
    * reléguer en fin de rangée aurait caché le seul onglet que les concurrents n'ont
-   * pas. Les trois derniers sont des annexes : on y va en sachant ce qu'on cherche.
+   * pas.
    *
    * Icônes à 14px et trait de 1,5 : à 16px avec un trait de 2, un pictogramme posé à
    * côté d'un libellé de 14px paraît plus gras que le mot qu'il accompagne.
@@ -567,28 +603,16 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     { id: 'places', label: 'Places', icon: <Store size={14} strokeWidth={1.5} />, panel: venues },
     { id: 'analyse', label: 'Analyse', icon: <Activity size={14} strokeWidth={1.5} />, panel: analysis },
     {
-      id: 'tresorerie',
-      label: 'Trésorerie',
-      icon: <Landmark size={14} strokeWidth={1.5} />,
-      panel: treasury,
-    },
-    {
       id: 'actualites',
       label: 'Actualités',
       icon: <Newspaper size={14} strokeWidth={1.5} />,
       panel: newsPanel,
     },
     {
-      id: 'similaires',
-      label: 'Similaires',
+      id: 'ecosysteme',
+      label: 'Écosystème',
       icon: <Shapes size={14} strokeWidth={1.5} />,
-      panel: similar,
-    },
-    {
-      id: 'historique',
-      label: 'Historique',
-      icon: <History size={14} strokeWidth={1.5} />,
-      panel: historyPanel,
+      panel: ecosystem,
     },
   ]
 
