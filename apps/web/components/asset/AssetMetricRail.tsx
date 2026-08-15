@@ -114,6 +114,11 @@ export async function AssetMetricRail({
 
   if (groups.length === 0) return null
 
+  /* Porte d'entrée du catalogue de métriques : la première mesure réellement présente,
+     dans l'ordre des groupes. Calculée ici plutôt que dans la boucle — elle ne dépend
+     pas du groupe qui affiche le lien. */
+  const entryMetric = groups[0]?.rows[0]?.metric.slug
+
   return (
     <aside className="space-y-3" aria-label="Repères chiffrés">
       {groups.map(({ group, rows }) => (
@@ -176,17 +181,62 @@ export async function AssetMetricRail({
                       <ChangeBadge value={Number(value)} size="sm" />
                     </dd>
                   ) : change !== undefined ? (
-                    // Écart au record : il occupe la colonne de variation parce que
-                    // c'est là que l'œil le cherche déjà, mais en gris — ce n'est pas
-                    // une variation du cours, c'est une distance à un extrême.
-                    <dd className="tabular shrink-0 text-right text-xs text-ink-muted">
-                      {formatPercent(change)}
-                    </dd>
+                    metric.changeKind === 'variation' ? (
+                      /*
+                       * VRAIE VARIATION : colorée, comme chez la référence, qui pose un
+                       * pourcentage signé à droite de chaque repère. C'est aujourd'hui
+                       * la capitalisation, seule mesure de ce rail dont la source publie
+                       * un mouvement sur 24 h — voir la note de son entrée au registre.
+                       */
+                      <dd className="tabular shrink-0 text-right text-xs">
+                        <ChangeBadge value={change} size="sm" />
+                      </dd>
+                    ) : (
+                      /*
+                       * Écart au record : il occupe la même colonne parce que c'est là
+                       * que l'œil le cherche déjà, mais en GRIS. « −49 % du record » n'est
+                       * pas une baisse du jour, c'est une position dans une amplitude ;
+                       * le peindre en rouge dirait qu'elle vient de se produire.
+                       */
+                      <dd className="tabular shrink-0 text-right text-xs text-ink-muted">
+                        {formatPercent(change)}
+                      </dd>
+                    )
                   ) : null}
                 </div>
               )
             })}
           </dl>
+
+          {/*
+            ── « TOUTES LES MÉTRIQUES », AU PIED DU DERNIER GROUPE ────────────────
+
+            La référence ferme sa colonne de repères par « Explore all metrics → ». Nous
+            avions déjà les pages — une par mesure, avec sa série et son explication,
+            sous `/{classe}/{id}/metriques/{slug}` — mais RIEN n'y menait sinon le
+            libellé de la ligne, dont le soulignement pointillé promet une explication
+            plutôt qu'un catalogue. Un lecteur qui veut voir la capitalisation dans le
+            temps devait deviner que le mot était cliquable.
+
+            Le lien ne s'affiche qu'une fois, sous le DERNIER groupe : posé sous chacun,
+            il serait quatre fois la même promesse, et l'œil cesserait de la lire dès la
+            deuxième.
+          */}
+          {group === groups[groups.length - 1]?.group && entryMetric ? (
+            <Link
+              /* On entre par la PREMIÈRE mesure du PREMIER groupe — la capitalisation
+                 dans presque tous les cas — et non par celle du groupe qui porte le
+                 lien, qui serait « variation 1 heure » : une porte d'entrée sur un
+                 catalogue doit ouvrir sur ce qu'on y cherche le plus souvent. Chaque
+                 page de métrique liste toutes ses sœurs, la promesse tient donc quel
+                 que soit le point d'arrivée — mais elle tient mieux ici. */
+              href={metricHref(segment, asset.id, entryMetric)}
+              className="mt-2 flex items-center gap-1 text-xs font-medium text-brand-strong transition-colors duration-150 hover:underline"
+            >
+              Explorer toutes les métriques
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : null}
         </Panel>
       ))}
     </aside>

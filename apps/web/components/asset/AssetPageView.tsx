@@ -32,6 +32,7 @@ import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetRailIdentity } from '@/components/asset/AssetRailIdentity'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
+import { AssetSimilarRail } from '@/components/asset/AssetSimilarRail'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
 import { AssetTrendingRail } from '@/components/asset/AssetTrendingRail'
@@ -840,6 +841,19 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <AssetSupply asset={data} />
           <AssetSentiment asset={data} />
           <AssetCommunity asset={data} />
+
+          {/*
+            ── « PROJETS SIMILAIRES », AU PIED DES CHIFFRES ──────────────────────
+
+            Comme chez la référence, et pour une raison qui n'est pas de style : un rang,
+            une capitalisation, une variation ne veulent rien dire seuls — ils veulent
+            dire quelque chose COMPARÉS. Les ranger derrière un onglet obligeait à
+            quitter les chiffres pour aller chercher de quoi les juger.
+
+            L'onglet « Écosystème » les garde en grille complète : quatre noms ici pour
+            situer, la grille là-bas pour comparer.
+          */}
+          <AssetSimilarRail peers={comparables} />
 
           {/* Site officiel, explorateurs, portefeuilles et contrats ferment le rail,
               exactement comme le bloc « Info » de la référence. Ce sont des questions

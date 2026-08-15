@@ -52,6 +52,21 @@ export interface MetricDef {
    * variations du cours. Les deux occupent la même colonne, d'où la distinction.
    */
   readChange?: (asset: AssetDetail) => number | undefined
+  /**
+   * NATURE de cette variation — elle décide de la couleur, donc du sens lu.
+   *
+   * `distance` : un écart à un extrême. « −49 % du record » n'est ni une bonne ni une
+   * mauvaise nouvelle du jour, c'est une position dans une amplitude. Le rendre en
+   * rouge dirait qu'il vient de se produire. Reste donc en gris.
+   *
+   * `variation` : un mouvement sur une période. Il a un SENS, et la couleur en est la
+   * lecture la plus rapide — c'est ce que la référence affiche à droite de chaque
+   * repère.
+   *
+   * Le défaut est `distance` parce que les seules variations présentes avant celle de
+   * la capitalisation étaient les écarts aux records.
+   */
+  changeKind?: 'distance' | 'variation'
   /** Série temporelle disponible pour la page dédiée. Absent = aucun graphique. */
   series?: 'price' | 'marketCap' | 'volume'
 }
@@ -77,6 +92,22 @@ export const METRICS: readonly MetricDef[] = [
     kind: 'money',
     read: (a) => a.marketCap,
     series: 'marketCap',
+    /*
+     * LA SEULE MÉTRIQUE DE CE GROUPE À PORTER SA VARIATION, et c'est une limite de
+     * source, pas un choix de dessin.
+     *
+     * La référence affiche un pourcentage à droite de CHAQUE repère. Nous ne pouvons
+     * l'écrire que là où la source le publie réellement : la capitalisation, oui, sous
+     * `market_cap_change_percentage_24h_in_currency`. Le volume, non — CoinGecko ne
+     * publie aucune variation de volume, et la calculer supposerait de garder nos
+     * propres relevés de la veille, c'est-à-dire de produire un chiffre maison qu'on
+     * présenterait comme celui de la source (§5).
+     *
+     * Une colonne vide sur trois lignes vaut mieux qu'une colonne pleine dont deux
+     * tiers sont inventés.
+     */
+    readChange: (a) => a.marketCapChange24h,
+    changeKind: 'variation',
   },
   {
     slug: 'volume-24h',

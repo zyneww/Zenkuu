@@ -169,6 +169,16 @@ interface CoinGeckoCoin {
     price_change_percentage_1y?: number | null
     fully_diluted_valuation?: Record<string, number>
     total_value_locked?: Record<string, number> | null
+    /*
+     * Variation de la CAPITALISATION sur 24 h, par devise.
+     *
+     * Distincte de `price_change_percentage_24h` et pas redondante avec elle : entre
+     * deux relevés, l'offre en circulation bouge aussi — émission, brûlage,
+     * déverrouillage. Un jeton dont le cours perd 2 % pendant que son offre gonfle de
+     * 3 % voit sa capitalisation MONTER. La déduire du cours serait donc une
+     * approximation, et fausse exactement dans les cas où elle compte.
+     */
+    market_cap_change_percentage_24h_in_currency?: Record<string, number>
     ath_change_percentage?: Record<string, number>
     atl_change_percentage?: Record<string, number>
     circulating_supply?: number | null
@@ -742,6 +752,7 @@ export const coinGeckoProvider: MarketDataProvider = {
       | 'tvl'
       | 'athChangePercent'
       | 'atlChangePercent'
+      | 'marketCapChange24h'
 
     const assign = (field: NumericField, value: number | undefined) => {
       if (value !== undefined) detail[field] = value
@@ -776,6 +787,10 @@ export const coinGeckoProvider: MarketDataProvider = {
     assign('tvl', optional(market?.total_value_locked?.[key]))
     assign('athChangePercent', optional(market?.ath_change_percentage?.[key]))
     assign('atlChangePercent', optional(market?.atl_change_percentage?.[key]))
+    assign(
+      'marketCapChange24h',
+      optional(market?.market_cap_change_percentage_24h_in_currency?.[key]),
+    )
 
     if (market?.ath_date?.[key]) detail.athDate = market.ath_date[key]
     if (market?.atl_date?.[key]) detail.atlDate = market.atl_date[key]

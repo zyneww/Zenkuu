@@ -163,6 +163,15 @@ export interface AssetDetail extends MarketAsset {
   /** Écart en pourcentage au plus haut / plus bas historique, publié par la source. */
   athChangePercent?: number
   atlChangePercent?: number
+  /**
+   * Variation de la capitalisation sur 24 h, en pourcentage.
+   *
+   * PAS la variation du cours, et c'est tout l'intérêt : l'offre en circulation bouge
+   * entre deux relevés — émission, brûlage, déverrouillage. Un jeton dont le cours perd
+   * 2 % pendant que son offre gonfle de 3 % voit sa capitalisation MONTER. La déduire
+   * du cours serait une approximation, fausse précisément dans les cas où elle compte.
+   */
+  marketCapChange24h?: number
 
   /** Adresses de contrat par chaîne, ex. { ethereum: '0x7fc6…' }. */
   contracts?: Record<string, string>
