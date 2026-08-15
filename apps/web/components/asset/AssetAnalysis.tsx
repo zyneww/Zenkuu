@@ -261,7 +261,7 @@ function ReadingTable({ title, readings }: { title: string; readings: IndicatorR
 
   return (
     <div>
-      <h3 className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+      <h3 className="mb-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
         {title}
       </h3>
       <dl>
@@ -394,7 +394,7 @@ function Row({
     <div className="flex items-baseline justify-between gap-3 border-b border-border-subtle/60 py-2 last:border-0">
       <dt className="min-w-0 flex-1">
         <span className="text-xs text-ink-muted">{label}</span>
-        {hint ? <span className="block text-[0.625rem] text-ink-muted opacity-70">{hint}</span> : null}
+        {hint ? <span className="block text-micro text-ink-muted opacity-70">{hint}</span> : null}
       </dt>
       <dd className={`tabular shrink-0 text-xs font-medium ${tone ?? 'text-ink'}`}>{value}</dd>
     </div>
@@ -443,7 +443,7 @@ function RelativePanel({
                       key={window.days}
                       className="rounded-card border border-border-subtle px-2 py-1.5"
                     >
-                      <p className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
+                      <p className="text-micro uppercase tracking-wide text-ink-muted">
                         {window.label}
                       </p>
                       <p className="tabular mt-0.5 text-xs">
@@ -492,6 +492,12 @@ function SeasonalityPanel({ points }: { points: SeriesPoint[] }) {
   return (
     <Panel title="Rendements mensuels">
       <div className="overflow-x-auto">
+        {/* LE PLANCHER RESTE, contrairement à tous les autres tableaux du site.
+            Ce n'est pas un tableau mais une GRILLE : treize colonnes de largeur égale
+            dont la lecture tient à l'alignement des douze mois. En masquer serait
+            trouer l'année ; les resserrer sous 520 pixels rendrait les cases
+            illisibles. Le défilement latéral est ici la bonne réponse, et l'enveloppe
+            `overflow-x-auto` le contient sans jamais élargir la page. */}
         <table className="w-full min-w-[520px] border-collapse text-xs">
           <caption className="sr-only">Rendement mois par mois, en pourcentage</caption>
           <thead>
@@ -526,7 +532,7 @@ function SeasonalityPanel({ points }: { points: SeriesPoint[] }) {
                   return (
                     <td key={month} className="p-0.5">
                       <span
-                        className="tabular block rounded-card px-1 py-1 text-center text-[0.625rem] font-medium text-ink"
+                        className="tabular block rounded-card px-1 py-1 text-center text-micro font-medium text-ink"
                         style={{
                           // 12 % minimum : en dessous, une case teintée devient
                           // indiscernable d'une case vide et la grille perd sa lecture.

@@ -78,7 +78,10 @@ export default function DeveloppeursPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-ink">Routes internes</h2>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+          {/* Trois colonnes de PROSE : rien à masquer, tout à laisser revenir à la
+              ligne. Le plancher de 576 pixels tombe sous `sm` et les chemins passent en
+              `break-all`, faute de quoi une route sans espace refuserait de se couper. */}
+          <table className="w-full border-collapse text-left text-sm sm:min-w-[36rem]">
             <thead>
               <tr className="border-b border-border-subtle text-xs uppercase tracking-wide text-ink-muted">
                 <th scope="col" className="py-2 pr-3 font-medium">Route</th>
@@ -90,7 +93,7 @@ export default function DeveloppeursPage() {
               {ROUTES.map((route) => (
                 <tr key={route.path} className="border-b border-border-subtle align-top">
                   <td className="py-2.5 pr-3">
-                    <code className="rounded bg-surface-muted px-1.5 py-0.5 text-xs text-ink">
+                    <code className="rounded bg-surface-muted px-1.5 py-0.5 text-xs text-ink break-all">
                       {route.path}
                     </code>
                   </td>

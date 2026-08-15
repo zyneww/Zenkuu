@@ -385,11 +385,14 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         />
       ) : (
         <div className="overflow-x-auto rounded-card border border-border-subtle">
-          <table className="w-full min-w-[46rem] border-collapse text-sm">
+          {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Ne restent
+              que l'actif, son prix et sa variation : le rang et la capitalisation sont
+              les critères du FILTRE, pas de la lecture, et le filtre est juste au-dessus. */}
+          <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
             <caption className="sr-only">Résultats du filtre</caption>
             <thead>
               <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
-                <th scope="col" className="px-3 py-2.5 font-medium">#</th>
+                <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>
                 <th scope="col" className="px-3 py-2.5 font-medium">Actif</th>
                 <th scope="col" className="px-3 py-2.5 text-right font-medium">Prix</th>
                 <th scope="col" className="px-3 py-2.5 text-right font-medium">24 h</th>
@@ -404,25 +407,31 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                   pour une vignette que la colonne « 7 j » chiffre déjà. Une colonne
                   vide serait pire qu'absente — elle passerait pour une panne.
                 */}
-                <th scope="col" className="px-3 py-2.5 text-right font-medium">Capitalisation</th>
+                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
+                  Capitalisation
+                </th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-border-subtle">
               {visible.map((asset) => (
                 <tr key={asset.id} className="group transition-colors duration-150 hover:bg-surface-muted/60">
-                  <td className="tabular px-3 py-2.5 text-xs text-ink-muted">{asset.rank ?? '—'}</td>
+                  <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
+                    {asset.rank ?? '—'}
+                  </td>
 
                   <th scope="row" className="px-3 py-2.5 text-left font-normal">
                     <Link
                       href={assetHref(asset.assetClass, asset.id)}
-                      className="flex items-center gap-2"
+                      className="flex min-w-0 items-center gap-2"
                     >
                       <AssetLogo asset={asset} size={22} />
-                      <span className="font-medium text-ink group-hover:text-brand-strong">
+                      <span className="truncate font-medium text-ink group-hover:text-brand-strong">
                         {asset.name}
                       </span>
-                      <span className="text-xs uppercase text-ink-muted">{asset.symbol}</span>
+                      <span className="shrink-0 text-xs uppercase text-ink-muted">
+                        {asset.symbol}
+                      </span>
                     </Link>
                   </th>
 
@@ -438,7 +447,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                   <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
                     <Money value={asset.volume24h} from={asset.currency} compact />
                   </td>
-                  <td className="tabular px-3 py-2.5 text-right text-ink">
+                  <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
                     <Money value={asset.marketCap} from={asset.currency} compact />
                   </td>
                 </tr>

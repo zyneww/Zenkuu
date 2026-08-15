@@ -74,10 +74,12 @@ export function RankingDetailTable({
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-card border border-border-subtle">
-        <table className="w-full min-w-[44rem] border-collapse text-sm">
+        {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`, qui pose
+            la règle pour tous les tableaux du site. */}
+        <table className="w-full border-collapse text-sm sm:min-w-[44rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
-              <th scope="col" className="px-3 py-2 font-medium">
+              <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
                 #
               </th>
               <th scope="col" className="px-3 py-2 font-medium">
@@ -104,7 +106,7 @@ export function RankingDetailTable({
           <tbody className="divide-y divide-border-subtle">
             {rows.map((asset, index) => (
               <tr key={asset.id} className="transition-colors hover:bg-surface-muted">
-                <td className="tabular px-3 py-2.5 text-xs text-ink-muted">
+                <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
                   {/* Le rang est celui du CLASSEMENT, pas de la page : la ligne 1 de la
                       page 3 est la 51e du palmarès, et l'écrire « 1 » ferait croire à
                       trois premières places. */}

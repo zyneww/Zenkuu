@@ -175,7 +175,11 @@ export default function PourquoiZenkuuPage() {
         </p>
 
         <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
-          <table className="w-full min-w-[520px] border-collapse text-sm">
+          {/* Le plancher de 520 pixels tombe sous `sm`. Aucune colonne ne peut partir :
+              une comparaison à laquelle il manque un terme n'en est plus une. Les trois
+              colonnes de verdicts ne portent qu'un signe, elles se resserrent sans
+              perte ; seuls les en-têtes reviennent à la ligne. */}
+          <table className="w-full border-collapse text-sm sm:min-w-[520px]">
             <caption className="sr-only">
               Comparaison entre ZENKUU, un site de suivi mono-actif et une plateforme d’échange
             </caption>

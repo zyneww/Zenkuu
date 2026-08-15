@@ -39,7 +39,10 @@ const COLUMNS: { key: SortKey; label: string; hideOn?: string }[] = [
   { key: 'change7d', label: '7 j', hideOn: 'hidden md:table-cell' },
   { key: 'volume24h', label: 'Volume 24 h', hideOn: 'hidden lg:table-cell' },
   { key: 'marketCap', label: 'Capitalisation', hideOn: 'hidden sm:table-cell' },
-  { key: 'firstDataAt', label: 'Suivi depuis' },
+  /* « Suivi depuis » disparaît sous `sm` malgré son importance ici : le tableau arrive
+     TRIÉ par cette colonne, et l'ordre des lignes en dit déjà l'essentiel — les plus
+     récentes en tête. C'est la même économie que pour le rang des classements. */
+  { key: 'firstDataAt', label: 'Suivi depuis', hideOn: 'hidden sm:table-cell' },
 ]
 
 export function NewListingsTable({
@@ -179,7 +182,8 @@ export function NewListingsTable({
       </div>
 
       <div className="overflow-x-auto rounded-card border border-border-subtle">
-        <table className="w-full min-w-[42rem] border-collapse text-sm">
+        {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
+        <table className="w-full border-collapse text-sm sm:min-w-[42rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left">
               <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
@@ -231,7 +235,7 @@ export function NewListingsTable({
                 <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
                   {formatCurrency(item.marketCap, 'USD', { compact: true }) ?? '—'}
                 </td>
-                <td className="tabular px-3 py-2.5 text-right text-ink-muted">
+                <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
                   {formatListedSince(item.firstDataAt)}
                 </td>
               </tr>

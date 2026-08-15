@@ -22,10 +22,13 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
   return (
     <div className="space-y-2">
       <div className="overflow-x-auto rounded-card border border-border-subtle">
-        <table className="w-full min-w-[46rem] border-collapse text-sm">
+        {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Le rang
+            disparaît avec les autres : le registre arrive TRIÉ par avoirs décroissants,
+            l'ordre des lignes le dit déjà. */}
+        <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
-              <th scope="col" className="px-3 py-2 font-medium">
+              <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
                 #
               </th>
               <th scope="col" className="px-3 py-2 font-medium">
@@ -58,7 +61,9 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
 
               return (
                 <tr key={`${holder.name}-${index}`} className="transition-colors hover:bg-surface-muted">
-                  <td className="tabular px-3 py-2.5 text-xs text-ink-muted">{index + 1}</td>
+                  <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
+                    {index + 1}
+                  </td>
 
                   <td className="px-3 py-2.5">
                     <span className="block truncate font-medium text-ink">{holder.name}</span>

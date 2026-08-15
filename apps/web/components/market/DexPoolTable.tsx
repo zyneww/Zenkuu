@@ -42,14 +42,22 @@ export function DexPoolTable({
        instrument qu'on parcourt, ses cellules doivent s'abouter. Voir la doctrine des
        deux familles de rayons dans globals.css. */
     <div className="overflow-x-auto rounded-card border border-border-subtle">
-      <table className="w-full min-w-[52rem] border-collapse text-sm">
+      {/* COLONNES PRIORITAIRES SOUS `sm`.
+
+          Sept colonnes ne tiennent pas dans 320 pixels, et un tableau qui défile
+          latéralement cache la moitié de ses chiffres derrière un geste que personne ne
+          devine. On garde donc les quatre qui décrivent un pool — quelle paire, à quel
+          prix, dans quel sens, sur quelle profondeur — et l'on rend les trois autres
+          dès que la largeur revient. Le volume et le compte d'adresses répondent à une
+          question d'analyse, pas de repérage : ils peuvent attendre l'écran large. */}
+      <table className="w-full border-collapse text-sm sm:min-w-[52rem]">
         <thead>
           <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
             <th scope="col" className="px-3 py-2 font-medium">
               Paire
             </th>
             {showNetwork ? (
-              <th scope="col" className="px-3 py-2 font-medium">
+              <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
                 Chaîne
               </th>
             ) : null}
@@ -62,10 +70,10 @@ export function DexPoolTable({
             <th scope="col" className="px-3 py-2 text-right font-medium">
               Réserve $
             </th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">
+            <th scope="col" className="hidden px-3 py-2 text-right font-medium md:table-cell">
               Volume 24 h $
             </th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">
+            <th scope="col" className="hidden px-3 py-2 text-right font-medium md:table-cell">
               Acheteurs / vendeurs
             </th>
           </tr>
@@ -94,7 +102,7 @@ export function DexPoolTable({
               </td>
 
               {showNetwork ? (
-                <td className="px-3 py-2">
+                <td className="hidden px-3 py-2 sm:table-cell">
                   <span className="rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.6875rem] uppercase text-ink-muted">
                     {pool.network}
                   </span>
@@ -113,11 +121,11 @@ export function DexPoolTable({
                 {pool.liquidityUsd !== undefined ? formatCompact(pool.liquidityUsd) : '—'}
               </td>
 
-              <td className="tabular px-3 py-2 text-right text-ink">
+              <td className="tabular hidden px-3 py-2 text-right text-ink md:table-cell">
                 {pool.volume24hUsd !== undefined ? formatCompact(pool.volume24hUsd) : '—'}
               </td>
 
-              <td className="tabular px-3 py-2 text-right text-ink-muted">
+              <td className="tabular hidden px-3 py-2 text-right text-ink-muted md:table-cell">
                 {pool.trades24h ? (
                   <>
                     <span className="text-up">{pool.trades24h.buyers}</span>

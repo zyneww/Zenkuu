@@ -423,7 +423,13 @@ export function ChartToolbar(props: ChartToolbarProps) {
           <span
             role="group"
             aria-label="Vue du graphique"
-            className="mr-1 flex items-center gap-0.5 bg-surface-muted p-0.5"
+            /* Le SEGMENT s'enroule lui aussi à 320 px. Ses quatre entrées — Original,
+               TradingView, Profondeur, Carnet — font 323 px à elles seules : sans
+               `flex-wrap`, il débordait de sa propre boîte et poussait la page de 44 px
+               sur iPhone SE. Le fond creusé englobe alors deux lignes au lieu d'une, ce
+               qui reste lisible comme un groupe — c'est le fond qui le dit, pas
+               l'alignement. */
+            className="mr-1 flex min-w-0 flex-wrap items-center gap-0.5 bg-surface-muted p-0.5"
           >
             {props.views.map((entry) => (
               <button

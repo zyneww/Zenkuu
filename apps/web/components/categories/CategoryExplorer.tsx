@@ -260,11 +260,12 @@ function CategoryTable({
 }) {
   return (
     <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
-      <table className="w-full min-w-[680px] border-collapse text-sm">
+      {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
+      <table className="w-full border-collapse text-sm sm:min-w-[680px]">
         <caption className="sr-only">Secteurs de marché</caption>
         <thead>
           <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
-            <th scope="col" className="px-3 py-2.5 font-medium">#</th>
+            <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>
             <th scope="col" className="px-3 py-2.5 font-medium">Secteur</th>
             <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
               Principaux actifs
@@ -279,14 +280,22 @@ function CategoryTable({
         <tbody className="divide-y divide-border-subtle">
           {categories.map((category, index) => (
             <tr key={category.id} className="transition-colors hover:bg-surface-muted/60">
-              <td className="tabular px-3 py-2.5 text-xs text-ink-muted">{startRank + index}</td>
+              <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
+                {startRank + index}
+              </td>
               <th scope="row" className="px-3 py-2.5 text-left font-medium">
                 {/* Le nom porte le lien, pas la ligne entière : la ligne contient déjà
                     les logos des actifs, eux-mêmes cliquables. Deux zones cliquables
                     imbriquées produisent un HTML invalide et un piège au clavier. */}
                 <Link
                   href={`/categories/${category.id}`}
-                  className="text-ink transition-colors hover:text-brand-strong hover:underline"
+                  /* `inline-flex items-center` et non le `inline` par défaut : le
+                     plancher tactile de globals.css repose sur `min-height`, qui n'a
+                     AUCUN effet sur une boîte en ligne. Ce lien restait donc à 18 pixels
+                     dans une ligne qui en fait quarante — la moitié de la ligne visible
+                     ne déclenchait rien. Les autres tableaux y échappaient déjà, leurs
+                     liens portant `flex` pour aligner un logo. */
+                  className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
                 >
                   {category.name}
                 </Link>

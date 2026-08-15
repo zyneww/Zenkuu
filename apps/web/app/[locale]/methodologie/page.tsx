@@ -57,7 +57,10 @@ export default async function MethodologiePage() {
         </p>
 
         <div className="mt-4 overflow-x-auto rounded-card border border-border-subtle">
-          <table className="w-full min-w-[520px] border-collapse text-sm">
+          {/* Trois colonnes courtes : le plancher de 520 pixels tombe sous `sm`, elles
+              se resserrent et les en-têtes reviennent à la ligne. Rien à masquer — une
+              source sans son état, ou l'inverse, ne dit plus rien. */}
+          <table className="w-full border-collapse text-sm sm:min-w-[520px]">
             <caption className="sr-only">Source retenue par classe d’actif</caption>
             <thead>
               <tr className="border-b border-border-subtle bg-surface-muted text-left text-xs text-ink-muted">

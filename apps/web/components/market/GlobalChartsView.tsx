@@ -163,11 +163,21 @@ export function GlobalChartsView({
   )
 }
 
+/**
+ * Intitulé + rangée de pastilles.
+ *
+ * Les DEUX niveaux s'enroulent, et il faut les deux : à 320 px, l'intitulé tient sur
+ * une ligne et la rangée sur la suivante ; à 360, la rangée elle-même se coupe en
+ * deux. Sans le second `flex-wrap`, la boîte des pastilles débordait de la sienne et
+ * poussait la page — neuf pixels, mesurés sur iPhone SE.
+ */
 function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2" role="group" aria-label={label}>
+    <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label={label}>
       <span className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">{label}</span>
-      <div className="flex items-center gap-1 rounded-card border border-border-subtle p-0.5">{children}</div>
+      <div className="flex min-w-0 flex-wrap items-center gap-1 rounded-card border border-border-subtle p-0.5">
+        {children}
+      </div>
     </div>
   )
 }

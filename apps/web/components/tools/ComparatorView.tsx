@@ -295,7 +295,13 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
       )}
 
       <div className="overflow-x-auto rounded-card border border-border-subtle">
-        <table className="w-full min-w-[36rem] border-collapse text-sm">
+        {/* PAS DE COLONNES PRIORITAIRES ICI — et c'est le seul tableau du site dans ce
+            cas. Les colonnes SONT les actifs que le lecteur a lui-même choisis :
+            en masquer une reviendrait à retirer de la comparaison ce qu'il vient d'y
+            mettre. Le défilement latéral reste donc la réponse, mais le plancher de
+            576 pixels disparaît sous `sm` : à deux actifs, le tableau tient dans un
+            téléphone et n'a aucune raison de défiler. */}
+        <table className="w-full border-collapse text-sm sm:min-w-[36rem]">
           <caption className="sr-only">Comparaison chiffrée</caption>
           <thead>
             <tr className="border-b border-border-subtle text-left">

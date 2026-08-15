@@ -174,7 +174,11 @@ export function AssetTickers({
       </div>
 
       <div className="overflow-x-auto rounded-card border border-border-subtle bg-panel">
-        <table className="w-full min-w-[720px] border-collapse text-sm">
+        {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Sur un
+            téléphone il reste la place, la paire et le prix : c'est ce qu'on vient
+            vérifier ici, « combien coûte-t-il où ». Le volume, qui sert à juger si la
+            cotation est sérieuse, revient dès la première largeur supplémentaire. */}
+        <table className="w-full border-collapse text-sm sm:min-w-[720px]">
           <caption className="sr-only">Places de cotation de {assetName}</caption>
           <thead>
             <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
@@ -191,7 +195,9 @@ export function AssetTickers({
                   Profondeur ±2 %
                 </th>
               ) : null}
-              <th scope="col" className="px-3 py-2.5 text-right font-medium">Volume 24 h</th>
+              <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
+                Volume 24 h
+              </th>
               <th scope="col" className="hidden px-3 py-2.5 text-right font-medium md:table-cell">
                 Part
               </th>
@@ -298,7 +304,7 @@ export function AssetTickers({
                   </td>
                 ) : null}
 
-                <td className="tabular px-3 py-2.5 text-right text-ink-muted">
+                <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
                   <Money value={ticker.volume24h} from={ticker.currency} compact />
                 </td>
 
