@@ -200,7 +200,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
         <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span
           aria-hidden="true"
-          className="text-[0.625rem] font-semibold uppercase tracking-widest"
+          className="text-micro font-semibold uppercase tracking-widest"
           style={{ writingMode: 'vertical-rl' }}
         >
           Marchés
@@ -352,7 +352,7 @@ function Section({
 }) {
   return (
     <section>
-      <h3 className="sticky top-0 z-10 flex items-center gap-1.5 bg-panel px-3 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-ink-muted">
+      <h3 className="sticky top-0 z-10 flex items-center gap-1.5 bg-panel px-3 py-1.5 text-micro font-semibold uppercase tracking-wider text-ink-muted">
         {icon}
         {title}
       </h3>
@@ -412,7 +412,7 @@ function Row({
 
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-ink">{name}</span>
-          <span className="block text-[0.625rem] uppercase text-ink-muted">
+          <span className="block text-micro uppercase text-ink-muted">
             {symbol}
             {rank !== undefined ? <span className="tabular"> · #{rank}</span> : null}
           </span>

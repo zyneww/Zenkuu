@@ -972,6 +972,73 @@
     min-width: 0;
   }
 
+  /* ──────────────────────────────────────────────────────────────
+     PLANCHER TACTILE, ET SEULEMENT LÀ OÙ L'ON TOUCHE.
+
+     L'audit relevait cent trente cibles sous 32 pixels de haut : le logo de l'en-tête
+     (28), la pastille de langue (30), les puces de période des graphiques (24), les
+     lignes de palmarès (20). Chacune se rate au doigt une fois sur trois, et toutes
+     ont la même cause : une hauteur dessinée pour la souris, qui vise au pixel.
+
+     ── POURQUOI UNE RÈGLE ET NON TRENTE CORRECTIFS ─────────────────────────
+
+     Les mêmes puces reviennent dans huit composants sous huit jeux de classes
+     légèrement différents. Les corriger une à une réparerait ce que la mesure a vu et
+     laisserait le défaut intact pour le neuvième segment qu'on écrira. Le défaut n'est
+     pas dans ces composants, il est dans le fait qu'aucun plancher n'existe.
+
+     ── CE QUI LA REND SÛRE ──────────────────────────────────────────────────
+
+     1. `pointer: coarse` : rien ne bouge à la souris. Le dessin dense du bureau —
+        celui d'OKX, celui de Token Terminal — est préservé intégralement.
+
+     2. `min-height` N'A AUCUN EFFET SUR UNE BOÎTE `inline`. Les liens au fil du texte
+        — « voir la méthodologie », les sources sous un tableau — sont donc exclus
+        d'office, sans avoir à les nommer : gonfler un lien dans une phrase creuserait
+        l'interligne pour rien. Seuls les contrôles réellement dessinés en bloc ou en
+        boîte flexible remontent, c'est-à-dire exactement ceux qu'on vise.
+
+     3. `:where()` garde la spécificité à ZÉRO : n'importe quel `h-*` explicite d'un
+        cas particulier reprend la main sans lutter.
+
+     4. LES CELLULES DE TABLEAU NE SONT PAS EXEMPTÉES, contrairement à ce que ce
+        commentaire disait d'abord. L'exemption partait d'un raisonnement faux : « une
+        ligne de classement se touche bien parce qu'elle est large ». Elle est large en
+        ABSCISSE, et le doigt n'a effectivement pas à viser en x. Mais le lien qui la
+        porte ne mesurait que 20 pixels de haut dans une ligne qui en fait 40 — la
+        moitié de la surface visible ne déclenchait rien, et le lecteur ne peut pas
+        savoir laquelle. La mesure l'a montré ligne par ligne, `a.flex.min-w-0` à 384×20.
+
+        Sur un téléphone, les lignes passent donc à une cinquantaine de pixels. Ce n'est
+        pas une régression de densité : c'est la hauteur de liste standard du tactile, et
+        le dessin serré du bureau reste intact puisque la règle ne s'y applique pas.
+
+     5. LA LARGEUR AUSSI, et seulement pour ce qui se clique. Les boutons d'information
+        « à propos de cette mesure » faisaient 16 pixels de large — la taille de leur
+        icône. La hauteur ne les sauvait pas : une cible de 16 sur 32 se rate autant
+        qu'une de 32 sur 16. Les champs de saisie en sont exclus : leur largeur porte un
+        sens — un champ de code postal n'a pas la largeur d'un champ d'adresse.
+     ────────────────────────────────────────────────────────────── */
+  @media (pointer: coarse) {
+    :where(
+      button,
+      summary,
+      input,
+      select,
+      textarea,
+      [role='button'],
+      [role='tab'],
+      [role='switch'],
+      a[href]
+    ) {
+      min-height: 2rem;
+    }
+
+    :where(button, summary, [role='button'], [role='tab'], a[href]) {
+      min-width: 2rem;
+    }
+  }
+
   /* Cible de focus visible partout — exigence d'accessibilité du §9. */
   :focus-visible {
     outline: 2px solid var(--color-brand);
@@ -997,6 +1064,33 @@
 }
 
 @layer utilities {
+  /* ──────────────────────────────────────────────────────────────
+     LA PLUS PETITE TAILLE DU SITE, ET ELLE N'EST PAS LA MÊME PARTOUT.
+
+     Quarante et un endroits écrivaient `text-[0.625rem]` — dix pixels. Sur un écran de
+     bureau à cinquante centimètres, dix pixels sont une mention discrète : une étiquette
+     de secteur, un rang, une unité. Sur un téléphone tenu à bout de bras, c'est en
+     dessous de ce qui se lit, et l'audit y relevait vingt-six textes concernés, dont des
+     CHIFFRES — « 1 843 Md $ », « −0,53 % ». Un chiffre de marché illisible n'est pas une
+     mention discrète, c'est une donnée perdue.
+
+     Onze pixels sous `sm`, dix au-delà : la densité du bureau est intacte, et le
+     téléphone récupère le pixel qui fait la différence. Écrire la règle une fois plutôt
+     que quarante et une évite surtout qu'un quarante-deuxième endroit reparte à dix.
+
+     N'impose QUE la taille — ni interligne ni graisse — pour rester un remplacement
+     strict de l'ancienne valeur arbitraire.
+     ────────────────────────────────────────────────────────────── */
+  .text-micro {
+    font-size: 0.6875rem;
+  }
+
+  @media (width >= 40rem) {
+    .text-micro {
+      font-size: 0.625rem;
+    }
+  }
+
   /* Tabulation des chiffres : sans cela, les colonnes de prix « dansent » à chaque
      rafraîchissement parce que les glyphes n'ont pas la même largeur. */
   /*

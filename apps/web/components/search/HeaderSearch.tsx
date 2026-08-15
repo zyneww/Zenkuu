@@ -210,7 +210,7 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
           </button>
         ) : (
           <kbd
-            className="hidden shrink-0 rounded-xs border border-border-subtle px-1.5 py-0.5 font-sans text-[0.625rem] text-ink-muted lg:block"
+            className="hidden shrink-0 rounded-xs border border-border-subtle px-1.5 py-0.5 font-sans text-micro text-ink-muted lg:block"
             aria-hidden="true"
           >
             {t('shortcut')}

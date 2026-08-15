@@ -90,7 +90,7 @@ export function AssetNewsRail({
                     {item.title}
                   </span>
 
-                  <span className="mt-1.5 inline-flex items-center rounded-pill border border-border-subtle px-2 py-0.5 text-[0.625rem] text-ink-muted">
+                  <span className="mt-1.5 inline-flex items-center rounded-pill border border-border-subtle px-2 py-0.5 text-micro text-ink-muted">
                     {item.source}
                   </span>
                 </a>

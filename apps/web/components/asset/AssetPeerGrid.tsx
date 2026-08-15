@@ -45,7 +45,7 @@ export function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                 {peer.name}
               </span>
-              <span className="shrink-0 text-[0.625rem] font-semibold uppercase tracking-wider text-ink-muted">
+              <span className="shrink-0 text-micro font-semibold uppercase tracking-wider text-ink-muted">
                 {peer.symbol}
               </span>
             </div>

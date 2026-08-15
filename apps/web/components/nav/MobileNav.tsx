@@ -257,7 +257,7 @@ export function MobileNav() {
                                           <span className="text-sm font-medium text-ink">
                                             {item.label}
                                           </span>
-                                          <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide text-ink-muted">
+                                          <span className="rounded bg-surface-muted px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
                                             {fr.nav.soonShort}
                                           </span>
                                         </span>

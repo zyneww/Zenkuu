@@ -277,7 +277,7 @@ function PlanBadge() {
 
   return (
     <span
-      className={`shrink-0 rounded-pill px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide ${
+      className={`shrink-0 rounded-pill px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide ${
         isPro ? 'bg-accent-soft text-accent-strong' : 'bg-status-soft text-status'
       }`}
     >

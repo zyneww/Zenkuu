@@ -44,7 +44,10 @@ export function LocaleBadge({ hint }: { hint: string }) {
         type="button"
         onClick={() => setTab('language')}
         title={hint}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+        /* `min-h-9` : 30 pixels de haut passaient sous le seuil des 32 sous lequel une
+           cible se rate au doigt, et celle-ci ouvre les préférences — la manquer envoie
+           le lecteur au hasard dans le pied de page. */
+        className="mt-4 inline-flex min-h-9 items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
       >
         <Globe className="h-3.5 w-3.5" aria-hidden="true" />
         {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}

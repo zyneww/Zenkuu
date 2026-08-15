@@ -95,12 +95,12 @@ export async function AssetRailIdentity({
             <div className="mt-1.5 flex flex-wrap items-center gap-1">
               {/* Le symbole en PASTILLE : SOL, HYPE ou CAC40 sont des CODES, pas des
                   mots. Une capitale grise se lit comme la suite du nom. */}
-              <span className="rounded-pill bg-surface-muted px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase leading-none tracking-wider text-ink-muted">
+              <span className="rounded-pill bg-surface-muted px-1.5 py-0.5 text-micro font-semibold uppercase leading-none tracking-wider text-ink-muted">
                 {asset.symbol}
               </span>
 
               {asset.rank !== undefined ? (
-                <span className="tabular rounded-pill border border-border-subtle px-1.5 py-0.5 text-[0.625rem] font-medium leading-none text-ink-muted">
+                <span className="tabular rounded-pill border border-border-subtle px-1.5 py-0.5 text-micro font-medium leading-none text-ink-muted">
                   #{asset.rank}
                   {/* Le libellé complet du rang est ACCOLÉ à la pastille, et non
                       relégué en fin de section. Un lecteur d'écran annonce ainsi
@@ -118,7 +118,7 @@ export async function AssetRailIdentity({
             colonne fait 288 pixels, où trois étiquettes passent à la ligne et
             repoussent le cours d'un cran. */}
         {categories.length > 0 || asset.exchange ? (
-          <div className="flex flex-wrap items-center gap-1 text-[0.625rem] text-ink-muted">
+          <div className="flex flex-wrap items-center gap-1 text-micro text-ink-muted">
             {asset.exchange ? <span className="font-medium">{asset.exchange}</span> : null}
             {categories.map((category) => (
               <span

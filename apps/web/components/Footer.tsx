@@ -36,7 +36,7 @@ export async function Footer() {
             */}
             <Link
               href="/"
-              className="inline-flex items-center text-ink"
+              className="inline-flex min-h-11 items-center text-ink"
               aria-label={fr.site.name}
             >
               <ZenkuuWordmark className="h-8 w-auto" />
@@ -82,7 +82,10 @@ export async function Footer() {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+                      /* `min-h-9` : la pastille mesurait 30 pixels de haut, juste sous
+                         le seuil en dessous duquel une cible se rate au doigt. Deux
+                         pixels de plus, et rien d'autre ne bouge. */
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
                       aria-label={`${link.label} — ${link.handle}`}
                     >
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />

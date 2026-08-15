@@ -294,7 +294,7 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
         {/* En-tête de colonnes : sans elle, les deux nombres d'une ligne sont
             ambigus — quantité du niveau ou quantité cumulée ? La question se pose
             d'autant plus que la BARRE, elle, mesure le cumul. */}
-        <div className="mb-1 flex items-baseline justify-between border-b border-border-subtle pb-1 text-[0.625rem] uppercase tracking-wide text-ink-muted">
+        <div className="mb-1 flex items-baseline justify-between border-b border-border-subtle pb-1 text-micro uppercase tracking-wide text-ink-muted">
           <span>Prix (USDT)</span>
           <span>Quantité</span>
         </div>
@@ -329,7 +329,7 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
             Dernières transactions exécutées sur la paire {symbol.toUpperCase()}/USDT
           </caption>
           <thead>
-            <tr className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
+            <tr className="text-micro uppercase tracking-wide text-ink-muted">
               <th scope="col" className="py-1 text-left font-medium">
                 Heure
               </th>
@@ -552,7 +552,7 @@ function TickSelector({
 
   return (
     <div className="mb-2 flex items-center justify-end gap-0.5">
-      <span className="mr-auto text-[0.625rem] uppercase tracking-wide text-ink-muted">
+      <span className="mr-auto text-micro uppercase tracking-wide text-ink-muted">
         Regroupement
       </span>
 

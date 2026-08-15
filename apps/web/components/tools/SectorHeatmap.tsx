@@ -235,12 +235,12 @@ export function SectorHeatmap({
               {tile.name}
             </span>
             {tile.height > 6 ? (
-              <span className="tabular block truncate text-[0.625rem] leading-tight text-ink-muted">
+              <span className="tabular block truncate text-micro leading-tight text-ink-muted">
                 {tile.change !== undefined ? formatPercent(tile.change) : '—'}
               </span>
             ) : null}
             {tile.height > 12 && tile.width > 12 ? (
-              <span className="tabular block truncate text-[0.625rem] leading-tight text-ink-muted">
+              <span className="tabular block truncate text-micro leading-tight text-ink-muted">
                 {formatCurrency(tile.value, 'USD', { compact: true }) ?? '—'}
               </span>
             ) : null}

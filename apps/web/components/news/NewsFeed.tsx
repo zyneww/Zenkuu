@@ -434,7 +434,7 @@ function ArticleCard({ article }: { article: NewsItem }) {
         <CitedAssetChips article={article} />
 
         {article.category ? (
-          <span className="mt-0.5 self-start rounded-control bg-brand-soft px-1.5 py-0.5 text-[0.625rem] font-medium text-brand-strong">
+          <span className="mt-0.5 self-start rounded-control bg-brand-soft px-1.5 py-0.5 text-micro font-medium text-brand-strong">
             {NEWS_CATEGORY_LABELS[article.category as keyof typeof NEWS_CATEGORY_LABELS] ??
               article.category}
           </span>
@@ -662,7 +662,7 @@ function CitedAssetChips({ article }: { article: NewsItem }) {
       {shown.slice(0, 3).map((mention) => (
         <span
           key={mention.id}
-          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.625rem]"
+          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro"
         >
           <span className="font-medium text-ink">{mention.label}</span>
           <ChangeBadge value={quotes[mention.assetId!]} size="sm" />
@@ -672,7 +672,7 @@ function CitedAssetChips({ article }: { article: NewsItem }) {
       {/* Le compte des cités NON MONTRÉS, et non le compte total : trois pastilles plus
           « 3 de plus » ferait croire à six actifs quand il y en a trois de plus. */}
       {shown.length > 3 ? (
-        <span className="text-[0.625rem] text-ink-muted">+{shown.length - 3}</span>
+        <span className="text-micro text-ink-muted">+{shown.length - 3}</span>
       ) : null}
     </p>
   )

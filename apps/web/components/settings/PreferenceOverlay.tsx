@@ -346,7 +346,7 @@ function Group({
                   {item.title}
                 </span>
                 {item.note ? (
-                  <span className="block truncate text-[0.625rem] text-ink-muted">{item.note}</span>
+                  <span className="block truncate text-micro text-ink-muted">{item.note}</span>
                 ) : null}
               </span>
               {item.selected ? (

@@ -102,7 +102,7 @@ export function AssetStickyBar({
           <AssetLogo asset={asset} size={22} />
 
           <span className="min-w-0 truncate text-sm font-semibold text-ink">{asset.name}</span>
-          <span className="shrink-0 text-[0.625rem] font-semibold uppercase tracking-wider text-ink-muted">
+          <span className="shrink-0 text-micro font-semibold uppercase tracking-wider text-ink-muted">
             {asset.symbol}
           </span>
 

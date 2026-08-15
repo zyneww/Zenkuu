@@ -173,7 +173,7 @@ export function NewsDatePicker({ selected, oldestAvailable, unavailableReason }:
 
           <div className="grid grid-cols-7 gap-0.5 text-center">
             {JOURS.map((label, index) => (
-              <span key={index} className="py-1 text-[0.625rem] font-medium text-ink-muted">
+              <span key={index} className="py-1 text-micro font-medium text-ink-muted">
                 {label}
               </span>
             ))}
@@ -215,7 +215,7 @@ export function NewsDatePicker({ selected, oldestAvailable, unavailableReason }:
           </div>
 
           {oldest ? (
-            <p className="mt-2 border-t border-border-subtle pt-2 text-[0.625rem] leading-relaxed text-ink-muted">
+            <p className="mt-2 border-t border-border-subtle pt-2 text-micro leading-relaxed text-ink-muted">
               L’archive commence le {formatLong(oldest)}. Un flux d’actualités ne publie que
               ses derniers articles : ce qui précède la mise en service n’a pas pu être
               conservé.

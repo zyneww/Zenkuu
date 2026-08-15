@@ -191,7 +191,7 @@ function ResultRow({
         {rank !== undefined ? (
           <span className="tabular shrink-0 text-[0.6875rem] text-ink-muted">#{rank}</span>
         ) : badge ? (
-          <span className="shrink-0 rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.625rem] text-ink-muted">
+          <span className="shrink-0 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro text-ink-muted">
             {badge}
           </span>
         ) : null}

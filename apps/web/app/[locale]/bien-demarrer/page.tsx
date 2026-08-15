@@ -116,7 +116,7 @@ export default function BienDemarrerPage() {
                   href={`#etape-${index + 1}`}
                   className="flex items-baseline gap-2 rounded-control px-2 py-1.5 text-xs text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
                 >
-                  <span className="tabular shrink-0 text-[0.625rem]">{index + 1}</span>
+                  <span className="tabular shrink-0 text-micro">{index + 1}</span>
                   <span>{step.title}</span>
                 </a>
               </li>

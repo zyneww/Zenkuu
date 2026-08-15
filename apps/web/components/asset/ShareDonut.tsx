@@ -244,14 +244,14 @@ export function ShareDonut({
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
             {hovered ? (
               <>
-                <span className="line-clamp-2 text-[0.625rem] leading-tight text-ink-muted">
+                <span className="line-clamp-2 text-micro leading-tight text-ink-muted">
                   {hovered.label}
                 </span>
                 <span className="tabular text-base font-semibold text-ink">
                   {formatShare(hovered.percent)}
                 </span>
                 {valueCurrency ? (
-                  <span className="tabular text-[0.625rem] text-ink-muted">
+                  <span className="tabular text-micro text-ink-muted">
                     {<Money value={hovered.value} from={valueCurrency} compact />}
                   </span>
                 ) : null}
@@ -259,7 +259,7 @@ export function ShareDonut({
             ) : (
               <>
                 <span className="tabular text-lg font-semibold text-ink">{usable.length}</span>
-                <span className="text-[0.625rem] text-ink-muted">{restNoun}</span>
+                <span className="text-micro text-ink-muted">{restNoun}</span>
               </>
             )}
           </div>
@@ -267,7 +267,7 @@ export function ShareDonut({
 
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-border-subtle text-[0.625rem] uppercase tracking-wide text-ink-muted">
+            <tr className="border-b border-border-subtle text-micro uppercase tracking-wide text-ink-muted">
               <th scope="col" className="pb-1 text-left font-medium">
                 {restNoun}
               </th>

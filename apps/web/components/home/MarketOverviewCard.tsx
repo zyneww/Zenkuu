@@ -84,14 +84,14 @@ export async function MarketOverviewCard({
                 height={44}
                 label={fr.home.marketCapSeriesLabel(series.spanMinutes)}
               />
-              <p className="mt-1 text-[0.625rem] text-ink-muted">
+              <p className="mt-1 text-micro text-ink-muted">
                 {fr.home.marketCapSeriesHint(series.spanMinutes)}
               </p>
             </>
           ) : (
             /* Série trop courte : on explique pourquoi plutôt que de laisser un
                espace vide, et surtout plutôt que de tracer une courbe estimée. */
-            <p className="rounded-lg bg-surface-muted px-2.5 py-2 text-[0.625rem] leading-relaxed text-ink-muted">
+            <p className="rounded-lg bg-surface-muted px-2.5 py-2 text-micro leading-relaxed text-ink-muted">
               {fr.home.marketCapSeriesBuilding(series.points.length)}
             </p>
           )}

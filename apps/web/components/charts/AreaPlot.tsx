@@ -300,7 +300,12 @@ export function AreaPlot({
                   textAnchor="end"
                   dominantBaseline="middle"
                   fill="var(--color-ink-muted)"
-                  fontSize={10}
+                  /* La taille vient de la FEUILLE DE STYLE et non de l'attribut : c'est
+                     le seul moyen qu'elle suive le plancher de lisibilité mobile, qui
+                     remonte la plus petite taille du site à onze pixels sous `sm`. Une
+                     graduation d'axe est le premier texte qu'on n'arrive plus à lire sur
+                     un téléphone, et le dernier qu'on pense à vérifier. */
+                  className="text-micro"
                 >
                   {formatY ? formatY(tick) : Math.round(tick)}
                 </text>
@@ -318,7 +323,7 @@ export function AreaPlot({
                     index === 0 ? 'start' : index === resolvedXTicks.length - 1 ? 'end' : 'middle'
                   }
                   fill="var(--color-ink-muted)"
-                  fontSize={10}
+                  className="text-micro"
                 >
                   {formatX ? formatX(tick) : Math.round(tick)}
                 </text>

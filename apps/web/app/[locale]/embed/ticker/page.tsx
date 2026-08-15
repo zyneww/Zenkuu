@@ -44,7 +44,7 @@ export default async function EmbedTickerPage() {
   return (
     <div className="space-y-1 p-1">
       <TickerWidget assets={assets} />
-      <p className="text-center text-[0.625rem] text-ink-muted">
+      <p className="text-center text-micro text-ink-muted">
         <a
           href="https://www.coingecko.com/en/api"
           target="_blank"

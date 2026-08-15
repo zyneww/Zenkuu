@@ -169,7 +169,11 @@ export function NavBar() {
               l'axe exact de la page, ce qui n'est plus l'objectif. */}
           <Link
             href="/"
-            className="flex shrink-0 items-center text-ink transition-opacity hover:opacity-80"
+            /* `min-h-11` sans changer la taille du dessin : la marque mesure 28 pixels
+               de haut, ce qui en fait la cible la plus ratée du site au doigt — et la
+               plus consultée, puisqu'elle est le retour à l'accueil. La hauteur de la
+               ZONE tactile n'a pas à suivre celle du glyphe. */
+            className="flex min-h-11 shrink-0 items-center text-ink transition-opacity hover:opacity-80"
             aria-label={`${fr.site.name} — ${fr.site.tagline}`}
           >
             {/*
@@ -387,7 +391,7 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
                 ) : null}
 
                 {section.label ? (
-                  <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted/70">
+                  <p className="px-3 pb-1 pt-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted/70">
                     {section.label}
                   </p>
                 ) : null}
@@ -428,7 +432,7 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
                             <span className="min-w-0">
                               <span className="flex items-center gap-2">
                                 <span className="text-sm font-medium text-ink">{item.label}</span>
-                                <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide text-ink-muted">
+                                <span className="rounded bg-surface-muted px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
                                   {fr.nav.soonShort}
                                 </span>
                               </span>

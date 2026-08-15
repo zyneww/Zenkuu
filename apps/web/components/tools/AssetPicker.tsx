@@ -308,7 +308,7 @@ export function AssetPicker({
                   {/* En-tête COLLÉ : sur une liste de trois cents entrées, la section
                       courante disparaît en haut du panneau dès le premier défilement,
                       et le lecteur ne sait plus ce qu'il parcourt. */}
-                  <p className="sticky top-0 z-10 bg-overlay px-3 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+                  <p className="sticky top-0 z-10 bg-overlay px-3 py-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
                     {CLASS_LABELS[assetClass]}
                   </p>
 
@@ -340,7 +340,7 @@ export function AssetPicker({
                               {asset.name}
                             </span>
                             {blocked ? (
-                              <span className="shrink-0 text-[0.625rem] text-ink-muted">
+                              <span className="shrink-0 text-micro text-ink-muted">
                                 {blocked}
                               </span>
                             ) : (
