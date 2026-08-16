@@ -4,15 +4,24 @@ import { Link } from '@/i18n/navigation'
 /**
  * Inscription à l'infolettre — VOLONTAIREMENT INACTIVE.
  *
- * ZENKUU n'a aucune infrastructure d'envoi d'e-mails. Deux voies étaient possibles,
- * et les deux ont été écartées : un formulaire qui collecte réellement stockerait des
- * adresses personnelles sans finalité, ce qui pose un problème juridique autant que
- * moral ; un formulaire qui fait semblant d'accepter est un mensonge à l'utilisateur.
+ * Deux voies étaient possibles, et les deux ont été écartées : un formulaire qui
+ * collecte réellement stockerait des adresses personnelles sans finalité, ce qui pose
+ * un problème juridique autant que moral ; un formulaire qui fait semblant d'accepter
+ * est un mensonge à l'utilisateur.
  *
- * Reste celle-ci : le champ est visible, `disabled`, et la raison est écrite en
- * clair juste dessous. Le lecteur voit ce qui est prévu, comprend pourquoi ce n'est
- * pas disponible, et repart avec une alternative qui FONCTIONNE — le flux RSS, mis
- * en avant à côté et non relégué en note de bas de page.
+ * Reste celle-ci : le champ est visible, `disabled`, et la raison est écrite en clair
+ * juste dessous. Le lecteur voit ce qui est prévu, comprend pourquoi ce n'est pas
+ * disponible, et repart avec une alternative qui FONCTIONNE — le flux RSS, mis en
+ * avant à côté et non relégué en note de bas de page.
+ *
+ * ⚠️ LA RAISON AFFICHÉE A ÉTÉ CORRIGÉE, et l'ancienne mérite d'être citée : elle
+ * disait « l'envoi d'e-mails n'est pas configuré sur cette instance ». C'était vrai
+ * quand elle a été écrite, et ça ne l'est plus : le site envoie désormais des alertes
+ * de prix et des codes de connexion par courriel. Le message affirmait donc quelque
+ * chose de faux à côté de deux fonctions qui prouvaient le contraire.
+ *
+ * Ce qui manque n'a jamais été l'expéditeur : c'est une LISTE d'abonnés, un registre
+ * de consentements et une procédure de désinscription. Le texte le dit maintenant.
  *
  * `disabled` sur l'input ET sur le bouton : désactiver le seul bouton laisserait
  * saisir une adresse pour rien, ce qui est la plus frustrante des deux moitiés.
@@ -74,8 +83,9 @@ export function NewsletterSignup() {
               </button>
             </div>
             <p id="infolettre-indisponible" className="text-xs leading-relaxed text-ink-muted">
-              Indisponible : l’envoi d’e-mails n’est pas configuré sur cette instance.
-              Aucune adresse n’est collectée en attendant.
+              Pas encore ouverte : une infolettre suppose une liste d’abonnés, un
+              registre de consentements et un lien de désinscription, qui n’existent pas
+              ici. Aucune adresse n’est collectée en attendant.
             </p>
           </div>
         </div>
