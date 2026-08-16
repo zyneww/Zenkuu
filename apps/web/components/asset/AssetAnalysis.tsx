@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AssetClass } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, formatPercent, formatShare } from '@zenkuu/ui'
 
+import { loadAssetSeries } from '@/components/asset/asset-series'
 import { usePanelVisible } from '@/components/asset/panel-visibility'
 import { TechnicalGauge } from '@/components/asset/TechnicalGauge'
 import { Money } from '@/components/locale/Money'
@@ -141,17 +142,26 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
     let cancelled = false
     startedRef.current = true
 
-    const history = (id: string, klass: AssetClass) =>
-      fetch(`/api/historique?classe=${klass}&id=${encodeURIComponent(id)}&jours=365`)
-        .then((response) => response.json())
-        .catch(() => null)
+    /*
+     * L'historique passe par le cache de promesses partagé.
+     *
+     * Le catalogue de métriques, plus bas dans le MÊME onglet, a besoin de la même
+     * année de cours. Les deux panneaux deviennent visibles au même instant — un seul
+     * clic les ouvre — donc leurs effets partent ensemble et un `fetch` nu dans chacun
+     * ferait deux requêtes pour une seule donnée. Sur un fournisseur plafonné à
+     * quelques appels par minute, la seconde est celle qui manquera ailleurs.
+     *
+     * Voir `asset-series.ts` : ce qui est mis en cache est la promesse, pas le
+     * résultat, ce qui déduplique aussi les appels concurrents.
+     */
+    const history = (id: string, klass: AssetClass) => loadAssetSeries(klass, id, 365)
 
     const done = (key: keyof typeof pending) =>
       setPending((previous) => ({ ...previous, [key]: false }))
 
     void history(assetId, assetClass).then((payload) => {
       if (cancelled) return
-      if (payload?.ok) setPoints(payload.points)
+      if (payload) setPoints(payload.points)
       done('history')
 
       if (!comparable) {
@@ -163,7 +173,7 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
       void Promise.all(
         eligible.map((entry) =>
           history(entry.id, 'crypto').then((response) => {
-            if (cancelled || !response?.ok) return
+            if (cancelled || !response) return
             // Mise à jour fonctionnelle : les deux références reviennent dans un ordre
             // imprévisible, et un `setBenchmarks({ ...benchmarks, … })` sur une valeur
             // capturée perdrait celle arrivée entre-temps.

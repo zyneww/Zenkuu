@@ -20,6 +20,7 @@ import { AssetConverter } from '@/components/asset/AssetConverter'
 import { AssetGlobalPrices } from '@/components/asset/AssetGlobalPrices'
 import { LiveBinancePrice } from '@/components/asset/LiveBinancePrice'
 import { AssetMetricRail } from '@/components/asset/AssetMetricRail'
+import { AssetMetricCatalogue } from '@/components/asset/AssetMetricCatalogue'
 import { AssetAnalysis } from '@/components/asset/AssetAnalysis'
 import { AssetChangeGrid } from '@/components/asset/AssetChangeGrid'
 import { AssetCommunity } from '@/components/asset/AssetCommunity'
@@ -562,6 +563,24 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         {...(data.atl !== undefined ? { atl: data.atl } : {})}
         {...(data.atlDate ? { atlDate: data.atlDate } : {})}
       />
+
+      {/*
+        ── LE CATALOGUE DE MÉTRIQUES ────────────────────────────────────────────
+
+        C'est l'écran le plus dense de la référence, et il nous manquait : vingt mesures
+        au registre, chacune avec son libellé et son explication, mais qui n'existaient
+        qu'en lignes de texte dans le rail ou une par une sur leur page dédiée. La
+        grille les montre TOUTES, avec leur courbe quand la source en publie une.
+
+        Il est ici et non dans un sixième onglet : la rangée est passée de sept à cinq
+        parce que sa longueur se paie à chaque visite, et ce contenu appartient au même
+        geste que les indicateurs et le risque juste au-dessus — regarder l'actif de
+        près. Son en-tête détaille le reste.
+
+        Il ne coûte AUCUN appel supplémentaire : ses courbes viennent de la même année
+        d'historique que `AssetAnalysis`, partagée par `useAssetSeries`.
+      */}
+      <AssetMetricCatalogue asset={data} assetClass={assetClass} />
 
       {/* La série qui fonde tout ce qui précède ferme l'onglet — voir sa note. */}
       {historySection}
