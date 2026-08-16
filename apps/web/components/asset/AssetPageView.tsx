@@ -30,7 +30,9 @@ import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetYearPerformance } from '@/components/asset/AssetYearPerformance'
 import { AssetNewsPanel } from '@/components/asset/AssetNewsPanel'
 import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
+import { AssetFundamentals } from '@/components/asset/AssetFundamentals'
 import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
+import { AssetOwnership } from '@/components/asset/AssetOwnership'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetPools } from '@/components/asset/AssetPools'
 import { AssetSectors } from '@/components/asset/AssetSectors'
@@ -560,31 +562,34 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       ) : null}
 
       {/*
-        ── DÉTENTIONS INSTITUTIONNELLES ────────────────────────────────────────
+        ── QUI DÉTIENT L'ACTIF ─────────────────────────────────────────────────
 
-        La section ANNONCE QU'ELLE EST VIDE, ce qui est une position et non un oubli.
-        La référence y liste les entreprises et fonds qui détiennent l'actif à leur
-        bilan ; aucune de nos sources ne publie cette donnée — ni CoinGecko sur son
-        palier gratuit, ni Yahoo, ni Binance.
+        DEUX RÉPONSES, ET UNE SEULE S'AFFICHE.
 
-        Deux façons de traiter ce manque, et une seule est honnête. La déduire — de la
-        répartition de l'offre, des grands portefeuilles connus — reviendrait à publier
-        une estimation maison sous couvert de fait, ce que le §5 interdit. Dire qu'on ne
-        l'a pas apprend au moins au lecteur qu'il doit la chercher ailleurs.
+        Cette section a longtemps annoncé qu'elle était vide : « Détentions
+        institutionnelles — non publiées par nos sources ». C'était une position
+        assumée, et elle reste exacte POUR LA CRYPTO — ni CoinGecko sur son palier
+        gratuit, ni Binance ne publient les trésoreries d'entreprise exposées à un
+        jeton, et les déduire de la répartition de l'offre reviendrait à publier une
+        estimation maison sous couvert de fait (§5).
 
-        Elle n'appelle plus `AssetTabFiller` : ce bouche-trou existait parce que cet
-        onglet-là était TOUJOURS réduit à son encadré d'absence. Adossée à la grille des
-        comparables, l'absence occupe désormais la place qu'elle mérite : un paragraphe,
-        pas un écran.
+        Elle était en revanche fausse pour la bourse. La donnée y est réglementaire,
+        déclarée trimestriellement, et elle voyage dans la MÊME requête que les ratios
+        déjà chargés : nous ne l'avions simplement jamais demandée. `AssetOwnership`
+        la rend, et l'aveu d'ignorance ne subsiste que là où il dit vrai.
       */}
-      <section className="space-y-3">
-        <h2 className="display-sm text-ink">Détentions institutionnelles</h2>
-        <EmptyState
-          title="Non publiées par nos sources"
-          description={`Aucune de nos sources ne publie les trésoreries d’entreprise exposées à ${data.name}. Nous préférons le dire plutôt que d’estimer : une détention déduite de la répartition de l’offre serait un chiffre inventé, pas un relevé.`}
-          compact
-        />
-      </section>
+      {profile?.ownership ? (
+        <AssetOwnership profile={profile} assetName={data.name} />
+      ) : (
+        <section className="space-y-3">
+          <h2 className="display-sm text-ink">Détentions institutionnelles</h2>
+          <EmptyState
+            title="Non publiées par nos sources"
+            description={`Aucune de nos sources ne publie les trésoreries d’entreprise exposées à ${data.name}. Nous préférons le dire plutôt que d’estimer : une détention déduite de la répartition de l’offre serait un chiffre inventé, pas un relevé.`}
+            compact
+          />
+        </section>
+      )}
 
       {/* Le bouche-trou ne subsiste que si la grille des comparables est vide elle
           aussi — c'est-à-dire quand l'onglet entier n'aurait rien à montrer. */}
@@ -692,6 +697,23 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         données, et à la même condition — à l'ouverture de l'onglet, jamais avant.
       */}
       <AssetYearPerformance asset={data} assetClass={assetClass} />
+
+      {/*
+        LES FONDAMENTAUX OUVRENT L'ANALYSE, JUSTE APRÈS LES PERFORMANCES.
+
+        Ils décrivent l'ENTREPRISE — ce qu'elle encaisse, ce qu'elle en garde, ce
+        qu'elle doit, quand elle publie — là où tout le reste de la fiche décrit le
+        TITRE. C'est la moitié qui manquait : un cours/bénéfice de 55 se lit comme cher
+        jusqu'à ce qu'on voie 74 % de marge brute à côté.
+
+        Leur place est ici et non dans l'Aperçu : l'Aperçu répond à « combien »,
+        l'Analyse à « pourquoi ». Le composant se retire de lui-même pour tout ce qui
+        n'est pas une valeur boursière, et pour les titres dont Yahoo ne publie pas ces
+        modules.
+      */}
+      {profile ? (
+        <AssetFundamentals profile={profile} currency={data.currency} assetName={data.name} />
+      ) : null}
 
       <AssetAnalysis
         assetClass={assetClass}

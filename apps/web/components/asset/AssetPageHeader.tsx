@@ -7,6 +7,7 @@ import { ChangeBadge, formatDateTime } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { AssetBenchmarkRatio } from '@/components/asset/AssetBenchmarkRatio'
 import { AssetLogo } from '@/components/asset/AssetLogo'
+import { AssetMarketStatus } from '@/components/asset/AssetMarketStatus'
 import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
 
 /**
@@ -216,6 +217,21 @@ export async function AssetPageHeader({
               </span>
             ) : null}
           </div>
+
+          {/*
+            ÉTAT DE LA SÉANCE, COLLÉ SOUS LE COURS.
+
+            La ligne de fraîcheur en haut de page dit DE QUAND date la donnée ; celle-ci
+            dit si elle a encore vocation à bouger. Les deux se ressemblent et ne
+            répondent pas à la même question : un cours d'action vieux de dix-huit heures
+            un dimanche est parfaitement à jour, et rien dans la première ligne ne
+            permet de le savoir.
+
+            Sa place est ici et pas en haut : c'est une précision SUR LE CHIFFRE, du
+            même ordre que l'amplitude du jour qui la suit. Le composant se retire de
+            lui-même pour tout ce qui ne ferme pas — donc pour toute la crypto.
+          */}
+          <AssetMarketStatus asset={asset} />
 
           {/* Cours en actif de référence — voir son en-tête. Absent hors crypto. */}
           <AssetBenchmarkRatio asset={asset} />

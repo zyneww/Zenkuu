@@ -100,7 +100,19 @@ export type { CommodityFamily, UniverseEntry } from './providers/yahoo-universe'
 
 export { knownNetworks, networkFromPlatform } from './providers/geckoterminal'
 
-export type { AnalystView, AssetProfile, FundHolding, SectorWeight } from './providers/yahoo-profile'
+export type {
+  AnalystView,
+  AssetProfile,
+  DividendView,
+  EarningsQuarter,
+  EarningsView,
+  EarningsYear,
+  FundHolding,
+  InstitutionalHolder,
+  OwnershipView,
+  SectorWeight,
+  ValuationView,
+} from './providers/yahoo-profile'
 
 export { MACRO_INDICATORS, WORLDBANK_SOURCE } from './providers/worldbank'
 export type { MacroIndicatorId, MacroObservation } from './providers/worldbank'

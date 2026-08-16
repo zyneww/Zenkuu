@@ -1362,7 +1362,11 @@ const PROFILE_TTL_SECONDS = 6 * 3_600
  * supprimer : elle expire d'elle-même, et un retour en arrière du code retrouve la
  * sienne intacte.
  */
-const PROFILE_SHAPE = 'v2'
+/* v3 : quatre modules de plus dans la réponse — valorisation d'entreprise et marges,
+   résultats trimestriels, dividende, répartition du capital. Une entrée `v2` en cache
+   ne les porte pas, et sans ce changement de version la fiche afficherait des sections
+   vides jusqu'à l'expiration naturelle. Voir `modulesFor` dans `yahoo-profile.ts`. */
+const PROFILE_SHAPE = 'v3'
 
 /**
  * Profil d'un actif boursier, ou un échec explicite.
