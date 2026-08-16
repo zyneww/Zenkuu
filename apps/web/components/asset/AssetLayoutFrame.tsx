@@ -22,10 +22,25 @@ import { useEffect, useRef, useState } from 'react'
  * ── LE RAIL N'EST PAS MASQUÉ EN LARGE, IL EST DÉPLACÉ ─────────────────────────
  *
  * La disposition « pleine largeur » ne cache pas les chiffres : elle les remet
- * SOUS le contenu, en trois colonnes. Les masquer ferait de ce bouton un interrupteur
- * qui supprime de l'information, ce qu'un réglage de mise en page n'a pas à faire —
- * et le lecteur qui l'a choisi une fois ne comprendrait pas, trois visites plus tard,
- * pourquoi sa fiche a moins de contenu que celle du voisin.
+ * SOUS le contenu, en jusqu'à quatre colonnes. Les masquer ferait de ce bouton un
+ * interrupteur qui supprime de l'information, ce qu'un réglage de mise en page n'a pas
+ * à faire — et le lecteur qui l'a choisi une fois ne comprendrait pas, trois visites
+ * plus tard, pourquoi sa fiche a moins de contenu que celle du voisin.
+ *
+ * ── CE QUE LA MESURE A APPRIS APRÈS L'ÉLARGISSEMENT DE LA COQUE ───────────────
+ *
+ * Relevé au navigateur sur la fiche du bitcoin, fenêtre de 2390 px : le rail faisait
+ * 1884 pixels de haut pour un contenu de 1147. C'est l'inverse de son argument
+ * fondateur — « les mêmes vingt chiffres tiennent dans la hauteur du graphique ». Le
+ * bandeau de la disposition « pleine largeur » ramène les mêmes groupes à 990 pixels
+ * en quatre colonnes, ce qui en fait la réponse à ce déséquilibre et non un simple
+ * goût de mise en page.
+ *
+ * Deux défauts du bandeau ont été corrigés au passage, tous deux visibles à l'écran :
+ * la sentinelle de la barre collante occupait la première cellule (390 pixels de vide
+ * en tête), et le groupe des métriques tombait dans une cellule unique trois fois plus
+ * haute que ses voisines. Voir `col-span-full` dans `AssetStickyBar` et
+ * `data-rail-group` dans `AssetMetricRail`.
  */
 
 export type AssetLayout = 'rail' | 'compact' | 'wide'
@@ -46,7 +61,7 @@ const LAYOUTS: { id: AssetLayout; label: string; hint: string; icon: React.React
   {
     id: 'wide',
     label: 'Pleine largeur',
-    hint: 'Chiffres en bandeau sous le contenu',
+    hint: 'Chiffres en bandeau sous le contenu, sur quatre colonnes',
     icon: <Rows2 className="h-3.5 w-3.5" aria-hidden="true" />,
   },
 ]
@@ -351,22 +366,52 @@ export function AssetLayoutFrame({
       </div>
 
       {/*
-        ── LES TROIS DISPOSITIONS ────────────────────────────────────────────────
+        ── LES TROIS DISPOSITIONS, RECALIBRÉES SUR LA COQUE DE 1680 px ───────────
 
-        `items-start` dans les deux cas où la grille a deux colonnes : sans lui, la
-        colonne courte s'étire à la hauteur de la longue, et le rail d'une paire de
-        devises — qui n'a ni offre ni communauté — finirait par plusieurs centaines de
-        pixels de vide. C'est aussi la classe de défaut qui a fait déborder une carte
-        par-dessus le pied de page sur l'accueil ; on ne la réintroduit pas ici.
+        Elles avaient été réglées quand le contenu était borné à 1440. La coque a
+        adopté la largeur de CoinGecko, et une mesure au navigateur a montré ce que
+        ce changement rendait visible.
+
+        RELEVÉ sur la fiche du bitcoin, fenêtre de 2390 px, disposition « Rail
+        complet », colonne d'actualités ouverte : grille de 1632 px répartie en
+        288 + 16 + 1328, elle-même en 1024 + 16 + 288. Jusque-là tout va bien.
+
+        Le rail mesurait 1884 px de HAUT pour un contenu de 1147. C'est exactement ce
+        que le rail devait empêcher — son argument fondateur est que « les mêmes vingt
+        chiffres tiennent dans la hauteur du graphique » — et il ne le tenait plus :
+        737 pixels de rail se déroulaient en face d'un vide.
+
+        `items-start` reste indispensable dans les deux dispositions à deux colonnes :
+        sans lui, la colonne courte s'étire à la hauteur de la longue, et le rail d'une
+        paire de devises — qui n'a ni offre ni communauté — finirait par plusieurs
+        centaines de pixels de vide. C'est aussi la classe de défaut qui a fait déborder
+        une carte par-dessus le pied de page sur l'accueil ; on ne la réintroduit pas.
       */}
       {layout === 'wide' ? (
         <div className="space-y-4">
           {content}
 
-          {/* Le rail passe en bandeau : ses panneaux se répartissent sur trois
-              colonnes plutôt que de s'empiler sur toute la largeur, où chaque ligne
-              de « libellé … valeur » ferait un mètre de blanc au milieu. */}
-          <div className="[&>aside]:grid [&>aside]:grid-cols-1 [&>aside]:gap-3 [&>aside]:space-y-0 md:[&>aside]:grid-cols-2 xl:[&>aside]:grid-cols-3">
+          {/*
+            LE RAIL EN BANDEAU — jusqu'à QUATRE colonnes, contre trois auparavant.
+
+            Trois colonnes sur 1632 px donnent des groupes de 533 pixels : une ligne
+            « libellé … valeur » y traîne un demi-mètre de blanc entre ses deux bouts,
+            ce qui est précisément le défaut que le bandeau existe pour éviter. À
+            quatre, un groupe fait 400 px — l'ordre de grandeur du rail lui-même, pour
+            lequel ces lignes ont été dessinées.
+
+            Le palier est `2xl` et non `xl` : en dessous de 1536 px de fenêtre, la
+            coque n'atteint pas sa largeur maximale et la quatrième colonne tomberait
+            sous 340 px, où les libellés recommencent à se tronquer.
+
+            ⚠️ Le sélecteur vise `[&>aside]` — le rail est un `<aside>` fourni par
+            l'appelant, et cette grille remplace son empilement vertical. C'est un
+            couplage à la FORME du nœud reçu, faute de pouvoir en changer les classes :
+            ce cadre est un composant client, le rail une arborescence serveur déjà
+            rendue. Le jour où le rail cesse d'être un `<aside>`, la mise en page
+            retombe silencieusement sur l'empilement — d'où cette note.
+          */}
+          <div className="[&>aside]:grid [&>aside]:grid-cols-1 [&>aside]:gap-x-6 [&>aside]:gap-y-5 [&>aside]:space-y-0 [&_[data-rail-group]]:contents md:[&>aside]:grid-cols-2 xl:[&>aside]:grid-cols-3 2xl:[&>aside]:grid-cols-4">
             {rail}
           </div>
         </div>
@@ -374,8 +419,24 @@ export function AssetLayoutFrame({
         <div
           className={`grid grid-cols-1 items-start gap-4 ${
             layout === 'compact'
-              ? 'lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]'
-              : 'lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'
+              ? /*
+                 RAIL ÉTROIT — 15rem, puis 16 au-delà de 1536 px.
+                 Il existe pour rendre de la largeur au graphique sur un portable de
+                 treize pouces ; sur un écran de bureau il n'a plus à être aussi
+                 serré, et 16 rem suffisent à faire tenir « Plus haut historique »
+                 sans césure.
+                */
+                'lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]'
+              : /*
+                 RAIL COMPLET — 18rem, puis 20 au-delà de 1536 px.
+                 18 rem avait été choisi parce que les groupes étaient des panneaux
+                 qui prélevaient 32 px de marge interne ; ils sont devenus plats
+                 (voir `RailSection`), mais les libellés les plus longs — « Plus bas
+                 sur 52 semaines » — restent à la limite. Les 32 pixels rendus par la
+                 coque élargie leur reviennent, et le graphique conserve plus de mille
+                 pixels avec la colonne d'actualités ouverte.
+                */
+                'lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]'
           }`}
         >
           {rail}

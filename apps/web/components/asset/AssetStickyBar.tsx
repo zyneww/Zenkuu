@@ -86,7 +86,17 @@ export function AssetStickyBar({
 
   return (
     <>
-      <div ref={sentinelRef} aria-hidden="true" className="h-px" />
+      {/*
+        `col-span-full` : sans effet dans un conteneur en bloc — donc dans le rail
+        ordinaire — et INDISPENSABLE dans la disposition « pleine largeur », où le rail
+        devient une grille de quatre colonnes. Cette sentinelle d'un pixel y occupait
+        sinon la première cellule, et le bandeau s'ouvrait sur un vide de 390 pixels
+        avant son premier groupe. Constaté à l'écran.
+
+        Elle ne peut pas simplement disparaître de la grille : sa POSITION DANS LE FLUX
+        est ce qui définit le seuil de déclenchement de la barre collante.
+      */}
+      <div ref={sentinelRef} aria-hidden="true" className="col-span-full h-px" />
 
       <div
         // `aria-hidden` quand elle est masquée : la barre répète des informations

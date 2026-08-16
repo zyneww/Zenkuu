@@ -120,7 +120,15 @@ export async function AssetMetricRail({
   const entryMetric = groups[0]?.rows[0]?.metric.slug
 
   return (
-    <aside className="space-y-6" aria-label="Repères chiffrés">
+    /*
+      `data-rail-group` : point d'accroche de la disposition « pleine largeur », où le
+      rail devient une grille. Sans lui, ce groupe entier — fondamentaux, amplitude,
+      variations — tombe dans UNE seule cellule et forme une colonne trois fois plus
+      haute que ses voisines. L'attribut permet au cadre de le passer en
+      `display: contents`, ce qui rend ses trois sections à la grille sans rien changer
+      ailleurs. Voir `AssetLayoutFrame`.
+    */
+    <aside data-rail-group className="space-y-6" aria-label="Repères chiffrés">
       {groups.map(({ group, rows }) => (
         <RailSection key={group} title={GROUP_TITLES[group]}>
           <dl>
