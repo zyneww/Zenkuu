@@ -85,6 +85,11 @@ interface CoinGeckoMarket {
   circulating_supply: number | null
   total_supply: number | null
   max_supply: number | null
+  /* Extrêmes de la séance glissante. Présents dans cette réponse depuis toujours et
+     jusqu'ici non lus : c'est ce qui laissait la colonne « amplitude du jour » du
+     screener vide sur ses deux cent cinquante lignes. */
+  high_24h: number | null
+  low_24h: number | null
   ath: number | null
   ath_date: string | null
   atl: number | null
@@ -414,6 +419,12 @@ function toMarketAsset(raw: CoinGeckoMarket, currency: string): MarketAsset {
 
   const max = optional(raw.max_supply)
   if (max !== undefined) asset.maxSupply = max
+
+  const high = optional(raw.high_24h)
+  if (high !== undefined) asset.high24h = high
+
+  const low = optional(raw.low_24h)
+  if (low !== undefined) asset.low24h = low
 
   const ath = optional(raw.ath)
   if (ath !== undefined) asset.ath = ath

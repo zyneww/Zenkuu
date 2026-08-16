@@ -4,12 +4,14 @@ import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, EmptyState } from '@zenkuu/ui'
+import { EmptyState } from '@zenkuu/ui'
+
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { ExportMenu } from '@/components/tools/ExportMenu'
-import { Money } from '@/components/locale/Money'
 import { SavedScreens } from '@/components/tools/SavedScreens'
+import { COLUMN_SETS, hiddenClass } from '@/components/tools/screener-columns'
 import { Pagination } from '@/components/ui/Pagination'
 import { assetHref } from '@/lib/asset-routes'
 import type { ScreenCriteria } from '@/lib/screen-actions'
@@ -27,6 +29,21 @@ import type { ScreenCriteria } from '@/lib/screen-actions'
  * Les seuils sont exprimés en SEUILS MINIMUM plutôt qu'en fourchettes : sur des
  * grandeurs qui s'étalent sur six ordres de grandeur, une borne haute ne sert
  * pratiquement jamais, et deux curseurs par critère doublent la charge sans gain.
+ *
+ * ── DEUX MANQUES QUE LA COMPARAISON AVEC TRADINGVIEW A RENDUS ÉVIDENTS ────────
+ *
+ * 1. AUCUN TRI. Le tableau sortait dans l'ordre du classement par capitalisation, et
+ *    c'était le seul ordre possible. Filtrer sur la rotation puis vouloir « les plus
+ *    fortes d'abord » était impossible : il fallait lire deux cent cinquante lignes.
+ *    C'est le geste le plus fréquent d'un screener, et il n'existait pas.
+ *
+ * 2. DES COLONNES FIGÉES. Cinq colonnes, toujours les mêmes — dont aucune ne portait
+ *    la rotation ni l'offre, pourtant filtrables. On réglait donc un curseur en
+ *    aveugle, puis on ouvrait une fiche pour vérifier ce qu'il avait fait.
+ *
+ * Les JEUX DE COLONNES de la référence répondent au second, et leur découpage est le
+ * bon : le filtre dit ce qu'on cherche, le jeu de colonnes dit ce qu'on veut voir, et
+ * les deux questions sont indépendantes. Voir `screener-columns.tsx`.
  */
 
 type Preset = 'tout' | 'solides' | 'momentum' | 'repli' | 'liquides'
@@ -79,6 +96,23 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(50)
 
+  /* Jeu de colonnes affiché. Il ne touche PAS aux filtres : changer d'onglet ne doit
+     jamais modifier la population retenue, seulement ce qu'on en montre. */
+  const [columnSetId, setColumnSetId] = useState(COLUMN_SETS[0]!.id)
+
+  /*
+   * Tri courant.
+   *
+   * `null` = l'ordre de la source, c'est-à-dire le classement par capitalisation. Ce
+   * n'est pas un tri « par défaut » sur une colonne : c'est l'ABSENCE de tri, et la
+   * distinction se voit dans l'interface — aucune flèche n'est allumée. Un troisième
+   * clic sur un en-tête y revient, ce qui donne un moyen de revenir en arrière sans
+   * recharger la page.
+   */
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+
+  const columnSet = COLUMN_SETS.find((entry) => entry.id === columnSetId) ?? COLUMN_SETS[0]!
+
   const minCap = MARKET_CAP_STEPS[minCapIndex] ?? 0
   const minVolume = VOLUME_STEPS[minVolumeIndex] ?? 0
   const minTurnover = TURNOVER_STEPS[minTurnoverIndex] ?? 0
@@ -126,6 +160,53 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
   }, [assets, preset, minCap, minVolume, minChange24h, minChange7d, minTurnover, query])
 
   /*
+   * ── TRI, APPLIQUÉ APRÈS LE FILTRE ─────────────────────────────────────────
+   *
+   * Dans cet ordre et pas l'autre : trier deux cent cinquante lignes pour n'en garder
+   * ensuite que douze serait du travail jeté à chaque mouvement de curseur.
+   *
+   * Les lignes SANS VALEUR sont rejetées en fin de liste dans les deux sens. Les
+   * traiter comme des zéros les ferait remonter en tête d'un tri croissant, où elles
+   * se liraient comme les plus petites valeurs du marché — alors qu'elles ne sont pas
+   * mesurées (§5).
+   */
+  const sortedRows = useMemo(() => {
+    if (!sort) return rows
+
+    const column = columnSet.columns.find((entry) => entry.key === sort.key)
+    if (!column) return rows
+
+    const direction = sort.direction === 'asc' ? 1 : -1
+
+    return [...rows].sort((a, b) => {
+      const left = column.sortValue(a)
+      const right = column.sortValue(b)
+
+      if (left === null && right === null) return 0
+      if (left === null) return 1
+      if (right === null) return -1
+
+      return direction * (left - right)
+    })
+  }, [rows, sort, columnSet])
+
+  /**
+   * Trois états par colonne : décroissant, croissant, aucun tri.
+   *
+   * Le premier clic donne le DÉCROISSANT et non le croissant, contrairement à
+   * l'habitude des tableaux de fichiers. Sur des grandeurs de marché, « montre-moi les
+   * plus gros » est la question qu'on pose en cliquant sur « Capitalisation » ;
+   * commencer par les plus petits obligerait à cliquer deux fois à chaque fois.
+   */
+  function toggleSort(key: string) {
+    setSort((current) => {
+      if (!current || current.key !== key) return { key, direction: 'desc' }
+      if (current.direction === 'desc') return { key, direction: 'asc' }
+      return null
+    })
+  }
+
+  /*
    * RETOUR EN PAGE 1 QUAND LES CRITÈRES CHANGENT.
    *
    * Sept curseurs composent ce filtre, et chacun peut réduire le résultat à trois
@@ -135,17 +216,17 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
    * L'ajustement se fait PENDANT LE RENDU plutôt que dans un effet : un effet
    * peindrait d'abord le tableau vide avant de le corriger.
    */
-  const signature = `${preset}|${minCap}|${minVolume}|${minChange24h}|${minChange7d}|${minTurnover}|${query.trim()}`
+  const signature = `${preset}|${minCap}|${minVolume}|${minChange24h}|${minChange7d}|${minTurnover}|${query.trim()}|${sort?.key ?? ''}${sort?.direction ?? ''}`
   const [lastSignature, setLastSignature] = useState(signature)
   if (signature !== lastSignature) {
     setLastSignature(signature)
     setPage(1)
   }
 
-  const pageCount = Math.max(1, Math.ceil(rows.length / perPage))
+  const pageCount = Math.max(1, Math.ceil(sortedRows.length / perPage))
   const currentPage = Math.min(page, pageCount)
   const start = (currentPage - 1) * perPage
-  const visible = rows.slice(start, start + perPage)
+  const visible = sortedRows.slice(start, start + perPage)
 
   function reset() {
     setPreset('tout')
@@ -361,7 +442,50 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {/*
+        ── LA RANGÉE DE JEUX DE COLONNES ────────────────────────────────────────
+
+        Elle se lit comme une barre d'onglets et n'en est PAS une au sens ARIA : un
+        onglet change de panneau, celui-ci change les colonnes d'un même tableau. Un
+        `role="tablist"` ferait annoncer « panneau 2 sur 4 » à un lecteur d'écran, qui
+        chercherait ensuite un contenu qui n'existe pas. Un groupe de boutons à état
+        pressé décrit exactement ce qui se passe.
+
+        Elle est posée AU-DESSUS du tableau et sous les filtres, dans l'ordre où les
+        deux questions se posent : ce que je cherche, puis ce que je veux en voir.
+      */}
+      <div
+        className="flex flex-wrap items-center gap-1 border-b border-border-subtle"
+        role="group"
+        aria-label="Colonnes affichées"
+      >
+        {COLUMN_SETS.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            onClick={() => setColumnSetId(entry.id)}
+            aria-pressed={entry.id === columnSet.id}
+            title={entry.hint}
+            className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-xs font-medium transition-colors duration-150 ${
+              entry.id === columnSet.id
+                ? 'border-brand text-brand-strong'
+                : 'border-transparent text-ink-muted hover:text-ink'
+            }`}
+          >
+            {entry.label}
+          </button>
+        ))}
+
+        {/* Le compteur au bout de la rangée, comme chez la référence : c'est la
+            réponse au filtre qu'on vient de régler, et elle doit être lisible sans
+            descendre jusqu'à la pagination. */}
+        <p className="tabular ml-auto pb-2 pr-1 text-xs text-ink-muted" aria-live="polite">
+          <strong className="text-ink">{sortedRows.length}</strong> résultat
+          {sortedRows.length > 1 ? 's' : ''}
+        </p>
+      </div>
+
+      {sortedRows.length === 0 ? (
         <EmptyState
           title="Aucun actif ne satisfait ces critères"
           description="Assouplissez un seuil, ou réinitialisez les filtres."
@@ -369,37 +493,76 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         />
       ) : (
         <div className="overflow-x-auto rounded-card border border-border-subtle">
-          {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Ne restent
-              que l'actif, son prix et sa variation : le rang et la capitalisation sont
-              les critères du FILTRE, pas de la lecture, et le filtre est juste au-dessus. */}
+          {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Chaque
+              jeu déclare lui-même ce qu'il sacrifie en premier : sur 375 pixels, sept
+              colonnes ne font pas un tableau mais un défilement latéral. */}
           <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
-            <caption className="sr-only">Résultats du filtre</caption>
+            <caption className="sr-only">
+              Résultats du filtre — colonnes « {columnSet.label} »
+            </caption>
             <thead>
               <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
-                <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>
-                <th scope="col" className="px-3 py-2.5 font-medium">Actif</th>
-                <th scope="col" className="px-3 py-2.5 text-right font-medium">Prix</th>
-                <th scope="col" className="px-3 py-2.5 text-right font-medium">24 h</th>
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">7 j</th>
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium md:table-cell">
-                  Volume 24 h
+                <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
+                  #
                 </th>
-                {/*
-                  PAS DE COLONNE DE COURBE ICI, contrairement aux autres tableaux.
-                  L'univers de 250 lignes est chargé sans les séries 7 jours : les
-                  inclure ferait transiter plus de deux mégaoctets jusqu'au navigateur,
-                  pour une vignette que la colonne « 7 j » chiffre déjà. Une colonne
-                  vide serait pire qu'absente — elle passerait pour une panne.
-                */}
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
-                  Capitalisation
+                <th scope="col" className="px-3 py-2.5 font-medium">
+                  Actif
                 </th>
+
+                {columnSet.columns.map((column) => {
+                  const active = sort?.key === column.key
+                  return (
+                    <th
+                      key={column.key}
+                      scope="col"
+                      aria-sort={
+                        active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'
+                      }
+                      className={`px-3 py-2.5 text-right font-medium ${hiddenClass(column)}`}
+                    >
+                      {/*
+                        L'en-tête ENTIER est le bouton, et non une icône posée à côté du
+                        libellé : une cible de 12 pixels dans un tableau dense se rate
+                        une fois sur trois, et le libellé est de toute façon ce que la
+                        main vise.
+                      */}
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(column.key)}
+                        title={column.hint ?? `Trier par ${column.label}`}
+                        className={`inline-flex w-full items-center justify-end gap-1 transition-colors duration-150 hover:text-ink ${
+                          active ? 'text-brand-strong' : ''
+                        }`}
+                      >
+                        {column.label}
+                        {active ? (
+                          sort.direction === 'asc' ? (
+                            <ArrowUp className="h-3 w-3 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3 shrink-0" aria-hidden="true" />
+                          )
+                        ) : (
+                          /* La double flèche est TOUJOURS présente, en retrait : sans
+                             elle, rien ne dit qu'une colonne est triable, et un tableau
+                             dont on ne sait pas qu'il se trie ne se trie jamais. */
+                          <ChevronsUpDown
+                            className="h-3 w-3 shrink-0 opacity-40"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </button>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
 
             <tbody className="divide-y divide-border-subtle">
               {visible.map((asset) => (
-                <tr key={asset.id} className="group transition-colors duration-150 hover:bg-surface-muted/60">
+                <tr
+                  key={asset.id}
+                  className="group transition-colors duration-150 hover:bg-surface-muted/60"
+                >
                   <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
                     {asset.rank ?? '—'}
                   </td>
@@ -419,21 +582,14 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                     </Link>
                   </th>
 
-                  <td className="tabular px-3 py-2.5 text-right text-ink">
-                    <Money value={asset.price} from={asset.currency} />
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <ChangeBadge value={asset.change24h} size="sm" />
-                  </td>
-                  <td className="hidden px-3 py-2.5 text-right sm:table-cell">
-                    <ChangeBadge value={asset.change7d} size="sm" />
-                  </td>
-                  <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
-                    <Money value={asset.volume24h} from={asset.currency} compact />
-                  </td>
-                  <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
-                    <Money value={asset.marketCap} from={asset.currency} compact />
-                  </td>
+                  {columnSet.columns.map((column) => (
+                    <td
+                      key={column.key}
+                      className={`tabular px-3 py-2.5 text-right text-ink ${hiddenClass(column)}`}
+                    >
+                      {column.render(asset)}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -452,11 +608,11 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         La pagination tient la même promesse — borner ce que le navigateur dessine d'un
         coup — sans rendre les lignes suivantes inatteignables.
       */}
-      {rows.length > 0 ? (
+      {sortedRows.length > 0 ? (
         <Pagination
           page={currentPage}
           perPage={perPage}
-          total={rows.length}
+          total={sortedRows.length}
           unit="actif"
           onPageChange={setPage}
           onPerPageChange={(size) => {
