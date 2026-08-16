@@ -189,31 +189,62 @@ interface ChartToolbarProps {
 export function ChartToolbar(props: ChartToolbarProps) {
   return (
     /*
-      ── LA BARRE EST LE BANDEAU DU CADRE, PLUS UNE RANGÉE POSÉE AU-DESSUS ──────
+      ── DEUX GROUPES, TENUS AUX DEUX BORDS ────────────────────────────────────
 
-      Elle flottait au-dessus du graphique, séparée de lui par une marge : deux objets
-      distincts, dont rien ne disait que l'un commandait l'autre. Les deux références
-      font l'inverse — chez OKX comme chez CoinGecko, les commandes sont SERTIES dans
-      le cadre du graphique, sous un filet qui les en sépare sans les en détacher.
+      La barre était une seule suite d'éléments, rejetés à droite par des `ml-auto`
+      successifs et coupés en deux rangées par un `basis-full`. Elle est faite désormais
+      de DEUX conteneurs écartés par `justify-between` : à gauche ce qui décide de ce
+      qu'on trace (grandeur, comparaison, type, rendu), à droite le cadrage temporel et
+      ce qu'on fait du résultat.
 
-      D'où le `border-b` : le trait appartient au cadre, et c'est lui qui rattache les
-      commandes à la courbe.
+      C'est le partage de la référence, et il tient parce que les deux familles
+      répondent à des questions qu'on ne se pose pas en même temps.
 
-      Pas de marge négative pour l'étendre aux bords du panneau, malgré l'effet un peu
-      plus net que cela donnerait : ce même bloc est extrait du document en plein écran,
-      où il n'a plus de rembourrage parent à compenser — la barre déborderait alors de
-      seize pixels de chaque côté.
+      ── LA RUPTURE DE LIGNE FORCÉE A ÉTÉ RETIRÉE ──────────────────────────────
 
-      ── HAUTEUR UNIQUE, COINS CARRÉS ──────────────────────────────────────────
+      Le `basis-full` imposait DEUX rangées quelle que soit la place disponible. Son
+      motif était de stabiliser la hauteur : sans lui, la barre basculait d'une à deux
+      rangées selon que l'actif proposait ou non la comparaison et les bougies, et le
+      graphique gagnait ou perdait trente pixels d'une fiche à l'autre. Il coûtait une
+      rangée entière à TOUS les actifs pour régler le cas de quelques-uns.
 
-      Tous les contrôles font 28 pixels de haut (`h-7`) et n'ont pas d'arrondi. Les
-      deux règles règlent le même défaut : la barre alignait des pastilles bordées de
-      hauteurs légèrement différentes, chacune arrondie dans son coin, ce qui donnait
-      une rangée de galets plutôt qu'un instrument. Une surface DENSE — barre d'outils,
-      carnet, tableau — se lit mieux à angles vifs ; l'arrondi reste aux cartes
-      éditoriales, qui sont des objets qu'on pose, pas des commandes qu'on aligne.
+      Les deux groupes tiennent sur une ligne dès un millier de pixels, ce qui est la
+      largeur de la colonne de contenu sur un écran d'ordinateur. En dessous,
+      `flex-wrap` reprend la main — et un graphique de téléphone n'a de toute façon pas
+      la même hauteur qu'un graphique de bureau.
+
+      ── CE QUI EST ENCADRÉ, ET CE QUI NE L'EST PAS ────────────────────────────
+
+      Toutes les commandes ont été des pastilles bordées, puis plus aucune ne l'a été :
+      alignées à huit, ces bordures pesaient plus lourd que les libellés qu'elles
+      encadraient, et la rangée se lisait comme une collection de galets plutôt que
+      comme un instrument.
+
+      La référence règle le même problème sans aller jusque-là, et c'est sa réponse qui
+      est reprise : l'encadrement devient un SIGNAL, pas un décor. Les menus en portent
+      un, parce qu'une pastille est la forme qui dit « il y a autre chose derrière » ;
+      le palier de période ACTIF en porte un, parce qu'il désigne un état parmi sept.
+      Les paliers éteints et les boutons d'icône restent nus et ne se révèlent qu'au
+      survol.
+
+      L'arrondi revient avec eux, en `rounded-control` — 3 à 6 pixels, la famille des
+      contrôles, jamais celle des cartes. Voir `globals.css`.
+
+      Tous les contrôles gardent en revanche la même hauteur de 28 pixels (`h-7`) : la
+      barre alignait autrefois des pastilles de hauteurs légèrement différentes, et
+      c'est cette inégalité-là, plus que l'arrondi, qui faisait la rangée de galets.
+
+      ── LE FILET SOUS LA BARRE A DISPARU ──────────────────────────────────────
+
+      Un `border-b` rattachait les commandes à la courbe, au motif qu'elles étaient
+      SERTIES dans le cadre du graphique — c'est ce que font OKX et CoinGecko. Ce cadre
+      n'existe plus : le panneau est passé en fond transparent, comme chez la référence,
+      et un trait qui ne borde plus rien se lit comme une séparation de sections là où
+      il n'y en a pas.
     */
-    <div className="mb-3 flex flex-wrap items-center gap-x-0.5 gap-y-1.5 border-b border-border-subtle pb-2">
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+      {/* GAUCHE — ce qui décide de ce qu'on trace. */}
+      <div className="flex min-w-0 flex-wrap items-center gap-1">
       <Dropdown
         label={props.metricOptions.find((entry) => entry.key === props.metric)?.label ?? 'Grandeur'}
       >
@@ -288,10 +319,54 @@ export function ChartToolbar(props: ChartToolbarProps) {
         }
       </Dropdown>
 
-      {/* Séparateur : les paliers forment un groupe à part, et le trait dit lequel
-          sans ajouter de mot. */}
-      <span aria-hidden="true" className="mx-1.5 h-4 w-px bg-border-subtle" />
+      {/*
+        GROUPE DE VUES — un segment plein, et non des boutons détachés.
 
+        Chez OKX ces quatre entrées forment un bloc soudé sur fond creusé, et la forme
+        porte le sens : elle dit « une seule à la fois », là où des boutons séparés se
+        liraient comme des options cumulables. Un seul est allumé, et le fond du groupe
+        reste visible autour — c'est ce qui distingue un sélecteur d'un alignement
+        d'actions.
+
+        Il a REJOINT LA GAUCHE. Il vivait à droite, avec le lien et le plein écran,
+        c'est-à-dire avec ce qu'on fait du graphique. C'était un mauvais voisinage : ces
+        quatre entrées ne font rien du graphique, elles décident lequel est tracé. Chez
+        la référence, le choix de rendu est la dernière chose du groupe de gauche, juste
+        après le type de courbe — et c'est là qu'il se cherche.
+      */}
+      {props.views.length > 1 ? (
+        <span
+          role="group"
+          aria-label="Vue du graphique"
+          /* Le SEGMENT s'enroule lui aussi à 320 px. Ses quatre entrées — Original,
+             TradingView, Profondeur, Capitalisation — font 323 px à elles seules : sans
+             `flex-wrap`, il débordait de sa propre boîte et poussait la page de 44 px
+             sur iPhone SE. Le fond creusé englobe alors deux lignes au lieu d'une, ce
+             qui reste lisible comme un groupe — c'est le fond qui le dit, pas
+             l'alignement. */
+          className="flex min-w-0 flex-wrap items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
+        >
+          {props.views.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              onClick={() => props.onViewChange(entry.id)}
+              aria-pressed={entry.id === props.view}
+              className={`flex h-6 items-center rounded-sm px-2 text-xs font-medium transition-colors duration-150 ${
+                entry.id === props.view
+                  ? 'bg-overlay text-ink shadow-sm'
+                  : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </span>
+      ) : null}
+      </div>
+
+      {/* DROITE — le cadrage temporel, puis ce qu'on fait du résultat. */}
+      <div className="flex min-w-0 flex-wrap items-center gap-1">
       {/*
         DEUX FAÇONS DE CADRER LE TEMPS, ET ELLES NE RÉPONDENT PAS À LA MÊME QUESTION.
 
@@ -354,10 +429,14 @@ export function ChartToolbar(props: ChartToolbarProps) {
                 props.onRangeChange(preset)
               }}
               aria-pressed={active}
-              className={`flex h-7 items-center justify-center px-2 text-xs font-medium transition-colors duration-150 ${
+              /* Le palier ACTIF est encadré, les six autres sont nus — c'est la forme
+                 de la référence, et elle vaut mieux qu'un simple fond coloré : sur sept
+                 boutons serrés, une bordure délimite l'état courant sans avoir à
+                 recourir à un aplat plus soutenu que le reste de la barre. */
+              className={`flex h-7 items-center justify-center rounded-control border px-2 text-xs font-medium transition-colors duration-150 ${
                 active
-                  ? 'bg-brand-soft text-brand-strong'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                  ? 'border-brand bg-brand-soft text-brand-strong'
+                  : 'border-transparent text-ink-muted hover:bg-surface-muted hover:text-ink'
               }`}
             >
               {preset.label}
@@ -371,83 +450,13 @@ export function ChartToolbar(props: ChartToolbarProps) {
         onChange={props.onCustomRange}
       />
 
-      {/* La devise ferme la première rangée : c'est l'unité dans laquelle se lisent
-          les paliers qui la précèdent, elle appartient donc à leur ligne. */}
-      <span className="ml-auto">{props.currencySlot}</span>
+      {/* La devise suit les paliers : c'est l'unité dans laquelle ils se lisent, elle
+          appartient donc à leur voisinage immédiat. */}
+      {props.currencySlot}
 
-      {/*
-        ── RUPTURE DE LIGNE FORCÉE, ET C'EST UN CHOIX ────────────────────────────
-
-        Un élément à `basis-full` occupe toute la largeur disponible dans un conteneur
-        `flex-wrap` : tout ce qui suit est donc rejeté sur une seconde rangée, quelle
-        que soit la place restante.
-
-        Pourquoi l'imposer plutôt que laisser le repli naturel opérer ? Parce que ce
-        dernier dépend de la LARGEUR DU CONTENU : selon que l'actif propose ou non la
-        comparaison, la profondeur, les bougies Binance, la barre basculait d'une à
-        deux rangées — et le graphique gagnait ou perdait trente pixels de haut d'une
-        fiche à l'autre, sans qu'aucune règle ne l'ait décidé. Le même défaut que
-        celui corrigé sur les anneaux de répartition.
-
-        Deux rangées toujours, donc, avec un partage qui a du sens et que la référence
-        adopte : la première porte ce qui décrit la COURBE (grandeur, tracé,
-        comparaison, période, devise), la seconde ce qui décrit le CADRE (quelle
-        source le rend, et ce qu'on en emporte).
-      */}
-      <span aria-hidden="true" className="basis-full" />
-
-      {/*
-        ── TOUT CE QUI EST À DROITE NE RÈGLE PAS LA COURBE ───────────────────────
-
-        `ml-auto` sépare deux familles, et la séparation est de SENS et non de place :
-        à gauche, ce qui change ce qui est TRACÉ (grandeur, tracé, comparaison,
-        période) ; à droite, ce qui change la façon de le LIRE (devise, source du
-        rendu) et ce qu'on en FAIT (lien, export, plein écran).
-
-        La devise a rejoint cette famille, alors qu'elle occupait jusqu'ici une rangée
-        entière à elle seule au-dessus du cadre. Une ligne complète pour un menu de
-        huit caractères, sur un panneau où l'on venait de tailler trois rangées de
-        commandes : elle est ici, avec les autres réglages de lecture.
-      */}
-      <span className="ml-auto flex min-w-0 flex-wrap items-center gap-0.5">
-        {/*
-          GROUPE DE VUES — un segment plein, et non des boutons détachés.
-
-          Chez OKX ces quatre entrées forment un bloc soudé sur fond creusé, et la
-          forme porte le sens : elle dit « une seule à la fois », là où des boutons
-          séparés se liraient comme des options cumulables. Un seul est allumé, et le
-          fond du groupe reste visible autour — c'est ce qui distingue un sélecteur
-          d'un alignement d'actions.
-        */}
-        {props.views.length > 1 ? (
-          <span
-            role="group"
-            aria-label="Vue du graphique"
-            /* Le SEGMENT s'enroule lui aussi à 320 px. Ses quatre entrées — Original,
-               TradingView, Profondeur, Carnet — font 323 px à elles seules : sans
-               `flex-wrap`, il débordait de sa propre boîte et poussait la page de 44 px
-               sur iPhone SE. Le fond creusé englobe alors deux lignes au lieu d'une, ce
-               qui reste lisible comme un groupe — c'est le fond qui le dit, pas
-               l'alignement. */
-            className="mr-1 flex min-w-0 flex-wrap items-center gap-0.5 bg-surface-muted p-0.5"
-          >
-            {props.views.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                onClick={() => props.onViewChange(entry.id)}
-                aria-pressed={entry.id === props.view}
-                className={`flex h-6 items-center px-2 text-xs font-medium transition-colors duration-150 ${
-                  entry.id === props.view
-                    ? 'bg-overlay text-ink shadow-sm'
-                    : 'text-ink-muted hover:text-ink'
-                }`}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </span>
-        ) : null}
+      {/* Un filet sépare le CADRAGE de ce qu'on fait du résultat — deux familles qui
+          se suivent sur la même ligne et qu'aucun blanc ne distinguerait. */}
+      <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-border-subtle" />
 
         <IconButton
           label="Copier le lien de cette vue"
@@ -519,7 +528,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
             </>
           )}
         </Dropdown>
-      </span>
+      </div>
     </div>
   )
 }
@@ -573,29 +582,34 @@ function Dropdown({
   return (
     <div ref={rootRef} className="relative" {...hoverDismiss}>
       {/*
-        BOUTON FANTÔME : ni bordure ni fond au repos.
+        UN MENU EST ENCADRÉ ; UNE ACTION NE L'EST PAS.
 
-        Chaque commande était une pastille bordée. Alignées à sept ou huit, ces
-        bordures pesaient plus lourd que les libellés qu'elles encadraient, et la
-        barre se lisait comme une rangée d'objets plutôt que comme un texte de
-        commandes — c'est très précisément ce que « moche » désignait.
+        Toutes les commandes de la barre ont été des pastilles bordées, puis aucune ne
+        l'a été — alignées à huit, ces bordures pesaient plus lourd que les libellés
+        qu'elles encadraient, et la rangée se lisait comme une collection d'objets
+        plutôt que comme un instrument.
 
-        Le fond n'apparaît qu'au survol et à l'ouverture, l'état ACTIF — un réglage
-        qui n'est plus au défaut — prenant la teinte de marque. L'encre porte donc
-        l'information au repos, la surface la porte à l'interaction : deux niveaux
-        de signalement au lieu d'un seul, allumé en permanence pour tout le monde.
+        L'encadrement revient ICI SEULEMENT, sur ce qui replie un choix. C'est la forme
+        qui dit « il y a autre chose derrière », et un chevron seul ne le dit pas assez :
+        sans bordure, « Prix ▾ » se lisait comme un titre de colonne. La référence
+        encadre exactement ces deux-là — « Price » et « Compare » — et rien d'autre à
+        gauche de sa barre.
+
+        Trois états, trois traitements : au repos une bordure discrète ; à l'ouverture un
+        fond ; ACTIF — c'est-à-dire portant un réglage qui n'est plus au défaut — la
+        teinte de marque, bordure comprise.
       */}
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex h-7 items-center gap-1 px-2 text-xs font-medium transition-colors duration-150 ${
+        className={`flex h-7 items-center gap-1 rounded-control border px-2 text-xs font-medium transition-colors duration-150 ${
           open
-            ? 'bg-surface-muted text-ink'
+            ? 'border-border-subtle bg-surface-muted text-ink'
             : active
-              ? 'bg-brand-soft text-brand-strong'
-              : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+              ? 'border-brand bg-brand-soft text-brand-strong'
+              : 'border-border-subtle text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
         {icon}
@@ -676,7 +690,7 @@ function IconButton({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="flex h-7 w-7 items-center justify-center text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+      className="flex h-7 w-7 items-center justify-center rounded-control text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
     >
       {icon}
     </button>

@@ -19,6 +19,7 @@ import {
 } from 'lightweight-charts'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { ZenkuuMark } from '@/components/BrandMark'
 import { ChartNavigator } from '@/components/asset/ChartNavigator'
 import {
   OHLC_KINDS,
@@ -250,7 +251,24 @@ export function PriceChartInteractive({
     if (!container) return
 
     const chart = createChart(container, {
-      height,
+      /*
+       * `autoSize` REMPLACE la hauteur fixe, et c'est ce qui répare le plein écran.
+       *
+       * La hauteur était posée ici en pixels, une fois pour toutes, et l'observateur
+       * de taille ne rendait compte que de la LARGEUR. Le résultat se voyait
+       * immédiatement : en plein écran, la courbe gardait ses 320 pixels au sommet
+       * d'un écran de mille, et les huit cents restants étaient un aplat vide. C'est
+       * exactement le défaut signalé.
+       *
+       * En `autoSize`, la bibliothèque observe elle-même son conteneur et suit ses
+       * DEUX dimensions. La hauteur est donc décidée en CSS — par le style du
+       * conteneur en lecture normale, par la règle `:fullscreen` de `globals.css`
+       * quand le cadre est extrait du document.
+       *
+       * Effet de bord bienvenu : `height` quitte les dépendances de cet effet, donc
+       * changer de hauteur ne détruit plus l'instance.
+       */
+      autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
         attributionLogo: false,
@@ -258,7 +276,32 @@ export function PriceChartInteractive({
       rightPriceScale: { borderVisible: false },
       timeScale: { borderVisible: false, secondsVisible: false },
       crosshair: { mode: 1 },
-      handleScale: { axisPressedMouseMove: false },
+      /*
+       * ── LA SOURIS NE DÉPLACE NI NE ZOOME LE CADRE ────────────────────────
+       *
+       * Tout ce que la période choisie contient DOIT tenir dans le cadre, sans avoir à
+       * tirer la courbe pour retrouver le début de la fenêtre. C'est la règle de la
+       * référence, et elle a une raison qui dépasse le confort : `fitContent()` cadre
+       * la série entière à chaque changement de données, mais un coup de molette
+       * involontaire décadrait ensuite le graphique sans qu'aucun bouton ne dise
+       * comment revenir. On lisait alors « 24 h » dans la barre en regardant six heures.
+       *
+       * Le zoom volontaire n'est pas perdu pour autant : la bande de navigation sous le
+       * traçé le permet, avec deux poignées qui montrent OU L'ON EST dans la période —
+       * ce qu'une molette ne dit jamais. Voir `ChartNavigator`.
+       */
+      handleScroll: {
+        mouseWheel: false,
+        pressedMouseMove: false,
+        horzTouchDrag: false,
+        vertTouchDrag: false,
+      },
+      handleScale: {
+        axisPressedMouseMove: false,
+        mouseWheel: false,
+        pinch: false,
+        axisDoubleClickReset: false,
+      },
       localization: { locale: 'fr-FR', priceFormatter: formatPrice },
     })
 
@@ -269,16 +312,19 @@ export function PriceChartInteractive({
     // détruit.
     if (handleRef) handleRef.current = { screenshot: () => chart.takeScreenshot() }
 
-    // `ResizeObserver` plutôt qu'un écouteur sur `window` : le graphique vit dans une
-    // colonne dont la largeur change aussi quand la mise en page se réorganise, sans
-    // que la fenêtre soit redimensionnée.
+    /*
+     * CET OBSERVATEUR NE REDIMENSIONNE PLUS RIEN — `autoSize` s'en charge.
+     *
+     * Il ne sert plus qu'à tenir `frameWidth` à jour, dont la bulle de survol a besoin
+     * pour décider de quel côté du curseur se poser. Le supprimer obligerait à lire
+     * cette largeur pendant le rendu, ce qui ne déclencherait aucun nouveau rendu
+     * quand la colonne change de taille — le défaut d'origine.
+     */
     const observer = new ResizeObserver(([entry]) => {
       if (!entry) return
-      chart.applyOptions({ width: entry.contentRect.width })
       setFrameWidth(entry.contentRect.width)
     })
     observer.observe(container)
-    chart.applyOptions({ width: container.clientWidth })
     setFrameWidth(container.clientWidth)
 
     return () => {
@@ -291,7 +337,7 @@ export function PriceChartInteractive({
       priceLinesRef.current = []
       if (handleRef) handleRef.current = null
     }
-  }, [height, handleRef])
+  }, [handleRef])
 
   /* ── Échelle logarithmique ────────────────────────────────────────────── */
   useEffect(() => {
@@ -597,7 +643,22 @@ export function PriceChartInteractive({
       from: navWindow.from * (count - 1),
       to: navWindow.to * (count - 1),
     })
-  }, [navWindow, navValues.length])
+    /*
+     * `frameWidth` EST UNE DÉPENDANCE, et ce n'est pas un abus.
+     *
+     * La bibliothèque ne conserve pas la plage visible quand son cadre change de
+     * taille : elle conserve l'ÉCART entre deux points, et ancre la série à droite.
+     * Un cadre qui s'élargit accueille donc plus de barres qu'il n'en existe, et le
+     * surplus se traduit par du vide — à gauche, puisque c'est la droite qui est
+     * ancrée.
+     *
+     * Constaté au passage en plein écran : la fenêtre passait de 1 090 à 1 509 pixels
+     * et la courbe se tassait sur les deux tiers droits, un tiers d'écran vide devant
+     * elle. Rejouer le cadrage à chaque changement de largeur le corrige sans logique
+     * supplémentaire — c'est exactement le travail que cet effet fait déjà, il lui
+     * manquait seulement de savoir que la largeur compte.
+     */
+  }, [navWindow, navValues.length, frameWidth])
 
   /* ── Remise à zéro de la fenêtre au changement de série ───────────────────── */
   useEffect(() => {
@@ -731,7 +792,9 @@ export function PriceChartInteractive({
   const shown: LegendState = hovering ? legend : resting
 
   return (
-    <div className="relative w-full">
+    /* `chart-stretch` : voir `OverviewTab` et `globals.css` — maillon de la chaîne qui
+       distribue la hauteur au tracé quand le cadre passe en plein écran. */
+    <div className="chart-stretch relative w-full">
       {/*
         ── BANDEAU DE LECTURE ────────────────────────────────────────────────────
 
@@ -747,8 +810,47 @@ export function PriceChartInteractive({
       */}
       <ReadoutStrip shown={shown} />
 
-      <div className="relative">
-        <div ref={containerRef} role="img" aria-label={label} className="w-full" />
+      {/*
+        `chart-plot` : la boîte qui donne sa taille au graphique, et le seul endroit où
+        cette taille est écrite. En lecture normale c'est le style en ligne ci-dessous ;
+        en plein écran, la règle `.chart-frame:fullscreen .chart-plot` de `globals.css`
+        la remplace par « tout l'espace restant ». La bibliothèque suit, puisqu'elle est
+        en `autoSize` — voir la création de l'instance.
+
+        `min-h-0` : indispensable dès que ce bloc devient un élément flexible, la
+        hauteur minimale par défaut d'un tel élément étant celle de son contenu. Sans
+        lui, le canvas refuserait de rétrécir et déborderait du cadre en plein écran.
+      */}
+      <div className="chart-plot relative min-h-0" style={{ height }}>
+        <div ref={containerRef} role="img" aria-label={label} className="h-full w-full" />
+
+        {/*
+          ── LA MARQUE, DANS LE COIN OÙ ELLE NE GÊNE PAS ────────────────────────
+
+          Un graphique de cours se lit de gauche à droite et s'arrête sur la dernière
+          valeur ; le coin bas-droit est donc la zone la moins regardée du cadre, et
+          c'est précisément là que la référence pose la sienne.
+
+          Elle sert à deux choses. D'abord à SIGNER : ces courbes circulent en capture
+          d'écran, et sans marque elles deviennent anonymes au premier partage. Ensuite
+          à situer — un lecteur qui retrouve l'image ailleurs sait d'où elle vient et
+          peut revenir la consulter à jour.
+
+          `pointer-events-none` sur tout le bloc : la croix de visée doit passer à
+          travers. Sans cela, le survol s'interromprait dans un rectangle de cent
+          pixels au moment précis où l'on inspecte les dernières valeurs.
+
+          L'opacité est basse — 40 % — et c'est la limite entre les deux échecs
+          possibles : plus haut, la marque se dispute la lecture avec la courbe ; plus
+          bas, elle disparaît dès qu'une capture est recompressée.
+        */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-6 right-14 flex select-none items-center gap-1 text-ink-muted opacity-40"
+        >
+          <ZenkuuMark className="h-3 w-auto" />
+          <span className="text-[0.625rem] font-semibold lowercase tracking-wide">zenkuu</span>
+        </span>
 
         {hovering ? (
           <FloatingTooltip

@@ -883,8 +883,25 @@ export function AssetWorkspace({
   }
 
   return (
-    <div className="rounded-card border border-border-subtle bg-panel">
-      <div className="p-4">
+    /*
+      ── LE GRAPHIQUE N'EST PLUS DANS UNE CARTE ──────────────────────────────
+
+      Le panneau portait un fond, une bordure et seize pixels de rembourrage : une
+      carte, comme les autres blocs de la fiche. C'est ce que la référence ne fait
+      PAS — chez CoinGecko le tracé repose directement sur le fond de la page, et
+      cette absence de cadre est ce qui lui donne son ampleur.
+
+      L'argument n'est pas seulement esthétique. Un cadre borne, et ce qu'il borne se
+      lit comme un élément parmi d'autres ; le graphique est LE contenu de la fiche,
+      pas un de ses encadrés. Il prend aussi, au passage, les trente-quatre pixels de
+      largeur que le rembourrage lui prélevait.
+
+      La classe `chart-frame` reste sur l'élément mis en plein écran : c'est elle qui
+      lui rend un fond et une hauteur quand il est extrait du document — voir
+      `globals.css`, où vivent les deux seules règles concernées.
+    */
+    <div>
+      <div>
         {/*
           LA RANGÉE DE DEVISE A DISPARU — le sélecteur est passé DANS la barre.
 
@@ -908,11 +925,13 @@ export function AssetWorkspace({
             de ce panneau, la barre de sous-onglets qui le mettait en concurrence avec
             deux autres vues ayant été supprimée (voir l'en-tête du fichier).
 
-            `bg-panel` sur le cadre, et ce n'est pas redondant avec le panneau parent :
-            en plein écran, l'élément est extrait de son contexte et peint sur un fond
-            noir par défaut. Sans cette couleur, le graphique flotterait sur du vide et
-            les libellés d'axe deviendraient illisibles. */}
-        <div ref={chartFrame} className="bg-panel">
+            `chart-frame` porte TOUT le comportement de plein écran, et rien d'autre :
+            hors plein écran, la classe ne déclare aucune propriété. C'est délibéré —
+            un élément extrait du document par `requestFullscreen` est peint sur un
+            fond noir par défaut, sans hériter d'aucun style de son ancien parent, et
+            il n'y a que là que ce bloc a besoin d'un fond, d'un rembourrage et d'une
+            hauteur à distribuer. Voir `globals.css`. */}
+        <div ref={chartFrame} className="chart-frame">
             {/*
               UNE SEULE BARRE, là où trois rangées s'empilaient. Voir l'en-tête de
               `ChartToolbar` : le quart de la hauteur du cadre servait à choisir quoi
@@ -1129,7 +1148,15 @@ function OverviewTab({
   return (
     // L'opacité pendant le chargement conserve le graphique précédent à l'écran :
     // le vider ferait sauter la hauteur de la page à chaque changement de période.
-    <div className={loading ? 'opacity-50 transition-opacity' : 'transition-opacity'}>
+    //
+    // `chart-stretch` : maillon de la CHAÎNE qui distribue la hauteur en plein écran.
+    // `flex: 1` ne s'applique qu'aux enfants DIRECTS d'un conteneur flexible, et la
+    // boîte du tracé est enfouie deux niveaux plus bas ; chaque niveau intermédiaire
+    // doit donc à la fois grandir et redistribuer. La classe ne fait rien hors plein
+    // écran — voir `globals.css`.
+    <div
+      className={`chart-stretch ${loading ? 'opacity-50 transition-opacity' : 'transition-opacity'}`}
+    >
       {interactive ? (
         <PriceChartInteractive
           points={history.points}

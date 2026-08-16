@@ -741,6 +741,60 @@
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
+     LE GRAPHIQUE EN PLEIN ÉCRAN — deux règles, et rien en dehors.
+
+     `.chart-frame` ne déclare RIEN au repos, et c'est le point : le graphique vit
+     désormais sans cadre sur la fiche, à même le fond de la page. Il n'a besoin
+     d'un fond, d'un rembourrage et d'une hauteur qu'une fois extrait du document
+     par `requestFullscreen`.
+
+     ── CE QUI ÉTAIT CASSÉ ─────────────────────────────────────────────────────
+
+     La courbe gardait ses 320 pixels au sommet d'un écran de mille, et le reste
+     était un aplat vide. La cause n'était pas ici mais dans la création du
+     graphique : sa hauteur y était posée en pixels une fois pour toutes, et
+     l'observateur de taille ne rendait compte que de la largeur. Le passage en
+     `autoSize` la rend au CSS — donc à ces deux règles.
+
+     ── POURQUOI `!important`, QUI EST RAREMENT UNE BONNE RÉPONSE ───────────────
+
+     La hauteur de lecture normale est un style EN LIGNE, posé par le composant à
+     partir de sa prop `height` — une valeur qui varie d'un appelant à l'autre et
+     qu'aucune classe ne peut donc porter. Un style en ligne l'emporte sur toute
+     règle de feuille, sauf déclarée importante. C'est le cas d'école pour lequel
+     le mot-clé existe : une surcharge d'état, exceptionnelle et bornée.
+
+     ── LE FOND EST OPAQUE, ET IL LE FAUT ──────────────────────────────────────
+
+     Un élément en plein écran est peint sur du NOIR par défaut, sans hériter
+     d'aucun style de son ancien parent. Sans cette couleur, le tracé flotterait sur
+     du vide et les libellés d'axe, calculés pour le thème clair, deviendraient
+     illisibles.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .chart-frame:fullscreen {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-canvas);
+    padding: 1.25rem 1.5rem;
+  }
+
+  /* Les maillons INTERMÉDIAIRES entre le cadre et le tracé. `flex: 1` ne vaut que
+     pour les enfants directs d'un conteneur flexible, et la boîte du tracé est deux
+     niveaux plus bas : chaque niveau doit donc grandir ET redistribuer. */
+  .chart-frame:fullscreen .chart-stretch {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .chart-frame:fullscreen .chart-plot {
+    flex: 1 1 auto;
+    height: auto !important;
+    min-height: 0;
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
      Apparition d'une courbe — le tracé se dévoile de la gauche vers la droite.
 
      C'est le sens de lecture d'une série temporelle : la courbe se construit dans
