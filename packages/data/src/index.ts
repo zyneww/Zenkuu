@@ -114,7 +114,7 @@ export type {
   ValuationView,
 } from './providers/yahoo-profile'
 
-export { MACRO_INDICATORS, WORLDBANK_SOURCE } from './providers/worldbank'
+export { MACRO_HISTORY_YEARS, MACRO_INDICATORS, WORLDBANK_SOURCE } from './providers/worldbank'
 export type { MacroIndicatorId, MacroObservation } from './providers/worldbank'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'

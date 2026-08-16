@@ -20,6 +20,7 @@
     "next-intl": "^4.13.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "three": "^0.185.1",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
@@ -27,6 +28,7 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/three": "^0.185.4",
     "@zenkuu/config": "workspace:*",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",

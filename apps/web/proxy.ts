@@ -35,9 +35,34 @@ import { routing } from '@/i18n/routing'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
-/** `/api/*` et `/trpc/*` : hors du périmètre de la langue. */
+/**
+ * Chemins hors du périmètre de la langue.
+ *
+ * ── `/api` ET `/trpc` ────────────────────────────────────────────────────────
+ *
+ * Ils servent du JSON et vivent hors de `app/[locale]/` : une réécriture vers
+ * `/fr/api/…` pointerait vers une route inexistante.
+ *
+ * ── `/geo` — ET LE DÉFAUT QU'IL CORRIGE MÉRITE D'ÊTRE RACONTÉ ────────────────
+ *
+ * Le fond de carte est un fichier statique de `public/geo/`. Il répondait pourtant
+ * 404, y compris après redémarrage du serveur, et la cause est dans le `matcher`
+ * ci-dessous : son exclusion des fichiers statiques s'écrit `js(?!on)`, c'est-à-dire
+ * « les `.js` mais PAS les `.json` ». L'intention d'origine était bonne — les routes
+ * d'API rendent du JSON et doivent traverser — mais elle attrape au passage tout
+ * fichier `.json` réellement statique, que le middleware réécrit alors en
+ * `/fr/geo/countries-110m.json`, chemin qui n'existe pas.
+ *
+ * Le corriger dans l'expression régulière demanderait d'y distinguer les chemins de
+ * fichiers des chemins de routes, ce qu'une regex de matcher fait mal. Une ligne ici
+ * est plus lisible, et se relit dans six mois.
+ */
 function isUnlocalized(pathname: string): boolean {
-  return pathname.startsWith('/api') || pathname.startsWith('/trpc')
+  return (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/trpc') ||
+    pathname.startsWith('/geo')
+  )
 }
 
 export function proxy(request: NextRequest): NextResponse {

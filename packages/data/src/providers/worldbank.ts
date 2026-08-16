@@ -212,11 +212,42 @@ async function fetchCountries(): Promise<Map<string, { name: string; region: str
  * disparaître tous les pays qui ne l'ont pas encore publiée, et une carte dont un
  * tiers des pays est vide n'informe plus.
  */
-export async function fetchMacroIndicator(code: string): Promise<MacroObservation[]> {
+/**
+ * Profondeur d'historique demandée quand l'appelant en veut un.
+ *
+ * QUINZE ANNÉES, et le nombre est contraint des deux côtés. Vers le bas, un curseur
+ * qui ne remonte pas au-delà d'un cycle économique n'apprend rien : 2008 et 2020 sont
+ * précisément les années qu'on veut pouvoir comparer au présent. Vers le haut, la
+ * réponse grossit du produit `pays × années` — 260 × 15 tient dans une seule requête,
+ * 260 × 60 en demanderait quatre et pèserait deux mégaoctets pour des séries que la
+ * plupart des pays ne renseignent pas si loin.
+ */
+export const MACRO_HISTORY_YEARS = 15
+
+export async function fetchMacroIndicator(
+  code: string,
+  /**
+   * Nombre d'années remontées PAR PAYS.
+   *
+   * `1` conserve le comportement d'origine — la dernière valeur connue de chacun, ce
+   * qui suffit à une carte d'instantané. Au-delà, la réponse porte une observation par
+   * pays et par année, et c'est l'appelant qui choisit celle qu'il affiche.
+   *
+   * Le paramètre entre dans la CLÉ DE CACHE de `getMacroIndicator` : demander
+   * l'historique ne remplace donc pas l'instantané déjà mémorisé, et les pages qui
+   * n'ont besoin que du dernier point ne paient pas le surcoût.
+   */
+  years = 1,
+): Promise<MacroObservation[]> {
+  /* `per_page` suit la profondeur : à quinze ans, 400 lignes ne couvriraient que
+     vingt-six pays, et la source paginerait en silence — on obtiendrait une carte
+     amputée sans qu'aucune erreur ne le signale. */
+  const perPage = Math.max(400, years * 400)
+
   const [countries, body] = await Promise.all([
     fetchCountries(),
     http.getJson<[unknown, RawObservation[] | null]>(
-      `/country/all/indicator/${encodeURIComponent(code)}?format=json&mrv=1&per_page=400`,
+      `/country/all/indicator/${encodeURIComponent(code)}?format=json&mrv=${years}&per_page=${perPage}`,
     ),
   ])
 

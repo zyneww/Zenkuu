@@ -1,9 +1,15 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { CACHE_TTL_SECONDS, MACRO_INDICATORS, getMacroIndicator } from '@zenkuu/data'
+import {
+  CACHE_TTL_SECONDS,
+  MACRO_HISTORY_YEARS,
+  MACRO_INDICATORS,
+  getMacroIndicator,
+} from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
+import { MacroExplorer } from '@/components/market/MacroExplorer'
 import { MacroMap, type MacroTone } from '@/components/market/MacroMap'
 
 export const revalidate = 3600
@@ -56,7 +62,16 @@ export default async function MacroPage({
   const indicator =
     MACRO_INDICATORS.find((entry) => entry.id === requested) ?? MACRO_INDICATORS[0]
 
-  const result = await getMacroIndicator(indicator.code)
+  /*
+   * QUINZE ANNÉES, et non la seule dernière valeur.
+   *
+   * C'est ce qui alimente le curseur temporel et la courbe d'historique de la barre
+   * latérale. Le surcoût est UNE requête plus grosse — la source rend une observation
+   * par pays et par année dans la même réponse — et non quinze requêtes ; le cache
+   * applicatif la garde six heures, et la clé distingue cette profondeur de
+   * l'instantané que demande l'aperçu de l'accueil.
+   */
+  const result = await getMacroIndicator(indicator.code, MACRO_HISTORY_YEARS)
 
   return (
     <div className="space-y-6 py-6">
@@ -116,6 +131,18 @@ export default async function MacroPage({
         />
       ) : (
         <>
+          <MacroExplorer
+            observations={result.data}
+            unit={indicator.unit}
+            tone={indicator.tone as MacroTone}
+            indicatorLabel={indicator.label}
+          />
+
+          {/* La grille par région SUBSISTE sous les figures, et ce n'est pas une
+              redite. Une carte répond à « où » ; elle ne répond pas à « lequel est le
+              plus haut », qui demande de comparer des surfaces colorées à l'œil. La
+              grille classe, et donne à chaque pays la même tuile quelle que soit sa
+              superficie — le Luxembourg y est aussi lisible que la Russie. */}
           <MacroMap
             observations={result.data}
             unit={indicator.unit}

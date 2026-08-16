@@ -1790,15 +1790,27 @@ const MACRO_TTL_SECONDS = 6 * 3_600
  * n'importe quelle série du catalogue, y compris celles dont nous n'avons ni libellé
  * ni unité à afficher.
  */
-export function getMacroIndicator(code: string): Promise<DataResult<MacroObservation[]>> {
+export function getMacroIndicator(
+  code: string,
+  /**
+   * Années remontées par pays. `1` = dernière valeur connue.
+   *
+   * ENTRE DANS LA CLÉ DE CACHE, et il le faut : la carte d'aperçu de l'accueil n'a
+   * besoin que du dernier point, la page macro veut quinze ans pour son curseur. Sans
+   * cette distinction, la première paierait le téléchargement de la seconde à chaque
+   * expiration — ou pire, la seconde servirait l'instantané mémorisé par la première
+   * et son curseur n'aurait qu'une position.
+   */
+  years = 1,
+): Promise<DataResult<MacroObservation[]>> {
   return runStandalone(
     /* `fr` dans la clé : les libellés viennent de la source, dans sa version
        française. Le jour où une seconde langue est servie, les deux jeux ne doivent
        pas se marcher dessus dans le cache — et un changement de langue ne doit pas
        laisser six heures de noms anglais derrière lui. */
-    `macro:fr:${code}`,
+    `macro:fr:${code}:${years}`,
     WORLDBANK_SOURCE,
-    () => fetchMacroIndicator(code),
+    () => fetchMacroIndicator(code, years),
     MACRO_TTL_SECONDS,
   )
 }
