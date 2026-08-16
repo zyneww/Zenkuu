@@ -132,13 +132,26 @@ export function AssetStickyBar({
             <ChangeBadge value={asset.change24h} size="sm" />
           </span>
 
+          {/*
+            « HAUT DE PAGE » DISPARAÎT SOUS `sm`, ET C'EST UN DÉBORDEMENT MESURÉ.
+
+            La barre aligne six éléments dans la largeur de l'écran : logo, nom, code,
+            cours, variation, et ce bouton. À 375 pixels, l'audit relève 31 pixels de
+            trop — et c'est le dernier arrivé qui les provoque, les cinq autres étant
+            tous indispensables à ce qu'une barre d'identité doit dire.
+
+            Il ne perd rien à personne : sur un téléphone, le geste de retour en haut
+            existe déjà dans le système — un appui sur la barre d'état sous iOS, le
+            bouton retour ailleurs — et personne ne le cherche dans la page. Sur un
+            écran d'ordinateur, où ce raccourci n'existe pas, il reste.
+          */}
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             // `tabIndex={-1}` quand la barre est invisible : un contrôle transparent
             // mais focalisable piège la tabulation dans une zone que personne ne voit.
             tabIndex={shown ? 0 : -1}
-            className="shrink-0 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+            className="hidden shrink-0 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink sm:block"
           >
             Haut de page
           </button>
