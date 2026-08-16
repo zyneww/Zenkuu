@@ -3,7 +3,6 @@
 import { BookmarkPlus, Trash2 } from 'lucide-react'
 import { useEffect, useState, useTransition } from 'react'
 
-import { Link } from '@/i18n/navigation'
 import {
   listSavedScreens,
   removeScreen,
@@ -42,8 +41,8 @@ export function SavedScreens({
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    // Sans session ni abonnement, l'action renvoie un tableau vide : la barre reste
-    // alors réduite à son bouton d'enregistrement, qui explique au clic.
+    // Sans base configurée, l'action renvoie un tableau vide : la barre reste alors
+    // réduite à son bouton d'enregistrement, qui explique au clic.
     void listSavedScreens().then(setScreens)
   }, [])
 
@@ -56,11 +55,9 @@ export function SavedScreens({
 
       if (!result.ok) {
         setMessage(
-          result.reason === 'not-pro'
-            ? 'Les écrans enregistrés font partie de Zenkuu Pro.'
-            : result.reason === 'signed-out'
-              ? 'Connectez-vous pour enregistrer un écran.'
-              : 'L’enregistrement a échoué.',
+          result.reason === 'db-disabled'
+            ? 'La base de données n’est pas configurée : l’écran ne serait pas conservé.'
+            : 'L’enregistrement a échoué.',
         )
         return
       }
@@ -146,10 +143,7 @@ export function SavedScreens({
 
       {message ? (
         <p role="status" className="text-xs text-ink-muted">
-          {message}{' '}
-          <Link href="/tarifs" className="text-brand hover:text-brand-strong">
-            Voir l’offre
-          </Link>
+          {message}
         </p>
       ) : null}
     </div>

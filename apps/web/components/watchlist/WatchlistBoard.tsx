@@ -4,9 +4,7 @@ import { FolderInput, Pencil, Trash2 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
-import { ExportMenu } from '@/components/billing/ExportMenu'
-import { ProGate } from '@/components/billing/ProGate'
-import { FEATURES } from '@/lib/billing'
+import { ExportMenu } from '@/components/tools/ExportMenu'
 import { moveToList, removeList, renameList } from '@/lib/watchlist-actions'
 
 export interface BoardItem {
@@ -58,7 +56,7 @@ export function WatchlistBoard({
 
     setMessage(
       result.reason === 'list-limit'
-        ? 'L’offre gratuite ne comporte qu’une seule liste. Zenkuu Pro les rend illimitées.'
+        ? 'Vous avez atteint le nombre maximal de listes.'
         : 'L’opération a échoué. Réessayez.',
     )
   }
@@ -95,11 +93,11 @@ export function WatchlistBoard({
   return (
     <div className="space-y-8">
       {message ? (
-        <p role="status" className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
-          {message}{' '}
-          <Link href="/tarifs" className="text-brand hover:text-brand-strong">
-            Voir l’offre
-          </Link>
+        <p
+          role="status"
+          className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted"
+        >
+          {message}
         </p>
       ) : null}
 
@@ -137,20 +135,18 @@ export function WatchlistBoard({
             )}
 
             <div className="flex items-center gap-1">
-              <ProGate feature={FEATURES.exportData} fallback={null}>
-                <ExportMenu
-                  filename={`zenkuu-${slug(list.name)}`}
-                  sheetName={list.name}
-                  rows={list.items}
-                  columns={[
-                    { header: 'Actif', value: (item) => item.label },
-                    { header: 'Symbole', value: (item) => item.symbol?.toUpperCase() ?? '' },
-                    { header: 'Classe', value: (item) => item.assetClass },
-                    { header: 'Identifiant', value: (item) => item.assetId },
-                    { header: 'Ajouté le', value: (item) => item.addedAt },
-                  ]}
-                />
-              </ProGate>
+              <ExportMenu
+                filename={`zenkuu-${slug(list.name)}`}
+                sheetName={list.name}
+                rows={list.items}
+                columns={[
+                  { header: 'Actif', value: (item) => item.label },
+                  { header: 'Symbole', value: (item) => item.symbol?.toUpperCase() ?? '' },
+                  { header: 'Classe', value: (item) => item.assetClass },
+                  { header: 'Identifiant', value: (item) => item.assetId },
+                  { header: 'Ajouté le', value: (item) => item.addedAt },
+                ]}
+              />
 
               <button
                 type="button"

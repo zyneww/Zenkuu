@@ -7,16 +7,19 @@ import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-or
  * ni ordre, ni solde, ni mouvement de fonds à stocker — uniquement ce qu'un visiteur
  * a choisi de suivre et ses préférences d'affichage.
  *
- * Aucune table « utilisateur » : l'identité est détenue par Clerk, et la dupliquer
- * ici créerait deux sources de vérité à resynchroniser à chaque suppression de
- * compte. On stocke seulement l'identifiant Clerk comme clé étrangère logique.
+ * Aucune table « utilisateur », et il n'y en a jamais eu. L'identité était d'abord
+ * tenue par un fournisseur d'authentification tiers ; elle tient désormais dans un
+ * cookie anonyme tiré au sort côté application (`apps/web/lib/visitor.ts`). Les deux
+ * arrivent ici sous la même forme — une chaîne opaque dans `user_id` — et c'est
+ * précisément pourquoi le retrait des comptes n'a demandé AUCUNE migration de ces
+ * colonnes.
  */
 
 export const watchlistItems = sqliteTable(
   'watchlist_items',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    /** Identifiant Clerk (`user_…`). Non contraint en base : Clerk en est le propriétaire. */
+    /** Identifiant opaque du visiteur — cf. l'en-tête du fichier. Non contraint en base. */
     userId: text('user_id').notNull(),
     /**
      * Liste à laquelle l'actif appartient.
@@ -107,6 +110,22 @@ export const priceAlerts = sqliteTable(
     /** Libellé figé, même raison que pour la liste de suivi : afficher sans appeler. */
     label: text('label').notNull(),
     symbol: text('symbol'),
+    /**
+     * Nom donné À L'ALERTE par son auteur — distinct de `label`, qui nomme l'ACTIF.
+     *
+     * Facultatif, et l'interface propose un nom par défaut plutôt que d'exiger une
+     * saisie. Il n'existe que pour la page `/alertes` : dix alertes sur le bitcoin y
+     * étaient dix lignes identiques à l'œil, et il fallait lire le seuil pour les
+     * distinguer.
+     */
+    title: text('title'),
+    /**
+     * Message libre, recopié tel quel dans le courriel de déclenchement.
+     *
+     * C'est une NOTE À SOI-MÊME — « sortir la moitié », « regarder le volume avant » —
+     * et pas un champ de mise en forme : il part en texte brut, sans balisage.
+     */
+    note: text('note'),
     /** `above` : déclenche au franchissement à la hausse. `below` : à la baisse. */
     direction: text('direction').notNull(),
     /*
@@ -119,22 +138,46 @@ export const priceAlerts = sqliteTable(
     /** Devise du seuil (ISO 4217, minuscules) — cf. l'avertissement ci-dessus. */
     currency: text('currency').notNull(),
     /**
-     * Adresse de notification, COPIÉE depuis Clerk à la création.
+     * Adresse de notification, SAISIE PAR L'AUTEUR au moment où il crée l'alerte.
      *
-     * La tâche planifiée s'exécute hors de toute session : elle n'a pas de contexte
-     * Clerk à interroger, et un appel à l'API Clerk par alerte coûterait une requête
-     * réseau par ligne à chaque passage. Le prix à payer est une adresse qui peut se
-     * périmer : un changement d'e-mail côté Clerk ne se propage pas ici, et l'alerte
-     * partira à l'ancienne adresse. C'est un compromis conscient, borné par le fait
-     * qu'une alerte est éphémère — elle est consommée puis désactivée.
+     * Elle était auparavant recopiée depuis le compte du fournisseur
+     * d'authentification. Les comptes ont été retirés du site, et cette colonne est
+     * ce qui rend les alertes possibles sans eux : c'est la seule chose que le site
+     * ait jamais réellement eu besoin de savoir d'un visiteur.
+     *
+     * Elle reste STOCKÉE et non lue ailleurs à chaque passage : la tâche planifiée
+     * s'exécute hors de toute requête, et un aller-retour par ligne pour retrouver
+     * une adresse coûterait une requête réseau par alerte à chaque tour.
      */
     email: text('email').notNull(),
     /**
-     * Une alerte déclenchée NE SE RÉARME PAS toute seule.
+     * L'alerte se réarme-t-elle après un déclenchement ?
      *
-     * Sans cela, un prix qui oscille autour du seuil enverrait un courriel à chaque
-     * passage de la tâche, soit quatre par heure. Le réarmement est un geste explicite
-     * de l'utilisateur, qui vaut accusé de réception.
+     * Faux par défaut, et c'est l'ancien comportement unique : un prix qui oscille
+     * autour du seuil enverrait sinon un courriel à chaque passage de la tâche, soit
+     * quatre par heure. Le réarmement était donc un geste explicite de l'utilisateur.
+     *
+     * Vrai, c'est la case « à chaque fois » de la fenêtre de création. Elle a un sens
+     * pour une surveillance de long cours — « préviens-moi chaque fois que ça repasse
+     * sous 50 000 » — et la protection contre le martèlement passe alors par
+     * `triggeredAt` : la tâche ne renvoie rien dans les vingt-quatre heures qui
+     * suivent un envoi pour la même alerte.
+     */
+    recurring: integer('recurring', { mode: 'boolean' }).notNull().default(false),
+    /**
+     * Date au-delà de laquelle l'alerte est ignorée puis effacée.
+     *
+     * Nulle = sans échéance, ce qui reste le défaut. Une échéance sert aux
+     * surveillances liées à un événement daté — une publication de résultats, une
+     * échéance de contrat — après quoi l'alerte n'est plus qu'un courriel parasite
+     * que personne ne pensera à supprimer.
+     */
+    expiresAt: integer('expires_at', { mode: 'timestamp' }),
+    /**
+     * L'alerte est-elle armée ?
+     *
+     * Distinct de `recurring` : celui-ci décrit ce qui se passe APRÈS un
+     * déclenchement, celui-là dit si le seuil est actuellement surveillé.
      */
     active: integer('active', { mode: 'boolean' }).notNull().default(true),
     triggeredAt: integer('triggered_at', { mode: 'timestamp' }),
@@ -180,6 +223,135 @@ export const savedScreens = sqliteTable(
     uniqueIndex('screens_user_name_idx').on(table.userId, table.name),
     index('screens_user_idx').on(table.userId, table.createdAt),
   ],
+)
+
+/**
+ * COMPTES — la table que ce schéma n'avait jamais eue.
+ *
+ * ── POURQUOI ELLE EXISTE MAINTENANT ───────────────────────────────────────────
+ *
+ * L'identité était tenue par un fournisseur tiers, et l'en-tête de ce fichier
+ * expliquait qu'une table locale créerait deux sources de vérité à resynchroniser.
+ * Le raisonnement était juste tant que le fournisseur existait. Il a été retiré du
+ * site, et il ne reste donc qu'une source possible : celle-ci.
+ *
+ * ── CE QU'ELLE NE CONTIENT PAS, ET C'EST L'ESSENTIEL ──────────────────────────
+ *
+ * Aucun mot de passe, aucun condensat de mot de passe, aucune question secrète. La
+ * connexion se fait par CODE À USAGE UNIQUE envoyé par courriel (`login_codes`) : il
+ * n'y a donc pas de secret durable à stocker, donc rien à faire fuir, rien à saler,
+ * rien à faire tourner le jour où l'algorithme de hachage vieillit.
+ *
+ * C'est un arbitrage, pas une simplification gratuite. On perd la connexion hors
+ * ligne et la connexion instantanée ; on gagne de ne jamais détenir le secret d'un
+ * visiteur — sur un site qui ne fait que publier des cours, la balance est nette.
+ *
+ * Une adresse, un pseudonyme. Rien d'autre : ce site n'a besoin de rien d'autre.
+ */
+export const accounts = sqliteTable(
+  'accounts',
+  {
+    /**
+     * UUID, et NON un entier auto-incrémenté.
+     *
+     * Cet identifiant devient la valeur de `user_id` dans les quatre tables
+     * ci-dessus — c'est ce qui permet à un visiteur anonyme de garder sa liste en se
+     * connectant : on réécrit sa colonne, sans rien déplacer. Un entier séquentiel
+     * s'y prêterait aussi, mais il fuiterait le nombre de comptes à quiconque en lit
+     * un, et il entrerait en collision avec les identifiants anonymes, qui sont des
+     * UUID.
+     */
+    id: text('id').primaryKey(),
+    /** Adresse, EN MINUSCULES — la normalisation est faite à l'écriture. */
+    email: text('email').notNull(),
+    /**
+     * Pseudonyme affiché.
+     *
+     * Proposé à partir de la partie locale de l'adresse à la création, puis
+     * modifiable. Il n'est ni unique ni vérifié : il ne sert qu'à l'affichage, et
+     * l'initiale qu'on en tire pour l'avatar de l'en-tête.
+     */
+    handle: text('handle').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    /** Dernière connexion — affichée dans le menu de compte, rien de plus. */
+    lastSeenAt: integer('last_seen_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [uniqueIndex('accounts_email_idx').on(table.email)],
+)
+
+/**
+ * Codes de connexion à usage unique.
+ *
+ * ── LE CODE N'EST PAS STOCKÉ EN CLAIR ─────────────────────────────────────────
+ *
+ * La colonne porte son CONDENSAT SHA-256. Un code à six chiffres est trivial à
+ * retrouver par force brute depuis un condensat — l'espace fait un million de
+ * valeurs — et ce n'est pas ce que la mesure protège : elle protège contre la
+ * LECTURE de la table, qui donnerait sinon à qui la consulte les codes en cours de
+ * validité de tout le monde, immédiatement utilisables.
+ *
+ * La vraie défense contre la force brute est ailleurs : `attempts`, plafonné, et une
+ * validité de quelques minutes.
+ */
+export const loginCodes = sqliteTable(
+  'login_codes',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    /** L'adresse visée, en minuscules. Le compte peut ne pas exister encore. */
+    email: text('email').notNull(),
+    /** SHA-256 du code, en hexadécimal — cf. ci-dessus. */
+    codeHash: text('code_hash').notNull(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    /**
+     * Essais infructueux déjà consommés.
+     *
+     * C'est LA protection contre la force brute, et elle doit vivre en base et non en
+     * mémoire : le site tourne sur des instances sans état, et un compteur local
+     * repartirait de zéro à chaque requête servie par une autre.
+     */
+    attempts: integer('attempts').notNull().default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('login_codes_email_idx').on(table.email, table.createdAt)],
+)
+
+/**
+ * Sessions ouvertes.
+ *
+ * ── LE COOKIE PORTE UN JETON, LA TABLE SON CONDENSAT ──────────────────────────
+ *
+ * Même règle que pour les codes, et elle compte davantage ici : un jeton de session
+ * vaut une connexion complète, sans expiration à quelques minutes pour en limiter la
+ * portée. Une table lue par un tiers ne doit pas lui livrer de quoi se faire passer
+ * pour chacun de ses utilisateurs.
+ *
+ * ── POURQUOI UNE TABLE PLUTÔT QU'UN COOKIE SIGNÉ ──────────────────────────────
+ *
+ * Un cookie signé — un JWT, par exemple — n'exige aucune lecture en base et c'est son
+ * seul avantage. Il rend en revanche la DÉCONNEXION impossible à garantir : un jeton
+ * émis reste valable jusqu'à son échéance, y compris après « Se déconnecter », y
+ * compris s'il a été volé. Une ligne qu'on supprime ferme la session pour de bon,
+ * partout, immédiatement. Sur ce site la lecture en base est de toute façon déjà
+ * faite pour la liste de suivi : elle ne coûte rien de plus.
+ */
+export const sessions = sqliteTable(
+  'sessions',
+  {
+    /** SHA-256 du jeton porté par le cookie, en hexadécimal. */
+    tokenHash: text('token_hash').primaryKey(),
+    accountId: text('account_id').notNull(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('sessions_account_idx').on(table.accountId)],
 )
 
 export const userPreferences = sqliteTable('user_preferences', {
@@ -255,6 +427,10 @@ export const newsArticles = sqliteTable(
   ],
 )
 
+export type Account = typeof accounts.$inferSelect
+export type NewAccount = typeof accounts.$inferInsert
+export type LoginCode = typeof loginCodes.$inferSelect
+export type Session = typeof sessions.$inferSelect
 export type WatchlistItem = typeof watchlistItems.$inferSelect
 export type NewWatchlistItem = typeof watchlistItems.$inferInsert
 export type NewsArticle = typeof newsArticles.$inferSelect

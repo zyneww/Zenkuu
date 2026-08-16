@@ -375,19 +375,23 @@ export const NAV_MENUS: NavMenu[] = [
           },
           {
             /*
-             * L'offre payante vit dans « Plus », pas dans un bouton du bandeau haut.
+             * L'ENTRÉE « ZENKUU PRO » A DISPARU AVEC L'OFFRE.
              *
-             * C'est un choix de positionnement autant que de mise en page : le site se
-             * vend d'abord par son contenu gratuit (§1), et un appel à l'abonnement
-             * planté dans l'en-tête de toutes les pages contredirait cette promesse à
-             * chaque chargement. L'invitation apparaît là où elle a du sens — quand une
-             * limite est réellement rencontrée —, et l'entrée de menu sert à ceux qui
-             * la cherchent d'eux-mêmes.
+             * Elle vivait ici plutôt que dans un bouton du bandeau haut, au motif que le
+             * site se vend d'abord par son contenu gratuit (§1) et qu'un appel à
+             * l'abonnement planté dans l'en-tête contredirait cette promesse à chaque
+             * chargement.
+             *
+             * Le raisonnement n'a pas été démenti : il est devenu sans objet. La
+             * facturation était adossée au fournisseur d'identité tiers, retiré du site,
+             * et il n'existe plus qu'un seul jeu de plafonds pour tout le monde
+             * (`lib/limits.ts`). Ce qui reste ici est la seule chose que le compte
+             * apporte encore, et elle n'est pas commerciale.
              */
-            label: 'Zenkuu Pro',
-            description: 'L’offre qui finance le site, et ce qu’elle ajoute',
+            label: 'Mon compte',
+            description: 'Liste de suivi, alertes et écrans, retrouvés partout',
             icon: Gem,
-            href: '/tarifs',
+            href: '/parametres?rubrique=compte',
             ready: true,
           },
           {

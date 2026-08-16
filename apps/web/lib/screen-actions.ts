@@ -2,22 +2,22 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { deleteScreen, listScreens, saveScreen } from '@zenkuu/db'
+import { DB_ENABLED, deleteScreen, listScreens, saveScreen } from '@zenkuu/db'
 
-import { AUTH_ENABLED } from '@/lib/auth'
-import { FEATURES } from '@/lib/billing'
-import { hasFeature } from '@/lib/billing-server'
+import { ensureOwnerId, ownerId } from '@/lib/session'
 
 /**
  * Écrans de screener sauvegardés — actions serveur.
  *
- * ── LA SEULE GARDE QUI COMPTE VRAIMENT DANS CE FICHIER ────────────────────────
+ * ── CE QUI A CHANGÉ AVEC LE RETRAIT DES COMPTES ───────────────────────────────
  *
- * Contrairement à l'export ou aux filtres avancés, un écran sauvegardé est une
- * ÉCRITURE persistante : il occupe de la place, il survit à la session, et le lecteur
- * s'attend à le retrouver. Le contrôle passe donc par `hasFeature()` côté serveur, et
- * pas seulement par `ProGate` côté interface — c'est la même frontière que le plafond
- * de la liste de suivi.
+ * Sauvegarder un écran était réservé à l'abonnement, et le contrôle vivait ici plutôt
+ * que dans l'interface parce qu'un écran est une ÉCRITURE persistante : il occupe de
+ * la place et survit à la session, ce qu'une garde d'affichage ne protège pas.
+ *
+ * L'abonnement a disparu avec les comptes. Le contrôle d'appartenance, lui, reste
+ * entier : chaque requête est filtrée sur l'identifiant du visiteur, faute de quoi un
+ * entier modifié à la main dans la requête supprimerait l'écran de quelqu'un d'autre.
  */
 
 /** Forme attendue des critères. Volontairement plate : elle est sérialisée telle quelle. */
@@ -33,20 +33,12 @@ export interface ScreenCriteria {
 
 export type ScreenActionResult =
   | { ok: true }
-  | { ok: false; reason: 'signed-out' | 'db-disabled' | 'not-pro' | 'invalid' | 'error' }
+  | { ok: false; reason: 'db-disabled' | 'invalid' | 'error' }
 
 export interface SavedScreenRow {
   id: number
   name: string
   criteria: ScreenCriteria
-}
-
-async function currentUserId(): Promise<string | null> {
-  if (!AUTH_ENABLED) return null
-
-  const { auth } = await import('@clerk/nextjs/server')
-  const { userId } = await auth()
-  return userId ?? null
 }
 
 /**
@@ -81,7 +73,7 @@ function parseCriteria(raw: string): ScreenCriteria | null {
 }
 
 export async function listSavedScreens(): Promise<SavedScreenRow[]> {
-  const userId = await currentUserId()
+  const userId = await ownerId()
   if (!userId) return []
 
   const result = await listScreens(userId)
@@ -99,10 +91,8 @@ export async function storeScreen(
   name: string,
   criteria: ScreenCriteria,
 ): Promise<ScreenActionResult> {
-  const userId = await currentUserId()
-  if (!userId) return { ok: false, reason: 'signed-out' }
-
-  if (!(await hasFeature(FEATURES.savedScreens))) return { ok: false, reason: 'not-pro' }
+  if (!DB_ENABLED) return { ok: false, reason: 'db-disabled' }
+  const userId = await ensureOwnerId()
 
   const trimmed = name.trim()
   if (trimmed === '') return { ok: false, reason: 'invalid' }
@@ -121,13 +111,12 @@ export async function storeScreen(
 /**
  * Suppression.
  *
- * Pas de contrôle d'abonnement : quelqu'un dont l'abonnement a pris fin doit pouvoir
- * faire le ménage dans ce qu'il a créé. Refuser la suppression aux non-abonnés
- * transformerait la fin d'un abonnement en données inamovibles.
+ * Elle ne crée jamais de cookie : sans identifiant, il n'y a aucun écran à effacer,
+ * et ouvrir une identité pour un geste de suppression n'aurait aucun sens.
  */
 export async function removeScreen(id: number): Promise<ScreenActionResult> {
-  const userId = await currentUserId()
-  if (!userId) return { ok: false, reason: 'signed-out' }
+  const userId = await ownerId()
+  if (!userId) return { ok: false, reason: 'db-disabled' }
 
   try {
     const removed = await deleteScreen(userId, id)

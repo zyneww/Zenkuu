@@ -1,5 +1,5 @@
 /**
- * Sérialisation d'un tableau vers cinq formats — fonction Zenkuu Pro.
+ * Sérialisation d'un tableau vers cinq formats.
  *
  * ── POURQUOI AUCUNE BIBLIOTHÈQUE ──────────────────────────────────────────────
  *

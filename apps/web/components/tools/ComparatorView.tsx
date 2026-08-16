@@ -8,8 +8,7 @@ import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
-import { useFeature } from '@/components/billing/ProGate'
-import { FEATURES, FREE_COMPARE_LIMIT, PRO_COMPARE_LIMIT } from '@/lib/billing'
+import { COMPARE_LIMIT } from '@/lib/limits'
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { dataColor } from '@/components/charts/chart-theme'
 import { Money } from '@/components/locale/Money'
@@ -83,8 +82,9 @@ import { assetHref } from '@/lib/asset-routes'
 type Scope = 'always' | 'sameClass'
 
 export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
-  const extended = useFeature(FEATURES.deepData)
-  const max = extended ? PRO_COMPARE_LIMIT : FREE_COMPARE_LIMIT
+  /* Un seul plafond désormais : l'abonnement qui en distinguait deux a été retiré
+     du site. Voir `lib/limits.ts`. */
+  const max = COMPARE_LIMIT
 
   const [selected, setSelected] = useState<string[]>(() =>
     assets.slice(0, 2).map((asset) => asset.id),
@@ -206,13 +206,15 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           </h2>
 
           {/*
-            L'invitation n'apparaît QU'AU plafond, jamais avant : annoncée d'entrée,
-            elle ferait passer un outil complet pour une démonstration bridée.
+            L'ANCIENNE INVITATION À S'ABONNER A DISPARU AVEC L'ABONNEMENT.
+
+            Elle s'affichait au plafond et proposait d'en relever la limite. Il n'y a
+            plus qu'un seul plafond, le même pour tout le monde ; le signaler ne
+            mènerait donc nulle part. Le compteur « n/6 » du titre suffit à dire où
+            l'on en est.
           */}
-          {!extended && chosen.length >= max ? (
-            <Link href="/tarifs" className="text-xs text-brand hover:text-brand-strong">
-              Zenkuu Pro en compare {PRO_COMPARE_LIMIT}
-            </Link>
+          {chosen.length >= max ? (
+            <p className="text-xs text-ink-muted">Maximum atteint</p>
           ) : null}
         </div>
 

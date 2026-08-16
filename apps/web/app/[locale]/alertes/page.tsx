@@ -1,15 +1,14 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { listAlerts } from '@zenkuu/db'
+import { DB_ENABLED, listAlerts } from '@zenkuu/db'
 import { EmptyState } from '@zenkuu/ui'
 
 import { AlertList, type AlertRow } from '@/components/alerts/AlertList'
 import { assetHref } from '@/lib/asset-routes'
-import { AUTH_ENABLED } from '@/lib/auth'
-import { FEATURES, FREE_ALERT_LIMIT, PRO_ALERT_LIMIT } from '@/lib/billing'
-import { hasFeature } from '@/lib/billing-server'
+import { ALERT_LIMIT } from '@/lib/limits'
 import { MAILER_ENABLED } from '@/lib/mailer'
+import { currentAccount, ownerId } from '@/lib/session'
 import type { AssetClass } from '@zenkuu/data'
 
 export const metadata: Metadata = {
@@ -21,10 +20,18 @@ export const metadata: Metadata = {
 /**
  * Alertes de prix.
  *
- * Trois briques doivent être présentes pour que la page ait un sens — comptes, base,
- * service d'envoi — et chacune manque indépendamment. Elles sont donc testées
- * séparément, avec un message distinct : dire « indisponible » sans dire laquelle
- * oblige l'exploitant à fouiller trois configurations pour en corriger une.
+ * ── CE QUE LE RETRAIT DES COMPTES OBLIGATOIRES A CHANGÉ ICI ───────────────────
+ *
+ * Cette page commençait par trois refus en cascade : pas d'authentification
+ * configurée, pas de session ouverte, pas de service d'envoi. Le deuxième a disparu —
+ * une alerte s'arme sans compte, rangée sous le cookie anonyme du navigateur — et
+ * avec lui l'écran « connectez-vous » qui barrait l'accès à quiconque n'avait pas
+ * d'adresse à donner.
+ *
+ * Il en reste deux, et ils décrivent tous deux une CONFIGURATION MANQUANTE côté
+ * exploitant, jamais un manque du côté du visiteur. Ils restent distincts : dire
+ * « indisponible » sans dire laquelle oblige à fouiller deux configurations pour en
+ * corriger une.
  *
  * ⚠️ Le service d'envoi est vérifié ICI, à l'affichage, et non seulement à la
  * création. Une page qui proposerait de créer des alertes sur une instance sans
@@ -32,35 +39,13 @@ export const metadata: Metadata = {
  * fonction plutôt qu'à un chiffre.
  */
 export default async function AlertesPage() {
-  if (!AUTH_ENABLED) {
+  if (!DB_ENABLED) {
     return (
       <Shell>
         <EmptyState
-          title="Comptes non configurés"
-          description="L’authentification n’est pas activée sur cette instance : les alertes ne peuvent pas être rattachées à un compte."
+          title="Base de données non configurée"
+          description="Les alertes sont conservées en base. Tant qu’aucune n’est configurée sur cette instance, elles ne peuvent pas être enregistrées."
           action={<HomeLink />}
-        />
-      </Shell>
-    )
-  }
-
-  const { auth } = await import('@clerk/nextjs/server')
-  const { userId } = await auth()
-
-  if (!userId) {
-    return (
-      <Shell>
-        <EmptyState
-          title="Connectez-vous pour gérer vos alertes"
-          description="Vos alertes sont rattachées à votre compte, et la notification part sur l’adresse qui y est enregistrée."
-          action={
-            <Link
-              href="/connexion"
-              className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-            >
-              Se connecter
-            </Link>
-          }
         />
       </Shell>
     )
@@ -78,26 +63,34 @@ export default async function AlertesPage() {
     )
   }
 
-  const result = await listAlerts(userId)
+  const [owner, account] = await Promise.all([ownerId(), currentAccount()])
 
-  if (!result.ok) {
+  /* Aucun identifiant : ce visiteur n'a jamais rien enregistré depuis ce navigateur.
+     C'est l'état d'une première visite, et il se traite comme une liste vide — pas
+     comme un refus. */
+  const result = owner ? await listAlerts(owner) : null
+
+  if (result && !result.ok) {
     return (
       <Shell>
-        <EmptyState title="Alertes indisponibles" description={result.reason} action={<HomeLink />} />
+        <EmptyState
+          title="Alertes indisponibles"
+          description={result.reason}
+          action={<HomeLink />}
+        />
       </Shell>
     )
   }
 
-  const pro = await hasFeature(FEATURES.priceAlerts)
-  const limit = pro ? PRO_ALERT_LIMIT : FREE_ALERT_LIMIT
-  const armed = result.data.filter((alert) => alert.active).length
+  const alerts = result?.ok ? result.data : []
+  const armed = alerts.filter((alert) => alert.active).length
 
-  if (result.data.length === 0) {
+  if (alerts.length === 0) {
     return (
-      <Shell quota={{ armed, limit, pro }}>
+      <Shell quota={{ armed, limit: ALERT_LIMIT }} signedIn={account !== null}>
         <EmptyState
           title="Aucune alerte"
-          description="Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil."
+          description="Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil. Aucun compte n’est nécessaire."
           action={
             <Link
               href="/crypto"
@@ -112,22 +105,27 @@ export default async function AlertesPage() {
   }
 
   const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+  const dayFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' })
 
-  const rows: AlertRow[] = result.data.map((alert) => ({
+  const rows: AlertRow[] = alerts.map((alert) => ({
     id: alert.id,
     href: assetHref(alert.assetClass as AssetClass, alert.assetId),
     label: alert.label,
     symbol: alert.symbol,
+    title: alert.title,
+    note: alert.note,
     direction: alert.direction,
     threshold: money(alert.threshold, alert.currency),
     active: alert.active,
+    recurring: alert.recurring,
+    expiresAt: alert.expiresAt ? dayFormat.format(alert.expiresAt) : null,
     triggeredAt: alert.triggeredAt ? dateFormat.format(alert.triggeredAt) : null,
     triggeredPrice:
       alert.triggeredPrice === null ? null : money(alert.triggeredPrice, alert.currency),
   }))
 
   return (
-    <Shell quota={{ armed, limit, pro }}>
+    <Shell quota={{ armed, limit: ALERT_LIMIT }} signedIn={account !== null}>
       <AlertList alerts={rows} />
     </Shell>
   )
@@ -155,37 +153,49 @@ function money(value: number, currency: string): string {
 function Shell({
   children,
   quota,
+  signedIn = false,
 }: {
   children: React.ReactNode
-  quota?: { armed: number; limit: number; pro: boolean }
+  quota?: { armed: number; limit: number }
+  /**
+   * Décide du rappel de portabilité affiché sous le quota.
+   *
+   * Il n'est montré qu'aux visiteurs ANONYMES, et c'est l'essentiel : leurs alertes
+   * vivent dans un cookie, et un nettoyage du navigateur les efface. Le dire est une
+   * obligation d'honnêteté, pas une invitation commerciale — d'où le ton, et d'où le
+   * fait qu'il disparaisse dès qu'un compte existe.
+   */
+  signedIn?: boolean
 }) {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Mes alertes</h1>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les cours sont relevés toutes les quinze minutes. Au franchissement du seuil,
-          un courriel part sur l’adresse de votre compte, et l’alerte se désarme — elle
-          ne se répétera pas tant que vous ne l’aurez pas réarmée.
+          Les cours sont relevés toutes les quinze minutes. Au franchissement du seuil, un
+          courriel part sur l’adresse indiquée à la création. Une alerte ordinaire se désarme
+          alors ; une alerte « à chaque fois » reste armée, avec au plus un envoi par jour.
         </p>
       </header>
 
       {quota ? (
-        <p className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
-          <span className="tabular text-ink">
-            {quota.armed} / {quota.limit}
-          </span>{' '}
-          alertes armées{quota.pro ? ' (offre Zenkuu Pro)' : ''}.
-          {quota.pro ? null : (
-            <>
-              {' '}
-              <Link href="/tarifs" className="text-brand hover:text-brand-strong">
-                Zenkuu Pro en autorise {PRO_ALERT_LIMIT}
-              </Link>
-              .
-            </>
-          )}
-        </p>
+        <div className="space-y-2">
+          <p className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
+            <span className="tabular text-ink">
+              {quota.armed} / {quota.limit}
+            </span>{' '}
+            alertes armées.
+          </p>
+
+          {!signedIn ? (
+            <p className="rounded-card border border-border-subtle bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-muted">
+              Ces alertes sont rattachées à <strong className="font-medium text-ink">ce
+              navigateur</strong>, pas à un compte. Elles ne suivront pas sur un autre appareil et
+              disparaîtront si vous effacez vos données de navigation. Se connecter les rattache à
+              une adresse, et les récupère telles quelles.
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {children}

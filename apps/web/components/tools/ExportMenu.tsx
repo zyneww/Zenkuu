@@ -12,7 +12,7 @@ import {
 } from '@/lib/export-formats'
 
 /**
- * Menu d'export d'un tableau — fonction Zenkuu Pro.
+ * Menu d'export d'un tableau.
  *
  * ── POURQUOI CÔTÉ NAVIGATEUR, ET NON PAR UNE ROUTE SERVEUR ────────────────────
  *

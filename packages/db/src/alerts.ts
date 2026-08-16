@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, gt, inArray, isNotNull, isNull, lte, or } from 'drizzle-orm'
 
 import { getDb } from './client'
 import { priceAlerts, type NewPriceAlert, type PriceAlert } from './schema'
@@ -108,13 +108,46 @@ export async function rearmAlert(
  * protégée par un secret. Un appel depuis une page exposerait les seuils de tous les
  * abonnés.
  */
-export async function listArmedAlerts(): Promise<WatchlistResult<PriceAlert[]>> {
+export async function listArmedAlerts(now: Date = new Date()): Promise<WatchlistResult<PriceAlert[]>> {
   const db = getDb()
   if (!db) return { ok: false, reason: UNAVAILABLE }
 
-  const rows = await db.select().from(priceAlerts).where(eq(priceAlerts.active, true))
+  /* Les alertes ÉCHUES sont écartées ici plutôt que filtrées par l'appelant : leur
+     seuil ne doit plus être comparé à quoi que ce soit, et les laisser remonter
+     ferait porter au code de la tâche une règle qui appartient à la donnée. */
+  const rows = await db
+    .select()
+    .from(priceAlerts)
+    .where(
+      and(
+        eq(priceAlerts.active, true),
+        or(isNull(priceAlerts.expiresAt), gt(priceAlerts.expiresAt, now)),
+      ),
+    )
 
   return { ok: true, data: rows }
+}
+
+/**
+ * Efface les alertes dont l'échéance est passée.
+ *
+ * Appelée par la tâche planifiée, au même passage que la vérification des seuils. Une
+ * alerte échue est déjà ignorée par `listArmedAlerts` ; la purge ne change donc rien
+ * au comportement, elle empêche seulement la table de conserver indéfiniment des
+ * lignes que plus personne ne lira.
+ */
+export async function purgeExpiredAlerts(
+  now: Date = new Date(),
+): Promise<WatchlistResult<{ removed: number }>> {
+  const db = getDb()
+  if (!db) return { ok: false, reason: UNAVAILABLE }
+
+  const removed = await db
+    .delete(priceAlerts)
+    .where(and(isNotNull(priceAlerts.expiresAt), lte(priceAlerts.expiresAt, now)))
+    .returning({ id: priceAlerts.id })
+
+  return { ok: true, data: { removed: removed.length } }
 }
 
 /**
@@ -131,6 +164,16 @@ export async function markAlertsTriggered(
   ids: number[],
   price: number,
   at: Date,
+  /**
+   * Laisser l'alerte ARMÉE après le déclenchement — les alertes « à chaque fois ».
+   *
+   * Le paramètre est un booléen et non une lecture de la colonne `recurring` de
+   * chaque ligne, parce que l'écriture est GROUPÉE : un `UPDATE` unique ne peut pas
+   * poser deux valeurs différentes de `active` selon la ligne. L'appelant partage
+   * donc son lot en deux et appelle deux fois, ce qui reste deux requêtes au lieu
+   * d'une par alerte.
+   */
+  keepArmed = false,
 ): Promise<WatchlistResult<{ updated: number }>> {
   const db = getDb()
   if (!db) return { ok: false, reason: UNAVAILABLE }
@@ -138,7 +181,7 @@ export async function markAlertsTriggered(
 
   const updated = await db
     .update(priceAlerts)
-    .set({ active: false, triggeredAt: at, triggeredPrice: price })
+    .set({ active: keepArmed, triggeredAt: at, triggeredPrice: price })
     .where(inArray(priceAlerts.id, ids))
     .returning({ id: priceAlerts.id })
 

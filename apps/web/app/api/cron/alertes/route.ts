@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { getAsset, getRanking, type AssetClass } from '@zenkuu/data'
-import { listArmedAlerts, markAlertsTriggered, type PriceAlert } from '@zenkuu/db'
+import {
+  listArmedAlerts,
+  markAlertsTriggered,
+  purgeExpiredAlerts,
+  purgeExpiredAuth,
+  type PriceAlert,
+} from '@zenkuu/db'
 
 import { assetHref } from '@/lib/asset-routes'
 import { alertEmail, MAILER_ENABLED, sendMail } from '@/lib/mailer'
@@ -50,6 +56,17 @@ const MAX_EMAILS = 50
 /** Taille de l'univers ramené en un appel, alignée sur celle des autres pages. */
 const BULK_SIZE = 250
 
+/**
+ * Silence imposé à une alerte RÉCURRENTE après un envoi.
+ *
+ * Une alerte « à chaque fois » reste armée après son déclenchement : sans délai de
+ * garde, un cours qui oscille autour du seuil produirait un courriel à chaque passage
+ * de la tâche, soit quatre-vingt-seize par jour. Vingt-quatre heures est le pas qui
+ * correspond à ce que la case promet — être prévenu à chaque fois que ça se produit,
+ * pas à chaque fois qu'on regarde.
+ */
+const RECURRING_COOLDOWN_MS = 24 * 60 * 60 * 1000
+
 type PriceKey = string
 
 const priceKey = (assetClass: string, assetId: string, currency: string): PriceKey =>
@@ -64,6 +81,18 @@ const priceKey = (assetClass: string, assetId: string, currency: string): PriceK
  */
 function isCrossed(alert: PriceAlert, price: number): boolean {
   return alert.direction === 'above' ? price >= alert.threshold : price <= alert.threshold
+}
+
+/**
+ * Une alerte récurrente vient-elle déjà d'être notifiée ?
+ *
+ * Ne s'applique QU'AUX récurrentes : une alerte ordinaire est désarmée au
+ * déclenchement et ne repasse jamais ici tant que son auteur ne l'a pas réarmée —
+ * geste qui remet `triggeredAt` à nul.
+ */
+function isMuted(alert: PriceAlert, now: Date): boolean {
+  if (!alert.recurring || !alert.triggeredAt) return false
+  return now.getTime() - alert.triggeredAt.getTime() < RECURRING_COOLDOWN_MS
 }
 
 function formatMoney(value: number, currency: string): string {
@@ -97,14 +126,44 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
+  /*
+   * MÉNAGE DES SESSIONS ET DES CODES PÉRIMÉS — avant le contrôle du service d'envoi.
+   *
+   * L'ordre n'est pas indifférent. Cette purge n'a RIEN à voir avec les alertes : elle
+   * efface les lignes d'authentification expirées, qui ne sont plus lues par personne
+   * mais restent stockées et facturées. La placer après le contrôle du service d'envoi
+   * la rendrait muette sur une instance sans expéditeur — c'est-à-dire exactement une
+   * instance où personne ne se connecte, mais où la table gonflerait quand même.
+   *
+   * Elle n'a pas mérité sa propre tâche planifiée : deux suppressions par quart
+   * d'heure sont négligeables à côté du reste du passage, et un second calendrier
+   * serait une pièce de plus à surveiller.
+   */
+  const auth = await purgeExpiredAuth()
+
   if (!MAILER_ENABLED) {
-    return NextResponse.json({ error: 'Service d’envoi non configuré' }, { status: 503 })
+    return NextResponse.json({
+      error: 'Service d’envoi non configuré',
+      sessions: auth.ok ? auth.data.sessions : 0,
+    }, { status: 503 })
   }
+
+  /* La purge des alertes échues passe AVANT la lecture, et elle est délibérément
+     silencieuse en cas d'échec : c'est du ménage, pas une étape dont dépend la
+     vérification des seuils. Une base momentanément indisponible pour la suppression
+     ne doit pas empêcher les alertes valides de partir. */
+  const purged = await purgeExpiredAlerts()
 
   const armed = await listArmedAlerts()
   if (!armed.ok) return NextResponse.json({ error: armed.reason }, { status: 503 })
   if (armed.data.length === 0) {
-    return NextResponse.json({ checked: 0, triggered: 0, sent: 0, deferred: 0 })
+    return NextResponse.json({
+      checked: 0,
+      triggered: 0,
+      sent: 0,
+      deferred: 0,
+      expired: purged.ok ? purged.data.removed : 0,
+    })
   }
 
   /* ── 1. Regroupement ────────────────────────────────────────────────────── */
@@ -171,7 +230,7 @@ export async function GET(request: NextRequest) {
     const price = prices.get(key)
     if (price === undefined || !Number.isFinite(price)) continue
 
-    const crossed = alerts.filter((alert) => isCrossed(alert, price))
+    const crossed = alerts.filter((alert) => isCrossed(alert, price) && !isMuted(alert, now))
     if (crossed.length === 0) continue
 
     /*
@@ -185,12 +244,16 @@ export async function GET(request: NextRequest) {
      * première : elle est visible dans la liste des alertes, l'autre remplit une
      * boîte de réception.
      */
-    const marked = await markAlertsTriggered(
-      crossed.map((alert) => alert.id),
-      price,
-      now,
-    )
+    /* Deux écritures groupées et non une : les alertes « à chaque fois » restent
+       armées, les autres sont consommées, et un seul `UPDATE` ne peut pas poser deux
+       valeurs de `active`. Deux requêtes restent très en deçà d'une par alerte. */
+    const once = crossed.filter((alert) => !alert.recurring).map((alert) => alert.id)
+    const again = crossed.filter((alert) => alert.recurring).map((alert) => alert.id)
+
+    const marked = await markAlertsTriggered(once, price, now)
     if (!marked.ok) continue
+    const remarked = await markAlertsTriggered(again, price, now, true)
+    if (!remarked.ok) continue
     triggered += crossed.length
 
     for (const alert of crossed) {
@@ -203,6 +266,10 @@ export async function GET(request: NextRequest) {
         threshold: formatMoney(alert.threshold, alert.currency),
         price: formatMoney(price, alert.currency),
         url: `${SITE_URL}${assetHref(alert.assetClass as AssetClass, alert.assetId)}`,
+        // Nom et note viennent de la fenêtre de création. Le premier titre le
+        // courriel, la seconde y est recopiée telle quelle — voir `alertEmail`.
+        ...(alert.title ? { title: alert.title } : {}),
+        ...(alert.note ? { note: alert.note } : {}),
       })
 
       const result = await sendMail({ to: alert.email, ...message })
@@ -220,5 +287,8 @@ export async function GET(request: NextRequest) {
     triggered,
     sent,
     deferred,
+    expired: purged.ok ? purged.data.removed : 0,
+    sessions: auth.ok ? auth.data.sessions : 0,
+    codes: auth.ok ? auth.data.codes : 0,
   })
 }

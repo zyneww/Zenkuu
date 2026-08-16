@@ -1,10 +1,9 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
-import { FREE_WATCHLIST_LIMIT } from '@/lib/billing'
+import { WATCHLIST_ASSET_LIMIT } from '@/lib/limits'
 import { toggleWatchlist } from '@/lib/watchlist-actions'
 
 /**
@@ -38,23 +37,25 @@ export function WatchlistStar({
   symbol?: string
   path: string
   initialFollowing: boolean
-  /** Le suivi est-il utilisable ? Faux sans compte ou sans base configurée. */
+  /** Le suivi est-il utilisable ? Faux sans base configurée — le compte, lui, est facultatif. */
   available: boolean
 }) {
   const [following, setFollowing] = useState(initialFollowing)
   const [capped, setCapped] = useState(false)
   const [pending, startTransition] = useTransition()
 
+  /* Voir `WatchlistButton` : `available` décrit une base configurée, plus une
+     session. L'étoile devient donc muette au lieu de renvoyer vers une connexion qui
+     ne changerait rien. */
   if (!available) {
     return (
-      <Link
-        href="/connexion"
-        title={`Se connecter pour suivre ${label}`}
-        aria-label={`Se connecter pour suivre ${label}`}
-        className="inline-flex rounded-card p-1.5 text-ink-muted/60 transition-colors hover:bg-surface-muted hover:text-ink"
+      <span
+        title="Le suivi n’est pas disponible sur cette instance"
+        aria-hidden="true"
+        className="inline-flex rounded-card p-1.5 text-ink-muted/40"
       >
-        <Star className="h-4 w-4" aria-hidden="true" />
-      </Link>
+        <Star className="h-4 w-4" />
+      </span>
     )
   }
 
@@ -91,7 +92,7 @@ export function WatchlistStar({
   }
 
   const action = following ? `Ne plus suivre ${label}` : `Suivre ${label}`
-  const cappedLabel = `Liste de suivi limitée à ${FREE_WATCHLIST_LIMIT} actifs dans l’offre gratuite`
+  const cappedLabel = `Liste de suivi limitée à ${WATCHLIST_ASSET_LIMIT} actifs`
 
   return (
     <>
@@ -113,7 +114,7 @@ export function WatchlistStar({
 
       {capped ? (
         <span role="status" className="sr-only">
-          {cappedLabel}. L’offre Zenkuu Pro la libère.
+          {cappedLabel}
         </span>
       ) : null}
     </>

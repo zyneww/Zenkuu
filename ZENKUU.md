@@ -555,7 +555,7 @@ Mobile-first, entièrement responsive. Mode sombre en option (non requis au MVP)
 |---|---|---|
 | Monorepo | **Turborepo** + **Bun** | Gestion du monorepo, runtime/package manager |
 | Frontend | **Next.js** (App Router) + **Tailwind CSS 4** | Rendu SSR/ISR, UI |
-| Authentification | **Clerk** | Comptes utilisateurs, sessions |
+| Authentification | **Maison, sans mot de passe** | Code à usage unique par courriel, session en base (`packages/db/src/accounts.ts`) |
 | Base relationnelle | **Turso** (libSQL) + **Drizzle ORM** | Utilisateurs, watchlists, portefeuilles, préférences |
 | Base séries temporelles | **QuestDB** | Historique OHLC haute fréquence |
 | Cache | **Dragonfly** (compatible Redis) | Cache API, TTL 5 min |
@@ -624,78 +624,28 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 À activer progressivement, sans dégrader l'expérience ni la vitesse :
 
 1. **Publicité display** sur les pages à fort trafic organique — emplacements non intrusifs, pas d'interstitiels.
-2. **Abonnement premium** (« Zenkuu Pro ») : sans publicité, alertes de prix, export CSV, filtres de screener avancés. Facturation Stripe (compatible Clerk Billing).
+2. ~~**Abonnement premium** (« Zenkuu Pro »)~~ — **abandonné**, voir ci-dessous.
 3. **Affiliation** : module « Où suivre/acheter cet actif » avec liens sortants vers des exchanges tiers — **jamais de widget de trading intégré**, uniquement des liens externes, pour préserver le positionnement lecture seule.
 
 *(Priorité entre ces trois leviers : décision business à trancher après le MVP, selon la traction.)*
 
-> ✅ **Fait — levier 2, l'abonnement.** « Zenkuu Pro » est en place via **Clerk Billing**
-> (Stripe en dessous, mais l'état d'abonnement voyage dans le jeton de session : aucune
-> table, aucun webhook, aucune lecture en base par garde). Page publique `/tarifs`,
-> rubrique `/parametres?rubrique=abonnement`, catalogue mirroir dans
-> `apps/web/lib/billing.ts`.
+> ❌ **Retiré — levier 2, l'abonnement.** « Zenkuu Pro » a existé, adossé à la
+> facturation du fournisseur d'identité tiers (Clerk Billing). Le fournisseur ayant été
+> retiré du site, l'abonnement l'a été avec lui : plus de page `/tarifs`, plus de
+> rubrique Abonnement, plus de `ProGate`, plus de `hasFeature()`.
 >
-> **Trois règles qu'une évolution ne doit pas défaire :**
+> **Ce qui en reste, et qu'il faut savoir :**
 >
-> - **Pro AJOUTE, ne reprend jamais.** Aucune fonction aujourd'hui gratuite ne doit
->   passer derrière l'abonnement. C'est écrit noir sur blanc dans la FAQ de `/tarifs`,
->   donc opposable : le jour où l'on retire, la page devient un mensonge et le §5
->   ne distingue pas le chiffre inventé de la promesse reniée.
-> - **La facturation est un drapeau à part** (`NEXT_PUBLIC_CLERK_BILLING_ENABLED`), et
->   pas une déduction de `AUTH_ENABLED` : Clerk peut être configuré sans que Billing le
->   soit, auquel cas `<PricingTable />` lève en développement et se rend vide en
->   production. **Sans ce drapeau, aucune limite n'est appliquée** — tout est ouvert.
-> - **Deux gardes, deux portées.** `ProGate` (client) masque une commande, c'est de
->   l'interface et cela se contourne. `hasFeature()` (serveur) protège une ÉCRITURE ou
->   une donnée non encore livrée. Toute fonction future qui coûte réellement quelque
->   chose passe par la seconde.
->
-> **L'offre a été arrêtée par relevé des concurrents** (août 2026), pas par intuition :
->
-> | | Gratuit chez eux | Payant chez eux | Prix |
-> |---|---|---|---|
-> | TradingView | 1 liste de 30, 3 alertes, **pubs** | listes multiples, 20→400 alertes | 12,95 €/mois |
-> | CoinGecko | 2 portefeuilles, **pubs** | 100 portefeuilles, sans pub | ~8,30 €/mois |
-> | stockanalysis.com | (limité) | listes illimitées, **export**, 100 alertes, écrans sauvegardés | 6,58 €/mois |
-> | Finviz Elite | screener 20 lignes/page | screener 100 lignes, **export**, alertes illimitées | 39,50 $/mois |
->
-> Trois fonctions reviennent chez les **quatre** — sans publicité, listes démultipliées,
-> alertes de prix — et deux chez les plus sérieux : export de données, écrans de
-> screener sauvegardés. Ce sont exactement celles de `FEATURES`.
->
-> **Ce qu'on refuse de vendre, et pourquoi.** Temps réel et historique de dix ans sont
-> les deux autres arguments du secteur. Nos sources sont gratuites et plafonnées à
-> quelques appels par minute (§7) : les promettre serait vendre ce qu'on ne peut pas
-> livrer, ce que le §5 interdit au même titre qu'un chiffre inventé. La FAQ de
-> `/tarifs` le dit explicitement pour les alertes (« relevées toutes les 15 minutes »).
->
-> **Deux plafonds ont été retirés en cours de route, et il ne faut pas les réintroduire :**
->
-> - Un premier plafond de liste à **10 actifs** nous plaçait sous TOUS les concurrents,
->   alors que le §1 promet l'inverse. Porté à **30** — le chiffre de TradingView. Ce
->   n'est plus le volume qui vend l'abonnement, c'est l'**organisation** (listes
->   multiples et nommées) : vendre du volume punit l'utilisateur assidu, vendre du
->   rangement ne retire rien à personne.
-> - Une **profondeur d'historique réservée** (30 j gratuit / 365 j Pro) a été écartée
->   après vérification du code : le graphique charge déjà n'importe quelle période pour
->   tout le monde. La « débloquer » aurait voulu dire la **retirer d'abord**. C'est
->   l'**export** du tableau qui se vend à la place — la donnée reste ouverte, seule sa
->   sortie en fichier est un service. ⚠️ Ne jamais poser un plafond sans avoir vérifié
->   que la fonction n'est pas déjà gratuite ailleurs dans le site.
->
-> **Les alertes sont la seule brique à infrastructure.** Table `price_alerts`, tâche
-> planifiée `/api/cron/alertes` toutes les 15 min (`apps/web/vercel.json`), envoi via
-> Resend. La tâche est écrite contre le quota : **un appel groupé par devise** couvre
-> les 250 premières capitalisations, le reliquat passe en appels individuels bornés à
-> 12 par passage, et ce qui dépasse est reporté au tour suivant — jamais perdu. Sans
-> `RESEND_API_KEY`, les alertes ne sont **pas proposées du tout** : une alerte
-> enregistrée qui ne partirait jamais est pire qu'une alerte absente, parce qu'elle a
-> été crue.
->
-> Le levier 1 (publicité) reste à faire ; le slug `ads_free` existe déjà dans le
-> catalogue pour que le rattachement au plan soit fait AVANT l'arrivée de la régie, et
-> non dans l'urgence le jour où des abonnés verraient des encarts. **Tant qu'il n'est
-> pas branché, il n'est pas vendu** — il ne figure dans aucune ligne de `PLAN_CARDS`.
+> - **Tout est ouvert.** Il n'y a plus qu'un jeu de plafonds, écrit en dur dans
+>   `apps/web/lib/limits.ts`, et ce sont ceux de l'ancienne offre payante : 200 actifs
+>   suivis, 10 listes, 100 alertes armées, 6 actifs comparés. Rien n'est bridé.
+> - **La règle « Pro AJOUTE, ne reprend jamais » a été tenue jusqu'au bout** — et le
+>   retrait en est la forme la plus nette : aucune fonction gratuite n'a jamais basculé
+>   derrière l'abonnement, et l'abonnement a disparu avant elles.
+> - **Le levier 2 reste à trancher.** Le site n'a plus de source de revenu adossée aux
+>   comptes. Le jour où la question se reposera, elle repartira d'une page blanche : il
+>   n'y a plus ni catalogue de plans, ni garde côté serveur, ni drapeau de configuration
+>   à réactiver.
 
 ---
 
@@ -761,14 +711,14 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | Accueil : synthèse, tendances, hausses/baisses, narratifs, actus, sentiment | `app/page.tsx`, `components/home/` |
 | Six classements + six fiches d'actif | `app/{crypto,devises,actions,etf,matieres-premieres,indices}/` |
 | Catégories, actualités, sentiment, mouvements | `app/{categories,actualites,sentiment}/` |
-| **Comptes utilisateurs (Clerk)** — dégradation propre sans clé | `lib/auth.ts`, `components/auth/`, `app/{connexion,inscription}/` |
+| **Comptes utilisateurs maison** — code par courriel, session en base, reprise des données anonymes à la connexion | `packages/db/src/accounts.ts`, `lib/session.ts`, `lib/auth-actions.ts`, `components/account/` |
 | **Graphiques enrichis** — 5 types, volume, moyenne mobile, lignes de prix, légende | `components/asset/PriceChartInteractive.tsx` |
 | **Centre d'aide** — 12 articles, 4 catégories, recherche locale, 1 page par article | `content/aide.ts`, `app/aide/` |
 | **Apprendre** — 9 fiches par thème et par niveau | `content/apprendre.ts`, `app/apprendre/` |
 | **Pourquoi ZENKUU**, **Bien démarrer**, **API & développeurs**, **Nouveautés** | `app/{pourquoi-zenkuu,bien-demarrer,developpeurs,nouveautes}/` |
 | **SEO** — sitemap dynamique (189 URL), `robots.txt`, JSON-LD, canoniques | `app/sitemap.ts`, `app/robots.ts`, `components/seo/JsonLd.tsx`, `lib/site.ts` |
 | **Turso + Drizzle** — watchlist persistée, préférences | `packages/db/`, `app/suivi/`, `lib/watchlist-actions.ts` |
-| **Contexte Clerk serveur** (`proxy.ts`, conditionné à `AUTH_ENABLED`) | `apps/web/proxy.ts` |
+| **Identité anonyme par cookie** — suivre et alerter sans compte | `lib/visitor.ts`, `lib/session.ts` |
 | **Listings refondus** — onglets inter-classes, synthèse, filtre et vues rapides | `components/market/{AssetClassTabs,MarketStatsStrip,MarketBrowser}.tsx` |
 | **Secteurs refondus** — bandeau de tête, grille/tableau filtrable | `components/categories/` |
 | **Actualités refondues** — cartes, article en tête, filtres de rubrique | `components/news/NewsFeed.tsx` |
@@ -784,12 +734,11 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Widgets natifs** — ticker, convertisseur, classement compact + intégration | `components/widgets/`, `app/{widgets,embed}/` |
 | **Attribution CoinGecko conforme aux CGU** | `components/Footer.tsx`, `app/embed/ticker/page.tsx` |
 | **Tests** — Vitest sur la logique de classement | `packages/data/src/queries.test.ts` |
-| **Abonnement « Zenkuu Pro » (Clerk Billing)** — `/tarifs`, rubrique Abonnement, dégradation propre sans Billing | `lib/billing.ts`, `lib/billing-server.ts`, `components/billing/`, `app/tarifs/` |
-| **Alertes de prix par courriel** — table, tâche planifiée 15 min, Resend, page `/alertes`, quota 3 (gratuit) / 100 (Pro) | `packages/db/src/alerts.ts`, `app/api/cron/alertes/`, `lib/mailer.ts`, `components/alerts/` |
-| **Listes de suivi multiples et nommées** — renommer, déplacer, supprimer ; 1 liste × 30 actifs en gratuit | `packages/db/src/watchlist.ts`, `components/watchlist/WatchlistBoard.tsx` |
-| **Export 5 formats** — CSV, **Excel (.xlsx écrit à la main, sans bibliothèque)**, JSON, Markdown, presse-papiers | `lib/export-formats.ts`, `components/billing/ExportMenu.tsx` |
+| **Alertes de prix par courriel** — fenêtre de création complète (sens, seuil, récurrence, échéance, nom, message), tâche planifiée 15 min, Resend, page `/alertes`, quota 100 | `packages/db/src/alerts.ts`, `app/api/cron/alertes/`, `lib/mailer.ts`, `components/alerts/` |
+| **Listes de suivi multiples et nommées** — renommer, déplacer, supprimer ; 10 listes × 200 actifs | `packages/db/src/watchlist.ts`, `components/watchlist/WatchlistBoard.tsx` |
+| **Export 5 formats** — CSV, **Excel (.xlsx écrit à la main, sans bibliothèque)**, JSON, Markdown, presse-papiers | `lib/export-formats.ts`, `components/tools/ExportMenu.tsx` |
 | **Écrans de screener enregistrés** — nommés, rappelés en un clic, critères revalidés à la relecture | `packages/db/src/screens.ts`, `lib/screen-actions.ts`, `components/tools/SavedScreens.tsx` |
-| **Gardes réelles** — plafonds de listes et d'alertes (serveur), écrans sauvegardés (serveur), export et filtres avancés (client) | `lib/watchlist-actions.ts`, `lib/alert-actions.ts`, `lib/screen-actions.ts` |
+| **Plafonds serveur** — listes, actifs suivis, alertes armées ; identiques pour tout le monde | `lib/limits.ts`, `lib/watchlist-actions.ts`, `lib/alert-actions.ts` |
 
 ### Contraintes externes mesurées
 
@@ -862,20 +811,23 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
   prix qui oscille autour du seuil enverrait sinon quatre courriels par heure ; et si la tâche
   s'interrompt entre les deux écritures, on préfère une notification manquée (visible dans la
   liste) à une avalanche (qui remplit une boîte de réception).
-- **L'adresse de notification est COPIÉE de Clerk à la création de l'alerte.** La tâche planifiée
-  s'exécute hors de toute session : elle n'a pas de contexte Clerk à interroger. Le prix à payer
-  est une adresse qui peut se périmer — borné par le fait qu'une alerte est éphémère.
-- **Aucun appel à l'abonnement dans l'en-tête.** L'entrée vit dans le menu « Plus » et dans le
-  pied de page. Le site se vend par son contenu gratuit (§1) : un bouton « Passer Pro » sur
-  toutes les pages contredirait cette promesse à chaque chargement. Les invitations n'apparaissent
-  qu'AU moment où une limite est réellement rencontrée, jamais annoncées à l'avance.
-- **Pas de page `/compte`** : le `<UserButton>` de Clerk porte déjà profil et déconnexion. Une page
-  dédiée n'aura de contenu propre qu'avec la watchlist persistée — elle exigera alors un
-  `clerkMiddleware()`, lui-même à conditionner à `AUTH_ENABLED` sous peine de faire tomber
-  TOUTES les routes en l'absence de clé.
-- **`AUTH_ENABLED` est figé à la compilation.** `NEXT_PUBLIC_*` est substitué par le bundler et
-  `/connexion` est prérendue statiquement : ajouter les clés Clerk à un déploiement déjà bâti
-  ne suffit pas, il faut **rebâtir**.
+- **L'adresse de notification est SAISIE dans la fenêtre de création.** Elle était recopiée du
+  compte tiers ; sans compte obligatoire, il faut la demander — et c'est un gain : armer une
+  alerte ne suppose plus de s'inscrire. La tâche planifiée s'exécute hors de toute session et
+  lit la colonne, sans aller chercher l'adresse ailleurs à chaque passage.
+- **La session n'est PAS lue dans la mise en page**, et c'est une contrainte de cache, pas un
+  choix de style : lire un cookie dans `app/[locale]/layout.tsx` basculerait toutes les routes
+  qu'elle enveloppe en rendu dynamique, y compris les milliers de fiches d'actif qui vivent sur
+  un `revalidate` de 180 s. L'en-tête lit donc un **cookie d'affichage** distinct du jeton de
+  session — l'un est lisible et ne peut rien, l'autre est `httpOnly` et peut tout
+  (`lib/identity-cookie.ts`).
+- **Se connecter reprend les données anonymes.** La liste et les alertes constituées sans compte
+  sont réécrites sous l'identifiant du compte (`claimAnonymousData`). Sans cela, la connexion
+  ferait disparaître le travail qu'on venait de faire — le défaut classique des sites qui
+  ajoutent un compte après coup.
+- **Le code de connexion est stocké en condensat, jamais en clair**, et le nombre d'essais est
+  plafonné en BASE et non en mémoire : le site tourne sur des instances sans état, un compteur
+  local repartirait de zéro à chaque requête servie par une autre.
 - **Graphiques : périmètre volontairement restreint.** Sont écartés heatmap, aire empilée,
   historique infini, temps réel (aucun flux WebSocket gratuit ; le cache est à 5 min), alertes
   de prix (elles supposent la persistance) et loupe. Ce sont des démos de lightweight-charts,
@@ -955,10 +907,10 @@ rejouable sans risque.
   de prix rendus avec des données CoinGecko réelles.
 - ✅ `robots.txt`, `sitemap.xml` (189 URL) et le JSON-LD (`Dataset`, `Article`,
   `BreadcrumbList`, `WebSite`) vérifiés dans la sortie HTTP réelle.
-- ✅ **Chemin Clerk exercé.** Avec les clés en place, `/connexion` et `/inscription`
-  rendent les formulaires Clerk (OAuth GitHub/Google/X, localisation `frFR`, ton de
-  marque appliqué). Les huit routes testées répondent 200, y compris celles qui
-  appellent `auth()` côté serveur — donc `clerkMiddleware()` et son matcher fonctionnent.
+- ⚠️ **Le parcours de connexion maison reste à exercer de bout en bout** contre un vrai
+  service d'envoi : demander un code, le recevoir, le recopier, vérifier que la liste
+  anonyme rejoint bien le compte. La migration `0002` doit être appliquée avant
+  (`cd packages/db && bun run db:migrate`).
 - ✅ **Écritures Turso exercées** contre la vraie base : insertion, lecture, refus de
   doublon par l'index unique (c'est lui qui absorbe un double clic sur l'étoile), puis
   suppression. Base laissée vide, aucune ligne de vérification conservée.

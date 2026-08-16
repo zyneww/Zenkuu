@@ -23,7 +23,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/connexion', '/inscription'],
+      disallow: ['/api/', '/alertes', '/suivi', '/tableau-de-bord', '/parametres'],
     },
     sitemap: absoluteUrl('/sitemap.xml'),
     host: SITE_URL,

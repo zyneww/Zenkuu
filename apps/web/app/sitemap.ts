@@ -64,7 +64,6 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   // Priorité haute pour une page qui ne bouge presque jamais : « tarif » est la
   // requête d'un lecteur déjà décidé, et c'est la seule page du site dont la visite
   // se convertit directement.
-  { path: '/tarifs', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/bien-demarrer', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/methodologie', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/developpeurs', changeFrequency: 'monthly', priority: 0.4 },

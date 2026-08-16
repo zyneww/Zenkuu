@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, BellOff, RotateCcw, Trash2 } from 'lucide-react'
+import { Bell, BellOff, CalendarClock, Repeat, RotateCcw, Trash2 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
@@ -11,9 +11,17 @@ export interface AlertRow {
   href: string
   label: string
   symbol: string | null
+  /** Nom donné à l'alerte. Absent ⇒ la ligne s'annonce par l'actif. */
+  title: string | null
+  /** Note laissée à la création, reprise dans le courriel. */
+  note: string | null
   direction: string
   threshold: string
   active: boolean
+  /** L'alerte se réarme-t-elle d'elle-même après un envoi ? */
+  recurring: boolean
+  /** Échéance formatée, ou `null` pour une surveillance sans fin. */
+  expiresAt: string | null
   triggeredAt: string | null
   triggeredPrice: string | null
 }
@@ -30,6 +38,17 @@ export interface AlertRow {
  *
  * La distinction visuelle passe donc par l'ÉTAT de la ligne (icône, ton, actions
  * offertes), pas par sa localisation.
+ *
+ * ── CE QUE LA FENÊTRE DE CRÉATION A AJOUTÉ ICI ────────────────────────────────
+ *
+ * Nom, message, récurrence et échéance sont nouveaux, et ils changent la nature de
+ * cette liste : dix alertes sur le bitcoin y étaient dix lignes identiques à l'œil,
+ * qu'il fallait lire jusqu'au seuil pour distinguer. Le NOM prend donc la première
+ * ligne quand il existe, et l'actif descend en second rang.
+ *
+ * Les deux pastilles — « à chaque fois », « jusqu'au … » — ne s'affichent que
+ * lorsqu'elles disent quelque chose : une alerte ordinaire sans échéance n'en porte
+ * aucune, ce qui est le cas majoritaire et doit rester le cas le plus silencieux.
  */
 export function AlertList({ alerts }: { alerts: AlertRow[] }) {
   const [message, setMessage] = useState<string | null>(null)
@@ -39,13 +58,12 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
     setMessage(null)
 
     startTransition(async () => {
-      const result =
-        action === 'rearm' ? await rearmPriceAlert(id) : await removePriceAlert(id)
+      const result = action === 'rearm' ? await rearmPriceAlert(id) : await removePriceAlert(id)
 
       if (!result.ok) {
         setMessage(
           result.reason === 'limit-reached'
-            ? `Vous avez déjà ${result.limit} alertes armées : supprimez-en une, ou passez à Zenkuu Pro.`
+            ? `Vous avez déjà ${result.limit} alertes armées, le maximum du site : supprimez-en une pour en réarmer une autre.`
             : 'L’opération a échoué. Réessayez.',
         )
       }
@@ -55,25 +73,35 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
   return (
     <div className="space-y-3">
       {message ? (
-        <p role="status" className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
-          {message}{' '}
-          <Link href="/tarifs" className="text-brand hover:text-brand-strong">
-            Voir l’offre
-          </Link>
+        <p
+          role="status"
+          className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted"
+        >
+          {message}
         </p>
       ) : null}
 
       <ul className="divide-y divide-border-subtle rounded-card border border-border-subtle">
         {alerts.map((alert) => (
-          <li key={alert.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+          <li key={alert.id} className="flex flex-wrap items-start gap-3 px-4 py-3">
             {alert.active ? (
-              <Bell className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+              <Bell className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
             ) : (
-              <BellOff className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+              <BellOff className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
             )}
 
             <div className="min-w-0 flex-1">
-              <Link href={alert.href} className="text-sm font-medium text-ink hover:text-brand-strong">
+              {/* Le NOM en tête quand il existe, sinon l'actif — voir l'en-tête. */}
+              {alert.title ? (
+                <p className="truncate text-sm font-medium text-ink">{alert.title}</p>
+              ) : null}
+
+              <Link
+                href={alert.href}
+                className={`hover:text-brand-strong ${
+                  alert.title ? 'text-xs text-ink-muted' : 'text-sm font-medium text-ink'
+                }`}
+              >
                 {alert.label}
                 {alert.symbol ? (
                   <span className="ml-1.5 text-xs uppercase text-ink-muted">{alert.symbol}</span>
@@ -90,6 +118,27 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
                   </>
                 ) : null}
               </p>
+
+              {alert.recurring || alert.expiresAt ? (
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  {alert.recurring ? (
+                    <Tag icon={<Repeat className="h-2.5 w-2.5" aria-hidden="true" />}>
+                      À chaque fois
+                    </Tag>
+                  ) : null}
+                  {alert.expiresAt ? (
+                    <Tag icon={<CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />}>
+                      Jusqu’au {alert.expiresAt}
+                    </Tag>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {alert.note ? (
+                <p className="mt-1 border-l-2 border-border-subtle pl-2 text-xs italic leading-relaxed text-ink-muted">
+                  {alert.note}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
@@ -123,5 +172,15 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
         ))}
       </ul>
     </div>
+  )
+}
+
+/** Pastille de réglage — n'apparaît que lorsqu'elle dit quelque chose. */
+function Tag({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-pill border border-border-subtle px-1.5 py-0.5 text-[0.625rem] font-medium text-ink-muted">
+      {icon}
+      {children}
+    </span>
   )
 }

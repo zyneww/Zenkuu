@@ -7,13 +7,11 @@ import type { MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
-import { ExportMenu } from '@/components/billing/ExportMenu'
-import { ProGate, UpgradeCallout } from '@/components/billing/ProGate'
+import { ExportMenu } from '@/components/tools/ExportMenu'
 import { Money } from '@/components/locale/Money'
 import { SavedScreens } from '@/components/tools/SavedScreens'
 import { Pagination } from '@/components/ui/Pagination'
 import { assetHref } from '@/lib/asset-routes'
-import { FEATURES } from '@/lib/billing'
 import type { ScreenCriteria } from '@/lib/screen-actions'
 
 /**
@@ -228,9 +226,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         j'ai moi-même défini », puis le réglage fin. La placer en bas la ferait
         découvrir après avoir refait à la main ce qu'elle rappelle en un clic.
       */}
-      <ProGate feature={FEATURES.savedScreens} fallback={null}>
-        <SavedScreens criteria={criteria} onApply={apply} />
-      </ProGate>
+      <SavedScreens criteria={criteria} onApply={apply} />
 
       <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Slider
@@ -280,59 +276,49 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
       </div>
 
       {/*
-        CRITÈRES AVANCÉS — offre Pro.
+        CRITÈRES DE SECOND RANG — ouverts à tous, désormais.
 
-        Ce qui les sépare des critères de base n'est pas leur difficulté technique mais
-        leur PUBLIC : la variation à 7 jours et la rotation ne servent qu'à qui suit le
-        marché dans la durée. Le lecteur occasionnel filtre par taille et par variation
-        du jour, et ces deux-là restent gratuits — conformément à l'engagement de la
-        page /tarifs : Pro AJOUTE, il ne reprend rien.
+        Ils étaient réservés à l'abonnement, et l'argument tenait à leur PUBLIC plutôt
+        qu'à leur difficulté : la variation à 7 jours et la rotation ne servent qu'à
+        qui suit le marché dans la durée, quand le lecteur occasionnel filtre par
+        taille et par variation du jour.
 
-        L'encart de repli est en version compacte : à cet endroit de la page, un pavé
-        publicitaire pleine hauteur entre les filtres et les résultats couperait
-        précisément le geste qu'on est en train de faire.
+        L'abonnement a été retiré du site, et avec lui l'encart qui invitait à y
+        souscrire. La distinction de public, elle, reste vraie : c'est pourquoi ces
+        deux curseurs gardent leur bloc séparé, sous les quatre premiers, au lieu de
+        rejoindre la grille principale.
       */}
-      <ProGate
-        feature={FEATURES.advancedScreener}
-        fallback={
-          <UpgradeCallout
-            title="Critères avancés : variation 7 jours et rotation"
-            compact
-          />
-        }
-      >
-        <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
-              Variation 7 j minimale
-              <span className="tabular text-ink">
-                {minChange7d <= -100 ? 'aucune' : `${minChange7d} %`}
-              </span>
+      <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
+            Variation 7 j minimale
+            <span className="tabular text-ink">
+              {minChange7d <= -100 ? 'aucune' : `${minChange7d} %`}
             </span>
-            <input
-              type="range"
-              min={-100}
-              max={50}
-              step={5}
-              value={minChange7d}
-              onChange={(event) => setMinChange7d(Number(event.target.value))}
-              className="w-full accent-[var(--color-brand)]"
-            />
-          </label>
-
-          <Slider
-            label="Rotation quotidienne minimale"
-            value={minTurnoverIndex}
-            max={TURNOVER_STEPS.length - 1}
-            onChange={setMinTurnoverIndex}
-            display={
-              minTurnover === 0
-                ? 'aucune'
-                : `${new Intl.NumberFormat('fr-FR', { style: 'percent' }).format(minTurnover)} de la capitalisation`
-            }
+          </span>
+          <input
+            type="range"
+            min={-100}
+            max={50}
+            step={5}
+            value={minChange7d}
+            onChange={(event) => setMinChange7d(Number(event.target.value))}
+            className="w-full accent-[var(--color-brand)]"
           />
-        </div>
-      </ProGate>
+        </label>
+
+        <Slider
+          label="Rotation quotidienne minimale"
+          value={minTurnoverIndex}
+          max={TURNOVER_STEPS.length - 1}
+          onChange={setMinTurnoverIndex}
+          display={
+            minTurnover === 0
+              ? 'aucune'
+              : `${new Intl.NumberFormat('fr-FR', { style: 'percent' }).format(minTurnover)} de la capitalisation`
+          }
+        />
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="tabular text-sm text-ink-muted" aria-live="polite">
@@ -346,8 +332,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             tout l'intérêt de la fonction : le tableau se lit page par page, le fichier
             n'a pas cette contrainte.
           */}
-          <ProGate feature={FEATURES.exportData} fallback={null}>
-            <ExportMenu
+          <ExportMenu
               filename="zenkuu-screener"
               sheetName="Screener"
               rows={rows}
@@ -361,9 +346,8 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                 { header: 'Variation 7 j (%)', value: (asset) => asset.change7d ?? '' },
                 { header: 'Volume 24 h', value: (asset) => asset.volume24h ?? '' },
                 { header: 'Capitalisation', value: (asset) => asset.marketCap ?? '' },
-              ]}
-            />
-          </ProGate>
+            ]}
+          />
 
           {filtering ? (
             <button

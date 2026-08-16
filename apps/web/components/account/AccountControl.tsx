@@ -1,0 +1,498 @@
+'use client'
+
+import {
+  Bell,
+  Check,
+  Copy,
+  LayoutGrid,
+  ListFilter,
+  LogOut,
+  Settings2,
+  Shield,
+  Star,
+  Trash2,
+  User,
+  UserRound,
+} from 'lucide-react'
+import { useEffect, useRef, useState, useTransition } from 'react'
+
+import { Link } from '@/i18n/navigation'
+import { initialOf, readIdentityCookie } from '@/lib/identity-cookie'
+import { LoginOverlay } from '@/components/account/LoginOverlay'
+import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
+import { usePresence } from '@/components/nav/usePresence'
+import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
+import {
+  deleteCurrentAccount,
+  signOut,
+  signOutEverywhere,
+  updateHandle,
+} from '@/lib/auth-actions'
+
+/**
+ * Le widget de compte de l'en-tête.
+ *
+ * ── CE QU'IL REMPLACE ─────────────────────────────────────────────────────────
+ *
+ * Trois composants distincts occupaient cette place : deux liens « Connexion » et
+ * « Inscription », un avatar rendu par le fournisseur d'identité tiers, et un menu
+ * qui appelait ses écrans. Chacun devait se garder d'être monté quand le fournisseur
+ * n'était pas configuré, ce qui produisait des composants en deux couches — une
+ * enveloppe qui teste, un corps qui appelle les hooks — pour la seule raison qu'un
+ * hook tiers levait hors de son fournisseur.
+ *
+ * Le fournisseur a été retiré. L'état de session se lit désormais dans un COOKIE
+ * D'AFFICHAGE, après montage — voir `lib/identity-cookie.ts` pour la raison, qui
+ * tient au cache de rendu du site et non à un choix de style. Il n'y a donc plus
+ * qu'un composant là où il y en avait trois, sans enveloppe de garde.
+ *
+ * Le premier rendu ne connaît pas la session : c'est inhérent à un HTML mis en cache
+ * et partagé par tous les visiteurs. Le bouton réserve donc sa place à largeur fixe,
+ * de sorte que la barre ne se réorganise pas quand l'avatar prend le relais.
+ *
+ * ── DEUX ÉTATS, DEUX FORMES ───────────────────────────────────────────────────
+ *
+ * Déconnecté : une silhouette et le mot « Se connecter ». Le libellé est écrit, pas
+ * seulement suggéré par l'icône — une silhouette seule est le pictogramme le plus
+ * ambigu d'une barre de navigation, il désigne aussi bien un profil qu'un annuaire.
+ *
+ * Connecté : un disque portant l'initiale du pseudonyme. Pas de photo : le site n'en
+ * demande pas, et un avatar par défaut générique n'apprendrait rien de plus qu'une
+ * lettre — tout en coûtant une requête d'image.
+ */
+
+export interface AccountSummary {
+  handle: string
+  email: string
+}
+
+export function AccountControl({
+  available,
+  onOpenPreference,
+}: {
+  /**
+   * La connexion est-elle possible sur cette instance ?
+   *
+   * Faux sans base ou sans service d'envoi. Le bouton disparaît alors entièrement :
+   * ouvrir une fenêtre dont on sait qu'elle échouera est pire que ne rien proposer.
+   * Un visiteur déjà connecté garde son menu — sa session, elle, existe.
+   */
+  available: boolean
+  onOpenPreference: (tab: PreferenceTab) => void
+}) {
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  /*
+   * `undefined` = pas encore lu, `null` = déconnecté.
+   *
+   * Les trois états sont distincts et il en faut trois : pendant le premier rendu on
+   * ne sait RIEN, et afficher « Se connecter » à ce moment-là le ferait clignoter
+   * vers un avatar chez tous ceux qui ont une session. On réserve la place, muette,
+   * jusqu'à la lecture du cookie — laquelle est synchrone et se fait dans l'effet qui
+   * suit immédiatement le montage.
+   */
+  const [account, setAccount] = useState<AccountSummary | null | undefined>(undefined)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const { state, mounted, onTransitionEnd } = usePresence(menuOpen)
+  const hoverDismiss = useHoverDismiss(() => setMenuOpen(false), menuOpen)
+
+  useEffect(() => {
+    const identity = readIdentityCookie()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAccount(identity ? { handle: identity.handle, email: identity.email } : null)
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    function onPointerDown(event: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setMenuOpen(false)
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [menuOpen])
+
+  // Place réservée tant que le cookie n'a pas été lu — voir l'état ci-dessus.
+  if (account === undefined) return <span className="h-9 w-9 shrink-0" aria-hidden="true" />
+
+  if (!account) {
+    if (!available) return null
+
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setLoginOpen(true)}
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-border-subtle px-2.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+        >
+          <User className="h-4 w-4" aria-hidden="true" />
+          {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre
+              porte déjà le logo, la recherche et les réglages. */}
+          <span className="hidden sm:inline">Se connecter</span>
+        </button>
+
+        <LoginOverlay open={loginOpen} onClose={() => setLoginOpen(false)} />
+      </>
+    )
+  }
+
+  return (
+    <div ref={rootRef} className="relative" {...hoverDismiss}>
+      <button
+        type="button"
+        onClick={() => setMenuOpen((value) => !value)}
+        aria-expanded={menuOpen}
+        aria-haspopup="menu"
+        aria-label={`Compte de ${account.handle}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-pill border text-xs font-semibold uppercase transition-colors duration-150 ${
+          menuOpen
+            ? 'border-brand bg-brand text-on-brand'
+            : 'border-border-subtle bg-surface-muted text-ink hover:border-brand'
+        }`}
+      >
+        {initialOf(account.handle)}
+      </button>
+
+      {mounted ? (
+        <div
+          role="menu"
+          aria-label="Compte"
+          data-state={state}
+          onTransitionEnd={onTransitionEnd}
+          className="menu-panel absolute right-0 top-full z-50 mt-2 w-72 rounded-card border border-border-subtle bg-overlay shadow-overlay"
+        >
+          <AccountHeader account={account} />
+
+          <div className="border-t border-border-subtle p-1.5">
+            <MenuLink href="/tableau-de-bord" icon={<LayoutGrid className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
+              Vue d’ensemble
+            </MenuLink>
+            <MenuLink href="/suivi" icon={<Star className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
+              Liste de suivi
+            </MenuLink>
+            <MenuLink href="/alertes" icon={<Bell className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
+              Alertes de prix
+            </MenuLink>
+            <MenuLink href="/screener" icon={<ListFilter className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
+              Écrans enregistrés
+            </MenuLink>
+          </div>
+
+          <div className="border-t border-border-subtle p-1.5">
+            <MenuButton
+              icon={<Settings2 className="h-4 w-4" />}
+              onClick={() => {
+                setMenuOpen(false)
+                onOpenPreference('currency')
+              }}
+            >
+              Préférences d’affichage
+            </MenuButton>
+            <SecurityRow onDone={() => setMenuOpen(false)} />
+          </div>
+
+          <div className="border-t border-border-subtle p-1.5">
+            <SignOutRow />
+            <DangerRow />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * En-tête du menu : pseudonyme modifiable, adresse copiable.
+ *
+ * ── POURQUOI LE PSEUDONYME SE MODIFIE ICI, ET PAS SUR UNE PAGE ────────────────
+ *
+ * C'est le seul champ de profil que le site possède. Lui consacrer une page
+ * « Profil » reviendrait à ouvrir un écran pour une ligne de texte, et à créer une
+ * route de plus à traduire, à indexer et à tenir. L'édition se fait donc sur place.
+ *
+ * L'ADRESSE, elle, n'est pas modifiable — elle EST l'identifiant du compte, et la
+ * changer reviendrait à en changer. Elle est en revanche copiable : c'est celle qu'il
+ * faut retaper pour se reconnecter, et sur un compte créé il y a six mois on ne se
+ * souvient pas toujours de laquelle on a utilisée.
+ */
+function AccountHeader({ account }: { account: AccountSummary }) {
+  const [editing, setEditing] = useState(false)
+  const [handle, setHandle] = useState(account.handle)
+  const [copied, setCopied] = useState(false)
+  const [pending, startTransition] = useTransition()
+
+  function save(event: React.FormEvent) {
+    event.preventDefault()
+    const next = handle.trim()
+    if (next === '' || next === account.handle) {
+      setEditing(false)
+      setHandle(account.handle)
+      return
+    }
+    startTransition(async () => {
+      await updateHandle(next)
+      setEditing(false)
+    })
+  }
+
+  return (
+    <div className="flex items-start gap-3 p-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill border border-border-subtle bg-surface-muted text-sm font-semibold uppercase text-ink">
+        {initialOf(account.handle)}
+      </span>
+
+      <div className="min-w-0 flex-1">
+        {editing ? (
+          <form onSubmit={save} className="flex items-center gap-1">
+            <input
+              autoFocus
+              value={handle}
+              maxLength={32}
+              onChange={(event) => setHandle(event.target.value)}
+              onBlur={save}
+              className="h-7 w-full min-w-0 rounded-control border border-brand bg-surface px-1.5 text-sm text-ink outline-none"
+            />
+            <button
+              type="submit"
+              disabled={pending}
+              aria-label="Enregistrer le pseudonyme"
+              className="shrink-0 rounded-control p-1 text-brand-strong hover:bg-surface-muted"
+            >
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            title="Modifier le pseudonyme"
+            className="block max-w-full truncate text-left text-sm font-semibold text-ink hover:text-brand-strong"
+          >
+            {account.handle}
+          </button>
+        )}
+
+        <div className="mt-0.5 flex items-center gap-1">
+          <span className="min-w-0 flex-1 truncate text-[0.6875rem] text-ink-muted">
+            {account.email}
+          </span>
+          <button
+            type="button"
+            aria-label="Copier l’adresse"
+            onClick={() => {
+              void navigator.clipboard?.writeText(account.email)
+              setCopied(true)
+              window.setTimeout(() => setCopied(false), 1500)
+            }}
+            className="shrink-0 rounded-control p-0.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+          >
+            {copied ? (
+              <Check className="h-3 w-3" aria-hidden="true" />
+            ) : (
+              <Copy className="h-3 w-3" aria-hidden="true" />
+            )}
+          </button>
+        </div>
+
+        {/*
+          L'étiquette de la référence annonce un PALIER de compte — « utilisateur
+          standard », par opposition à un statut supérieur qu'on peut acheter. Ici il
+          n'y a qu'un seul type de compte, et il n'est pas près d'y en avoir deux :
+          l'abonnement a été retiré du site. L'étiquette dit donc autre chose — la
+          seule chose qu'un compte change réellement.
+        */}
+        <p className="mt-1.5 inline-flex items-center gap-1 rounded-pill border border-border-subtle px-1.5 py-0.5 text-[0.625rem] font-medium text-ink-muted">
+          <UserRound className="h-2.5 w-2.5" aria-hidden="true" />
+          Liste synchronisée
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * « Se déconnecter partout », replié derrière une confirmation en place.
+ *
+ * Le geste est rare — un poste public, un appareil perdu — et il déconnecte AUSSI
+ * l'appareil courant. Un clic direct ferait donc disparaître le menu, la session et
+ * la page sous les doigts de quelqu'un qui explorait.
+ */
+function SecurityRow({ onDone }: { onDone: () => void }) {
+  const [armed, setArmed] = useState(false)
+  const [pending, startTransition] = useTransition()
+
+  if (!armed) {
+    return (
+      <MenuButton icon={<Shield className="h-4 w-4" />} onClick={() => setArmed(true)}>
+        Sécurité des sessions
+      </MenuButton>
+    )
+  }
+
+  return (
+    <div className="rounded-card bg-surface-muted p-2">
+      <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
+        Fermer toutes les sessions, y compris celle-ci ?
+      </p>
+      <div className="mt-2 flex gap-1">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              await signOutEverywhere()
+              onDone()
+              window.location.reload()
+            })
+          }
+          className="flex-1 rounded-control bg-brand px-2 py-1 text-[0.6875rem] font-medium text-on-brand hover:bg-brand-strong disabled:opacity-60"
+        >
+          Tout fermer
+        </button>
+        <button
+          type="button"
+          onClick={() => setArmed(false)}
+          className="flex-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted hover:text-ink"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function SignOutRow() {
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <MenuButton
+      icon={<LogOut className="h-4 w-4" />}
+      onClick={() =>
+        startTransition(async () => {
+          await signOut()
+          window.location.reload()
+        })
+      }
+    >
+      {pending ? 'Déconnexion…' : 'Déconnexion'}
+    </MenuButton>
+  )
+}
+
+/**
+ * Suppression du compte — deux clics, et le second est explicite.
+ *
+ * L'action efface la liste de suivi, les alertes et les écrans enregistrés. Une
+ * confirmation par fenêtre native (`confirm()`) serait le réflexe : elle est écartée
+ * parce qu'un dialogue de navigateur bloque tout le fil d'exécution et ne dit pas ce
+ * qui va disparaître. Le second bouton, lui, le nomme.
+ */
+function DangerRow() {
+  const [armed, setArmed] = useState(false)
+  const [pending, startTransition] = useTransition()
+
+  if (!armed) {
+    return (
+      <MenuButton icon={<Trash2 className="h-4 w-4" />} tone="danger" onClick={() => setArmed(true)}>
+        Supprimer le compte
+      </MenuButton>
+    )
+  }
+
+  return (
+    <div className="rounded-card border border-down/40 bg-down-soft p-2">
+      <p className="text-[0.6875rem] leading-relaxed text-ink">
+        Supprime définitivement le compte, la liste de suivi, les alertes et les écrans
+        enregistrés.
+      </p>
+      <div className="mt-2 flex gap-1">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              await deleteCurrentAccount()
+              /* Navigation DURE et non `router.push` : le compte vient d'être effacé,
+                 ses deux cookies avec lui, et plusieurs arbres rendus côté serveur
+                 portent encore son état. Un rechargement complet est la seule façon
+                 de garantir qu'il n'en subsiste rien à l'écran. */
+              // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+              window.location.href = '/'
+            })
+          }
+          className="flex-1 rounded-control bg-down px-2 py-1 text-[0.6875rem] font-medium text-white hover:opacity-90 disabled:opacity-60"
+        >
+          Supprimer
+        </button>
+        <button
+          type="button"
+          onClick={() => setArmed(false)}
+          className="flex-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted hover:text-ink"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function MenuLink({
+  href,
+  icon,
+  children,
+  onNavigate,
+}: {
+  href: string
+  icon: React.ReactNode
+  children: React.ReactNode
+  onNavigate: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      role="menuitem"
+      onClick={onNavigate}
+      className="flex items-center gap-2.5 rounded-card px-2 py-2 text-sm text-ink transition-colors duration-150 hover:bg-surface-muted"
+    >
+      <span className="shrink-0 text-ink-muted">{icon}</span>
+      {children}
+    </Link>
+  )
+}
+
+function MenuButton({
+  icon,
+  children,
+  onClick,
+  tone = 'default',
+}: {
+  icon: React.ReactNode
+  children: React.ReactNode
+  onClick: () => void
+  tone?: 'default' | 'danger'
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className={`flex w-full items-center gap-2.5 rounded-card px-2 py-2 text-left text-sm transition-colors duration-150 hover:bg-surface-muted ${
+        tone === 'danger' ? 'text-down' : 'text-ink'
+      }`}
+    >
+      <span className={`shrink-0 ${tone === 'danger' ? 'text-down' : 'text-ink-muted'}`}>
+        {icon}
+      </span>
+      {children}
+    </button>
+  )
+}

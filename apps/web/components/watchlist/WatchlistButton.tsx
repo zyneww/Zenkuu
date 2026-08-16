@@ -4,7 +4,7 @@ import { Star } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
-import { FREE_WATCHLIST_LIMIT } from '@/lib/billing'
+import { WATCHLIST_ASSET_LIMIT } from '@/lib/limits'
 import { toggleWatchlist, type WatchlistActionResult } from '@/lib/watchlist-actions'
 
 /**
@@ -36,17 +36,25 @@ export function WatchlistButton({
   const [failure, setFailure] = useState<FailureReason | null>(null)
   const [pending, startTransition] = useTransition()
 
-  // Sans session, le bouton devient une invitation à se connecter plutôt qu'un
-  // contrôle qui échouerait au clic.
+  /*
+   * `signedIn` NE DÉSIGNE PLUS UNE SESSION, mais une base configurée.
+   *
+   * Le bouton renvoyait vers une page de connexion tant qu'aucun compte n'était
+   * ouvert. Suivre un actif ne demande plus de compte — la liste se range sous le
+   * cookie anonyme du navigateur — et la seule chose qui puisse encore manquer est la
+   * base elle-même. Ce n'est plus un geste à faire, c'est une panne à annoncer : le
+   * bouton devient donc inerte et le dit, au lieu d'envoyer vers un formulaire qui ne
+   * réparerait rien.
+   */
   if (!signedIn) {
     return (
-      <Link
-        href="/connexion"
-        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
+      <span
+        title="Le suivi n’est pas disponible : aucune base de données n’est configurée sur cette instance."
+        className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted/60"
       >
         <Star className="h-3.5 w-3.5" aria-hidden="true" />
-        Se connecter pour suivre
-      </Link>
+        Suivi indisponible
+      </span>
     )
   }
 
@@ -98,13 +106,15 @@ export function WatchlistButton({
           {reasonLabel(failure)}{' '}
           {/*
             Le plafond est le SEUL refus qui se résout par un geste du lecteur : les
-            trois autres décrivent une panne d'exploitation, sur laquelle il ne peut
-            rien. C'est aussi le seul moment où proposer l'abonnement est utile plutôt
-            qu'intrusif — la limite vient d'être rencontrée, pas annoncée à l'avance.
+            autres décrivent une panne d'exploitation, sur laquelle il ne peut rien.
+
+            Le lien vers l'abonnement a disparu avec l'abonnement lui-même : il n'y a
+            plus qu'un jeu de plafonds, et il est déjà très large. Le message renvoie
+            donc vers la liste, où l'on fait de la place.
           */}
           {failure === 'limit-reached' || failure === 'list-limit' ? (
-            <Link href="/tarifs" className="text-brand hover:text-brand-strong">
-              Voir Zenkuu Pro
+            <Link href="/suivi" className="text-brand hover:text-brand-strong">
+              Gérer mes listes
             </Link>
           ) : null}
         </p>
@@ -118,13 +128,9 @@ type FailureReason = Exclude<WatchlistActionResult, { ok: true }>['reason']
 function reasonLabel(reason: FailureReason): string {
   switch (reason) {
     case 'limit-reached':
-      return `Votre liste atteint ${FREE_WATCHLIST_LIMIT} actifs, le plafond de l’offre gratuite.`
+      return `Votre liste atteint ${WATCHLIST_ASSET_LIMIT} actifs, le plafond du site.`
     case 'list-limit':
-      return 'L’offre gratuite ne comporte qu’une seule liste de suivi.'
-    case 'auth-disabled':
-      return 'Les comptes ne sont pas configurés sur cette instance.'
-    case 'signed-out':
-      return 'Votre session a expiré — reconnectez-vous.'
+      return 'Vous avez atteint le nombre maximal de listes.'
     case 'db-disabled':
       return 'La base de données n’est pas configurée : le suivi n’est pas conservé.'
     default:

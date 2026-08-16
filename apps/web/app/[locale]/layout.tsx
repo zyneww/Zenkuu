@@ -10,7 +10,6 @@ import { isRtl } from '@/components/settings/languages'
 
 import { getExchangeRates } from '@zenkuu/data'
 
-import { AuthProvider } from '@/components/auth/AuthProvider'
 import { ContentProvider } from '@/components/locale/ContentProvider'
 import { CurrencyProvider } from '@/components/locale/CurrencyProvider'
 import { stripFunctions } from '@/content/locales'
@@ -19,6 +18,7 @@ import { NavBar } from '@/components/NavBar'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
 import { getContent } from '@/lib/content'
+import { ACCOUNTS_ENABLED } from '@/lib/session'
 import { SITE_URL } from '@/lib/site'
 
 // Chemin ABSOLU et non « ./globals.css » : ce fichier descend d'un cran sous
@@ -211,7 +211,6 @@ export default async function RootLayout({
               retire donc en amont. `useContent` les rétablit depuis le français.
               Voir `content/locales/index.ts`. */}
           <ContentProvider content={stripFunctions(content)}>
-          <AuthProvider>
             <CurrencyProvider rates={rates.ok ? rates.data : null}>
               <a
                 href="#contenu"
@@ -220,7 +219,29 @@ export default async function RootLayout({
                 {fr.nav.skipToContent}
               </a>
 
-              <NavBar />
+              {/*
+                ── LA SESSION N'EST PAS LUE ICI, ET C'EST UNE CONTRAINTE DE CACHE ──
+
+                Le réflexe serait de résoudre le compte dans ce composant serveur et de
+                le descendre en prop : l'avatar serait alors dans le HTML initial, sans
+                le moindre scintillement.
+
+                C'est impossible, et le coût serait invisible jusqu'à la mise en
+                production. Lire un cookie dans une MISE EN PAGE bascule toutes les
+                routes qu'elle enveloppe en rendu dynamique — c'est-à-dire le site
+                entier, dont les classements et l'accueil qui vivent aujourd'hui sur un
+                `revalidate = 180`. On échangerait un scintillement de 28 pixels contre
+                un rendu serveur complet à chaque visite de chaque page.
+
+                `AccountControl` lit donc lui-même, après montage, un cookie
+                d'AFFICHAGE distinct du jeton de session : celui-ci reste `httpOnly`,
+                celui-là ne porte qu'un pseudonyme et une adresse. Voir `lib/visitor.ts`
+                et `lib/auth-actions.ts`.
+
+                Seul `accountsEnabled` traverse en prop : c'est la lecture d'une
+                variable d'environnement, qui ne rend rien dynamique.
+              */}
+              <NavBar accountsEnabled={ACCOUNTS_ENABLED} />
 
               <main id="contenu" className="shell py-6">
                 {children}
@@ -228,7 +249,6 @@ export default async function RootLayout({
 
               <Footer />
             </CurrencyProvider>
-          </AuthProvider>
           </ContentProvider>
         </NextIntlClientProvider>
       </body>

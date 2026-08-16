@@ -7,9 +7,7 @@ import { ChevronDown } from 'lucide-react'
 import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { ZenkuuWordmark } from '@/components/BrandMark'
 import { useContent } from '@/components/locale/ContentProvider'
-import { AccountMenu } from '@/components/auth/AccountMenu'
-import { AuthButtons } from '@/components/auth/AuthButtons'
-import { AuthOverlay, type AuthMode } from '@/components/auth/AuthOverlay'
+import { AccountControl } from '@/components/account/AccountControl'
 import { MobileNav } from '@/components/nav/MobileNav'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
@@ -43,7 +41,7 @@ import { SearchOverlay } from '@/components/search/SearchOverlay'
  * Voir `.shell` et `.shell-bleed` dans globals.css, seuls endroits où ces largeurs
  * sont définies.
  */
-export function NavBar() {
+export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
   const fr = useContent()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -58,7 +56,6 @@ export function NavBar() {
    * `null` = fermée, ce qui évite de tenir un booléen d'ouverture ET un mode en
    * parallèle : deux variables dont l'une peut contredire l'autre.
    */
-  const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [preferenceTab, setPreferenceTab] = useState<PreferenceTab | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -68,7 +65,6 @@ export function NavBar() {
      démonter puis remonter cet écouteur à chaque frappe. */
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
-  const closeAuth = useCallback(() => setAuthMode(null), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
@@ -323,17 +319,17 @@ export function NavBar() {
             qui obligeait à l'ouvrir pour savoir ce qu'il contenait. Chaque bouton
             annonce désormais ce qu'il fait.
 
-            ── « ZENKUU PRO » A QUITTÉ LA BARRE ────────────────────────────────
+            ── « ZENKUU PRO » A QUITTÉ LA BARRE, PUIS LE SITE ──────────────────
 
             C'était le seul aplat coloré de l'en-tête, donc son point le plus vif — et
             il désignait une offre commerciale au milieu d'outils de consultation. Sur
-            une barre dont la navigation est maintenant centrée, il pesait doublement :
-            un bouton doré de 110 pixels dans le groupe de droite déséquilibre les deux
-            côtés, et le centre optique s'écarte du centre géométrique.
+            une barre dont la navigation est centrée, il pesait doublement : un bouton
+            doré de 110 pixels dans le groupe de droite déséquilibre les deux côtés, et
+            le centre optique s'écarte du centre géométrique.
 
-            L'offre reste atteignable là où elle a du sens : la page `/tarifs` par le
-            menu, et les encarts posés au pied des fonctions réservées, qui la proposent
-            AU MOMENT où elle répondrait à quelque chose. Voir `ProGate`.
+            L'abonnement lui-même a depuis été supprimé, avec la facturation adossée au
+            fournisseur d'identité tiers. Il n'y a plus de page de tarifs à atteindre,
+            et plus aucune fonction réservée : voir `lib/limits.ts`.
 
             `justify-end` remplace `ml-auto` : le groupe est désormais une zone de
             largeur imposée par la grille à trois colonnes, pas un bloc poussé à droite
@@ -342,24 +338,28 @@ export function NavBar() {
           <div className="relative flex min-w-0 flex-1 basis-0 items-center justify-end gap-1 sm:gap-2">
             <HeaderSearch onOpenOverlay={openSearch} />
 
-            {/* Hors session seulement — `AccountMenu` prend le relais une fois connecté. */}
-            <AuthButtons onOpen={setAuthMode} />
-
             {/*
-              Les deux se relaient sans jamais coexister : chacun rend `null` dans
-              l'état de session qui ne le concerne pas. La décision vit dans les
-              composants et non ici, parce qu'elle exige `useUser()` — un hook qui
-              lève sans fournisseur Clerk, et que cette barre ne peut donc pas appeler
-              (voir l'en-tête d'`AuthButtons`).
+              LA ROUE DENTÉE ET LE COMPTE COEXISTENT DÉSORMAIS.
+
+              Ils s'excluaient : le menu de compte reprenait langue, devise et thème,
+              au motif que deux boutons posant la même question — « mes réglages sont
+              où ? » — obligent à ouvrir les deux.
+
+              L'argument valait quand le menu de compte était le SEUL à porter des
+              réglages une fois connecté. Il tombe avec la nouvelle répartition : la
+              roue dentée porte l'AFFICHAGE (langue, devise, thème, verre dépoli), que
+              l'on règle connecté ou non ; le compte porte ce qui n'existe qu'avec lui
+              (listes, alertes, sessions, suppression). Deux sujets disjoints, deux
+              boutons — et surtout, le visiteur anonyme ne perd plus l'accès aux
+              réglages sous prétexte qu'il n'a pas de compte.
             */}
             <SettingsMenu onOpenPreference={setPreferenceTab} />
-            <AccountMenu onOpenPreference={setPreferenceTab} />
+            <AccountControl available={accountsEnabled} onOpenPreference={setPreferenceTab} />
           </div>
         </div>
       </header>
 
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
-      <AuthOverlay mode={authMode} onClose={closeAuth} onSwitch={setAuthMode} />
       <PreferenceOverlay
         tab={preferenceTab}
         onTabChange={setPreferenceTab}

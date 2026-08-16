@@ -77,7 +77,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       // Placée haut dans la colonne : c'est la seule page du pied qui engage une
       // dépense, et une entrée commerciale enterrée en dernière ligne se lit comme
       // une gêne à la dissimuler.
-      { label: 'Zenkuu Pro & tarifs', href: '/tarifs' },
       { label: 'Mes alertes', href: '/alertes' },
       { label: 'Nouveautés', href: '/nouveautes' },
       { label: 'Blog', href: '/blog' },

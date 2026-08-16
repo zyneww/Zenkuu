@@ -32,9 +32,31 @@ export {
   markAlertsTriggered,
   rearmAlert,
 } from './alerts'
+export { purgeExpiredAlerts } from './alerts'
 export type { AlertDirection } from './alerts'
 
 export { SCREEN_NAME_MAX, deleteScreen, listScreens, saveScreen } from './screens'
+
+export {
+  CODE_MAX_ATTEMPTS,
+  claimAnonymousData,
+  consumeLoginCode,
+  countRecentCodes,
+  createSession,
+  deleteAccount,
+  deleteAccountSessions,
+  deleteSession,
+  findAccountById,
+  findAccountByEmail,
+  findSessionAccount,
+  hashToken,
+  normalizeEmail,
+  purgeExpiredAuth,
+  renameAccount,
+  storeLoginCode,
+  upsertAccount,
+} from './accounts'
+export type { CodeCheck } from './accounts'
 
 export {
   NEWS_RETENTION_DAYS,
@@ -46,8 +68,20 @@ export {
   purgeOldNews,
 } from './news'
 
-export { newsArticles, priceAlerts, savedScreens, userPreferences, watchlistItems } from './schema'
+export {
+  accounts,
+  loginCodes,
+  newsArticles,
+  priceAlerts,
+  savedScreens,
+  sessions,
+  userPreferences,
+  watchlistItems,
+} from './schema'
 export type {
+  Account,
+  LoginCode,
+  NewAccount,
   NewNewsArticle,
   NewPriceAlert,
   NewSavedScreen,
@@ -55,6 +89,7 @@ export type {
   NewsArticle,
   PriceAlert,
   SavedScreen,
+  Session,
   UserPreferences,
   WatchlistItem,
 } from './schema'

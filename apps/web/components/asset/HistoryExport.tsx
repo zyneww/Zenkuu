@@ -1,8 +1,6 @@
 'use client'
 
-import { ExportMenu } from '@/components/billing/ExportMenu'
-import { ProGate } from '@/components/billing/ProGate'
-import { FEATURES } from '@/lib/billing'
+import { ExportMenu } from '@/components/tools/ExportMenu'
 
 export interface HistoryRow {
   day: string
@@ -35,20 +33,18 @@ export function HistoryExport({
   currency: string
 }) {
   return (
-    <ProGate feature={FEATURES.exportData} fallback={null}>
-      <ExportMenu
-        filename={`zenkuu-historique-${slug(assetName)}`}
-        sheetName={assetName.slice(0, 31)}
-        rows={rows}
-        columns={[
-          { header: 'Date', value: (row) => row.day },
-          { header: `Clôture (${currency.toUpperCase()})`, value: (row) => row.price },
-          // `null` plutôt que 0 sur la ligne la plus ancienne : elle n'a pas de
-          // journée précédente, et un zéro se lirait comme « aucune variation ».
-          { header: 'Variation (%)', value: (row) => row.change },
-        ]}
-      />
-    </ProGate>
+    <ExportMenu
+      filename={`zenkuu-historique-${slug(assetName)}`}
+      sheetName={assetName.slice(0, 31)}
+      rows={rows}
+      columns={[
+        { header: 'Date', value: (row) => row.day },
+        { header: `Clôture (${currency.toUpperCase()})`, value: (row) => row.price },
+        // `null` plutôt que 0 sur la ligne la plus ancienne : elle n'a pas de
+        // journée précédente, et un zéro se lirait comme « aucune variation ».
+        { header: 'Variation (%)', value: (row) => row.change },
+      ]}
+    />
   )
 }
 

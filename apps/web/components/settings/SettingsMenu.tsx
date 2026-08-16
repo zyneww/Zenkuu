@@ -2,10 +2,8 @@
 
 import { ChevronRight, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useUser } from '@clerk/nextjs'
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
-import { AUTH_ENABLED } from '@/lib/auth'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
 import { GlassToggle } from '@/components/settings/GlassToggle'
@@ -42,40 +40,21 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; Icon: typeof Sun }[] = [
 ]
 
 /**
- * Il cède la place à `AccountMenu` dès qu'une session existe.
+ * ── IL NE S'EFFACE PLUS QUAND UNE SESSION EXISTE ──────────────────────────────
  *
- * Les deux boutons ne doivent JAMAIS coexister : ils posent la même question au
- * lecteur (« mes réglages sont où ? ») et il faudrait ouvrir les deux pour savoir
- * lequel répond. `AccountMenu` reprend donc les trois réglages en plus du compte.
+ * Ce menu disparaissait dès qu'un visiteur était connecté, et le menu de compte
+ * reprenait alors langue, devise et thème. Le motif était juste : deux boutons qui
+ * posent la même question — « mes réglages sont où ? » — obligent à ouvrir les deux.
  *
- * Sans Clerk configuré, il n'y a pas de session possible : ce menu est le seul, et
- * la condition sort AVANT tout appel de hook — `useUser()` lève sans fournisseur.
+ * La répartition a changé, et l'exclusion avec elle. Cette roue dentée porte
+ * l'AFFICHAGE, réglable connecté ou non ; le menu de compte porte ce qui n'existe
+ * qu'avec un compte. Les deux sujets sont disjoints, et surtout le visiteur anonyme
+ * ne perd plus l'accès aux réglages faute de compte.
+ *
+ * L'enveloppe en deux couches disparaît du même coup : elle n'existait que pour
+ * appeler `useUser()` sans lever hors du fournisseur tiers, désormais retiré.
  */
 export function SettingsMenu({
-  onOpenPreference,
-}: {
-  onOpenPreference: (tab: PreferenceTab) => void
-}) {
-  if (!AUTH_ENABLED) return <SettingsMenuPanel onOpenPreference={onOpenPreference} />
-  return <SignedOutSettingsMenu onOpenPreference={onOpenPreference} />
-}
-
-function SignedOutSettingsMenu({
-  onOpenPreference,
-}: {
-  onOpenPreference: (tab: PreferenceTab) => void
-}) {
-  const { isLoaded, isSignedIn } = useUser()
-
-  // Avant résolution, on réserve la place : afficher la roue dentée puis la voir
-  // remplacée par l'avatar ferait sauter l'en-tête à chaque chargement.
-  if (!isLoaded) return <span className="h-9 w-9 shrink-0" aria-hidden="true" />
-  if (isSignedIn) return null
-
-  return <SettingsMenuPanel onOpenPreference={onOpenPreference} />
-}
-
-function SettingsMenuPanel({
   onOpenPreference,
 }: {
   onOpenPreference: (tab: PreferenceTab) => void
@@ -84,7 +63,7 @@ function SettingsMenuPanel({
   const rootRef = useRef<HTMLDivElement>(null)
   const { state, mounted, onTransitionEnd } = usePresence(open)
 
-  /* Voir `AccountMenu` : le curseur qui s'éloigne referme le menu, au même titre que
+  /* Voir `AccountControl` : le curseur qui s'éloigne referme le menu, au même titre que
      le clic extérieur et la touche Échap. */
   const hoverDismiss = useHoverDismiss(() => setOpen(false), open)
 
@@ -171,7 +150,7 @@ function SettingsMenuPanel({
                     aria-checked={active}
                     onClick={() => {
                       setTheme(option.value)
-                      /* Voir `AccountMenu` : un choix pris referme le menu, sans quoi
+                      /* Voir `AccountControl` : un choix pris referme le menu, sans quoi
                          le panneau masque la page dont on vient de changer le thème. */
                       setOpen(false)
                     }}

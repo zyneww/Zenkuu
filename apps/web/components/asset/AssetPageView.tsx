@@ -784,7 +784,14 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <>
             {/* L'alerte est proposée À CÔTÉ du suivi, et pas dans un menu : ce sont les
                 deux seules actions que la fiche permet, et elles répondent à la même
-                intention — « je veux garder un œil là-dessus ». */}
+                intention — « je veux garder un œil là-dessus ».
+
+                `available` ne teste PLUS la session. Le retrait des comptes obligatoires
+                a supprimé la seule raison qui la faisait entrer dans ce calcul : une
+                alerte s'arme sans compte, rangée sous le cookie anonyme du navigateur.
+                Ne restent que les deux briques d'exploitation — la base et le service
+                d'envoi —, dont l'absence est une panne à annoncer et non un geste à
+                demander au lecteur. */}
             <AlertButton
               assetClass={assetClass}
               assetId={data.id}

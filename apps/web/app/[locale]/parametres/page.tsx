@@ -4,7 +4,6 @@ import { Link } from '@/i18n/navigation'
 import { SettingsAccount } from '@/components/settings/SettingsAccount'
 import { SettingsPreferences } from '@/components/settings/SettingsPreferences'
 import { SettingsSources } from '@/components/settings/SettingsSources'
-import { SettingsSubscription } from '@/components/settings/SettingsSubscription'
 
 export const metadata: Metadata = {
   title: 'Paramètres',
@@ -21,19 +20,19 @@ export const metadata: Metadata = {
  * sans attendre l'hydratation.
  *
  * Chaque rubrique existe RÉELLEMENT — il n'y a pas d'onglet en attente. La référence
- * en aligne une dizaine ; nous en avons quatre, parce que nous n'avons ni notifications
- * à régler, ni limites de transaction, ni vérification d'identité. Quatre rubriques
- * pleines valent mieux que dix dont six annoncent « bientôt ».
+ * en aligne une dizaine ; nous en avons trois, parce que nous n'avons ni notifications
+ * à régler, ni limites de transaction, ni vérification d'identité. Trois rubriques
+ * pleines valent mieux que dix dont sept annoncent « bientôt ».
  *
- * « Abonnement » respecte la même règle : sans facturation configurée, elle ne disparaît
- * pas mais DIT ce qui manque — masquer l'entrée ferait croire à un site sans offre
- * payante, alors qu'il en existe une que l'instance ne sait simplement pas encaisser.
+ * « Abonnement » EN A DISPARU, avec l'abonnement lui-même : la facturation était
+ * adossée au fournisseur d'identité tiers, retiré du site. Il ne reste qu'un jeu de
+ * plafonds, identique pour tout le monde (`lib/limits.ts`) ; une rubrique qui
+ * annoncerait une offre inexistante serait pire qu'aucune rubrique.
  */
 
 const SECTIONS = [
   { id: 'preferences', label: 'Préférences', hint: 'Langue, devise, thème' },
-  { id: 'compte', label: 'Compte', hint: 'Profil, mot de passe, connexions' },
-  { id: 'abonnement', label: 'Abonnement', hint: 'Votre offre et ce qu’elle ouvre' },
+  { id: 'compte', label: 'Compte', hint: 'Pseudonyme, sessions, suppression' },
   { id: 'sources', label: 'Données & sources', hint: 'D’où viennent les chiffres' },
 ] as const
 
@@ -57,10 +56,10 @@ export default async function SettingsPage({
       <header className="mb-8 space-y-2">
         <h1 className="display-xl text-ink">Paramètres</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Vos réglages d’affichage, votre compte et votre offre. ZENKUU n’exécute aucun
-          ordre et ne détient aucun fonds : le seul montant qui puisse circuler ici est
-          celui de l’abonnement, et il n’y a ni limite de transaction, ni vérification
-          d’identité.
+          Vos réglages d’affichage, votre compte et l’origine des chiffres. ZENKUU
+          n’exécute aucun ordre et ne détient aucun fonds : il n’y a ici ni moyen de
+          paiement, ni limite de transaction, ni vérification d’identité — et rien à
+          payer, le site n’ayant pas d’offre payante.
         </p>
       </header>
 
@@ -91,7 +90,6 @@ export default async function SettingsPage({
         <div className="min-w-0">
           {active === 'preferences' ? <SettingsPreferences /> : null}
           {active === 'compte' ? <SettingsAccount /> : null}
-          {active === 'abonnement' ? <SettingsSubscription /> : null}
           {active === 'sources' ? <SettingsSources /> : null}
         </div>
       </div>

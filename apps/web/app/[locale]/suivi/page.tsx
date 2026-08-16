@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { listWatchlist } from '@zenkuu/db'
+import { DB_ENABLED, listWatchlist } from '@zenkuu/db'
 import { EmptyState } from '@zenkuu/ui'
 
 import {
@@ -9,10 +9,9 @@ import {
   type BoardItem,
   type BoardList,
 } from '@/components/watchlist/WatchlistBoard'
-import { AUTH_ENABLED } from '@/lib/auth'
 import { assetHref } from '@/lib/asset-routes'
-import { FEATURES, FREE_WATCHLIST_COUNT, FREE_WATCHLIST_LIMIT } from '@/lib/billing'
-import { hasFeature } from '@/lib/billing-server'
+import { WATCHLIST_ASSET_LIMIT, WATCHLIST_COUNT_LIMIT } from '@/lib/limits'
+import { currentAccount, ownerId } from '@/lib/session'
 import type { AssetClass } from '@zenkuu/data'
 
 export const metadata: Metadata = {
@@ -29,45 +28,40 @@ export const metadata: Metadata = {
  * restent sur les fiches. Afficher trente cours ici coûterait trente appels externes
  * à chaque chargement, très au-delà du quota mesuré — et un prix mis en cache en
  * base serait périmé dès la minute suivante (§5).
+ *
+ * ── CE QUE LE RETRAIT DES COMPTES OBLIGATOIRES A CHANGÉ ───────────────────────
+ *
+ * La page s'ouvrait sur deux refus : pas d'authentification configurée, pas de
+ * session. Le second a disparu — suivre un actif ne demande plus de compte, la liste
+ * étant rangée sous le cookie anonyme du navigateur (`lib/visitor.ts`). Il ne reste
+ * que la base, qui est la seule chose dont cette page dépende encore réellement.
+ *
+ * En contrepartie, la page DOIT dire à un visiteur anonyme que sa liste vit dans son
+ * navigateur et non ailleurs. Sans cela, un nettoyage de cookies se lirait comme une
+ * perte de données de notre fait.
  */
 export default async function SuiviPage() {
-  if (!AUTH_ENABLED) {
+  if (!DB_ENABLED) {
     return (
       <Shell>
         <EmptyState
-          title="Comptes non configurés"
-          description="L’authentification n’est pas activée sur cette instance : les listes de suivi ne peuvent pas être conservées."
+          title="Base de données non configurée"
+          description="Les listes de suivi sont conservées en base. Tant qu’aucune n’est configurée sur cette instance, elles ne peuvent pas l’être."
           action={<HomeLink />}
         />
       </Shell>
     )
   }
 
-  const { auth } = await import('@clerk/nextjs/server')
-  const { userId } = await auth()
+  const [owner, account] = await Promise.all([ownerId(), currentAccount()])
+  const signedIn = account !== null
 
-  if (!userId) {
-    return (
-      <Shell>
-        <EmptyState
-          title="Connectez-vous pour retrouver votre liste"
-          description="Votre liste de suivi est rattachée à votre compte, ce qui permet de la retrouver depuis n’importe quel appareil."
-          action={
-            <Link
-              href="/connexion"
-              className="inline-block rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-            >
-              Se connecter
-            </Link>
-          }
-        />
-      </Shell>
-    )
-  }
+  /* Aucun identifiant : ce visiteur n'a jamais rien suivi depuis ce navigateur. Cela
+     se traite comme une liste vide, pas comme un refus — c'est l'état d'une première
+     visite, et il n'y a rien à lui demander pour en sortir. */
+  const result = owner ? await listWatchlist(owner) : null
 
-  const result = await listWatchlist(userId)
-
-  if (!result.ok) {
+  if (result && !result.ok) {
     return (
       <Shell>
         <EmptyState
@@ -79,12 +73,14 @@ export default async function SuiviPage() {
     )
   }
 
-  if (result.data.length === 0) {
+  const items = result?.ok ? result.data : []
+
+  if (items.length === 0) {
     return (
-      <Shell>
+      <Shell signedIn={signedIn}>
         <EmptyState
           title="Aucun actif suivi"
-          description="Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici."
+          description="Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici. Aucun compte n’est nécessaire."
           action={
             <Link
               href="/crypto"
@@ -98,18 +94,16 @@ export default async function SuiviPage() {
     )
   }
 
-  const unlimited = await hasFeature(FEATURES.unlimitedWatchlist)
-
   /*
    * Compteur de plafond, affiché SEULEMENT quand la liste s'en approche.
    *
-   * Une jauge « 2 / 30 » permanente transformerait la page en rappel d'abonnement à
+   * Une jauge « 2 / 200 » permanente transformerait la page en rappel de quota à
    * chaque visite, pour une contrainte que le lecteur ne rencontrera peut-être jamais.
-   * Le seuil des cinq derniers créneaux est le moment où l'information devient utile
-   * plutôt qu'insistante — assez tôt pour ne pas être une surprise, assez tard pour ne
-   * pas être du bruit.
+   * Les dix derniers créneaux sont le moment où l'information devient utile plutôt
+   * qu'insistante — assez tôt pour ne pas être une surprise, assez tard pour ne pas
+   * être du bruit.
    */
-  const nearCap = !unlimited && result.data.length >= FREE_WATCHLIST_LIMIT - 5
+  const nearCap = items.length >= WATCHLIST_ASSET_LIMIT - 10
 
   const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' })
 
@@ -118,11 +112,11 @@ export default async function SuiviPage() {
    *
    * Une requête par liste multiplierait les allers-retours pour un jeu de données
    * qu'une seule requête ramène déjà en entier — et dont la taille est bornée par le
-   * plafond de l'offre. L'ordre des listes suit celui de leur activité, la plus
+   * plafond du site. L'ordre des listes suit celui de leur activité, la plus
    * récemment enrichie en tête.
    */
   const grouped = new Map<string, BoardItem[]>()
-  for (const item of result.data) {
+  for (const item of items) {
     const bucket = grouped.get(item.listName)
     const row: BoardItem = {
       href: assetHref(item.assetClass as AssetClass, item.assetId),
@@ -136,32 +130,40 @@ export default async function SuiviPage() {
     else grouped.set(item.listName, [row])
   }
 
-  const lists: BoardList[] = [...grouped].map(([name, items]) => ({ name, items }))
+  const lists: BoardList[] = [...grouped].map(([name, items_]) => ({ name, items: items_ }))
 
   return (
-    <Shell>
+    <Shell signedIn={signedIn}>
       {nearCap ? (
         <p className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
           <span className="tabular text-ink">
-            {result.data.length} / {FREE_WATCHLIST_LIMIT}
+            {items.length} / {WATCHLIST_ASSET_LIMIT}
           </span>{' '}
-          actifs suivis dans l’offre gratuite.{' '}
-          <Link href="/tarifs" className="text-brand hover:text-brand-strong">
-            Zenkuu Pro lève le plafond et permet plusieurs listes
-          </Link>
-          .
+          actifs suivis — le plafond du site.
         </p>
       ) : null}
 
-      <WatchlistBoard
-        lists={lists}
-        canCreateList={unlimited || lists.length < FREE_WATCHLIST_COUNT}
-      />
+      <WatchlistBoard lists={lists} canCreateList={lists.length < WATCHLIST_COUNT_LIMIT} />
     </Shell>
   )
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({
+  children,
+  signedIn = true,
+}: {
+  children: React.ReactNode
+  /**
+   * Décide du rappel de portabilité.
+   *
+   * Il n'est montré qu'aux visiteurs ANONYMES : leur liste vit dans un cookie, et un
+   * nettoyage du navigateur l'efface. Le dire est une obligation d'honnêteté, pas une
+   * invitation commerciale — d'où le ton, et d'où sa disparition dès qu'un compte
+   * existe. Par défaut `true`, pour que les écrans d'indisponibilité ne l'affichent
+   * pas : ils décrivent une panne, pas un mode de rangement.
+   */
+  signedIn?: boolean
+}) {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-6">
       <header className="space-y-2">
@@ -171,6 +173,16 @@ function Shell({ children }: { children: React.ReactNode }) {
           les fiches, où ils sont toujours à jour.
         </p>
       </header>
+
+      {!signedIn ? (
+        <p className="rounded-card border border-border-subtle bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-muted">
+          Cette liste est rattachée à{' '}
+          <strong className="font-medium text-ink">ce navigateur</strong>, pas à un compte. Elle ne
+          suivra pas sur un autre appareil et disparaîtra si vous effacez vos données de navigation.
+          Se connecter la rattache à une adresse, et la récupère telle quelle.
+        </p>
+      ) : null}
+
       {children}
     </div>
   )

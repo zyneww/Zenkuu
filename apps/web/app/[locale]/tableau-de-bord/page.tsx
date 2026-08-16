@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
 import { getRanking, type AssetClass, type MarketAsset } from '@zenkuu/data'
-import { listWatchlist } from '@zenkuu/db'
+import { DB_ENABLED, listWatchlist } from '@zenkuu/db'
 import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { DashboardPreferences } from '@/components/dashboard/DashboardPreferences'
 import { Money } from '@/components/locale/Money'
-import { AUTH_ENABLED } from '@/lib/auth'
 import { assetHref } from '@/lib/asset-routes'
+import { ownerId } from '@/lib/session'
 
 export const metadata: Metadata = {
   title: 'Tableau de bord',
@@ -34,12 +34,12 @@ export const metadata: Metadata = {
  * avec un lien vers sa fiche : c'est un manque annoncé, pas un chiffre inventé (§5).
  */
 export default async function DashboardPage() {
-  if (!AUTH_ENABLED) {
+  if (!DB_ENABLED) {
     return (
       <Shell>
         <EmptyState
-          title="Comptes non configurés"
-          description="L’authentification n’est pas activée sur cette instance. Vos préférences d’affichage restent enregistrées sur cet appareil."
+          title="Base de données non configurée"
+          description="La liste de suivi est conservée en base, et c’est elle que cette page réunit. Vos préférences d’affichage, elles, restent enregistrées sur cet appareil."
           action={<HomeLink />}
         />
         <DashboardPreferences />
@@ -47,37 +47,25 @@ export default async function DashboardPage() {
     )
   }
 
-  const { auth } = await import('@clerk/nextjs/server')
-  const { userId } = await auth()
-
-  if (!userId) {
-    return (
-      <Shell>
-        <EmptyState
-          title="Connectez-vous pour retrouver votre tableau de bord"
-          description="Votre liste de suivi est rattachée à votre compte, ce qui permet de la retrouver depuis n’importe quel appareil. Vos préférences d’affichage, elles, sont déjà enregistrées sur cet appareil."
-          action={
-            <Link
-              href="/connexion"
-              className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
-            >
-              Se connecter
-            </Link>
-          }
-        />
-        <DashboardPreferences />
-      </Shell>
-    )
-  }
+  const owner = await ownerId()
 
   // Les deux partent ensemble : la liste vient de notre base, le classement de la
   // source externe, et aucune ne dépend de l'autre.
+  //
+  // Sans identifiant — première visite, rien n'a encore été suivi — la requête base
+  // est SAUTÉE plutôt qu'exécutée sur une clé nulle : elle ne rendrait rien, et une
+  // requête réseau pour un résultat connu d'avance est une requête de trop.
   const [watchlist, ranking] = await Promise.all([
-    listWatchlist(userId),
+    owner ? listWatchlist(owner) : null,
     getRanking({ assetClass: 'crypto', currency: 'eur', perPage: 50 }),
   ])
 
-  const followed = watchlist.ok ? watchlist.data : []
+  const followed = watchlist?.ok ? watchlist.data : []
+
+  /* Le motif de panne est extrait ICI plutôt que lu dans le JSX : `watchlist` y est
+     une union à trois branches — `null`, succès, échec — que le rétrécissement de
+     TypeScript ne traverse pas à l'intérieur d'un ternaire imbriqué. */
+  const watchlistError = watchlist && !watchlist.ok ? watchlist.reason : null
 
   // Index par identifiant : sans lui, chaque ligne suivie balaierait les cinquante
   // du classement. Négligeable ici, mais c'est le genre de boucle imbriquée qui
@@ -105,8 +93,8 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {!watchlist.ok ? (
-          <EmptyState title="Liste de suivi indisponible" description={watchlist.reason} />
+        {watchlistError ? (
+          <EmptyState title="Liste de suivi indisponible" description={watchlistError} />
         ) : followed.length === 0 ? (
           <EmptyState
             title="Aucun actif suivi"

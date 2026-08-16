@@ -73,7 +73,7 @@ Aucune variable d'environnement n'est requise pour lancer le site : sans clé, c
 brique optionnelle se désactive proprement et l'annonce.
 
 ```bash
-cp .env.example .env.local   # Clerk (comptes) et Turso (liste de suivi), tous deux facultatifs
+cp .env.example .env.local   # Turso (base) et Resend (courriel), tous deux facultatifs
 ```
 
 `.env.local` n'est jamais versionné. Les clés d'API ne doivent jamais être commitées.

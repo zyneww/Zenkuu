@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import {
+  DB_ENABLED,
   DEFAULT_WATCHLIST,
   addToWatchlist,
   deleteWatchlist,
@@ -14,18 +15,25 @@ import {
   renameWatchlist,
 } from '@zenkuu/db'
 
-import { AUTH_ENABLED } from '@/lib/auth'
-import { FEATURES, FREE_WATCHLIST_COUNT, FREE_WATCHLIST_LIMIT } from '@/lib/billing'
-import { hasFeature } from '@/lib/billing-server'
+import { WATCHLIST_ASSET_LIMIT, WATCHLIST_COUNT_LIMIT } from '@/lib/limits'
+import { ensureOwnerId, ownerId } from '@/lib/session'
 
 /**
- * Actions serveur de la watchlist.
+ * Actions serveur de la liste de suivi.
  *
- * Deux briques optionnelles se combinent ici — Clerk et Turso — et chacune peut
- * manquer indépendamment. Le résultat renvoyé distingue donc les trois refus
- * possibles : pas d'authentification configurée, pas de session, pas de base. Un
- * booléen `false` unique aurait produit le même message pour trois causes qui
- * appellent trois actions différentes de la part de l'exploitant.
+ * ── CE QUI A CHANGÉ AVEC L'ABANDON DU FOURNISSEUR D'IDENTITÉ ──────────────────
+ *
+ * Deux briques optionnelles se combinaient ici, l'authentification tierce et la base,
+ * et chacune pouvait manquer indépendamment : d'où trois refus distincts — pas
+ * d'authentification configurée, pas de session, pas de base.
+ *
+ * Il n'en reste qu'UN. Suivre un actif ne demande plus de compte : la première
+ * écriture crée un cookie anonyme (`lib/visitor.ts`), et `lib/session.ts` choisit
+ * entre ce cookie et le compte quand il y en a un. Seule la base peut manquer, et
+ * c'est le seul message que l'exploitant ait à lire.
+ *
+ * Les plafonds, eux, subsistent — mais ils ne distinguent plus deux offres : voir
+ * `lib/limits.ts`.
  */
 export type WatchlistActionResult =
   | { ok: true; following: boolean }
@@ -35,78 +43,48 @@ export type WatchlistActionResult =
        * `limit-reached` : le plafond d'ACTIFS est atteint.
        * `list-limit`    : le plafond de LISTES est atteint.
        *
-       * Les deux sont distincts parce qu'ils appellent deux gestes différents —
-       * retirer un actif, ou renoncer à une nouvelle liste — et parce qu'ils ne
-       * disparaissent pas ensemble : un abonné libère les deux, mais un utilisateur
-       * gratuit peut buter sur l'un sans jamais rencontrer l'autre.
+       * Les deux restent distincts parce qu'ils appellent deux gestes différents —
+       * retirer un actif, ou renoncer à une nouvelle liste — et parce qu'on peut
+       * buter sur l'un sans jamais rencontrer l'autre.
        */
-      reason:
-        | 'auth-disabled'
-        | 'signed-out'
-        | 'db-disabled'
-        | 'error'
-        | 'limit-reached'
-        | 'list-limit'
+      reason: 'db-disabled' | 'error' | 'limit-reached' | 'list-limit'
     }
 
 /** Résultat des opérations qui portent sur une liste entière. */
 export type ListActionResult =
   | { ok: true }
-  | { ok: false; reason: 'signed-out' | 'db-disabled' | 'list-limit' | 'invalid' | 'error' }
-
-/**
- * Identifiant de l'utilisateur courant, ou `null`.
- *
- * `auth()` est importé DYNAMIQUEMENT : sans clé Clerk, le module n'est jamais chargé,
- * et le middleware qui installe son contexte n'est pas monté non plus. Un import
- * statique lèverait au chargement du module, avant même que la condition soit lue.
- */
-async function currentUserId(): Promise<string | null> {
-  if (!AUTH_ENABLED) return null
-
-  const { auth } = await import('@clerk/nextjs/server')
-  const { userId } = await auth()
-  return userId ?? null
-}
+  | { ok: false; reason: 'db-disabled' | 'list-limit' | 'invalid' | 'error' }
 
 /**
  * La liste peut-elle encore accueillir un actif ?
  *
- * Plafond de l'offre gratuite, vérifié CÔTÉ SERVEUR et pas seulement dans l'interface.
- * C'est la différence entre les deux gardes du projet : `ProGate` masque un bouton, ce
- * qui relève de la présentation et se contourne en trois clics dans un navigateur. Ce
- * contrôle-ci porte sur une ÉCRITURE en base — la seule chose que l'abonnement achète
- * réellement de ce côté — et ne peut donc pas vivre dans un composant.
+ * Plafond vérifié CÔTÉ SERVEUR et pas seulement dans l'interface : il porte sur une
+ * ÉCRITURE en base, et une garde posée dans un composant se contourne en trois clics
+ * dans un navigateur.
  *
  * Une liste qu'on ne parvient pas à lire (base indisponible) laisse passer : l'ajout
  * qui suit échouera de lui-même avec `db-disabled`, qui décrit la vraie panne. Refuser
  * ici afficherait « plafond atteint » à quelqu'un dont la liste est peut-être vide.
  */
 async function canGrow(userId: string): Promise<boolean> {
-  if (await hasFeature(FEATURES.unlimitedWatchlist)) return true
-
   const current = await listWatchlist(userId)
   if (!current.ok) return true
 
-  return current.data.length < FREE_WATCHLIST_LIMIT
+  return current.data.length < WATCHLIST_ASSET_LIMIT
 }
 
 /**
- * L'utilisateur peut-il écrire dans CETTE liste ?
+ * Peut-on encore écrire dans CETTE liste ?
  *
  * Vrai si la liste existe déjà — y ajouter n'en crée pas une nouvelle —, ou si le
- * quota de listes n'est pas atteint. C'est le seul contrôle qui distingue réellement
- * l'offre gratuite de l'offre Pro sur la liste de suivi : le nombre d'ACTIFS est
- * généreux des deux côtés, c'est l'ORGANISATION qui se vend.
+ * quota de listes n'est pas atteint.
  */
 async function canUseList(userId: string, listName: string): Promise<boolean> {
-  if (await hasFeature(FEATURES.unlimitedWatchlist)) return true
-
   const names = await listWatchlistNames(userId)
   if (!names.ok) return true
   if (names.data.some((summary) => summary.name === listName)) return true
 
-  return names.data.length < FREE_WATCHLIST_COUNT
+  return names.data.length < WATCHLIST_COUNT_LIMIT
 }
 
 export async function toggleWatchlist(input: {
@@ -118,10 +96,11 @@ export async function toggleWatchlist(input: {
   /** Liste cible. Omise — depuis une étoile de tableau —, c'est la liste par défaut. */
   listName?: string
 }): Promise<WatchlistActionResult> {
-  if (!AUTH_ENABLED) return { ok: false, reason: 'auth-disabled' }
+  if (!DB_ENABLED) return { ok: false, reason: 'db-disabled' }
 
-  const userId = await currentUserId()
-  if (!userId) return { ok: false, reason: 'signed-out' }
+  /* Première écriture du visiteur ⇒ le cookie est créé ici. C'est la seule chose
+     qui tienne lieu d'inscription sur ce site, et elle ne demande rien à personne. */
+  const userId = await ensureOwnerId()
 
   const listName = normalizeListName(input.listName)
 
@@ -163,13 +142,22 @@ export async function toggleWatchlist(input: {
   }
 }
 
-/** État courant, lu par la fiche au rendu serveur. */
+/**
+ * État courant, lu par la fiche au rendu serveur.
+ *
+ * `available` ne décrit plus une session ouverte mais la seule chose dont le suivi
+ * dépende encore : une base configurée. Un visiteur sans cookie a donc un bouton
+ * ACTIF — c'est son clic qui créera son identité — là où il avait auparavant un lien
+ * vers une page de connexion.
+ */
 export async function getWatchlistState(
   assetClass: string,
   assetId: string,
 ): Promise<{ available: boolean; following: boolean }> {
-  const userId = await currentUserId()
-  if (!userId) return { available: false, following: false }
+  if (!DB_ENABLED) return { available: false, following: false }
+
+  const userId = await ownerId()
+  if (!userId) return { available: true, following: false }
 
   return { available: true, following: await isInWatchlist(userId, assetClass, assetId) }
 }
@@ -183,14 +171,16 @@ export async function getWatchlistState(
  * complète une fois et on la réduit à un ensemble d'identifiants.
  *
  * `available: false` ne signifie pas « rien de suivi » mais « le suivi n'est pas
- * disponible » — pas de compte, ou pas de base configurée. Les deux cas appellent un
+ * disponible » — c'est-à-dire, désormais, pas de base configurée. Ce cas appelle un
  * affichage différent de celui d'une liste simplement vide.
  */
 export async function getWatchlistIds(
   assetClass: string,
 ): Promise<{ available: boolean; ids: string[] }> {
-  const userId = await currentUserId()
-  if (!userId) return { available: false, ids: [] }
+  if (!DB_ENABLED) return { available: false, ids: [] }
+
+  const userId = await ownerId()
+  if (!userId) return { available: true, ids: [] }
 
   const result = await listWatchlist(userId)
   if (!result.ok) return { available: false, ids: [] }
@@ -201,7 +191,7 @@ export async function getWatchlistIds(
   }
 }
 
-/* ── Gestion des listes — offre Zenkuu Pro ──────────────────────────────── */
+/* ── Gestion des listes ─────────────────────────────────────────────────── */
 
 /**
  * Déplace un actif d'une liste vers une autre.
@@ -218,8 +208,8 @@ export async function moveToList(input: {
   from: string
   to: string
 }): Promise<ListActionResult> {
-  const userId = await currentUserId()
-  if (!userId) return { ok: false, reason: 'signed-out' }
+  if (!DB_ENABLED) return { ok: false, reason: 'db-disabled' }
+  const userId = await ensureOwnerId()
 
   const target = normalizeListName(input.to)
   if (target === input.from) return { ok: true }
@@ -250,8 +240,8 @@ export async function moveToList(input: {
 }
 
 export async function renameList(from: string, to: string): Promise<ListActionResult> {
-  const userId = await currentUserId()
-  if (!userId) return { ok: false, reason: 'signed-out' }
+  if (!DB_ENABLED) return { ok: false, reason: 'db-disabled' }
+  const userId = await ensureOwnerId()
 
   const target = normalizeListName(to)
   if (target === from) return { ok: true }
@@ -272,8 +262,8 @@ export async function renameList(from: string, to: string): Promise<ListActionRe
 
 /** Supprime une liste et tout ce qu'elle contient. */
 export async function removeList(listName: string): Promise<ListActionResult> {
-  const userId = await currentUserId()
-  if (!userId) return { ok: false, reason: 'signed-out' }
+  const userId = await ownerId()
+  if (!userId) return { ok: false, reason: 'db-disabled' }
 
   try {
     const removed = await deleteWatchlist(userId, listName)
@@ -288,8 +278,8 @@ export async function removeList(listName: string): Promise<ListActionResult> {
 
 /** Noms de listes de l'utilisateur, pour alimenter un sélecteur. */
 export async function getListNames(): Promise<string[]> {
-  const userId = await currentUserId()
-  if (!userId) return []
+  const userId = await ownerId()
+  if (!userId) return [DEFAULT_WATCHLIST]
 
   const names = await listWatchlistNames(userId)
   if (!names.ok || names.data.length === 0) return [DEFAULT_WATCHLIST]
