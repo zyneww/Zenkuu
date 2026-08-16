@@ -177,6 +177,25 @@ export async function AssetPageHeader({
             {categories.length > 0 || asset.exchange ? (
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
                 {asset.exchange ? <span className="font-medium">{asset.exchange}</span> : null}
+
+                {/*
+                  ── L'ÉTAT DE LA SÉANCE A REJOINT LA LIGNE D'IDENTITÉ ─────────────
+
+                  Il vivait sous le cours, au motif que c'était une précision SUR LE
+                  CHIFFRE — un cours d'action vieux de dix-huit heures un dimanche est
+                  parfaitement à jour, et la ligne de fraîcheur en haut de page ne
+                  permet pas de le savoir. Le raisonnement tenait.
+
+                  Il tient moins que celui-ci : « Marché fermé » qualifie la PLACE, pas
+                  le nombre, et la place est nommée ici. Les deux mentions se
+                  répétaient d'ailleurs — le composant réécrivait « NASDAQ » cinquante
+                  pixels sous le « NASDAQ » de cette ligne. Rapprochées, elles se lisent
+                  d'un trait : « NASDAQ · Marché fermé — ouverture à 15:30 », ce que
+                  fait CoinGecko.
+
+                  D'où `showPlace={false}` : le nom est déjà écrit juste avant.
+                */}
+                <AssetMarketStatus asset={asset} showPlace={false} />
                 {categories.map((category) => {
                   const id = categoryIds.get(normalizeLabel(category))
 
@@ -217,21 +236,6 @@ export async function AssetPageHeader({
               </span>
             ) : null}
           </div>
-
-          {/*
-            ÉTAT DE LA SÉANCE, COLLÉ SOUS LE COURS.
-
-            La ligne de fraîcheur en haut de page dit DE QUAND date la donnée ; celle-ci
-            dit si elle a encore vocation à bouger. Les deux se ressemblent et ne
-            répondent pas à la même question : un cours d'action vieux de dix-huit heures
-            un dimanche est parfaitement à jour, et rien dans la première ligne ne
-            permet de le savoir.
-
-            Sa place est ici et pas en haut : c'est une précision SUR LE CHIFFRE, du
-            même ordre que l'amplitude du jour qui la suit. Le composant se retire de
-            lui-même pour tout ce qui ne ferme pas — donc pour toute la crypto.
-          */}
-          <AssetMarketStatus asset={asset} />
 
           {/* Cours en actif de référence — voir son en-tête. Absent hors crypto. */}
           <AssetBenchmarkRatio asset={asset} />

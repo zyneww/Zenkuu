@@ -50,7 +50,19 @@ import type { AssetDetail } from '@zenkuu/data'
  * minute : c'est la résolution de ce qu'on affiche, et y descendre coûte un calcul de
  * date par minute.
  */
-export function AssetMarketStatus({ asset }: { asset: AssetDetail }) {
+export function AssetMarketStatus({
+  asset,
+  /**
+   * Rappeler le nom de la place après l'état.
+   *
+   * Faux quand l'appelant l'écrit déjà lui-même — c'est le cas de la ligne d'identité
+   * de la fiche, où la bourse précède immédiatement cette mention.
+   */
+  showPlace = true,
+}: {
+  asset: AssetDetail
+  showPlace?: boolean
+}) {
   const session = asset.session
   const [now, setNow] = useState<number | null>(null)
 
@@ -74,20 +86,44 @@ export function AssetMarketStatus({ asset }: { asset: AssetDetail }) {
   return (
     <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-micro text-ink-muted">
       {/*
-        La pastille reprend le vert de DISPONIBILITÉ du système, distinct du vert de
-        hausse — confondre les deux ferait lire « le cours monte » là où on dit « la
-        séance est ouverte ». Fermée, elle passe en gris plutôt qu'en rouge : une
-        bourse fermée le dimanche n'est pas une anomalie.
+        ── VERT OUVERT, ROUGE FERMÉ ────────────────────────────────────────────
+
+        La pastille était verte ou GRISE, au motif qu'une bourse fermée le dimanche
+        n'est pas une anomalie — ce qui reste vrai. Elle est désormais rouge, sur le
+        modèle de CoinGecko, et le raisonnement qui l'emporte est celui de la LISIBILITÉ
+        À DISTANCE : un gris à cinquante pour cent d'opacité, sur six pixels, ne se
+        distingue pas du texte gris qui l'entoure. La pastille ne se remarquait donc
+        que lorsqu'elle était verte, c'est-à-dire dans le seul cas où l'information
+        était la moins utile.
+
+        Le rouge ne dit pas « panne » : il est lu comme un état, exactement comme le
+        rouge d'un feu. Ce qui distingue un état d'une alerte n'est pas la teinte mais
+        le texte à côté, et celui-ci dit « à la clôture », pas « erreur ».
+
+        Le vert reste celui de DISPONIBILITÉ du système, distinct du vert de hausse —
+        les confondre ferait lire « le cours monte » là où on dit « la séance est
+        ouverte ». Le rouge, lui, emprunte au ton de baisse : le site n'a pas de rouge
+        d'état, et en introduire un troisième pour six pixels serait plus coûteux que le
+        léger rapprochement de sens.
       */}
       <span
         aria-hidden="true"
         className={`h-1.5 w-1.5 shrink-0 rounded-pill ${
-          state.open ? 'bg-[var(--color-status)]' : 'bg-ink-muted/50'
+          state.open ? 'bg-[var(--color-status)]' : 'bg-down'
         }`}
       />
       <span>
         {state.label}
-        {place ? <> · {place}</> : null}
+        {/*
+          LA PLACE N'EST RÉPÉTÉE QUE SI L'APPELANT NE L'AFFICHE PAS DÉJÀ.
+
+          Cette ligne vit désormais dans la ligne d'identité de la fiche, où le nom de
+          la bourse est écrit juste avant elle. L'y répéter donnerait « NASDAQ · Marché
+          fermé · NASDAQ ». Les appelants qui la placent ailleurs — sous le cours, par
+          exemple — gardent le rappel, faute de quoi la phrase ne dirait pas de quelle
+          bourse elle parle.
+        */}
+        {place && showPlace ? <> · {place}</> : null}
       </span>
     </p>
   )

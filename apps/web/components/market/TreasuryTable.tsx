@@ -1,5 +1,11 @@
-import type { TreasuryReport } from '@zenkuu/data'
+'use client'
+
+import { useMemo } from 'react'
+
+import type { TreasuryHolder, TreasuryReport } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
+
+import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 
 /**
  * Registre des détenteurs institutionnels.
@@ -18,7 +24,50 @@ import { formatCompact } from '@zenkuu/ui'
  * ici, la cellule affiche un tiret. Calculer une plus-value sur une entrée à zéro
  * donnerait « +100 % » sur toutes ces lignes, c'est-à-dire un chiffre inventé (§5).
  */
+type HolderSortKey = 'name' | 'holdings' | 'currentValue' | 'entryValue' | 'gain' | 'supply'
+
 export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: string }) {
+  /*
+   * LA PLUS-VALUE EST CALCULÉE DANS L'EXTRACTEUR, pas stockée sur la ligne.
+   *
+   * C'est une grandeur DÉRIVÉE — l'écart relatif entre valeur actuelle et coût
+   * d'entrée — et le corps du tableau la recalcule déjà pour l'afficher. La dupliquer
+   * dans un champ ferait vivre deux formules pour un seul chiffre, avec la certitude
+   * qu'elles divergeraient le jour où l'une serait corrigée.
+   *
+   * `undefined` quand l'une des deux valeurs manque, et surtout quand le coût d'entrée
+   * est nul : une plus-value calculée sur une entrée à zéro rendrait « +∞ » ou
+   * « +100 % » selon l'arrondi, sur toutes les sociétés qui ne publient pas leur prix
+   * d'acquisition. Le tri les renvoie alors en fin de liste, où elles disent
+   * exactement ce qu'on sait d'elles : rien.
+   */
+  const accessors = useMemo<Record<HolderSortKey, SortAccessor<TreasuryHolder>>>(
+    () => ({
+      name: (holder) => holder.name,
+      holdings: (holder) => holder.holdings,
+      currentValue: (holder) => holder.currentValueUsd,
+      entryValue: (holder) => holder.entryValueUsd,
+      gain: (holder) =>
+        holder.entryValueUsd !== undefined &&
+        holder.entryValueUsd > 0 &&
+        holder.currentValueUsd !== undefined
+          ? ((holder.currentValueUsd - holder.entryValueUsd) / holder.entryValueUsd) * 100
+          : undefined,
+      supply: (holder) => holder.percentOfSupply,
+    }),
+    [],
+  )
+
+  const { rows, sort, toggle } = useTableSort<TreasuryHolder, HolderSortKey>({
+    rows: report.holders,
+    accessors,
+    /* Le registre arrive TRIÉ par avoirs décroissants — c'est l'ordre de la source, et
+       celui qui répond à « qui détient le plus ». Le déclarer ici plutôt que de laisser
+       `null` fait que la colonne concernée porte sa flèche dès le premier rendu, au
+       lieu de laisser croire qu'aucun tri n'est appliqué. */
+    initial: { key: 'holdings', direction: 'desc' },
+  })
+
   return (
     <div className="space-y-2">
       <div className="overflow-x-auto rounded-card border border-border-subtle">
@@ -31,29 +80,46 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
               <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
                 #
               </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                Société
-              </th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">
-                {unit} détenus
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium sm:table-cell">
-                Valeur actuelle $
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium md:table-cell">
-                Coût d’entrée $
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium lg:table-cell">
-                Plus-value latente
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium lg:table-cell">
-                % de l’offre
-              </th>
+              <SortableHeader label="Société" sortKey="name" align="left" sort={sort} onToggle={toggle} />
+              <SortableHeader
+                label={`${unit} détenus`}
+                sortKey="holdings"
+                sort={sort}
+                onToggle={toggle}
+              />
+              <SortableHeader
+                label="Valeur actuelle $"
+                sortKey="currentValue"
+                className="hidden sm:table-cell"
+                sort={sort}
+                onToggle={toggle}
+              />
+              <SortableHeader
+                label="Coût d’entrée $"
+                sortKey="entryValue"
+                className="hidden md:table-cell"
+                sort={sort}
+                onToggle={toggle}
+              />
+              <SortableHeader
+                label="Plus-value latente"
+                sortKey="gain"
+                className="hidden lg:table-cell"
+                sort={sort}
+                onToggle={toggle}
+              />
+              <SortableHeader
+                label="% de l’offre"
+                sortKey="supply"
+                className="hidden lg:table-cell"
+                sort={sort}
+                onToggle={toggle}
+              />
             </tr>
           </thead>
 
           <tbody className="divide-y divide-border-subtle">
-            {report.holders.map((holder, index) => {
+            {rows.map((holder, index) => {
               const gain =
                 holder.entryValueUsd !== undefined && holder.currentValueUsd !== undefined
                   ? ((holder.currentValueUsd - holder.entryValueUsd) / holder.entryValueUsd) * 100

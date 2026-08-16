@@ -10,6 +10,7 @@ import { Link } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
 import { Calendar } from '@/components/ui/Calendar'
 import { Pagination } from '@/components/ui/Pagination'
+import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { matchListing, type ListingMatch } from '@/lib/listing-match'
 
 /**
@@ -32,9 +33,20 @@ import { matchListing, type ListingMatch } from '@/lib/listing-match'
  *    l'en-tête de colonne plutôt que masquée.
  */
 
-type SortKey = 'firstDataAt' | 'marketCap' | 'volume24h' | 'change24h' | 'change7d'
+/**
+ * Colonnes triables — TOUTES le sont désormais, y compris les deux premières.
+ *
+ * Le nom et le cours ne l'étaient pas, sans autre raison que d'avoir été écrits à la
+ * main hors de la boucle. Le manque se remarquait à l'usage : chercher un jeton par
+ * son nom dans une liste de cent lignes triées par date demande de la parcourir
+ * entièrement, alors que le champ de filtre juste au-dessus laisse croire que la
+ * colonne obéit aussi.
+ */
+type SortKey = 'name' | 'price' | 'firstDataAt' | 'marketCap' | 'volume24h' | 'change24h' | 'change7d'
 
-const COLUMNS: { key: SortKey; label: string; hideOn?: string }[] = [
+const COLUMNS: { key: SortKey; label: string; hideOn?: string; align?: 'left' | 'right' }[] = [
+  { key: 'name', label: 'Actif', align: 'left' },
+  { key: 'price', label: 'Cours (USD)' },
   { key: 'change24h', label: '24 h' },
   { key: 'change7d', label: '7 j', hideOn: 'hidden md:table-cell' },
   { key: 'volume24h', label: 'Volume 24 h', hideOn: 'hidden lg:table-cell' },
@@ -59,7 +71,6 @@ export function NewListingsTable({
    */
   index: Map<string, ListingMatch>
 }) {
-  const [sort, setSort] = useState<SortKey>('firstDataAt')
   const [query, setQuery] = useState('')
 
   /**
@@ -98,19 +109,55 @@ export function NewListingsTable({
       })
     }
 
-    return [...filtered].sort((a, b) => {
-      if (sort === 'firstDataAt') return b.firstDataAt.localeCompare(a.firstDataAt)
-      // Un actif dont la source ne publie pas la grandeur triée part EN FIN de liste
-      // plutôt qu'en tête : le traiter comme zéro le placerait au milieu des vraies
-      // valeurs nulles, et en tête sur un tri croissant.
-      const left = a[sort]
-      const right = b[sort]
-      if (left === undefined && right === undefined) return 0
-      if (left === undefined) return 1
-      if (right === undefined) return -1
-      return right - left
-    })
-  }, [listings, sort, query, range])
+    /*
+     * LE TRI LUI-MÊME A QUITTÉ CE FICHIER.
+     *
+     * Il vivait ici sous forme d'un comparateur écrit à la main, et il était
+     * UNIDIRECTIONNEL : cliquer deux fois sur la même colonne ne faisait rien, la
+     * flèche affichée était un « ↓ » fixe, et aucun `aria-sort` n'annonçait l'état à
+     * un lecteur d'écran. Le mécanisme partagé apporte les trois, et applique le même
+     * traitement des valeurs absentes que celui rédigé ici — elles sortent du tri
+     * plutôt que de se faire passer pour des zéros.
+     *
+     * Ne reste dans ce `useMemo` que ce qui lui est propre : le filtre textuel et la
+     * plage de dates.
+     */
+    return filtered
+  }, [listings, query, range])
+
+  /*
+   * `firstDataAt` est une DATE ISO, comparée comme du texte.
+   *
+   * C'est exact et ce n'est pas un raccourci : le format `AAAA-MM-JJ` est construit
+   * pour que l'ordre lexicographique coïncide avec l'ordre chronologique. Convertir en
+   * `Date` pour comparer coûterait une allocation par comparaison, soit des milliers
+   * sur une liste de cent lignes, pour le même résultat.
+   */
+  const accessors = useMemo<Record<SortKey, SortAccessor<NewListing>>>(
+    () => ({
+      name: (item) => item.name,
+      price: (item) => item.price,
+      firstDataAt: (item) => item.firstDataAt,
+      marketCap: (item) => item.marketCap,
+      volume24h: (item) => item.volume24h,
+      change24h: (item) => item.change24h,
+      change7d: (item) => item.change7d,
+    }),
+    [],
+  )
+
+  const {
+    rows: sortedRows,
+    sort,
+    toggle,
+  } = useTableSort<NewListing, SortKey>({
+    rows,
+    accessors,
+    /* Le tableau arrive trié par date de référencement décroissante — « quoi de neuf »
+       est la question que pose cette page. Le premier rendu doit donc porter ce tri,
+       et non l'ordre brut de la source. */
+    initial: { key: 'firstDataAt', direction: 'desc' },
+  })
 
   /*
    * TOUT CHANGEMENT DE FILTRE OU DE TRI RAMÈNE EN PAGE 1.
@@ -122,14 +169,23 @@ export function NewListingsTable({
    * L'ajustement se fait PENDANT le rendu, même motif que `usePresence` : un effet
    * peindrait d'abord le tableau vide, puis le corrigerait à l'image suivante.
    */
-  const signature = `${query}|${sort}|${range?.from ?? ''}|${range?.to ?? ''}|${perPage}`
+  /* `sort` est un OBJET depuis le passage au tri partagé : l'interpoler directement
+     produirait « [object Object] » pour tous les tris, si bien que la signature ne
+     changerait jamais d'une colonne à l'autre — et la page ne reviendrait plus à 1.
+     Ses deux champs sont donc écrits séparément. */
+  const sortSignature = sort ? `${sort.key}:${sort.direction}` : 'aucun'
+  const signature = `${query}|${sortSignature}|${range?.from ?? ''}|${range?.to ?? ''}|${perPage}`
   const [previousSignature, setPreviousSignature] = useState(signature)
   if (previousSignature !== signature) {
     setPreviousSignature(signature)
     setPage(1)
   }
 
-  const pageRows = rows.slice((page - 1) * perPage, page * perPage)
+  /* `sortedRows` et non `rows` : découper la liste NON TRIÉE afficherait la bonne
+     tranche d'un ordre que personne ne voit — le tri n'aurait alors d'effet visible
+     qu'au moment où la pagination change. Le typage ne peut pas signaler cet écart,
+     les deux variables ayant exactement le même type. */
+  const pageRows = sortedRows.slice((page - 1) * perPage, page * perPage)
 
   return (
     <div className="space-y-3">
@@ -186,30 +242,16 @@ export function NewListingsTable({
         <table className="w-full border-collapse text-sm sm:min-w-[42rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left">
-              <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
-                Actif
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right text-xs font-medium text-ink-muted">
-                Cours (USD)
-              </th>
               {COLUMNS.map((column) => (
-                <th
+                <SortableHeader
                   key={column.key}
-                  scope="col"
-                  className={`px-3 py-2.5 text-right text-xs font-medium ${column.hideOn ?? ''}`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSort(column.key)}
-                    aria-pressed={sort === column.key}
-                    className={`transition-colors duration-150 ${
-                      sort === column.key ? 'text-ink' : 'text-ink-muted hover:text-ink'
-                    }`}
-                  >
-                    {column.label}
-                    {sort === column.key ? ' ↓' : ''}
-                  </button>
-                </th>
+                  label={column.label}
+                  sortKey={column.key}
+                  sort={sort}
+                  onToggle={toggle}
+                  align={column.align ?? 'right'}
+                  className={column.hideOn ?? ''}
+                />
               ))}
             </tr>
           </thead>

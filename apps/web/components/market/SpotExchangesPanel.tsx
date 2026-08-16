@@ -3,6 +3,8 @@ import { ArrowRight } from 'lucide-react'
 import type { SpotExchange } from '@zenkuu/data'
 
 import { Link } from '@/i18n/navigation'
+import type { ExchangeSortKey } from '@/components/market/SpotExchangesExplorer'
+import { SortableHeader, type SortState } from '@/components/ui/SortableTable'
 
 /**
  * Répartition du volume au comptant entre les places de marché.
@@ -74,10 +76,25 @@ export function SpotExchangesTable({
   shareTotal,
   /** Rang de la première ligne — la numérotation doit survivre au changement de page. */
   startRank = 1,
+  /*
+   * TRI FACULTATIF, et il faut qu'il le soit.
+   *
+   * Ce tableau sert à deux endroits : le registre complet de `/places`, où il est
+   * trié et paginé par `SpotExchangesExplorer`, et l'extrait de vingt-cinq lignes de
+   * `/crypto/mouvements`, rendu CÔTÉ SERVEUR. Rendre le tri obligatoire aurait imposé
+   * à l'extrait de devenir un composant client pour une fonction dont il n'a pas
+   * l'usage — il montre un dessus de panier, pas un classement à explorer.
+   *
+   * Sans ces deux propriétés, les en-têtes restent donc de simples libellés.
+   */
+  sort,
+  onToggleSort,
 }: {
   exchanges: SpotExchange[]
   shareTotal?: number
   startRank?: number
+  sort?: SortState<ExchangeSortKey> | null
+  onToggleSort?: (key: ExchangeSortKey) => void
 }) {
   const total = shareTotal ?? exchanges.reduce((sum, exchange) => sum + exchange.volume24hBtc, 0)
   if (total <= 0) return null
@@ -91,27 +108,35 @@ export function SpotExchangesTable({
         <table className="w-full border-collapse text-sm sm:min-w-[38rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left">
-              <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
-                Place
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right text-xs font-medium text-ink-muted">
-                Volume 24 h (BTC)
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
-                Part du volume affiché
-              </th>
-              <th
-                scope="col"
-                className="hidden px-3 py-2.5 text-right text-xs font-medium text-ink-muted sm:table-cell"
-              >
-                Confiance
-              </th>
-              <th
-                scope="col"
-                className="hidden px-3 py-2.5 text-right text-xs font-medium text-ink-muted lg:table-cell"
-              >
-                Pays
-              </th>
+              <HeadCell
+                label="Place"
+                sortKey="name"
+                align="left"
+                sort={sort}
+                onToggle={onToggleSort}
+              />
+              <HeadCell label="Volume 24 h (BTC)" sortKey="volume" sort={sort} onToggle={onToggleSort} />
+              <HeadCell
+                label="Part du volume affiché"
+                sortKey="share"
+                align="left"
+                sort={sort}
+                onToggle={onToggleSort}
+              />
+              <HeadCell
+                label="Confiance"
+                sortKey="trust"
+                className="hidden sm:table-cell"
+                sort={sort}
+                onToggle={onToggleSort}
+              />
+              <HeadCell
+                label="Pays"
+                sortKey="country"
+                className="hidden lg:table-cell"
+                sort={sort}
+                onToggle={onToggleSort}
+              />
             </tr>
           </thead>
 
@@ -137,7 +162,39 @@ export function SpotExchangesTable({
                           className="shrink-0 rounded-pill"
                         />
                       ) : null}
-                      <span className="truncate font-medium text-ink">{exchange.name}</span>
+
+                      {/*
+                        ── LE NOM MÈNE À LA PLACE, ET SORT DU SITE ───────────────────
+
+                        La demande était de « pouvoir cliquer et être redirigé vers le
+                        marché sélectionné ». Ce site n'a PAS de fiche par place — il
+                        n'en a jamais eu, et en fabriquer une reviendrait à créer une
+                        page par plateforme sans donnée propre à y mettre. Le lien mène
+                        donc là où se trouve réellement le marché : chez la place
+                        elle-même, dont la source publie l'adresse.
+
+                        `nofollow` et `noopener` : le §1 dit que ce site situe
+                        l'activité sans y donner accès. Un lien sortant vers une
+                        plateforme d'échange ne doit donc transmettre ni autorité de
+                        référencement, ni prise sur l'onglet d'origine. `target`
+                        préserve la page en cours — on consulte un classement, on ne le
+                        quitte pas pour aller voir une place.
+
+                        Une place sans adresse publiée reste en texte simple, plutôt
+                        qu'en lien mort : la source ne la renseigne pas toujours.
+                      */}
+                      {exchange.url ? (
+                        <a
+                          href={exchange.url}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="truncate font-medium text-ink transition-colors duration-150 hover:text-brand-strong hover:underline"
+                        >
+                          {exchange.name}
+                        </a>
+                      ) : (
+                        <span className="truncate font-medium text-ink">{exchange.name}</span>
+                      )}
                     </span>
                   </td>
 
@@ -188,5 +245,55 @@ export function SpotExchangesTable({
         ceux annoncés par les places elles-mêmes.
       </p>
     </div>
+  )
+}
+
+/**
+ * En-tête de colonne, TRIABLE OU NON selon ce que l'appelant fournit.
+ *
+ * Le tableau sert deux contextes — le registre trié de `/places` et l'extrait rendu
+ * côté serveur de `/crypto/mouvements` — et cette bascule est ce qui lui permet de
+ * n'exister qu'en un seul exemplaire. Sans elle, il aurait fallu deux tableaux jumeaux
+ * qui auraient divergé au premier ajustement de colonne.
+ *
+ * Le libellé et les classes de visibilité sont écrits UNE fois, dans les deux cas :
+ * c'est précisément ce qui garantit que la version non triable ne se met pas à cacher
+ * « Pays » à un point de rupture différent de l'autre.
+ */
+function HeadCell({
+  label,
+  sortKey,
+  sort,
+  onToggle,
+  align = 'right',
+  className = '',
+}: {
+  label: string
+  sortKey: ExchangeSortKey
+  sort?: SortState<ExchangeSortKey> | null
+  onToggle?: (key: ExchangeSortKey) => void
+  align?: 'left' | 'right'
+  className?: string
+}) {
+  if (!onToggle) {
+    return (
+      <th
+        scope="col"
+        className={`px-3 py-2.5 text-xs font-medium text-ink-muted ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
+      >
+        {label}
+      </th>
+    )
+  }
+
+  return (
+    <SortableHeader
+      label={label}
+      sortKey={sortKey}
+      sort={sort ?? null}
+      onToggle={onToggle}
+      align={align}
+      className={className}
+    />
   )
 }

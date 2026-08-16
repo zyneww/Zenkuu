@@ -1,7 +1,12 @@
+'use client'
+
+import { useMemo } from 'react'
+
 import type { DexPool } from '@zenkuu/data'
 import { ChangeBadge, formatCompact } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
+import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 
 /**
  * Tableau de POOLS DE LIQUIDITÉ.
@@ -27,6 +32,8 @@ import { Link } from '@/i18n/navigation'
  * côtés dit quelque chose de différent et de plus difficile à truquer — combien de
  * mains, et non combien de gestes.
  */
+type PoolSortKey = 'name' | 'network' | 'price' | 'change' | 'liquidity' | 'volume' | 'traders'
+
 export function DexPoolTable({
   pools,
   /** Rend la chaîne visible — inutile quand tous les pools sont sur la même. */
@@ -35,6 +42,36 @@ export function DexPoolTable({
   pools: DexPool[]
   showNetwork?: boolean
 }) {
+  /*
+   * `h24` ET NON LA MOYENNE DES FENÊTRES.
+   *
+   * `priceChange` porte six fenêtres — cinq minutes à vingt-quatre heures — et la
+   * colonne affichée est celle des vingt-quatre heures. Trier sur autre chose que ce
+   * qui est AFFICHÉ produirait un tableau dont l'ordre ne se lit nulle part : le
+   * lecteur verrait des pourcentages en désordre et conclurait à un défaut.
+   *
+   * « Acheteurs / vendeurs » se trie sur le nombre d'ACHETEURS. La cellule montre deux
+   * nombres, et il faut en choisir un : c'est celui qui répond à « où va l'argent »,
+   * la question que pose cette colonne.
+   */
+  const accessors = useMemo<Record<PoolSortKey, SortAccessor<DexPool>>>(
+    () => ({
+      name: (pool) => pool.name,
+      network: (pool) => pool.network,
+      price: (pool) => pool.priceUsd,
+      change: (pool) => pool.priceChange?.['h24'],
+      liquidity: (pool) => pool.liquidityUsd,
+      volume: (pool) => pool.volume24hUsd,
+      traders: (pool) => pool.trades24h?.buyers,
+    }),
+    [],
+  )
+
+  const { rows, sort, toggle } = useTableSort<DexPool, PoolSortKey>({
+    rows: pools,
+    accessors,
+  })
+
   if (pools.length === 0) return null
 
   return (
@@ -53,34 +90,39 @@ export function DexPoolTable({
       <table className="w-full border-collapse text-sm sm:min-w-[52rem]">
         <thead>
           <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
-            <th scope="col" className="px-3 py-2 font-medium">
-              Paire
-            </th>
+            <SortableHeader label="Paire" sortKey="name" align="left" sort={sort} onToggle={toggle} />
             {showNetwork ? (
-              <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
-                Chaîne
-              </th>
+              <SortableHeader
+                label="Chaîne"
+                sortKey="network"
+                align="left"
+                className="hidden sm:table-cell"
+                sort={sort}
+                onToggle={toggle}
+              />
             ) : null}
-            <th scope="col" className="px-3 py-2 text-right font-medium">
-              Prix $
-            </th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">
-              24 h
-            </th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">
-              Réserve $
-            </th>
-            <th scope="col" className="hidden px-3 py-2 text-right font-medium md:table-cell">
-              Volume 24 h $
-            </th>
-            <th scope="col" className="hidden px-3 py-2 text-right font-medium md:table-cell">
-              Acheteurs / vendeurs
-            </th>
+            <SortableHeader label="Prix $" sortKey="price" sort={sort} onToggle={toggle} />
+            <SortableHeader label="24 h" sortKey="change" sort={sort} onToggle={toggle} />
+            <SortableHeader label="Réserve $" sortKey="liquidity" sort={sort} onToggle={toggle} />
+            <SortableHeader
+              label="Volume 24 h $"
+              sortKey="volume"
+              className="hidden md:table-cell"
+              sort={sort}
+              onToggle={toggle}
+            />
+            <SortableHeader
+              label="Acheteurs / vendeurs"
+              sortKey="traders"
+              className="hidden md:table-cell"
+              sort={sort}
+              onToggle={toggle}
+            />
           </tr>
         </thead>
 
         <tbody className="divide-y divide-border-subtle">
-          {pools.map((pool) => (
+          {rows.map((pool) => (
             <tr key={pool.id} className="transition-colors hover:bg-surface-muted">
               <td className="px-3 py-2">
                 <Link

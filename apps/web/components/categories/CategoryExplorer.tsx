@@ -9,6 +9,7 @@ import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
 
 import { CategoryCard } from '@/components/categories/CategoryCard'
 import { Pagination } from '@/components/ui/Pagination'
+import { SortableHeader } from '@/components/ui/SortableTable'
 
 type SortKey = 'marketCap' | 'volume' | 'change' | 'name'
 type Direction = 'asc' | 'desc'
@@ -206,7 +207,13 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
         /* Le rang REPART DU BON NUMÉRO à chaque page : en page 3 sur cinquante lignes,
            la première ligne est la 101ᵉ du classement, pas la première. Une numérotation
            qui recommence à 1 sur chaque page annulerait tout l'intérêt du rang. */
-        <CategoryTable categories={rendered} startRank={start + 1} />
+        <CategoryTable
+          categories={rendered}
+          startRank={start + 1}
+          sort={sort}
+          direction={direction}
+          onSort={applySort}
+        />
       )}
 
       {visible.length > 0 ? (
@@ -254,10 +261,33 @@ function reverseKeepingMissingLast(sorted: MarketCategory[], sort: SortKey): Mar
 function CategoryTable({
   categories,
   startRank,
+  /*
+   * LES EN-TÊTES COMMANDENT LE MÊME TRI QUE LA RANGÉE DE BOUTONS.
+   *
+   * Le tri existait déjà, complet et bidirectionnel, mais il se pilotait UNIQUEMENT
+   * depuis une rangée de pastilles posée au-dessus du tableau. Or c'est sur l'en-tête
+   * de colonne qu'on clique d'instinct — c'est le geste de tous les tableaux, et la
+   * demande le disait explicitement.
+   *
+   * Les deux commandes partagent `applySort` et lisent le même état : elles ne peuvent
+   * donc pas se contredire, et la pastille se met à jour quand on trie par l'en-tête.
+   * C'était la seule façon d'ajouter la seconde entrée sans créer deux vérités.
+   */
+  sort,
+  direction,
+  onSort,
 }: {
   categories: MarketCategory[]
   startRank: number
+  sort: SortKey
+  direction: Direction
+  onSort: (key: SortKey) => void
 }) {
+  /* L'état du tri est porté ici par DEUX variables — clé et sens — là où le composant
+     partagé n'en attend qu'une. On les assemble plutôt que de refondre l'explorateur :
+     sa logique de tri gère des cas que le mécanisme générique ne connaît pas, comme le
+     nom qui repart en croissant quand tous les autres repartent en décroissant. */
+  const sortState = { key: sort, direction }
   return (
     <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
       {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
@@ -266,15 +296,39 @@ function CategoryTable({
         <thead>
           <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
             <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>
-            <th scope="col" className="px-3 py-2.5 font-medium">Secteur</th>
+            <SortableHeader
+              label="Secteur"
+              sortKey="name"
+              align="left"
+              sort={sortState}
+              onToggle={onSort}
+            />
+            {/* « Principaux actifs » n'est PAS triable, et ne peut pas l'être : la
+                cellule liste plusieurs jetons, dont l'ordre vient de la source. Trier
+                dessus reviendrait à classer sur le nom du premier de la liste, ce qui
+                n'est le critère de personne. */}
             <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
               Principaux actifs
             </th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">Variation 24 h</th>
-            <th scope="col" className="hidden px-3 py-2.5 text-right font-medium md:table-cell">
-              Volume 24 h
-            </th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">Capitalisation</th>
+            <SortableHeader
+              label="Variation 24 h"
+              sortKey="change"
+              sort={sortState}
+              onToggle={onSort}
+            />
+            <SortableHeader
+              label="Volume 24 h"
+              sortKey="volume"
+              className="hidden md:table-cell"
+              sort={sortState}
+              onToggle={onSort}
+            />
+            <SortableHeader
+              label="Capitalisation"
+              sortKey="marketCap"
+              sort={sortState}
+              onToggle={onSort}
+            />
           </tr>
         </thead>
         <tbody className="divide-y divide-border-subtle">
