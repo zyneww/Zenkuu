@@ -313,8 +313,36 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           ? { text: universeEntry.about, credit: 'zenkuu' }
           : null
 
-  const byExchange = shareBy(tickerRows, (ticker) => ticker.exchange)
-  const byPair = shareBy(tickerRows, (ticker) => ticker.target.toUpperCase())
+  /*
+   * ── LE VOLUME DOUTEUX NE COMPTE PAS DANS LES RÉPARTITIONS ─────────────────
+   *
+   * C'est une méthodologie reprise de CoinGecko, et elle change un chiffre plutôt
+   * qu'un texte. Leur « Trust Score » note chaque paire au vert, au jaune ou au rouge
+   * à partir du trafic de la plateforme, de l'écart et de la profondeur à ±2 %, de la
+   * fréquence des transactions et d'un contrôle de valeurs aberrantes. Le rouge
+   * signale un volume que la source elle-même juge non fiable.
+   *
+   * Le tableau des places l'affichait déjà en pastille — donc dans le détail — mais
+   * les anneaux de répartition additionnaient TOUT. Une plateforme au volume gonflé y
+   * apparaissait donc comme la première place de cotation d'un jeton, avec un
+   * pourcentage à deux chiffres tiré d'échanges que personne ne considère réels.
+   *
+   * Les paires notées rouge sont donc écartées du calcul, et le nombre de paires
+   * écartées est affiché sous l'anneau : retirer une donnée en silence serait la même
+   * faute que l'inventer.
+   */
+  const untrusted = tickerRows.filter((ticker) => ticker.trust === 'red').length
+  const trustedTickers = tickerRows.filter((ticker) => ticker.trust !== 'red')
+
+  const byExchange = shareBy(trustedTickers, (ticker) => ticker.exchange)
+  const byPair = shareBy(trustedTickers, (ticker) => ticker.target.toUpperCase())
+
+  /* La mention n'apparaît que s'il y a réellement eu un retrait — sinon elle
+     inquiéterait sur une page où rien n'a été écarté. */
+  const trustNote =
+    untrusted > 0
+      ? ` ${untrusted} paire${untrusted > 1 ? 's' : ''} au volume jugé non fiable par la source ${untrusted > 1 ? 'sont écartées' : 'est écartée'} du calcul.`
+      : ''
 
   // 18rem et non 16 : les groupes du rail sont devenus des panneaux, et un panneau
   // prélève 32px de marge interne sur la largeur utile. À 16rem, il ne restait que
@@ -396,7 +424,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             */}
             <ShareDonut
               title="Volume par place de cotation"
-              subtitle={`Volume 24 h de ${data.name}, réparti entre les places qui le cotent`}
+              subtitle={`Volume 24 h de ${data.name}, réparti entre les places qui le cotent.${trustNote}`}
               parts={byExchange}
               restNoun="places"
               valueHeader="Volume 24 h"
@@ -404,7 +432,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             />
             <ShareDonut
               title="Volume par devise de cotation"
-              subtitle="Contre quoi cet actif se négocie réellement"
+              subtitle={`Contre quoi cet actif se négocie réellement.${trustNote}`}
               parts={byPair}
               restNoun="paires"
               valueHeader="Volume 24 h"
@@ -1197,6 +1225,11 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
  * Les lignes sans volume publié sont ÉCARTÉES et non comptées pour zéro. Une place
  * dont la source ignore le volume n'a pas un volume nul — elle a un volume inconnu,
  * et l'inclure à zéro fausserait toutes les parts des autres (§5).
+ *
+ * ⚠️ Le filtrage par SCORE DE CONFIANCE n'a pas lieu ici mais chez l'appelant, et
+ * c'est délibéré : cette fonction agrège ce qu'on lui donne, et le choix de ce qu'on
+ * lui donne est une décision de méthodologie qui doit se lire à l'endroit où elle se
+ * prend — avec le compte des lignes retirées, que l'interface affiche.
  */
 function shareBy(tickers: AssetTicker[], key: (ticker: AssetTicker) => string): SharePart[] {
   const totals = new Map<string, number>()

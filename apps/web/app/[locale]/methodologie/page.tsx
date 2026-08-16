@@ -139,6 +139,121 @@ export default async function MethodologiePage() {
         </ul>
       </Section>
 
+      <Section title="Comment chaque chiffre est calculé">
+        <p>
+          Aucun des nombres de ce site n’est calculé par ZENKUU. Ils sont repris tels
+          que nos sources les publient — et comme la principale d’entre elles,
+          CoinGecko, documente publiquement ses méthodes, il n’y a aucune raison de ne
+          pas les reprendre ici : ce que vous lisez sur une fiche est le résultat de ces
+          règles-là, pas des nôtres.
+        </p>
+
+        <dl className="space-y-4">
+          <Formula term="Cours d’une cryptomonnaie">
+            La source part d’un indice de référence du bitcoin en dollars, calculé comme
+            un <strong className="text-ink">prix moyen pondéré par les volumes</strong>{' '}
+            sur une sélection de plateformes. Toutes les autres paires y sont ramenées —
+            les paires crypto contre crypto par un chemin de conversion, les paires en
+            monnaie par le taux de change. C’est ce qui explique qu’un cours affiché
+            puisse différer de celui d’une plateforme prise isolément : ce n’est pas le
+            prix d’un carnet d’ordres, c’est une moyenne de marché.
+          </Formula>
+
+          <Formula term="Capitalisation">
+            Cours × offre en circulation. L’offre en circulation exclut les jetons
+            verrouillés, réservés ou brûlés. Nous ne la recalculons jamais : une
+            capitalisation reconstruite à partir de l’offre totale donnerait un chiffre
+            supérieur à celui publié partout ailleurs.
+          </Formula>
+
+          <Formula term="Valorisation diluée">
+            Cours × offre maximale. Elle répond à « combien vaudrait le projet si tous
+            les jetons prévus circulaient », et l’écart avec la capitalisation mesure ce
+            qui reste à émettre. Reprise telle quelle : la source applique ses propres
+            règles sur les jetons brûlés.
+          </Formula>
+
+          <Formula term="Écart au plus haut historique">
+            (plus haut − cours actuel) ÷ plus haut. Le plus haut est celui de toute
+            l’histoire cotée de l’actif, pas celui de la fenêtre affichée sur le
+            graphique.
+          </Formula>
+
+          <Formula term="Volume sur 24 heures">
+            Somme des volumes déclarés par les plateformes, sur une fenêtre glissante de
+            vingt-quatre heures — jamais une journée calendaire. Deux relevés à douze
+            heures d’écart portent donc sur deux périodes qui se chevauchent.
+          </Formula>
+
+          <Formula term="Capitalisation d’un secteur">
+            Somme des capitalisations des actifs que la source y range. Un même actif
+            appartenant à plusieurs secteurs y compte plusieurs fois : les parts de
+            secteurs ne s’additionnent donc pas à 100 %, et nous ne les présentons
+            jamais comme une répartition.
+          </Formula>
+
+          <Formula term="Variation d’une valeur boursière">
+            Dernier cours contre la clôture de la séance précédente, et non contre le
+            cours d’il y a vingt-quatre heures. Une bourse ferme : « +2 % sur 24 h » n’a
+            pas de sens un lundi matin, « +2 % depuis la clôture de vendredi » en a un.
+          </Formula>
+        </dl>
+      </Section>
+
+      <Section title="Le volume douteux ne compte pas">
+        <p>
+          CoinGecko note chaque paire de cotation au vert, au jaune ou au rouge — son
+          «&nbsp;Trust Score&nbsp;» — à partir du trafic de la plateforme, de l’écart et
+          de la profondeur du carnet à ±2 %, de la fréquence réelle des transactions et
+          d’un contrôle de valeurs aberrantes. Le rouge signale un volume que la source
+          elle-même juge non fiable.
+        </p>
+        <p>
+          Nous reprenons cette notation à deux endroits, et c’est le seul cas où une
+          méthodologie extérieure change un chiffre de ce site plutôt qu’un texte :
+        </p>
+        <ul className="mt-3 space-y-1.5">
+          <li>
+            Le tableau «&nbsp;où se négocie&nbsp;» affiche la pastille de couleur,
+            paire par paire.
+          </li>
+          <li>
+            Les <strong className="text-ink">anneaux de répartition du volume</strong>{' '}
+            écartent les paires notées rouge du calcul. Sans ce filtre, une plateforme
+            au volume gonflé apparaît comme la première place de cotation d’un jeton,
+            avec un pourcentage à deux chiffres tiré d’échanges que personne ne
+            considère réels. Le nombre de paires écartées est indiqué sous l’anneau —
+            retirer une donnée en silence serait la même faute que l’inventer.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="Ce que nous ne reprenons pas de nos sources">
+        <p>
+          Documenter une méthode n’oblige pas à l’adopter. Trois des leurs restent hors
+          de ce site, et il vaut mieux dire pourquoi :
+        </p>
+        <ul className="mt-3 space-y-1.5">
+          <li>
+            <strong className="text-ink">Le classement des plateformes par confiance.</strong>{' '}
+            Il repose en partie sur des statistiques de trafic web achetées à un tiers.
+            Nous relayons la note d’une PAIRE, qui décrit un carnet d’ordres observable,
+            pas un palmarès d’entreprises.
+          </li>
+          <li>
+            <strong className="text-ink">Les scores composites de projet.</strong>{' '}
+            Développeurs, communauté, liquidité agrégés en une note unique : le chiffre
+            est simple à lire et impossible à vérifier. Nous affichons les composantes —
+            commits, contributeurs, abonnés — et laissons la synthèse au lecteur.
+          </li>
+          <li>
+            <strong className="text-ink">Toute prévision.</strong> Les objectifs de cours
+            des analystes sont affichés sur les fiches d’actions parce qu’ils sont un
+            FAIT publié — untel a écrit tel chiffre — jamais comme une valeur attendue.
+          </li>
+        </ul>
+      </Section>
+
       <Section title="Ce que nous n’affichons pas">
         <p>
           Quand une donnée n’est pas disponible gratuitement, nous la laissons
@@ -178,6 +293,23 @@ export default async function MethodologiePage() {
         </p>
       </Section>
     </article>
+  )
+}
+
+/**
+ * Une formule, en paire terme / définition.
+ *
+ * `<dl>` et non une liste à puces : ce sont des DÉFINITIONS, et le balisage le dit —
+ * un lecteur d'écran annonce « Capitalisation : cours multiplié par… » d'un seul
+ * tenant, là où deux paragraphes voisins ne se rattachent l'un à l'autre que par la
+ * mise en page.
+ */
+function Formula({ term, children }: { term: string; children: React.ReactNode }) {
+  return (
+    <div className="border-l-2 border-border-subtle pl-4">
+      <dt className="text-sm font-semibold text-ink">{term}</dt>
+      <dd className="mt-1 text-sm leading-relaxed text-ink-muted">{children}</dd>
+    </div>
   )
 }
 
