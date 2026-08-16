@@ -273,7 +273,25 @@ export function PriceChartInteractive({
         background: { type: ColorType.Solid, color: 'transparent' },
         attributionLogo: false,
       },
-      rightPriceScale: { borderVisible: false },
+      rightPriceScale: {
+        borderVisible: false,
+        /*
+         * ── DOUZE POUR CENT DE BLANC EN HAUT, HUIT EN BAS ─────────────────────
+         *
+         * Sans marge, la bibliothèque colle la valeur la plus haute au bord supérieur
+         * du cadre — et l'étiquette d'axe qui la désigne se retrouve COUPÉE EN DEUX
+         * par ce bord. Constaté sur la fiche du bitcoin en 24 h : « 55 400 » n'était
+         * lisible qu'à moitié, tranché horizontalement.
+         *
+         * Le bas reçoit davantage parce qu'il porte plus de choses : la bande de
+         * volume quand elle est demandée, et les étiquettes de l'axe des temps.
+         *
+         * Ces marges sont exprimées en FRACTION de la hauteur du cadre, pas en
+         * pixels — elles tiennent donc aussi bien à 320 pixels qu'en plein écran, ce
+         * qu'une réserve chiffrée ne ferait pas.
+         */
+        scaleMargins: { top: 0.12, bottom: 0.08 },
+      },
       timeScale: { borderVisible: false, secondsVisible: false },
       crosshair: { mode: 1 },
       /*
@@ -846,7 +864,11 @@ export function PriceChartInteractive({
         */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-6 right-14 flex select-none items-center gap-1 text-ink-muted opacity-40"
+          /* `bottom-8` et `right-14` : la marque se pose DANS l'aire de tracé, pas
+             sur les axes. L'axe des temps occupe la vingtaine de pixels du bas, celui
+             des prix la cinquantaine de droite — à `bottom-6`, le mot chevauchait une
+             graduation horaire. */
+          className="pointer-events-none absolute bottom-8 right-14 flex select-none items-center gap-1 text-ink-muted opacity-40"
         >
           <ZenkuuMark className="h-3 w-auto" />
           <span className="text-[0.625rem] font-semibold lowercase tracking-wide">zenkuu</span>
