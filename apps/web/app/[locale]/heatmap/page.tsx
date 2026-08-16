@@ -1,19 +1,19 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { CACHE_TTL_SECONDS, getCategories } from '@zenkuu/data'
+import { CACHE_TTL_SECONDS, getCategories, getMoversUniverse } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
-import { SectorHeatmap } from '@/components/tools/SectorHeatmap'
+import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
 export const metadata: Metadata = {
-  title: 'Heatmap sectorielle',
+  title: 'Carte thermique du marché',
   description:
-    'Les secteurs du marché crypto en une figure : la surface porte la capitalisation, la couleur porte la variation sur 24 heures.',
+    'Le marché crypto en une figure, par pièce ou par secteur : la surface porte la capitalisation, la couleur porte la variation.',
   alternates: { canonical: '/heatmap' },
 }
 
@@ -25,47 +25,61 @@ export const metadata: Metadata = {
  * est une seconde LECTURE de la même donnée — celle qui répond à « où le marché
  * bouge-t-il ? » plutôt qu'à « combien pèse ce secteur ? ».
  *
- * Le format s'écarte de la référence du secteur, qui découpe une carte thermique par
- * ACTIF. Le nôtre découpe par SECTEUR, parce que c'est là que notre donnée est bonne :
- * la source publie capitalisation et variation par catégorie sans appel dédié, alors
- * qu'une carte par actif exigerait de recharger le classement complet et n'apporterait
- * rien que le tableau ne dise déjà.
+ * ── DEUX DÉCOUPAGES, ET LE SECOND EST ARRIVÉ APRÈS ───────────────────────────
+ *
+ * Cette page n'offrait que le découpage par SECTEUR. La note qui tient encore ici
+ * soutenait qu'une carte par ACTIF « exigerait de recharger le classement complet et
+ * n'apporterait rien que le tableau ne dise déjà ». La seconde moitié de la phrase
+ * était fausse : un tableau ne montre pas de surfaces, et c'est toute la raison d'être
+ * d'une carte thermique. La première l'était aussi, mais par accident — le classement
+ * de cent actifs est DÉJÀ chargé et mis en cache pour la page des mouvements, sous une
+ * clé qui ne dépend d'aucun actif.
+ *
+ * La page offre donc les deux, sur une bascule. Les deux figures répondent à des
+ * questions distinctes : par pièce on voit QUI bouge, par secteur on voit OÙ ça bouge —
+ * dix actifs d'un même narratif qui prennent deux pour cent chacun ne se remarquent
+ * nulle part individuellement, et sautent aux yeux groupés.
  */
-/** Nombres de secteurs proposés. Borné : la valeur vient de l'URL. */
-const COUNTS = [20, 40, 80]
+export default async function HeatmapPage() {
+  /*
+   * Les deux jeux partent ENSEMBLE et ne coûtent rien : `getCategories` sert déjà
+   * `/categories` et les graphiques, `getMoversUniverse` sert déjà `/crypto/mouvements`.
+   * Leurs clés de cache ne dépendent d'aucun actif — un seul téléchargement de chaque
+   * alimente tout le site.
+   */
+  const [categories, assets] = await Promise.all([getCategories(), getMoversUniverse(100, 'eur')])
 
-export default async function HeatmapPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}) {
-  const params = await searchParams
-  const raw = Number(Array.isArray(params['secteurs']) ? params['secteurs'][0] : params['secteurs'])
-  const count = COUNTS.includes(raw) ? raw : 40
-
-  const categories = await getCategories()
+  const hasSectors = categories.ok && categories.data.length > 0
+  const hasAssets = assets.ok && assets.data.length > 0
 
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Heatmap sectorielle</h1>
+        <h1 className="display-xl text-ink">Carte thermique du marché</h1>
         <p className="text-lg leading-relaxed text-ink-muted">
-          Les secteurs en un coup d’œil : la surface porte la capitalisation, la couleur
-          porte la variation sur 24 heures. Cliquez un rectangle pour ouvrir le secteur.
+          Le marché en un coup d’œil : la surface porte la capitalisation, la couleur porte
+          la variation. Basculez entre les pièces et les secteurs, et cliquez un rectangle
+          pour l’ouvrir.
         </p>
       </header>
 
-      {categories.ok && categories.data.length > 0 ? (
+      {hasSectors || hasAssets ? (
         <>
-          <SectorHeatmap categories={categories.data} count={count} />
+          <MarketHeatmap
+            assets={assets.ok ? assets.data : []}
+            categories={categories.ok ? categories.data : []}
+          />
           <SourceNote
-            label={`${categories.source.label} · montants en USD`}
-            href={categories.source.attributionUrl}
+            label={`${(categories.ok ? categories.source : assets.source)?.label ?? 'CoinGecko'} · montants en USD`}
+            href={
+              (categories.ok ? categories.source : assets.source)?.attributionUrl ??
+              'https://www.coingecko.com'
+            }
           />
         </>
       ) : (
         <EmptyState
-          title="Secteurs indisponibles"
+          title="Carte indisponible"
           description={categories.ok ? null : categories.reason}
           tone="warning"
         />
@@ -80,10 +94,19 @@ export default async function HeatmapPage({
           qu’un tableau demande de faire mentalement, ligne à ligne.
         </p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les surfaces ne partagent pas un tout : un actif appartient à plusieurs
-          secteurs, si bien que leur somme dépasse la capitalisation mondiale. La carte
-          compare les secteurs entre eux, elle ne les additionne pas. Le détail de chacun
-          est sur sa page — voir{' '}
+          Les deux découpages ne s’additionnent pas de la même façon, et c’est la seule
+          chose à retenir avant de les comparer. Par{' '}
+          <strong className="text-ink">pièce</strong>, les surfaces se partagent un tout :
+          chaque actif est compté une fois. Par{' '}
+          <strong className="text-ink">secteur</strong>, non — un actif appartient à
+          plusieurs narratifs, Bitcoin relève de « Layer 1 » comme de « Proof of Work », si
+          bien que la somme des rectangles dépasse largement la capitalisation mondiale. La
+          seconde carte compare les secteurs entre eux, elle ne les additionne pas.
+        </p>
+        <p className="text-sm leading-relaxed text-ink-muted">
+          La période ne s’applique qu’aux pièces : la source publie cinq fenêtres de
+          variation par actif, et une seule par secteur. Le détail de chaque narratif est
+          sur sa page — voir{' '}
           <Link href="/categories" className="text-brand hover:underline">
             tous les secteurs
           </Link>

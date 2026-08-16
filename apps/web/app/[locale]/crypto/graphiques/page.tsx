@@ -7,6 +7,7 @@ import {
   getCategories,
   getCryptoGlobalStats,
   getMarketCapBasket,
+  getMoversUniverse,
   getMarketCapSeriesState,
   getNftCollections,
   getSentimentHistory,
@@ -28,7 +29,7 @@ import { GlobalChartsView } from '@/components/market/GlobalChartsView'
 import { MacroBand } from '@/components/market/MacroBand'
 import { MarketOverviewCard } from '@/components/home/MarketOverviewCard'
 import { NftCollectionGrid } from '@/components/market/NftCollectionGrid'
-import { SectorHeatmap } from '@/components/tools/SectorHeatmap'
+import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
 import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
 import { TreasuryTable } from '@/components/market/TreasuryTable'
 
@@ -46,8 +47,8 @@ const TITLES: Record<ChartView, { title: string; lead: string }> = {
     lead: 'La part de la capitalisation mondiale que représente Bitcoin. Elle monte quand le marché se replie vers lui, et baisse quand le reste progresse plus vite.',
   },
   secteurs: {
-    title: 'Carte des secteurs',
-    lead: 'Chaque rectangle est un narratif, sa taille sa capitalisation, sa couleur sa variation du jour. La forme dit d’un coup où la valeur se concentre.',
+    title: 'Carte thermique',
+    lead: 'Chaque rectangle est une pièce ou un narratif, sa taille sa capitalisation, sa couleur sa variation. Par pièce on voit qui bouge, par secteur on voit où ça bouge.',
   },
   categories: {
     title: 'Catégories & secteurs',
@@ -359,12 +360,21 @@ async function DominanceSection() {
 /* ── SECTEURS ───────────────────────────────────────────────────────────────── */
 
 async function HeatmapSection() {
-  const categories = await getCategories()
+  /*
+   * Les deux découpages — par pièce et par secteur — sont servis ensemble, et ni l'un
+   * ni l'autre ne coûte d'appel : `getCategories` alimente déjà `/categories` et la vue
+   * « Catégories » d'à côté, `getMoversUniverse` alimente déjà `/crypto/mouvements`.
+   * Leurs clés de cache ne dépendent d'aucun actif.
+   */
+  const [categories, assets] = await Promise.all([getCategories(), getMoversUniverse(100, 'eur')])
 
-  if (!categories.ok || categories.data.length === 0) {
+  const hasSectors = categories.ok && categories.data.length > 0
+  const hasAssets = assets.ok && assets.data.length > 0
+
+  if (!hasSectors && !hasAssets) {
     return (
       <EmptyState
-        title="Secteurs indisponibles"
+        title="Carte indisponible"
         description={categories.ok ? null : categories.reason}
         source={categories.source?.label ?? null}
         tone={categories.ok ? 'neutral' : 'warning'}
@@ -374,8 +384,17 @@ async function HeatmapSection() {
 
   return (
     <div className="space-y-4">
-      <SectorHeatmap categories={categories.data} count={40} />
-      <SourceNote label={categories.source.label} href={categories.source.attributionUrl} />
+      <MarketHeatmap
+        assets={assets.ok ? assets.data : []}
+        categories={categories.ok ? categories.data : []}
+      />
+      <SourceNote
+        label={(categories.ok ? categories.source : assets.source)?.label ?? 'CoinGecko'}
+        href={
+          (categories.ok ? categories.source : assets.source)?.attributionUrl ??
+          'https://www.coingecko.com'
+        }
+      />
     </div>
   )
 }
