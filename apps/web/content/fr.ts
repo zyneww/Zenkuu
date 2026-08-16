@@ -158,6 +158,49 @@ export const fr = {
     newsTitle: 'Dernières actualités',
     sentimentTitle: 'Sentiment du marché',
     coverageTitle: 'Couverture par classe d’actif',
+
+    /*
+     * ── LIBELLÉS DE LA STRUCTURE PAR CLASSE D'ACTIF ──────────────────────────
+     *
+     * L'accueil était rangé par TYPE D'ANALYSE — « Analyse des marchés », « Analyse
+     * du sentiment » — grammaire héritée de Tokenomist. Il est désormais rangé par
+     * CLASSE D'ACTIF, comme TradingView : crypto, actions, ETF, indices, matières
+     * premières, devises, économie.
+     *
+     * La différence n'est pas cosmétique. Un lecteur arrive en cherchant un MARCHÉ,
+     * pas une méthode : « je viens voir les actions » est une intention courante,
+     * « je viens faire de l'analyse sectorielle » ne l'est pas. Ranger par classe
+     * met donc le repère de navigation là où se trouve la question.
+     *
+     * Les titres de section eux-mêmes ne sont PAS ici : ils viennent de
+     * `assetClass`, déjà traduit et déjà utilisé par les tableaux et le fil
+     * d'Ariane. Les redéclarer ferait dire « Actions » à un endroit et
+     * « Actions françaises » à un autre pour la même chose.
+     */
+    summaryTitle: 'Résumé des marchés',
+    topIndicesTitle: 'Principaux indices',
+    volumeLeadersTitle: 'Plus forts volumes',
+    economyTitle: 'Économie',
+    /*
+     * Périmètre du classement d'où sont tirés les trois palmarès d'une section.
+     *
+     * « SUIVIS » ET NON « PREMIÈRES CAPITALISATIONS ».
+     *
+     * La première rédaction reprenait la formule de `moversHint`, qui ne sert que la
+     * crypto et y est juste. Relue sur les sections livrées, elle annonçait « parmi
+     * les 12 premières capitalisations » au-dessus du maïs et du blé — or un contrat
+     * à terme sur le maïs n'a pas de capitalisation, et un indice non plus. La
+     * mention était donc fausse sur deux des quatre sections où elle apparaît.
+     *
+     * « Actifs suivis » est vrai pour les quatre : c'est exactement ce que décrit
+     * l'univers interrogé, quelle que soit la classe.
+     */
+    classMoversHint: (size: number) => `Parmi les ${size} actifs suivis de cette classe`,
+    /** Puces de bascule du graphique de tête. */
+    heroMarketCap: 'Capitalisation crypto',
+    heroLoading: 'Chargement de la série…',
+    heroUnavailable: 'Série momentanément indisponible.',
+
     forexTitle: 'Devises · référence BCE',
     // Conservé : ce n'est pas une glose du titre mais une information de FRAÎCHEUR.
     // Sans elle, un lecteur peut croire ces taux rafraîchis comme des cotations.
