@@ -231,6 +231,36 @@ export interface AssetDetail extends MarketAsset {
    * change, qui introduirait un second niveau d'approximation.
    */
   pricesByCurrency?: Record<string, number>
+
+  /**
+   * SÉANCE DE COTATION — l'équivalent boursier de « où se négocie cet actif ».
+   *
+   * ── POURQUOI CE CHAMP EXISTE ────────────────────────────────────────────────
+   *
+   * L'onglet « Places » d'une cryptomonnaie liste des dizaines de plateformes avec
+   * leur volume. Celui d'une action affichait « Aucune place de cotation publiée »,
+   * ce qui était exact mais trompeur : une action a UNE place, connue, et c'est
+   * précisément l'information qui manquait. Le vide se lisait comme une panne alors
+   * qu'il décrivait une différence de nature entre les deux marchés.
+   *
+   * ── CE QUE LA SÉANCE APPREND, ET QUE LE MARCHÉ CRYPTO N'A PAS ───────────────
+   *
+   * Une bourse FERME. Un cours vieux de dix-huit heures un dimanche n'est pas une
+   * donnée périmée, c'est le dernier cours coté — et sans horaires affichés, le
+   * lecteur ne peut pas faire la différence. C'est la raison principale de ce champ.
+   *
+   * Toutes les valeurs viennent de la MÊME réponse que le cours : aucun appel
+   * supplémentaire. Le champ reste absent pour la crypto, qui ne ferme jamais.
+   */
+  session?: {
+    /** Nom IANA du fuseau de la place — « America/New_York », « Europe/Paris ». */
+    timezone: string
+    /** Décalage de la place par rapport à UTC, en secondes. */
+    utcOffsetSeconds?: number
+    /** Ouverture et clôture de la séance ordinaire du jour, en ISO 8601. */
+    opensAt?: string
+    closesAt?: string
+  }
 }
 
 /**

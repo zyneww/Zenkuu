@@ -19,6 +19,7 @@
 import { createHttpClient } from '../http'
 import type {
   AssetClass,
+  AssetDetail,
   ListAssetsParams,
   MarketAsset,
   MarketDataProvider,
@@ -66,6 +67,13 @@ interface YahooChartResponse {
             shortName?: string
             fullExchangeName?: string
             regularMarketTime?: number
+            /* Métadonnées de SÉANCE, déjà présentes dans cette réponse et jusqu'ici
+               ignorées. Elles ne coûtent donc rien de plus qu'une ligne de typage. */
+            exchangeTimezoneName?: string
+            gmtoffset?: number
+            currentTradingPeriod?: {
+              regular?: { start?: number; end?: number }
+            }
           }
           timestamp?: number[]
           // Yahoo renvoie ouverture, extrêmes et volume dans la MÊME réponse que les
@@ -111,6 +119,42 @@ async function fetchChart(symbol: string, range: string, interval: string) {
     )
   }
   return result
+}
+
+/**
+ * SÉANCE DE COTATION, extraite des métadonnées de la réponse de cours.
+ *
+ * ── POURQUOI ELLE N'EST PAS POSÉE DANS `toMarketAsset` ────────────────────────
+ *
+ * Cette fonction-là sert AUSSI les classements, qui rendent jusqu'à deux cent
+ * cinquante lignes. Y attacher quatre champs par ligne alourdirait chaque tableau
+ * d'une information qu'aucune colonne n'affiche, et qui n'a de sens que sur une
+ * fiche. Elle n'est donc appelée que par `getAsset`.
+ *
+ * ── LE FUSEAU CONDITIONNE TOUT LE RESTE ───────────────────────────────────────
+ *
+ * Sans lui, deux horodatages epoch ne disent pas à quelle heure LOCALE la bourse
+ * ouvre — et c'est la seule chose que le lecteur veuille savoir. On ne construit donc
+ * rien s'il manque, plutôt que de livrer des horaires implicitement rapportés au
+ * fuseau du visiteur (§5).
+ */
+function sessionOf(
+  meta: NonNullable<YahooChartResponse['chart']['result']>[number]['meta'],
+): AssetDetail['session'] {
+  if (!meta.exchangeTimezoneName) return undefined
+
+  const regular = meta.currentTradingPeriod?.regular
+
+  return {
+    timezone: meta.exchangeTimezoneName,
+    ...(typeof meta.gmtoffset === 'number' ? { utcOffsetSeconds: meta.gmtoffset } : {}),
+    ...(typeof regular?.start === 'number'
+      ? { opensAt: new Date(regular.start * 1000).toISOString() }
+      : {}),
+    ...(typeof regular?.end === 'number'
+      ? { closesAt: new Date(regular.end * 1000).toISOString() }
+      : {}),
+  }
 }
 
 function toMarketAsset(
@@ -169,6 +213,7 @@ function toMarketAsset(
   if (meta.fiftyTwoWeekHigh !== undefined) asset.ath = meta.fiftyTwoWeekHigh
   if (meta.fiftyTwoWeekLow !== undefined) asset.atl = meta.fiftyTwoWeekLow
   if (meta.fullExchangeName) asset.exchange = meta.fullExchangeName
+
 
   // Pas de capitalisation : elle vit dans `quoteSummary`, fermé aux clients non
   // authentifiés. Le champ reste absent et s'affiche « — » (§5).
@@ -234,7 +279,18 @@ export const yahooProvider: MarketDataProvider = {
     const entry = resolveEntry(id, assetClass)
 
     const result = await fetchChart(entry.symbol, '1mo', '1d')
-    return toMarketAsset(result, entry, assetClass)
+
+    /* La séance ne rejoint QUE la fiche, jamais les classements — voir `sessionOf`. */
+    const asset = toMarketAsset(result, entry, assetClass)
+    const session = sessionOf(result.meta)
+    if (!session) return asset
+
+    /* Variable intermédiaire et non un littéral rendu directement : le contrat du
+       fournisseur annonce `MarketAsset`, et TypeScript refuse un champ surnuméraire
+       sur un objet créé à l'endroit du `return`. Le passer par une constante typée
+       `AssetDetail` dit ce qu'on fait — enrichir, pas contourner. */
+    const detail: AssetDetail = { ...asset, session }
+    return detail
   },
 
   async getHistory(id: string, days: number, assetClass?: AssetClass): Promise<PriceHistory> {

@@ -195,9 +195,37 @@ interface RawSummary {
     sector?: string
     industry?: string
     country?: string
+    city?: string
     website?: string
     fullTimeEmployees?: number
     longBusinessSummary?: string
+  }
+  /**
+   * Répartition des recommandations d'analystes, du mois courant au troisième
+   * précédent. Seule la période `0m` est lue : les trois autres décrivent une
+   * ÉVOLUTION du consensus, qui mérite mieux qu'une ligne et n'est pas affichée.
+   */
+  recommendationTrend?: {
+    trend?: {
+      period?: string
+      strongBuy?: number
+      buy?: number
+      hold?: number
+      sell?: number
+      strongSell?: number
+    }[]
+  }
+  financialData?: {
+    targetMeanPrice?: RawValue
+    targetHighPrice?: RawValue
+    targetLowPrice?: RawValue
+    numberOfAnalystOpinions?: RawValue
+    recommendationKey?: string
+  }
+  price?: {
+    exchangeName?: string
+    quoteType?: string
+    currency?: string
   }
 }
 
@@ -215,6 +243,46 @@ export interface FundHolding {
 export interface SectorWeight {
   sector: string
   weight: number
+}
+
+/**
+ * Consensus d'analystes — l'équivalent boursier du sondage communautaire crypto.
+ *
+ * ── POURQUOI CE BLOC EXISTE ───────────────────────────────────────────────────
+ *
+ * Une fiche de cryptomonnaie porte un « sentiment » : la part de votes haussiers
+ * publiée par la source. Une fiche d'action n'avait rien à cet endroit, alors que la
+ * question posée est la même — « qu'en pensent les autres ? » — et que la réponse
+ * boursière est bien plus solide qu'un sondage de clics : des professionnels qui
+ * engagent leur nom, avec un objectif de cours chiffré.
+ *
+ * ── CE QU'IL FAUT EN DIRE À L'AFFICHAGE ───────────────────────────────────────
+ *
+ * Un objectif de cours n'est PAS une prévision vérifiée, et le consensus est connu
+ * pour son biais haussier structurel. L'interface doit présenter ces chiffres comme
+ * l'opinion d'un groupe identifié, jamais comme une valeur attendue (§5, §7).
+ *
+ * `count` est le nombre d'opinions retenues par la source pour l'objectif moyen. Il
+ * n'a aucune raison d'égaler la somme des recommandations, qui vient d'un autre
+ * module : deux dénombrements différents, affichés séparément.
+ */
+export interface AnalystView {
+  /** Objectif de cours moyen, dans la devise de cotation. */
+  targetMean?: number
+  targetHigh?: number
+  targetLow?: number
+  /** Nombre d'opinions derrière l'objectif moyen. */
+  count?: number
+  /** Clé de recommandation Yahoo : `strong_buy`, `buy`, `hold`, `sell`, `strong_sell`. */
+  recommendation?: string
+  /** Répartition du mois courant, quand la source la publie. */
+  distribution?: {
+    strongBuy: number
+    buy: number
+    hold: number
+    sell: number
+    strongSell: number
+  }
 }
 
 /**
@@ -245,6 +313,18 @@ export interface AssetProfile {
   sector?: string
   industry?: string
   country?: string
+  /** Ville du siège, telle que publiée. Complète `country` sans le remplacer. */
+  city?: string
+  /**
+   * Site officiel de l'émetteur.
+   *
+   * ⚠️ Ce champ N'ÉTAIT PAS RENSEIGNÉ, et le défaut se lisait dans le code : la
+   * condition testait `assetProfile.website` mais affectait `longBusinessSummary` à
+   * `summary`. Le site était donc lu par le fournisseur puis jeté, et le résumé se
+   * trouvait affecté deux fois. La fiche technique d'une action n'avait par
+   * conséquent aucun lien sortant — c'est ce qui la rendait vide.
+   */
+  website?: string
   employees?: number
   trailingPE?: number
   forwardPE?: number
@@ -253,6 +333,10 @@ export interface AssetProfile {
   beta?: number
   marketCap?: number
   summary?: string
+  /** Consensus d'analystes — actions principalement, cf. `AnalystView`. */
+  analyst?: AnalystView
+  /** Place de cotation telle que nommée par la source (« NasdaqGS »). */
+  exchangeName?: string
 }
 
 /** Libellés français des secteurs Morningstar, dont Yahoo publie les clés en camel. */
@@ -290,9 +374,23 @@ function percent(entry: RawValue | undefined): number | undefined {
  * appliquée un cran plus tôt.
  */
 function modulesFor(assetClass: AssetClass): string[] {
-  if (assetClass === 'etf') return ['fundProfile', 'topHoldings', 'summaryDetail']
-  if (assetClass === 'stock') return ['assetProfile', 'summaryDetail', 'defaultKeyStatistics']
-  return ['summaryDetail']
+  if (assetClass === 'etf') {
+    return ['fundProfile', 'topHoldings', 'summaryDetail', 'assetProfile', 'price']
+  }
+  if (assetClass === 'stock') {
+    return [
+      'assetProfile',
+      'summaryDetail',
+      'defaultKeyStatistics',
+      // Les deux modules du consensus. Ils voyagent dans LA MÊME requête que le
+      // reste : les ajouter ne coûte aucun appel supplémentaire, seulement quelques
+      // kilo-octets de réponse.
+      'recommendationTrend',
+      'financialData',
+      'price',
+    ]
+  }
+  return ['summaryDetail', 'price']
 }
 
 /**
@@ -367,11 +465,15 @@ export async function fetchAssetProfile(
   if (raw.assetProfile?.sector) profile.sector = raw.assetProfile.sector
   if (raw.assetProfile?.industry) profile.industry = raw.assetProfile.industry
   if (raw.assetProfile?.country) profile.country = raw.assetProfile.country
-  if (raw.assetProfile?.website) profile.summary = raw.assetProfile.longBusinessSummary ?? undefined
+  if (raw.assetProfile?.city) profile.city = raw.assetProfile.city
+  /* Voir le champ `website` du modèle : cette ligne testait le site pour affecter le
+     résumé, si bien que le lien n'arrivait jamais jusqu'à la fiche. */
+  if (raw.assetProfile?.website) profile.website = raw.assetProfile.website
   if (typeof raw.assetProfile?.fullTimeEmployees === 'number') {
     profile.employees = raw.assetProfile.fullTimeEmployees
   }
   if (raw.assetProfile?.longBusinessSummary) profile.summary = raw.assetProfile.longBusinessSummary
+  if (raw.price?.exchangeName) profile.exchangeName = raw.price.exchangeName
 
   const pe = value(raw.summaryDetail?.trailingPE)
   if (pe !== undefined && pe > 0) profile.trailingPE = pe
@@ -390,6 +492,50 @@ export async function fetchAssetProfile(
 
   const cap = value(raw.summaryDetail?.marketCap)
   if (cap !== undefined && cap > 0) profile.marketCap = cap
+
+  // ── Consensus d'analystes ────────────────────────────────────────────────
+  const analyst: AnalystView = {}
+
+  const targetMean = value(raw.financialData?.targetMeanPrice)
+  if (targetMean !== undefined && targetMean > 0) analyst.targetMean = targetMean
+
+  const targetHigh = value(raw.financialData?.targetHighPrice)
+  if (targetHigh !== undefined && targetHigh > 0) analyst.targetHigh = targetHigh
+
+  const targetLow = value(raw.financialData?.targetLowPrice)
+  if (targetLow !== undefined && targetLow > 0) analyst.targetLow = targetLow
+
+  const opinions = value(raw.financialData?.numberOfAnalystOpinions)
+  if (opinions !== undefined && opinions > 0) analyst.count = Math.round(opinions)
+
+  if (raw.financialData?.recommendationKey && raw.financialData.recommendationKey !== 'none') {
+    analyst.recommendation = raw.financialData.recommendationKey
+  }
+
+  /* La période `0m` — le mois courant. Les trois autres décrivent l'évolution du
+     consensus, qui mérite un graphique et non une ligne : on ne les lit pas plutôt
+     que de les afficher à moitié. */
+  const current = (raw.recommendationTrend?.trend ?? []).find((entry) => entry.period === '0m')
+  if (current) {
+    const distribution = {
+      strongBuy: current.strongBuy ?? 0,
+      buy: current.buy ?? 0,
+      hold: current.hold ?? 0,
+      sell: current.sell ?? 0,
+      strongSell: current.strongSell ?? 0,
+    }
+    const total =
+      distribution.strongBuy +
+      distribution.buy +
+      distribution.hold +
+      distribution.sell +
+      distribution.strongSell
+    // Une répartition entièrement nulle n'est pas un consensus neutre : c'est une
+    // absence de couverture, et l'afficher en cinq zéros ferait lire l'inverse.
+    if (total > 0) analyst.distribution = distribution
+  }
+
+  if (Object.keys(analyst).length > 0) profile.analyst = analyst
 
   // Aucun champ renseigné : la réponse existait mais ne portait rien d'exploitable.
   // On rend `null` plutôt qu'un objet vide, pour que l'appelant n'ait qu'un seul cas

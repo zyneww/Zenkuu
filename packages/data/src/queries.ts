@@ -1345,14 +1345,34 @@ export function getNewListings(limit = 100): Promise<DataResult<NewListing[]>> {
 const PROFILE_TTL_SECONDS = 6 * 3_600
 
 /**
+ * Version de la FORME du profil mis en cache.
+ *
+ * À INCRÉMENTER dès qu'un champ est ajouté à `AssetProfile`, et le défaut qu'elle
+ * corrige vaut d'être décrit : un profil resté six heures en cache a la forme d'AVANT
+ * le changement. Le code neuf lit alors des champs qui n'y sont pas, et la fiche
+ * affiche une absence là où la source publie quelque chose — sans erreur, sans trace,
+ * pendant une demi-journée après chaque déploiement.
+ *
+ * Verser la version dans la CLÉ rend l'ancienne entrée inatteignable au lieu de la
+ * supprimer : elle expire d'elle-même, et un retour en arrière du code retrouve la
+ * sienne intacte.
+ */
+const PROFILE_SHAPE = 'v2'
+
+/**
  * Profil d'un actif boursier, ou un échec explicite.
  *
  * ── RÉSERVÉ AUX CLASSES QUE YAHOO DÉCRIT ──────────────────────────────────────
  *
- * Actions et ETF seulement. Les matières premières et les indices n'ont ni frais, ni
- * composition, ni ratios : appeler pour eux dépenserait un aller-retour pour se voir
- * répondre un objet vide. La crypto et le forex passent par d'autres fournisseurs, qui
- * ne connaissent pas cet endpoint.
+ * Actions, ETF et indices. Les matières premières n'ont ni frais, ni composition, ni
+ * ratios : appeler pour elles dépenserait un aller-retour pour se voir répondre un
+ * objet vide. La crypto et le forex passent par d'autres fournisseurs, qui ne
+ * connaissent pas cet endpoint.
+ *
+ * Les indices ont été AJOUTÉS après coup, et le motif de leur exclusion était exact
+ * mais trop large : ils n'ont effectivement ni frais ni composition, mais le module
+ * `price` leur donne une place de cotation — ce qui était précisément la ligne
+ * manquante de la fiche la plus pauvre du site.
  *
  * ── L'IDENTIFIANT D'URL N'EST PAS LE SYMBOLE ──────────────────────────────────
  *
@@ -1367,11 +1387,24 @@ export async function getAssetProfile(
 ): Promise<DataResult<AssetProfile | null>> {
   const source = describe(assetClass)
 
-  if (assetClass !== 'stock' && assetClass !== 'etf') {
+  /*
+   * TROIS CLASSES ET NON PLUS DEUX — les indices rejoignent les actions et les ETF.
+   *
+   * Le refus portait sur ce que `quoteSummary` publie réellement : ni frais, ni
+   * composition, ni ratios pour un indice. C'était exact, mais la conclusion était
+   * trop large. Le module `price` donne la PLACE DE COTATION et le type d'instrument
+   * pour tout symbole, y compris un indice — et c'est précisément ce qui manquait à
+   * une fiche d'indice, qui était la plus pauvre du site.
+   *
+   * Les matières premières et les paires de devises restent écartées : leurs symboles
+   * Yahoo (`GC=F`, `EURUSD=X`) ne portent pas de profil, et l'appel ne rendrait que
+   * des champs vides au prix d'une requête.
+   */
+  if (assetClass !== 'stock' && assetClass !== 'etf' && assetClass !== 'index') {
     return {
       ok: false,
       kind: 'unconfigured',
-      reason: 'Profil détaillé publié seulement pour les actions et les ETF.',
+      reason: 'Profil détaillé publié seulement pour les actions, les ETF et les indices.',
       source,
     }
   }
@@ -1388,7 +1421,7 @@ export async function getAssetProfile(
 
   try {
     const data = await cached(
-      `${assetClass}:profile:${resolved.entry.symbol}`,
+      `${assetClass}:profile:${PROFILE_SHAPE}:${resolved.entry.symbol}`,
       () => fetchAssetProfile(resolved.entry.symbol, assetClass),
       PROFILE_TTL_SECONDS,
     )

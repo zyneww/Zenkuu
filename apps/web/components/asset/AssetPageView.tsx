@@ -13,6 +13,7 @@ import {
   getPeers,
   getSpotExchanges,
   getTrendingCryptoAssets,
+  findUniverseEntryBySymbol,
 } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
@@ -35,6 +36,8 @@ import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHolding
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetPools } from '@/components/asset/AssetPools'
 import { AssetSectors } from '@/components/asset/AssetSectors'
+import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
+import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
 import { AssetPageHeader } from '@/components/asset/AssetPageHeader'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
 import { AssetSimilarRail } from '@/components/asset/AssetSimilarRail'
@@ -45,6 +48,7 @@ import { AssetTabs, type AssetTab } from '@/components/asset/AssetTabs'
 import { AssetIdentity } from '@/components/asset/AssetIdentity'
 import { AssetTechSheet } from '@/components/asset/AssetTechSheet'
 import { AssetTickers } from '@/components/asset/AssetTickers'
+import { AssetTradingVenue } from '@/components/asset/AssetTradingVenue'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
 import { AssetTabFiller } from '@/components/asset/AssetTabFiller'
@@ -214,16 +218,24 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     /*
      * PROFIL BOURSIER — frais, composition, ratios.
      *
-     * Actions et ETF seulement : les autres classes n'ont rien à y trouver, et
-     * `getAssetProfile` le refuse de toute façon. C'est ce qui donne enfin une matière
-     * propre aux fiches d'ETF, qui n'avaient qu'un cours et un graphique — or un fonds
-     * n'est pas un actif mais un PANIER, et sa question propre est ce qu'il contient.
+     * Actions, ETF et INDICES : les trois classes pour lesquelles la source publie
+     * quelque chose. C'est ce qui donne enfin une matière propre aux fiches d'ETF, qui
+     * n'avaient qu'un cours et un graphique — or un fonds n'est pas un actif mais un
+     * PANIER, et sa question propre est ce qu'il contient.
+     *
+     * Les indices s'y ajoutent pour une raison mesurée : c'était la fiche la plus
+     * pauvre du site (7 500 caractères de texte contre 19 200 pour le bitcoin). La
+     * source ne leur donne ni ratio ni composition, mais elle donne la place de
+     * cotation et la nature de l'instrument — de quoi remplir une fiche technique là
+     * où il n'y avait rien.
      *
      * Mis en cache six heures : des frais changent une fois par an, une composition par
      * trimestre. L'appel exige une poignée de main en deux temps (voir son adaptateur),
      * que ce cache ramène à quatre par jour et par titre.
      */
-    assetClass === 'stock' || assetClass === 'etf' ? getAssetProfile(id, assetClass) : null,
+    assetClass === 'stock' || assetClass === 'etf' || assetClass === 'index'
+      ? getAssetProfile(id, assetClass)
+      : null,
   ])
 
   // Identifiant inconnu de la source : c'est un 404 au sens propre, pas une panne.
@@ -270,6 +282,36 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   // État de suivi lu au rendu serveur : le bouton arrive déjà dans le bon état,
   // au lieu de basculer visiblement une fois la page hydratée.
   const watchlist = await getWatchlistState(assetClass, data.id)
+
+  /*
+   * ── TEXTE DE PRÉSENTATION : TROIS ORIGINES, UNE SEULE SECTION ───────────────
+   *
+   * Elles sont classées de la plus SOURCÉE à la moins, et l'ordre est le sujet :
+   *
+   *   1. `description` — la notice publiée par la source crypto, en français.
+   *   2. `profile.summary` — le résumé d'activité publié par la source boursière,
+   *      en anglais. Il était déjà chargé pour les ratios du rail et n'était branché
+   *      nulle part ; c'est ce qui laissait une fiche d'action sans un mot de
+   *      présentation.
+   *   3. `entry.about` — une notice RÉDIGÉE PAR NOUS, qui n'existe que pour les
+   *      indices et les matières premières. Aucune source n'en publie pour ces
+   *      instruments, et leurs fiches se refermaient donc sur un cours.
+   *
+   * Chaque origine porte son ATTRIBUTION à l'affichage. C'est la seule chose qui
+   * empêche la troisième d'être malhonnête : une notice maison présentée sous le nom
+   * d'un fournisseur de cotation serait une fausse attribution, et le §5 ne distingue
+   * pas le chiffre inventé de la paternité usurpée.
+   */
+  const universeEntry = findUniverseEntryBySymbol(data.symbol)
+
+  const about: { text: string; credit: 'source' | 'source-en' | 'zenkuu' } | null =
+    data.description
+      ? { text: data.description, credit: 'source' }
+      : profile?.summary
+        ? { text: profile.summary, credit: 'source-en' }
+        : universeEntry?.about
+          ? { text: universeEntry.about, credit: 'zenkuu' }
+          : null
 
   const byExchange = shareBy(tickerRows, (ticker) => ticker.exchange)
   const byPair = shareBy(tickerRows, (ticker) => ticker.target.toUpperCase())
@@ -389,13 +431,27 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           retire de lui-même si la paire n'y est pas cotée. */}
       {assetClass === 'crypto' ? <AssetOrderBook symbol={data.symbol} /> : null}
 
+      {/*
+        L'ONGLET N'EST PLUS VIDE POUR UNE VALEUR BOURSIÈRE.
+
+        Il affichait « Aucune place de cotation publiée », ce qui était exact au mot
+        près et faux dans ce qu'on en comprenait : une action n'a pas des places, elle
+        en a UNE, connue et réglementée. Le message décrivait une absence de données là
+        où il y a une différence de nature entre deux marchés — voir
+        `AssetTradingVenue`, qui rend désormais la place, la devise et la séance.
+
+        Le composant se retire de lui-même pour la crypto et le forex, dont l'onglet
+        garde son tableau de plateformes.
+      */}
+      <AssetTradingVenue asset={data} assetClass={assetClass} />
+
       {tickerRows.length > 0 ? (
         <AssetTickers
           tickers={tickerRows}
           assetName={data.name}
           exchangeImages={exchangeImages}
         />
-      ) : (
+      ) : assetClass === 'crypto' || assetClass === 'forex' ? (
         <>
           <EmptyState
             title="Aucune place de cotation publiée"
@@ -406,7 +462,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               ne comble que le cas où la table des places manque AUSSI. */}
           <AssetTabFiller asset={data} />
         </>
-      )}
+      ) : null}
     </div>
   )
 
@@ -963,7 +1019,22 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               renseigne en ferait l'union de tous les cas particuliers. */}
           {profile ? <AssetProfileRail profile={profile} /> : null}
           <AssetSupply asset={data} />
+
+          {/*
+            DEUX BLOCS SYMÉTRIQUES, UN PAR MONDE.
+
+            `AssetSentiment` rend le sondage d'audience d'une cryptomonnaie ;
+            `AssetAnalystView` rend le consensus d'analystes d'une action. Les deux
+            répondent à « qu'en pensent les autres ? » avec la donnée que chaque marché
+            publie réellement, et chacun se retire de lui-même quand la sienne manque —
+            il n'y a donc aucune condition de classe à écrire ici.
+
+            Le second ne coûte AUCUN appel supplémentaire : ses deux modules voyagent
+            dans la même requête que les ratios déjà chargés au-dessus.
+          */}
           <AssetSentiment asset={data} />
+          <AssetAnalystView profile={profile} currency={data.currency} price={data.price} />
+
           <AssetCommunity asset={data} />
 
           {/*
@@ -983,8 +1054,16 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               exactement comme le bloc « Info » de la référence. Ce sont des questions
               courtes, et ce rail est fait pour elles ; la liste de références est
               d'ailleurs étroite par nature — en bas de page, sur neuf cents pixels,
-              chaque ligne traînait un vide entre son libellé et sa valeur. */}
+              chaque ligne traînait un vide entre son libellé et sa valeur.
+
+              LES DEUX FICHES SONT EXCLUSIVES par construction : celle de gauche ne
+              rend quelque chose que pour une cryptomonnaie (contrats, chaînes,
+              explorateurs), celle de droite que pour une valeur boursière (place,
+              secteur, siège, émetteur). Aucune fiche n'en affiche deux, et aucune n'en
+              affiche zéro — ce qui était le cas des actions, des ETF et des indices
+              jusqu'ici. */}
           <AssetTechSheet asset={data} />
+          <AssetMarketSheet asset={data} assetClass={assetClass} profile={profile} />
           </aside>
         }
       />
@@ -1031,7 +1110,26 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           grille dont une colonne sur trois est vide n'est plus une grille : c'est
           un texte artificiellement rétréci aux deux tiers de la page. */}
       <div className="space-y-8 border-t border-border-subtle pt-8">
-        {data.description ? (
+        {/*
+          ── « À PROPOS » NE MANQUE PLUS AUX VALEURS BOURSIÈRES ──────────────────
+
+          Cette section ne s'affichait que si la source avait livré une `description`,
+          champ que seule la source crypto renseigne. Résultat mesuré : la fiche du
+          bitcoin portait trois paragraphes de présentation, celle d'Apple aucun — au
+          moment précis où le lecteur venu d'un moteur de recherche se demande de quelle
+          entreprise on parle.
+
+          Or le résumé d'activité était DÉJÀ CHARGÉ, dans le profil qui alimente les
+          ratios du rail. Il n'était simplement branché nulle part. Le repli le
+          consomme, sans un appel de plus.
+
+          ⚠️ Ce texte est en ANGLAIS chez la source, contrairement à la description
+          crypto. On l'affiche tel quel plutôt que de le traduire à la volée : une
+          traduction automatique d'un résumé d'activité réglementé introduirait des
+          approximations que rien ne signalerait au lecteur (§5). La mention de langue
+          sous le titre le dit.
+        */}
+        {about ? (
           <section className="space-y-3">
             <h2 className="display-sm text-ink">À propos {frenchOf(data.name)}</h2>
             {/* `whitespace-pre-line` : la source sépare ses paragraphes par des
@@ -1043,8 +1141,24 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                 au-delà d'environ quatre-vingts caractères, et ce n'est pas parce
                 que la place existe qu'il faut la remplir. */}
             <p className="max-w-2xl whitespace-pre-line text-base leading-relaxed text-ink-muted">
-              {data.description}
+              {about.text}
             </p>
+
+            {/* L'attribution, systématique — voir le calcul de `about` plus haut. */}
+            {about.credit === 'source-en' ? (
+              <p className="text-micro text-ink-muted opacity-80">
+                Résumé d’activité publié en anglais par {asset.source?.label ?? 'la source'},
+                repris sans traduction.
+              </p>
+            ) : null}
+
+            {about.credit === 'zenkuu' ? (
+              <p className="text-micro text-ink-muted opacity-80">
+                Présentation rédigée par ZENKUU : aucune source de cotation ne publie de
+                notice pour cet instrument. Elle ne décrit que sa construction, jamais son
+                niveau — le cours et les variations viennent, eux, de la source.
+              </p>
+            ) : null}
           </section>
         ) : null}
 
