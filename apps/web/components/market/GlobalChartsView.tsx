@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 
 import type { PriceHistory } from '@zenkuu/data'
 
+import { Chip, ChipGroup as Group } from '@/components/charts/ChipGroup'
 import { TrendChart, type TrendPoint } from '@/components/charts/TrendChart'
 import { dataColor } from '@/components/charts/chart-theme'
 
@@ -163,44 +164,6 @@ export function GlobalChartsView({
   )
 }
 
-/**
- * Intitulé + rangée de pastilles.
- *
- * Les DEUX niveaux s'enroulent, et il faut les deux : à 320 px, l'intitulé tient sur
- * une ligne et la rangée sur la suivante ; à 360, la rangée elle-même se coupe en
- * deux. Sans le second `flex-wrap`, la boîte des pastilles débordait de la sienne et
- * poussait la page — neuf pixels, mesurés sur iPhone SE.
- */
-function Group({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label={label}>
-      <span className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">{label}</span>
-      <div className="flex min-w-0 flex-wrap items-center gap-1 rounded-card border border-border-subtle p-0.5">
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function Chip({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
-        active ? 'bg-brand text-on-brand' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-      }`}
-    >
-      {label}
-    </button>
-  )
-}
+/* `Group` et `Chip` vivaient ici. Ils sont passés dans `charts/ChipGroup` le jour où
+   le panier de capitalisations, posé sur la même page, en a eu besoin : deux copies du
+   même dessin à cinquante pixels l'une de l'autre divergent à la première retouche. */

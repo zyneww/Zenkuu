@@ -6,6 +6,7 @@ import {
   getAssetHistory,
   getCategories,
   getCryptoGlobalStats,
+  getMarketCapBasket,
   getMarketCapSeriesState,
   getNftCollections,
   getSentimentHistory,
@@ -15,6 +16,7 @@ import {
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
+import { BasketCharts } from '@/components/market/BasketCharts'
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
 import {
   ChartsTabs,
@@ -189,6 +191,7 @@ async function GlobalView() {
     getSentimentHistory(365),
   ])
 
+
   // Lu APRÈS `getCryptoGlobalStats` : c'est cet appel qui vient d'ajouter le point du
   // jour à la série enregistrée.
   const marketCapSeries = getMarketCapSeriesState('EUR')
@@ -213,6 +216,24 @@ async function GlobalView() {
       )}
 
       <MarketOverviewCard result={globalStats} series={marketCapSeries} />
+
+      {/*
+        ── LE PANIER, ENTRE NOS RELEVÉS DE 24 H ET LES COURBES PAR ACTIF ────────
+
+        Sa place dans la page est un argument à elle seule. Au-dessus, la carte
+        d'aperçu montre ce que nous avons MESURÉ nous-mêmes : vingt-quatre heures, pas
+        une de plus. En dessous, les courbes longues montrent Bitcoin et Ethereum, un
+        actif à la fois. Le panier est exactement ce qui manquait entre les deux — une
+        profondeur d'un an sur un agrégat — et il est posé là pour qu'on lise dans cet
+        ordre : ce qu'on a relevé, ce qu'on a additionné, ce que la source publie
+        directement.
+
+        Il n'apparaît que s'il a abouti. Un encadré d'échec de plus n'apprendrait rien
+        que la carte d'aperçu juste au-dessus ne dise déjà.
+      */}
+      <Suspense fallback={<LoadingNote label="Assemblage du panier de capitalisations…" />}>
+        <BasketSection />
+      </Suspense>
 
       {btc.ok || eth.ok ? (
         <>
@@ -249,25 +270,88 @@ async function GlobalView() {
   )
 }
 
+/**
+ * Panier de capitalisations — MIS EN FLUX, comme les trésoreries et les collections.
+ *
+ * Neuf séries d'un an, dont sept que la page n'a pas déjà chargées. Sur un cache froid
+ * et un palier gratuit plafonné à quelques appels par minute, l'assemblage se compte en
+ * dizaines de secondes.
+ *
+ * Ce qui est réductible n'est pas cette durée mais l'ATTENTE AVANT LE PREMIER PIXEL :
+ * sans `Suspense`, la vue macro et la carte d'aperçu — toutes deux servies depuis un
+ * cache partagé avec le reste du site, donc instantanées — resteraient retenues jusqu'au
+ * dernier appel du panier.
+ *
+ * L'ordre de la page ne change pas, seulement l'ordre d'ARRIVÉE.
+ */
+async function BasketSection() {
+  const basket = await getMarketCapBasket('eur', 365)
+
+  // Un encadré d'échec de plus n'apprendrait rien que la carte d'aperçu, juste
+  // au-dessus, ne dise déjà de l'état de la source.
+  if (!basket.ok) return null
+
+  return (
+    <div className="space-y-4">
+      <BasketCharts basket={basket.data} />
+      <SourceNote label={basket.source.label} href={basket.source.attributionUrl} />
+    </div>
+  )
+}
+
 /* ── DOMINANCE ──────────────────────────────────────────────────────────────── */
 
 async function DominanceSection() {
   const globalStats = await getCryptoGlobalStats('eur')
   const series = getMarketCapSeriesState('EUR')
 
+  /*
+   * LE PANIER DONNE À CETTE VUE LA PROFONDEUR QU'ELLE N'AVAIT PAS.
+   *
+   * Elle reposait entièrement sur nos propres relevés — vingt-quatre heures au mieux,
+   * repartant de zéro à chaque redéploiement. C'était honnête et à peu près inutile :
+   * la dominance se lit sur des mois, et une courbe d'une journée n'en montre que le
+   * bruit.
+   *
+   * La vue « Répartition » du panier couvre un an. Ce n'est PAS la dominance au sens
+   * strict — c'est une part dans neuf actifs, pas dans dix-huit mille — et les deux
+   * blocs cohabitent pour cette raison précise plutôt que l'un remplaçant l'autre :
+   * celui du haut donne la vraie mesure sur une fenêtre courte, celui du bas une
+   * mesure approchante sur une fenêtre longue. Chacun dit lequel il est.
+   */
   return (
-    <div className="space-y-6">
-      <DominanceView
-        series={series}
-        current={globalStats.ok ? globalStats.data.dominance : undefined}
-      />
-      {globalStats.ok ? (
-        <SourceNote
-          label={globalStats.source.label}
-          href={globalStats.source.attributionUrl}
-          updatedAt={globalStats.data.lastUpdated}
+    <div className="space-y-10">
+      <div className="space-y-6">
+        <DominanceView
+          series={series}
+          current={globalStats.ok ? globalStats.data.dominance : undefined}
         />
-      ) : null}
+        {globalStats.ok ? (
+          <SourceNote
+            label={globalStats.source.label}
+            href={globalStats.source.attributionUrl}
+            updatedAt={globalStats.data.lastUpdated}
+          />
+        ) : null}
+      </div>
+
+      <div className="space-y-4">
+        <div className="rounded-card border border-brand/25 bg-brand-soft/55 px-4 py-3">
+          <h2 className="text-xs font-semibold text-ink">Et sur un an ?</h2>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">
+            La dominance ci-dessus est la vraie : Bitcoin rapporté au marché entier, tel que
+            la source le publie. Sa profondeur est celle de nos propres relevés, c’est-à-dire
+            quelques heures. Pour voir la tendance sur douze mois, il faut accepter une
+            mesure approchante — la part de Bitcoin dans un panier de neuf actifs, dont la
+            composition est listée sous les courbes. Choisissez la vue
+            «&nbsp;Répartition&nbsp;».
+          </p>
+        </div>
+
+        <Suspense fallback={<LoadingNote label="Assemblage du panier de capitalisations…" />}>
+          <BasketSection />
+        </Suspense>
+      </div>
     </div>
   )
 }

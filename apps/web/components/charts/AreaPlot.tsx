@@ -111,27 +111,31 @@ export function AreaPlot({
     return () => observer.disconnect()
   }, [])
 
-  const pad = axes ? PAD_WITH_AXES : PAD_BARE
-  const innerWidth = Math.max(0, width - pad.left - pad.right)
-  const innerHeight = Math.max(0, height - pad.top - pad.bottom)
-
   /*
-   * Domaines et échelles.
+   * ── LE DOMAINE VERTICAL EST CALCULÉ AVANT LE REMBOURRAGE, ET C'EST L'ORDRE QUI
+   *    COMPTE ────────────────────────────────────────────────────────────────
    *
-   * Le domaine vertical DÉBORDE les données de 8 %. Sans cette marge, le point le
-   * plus haut touche le bord supérieur du cadre et le plus bas s'assoit sur l'axe :
-   * la courbe paraît rognée alors qu'elle est entière. Le cas d'une série plate est
-   * traité à part — un domaine de largeur nulle réduirait le tracé à une ligne de
-   * pixels, ou provoquerait une division par zéro.
+   * La gouttière de gauche dépend de la LARGEUR DES ÉTIQUETTES, les étiquettes
+   * dépendent des graduations, et les graduations dépendent du domaine. Si le domaine
+   * dépendait à son tour du rembourrage, la chaîne se refermerait sur elle-même.
+   *
+   * Elle ne s'y referme pas, parce que le domaine ne dépend que des DONNÉES : seules
+   * les fonctions de projection `toX` / `toY` ont besoin du rembourrage. Le calcul est
+   * donc scindé en deux — bornes d'abord, projections ensuite —, ce qui permet de
+   * mesurer les étiquettes entre les deux.
+   *
+   * Le domaine DÉBORDE les données de 8 %. Sans cette marge, le point le plus haut
+   * touche le bord supérieur du cadre et le plus bas s'assoit sur l'axe : la courbe
+   * paraît rognée alors qu'elle est entière. Le cas d'une série plate est traité à
+   * part — un domaine de largeur nulle réduirait le tracé à une ligne de pixels, ou
+   * provoquerait une division par zéro.
    */
-  const scales = useMemo(() => {
+  const bounds = useMemo(() => {
     const all = series.flatMap((entry) => entry.points)
     if (all.length === 0) return null
 
     const xs = all.map((point) => point.x)
     const ys = all.map((point) => point.y)
-    const xMin = Math.min(...xs)
-    const xMax = Math.max(...xs)
 
     let yMin: number
     let yMax: number
@@ -145,26 +149,66 @@ export function AreaPlot({
       yMax = high + margin
     }
 
-    const xSpan = xMax - xMin || 1
-    const ySpan = yMax - yMin || 1
-
-    return {
-      xMin,
-      xMax,
-      yMin,
-      yMax,
-      toX: (value: number) => pad.left + ((value - xMin) / xSpan) * innerWidth,
-      toY: (value: number) => pad.top + (1 - (value - yMin) / ySpan) * innerHeight,
-    }
-  }, [series, yDomain, pad.left, pad.top, innerWidth, innerHeight])
+    return { xMin: Math.min(...xs), xMax: Math.max(...xs), yMin, yMax }
+  }, [series, yDomain])
 
   /* Graduations verticales par défaut : cinq niveaux, bornes comprises. Au-delà, les
      libellés se touchent sur les hauteurs courantes (260 à 320 pixels). */
   const resolvedYTicks = useMemo(() => {
     if (yTicks) return yTicks
-    if (!scales || !axes) return []
-    return Array.from({ length: 5 }, (_, index) => scales.yMin + ((scales.yMax - scales.yMin) * index) / 4)
-  }, [yTicks, scales, axes])
+    if (!bounds || !axes) return []
+    return Array.from({ length: 5 }, (_, index) => bounds.yMin + ((bounds.yMax - bounds.yMin) * index) / 4)
+  }, [yTicks, bounds, axes])
+
+  /**
+   * Largeur réservée aux étiquettes de l'axe vertical.
+   *
+   * ── POURQUOI ELLE N'EST PLUS FIXE ─────────────────────────────────────────
+   *
+   * Elle valait 46 pixels en dur, ce qui suffit à « 3,2 Bn » ou « 100 % » et pas à
+   * « 172,5 Md ». Le défaut ne se voyait pas tant que les seules courbes tracées
+   * étaient des cours et des capitalisations en billions ; le panier de
+   * capitalisations, qui affiche des stablecoins en dizaines de milliards, a rogné le
+   * premier chiffre de chaque étiquette — « 172,5 Md » se lisait « 72,5 Md ».
+   *
+   * Un axe rogné est PIRE qu'un axe absent : il ne se signale pas. Le lecteur voit un
+   * nombre plausible et n'a aucune raison de le mettre en doute.
+   *
+   * La largeur est ESTIMÉE plutôt que mesurée : mesurer un texte SVG demande de le
+   * rendre d'abord, donc un second passage de rendu à chaque changement de données.
+   * Les étiquettes sont en chiffres tabulaires, dont l'avance est constante par
+   * construction — l'estimation y est exacte à un pixel près, là où elle serait
+   * hasardeuse sur du texte proportionnel.
+   *
+   * Le plancher de 46 conserve le rendu existant de toutes les courbes dont les
+   * étiquettes sont courtes ; le plafond de 96 empêche qu'une étiquette aberrante ne
+   * mange la moitié du cadre.
+   */
+  const gutter = useMemo(() => {
+    if (!axes) return PAD_BARE.left
+    const longest = resolvedYTicks.reduce((max, tick) => {
+      const text = formatY ? formatY(tick) : String(Math.round(tick))
+      return Math.max(max, text.length)
+    }, 0)
+    return Math.min(96, Math.max(PAD_WITH_AXES.left, Math.round(longest * 6.4) + 14))
+  }, [axes, resolvedYTicks, formatY])
+
+  const pad = axes ? { ...PAD_WITH_AXES, left: gutter } : PAD_BARE
+  const innerWidth = Math.max(0, width - pad.left - pad.right)
+  const innerHeight = Math.max(0, height - pad.top - pad.bottom)
+
+  const scales = useMemo(() => {
+    if (!bounds) return null
+
+    const xSpan = bounds.xMax - bounds.xMin || 1
+    const ySpan = bounds.yMax - bounds.yMin || 1
+
+    return {
+      ...bounds,
+      toX: (value: number) => pad.left + ((value - bounds.xMin) / xSpan) * innerWidth,
+      toY: (value: number) => pad.top + (1 - (value - bounds.yMin) / ySpan) * innerHeight,
+    }
+  }, [bounds, pad.left, pad.top, innerWidth, innerHeight])
 
   const resolvedXTicks = useMemo(() => {
     if (xTicks) return xTicks

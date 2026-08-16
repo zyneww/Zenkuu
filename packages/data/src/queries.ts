@@ -7,7 +7,7 @@
  * structurellement impossible l'affichage d'un chiffre non sourcé.
  */
 
-import { CACHE_TTL_SECONDS, cached } from './cache'
+import { CACHE_TTL_SECONDS, cache, cached } from './cache'
 import { CURRENCY_CODES } from './currencies'
 import { recordMarketCap } from './market-cap-series'
 import { fetchCoinGeckoRates } from './providers/coingecko'
@@ -1323,4 +1323,323 @@ export function getNewListings(limit = 100): Promise<DataResult<NewListing[]>> {
     () => fetchNewListings(limit),
     1_800,
   )
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PANIER DE CAPITALISATIONS — l'agrégat long que la source ne publie pas
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * ── LE PROBLÈME QUE CE MODULE RÉSOUT ──────────────────────────────────────────
+ *
+ * La page de référence ouvre sur une courbe de la capitalisation MONDIALE sur dix
+ * ans, et en tire trois autres : dominance de Bitcoin, capitalisation des stablecoins,
+ * capitalisation hors Bitcoin. Aucune de ces séries n'est accessible gratuitement —
+ * `/global/market_cap_chart` répond 401 hors abonnement.
+ *
+ * Ce que la source publie gratuitement, en revanche, c'est la capitalisation
+ * historique de N'IMPORTE QUEL actif pris un par un, dans la même réponse que son
+ * cours. Une somme de capitalisations réellement publiées n'est pas une estimation :
+ * c'est une addition de mesures, au même titre qu'un rapport de deux nombres publiés.
+ *
+ * ── MAIS UNE SOMME A UNE COMPOSITION, ET C'EST TOUT LE PIÈGE ──────────────────
+ *
+ * Deux façons de se tromper, et le panier est conçu contre les deux.
+ *
+ * D'abord le PANIER IMPLICITE. Une courbe intitulée « capitalisation » que le lecteur
+ * prendrait pour le marché entier serait un mensonge par omission — neuf actifs ne
+ * sont pas dix-huit mille. Le panier est donc nommé partout où sa somme s'affiche, et
+ * `members` remonte jusqu'à l'interface pour qu'elle puisse le lister.
+ *
+ * Ensuite le PANIER DYNAMIQUE. Prendre « les neuf premières capitalisations du jour »
+ * serait plus à jour et bien pire : le jour où un actif entre dans le classement, la
+ * somme saute d'un cran sans qu'aucune capitalisation n'ait bougé, et la courbe montre
+ * un mouvement de marché qui n'est qu'un changement de composition. La liste est donc
+ * FIGÉE et écrite ici.
+ *
+ * Le prix de ce choix est qu'elle vieillit : un actif qui deviendrait majeur n'y
+ * figurerait pas tant que personne ne l'ajoute. C'est un défaut visible et corrigible,
+ * là où le saut de composition serait invisible et indétectable.
+ *
+ * ── POURQUOI CES NEUF ─────────────────────────────────────────────────────────
+ *
+ * Bitcoin et Ethereum parce qu'ils font l'essentiel du marché et que leurs séries sont
+ * DÉJÀ chargées par la page des graphiques : ces deux-là ne coûtent rien.
+ *
+ * Quatre stablecoins parce que leur capitalisation cumulée est l'un des rares
+ * indicateurs de flux entrant dans le secteur, et parce que la référence lui consacre
+ * un graphique entier.
+ *
+ * Trois grandes alternatives pour que la somme et la répartition ne se réduisent pas à
+ * « Bitcoin contre des dollars ».
+ *
+ * Neuf et pas trente : chaque membre coûte un appel sur un palier gratuit mesuré à
+ * quelques requêtes par minute. Trente membres, c'est dix minutes d'attente au premier
+ * chargement pour une précision que la courbe ne montrerait pas.
+ */
+export const MARKET_CAP_BASKET = [
+  { id: 'bitcoin', bucket: 'bitcoin' },
+  { id: 'ethereum', bucket: 'ethereum' },
+  { id: 'tether', bucket: 'stablecoin' },
+  { id: 'usd-coin', bucket: 'stablecoin' },
+  { id: 'dai', bucket: 'stablecoin' },
+  { id: 'ethena-usde', bucket: 'stablecoin' },
+  { id: 'ripple', bucket: 'other' },
+  { id: 'binancecoin', bucket: 'other' },
+  { id: 'solana', bucket: 'other' },
+] as const satisfies readonly { id: string; bucket: MarketCapBucket }[]
+
+/**
+ * Regroupement de lecture d'un membre.
+ *
+ * Il ne décrit pas une propriété de l'actif mais le RÔLE qu'il joue dans les courbes
+ * dérivées : « stablecoin » alimente la courbe des stablecoins, « bitcoin » alimente
+ * la part de Bitcoin et son complément. Un même actif pourrait changer de rôle sans
+ * changer de nature — c'est pourquoi ce champ vit ici et non dans `MarketAsset`.
+ */
+export type MarketCapBucket = 'bitcoin' | 'ethereum' | 'stablecoin' | 'other'
+
+export interface MarketCapBasketMember {
+  id: string
+  bucket: MarketCapBucket
+  /** Capitalisation la plus récente du panier, dans la devise demandée. */
+  latest: number
+}
+
+export interface MarketCapBasketPoint {
+  timestamp: number
+  /** Capitalisation par identifiant. Tous les membres retenus y figurent. */
+  byId: Record<string, number>
+  total: number
+}
+
+export interface MarketCapBasket {
+  members: MarketCapBasketMember[]
+  points: MarketCapBasketPoint[]
+  days: number
+  currency: string
+  /**
+   * Membres écartés faute de série exploitable, et pourquoi.
+   *
+   * REMONTÉ JUSQU'À L'INTERFACE plutôt que journalisé en silence : si un stablecoin
+   * disparaît du panier, la courbe des stablecoins baisse d'un cran et le lecteur
+   * doit pouvoir savoir que c'est une lacune de données et non une sortie de capitaux.
+   */
+  dropped: { id: string; reason: string }[]
+}
+
+/** Six heures : une série de relevés QUOTIDIENS ne bouge que d'un point par jour. */
+const BASKET_TTL_SECONDS = 6 * 3_600
+
+/**
+ * Durée de vie d'un panier INCOMPLET — dix minutes, pas six heures.
+ *
+ * ── POURQUOI DEUX DURÉES ──────────────────────────────────────────────────────
+ *
+ * Un membre manque presque toujours pour une raison passagère : la source a refusé
+ * l'appel faute de quota, ou le fournisseur de secours a rendu une série de clôtures
+ * sans capitalisation. Rien dans ces deux cas ne dit que la donnée n'existe pas — elle
+ * reviendra au prochain essai.
+ *
+ * Mettre un tel relevé en cache six heures serait le pire des deux mondes : la page
+ * s'affiche vite, et affiche une somme amputée pendant tout l'après-midi. Un panier
+ * complet obtenu en trente secondes vaut mieux qu'un panier à six membres obtenu en
+ * cinq — d'autant que le second se FIGE, et que rien ne le rafraîchira.
+ *
+ * Dix minutes suffisent à absorber une rafale de visites sans figer le manque.
+ */
+const BASKET_PARTIAL_TTL_SECONDS = 600
+
+/** Un jour en millisecondes, pour ramener chaque relevé à son jour UTC. */
+const BASKET_DAY_MS = 86_400_000
+
+/**
+ * Somme des capitalisations du panier, alignée jour par jour.
+ *
+ * ── L'ALIGNEMENT EST LE CŒUR DE LA FONCTION ───────────────────────────────────
+ *
+ * Les neuf séries arrivent séparément et ne portent pas les mêmes horodatages : la
+ * source échantillonne autour de minuit UTC, à quelques minutes près, et un relevé
+ * peut manquer. Additionner les valeurs « à la même position dans le tableau » serait
+ * faux dès la première absence — on additionnerait le lundi de l'un avec le mardi de
+ * l'autre, et l'erreur se propagerait sur tout le reste de la courbe.
+ *
+ * Chaque relevé est donc rangé sous son JOUR UTC, et seuls les jours où TOUS les
+ * membres retenus ont une valeur entrent dans la somme. Un jour incomplet est écarté
+ * plutôt que complété : sommer huit membres sur neuf ferait un creux qui se lirait
+ * comme une chute de marché.
+ *
+ * ── ET UN MEMBRE TROP JEUNE EST ÉCARTÉ, PAS INTERPOLÉ ─────────────────────────
+ *
+ * Un actif dont la série est plus courte que la fenêtre demandée réduirait
+ * l'intersection à sa propre longueur, et amputerait la courbe entière. Il sort donc
+ * du panier, et son nom part avec la raison dans `dropped`.
+ */
+export async function getMarketCapBasket(
+  currency = 'eur',
+  days = 365,
+): Promise<DataResult<MarketCapBasket>> {
+  const source = describe('crypto')
+
+  /*
+   * ── LE CACHE EST POSÉ SUR L'AGRÉGAT, PAS SUR SES MEMBRES ──────────────────
+   *
+   * Chaque membre passe par `getAssetHistory`, mis en cache trois minutes comme tout
+   * le reste du site. Trois minutes conviennent au graphique d'une fiche, qu'on
+   * regarde en direct ; elles sont absurdes ici, où le résultat coûte neuf appels et
+   * ne bouge que d'un point par jour. Sans ce cache-ci, une visite toutes les cinq
+   * minutes redemanderait les neuf séries.
+   *
+   * Le cache par actif reste utile en dessous : il est ce qui rend Bitcoin et Ethereum
+   * gratuits pour ce panier, puisque la page des graphiques les a déjà demandés, et
+   * c'est lui qui déduplique les appels concurrents.
+   *
+   * ── ET IL EST ÉCRIT À LA MAIN, PARCE QUE SA DURÉE DÉPEND DU RÉSULTAT ──────
+   *
+   * `cached` fixe sa durée AVANT de connaître ce qu'il mémorise. Ici la bonne durée
+   * dépend précisément de ce qu'on vient d'obtenir : six heures pour un panier
+   * complet, dix minutes pour un panier amputé — voir `BASKET_PARTIAL_TTL_SECONDS`.
+   * D'où la lecture et l'écriture explicites, qui restent trois lignes.
+   */
+  const key = `crypto:basket:${currency}:${days}`
+
+  try {
+    const hit = await cache.get<MarketCapBasket>(key)
+    if (hit) {
+      return {
+        ok: true,
+        data: hit,
+        source: source ?? { label: 'CoinGecko', attributionUrl: 'https://www.coingecko.com' },
+      }
+    }
+
+    const data = await buildMarketCapBasket(currency, days)
+    await cache.set(
+      key,
+      data,
+      data.dropped.length === 0 ? BASKET_TTL_SECONDS : BASKET_PARTIAL_TTL_SECONDS,
+    )
+
+    return {
+      ok: true,
+      data,
+      source: source ?? { label: 'CoinGecko', attributionUrl: 'https://www.coingecko.com' },
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    console.error(`[zenkuu:data] crypto:basket:${currency}:${days} — ${detail}`)
+    return { ok: false, kind: 'error', reason: detail, source }
+  }
+}
+
+/**
+ * Construction du panier — lève en cas d'échec, le cache s'occupe du reste.
+ *
+ * Séparée de la fonction publique pour que `cached` mémorise la DONNÉE et non le
+ * `DataResult` : mettre en cache un état d'échec le figerait pour six heures, et une
+ * panne passagère de la source condamnerait la page pour l'après-midi.
+ */
+async function buildMarketCapBasket(currency: string, days: number): Promise<MarketCapBasket> {
+  /*
+   * Les neuf séries partent ENSEMBLE. Chacune passe par `getAssetHistory`, donc par le
+   * cache par actif : Bitcoin et Ethereum sont déjà servis à la page des graphiques et
+   * ne coûtent rien de plus, et deux visites successives du site ne rechargent rien.
+   */
+  const results = await Promise.all(
+    MARKET_CAP_BASKET.map(async (entry) => ({
+      entry,
+      history: await getAssetHistory(entry.id, 'crypto', days, currency),
+    })),
+  )
+
+  const dropped: { id: string; reason: string }[] = []
+
+  /** Relevés par membre, indexés par jour UTC. */
+  const byMember = new Map<string, Map<number, number>>()
+
+  for (const { entry, history } of results) {
+    if (!history.ok) {
+      dropped.push({ id: entry.id, reason: 'série indisponible chez la source' })
+      continue
+    }
+
+    const daily = new Map<number, number>()
+    for (const point of history.data.points) {
+      // `marketCap` est OPTIONNEL — voir `PriceHistory`. Un point qui ne le porte pas
+      // n'est pas un point à zéro : il ne compte simplement pas.
+      if (point.marketCap === undefined || !Number.isFinite(point.marketCap)) continue
+      daily.set(Math.floor(point.timestamp / BASKET_DAY_MS), point.marketCap)
+    }
+
+    if (daily.size === 0) {
+      dropped.push({ id: entry.id, reason: 'capitalisation non publiée dans la série' })
+      continue
+    }
+
+    byMember.set(entry.id, daily)
+  }
+
+  if (byMember.size === 0) {
+    throw new Error('Aucune série de capitalisation exploitable pour le panier.')
+  }
+
+  /*
+   * Un membre dont la série couvre moins des trois quarts de la plus longue est écarté
+   * AVANT l'intersection. Sans ce filtre, un actif référencé il y a six mois ramènerait
+   * une fenêtre de douze mois à six pour tout le monde — la courbe perdrait la moitié
+   * de sa profondeur à cause d'un membre sur neuf.
+   */
+  const longest = Math.max(...[...byMember.values()].map((daily) => daily.size))
+  for (const [id, daily] of [...byMember.entries()]) {
+    if (daily.size < longest * 0.75) {
+      byMember.delete(id)
+      dropped.push({ id, reason: 'série trop courte pour la fenêtre demandée' })
+    }
+  }
+
+  const kept = [...byMember.keys()]
+
+  /* Intersection des jours : on part du membre le plus court, puisque le résultat ne
+     peut pas être plus long que lui. */
+  const pivot = kept.reduce((shortest, id) =>
+    (byMember.get(id) as Map<number, number>).size <
+    (byMember.get(shortest) as Map<number, number>).size
+      ? id
+      : shortest,
+  )
+
+  const points: MarketCapBasketPoint[] = []
+  for (const day of [...(byMember.get(pivot) as Map<number, number>).keys()].sort((a, b) => a - b)) {
+    const byId: Record<string, number> = {}
+    let total = 0
+    let complete = true
+
+    for (const id of kept) {
+      const value = (byMember.get(id) as Map<number, number>).get(day)
+      if (value === undefined) {
+        complete = false
+        break
+      }
+      byId[id] = value
+      total += value
+    }
+
+    if (complete) points.push({ timestamp: day * BASKET_DAY_MS, byId, total })
+  }
+
+  if (points.length < 2) {
+    throw new Error('Les séries du panier ne se recoupent pas sur assez de jours.')
+  }
+
+  const last = points[points.length - 1] as MarketCapBasketPoint
+
+  const members: MarketCapBasketMember[] = MARKET_CAP_BASKET.filter((entry) =>
+    kept.includes(entry.id),
+  ).map((entry) => ({
+    id: entry.id,
+    bucket: entry.bucket,
+    latest: last.byId[entry.id] as number,
+  }))
+
+  return { members, points, days, currency, dropped }
 }
