@@ -108,9 +108,20 @@ export function GroupedTreemap({
               boxShadow: `inset 0 0 0 1px ${categoryEdge(index)}`,
             }}
           >
-            {/* Le titre du secteur, dans sa bande. `truncate` plutôt qu'un retour à la
-                ligne : un nom sur deux lignes mangerait la moitié d'un petit groupe. */}
-            <span className="absolute left-2 top-1 truncate pr-2 text-[0.6875rem] font-medium leading-tight text-ink">
+            {/*
+              LE TITRE EST ANCRÉ AUX DEUX BORDS, ET C'EST CE QUI LE FAIT TRONQUER.
+
+              Il ne portait que `left-2` : sur un élément absolu, une seule ancre
+              horizontale laisse la largeur se calculer sur le CONTENU, et `truncate`
+              n'a alors rien à tronquer — il tronque à la largeur de la boîte, laquelle
+              suit le texte. « World Liberty Financial Portfolio » débordait ainsi de
+              son cadre jusqu'à 141 pixels, mesurés par l'audit responsive, et venait
+              se poser sur le groupe voisin.
+
+              `right-2` donne la seconde ancre : la largeur devient celle du cadre
+              moins les marges, et la troncature retrouve son office.
+            */}
+            <span className="absolute left-2 right-2 top-1 truncate text-[0.6875rem] font-medium leading-tight text-ink">
               {box.label}
             </span>
 

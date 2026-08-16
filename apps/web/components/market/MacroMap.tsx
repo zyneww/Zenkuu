@@ -107,7 +107,27 @@ export function MacroMap({
     const kept = group.iso3
       ? observations.filter((entry) => group.iso3?.includes(entry.iso3))
       : observations
-    return [...kept].sort((a, b) => b.value - a.value)
+
+    /*
+     * ── UNE SEULE OBSERVATION PAR PAYS, LA PLUS RÉCENTE ────────────────────────
+     *
+     * La page demande désormais QUINZE ANNÉES à la source, pour alimenter le curseur
+     * temporel de l'explorateur. Cette grille-ci, elle, est un instantané : elle
+     * recevait donc quinze lignes par pays, toutes indexées sur `entry.iso3`, d'où une
+     * volée d'avertissements « Encountered two children with the same key » relevée
+     * par l'audit responsive — et une grille qui affichait quinze tuiles « France ».
+     *
+     * Le défaut est apparu SANS QUE CE FICHIER CHANGE : c'est son appelant qui s'est
+     * mis à lui passer autre chose. On déduplique donc ici plutôt que de rendre la
+     * page responsable du format attendu par chacun de ses enfants.
+     */
+    const latest = new Map<string, (typeof kept)[number]>()
+    for (const entry of kept) {
+      const known = latest.get(entry.iso3)
+      if (!known || entry.year > known.year) latest.set(entry.iso3, entry)
+    }
+
+    return [...latest.values()].sort((a, b) => b.value - a.value)
   }, [observations, group])
 
   const scale = useMemo(() => {
