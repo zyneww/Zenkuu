@@ -29,8 +29,6 @@ import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetYearPerformance } from '@/components/asset/AssetYearPerformance'
 import { AssetNewsPanel } from '@/components/asset/AssetNewsPanel'
-import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
-import { mentioning } from '@/lib/mentions'
 import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
 import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
@@ -954,49 +952,28 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           tronqués.
           ══════════════════════════════════════════════════════════════════════ */}
       {/*
-        LA GRILLE EST RÉGLABLE, ET C'EST `AssetTabs` QUI LA MONTE.
+        C'EST `AssetTabs` QUI MONTE LA GRILLE, ET NON L'INVERSE.
 
-        Ses proportions étaient écrites en dur ici. Elles restent le DÉFAUT, mais le
-        lecteur peut resserrer le rail ou le renvoyer en bandeau sous le contenu, et
-        son choix est mémorisé.
+        Ses proportions étaient écrites en dur ici. Le cadre n'est plus appelé
+        directement : la barre de sommaire doit traverser la page ENTIÈRE — c'est la
+        disposition de la référence — alors que les sections qu'elle désigne restent
+        dans la colonne de droite. Les deux partagent l'état de section courante, qui
+        vit dans `AssetTabs` ; c'est donc lui qui monte le cadre et lui passe sa barre.
+        Voir l'en-tête de sa prop `rail`.
 
-        Le cadre n'est plus appelé directement : la barre d'onglets doit traverser la
-        page ENTIÈRE — c'est la disposition de la référence — alors que les panneaux
-        qu'elle commande restent dans la colonne de droite. Les deux partagent l'état
-        d'onglet actif, qui vit dans `AssetTabs` ; c'est donc lui qui monte le cadre et
-        lui passe sa barre. Voir l'en-tête de sa prop `rail`.
+        LA COLONNE D'ACTUALITÉS A ÉTÉ RETIRÉE. Elle dépliait, sur un bouton, une
+        troisième colonne portant les MÊMES articles que la section « Actualités » —
+        présentés plus court, pour être parcourus EN REGARDANT le graphique et
+        rattacher un décrochage à un événement daté. Cet argument valait tant que la
+        section en question remplaçait le graphique ; il tombe avec le passage en page
+        unique, où l'on descend de l'un à l'autre d'un simple défilement. `AssetNewsRail`
+        reste dans le dépôt : c'est sa présence en doublon qui ne se justifiait plus.
 
-        Le rail et la colonne d'actualités restent des arborescences SERVEUR, passées
-        en nœuds déjà rendus : un composant client ne peut pas les construire, il peut
-        seulement les placer.
+        Le rail reste une arborescence SERVEUR, passée en nœud déjà rendu : un composant
+        client ne peut pas la construire, il peut seulement la placer.
       */}
       <AssetTabs
         tabs={tabs}
-        /*
-         * COLONNE D'ACTUALITÉS, dépliable par le bouton du bandeau de commande.
-         *
-         * Elle porte les MÊMES articles que l'onglet « Articles mentionnant X », dans
-         * une présentation qui répond à une autre question : l'onglet sert à LIRE,
-         * cette colonne à SITUER — on la parcourt en regardant le graphique, pour
-         * rattacher un décrochage à un événement daté. D'où la chronologie coupée par
-         * jour, sans vignette ni chapeau.
-         *
-         * Aucun appel réseau supplémentaire : `getNews(40)` est déjà chargé pour la
-         * page, et le filtrage par mention se fait ici, côté serveur.
-         */
-        news={
-          <AssetNewsRail
-            news={
-              news.ok
-                ? mentioning(news.data, {
-                    name: data.name,
-                    ...(data.symbol ? { symbol: data.symbol } : {}),
-                  })
-                : []
-            }
-            name={data.name}
-          />
-        }
         rail={
           /* Le rail passe EN PREMIER dans le document, et à gauche à l'écran. Sur
              téléphone, la grille s'effondre en une colonne et les chiffres arrivent

@@ -8,11 +8,9 @@ import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { ZenkuuWordmark } from '@/components/BrandMark'
 import { useContent } from '@/components/locale/ContentProvider'
 import { AccountControl } from '@/components/account/AccountControl'
-import { LoginOverlay } from '@/components/account/LoginOverlay'
 import { MobileNav } from '@/components/nav/MobileNav'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
-import { SettingsMenu } from '@/components/settings/SettingsMenu'
 import { HeaderSearch } from '@/components/search/HeaderSearch'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
@@ -58,10 +56,19 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
    * parallèle : deux variables dont l'une peut contredire l'autre.
    */
   const [preferenceTab, setPreferenceTab] = useState<PreferenceTab | null>(null)
-  /* La fenêtre de connexion vit ICI et non dans `AccountControl` : le `<header>` porte
-     un `backdrop-filter`, qui fait de lui le bloc conteneur de tout descendant
-     `position: fixed`. Voir la prop `onOpenLogin`. */
-  const [loginOpen, setLoginOpen] = useState(false)
+  /*
+   * LA FENÊTRE DE CONNEXION A DISPARU DE CE FICHIER.
+   *
+   * Elle vivait ici et non dans `AccountControl` pour une raison de rendu : le
+   * `<header>` porte un `backdrop-filter`, ce qui fait de lui le bloc conteneur de
+   * tout descendant `position: fixed` — une modale rendue dans le bouton s'ancrait
+   * donc à la bande de l'en-tête au lieu de la fenêtre.
+   *
+   * La contrainte tombe avec la modale : la connexion se fait désormais dans un
+   * panneau `absolute` déroulé sous le bouton de compte, et un panneau absolu s'ancre
+   * à son bouton quel que soit le filtre porté par un ancêtre. L'état d'ouverture est
+   * redescendu avec lui.
+   */
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -71,8 +78,6 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
-  const openLogin = useCallback(() => setLoginOpen(true), [])
-  const closeLogin = useCallback(() => setLoginOpen(false), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
   // tout menu, et l'échappatoire indispensable pour une navigation au clavier.
@@ -346,32 +351,29 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
             <HeaderSearch onOpenOverlay={openSearch} />
 
             {/*
-              LA ROUE DENTÉE ET LE COMPTE COEXISTENT DÉSORMAIS.
+              LA ROUE DENTÉE A FUSIONNÉ AVEC LE COMPTE.
 
-              Ils s'excluaient : le menu de compte reprenait langue, devise et thème,
-              au motif que deux boutons posant la même question — « mes réglages sont
-              où ? » — obligent à ouvrir les deux.
+              Les deux boutons se sont d'abord exclus — le menu de compte reprenait
+              langue, devise et thème — puis ont coexisté, sur l'argument d'une
+              répartition nette : l'AFFICHAGE d'un côté, ce qui n'existe qu'avec un
+              compte de l'autre.
 
-              L'argument valait quand le menu de compte était le SEUL à porter des
-              réglages une fois connecté. Il tombe avec la nouvelle répartition : la
-              roue dentée porte l'AFFICHAGE (langue, devise, thème, verre dépoli), que
-              l'on règle connecté ou non ; le compte porte ce qui n'existe qu'avec lui
-              (listes, alertes, sessions, suppression). Deux sujets disjoints, deux
-              boutons — et surtout, le visiteur anonyme ne perd plus l'accès aux
-              réglages sous prétexte qu'il n'a pas de compte.
+              La répartition était juste sur le papier et invisible à l'écran. Un
+              engrenage n'annonce pas « l'affichage », il annonce « des réglages » ; le
+              bouton voisin en portait aussi. Deux entrées répondaient donc à la même
+              question, et il fallait ouvrir les deux pour savoir laquelle.
+
+              Il n'en reste qu'une. Le panneau porte l'affichage dans tous les cas, et
+              y ajoute soit le formulaire de connexion, soit le menu de compte — voir
+              `AccountControl`, qui décrit ses trois formes. Le visiteur anonyme garde
+              donc l'accès aux réglages, ce qui était le seul acquis à préserver.
             */}
-            <SettingsMenu onOpenPreference={setPreferenceTab} />
-            <AccountControl
-              available={accountsEnabled}
-              onOpenLogin={openLogin}
-              onOpenPreference={setPreferenceTab}
-            />
+            <AccountControl available={accountsEnabled} onOpenPreference={setPreferenceTab} />
           </div>
         </div>
       </header>
 
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
-      <LoginOverlay open={loginOpen} onClose={closeLogin} />
       <PreferenceOverlay
         tab={preferenceTab}
         onTabChange={setPreferenceTab}

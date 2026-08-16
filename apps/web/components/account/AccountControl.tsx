@@ -7,7 +7,7 @@ import {
   LayoutGrid,
   ListFilter,
   LogOut,
-  Settings2,
+  Settings,
   Shield,
   Star,
   Trash2,
@@ -18,8 +18,10 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { initialOf, readIdentityCookie } from '@/lib/identity-cookie'
+import { LoginForm } from '@/components/account/LoginForm'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
+import { DisplaySettings } from '@/components/settings/DisplaySettings'
 import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import {
   deleteCurrentAccount,
@@ -29,35 +31,48 @@ import {
 } from '@/lib/auth-actions'
 
 /**
- * Le widget de compte de l'en-tête.
+ * Le widget de compte de l'en-tête — DERNIER bouton de la barre, et le seul réglage.
  *
  * ── CE QU'IL REMPLACE ─────────────────────────────────────────────────────────
  *
  * Trois composants distincts occupaient cette place : deux liens « Connexion » et
  * « Inscription », un avatar rendu par le fournisseur d'identité tiers, et un menu
- * qui appelait ses écrans. Chacun devait se garder d'être monté quand le fournisseur
- * n'était pas configuré, ce qui produisait des composants en deux couches — une
- * enveloppe qui teste, un corps qui appelle les hooks — pour la seule raison qu'un
- * hook tiers levait hors de son fournisseur.
+ * qui appelait ses écrans. Le fournisseur a été retiré ; l'état de session se lit
+ * désormais dans un COOKIE D'AFFICHAGE, après montage — voir `lib/identity-cookie.ts`
+ * pour la raison, qui tient au cache de rendu du site et non à un choix de style.
  *
- * Le fournisseur a été retiré. L'état de session se lit désormais dans un COOKIE
- * D'AFFICHAGE, après montage — voir `lib/identity-cookie.ts` pour la raison, qui
- * tient au cache de rendu du site et non à un choix de style. Il n'y a donc plus
- * qu'un composant là où il y en avait trois, sans enveloppe de garde.
+ * Une quatrième pièce vient de le rejoindre : la ROUE DENTÉE, qui portait langue,
+ * devise, thème et verre dépoli dans son propre menu. Elle posait au visiteur la
+ * même question que ce bouton-ci — « où sont mes réglages ? » — et il fallait ouvrir
+ * les deux pour y répondre. Voir `components/settings/DisplaySettings.tsx`.
  *
- * Le premier rendu ne connaît pas la session : c'est inhérent à un HTML mis en cache
- * et partagé par tous les visiteurs. Le bouton réserve donc sa place à largeur fixe,
- * de sorte que la barre ne se réorganise pas quand l'avatar prend le relais.
+ * ── LA CONNEXION SE FAIT DANS LE PANNEAU, PLUS DANS UNE MODALE ────────────────
  *
- * ── DEUX ÉTATS, DEUX FORMES ───────────────────────────────────────────────────
+ * Cliquer « Se connecter » ouvrait une fenêtre plein écran, voilée, qu'il fallait
+ * refermer. Pour un champ d'adresse et un bouton, c'était disproportionné : le geste
+ * interrompait la page au lieu de s'y ajouter.
  *
- * Déconnecté : une silhouette et le mot « Se connecter ». Le libellé est écrit, pas
- * seulement suggéré par l'icône — une silhouette seule est le pictogramme le plus
- * ambigu d'une barre de navigation, il désigne aussi bien un profil qu'un annuaire.
+ * Le formulaire descend donc SOUS le bouton, dans le même panneau que les réglages
+ * d'affichage. Cela supprime au passage la contrainte qui obligeait `NavBar` à
+ * héberger l'état d'ouverture : le `<header>` porte un `backdrop-filter`, ce qui
+ * fait de lui le bloc conteneur de tout descendant `position: fixed` — une modale
+ * rendue ici s'ancrait donc à la bande de l'en-tête au lieu de la fenêtre. Un panneau
+ * `absolute` n'a jamais eu ce problème ; il s'ancre au bouton, ce qui est justement
+ * ce qu'on veut.
  *
- * Connecté : un disque portant l'initiale du pseudonyme. Pas de photo : le site n'en
- * demande pas, et un avatar par défaut générique n'apprendrait rien de plus qu'une
- * lettre — tout en coûtant une requête d'image.
+ * ── TROIS FORMES, SELON CE QUE LE SITE SAIT DU VISITEUR ───────────────────────
+ *
+ *   Connecté          un disque portant l'initiale du pseudonyme, puis le menu complet
+ *   Déconnecté        une silhouette et le mot « Se connecter », puis le formulaire
+ *   Sans connexion    une roue dentée, puis les seuls réglages d'affichage
+ *
+ * Le troisième cas n'est pas théorique : sans base de données ni service d'envoi, la
+ * connexion est impossible. Le bouton ne peut alors plus s'appeler « Se connecter » —
+ * mais il doit rester, sous une autre icône, faute de quoi ce déploiement-là perdrait
+ * TOUT accès à la langue, à la devise et au thème avec le retrait de la roue dentée.
+ *
+ * Pas de photo dans le disque : le site n'en demande pas, et un avatar par défaut
+ * générique n'apprendrait rien de plus qu'une lettre — tout en coûtant une requête.
  */
 
 export interface AccountSummary {
@@ -67,31 +82,17 @@ export interface AccountSummary {
 
 export function AccountControl({
   available,
-  onOpenLogin,
   onOpenPreference,
 }: {
   /**
    * La connexion est-elle possible sur cette instance ?
    *
-   * Faux sans base ou sans service d'envoi. Le bouton disparaît alors entièrement :
-   * ouvrir une fenêtre dont on sait qu'elle échouera est pire que ne rien proposer.
-   * Un visiteur déjà connecté garde son menu — sa session, elle, existe.
+   * Faux sans base ou sans service d'envoi. Le formulaire disparaît alors du panneau —
+   * proposer un champ dont on sait qu'il échouera est pire que ne rien proposer — mais
+   * le panneau, lui, reste : il porte les réglages d'affichage. Un visiteur déjà
+   * connecté garde son menu entier ; sa session, elle, existe.
    */
   available: boolean
-  /**
-   * Ouvre la fenêtre de connexion, RENDUE PAR LA BARRE et non par ce composant.
-   *
-   * Ce n'est pas une préférence d'architecture, c'est une contrainte de rendu. Le
-   * `<header>` porte un `backdrop-filter`, et une propriété de filtre crée un BLOC
-   * CONTENEUR pour ses descendants `position: fixed` — la spécification est explicite
-   * là-dessus. Une modale rendue ici se retrouvait donc ancrée à la bande de l'en-tête
-   * au lieu de la fenêtre : mesuré à `top: 0` avec un débordement au-dessus du champ
-   * visible, panneau tronqué.
-   *
-   * La barre rend la fenêtre APRÈS `</header>`, exactement là où vivent déjà celle de
-   * recherche et celle des préférences, pour la même raison.
-   */
-  onOpenLogin: () => void
   onOpenPreference: (tab: PreferenceTab) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -108,6 +109,14 @@ export function AccountControl({
   const [account, setAccount] = useState<AccountSummary | null | undefined>(undefined)
   const rootRef = useRef<HTMLDivElement>(null)
   const { state, mounted, onTransitionEnd } = usePresence(menuOpen)
+
+  /*
+   * Le curseur qui s'éloigne referme le panneau — MÊME s'il contient un formulaire.
+   *
+   * Le crochet vérifie à l'échéance de son sursis si le clavier travaille encore à
+   * l'intérieur : quelqu'un qui tape son adresse ne se voit donc pas fermer le
+   * panneau sous les doigts parce que sa souris a dérivé. Voir `useHoverDismiss`.
+   */
   const hoverDismiss = useHoverDismiss(() => setMenuOpen(false), menuOpen)
 
   useEffect(() => {
@@ -137,82 +146,129 @@ export function AccountControl({
   // Place réservée tant que le cookie n'a pas été lu — voir l'état ci-dessus.
   if (account === undefined) return <span className="h-9 w-9 shrink-0" aria-hidden="true" />
 
-  if (!account) {
-    if (!available) return null
+  const close = () => setMenuOpen(false)
+  const toggle = () => setMenuOpen((value) => !value)
 
-    return (
-      <button
-        type="button"
-        onClick={onOpenLogin}
-        className="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-border-subtle px-2.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
-      >
-        <User className="h-4 w-4" aria-hidden="true" />
-        {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre
-            porte déjà le logo, la recherche et les réglages. */}
-        <span className="hidden sm:inline">Se connecter</span>
-      </button>
-    )
-  }
+  /*
+   * Le BOUTON, dans ses trois formes. Il commande toujours le même panneau, ce qui
+   * est la raison d'être de cette refonte : une seule entrée de réglages dans la barre.
+   */
+  const trigger = account ? (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-expanded={menuOpen}
+      aria-haspopup="menu"
+      aria-label={`Compte de ${account.handle}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-pill border text-xs font-semibold uppercase transition-colors duration-150 ${
+        menuOpen
+          ? 'border-brand bg-brand text-on-brand'
+          : 'border-border-subtle bg-surface-muted text-ink hover:border-brand'
+      }`}
+    >
+      {initialOf(account.handle)}
+    </button>
+  ) : available ? (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-expanded={menuOpen}
+      aria-haspopup="menu"
+      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-control border px-2.5 text-xs font-medium transition-colors duration-150 ${
+        menuOpen
+          ? 'border-brand text-brand-strong'
+          : 'border-border-subtle text-ink hover:border-brand hover:text-brand-strong'
+      }`}
+    >
+      <User className="h-4 w-4" aria-hidden="true" />
+      {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre porte
+          déjà le logo et la recherche. */}
+      <span className="hidden sm:inline">Se connecter</span>
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label="Réglages d’affichage"
+      aria-expanded={menuOpen}
+      aria-haspopup="menu"
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-control border transition-colors duration-150 ${
+        menuOpen
+          ? 'border-brand bg-brand-soft text-brand-strong'
+          : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
+      }`}
+    >
+      <Settings className="h-4 w-4" aria-hidden="true" />
+    </button>
+  )
 
   return (
     <div ref={rootRef} className="relative" {...hoverDismiss}>
-      <button
-        type="button"
-        onClick={() => setMenuOpen((value) => !value)}
-        aria-expanded={menuOpen}
-        aria-haspopup="menu"
-        aria-label={`Compte de ${account.handle}`}
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-pill border text-xs font-semibold uppercase transition-colors duration-150 ${
-          menuOpen
-            ? 'border-brand bg-brand text-on-brand'
-            : 'border-border-subtle bg-surface-muted text-ink hover:border-brand'
-        }`}
-      >
-        {initialOf(account.handle)}
-      </button>
+      {trigger}
 
       {mounted ? (
         <div
           role="menu"
-          aria-label="Compte"
+          aria-label={account ? 'Compte' : 'Connexion et réglages'}
           data-state={state}
           onTransitionEnd={onTransitionEnd}
-          className="menu-panel absolute right-0 top-full z-50 mt-2 w-72 rounded-card border border-border-subtle bg-overlay shadow-overlay"
+          /*
+            288 pixels dans les deux cas — la largeur du panneau de compte d'origine,
+            et celle qu'il faut au formulaire pour qu'une adresse électronique tienne
+            sans se tronquer dans son champ.
+
+            `max-h` + défilement : connecté, le panneau porte l'en-tête de compte,
+            quatre liens, les réglages d'affichage et trois actions. Sur un portable
+            de treize pouces en paysage, cela dépasse la hauteur utile — et un panneau
+            dont le bas est hors de l'écran cache sa propre déconnexion.
+          */
+          className="menu-panel scrollbar-none absolute right-0 top-full z-50 mt-2 max-h-[calc(100vh-5rem)] w-72 overflow-y-auto rounded-card border border-border-subtle bg-overlay shadow-overlay"
         >
-          <AccountHeader account={account} />
+          {account ? (
+            <>
+              <AccountHeader account={account} />
 
-          <div className="border-t border-border-subtle p-1.5">
-            <MenuLink href="/tableau-de-bord" icon={<LayoutGrid className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
-              Vue d’ensemble
-            </MenuLink>
-            <MenuLink href="/suivi" icon={<Star className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
-              Liste de suivi
-            </MenuLink>
-            <MenuLink href="/alertes" icon={<Bell className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
-              Alertes de prix
-            </MenuLink>
-            <MenuLink href="/screener" icon={<ListFilter className="h-4 w-4" />} onNavigate={() => setMenuOpen(false)}>
-              Écrans enregistrés
-            </MenuLink>
+              <div className="border-t border-border-subtle p-1.5">
+                <MenuLink href="/tableau-de-bord" icon={<LayoutGrid className="h-4 w-4" />} onNavigate={close}>
+                  Vue d’ensemble
+                </MenuLink>
+                <MenuLink href="/suivi" icon={<Star className="h-4 w-4" />} onNavigate={close}>
+                  Liste de suivi
+                </MenuLink>
+                <MenuLink href="/alertes" icon={<Bell className="h-4 w-4" />} onNavigate={close}>
+                  Alertes de prix
+                </MenuLink>
+                <MenuLink href="/screener" icon={<ListFilter className="h-4 w-4" />} onNavigate={close}>
+                  Écrans enregistrés
+                </MenuLink>
+              </div>
+            </>
+          ) : available ? (
+            /*
+              Le formulaire est monté AVEC le panneau, et démonté avec lui : `visible`
+              suit donc l'ouverture. C'est ce qui remet l'étape à « adresse » entre
+              deux ouvertures, et ce qui donne le focus au champ dès l'apparition —
+              sans quoi il faudrait cliquer dedans avant de taper.
+            */
+            <div className="p-3">
+              <LoginForm visible={menuOpen} density="panel" />
+            </div>
+          ) : null}
+
+          {/* Les réglages d'affichage ferment TOUJOURS la rangée, dans les trois
+              formes du panneau. C'est ce qui fait de ce bouton la seule entrée de
+              réglages de la barre. */}
+          <div className={account || available ? 'border-t border-border-subtle' : ''}>
+            <DisplaySettings onOpenPreference={onOpenPreference} onNavigate={close} />
           </div>
 
-          <div className="border-t border-border-subtle p-1.5">
-            <MenuButton
-              icon={<Settings2 className="h-4 w-4" />}
-              onClick={() => {
-                setMenuOpen(false)
-                onOpenPreference('currency')
-              }}
-            >
-              Préférences d’affichage
-            </MenuButton>
-            <SecurityRow onDone={() => setMenuOpen(false)} />
-          </div>
-
-          <div className="border-t border-border-subtle p-1.5">
-            <SignOutRow />
-            <DangerRow />
-          </div>
+          {account ? (
+            <div className="border-t border-border-subtle p-1.5">
+              <SecurityRow onDone={close} />
+              <SignOutRow />
+              <DangerRow />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -457,13 +513,13 @@ function DangerRow() {
 function MenuLink({
   href,
   icon,
-  children,
   onNavigate,
+  children,
 }: {
   href: string
   icon: React.ReactNode
-  children: React.ReactNode
   onNavigate: () => void
+  children: React.ReactNode
 }) {
   return (
     <Link
@@ -472,7 +528,9 @@ function MenuLink({
       onClick={onNavigate}
       className="flex items-center gap-2.5 rounded-card px-2 py-2 text-sm text-ink transition-colors duration-150 hover:bg-surface-muted"
     >
-      <span className="shrink-0 text-ink-muted">{icon}</span>
+      <span className="shrink-0 text-ink-muted" aria-hidden="true">
+        {icon}
+      </span>
       {children}
     </Link>
   )
@@ -480,25 +538,27 @@ function MenuLink({
 
 function MenuButton({
   icon,
-  children,
   onClick,
   tone = 'default',
+  children,
 }: {
   icon: React.ReactNode
-  children: React.ReactNode
   onClick: () => void
   tone?: 'default' | 'danger'
+  children: React.ReactNode
 }) {
   return (
     <button
       type="button"
       role="menuitem"
       onClick={onClick}
-      className={`flex w-full items-center gap-2.5 rounded-card px-2 py-2 text-left text-sm transition-colors duration-150 hover:bg-surface-muted ${
-        tone === 'danger' ? 'text-down' : 'text-ink'
+      className={`flex w-full items-center gap-2.5 rounded-card px-2 py-2 text-left text-sm transition-colors duration-150 ${
+        tone === 'danger'
+          ? 'text-down hover:bg-down-soft'
+          : 'text-ink hover:bg-surface-muted'
       }`}
     >
-      <span className={`shrink-0 ${tone === 'danger' ? 'text-down' : 'text-ink-muted'}`}>
+      <span className="shrink-0 opacity-70" aria-hidden="true">
         {icon}
       </span>
       {children}
