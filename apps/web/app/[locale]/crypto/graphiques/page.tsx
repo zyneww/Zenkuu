@@ -19,6 +19,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { BasketCharts } from '@/components/market/BasketCharts'
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
+import { CategoryStatBand } from '@/components/categories/CategoryStatBand'
 import {
   ChartsTabs,
   readChartView,
@@ -418,9 +419,17 @@ async function CategoriesSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <CategoryExplorer categories={categories.data} />
-      <SourceNote label={categories.source.label} href={categories.source.attributionUrl} />
+    <div className="space-y-8">
+      {/* La bande AVANT le tableau : trois cent soixante lignes ne disent pas quel
+          secteur domine ni lequel bouge tant qu'on ne les a pas triées trois fois. Elle
+          porte aussi l'aveu sur les courbes sectorielles que nous ne pouvons pas
+          tracer — voir son en-tête. Aucun appel supplémentaire, même donnée. */}
+      <CategoryStatBand categories={categories.data} />
+
+      <div className="space-y-4">
+        <CategoryExplorer categories={categories.data} />
+        <SourceNote label={categories.source.label} href={categories.source.attributionUrl} />
+      </div>
     </div>
   )
 }
