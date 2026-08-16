@@ -3,11 +3,14 @@
 import { useMemo, useState } from 'react'
 
 import type { MarketAsset, MarketCategory } from '@zenkuu/data'
-import { formatCompact, formatPercent } from '@zenkuu/ui'
 
 import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
-import { HEATMAP_CLAMP, heatTone, squarify } from '@/components/tools/treemap'
-import { Link } from '@/i18n/navigation'
+import {
+  TreemapFigure,
+  TreemapLegend,
+  type TreemapTile,
+} from '@/components/tools/TreemapFigure'
+import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 
 /**
  * CARTE THERMIQUE À DEUX LECTURES — par pièce, ou par secteur.
@@ -73,14 +76,6 @@ const PERIOD_WORDS: Record<PeriodId, string> = {
 /** Nombres de tuiles proposés. Au-delà de 100, une tuile n'est plus qu'un pixel. */
 const COUNTS = [25, 50, 100] as const
 
-interface Tile {
-  id: string
-  name: string
-  value: number
-  change?: number
-  href: string
-}
-
 export function MarketHeatmap({
   assets,
   categories,
@@ -94,7 +89,7 @@ export function MarketHeatmap({
   const [period, setPeriod] = useState<PeriodId>('change24h')
   const [count, setCount] = useState<number>(50)
 
-  const tiles = useMemo<Tile[]>(() => {
+  const tiles = useMemo<TreemapTile[]>(() => {
     if (mode === 'sectors') {
       return categories
         .filter((category) => (category.marketCap ?? 0) > 0)
@@ -102,7 +97,7 @@ export function MarketHeatmap({
         .slice(0, count)
         .map((category) => ({
           id: category.id,
-          name: category.name,
+          label: category.name,
           value: category.marketCap as number,
           ...(category.marketCapChange24h !== undefined
             ? { change: category.marketCapChange24h }
@@ -118,8 +113,9 @@ export function MarketHeatmap({
       .map((asset) => ({
         id: asset.id,
         // Le SYMBOLE et non le nom : sur une tuile de quarante pixels, « BTC » se lit
-        // et « Bitcoin » se tronque. Le nom complet reste dans l'infobulle du lien.
-        name: asset.symbol.toUpperCase(),
+        // et « Bitcoin » se tronque. Le nom complet part dans l'infobulle.
+        label: asset.symbol.toUpperCase(),
+        title: asset.name,
         value: asset.marketCap as number,
         // Une fenêtre non publiée pour cet actif laisse la tuile GRISE plutôt que la
         // colorer avec la variation d'une autre période — voir `heatTone`.
@@ -127,13 +123,6 @@ export function MarketHeatmap({
         href: `/crypto/${asset.id}`,
       }))
   }, [mode, assets, categories, count, period])
-
-  const boxes = useMemo(
-    () => squarify(tiles.map((tile) => ({ id: tile.id, value: tile.value }))),
-    [tiles],
-  )
-
-  const byId = useMemo(() => new Map(tiles.map((tile) => [tile.id, tile])), [tiles])
 
   if (tiles.length === 0) return null
 
@@ -180,57 +169,10 @@ export function MarketHeatmap({
           </ChipGroup>
         </div>
 
-        <Legend />
+        <TreemapLegend />
       </div>
 
-      {/* Hauteur fixe en pixels, positions en pourcentages : la carte s'adapte en
-          largeur sans que rien ne soit recalculé, et reste lisible en hauteur. */}
-      <div
-        className="relative w-full overflow-hidden rounded-card border border-border-subtle bg-surface"
-        style={{ height: 'min(70vh, 560px)' }}
-      >
-        {boxes.map((box) => {
-          const tile = byId.get(box.id)
-          if (!tile) return null
-
-          return (
-            <Link
-              key={box.id}
-              href={tile.href}
-              title={`${tile.name} — ${formatCompact(tile.value)}${
-                tile.change !== undefined
-                  ? `, ${formatPercent(tile.change)} sur ${periodWord}`
-                  : ''
-              }`}
-              className="absolute block overflow-hidden border border-canvas p-1.5 transition-opacity duration-150 hover:opacity-80"
-              style={{
-                left: `${box.x}%`,
-                top: `${box.y}%`,
-                width: `${box.width}%`,
-                height: `${box.height}%`,
-                backgroundColor: heatTone(tile.change),
-              }}
-            >
-              {/* Étiquettes toujours présentes dans le DOM — donc lisibles par un
-                  lecteur d'écran et par un moteur — mais masquées visuellement quand la
-                  tuile est trop petite, pour ne pas déborder sur ses voisines. */}
-              <span className="block truncate text-[0.6875rem] font-medium leading-tight text-ink">
-                {tile.name}
-              </span>
-              {box.height > 6 ? (
-                <span className="tabular block truncate text-micro leading-tight text-ink-muted">
-                  {tile.change !== undefined ? formatPercent(tile.change) : '—'}
-                </span>
-              ) : null}
-              {box.height > 12 && box.width > 12 ? (
-                <span className="tabular block truncate text-micro leading-tight text-ink-muted">
-                  {formatCompact(tile.value)}
-                </span>
-              ) : null}
-            </Link>
-          )
-        })}
-      </div>
+      <TreemapFigure tiles={tiles} periodLabel={periodWord} valueUnit=" $" />
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
         Surface : capitalisation. Couleur : variation sur {periodWord}, saturée au-delà de
@@ -253,23 +195,6 @@ export function MarketHeatmap({
         )}{' '}
         Montants en dollars, tels que publiés.
       </p>
-    </div>
-  )
-}
-
-function Legend() {
-  return (
-    <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
-      <span>−{HEATMAP_CLAMP} %</span>
-      <span
-        className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
-        aria-hidden="true"
-      >
-        {[-10, -6, -3, 0, 3, 6, 10].map((step) => (
-          <span key={step} className="flex-1" style={{ backgroundColor: heatTone(step) }} />
-        ))}
-      </span>
-      <span>+{HEATMAP_CLAMP} %</span>
     </div>
   )
 }

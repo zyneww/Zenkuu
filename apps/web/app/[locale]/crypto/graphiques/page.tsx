@@ -29,8 +29,10 @@ import { GlobalChartsView } from '@/components/market/GlobalChartsView'
 import { MacroBand } from '@/components/market/MacroBand'
 import { MarketOverviewCard } from '@/components/home/MarketOverviewCard'
 import { NftCollectionGrid } from '@/components/market/NftCollectionGrid'
+import { NftOverview } from '@/components/market/NftOverview'
 import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
 import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
+import { TreasuryOverview } from '@/components/market/TreasuryOverview'
 import { TreasuryTable } from '@/components/market/TreasuryTable'
 
 export const revalidate = 180
@@ -448,8 +450,24 @@ async function TreasuriesSection() {
     )
   }
 
+  /*
+   * La vue d'ensemble passe AVANT les deux registres, et elle est construite à partir
+   * d'eux — aucun appel supplémentaire. Les tableaux répondent à « qui détient quoi » ;
+   * les quatre compteurs et la carte répondent à « combien sont-ils, et à quel point
+   * est-ce concentré », question que deux cents lignes triées laissent deviner sans
+   * jamais la montrer.
+   */
+  const reports = [
+    ...(bitcoin.ok ? [{ coin: 'bitcoin', label: 'Bitcoin', unit: 'BTC', report: bitcoin.data }] : []),
+    ...(ethereum.ok
+      ? [{ coin: 'ethereum', label: 'Ethereum', unit: 'ETH', report: ethereum.data }]
+      : []),
+  ]
+
   return (
     <div className="space-y-10">
+      <TreasuryOverview reports={reports} />
+
       {bitcoin.ok ? (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -511,7 +529,12 @@ async function NftSection() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
+      {/* La vue d'ensemble AVANT la grille : dix vignettes triées ne disent pas que la
+          première pèse plus que les cinq suivantes réunies, et c'est la première chose
+          à savoir sur ce marché. Aucun appel supplémentaire — même réponse. */}
+      <NftOverview collections={collections.data} />
+
       <NftCollectionGrid collections={collections.data} />
 
       {/*
