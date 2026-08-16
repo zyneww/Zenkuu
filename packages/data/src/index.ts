@@ -37,6 +37,7 @@ export {
   getAssetTickers,
   getAssetOhlc,
   getCategories,
+  getMacroIndicator,
   getCategoryAssets,
   getCryptoGlobalStats,
   getCryptoOverview,
@@ -100,6 +101,9 @@ export type { CommodityFamily, UniverseEntry } from './providers/yahoo-universe'
 export { knownNetworks, networkFromPlatform } from './providers/geckoterminal'
 
 export type { AnalystView, AssetProfile, FundHolding, SectorWeight } from './providers/yahoo-profile'
+
+export { MACRO_INDICATORS, WORLDBANK_SOURCE } from './providers/worldbank'
+export type { MacroIndicatorId, MacroObservation } from './providers/worldbank'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
 export type { TreasuryCoin } from './providers/coingecko-extras'

@@ -26,6 +26,11 @@ import {
   networkFromPlatform,
 } from './providers/geckoterminal'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
+import {
+  WORLDBANK_SOURCE,
+  fetchMacroIndicator,
+  type MacroObservation,
+} from './providers/worldbank'
 import { fetchAssetProfile, type AssetProfile } from './providers/yahoo-profile'
 import { findUniverseEntry } from './providers/yahoo-universe'
 import {
@@ -1759,4 +1764,37 @@ async function buildMarketCapBasket(currency: string, days: number): Promise<Mar
   }))
 
   return { members, points, days, currency, dropped }
+}
+
+/* ── Macroéconomie ─────────────────────────────────────────────────────────── */
+
+/**
+ * Six heures.
+ *
+ * Ces séries sont ANNUELLES : une valeur change une fois par an, et sa révision
+ * quelques fois de plus. Six heures est déjà d'une prudence excessive au regard de la
+ * donnée ; c'est la même valeur que le profil boursier, et l'aligner évite un
+ * troisième palier de fraîcheur à retenir.
+ */
+const MACRO_TTL_SECONDS = 6 * 3_600
+
+/**
+ * Dernière observation de chaque pays pour un indicateur macroéconomique.
+ *
+ * `code` est le code de série de la Banque mondiale, pris dans `MACRO_INDICATORS` —
+ * jamais construit par l'appelant. Le passer en clair permettrait d'interroger
+ * n'importe quelle série du catalogue, y compris celles dont nous n'avons ni libellé
+ * ni unité à afficher.
+ */
+export function getMacroIndicator(code: string): Promise<DataResult<MacroObservation[]>> {
+  return runStandalone(
+    /* `fr` dans la clé : les libellés viennent de la source, dans sa version
+       française. Le jour où une seconde langue est servie, les deux jeux ne doivent
+       pas se marcher dessus dans le cache — et un changement de langue ne doit pas
+       laisser six heures de noms anglais derrière lui. */
+    `macro:fr:${code}`,
+    WORLDBANK_SOURCE,
+    () => fetchMacroIndicator(code),
+    MACRO_TTL_SECONDS,
+  )
 }

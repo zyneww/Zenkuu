@@ -10,6 +10,7 @@ import {
   Gem,
   GitCompareArrows,
   GraduationCap,
+  Globe2,
   Grid3x3,
   Info,
   LifeBuoy,
@@ -255,6 +256,19 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Les secteurs en un coup d’œil',
             icon: Grid3x3,
             href: '/heatmap',
+            ready: true,
+          },
+          {
+            /*
+             * Elle vit dans « Visualisations » et non dans « Marchés », et le rangement
+             * est une position : ces chiffres ne sont PAS des cours. Ils décrivent le
+             * terrain sur lequel les marchés se tiennent, à un pas annuel. Les mettre à
+             * côté des classements les ferait lire comme une cotation de plus.
+             */
+            label: 'Carte macroéconomique',
+            description: 'Inflation, chômage, dette : l’état des économies',
+            icon: Globe2,
+            href: '/macro',
             ready: true,
           },
         ],

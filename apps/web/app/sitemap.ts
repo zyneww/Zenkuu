@@ -54,6 +54,7 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/crypto/nouvelles', changeFrequency: 'daily', priority: 0.6 },
   { path: '/actualites', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/screener', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/macro', changeFrequency: 'weekly', priority: 0.6 },
   { path: '/comparateur', changeFrequency: 'daily', priority: 0.6 },
   { path: '/convertisseur', changeFrequency: 'daily', priority: 0.6 },
   { path: '/heatmap', changeFrequency: 'daily', priority: 0.6 },
