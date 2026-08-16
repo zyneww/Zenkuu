@@ -86,6 +86,15 @@ const LOADERS: Record<string, () => Promise<{ default: Translation }>> = {
   en: () => import('./en'),
   es: () => import('./es'),
   de: () => import('./de'),
+  it: () => import('./it'),
+  nl: () => import('./nl'),
+  pl: () => import('./pl'),
+  'pt-BR': () => import('./pt-BR'),
+  ru: () => import('./ru'),
+  tr: () => import('./tr'),
+  vi: () => import('./vi'),
+  ja: () => import('./ja'),
+  zh: () => import('./zh'),
 }
 
 /** Langues pour lesquelles un fichier de traduction existe RÉELLEMENT. */

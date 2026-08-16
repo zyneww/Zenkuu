@@ -20,7 +20,7 @@ import { ThemeScript } from '@/components/ThemeScript'
 import { getContent } from '@/lib/content'
 import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
-import { SITE_URL } from '@/lib/site'
+import { SITE_URL, languageAlternates } from '@/lib/site'
 
 // Chemin ABSOLU et non « ./globals.css » : ce fichier descend d'un cran sous
 // `app/[locale]/`, quand la feuille de style reste à la racine de `app/` — elle ne
@@ -125,7 +125,26 @@ export async function generateMetadata(): Promise<Metadata> {
   // ce qui permet à l'extension d'un navigateur ou à un lecteur de flux de proposer
   // l'abonnement depuis n'importe quelle page du site. Les pages qui redéfinissent
   // `alternates` doivent penser à le réémettre — d'où sa présence sur `/blog`.
-  alternates: { types: { 'application/rss+xml': '/blog/rss.xml' } },
+  /*
+   * ── `hreflang` : LES TREIZE LANGUES SE DÉCLARENT COMME SŒURS ────────────────
+   *
+   * Sans cette table, un moteur voit treize adresses au contenu structurellement
+   * identique et n'a AUCUN moyen de savoir qu'elles sont les traductions les unes des
+   * autres. Il élit alors une version canonique lui-même, et les douze autres se
+   * disputent le classement de la première — c'est précisément le risque de contenu
+   * dupliqué que `i18n/routing.ts` documente, et qui devient réel maintenant que le
+   * routage ne compte plus quatre langues mais treize.
+   *
+   * ⚠️ PORTÉE RÉELLE : Next.js remplace `alternates` en bloc plutôt que de le
+   * fusionner. Cette déclaration couvre donc les pages qui ne définissent pas leur
+   * propre `alternates` — l'accueil en fait partie. Celles qui posent un `canonical`
+   * (`/macro`, `/places`…) devront réémettre `languages` pour en bénéficier ; c'est
+   * signalé ici plutôt que découvert plus tard dans un rapport d'indexation.
+   */
+  alternates: {
+    types: { 'application/rss+xml': '/blog/rss.xml' },
+    languages: languageAlternates(),
+  },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',

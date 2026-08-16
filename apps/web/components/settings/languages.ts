@@ -46,7 +46,21 @@ export interface LanguageEntry {
  * volontairement explicite plutôt que déduit d'une lecture du dossier, que le
  * bundle client ne peut pas faire.
  */
-export const TRANSLATED_LOCALES = ['fr', 'en', 'es', 'de'] as const
+export const TRANSLATED_LOCALES = [
+  'fr',
+  'en',
+  'es',
+  'de',
+  'it',
+  'nl',
+  'pl',
+  'pt-BR',
+  'ru',
+  'tr',
+  'vi',
+  'ja',
+  'zh',
+] as const
 
 export type TranslatedLocale = (typeof TRANSLATED_LOCALES)[number]
 

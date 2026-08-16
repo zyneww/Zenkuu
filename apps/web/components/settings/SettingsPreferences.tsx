@@ -55,7 +55,12 @@ export function SettingsPreferences() {
       <div className="divide-y divide-border-subtle rounded-card border border-border-subtle">
         <Row
           label="Langue"
-          description="Seul le français est traduit à ce jour. Choisir une autre langue enregistre votre préférence sans changer l’interface."
+          /* Le texte affirmait « seul le français est traduit », ce qui est faux depuis
+             que treize langues le sont. Il ne parle donc plus d'un nombre — qui se
+             périmerait à nouveau au prochain ajout — mais de la RÈGLE : une langue
+             traduite change l'interface, une autre enregistre seulement la préférence.
+             Cette règle-là, elle, ne bougera pas. */
+          description="Les langues traduites changent l’interface ; les autres enregistrent votre préférence en attendant leur traduction. Le sélecteur signale lesquelles le sont."
         >
           <button
             type="button"

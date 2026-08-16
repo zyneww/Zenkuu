@@ -5,7 +5,7 @@ import { YAHOO_UNIVERSE, getCryptoRanking, toSlug } from '@zenkuu/data'
 import { HELP_ARTICLES } from '@/content/aide'
 import { LESSONS } from '@/content/apprendre'
 import { ARTICLES } from '@/content/blog'
-import { absoluteUrl } from '@/lib/site'
+import { absoluteUrl, languageAlternates } from '@/lib/site'
 
 /**
  * Sitemap dynamique (§9).
@@ -88,6 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
+    alternates: { languages: languageAlternates(route.path) },
   }))
 
   for (const article of HELP_ARTICLES) {

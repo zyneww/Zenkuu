@@ -44,8 +44,11 @@ export const fr = {
   locale: {
     open: 'Langue et devise',
     language: 'Langue',
+    /* Ne dit plus « le site est publié en français », ce qui a cessé d'être vrai. Ne
+       dit pas non plus « treize langues » : ce nombre se périmerait au prochain ajout,
+       et le sélecteur le montre déjà, langue par langue, par sa mention. */
     languageHint:
-      'Le site est publié en français. Les autres langues arriveront avec les fichiers de traduction — nous préférons ne rien proposer plutôt qu’une traduction automatique.',
+      'Les langues marquées comme traduites changent l’interface. Les autres enregistrent votre préférence en attendant leur fichier de traduction — nous préférons annoncer ce qui manque plutôt que de servir une traduction automatique non relue.',
     currency: 'Devise locale',
     currencyHint: (date: string) =>
       `Conversion au taux de référence BCE du ${date}. Les sources cotent en euros ; la devise choisie est appliquée à tout le site.`,
