@@ -195,19 +195,49 @@ export function AssetLayoutFrame({
    * colonne y laisserait moins de 400 px au graphique. En dessous du seuil, les
    * actualités passent SOUS le contenu plutôt que de disparaître — le bouton a été
    * pressé, il doit produire quelque chose.
+   *
+   * 18rem et non 20 : c'est la largeur EXACTE de la colonne latérale de CoinGecko
+   * (288px, mesurée au navigateur), et la coque du site vient d'adopter la leur. Les
+   * deux valeurs vont ensemble — 1680 de coque moins 288 de colonne laisse 1392 au
+   * contenu, qui est au pixel près ce dont ils disposent.
    */
   const content =
     newsOpen && news ? (
-      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
         <div className="min-w-0">{children}</div>
 
-        {/* COLLANTE et défilante en propre : on lit ce rail EN REGARDANT le graphique,
-            pour rattacher un décrochage à un événement. S'il défilait avec la page, il
-            aurait disparu au moment où l'on en a besoin. `top-20` le pose sous
-            l'en-tête collant, dont la hauteur est de 4 rem. */}
+        {/*
+          COLLANTE, DÉFILANTE EN PROPRE, ET SANS ASCENSEUR VISIBLE.
+
+          On lit ce rail EN REGARDANT le graphique, pour rattacher un décrochage à un
+          événement daté. S'il défilait avec la page, il aurait disparu au moment où l'on
+          en a besoin. `top-20` le pose sous l'en-tête collant, dont la hauteur est de
+          4 rem.
+
+          ── OÙ IL S'ARRÊTE, ET POURQUOI ÇA NE SE RÈGLE PAS ICI ────────────────
+
+          Un élément `sticky` se détache au bas de son BLOC CONTENEUR. Celui-ci est la
+          grille de contenu, qui se termine avant le bandeau d'information et la section
+          « À propos » de la fiche. La colonne cesse donc de suivre exactement là — sans
+          qu'aucune hauteur ne soit écrite nulle part, et sans qu'un changement de
+          contenu ne vienne dérégler le seuil. C'est le comportement de CoinGecko, où
+          la même règle produit le même arrêt.
+
+          ── L'ASCENSEUR EST MASQUÉ, PAS SUPPRIMÉ ───────────────────────────
+
+          `.scrollbar-none` retire la barre du dessin, sans toucher au défilement : la
+          molette, le clavier et le geste tactile fonctionnent à l'identique. C'est ce
+          que fait la référence, et la raison est de composition — une barre grise de
+          quinze pixels colle un second filet vertical le long d'une colonne déjà bornée
+          par le sien, et l'œil lit deux séparateurs là où il n'y a qu'une colonne.
+
+          CoinGecko va plus loin et coupe carrément le débordement (`overflow: hidden`),
+          ce qui tronque le contenu qui dépasse. On ne les suit pas jusque-là : nos
+          articles seraient PERDUS, alors qu'ils restent ici atteignables à la molette.
+        */}
         <aside
           aria-label="Actualités de l'actif"
-          className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
+          className="scrollbar-none min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
         >
           {news}
         </aside>

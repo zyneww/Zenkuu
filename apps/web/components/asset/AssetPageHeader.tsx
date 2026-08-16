@@ -1,8 +1,10 @@
 import { getTranslations } from 'next-intl/server'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
+import { getCategories } from '@zenkuu/data'
 import { ChangeBadge, formatDateTime } from '@zenkuu/ui'
 
+import { Link } from '@/i18n/navigation'
 import { AssetBenchmarkRatio } from '@/components/asset/AssetBenchmarkRatio'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
@@ -73,8 +75,32 @@ export async function AssetPageHeader({
 }) {
   const t = await getTranslations('metric')
   const isForex = assetClass === 'forex'
-  const categories = (asset.categories ?? []).slice(0, 3)
   const updated = formatDateTime(asset.lastUpdated)
+
+  /*
+   * ── LES PASTILLES DE CATÉGORIE DEVIENNENT CLIQUABLES ────────────────────
+   *
+   * Elles ne l'étaient pas, et le motif était bon : la source publie des LIBELLÉS
+   * (« Layer 1 (L1) »), jamais les identifiants qu'attend `/categories/[id]`.
+   * Fabriquer un lien depuis le texte affiché revenait à deviner une URL, et un lien
+   * sur cinq serait tombé sur une page inexistante.
+   *
+   * Ce qui change ici n'est pas la règle mais la MÉTHODE : on ne devine plus, on
+   * RÉSOUT. Le catalogue des secteurs porte le couple (identifiant, nom) ; il suffit
+   * de retrouver le libellé dedans. Une pastille sans correspondance reste inerte,
+   * exactement comme avant — c'est le cas de toutes celles d'une action ou d'un ETF,
+   * dont les secteurs boursiers n'ont pas de page.
+   *
+   * Le coût réseau est NUL : `getCategories` est déjà en cache pour `/categories` et
+   * pour l'onglet Écosystème des fiches crypto, et sa clé ne dépend d'aucun actif.
+   */
+  const categories = (asset.categories ?? []).slice(0, 3)
+  const catalogue = categories.length > 0 ? await getCategories() : null
+
+  const categoryIds = new Map<string, string>()
+  if (catalogue?.ok) {
+    for (const entry of catalogue.data) categoryIds.set(normalizeLabel(entry.name), entry.id)
+  }
 
   return (
     <header className="space-y-4">
@@ -150,14 +176,29 @@ export async function AssetPageHeader({
             {categories.length > 0 || asset.exchange ? (
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
                 {asset.exchange ? <span className="font-medium">{asset.exchange}</span> : null}
-                {categories.map((category) => (
-                  <span
-                    key={category}
-                    className="rounded-pill border border-border-subtle px-2 py-0.5 font-medium"
-                  >
-                    {category}
-                  </span>
-                ))}
+                {categories.map((category) => {
+                  const id = categoryIds.get(normalizeLabel(category))
+
+                  /* Deux rendus pour une même pastille, et le survol les distingue :
+                     celle qui mène quelque part s'éclaire, l'autre non. Un lien qui ne
+                     réagit pas au curseur se lit comme un lien cassé. */
+                  return id ? (
+                    <Link
+                      key={category}
+                      href={`/categories/${id}`}
+                      className="rounded-pill border border-border-subtle px-2 py-0.5 font-medium transition-colors hover:border-brand hover:text-brand-strong"
+                    >
+                      {category}
+                    </Link>
+                  ) : (
+                    <span
+                      key={category}
+                      className="rounded-pill border border-border-subtle px-2 py-0.5 font-medium"
+                    >
+                      {category}
+                    </span>
+                  )
+                })}
               </div>
             ) : null}
           </div>
@@ -194,4 +235,25 @@ export async function AssetPageHeader({
       <div className="flex flex-wrap gap-2">{actions}</div>
     </header>
   )
+}
+
+/**
+ * Forme de comparaison d'un libellé de secteur.
+ *
+ * Le libellé porté par un actif et celui du catalogue décrivent le même secteur sans
+ * toujours s'écrire pareil : capitales, accents, tirets, espaces autour d'une
+ * parenthèse. Une comparaison littérale raterait donc des correspondances réelles —
+ * et rater une correspondance, ici, veut dire laisser une pastille inerte alors
+ * qu'une page l'attend.
+ *
+ * On ramène les deux à des lettres et des chiffres minuscules, sans accent. Ce qui
+ * reste écarté, ce sont les vraies divergences de NOM, et c'est le comportement
+ * voulu : mieux vaut une pastille muette qu'un lien vers le mauvais secteur.
+ */
+function normalizeLabel(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
 }

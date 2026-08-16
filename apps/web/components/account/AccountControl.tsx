@@ -18,7 +18,6 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { initialOf, readIdentityCookie } from '@/lib/identity-cookie'
-import { LoginOverlay } from '@/components/account/LoginOverlay'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
 import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
@@ -68,6 +67,7 @@ export interface AccountSummary {
 
 export function AccountControl({
   available,
+  onOpenLogin,
   onOpenPreference,
 }: {
   /**
@@ -78,9 +78,22 @@ export function AccountControl({
    * Un visiteur déjà connecté garde son menu — sa session, elle, existe.
    */
   available: boolean
+  /**
+   * Ouvre la fenêtre de connexion, RENDUE PAR LA BARRE et non par ce composant.
+   *
+   * Ce n'est pas une préférence d'architecture, c'est une contrainte de rendu. Le
+   * `<header>` porte un `backdrop-filter`, et une propriété de filtre crée un BLOC
+   * CONTENEUR pour ses descendants `position: fixed` — la spécification est explicite
+   * là-dessus. Une modale rendue ici se retrouvait donc ancrée à la bande de l'en-tête
+   * au lieu de la fenêtre : mesuré à `top: 0` avec un débordement au-dessus du champ
+   * visible, panneau tronqué.
+   *
+   * La barre rend la fenêtre APRÈS `</header>`, exactement là où vivent déjà celle de
+   * recherche et celle des préférences, pour la même raison.
+   */
+  onOpenLogin: () => void
   onOpenPreference: (tab: PreferenceTab) => void
 }) {
-  const [loginOpen, setLoginOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   /*
@@ -128,20 +141,16 @@ export function AccountControl({
     if (!available) return null
 
     return (
-      <>
-        <button
-          type="button"
-          onClick={() => setLoginOpen(true)}
-          className="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-border-subtle px-2.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
-        >
-          <User className="h-4 w-4" aria-hidden="true" />
-          {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre
-              porte déjà le logo, la recherche et les réglages. */}
-          <span className="hidden sm:inline">Se connecter</span>
-        </button>
-
-        <LoginOverlay open={loginOpen} onClose={() => setLoginOpen(false)} />
-      </>
+      <button
+        type="button"
+        onClick={onOpenLogin}
+        className="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-border-subtle px-2.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+      >
+        <User className="h-4 w-4" aria-hidden="true" />
+        {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre
+            porte déjà le logo, la recherche et les réglages. */}
+        <span className="hidden sm:inline">Se connecter</span>
+      </button>
     )
   }
 

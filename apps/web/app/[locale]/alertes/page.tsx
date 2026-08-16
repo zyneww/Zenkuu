@@ -115,13 +115,13 @@ export default async function AlertesPage() {
     title: alert.title,
     note: alert.note,
     direction: alert.direction,
-    threshold: money(alert.threshold, alert.currency),
+    threshold: alert.threshold,
+    currency: alert.currency,
     active: alert.active,
     recurring: alert.recurring,
     expiresAt: alert.expiresAt ? dayFormat.format(alert.expiresAt) : null,
     triggeredAt: alert.triggeredAt ? dateFormat.format(alert.triggeredAt) : null,
-    triggeredPrice:
-      alert.triggeredPrice === null ? null : money(alert.triggeredPrice, alert.currency),
+    triggeredPrice: alert.triggeredPrice,
   }))
 
   return (
@@ -131,24 +131,18 @@ export default async function AlertesPage() {
   )
 }
 
-/**
- * Mise en forme monétaire, tolérante à une devise inconnue.
+/*
+ * LE FORMATAGE MONÉTAIRE A QUITTÉ CETTE PAGE.
  *
- * `Intl.NumberFormat` lève sur un code ISO invalide. Comme la devise est stockée en
- * base et pourrait provenir d'une donnée ancienne, la page entière tomberait sur une
- * seule ligne fautive — un prix mal formaté est préférable à une page blanche.
+ * Elle mettait les montants en forme ici, côté serveur, avec un `Intl.NumberFormat`
+ * défensif. Le rendu était correct mais FIGÉ dans la devise d'enregistrement : un
+ * lecteur qui affiche le site en dollars voyait ses seuils en euros, alors que la
+ * fenêtre de création venait de lui demander des dollars.
+ *
+ * Les montants traversent donc nus jusqu'à `Money`, qui les convertit dans la devise
+ * du lecteur — comme partout ailleurs sur le site, et avec la même tolérance à une
+ * devise inconnue.
  */
-function money(value: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-      maximumFractionDigits: value < 1 ? 6 : 2,
-    }).format(value)
-  } catch {
-    return `${value} ${currency.toUpperCase()}`
-  }
-}
 
 function Shell({
   children,

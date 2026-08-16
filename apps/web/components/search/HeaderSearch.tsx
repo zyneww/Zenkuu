@@ -190,8 +190,14 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
           placeholder={t('placeholder')}
           /* `type="text"` et non `type="search"` : le second ajoute une croix de
              remise à zéro dessinée par le navigateur, différente sur chacun, et qui
-             double celle que l'on pose nous-mêmes ci-dessous. */
-          className="w-40 bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted lg:w-52"
+             double celle que l'on pose nous-mêmes ci-dessous.
+
+             144px puis 176px au-delà de `lg`, contre 160 et 208 auparavant. Le champ
+             ne sert pas à LIRE la requête mais à la TAPER : les résultats s'affichent
+             dans un tiroir de 26rem juste en dessous, et l'essentiel des recherches
+             tient en trois à huit caractères — un symbole, un début de nom. La largeur
+             gagnée revient aux menus de navigation, qui sont, eux, incompressibles. */
+          className="w-36 bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted lg:w-44"
           autoComplete="off"
           spellCheck={false}
         />

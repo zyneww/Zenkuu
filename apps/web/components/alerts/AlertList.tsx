@@ -4,6 +4,7 @@ import { Bell, BellOff, CalendarClock, Repeat, RotateCcw, Trash2 } from 'lucide-
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
+import { Money } from '@/components/locale/Money'
 import { rearmPriceAlert, removePriceAlert } from '@/lib/alert-actions'
 
 export interface AlertRow {
@@ -16,14 +17,28 @@ export interface AlertRow {
   /** Note laissée à la création, reprise dans le courriel. */
   note: string | null
   direction: string
-  threshold: string
+  /**
+   * Seuil BRUT, dans la devise où il a été enregistré.
+   *
+   * Il était pré-formaté côté serveur, ce qui l'immobilisait dans cette devise : un
+   * lecteur qui affiche le site en dollars voyait ses alertes en euros, alors même
+   * que la fenêtre de création lui avait demandé des dollars. Les deux écrans se
+   * contredisaient sur le même nombre.
+   *
+   * La valeur traverse donc nue, et `Money` la convertit — comme partout ailleurs sur
+   * le site. Ce qui est STOCKÉ ne bouge pas : c'est la devise de la source, la seule
+   * que la tâche planifiée sache interroger.
+   */
+  threshold: number
+  /** Devise d'enregistrement (ISO 4217), passée à `Money`. */
+  currency: string
   active: boolean
   /** L'alerte se réarme-t-elle d'elle-même après un envoi ? */
   recurring: boolean
   /** Échéance formatée, ou `null` pour une surveillance sans fin. */
   expiresAt: string | null
   triggeredAt: string | null
-  triggeredPrice: string | null
+  triggeredPrice: number | null
 }
 
 /**
@@ -110,11 +125,20 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
 
               <p className="text-xs text-ink-muted">
                 {alert.direction === 'above' ? 'Au-dessus de' : 'En dessous de'}{' '}
-                <span className="tabular text-ink">{alert.threshold}</span>
+                <span className="tabular text-ink">
+                  <Money value={alert.threshold} from={alert.currency} />
+                </span>
                 {alert.triggeredAt ? (
                   <>
                     {' · '}déclenchée le {alert.triggeredAt}
-                    {alert.triggeredPrice ? ` à ${alert.triggeredPrice}` : ''}
+                    {alert.triggeredPrice !== null ? (
+                      <>
+                        {' à '}
+                        <span className="tabular">
+                          <Money value={alert.triggeredPrice} from={alert.currency} />
+                        </span>
+                      </>
+                    ) : null}
                   </>
                 ) : null}
               </p>

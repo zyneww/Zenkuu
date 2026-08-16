@@ -4,6 +4,7 @@ import { Bell, Loader2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 
 import { Link } from '@/i18n/navigation'
+import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { createPriceAlert, type AlertActionResult } from '@/lib/alert-actions'
 import { readIdentityCookie } from '@/lib/identity-cookie'
 
@@ -45,6 +46,23 @@ import { readIdentityCookie } from '@/lib/identity-cookie'
  * Un visiteur connecté la voit pré-remplie depuis son compte. Un visiteur anonyme la
  * saisit une fois ; elle est conservée en local pour les alertes suivantes. Sans ce
  * rappel, armer trois alertes reviendrait à taper trois fois la même adresse.
+ *
+ * ── LE SEUIL SE SAISIT DANS LA DEVISE AFFICHÉE, ET SE RANGE DANS CELLE DE LA SOURCE
+ *
+ * C'est le point le plus délicat de ce composant, et il corrige un défaut réel : la
+ * fenêtre demandait un seuil dans la devise de la SOURCE — l'euro pour la crypto —
+ * pendant que la page affichait des dollars. Quelqu'un qui lisait « 63 067 $ » et
+ * tapait « 65 000 » armait en réalité une alerte à 65 000 €, soit près de 20 % plus
+ * haut que ce qu'il croyait. L'écart ne se voyait nulle part.
+ *
+ * Le champ travaille donc dans la devise CHOISIE PAR LE LECTEUR, et la valeur est
+ * reconvertie vers celle de la source juste avant l'enregistrement. C'est cette
+ * dernière qui est stockée, et il le faut : la tâche planifiée interroge les
+ * fournisseurs avec le code de devise de la ligne, et tous n'acceptent pas le bitcoin
+ * ou l'once d'or comme devise de cotation.
+ *
+ * Un TAUX DE CHANGE ne se convertit pas : « EUR/USD = 1,15 » est un rapport, pas un
+ * montant. Sur une paire de devises, le champ reste donc dans l'unité de la source.
  */
 
 /** Clé de mémorisation de l'adresse — locale au navigateur, jamais envoyée seule. */
@@ -70,6 +88,7 @@ export function AlertButton({
   assetId: string
   label: string
   symbol?: string
+  /** Devise dans laquelle la SOURCE cote cet actif — celle qui sera stockée. */
   currency: string
   price: number
   path: string
@@ -122,6 +141,7 @@ export function AlertButton({
           currency={currency}
           price={price}
           path={path}
+          isRate={assetClass === 'forex'}
           onClose={() => setOpen(false)}
           onCreated={() => {
             setOpen(false)
@@ -142,6 +162,7 @@ function AlertDialog({
   currency,
   price,
   path,
+  isRate,
   onClose,
   onCreated,
 }: {
@@ -152,11 +173,28 @@ function AlertDialog({
   currency: string
   price: number
   path: string
+  /** Paire de devises : le cours est un rapport, il ne se convertit pas. */
+  isRate: boolean
   onClose: () => void
   onCreated: () => void
 }) {
+  const { currency: display, convert } = useCurrency()
+
+  /*
+   * Devise de saisie, et facteur qui ramène le champ vers celle de la source.
+   *
+   * `convert(1, currency)` donne ce que vaut UNE unité de la source dans la devise du
+   * lecteur. Diviser par ce facteur fait le chemin inverse. Quand un taux manque, le
+   * fournisseur renvoie le montant inchangé — le facteur vaut alors 1, la saisie reste
+   * dans la devise de la source, et l'étiquette du champ le dit puisqu'elle affiche
+   * `entryCurrency`. Aucun chiffre approché n'est produit (§5).
+   */
+  const entryCurrency = isRate ? currency : display
+  const factor = isRate ? 1 : convert(1, currency)
+  const shownPrice = isRate ? price : convert(price, currency)
+
   const [direction, setDirection] = useState<Direction>('above')
-  const [threshold, setThreshold] = useState(() => suggest(price, 5))
+  const [threshold, setThreshold] = useState(() => suggest(shownPrice, 5))
   const [trigger, setTrigger] = useState<Trigger>('once')
   const [expires, setExpires] = useState('')
   const [title, setTitle] = useState(`${label} — alerte de prix`)
@@ -202,9 +240,9 @@ function AlertDialog({
    */
   const gap = useMemo(() => {
     const value = Number(threshold.replace(',', '.'))
-    if (!Number.isFinite(value) || price <= 0) return null
-    return ((value - price) / price) * 100
-  }, [threshold, price])
+    if (!Number.isFinite(value) || shownPrice <= 0) return null
+    return ((value - shownPrice) / shownPrice) * 100
+  }, [threshold, shownPrice])
 
   /*
    * Cohérence entre le sens et le seuil.
@@ -221,7 +259,9 @@ function AlertDialog({
     event.preventDefault()
     setFeedback(null)
 
-    const value = Number(threshold.replace(',', '.'))
+    /* La saisie repart vers la devise de la source — voir l'en-tête du fichier. */
+    const entered = Number(threshold.replace(',', '.'))
+    const value = factor > 0 ? entered / factor : entered
     const expiresAt = expires ? new Date(expires).getTime() : undefined
 
     startTransition(async () => {
@@ -305,7 +345,7 @@ function AlertDialog({
                     /* Le seuil suggéré suit le sens : passer de « au-dessus » à
                        « en dessous » en gardant un seuil supérieur au cours donnerait
                        une alerte immédiatement vraie. */
-                    setThreshold(suggest(price, value === 'above' ? 5 : -5))
+                    setThreshold(suggest(shownPrice, value === 'above' ? 5 : -5))
                   }}
                   aria-pressed={direction === value}
                   className={`flex-1 rounded-control border px-2 py-1.5 text-xs font-medium transition-colors ${
@@ -325,11 +365,11 @@ function AlertDialog({
                 inputMode="decimal"
                 value={threshold}
                 onChange={(event) => setThreshold(event.target.value)}
-                aria-label={`Seuil en ${currency.toUpperCase()}`}
+                aria-label={`Seuil en ${entryCurrency.toUpperCase()}`}
                 className="tabular h-9 w-full bg-transparent text-sm text-ink outline-none"
               />
               <span className="shrink-0 text-xs font-medium uppercase text-ink-muted">
-                {currency}
+                {entryCurrency}
               </span>
             </div>
 
@@ -342,7 +382,7 @@ function AlertDialog({
                   key={offset}
                   type="button"
                   onClick={() => {
-                    setThreshold(suggest(price, offset))
+                    setThreshold(suggest(shownPrice, offset))
                     setDirection(offset > 0 ? 'above' : 'below')
                   }}
                   className="tabular rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
@@ -355,8 +395,8 @@ function AlertDialog({
 
             <p className="flex flex-wrap items-baseline gap-x-2 text-[0.6875rem] text-ink-muted">
               <span>
-                Cours actuel : <span className="tabular text-ink">{format(price)}</span>{' '}
-                {currency.toUpperCase()}
+                Cours actuel : <span className="tabular text-ink">{format(shownPrice)}</span>{' '}
+                {entryCurrency.toUpperCase()}
               </span>
               {gap !== null ? (
                 <span className="tabular">

@@ -8,6 +8,7 @@ import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { ZenkuuWordmark } from '@/components/BrandMark'
 import { useContent } from '@/components/locale/ContentProvider'
 import { AccountControl } from '@/components/account/AccountControl'
+import { LoginOverlay } from '@/components/account/LoginOverlay'
 import { MobileNav } from '@/components/nav/MobileNav'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
@@ -57,6 +58,10 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
    * parallèle : deux variables dont l'une peut contredire l'autre.
    */
   const [preferenceTab, setPreferenceTab] = useState<PreferenceTab | null>(null)
+  /* La fenêtre de connexion vit ICI et non dans `AccountControl` : le `<header>` porte
+     un `backdrop-filter`, qui fait de lui le bloc conteneur de tout descendant
+     `position: fixed`. Voir la prop `onOpenLogin`. */
+  const [loginOpen, setLoginOpen] = useState(false)
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -66,6 +71,8 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
+  const openLogin = useCallback(() => setLoginOpen(true), [])
+  const closeLogin = useCallback(() => setLoginOpen(false), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
   // tout menu, et l'échappatoire indispensable pour une navigation au clavier.
@@ -354,12 +361,17 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
               réglages sous prétexte qu'il n'a pas de compte.
             */}
             <SettingsMenu onOpenPreference={setPreferenceTab} />
-            <AccountControl available={accountsEnabled} onOpenPreference={setPreferenceTab} />
+            <AccountControl
+              available={accountsEnabled}
+              onOpenLogin={openLogin}
+              onOpenPreference={setPreferenceTab}
+            />
           </div>
         </div>
       </header>
 
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
+      <LoginOverlay open={loginOpen} onClose={closeLogin} />
       <PreferenceOverlay
         tab={preferenceTab}
         onTabChange={setPreferenceTab}

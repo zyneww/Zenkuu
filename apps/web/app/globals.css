@@ -478,11 +478,20 @@
      pour une seule intention, d'où le désalignement visible entre la barre de
      navigation et le contenu qu'elle surmonte.
 
-     1440px : la largeur relevée sur Token Terminal, notre référence de mise en
-     page. Mesurée sur une capture en 1919px de large, leur contenu court de x=260
-     à x=1655 — soit un conteneur de 1440px centré, moins 24px de marge interne de
-     chaque côté. C'est plus large que les 1280px d'avant, ce qui était la demande,
-     sans aller bord à bord.
+     1680px : la largeur de CoinGecko, MESURÉE et non estimée. Sur une fenêtre de
+     2549px, leur `.gecko-sidebar-page` porte un `max-width: 1680px` et se centre —
+     contenu de x=425 à x=2105. À l'intérieur, 1392px reviennent au contenu et 288
+     à la colonne latérale de droite, qui est exactement le rôle que joue ici la
+     colonne d'actualités des fiches.
+
+     Elle remplace les 1440px relevés sur Token Terminal. Les deux références sont
+     défendables ; celle-ci a été demandée, et elle a l'avantage d'aligner notre
+     coque sur le seul site du secteur qui range aussi une colonne latérale à
+     l'intérieur de sa largeur maximale — c'est-à-dire de nous donner la même place
+     utile pour le même contenu, et pas seulement le même nombre.
+
+     ⚠️ Vérifier au navigateur avant de retoucher cette valeur. Une largeur de
+     référence décrite de mémoire a déjà fait choisir la mauvaise ici.
 
      Elle s'applique AUSSI au contenu de la barre de navigation, qui s'aligne donc
      sur la page qu'elle surmonte. Ce n'était pas le cas : la barre était pleine
@@ -491,7 +500,7 @@
      ─────────────────────────────────────────────────────────────────────────── */
   .shell {
     width: 100%;
-    max-inline-size: 1440px;
+    max-inline-size: 1680px;
     margin-inline: auto;
     padding-inline: 24px;
   }
@@ -504,8 +513,12 @@
 
      C'est ce qui permet à la barre de navigation d'aligner ses éléments sur la page
      sans rouvrir le défaut qui l'avait rendue pleine largeur : un filet arrêté à
-     1440px laisse deux vides latéraux et se lit comme un défaut d'alignement. Le
+     1680px laisse deux vides latéraux et se lit comme un défaut d'alignement. Le
      `<header>` garde donc son filet traversant, et seul son contenu se centre.
+
+     C'est aussi la disposition de CoinGecko, dont l'en-tête porte le MÊME plafond de
+     1680px que le corps de page — leur `header .container` et leur
+     `.gecko-sidebar-page` partagent la valeur au pixel près.
      ─────────────────────────────────────────────────────────────────────────── */
   .shell-bleed {
     width: 100%;
@@ -525,6 +538,41 @@
      ─────────────────────────────────────────────────────────────────────────── */
   .prose-measure {
     max-inline-size: 75ch;
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     ASCENSEUR MASQUÉ — pour les colonnes qui défilent en propre.
+
+     Retire la barre du DESSIN sans toucher au défilement : molette, clavier, geste
+     tactile et navigation au focus fonctionnent à l'identique. C'est bien une règle
+     d'apparence, pas une suppression de fonction.
+
+     ── OÙ ELLE S'EMPLOIE, ET OÙ ELLE NE DOIT PAS ────────────────────────────
+
+     Réservée aux zones dont le débordement est ÉVIDENT sans sa barre : la colonne
+     d'actualités d'une fiche, dont on voit qu'un article est coupé en bas. Sur un
+     bloc dont rien n'annonce qu'il continue, masquer l'ascenseur revient à cacher
+     du contenu — la barre est alors la seule chose qui dise qu'il y en a plus.
+
+     ── TROIS DÉCLARATIONS POUR UNE SEULE INTENTION ──────────────────────────
+
+     `scrollbar-width` est la propriété standard, comprise par Firefox et par les
+     navigateurs à jour. `-ms-overflow-style` couvre les anciens Edge. Le
+     pseudo-élément `::-webkit-scrollbar` reste indispensable pour Safari, qui
+     n'implémente toujours pas la propriété standard.
+
+     ⚠️ Le préfixe `-webkit-` porte ici sur un PSEUDO-ÉLÉMENT, pas sur une propriété
+     standard préfixée. Lightning CSS ne le supprime donc pas — contrairement à ce
+     qui arrive quand on écrit une propriété préfixée à côté de son équivalent
+     standard, cas où il élague la standard.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -791,14 +839,18 @@
    2. Un fond NEUTRE ne dispute son quadrant à aucune couleur de données. Six teintes
       saturées sur un fond teinté prennent toutes son voile ; sur un neutre, chacune
       reste elle-même. C'est l'argument qui avait fait choisir un noir chaud contre
-      un noir froid ; #060606 le règle mieux que l'un ou l'autre, en n'ayant aucune
-      dominante du tout.
+      un noir froid ; un gris neutre très sombre le règle mieux que l'un ou l'autre, en
+      n'ayant aucune dominante du tout.
    3. Le quasi-noir est ce qui distingue un instrument de lecture d'une application
       de bureau. C'est un choix de registre.
 
-   Contrastes sur le canvas (#060606) : ink 19,9:1 · ink-muted 8,0:1 · brand 7,1:1 ·
-   on-brand sur brand 7,1:1 · hausse 11,4:1 · baisse 8,0:1. Tous très au-delà de
-   4,5:1 — c'est le confort que procure un fond aussi sombre.
+   Contrastes sur le canvas (#141414) : ink 18,4:1 · ink-muted 7,3:1 · brand 7,1:1 ·
+   hausse 10,4:1 · baisse 7,3:1. Tous très au-delà de 4,5:1 — c'est le confort que
+   procure un fond aussi sombre.
+
+   Ces chiffres ont été RECALCULÉS après la remontée du fond de #060606 à #141414 ;
+   deux jetons ont dû bouger avec lui pour que les seuils annoncés restent vrais. Voir
+   le bloc `.dark` plus bas.
 
    `--color-border-subtle` fait exception, à 1,34:1, et c'est délibéré : ce jeton ne
    sert qu'à des séparateurs (filets de tableau, contours de cartes), que les règles
@@ -817,39 +869,59 @@
      qu'un silence. Il disait : la palette de données compte quatre teintes froides
      sur six, un fond froid les tire à lui, un fond chaud les en détache. C'est
      juste. Mais il vaut contre un fond TEINTÉ froid, pas contre un fond NEUTRE :
-     #060606 n'a aucune dominante — rouge, vert et bleu y sont rigoureusement
+     le fond n'a aucune dominante — rouge, vert et bleu y sont rigoureusement
      égaux — et ne dispute donc son quadrant à aucune courbe. Le raisonnement ne
      s'applique pas, il devient sans objet.
 
      Le gain, lui, est réel : une dominante chaude ne pouvait pas accompagner un
      logo froid (223°) sans que l'un fasse paraître l'autre sale.
+
+     ── LA RAMPE A ÉTÉ REMONTÉE D'UN CRAN ─────────────────────────────────────
+
+     #060606 était un NOIR PROFOND, à six points de clarté du noir absolu. Sur un
+     écran OLED il devenait littéralement du noir éteint : le canvas disparaissait,
+     les panneaux flottaient sans support, et le bord de la fenêtre se confondait
+     avec la page. Le site se lisait comme un trou plutôt que comme une surface
+     sombre.
+
+     Le fond monte donc à #141414, et TOUTE la rampe neutre le suit — panneau,
+     surface d'appoint, filet, couche flottante — en conservant les rapports de
+     contraste établis plus haut. C'est un déplacement de la rampe, pas un
+     changement de sa pente : chaque écart entre deux niveaux vaut celui d'avant, à
+     un centième près.
+
+     Ce qui NE change pas : la neutralité. Rouge, vert et bleu restent rigoureusement
+     égaux à chaque niveau, et tout le raisonnement ci-dessus tient mot pour mot.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-canvas: #060606;
-  --color-surface: #060606;
+  --color-canvas: #141414;
+  --color-surface: #141414;
   /* SECOND PLAN — le ton des panneaux, mesuré chez eux. À 1,10:1 du canvas, il
      élève BEAUCOUP moins que le #1c1719 précédent (1,35:1), et c'est le parti de
      la référence : leurs cartes se distinguent d'abord par leur filet, la nuance de
      fond ne faisant que confirmer. */
-  --color-panel: #0d0d0d;
+  --color-panel: #1e1e1e;
   /* Seul ton qui marque une différence SANS élever : survols de ligne, bandes de
      contraste. Il reste AU-DESSUS de `panel`, sans quoi le survol d'une ligne à
      l'intérieur d'un panneau serait plus sombre que le panneau qui la contient.
      Correspond à leur `rgba(245,245,245,.1)` aplati sur le canvas. */
-  --color-surface-muted: #1c1c1c;
+  --color-surface-muted: #242424;
   /* Filet à 1,34:1 sur le fond — sensiblement le rapport retenu jusqu'ici (1,6:1),
      et #262626 est une valeur mesurée chez eux. Leur filet le plus courant,
      `rgba(163,163,163,.1)`, tombe à 1,12:1 une fois aplati : tenable sur une page
      dont les blocs portent aussi un fond, trop faible ici où le filet dessine seul
      l'essentiel des délimitations (voir la note sur la surface unique). */
-  --color-border-subtle: #262626;
+  --color-border-subtle: #2d2d2d;
 
   /* Blanc PUR, comme chez eux : sur un noir neutre, rien ne justifie de teinter
      l'encre. Le blanc rosé précédent corrigeait la dominante chaude du fond, qui
-     n'existe plus. Contraste 19,9:1 sur le canvas. */
+     n'existe plus. Contraste 18,4:1 sur le canvas — le fond ayant remonté, l'écart
+     se resserre légèrement sans jamais s'approcher d'une limite. */
   --color-ink: #ffffff;
-  /* Leur gris secondaire, de loin le plus employé de leur page. Contraste 8,03:1
-     sur le canvas — au-dessus du seuil AAA de 7:1 tout en restant nettement en
-     retrait de l'encre, ce qui est exactement ce qu'on demande à une seconde voix. */
+  /* Leur gris secondaire, de loin le plus employé de leur page. Contraste 7,30:1
+     sur le canvas remonté — toujours au-dessus du seuil AAA de 7:1, tout en restant
+     nettement en retrait de l'encre, ce qui est exactement ce qu'on demande à une
+     seconde voix. C'est cette marge de trois dixièmes qui a fixé la hauteur du
+     nouveau fond : plus clair, ce gris serait passé sous le seuil. */
   --color-ink-muted: #a3a3a3;
 
   /* Même teinte qu'en clair (223°, celle du logo), même méthode : on part de la
@@ -858,20 +930,25 @@
      clair pose un bleu profond : ce sont les deux extrémités d'une même rampe,
      pas deux couleurs.
 
-     Contrastes sur le canvas : brand 7,14:1 · brand-strong 9,6:1. Le premier passe
-     à la fois le seuil des composants et celui du texte. */
-  --color-brand: #7c98de;
+     Contrastes sur le canvas remonté : brand 7,14:1 · brand-strong 8,64:1. Le
+     premier passe à la fois le seuil des composants et celui du texte.
+
+     Le bleu de marque a été ÉCLAIRCI d'un cran (#7c98de → #86a0e2) en même temps que
+     le fond. Ce n'est pas de la cosmétique : conservé tel quel sur #141414 il tombait
+     à 6,50:1, sous le seuil AAA que la ligne ci-dessus annonce. Une valeur documentée
+     qui cesse d'être vraie est pire qu'une valeur non documentée. */
+  --color-brand: #86a0e2;
   --color-brand-strong: #9ab1ea;
-  --color-brand-soft: #151f37;
+  --color-brand-soft: #1b2745;
 
   /* Encre TRÈS sombre sur bleu lumineux : 7,14:1. Le canvas lui-même, et non un
      noir arbitraire — un bouton plein doit rendre la couleur du fond, pas une
      seconde nuance de noir à côté. */
-  --color-on-brand: #060606;
+  --color-on-brand: #141414;
 
   --color-accent: #fbbf24;
   --color-accent-strong: #fcd34d;
-  --color-accent-soft: #2a2008;
+  --color-accent-soft: #332708;
 
   /* Palette de données ÉCLAIRCIE pour le fond sombre. Les teintes du thème clair
      sont choisies pour trancher sur du blanc ; les mêmes sur un quasi-noir
@@ -890,14 +967,14 @@
      près, ce qui n'est pas un hasard — les deux références partent du même rouge
      vif et ne divergent que sur la clarté du fond. */
   --color-up: #34d399;
-  --color-up-soft: #0c2a20;
+  --color-up-soft: #123328;
   --color-down: #f87171;
-  --color-down-soft: #2c1516;
+  --color-down-soft: #351b1c;
 
   /* Vert de statut — voir le thème clair. Décalé vers le bleu par rapport au vert de
      hausse voisin, pour que les deux ne se confondent pas dans la barre d'en-tête. */
   --color-status: #2dd4a7;
-  --color-status-soft: #0b2a24;
+  --color-status-soft: #10332c;
 
   /* Couche flottante : ici elle MONTE nettement au-dessus du fond, alors qu'en
      thème clair elle descend à peine. Sur un quasi-noir, c'est la clarté qui dit
@@ -908,9 +985,10 @@
      Il passe SOUS `--color-border-subtle` (#262626) et non au-dessus : c'est ce qui
      laisse le filet dessiner le contour du panneau flottant plutôt que de s'y
      dissoudre. */
-  --color-overlay: #232323;
-  /* Ombre RENFORCÉE — le canvas ayant perdu six points de clarté, une ombre à 0,6
-     n'avait plus assez de noir sous elle pour se voir. */
+  --color-overlay: #2a2a2a;
+  /* Ombre RENFORCÉE — sur un fond aussi sombre, une ombre à 0,6 n'a pas assez de noir
+     sous elle pour se voir. Elle le reste après la remontée du canvas : celui-ci a
+     gagné huit points de clarté, ce qui ne change pas l'ordre de grandeur. */
   --shadow-overlay: 0 12px 60px rgb(0 0 0 / 0.7), 0 1px 2px rgb(0 0 0 / 0.4);
 
   color-scheme: dark;
@@ -1236,10 +1314,10 @@
 }
 
 :root.glass.dark {
-  --color-surface: color-mix(in srgb, #1c1c1c 55%, transparent);
-  --color-panel: color-mix(in srgb, #232323 58%, transparent);
-  --color-overlay: color-mix(in srgb, #2e2e2e 65%, transparent);
-  --color-surface-muted: color-mix(in srgb, #3a3a3a 55%, transparent);
+  --color-surface: color-mix(in srgb, #262626 55%, transparent);
+  --color-panel: color-mix(in srgb, #2a2a2a 58%, transparent);
+  --color-overlay: color-mix(in srgb, #363636 65%, transparent);
+  --color-surface-muted: color-mix(in srgb, #424242 55%, transparent);
   --color-border-subtle: color-mix(in srgb, #ffffff 12%, transparent);
   --shadow-overlay: 0 8px 32px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.12);
 }
@@ -1325,11 +1403,11 @@
   }
 
   :root.glass.dark {
-    --color-surface: #060606;
-    --color-panel: #0d0d0d;
-    --color-overlay: #232323;
-    --color-surface-muted: #1c1c1c;
-    --color-border-subtle: #262626;
+    --color-surface: #141414;
+    --color-panel: #1e1e1e;
+    --color-overlay: #2a2a2a;
+    --color-surface-muted: #242424;
+    --color-border-subtle: #2d2d2d;
   }
 
   :root.glass body::before {
