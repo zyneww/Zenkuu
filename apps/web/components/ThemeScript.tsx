@@ -1,13 +1,15 @@
 export const THEME_STORAGE_KEY = 'zenkuu-theme'
 
 /**
- * Clé du mode Liquid Glass, distincte de celle du thème.
+ * Clé du mode Liquid Glass, RETIRÉE — laissée nommée ici le temps d'un nettoyage.
  *
- * Les deux réglages sont indépendants — on peut vouloir du verre en clair comme en
- * sombre — et les loger dans une même clé obligerait à inventer un format composé
- * (« dark+glass ») que le script ci-dessous devrait analyser, pour ne rien gagner.
+ * Le mode a été supprimé, mais la clé `zenkuu-glass` reste écrite dans le stockage
+ * local des visiteurs qui l'avaient activé. Le script ci-dessous l'efface donc au
+ * prochain passage : sans cela, elle survivrait indéfiniment dans leur navigateur,
+ * sans plus rien piloter. Cette ligne pourra disparaître une fois les visiteurs
+ * revenus au moins une fois — disons dans quelques mois.
  */
-export const GLASS_STORAGE_KEY = 'zenkuu-glass'
+const LEGACY_GLASS_KEY = 'zenkuu-glass'
 
 /**
  * Applique le thème AVANT la première peinture.
@@ -22,11 +24,10 @@ export const GLASS_STORAGE_KEY = 'zenkuu-glass'
  * système. La classe est toujours posée explicitement, ce qui permet à la variante
  * Tailwind `dark` de se baser uniquement sur cette classe.
  *
- * Le mode Liquid Glass suit le même chemin, et pour la même raison : il redéfinit
- * les tons de SURFACE du site. Appliqué seulement après l'hydratation, on verrait
- * la page s'afficher en surfaces pleines avant de basculer en verre — un
- * clignotement encore plus visible que celui du thème, puisqu'il touche chaque
- * carte de la page et non le seul fond.
+ * Il efface AUSSI la clé du mode Liquid Glass, retiré du produit. C'est le seul
+ * endroit du site qui s'exécute chez tout visiteur avant tout le reste : y placer le
+ * nettoyage garantit qu'aucune clé orpheline ne subsiste, y compris chez ceux qui
+ * n'ouvriront jamais le panneau de réglages.
  */
 const script = `
 (function () {
@@ -35,10 +36,7 @@ const script = `
     var dark = stored === 'dark' || (stored !== 'light' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.classList.toggle('dark', dark);
-    document.documentElement.classList.toggle(
-      'glass',
-      localStorage.getItem('${GLASS_STORAGE_KEY}') === '1'
-    );
+    localStorage.removeItem('${LEGACY_GLASS_KEY}');
   } catch (e) {
     /* localStorage indisponible (navigation privée stricte) : on reste en clair. */
   }

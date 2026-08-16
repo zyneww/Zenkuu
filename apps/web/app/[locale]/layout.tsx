@@ -18,6 +18,7 @@ import { NavBar } from '@/components/NavBar'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
 import { getContent } from '@/lib/content'
+import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
 import { SITE_URL } from '@/lib/site'
 
@@ -238,10 +239,11 @@ export default async function RootLayout({
                 celui-là ne porte qu'un pseudonyme et une adresse. Voir `lib/visitor.ts`
                 et `lib/auth-actions.ts`.
 
-                Seul `accountsEnabled` traverse en prop : c'est la lecture d'une
-                variable d'environnement, qui ne rend rien dynamique.
+                Seuls `accountsEnabled` et la liste des fournisseurs traversent en
+                prop : ce sont des lectures de variables d'environnement, qui ne
+                rendent rien dynamique.
               */}
-              <NavBar accountsEnabled={ACCOUNTS_ENABLED} />
+              <NavBar accountsEnabled={ACCOUNTS_ENABLED} socialProviders={CONFIGURED_PROVIDERS} />
 
               <main id="contenu" className="shell py-6">
                 {children}

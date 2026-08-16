@@ -58,9 +58,23 @@ export function LoginForm({
    * dans la modale de la page de paramètres, où la place existe.
    */
   density = 'overlay',
+  /**
+   * Masque le titre et la phrase d'accroche de l'étape « adresse ».
+   *
+   * À utiliser quand l'appelant ANNONCE DÉJÀ ce qu'on est en train de faire — c'est
+   * le cas de `AuthOverlay`, dont l'en-tête affiche « Connexion » ou « Inscription »
+   * en gros. Sans cette échappée, la fenêtre porterait deux titres empilés, dont le
+   * second contredirait parfois le premier : « Inscription » suivi de « Se
+   * connecter ».
+   *
+   * Seul l'écran d'adresse est concerné. L'étape du code garde son titre — il change
+   * de sujet, et l'en-tête de la fenêtre, lui, ne bouge pas.
+   */
+  hideHeading = false,
 }: {
   visible?: boolean
   density?: 'overlay' | 'panel'
+  hideHeading?: boolean
 }) {
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
@@ -136,15 +150,17 @@ export function LoginForm({
   if (step === 'email') {
     return (
       <form onSubmit={send} className={compact ? 'space-y-3' : 'space-y-4'}>
-        <div className="space-y-1.5">
-          <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
-            Se connecter
-          </h2>
-          <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-            Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne
-            correspond à aucun compte, il en crée un.
-          </p>
-        </div>
+        {hideHeading ? null : (
+          <div className="space-y-1.5">
+            <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
+              Se connecter
+            </h2>
+            <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
+              Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne
+              correspond à aucun compte, il en crée un.
+            </p>
+          </div>
+        )}
 
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-ink">Adresse électronique</span>

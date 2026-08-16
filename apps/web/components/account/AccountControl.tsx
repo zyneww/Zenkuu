@@ -18,7 +18,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { initialOf, readIdentityCookie } from '@/lib/identity-cookie'
-import { LoginForm } from '@/components/account/LoginForm'
+import type { AuthMode } from '@/components/account/AuthOverlay'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
 import { DisplaySettings } from '@/components/settings/DisplaySettings'
@@ -83,6 +83,7 @@ export interface AccountSummary {
 export function AccountControl({
   available,
   onOpenPreference,
+  onOpenAuth,
 }: {
   /**
    * La connexion est-elle possible sur cette instance ?
@@ -94,6 +95,8 @@ export function AccountControl({
    */
   available: boolean
   onOpenPreference: (tab: PreferenceTab) => void
+  /** Ouvre la fenêtre d'authentification sur l'intention demandée. */
+  onOpenAuth: (mode: AuthMode) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -245,13 +248,52 @@ export function AccountControl({
             </>
           ) : available ? (
             /*
-              Le formulaire est monté AVEC le panneau, et démonté avec lui : `visible`
-              suit donc l'ouverture. C'est ce qui remet l'étape à « adresse » entre
-              deux ouvertures, et ce qui donne le focus au champ dès l'apparition —
-              sans quoi il faudrait cliquer dedans avant de taper.
+              DEUX BOUTONS, ET NON UN CHAMP D'ADRESSE.
+
+              Le panneau ouvrait directement le formulaire. Le raccourci se défendait —
+              il n'existe qu'un seul chemin d'authentification — mais il posait au
+              visiteur une question qu'il n'avait pas envisagée : personne n'arrive en
+              pensant « je veux saisir une adresse », on arrive en pensant « je veux mon
+              compte » ou « je veux en créer un ». Les deux boutons nomment ces deux
+              intentions, et la fenêtre qu'ils ouvrent porte le formulaire.
+
+              Le panneau se referme À L'OUVERTURE de la fenêtre : le laisser derrière
+              une modale afficherait deux surfaces flottantes superposées, et il se
+              refermerait de toute façon dès que la souris s'en éloignerait pour aller
+              vers le formulaire.
             */
-            <div className="p-3">
-              <LoginForm visible={menuOpen} density="panel" />
+            <div className="space-y-2 p-3">
+              <button
+                type="button"
+                onClick={() => {
+                  close()
+                  onOpenAuth('signin')
+                }}
+                className="flex h-9 w-full items-center justify-center rounded-control bg-brand text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
+              >
+                Connexion
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  close()
+                  onOpenAuth('signup')
+                }}
+                className="flex h-9 w-full items-center justify-center rounded-control border border-border-subtle text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+              >
+                Inscription
+              </button>
+
+              {/* Ce que la connexion apporte — et il faut le dire ICI, à l'endroit où
+                  la question se pose. Sans cette phrase, le visiteur suppose qu'on lui
+                  demande de s'inscrire pour utiliser le site, alors que la liste de
+                  suivi et les alertes fonctionnent déjà sans compte. */}
+              <p className="pt-0.5 text-[0.6875rem] leading-snug text-ink-muted">
+                Un compte n’est <strong className="font-medium text-ink">pas nécessaire</strong> pour
+                suivre un actif ou armer une alerte. Il sert à retrouver la même liste sur un autre
+                appareil.
+              </p>
             </div>
           ) : null}
 

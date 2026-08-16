@@ -3,7 +3,6 @@
 import { ChevronRight, Monitor, Moon, Sun } from 'lucide-react'
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
-import { GlassToggle } from '@/components/settings/GlassToggle'
 import { getLanguage } from '@/components/settings/languages'
 import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import { useSettings, type ThemeMode } from '@/lib/stores/settings'
@@ -113,8 +112,6 @@ export function DisplaySettings({
             )
           })}
         </div>
-
-        <GlassToggle />
       </div>
     </>
   )

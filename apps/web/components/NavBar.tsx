@@ -8,6 +8,7 @@ import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { ZenkuuWordmark } from '@/components/BrandMark'
 import { useContent } from '@/components/locale/ContentProvider'
 import { AccountControl } from '@/components/account/AccountControl'
+import { AuthOverlay, type AuthMode } from '@/components/account/AuthOverlay'
 import { MobileNav } from '@/components/nav/MobileNav'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
@@ -40,7 +41,20 @@ import { SearchOverlay } from '@/components/search/SearchOverlay'
  * Voir `.shell` et `.shell-bleed` dans globals.css, seuls endroits où ces largeurs
  * sont définies.
  */
-export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
+export function NavBar({
+  accountsEnabled,
+  socialProviders,
+}: {
+  accountsEnabled: boolean
+  /**
+   * Fournisseurs d'identité dont les identifiants sont renseignés.
+   *
+   * Traverse en prop pour la même raison qu'`accountsEnabled` : c'est la lecture
+   * d'une variable d'environnement, donc une opération serveur, dont seul le RÉSULTAT
+   * — trois libellés au plus — a sa place dans le paquet client.
+   */
+  socialProviders: readonly string[]
+}) {
   const fr = useContent()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -56,19 +70,25 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
    * parallèle : deux variables dont l'une peut contredire l'autre.
    */
   const [preferenceTab, setPreferenceTab] = useState<PreferenceTab | null>(null)
+
   /*
-   * LA FENÊTRE DE CONNEXION A DISPARU DE CE FICHIER.
+   * LA FENÊTRE D'AUTHENTIFICATION REVIENT DANS CE FICHIER, ET POUR UNE RAISON.
    *
-   * Elle vivait ici et non dans `AccountControl` pour une raison de rendu : le
-   * `<header>` porte un `backdrop-filter`, ce qui fait de lui le bloc conteneur de
-   * tout descendant `position: fixed` — une modale rendue dans le bouton s'ancrait
-   * donc à la bande de l'en-tête au lieu de la fenêtre.
+   * Elle en était partie quand la connexion s'était réduite à un champ d'adresse
+   * déroulé sous le bouton de compte : un panneau `absolute` s'ancre à son bouton
+   * quel que soit le filtre porté par un ancêtre, là où une modale `fixed` s'ancrait
+   * à la bande de l'en-tête à cause du `backdrop-filter` que celui-ci porte.
    *
-   * La contrainte tombe avec la modale : la connexion se fait désormais dans un
-   * panneau `absolute` déroulé sous le bouton de compte, et un panneau absolu s'ancre
-   * à son bouton quel que soit le filtre porté par un ancêtre. L'état d'ouverture est
-   * redescendu avec lui.
+   * Le panneau ne porte plus que deux boutons, et le formulaire — désormais flanqué
+   * des fournisseurs d'identité — a retrouvé sa fenêtre. Elle est donc rendue ICI,
+   * hors du `<header>`, à côté de la fenêtre de préférences qui résout exactement le
+   * même problème de la même façon.
+   *
+   * `null` = fermée, même convention que `preferenceTab` : un booléen d'ouverture ET
+   * un mode en parallèle, ce sont deux variables dont l'une peut contredire l'autre.
    */
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null)
+
   const navRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -78,6 +98,7 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
+  const closeAuth = useCallback(() => setAuthMode(null), [])
 
   // Fermeture au clic extérieur et à la touche Échap — deux réflexes attendus de
   // tout menu, et l'échappatoire indispensable pour une navigation au clavier.
@@ -368,7 +389,11 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
               `AccountControl`, qui décrit ses trois formes. Le visiteur anonyme garde
               donc l'accès aux réglages, ce qui était le seul acquis à préserver.
             */}
-            <AccountControl available={accountsEnabled} onOpenPreference={setPreferenceTab} />
+            <AccountControl
+              available={accountsEnabled}
+              onOpenPreference={setPreferenceTab}
+              onOpenAuth={setAuthMode}
+            />
           </div>
         </div>
       </header>
@@ -378,6 +403,16 @@ export function NavBar({ accountsEnabled }: { accountsEnabled: boolean }) {
         tab={preferenceTab}
         onTabChange={setPreferenceTab}
         onClose={closePreference}
+      />
+      {/* `mode` retombe sur « connexion » quand la fenêtre est fermée : c'est une
+          valeur qui ne sera jamais lue — le composant ne rend rien sans `open` — mais
+          la propriété est requise, et un `null` forcerait à rendre son type nullable
+          pour une situation qui ne se produit pas. */}
+      <AuthOverlay
+        open={authMode !== null}
+        mode={authMode ?? 'signin'}
+        onClose={closeAuth}
+        socialProviders={socialProviders}
       />
     </>
   )

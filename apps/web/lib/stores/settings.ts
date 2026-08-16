@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import { GLASS_STORAGE_KEY, THEME_STORAGE_KEY } from '@/components/ThemeScript'
+import { THEME_STORAGE_KEY } from '@/components/ThemeScript'
 
 /**
  * Store des préférences d'affichage : thème, devise, langue.
@@ -23,19 +23,9 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 
 interface SettingsState {
   theme: ThemeMode
-  /**
-   * Mode Liquid Glass — surfaces translucides. EXPÉRIMENTAL.
-   *
-   * Un booléen distinct de `theme`, et non une quatrième valeur de celui-ci : le
-   * thème règle la clarté du fond, ceci la matière des surfaces. Les deux se
-   * combinent, et les fondre en un seul réglage forcerait à abandonner clair/sombre
-   * pour activer le verre.
-   */
-  glass: boolean
   currency: string
   language: string
   setTheme: (theme: ThemeMode) => void
-  setGlass: (glass: boolean) => void
   setCurrency: (currency: string) => void
   setLanguage: (language: string) => void
 }
@@ -63,42 +53,16 @@ export function applyTheme(theme: ThemeMode): void {
   }
 }
 
-/**
- * Applique le mode verre au DOM et à la clé lue par `ThemeScript`.
- *
- * Même double écriture que pour le thème, et pour la même raison : le script
- * anti-flash s'exécute avant tout JavaScript d'application et ne sait lire qu'une
- * clé brute. « 1 » / absence plutôt que « true » / « false » — un booléen
- * sérialisé en chaîne invite à la faute classique où `Boolean('false')` vaut vrai.
- */
-export function applyGlass(glass: boolean): void {
-  if (typeof window === 'undefined') return
-
-  document.documentElement.classList.toggle('glass', glass)
-
-  try {
-    if (glass) localStorage.setItem(GLASS_STORAGE_KEY, '1')
-    else localStorage.removeItem(GLASS_STORAGE_KEY)
-  } catch {
-    /* localStorage indisponible : le mode reste appliqué pour cette session. */
-  }
-}
-
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
       theme: 'system',
-      glass: false,
       currency: 'EUR',
       language: 'fr',
 
       setTheme: (theme) => {
         applyTheme(theme)
         set({ theme })
-      },
-      setGlass: (glass) => {
-        applyGlass(glass)
-        set({ glass })
       },
       setCurrency: (currency) => set({ currency }),
       setLanguage: (language) => set({ language }),
@@ -112,7 +76,6 @@ export const useSettings = create<SettingsState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return
         applyTheme(state.theme)
-        applyGlass(state.glass)
       },
     },
   ),
