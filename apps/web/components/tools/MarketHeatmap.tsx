@@ -5,11 +5,12 @@ import { useMemo, useState } from 'react'
 import type { MarketAsset, MarketCategory } from '@zenkuu/data'
 
 import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
+import { TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
 import {
-  TreemapFigure,
-  TreemapLegend,
-  type TreemapTile,
-} from '@/components/tools/TreemapFigure'
+  GroupedTreemap,
+  type HeatmapColorMode,
+  type TreemapGroup,
+} from '@/components/tools/GroupedTreemap'
 import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 
 /**
@@ -76,6 +77,52 @@ const PERIOD_WORDS: Record<PeriodId, string> = {
 /** Nombres de tuiles proposés. Au-delà de 100, une tuile n'est plus qu'un pixel. */
 const COUNTS = [25, 50, 100] as const
 
+const COLOR_MODES = [
+  { id: 'categorical', label: 'Catégoriel' },
+  { id: 'change', label: 'Variation' },
+] as const
+
+/**
+ * Secteur d'appartenance de chaque actif, DÉDUIT DES CATÉGORIES DÉJÀ CHARGÉES.
+ *
+ * ── D'OÙ VIENT CE RATTACHEMENT, ET CE QU'IL VAUT ─────────────────────────────
+ *
+ * `MarketAsset` ne porte aucun secteur : la source ne le publie pas dans le
+ * classement. En revanche, chaque catégorie publie ses TROIS actifs principaux
+ * (`topAssetIds`), dans la même réponse que celle déjà chargée pour les secteurs. En
+ * parcourant les catégories, on obtient donc un rattachement RÉEL — pas deviné — pour
+ * les actifs qui dominent au moins un secteur.
+ *
+ * Sa limite est nette et il faut la nommer : un actif qui n'est premier de rien
+ * n'apparaît dans aucune liste, et reste donc sans secteur. C'est le cas de la longue
+ * traîne, qui atterrit dans « Autres » — exactement comme le groupe « Other » de la
+ * référence, et pour la même raison.
+ *
+ * ── LE PREMIER SECTEUR L'EMPORTE, ET IL EST LE PLUS GROS ─────────────────────
+ *
+ * Bitcoin relève de « Layer 1 » comme de « Proof of Work » ; une carte doit pourtant
+ * le poser quelque part et une seule fois, sans quoi les surfaces compteraient deux
+ * fois la même capitalisation. Les catégories étant parcourues par capitalisation
+ * décroissante, le secteur retenu est le plus large de ceux auxquels l'actif
+ * appartient — celui sous lequel on le cherche.
+ */
+function buildSectorIndex(categories: MarketCategory[]): Map<string, string> {
+  const index = new Map<string, string>()
+
+  const ordered = [...categories]
+    .filter((category) => (category.marketCap ?? 0) > 0)
+    .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
+
+  for (const category of ordered) {
+    for (const assetId of category.topAssetIds ?? []) {
+      // `has` avant `set` : le premier rencontré gagne, donc le plus gros secteur.
+      if (!index.has(assetId)) index.set(assetId, category.name)
+    }
+  }
+
+  return index
+}
+
 export function MarketHeatmap({
   assets,
   categories,
@@ -88,6 +135,11 @@ export function MarketHeatmap({
   const [mode, setMode] = useState<ModeId>(assets.length > 0 ? 'coins' : 'sectors')
   const [period, setPeriod] = useState<PeriodId>('change24h')
   const [count, setCount] = useState<number>(50)
+
+  /* « Catégoriel » par défaut, comme la référence : c'est la lecture de COMPOSITION —
+     de quoi ce marché est fait — et elle précède naturellement celle du mouvement du
+     jour, qui reste à un clic. */
+  const [colorMode, setColorMode] = useState<HeatmapColorMode>('categorical')
 
   const tiles = useMemo<TreemapTile[]>(() => {
     if (mode === 'sectors') {
@@ -124,6 +176,49 @@ export function MarketHeatmap({
       }))
   }, [mode, assets, categories, count, period])
 
+  /**
+   * Regroupement des tuiles, DANS L'ORDRE DE POIDS DÉCROISSANT.
+   *
+   * Les pièces sont rangées sous leur secteur ; les secteurs, eux, forment chacun leur
+   * propre groupe d'une seule tuile. Ce second cas peut sembler inutile — un groupe à
+   * un élément — et il ne l'est pas : c'est ce qui donne au mode « Secteurs » le même
+   * cadre, le même titre et la même palette que l'autre, plutôt qu'une figure d'un
+   * dessin différent selon la bascule.
+   *
+   * L'ORDRE compte doublement. Il décide de la place dans le pavage — les gros groupes
+   * d'abord, en haut à gauche — et il décide de la teinte, puisque celle-ci suit
+   * l'index. Trier par poids garantit donc que les mêmes secteurs gardent les mêmes
+   * couleurs d'une période à l'autre, tant que leur classement ne bouge pas.
+   */
+  const groups = useMemo<TreemapGroup[]>(() => {
+    if (mode === 'sectors') {
+      return tiles.map((tile) => ({ id: tile.id, label: tile.label, tiles: [tile] }))
+    }
+
+    const sectorOf = buildSectorIndex(categories)
+    const buckets = new Map<string, TreemapTile[]>()
+
+    for (const tile of tiles) {
+      /* `Autres` accueille ce que le rattachement ne couvre pas — la longue traîne, qui
+         n'est première d'aucun secteur. Le nommer plutôt que d'écarter ces actifs :
+         les faire disparaître changerait la somme des surfaces sans le dire. */
+      const sector = sectorOf.get(tile.id) ?? 'Autres'
+      const bucket = buckets.get(sector)
+      if (bucket) bucket.push(tile)
+      else buckets.set(sector, [tile])
+    }
+
+    return [...buckets.entries()]
+      .map(([label, groupTiles]) => ({
+        id: label,
+        label,
+        tiles: groupTiles,
+        weight: groupTiles.reduce((sum, tile) => sum + tile.value, 0),
+      }))
+      .sort((a, b) => b.weight - a.weight)
+      .map(({ id, label, tiles: groupTiles }) => ({ id, label, tiles: groupTiles }))
+  }, [mode, tiles, categories])
+
   if (tiles.length === 0) return null
 
   const periodWord = mode === 'sectors' ? '24 heures' : PERIOD_WORDS[period]
@@ -157,6 +252,17 @@ export function MarketHeatmap({
             </ChipGroup>
           ) : null}
 
+          <ChipGroup label="Couleur">
+            {COLOR_MODES.map((entry) => (
+              <Chip
+                key={entry.id}
+                active={colorMode === entry.id}
+                onClick={() => setColorMode(entry.id)}
+                label={entry.label}
+              />
+            ))}
+          </ChipGroup>
+
           <ChipGroup label="Tuiles">
             {COUNTS.map((size) => (
               <Chip
@@ -169,10 +275,18 @@ export function MarketHeatmap({
           </ChipGroup>
         </div>
 
-        <TreemapLegend />
+        {/* La légende ne décrit QUE la coloration par variation. L'afficher en mode
+            catégoriel annoncerait une échelle qui ne s'applique à rien — les couleurs
+            y identifient des familles, elles ne mesurent aucune grandeur. */}
+        {colorMode === 'change' ? <TreemapLegend /> : null}
       </div>
 
-      <TreemapFigure tiles={tiles} periodLabel={periodWord} valueUnit=" $" />
+      <GroupedTreemap
+        groups={groups}
+        colorMode={colorMode}
+        periodLabel={periodWord}
+        valueUnit=" $"
+      />
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
         Surface : capitalisation. Couleur : variation sur {periodWord}, saturée au-delà de

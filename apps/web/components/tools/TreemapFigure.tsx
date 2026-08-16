@@ -58,6 +58,11 @@ export function TreemapFigure({
 
   const byId = new Map(usable.map((tile) => [tile.id, tile]))
 
+  /* Dénominateur des parts. Calculé sur les tuiles RETENUES, donc sur ce que la figure
+     montre réellement — un appelant qui n'en passe que soixante sur deux cents ne doit
+     pas afficher des parts rapportées à un total invisible. */
+  const total = usable.reduce((sum, tile) => sum + tile.value, 0)
+
   /*
    * LA LIGNE DE VARIATION EXISTE OU N'EXISTE PAS POUR TOUTE LA FIGURE.
    *
@@ -98,6 +103,8 @@ export function TreemapFigure({
           backgroundColor: heatTone(tile.change),
         }
 
+        const share = total > 0 ? (tile.value / total) * 100 : 0
+
         const body = (
           <>
             {/* Étiquettes toujours présentes dans le DOM — donc lisibles par un lecteur
@@ -106,18 +113,25 @@ export function TreemapFigure({
             <span className="block truncate text-[0.6875rem] font-medium leading-tight text-ink">
               {tile.label}
             </span>
-            {hasChange && box.height > 6 ? (
-              <span className="tabular block truncate text-micro leading-tight text-ink-muted">
-                {tile.change !== undefined ? formatPercent(tile.change) : '—'}
-              </span>
-            ) : null}
-            {/* Le seuil du montant s'ABAISSE quand la figure n'a pas de variation : la
-                ligne libérée par celle-ci lui laisse la place, et une tuile de trente
-                pixels de haut peut porter deux lignes au lieu de trois. */}
-            {(hasChange ? box.height > 12 && box.width > 12 : box.height > 6) ? (
+            {/*
+              MONTANT, PART ET VARIATION SUR UNE SEULE LIGNE — l'anatomie de la
+              référence, relevée au navigateur.
+
+              Ils occupaient jusqu'ici deux lignes distinctes, chacune avec son propre
+              seuil d'affichage : une tuile moyenne montrait donc sa variation sans son
+              montant, ou l'inverse selon ses proportions. Réunis, ils partagent un seul
+              seuil et se lisent d'un trait — « 158 Md $ (8,5 %) · +0,08 % ».
+
+              La PART est ce qui manquait le plus : un montant seul ne se situe pas,
+              « 439 Md $ » ne dit pas si c'est beaucoup. Elle est omise sous 0,1 %, où
+              elle n'apprendrait rien et allongerait la ligne pour rien.
+            */}
+            {box.height > 5 && box.width > 5 ? (
               <span className="tabular block truncate text-micro leading-tight text-ink-muted">
                 {formatCompact(tile.value)}
                 {valueUnit}
+                {share >= 0.1 ? ` (${share.toFixed(1).replace('.', ',')} %)` : ''}
+                {hasChange && tile.change !== undefined ? ` · ${formatPercent(tile.change)}` : ''}
               </span>
             ) : null}
           </>
@@ -131,7 +145,7 @@ export function TreemapFigure({
             key={box.id}
             href={tile.href}
             title={caption}
-            className="absolute block overflow-hidden border border-canvas p-1.5 transition-opacity duration-150 hover:opacity-80"
+            className="absolute flex flex-col justify-end overflow-hidden rounded-[4px] border-2 border-surface p-1 transition-opacity duration-150 hover:opacity-75"
             style={style}
           >
             {body}
@@ -140,7 +154,12 @@ export function TreemapFigure({
           <div
             key={box.id}
             title={caption}
-            className="absolute block overflow-hidden border border-canvas p-1.5"
+            /* Même anatomie que la tuile cliquable — rayon de 4 pixels et bordure de 2
+               qui TIENT LIEU DE GOUTTIÈRE : les tuiles ne sont pas espacées, elles sont
+               bordées de la couleur du fond, ce qui laisse toute la surface au pavage
+               sans que les rectangles ne se touchent. C'est le procédé de la référence.
+               Les étiquettes sont ancrées EN BAS, comme chez elle. */
+            className="absolute flex flex-col justify-end overflow-hidden rounded-[4px] border-2 border-surface p-1"
             style={style}
           >
             {body}
