@@ -2,7 +2,7 @@ import type { AssetDetail } from '@zenkuu/data'
 import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
-import { Panel } from '@/components/ui/Panel'
+import { RailSection } from '@/components/ui/RailSection'
 
 /**
  * Progression de l'offre — la part dérivable de la tokenomique.
@@ -70,7 +70,7 @@ export function AssetSupply({ asset }: { asset: AssetDetail }) {
   if (releasedShare === undefined && valuedShare === undefined) return null
 
   return (
-    <Panel title="Progression de l’offre">
+    <RailSection title="Progression de l’offre">
       {releasedShare !== undefined && circulatingSupply !== undefined && ceiling !== undefined ? (
         <Gauge
           label={maxSupply !== undefined ? 'Offre émise' : 'Part du total en circulation'}
@@ -106,7 +106,7 @@ export function AssetSupply({ asset }: { asset: AssetDetail }) {
           </span>
         </div>
       ) : null}
-    </Panel>
+    </RailSection>
   )
 }
 

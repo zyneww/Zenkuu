@@ -1,7 +1,7 @@
 import type { AssetDetail } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
-import { Panel } from '@/components/ui/Panel'
+import { RailSection } from '@/components/ui/RailSection'
 
 /**
  * Audience et activité de développement.
@@ -68,7 +68,7 @@ export function AssetCommunity({ asset }: { asset: AssetDetail }) {
   if (rows.length === 0 && devRows.length === 0) return null
 
   return (
-    <Panel title="Communauté et code">
+    <RailSection title="Communauté et code">
       {rows.length > 0 ? <StatList rows={rows} /> : null}
 
       {devRows.length > 0 ? (
@@ -81,7 +81,7 @@ export function AssetCommunity({ asset }: { asset: AssetDetail }) {
           <StatList rows={devRows} />
         </>
       ) : null}
-    </Panel>
+    </RailSection>
   )
 }
 

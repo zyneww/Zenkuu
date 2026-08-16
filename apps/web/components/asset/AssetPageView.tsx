@@ -48,7 +48,6 @@ import { AssetTickers } from '@/components/asset/AssetTickers'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
 import { AssetTabFiller } from '@/components/asset/AssetTabFiller'
-import { AssetMarketDrawer } from '@/components/asset/AssetMarketDrawer'
 import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { WatchlistButton } from '@/components/watchlist/WatchlistButton'
@@ -811,19 +810,23 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       />
 
       {/*
-        TIROIR DES MARCHÉS — la poignée du bord gauche.
+        LE TIROIR DES MARCHÉS A ÉTÉ RETIRÉ.
 
-        Monté au niveau de la fiche et non dans le rail : son bouton et son panneau
-        sont `fixed`, donc positionnés par rapport à la FENÊTRE. L'enfouir dans une
-        colonne le rendrait tributaire du premier ancêtre transformé ou filtré qu'on
-        y ajouterait un jour — c'est la panne classique du `position: fixed`, et elle
-        se manifeste des mois plus tard, à l'occasion d'une animation sans rapport.
+        C'était une poignée `fixed` au bord gauche de l'écran, dépliant une liste de
+        tendances par-dessus la page. Deux raisons de le supprimer, dans cet ordre :
 
-        Il reçoit l'identifiant courant pour se surligner lui-même : sur une liste de
-        tendances, savoir laquelle on est en train de lire évite d'ouvrir la fiche
-        qu'on a déjà sous les yeux.
+        Il DOUBLAIT une navigation qui existe ailleurs et mieux. Les mêmes actifs sont
+        dans la recherche d'en-tête, dans les menus, dans « Projets similaires » au pied
+        du rail, et dans la grille de comparables de l'onglet Écosystème. Un cinquième
+        chemin vers la même liste n'ajoute pas un accès, il ajoute une chose à ignorer.
+
+        Il occupait le bord GAUCHE, c'est-à-dire le côté où le rail commence désormais
+        à s'aligner sur le contenu. Une poignée collée à l'écran contredisait le
+        centrage que toute la page vient d'adopter.
+
+        `AssetMarketDrawer` reste dans le dépôt : le composant est correct, c'est sa
+        présence sur la fiche qui ne l'était pas.
       */}
-      <AssetMarketDrawer currentId={data.id} />
 
       {/* ══════════════════════════════════════════════════════════════════════
           LA FICHE TIENT SUR DEUX COLONNES, ET LE RAIL VIT HORS DES ONGLETS.
@@ -913,7 +916,11 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              dans l'en-tête pleine largeur. La colonne ne garde que les CHIFFRES, ce qui
              est exactement la sidebar de la référence — et ce que ce rail aurait dû être
              depuis le début. */
-          <aside key="rail" className="space-y-3">
+          /* `space-y-6` et non 3 : les groupes n'ont plus de bordure, c'est donc le
+             BLANC qui porte la frontière entre eux. Douze pixels suffisaient entre deux
+             cartes qui se distinguaient déjà par leur bord ; entre deux listes nues, ils
+             font une seule liste de vingt lignes. Voir `RailSection`. */
+          <aside key="rail" className="space-y-6">
 
           {/*
             LA BARRE COLLANTE SE PLACE ICI, ET NULLE PART AILLEURS.

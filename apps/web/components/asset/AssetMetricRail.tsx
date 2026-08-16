@@ -6,7 +6,7 @@ import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 
 import { MetricValue } from '@/components/asset/MetricValue'
 import { InfoTip } from '@/components/ui/InfoTip'
-import { Panel } from '@/components/ui/Panel'
+import { RailSection } from '@/components/ui/RailSection'
 import { ASSET_CLASS_SEGMENT } from '@/lib/asset-routes'
 import {
   METRICS,
@@ -120,9 +120,9 @@ export async function AssetMetricRail({
   const entryMetric = groups[0]?.rows[0]?.metric.slug
 
   return (
-    <aside className="space-y-3" aria-label="Repères chiffrés">
+    <aside className="space-y-6" aria-label="Repères chiffrés">
       {groups.map(({ group, rows }) => (
-        <Panel key={group} title={GROUP_TITLES[group]}>
+        <RailSection key={group} title={GROUP_TITLES[group]}>
           <dl>
             {rows.map(({ metric, value }) => {
               const message = messageOf(metric)
@@ -237,7 +237,7 @@ export async function AssetMetricRail({
               <span aria-hidden="true">→</span>
             </Link>
           ) : null}
-        </Panel>
+        </RailSection>
       ))}
     </aside>
   )

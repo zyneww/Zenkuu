@@ -10,7 +10,6 @@ import { useContent } from '@/components/locale/ContentProvider'
 import { AccountMenu } from '@/components/auth/AccountMenu'
 import { AuthButtons } from '@/components/auth/AuthButtons'
 import { AuthOverlay, type AuthMode } from '@/components/auth/AuthOverlay'
-import { UpgradeButton } from '@/components/billing/UpgradeButton'
 import { MobileNav } from '@/components/nav/MobileNav'
 import { usePresence } from '@/components/nav/usePresence'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
@@ -19,18 +18,30 @@ import { HeaderSearch } from '@/components/search/HeaderSearch'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
 /**
- * Barre de navigation — bande pleine largeur, alignée à gauche.
+ * Barre de navigation — filet pleine largeur, contenu centré sur celui de la page.
  *
- * La disposition suit Token Terminal : logo au bord gauche de l'écran, menus
- * immédiatement à sa droite, filet, accès rapides, puis actions rejetées à
- * l'extrême droite. Elle REMPLACE une bande centrée de 1240px calquée sur AniList,
- * dont les deux vides symétriques ne se justifiaient plus une fois le contenu
- * élargi.
+ * L'ordre des éléments suit Token Terminal : logo, menus immédiatement à sa droite,
+ * filet, accès rapides, puis actions rejetées à l'extrême droite.
  *
- * La barre traverse l'écran alors que le contenu, lui, reste borné à 1440px : les
- * deux ne s'alignent donc pas, et c'est voulu — un filet qui s'arrête à mi-écran se
- * lit comme un défaut d'alignement. Voir `.shell` et `.shell-bleed` dans
- * globals.css, seuls endroits où ces largeurs sont définies.
+ * ── DEUX LARGEURS, ET IL EN FAUT DEUX ─────────────────────────────────────────
+ *
+ * Le `<header>` traverse l'écran : c'est lui qui porte le fond et le filet inférieur,
+ * et un trait qui s'arrêterait à 1440px laisserait deux vides de part et d'autre — le
+ * résultat se lit comme un défaut d'alignement plutôt que comme une intention.
+ *
+ * Son CONTENU, lui, est borné à la même largeur que la page (`.shell`). La barre a
+ * longtemps été pleine largeur de bout en bout, au motif que les deux vides latéraux
+ * ne se justifiaient plus une fois le contenu élargi. Le défaut était ailleurs : sur un
+ * écran de 2100 pixels, le logo se collait au bord gauche et l'avatar au bord droit,
+ * à plus de trois cents pixels du contenu qu'ils surplombent. La navigation ne
+ * désignait plus la page qu'elle sert.
+ *
+ * Le filet reste donc traversant, les éléments s'alignent sur le contenu, et la
+ * critique d'origine tombe : il n'y a plus de vide visible, seulement une bande dont
+ * le contenu tient dans la même colonne que tout le reste.
+ *
+ * Voir `.shell` et `.shell-bleed` dans globals.css, seuls endroits où ces largeurs
+ * sont définies.
  */
 export function NavBar() {
   const fr = useContent()
@@ -152,7 +163,13 @@ export function NavBar() {
       >
         {/* `gap-4` sur grand écran, `gap-2` en dessous : à 393 px, quatre écarts de
             seize pixels coûtent un huitième de la largeur à des éléments déjà serrés. */}
-        <div ref={navRef} className="shell-bleed flex h-16 items-center gap-2 lg:gap-4">
+        {/*
+          `shell` et non `shell-bleed` : le CONTENU de la barre s'aligne sur celui de
+          la page. Le `<header>` reste pleine largeur et garde son fond et son filet —
+          c'est cette séparation qui permet le centrage sans rouvrir le défaut que
+          l'ancienne disposition redoutait, un trait qui s'arrête à mi-écran.
+        */}
+        <div ref={navRef} className="shell flex h-16 items-center gap-2 lg:gap-4">
           {/*
             LE TIROIR EST LE PREMIER ÉLÉMENT DE LA BARRE, avant le logo.
 
@@ -164,9 +181,26 @@ export function NavBar() {
           */}
           <MobileNav />
 
-          {/* GROUPE 1 — logo puis menus, collés à gauche. Les deux `flex-1 basis-0`
-              qui encadraient la navigation ont disparu : ils servaient à la poser sur
-              l'axe exact de la page, ce qui n'est plus l'objectif. */}
+          {/*
+            ── TROIS ZONES, ET LES DEUX LATÉRALES ONT LA MÊME LARGEUR ──────────
+
+            `flex-1 basis-0` de part et d'autre de la navigation : les deux groupes se
+            partagent également l'espace restant, ce qui pose la rangée de menus sur
+            l'axe EXACT de la barre. C'est la seule façon d'y parvenir — un simple
+            `justify-center` centrerait les trois groupes ensemble, donc la navigation
+            serait décalée de la moitié de l'écart entre le logo et les actions.
+
+            Ces deux `flex-1 basis-0` avaient existé, puis avaient été retirés quand la
+            barre est passée à un alignement à gauche. Ils reviennent avec l'objectif
+            qui les justifiait.
+
+            `min-w-0` sur les deux : sans lui, la largeur minimale d'un conteneur
+            flexible est celle de son contenu, et le groupe d'actions — recherche,
+            session, réglages — refuserait de se contracter. Il pousserait alors la
+            navigation hors de l'axe au lieu de rétrécir, ce qui annulerait le centrage
+            précisément sur les largeurs où il compte.
+          */}
+          <div className="flex min-w-0 flex-1 basis-0 items-center">
           <Link
             href="/"
             /* `min-h-11` sans changer la taille du dessin : la marque mesure 28 pixels
@@ -193,6 +227,7 @@ export function NavBar() {
             */}
             <ZenkuuWordmark className="h-7 w-auto shrink-0" />
           </Link>
+          </div>
 
           {/*
             ── LE SEUIL EST À 1280 ET NON À 1024 ───────────────────────────────
@@ -208,7 +243,12 @@ export function NavBar() {
             le coin supérieur gauche, et un tiroir s'y manipule mieux qu'une rangée de
             menus au survol — il n'y a pas de survol sur un écran tactile.
           */}
-          <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 xl:flex">
+          {/* `shrink-0` : la navigation est le repère du centrage, elle ne se contracte
+              pas. Ce sont les deux groupes latéraux qui cèdent — voir leur `min-w-0`. */}
+          <nav
+            aria-label="Navigation principale"
+            className="hidden shrink-0 items-center gap-0.5 xl:flex"
+          >
             {NAV_MENUS.map((menu) =>
               /*
                * ── UN MENU SANS PANNEAU EST UN LIEN ───────────────────────────
@@ -277,17 +317,30 @@ export function NavBar() {
             quelle que soit la largeur de la fenêtre.
           */}
           {/*
-            Quatre éléments, dans l'ordre de lecture : recherche, offre, session,
-            réglages. Le tiroir hamburger a été DÉMONTÉ — il portait trois sujets sans
-            rapport (compte, réglages, navigation repliée) derrière une seule icône
-            muette, ce qui obligeait à l'ouvrir pour savoir ce qu'il contenait.
-            Chaque bouton annonce désormais ce qu'il fait.
-          */}
-          <div className="relative ml-auto flex items-center gap-1 sm:gap-2">
-            <HeaderSearch onOpenOverlay={openSearch} />
+            Trois éléments, dans l'ordre de lecture : recherche, session, réglages. Le
+            tiroir hamburger a été DÉMONTÉ — il portait trois sujets sans rapport
+            (compte, réglages, navigation repliée) derrière une seule icône muette, ce
+            qui obligeait à l'ouvrir pour savoir ce qu'il contenait. Chaque bouton
+            annonce désormais ce qu'il fait.
 
-            {/* S'efface de lui-même pour un abonné, et sans boutique configurée. */}
-            <UpgradeButton />
+            ── « ZENKUU PRO » A QUITTÉ LA BARRE ────────────────────────────────
+
+            C'était le seul aplat coloré de l'en-tête, donc son point le plus vif — et
+            il désignait une offre commerciale au milieu d'outils de consultation. Sur
+            une barre dont la navigation est maintenant centrée, il pesait doublement :
+            un bouton doré de 110 pixels dans le groupe de droite déséquilibre les deux
+            côtés, et le centre optique s'écarte du centre géométrique.
+
+            L'offre reste atteignable là où elle a du sens : la page `/tarifs` par le
+            menu, et les encarts posés au pied des fonctions réservées, qui la proposent
+            AU MOMENT où elle répondrait à quelque chose. Voir `ProGate`.
+
+            `justify-end` remplace `ml-auto` : le groupe est désormais une zone de
+            largeur imposée par la grille à trois colonnes, pas un bloc poussé à droite
+            par une marge automatique. C'est cette différence qui tient le centrage.
+          */}
+          <div className="relative flex min-w-0 flex-1 basis-0 items-center justify-end gap-1 sm:gap-2">
+            <HeaderSearch onOpenOverlay={openSearch} />
 
             {/* Hors session seulement — `AccountMenu` prend le relais une fois connecté. */}
             <AuthButtons onOpen={setAuthMode} />

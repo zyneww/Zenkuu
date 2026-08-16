@@ -3,7 +3,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
-import { Panel } from '@/components/ui/Panel'
+import { RailSection } from '@/components/ui/RailSection'
 import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -36,7 +36,7 @@ export function AssetSimilarRail({ peers }: { peers: MarketAsset[] }) {
   if (shown.length === 0) return null
 
   return (
-    <Panel title="Projets similaires">
+    <RailSection title="Projets similaires">
       <ul>
         {shown.map((peer) => (
           <li key={peer.id} className="border-b border-border-subtle/60 last:border-0">
@@ -65,6 +65,6 @@ export function AssetSimilarRail({ peers }: { peers: MarketAsset[] }) {
           </li>
         ))}
       </ul>
-    </Panel>
+    </RailSection>
   )
 }

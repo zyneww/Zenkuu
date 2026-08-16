@@ -62,20 +62,29 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
   }
 
   return (
-    <section aria-labelledby="fiche-technique" className="space-y-5">
-      <h2 id="fiche-technique" className="display-sm text-ink">
+    /* Le titre s'aligne sur les autres groupes du rail — voir `RailSection`. Il portait
+       `display-sm`, hérité du temps où ce bloc vivait en pleine largeur au pied de la
+       page : dans une colonne de 288 pixels, un titre de 20 pixels au-dessus de
+       pastilles de 12 écrase ce qu'il annonce. */
+    <section aria-labelledby="fiche-technique" className="space-y-4">
+      <h2
+        id="fiche-technique"
+        className="border-b border-border-subtle pb-1 text-micro font-semibold uppercase tracking-wide text-ink-muted"
+      >
         Fiche technique
       </h2>
 
       {contracts.length > 0 ? (
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-ink">
+          <h3 className="text-xs font-medium text-ink">
             Contrats {contracts.length > 1 ? `· ${contracts.length} chaînes` : null}
           </h3>
-          <ul className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-panel">
+          {/* Plus de carte ni de fond : la liste se pose au ras de la colonne, comme le
+             reste du rail. Les filets de séparation suffisent à la tenir. */}
+          <ul className="divide-y divide-border-subtle/60">
             {contracts.map(([chain, address]) => (
-              <li key={chain} className="flex items-center gap-3 px-3 py-2.5">
-                <span className="w-28 shrink-0 text-xs font-medium text-ink">
+              <li key={chain} className="flex items-center gap-2 py-1.5">
+                <span className="w-20 shrink-0 text-xs font-medium text-ink">
                   {chainLabel(chain)}
                 </span>
                 {/* `break-all` plutôt que `truncate` : une adresse tronquée sans

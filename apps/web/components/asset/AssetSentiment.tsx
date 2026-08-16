@@ -1,7 +1,7 @@
 import type { AssetDetail } from '@zenkuu/data'
 import { formatShare } from '@zenkuu/ui'
 
-import { Panel } from '@/components/ui/Panel'
+import { RailSection } from '@/components/ui/RailSection'
 
 /**
  * Vote communautaire haussier / baissier.
@@ -36,7 +36,7 @@ export function AssetSentiment({ asset }: { asset: AssetDetail }) {
   const downShare = 100 - upShare
 
   return (
-    <Panel title="Sentiment">
+    <RailSection title="Sentiment">
       <div className="flex items-baseline justify-between gap-3 text-sm">
         <span className="tabular font-semibold text-up">{formatShare(upShare)}</span>
         <span className="tabular font-semibold text-down">{formatShare(downShare)}</span>
@@ -60,6 +60,6 @@ export function AssetSentiment({ asset }: { asset: AssetDetail }) {
         Vote des visiteurs de la source, et non une mesure de marché : rien ne garantit
         qu’un vote corresponde à une position détenue.
       </p>
-    </Panel>
+    </RailSection>
   )
 }

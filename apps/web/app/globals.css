@@ -484,9 +484,10 @@
      chaque côté. C'est plus large que les 1280px d'avant, ce qui était la demande,
      sans aller bord à bord.
 
-     Ne PAS confondre avec `.shell-bleed` ci-dessous : chez Token Terminal comme
-     ici, la barre de navigation traverse tout l'écran alors que le contenu reste
-     centré. Les deux ne s'alignent donc pas, et c'est voulu.
+     Elle s'applique AUSSI au contenu de la barre de navigation, qui s'aligne donc
+     sur la page qu'elle surmonte. Ce n'était pas le cas : la barre était pleine
+     largeur de bout en bout, et sur un écran de 2100 pixels son logo se collait au
+     bord gauche pendant que le contenu commençait trois cents pixels plus loin.
      ─────────────────────────────────────────────────────────────────────────── */
   .shell {
     width: 100%;
@@ -496,12 +497,15 @@
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
-     BANDE PLEINE LARGEUR — l'en-tête, et rien d'autre pour l'instant.
+     BANDE PLEINE LARGEUR — pour ce qui doit toucher les deux bords.
 
-     Une barre de navigation qui s'arrête à 1440px laisse, sur un grand écran, deux
-     vides de part et d'autre d'un filet qui, lui, traverse : le résultat se lit
-     comme un défaut d'alignement plutôt que comme une intention. D'où la
-     séparation entre la largeur du CONTENU et celle des BANDES.
+     Le partage se fait par NIVEAU, pas par composant : l'élément qui porte un FOND
+     ou un FILET traverse l'écran, celui qui porte du CONTENU se borne à `.shell`.
+
+     C'est ce qui permet à la barre de navigation d'aligner ses éléments sur la page
+     sans rouvrir le défaut qui l'avait rendue pleine largeur : un filet arrêté à
+     1440px laisse deux vides latéraux et se lit comme un défaut d'alignement. Le
+     `<header>` garde donc son filet traversant, et seul son contenu se centre.
      ─────────────────────────────────────────────────────────────────────────── */
   .shell-bleed {
     width: 100%;

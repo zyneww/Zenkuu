@@ -1,7 +1,12 @@
 import type { AssetProfile } from '@zenkuu/data'
 import { formatCompact, formatShare } from '@zenkuu/ui'
 
+/* Les DEUX primitives, et ce n'est pas un oubli : ce fichier rend un bloc de contenu
+   principal (positions, secteurs — sur 900 pixels, où une carte a du sens) et un bloc
+   de rail (les repères — sur 288, où elle coûte plus qu'elle n'apporte). Voir
+   l'en-tête de `RailSection`. */
 import { Panel } from '@/components/ui/Panel'
+import { RailSection } from '@/components/ui/RailSection'
 import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
 
 /**
@@ -203,7 +208,7 @@ export function AssetProfileRail({ profile }: { profile: AssetProfile }) {
       Le titre décrit d'ailleurs mieux ce qu'il coiffe — un ratio cours/bénéfice n'est
       pas un fondamental, c'est ce que le marché paie pour un fondamental.
     */
-    <Panel title={profile.expenseRatio !== undefined ? 'Le fonds' : 'Valorisation'}>
+    <RailSection title={profile.expenseRatio !== undefined ? 'Le fonds' : 'Valorisation'}>
       <dl>
         {rows.map((row) => (
           <div
@@ -224,6 +229,6 @@ export function AssetProfileRail({ profile }: { profile: AssetProfile }) {
           </div>
         ))}
       </dl>
-    </Panel>
+    </RailSection>
   )
 }
