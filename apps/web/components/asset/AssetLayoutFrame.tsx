@@ -61,9 +61,30 @@ function isLayout(value: string | null): value is AssetLayout {
 export function AssetLayoutFrame({
   rail,
   news,
+  tabsBar,
   children,
 }: {
   rail: React.ReactNode
+  /**
+   * Barre d'onglets, rendue PLEINE LARGEUR au-dessus de la grille.
+   *
+   * ── POURQUOI ELLE REMONTE ICI ─────────────────────────────────────────────
+   *
+   * Elle vivait dans la colonne de droite, avec les panneaux qu'elle commande. Deux
+   * défauts en découlaient, l'un de forme et l'autre de fond.
+   *
+   * De forme : son filet s'arrêtait au bord de la colonne, si bien que la page
+   * portait deux traits horizontaux de longueurs différentes à quelques pixels l'un
+   * de l'autre — celui des onglets, court, et celui du bandeau de commande, long.
+   *
+   * De fond : la barre commande le contenu de la colonne, mais elle NOMME les
+   * sections de la fiche entière. La reléguer à droite la faisait lire comme un
+   * réglage du graphique, au même rang que « Prix ▾ » ou « Comparer ▾ ».
+   *
+   * Pleine largeur sous l'en-tête, elle redevient ce qu'elle est : le sommaire de la
+   * page. C'est aussi la disposition de la référence.
+   */
+  tabsBar?: React.ReactNode
   /**
    * Colonne d'actualités, dépliable par le bouton du bandeau de commande.
    *
@@ -175,11 +196,25 @@ export function AssetLayoutFrame({
 
   return (
     <>
-      {/* Bandeau de commande : une seule commande, alignée à droite, au-dessus du
-          cadre qu'elle règle. La poser dans la barre du graphique l'aurait rendue
-          plus visible — mais elle ne règle pas le graphique, elle règle la PAGE, et
-          la ranger avec les commandes de tracé l'aurait mal annoncée. */}
-      <div ref={rootRef} className="relative flex items-center justify-end gap-1">
+      {/* ── UNE SEULE RANGÉE POUR LE SOMMAIRE ET LES COMMANDES ─────────────────
+
+          Les onglets à gauche, les réglages de page à droite, un filet sous les deux.
+
+          Ils occupaient deux rangées superposées, et le résultat se voyait : trente
+          pixels de vide entre une barre de commandes alignée à droite et une barre
+          d'onglets alignée à gauche, pour deux contrôles qui tiennent largement sur
+          une ligne. Les réunir supprime le vide ET la seconde ligne horizontale.
+
+          `items-end` : les onglets portent leur propre rembourrage bas pour loger le
+          trait de sélection, les boutons non. Alignés en haut ou au centre, les deux
+          groupes flotteraient à des hauteurs différentes au-dessus du même filet. */}
+      <div
+        ref={rootRef}
+        className="relative flex flex-wrap items-end justify-between gap-x-4 gap-y-1 border-b border-border-subtle"
+      >
+        {tabsBar !== undefined ? <div className="min-w-0 flex-1">{tabsBar}</div> : null}
+
+        <div className="flex items-center gap-1 pb-1.5">
         {/*
           ── BOUTON D'ACTUALITÉS ────────────────────────────────────────────────
 
@@ -260,6 +295,7 @@ export function AssetLayoutFrame({
             ))}
           </div>
         ) : null}
+        </div>
       </div>
 
       {/*

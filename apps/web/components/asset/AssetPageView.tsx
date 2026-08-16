@@ -13,7 +13,7 @@ import {
   getSpotExchanges,
   getTrendingCryptoAssets,
 } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatDateTime } from '@zenkuu/ui'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 import { AssetConverter } from '@/components/asset/AssetConverter'
@@ -33,7 +33,7 @@ import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetPools } from '@/components/asset/AssetPools'
 import { AssetSectors } from '@/components/asset/AssetSectors'
-import { AssetRailIdentity } from '@/components/asset/AssetRailIdentity'
+import { AssetPageHeader } from '@/components/asset/AssetPageHeader'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
 import { AssetSimilarRail } from '@/components/asset/AssetSimilarRail'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
@@ -45,7 +45,6 @@ import { AssetTechSheet } from '@/components/asset/AssetTechSheet'
 import { AssetTickers } from '@/components/asset/AssetTickers'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
-import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { AssetTabFiller } from '@/components/asset/AssetTabFiller'
 import { AssetMarketDrawer } from '@/components/asset/AssetMarketDrawer'
 import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
@@ -692,7 +691,92 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         ]}
       />
 
-      <Breadcrumb assetClass={assetClass} name={data.name} />
+      {/* ══════════════════════════════════════════════════════════════════════
+          L'EN-TÊTE REPASSE EN PLEINE LARGEUR.
+
+          Il avait été enfoui dans le rail, au motif que la référence tient identité et
+          chiffres dans une même colonne étroite. C'était une lecture erronée d'elle :
+          elle pose son titre PLEINE LARGEUR au-dessus de tout, et ne met dans la
+          colonne que les chiffres.
+
+          L'erreur avait une conséquence mesurable. Dans 288 pixels, le `<h1>` tenait
+          en 18 pixels — si bien que « Toutes les métriques », titre d'une sous-section
+          d'onglet, s'affichait plus gros que le nom de l'actif sur sa propre fiche. La
+          hiérarchie visuelle disait l'inverse de la hiérarchie réelle.
+
+          Le gain de hauteur qui justifiait le rail est préservé : ce bloc ne reprend
+          PAS la rangée de six chiffres ni les répartitions de l'ancien bandeau, qui
+          restent dans la colonne et dans les onglets. Il porte une ligne d'identité,
+          le cours, et les deux actions.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <AssetPageHeader
+        asset={data}
+        assetClass={assetClass}
+        rankLabel={fr.asset.stats.rank}
+        breadcrumb={<Breadcrumb assetClass={assetClass} name={data.name} />}
+        sourceLabel={asset.source?.label ?? null}
+        price={
+          <>
+            {/*
+              `Money` et non un montant formaté côté serveur.
+
+              Ce cours était le DERNIER chiffre de la page à ignorer la devise choisie :
+              il restait en euros pendant que le rail, les anneaux et les tableaux
+              affichaient des dollars.
+
+              Le coût est connu et assumé : ce montant n'est pas dans le HTML initial
+              avec sa devise finale, il s'affiche en euros puis se convertit à
+              l'hydratation. C'est déjà le comportement de toutes les autres cellules
+              de montant du site (cf. `Money`), et l'euro affiché entre-temps est la
+              devise dans laquelle la source cote réellement — jamais un chiffre faux.
+
+              Binance en complément côté client — voir l'en-tête de `LiveBinancePrice` :
+              ce n'est PAS une seconde source de vérité, juste un cours qui tique sans
+              jamais toucher notre quota CoinGecko. Réservé au marché crypto (§5 —
+              Binance ne cote ni forex, ni actions, ni ETF).
+            */}
+            {assetClass === 'crypto' ? (
+              <LiveBinancePrice
+                symbol={data.symbol}
+                fallbackValue={data.price}
+                fallbackCurrency={data.currency}
+              />
+            ) : (
+              <Money value={data.price} from={data.currency} asRate={isForex} />
+            )}
+            {isForex ? (
+              <span className="ml-1 text-base font-medium text-ink-muted">{data.currency}</span>
+            ) : null}
+          </>
+        }
+        actions={
+          <>
+            {/* L'alerte est proposée À CÔTÉ du suivi, et pas dans un menu : ce sont les
+                deux seules actions que la fiche permet, et elles répondent à la même
+                intention — « je veux garder un œil là-dessus ». */}
+            <AlertButton
+              assetClass={assetClass}
+              assetId={data.id}
+              label={data.name}
+              {...(data.symbol ? { symbol: data.symbol } : {})}
+              currency={data.currency}
+              price={data.price}
+              path={assetHref(assetClass, data.id)}
+              available={watchlist.available && MAILER_ENABLED}
+            />
+
+            <WatchlistButton
+              assetClass={assetClass}
+              assetId={data.id}
+              label={data.name}
+              {...(data.symbol ? { symbol: data.symbol } : {})}
+              path={assetHref(assetClass, data.id)}
+              initialFollowing={watchlist.following}
+              signedIn={watchlist.available}
+            />
+          </>
+        }
+      />
 
       {/*
         TIROIR DES MARCHÉS — la poignée du bord gauche.
@@ -744,15 +828,24 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           tronqués.
           ══════════════════════════════════════════════════════════════════════ */}
       {/*
-        LA GRILLE EST DÉSORMAIS RÉGLABLE — voir `AssetLayoutFrame`.
+        LA GRILLE EST RÉGLABLE, ET C'EST `AssetTabs` QUI LA MONTE.
 
         Ses proportions étaient écrites en dur ici. Elles restent le DÉFAUT, mais le
         lecteur peut resserrer le rail ou le renvoyer en bandeau sous le contenu, et
-        son choix est mémorisé. Le composant reçoit les deux moitiés en props plutôt
-        que de deviner : le rail est une arborescence de composants serveur, qu'un
-        composant client ne peut pas construire — il peut seulement la placer.
+        son choix est mémorisé.
+
+        Le cadre n'est plus appelé directement : la barre d'onglets doit traverser la
+        page ENTIÈRE — c'est la disposition de la référence — alors que les panneaux
+        qu'elle commande restent dans la colonne de droite. Les deux partagent l'état
+        d'onglet actif, qui vit dans `AssetTabs` ; c'est donc lui qui monte le cadre et
+        lui passe sa barre. Voir l'en-tête de sa prop `rail`.
+
+        Le rail et la colonne d'actualités restent des arborescences SERVEUR, passées
+        en nœuds déjà rendus : un composant client ne peut pas les construire, il peut
+        seulement les placer.
       */}
-      <AssetLayoutFrame
+      <AssetTabs
+        tabs={tabs}
         /*
          * COLONNE D'ACTUALITÉS, dépliable par le bouton du bandeau de commande.
          *
@@ -782,80 +875,13 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           /* Le rail passe EN PREMIER dans le document, et à gauche à l'écran. Sur
              téléphone, la grille s'effondre en une colonne et les chiffres arrivent
              donc avant le graphique — ce qui est le bon ordre : un graphique sans
-             échelle lisible sur 375 pixels apprend moins que quatre nombres. */
-          <aside className="space-y-3">
-          <AssetRailIdentity
-            asset={data}
-            assetClass={assetClass}
-            rankLabel={fr.asset.stats.rank}
-            price={
-              <>
-                {/*
-                  `Money` et non un montant formaté côté serveur.
+             échelle lisible sur 375 pixels apprend moins que quatre nombres.
 
-                  Ce cours était le DERNIER chiffre de la page à ignorer la devise
-                  choisie : il restait en euros pendant que le rail, les anneaux et
-                  les tableaux affichaient des dollars. Le rail rend ce désaccord
-                  intenable — la capitalisation est maintenant à trois centimètres du
-                  cours qu'elle contredirait.
-
-                  Le coût est connu et assumé : ce montant n'est plus dans le HTML
-                  initial avec sa devise finale, il s'affiche en euros puis se
-                  convertit à l'hydratation. C'est déjà le comportement de toutes les
-                  autres cellules de montant du site (cf. `Money`), et l'euro affiché
-                  entre-temps est la devise dans laquelle la source cote réellement —
-                  jamais un chiffre faux.
-
-                  Binance en complément côté client — voir l'en-tête de
-                  `LiveBinancePrice` : ce n'est PAS une seconde source de vérité, juste
-                  un cours qui tique sans jamais toucher notre quota CoinGecko. Réservé
-                  au marché crypto (§5 — Binance ne cote ni forex, ni actions, ni ETF).
-                */}
-                {assetClass === 'crypto' ? (
-                  <LiveBinancePrice
-                    symbol={data.symbol}
-                    fallbackValue={data.price}
-                    fallbackCurrency={data.currency}
-                  />
-                ) : (
-                  <Money value={data.price} from={data.currency} asRate={isForex} />
-                )}
-                {isForex ? (
-                  <span className="ml-1 text-base font-medium text-ink-muted">
-                    {data.currency}
-                  </span>
-                ) : null}
-              </>
-            }
-            actions={
-              <>
-                {/* L'alerte est proposée À CÔTÉ du suivi, et pas dans un menu : ce
-                    sont les deux seules actions que la fiche permet, et elles
-                    répondent à la même intention — « je veux garder un œil
-                    là-dessus ». */}
-                <AlertButton
-                  assetClass={assetClass}
-                  assetId={data.id}
-                  label={data.name}
-                  {...(data.symbol ? { symbol: data.symbol } : {})}
-                  currency={data.currency}
-                  price={data.price}
-                  path={assetHref(assetClass, data.id)}
-                  available={watchlist.available && MAILER_ENABLED}
-                />
-
-                <WatchlistButton
-                  assetClass={assetClass}
-                  assetId={data.id}
-                  label={data.name}
-                  {...(data.symbol ? { symbol: data.symbol } : {})}
-                  path={assetHref(assetClass, data.id)}
-                  initialFollowing={watchlist.following}
-                  signedIn={watchlist.available}
-                />
-              </>
-            }
-          />
+             IL NE PORTE PLUS L'IDENTITÉ : nom, cours, amplitude et actions sont remontés
+             dans l'en-tête pleine largeur. La colonne ne garde que les CHIFFRES, ce qui
+             est exactement la sidebar de la référence — et ce que ce rail aurait dû être
+             depuis le début. */
+          <aside key="rail" className="space-y-3">
 
           {/*
             LA BARRE COLLANTE SE PLACE ICI, ET NULLE PART AILLEURS.
@@ -909,27 +935,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <AssetTechSheet asset={data} />
           </aside>
         }
-      >
-        {/* ── Colonne centrale : onglets, graphique, et tout ce qui en dépend ──
-            Les onglets sont ICI et non au-dessus des deux colonnes. Changer d'onglet
-            change le contenu de cette colonne seule, jamais le rail — ce qui est
-            précisément la promesse d'un rail. */}
-        <AssetTabs
-          tabs={tabs}
-          meta={
-            asset.source ? (
-              <>
-                <span className="block">Source · {asset.source.label}</span>
-                {formatDateTime(data.lastUpdated) ? (
-                  <span className="block">
-                    Mis à jour le {formatDateTime(data.lastUpdated)}
-                  </span>
-                ) : null}
-              </>
-            ) : undefined
-          }
-        />
-      </AssetLayoutFrame>
+      />
 
       {/* ── Bandeau d'information ──────────────────────────────────────────────
 

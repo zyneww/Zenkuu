@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
+import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 
 /**
@@ -83,7 +84,34 @@ export interface AssetTab {
   panel: React.ReactNode
 }
 
-export function AssetTabs({ tabs, meta }: { tabs: AssetTab[]; meta?: React.ReactNode }) {
+export function AssetTabs({
+  tabs,
+  rail,
+  news,
+}: {
+  tabs: AssetTab[]
+  /**
+   * Colonne de chiffres et colonne d'actualités, passées au cadre.
+   *
+   * ── POURQUOI CE COMPOSANT RASSEMBLE LES DEUX ──────────────────────────────
+   *
+   * La barre d'onglets doit traverser toute la page, comme celle de la référence, et
+   * les panneaux qu'elle commande doivent rester dans la colonne de droite, à côté du
+   * rail. Or les deux partagent un même état — l'onglet actif — qui vit ici.
+   *
+   * Deux façons de tenir les deux : lever l'état dans le cadre, ou faire descendre le
+   * cadre sous les onglets. La seconde est retenue parce qu'elle garde l'état là où il
+   * est utilisé, et parce que le cadre n'a aucune raison de connaître la notion
+   * d'onglet — il place des colonnes, c'est tout. Il reçoit une barre déjà rendue et
+   * la pose au-dessus de sa grille.
+   *
+   * Les deux colonnes sont reçues en NŒUDS DÉJÀ RENDUS : ce sont des arborescences de
+   * composants serveur, qu'un composant client ne peut pas construire — mais qu'il
+   * peut parfaitement placer.
+   */
+  rail: React.ReactNode
+  news?: React.ReactNode
+}) {
   const [active, setActive] = useState(tabs[0]?.id ?? '')
   const base = useId()
 
@@ -139,107 +167,111 @@ export function AssetTabs({ tabs, meta }: { tabs: AssetTab[]; meta?: React.React
 
   if (tabs.length === 0) return null
 
-  return (
-    <div>
-      {/*
-        La rangée porte les onglets ET une zone de méta à droite. Les deux partagent
-        le même filet inférieur, ce qui évite d'empiler deux lignes horizontales à
-        vingt pixels l'une de l'autre : la méta (source, horodatage) est de la même
-        nature qu'un onglet — elle situe ce qu'on regarde — et n'a pas à ouvrir sa
-        propre bande.
-      */}
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1 border-b border-border-subtle">
-        {/*
-          `-mb-px` est passé du bouton à la BANDE. Il descend celle-ci d'un pixel pour
-          que le trait, posé sur son bord bas, recouvre le filet de la rangée comme le
-          faisait l'ancienne bordure — mais une marge est extérieure à la boîte et ne
-          crée donc aucun débordement à faire défiler.
+  /*
+   * La bande d'onglets seule, sans son filet.
+   *
+   * Le filet appartient désormais à la rangée du cadre, qu'elle partage avec les
+   * commandes de disposition : deux traits parallèles à vingt pixels l'un de l'autre
+   * lisaient comme un défaut d'alignement plutôt que comme deux sections.
+   *
+   * `-mb-px` reste ici : il descend la bande d'un pixel pour que le trait de sélection,
+   * posé sur son bord bas, recouvre le filet de la rangée. Une marge est extérieure à
+   * la boîte et ne crée donc aucun débordement à faire défiler — voir l'en-tête du
+   * fichier sur l'ascenseur d'un pixel que l'ancienne bordure provoquait.
+   *
+   * `overflow-y-hidden` est explicite plutôt que laissé au calcul : la valeur déduite
+   * de `overflow-x` est `auto`, c'est-à-dire un ascenseur au moindre pixel de trop.
+   */
+  const bar = (
+    <div
+      ref={listRef}
+      role="tablist"
+      aria-label="Sections de la fiche"
+      className="relative -mx-1 -mb-px flex items-center gap-1 overflow-x-auto overflow-y-hidden px-1"
+    >
+      {tabs.map((tab) => {
+        const selected = tab.id === active
+        return (
+          <button
+            key={tab.id}
+            ref={(node) => {
+              registerButton(tab.id, node)
+            }}
+            type="button"
+            role="tab"
+            id={`${base}-tab-${tab.id}`}
+            aria-selected={selected}
+            aria-controls={`${base}-panel-${tab.id}`}
+            onClick={() => setActive(tab.id)}
+            /* `pb-3` remplace `py-2.5` + les deux pixels de bordure : même hauteur
+               totale qu'avant, à la place de laquelle le trait est désormais posé. */
+            className={`flex items-center gap-1.5 whitespace-nowrap px-3 pb-3 pt-2.5 text-sm font-medium transition-colors duration-150 ${
+              selected ? 'text-brand-strong' : 'text-ink-muted hover:text-ink'
+            }`}
+          >
+            {/*
+              L'icône suit la couleur du libellé par héritage (`currentColor` chez
+              lucide) mais reste légèrement en retrait : à pleine opacité, un
+              pictogramme de 14px pèse visuellement autant qu'un mot de huit lettres
+              et déséquilibre la paire.
+            */}
+            {tab.icon !== undefined ? (
+              <span aria-hidden="true" className="opacity-70">
+                {tab.icon}
+              </span>
+            ) : null}
+            {tab.label}
+          </button>
+        )
+      })}
 
-          `overflow-y-hidden` est explicite plutôt que laissé au calcul : la valeur
-          déduite de `overflow-x` est `auto`, c'est-à-dire un ascenseur au moindre
-          pixel de trop. Rien ne dépasse aujourd'hui ; l'écrire interdit que cela
-          revienne.
-        */}
-        <div
-          ref={listRef}
-          role="tablist"
-          aria-label="Sections de la fiche"
-          className="relative -mx-1 -mb-px flex items-center gap-1 overflow-x-auto overflow-y-hidden px-1"
-        >
-          {tabs.map((tab) => {
-            const selected = tab.id === active
-            return (
-              <button
-                key={tab.id}
-                ref={(node) => {
-                  registerButton(tab.id, node)
-                }}
-                type="button"
-                role="tab"
-                id={`${base}-tab-${tab.id}`}
-                aria-selected={selected}
-                aria-controls={`${base}-panel-${tab.id}`}
-                onClick={() => setActive(tab.id)}
-                /* `pb-3` remplace `py-2.5` + les deux pixels de bordure : même hauteur
-                   totale qu'avant, à la place de laquelle le trait est désormais posé. */
-                className={`flex items-center gap-1.5 whitespace-nowrap px-3 pb-3 pt-2.5 text-sm font-medium transition-colors duration-150 ${
-                  selected ? 'text-brand-strong' : 'text-ink-muted hover:text-ink'
-                }`}
-              >
-                {/*
-                  L'icône suit la couleur du libellé par héritage (`currentColor` chez
-                  lucide) mais reste légèrement en retrait : à pleine opacité, un
-                  pictogramme de 14px pèse visuellement autant qu'un mot de huit
-                  lettres et déséquilibre la paire.
-                */}
-                {tab.icon !== undefined ? (
-                  <span aria-hidden="true" className="opacity-70">
-                    {tab.icon}
-                  </span>
-                ) : null}
-                {tab.label}
-              </button>
-            )
-          })}
-
-          {/* Décoratif : le lecteur d'écran connaît déjà l'onglet actif par
-              `aria-selected`, et un second signal n'ajouterait qu'un bruit. */}
-          {indicator !== null ? (
-            <span
-              aria-hidden="true"
-              className="tab-indicator"
-              style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
-            />
-          ) : null}
-        </div>
-
-        {meta !== undefined ? (
-          <div className="px-1 pb-2 text-right text-[0.6875rem] leading-tight text-ink-muted">
-            {meta}
-          </div>
-        ) : null}
-      </div>
-
-      {tabs.map((tab) => (
-        <div
-          key={tab.id}
-          role="tabpanel"
-          id={`${base}-panel-${tab.id}`}
-          aria-labelledby={`${base}-tab-${tab.id}`}
-          hidden={tab.id !== active}
-          className="pt-5"
-        >
-          {/*
-            Les panneaux sont TOUS dans le document — c'est le choix de référencement
-            expliqué en tête de fichier. Un panneau qui doit charger quelque chose a
-            donc besoin de savoir s'il est réellement regardé, sans quoi il paierait
-            son appel réseau pour chaque visiteur. C'est cette information-là que le
-            contexte transporte : elle est ici certaine, là où tout mécanisme de
-            détection côté enfant ne peut que la deviner.
-          */}
-          <PanelVisibilityProvider visible={tab.id === active}>{tab.panel}</PanelVisibilityProvider>
-        </div>
-      ))}
+      {/* Décoratif : le lecteur d'écran connaît déjà l'onglet actif par
+          `aria-selected`, et un second signal n'ajouterait qu'un bruit. */}
+      {indicator !== null ? (
+        <span
+          aria-hidden="true"
+          className="tab-indicator"
+          style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
+        />
+      ) : null}
     </div>
+  )
+
+  /*
+   * Les panneaux sont enveloppés dans un CONTENEUR, et non passés en tableau nu.
+   *
+   * Un tableau passé tel quel en `children` traverse le cadre jusqu'à un `{children}`
+   * niché dans sa grille, où React le voit comme une liste dont il ne connaît pas
+   * l'origine : il réclame alors des clés sur des éléments qui en ont déjà, en
+   * désignant le cadre comme fautif. L'avertissement était constaté en console.
+   *
+   * Le conteneur porte aussi le retrait haut sous la barre d'onglets, qui vivait sur
+   * chaque panneau. Une seule déclaration au lieu de cinq, et l'espacement ne peut
+   * plus diverger d'un onglet à l'autre.
+   */
+  const panels = tabs.map((tab) => (
+    <div
+      key={tab.id}
+      role="tabpanel"
+      id={`${base}-panel-${tab.id}`}
+      aria-labelledby={`${base}-tab-${tab.id}`}
+      hidden={tab.id !== active}
+    >
+      {/*
+        Les panneaux sont TOUS dans le document — c'est le choix de référencement
+        expliqué en tête de fichier. Un panneau qui doit charger quelque chose a donc
+        besoin de savoir s'il est réellement regardé, sans quoi il paierait son appel
+        réseau pour chaque visiteur. C'est cette information-là que le contexte
+        transporte : elle est ici certaine, là où tout mécanisme de détection côté
+        enfant ne peut que la deviner.
+      */}
+      <PanelVisibilityProvider visible={tab.id === active}>{tab.panel}</PanelVisibilityProvider>
+    </div>
+  ))
+
+  return (
+    <AssetLayoutFrame tabsBar={bar} rail={rail} {...(news !== undefined ? { news } : {})}>
+      <div className="pt-1">{panels}</div>
+    </AssetLayoutFrame>
   )
 }
