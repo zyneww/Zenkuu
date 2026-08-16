@@ -26,6 +26,8 @@ import {
   networkFromPlatform,
 } from './providers/geckoterminal'
 import { NEWS_SOURCES, fetchNews } from './providers/news'
+import { fetchAssetProfile, type AssetProfile } from './providers/yahoo-profile'
+import { findUniverseEntry } from './providers/yahoo-universe'
 import {
   SENTIMENT_SOURCE,
   fetchSentiment,
@@ -1323,6 +1325,88 @@ export function getNewListings(limit = 100): Promise<DataResult<NewListing[]>> {
     () => fetchNewListings(limit),
     1_800,
   )
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PROFIL D'UNE VALEUR BOURSIÈRE — frais, composition, ratios
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Six heures.
+ *
+ * Ce que ce profil porte ne bouge pas à l'échelle de la journée : des frais de gestion
+ * changent une fois par an, une composition de fonds une fois par trimestre, un secteur
+ * jamais. Les seuls champs mobiles — ratio cours/bénéfice, capitalisation — suivent le
+ * cours, qui est déjà servi ailleurs et rafraîchi toutes les trois minutes.
+ *
+ * C'est aussi ce qui rend l'appel supportable : l'endpoint exige une poignée de main en
+ * deux temps, et six heures de cache la ramènent à quatre par jour et par titre.
+ */
+const PROFILE_TTL_SECONDS = 6 * 3_600
+
+/**
+ * Profil d'un actif boursier, ou un échec explicite.
+ *
+ * ── RÉSERVÉ AUX CLASSES QUE YAHOO DÉCRIT ──────────────────────────────────────
+ *
+ * Actions et ETF seulement. Les matières premières et les indices n'ont ni frais, ni
+ * composition, ni ratios : appeler pour eux dépenserait un aller-retour pour se voir
+ * répondre un objet vide. La crypto et le forex passent par d'autres fournisseurs, qui
+ * ne connaissent pas cet endpoint.
+ *
+ * ── L'IDENTIFIANT D'URL N'EST PAS LE SYMBOLE ──────────────────────────────────
+ *
+ * Les routes portent `iwda-as`, Yahoo attend `IWDA.AS`. La traduction passe par la
+ * table de l'univers, seule source de cette correspondance — la refaire ici à coups de
+ * remplacements donnerait un symbole faux pour tout titre dont le suffixe n'est pas un
+ * point.
+ */
+export async function getAssetProfile(
+  id: string,
+  assetClass: AssetClass,
+): Promise<DataResult<AssetProfile | null>> {
+  const source = describe(assetClass)
+
+  if (assetClass !== 'stock' && assetClass !== 'etf') {
+    return {
+      ok: false,
+      kind: 'unconfigured',
+      reason: 'Profil détaillé publié seulement pour les actions et les ETF.',
+      source,
+    }
+  }
+
+  const resolved = findUniverseEntry(id)
+  if (!resolved) {
+    return {
+      ok: false,
+      kind: 'notFound',
+      reason: 'Symbole inconnu de notre univers boursier.',
+      source,
+    }
+  }
+
+  try {
+    const data = await cached(
+      `${assetClass}:profile:${resolved.entry.symbol}`,
+      () => fetchAssetProfile(resolved.entry.symbol, assetClass),
+      PROFILE_TTL_SECONDS,
+    )
+    return {
+      ok: true,
+      data,
+      source: source ?? { label: 'Yahoo Finance', attributionUrl: 'https://finance.yahoo.com' },
+    }
+  } catch (error) {
+    const detail = error instanceof ProviderError ? error.message : String(error)
+    console.error(`[zenkuu:data] ${assetClass}:profile:${resolved.entry.symbol} — ${detail}`)
+    /*
+     * Un profil manquant n'est PAS une panne de la fiche : le cours, le graphique et
+     * l'historique viennent d'un autre endpoint et fonctionnent. On rend donc un
+     * échec que l'appelant traduit en sections absentes, jamais en page d'erreur.
+     */
+    return { ok: false, kind: 'error', reason: detail, source }
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════

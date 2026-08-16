@@ -109,9 +109,9 @@ export function AssetLayoutFrame({
   const [layout, setLayout] = useState<AssetLayout>('rail')
   const [open, setOpen] = useState(false)
 
-  /* Repliée par défaut, et pour le même motif que la disposition : le HTML du serveur
-     ne peut pas connaître la préférence, et partir déplié imposerait à tous ceux qui
-     ne s'en servent pas de voir une colonne apparaître puis disparaître. */
+  /* Repliée au PREMIER RENDU, et pour le même motif que la disposition : le HTML du
+     serveur ne connaît ni la préférence ni la largeur de l'écran. L'état définitif est
+     posé dans l'effet ci-dessous. */
   const [newsOpen, setNewsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -120,7 +120,29 @@ export function AssetLayoutFrame({
       const stored = window.localStorage.getItem(STORAGE_KEY)
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (isLayout(stored)) setLayout(stored)
-      if (window.localStorage.getItem(NEWS_KEY) === 'open') setNewsOpen(true)
+
+      /*
+        ── LA COLONNE S'OUVRE D'ELLE-MÊME SUR LES GRANDS ÉCRANS ──────────────
+
+        Elle restait fermée tant qu'on ne l'avait pas trouvée, et c'était un mauvais
+        arbitrage : au-delà de 1280 pixels, la place existe SANS rien retirer au
+        graphique — c'est précisément le seuil auquel elle devient une troisième
+        colonne au lieu de passer sous le contenu. La référence l'affiche d'ailleurs
+        ouverte, et pour la même raison.
+
+        En dessous du seuil, rien ne change : la colonne passerait sous le graphique
+        et allongerait la page pour un contenu que personne n'a demandé.
+
+        Le choix EXPLICITE l'emporte toujours sur ce défaut, dans les deux sens : qui a
+        fermé la colonne la retrouve fermée sur un écran large, qui l'a ouverte la
+        retrouve ouverte sur un écran étroit. Le stockage ne dit « rien » qu'avant le
+        premier clic — c'est là, et seulement là, que la largeur décide.
+      */
+      const storedNews = window.localStorage.getItem(NEWS_KEY)
+      if (storedNews === 'open') setNewsOpen(true)
+      else if (storedNews === null && window.matchMedia('(min-width: 1280px)').matches) {
+        setNewsOpen(true)
+      }
     } catch {
       // Stockage refusé — navigation privée, cookies bloqués, iframe cloisonnée.
       // La fiche reste parfaitement utilisable sur la disposition par défaut ; ce

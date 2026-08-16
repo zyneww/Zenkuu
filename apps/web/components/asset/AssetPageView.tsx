@@ -6,6 +6,7 @@ import type { AssetClass, AssetTicker } from '@zenkuu/data'
 import {
   getAsset,
   getAssetHistory,
+  getAssetProfile,
   getAssetTickers,
   getExchangeRates,
   getNews,
@@ -30,6 +31,7 @@ import { AssetNewsPanel } from '@/components/asset/AssetNewsPanel'
 import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
 import { mentioning } from '@/lib/mentions'
 import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
+import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetPools } from '@/components/asset/AssetPools'
 import { AssetSectors } from '@/components/asset/AssetSectors'
@@ -163,7 +165,8 @@ export interface AssetPageViewProps {
 
 export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   const fr = await getContent()
-  const [asset, history, peers, rates, tickers, news, trending, exchanges] = await Promise.all([
+  const [asset, history, peers, rates, tickers, news, trending, exchanges, profileResult] =
+    await Promise.all([
     getAsset(id, assetClass, 'eur'),
     getAssetHistory(id, assetClass, SERVER_RANGE_DAYS, 'eur'),
     // `getPeers` dérive de l'aperçu déjà mis en cache par l'accueil : les
@@ -209,6 +212,19 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
      * seul nom — c'est-à-dire celles où l'icône sert le plus.
      */
     assetClass === 'crypto' ? getSpotExchanges(250) : null,
+    /*
+     * PROFIL BOURSIER — frais, composition, ratios.
+     *
+     * Actions et ETF seulement : les autres classes n'ont rien à y trouver, et
+     * `getAssetProfile` le refuse de toute façon. C'est ce qui donne enfin une matière
+     * propre aux fiches d'ETF, qui n'avaient qu'un cours et un graphique — or un fonds
+     * n'est pas un actif mais un PANIER, et sa question propre est ce qu'il contient.
+     *
+     * Mis en cache six heures : des frais changent une fois par an, une composition par
+     * trimestre. L'appel exige une poignée de main en deux temps (voir son adaptateur),
+     * que ce cache ramène à quatre par jour et par titre.
+     */
+    assetClass === 'stock' || assetClass === 'etf' ? getAssetProfile(id, assetClass) : null,
   ])
 
   // Identifiant inconnu de la source : c'est un 404 au sens propre, pas une panne.
@@ -237,6 +253,11 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
 
   const comparables = peers.ok ? peers.data : []
   const tickerRows = tickers.ok ? tickers.data : []
+
+  /* Un profil manquant n'est PAS une panne de la fiche : le cours, le graphique et
+     l'historique viennent d'un autre endpoint. Les sections qu'il alimente disparaissent
+     simplement, comme n'importe quel champ absent. */
+  const profile = profileResult?.ok ? profileResult.data : null
 
   /* Table identifiant → logo. Construite ICI, une fois, plutôt que par une recherche
      dans un tableau de 250 entrées à chacune des cent lignes du tableau des places. */
@@ -421,6 +442,17 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   const ecosystem = (
     <div className="space-y-10">
       {assetClass === 'crypto' ? <AssetSectors asset={data} /> : null}
+
+      {/*
+        LA COMPOSITION D'UN FONDS OCCUPE ICI LA PLACE DES SECTEURS D'UNE CRYPTO.
+
+        Les deux répondent à la même question — « de quoi ce terrain est-il fait » —
+        avec la donnée que chaque classe publie réellement : des narratifs pondérés pour
+        un jeton, des positions et des secteurs pour un tracker. Aucune fiche ne montre
+        les deux, et aucune n'affiche de section vide : le composant se retire quand la
+        source n'a rien livré.
+      */}
+      {profile ? <AssetHoldings profile={profile} assetName={data.name} /> : null}
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
@@ -910,6 +942,12 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               courte. */}
           {/* Le groupe « Offre » est CÉDÉ à `AssetSupply`, qui le rend en jauges. */}
           <AssetMetricRail asset={data} assetClass={assetClass} groups={RAIL_GROUPS} />
+
+          {/* Repères propres à la bourse — frais et encours pour un fonds, ratios pour
+              une action. Ils ne rejoignent pas le registre de métriques, qui décrit le
+              contrat COMMUN aux six classes : y verser des champs qu'une seule
+              renseigne en ferait l'union de tous les cas particuliers. */}
+          {profile ? <AssetProfileRail profile={profile} /> : null}
           <AssetSupply asset={data} />
           <AssetSentiment asset={data} />
           <AssetCommunity asset={data} />

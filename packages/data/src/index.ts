@@ -41,6 +41,7 @@ export {
   getCryptoGlobalStats,
   getCryptoOverview,
   getCryptoRanking,
+  getAssetProfile,
   getForexRates,
   getMarketCapBasket,
   MARKET_CAP_BASKET,
@@ -97,6 +98,8 @@ export {
 export type { CommodityFamily, UniverseEntry } from './providers/yahoo-universe'
 
 export { knownNetworks, networkFromPlatform } from './providers/geckoterminal'
+
+export type { AssetProfile, FundHolding, SectorWeight } from './providers/yahoo-profile'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
 export type { TreasuryCoin } from './providers/coingecko-extras'
