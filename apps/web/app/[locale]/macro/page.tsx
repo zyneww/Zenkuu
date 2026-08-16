@@ -94,9 +94,17 @@ export default async function MacroPage({
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">{indicator.hint}</p>
 
       {!result.ok ? (
+        /*
+          L'ÉCHEC EST FRÉQUENT ICI, et le message le dit plutôt que de laisser croire
+          à une panne de notre côté. Relevé au navigateur : ce service répond parfois
+          502 sur toutes ses séries pendant plusieurs minutes, y compris celles qui
+          venaient de fonctionner. Un indicateur qui manque aujourd'hui revient
+          généralement de lui-même — et les autres restent atteignables, d'où
+          l'invitation à en essayer un.
+        */
         <EmptyState
-          title="Séries macroéconomiques indisponibles"
-          description={result.reason}
+          title={`« ${indicator.label} » indisponible pour le moment`}
+          description={`${result.reason} Ce service public répond par à-coups : l’indicateur revient de lui-même, souvent en quelques minutes. Les autres indicateurs de la rangée ci-dessus restent accessibles.`}
           source={result.source?.label ?? null}
           tone="warning"
         />

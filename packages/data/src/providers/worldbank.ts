@@ -69,6 +69,25 @@ const http = createHttpClient({
      le cache HTTP de Next.js n'a rien à y gagner, et le cache applicatif prend le
      relais avec un TTL bien plus long. */
   bypassNextCache: true,
+  /*
+   * ── UN ÉCHEC RAPIDE PLUTÔT QU'UNE PAGE QUI ATTEND ────────────────────────
+   *
+   * Ce service RÉPOND MAL PAR MOMENTS, et c'est mesuré : des séries qui rendent 265
+   * lignes en une seconde, puis des 502 sur TOUTES les séries pendant plusieurs
+   * minutes — y compris celles qui venaient de fonctionner. Ce n'est donc pas un
+   * indicateur cassé, c'est un serveur public qui plie sous la charge.
+   *
+   * Avec les valeurs par défaut, une panne coûtait vingt et une secondes d'attente
+   * avant l'état vide — dix pour le délai, dix pour la reprise. Relevé sur
+   * `/macro?indicateur=dette`. C'est le pire des deux mondes : le lecteur attend, et
+   * il finit quand même par lire « indisponible ».
+   *
+   * Huit secondes, sans reprise. La reprise part en premier parce qu'elle ne sert à
+   * rien ici : quand ce service tombe, il tombe pour plusieurs minutes, pas pour une
+   * requête. Les reprises après 429 et 5xx restent actives — elles sont immédiates.
+   */
+  timeoutMs: 8_000,
+  retryOnTimeout: false,
 })
 
 /**
