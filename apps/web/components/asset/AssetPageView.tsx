@@ -31,6 +31,8 @@ import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
 import { mentioning } from '@/lib/mentions'
 import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
+import { AssetPools } from '@/components/asset/AssetPools'
+import { AssetSectors } from '@/components/asset/AssetSectors'
 import { AssetRailIdentity } from '@/components/asset/AssetRailIdentity'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
 import { AssetSimilarRail } from '@/components/asset/AssetSimilarRail'
@@ -390,18 +392,37 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   )
 
   /*
-   * ── ÉCOSYSTÈME : LES COMPARABLES ET LES DÉTENTEURS ────────────────────────
+   * ── ÉCOSYSTÈME : LE TERRAIN DE L'ACTIF, SOUS QUATRE ANGLES ────────────────
    *
-   * Deux onglets ont fusionné ici, « Similaires » et « Trésorerie ». Ils posaient la
-   * même question sous deux angles — qui d'autre occupe ce terrain, et qui en détient
-   * — et aucun des deux ne remplissait un onglet à lui seul : le premier tient en une
-   * grille de six vignettes, le second n'a AUCUNE donnée à montrer, quelle que soit la
-   * fiche. Deux onglets à moitié vides coûtent plus cher qu'un onglet plein : ils
-   * allongent la rangée, donc le temps qu'il faut pour la lire, et chacun déçoit à
-   * l'ouverture.
+   * Deux onglets ont d'abord fusionné ici, « Similaires » et « Trésorerie ». Ils
+   * posaient la même question sous deux angles — qui d'autre occupe ce terrain, et qui
+   * en détient — et aucun des deux ne remplissait un onglet à lui seul : le premier
+   * tient en une grille de six vignettes, le second n'a AUCUNE donnée à montrer, quelle
+   * que soit la fiche. Deux onglets à moitié vides coûtent plus cher qu'un onglet plein.
+   *
+   * Deux sections s'y ajoutent, et elles répondent au reproche que la fusion laissait
+   * intact : l'onglet restait le plus maigre des cinq — six vignettes et un encadré
+   * d'absence.
+   *
+   *   SECTEURS. Les narratifs auxquels la source rattache l'actif, avec la taille de
+   *   chacun et la part qu'il y occupe. C'est ce qui donne son échelle au reste de la
+   *   page : soixante milliards ne veut pas la même chose selon qu'ils pèsent deux
+   *   pour cent d'un secteur ou soixante. Gratuit — `getCategories` est déjà en cache
+   *   pour tout le site.
+   *
+   *   POOLS DE LIQUIDITÉ. Notre équivalent honnête de l'« App ecosystem » de la
+   *   référence : elle liste les applications déployées sur une chaîne, nous listons
+   *   les réserves où le jeton s'échange sans intermédiaire. Chargés à l'ouverture de
+   *   l'onglet seulement, et jamais rendus pour un actif sans contrat.
+   *
+   * L'ORDRE va du plus large au plus étroit : le secteur situe l'actif dans le marché,
+   * les comparables le situent parmi ses pairs, les pools disent où il change de mains,
+   * et les détentions institutionnelles — que personne ne publie — ferment la marche.
    */
   const ecosystem = (
     <div className="space-y-10">
+      {assetClass === 'crypto' ? <AssetSectors asset={data} /> : null}
+
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="display-sm text-ink">{fr.asset.similarTitle}</h2>
@@ -419,6 +440,12 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <EmptyState title={fr.states.unavailableTitle} compact />
         )}
       </section>
+
+      {/* Réservé aux jetons portant une adresse de contrat : un actif natif — bitcoin,
+          ether — n'a pas de pool, et le composant se retire de lui-même. */}
+      {assetClass === 'crypto' && data.contracts ? (
+        <AssetPools contracts={data.contracts} assetName={data.name} />
+      ) : null}
 
       {/*
         ── DÉTENTIONS INSTITUTIONNELLES ────────────────────────────────────────
