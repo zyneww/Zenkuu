@@ -104,6 +104,10 @@ export function AssetTickers({
     [tickers, target],
   )
 
+  const hasSpread = useMemo(() => tickers.some((ticker) => ticker.spreadPercent !== undefined), [tickers])
+  const hasDepth = useMemo(() => tickers.some((ticker) => ticker.depthUpUsd !== undefined), [tickers])
+  const hasTrust = useMemo(() => tickers.some((ticker) => ticker.trust !== undefined), [tickers])
+
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
   // Le changement de filtre peut rendre la page courante inexistante : on la borne
   // au rendu plutôt qu'en effet de bord, ce qui évite un rendu intermédiaire vide.
@@ -111,10 +115,6 @@ export function AssetTickers({
   const rows = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   if (tickers.length === 0) return null
-
-  const hasSpread = tickers.some((ticker) => ticker.spreadPercent !== undefined)
-  const hasDepth = tickers.some((ticker) => ticker.depthUpUsd !== undefined)
-  const hasTrust = tickers.some((ticker) => ticker.trust !== undefined)
 
   return (
     <section aria-labelledby="places-titre" className="space-y-3">
