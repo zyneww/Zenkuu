@@ -500,6 +500,28 @@ export interface NftCollection {
   volume24hUsd?: number
   /** Variation du prix plancher en dollars sur 24 h, en pourcentage. */
   floorChange24h?: number
+  /**
+   * Site officiel de la collection, tel que la source le publie.
+   *
+   * ── POURQUOI CE CHAMP, ET POURQUOI CETTE DESTINATION ────────────────────────
+   *
+   * Les tuiles de la carte des collections n'étaient pas cliquables, faute de savoir où
+   * mener : ZENKUU n'a pas de fiche NFT, et l'inventer aurait demandé un chantier
+   * entier. Deux destinations ont été envisagées puis mesurées chez la source :
+   *
+   *   · `coingecko.com/en/nft/<id>` — plausible, mais impossible à vérifier depuis un
+   *     script (403 Cloudflare sur les trois collections testées). Une URL construite
+   *     sans preuve est exactement ce que le §5 proscrit ;
+   *   · `links.homepage` de `/nfts/{id}` — PUBLIÉ par la source, présent sur les trois
+   *     collections testées, et c'est le site de la collection elle-même.
+   *
+   * Le second est retenu. Comme tout lien sortant du site, il part en `nofollow` : nous
+   * citons une collection, nous ne la recommandons pas.
+   *
+   * Facultatif : une collection sans site publié laisse sa tuile inerte, ce qui est le
+   * comportement d'origine et non une régression.
+   */
+  homepage?: string
 }
 
 /**
@@ -571,6 +593,186 @@ export interface SpotExchange {
   trustRank?: number
   volume24hBtc: number
   url?: string
+}
+
+/**
+ * Une PLACE de produits dérivés — à ne pas confondre avec `DerivativeMarket`.
+ *
+ * ── LA DISTINCTION VAUT D'ÊTRE POSÉE ────────────────────────────────────────
+ *
+ * `DerivativeMarket` décrit UN CONTRAT : « BTCUSDT perpétuel sur Binance », avec son
+ * prix, son taux de financement et son écart à l'indice. Celui-ci décrit LA PLACE qui
+ * le cote : Binance Futures dans son ensemble, tous contrats confondus.
+ *
+ * Deux questions différentes, deux tableaux différents. « Quel contrat suivre ? » se
+ * lit par contrat ; « où se concentre l'exposition, et sur quelle infrastructure ? »
+ * se lit par place — et c'est la seconde qui distingue une plateforme centralisée d'un
+ * protocole décentralisé, information qu'aucune ligne de contrat ne porte.
+ *
+ * ── LES MONTANTS SONT EN BITCOIN ────────────────────────────────────────────
+ *
+ * Comme pour `SpotExchange`, et pour la même raison : c'est l'unité de publication de
+ * la source. Convertir supposerait de choisir un cours et un instant, ce qui ferait
+ * d'une mesure une estimation (§5).
+ */
+export interface DerivativeExchange {
+  id: string
+  name: string
+  image?: string
+  /**
+   * Nature de la place — `dex` sur chaîne, `cex` dépositaire.
+   *
+   * ── OÙ CETTE INFORMATION VIT, ET POURQUOI ELLE ARRIVE PAR DEUX CHEMINS ────
+   *
+   * La source PUBLIE un booléen `centralized`, et il est exact — vérifié sur
+   * PancakeSwap (`false`), Uniswap (`false`), Hyperliquid (`false`) et Binance
+   * Futures (`true`). Mais il n'existe QUE sur `/exchanges/{id}`, l'endpoint de
+   * DÉTAIL : ni `/derivatives/exchanges` ni `/exchanges` ne le portent dans leur
+   * liste.
+   *
+   * Renseigner les cent lignes d'un classement depuis la source coûterait donc cent
+   * appels, sur un quota mesuré à cinq par minute. La liste est alors servie par une
+   * table écrite à la main (`DERIVATIVE_DEX_IDS` / `DERIVATIVE_CEX_IDS`), tandis que
+   * la FICHE d'une place lit `centralized` chez la source — un seul appel, la donnée
+   * d'origine.
+   *
+   * ⚠️ Ce n'est pas une nuance cosmétique : sur la liste, l'affichage attribue le
+   * classement à ZENKUU ; sur la fiche, il vient de la source. Les deux ne doivent
+   * pas être présentés du même ton.
+   *
+   * Deux autres pistes ont été essayées pour la liste, et mesurées sur soixante
+   * places avant d'être écartées :
+   *
+   *   · Chercher « decentralized » dans `description` — 6 correspondances, dont
+   *     Bybit, qui est dépositaire. Le mot apparaît dans des textes de présentation
+   *     qui décrivent l'écosystème, pas la place. Faux positifs.
+   *   · Se rabattre sur l'absence de description — 23 places sur 60 n'en ont aucune,
+   *     Binance et OKX comprises. Aucun signal.
+   *
+   * `undefined` signifie « non classée », pas « centralisée » : une place absente de
+   * notre table n'est pas réputée dépositaire, elle est simplement inconnue de nous.
+   */
+  kind?: 'dex' | 'cex'
+  /** Positions ouvertes, en bitcoin. C'est l'exposition réelle portée par la place. */
+  openInterestBtc?: number
+  volume24hBtc?: number
+  /** Contrats perpétuels cotés — ceux sans échéance. */
+  perpetualPairs?: number
+  /** Contrats à échéance. */
+  futuresPairs?: number
+  yearEstablished?: number
+  country?: string
+  url?: string
+}
+
+/**
+ * FICHE COMPLÈTE D'UNE PLACE — comptant ou dérivés, centralisée ou non.
+ *
+ * ── UN SEUL TYPE POUR QUATRE PAGES, ET C'EST DÉLIBÉRÉ ───────────────────────
+ *
+ * CoinGecko sert quatre gabarits selon la place : comptant centralisé, comptant
+ * décentralisé, dérivés centralisés, dérivés décentralisés. Les quatre affichent la
+ * même identité — nom, pays, année, réseaux, lien — et diffèrent par les CHIFFRES
+ * qu'ils mettent en avant et par le tableau qu'ils déroulent.
+ *
+ * Un type par gabarit ferait donc quatre déclarations dont les trois quarts seraient
+ * identiques, et quatre pages à corriger au premier ajout de champ. Les champs
+ * propres à une nature sont ici OPTIONNELS, et leur absence porte l'information :
+ * une place au comptant n'a pas d'intérêt ouvert, une place de dérivés n'a pas de
+ * note de confiance. La page lit ce qui est là et se tait sur le reste.
+ *
+ * ── `centralized` VIENT DE LA SOURCE, ICI ───────────────────────────────────
+ *
+ * C'est la différence avec `DerivativeExchange.kind`, renseigné par une table écrite
+ * à la main. Sur une FICHE, on ne fait qu'un appel : `/exchanges/{id}` publie le
+ * booléen, et on le lit. Voir la note de ce champ pour la mesure qui l'établit.
+ */
+export interface ExchangeProfile {
+  id: string
+  name: string
+  image?: string
+  /** Résumé publié par la source. En ANGLAIS — l'affichage doit le dire. */
+  description?: string
+  url?: string
+  country?: string
+  yearEstablished?: number
+
+  /** Nature de la place, telle que la source la déclare. Absent = non publié. */
+  centralized?: boolean
+  /** Vrai si la place cote des produits dérivés — décidé par l'endpoint interrogé. */
+  derivatives: boolean
+
+  /* ── Chiffres du comptant ────────────────────────────────────────────── */
+  trustScore?: number
+  trustRank?: number
+  /** Volume sur 24 h, en bitcoin — unité de publication de la source. */
+  volume24hBtc?: number
+  coins?: number
+  pairs?: number
+
+  /* ── Chiffres des dérivés ────────────────────────────────────────────── */
+  openInterestBtc?: number
+  perpetualPairs?: number
+  futuresPairs?: number
+
+  /** Comptes officiels, pour la fiche d'identité. */
+  social?: { twitter?: string; reddit?: string; facebook?: string; telegram?: string }
+
+  /** Paires cotées, déjà normalisées — voir `ExchangeTicker`. */
+  tickers: ExchangeTicker[]
+}
+
+/**
+ * Une paire cotée sur une place.
+ *
+ * Distinct d'`AssetTicker`, qui décrit la même réalité vue DEPUIS L'ACTIF : celui-ci
+ * porte la place et cherche l'actif, celui-là porte l'actif et cherche la place. Les
+ * deux endpoints ne renvoient d'ailleurs pas les mêmes champs.
+ */
+export interface ExchangeTicker {
+  base: string
+  target: string
+  /**
+   * Identifiant de l'actif de base chez la source, quand elle le publie.
+   *
+   * C'est le SEUL lien entre une paire et la fiche de l'actif qu'elle cote : `base`
+   * est un symbole de place (« 1000BONK », « 0G »), qui ne désigne rien d'unique —
+   * plusieurs jetons partagent un ticker, et les contrats à effet de levier préfixent
+   * le leur d'un multiplicateur. L'identifiant, lui, est celui de nos propres URL de
+   * fiche.
+   */
+  coinId?: string
+  /** Icône de l'actif de base, résolue par l'appelant depuis `coinId`. */
+  image?: string
+  /** Prix dans la devise de cotation, tel que publié. */
+  last: number
+  /** Volume en unités de l'actif de base. */
+  volume?: number
+  /** Volume converti en dollars par la source. */
+  volumeUsd?: number
+  spreadPercentage?: number
+  /** Note de confiance de la PAIRE : `green`, `yellow`, `red`. Absente sur les dérivés. */
+  trustScore?: string
+  /** Horodatage du dernier échange relevé. */
+  lastTradedAt?: string
+  /** Lien vers la paire chez l'opérateur, quand la source le publie. */
+  tradeUrl?: string
+
+  /* ── Propres aux dérivés ─────────────────────────────────────────────── */
+  /** Variation sur 24 h. Publiée par les dérivés uniquement. */
+  change24h?: number
+  contractType?: string
+  /**
+   * Positions ouvertes, EN DOLLARS — le nom le dit parce que la source le publie ainsi.
+   *
+   * Le champ s'appelait `openInterest` sans unité, ce qui laissait croire à un nombre
+   * de contrats. `open_interest_usd` est un montant, et sur une page où l'intérêt
+   * ouvert de la place est libellé en bitcoin, mélanger les deux unités sans le dire
+   * serait la plus coûteuse des ambiguïtés.
+   */
+  openInterestUsd?: number
+  /** Taux de financement, en pourcentage par période de financement. */
+  fundingRate?: number
 }
 
 /** Article d'actualité agrégé depuis un flux public. */
@@ -801,8 +1003,22 @@ export interface MarketDataProvider {
   getTickers?(id: string, currency?: string, limit?: number): Promise<AssetTicker[]>
   /** Marchés de dérivés — intérêt ouvert et taux de financement, quand la source les publie. */
   getDerivatives?(limit?: number): Promise<DerivativeMarket[]>
+  getDerivativeExchanges?(limit?: number): Promise<DerivativeExchange[]>
   /** Places de marché au comptant, classées par la source selon sa note de confiance. */
   getExchanges?(limit?: number): Promise<SpotExchange[]>
+  /**
+   * Fiche d'une place.
+   *
+   * `kind` ÉVITE UN APPEL, et ce n'est pas un détail : les deux natures vivent sur
+   * deux endpoints distincts, et sans indication il faudrait interroger le premier
+   * puis se rabattre sur le second. Sur un quota mesuré à cinq requêtes par minute,
+   * cela double la consommation et fait tomber la page en 429 — mesuré : 121 secondes
+   * pour une fiche de place de dérivés.
+   *
+   * L'appelant connaît la réponse sans rien demander à la source : la liste des places
+   * de dérivés est déjà en cache. Voir `getExchangeProfile` dans `queries.ts`.
+   */
+  getExchangeProfile?(id: string, kind?: 'spot' | 'derivatives'): Promise<ExchangeProfile | null>
   /** Recherche par nom ou symbole, quand la source expose un index. */
   search?(query: string, limit?: number): Promise<SearchResult[]>
 }
@@ -826,6 +1042,31 @@ export class ProviderError extends Error {
    */
   readonly notFound: boolean
 
+  /**
+   * Cette source NE PUBLIE PAS cette donnée — jamais, pour aucun identifiant.
+   *
+   * ── POURQUOI CE TROISIÈME DRAPEAU ───────────────────────────────────────────
+   *
+   * Trois échecs se ressemblaient et n'ont rien de commun :
+   *
+   *   · la source est en panne ou son quota est atteint    → incident, à surveiller ;
+   *   · l'identifiant n'existe pas chez elle (`notFound`)  → 404, pas un incident ;
+   *   · elle ne couvre pas cette donnée du tout            → ni l'un ni l'autre.
+   *
+   * Le troisième cas était journalisé au niveau ERREUR. Concrètement : chaque rendu
+   * d'une fiche d'action, d'ETF, de devise ou d'indice écrivait
+   * « Places de cotation non publiées par la source » dans la console — Yahoo et la
+   * BCE n'exposent pas de carnet, ce qui est leur nature et non un défaut.
+   *
+   * Ce bruit a un coût réel : il noie les vraies pannes. Une console où une ligne
+   * rouge apparaît à chaque page est une console qu'on cesse de lire, et c'est
+   * précisément là que se cache l'incident qu'on cherchait.
+   *
+   * Le résultat pour l'appelant ne change PAS : il reçoit toujours `ok: false` et la
+   * section disparaît. Seul le niveau de journalisation suit la nature de l'échec.
+   */
+  readonly unsupported: boolean
+
   constructor(
     providerId: string,
     message: string,
@@ -833,6 +1074,7 @@ export class ProviderError extends Error {
       status?: number
       retryable?: boolean
       notFound?: boolean
+      unsupported?: boolean
       cause?: unknown
     } = {},
   ) {
@@ -844,5 +1086,6 @@ export class ProviderError extends Error {
     // Un 404 de la source vaut déclaration d'inexistence sans avoir à le répéter à
     // chaque appel : c'est exactement ce que le code signifie.
     this.notFound = options.notFound ?? options.status === 404
+    this.unsupported = options.unsupported ?? false
   }
 }

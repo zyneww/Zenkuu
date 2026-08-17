@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from 'react'
 
-import { formatMacroValue, type MacroObservation } from '@zenkuu/data'
+import {
+  formatMacroValue,
+  unpackMacroSeries,
+  type MacroObservation,
+  type PackedMacroSeries,
+} from '@zenkuu/data'
 
 /**
  * CARTE MACROÉCONOMIQUE — l'écart entre pays, indicateur par indicateur.
@@ -92,12 +97,23 @@ function percentile(sorted: number[], ratio: number): number {
 }
 
 export function MacroMap({
-  observations,
+  series,
   unit,
   tone,
   valueScale,
 }: {
-  observations: MacroObservation[]
+  /**
+   * Série COMPACTÉE, telle qu'elle traverse la frontière serveur → client.
+   *
+   * Elle arrive encodée plutôt qu'en `MacroObservation[]` parce que ce composant est
+   * un composant client : ce qu'il reçoit est sérialisé dans la charge utile de la
+   * page. Voir `packMacroSeries` pour la mesure — soixante-six ans d'historique en
+   * objets nommés réécrivent le nom de chaque pays soixante-six fois.
+   *
+   * Le dépaquetage a lieu une seule fois, en mémoire, et le reste du composant
+   * continue de raisonner en observations.
+   */
+  series: PackedMacroSeries
   unit: string
   tone: MacroTone
   /**
@@ -109,6 +125,8 @@ export function MacroMap({
 }) {
   const [groupId, setGroupId] = useState(MACRO_GROUPS[0]!.id)
   const group = MACRO_GROUPS.find((entry) => entry.id === groupId) ?? MACRO_GROUPS[0]!
+
+  const observations = useMemo(() => unpackMacroSeries(series), [series])
 
   const rows = useMemo(() => {
     const kept = group.iso3

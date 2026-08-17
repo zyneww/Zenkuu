@@ -11,6 +11,9 @@ import { createHttpClient } from '../http'
 import type {
   AssetDetail,
   AssetTicker,
+  DerivativeExchange,
+  ExchangeProfile,
+  ExchangeTicker,
   DerivativeMarket,
   GlobalMarketStats,
   ListAssetsParams,
@@ -260,6 +263,409 @@ interface CoinGeckoExchange {
   trade_volume_24h_btc?: number | null
 }
 
+interface CoinGeckoDerivativeExchange {
+  id?: string
+  name?: string
+  image?: string
+  country?: string | null
+  url?: string
+  year_established?: number | null
+  open_interest_btc?: number | null
+  /** Chaîne dans cette réponse, nombre ailleurs — voir `getDerivativeExchanges`. */
+  trade_volume_24h_btc?: number | string | null
+  number_of_perpetual_pairs?: number | null
+  number_of_futures_pairs?: number | null
+}
+
+/**
+ * PLACES DE DÉRIVÉS DÉCENTRALISÉES — notre classification, pas celle de la source.
+ *
+ * ── POURQUOI DEUX LISTES PLUTÔT QU'UNE ──────────────────────────────────────
+ *
+ * Une seule liste de DEX ferait de « absent de la liste » un synonyme de
+ * « centralisé ». C'est faux dès qu'une place nouvelle apparaît en tête de classement
+ * — et il en apparaît plusieurs par trimestre sur ce marché. Deux listes rendent
+ * possible un troisième état, `undefined`, qui dit ce qu'on sait réellement : rien.
+ *
+ * ── CE QUI FAIT QU'UNE PLACE EST ICI ────────────────────────────────────────
+ *
+ * Le critère est le RÈGLEMENT DES POSITIONS : sur un DEX, la marge est déposée dans
+ * un contrat autonome et le carnet d'ordres est public ou vérifiable sur chaîne ;
+ * sur un CEX, les fonds sont détenus par l'opérateur. C'est un fait vérifiable pour
+ * chacune de ces places, publié par le protocole lui-même.
+ *
+ * ⚠️ Une place absente des deux listes s'affichera « non classée ». Ce n'est pas un
+ * défaut à corriger dans l'urgence : mieux vaut une case vide qu'une étiquette fausse
+ * sur la question qui décide où l'on dépose ses fonds.
+ */
+const DERIVATIVE_DEX_IDS: ReadonlySet<string> = new Set([
+  'hyperliquid',
+  'aster',
+  'edgex',
+  'evedex',
+  'lighter',
+  'grvt_futures',
+  'variational-omni',
+  'dydx',
+  'dydx_perpetual',
+  'gmx',
+  'vertex_protocol',
+  'apex_pro',
+  'paradex',
+  'drift_protocol',
+  'jupiter_perpetual',
+  'orderly_network',
+  'ostium',
+  'extended',
+  'pacifica',
+])
+
+/** Places dépositaires — voir la note de `DERIVATIVE_DEX_IDS`. */
+const DERIVATIVE_CEX_IDS: ReadonlySet<string> = new Set([
+  'binance_futures',
+  'bybit',
+  'okex_swap',
+  'gate_futures',
+  'mxc_futures',
+  'bitget_futures',
+  'kumex',
+  'huobi_dm',
+  'deribit',
+  'kraken_futures',
+  'bitfinex_futures',
+  'crypto_com_futures',
+  'coinw_futures',
+  'whitebit_futures',
+  'bingx_futures',
+  'phemex_futures',
+  'bitmart_futures',
+  'btse_futures',
+  'lbank-futures',
+  'xt_derivatives',
+  'weex-futures',
+  'tapbit-futures',
+  'bydfi-futures',
+  'toobit_derivatives',
+  'bitunix_futures',
+  'blofin',
+  'prime_xbt',
+  'deepcoin_derivatives',
+  'bitrue_futures',
+  'zoomex-futures',
+  'orangex_futures',
+  'ourbit-futures',
+  'kcex-futures',
+  'hotcoin-futures',
+  'bitkan-futures',
+  'biconomy-futures',
+])
+
+/** Champs d'identité communs aux deux endpoints de détail. */
+interface CoinGeckoExchangeCommon {
+  name?: string
+  image?: string
+  description?: string
+  url?: string
+  country?: string | null
+  year_established?: number | null
+  facebook_url?: string
+  reddit_url?: string
+  telegram_url?: string
+  twitter_handle?: string
+}
+
+interface CoinGeckoExchangeDetail extends CoinGeckoExchangeCommon {
+  centralized?: boolean
+  trust_score?: number | null
+  trust_score_rank?: number | null
+  trade_volume_24h_btc?: number | string | null
+  coins?: number | null
+  pairs?: number | null
+  tickers?: CoinGeckoExchangeTicker[]
+}
+
+interface CoinGeckoDerivativeDetail extends CoinGeckoExchangeCommon {
+  open_interest_btc?: number | null
+  trade_volume_24h_btc?: number | string | null
+  number_of_perpetual_pairs?: number | null
+  number_of_futures_pairs?: number | null
+  tickers?: CoinGeckoExchangeTicker[]
+}
+
+/**
+ * Une paire, telle que les DEUX endpoints la rendent.
+ *
+ * Ils ne publient pas les mêmes champs — le comptant a `bid_ask_spread_percentage` et
+ * une note de confiance, les dérivés ont `contract_type`, `open_interest` et
+ * `funding_rate` — mais aucun ne contredit l'autre. Une interface unique aux champs
+ * tous optionnels évite deux normalisations pour une seule forme d'affichage.
+ */
+interface CoinGeckoExchangeTicker {
+  base?: string
+  target?: string
+  symbol?: string
+  /** Identifiant de l'actif de base chez la source — présent sur les deux endpoints. */
+  coin_id?: string | null
+  last?: number | null
+  trade_url?: string | null
+  contract_type?: string | null
+  funding_rate?: number | null
+
+  /* ── Comptant ─────────────────────────────────────────────── */
+  volume?: number | null
+  bid_ask_spread_percentage?: number | null
+  trust_score?: string | null
+  /** Date ISO. Les dérivés, eux, publient `last_traded` en secondes UNIX. */
+  last_traded_at?: string | null
+
+  /* ── Dérivés ──────────────────────────────────────────────
+
+     ⚠️ LES NOMS NE SONT PAS CEUX DU COMPTANT, et c'est un piège silencieux : lire
+     `volume` et `open_interest` sur un ticker de dérivé rend `undefined` sur toute la
+     colonne, sans erreur. Constaté à l'écran — trois colonnes de tirets sur la fiche
+     de Binance Futures.
+
+     `open_interest_usd` est en DOLLARS, pas en unités du contrat : l'affichage doit
+     le dire, sans quoi « 165 k » se lirait comme un nombre de contrats. */
+  open_interest_usd?: number | string | null
+  h24_volume?: number | string | null
+  h24_percentage_change?: number | string | null
+  bid_ask_spread?: number | string | null
+  /** Secondes UNIX. */
+  last_traded?: number | null
+
+  /** Volumes convertis. Les dérivés les publient en CHAÎNES, le comptant en nombres. */
+  converted_volume?: { usd?: number | string | null } | null
+}
+
+/**
+ * Recopie l'identité commune sur une fiche.
+ *
+ * Extraite parce que les deux branches de `getExchangeProfile` la partagent mot pour
+ * mot : la dupliquer garantirait qu'un champ ajouté un jour ne le soit que d'un côté.
+ *
+ * Les liens sociaux ne sont posés QUE s'il y en a au moins un : un objet `social: {}`
+ * ferait afficher un bloc « Réseaux » vide, là où son absence le retire.
+ */
+function assignExchangeIdentity(
+  profile: ExchangeProfile,
+  raw: CoinGeckoExchangeCommon,
+): void {
+  if (raw.image) profile.image = raw.image
+  /* Une description vide arrive en chaîne vide, pas en `null` : la tester par
+     troncature évite d'afficher un bloc « À propos » qui ne contient rien. */
+  if (raw.description?.trim()) profile.description = raw.description.trim()
+  if (raw.url) profile.url = raw.url
+  if (raw.country) profile.country = raw.country
+
+  const year = optional(raw.year_established)
+  if (year !== undefined) profile.yearEstablished = year
+
+  const social: NonNullable<ExchangeProfile['social']> = {}
+  if (raw.twitter_handle) social.twitter = `https://x.com/${raw.twitter_handle}`
+  if (raw.reddit_url) social.reddit = raw.reddit_url
+  if (raw.facebook_url) social.facebook = raw.facebook_url
+  if (raw.telegram_url) social.telegram = raw.telegram_url
+  if (Object.keys(social).length > 0) profile.social = social
+}
+
+/**
+ * Pose l'icône de l'actif de base sur chaque paire — EN UN SEUL APPEL.
+ *
+ * ── POURQUOI LA SOURCE NE LA DONNE PAS ──────────────────────────────────────
+ *
+ * Ni `/exchanges/{id}` ni `/derivatives/exchanges/{id}` ne transportent d'image dans
+ * leurs paires : ils publient un `coin_id`, et rien d'autre. Le tableau des paires
+ * affichait donc cent lignes de texte nu, là où la même donnée porte une icône
+ * partout ailleurs sur le site.
+ *
+ * ── UN APPEL, PAS CENT ──────────────────────────────────────────────────────
+ *
+ * `coins/markets` accepte une LISTE d'identifiants — c'est déjà ainsi que `listAssets`
+ * charge un panier suivi. Résoudre paire par paire coûterait cent requêtes pour une
+ * page, ce que le quota gratuit (~5/min) ne tolère pas une seconde.
+ *
+ * ── ET SI L'APPEL ÉCHOUE ────────────────────────────────────────────────────
+ *
+ * On se tait. Les paires gardent leur monogramme de repli, la page reste entière, et
+ * une icône manquante ne vaut pas de faire échouer une fiche. C'est aussi ce qui rend
+ * l'ajout sûr : la donnée d'origine n'en dépend pas.
+ *
+ * Note d'unité : `vs_currency` est imposé par l'endpoint mais AUCUN prix n'est lu ici.
+ * Le dollar évite un taux de change inutile — voir la note sur les endpoints qui
+ * ignorent la devise demandée.
+ */
+async function attachTickerImages(tickers: ExchangeTicker[]): Promise<void> {
+  const ids = [...new Set(tickers.map((ticker) => ticker.coinId).filter(Boolean))] as string[]
+  if (ids.length === 0) return
+
+  const wanted = ids.slice(0, 250)
+
+  const rows = await http
+    .getJson<CoinGeckoMarket[]>('coins/markets', {
+      vs_currency: 'usd',
+      ids: wanted.join(','),
+      per_page: wanted.length,
+      page: 1,
+      sparkline: false,
+    })
+    .catch(() => null)
+
+  if (!Array.isArray(rows)) return
+
+  const images = new Map<string, string>()
+  for (const row of rows) {
+    if (row.id && row.image) images.set(row.id, row.image)
+  }
+
+  for (const ticker of tickers) {
+    const image = ticker.coinId ? images.get(ticker.coinId) : undefined
+    if (image) ticker.image = image
+  }
+}
+
+/**
+ * Répare — ou écarte — le lien d'une paire vers l'opérateur.
+ *
+ * ── CE QUE LA SOURCE PUBLIE RÉELLEMENT ──────────────────────────────────────
+ *
+ * Relevé endpoint par endpoint, sur quatre places de dérivés :
+ *
+ *   · Binance     `https://www.binance.com/en/futures/0GUSDT`            — par paire, valide
+ *   · Bybit       `https://www.bybit.com/trade/usdt/0GUSDT`              — par paire, valide
+ *   · Hyperliquid `https://app.hyperliquid.xyz/trade/0G`                 — par paire, valide
+ *   · OKX         `https://www.okex.com/future/swap`                     — MORT, et identique
+ *                                                                          sur les 464 paires
+ *
+ * `okex.com` n'a plus d'enregistrement DNS depuis le changement de marque : le
+ * navigateur n'affiche pas une page d'erreur du site mais `ERR_NAME_NOT_RESOLVED`,
+ * c'est-à-dire un lien qui ne mène nulle part. Et comme la source sert la MÊME adresse
+ * générique pour toutes les paires, le lien ne désignait de toute façon pas celle sur
+ * laquelle on avait cliqué.
+ *
+ * ── POURQUOI RECONSTRUIRE PLUTÔT QUE RENOMMER LE DOMAINE ────────────────────
+ *
+ * Le simple remplacement de `okex.com` par `okx.com` a été essayé et mesuré : il rend
+ * un 404. Le chemin `/future/swap` n'existe plus davantage que le domaine. La forme
+ * vivante est `/trade-swap/<paire>`, vérifiée en 302 vers la variante localisée pour
+ * `0g-usdt-swap` comme pour `1inch-usdt-swap` — et elle a l'avantage de mener à LA
+ * paire de la ligne, ce que la source ne faisait pas.
+ *
+ * ── ET SI ON NE SAIT PAS RÉPARER ────────────────────────────────────────────
+ *
+ * On rend `undefined`, et l'affichage retire la flèche. Un lien absent se lit comme
+ * « la source ne le publie pas » ; un lien mort se lit comme une panne de ZENKUU.
+ * Entre les deux, le silence est la seule option honnête (§5).
+ */
+export function repairTradeUrl(
+  raw: string | null | undefined,
+  symbol: string | undefined,
+): string | undefined {
+  if (!raw) return undefined
+
+  let host: string
+  try {
+    host = new URL(raw).hostname.toLowerCase()
+  } catch {
+    /* La source publie parfois un chemin nu ou une chaîne vide : ni l'un ni l'autre
+       n'est cliquable, et les préfixer d'un domaine serait une invention. */
+    return undefined
+  }
+
+  /* `endsWith('okex.com')` a été écrit d'abord, et il est FAUX : il accepte
+     `notokex.com`, `myokex.com` et tout domaine dont le nom se termine par ces neuf
+     caractères — c'est-à-dire qu'il réécrirait l'adresse d'un tiers vers OKX. Un
+     sous-domaine se reconnaît au POINT qui le sépare, pas à la fin de la chaîne. */
+  if (host !== 'okex.com' && !host.endsWith('.okex.com')) return raw
+
+  /*
+   * ── LE SYMBOLE PORTE DÉJÀ SA FORME D'URL, ET SA NATURE AVEC ────────────────
+   *
+   * OKX nomme ses instruments en segments, et le DERNIER dit de quel marché il
+   * relève — donc quel chemin le sert :
+   *
+   *   0G-USDT-SWAP      contrat perpétuel      → /trade-swap/0g-usdt-swap
+   *   BTC-USD-260925    échéance du 26/09      → /trade-futures/btc-usd-260925
+   *   BTC-USDT          comptant               → /trade-spot/btc-usdt
+   *
+   * ⚠️ CE N'EST PAS UNE COQUETTERIE DE ROUTAGE. Une première version recomposait
+   * l'adresse à partir de `base` et `target`, sans regarder le nombre de segments :
+   * « BTC-USD-260925 » devenait `/trade-spot/btc-usd-260925-usd`. Cette adresse ne
+   * rend PAS une erreur — elle rend la page du comptant BTC/USDT, vérifié au titre
+   * de la réponse. Le lien menait donc à un instrument différent de celui de la
+   * ligne cliquée, en affichant un cours crédible. Une 404 aurait été moins grave :
+   * elle, au moins, se voit.
+   */
+  const slug = (symbol ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '')
+  const segments = slug.split('-').filter(Boolean)
+  if (segments.length < 2) return undefined
+
+  const last = segments[segments.length - 1] as string
+
+  if (segments.length === 3 && last === 'swap') return `https://www.okx.com/trade-swap/${slug}`
+  if (segments.length === 3 && /^\d+$/.test(last)) {
+    return `https://www.okx.com/trade-futures/${slug}`
+  }
+  if (segments.length === 2) return `https://www.okx.com/trade-spot/${slug}`
+
+  /* Forme inconnue : on préfère ne rien proposer. Voir l'en-tête — un lien absent se
+     lit comme une absence de donnée, un lien faux se lit comme une information. */
+  return undefined
+}
+
+/**
+ * Normalise une paire.
+ *
+ * `base` et `target` sont parfois absents sur les dérivés, qui publient un `symbol`
+ * compact (« BTCUSDT ») à la place. On le reprend tel quel plutôt que de le découper :
+ * séparer « BTCUSDT » suppose de connaître la liste des devises de cotation, et un
+ * découpage erroné inventerait une paire qui n'existe pas.
+ */
+function toExchangeTicker(raw: CoinGeckoExchangeTicker): ExchangeTicker {
+  const ticker: ExchangeTicker = {
+    base: raw.base ?? raw.symbol ?? '—',
+    target: raw.target ?? '',
+    last: optional(raw.last) ?? 0,
+  }
+
+  /* Chaque grandeur est cherchée SOUS SES DEUX NOMS — celui du comptant puis celui
+     des dérivés. `numeric` et non `optional` : l'endpoint des dérivés rend ces champs
+     en chaînes. */
+  const volume = numeric(raw.volume) ?? numeric(raw.h24_volume)
+  if (volume !== undefined) ticker.volume = volume
+
+  const usd = numeric(raw.converted_volume?.usd)
+  if (usd !== undefined) ticker.volumeUsd = usd
+
+  const spread = numeric(raw.bid_ask_spread_percentage) ?? numeric(raw.bid_ask_spread)
+  if (spread !== undefined) ticker.spreadPercentage = spread
+
+  if (raw.trust_score) ticker.trustScore = raw.trust_score
+  if (raw.coin_id) ticker.coinId = raw.coin_id
+  if (raw.contract_type) ticker.contractType = raw.contract_type
+
+  const tradeUrl = repairTradeUrl(raw.trade_url, raw.symbol ?? raw.base)
+  if (tradeUrl) ticker.tradeUrl = tradeUrl
+
+  /* `last_traded` est un horodatage UNIX en SECONDES ; `Date` attend des
+     millisecondes. Le passer tel quel daterait toutes les paires de 1970. */
+  if (raw.last_traded_at) ticker.lastTradedAt = raw.last_traded_at
+  else if (typeof raw.last_traded === 'number' && raw.last_traded > 0) {
+    ticker.lastTradedAt = new Date(raw.last_traded * 1000).toISOString()
+  }
+
+  const openInterest = numeric(raw.open_interest_usd)
+  if (openInterest !== undefined) ticker.openInterestUsd = openInterest
+
+  const change = numeric(raw.h24_percentage_change)
+  if (change !== undefined) ticker.change24h = change
+
+  const funding = numeric(raw.funding_rate)
+  if (funding !== undefined) ticker.fundingRate = funding
+
+  return ticker
+}
+
 interface CoinGeckoSearch {
   coins?: {
     id: string
@@ -287,6 +693,25 @@ interface CoinGeckoCategory {
 /** `null` et `undefined` restent absents : le §5 interdit de les remplacer par 0. */
 function optional(value: number | null | undefined): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+/**
+ * Comme `optional`, mais accepte AUSSI un nombre écrit en chaîne.
+ *
+ * Distincte de `optional` plutôt que la remplaçant, et c'est délibéré : partout
+ * ailleurs, une chaîne là où un nombre est attendu SIGNALE un changement de contrat
+ * de la source, et la voir passer silencieusement ferait perdre cet avertissement.
+ * Ici, on sait que la source écrit ce champ en chaîne et on le documente sur place.
+ *
+ * `Number('')` vaut zéro : la chaîne vide est donc écartée avant conversion, sans quoi
+ * une valeur absente deviendrait un volume nul — c'est-à-dire une mesure inventée.
+ */
+function numeric(value: number | string | null | undefined): number | undefined {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+  if (typeof value !== 'string' || value.trim() === '') return undefined
+
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
 }
 
 /**
@@ -1061,7 +1486,24 @@ export const coinGeckoProvider: MarketDataProvider = {
    *    classement : sans lui, la ligne ne peut pas être située.
    */
   async getDerivatives(limit = 60): Promise<DerivativeMarket[]> {
-    const rows = await http.getJson<CoinGeckoDerivative[]>('derivatives')
+    /*
+     * ── HORS DU CACHE DE NEXT, ET C'EST LE SEUL APPEL DE CE FOURNISSEUR ─────
+     *
+     * Mesuré : cette réponse pèse 11,3 Mo. Next plafonne son cache de données à 2 Mo,
+     * et refusait donc l'écriture à chaque appel :
+     *
+     *     Failed to set Next.js data cache for …/v3/derivatives,
+     *     items over 2MB can not be cached (11283564 bytes)
+     *
+     * Le message n'était pas le vrai coût : Next tamponnait onze méga-octets pour
+     * tenter une écriture qu'il allait rejeter, chaque fois.
+     *
+     * Le contournement est sûr ici parce que le RÉSULTAT est mis en cache un cran plus
+     * haut, et qu'il est minuscule en comparaison — les 24 000 lignes sont bornées à
+     * `limit` juste en dessous. C'est exactement la condition posée par
+     * `getJsonUncached`, dont l'en-tête détaille le compromis.
+     */
+    const rows = await http.getJsonUncached<CoinGeckoDerivative[]>('derivatives')
 
     if (!Array.isArray(rows)) {
       throw new ProviderError(PROVIDER_ID, 'Format des dérivés inattendu')
@@ -1158,6 +1600,183 @@ export const coinGeckoProvider: MarketDataProvider = {
     }
 
     return exchanges.slice(0, limit)
+  },
+
+  /**
+   * Places de produits dérivés — les PLATEFORMES, pas les contrats.
+   *
+   * Complète `getDerivatives`, qui liste les contrats un par un. Voir
+   * `DerivativeExchange` pour la distinction et pour l'origine du champ `kind`, qui
+   * n'est PAS publié par la source.
+   *
+   * ⚠️ `trade_volume_24h_btc` ARRIVE EN CHAÎNE dans cette réponse — « "274305.37" » —
+   * là où `open_interest_btc` arrive en nombre, et là où le MÊME champ est un nombre
+   * dans `/exchanges`. `optional()` écarte tout ce qui n'est pas un `number` : lui
+   * passer cette valeur rendrait `undefined` sur les cent lignes, et la colonne
+   * « volume » serait vide sans qu'aucune erreur ne soit levée. D'où `numeric()`.
+   */
+  async getDerivativeExchanges(limit = 100): Promise<DerivativeExchange[]> {
+    const rows = await http.getJson<CoinGeckoDerivativeExchange[]>('derivatives/exchanges', {
+      per_page: Math.min(Math.max(limit, 1), 250),
+      page: 1,
+      order: 'open_interest_btc_desc',
+    })
+
+    if (!Array.isArray(rows)) {
+      throw new ProviderError(PROVIDER_ID, 'Format des places de dérivés inattendu')
+    }
+
+    const exchanges: DerivativeExchange[] = []
+
+    for (const row of rows) {
+      if (!row?.id || !row.name) continue
+
+      const exchange: DerivativeExchange = { id: row.id, name: row.name }
+
+      /*
+       * Le suffixe « Futures » que la source accole à presque tous les noms est
+       * retiré : dans un tableau qui ne parle QUE de dérivés, il occupe un tiers de la
+       * colonne pour redire son en-tête. Le nom nu reste identifiant — c'est le même
+       * opérateur, et sa place au comptant vit dans un autre tableau.
+       *
+       * Les parenthèses sont OPTIONNELLES dans le motif, parce que la source n'est pas
+       * régulière : « Kraken (Futures) » et « Bitget Futures » désignent la même forme.
+       * Ne traiter que la première laissait la moitié de la colonne avec son suffixe et
+       * l'autre sans — une incohérence plus visible que le suffixe lui-même.
+       */
+      exchange.name = row.name.replace(/\s*\(?(Futures|Derivatives)\)?\s*$/i, '').trim()
+
+      const kind = DERIVATIVE_DEX_IDS.has(row.id)
+        ? 'dex'
+        : DERIVATIVE_CEX_IDS.has(row.id)
+          ? 'cex'
+          : undefined
+      if (kind) exchange.kind = kind
+
+      if (row.image) exchange.image = row.image
+      if (row.country) exchange.country = row.country
+      if (row.url) exchange.url = row.url
+
+      const openInterest = optional(row.open_interest_btc)
+      if (openInterest !== undefined) exchange.openInterestBtc = openInterest
+      const volume = numeric(row.trade_volume_24h_btc)
+      if (volume !== undefined) exchange.volume24hBtc = volume
+      const perpetual = optional(row.number_of_perpetual_pairs)
+      if (perpetual !== undefined) exchange.perpetualPairs = perpetual
+      const futures = optional(row.number_of_futures_pairs)
+      if (futures !== undefined) exchange.futuresPairs = futures
+      const year = optional(row.year_established)
+      if (year !== undefined) exchange.yearEstablished = year
+
+      exchanges.push(exchange)
+    }
+
+    return exchanges.slice(0, limit)
+  },
+
+  /**
+   * Fiche complète d'une place — comptant OU dérivés.
+   *
+   * ── DEUX ENDPOINTS, ET C'EST L'IDENTIFIANT QUI TRANCHE ────────────────────
+   *
+   * `/exchanges/{id}` sert les places au comptant, `/derivatives/exchanges/{id}` celles
+   * de dérivés. Les deux acceptent les mêmes identifiants sans se recouvrir : Binance
+   * est sur le premier, `binance_futures` sur le second, et demander l'un à l'autre
+   * rend une erreur.
+   *
+   * On ne peut donc PAS deviner : on essaie le comptant, et l'on bascule sur les
+   * dérivés si la place n'y est pas. L'ordre n'est pas indifférent — `/exchanges/{id}`
+   * répond pour certaines places de dérivés (`binance_futures` y existe, avec
+   * `centralized` mais sans intérêt ouvert), alors que l'inverse n'est pas vrai. Le
+   * repli est donc déclenché par l'ABSENCE DE PAIRES, pas seulement par une erreur.
+   *
+   * ── `include_tickers=unexpired` SUR LES DÉRIVÉS ───────────────────────────
+   *
+   * Sans ce paramètre, l'endpoint des dérivés ne rend AUCUNE paire. Avec, il en rend
+   * jusqu'à 765 — mesuré sur Binance Futures. On les tronque à 100 comme le comptant :
+   * au-delà, on transporte quatre cents kilo-octets pour un tableau que personne ne
+   * fait défiler jusqu'au bout.
+   */
+  async getExchangeProfile(
+    id: string,
+    kind?: 'spot' | 'derivatives',
+  ): Promise<ExchangeProfile | null> {
+    /* `kind` connu : UN SEUL appel. Inconnu : on tente le comptant, qui couvre la
+       grande majorité des places, et l'on se rabat sur les dérivés — au prix d'un
+       second appel que l'appelant peut lui éviter (voir la note du type). */
+    const spot =
+      kind === 'derivatives'
+        ? null
+        : await http
+            .getJson<CoinGeckoExchangeDetail>(`exchanges/${encodeURIComponent(id)}`)
+            .catch(() => null)
+
+    /* Une place au comptant SANS paire n'existe pas : si l'endpoint répond mais ne
+       cote rien, c'est qu'on tient une place de dérivés listée là par accident de
+       nomenclature. On bascule. */
+    if (spot?.name && (spot.tickers?.length ?? 0) > 0) {
+      const profile: ExchangeProfile = {
+        id,
+        name: spot.name,
+        derivatives: false,
+        tickers: (spot.tickers ?? []).slice(0, 100).map(toExchangeTicker),
+      }
+
+      assignExchangeIdentity(profile, spot)
+
+      if (typeof spot.centralized === 'boolean') profile.centralized = spot.centralized
+      const trust = optional(spot.trust_score)
+      if (trust !== undefined) profile.trustScore = trust
+      const rank = optional(spot.trust_score_rank)
+      if (rank !== undefined) profile.trustRank = rank
+      const volume = numeric(spot.trade_volume_24h_btc)
+      if (volume !== undefined) profile.volume24hBtc = volume
+      const coins = optional(spot.coins)
+      if (coins !== undefined) profile.coins = coins
+      const pairs = optional(spot.pairs)
+      if (pairs !== undefined) profile.pairs = pairs
+
+      await attachTickerImages(profile.tickers)
+      return profile
+    }
+
+    /* Le comptant a répondu sans paires alors qu'on le lui demandait explicitement :
+       la place n'existe pas, et interroger les dérivés serait un appel perdu. */
+    if (kind === 'spot') return null
+
+    const derivative = await http
+      .getJson<CoinGeckoDerivativeDetail>(
+        `derivatives/exchanges/${encodeURIComponent(id)}?include_tickers=unexpired`,
+      )
+      .catch(() => null)
+
+    if (!derivative?.name) return null
+
+    const profile: ExchangeProfile = {
+      id,
+      name: derivative.name.replace(/\s*\(?(Futures|Derivatives)\)?\s*$/i, '').trim(),
+      derivatives: true,
+      tickers: (derivative.tickers ?? []).slice(0, 100).map(toExchangeTicker),
+    }
+
+    assignExchangeIdentity(profile, derivative)
+
+    /* La nature vient de la fiche COMPTANT quand elle a répondu — c'est le seul endroit
+       où la source publie `centralized`. Elle peut avoir répondu sans paires, auquel
+       cas on a bien le booléen sans avoir gardé le reste. */
+    if (typeof spot?.centralized === 'boolean') profile.centralized = spot.centralized
+
+    const openInterest = optional(derivative.open_interest_btc)
+    if (openInterest !== undefined) profile.openInterestBtc = openInterest
+    const volume = numeric(derivative.trade_volume_24h_btc)
+    if (volume !== undefined) profile.volume24hBtc = volume
+    const perpetual = optional(derivative.number_of_perpetual_pairs)
+    if (perpetual !== undefined) profile.perpetualPairs = perpetual
+    const futures = optional(derivative.number_of_futures_pairs)
+    if (futures !== undefined) profile.futuresPairs = futures
+
+    await attachTickerImages(profile.tickers)
+    return profile
   },
 
   async getCategories(currency = DEFAULT_CURRENCY): Promise<MarketCategory[]> {

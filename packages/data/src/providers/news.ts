@@ -67,15 +67,33 @@ export const NEWS_LANG_LABELS: Record<NewsLang, string> = {
  *
  * ── RÉPARTITION ───────────────────────────────────────────────────────────────
  *
- *   crypto      12   (8 anglais, 4 français)
- *   marchés      6   (6 anglais)
+ *   crypto      19   (15 anglais, 4 français)
+ *   marchés     12   (12 anglais)
  *   économie     8   (8 français)
  *   régulation   3   (3 anglais)
+ *                ──
+ *                42
  *
  * Le déséquilibre anglais/français sur les marchés est SUBI, pas choisi : les trois
  * quotidiens économiques français de référence refusent tous l'accès à leur flux.
  * Le filtre de langue permet au lecteur francophone de s'en tenir au français, au
  * prix d'un fil plus étroit — un arbitrage qui lui appartient.
+ *
+ * ── LA LISTE EST PASSÉE DE 29 À 42 FLUX, ET LE MOTIF EST MESURÉ ───────────────
+ *
+ * Les fiches d'ETF, d'indices et de matières premières n'affichaient presque aucune
+ * actualité. Le filtre par mention n'y était pour rien : le RÉSERVOIR ne contenait
+ * simplement rien sur ces sujets. Sur les six flux « marchés » d'alors, cinq ne
+ * traitent que d'actions américaines — aucun article ne pouvait nommer « iShares Core
+ * MSCI World », faute qu'aucune source n'en parle.
+ *
+ * Les treize ajouts ont tous été interrogés avant d'être inscrits. Trois candidats de
+ * plus ont été écartés à la mesure — CoinJournal (502), ETF.com (403), justETF (404) —
+ * au même titre que les neuf refus déjà documentés ci-dessus.
+ *
+ * Le coût est nul côté quota : chaque flux vit sur son propre domaine, aucun n'en
+ * reçoit plus d'une requête par collecte, et la collecte reste unique et mise en
+ * cache pour tout le site (voir `getNews` dans `queries.ts`).
  */
 const FEEDS: FeedSource[] = [
   // ── Cryptomonnaies, anglais ───────────────────────────────────────────────
@@ -94,6 +112,20 @@ const FEEDS: FeedSource[] = [
   { id: 'cointribune', label: 'Cointribune', url: 'https://www.cointribune.com/feed/', category: 'crypto', lang: 'fr' },
   { id: 'bitcoinfr', label: 'Bitcoin.fr', url: 'https://bitcoin.fr/feed/', category: 'crypto', lang: 'fr' },
 
+  /* ── Cryptomonnaies, second lot ────────────────────────────────────────────
+
+     Huit flux ajoutés après mesure : chacun a été interrogé, et le nombre d'articles
+     réellement servis est noté en regard. Ce n'est pas une liste de sites connus mais
+     une liste de sites qui RÉPONDENT — deux candidats de plus (CoinJournal, 502) ont
+     été écartés au même titre que les neuf refus documentés plus haut. */
+  { id: 'u-today', label: 'U.Today', url: 'https://u.today/rss', category: 'crypto', lang: 'en' },
+  { id: 'cryptopotato', label: 'CryptoPotato', url: 'https://cryptopotato.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'cryptobriefing', label: 'Crypto Briefing', url: 'https://cryptobriefing.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'ambcrypto', label: 'AMBCrypto', url: 'https://ambcrypto.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'beincrypto', label: 'BeInCrypto', url: 'https://beincrypto.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'dailyhodl', label: 'The Daily Hodl', url: 'https://dailyhodl.com/feed/', category: 'crypto', lang: 'en' },
+  { id: 'bitcoincom', label: 'Bitcoin.com News', url: 'https://news.bitcoin.com/feed/', category: 'crypto', lang: 'en' },
+
   // ── Marchés & entreprises ─────────────────────────────────────────────────
   { id: 'yahoo-finance', label: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssindex', category: 'marches', lang: 'en' },
   { id: 'cnbc-markets', label: 'CNBC Markets', url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', category: 'marches', lang: 'en' },
@@ -101,6 +133,25 @@ const FEEDS: FeedSource[] = [
   { id: 'marketwatch', label: 'MarketWatch', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', category: 'marches', lang: 'en' },
   { id: 'investing', label: 'Investing.com', url: 'https://www.investing.com/rss/news_25.rss', category: 'marches', lang: 'en' },
   { id: 'seekingalpha', label: 'Seeking Alpha', url: 'https://seekingalpha.com/market_currents.xml', category: 'marches', lang: 'en' },
+
+  /* ── Marchés, second lot — ET LE MOTIF EST PRÉCIS ──────────────────────────
+
+     La fiche d'un ETF, d'un indice ou d'une matière première n'affichait presque
+     jamais rien. La cause n'était pas le filtre par mention mais le RÉSERVOIR : sur
+     vingt-neuf flux, six couvraient les marchés et cinq d'entre eux ne parlent que
+     d'actions américaines. Aucun article ne nommait « iShares Core MSCI World » parce
+     qu'aucun flux ne traitait le sujet.
+
+     Ces six-là comblent trois trous mesurés : les INDICES (Investing.com publie un
+     flux dédié, TradingView commente les niveaux), les MATIÈRES PREMIÈRES et les
+     DEVISES (deux flux Investing.com de plus), et les ETF (ETF Database, seule source
+     du lot qui traite le véhicule lui-même plutôt que ce qu'il détient). */
+  { id: 'investing-indices', label: 'Investing.com Indices', url: 'https://www.investing.com/rss/stock_Indices.rss', category: 'marches', lang: 'en' },
+  { id: 'investing-commodities', label: 'Investing.com Matières premières', url: 'https://www.investing.com/rss/news_11.rss', category: 'marches', lang: 'en' },
+  { id: 'investing-forex', label: 'Investing.com Devises', url: 'https://www.investing.com/rss/news_1.rss', category: 'marches', lang: 'en' },
+  { id: 'tradingview', label: 'TradingView', url: 'https://www.tradingview.com/feed/', category: 'marches', lang: 'en' },
+  { id: 'etfdb', label: 'ETF Database', url: 'https://etfdb.com/feed/', category: 'marches', lang: 'en' },
+  { id: 'businessinsider', label: 'Business Insider Markets', url: 'https://markets.businessinsider.com/rss/news', category: 'marches', lang: 'en' },
 
   // ── Régulation & banques centrales ────────────────────────────────────────
   // Sources primaires : ce que l'autorité publie elle-même, avant tout commentaire.
@@ -485,3 +536,89 @@ export async function fetchNews(limit = 12): Promise<NewsItem[]> {
 }
 
 export const NEWS_SOURCES = FEEDS.map((feed) => feed.label).join(', ')
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ACTUALITÉS D'UN SEUL ACTIF — le complément que l'agrégation ne peut pas donner
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE PLAFOND STRUCTUREL DU FIL AGRÉGÉ ─────────────────────────────────────
+ *
+ * Le réservoir de `fetchNews` est constitué SANS connaître l'actif consulté : la
+ * fiche y cherche ensuite les articles qui la nomment. Cela marche pour le bitcoin,
+ * cité partout, et échoue pour tout le reste — mesuré sur la fiche du SPDR S&P 500,
+ * deux articles sur sept cents, alors que la presse financière ne parle que de cela.
+ *
+ * Le défaut n'est pas dans le filtre : il est dans le fait qu'un fil généraliste, si
+ * profond soit-il, reste un échantillon. Approfondir encore reviendrait à télécharger
+ * dix mille articles pour en garder trois.
+ *
+ * ── CE QUE CE FIL FAIT À LA PLACE ───────────────────────────────────────────
+ *
+ * Il DEMANDE l'actif. Yahoo publie un flux RSS par symbole, sans clé ni quota
+ * déclaré, et c'est Yahoo qui fait le travail d'appariement — il connaît les
+ * relations entre un fonds, son indice et ses composants, que nous ne pouvons pas
+ * déduire d'un titre.
+ *
+ * Mesuré sur cinq symboles de familles différentes : SPY 10 articles, AAPL 14,
+ * ^GSPC 19, BTC-USD 20, EURUSD=X 19. Face aux deux du fil agrégé.
+ *
+ * ── POURQUOI C'EST UN COMPLÉMENT ET NON UN REMPLACEMENT ─────────────────────
+ *
+ * Yahoo est anglophone et américain. Il ne remonte ni Cointelegraph, ni le Journal du
+ * Coin, ni Le Monde Économie — c'est-à-dire la moitié de ce que le fil agrégé apporte,
+ * et la totalité de ce qu'il apporte en français. L'appelant fusionne les deux.
+ *
+ * ── LE COÛT, ET POURQUOI IL EST ACCEPTABLE ──────────────────────────────────
+ *
+ * UNE requête par actif consulté, mise en cache. C'est le premier appel du site dont
+ * la clé dépende de l'actif pour les actualités — le fil agrégé, lui, reste unique
+ * pour tout le monde. La contrepartie est directe : la fiche passe de deux articles
+ * à une vingtaine.
+ *
+ * ── ET SI ÇA ÉCHOUE ─────────────────────────────────────────────────────────
+ *
+ * Tableau vide, jamais d'exception. Ce fil ENRICHIT une liste qui existe déjà sans
+ * lui ; le faire échouer bruyamment mettrait une fiche entière en panne pour un
+ * complément.
+ */
+export async function fetchSymbolNews(yahooSymbol: string): Promise<NewsItem[]> {
+  const url =
+    'https://feeds.finance.yahoo.com/rss/2.0/headline' +
+    `?s=${encodeURIComponent(yahooSymbol)}&region=US&lang=en-US`
+
+  const source: FeedSource = {
+    /* L'identifiant porte le SYMBOLE, et il le faut : `parseFeed` en compose la clé de
+       chaque article (`${source.id}:${lien}`). Un identifiant fixe ferait collisionner
+       deux articles différents servis pour deux symboles — React refuserait alors de
+       rendre la liste, ou pire, en rendrait un pour l'autre. */
+    id: `yahoo-${yahooSymbol.toLowerCase()}`,
+    label: 'Yahoo Finance',
+    url,
+    category: 'marches',
+    lang: 'en',
+  }
+
+  try {
+    /*
+     * LES VIGNETTES SE COMPLÈTENT ICI, et ce n'est pas facultatif pour ce flux-là.
+     *
+     * Mesuré sur six symboles de familles différentes : le XML de Yahoo ne contient
+     * AUCUNE balise d'image — ni `media:content`, ni `enclosure`. Zéro sur zéro. Sans
+     * cet appel, la colonne d'actualités d'un ETF ou d'un indice n'aurait que du
+     * texte, là où celle d'une crypto porte des vignettes ; l'inégalité se verrait,
+     * et elle serait le fait d'un détail de format, pas d'une décision.
+     *
+     * Les `og:image` des pages liées, elles, existent bien : `s.yimg.com` en fournit
+     * la moitié, le reste se répartit sur une poignée d'éditeurs — tous inscrits dans
+     * `news-image-hosts.ts`.
+     *
+     * Budget de 12 requêtes et non 8 : ce lot-ci est SERVI EN ENTIER à la fiche, là
+     * où le fil agrégé n'expose que ses premiers articles. Compléter huit vignettes
+     * sur vingt laisserait la moitié basse de la colonne dépareillée.
+     */
+    return await fillMissingImages(parseFeed(await http.getText(url), source), 12)
+  } catch {
+    return []
+  }
+}

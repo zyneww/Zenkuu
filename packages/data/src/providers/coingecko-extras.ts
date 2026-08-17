@@ -153,6 +153,9 @@ interface RawNft {
   market_cap?: { usd?: number }
   volume_24h?: { usd?: number }
   floor_price_in_usd_24h_percentage_change?: number
+  /* `links` porte aussi `twitter` et `discord`, non repris : une carte de marché n'a
+     pas à renvoyer vers les réseaux sociaux d'une collection. */
+  links?: { homepage?: string }
 }
 
 /**
@@ -224,6 +227,17 @@ export async function fetchNftCollection(id: string): Promise<NftCollection> {
   if (typeof raw.floor_price_in_usd_24h_percentage_change === 'number') {
     collection.floorChange24h = raw.floor_price_in_usd_24h_percentage_change
   }
+
+  /*
+   * SITE OFFICIEL — la seule destination vérifiable pour une tuile de la carte.
+   *
+   * `startsWith('http')` et non une simple présence : la source rend parfois une chaîne
+   * vide, et parfois un domaine nu sans protocole — que le navigateur interpréterait
+   * comme un chemin RELATIF, menant à une page de ZENKUU qui n'existe pas. Voir la note
+   * du champ dans `types.ts` pour le choix de cette destination plutôt qu'une URL
+   * construite.
+   */
+  if (raw.links?.homepage?.startsWith('http')) collection.homepage = raw.links.homepage
 
   return collection
 }

@@ -47,6 +47,13 @@ export {
   getMarketCapBasket,
   MARKET_CAP_BASKET,
   getNews,
+  /* Exporté pour l'appelant qui veut TOUT le réservoir plutôt qu'un fil : la fiche
+     d'actif y cherche des mentions, ce qui demande de la profondeur et non de la
+     fraîcheur. Le réexporter évite qu'elle recopie le nombre — et qu'il diverge. */
+  NEWS_POOL,
+  /* Le fil d'UN actif, demandé à Yahoo par son symbole — le complément que
+     l'agrégation ne peut pas donner. Voir `fetchSymbolNews`. */
+  getAssetNews,
   getNewListings,
   getNftCollections,
   getTreasuries,
@@ -57,6 +64,8 @@ export {
   getTokenPools,
   getTrendingPools,
   getSpotExchanges,
+  getDerivativeExchanges,
+  getExchangeProfile,
   getDerivatives,
   getSentiment,
   getSentimentHistory,
@@ -114,8 +123,23 @@ export type {
   ValuationView,
 } from './providers/yahoo-profile'
 
-export { MACRO_HISTORY_YEARS, MACRO_INDICATORS, WORLDBANK_SOURCE } from './providers/worldbank'
-export type { MacroIndicatorId, MacroObservation } from './providers/worldbank'
+export {
+  MACRO_FIRST_YEAR,
+  MACRO_INDICATORS,
+  MACRO_THEMES,
+  WORLDBANK_SOURCE,
+  formatMacroValue,
+  macroHistoryYears,
+  packMacroSeries,
+  unpackMacroSeries,
+} from './providers/worldbank'
+export type {
+  MacroIndicator,
+  MacroIndicatorId,
+  MacroObservation,
+  MacroThemeId,
+  PackedMacroSeries,
+} from './providers/worldbank'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
 export type { TreasuryCoin } from './providers/coingecko-extras'
@@ -144,6 +168,9 @@ export type {
   OhlcHistory,
   PriceHistory,
   SearchResult,
+  DerivativeExchange,
+  ExchangeProfile,
+  ExchangeTicker,
   DerivativeMarket,
   SentimentIndex,
   SentimentPoint,

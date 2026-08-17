@@ -122,6 +122,39 @@ export interface HttpClient {
     query?: Record<string, string | number | boolean | undefined>,
     revalidateOverrideSeconds?: number,
   ): Promise<T>
+  /**
+   * Comme `getJson`, mais SANS passer par le cache de données de Next — pour un seul
+   * appel, chez un fournisseur qui l'utilise partout ailleurs.
+   *
+   * ── POURQUOI UNE MÉTHODE ET NON UNE OPTION DU CLIENT ──────────────────────
+   *
+   * `bypassNextCache` est réglé par FOURNISSEUR, ce qui suffit quand toutes ses
+   * réponses sont volumineuses (flux RSS, Banque mondiale). CoinGecko est le cas
+   * mixte : une trentaine d'endpoints compacts qui gagnent à être mis en cache, et
+   * UN seul — `/derivatives` — qui rend 11,3 Mo.
+   *
+   * Next plafonne son cache à 2 Mo. Chaque appel produisait donc
+   *
+   *     Failed to set Next.js data cache for …/v3/derivatives,
+   *     items over 2MB can not be cached (11283564 bytes)
+   *
+   * Ce n'était pas qu'un message : Next tamponnait onze méga-octets pour tenter une
+   * écriture qu'il allait refuser, à chaque appel.
+   *
+   * ── POURQUOI PAS UNE VALEUR SENTINELLE ────────────────────────────────────
+   *
+   * `revalidateOverrideSeconds: 0` aurait évité une méthode de plus, au prix d'un
+   * point d'appel qui ne dit plus ce qu'il fait. Un nom explicite se lit ; un zéro se
+   * devine.
+   *
+   * ⚠️ CONTREPARTIE À CONNAÎTRE : `no-store` rend DYNAMIQUE toute page qui en dépend.
+   * N'employer cette méthode que là où un cache applicatif reprend le relais — c'est
+   * le cas de tous les appels passant par `run()` / `runStandalone()`.
+   */
+  getJsonUncached<T>(
+    path: string,
+    query?: Record<string, string | number | boolean | undefined>,
+  ): Promise<T>
   /** Réponse brute — nécessaire pour les flux RSS, qui sont du XML et non du JSON. */
   getText(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<string>
 }
@@ -159,6 +192,8 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     url: string,
     as: 'json' | 'text' = 'json',
     revalidateOverrideSeconds?: number,
+    /** Contournement pour CET appel seulement — voir `HttpClient.getJsonUncached`. */
+    bypassForThisCall = false,
   ): Promise<T> {
     let response: Response
     try {
@@ -183,7 +218,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
        * disque, et dont le résultat parsé est mis en cache un cran plus haut. Voir
        * `bypassNextCache` pour les mesures qui ont motivé cette porte de sortie.
        */
-      if (bypassNextCache) {
+      if (bypassNextCache || bypassForThisCall) {
         init.cache = 'no-store'
       } else {
         init.next = { revalidate: revalidateOverrideSeconds ?? revalidateSeconds }
@@ -230,12 +265,13 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     query: Record<string, string | number | boolean | undefined> | undefined,
     as: 'json' | 'text',
     revalidateOverrideSeconds?: number,
+    bypassForThisCall = false,
   ): Promise<T> {
     const url = buildUrl(path, query)
 
     await limiter.acquire()
     try {
-      return await attempt<T>(url, as, revalidateOverrideSeconds)
+      return await attempt<T>(url, as, revalidateOverrideSeconds, bypassForThisCall)
     } catch (error) {
       if (!(error instanceof ProviderError) || !error.retryable) throw error
 
@@ -259,7 +295,10 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       const hint = error.cause as { retryAfterMs?: number } | undefined
       await sleep(hint?.retryAfterMs ?? 1_000)
       await limiter.acquire()
-      return attempt<T>(url, as, revalidateOverrideSeconds)
+      /* La reprise DOIT reporter le contournement : sans lui, la seconde tentative
+         repasserait par le cache de Next et rejouerait le refus d'écriture que la
+         première venait d'éviter. */
+      return attempt<T>(url, as, revalidateOverrideSeconds, bypassForThisCall)
     }
   }
 
@@ -270,6 +309,14 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       revalidateOverrideSeconds?: number,
     ): Promise<T> {
       return request<T>(path, query, 'json', revalidateOverrideSeconds)
+    },
+    getJsonUncached<T>(
+      path: string,
+      query?: Record<string, string | number | boolean | undefined>,
+    ): Promise<T> {
+      /* Pas de `revalidateOverrideSeconds` : il n'aurait aucun sens ici, puisque cet
+         appel ne passe précisément PAS par le cache dont il règlerait la fraîcheur. */
+      return request<T>(path, query, 'json', undefined, true)
     },
     getText(
       path: string,

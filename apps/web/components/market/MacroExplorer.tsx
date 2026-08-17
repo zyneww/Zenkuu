@@ -12,7 +12,12 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { formatMacroValue, type MacroObservation } from '@zenkuu/data'
+import {
+  formatMacroValue,
+  unpackMacroSeries,
+  type MacroObservation,
+  type PackedMacroSeries,
+} from '@zenkuu/data'
 
 import { MacroChoropleth } from '@/components/market/MacroChoropleth'
 import {
@@ -21,6 +26,7 @@ import {
   svgToPngBlob,
 } from '@/components/market/map-export'
 import { macroColor, percentile, type MacroTone } from '@/components/market/geo'
+import { usePresence } from '@/components/nav/usePresence'
 
 /**
  * CARTE MACROÉCONOMIQUE — une seule représentation, désormais.
@@ -53,7 +59,7 @@ import { macroColor, percentile, type MacroTone } from '@/components/market/geo'
  * change que le sous-ensemble affiché.
  */
 export function MacroExplorer({
-  observations,
+  series,
   unit,
   tone,
   scale,
@@ -61,7 +67,15 @@ export function MacroExplorer({
   indicatorLabel,
   initialYear,
 }: {
-  observations: MacroObservation[]
+  /**
+   * Série COMPACTÉE, telle qu'elle traverse la frontière serveur → client.
+   *
+   * Voir `packMacroSeries` : soixante-six ans d'historique en objets nommés
+   * réécriraient le nom de chaque pays soixante-six fois dans la charge utile de la
+   * page. Le dépaquetage a lieu une fois, en mémoire, et le reste du composant
+   * continue de raisonner en observations.
+   */
+  series: PackedMacroSeries
   unit: string
   tone: MacroTone
   scale: 'percent' | 'compact' | 'plain'
@@ -74,6 +88,8 @@ export function MacroExplorer({
 
   const figureRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+
+  const observations = useMemo(() => unpackMacroSeries(series), [series])
 
   /** Années réellement publiées, croissantes — l'échelle du curseur. */
   const years = useMemo(() => {
@@ -173,17 +189,44 @@ export function MacroExplorer({
       .sort((a, b) => a.year - b.year)
   }, [observations, selected])
 
+  /**
+   * Rang du pays choisi DANS SA RÉGION, et taille de cette région.
+   *
+   * Le rang mondial situe parmi deux cents pays ; celui-ci situe parmi les voisins,
+   * qui est souvent la comparaison qu'on cherchait — « 8ᵉ sur 200 » et « 8ᵉ sur 9 »
+   * ne racontent pas la même histoire, et un pays peut être les deux.
+   */
+  const regional = useMemo(() => {
+    if (!selectedRow) return null
+    const peers = ranked.filter((row) => row.region === selectedRow.region)
+    const position = peers.findIndex((row) => row.iso3 === selectedRow.iso3) + 1
+    return position > 0 ? { rank: position, total: peers.length } : null
+  }, [ranked, selectedRow])
+
   return (
     <div className="space-y-4">
-      {/* ── La figure, sa barre d'outils et sa barre latérale ─────────────────
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        LE PANNEAU EST EN SURIMPRESSION, PLUS EN COLONNE DE GRILLE
+        ══════════════════════════════════════════════════════════════════════
 
-          La barre latérale n'apparaît QUE si un pays est choisi, et la grille passe
-          alors à deux colonnes. Réserver sa place en permanence amputerait la carte
-          d'un tiers pour un panneau vide — sur une figure dont la lisibilité dépend
-          directement de sa largeur. */}
-      <div
-        className={`grid gap-4 ${selectedRow ? 'lg:grid-cols-[minmax(0,1fr)_20rem]' : 'grid-cols-1'}`}
-      >
+        C'était une seconde colonne, apparue au clic : la grille passait de une à deux
+        colonnes et la carte se réduisait d'un tiers. Le pays qu'on venait de cliquer
+        changeait donc de taille et de position SOUS LE CURSEUR, au moment précis où
+        l'on voulait le regarder — et le refermer le faisait sauter une seconde fois.
+
+        Le conteneur est désormais `relative`, la carte occupe toute la largeur en
+        permanence, et le panneau se pose par-dessus son bord droit. La figure ne bouge
+        plus du tout : c'est cela que « fluide » demandait, bien plus que l'animation.
+
+        ── SUR PETIT ÉCRAN, IL PREND TOUTE LA LARGEUR ────────────────────────
+
+        `inset-x-2` sous `sm`, `w-80` au-delà. Un panneau de trois cent vingt pixels
+        sur un téléphone de trois cent soixante couvrirait la carte à quatre-vingt-dix
+        pour cent en laissant une bande inutile : autant l'assumer et couvrir
+        franchement, ce qui rend le contenu lisible plutôt qu'à l'étroit.
+      */}
+      <div className="relative">
         <MapFrame
           ref={figureRef}
           svgRef={svgRef}
@@ -205,21 +248,23 @@ export function MacroExplorer({
           />
         </MapFrame>
 
-        {selectedRow ? (
-          <CountryPanel
-            row={selectedRow}
-            history={history}
-            /* `data` est déjà la liste filtrée sur l'année active — celle qui dessine la
-               carte. Le panneau y lit la médiane mondiale sans refiltrer. */
-            worldValues={data.map((entry) => entry.value)}
-            unit={unit}
-            scale={scale}
-            indicatorLabel={indicatorLabel}
-            rank={ranked.findIndex((row) => row.iso3 === selectedRow.iso3) + 1}
-            total={ranked.length}
-            onClose={() => setSelected(null)}
-          />
-        ) : null}
+        <CountryPanel
+          row={selectedRow ?? null}
+          history={history}
+          /* `data` est déjà la liste filtrée sur l'année active — celle qui dessine la
+             carte. Le panneau y lit la médiane mondiale sans refiltrer. */
+          worldValues={data.map((entry) => entry.value)}
+          unit={unit}
+          scale={scale}
+          indicatorLabel={indicatorLabel}
+          activeYear={activeYear}
+          rank={
+            selectedRow ? ranked.findIndex((row) => row.iso3 === selectedRow.iso3) + 1 : 0
+          }
+          total={ranked.length}
+          regional={regional}
+          onClose={() => setSelected(null)}
+        />
       </div>
 
       {/* ── Curseur temporel ──────────────────────────────────────────────────
@@ -585,12 +630,41 @@ function Scale({
 }
 
 /**
- * BARRE LATÉRALE DU PAYS CHOISI.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * PANNEAU DU PAYS CHOISI — en surimpression, et monté en permanence
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * Elle porte la valeur courante, le rang, et l'historique complet en petite courbe.
- * L'historique est ce qui justifie d'avoir chargé quinze ans : sans lui, ces données
- * ne serviraient qu'au curseur, et une valeur isolée ne dit pas si un pays s'améliore
- * ou se dégrade — ce qui est la question qu'on se pose en cliquant.
+ * ── POURQUOI IL ACCEPTE `row = null` ─────────────────────────────────────────
+ *
+ * L'appelant le montait conditionnellement : `{selectedRow ? <CountryPanel …/> : null}`.
+ * Un composant qui n'existe pas ne peut pas s'animer en SORTIE — au clic sur la croix,
+ * il disparaissait d'un coup pendant que l'entrée, elle, était animée. L'asymétrie se
+ * voit immédiatement.
+ *
+ * Il est donc toujours rendu et décide lui-même de son montage, par `usePresence` :
+ * ouvert tant qu'un pays est choisi, « closing » le temps de la transition, démonté
+ * ensuite. C'est le mécanisme des menus de l'en-tête, et le réécrire ici les aurait
+ * fait diverger à la première retouche.
+ *
+ * ── CE QUE LE PANNEAU PORTE, ET POURQUOI CHAQUE LIGNE Y EST ──────────────────
+ *
+ * Toutes ces mesures sont DÉRIVÉES de la série déjà chargée — aucun appel réseau
+ * supplémentaire, et aucun chiffre inventé : chacune est un calcul sur des
+ * observations publiées.
+ *
+ *   · la VALEUR de l'année affichée, avec son année — qui n'est pas toujours celle du
+ *     curseur, la source publiant à des dates différentes selon les pays ;
+ *   · le RANG MONDIAL et le RANG RÉGIONAL. Le second manquait, et il répond souvent
+ *     mieux : « 8ᵉ sur 200 » et « 8ᵉ sur 9 » ne racontent pas la même histoire ;
+ *   · l'ÉCART À LA MÉDIANE mondiale, en unités. Le rang situe en ordinal, la médiane
+ *     en grandeur — ce qui parle davantage sur un PIB par habitant ;
+ *   · les EXTRÊMES avec leur année, qui situent la valeur courante dans son passé ;
+ *   · l'ÉCART depuis la première année publiée, qui répond à « ce pays s'améliore-t-il ? » ;
+ *   · l'HISTORIQUE complet, désormais tracé sur toute la profondeur disponible — c'est
+ *     ce qui justifie d'avoir chargé soixante-six ans plutôt que quinze.
+ *
+ * La médiane et non la moyenne : sur des grandeurs économiques, une poignée de pays
+ * extrêmes déplace la moyenne au point qu'elle ne décrit plus personne.
  */
 function CountryPanel({
   row,
@@ -599,36 +673,65 @@ function CountryPanel({
   unit,
   scale,
   indicatorLabel,
+  activeYear,
   rank,
   total,
+  regional,
   onClose,
 }: {
-  row: MacroObservation
+  /** `null` quand aucun pays n'est choisi — le panneau se ferme alors en animation. */
+  row: MacroObservation | null
   history: MacroObservation[]
   /**
    * Valeurs de TOUS les pays pour l'année affichée — pour situer celle du pays choisi.
    *
    * Passées en prop plutôt que recalculées ici : l'appelant a déjà filtré les
    * observations sur l'année active pour dessiner la carte, et refaire ce filtre
-   * reviendrait à parcourir quatre mille lignes une seconde fois à chaque clic.
+   * reviendrait à parcourir dix mille lignes une seconde fois à chaque clic.
    */
   worldValues: number[]
   unit: string
   scale: 'percent' | 'compact' | 'plain'
   indicatorLabel: string
+  /** Année demandée au curseur — à distinguer de celle de l'observation. */
+  activeYear: number | null
   rank: number
   total: number
+  regional: { rank: number; total: number } | null
   onClose: () => void
 }) {
+  const { state, mounted, onTransitionEnd } = usePresence(row !== null)
+
+  /**
+   * DERNIÈRES DONNÉES CONNUES, retenues le temps de la fermeture.
+   *
+   * Pendant les cent vingt millisecondes de sortie, `row` vaut déjà `null` : sans
+   * mémoire, le panneau se viderait AVANT de disparaître, et l'on verrait un cadre
+   * blanc glisser vers la droite. On garde donc la dernière valeur non nulle, et le
+   * contenu reste intact jusqu'au démontage.
+   *
+   * ⚠️ UN ÉTAT ET NON UNE RÉFÉRENCE. Un `useRef` écrit pendant le rendu est
+   * exactement ce que `react-hooks/refs` refuse, et à raison : une référence n'est pas
+   * une valeur de rendu, et React ne redessinerait pas quand elle change.
+   *
+   * Le motif retenu est celui que `usePresence` emploie déjà et que react.dev
+   * documente sous « ajuster l'état quand une prop change » : on compare la prop à sa
+   * valeur mémorisée PENDANT le rendu, et React relance immédiatement le rendu avec le
+   * nouvel état sans rien peindre entre les deux.
+   */
+  const [lastRow, setLastRow] = useState<MacroObservation | null>(row)
+  if (row !== null && row !== lastRow) setLastRow(row)
+  const shown = row ?? lastRow
+
   const values = history.map((entry) => entry.value)
-  const min = Math.min(...values)
-  const max = Math.max(...values)
+  const min = values.length > 0 ? Math.min(...values) : 0
+  const max = values.length > 0 ? Math.max(...values) : 1
   const span = max - min || 1
 
   /**
-   * Mesures dérivées de la série et du monde — voir le bloc qui les affiche.
+   * Mesures dérivées de la série et du monde — voir l'en-tête.
    *
-   * `null` quand l'historique se réduit à un point : « depuis 2011 » n'a alors aucun
+   * `null` quand l'historique se réduit à un point : « depuis 1960 » n'a alors aucun
    * sens, et afficher un écart de zéro laisserait croire à une stabilité qu'on n'a pas
    * observée (§5). Les extrêmes, eux, restent justes sur un point unique.
    */
@@ -662,21 +765,42 @@ function CountryPanel({
 
     return {
       firstYear: first.year,
+      lastYear: last.year,
       change: history.length > 1 ? last.value - first.value : null,
       min: lowest.value,
       minYear: lowest.year,
       max: highest.value,
       maxYear: highest.year,
       median,
+      /** Nombre d'années réellement publiées pour ce pays, sur la période entière. */
+      published: history.length,
     }
   }, [history, worldValues])
 
+  if (!mounted || !shown) return null
+
+  const gap = stats?.median != null ? shown.value - stats.median : null
+
   return (
-    <aside className="space-y-4 rounded-card border border-border-subtle bg-surface p-4">
+    <aside
+      data-state={state}
+      onTransitionEnd={onTransitionEnd}
+      aria-label={`${shown.country} — ${indicatorLabel}`}
+      /*
+        `absolute` DANS le conteneur de la figure, et non `fixed` : le panneau
+        appartient à la carte, pas à la fenêtre. En `fixed`, il resterait collé à
+        l'écran pendant que la carte défile, ce qui le détacherait de ce qu'il décrit.
+
+        `max-h-full` et `overflow-y-auto` : sur un indicateur à soixante-six ans, la
+        liste de mesures dépasse la hauteur de la carte en écran court. Le panneau
+        défile alors DANS ses bornes plutôt que de dépasser sous la figure.
+      */
+      className="side-panel absolute inset-x-2 bottom-2 top-2 z-20 space-y-4 overflow-y-auto rounded-card border border-border-subtle bg-surface p-4 shadow-overlay sm:inset-x-auto sm:right-2 sm:w-80"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="truncate text-base font-semibold text-ink">{row.country}</h2>
-          <p className="text-[0.6875rem] text-ink-muted">{row.region}</p>
+          <h2 className="truncate text-base font-semibold text-ink">{shown.country}</h2>
+          <p className="text-[0.6875rem] text-ink-muted">{shown.region}</p>
         </div>
         <button
           type="button"
@@ -691,95 +815,86 @@ function CountryPanel({
       <div>
         <p className="text-[0.6875rem] text-ink-muted">{indicatorLabel}</p>
         <p className="tabular text-2xl font-bold text-ink">
-          {formatMacroValue(row.value, scale)}{' '}
+          {formatMacroValue(shown.value, scale)}{' '}
           <span className="text-sm font-medium text-ink-muted">{unit}</span>
         </p>
+        {/*
+          L'ANNÉE DE L'OBSERVATION, ET CELLE DU CURSEUR, QUAND ELLES DIFFÈRENT.
+
+          Elles diffèrent souvent : la source publie à des dates différentes selon les
+          pays, et la carte affiche la dernière observation disponible pour l'année
+          demandée. Sans cette mention, un lecteur qui a posé le curseur sur 2024
+          croirait lire 2024 pour tout le monde — ce que la note de la page annonce,
+          mais que le panneau doit rappeler là où le chiffre se lit.
+        */}
         <p className="text-[0.6875rem] text-ink-muted">
-          Observation {row.year} · rang {rank} sur {total}
+          Observation {shown.year}
+          {activeYear !== null && activeYear !== shown.year
+            ? ` (curseur sur ${activeYear})`
+            : ''}
         </p>
       </div>
 
-      {/*
-        ══════════════════════════════════════════════════════════════════════
-        CE QUE LA SÉRIE DIT, ET QU'UNE VALEUR ISOLÉE NE DISAIT PAS
-        ══════════════════════════════════════════════════════════════════════
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border-subtle pt-3">
+        <Measure label="Rang mondial" value={`${rank} / ${total}`} />
+        {regional ? (
+          <Measure label="Dans sa région" value={`${regional.rank} / ${regional.total}`} />
+        ) : null}
 
-        Le panneau portait la valeur, le rang et une silhouette. C'était peu pour un
-        clic : la silhouette montre une FORME sans jamais donner de chiffre, si bien
-        qu'on voyait « ça monte » sans savoir de combien ni depuis quoi.
+        {stats?.median != null ? (
+          <Measure label="Médiane mondiale" value={formatMacroValue(stats.median, scale)} />
+        ) : null}
 
-        Quatre mesures s'ajoutent, toutes DÉRIVÉES de la série déjà chargée — aucun
-        appel réseau supplémentaire, et aucune donnée inventée : chacune est un calcul
-        sur des observations publiées.
+        {/* L'ÉCART À LA MÉDIANE est signé et coloré, parce que c'est une position et
+            non une quantité : « +2,4 » au-dessus de la médiane et « −2,4 » en dessous
+            décrivent deux situations opposées qu'un nombre nu confondrait. */}
+        {gap !== null ? (
+          <Measure
+            label="Écart à la médiane"
+            value={`${gap >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(gap), scale)}`}
+            tone={gap >= 0 ? 'up' : 'down'}
+          />
+        ) : null}
 
-          · l'écart entre la première et la dernière année, qui répond à « ce pays
-            s'améliore-t-il ? » — la vraie question du clic ;
-          · le minimum et le maximum, avec leur année, qui situent la valeur courante
-            dans son propre passé ;
-          · la médiane MONDIALE de l'année affichée, qui la situe parmi les autres. Le
-            rang le fait déjà en ordinal ; la médiane le fait en unités, ce qui parle
-            davantage sur une grandeur comme un PIB par habitant.
+        {stats && stats.change !== null ? (
+          <Measure
+            label={`Depuis ${stats.firstYear}`}
+            value={`${stats.change >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(stats.change), scale)}`}
+            tone={stats.change >= 0 ? 'up' : 'down'}
+          />
+        ) : null}
 
-        La médiane et non la moyenne : sur des grandeurs économiques, une poignée de
-        pays extrêmes déplace la moyenne au point qu'elle ne décrit plus personne.
-      */}
-      {stats ? (
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border-subtle pt-3">
-          {stats.change !== null ? (
-            <div>
-              <dt className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
-                Depuis {stats.firstYear}
-              </dt>
-              <dd
-                className={`tabular text-sm font-semibold ${
-                  stats.change >= 0 ? 'text-up' : 'text-down'
-                }`}
-              >
-                {stats.change >= 0 ? '+' : '−'}
-                {formatMacroValue(Math.abs(stats.change), scale)}
-              </dd>
-            </div>
-          ) : null}
+        {stats ? (
+          <>
+            <Measure
+              label={`Plus bas · ${stats.minYear}`}
+              value={formatMacroValue(stats.min, scale)}
+            />
+            <Measure
+              label={`Plus haut · ${stats.maxYear}`}
+              value={formatMacroValue(stats.max, scale)}
+            />
+          </>
+        ) : null}
+      </dl>
 
-          {stats.median !== null ? (
-            <div>
-              <dt className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
-                Médiane mondiale
-              </dt>
-              <dd className="tabular text-sm font-semibold text-ink">
-                {formatMacroValue(stats.median, scale)}
-              </dd>
-            </div>
-          ) : null}
-
-          <div>
-            <dt className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
-              Plus bas · {stats.minYear}
-            </dt>
-            <dd className="tabular text-sm font-semibold text-ink">
-              {formatMacroValue(stats.min, scale)}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
-              Plus haut · {stats.maxYear}
-            </dt>
-            <dd className="tabular text-sm font-semibold text-ink">
-              {formatMacroValue(stats.max, scale)}
-            </dd>
-          </div>
-        </dl>
-      ) : null}
-
-      {history.length > 1 ? (
+      {history.length > 1 && stats ? (
         <div className="space-y-1">
-          <p className="text-[0.6875rem] font-medium text-ink">Historique</p>
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-[0.6875rem] font-medium text-ink">Historique</p>
+            {/* LE DÉCOMPTE D'ANNÉES PUBLIÉES, et il varie énormément d'un pays à
+                l'autre : la Banque mondiale renseigne la France depuis 1960 et le
+                Soudan du Sud depuis 2011. Sans lui, une courbe courte se lirait comme
+                une histoire courte plutôt que comme une publication tardive. */}
+            <p className="tabular text-[0.625rem] text-ink-muted">
+              {stats.published} années publiées
+            </p>
+          </div>
 
           {/* Courbe en SVG brut plutôt qu'avec `AreaPlot` : celui-ci mesure sa largeur
               au montage pour placer ses axes, alors qu'on n'a besoin ici que d'une
               silhouette. Un `viewBox` étirable suffit et s'affiche sans hydratation. */}
-          <svg viewBox="0 0 100 32" className="h-12 w-full" role="img" aria-label="Historique">
+          <svg viewBox="0 0 100 40" className="h-16 w-full" role="img" aria-label="Historique">
             <polyline
               fill="none"
               stroke="var(--color-brand)"
@@ -788,16 +903,42 @@ function CountryPanel({
               points={history
                 .map((entry, index) => {
                   const x = (index / (history.length - 1)) * 100
-                  const y = 30 - ((entry.value - min) / span) * 28
+                  const y = 37 - ((entry.value - min) / span) * 34
                   return `${x.toFixed(1)},${y.toFixed(1)}`
                 })
                 .join(' ')}
             />
+
+            {/*
+              LE POINT DE L'ANNÉE AFFICHÉE, marqué sur la courbe.
+
+              C'est ce qui relie les deux figures : sans lui, on lit une trajectoire
+              sans savoir où l'on se tient dessus, et déplacer le curseur ne change
+              rien de visible dans le panneau. Le repère bouge avec le curseur, et
+              c'est précisément ce qui donne au geste son sens.
+            */}
+            {(() => {
+              const index = history.findIndex((entry) => entry.year === shown.year)
+              if (index < 0) return null
+              const x = (index / (history.length - 1)) * 100
+              const y = 37 - ((history[index]!.value - min) / span) * 34
+              return (
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="2"
+                  fill="var(--color-brand)"
+                  stroke="var(--color-surface)"
+                  strokeWidth="1"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )
+            })()}
           </svg>
 
           <div className="tabular flex justify-between text-[0.625rem] text-ink-muted">
-            <span>{history[0]?.year}</span>
-            <span>{history[history.length - 1]?.year}</span>
+            <span>{stats.firstYear}</span>
+            <span>{stats.lastYear}</span>
           </div>
         </div>
       ) : null}
@@ -808,5 +949,30 @@ function CountryPanel({
         distincts.
       </p>
     </aside>
+  )
+}
+
+/** Une mesure du panneau : son intitulé, son chiffre, et le sens de ce chiffre. */
+function Measure({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  /** Absent = grandeur neutre. Présent = position, dont le signe porte le sens. */
+  tone?: 'up' | 'down'
+}) {
+  return (
+    <div>
+      <dt className="text-[0.625rem] uppercase tracking-wide text-ink-muted">{label}</dt>
+      <dd
+        className={`tabular text-sm font-semibold ${
+          tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : 'text-ink'
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
   )
 }

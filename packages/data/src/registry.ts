@@ -81,7 +81,9 @@ export type ProviderCapability = Extract<
   | 'getCategories'
   | 'getTickers'
   | 'getDerivatives'
+  | 'getDerivativeExchanges'
   | 'getExchanges'
+  | 'getExchangeProfile'
   | 'search'
 >
 

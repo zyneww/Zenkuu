@@ -39,6 +39,30 @@ const http = createHttpClient({
   maxRequestsPerWindow: 10,
   minIntervalMs: 500,
   revalidateSeconds: 1_800,
+
+  /*
+   * ── LE CACHE DE NEXT REFUSAIT CETTE RÉPONSE, ET LE DISAIT À CHAQUE BUILD ───
+   *
+   * `/v1/tickers` rend environ 2,17 Mo pour deux mille lignes. Next plafonne son
+   * cache de données à 2 Mo : chaque appel produisait donc
+   *
+   *     Failed to set Next.js data cache for …/v1/tickers?quotes=USD,
+   *     items over 2MB can not be cached (2173919 bytes)
+   *
+   * Relevé deux fois par build de production, et à chaque expiration du cache
+   * applicatif en service. Ce n'était pas qu'un message : Next tamponnait deux
+   * méga-octets pour tenter une écriture qu'il allait refuser, à chaque fois.
+   *
+   * ── POURQUOI LE CONTOURNEMENT EST SÛR ICI ─────────────────────────────────
+   *
+   * `bypassNextCache` a un coût connu — `no-store` rend dynamique toute page qui en
+   * dépend — et il n'est acceptable que si un AUTRE cache prend le relais. C'est le
+   * cas : `fetchNewListings` réduit les deux mille lignes à cent AVANT la mise en
+   * cache applicatif, et c'est ce résultat parsé, incomparablement plus léger, que
+   * `getNewListings` mémorise. Exactement le raisonnement des flux RSS et de la
+   * Banque mondiale, les deux autres fournisseurs qui l'utilisent.
+   */
+  bypassNextCache: true,
 })
 
 interface PaprikaQuote {

@@ -106,9 +106,48 @@ function percentChange(from: number | undefined, to: number | undefined): number
 }
 
 async function fetchChart(symbol: string, range: string, interval: string) {
+  /*
+   * ── LES SÉANCES ÉTENDUES SONT INCLUSES SUR LES PAS INTRAJOURNALIERS ───────
+   *
+   * `includePrePost: false` écartait l'avant-bourse et l'après-bourse. Sur un pas
+   * quotidien c'est sans effet — une bougie journalière les agrège de toute façon —
+   * mais sur un pas de cinq minutes, cela ampute la journée de ses deux tiers.
+   *
+   * Mesuré sur une fenêtre de 5 jours, en ne gardant que les 24 dernières heures :
+   *
+   *     AAPL   includePrePost=false  →  32 points, 13:30 → 16:02 UTC  =  2,5 h
+   *     AAPL   includePrePost=true   →  98 points, 08:00 → 16:02 UTC  =  8,0 h
+   *     SPY    idem                  →  95 points                     =  8,0 h
+   *
+   * L'avant-bourse américain ouvre à 4 h à New York (08:00 UTC) : ce sont des
+   * transactions RÉELLES, cotées, que la source publie. Les écarter pour n'afficher
+   * que la séance régulière donnait un palier « 24 h » couvrant deux heures et demie.
+   *
+   * ⚠️ CE QUE CELA NE CORRIGE PAS, et il faut le dire : la nuit reste VIDE. Entre la
+   * clôture étendue et l'ouverture suivante, aucune transaction n'existe — un palier
+   * « 24 h » sur une action montre donc un trou, et c'est la réalité du marché, pas un
+   * défaut d'affichage. `^GSPC` ne bouge pas du tout (2,5 h dans les deux cas) : un
+   * indice n'est calculé que pendant la séance régulière, il n'a pas d'avant-bourse.
+   *
+   * ⚠️ RESTREINT AU PAS DE MINUTES, et ce n'est pas une précaution abstraite. La
+   * première version acceptait aussi le pas horaire, donc la fenêtre de 7 jours : le
+   * graphique s'est mis à porter des barres nocturnes à volume nul, et l'infobulle
+   * affichait « Vol : 0 » à une heure du matin — constaté au navigateur. Sur 7 jours,
+   * les séances régulières couvrent déjà toute la fenêtre ; les séances étendues n'y
+   * ajoutent que du plat.
+   *
+   * Le pas quotidien est exclu pour une raison voisine : les séances étendues y
+   * ajouteraient des bougies partielles en tête et en queue de série, aux extrêmes
+   * faussés par la faible liquidité de ces plages.
+   *
+   * Le pas de minutes ne sert QUE la fenêtre de 24 heures — voir `windowFor`. La
+   * condition dit donc exactement « le seul palier où la nuit manque ».
+   */
+  const intraday = interval.endsWith('m')
+
   const payload = await http.getJson<YahooChartResponse>(
     `chart/${encodeURIComponent(symbol)}`,
-    { range, interval, includePrePost: false },
+    { range, interval, includePrePost: intraday },
   )
 
   const result = payload.chart?.result?.[0]
@@ -320,7 +359,14 @@ export const yahooProvider: MarketDataProvider = {
       throw new ProviderError(PROVIDER_ID, `Historique insuffisant pour « ${id} »`)
     }
 
-    return { points, currency: (result.meta.currency ?? 'USD').toUpperCase(), days }
+    /* La plage demandée à Yahoo est plus large que la fenêtre voulue — c'est la seule
+       façon de garantir 24 heures réelles sur un marché fermé la nuit. Voir
+       `windowFor` et `trimToWindow`. */
+    return {
+      points: trimToWindow(points, days),
+      currency: (result.meta.currency ?? 'USD').toUpperCase(),
+      days,
+    }
   },
 
   /**
@@ -367,7 +413,14 @@ export const yahooProvider: MarketDataProvider = {
       throw new ProviderError(PROVIDER_ID, `Bougies indisponibles pour « ${id} »`)
     }
 
-    return { candles, currency: (result.meta.currency ?? 'USD').toUpperCase(), days }
+    /* Même découpage que l'historique, et pour la même raison : les deux lisent la
+       même réponse `v8/chart`, donc la même plage trop large. Les oublier ici ferait
+       diverger la courbe et les chandeliers du même actif sur le même palier. */
+    return {
+      candles: trimToWindow(candles, days),
+      currency: (result.meta.currency ?? 'USD').toUpperCase(),
+      days,
+    }
   },
 }
 
@@ -391,11 +444,78 @@ function resolveEntry(id: string, assetClass?: AssetClass): UniverseEntry {
  * Granularité adaptée à la fenêtre : une journée en pas fin, une année en pas
  * quotidien. Demander un pas de 5 minutes sur un an renverrait des dizaines de
  * milliers de points pour un graphique large de 700 pixels.
+ *
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ `range=1d` NE VEUT PAS DIRE « LES DERNIÈRES 24 HEURES »
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Yahoo compte en SÉANCES, pas en heures. `range=1d` rend la séance EN COURS, quelle
+ * que soit son avancement. Mesuré un lundi à 15h26 UTC :
+ *
+ *     AAPL   range=1d  →  25 points, 13:30 → 15:26  =  1,9 h
+ *     SPY    range=1d  →  25 points, 13:30 → 15:26  =  1,9 h
+ *     ^GSPC  range=1d  →  25 points, 13:30 → 15:26  =  1,9 h
+ *
+ * Le palier « 24 h » affichait donc deux heures de courbe sur une action, et le
+ * lecteur voyait un axe allant de 15:30 à 17:00 sous une étiquette « 24 h ». Le
+ * cryptoactif, lui, rendait bien 23,9 h — d'où un défaut invisible sur la moitié du
+ * site.
+ *
+ * ── ET `range=2d` NE LE CORRIGE PAS ─────────────────────────────────────────
+ *
+ * Même mesure : `2d` remonte au **14 août** pour un lundi, soit 73,9 heures. Deux
+ * séances de bourse peuvent enjamber un week-end, et rien dans le paramètre ne borne
+ * la durée réelle.
+ *
+ * ── CE QU'ON FAIT DONC : DEMANDER LARGE, DÉCOUPER JUSTE ─────────────────────
+ *
+ * `5d` couvre à coup sûr les 24 dernières heures, week-end et jours fériés compris ;
+ * l'appelant découpe ensuite sur la durée demandée (voir `trimToWindow`). C'est le
+ * seul moyen d'honorer le libellé : un palier « 24 h » doit montrer 24 heures.
+ *
+ * Le coût est du réseau, pas du quota : une requête, ~337 points au lieu de 25, et le
+ * découpage a lieu chez nous. Sur les marchés continus (or, devises) la fenêtre était
+ * déjà correcte — 11 à 16 h — et le découpage ne leur retire rien.
  */
 function windowFor(days: number): { range: string; interval: string } {
-  if (days <= 1) return { range: '1d', interval: '5m' }
-  if (days <= 7) return { range: '7d', interval: '60m' }
+  if (days <= 1) return { range: '5d', interval: '5m' }
+  if (days <= 7) return { range: '1mo', interval: '60m' }
   if (days <= 30) return { range: '1mo', interval: '1d' }
   if (days <= 90) return { range: '3mo', interval: '1d' }
   return { range: '1y', interval: '1d' }
+}
+
+/**
+ * Ne garde que les points des `days` derniers jours.
+ *
+ * ── POURQUOI CE DÉCOUPAGE EXISTE ────────────────────────────────────────────
+ *
+ * Parce que `windowFor` demande désormais PLUS LARGE que nécessaire — voir sa note :
+ * les paramètres de plage de Yahoo comptent en séances, et aucun d'eux ne borne une
+ * durée réelle. On rattrape donc ici ce que la source ne sait pas exprimer.
+ *
+ * ── LE GARDE-FOU QUI COMPTE ─────────────────────────────────────────────────
+ *
+ * Si le découpage laisse moins de deux points, on rend la série ENTIÈRE plutôt qu'une
+ * série vide. Le cas se produit vraiment : un jour férié américain, les 24 dernières
+ * heures ne contiennent aucune cotation, et un graphique vide sous une étiquette
+ * « 24 h » serait pire que le défaut qu'on corrige — il laisserait croire à une panne.
+ * Mieux vaut montrer la dernière séance connue, ce que la mention de source datée sous
+ * le graphique permet de situer.
+ *
+ * Générique sur le type d'élément : la même règle sert aux points de prix et aux
+ * bougies, qui ne partagent que leur horodatage.
+ */
+export function trimToWindow<T extends { timestamp: number }>(items: T[], days: number): T[] {
+  if (items.length === 0) return items
+
+  /* Compté depuis le DERNIER POINT et non depuis l'heure courante : sur un marché
+     fermé depuis vendredi, compter depuis maintenant écarterait toute la séance de
+     vendredi et ne laisserait rien. Le dernier point est la référence que le lecteur
+     a sous les yeux. */
+  const last = items[items.length - 1]?.timestamp ?? 0
+  const cutoff = last - days * 86_400_000
+
+  const kept = items.filter((item) => item.timestamp >= cutoff)
+  return kept.length >= 2 ? kept : items
 }

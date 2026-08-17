@@ -25,14 +25,14 @@ import {
   fetchTrendingPools,
   networkFromPlatform,
 } from './providers/geckoterminal'
-import { NEWS_SOURCES, fetchNews } from './providers/news'
+import { NEWS_SOURCES, fetchNews, fetchSymbolNews } from './providers/news'
 import {
   WORLDBANK_SOURCE,
   fetchMacroIndicator,
   type MacroObservation,
 } from './providers/worldbank'
 import { fetchAssetProfile, type AssetProfile } from './providers/yahoo-profile'
-import { findUniverseEntry } from './providers/yahoo-universe'
+import { findUniverseEntry, findUniverseEntryBySymbol, toSlug } from './providers/yahoo-universe'
 import {
   SENTIMENT_SOURCE,
   fetchSentiment,
@@ -59,6 +59,8 @@ import type {
   SpotExchange,
   OhlcHistory,
   PriceHistory,
+  DerivativeExchange,
+  ExchangeProfile,
   DerivativeMarket,
   SentimentIndex,
   SentimentPoint,
@@ -299,7 +301,24 @@ async function run<T>(
     }
   } catch (error) {
     const detail = error instanceof ProviderError ? error.message : String(error)
-    console.error(`[zenkuu:data] ${cacheKey} — ${detail}`)
+
+    /*
+     * ── LE NIVEAU SUIT LA NATURE DE L'ÉCHEC ─────────────────────────────────
+     *
+     * Tout passait en ERREUR, y compris « cette source ne publie pas cette donnée ».
+     * Chaque rendu de fiche d'action, d'ETF, de devise ou d'indice écrivait donc une
+     * ligne rouge pour une absence permanente et attendue — Yahoo n'a pas de carnet
+     * d'ordres, la BCE non plus, et cela ne changera pas.
+     *
+     * Une console où une ligne rouge paraît à chaque page est une console qu'on cesse
+     * de lire. Le bruit ne gêne pas seulement : il cache. Voir `ProviderError.unsupported`
+     * pour les trois natures d'échec et ce qui les distingue.
+     */
+    if (error instanceof ProviderError && error.unsupported) {
+      console.debug(`[zenkuu:data] ${cacheKey} — ${detail}`)
+    } else {
+      console.error(`[zenkuu:data] ${cacheKey} — ${detail}`)
+    }
 
     // Inexistence AVANT panne : un identifiant inconnu n'est pas un incident, et le
     // confondre avec une indisponibilité produit une page « revenez plus tard » pour
@@ -391,7 +410,7 @@ export async function getCryptoGlobalStats(
     `crypto:global:${currency}`,
     (provider) => {
       if (!provider.getGlobalStats) {
-        throw new ProviderError(provider.id, 'Statistiques globales non supportées')
+        throw new ProviderError(provider.id, 'Statistiques globales non supportées', { unsupported: true })
       }
       return provider.getGlobalStats(currency)
     },
@@ -482,7 +501,7 @@ export function getTrendingCrypto(currency = 'eur'): Promise<DataResult<Trending
     'crypto',
     `crypto:trending:${currency}`,
     (provider) => {
-      if (!provider.getTrending) throw new ProviderError(provider.id, 'Tendances non supportées')
+      if (!provider.getTrending) throw new ProviderError(provider.id, 'Tendances non supportées', { unsupported: true })
       return provider.getTrending(currency)
     },
     TRENDING_TTL_SECONDS,
@@ -642,7 +661,7 @@ export function getAsset(
 ): Promise<DataResult<AssetDetail>> {
   return run(assetClass, `${assetClass}:asset:${id}:${currency}`, (provider) => {
     if (!provider.getAsset) {
-      throw new ProviderError(provider.id, 'Fiche détaillée non supportée')
+      throw new ProviderError(provider.id, 'Fiche détaillée non supportée', { unsupported: true })
     }
     return provider.getAsset(id, assetClass, currency)
   })
@@ -671,7 +690,7 @@ export function getAssetTickers(
     `${assetClass}:tickers:${id}:${currency}:${limit}`,
     (provider) => {
       if (!provider.getTickers) {
-        throw new ProviderError(provider.id, 'Places de cotation non publiées par la source')
+        throw new ProviderError(provider.id, 'Places de cotation non publiées par la source', { unsupported: true })
       }
       return provider.getTickers(id, currency, limit)
     },
@@ -690,7 +709,7 @@ export function getAssetHistory(
     `${assetClass}:history:${id}:${days}:${currency}`,
     (provider) => {
       if (!provider.getHistory) {
-        throw new ProviderError(provider.id, 'Historique non supporté')
+        throw new ProviderError(provider.id, 'Historique non supporté', { unsupported: true })
       }
       return provider.getHistory(id, days, assetClass, currency)
     },
@@ -726,7 +745,7 @@ export function getAssetOhlc(
     `${assetClass}:ohlc:${id}:${days}:${currency}`,
     (provider) => {
       if (!provider.getOhlc) {
-        throw new ProviderError(provider.id, 'Bougies non supportées')
+        throw new ProviderError(provider.id, 'Bougies non supportées', { unsupported: true })
       }
       return provider.getOhlc(id, days, assetClass, currency)
     },
@@ -752,7 +771,7 @@ function fetchCategories(
   provider: NonNullable<ReturnType<typeof getProvider>>,
 ): Promise<MarketCategory[]> {
   if (!provider.getCategories) {
-    throw new ProviderError(provider.id, 'Catégories non supportées')
+    throw new ProviderError(provider.id, 'Catégories non supportées', { unsupported: true })
   }
   // Clé VERSIONNÉE. Le cache vit sur `globalThis` et survit au rechargement à chaud :
   // sans ce suffixe, un enregistrement antérieur à l'ajout de `topAssetIds` et
@@ -893,12 +912,33 @@ export function getTopNarratives(limit = 6): Promise<DataResult<MarketCategory[]
 /**
  * Taille du RÉSERVOIR mis en cache, indépendante de ce que demande l'appelant.
  *
- * 240 ≈ huit articles pour chacun des vingt-neuf flux. C'est le seuil à partir duquel
- * une recherche par mention sur une fiche d'actif trouve quelque chose : à quarante
- * articles, le tour à tour de `fetchNews` n'en garde qu'un ou deux par source, et un
- * actif hors des dix premières capitalisations n'est nommé nulle part.
+ * ── POURQUOI L'AGRANDIR NE COÛTE AUCUNE REQUÊTE ──────────────────────────────
+ *
+ * C'est le point contre-intuitif de ce réglage, et il commande tout le reste :
+ * `fetchNews` interroge TOUS les flux quel que soit le nombre demandé, puis tranche.
+ * La limite ne réduit donc pas le trafic sortant — elle jette de la donnée déjà
+ * téléchargée. Passer de 240 à 700 ne change pas le nombre d'appels : il reste de un
+ * par flux et par collecte, mise en cache pour tout le site.
+ *
+ * ── ET POURQUOI IL FALLAIT L'AGRANDIR ────────────────────────────────────────
+ *
+ * 240, c'était huit articles pour chacun des vingt-neuf flux d'alors. La liste en
+ * compte désormais quarante-deux, et les mêmes 240 seraient retombés à cinq par
+ * source — soit MOINS de matière par flux qu'avant l'élargissement, ce qui aurait
+ * annulé l'ajout.
+ *
+ * 700 ≈ dix-sept articles par flux, en tenant compte de ce que les flux servent
+ * réellement (mesuré : de 10 à 94 articles selon l'éditeur, une vingtaine en médiane).
+ * C'est la profondeur à partir de laquelle un actif hors des dix premières
+ * capitalisations est nommé quelque part.
+ *
+ * ── CE QUE CELA COÛTE VRAIMENT ───────────────────────────────────────────────
+ *
+ * De la mémoire de cache : sept cents articles font environ 400 ko de JSON, gardés
+ * trois minutes. Et rien de plus — les vignettes manquantes sont complétées APRÈS la
+ * découpe, sur un lot borné, pas sur le réservoir entier.
  */
-const NEWS_POOL = 240
+export const NEWS_POOL = 700
 
 /**
  * Fil d'actualités agrégé.
@@ -929,6 +969,85 @@ export async function getNews(limit = 8): Promise<DataResult<NewsItem[]>> {
 
   if (!result.ok) return result
   return { ...result, data: result.data.slice(0, limit) }
+}
+
+/**
+ * Symbole Yahoo d'un actif, pour son flux d'actualités dédié.
+ *
+ * ── UNE CONVENTION PAR CLASSE, ET AUCUNE N'EST DEVINÉE ──────────────────────
+ *
+ * Yahoo nomme ses instruments selon des règles fixes, et notre univers écrit à la
+ * main porte déjà le symbole EXACT pour tout ce qui n'est pas de la crypto — c'est
+ * lui qui sert à interroger les cours. On le relit donc plutôt que de le reconstruire :
+ * `^GSPC`, `GC=F` et `MC.PA` ne se déduisent d'aucune règle générale.
+ *
+ * La CRYPTO est le seul cas construit, et sa règle est stable et unique : Yahoo cote
+ * chaque jeton contre le dollar, sous `BTC-USD`, `ETH-USD`, `HYPE-USD`. Notre univers
+ * ne la couvre pas — les cryptoactifs viennent de CoinGecko, qui en publie des
+ * milliers.
+ *
+ * ── UN SYMBOLE INCONNU REND `null`, ET C'EST UNE RÉPONSE ────────────────────
+ *
+ * L'appelant se contente alors du fil agrégé. Interroger Yahoo avec un symbole qu'il
+ * ne connaît pas rendrait un flux vide au mieux, et les actualités d'un homonyme au
+ * pire — ce dernier cas étant exactement le genre de faux que le §5 proscrit.
+ */
+function yahooNewsSymbol(assetClass: AssetClass, symbol: string): string | null {
+  const clean = symbol.trim()
+  if (!clean) return null
+
+  if (assetClass === 'crypto') return `${clean.toUpperCase()}-USD`
+
+  /* Le symbole peut arriver sous sa forme Yahoo (`^GSPC`) ou sous celle de nos URL
+     (`gspc`). On essaie les deux clés, dans cet ordre : elles ne se confondent pas,
+     et une seule fonction acceptant les deux formes masquerait une faute de frappe. */
+  const direct = findUniverseEntryBySymbol(clean)
+  if (direct) return direct.symbol
+
+  return findUniverseEntry(toSlug(clean))?.entry.symbol ?? null
+}
+
+/**
+ * Actualités NOMMANT un actif, demandées à la source plutôt que filtrées après coup.
+ *
+ * Voir `fetchSymbolNews` pour le raisonnement complet : le fil agrégé est un
+ * échantillon généraliste, et aucune profondeur ne le rend spécifique. Celui-ci
+ * demande l'actif.
+ *
+ * ── LA CLÉ DE CACHE PORTE LE SYMBOLE, ET C'EST NOUVEAU ──────────────────────
+ *
+ * `getNews` mémorise UN réservoir pour tout le site. Celui-ci mémorise une entrée par
+ * actif consulté, ce qui est le prix de la pertinence — et reste borné par le nombre
+ * de fiches réellement visitées, pas par la taille de l'univers.
+ *
+ * Le TTL est celui du fil agrégé : les deux listes s'affichent côte à côte, et deux
+ * fraîcheurs différentes feraient apparaître un article dans l'une avant l'autre.
+ */
+export async function getAssetNews(
+  assetClass: AssetClass,
+  symbol: string,
+): Promise<DataResult<NewsItem[]>> {
+  const yahooSymbol = yahooNewsSymbol(assetClass, symbol)
+
+  if (!yahooSymbol) {
+    /* Pas d'échec : l'absence de correspondance est un résultat vide, pas une panne.
+       La fiche affiche alors le seul fil agrégé, comme avant l'ajout de celui-ci.
+
+       La source est citée même sur une liste vide — c'est le contrat du type, et
+       l'affichage ne se sert de ce champ que s'il y a quelque chose à attribuer. */
+    return {
+      ok: true,
+      data: [],
+      source: { label: 'Yahoo Finance', attributionUrl: 'https://finance.yahoo.com' },
+    }
+  }
+
+  return runStandalone(
+    `news:asset:${yahooSymbol}`,
+    { label: 'Yahoo Finance', attributionUrl: 'https://finance.yahoo.com' },
+    () => fetchSymbolNews(yahooSymbol),
+    NEWS_TTL_SECONDS,
+  )
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -1303,11 +1422,96 @@ export function getSpotExchanges(limit = 50): Promise<DataResult<SpotExchange[]>
     `crypto:exchanges:${limit}`,
     (provider) => {
       if (!provider.getExchanges) {
-        throw new ProviderError(provider.id, 'Places de marché non publiées par la source')
+        throw new ProviderError(provider.id, 'Places de marché non publiées par la source', { unsupported: true })
       }
       return provider.getExchanges(limit)
     },
     3_600,
+  )
+}
+
+/**
+ * Fiche d'une place — comptant ou dérivés.
+ *
+ * ── UNE HEURE, ET C'EST LE PROFIL QUI COMMANDE, PAS LES PAIRES ──────────────
+ *
+ * La réponse mêle deux natures de donnée : l'identité de la place — pays, année,
+ * réseaux, note de confiance — qui ne bouge pas d'un mois à l'autre, et jusqu'à cent
+ * paires cotées, qui bougent à la minute.
+ *
+ * Le TTL suit la première. Un lecteur qui veut le cours d'une paire ne le cherche pas
+ * dans une fiche de place : il ouvre la fiche de l'actif, qui a son propre cycle
+ * beaucoup plus court. Ce que cette page apporte, c'est le CONTEXTE — sur quelle
+ * plateforme, avec quelle profondeur, depuis quelle année — et une heure y est un pas
+ * généreux plutôt qu'un compromis.
+ *
+ * `null` traverse le cache comme une valeur : une place inexistante doit rester
+ * inexistante pendant l'heure, sinon chaque robot qui explore une URL fantaisiste
+ * relancerait deux appels vers la source.
+ */
+export async function getExchangeProfile(
+  id: string,
+): Promise<DataResult<ExchangeProfile | null>> {
+  /*
+   * ── LA NATURE EST DÉDUITE D'UNE LISTE DÉJÀ EN CACHE ───────────────────────
+   *
+   * Comptant et dérivés vivent sur deux endpoints, et l'identifiant seul ne dit pas
+   * lequel interroger. Le provider sait se rabattre de l'un sur l'autre, mais ce repli
+   * coûte DEUX appels sur un quota de cinq par minute : mesuré à 121 secondes pour la
+   * fiche de Binance Futures, la source répondant 429 au second.
+   *
+   * `getDerivativeExchanges` porte la réponse et ne coûte rien : sa clé de cache ne
+   * dépend d'aucune place, elle est déjà chaude pour `/perpetuels`, et son TTL de dix
+   * minutes couvre largement la navigation d'un lecteur qui clique une ligne.
+   *
+   * Une source en panne laisse `kind` indéterminé, et le provider reprend alors son
+   * repli en deux appels. C'est le comportement voulu : plus lent, mais la fiche
+   * s'affiche — là où trancher au hasard donnerait un 404 sur une place qui existe.
+   */
+  const derivatives = await getDerivativeExchanges(100)
+  const kind = derivatives.ok
+    ? derivatives.data.some((entry) => entry.id === id)
+      ? ('derivatives' as const)
+      : ('spot' as const)
+    : undefined
+
+  return run(
+    'crypto',
+    `crypto:exchange:${id}`,
+    (provider) => {
+      if (!provider.getExchangeProfile) {
+        throw new ProviderError(provider.id, 'Fiche de place non publiée par la source', { unsupported: true })
+      }
+      return provider.getExchangeProfile(id, kind)
+    },
+    3_600,
+  )
+}
+
+/**
+ * Places de produits dérivés, classées par intérêt ouvert.
+ *
+ * TTL de dix minutes et non d'une heure comme les places au comptant : l'intérêt
+ * ouvert est une POSITION, pas une caractéristique. Il se déplace au cours de la
+ * journée, et c'est même la grandeur qui bouge en premier lors d'un retournement —
+ * la garder une heure ferait lire un état du marché déjà passé.
+ *
+ * Le pas reste aligné sur `getDerivatives`, qui interroge la même famille d'endpoints
+ * et dont les chiffres se lisent souvent côte à côte.
+ */
+export function getDerivativeExchanges(
+  limit = 100,
+): Promise<DataResult<DerivativeExchange[]>> {
+  return run(
+    'crypto',
+    `crypto:derivative-exchanges:${limit}`,
+    (provider) => {
+      if (!provider.getDerivativeExchanges) {
+        throw new ProviderError(provider.id, 'Places de dérivés non publiées par la source', { unsupported: true })
+      }
+      return provider.getDerivativeExchanges(limit)
+    },
+    600,
   )
 }
 

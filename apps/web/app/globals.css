@@ -188,6 +188,64 @@
   --color-down-soft: #ffecea;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     REMPLISSAGE DES CARTES THERMIQUES — deux jetons de plus, et il en faut deux.
+
+     ⚠️ POURQUOI `--color-up` NE PEUT PAS SERVIR ICI.
+
+     Les jetons de hausse et de baisse ci-dessus sont des couleurs de TEXTE : elles
+     sont réglées pour se lire sur le fond de la page. Une carte thermique en fait
+     l'usage inverse — un aplat plein, avec du texte BLANC dessus — et le contraste
+     s'effondre. Mesuré (WCAG, texte blanc) :
+
+         clair   up   #00a83e  →  3,15:1     grand texte seulement
+         clair   down #ff3a33  →  3,56:1     grand texte seulement
+         sombre  up   #34d399  →  1,92:1     ILLISIBLE
+         sombre  down #f87171  →  2,77:1     ILLISIBLE
+
+     Les étiquettes de tuile descendent à sept pixels : le seuil qui s'applique est
+     4,5:1, et aucun des quatre ne l'atteint. Le vert du thème sombre est un vert
+     CLAIR — parfait pour écrire « +1,2 % » sur du noir, inutilisable comme fond.
+
+     Ces jetons-ci sont donc des couleurs de FOND, choisies pour porter du blanc :
+
+         --color-heat-up        #15803d  →  5,02:1
+         --color-heat-down      #b91c1c  →  6,47:1
+         --color-heat-up-dim    #14532d  →  6,95:1
+         --color-heat-down-dim  #7f1d1d  →  8,24:1
+
+     ── POURQUOI QUATRE JETONS ET NON DEUX ────────────────────────────────────
+
+     Les paliers pâles se composaient en mélangeant la couleur pleine au FOND DE LA
+     FIGURE. En thème sombre cela donne un vert très foncé — parfait. En thème clair,
+     la surface est presque blanche, et le palier le plus pâle devenait un vert d'eau
+     sous du texte blanc. Mesuré sur les cinq paliers :
+
+         clair   up    1,92  2,42  3,06  3,93  5,02     ÉCHEC
+         clair   down  2,29  3,03  4,06  5,24  6,47     ÉCHEC
+         sombre  up   11,13  9,11  7,43  6,09  5,02     OK
+         sombre  down 13,10 11,12  9,29  7,75  6,47     OK
+
+     Les paliers se composent donc entre DEUX ANCRES FIXES — le ton sourd et le ton
+     plein de la même teinte — sans jamais toucher au fond. Le résultat ne dépend plus
+     du thème, et les cinq paliers tiennent partout :
+
+         up            6,95  6,42  5,85  5,41  5,02     OK
+         down          8,24  7,78  7,32  6,88  6,47     OK
+
+     ── ILS NE CHANGENT PAS AVEC LE THÈME, ET C'EST VOULU ─────────────────────
+
+     Un aplat saturé porte son propre contraste : le texte blanc s'y lit aussi bien
+     sur une page claire que sombre, et la tuile ne se confond avec aucun fond. Les
+     faire basculer les rendrait clairs en thème sombre — exactement le défaut qu'on
+     corrige. C'est aussi ce que fait la référence, dont la carte a la même couleur
+     dans les deux thèmes.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-heat-up: #15803d;
+  --color-heat-down: #b91c1c;
+  --color-heat-up-dim: #14532d;
+  --color-heat-down-dim: #7f1d1d;
+
+  /* ───────────────────────────────────────────────────────────────────────────
      VERT DE STATUT — celui de la pastille d'offre, et de rien d'autre.
 
      Il ne réutilise PAS `--color-up`, et la distinction n'est pas cosmétique. Le
@@ -666,6 +724,54 @@
     transform: translateY(-8px);
   }
 
+  /* ──────────────────────────────────────────────────────────────
+     PANNEAU LATÉRAL — le tiroir qui s'ouvre SUR une figure, pas à côté d'elle.
+
+     TROISIÈME GESTE de la même famille, et il en fallait un troisième. Le panneau de
+     menu se déplie vers le bas depuis son bouton ; le tiroir mobile descend sur toute
+     la page ; celui-ci ENTRE PAR LA DROITE, sur le bord de la figure qui l'a ouvert.
+
+     ── CE QU'IL REMPLACE, ET POURQUOI LE REMPLACEMENT COMPTE ──────────────
+
+     Le panneau de pays de la carte macro était une COLONNE DE GRILLE : cliquer un
+     pays faisait passer la mise en page de une à deux colonnes, et la carte se
+     réduisait d'un tiers. Le pays qu'on venait de cliquer changeait donc de taille et
+     de position sous le curseur, au moment précis où l'on voulait le regarder — et le
+     refermer le faisait sauter une seconde fois.
+
+     En surimpression, la carte ne bouge plus du tout. C'est ce que « fluide » veut
+     dire ici : ce n'est pas l'animation qui manquait, c'est l'immobilité de ce qu'on
+     regarde.
+
+     ── POURQUOI 12 PIXELS ET NON 6 ────────────────────────────────────────
+
+     Le panneau de menu glisse de six pixels parce qu'il apparaît SOUS son bouton,
+     à quelques pixels de là. Celui-ci vient du bord de la figure, sur trois cents
+     pixels de large : six pixels s'y liraient comme un tressaillement plutôt que
+     comme une entrée. Douze suffisent à donner la direction sans allonger l'attente.
+
+     Pas de facteur d'échelle, à la différence du menu : un panneau qui grandit
+     depuis le bord droit paraît se détacher de ce bord, alors qu'il en vient.
+     ────────────────────────────────────────────────────────────── */
+  .side-panel {
+    opacity: 0;
+    transform: translateX(12px);
+    transition-property: opacity, transform;
+    transition-timing-function: var(--ease-menu);
+    transition-duration: var(--duration-menu-out);
+  }
+
+  .side-panel[data-state='open'] {
+    opacity: 1;
+    transform: translateX(0);
+    transition-duration: var(--duration-menu-in);
+  }
+
+  .side-panel[data-state='closing'] {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
   /* Voile derrière le tiroir. Il ne s'anime QU'EN OPACITÉ : le déplacer ferait
      glisser une teinte sur toute la page, ce que l'œil lit comme un défaut de rendu
      plutôt que comme une ouverture. */
@@ -738,6 +844,76 @@
     transition-property: transform, width;
     transition-duration: var(--duration-move);
     transition-timing-function: var(--ease-standard);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     LA FICHE D'ACTIF : LE CONTENU REPREND LA LARGEUR QUAND LE RAIL S'ARRÊTE
+     ═══════════════════════════════════════════════════════════════════════════
+
+     ── LE DÉFAUT QUE CES TROIS RÈGLES CORRIGENT ───────────────────────────────
+
+     La fiche était une GRILLE à deux colonnes : le rail de chiffres à gauche
+     (18 rem), le contenu à droite. Une grille impose ses pistes sur toute sa
+     hauteur — c'est sa définition. Le rail, lui, s'arrête après la fiche
+     technique, souvent bien avant la fin de la page.
+
+     Résultat mesuré au navigateur sur la fiche Hyperliquid : dix-huit rems de vide
+     à gauche, sur plusieurs milliers de pixels de haut, pendant que les tableaux
+     de droite étaient à l'étroit. Un cinquième de la largeur utile perdu là où le
+     contenu en manquait le plus.
+
+     ── POURQUOI UN FLOTTANT, ET NON UNE GRILLE PLUS SAVANTE ───────────────────
+
+     Aucune valeur de `grid-template` ne sait dire « deux colonnes tant que ce
+     bloc dure, une seule ensuite » : il faudrait connaître à l'avance la hauteur
+     du rail EN NOMBRE DE SECTIONS, ce qui dépend de la classe d'actif, des données
+     reçues et de la taille du texte.
+
+     Le flottant, lui, fait exactement cela — c'est même la seule chose qu'il sache
+     faire. On l'a longtemps évité parce que le contenu ordinaire s'ENROULE autour,
+     ce qui donnerait un tableau démarrant sous le rail et passant dessous. La
+     parade est `display: flow-root` sur chaque section : un bloc qui ouvre son
+     propre contexte de formatage n'entoure JAMAIS un flottant — il se pose à côté
+     en se rétrécissant, et reprend toute la largeur dès qu'il commence sous lui.
+
+     C'est précisément le comportement demandé, obtenu par le mécanisme qui existe
+     pour lui, sans une ligne de JavaScript ni une mesure.
+
+     ── POURQUOI `display: contents` SUR L'ENVELOPPE ───────────────────────────
+
+     Les sections arrivent dans un conteneur unique, qui existe pour une raison
+     documentée dans `AssetTabs` — un tableau d'enfants passé en prop réclame des
+     clés que React attribue mal. Ce conteneur ferait à lui seul UN bloc à côté du
+     flottant, rétréci sur toute sa hauteur : le défaut d'origine, déplacé d'un
+     niveau. `display: contents` retire sa boîte sans le retirer de l'arbre, et ses
+     sections deviennent les voisines directes du flottant.
+
+     Ses marges d'espacement (`space-y-*`) survivent : elles visent ses ENFANTS,
+     que la règle ne touche pas.
+
+     ── EN DESSOUS DE 1024 PIXELS, RIEN DE TOUT CELA ───────────────────────────
+
+     Une seule colonne, le rail au-dessus du contenu — le comportement d'origine.
+     C'est aussi pourquoi les règles vivent dans une requête de média plutôt que
+     d'être annulées au cas par cas.
+     ─────────────────────────────────────────────────────────────────────────── */
+  @media (min-width: 1024px) {
+    .asset-rail {
+      float: left;
+      width: 18rem;
+      /* La gouttière est portée par le flottant lui-même : `gap` n'existe pas hors
+         grille et flexbox, et une marge sur les sections s'appliquerait aussi à
+         celles qui ont repris toute la largeur. */
+      margin-right: 1.5rem;
+    }
+
+    .asset-sections {
+      display: contents;
+    }
+
+    .asset-section {
+      display: flow-root;
+    }
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
