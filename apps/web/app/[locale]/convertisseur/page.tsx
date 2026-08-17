@@ -149,7 +149,7 @@ export default async function ConverterPage() {
         </p>
         <p className="text-sm text-ink-muted">
           Voir aussi les{' '}
-          <Link href="/devises" className="text-brand hover:underline">
+          <Link href="/marches?classe=devises" className="text-brand hover:underline">
             taux de référence BCE
           </Link>{' '}
           et la{' '}

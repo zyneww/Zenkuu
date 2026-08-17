@@ -112,10 +112,10 @@ function Counter({
  */
 function ShortcutChips() {
   const chips = [
-    { label: 'Points saillants', href: '/crypto/highlights', Icon: Sparkles },
-    { label: 'Tendances', href: '/crypto/graphiques', Icon: TrendingUp },
-    { label: 'Plus fortes hausses', href: '/crypto/mouvements', Icon: Flame },
-    { label: 'Nouvelles cotations', href: '/crypto/nouvelles', Icon: Layers },
+    { label: 'Points saillants', href: '/points-marquants', Icon: Sparkles },
+    { label: 'Tendances', href: '/graphiques', Icon: TrendingUp },
+    { label: 'Plus fortes hausses', href: '/mouvements', Icon: Flame },
+    { label: 'Nouvelles cotations', href: '/nouvelles-cotations', Icon: Layers },
     { label: 'Actualités', href: '/actualites', Icon: Newspaper },
   ] as const
 

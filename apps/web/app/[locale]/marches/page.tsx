@@ -1,19 +1,13 @@
 import type { Metadata } from 'next'
 
-import {
-  CACHE_TTL_SECONDS,
-  getDerivatives,
-  getTrendingPools,
-  type AssetClass,
-} from '@zenkuu/data'
+import { CACHE_TTL_SECONDS, getDerivatives, type AssetClass } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, DERIVATIVES_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { DerivativesPanel } from '@/components/market/DerivativesPanel'
-import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { MarketPageView } from '@/components/market/MarketPageView'
 import { getContent } from '@/lib/content'
-import { assetClassFromSegment, marketHref } from '@/lib/asset-routes'
+import { assetClassFromSegment } from '@/lib/asset-routes'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -69,7 +63,6 @@ export default async function Page({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const params = await searchParams
-  const fr = await getContent()
 
   /*
    * L'ONGLET DÉRIVÉS EST LU SUR UN PARAMÈTRE DISTINCT (`vue`), ET NON SUR `classe`.
@@ -127,18 +120,20 @@ export default async function Page({
              disent la même chose en menant ailleurs. */
           tabs={null}
         >
-          {assetClass === 'crypto' ? <OnChainBand /> : null}
+          {/*
+            ── DEUX BLOCS ONT DISPARU D'ICI, POUR DEUX RAISONS DIFFÉRENTES ──────
 
-          <p className="text-xs text-ink-muted">
-            Vue transversale.{' '}
-            <a
-              href={marketHref(assetClass)}
-              className="text-brand transition-colors hover:text-brand-strong"
-            >
-              Page dédiée aux {fr.assetClass[assetClass].toLowerCase()}
-            </a>{' '}
-            pour la fiche complète de cette classe.
-          </p>
+            LE BANDEAU DES POOLS ON-CHAIN ouvrait la page sur l'onglet crypto : dix
+            paires de jetons éphémères à quatre-vingt-dix-neuf pour cent de baisse,
+            placées AU-DESSUS du classement que le titre annonce. Le premier écran de
+            « Parcourir les marchés » ne montrait donc pas les marchés. La donnée n'est
+            pas perdue — `/graphiques` la porte, dans une page dont c'est le sujet.
+
+            LE LIEN « PAGE DÉDIÉE À CETTE CLASSE » pointait vers `/etf`, `/actions`…
+            Ces pages n'existent plus et redirigent ICI MÊME : le lien ramenait donc à
+            la page depuis laquelle on cliquait. C'est pire qu'un lien mort, qui au
+            moins se signale.
+          */}
         </MarketPageView>
       )}
     </div>
@@ -192,39 +187,10 @@ async function DerivativesView() {
   )
 }
 
-/**
- * Bandeau des pools les plus actifs, toutes chaînes confondues.
+/*
+ * `OnChainBand` VIVAIT ICI, et part avec le bloc qu'il rendait.
  *
- * Composant SÉPARÉ et non un bloc dans la page : il fait son propre appel réseau, et
- * l'isoler permet à Next.js de le rendre en flux — la page n'attend pas la réponse
- * on-chain pour afficher son tableau de cotations. Le fournisseur est plafonné à
- * vingt-quatre appels par minute, il est donc le plus susceptible d'être lent.
+ * Il listait les dix pools de liquidité les plus actifs, toutes chaînes confondues.
+ * `DexPoolTable` reste en place et sert `/graphiques` : c'est le composant qui portait
+ * la valeur, pas ce bandeau qui le posait au mauvais endroit.
  */
-async function OnChainBand() {
-  const pools = await getTrendingPools()
-
-  return (
-    <section className="space-y-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold text-ink">Pools de liquidité les plus actifs</h2>
-        <p className="text-xs text-ink-muted">
-          Toutes chaînes · réserve et transactions relevées sur la chaîne, pas sur une place
-        </p>
-      </div>
-
-      {pools.ok && pools.data.length > 0 ? (
-        <>
-          <DexPoolTable pools={pools.data.slice(0, 10)} showNetwork />
-          <SourceNote label={pools.source.label} href={pools.source.attributionUrl} />
-        </>
-      ) : (
-        <EmptyState
-          title="Données on-chain indisponibles"
-          description={pools.ok ? null : pools.reason}
-          source={pools.source?.label ?? null}
-          compact
-        />
-      )}
-    </section>
-  )
-}

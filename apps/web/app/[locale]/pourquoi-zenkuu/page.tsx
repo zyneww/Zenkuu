@@ -107,7 +107,7 @@ export default function PourquoiZenkuuPage() {
 
         <div className="flex flex-wrap justify-center gap-3 pt-1">
           <Link
-            href="/crypto"
+            href="/marches"
             className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
           >
             Explorer les marchés

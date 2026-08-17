@@ -32,7 +32,7 @@ export async function RecentlyAdded({ result }: { result: DataResult<NewListing[
       <div className="mb-2 flex items-baseline justify-between gap-3">
         <h2 className="text-sm font-semibold text-ink">Récemment cotés</h2>
         <Link
-          href="/crypto/nouvelles"
+          href="/nouvelles-cotations"
           className="shrink-0 text-xs font-medium text-brand transition-colors hover:text-brand-strong"
         >
           Tout voir

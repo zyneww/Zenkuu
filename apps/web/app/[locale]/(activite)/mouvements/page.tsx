@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   title: 'Données de trading',
   description:
     'Vue macro, places au comptant, produits dérivés et classements de variation du marché crypto : capitalisation, dominance, volumes par plateforme, intérêt ouvert, taux de financement, plus fortes hausses et baisses.',
-  alternates: { canonical: '/crypto/mouvements' },
+  alternates: { canonical: '/mouvements' },
 }
 
 /**

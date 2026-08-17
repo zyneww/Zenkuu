@@ -289,7 +289,7 @@ function CategoryTable({
      nom qui repart en croissant quand tous les autres repartent en décroissant. */
   const sortState = { key: sort, direction }
   return (
-    <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
+    <div className="overflow-x-auto rounded-card bg-surface">
       {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
       <table className="w-full border-collapse text-sm sm:min-w-[680px]">
         <caption className="sr-only">Secteurs de marché</caption>

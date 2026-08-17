@@ -75,10 +75,28 @@ type Extent =
   | { total: number; count?: never; hasNext?: never }
   | { total?: never; count: number; hasNext: boolean }
 
-/** Comment on se rend à une autre page. Exclusifs, pour la même raison. */
+/**
+ * Comment on se rend à une autre page.
+ *
+ * ── TROIS BRANCHES, ET LA TROISIÈME EST UN AJOUT ────────────────────────────
+ *
+ * Les deux premières restent exclusives pour la raison d'origine : un rappel OU des
+ * liens, jamais les deux, sans quoi le composant devrait arbitrer lequel gagne.
+ *
+ * La troisième — AUCUN DES DEUX — autorise un pied de tableau qui COMPTE sans
+ * naviguer. C'est le cas des classes d'actifs dont l'univers entier tient dans une
+ * page : douze matières premières n'ont pas de seconde page, mais elles ont un
+ * décompte, et un tableau qui se referme sans dire combien de lignes il contient
+ * laisse le lecteur se demander s'il en manque.
+ *
+ * Le rendu la gère déjà : `navigable` est faux quand il n'y a qu'une page, et les
+ * boutons ne s'affichent pas. C'était donc le TYPE, et lui seul, qui interdisait un
+ * usage que le composant savait servir.
+ */
 type Nav =
   | { onPageChange: (page: number) => void; hrefFor?: never }
   | { onPageChange?: never; hrefFor: (page: number) => string }
+  | { onPageChange?: never; hrefFor?: never }
 
 type PaginationProps = Extent &
   Nav & {

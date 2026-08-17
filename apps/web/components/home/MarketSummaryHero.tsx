@@ -112,7 +112,7 @@ export async function MarketSummaryHero({
       <HighlightPanel
         title={fr.home.topIndicesTitle}
         assets={indices.ok ? indices.data : null}
-        href="/indices"
+        href="/marches?classe=indices"
         unavailableReason={indices.ok ? undefined : indices.reason}
       />
     </section>

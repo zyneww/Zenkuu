@@ -6,7 +6,7 @@ import { MarketDataTabs } from '@/components/market/MarketDataTabs'
  * ── POURQUOI UN GROUPE DE ROUTES, ET NON DEUX PAGES QUI SE RESSEMBLENT ──────
  *
  * Les parenthèses du dossier `(activite)` le rendent INVISIBLE dans l'URL : les deux
- * pages restent `/crypto/mouvements` et `/crypto/highlights`. Ce que le groupe apporte
+ * pages restent `/mouvements` et `/points-marquants`. Ce que le groupe apporte
  * n'est donc pas un chemin mais une DISPOSITION PARTAGÉE, et avec elle une propriété
  * qu'aucune duplication ne peut imiter.
  *

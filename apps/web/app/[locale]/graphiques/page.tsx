@@ -78,7 +78,7 @@ export async function generateMetadata({
   return {
     title: entry.title,
     description: entry.lead,
-    alternates: { canonical: '/crypto/graphiques' },
+    alternates: { canonical: '/graphiques' },
   }
 }
 
@@ -366,7 +366,7 @@ async function HeatmapSection() {
   /*
    * Les deux découpages — par pièce et par secteur — sont servis ensemble, et ni l'un
    * ni l'autre ne coûte d'appel : `getCategories` alimente déjà `/categories` et la vue
-   * « Catégories » d'à côté, `getMoversUniverse` alimente déjà `/crypto/mouvements`.
+   * « Catégories » d'à côté, `getMoversUniverse` alimente déjà `/mouvements`.
    * Leurs clés de cache ne dépendent d'aucun actif.
    */
   const [categories, assets] = await Promise.all([getCategories(), getMoversUniverse(100, 'eur')])

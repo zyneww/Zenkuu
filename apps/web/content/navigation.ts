@@ -134,7 +134,7 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Classements',
             description: 'Le classement complet, page par page',
             icon: Trophy,
-            href: '/crypto/all-coins',
+            href: '/classements',
             ready: true,
           },
           /*
@@ -154,13 +154,13 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Volumes et exposition, ou extrêmes du jour',
             icon: Activity,
             /*
-             * Pointe sur `/crypto/mouvements`, qui EXISTE et porte désormais la barre
+             * Pointe sur `/mouvements`, qui EXISTE et porte désormais la barre
              * à deux onglets. Créer `/crypto/activite` aurait été plus joli au regard
              * du libellé, et aurait coûté deux redirections, douze liens à réécrire et
              * deux entrées de sitemap déjà indexées — pour une adresse que personne ne
              * lit. Le libellé du menu nomme la PAIRE, la barre d'onglets nomme la vue.
              */
-            href: '/crypto/mouvements',
+            href: '/mouvements',
             ready: true,
           },
         ],
@@ -172,7 +172,7 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Graphiques globaux',
             description: 'Capitalisation, dominance, secteurs et trésoreries',
             icon: LineChart,
-            href: '/crypto/graphiques',
+            href: '/graphiques',
             ready: true,
           },
           /*
@@ -192,10 +192,25 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
+            /*
+             * PLACES DE DÉRIVÉS — la question que « Places de cotation » ne pose pas.
+             *
+             * Celle du dessus classe par CONFIANCE, ce qui est la bonne mesure au
+             * comptant : on y dépose des fonds pour détenir. Celle-ci classe par
+             * INTÉRÊT OUVERT, parce qu'on n'y détient rien — on y porte une exposition,
+             * et c'est son ampleur qui dit où le risque s'accumule.
+             */
+            label: 'Places de dérivés',
+            description: 'Où se portent les positions à effet de levier',
+            icon: Building2,
+            href: '/perpetuels',
+            ready: true,
+          },
+          {
             label: 'Nouvelles cryptomonnaies',
             description: 'Les actifs référencés le plus récemment',
             icon: Sprout,
-            href: '/crypto/nouvelles',
+            href: '/nouvelles-cotations',
             ready: true,
           },
         ],

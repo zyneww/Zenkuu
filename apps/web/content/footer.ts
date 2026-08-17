@@ -35,24 +35,38 @@ export interface FooterColumn {
 
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
+    /*
+     * ── LES SIX LIENS VISENT MAINTENANT LES ONGLETS DE `/marches` ────────────
+     *
+     * Ils pointaient vers `/crypto`, `/actions`, `/etf`… — pages supprimées depuis, et
+     * désormais redirigées. Un pied de page qui n'émet que des redirections coûte un
+     * aller-retour à chaque clic et dilue le signal pour les moteurs, qui suivent ces
+     * liens sur CHAQUE page du site : le pied de page est le plus gros émetteur de
+     * liens internes d'un site, et donc l'endroit où une redirection se paie le plus.
+     *
+     * Les deux places s'ajoutent à la colonne : ce sont des marchés au même titre que
+     * les six classes, et elles n'apparaissaient nulle part en pied de page.
+     */
     title: 'Marchés',
     links: [
-      { label: 'Cryptomonnaies', href: '/crypto' },
-      { label: 'Actions', href: '/actions' },
-      { label: 'ETF', href: '/etf' },
-      { label: 'Indices', href: '/indices' },
-      { label: 'Devises', href: '/devises' },
-      { label: 'Matières premières', href: '/matieres-premieres' },
+      { label: 'Cryptomonnaies', href: '/marches' },
+      { label: 'Actions', href: '/marches?classe=actions' },
+      { label: 'ETF', href: '/marches?classe=etf' },
+      { label: 'Indices', href: '/marches?classe=indices' },
+      { label: 'Devises', href: '/marches?classe=devises' },
+      { label: 'Matières premières', href: '/marches?classe=matieres-premieres' },
+      { label: 'Places de cotation', href: '/places' },
+      { label: 'Places de dérivés', href: '/perpetuels' },
     ],
   },
   {
     title: 'Données & analyse',
     links: [
       { label: 'Catégories & secteurs', href: '/categories' },
-      { label: 'Données de trading', href: '/crypto/mouvements' },
-      { label: 'Points marquants', href: '/crypto/highlights' },
-      { label: 'Graphiques globaux', href: '/crypto/graphiques' },
-      { label: 'Nouvelles cryptomonnaies', href: '/crypto/nouvelles' },
+      { label: 'Données de trading', href: '/mouvements' },
+      { label: 'Points marquants', href: '/points-marquants' },
+      { label: 'Graphiques globaux', href: '/graphiques' },
+      { label: 'Nouvelles cryptomonnaies', href: '/nouvelles-cotations' },
       { label: 'Heatmap sectorielle', href: '/heatmap' },
       { label: 'Screener', href: '/screener' },
       { label: 'Comparateur', href: '/comparateur' },

@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
+import { ColumnHeader, type ColumnPreferences } from '@/components/ui/table-columns'
+
 /**
  * TRI DE TABLEAU CÔTÉ CLIENT — un seul mécanisme pour tous les tableaux non paginés
  * côté serveur.
@@ -14,7 +16,7 @@ import { useCallback, useMemo, useState } from 'react'
  * chargées, et les réordonner ne demande rien à personne.
  *
  * Lire un paramètre de requête dans ces pages aurait un coût précis : `/places`,
- * `/crypto/nouvelles` et les vues de `/crypto/graphiques` sont en rendu statique
+ * `/nouvelles-cotations` et les vues de `/graphiques` sont en rendu statique
  * régénéré. Y lire `searchParams` les bascule en rendu dynamique, c'est-à-dire un
  * rendu serveur complet à chaque visite, pour un état — l'ordre d'un tableau — qui ne
  * mérite pas ce prix.
@@ -75,8 +77,20 @@ export function useTableSort<T, K extends string>({
   const [sort, setSort] = useState<SortState<K> | null>(initial ?? null)
 
   const toggle = useCallback(
-    (key: K) => {
+    /**
+     * @param direction Sens EXPLICITE, quand l'appelant le connaît.
+     *
+     * Les en-têtes offrent désormais « du plus grand au plus petit » et son inverse
+     * en deux entrées de menu distinctes : le sens y est CHOISI, pas basculé. Sans ce
+     * paramètre, choisir « croissant » sur une colonne déjà croissante la ferait
+     * passer en décroissant — un contrôle qui fait le contraire de ce qu'il annonce.
+     *
+     * Il reste optionnel : le clic direct sur une colonne bascule toujours.
+     */
+    (key: K, direction?: SortDirection) => {
       setSort((current) => {
+        if (direction) return { key, direction }
+
         // Changer de colonne repart en DÉCROISSANT : sur des volumes, des parts ou des
         // notes, « le plus grand d'abord » est ce qu'on vient chercher. Le sens
         // croissant reste accessible d'un second clic.
@@ -122,17 +136,23 @@ export function useTableSort<T, K extends string>({
 }
 
 /**
- * En-tête de colonne cliquable.
+ * EN-TÊTE DE COLONNE — désormais un adaptateur vers `ColumnHeader`.
  *
- * ── UN VRAI BOUTON DANS LA CELLULE, ET NON UNE CELLULE CLIQUABLE ─────────────
+ * ── POURQUOI L'ANCIEN CORPS A DISPARU ────────────────────────────────────────
  *
- * Poser `onClick` sur le `<th>` fonctionnerait à la souris et nulle part ailleurs :
- * une cellule de tableau n'est pas focalisable, ne s'active pas à la barre d'espace,
- * et n'est pas annoncée comme actionnable. Le bouton intérieur donne les trois
- * gratuitement.
+ * Il rendait un `<th>` portant un bouton qui basculait le tri, et rien d'autre. Le
+ * site en compte une douzaine d'appelants — places de cotation, trésoreries, pools,
+ * catégories, screener, tickers d'actif. Leur ajouter un à un le menu à trois entrées
+ * (trier ↑, trier ↓, masquer) aurait voulu dire douze modifications parallèles, dont
+ * onze auraient dérivé au premier changement.
  *
- * `aria-sort` reste sur le `<th>`, où la norme le place : c'est la COLONNE qui est
- * triée, pas le bouton qui la commande.
+ * Le composant DÉLÈGUE donc à `ColumnHeader`, et tous les tableaux du site héritent
+ * du menu sans qu'aucun ne change. Ceux qui veulent en plus le masquage de colonnes
+ * passent `columnPrefs` ; les autres continuent de marcher exactement comme avant.
+ *
+ * L'accessibilité est inchangée et vaut d'être redite : `aria-sort` vit sur le `<th>`,
+ * où la norme le place — c'est la COLONNE qui est triée, pas le bouton qui la
+ * commande.
  */
 export function SortableHeader<K extends string>({
   label,
@@ -142,49 +162,32 @@ export function SortableHeader<K extends string>({
   align = 'right',
   className = '',
   title,
+  columnId,
+  columnPrefs,
 }: {
   label: string
   sortKey: K
   sort: SortState<K> | null
-  onToggle: (key: K) => void
+  onToggle: (key: K, direction?: SortDirection) => void
   align?: 'left' | 'right'
   className?: string
   title?: string
+  /** Identifiant dans les préférences d'affichage. Par défaut, la clé de tri. */
+  columnId?: string
+  /** Fournies, la colonne devient masquable depuis son menu. */
+  columnPrefs?: ColumnPreferences
 }) {
-  const isActive = sort?.key === sortKey
-
   return (
-    <th
-      scope="col"
-      className={`px-3 py-2.5 text-xs font-medium text-ink-muted ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
-      aria-sort={isActive ? (sort.direction === 'desc' ? 'descending' : 'ascending') : 'none'}
-    >
-      <button
-        type="button"
-        onClick={() => onToggle(sortKey)}
-        title={title ?? `Trier par ${label.toLowerCase()}`}
-        className={`inline-flex items-center gap-1 rounded-sm transition-colors duration-150 hover:text-brand-strong ${
-          isActive ? 'text-ink' : ''
-        } ${align === 'right' ? 'flex-row-reverse' : ''}`}
-      >
-        {label}
-        {/*
-          La flèche est TOUJOURS présente, seulement estompée hors tri actif.
-
-          L'apparition au survol serait invisible au doigt, et l'apparition à
-          l'activation ferait sauter la largeur de l'en-tête d'un clic à l'autre —
-          décalant toute la colonne. Réservée en permanence, elle ne coûte que son
-          opacité.
-        */}
-        <span
-          aria-hidden="true"
-          className={`text-[0.65em] leading-none transition-opacity duration-150 ${
-            isActive ? 'opacity-100' : 'opacity-30'
-          }`}
-        >
-          {isActive && sort.direction === 'asc' ? '▲' : '▼'}
-        </span>
-      </button>
-    </th>
+    <ColumnHeader
+      label={label}
+      columnId={columnId ?? sortKey}
+      sortKey={sortKey}
+      sort={sort}
+      onSort={(key, direction) => onToggle(key as K, direction)}
+      columnPrefs={columnPrefs}
+      align={align}
+      className={className}
+      hint={title}
+    />
   )
 }

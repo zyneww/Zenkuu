@@ -1,194 +1,196 @@
 'use client'
 
-import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
-import type { MarketAsset } from '@zenkuu/data'
-import { EmptyState } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState, formatCompact, formatNumber } from '@zenkuu/ui'
 
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
-import { AssetLogo } from '@/components/asset/AssetLogo'
+import { Link } from '@/i18n/navigation'
+import { Money } from '@/components/locale/Money'
 import { ExportMenu } from '@/components/tools/ExportMenu'
 import { SavedScreens } from '@/components/tools/SavedScreens'
-import { COLUMN_SETS, hiddenClass } from '@/components/tools/screener-columns'
+import type {
+  ScreenerColumn,
+  ScreenerFilter,
+  ScreenerMarket,
+  ScreenerRow,
+} from '@/components/tools/screener-markets'
 import { Pagination } from '@/components/ui/Pagination'
-import { assetHref } from '@/lib/asset-routes'
 import type { ScreenCriteria } from '@/lib/screen-actions'
 
 /**
- * Filtre multicritère sur l'univers déjà chargé.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE SCREENER — un seul outil, six marchés
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * Tout se passe CÔTÉ CLIENT sur les 250 actifs reçus avec la page. C'est le choix qui
+ * Tout se passe CÔTÉ CLIENT sur les lignes reçues avec la page. C'est le choix qui
  * rend l'outil utilisable : un filtre servi par le serveur ferait un aller-retour par
- * mouvement de curseur, et la source ne tolère que quelques requêtes par minute. En
- * contrepartie, le périmètre est borné — et c'est écrit, parce qu'un « screener » qui
- * laisse croire qu'il balaie quinze mille jetons alors qu'il en voit deux cent
- * cinquante ment sur son résultat (§5).
+ * mouvement de curseur, et aucune de nos sources ne tolère cette cadence. En
+ * contrepartie, le périmètre est borné — et il est écrit, parce qu'un screener qui
+ * laisse croire qu'il balaie tout un marché alors qu'il en voit une tranche ment sur
+ * son résultat (§5).
  *
- * Les seuils sont exprimés en SEUILS MINIMUM plutôt qu'en fourchettes : sur des
- * grandeurs qui s'étalent sur six ordres de grandeur, une borne haute ne sert
- * pratiquement jamais, et deux curseurs par critère doublent la charge sans gain.
+ * ── CE COMPOSANT NE CONNAÎT AUCUN MARCHÉ ─────────────────────────────────────
  *
- * ── DEUX MANQUES QUE LA COMPARAISON AVEC TRADINGVIEW A RENDUS ÉVIDENTS ────────
+ * Il ne sait ni ce qu'est une action, ni ce qu'est un pool. Il reçoit des LIGNES
+ * normalisées — un nom, une devise, un sac de nombres indexés par clé — et un
+ * DESCRIPTEUR qui dit quelles colonnes montrer, quels filtres offrir et quels
+ * préréglages proposer. Voir `screener-markets.ts`, où vivent les six.
  *
- * 1. AUCUN TRI. Le tableau sortait dans l'ordre du classement par capitalisation, et
- *    c'était le seul ordre possible. Filtrer sur la rotation puis vouloir « les plus
- *    fortes d'abord » était impossible : il fallait lire deux cent cinquante lignes.
- *    C'est le geste le plus fréquent d'un screener, et il n'existait pas.
+ * C'était auparavant un composant crypto : cinq colonnes, quatre préréglages et sept
+ * variables d'état écrites en dur. Chaque marché supplémentaire aurait été une copie du
+ * fichier, et six copies d'un tri à trois états divergent au premier correctif.
  *
- * 2. DES COLONNES FIGÉES. Cinq colonnes, toujours les mêmes — dont aucune ne portait
- *    la rotation ni l'offre, pourtant filtrables. On réglait donc un curseur en
- *    aveugle, puis on ouvrait une fiche pour vérifier ce qu'il avait fait.
+ * ── LES SEUILS SONT DES MINIMUMS, SAUF QUAND ILS SONT DES MAXIMUMS ───────────
  *
- * Les JEUX DE COLONNES de la référence répondent au second, et leur découpage est le
- * bon : le filtre dit ce qu'on cherche, le jeu de colonnes dit ce qu'on veut voir, et
- * les deux questions sont indépendantes. Voir `screener-columns.tsx`.
+ * Sur des grandeurs qui s'étalent sur six ordres de grandeur — une capitalisation, un
+ * volume — une borne haute ne sert pratiquement jamais, et deux curseurs par critère
+ * doublent la charge sans gain. Deux grandeurs font exception et se filtrent par le
+ * HAUT : le PER et les frais de gestion, où la question est « pas plus cher que ». Le
+ * descripteur le déclare par filtre.
  */
 
-type Preset = 'tout' | 'solides' | 'momentum' | 'repli' | 'liquides'
-
-const PRESETS: { id: Preset; label: string; hint: string }[] = [
-  { id: 'tout', label: 'Tout', hint: 'Aucun filtre' },
-  { id: 'solides', label: 'Grandes capitalisations', hint: 'Au-dessus de 1 Md €' },
-  { id: 'momentum', label: 'En hausse sur 7 jours', hint: 'Progression sur 24 h et 7 j' },
-  { id: 'repli', label: 'En repli sur 7 jours', hint: 'Recul sur 24 h et 7 j' },
-  { id: 'liquides', label: 'Fortement échangés', hint: 'Volume supérieur à 10 % de la capitalisation' },
-]
-
-const MARKET_CAP_STEPS = [0, 10_000_000, 100_000_000, 1_000_000_000, 10_000_000_000]
-const VOLUME_STEPS = [0, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000]
-
-/** Rotation quotidienne : volume 24 h ÷ capitalisation, en fraction. */
-const TURNOVER_STEPS = [0, 0.01, 0.05, 0.1, 0.25, 0.5]
-
-/** Ramène un indice de curseur dans les bornes de son barème. */
-function clamp(value: number, max: number): number {
+/** Ramène un seuil dans les bornes de son barème. */
+function clampIndex(value: number, max: number): number {
   return Math.min(Math.max(Math.round(value), 0), max)
 }
 
-function compact(value: number): string {
-  if (value === 0) return 'aucun'
-  return new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 0 }).format(
-    value,
-  )
+/** Seuil neutre d'un filtre — celui qui ne retient rien. */
+function neutralOf(filter: ScreenerFilter): number {
+  if (filter.steps) return 0
+  return filter.direction === 'max' ? (filter.max ?? 0) : (filter.min ?? 0)
 }
 
-export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
-  const [preset, setPreset] = useState<Preset>('tout')
-  const [minCapIndex, setMinCapIndex] = useState(0)
-  const [minVolumeIndex, setMinVolumeIndex] = useState(0)
-  const [minChange24h, setMinChange24h] = useState(-100)
+/** Le seuil courant filtre-t-il réellement quelque chose ? */
+function isActive(filter: ScreenerFilter, value: number): boolean {
+  return value !== neutralOf(filter)
+}
+
+function compactAmount(value: number): string {
+  return formatCompact(value) ?? String(value)
+}
+
+/** Libellé du seuil, tel qu'il s'affiche à droite du curseur. */
+function displayThreshold(filter: ScreenerFilter, value: number): string {
+  if (!isActive(filter, value)) return 'aucun'
+
+  const unit = filter.unit ?? ''
+  const amount = filter.steps
+    ? compactAmount(value)
+    : (formatNumber(value, Number.isInteger(value) ? 0 : 2) ?? String(value))
+
+  const prefix = filter.direction === 'max' ? '≤ ' : ''
+  /* Une unité qui commence par une lettre ou un espace se colle sans blanc
+     supplémentaire — « 15 ans », « /10 » — là où un symbole en demande un. */
+  const gap = unit === '' || unit.startsWith('/') || unit.startsWith(' ') ? '' : ' '
+  return `${prefix}${amount}${gap}${unit}`
+}
+
+export function ScreenerView({
+  rows: source,
+  market,
+  /** Population totale interrogée, avant tout filtre. */
+  total,
+}: {
+  rows: ScreenerRow[]
+  market: ScreenerMarket
+  total: number
+}) {
+  const [preset, setPreset] = useState('tout')
   const [query, setQuery] = useState('')
 
-  /*
-   * Critères avancés — offre Pro.
+  /**
+   * Seuils courants, un par filtre du marché.
    *
-   * Leur état vit ICI et non dans le bloc gardé, volontairement. Un lecteur qui
-   * s'abonne, règle ses seuils, puis navigue et revient retrouverait sinon un
-   * formulaire remonté à zéro à chaque démontage du bloc. Leurs valeurs par défaut
-   * sont neutres : sans abonnement, le bloc n'est pas rendu, les seuils restent à
-   * leur valeur d'origine et ne filtrent donc rien.
+   * Un seul objet et non une variable par curseur : le descripteur décide du nombre de
+   * filtres, et un composant ne peut pas déclarer un nombre variable de `useState`.
+   *
+   * Les valeurs sont les GRANDEURS elles-mêmes — mille millions, pas « cran 3 ». C'est
+   * ce qui permet à un préréglage de poser exactement ce qu'un curseur poserait, et à
+   * un écran enregistré de survivre à un changement de barème : ajouter un cran
+   * déplacerait tous les indices, jamais les montants.
    */
-  const [minChange7d, setMinChange7d] = useState(-100)
-  const [minTurnoverIndex, setMinTurnoverIndex] = useState(0)
+  const [thresholds, setThresholds] = useState<Record<string, number>>({})
 
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(50)
-
-  /* Jeu de colonnes affiché. Il ne touche PAS aux filtres : changer d'onglet ne doit
-     jamais modifier la population retenue, seulement ce qu'on en montre. */
-  const [columnSetId, setColumnSetId] = useState(COLUMN_SETS[0]!.id)
+  const [columnSetId, setColumnSetId] = useState(market.columnSets[0]!.id)
 
   /*
    * Tri courant.
    *
-   * `null` = l'ordre de la source, c'est-à-dire le classement par capitalisation. Ce
-   * n'est pas un tri « par défaut » sur une colonne : c'est l'ABSENCE de tri, et la
-   * distinction se voit dans l'interface — aucune flèche n'est allumée. Un troisième
-   * clic sur un en-tête y revient, ce qui donne un moyen de revenir en arrière sans
-   * recharger la page.
+   * `null` = l'ordre de la source. Ce n'est pas un tri « par défaut » sur une colonne :
+   * c'est l'ABSENCE de tri, et la distinction se voit — aucune flèche n'est allumée. Un
+   * troisième clic sur un en-tête y revient, ce qui donne un moyen de revenir en
+   * arrière sans recharger la page.
    */
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const columnSet = COLUMN_SETS.find((entry) => entry.id === columnSetId) ?? COLUMN_SETS[0]!
+  const columnSet =
+    market.columnSets.find((entry) => entry.id === columnSetId) ?? market.columnSets[0]!
 
-  const minCap = MARKET_CAP_STEPS[minCapIndex] ?? 0
-  const minVolume = VOLUME_STEPS[minVolumeIndex] ?? 0
-  const minTurnover = TURNOVER_STEPS[minTurnoverIndex] ?? 0
+  function thresholdOf(filter: ScreenerFilter): number {
+    return thresholds[filter.key] ?? neutralOf(filter)
+  }
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase()
 
-    return assets.filter((asset) => {
-      if (needle && !`${asset.name} ${asset.symbol}`.toLowerCase().includes(needle)) return false
+    return source.filter((row) => {
+      if (needle && !`${row.name} ${row.symbol}`.toLowerCase().includes(needle)) return false
 
-      // Un critère porté sur une donnée ABSENTE exclut la ligne au lieu de la laisser
-      // passer : « capitalisation ≥ 1 Md » ne peut pas être satisfait par un actif
-      // dont la capitalisation n'est pas publiée.
-      if (minCap > 0 && (asset.marketCap ?? -1) < minCap) return false
-      if (minVolume > 0 && (asset.volume24h ?? -1) < minVolume) return false
-      if (minChange24h > -100 && (asset.change24h ?? -Infinity) < minChange24h) return false
-      if (minChange7d > -100 && (asset.change7d ?? -Infinity) < minChange7d) return false
+      for (const filter of market.filters) {
+        const threshold = thresholds[filter.key] ?? neutralOf(filter)
+        if (!isActive(filter, threshold)) continue
 
-      // Rotation = volume 24 h rapporté à la capitalisation. C'est la mesure qui
-      // distingue un gros actif somnolent d'un petit actif très échangé — invisible
-      // sur les deux colonnes prises séparément, d'où sa place parmi les critères
-      // avancés plutôt qu'un troisième curseur de montant.
-      if (minTurnover > 0) {
-        const cap = asset.marketCap ?? 0
-        if (cap <= 0) return false
-        if ((asset.volume24h ?? 0) / cap < minTurnover) return false
+        const value = row.values[filter.key]
+        /*
+         * UN CRITÈRE PORTÉ SUR UNE DONNÉE ABSENTE EXCLUT LA LIGNE.
+         *
+         * « PER au plus 15 » ne peut pas être satisfait par une société dont le PER
+         * n'est pas publié — Yahoo n'en publie pas quand la société perd de l'argent,
+         * et laisser passer ces lignes remplirait un filtre « peu chères » de sociétés
+         * déficitaires. L'absence n'est ni un zéro ni un laissez-passer (§5).
+         */
+        if (value === undefined) return false
+
+        if (filter.direction === 'max') {
+          if (value > threshold) return false
+        } else if (value < threshold) return false
       }
 
-      switch (preset) {
-        case 'solides':
-          return (asset.marketCap ?? 0) >= 1_000_000_000
-        case 'momentum':
-          return (asset.change24h ?? 0) > 0 && (asset.change7d ?? 0) > 0
-        case 'repli':
-          return (asset.change24h ?? 0) < 0 && (asset.change7d ?? 0) < 0
-        case 'liquides':
-          return (
-            (asset.marketCap ?? 0) > 0 &&
-            (asset.volume24h ?? 0) / (asset.marketCap as number) > 0.1
-          )
-        default:
-          return true
-      }
+      return true
     })
-  }, [assets, preset, minCap, minVolume, minChange24h, minChange7d, minTurnover, query])
+  }, [source, market.filters, thresholds, query])
 
   /*
    * ── TRI, APPLIQUÉ APRÈS LE FILTRE ─────────────────────────────────────────
    *
-   * Dans cet ordre et pas l'autre : trier deux cent cinquante lignes pour n'en garder
-   * ensuite que douze serait du travail jeté à chaque mouvement de curseur.
+   * Dans cet ordre et pas l'autre : trier mille lignes pour n'en garder ensuite que
+   * douze serait du travail jeté à chaque mouvement de curseur.
    *
    * Les lignes SANS VALEUR sont rejetées en fin de liste dans les deux sens. Les
-   * traiter comme des zéros les ferait remonter en tête d'un tri croissant, où elles
-   * se liraient comme les plus petites valeurs du marché — alors qu'elles ne sont pas
+   * traiter comme des zéros les ferait remonter en tête d'un tri croissant, où elles se
+   * liraient comme les plus petites valeurs du marché — alors qu'elles ne sont pas
    * mesurées (§5).
    */
   const sortedRows = useMemo(() => {
     if (!sort) return rows
 
-    const column = columnSet.columns.find((entry) => entry.key === sort.key)
-    if (!column) return rows
-
     const direction = sort.direction === 'asc' ? 1 : -1
 
     return [...rows].sort((a, b) => {
-      const left = column.sortValue(a)
-      const right = column.sortValue(b)
+      const left = a.values[sort.key]
+      const right = b.values[sort.key]
 
-      if (left === null && right === null) return 0
-      if (left === null) return 1
-      if (right === null) return -1
+      if (left === undefined && right === undefined) return 0
+      if (left === undefined) return 1
+      if (right === undefined) return -1
 
       return direction * (left - right)
     })
-  }, [rows, sort, columnSet])
+  }, [rows, sort])
 
   /**
    * Trois états par colonne : décroissant, croissant, aucun tri.
@@ -209,14 +211,14 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
   /*
    * RETOUR EN PAGE 1 QUAND LES CRITÈRES CHANGENT.
    *
-   * Sept curseurs composent ce filtre, et chacun peut réduire le résultat à trois
-   * lignes. Rester en page 4 afficherait alors un tableau vide — le lecteur croirait
-   * que son critère ne retient rien, alors qu'il regarde au-delà du dernier résultat.
+   * Chaque curseur peut réduire le résultat à trois lignes. Rester en page 4
+   * afficherait alors un tableau vide — le lecteur croirait que son critère ne retient
+   * rien, alors qu'il regarde au-delà du dernier résultat.
    *
    * L'ajustement se fait PENDANT LE RENDU plutôt que dans un effet : un effet
    * peindrait d'abord le tableau vide avant de le corriger.
    */
-  const signature = `${preset}|${minCap}|${minVolume}|${minChange24h}|${minChange7d}|${minTurnover}|${query.trim()}|${sort?.key ?? ''}${sort?.direction ?? ''}`
+  const signature = `${market.id}|${preset}|${query.trim()}|${JSON.stringify(thresholds)}|${sort?.key ?? ''}${sort?.direction ?? ''}`
   const [lastSignature, setLastSignature] = useState(signature)
   if (signature !== lastSignature) {
     setLastSignature(signature)
@@ -230,64 +232,62 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
 
   function reset() {
     setPreset('tout')
-    setMinCapIndex(0)
-    setMinVolumeIndex(0)
-    setMinChange24h(-100)
-    setMinChange7d(-100)
-    setMinTurnoverIndex(0)
+    setThresholds({})
     setQuery('')
   }
 
-  /*
-   * État courant sous forme sérialisable, pour les écrans enregistrés.
+  /**
+   * Applique un préréglage — c'est-à-dire POSE DES SEUILS.
    *
-   * Il réplique les sept variables d'état plutôt que de les remplacer par un objet
-   * unique. Un objet unique obligerait chaque curseur à recréer tout l'état à chaque
-   * mouvement, ce qui ferait re-rendre le tableau de deux cent cinquante lignes à
-   * chaque pixel de déplacement. Le coût de la réplication est un objet reconstruit
-   * par rendu ; celui de l'inverse serait une interface qui accroche.
+   * Il remplace la table entière plutôt que de la compléter : deux préréglages
+   * successifs cumuleraient sinon leurs seuils, et « Peu chères » après « À dividende »
+   * donnerait une population qu'aucun des deux ne décrit.
    */
-  const criteria: ScreenCriteria = {
-    preset,
-    minCapIndex,
-    minVolumeIndex,
-    minChange24h,
-    minChange7d,
-    minTurnoverIndex,
-    query,
+  function applyPreset(id: string) {
+    setPreset(id)
+    const entry = market.presets.find((candidate) => candidate.id === id)
+    setThresholds(entry ? { ...entry.thresholds } : {})
   }
 
-  function apply(saved: ScreenCriteria) {
-    // Le préréglage est revalidé contre la liste connue : un écran enregistré avant
-    // qu'un préréglage soit retiré porterait sinon une valeur qui ne filtre rien et
-    // n'allume aucune pastille — un état que le lecteur ne pourrait pas comprendre.
-    const known = PRESETS.some((entry) => entry.id === saved.preset)
-    setPreset(known ? (saved.preset as Preset) : 'tout')
-    setMinCapIndex(clamp(saved.minCapIndex, MARKET_CAP_STEPS.length - 1))
-    setMinVolumeIndex(clamp(saved.minVolumeIndex, VOLUME_STEPS.length - 1))
-    setMinChange24h(saved.minChange24h)
-    setMinChange7d(saved.minChange7d)
-    setMinTurnoverIndex(clamp(saved.minTurnoverIndex, TURNOVER_STEPS.length - 1))
+  const criteria: ScreenCriteria = { market: market.id, preset, query, thresholds }
+
+  function applySaved(saved: ScreenCriteria) {
+    /* Un écran enregistré sur un AUTRE marché ne s'applique pas ici : ses clés de
+       seuil n'existent pas dans ce descripteur, et le rejouer ne filtrerait rien tout
+       en allumant un préréglage inconnu. `SavedScreens` les masque déjà ; ce garde-fou
+       couvre le cas d'un écran enregistré avant l'ajout des marchés. */
+    if (saved.market && saved.market !== market.id) return
+
+    const known = market.presets.some((entry) => entry.id === saved.preset)
+    setPreset(known ? saved.preset : 'tout')
     setQuery(saved.query)
+
+    /* Les seuils sont revalidés filtre par filtre : un écran enregistré avant qu'un
+       filtre soit retiré porterait sinon une clé qui ne commande plus rien. */
+    const next: Record<string, number> = {}
+    for (const filter of market.filters) {
+      const value = saved.thresholds?.[filter.key]
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue
+      next[filter.key] = filter.steps
+        ? (filter.steps[clampIndex(filter.steps.indexOf(value), filter.steps.length - 1)] ?? value)
+        : value
+    }
+    setThresholds(next)
   }
 
   const filtering =
     preset !== 'tout' ||
-    minCapIndex > 0 ||
-    minVolumeIndex > 0 ||
-    minChange24h > -100 ||
-    minChange7d > -100 ||
-    minTurnoverIndex > 0 ||
-    query !== ''
+    query !== '' ||
+    market.filters.some((filter) => isActive(filter, thresholdOf(filter)))
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtres rapides">
-        {PRESETS.map((entry) => (
+        {market.presets.map((entry) => (
           <button
             key={entry.id}
             type="button"
-            onClick={() => setPreset(entry.id)}
+            onClick={() => applyPreset(entry.id)}
             aria-pressed={preset === entry.id}
             title={entry.hint}
             className={`rounded-control border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
@@ -304,45 +304,25 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
       {/*
         Barre des écrans enregistrés, placée SOUS les préréglages et AU-DESSUS des
         curseurs. C'est l'ordre de lecture : « un départ rapide », puis « un départ que
-        j'ai moi-même défini », puis le réglage fin. La placer en bas la ferait
-        découvrir après avoir refait à la main ce qu'elle rappelle en un clic.
+        j'ai moi-même défini », puis le réglage fin.
       */}
-      <SavedScreens criteria={criteria} onApply={apply} />
+      <SavedScreens criteria={criteria} onApply={applySaved} />
 
       <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Slider
-          label="Capitalisation minimale"
-          value={minCapIndex}
-          max={MARKET_CAP_STEPS.length - 1}
-          onChange={setMinCapIndex}
-          display={minCap === 0 ? 'aucune' : `${compact(minCap)} €`}
-        />
-
-        <Slider
-          label="Volume 24 h minimal"
-          value={minVolumeIndex}
-          max={VOLUME_STEPS.length - 1}
-          onChange={setMinVolumeIndex}
-          display={minVolume === 0 ? 'aucun' : `${compact(minVolume)} €`}
-        />
-
-        <label className="block">
-          <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
-            Variation 24 h minimale
-            <span className="tabular text-ink">
-              {minChange24h <= -100 ? 'aucune' : `${minChange24h} %`}
-            </span>
-          </span>
-          <input
-            type="range"
-            min={-100}
-            max={50}
-            step={5}
-            value={minChange24h}
-            onChange={(event) => setMinChange24h(Number(event.target.value))}
-            className="w-full accent-[var(--color-brand)]"
+        {market.filters.map((filter) => (
+          <FilterSlider
+            key={filter.key}
+            filter={filter}
+            value={thresholdOf(filter)}
+            onChange={(value) => {
+              /* Toucher un curseur ÉTEINT le préréglage : celui-ci a posé des seuils,
+                 et les modifier signifie qu'on ne regarde plus sa population. Laisser
+                 la pastille allumée annoncerait un filtre qui n'est plus celui-là. */
+              setPreset('libre')
+              setThresholds((current) => ({ ...current, [filter.key]: value }))
+            }}
           />
-        </label>
+        ))}
 
         <label className="block">
           <span className="mb-1 block text-xs text-ink-muted">Nom ou symbole</span>
@@ -356,77 +336,34 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         </label>
       </div>
 
-      {/*
-        CRITÈRES DE SECOND RANG — ouverts à tous, désormais.
-
-        Ils étaient réservés à l'abonnement, et l'argument tenait à leur PUBLIC plutôt
-        qu'à leur difficulté : la variation à 7 jours et la rotation ne servent qu'à
-        qui suit le marché dans la durée, quand le lecteur occasionnel filtre par
-        taille et par variation du jour.
-
-        L'abonnement a été retiré du site, et avec lui l'encart qui invitait à y
-        souscrire. La distinction de public, elle, reste vraie : c'est pourquoi ces
-        deux curseurs gardent leur bloc séparé, sous les quatre premiers, au lieu de
-        rejoindre la grille principale.
-      */}
-      <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
-            Variation 7 j minimale
-            <span className="tabular text-ink">
-              {minChange7d <= -100 ? 'aucune' : `${minChange7d} %`}
-            </span>
-          </span>
-          <input
-            type="range"
-            min={-100}
-            max={50}
-            step={5}
-            value={minChange7d}
-            onChange={(event) => setMinChange7d(Number(event.target.value))}
-            className="w-full accent-[var(--color-brand)]"
-          />
-        </label>
-
-        <Slider
-          label="Rotation quotidienne minimale"
-          value={minTurnoverIndex}
-          max={TURNOVER_STEPS.length - 1}
-          onChange={setMinTurnoverIndex}
-          display={
-            minTurnover === 0
-              ? 'aucune'
-              : `${new Intl.NumberFormat('fr-FR', { style: 'percent' }).format(minTurnover)} de la capitalisation`
-          }
-        />
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="tabular text-sm text-ink-muted" aria-live="polite">
-          <strong className="text-ink">{rows.length}</strong> actif{rows.length > 1 ? 's' : ''} sur{' '}
-          {assets.length} retenus
+          <strong className="text-ink">{rows.length}</strong> sur {total} {market.unit}{' '}
+          {market.feminine ? 'retenues' : 'retenus'}
         </p>
 
         <div className="flex flex-wrap items-center gap-2">
           {/*
-            L'export porte sur `rows` ENTIER, pas sur la page affichée plus bas. C'est
-            tout l'intérêt de la fonction : le tableau se lit page par page, le fichier
-            n'a pas cette contrainte.
+            L'export porte sur `sortedRows` ENTIER, pas sur la page affichée plus bas.
+            C'est tout l'intérêt de la fonction : le tableau se lit page par page, le
+            fichier n'a pas cette contrainte.
+
+            Les colonnes exportées sont celles du JEU AFFICHÉ, et non un jeu fixe : on
+            exporte ce qu'on regarde. Un fichier qui contiendrait d'autres colonnes que
+            l'écran obligerait à retrouver dans le tableur ce qu'on venait de composer.
           */}
           <ExportMenu
-              filename="zenkuu-screener"
-              sheetName="Screener"
-              rows={rows}
-              columns={[
-                { header: 'Rang', value: (asset) => asset.rank ?? '' },
-                { header: 'Nom', value: (asset) => asset.name },
-                { header: 'Symbole', value: (asset) => asset.symbol.toUpperCase() },
-                { header: 'Devise', value: (asset) => asset.currency },
-                { header: 'Prix', value: (asset) => asset.price ?? '' },
-                { header: 'Variation 24 h (%)', value: (asset) => asset.change24h ?? '' },
-                { header: 'Variation 7 j (%)', value: (asset) => asset.change7d ?? '' },
-                { header: 'Volume 24 h', value: (asset) => asset.volume24h ?? '' },
-                { header: 'Capitalisation', value: (asset) => asset.marketCap ?? '' },
+            filename={`zenkuu-screener-${market.id}`}
+            sheetName="Screener"
+            rows={sortedRows}
+            columns={[
+              { header: 'Nom', value: (row) => row.name },
+              { header: 'Symbole', value: (row) => row.symbol },
+              { header: 'Devise', value: (row) => row.currency ?? '' },
+              ...columnSet.columns.map((column) => ({
+                header: column.label,
+                value: (row: ScreenerRow) => row.values[column.key] ?? '',
+              })),
             ]}
           />
 
@@ -453,32 +390,34 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
 
         Elle est posée AU-DESSUS du tableau et sous les filtres, dans l'ordre où les
         deux questions se posent : ce que je cherche, puis ce que je veux en voir.
+
+        Elle disparaît quand le marché n'a qu'un jeu — un sélecteur à un choix n'est
+        pas un sélecteur. Le compteur, lui, reste.
       */}
       <div
         className="flex flex-wrap items-center gap-1 border-b border-border-subtle"
         role="group"
         aria-label="Colonnes affichées"
       >
-        {COLUMN_SETS.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            onClick={() => setColumnSetId(entry.id)}
-            aria-pressed={entry.id === columnSet.id}
-            title={entry.hint}
-            className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-xs font-medium transition-colors duration-150 ${
-              entry.id === columnSet.id
-                ? 'border-brand text-brand-strong'
-                : 'border-transparent text-ink-muted hover:text-ink'
-            }`}
-          >
-            {entry.label}
-          </button>
-        ))}
+        {market.columnSets.length > 1
+          ? market.columnSets.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                onClick={() => setColumnSetId(entry.id)}
+                aria-pressed={entry.id === columnSet.id}
+                title={entry.hint}
+                className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-xs font-medium transition-colors duration-150 ${
+                  entry.id === columnSet.id
+                    ? 'border-brand text-brand-strong'
+                    : 'border-transparent text-ink-muted hover:text-ink'
+                }`}
+              >
+                {entry.label}
+              </button>
+            ))
+          : null}
 
-        {/* Le compteur au bout de la rangée, comme chez la référence : c'est la
-            réponse au filtre qu'on vient de régler, et elle doit être lisible sans
-            descendre jusqu'à la pagination. */}
         <p className="tabular ml-auto pb-2 pr-1 text-xs text-ink-muted" aria-live="polite">
           <strong className="text-ink">{sortedRows.length}</strong> résultat
           {sortedRows.length > 1 ? 's' : ''}
@@ -487,15 +426,12 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
 
       {sortedRows.length === 0 ? (
         <EmptyState
-          title="Aucun actif ne satisfait ces critères"
+          title="Aucune ligne ne satisfait ces critères"
           description="Assouplissez un seuil, ou réinitialisez les filtres."
           compact
         />
       ) : (
         <div className="overflow-x-auto rounded-card">
-          {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Chaque
-              jeu déclare lui-même ce qu'il sacrifie en premier : sur 375 pixels, sept
-              colonnes ne font pas un tableau mais un défilement latéral. */}
           <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
             <caption className="sr-only">
               Résultats du filtre — colonnes « {columnSet.label} »
@@ -506,7 +442,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                   #
                 </th>
                 <th scope="col" className="px-3 py-2.5 font-medium">
-                  Actif
+                  {market.id === 'dex' ? 'Pool' : market.id === 'cex' ? 'Place' : 'Actif'}
                 </th>
 
                 {columnSet.columns.map((column) => {
@@ -558,30 +494,20 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
             </thead>
 
             <tbody className="divide-y divide-border-subtle">
-              {visible.map((asset) => (
+              {visible.map((row, index) => (
                 <tr
-                  key={asset.id}
+                  key={row.id}
                   className="group transition-colors duration-150 hover:bg-surface-muted/60"
                 >
+                  {/* LE RANG EST CELUI DE LA VUE, pas celui de la source. Un rang de
+                      source n'aurait aucun sens après un tri par frais de gestion, et
+                      la plupart de nos marchés n'en publient pas. */}
                   <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                    {asset.rank ?? '—'}
+                    {start + index + 1}
                   </td>
 
                   <th scope="row" className="px-3 py-2.5 text-left font-normal">
-                    <Link
-                      href={assetHref(asset.assetClass, asset.id)}
-                      className="flex min-w-0 items-center gap-3"
-                    >
-                      <AssetLogo asset={asset} size={22} />
-                      {/* `flex-1` sur le nom pousse le symbole contre le bord droit de
-                          la colonne — voir la note détaillée dans `MarketTable`. */}
-                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
-                        {asset.name}
-                      </span>
-                      <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
-                        {asset.symbol}
-                      </span>
-                    </Link>
+                    <Identity row={row} />
                   </th>
 
                   {columnSet.columns.map((column) => (
@@ -589,7 +515,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                       key={column.key}
                       className={`tabular px-3 py-2.5 text-right text-ink ${hiddenClass(column)}`}
                     >
-                      {column.render(asset)}
+                      <Cell column={column} row={row} />
                     </td>
                   ))}
                 </tr>
@@ -599,23 +525,12 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
         </div>
       )}
 
-      {/*
-        LE PLAFOND DE CENT LIGNES A DISPARU, ET C'ÉTAIT UN DÉFAUT, PAS UNE PRÉCAUTION.
-
-        Le tableau s'arrêtait à cent lignes en invitant à « resserrer un critère pour
-        voir la suite ». Autrement dit : pour lire le résultat de son filtre, il fallait
-        en changer. Un filtre qui cache une partie de ce qu'il retient répond à côté de
-        la question qu'on lui pose.
-
-        La pagination tient la même promesse — borner ce que le navigateur dessine d'un
-        coup — sans rendre les lignes suivantes inatteignables.
-      */}
       {sortedRows.length > 0 ? (
         <Pagination
           page={currentPage}
           perPage={perPage}
           total={sortedRows.length}
-          unit="actif"
+          unit="ligne"
           onPageChange={setPage}
           onPerPageChange={(size) => {
             setPerPage(size)
@@ -627,38 +542,173 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
   )
 }
 
-function Slider({
-  label,
+/**
+ * Colonne d'identité — logo, nom, seconde ligne, symbole.
+ *
+ * Elle N'EST PAS toujours un lien. Les marchés boursiers balaient un millier de
+ * symboles alors que nos fiches d'actif reposent sur une liste écrite à la main d'une
+ * cinquantaine : lier chaque ligne produirait des centaines de 404. Une ligne sans
+ * `href` reste donc inerte plutôt que de promettre une page qui n'existe pas.
+ */
+function Identity({ row }: { row: ScreenerRow }) {
+  const body = (
+    <>
+      {row.image ? (
+        // eslint-disable-next-line @next/next/no-img-element -- domaines de fournisseurs non déclarés
+        <img
+          src={row.image}
+          alt=""
+          loading="lazy"
+          className="h-[22px] w-[22px] shrink-0 rounded-pill"
+        />
+      ) : null}
+      {/* `flex-1` sur le nom pousse le symbole contre le bord droit de la colonne. */}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium text-ink group-hover:text-brand-strong">
+          {row.name}
+        </span>
+        {row.meta ? (
+          <span className="block truncate text-[0.6875rem] text-ink-muted">{row.meta}</span>
+        ) : null}
+      </span>
+      <span className="shrink-0 text-right text-xs uppercase text-ink-muted">{row.symbol}</span>
+    </>
+  )
+
+  if (!row.href) return <span className="flex min-w-0 items-center gap-3">{body}</span>
+
+  return (
+    <Link href={row.href} className="flex min-w-0 items-center gap-3">
+      {body}
+    </Link>
+  )
+}
+
+/**
+ * Une cellule, rendue selon le FORMAT déclaré par sa colonne.
+ *
+ * Le format et non une fonction de rendu : les descripteurs de marché traversent la
+ * frontière serveur → client, et une fermeture ne s'y sérialise pas. Voir l'en-tête de
+ * `screener-markets.ts`.
+ */
+function Cell({ column, row }: { column: ScreenerColumn; row: ScreenerRow }) {
+  const value = row.values[column.key]
+  if (value === undefined || !Number.isFinite(value)) {
+    return <span className="text-ink-muted">—</span>
+  }
+
+  /*
+    L'UNITÉ est en retrait et non à la même graisse que le nombre : « 81,9 k BTC » se
+    lit comme un montant suivi de son unité, là où deux éléments de même poids se
+    liraient comme deux valeurs.
+
+    ⚠️ L'ESPACE EST DANS LE TEXTE, pas seulement dans la marge. Une `ml-1` produit le
+    bon rendu à l'écran et RIEN dans le flux textuel : la cellule se copiait « 9ans »
+    et un lecteur d'écran annonçait « neufans ». L'espace insécable étroite (U+202F)
+    donne les deux — le blanc typographique français, et un caractère réel.
+  */
+  const unit = column.unit ? (
+    <span className="text-xs font-normal text-ink-muted">{` ${column.unit}`}</span>
+  ) : null
+
+  switch (column.format) {
+    case 'money':
+      return <Money value={value} {...(row.currency ? { from: row.currency } : {})} />
+    case 'moneyCompact':
+      return <Money value={value} {...(row.currency ? { from: row.currency } : {})} compact />
+    case 'change':
+      return <ChangeBadge value={value} size="sm" />
+    case 'percent':
+      return (
+        <>
+          {formatNumber(value, value < 10 ? 2 : 1)} %{unit}
+        </>
+      )
+    case 'ratio':
+      return (
+        <>
+          {formatNumber(value, 2)}
+          {unit}
+        </>
+      )
+    case 'count':
+      /* Un dénombrement sous dix mille s'écrit EN ENTIER : « 1 240 transactions » se
+         lit, « 1,2 k » perd la précision qu'on venait chercher. Au-delà, l'ordre de
+         grandeur suffit. */
+      return (
+        <>
+          {value < 10_000 ? formatNumber(value, 0) : formatCompact(value)}
+          {unit}
+        </>
+      )
+    case 'year':
+      /* `toFixed(0)` et non `formatNumber` : ce dernier grouperait les milliers, et
+         « 2 017 » se lit comme un dénombrement plutôt que comme une année. */
+      return <>{value.toFixed(0)}</>
+    case 'compact':
+      return (
+        <>
+          {formatCompact(value)}
+          {unit}
+        </>
+      )
+  }
+}
+
+/** Classe Tailwind de masquage d'une colonne selon son point de rupture. */
+function hiddenClass(column: ScreenerColumn): string {
+  if (column.hideBelow === 'sm') return 'hidden sm:table-cell'
+  if (column.hideBelow === 'md') return 'hidden md:table-cell'
+  if (column.hideBelow === 'lg') return 'hidden lg:table-cell'
+  return ''
+}
+
+/**
+ * Un curseur de seuil — à paliers ou continu, selon ce que le filtre déclare.
+ *
+ * ── POURQUOI DEUX MÉCANIQUES DANS UN SEUL COMPOSANT ──────────────────────────
+ *
+ * Les grandeurs de MONTANT s'étalent sur six ordres de grandeur : un curseur linéaire
+ * de zéro à cent milliards passerait quatre-vingt-dix-neuf pour cent de sa course
+ * au-dessus du milliard, et le premier pixel de déplacement écarterait la moitié du
+ * marché. Elles reçoivent donc un barème par crans.
+ *
+ * Les grandeurs BORNÉES — une variation en pourcentage, un taux de frais, une note sur
+ * dix — n'ont pas ce problème : leur étendue tient dans un ordre de grandeur, et un
+ * curseur continu y est plus fin qu'un barème.
+ *
+ * Les deux rendent le même contrôle et posent le même genre de valeur — une GRANDEUR,
+ * jamais un indice — ce qui permet aux préréglages et aux écrans enregistrés d'ignorer
+ * la distinction.
+ */
+function FilterSlider({
+  filter,
   value,
-  max,
   onChange,
-  display,
 }: {
-  label: string
+  filter: ScreenerFilter
   value: number
-  max: number
   onChange: (value: number) => void
-  display: string
 }) {
+  const steps = filter.steps
+  const index = steps ? Math.max(0, steps.indexOf(value)) : 0
+
   return (
     <label className="block">
       <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
-        {label}
-        <span className="tabular text-ink">{display}</span>
+        {filter.label}
+        <span className="tabular text-ink">{displayThreshold(filter, value)}</span>
       </span>
-      {/*
-        Curseur à PALIERS et non linéaire : les capitalisations s'étalent de quelques
-        milliers à mille milliards. Un curseur linéaire passerait 99 % de sa course
-        au-dessus du milliard, et le premier pixel de déplacement écarterait la moitié
-        du marché.
-      */}
       <input
         type="range"
-        min={0}
-        max={max}
-        step={1}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
+        min={steps ? 0 : (filter.min ?? 0)}
+        max={steps ? steps.length - 1 : (filter.max ?? 100)}
+        step={steps ? 1 : (filter.step ?? 1)}
+        value={steps ? index : value}
+        onChange={(event) => {
+          const next = Number(event.target.value)
+          onChange(steps ? (steps[clampIndex(next, steps.length - 1)] ?? 0) : next)
+        }}
         className="w-full accent-[var(--color-brand)]"
       />
     </label>

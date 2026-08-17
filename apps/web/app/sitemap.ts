@@ -1,6 +1,12 @@
 import type { MetadataRoute } from 'next'
 
-import { YAHOO_UNIVERSE, getCryptoRanking, toSlug } from '@zenkuu/data'
+import {
+  YAHOO_UNIVERSE,
+  getCryptoRanking,
+  getDerivativeExchanges,
+  getSpotExchanges,
+  toSlug,
+} from '@zenkuu/data'
 
 import { HELP_ARTICLES } from '@/content/aide'
 import { LESSONS } from '@/content/apprendre'
@@ -30,28 +36,38 @@ const CRYPTO_LIMIT = 100
 /** Pages éditoriales et de navigation, avec leur rythme de changement réel. */
 const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
   { path: '/', changeFrequency: 'hourly', priority: 1 },
-  { path: '/crypto', changeFrequency: 'hourly', priority: 0.9 },
-  { path: '/actions', changeFrequency: 'hourly', priority: 0.9 },
-  { path: '/etf', changeFrequency: 'hourly', priority: 0.8 },
-  { path: '/indices', changeFrequency: 'hourly', priority: 0.8 },
-  { path: '/devises', changeFrequency: 'daily', priority: 0.8 },
-  { path: '/matieres-premieres', changeFrequency: 'hourly', priority: 0.8 },
   { path: '/categories', changeFrequency: 'daily', priority: 0.7 },
-  /* « Parcourir » est la porte d'entrée des sept marchés depuis que le menu du même
-     nom a disparu. Priorité alignée sur `/crypto`, qu'elle englobe. */
+
+  /*
+   * ── LES SIX PAGES DE CLASSE ONT QUITTÉ CE PLAN ──────────────────────────
+   *
+   * `/crypto`, `/actions`, `/etf`, `/indices`, `/devises` et `/matieres-premieres` y
+   * figuraient une par une. Elles sont désormais des REDIRECTIONS vers l'onglet
+   * correspondant de `/marches`, et un plan de site qui déclare une redirection est un
+   * défaut, pas une précaution : le robot suit le lien, arrive ailleurs que là où on
+   * l'annonçait, et retient que ce fichier décrit mal le site. Google le signale
+   * explicitement comme une erreur d'exploration.
+   *
+   * Les onglets de `/marches` ne les remplacent PAS un pour un dans ce plan : ils ne
+   * diffèrent que par une chaîne de requête, et un moteur les regroupe de toute façon
+   * sous l'URL canonique de la page. Une seule entrée, à la priorité qu'avait la plus
+   * haute des sept.
+   */
   { path: '/marches', changeFrequency: 'hourly', priority: 0.9 },
-  { path: '/crypto/all-coins', changeFrequency: 'hourly', priority: 0.8 },
+  { path: '/places', changeFrequency: 'daily', priority: 0.7 },
+  { path: '/perpetuels', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/classements', changeFrequency: 'hourly', priority: 0.8 },
   /* Les quatre classements complets. Écrits un par un plutôt que dérivés d'une
      boucle : le fichier est une DÉCLARATION lue par un moteur de recherche, et une
      liste explicite se relit sans exécuter le code qui l'engendre. */
-  { path: '/crypto/classement/hausses', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/crypto/classement/baisses', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/crypto/classement/volumes', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/crypto/classement/rotation', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/crypto/mouvements', changeFrequency: 'hourly', priority: 0.7 },
-  { path: '/crypto/highlights', changeFrequency: 'hourly', priority: 0.7 },
-  { path: '/crypto/graphiques', changeFrequency: 'daily', priority: 0.6 },
-  { path: '/crypto/nouvelles', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/classements/hausses', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/classements/baisses', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/classements/volumes', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/classements/rotation', changeFrequency: 'hourly', priority: 0.6 },
+  { path: '/mouvements', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/points-marquants', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/graphiques', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/nouvelles-cotations', changeFrequency: 'daily', priority: 0.6 },
   { path: '/actualites', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/screener', changeFrequency: 'daily', priority: 0.6 },
   { path: '/macro', changeFrequency: 'weekly', priority: 0.6 },
@@ -90,6 +106,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
     alternates: { languages: languageAlternates(route.path) },
   }))
+
+  /*
+   * ── LES FICHES DE PLACE ENTRENT AU PLAN, LES DEUX FAMILLES ENSEMBLE ───────
+   *
+   * Les deux listes sont DÉJÀ en cache pour `/places` et `/perpetuels` : ce plan ne
+   * coûte donc aucun appel supplémentaire en régime normal, et il retombe simplement
+   * sur zéro entrée si la source est en panne au moment de la génération.
+   *
+   * Une place absente du plan reste atteignable — le plan de site ne conditionne pas
+   * l'exploration, il la guide. Mieux vaut un plan incomplet un jour de panne qu'une
+   * génération qui échoue.
+   */
+  const [spotPlaces, derivativePlaces] = await Promise.all([
+    getSpotExchanges(100),
+    getDerivativeExchanges(100),
+  ])
+
+  for (const place of [
+    ...(spotPlaces.ok ? spotPlaces.data : []),
+    ...(derivativePlaces.ok ? derivativePlaces.data : []),
+  ]) {
+    entries.push({
+      url: absoluteUrl(`/places/${place.id}`),
+      lastModified: now,
+      /* Quotidien : le profil d'une place — pays, année, note — bouge très lentement,
+         et c'est lui que la page revendique. Ses paires changent à la minute, mais un
+         robot n'a pas à repasser toutes les heures pour elles. */
+      changeFrequency: 'daily',
+      priority: 0.5,
+    })
+  }
 
   for (const article of HELP_ARTICLES) {
     entries.push({

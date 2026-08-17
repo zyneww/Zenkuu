@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { getSpotExchanges } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
+import { BrowseTabs, EXCHANGES_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { SpotExchangesExplorer } from '@/components/market/SpotExchangesExplorer'
 
 /*
@@ -26,13 +27,13 @@ export const metadata: Metadata = {
  *
  * L'entrée « Places de cotation » pointait vers `/places` depuis la refonte du menu,
  * et `/places` renvoyait une 404 : le panneau existait, mais seulement enterré au
- * milieu de `/crypto/mouvements`, entre les agrégats macro et les dérivés. Un lien de
+ * milieu de `/mouvements`, entre les agrégats macro et les dérivés. Un lien de
  * navigation qui ne mène nulle part est le pire des défauts d'un menu — il fait
  * douter du reste.
  *
  * ── CENT PLACES ICI, VINGT-CINQ LÀ-BAS ───────────────────────────────────────
  *
- * `/crypto/mouvements` garde son extrait de vingt-cinq lignes : sur une page qui
+ * `/mouvements` garde son extrait de vingt-cinq lignes : sur une page qui
  * répond à « que fait le marché », savoir où il s'échange est un plan parmi quatre.
  * Ici, c'est la question elle-même, et l'on va donc au bout de ce que la source
  * publie utilement.
@@ -48,6 +49,9 @@ export default async function PlacesPage() {
 
   return (
     <div className="space-y-8 py-6">
+      {/* Même barre que `/marches` et `/perpetuels` — voir la note de cette dernière. */}
+      <BrowseTabs current={EXCHANGES_TAB} hrefFor={browseHref} />
+
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">Où s’échange le marché au comptant</h1>
         <p className="text-lg leading-relaxed text-ink-muted">

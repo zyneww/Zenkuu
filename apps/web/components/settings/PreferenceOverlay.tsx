@@ -38,7 +38,14 @@ import { useSettings } from '@/lib/stores/settings'
 
 export type PreferenceTab = 'language' | 'currency'
 
-/** Intitulés des groupes de devises, dans l'ordre d'affichage de la référence. */
+/**
+ * Intitulés des groupes de devises.
+ *
+ * La table reste COMPLÈTE alors qu'un seul groupe est affiché — voir
+ * `CURRENCY_GROUP_ORDER`. Elle décrit le catalogue, pas la fenêtre : la retailler
+ * obligerait à la reconstruire le jour où un groupe revient, et `CurrencyGroup` exige
+ * de toute façon les cinq clés.
+ */
 const CURRENCY_GROUP_LABELS: Record<CurrencyGroup, string> = {
   suggested: 'Devises courantes',
   fiat: 'Monnaies',
@@ -47,13 +54,27 @@ const CURRENCY_GROUP_LABELS: Record<CurrencyGroup, string> = {
   commodity: 'Matières premières',
 }
 
-const CURRENCY_GROUP_ORDER: CurrencyGroup[] = [
-  'suggested',
-  'fiat',
-  'crypto',
-  'bitcoin',
-  'commodity',
-]
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * UN SEUL GROUPE EST PROPOSÉ : LES DEVISES COURANTES
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La fenêtre en offrait cinq — courantes, monnaies, cryptomonnaies, unités bitcoin,
+ * matières premières — soit une quarantaine d'entrées demandant deux écrans de
+ * défilement. Décision de conception : s'en tenir aux dix courantes.
+ *
+ * ⚠️ CE QUE CELA RETIRE VRAIMENT, ET IL FAUT LE SAVOIR EN LISANT CE FICHIER.
+ *
+ * Ce n'est pas un simple repli d'affichage : les autres devises deviennent
+ * INATTEIGNABLES, y compris par la recherche, qui ne filtre que ce que les groupes
+ * ci-dessous produisent. Un visiteur suisse ne peut plus obtenir de francs, un
+ * Britannique plus de livres, un Canadien plus de dollars canadiens.
+ *
+ * Les taux, eux, restent chargés et convertibles : c'est bien un choix d'INTERFACE, et
+ * le rétablir consiste à remettre une ou plusieurs clés dans le tableau ci-dessous.
+ * Rien d'autre n'a à changer.
+ */
+const CURRENCY_GROUP_ORDER: CurrencyGroup[] = ['suggested']
 
 interface Item {
   key: string
@@ -138,14 +159,23 @@ export function PreferenceOverlay({
       ...(entry.ready ? {} : { note: 'non traduite' }),
     })
 
+    /*
+     * ── SEULES LES LANGUES COURANTES, comme pour les devises ──────────────────
+     *
+     * Le groupe « Toutes les langues » offrait une trentaine d'entrées, dont vingt
+     * portaient la mention « non traduite » — c'est-à-dire une liste dont les deux
+     * tiers annonçaient qu'ils ne servaient pas. Décision de conception : s'en tenir
+     * aux dix courantes, qui sont précisément les treize traduites.
+     *
+     * ⚠️ Même conséquence que pour les devises, et elle vaut d'être sue : les autres
+     * langues deviennent INATTEIGNABLES, la recherche comprise, puisqu'elle ne filtre
+     * que ce que ce tableau produit. Les fichiers de traduction et le routage par
+     * locale restent en place — le rétablissement tient en une entrée de tableau.
+     */
     return [
       {
         title: 'Langues courantes',
         items: LANGUAGES.filter((entry) => entry.popular).map((entry) => toItem(entry, 'popular')),
-      },
-      {
-        title: 'Toutes les langues',
-        items: LANGUAGES.filter((entry) => !entry.popular).map((entry) => toItem(entry, 'all')),
       },
     ]
   }, [tab, available, currency, language])
@@ -169,7 +199,21 @@ export function PreferenceOverlay({
 
   const isCurrency = tab === 'currency'
   const onSelect = isCurrency ? setCurrency : setLanguage
-  const untranslated = !isCurrency && LANGUAGES.some((entry) => !entry.ready)
+  /*
+   * ── LA NOTE DE BAS DE PAGE SUIT CE QUI EST RÉELLEMENT PROPOSÉ ─────────────
+   *
+   * Le test portait sur `LANGUAGES` — le CATALOGUE — et non sur les entrées affichées.
+   * Depuis que seules les langues courantes sont proposées, il devenait faux : la note
+   * expliquait « choisir une autre langue enregistre votre préférence, mais l'interface
+   * reste dans la langue traduite la plus proche » alors qu'aucune langue non traduite
+   * n'est plus offerte. Un avertissement sur un cas devenu impossible n'informe pas,
+   * il inquiète.
+   *
+   * Le test porte donc sur `visible`, qui est ce que le lecteur a sous les yeux. La note
+   * réapparaîtra d'elle-même le jour où une langue non traduite revient dans la liste.
+   */
+  const untranslated =
+    !isCurrency && visible.some((group) => group.items.some((item) => item.note))
 
   return (
     <div

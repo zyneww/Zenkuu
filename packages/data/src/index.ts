@@ -38,6 +38,9 @@ export {
   getAssetOhlc,
   getCategories,
   getMacroIndicator,
+  getStockScreen,
+  getEtfScreen,
+  getBondFundScreen,
   getCategoryAssets,
   getCryptoGlobalStats,
   getCryptoOverview,
@@ -60,6 +63,7 @@ export {
   getPeers,
   getPool,
   getPoolsOnNetwork,
+  getPoolUniverse,
   getRanking,
   getTokenPools,
   getTrendingPools,
@@ -140,6 +144,8 @@ export type {
   MacroThemeId,
   PackedMacroSeries,
 } from './providers/worldbank'
+
+export type { YahooScreenRow } from './providers/yahoo-screener'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
 export type { TreasuryCoin } from './providers/coingecko-extras'

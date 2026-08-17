@@ -93,7 +93,7 @@ export default async function AlertesPage() {
           description="Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil. Aucun compte n’est nécessaire."
           action={
             <Link
-              href="/crypto"
+              href="/marches"
               className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
             >
               Parcourir les cryptomonnaies

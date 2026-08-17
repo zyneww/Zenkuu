@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Classements crypto',
   description:
     'Plus fortes hausses, plus fortes baisses, volumes les plus élevés et rotation la plus forte, sur 1 heure à 30 jours.',
-  alternates: { canonical: '/crypto/all-coins' },
+  alternates: { canonical: '/classements' },
 }
 
 /**
@@ -68,15 +68,15 @@ export default async function RankingsPage() {
             </p>
             <p className="text-sm text-ink-muted">
               Pour le détail des cours :{' '}
-              <Link href="/crypto" className="text-brand hover:underline">
+              <Link href="/marches" className="text-brand hover:underline">
                 cotations crypto
               </Link>{' '}
               ·{' '}
-              <Link href="/crypto/mouvements" className="text-brand hover:underline">
+              <Link href="/mouvements" className="text-brand hover:underline">
                 données de trading
               </Link>{' '}
               ·{' '}
-              <Link href="/crypto/highlights" className="text-brand hover:underline">
+              <Link href="/points-marquants" className="text-brand hover:underline">
                 points marquants
               </Link>
             </p>

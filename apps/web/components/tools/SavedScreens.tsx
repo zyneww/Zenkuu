@@ -34,7 +34,17 @@ export function SavedScreens({
   criteria: ScreenCriteria
   onApply: (criteria: ScreenCriteria) => void
 }) {
-  const [screens, setScreens] = useState<SavedScreenRow[]>([])
+  const [all, setScreens] = useState<SavedScreenRow[]>([])
+
+  /*
+   * ── SEULS LES ÉCRANS DE CE MARCHÉ SONT MONTRÉS ─────────────────────────
+   *
+   * Un écran d'actions ne veut rien dire sur l'onglet des pools : ses clés de seuil
+   * n'y existent pas, et le rejouer ne filtrerait rien tout en allumant un préréglage
+   * inconnu. Le filtre est ici plutôt que dans l'action serveur : la liste complète
+   * n'est demandée qu'une fois, et changer d'onglet ne doit pas la recharger.
+   */
+  const screens = all.filter((screen) => screen.criteria.market === criteria.market)
   const [naming, setNaming] = useState(false)
   const [draft, setDraft] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -87,6 +97,7 @@ export function SavedScreens({
             <button
               type="button"
               onClick={() => onApply(screen.criteria)}
+              title={screen.name}
               className="px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-brand-strong"
             >
               {screen.name}

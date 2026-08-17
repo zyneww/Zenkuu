@@ -211,7 +211,7 @@ async function MethodSection() {
 
       <p className="text-sm text-ink-muted">
         Pour situer ces mouvements dans le marché :{' '}
-        <Link href="/crypto/mouvements" className="text-brand hover:underline">
+        <Link href="/mouvements" className="text-brand hover:underline">
           données de marché
         </Link>{' '}
         ·{' '}

@@ -1,10 +1,27 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV", "COINGECKO_API_KEY"],
+  "globalEnv": ["NODE_ENV", "COINGECKO_API_KEY", "ZENKUU_DIST_DIR"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      // MOTIFS LITTÉRAUX, comme dans `.gitignore` et pour la même discipline — ce
+      // fichier-là explique en détail ce qu'un joker sur `.next*` a déjà coûté. La
+      // liste reprend donc exactement les dossiers qu'il ignore.
+      //
+      // Deux essais ont échoué avant celui-ci, et les noter évite de les refaire :
+      //   · `${ZENKUU_DIST_DIR-.next}/**` — turbo ne lit pas la syntaxe shell ici. Le
+      //     motif ne correspondait à rien et chaque build repartait de zéro, en
+      //     avertissant « no output files found » ;
+      //   · une clé `_outputs` pour porter cette note — turbo refuse toute clé
+      //     inconnue et rendait `turbo_json_parse_error`, cassant TOUTES les tâches du
+      //     dépôt. Le fichier accepte en revanche les commentaires : c'est du JSONC.
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        ".next-verify/**",
+        "!.next-verify/cache/**",
+        "dist/**"
+      ]
     },
     "dev": {
       "cache": false,

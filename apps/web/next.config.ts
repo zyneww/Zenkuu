@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 import createNextIntlPlugin from 'next-intl/plugin'
 
+import { NEWS_IMAGE_HOSTS } from './lib/news-image-hosts'
+
 /**
  * Greffon next-intl.
  *
@@ -28,6 +30,12 @@ const config: NextConfig = {
    *
    *   ZENKUU_DIST_DIR=.next-verify bun run build
    *
+   * ⚠️ CETTE VARIABLE DOIT ÊTRE DÉCLARÉE DANS `turbo.json`, et elle ne l'était pas.
+   * Turbo n'expose aux tâches que les variables inscrites dans `globalEnv` : sans
+   * elle, `next build` lisait `undefined` et retombait sur `.next`. Le garde-fou
+   * échouait donc SILENCIEUSEMENT et faisait exactement ce qu'il devait empêcher —
+   * écraser le dossier du serveur de développement en cours. Constaté ici même.
+   *
    * Vaut aussi pour l'intégration continue, où deux tâches peuvent bâtir en
    * parallèle sur la même copie de travail.
    *
@@ -37,6 +45,22 @@ const config: NextConfig = {
    * distrait publierait une référence morte que personne d'autre ne peut résoudre.
    * Vérifier `git status` après coup, et rétablir `./.next/types/...` — ce que fait
    * de toute façon le prochain `next dev`.
+   *
+   * CE N'EST PAS THÉORIQUE : c'est arrivé. Un build en `.next-perf` a laissé
+   * `import "./.next-perf/types/routes.d.ts"` dans le fichier suivi, et le dossier a
+   * ensuite été supprimé — la référence pointait donc dans le vide. Rétabli par
+   * `git checkout -- apps/web/next-env.d.ts`.
+   *
+   * ⚠️ ET LE NOM DU DOSSIER N'EST PAS LIBRE. N'utiliser QUE ceux que `.gitignore`
+   * connaît — `.next-verify/`, `.next-err/` — parce que ce fichier-là interdit les
+   * jokers pour une raison mesurée : Tailwind 4 y lit ses exclusions et casse sur un
+   * motif `.next` suivi d'une étoile. Un dossier au nom inédit n'est pas ignoré, et se
+   * retrouve dans `git status` avec ses milliers de fichiers.
+   *
+   * (La phrase ci-dessus évite d'écrire ce motif littéralement, et ce n'est pas une
+   *  coquetterie : l'étoile suivie d'une barre oblique FERME un commentaire de bloc.
+   *  Écrit tel quel, il coupait ce commentaire en deux et rendait huit erreurs de
+   *  syntaxe dans un fichier de configuration qu'on ne pense pas à suspecter.)
    */
   distDir: process.env.ZENKUU_DIST_DIR || '.next',
 
@@ -81,6 +105,74 @@ const config: NextConfig = {
     ]
   },
 
+  /**
+   * REDIRECTIONS PERMANENTES — les pages qui ont changé d'adresse.
+   *
+   * ── DEUX MOUVEMENTS, UN SEUL MÉCANISME ───────────────────────────────────
+   *
+   * D'abord les SEPT PAGES DE CLASSE (`/crypto`, `/actions`, `/etf`, `/indices`,
+   * `/devises`, `/matieres-premieres`), qui doublaient exactement les onglets de
+   * `/marches`. Ensuite les SIX SOUS-PAGES CRYPTO, sorties d'un préfixe qui ne les
+   * décrivait plus : `/graphiques` ou `/classements` ne parlent pas que de crypto —
+   * ils portent aussi les ETF, les actions et les indices.
+   *
+   * ── POURQUOI PERMANENT (308) ET NON TEMPORAIRE ───────────────────────────
+   *
+   * Ces adresses sont indexées et partagées. Une 307 dirait aux moteurs « revenez,
+   * l'ancienne reviendra peut-être » : ils garderaient l'ancienne URL en index et le
+   * classement acquis resterait attaché à une page qui n'existe plus. La 308 transfère
+   * ce classement à la nouvelle adresse, ce qui est précisément ce qu'on veut.
+   *
+   * ── L'ORDRE COMPTE, ET LES SOUS-PAGES PASSENT EN PREMIER ─────────────────
+   *
+   * Next applique la PREMIÈRE règle qui correspond. `/crypto/:path*` placé avant
+   * `/crypto/graphiques` avalerait la sous-page et l'enverrait sur la fiche d'actif
+   * « graphiques », qui n'existe pas. Les règles les plus spécifiques sont donc en
+   * tête — et c'est aussi pourquoi il n'y a AUCUNE règle attrape-tout sur
+   * `/crypto/:path*` : les fiches d'actif (`/crypto/bitcoin`) n'ont pas bougé.
+   *
+   * ── LE PRÉFIXE DE LOCALE EST GÉRÉ PAR `:locale` ──────────────────────────
+   *
+   * Le site sert treize langues, dont douze préfixées (`/en/crypto`, `/de/crypto`).
+   * Une règle écrite sur `/crypto` seul ne redirigerait que le français. Chaque
+   * chemin est donc décliné en deux règles — nue et préfixée — la seconde bornant
+   * `:locale` à deux ou trois caractères pour ne pas capturer un segment ordinaire.
+   */
+  async redirects() {
+    /* Les sous-pages sorties du préfixe crypto. `/crypto/classement/:type` porte un
+       paramètre : il est repris tel quel dans la destination. */
+    const moved: [string, string][] = [
+      ['/crypto/graphiques', '/graphiques'],
+      ['/crypto/all-coins', '/classements'],
+      ['/crypto/classement/:type', '/classements/:type'],
+      ['/crypto/nouvelles', '/nouvelles-cotations'],
+      ['/crypto/mouvements', '/mouvements'],
+      ['/crypto/highlights', '/points-marquants'],
+      ['/crypto/resoudre/:terme', '/resoudre/:terme'],
+    ]
+
+    /* Les pages de classe, vers l'onglet correspondant de `/marches`. La crypto vise
+       `/marches` nu : c'est son onglet par défaut, et `?classe=crypto` décrirait la
+       même page sous une seconde adresse. */
+    const classes: [string, string][] = [
+      ['/crypto', '/marches'],
+      ['/etf', '/marches?classe=etf'],
+      ['/actions', '/marches?classe=actions'],
+      ['/indices', '/marches?classe=indices'],
+      ['/devises', '/marches?classe=devises'],
+      ['/matieres-premieres', '/marches?classe=matieres-premieres'],
+    ]
+
+    return [...moved, ...classes].flatMap(([source, destination]) => [
+      { source, destination, permanent: true },
+      {
+        source: `/:locale(\\w{2}|pt-BR)${source}`,
+        destination: `/:locale${destination}`,
+        permanent: true,
+      },
+    ])
+  },
+
   images: {
     // Logos d'actifs servis par CoinGecko. Liste explicite plutôt que joker : tout
     // nouvel hôte d'images doit être un ajout conscient.
@@ -91,6 +183,15 @@ const config: NextConfig = {
       // uniquement si `NEXT_PUBLIC_LOGO_API_KEY` est renseignée ; sans elle, aucune
       // requête ne part vers cet hôte. Servi en `unoptimized` (voir AssetLogo).
       { protocol: 'https', hostname: 'img.logo.dev' },
+
+      /*
+        VIGNETTES DES FLUX D'ACTUALITÉS — vingt-six hôtes, relevés et non supposés.
+        La liste est IMPORTÉE plutôt que recopiée ici : le composant de rendu a besoin
+        de la même, pour écarter une vignette dont l'hôte n'est pas déclaré AVANT de la
+        rendre. Deux copies divergeraient, et le symptôme serait une fiche en erreur
+        500 pour une image décorative. Voir `lib/news-image-hosts.ts`.
+      */
+      ...NEWS_IMAGE_HOSTS.map((hostname) => ({ protocol: 'https' as const, hostname })),
     ],
   },
 }

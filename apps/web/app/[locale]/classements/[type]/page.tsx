@@ -42,7 +42,7 @@ type RankingType = 'hausses' | 'baisses' | 'volumes' | 'rotation'
  * LES PÉRIODES VIENNENT DE `MOVERS_PERIODS`, ET NE SONT PAS RÉÉCRITES ICI.
  *
  * Une première version en déclarait quatre — 1 h, 24 h, 7 j, 30 j — alors que la
- * source et les filtres de `/crypto/mouvements` en proposent six. Le défaut n'aurait
+ * source et les filtres de `/mouvements` en proposent six. Le défaut n'aurait
  * pas planté : un lien « Voir en détail » parti d'un classement sur 14 jours serait
  * simplement retombé sur 24 heures, en silence, avec un titre qui affirme la mauvaise
  * période. C'est exactement le genre d'écart qu'une liste parallèle finit toujours
@@ -108,7 +108,7 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
   return {
     title: `${entry.title} — classement complet`,
     description: entry.lead,
-    alternates: { canonical: `/crypto/classement/${type}` },
+    alternates: { canonical: `/classements/${type}` },
   }
 }
 
@@ -143,7 +143,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
   return (
     <div className="space-y-6">
       <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
-        <Link href="/crypto/all-coins" className="transition-colors hover:text-ink">
+        <Link href="/classements" className="transition-colors hover:text-ink">
           Classements crypto
         </Link>
         <span className="mx-1.5" aria-hidden="true">
@@ -166,7 +166,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
           {MOVERS_PERIODS.map((key) => (
             <Link
               key={key}
-              href={`/crypto/classement/${type}?periode=${key}`}
+              href={`/classements/${type}?periode=${key}`}
               aria-current={key === period ? 'page' : undefined}
               className={`tabular rounded-control px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
                 key === period

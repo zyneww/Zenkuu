@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   title: 'Points marquants',
   description:
     'Ce qui bouge aujourd’hui sur le marché crypto : tendances, plus fortes hausses et baisses, volumes les plus élevés, secteurs en tête et cotations récentes.',
-  alternates: { canonical: '/crypto/highlights' },
+  alternates: { canonical: '/points-marquants' },
 }
 
 /**
@@ -130,27 +130,27 @@ export default async function HighlightsPage() {
               title={fr.home.gainersTitle}
               hint={`Parmi les ${assets.length} plus grandes capitalisations`}
               assets={ranked?.gainers ?? null}
-              href="/crypto/mouvements"
+              href="/mouvements"
             />
 
             <HighlightPanel
               title={fr.home.losersTitle}
               hint={`Parmi les ${assets.length} plus grandes capitalisations`}
               assets={ranked?.losers ?? null}
-              href="/crypto/mouvements"
+              href="/mouvements"
             />
 
             <HighlightPanel
               title="Volumes les plus élevés"
               hint="Montants échangés sur 24 h"
               assets={byVolume}
-              href="/crypto/all-coins"
+              href="/classements"
             />
 
             <HighlightPanel
               title="Plus grandes capitalisations"
               assets={byMarketCap}
-              href="/crypto/all-coins"
+              href="/classements"
             />
 
             <RotationPanel entries={byRotation} />
@@ -175,7 +175,7 @@ export default async function HighlightsPage() {
           <h2 id="nouveautes-titre" className="display-md text-ink">
             Ce qui vient d’apparaître
           </h2>
-          <Link href="/crypto/nouvelles" className="text-sm font-medium text-brand-strong hover:underline">
+          <Link href="/nouvelles-cotations" className="text-sm font-medium text-brand-strong hover:underline">
             Toutes les cotations récentes
           </Link>
         </div>

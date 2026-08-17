@@ -271,14 +271,74 @@ export async function fetchTrendingPools(network?: string): Promise<DexPool[]> {
 
   const payload = await http.getJson<{ data?: RawPool[] }>(path)
 
-  return (payload?.data ?? [])
-    .map((raw) => {
-      // Sans paramètre de chaîne, chaque entrée porte la sienne dans son identifiant
-      // — `base_0x1131…`. C'est la seule façon de la connaître ici.
-      const id = raw.id ?? ''
-      const separator = id.indexOf('_')
-      const own = network ?? (separator === -1 ? '' : id.slice(0, separator))
-      return own ? toPool(raw, own) : null
-    })
-    .filter((pool): pool is DexPool => pool !== null)
+  return (payload?.data ?? []).map((raw) => fromTrending(raw, network)).filter(isPool)
+}
+
+/**
+ * Résout la chaîne d'un pool venu d'une réponse MULTI-RÉSEAUX.
+ *
+ * Sans paramètre de chaîne, l'API mêle les réseaux et chaque entrée porte la sienne
+ * dans son identifiant — `base_0x1131…`. C'est la seule façon de la connaître ici.
+ */
+function fromTrending(raw: RawPool, network?: string): DexPool | null {
+  const id = raw.id ?? ''
+  const separator = id.indexOf('_')
+  const own = network ?? (separator === -1 ? '' : id.slice(0, separator))
+  return own ? toPool(raw, own) : null
+}
+
+function isPool(pool: DexPool | null): pool is DexPool {
+  return pool !== null
+}
+
+/** Pages demandées pour le screener. Vingt pools par page — voir `fetchPoolUniverse`. */
+const POOL_PAGES = 5
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * UNIVERS DE POOLS POUR LE SCREENER — plusieurs pages, toutes chaînes
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * `fetchTrendingPools` sert un BANDEAU : vingt lignes, une page, « ce qui bouge
+ * on-chain ». C'est la bonne taille pour un aperçu et beaucoup trop peu pour un
+ * screener, dont l'intérêt tient à la population qu'il balaie.
+ *
+ * ── POURQUOI CINQ PAGES ET NON DIX ───────────────────────────────────────────
+ *
+ * L'API pagine jusqu'à dix pages et les trie par intérêt décroissant. Au-delà de la
+ * cinquième, un pool porte quelques dizaines de milliers de dollars de réserve : à
+ * cette profondeur, une seule transaction déplace le cours de plusieurs points, et un
+ * filtre non borné remonterait d'abord ce bruit — le même raisonnement qui borne
+ * l'univers crypto à 250 lignes.
+ *
+ * ── UNE PAGE EN ÉCHEC N'EMPORTE PAS LES AUTRES ───────────────────────────────
+ *
+ * `Promise.allSettled` : ces cinq requêtes partent ensemble sur une API publique sans
+ * clé, et un seul refus ferait sinon tomber tout l'onglet. Quatre-vingts pools au lieu
+ * de cent restent utilisables ; une page vide ne l'est pas.
+ *
+ * Le dédoublonnage porte sur l'identifiant complet `réseau_adresse` : le même pool peut
+ * apparaître sur deux pages si le classement bouge entre deux requêtes.
+ */
+export async function fetchPoolUniverse(): Promise<DexPool[]> {
+  const settled = await Promise.allSettled(
+    Array.from({ length: POOL_PAGES }, (_, index) =>
+      http.getJson<{ data?: RawPool[] }>(`/networks/trending_pools?page=${index + 1}`),
+    ),
+  )
+
+  const seen = new Map<string, DexPool>()
+  for (const entry of settled) {
+    if (entry.status !== 'fulfilled') continue
+    for (const raw of entry.value?.data ?? []) {
+      const pool = fromTrending(raw)
+      if (pool && !seen.has(pool.id)) seen.set(pool.id, pool)
+    }
+  }
+
+  if (seen.size === 0) {
+    throw new ProviderError('geckoterminal', 'Aucun pool n’a pu être lu', { retryable: true })
+  }
+
+  return [...seen.values()]
 }

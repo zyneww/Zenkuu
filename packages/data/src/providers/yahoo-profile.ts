@@ -17,119 +17,37 @@
  * disparaître sans préavis — auquel cas les sections qu'il alimente disparaissent avec
  * lui, sans jamais laisser de valeur inventée derrière elles (§5).
  *
- * ── LA POIGNÉE DE MAIN EN DEUX TEMPS ──────────────────────────────────────────
+ * ── LA POIGNÉE DE MAIN A DÉMÉNAGÉ ─────────────────────────────────────────────
  *
- * Contrairement à `chart`, cet endpoint refuse tout appel nu : il répond
- * « Invalid Crumb ». Il faut d'abord obtenir un cookie de session, puis échanger ce
- * cookie contre un jeton (le « crumb ») à passer en paramètre de chaque requête.
+ * Cet endpoint refuse tout appel nu : il répond « Invalid Crumb ». Il faut d'abord
+ * obtenir un cookie de session, puis échanger ce cookie contre un jeton à passer en
+ * paramètre de chaque requête.
  *
- * Le jeton EXPIRE, et Yahoo ne dit pas quand. Deux mauvaises réponses à cela : le
- * mémoriser pour toujours — la fiche casse silencieusement quelques heures plus tard —
- * ou le redemander à chaque appel, ce qui double le trafic sortant sur une source déjà
- * plafonnée. On le mémorise donc et on ne le renouvelle QU'APRÈS UN REFUS : l'échec
- * devient le signal d'expiration, ce qui évite d'avoir à deviner une durée de vie que
- * le serveur ne publie pas.
+ * Ce mécanisme est né ici et vit désormais dans `yahoo-session.ts` : le screener en a
+ * besoin lui aussi, et deux copies auraient ouvert DEUX sessions dans le même
+ * processus — deux cookies, deux jetons, deux fois plus de créations de session pour
+ * un serveur qui traite une rafale de créations comme un abus. Voir ce module pour le
+ * détail de l'expiration et du renouvellement.
  */
 
 import type { AssetClass } from '../types'
 import { ProviderError } from '../types'
+import { forgetYahooSession, yahooFetch } from './yahoo-session'
 
 const PROVIDER_ID = 'yahoo-finance'
 
-const UA =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-
 /**
- * Cookie et jeton de session, sur `globalThis`.
+ * Interroge `quoteSummary`.
  *
- * Même motif que le cache de données : sans cette accroche, chaque rechargement à
- * chaud en développement redemanderait la poignée de main, et Yahoo finirait par
- * répondre 429 à force de créations de session.
- */
-const globalForSession = globalThis as unknown as {
-  __zenkuuYahooSession?: { cookie: string; crumb: string } | null
-}
-
-/** Une seule poignée de main en vol à la fois — voir `handshake`. */
-let pending: Promise<{ cookie: string; crumb: string }> | null = null
-
-/**
- * Ouvre une session : cookie de consentement, puis jeton.
- *
- * Déduplique les appels concurrents par la même promesse. Sans cela, huit fiches
- * rendues en parallèle sur un cache froid ouvriraient huit sessions — et Yahoo
- * traite une rafale de créations de session comme un abus.
- */
-async function handshake(): Promise<{ cookie: string; crumb: string }> {
-  if (pending) return pending
-
-  pending = (async () => {
-    /*
-     * `fc.yahoo.com` répond une erreur HTTP, et c'est ATTENDU : on ne vient pas y
-     * chercher un corps mais l'en-tête `set-cookie` qui l'accompagne. D'où l'absence
-     * de vérification de `response.ok` — la seule chose qui compte est le cookie.
-     */
-    const seed = await fetch('https://fc.yahoo.com/', {
-      headers: { 'User-Agent': UA },
-      redirect: 'manual',
-    }).catch(() => null)
-
-    const raw = seed?.headers.get('set-cookie') ?? ''
-    // On ne garde que la paire `nom=valeur` de chaque cookie : les attributs
-    // (`Path`, `Expires`, `HttpOnly`…) n'ont rien à faire dans un en-tête `Cookie`.
-    const cookie = raw
-      .split(/,(?=\s*[A-Za-z0-9_-]+=)/)
-      .map((part) => part.split(';')[0]?.trim())
-      .filter((part): part is string => Boolean(part))
-      .join('; ')
-
-    const response = await fetch('https://query1.finance.yahoo.com/v1/test/getcrumb', {
-      headers: { 'User-Agent': UA, ...(cookie ? { Cookie: cookie } : {}) },
-    })
-
-    const crumb = (await response.text()).trim()
-
-    // Un jeton vide ou porteur d'un message d'erreur ne sert à rien : mieux vaut
-    // échouer ici que d'envoyer une requête qu'on sait condamnée.
-    if (!crumb || crumb.length > 32 || crumb.includes('<')) {
-      throw new ProviderError(PROVIDER_ID, 'Session Yahoo refusée', { retryable: true })
-    }
-
-    return { cookie, crumb }
-  })()
-
-  try {
-    const session = await pending
-    globalForSession.__zenkuuYahooSession = session
-    return session
-  } finally {
-    pending = null
-  }
-}
-
-/**
- * Interroge `quoteSummary`, en renouvelant la session une fois si elle a expiré.
- *
- * `retry` borne la récursion à UN seul renouvellement : si le second appel échoue
- * lui aussi, ce n'est plus une expiration mais une fermeture de l'endpoint, et
- * réessayer en boucle ne ferait qu'attirer un blocage.
+ * `retry` ne borne plus que le refus PAR LE CORPS : les refus par code de réponse sont
+ * traités dans `yahooFetch`, qui renouvelle la session une fois et rejoue l'appel.
  */
 async function query(symbol: string, modules: string[], retry = true): Promise<RawSummary | null> {
-  const session = globalForSession.__zenkuuYahooSession ?? (await handshake())
-
-  const url =
-    `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
-    `?modules=${modules.join(',')}&crumb=${encodeURIComponent(session.crumb)}`
-
-  const response = await fetch(url, {
-    headers: { 'User-Agent': UA, ...(session.cookie ? { Cookie: session.cookie } : {}) },
-  })
-
-  if (response.status === 401 || response.status === 403) {
-    globalForSession.__zenkuuYahooSession = null
-    if (retry) return query(symbol, modules, false)
-    throw new ProviderError(PROVIDER_ID, 'Session Yahoo expirée', { retryable: true })
-  }
+  const response = await yahooFetch(
+    (crumb) =>
+      `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
+      `?modules=${modules.join(',')}&crumb=${encodeURIComponent(crumb)}`,
+  )
 
   if (!response.ok) {
     throw new ProviderError(PROVIDER_ID, `Yahoo a répondu ${response.status}`, {
@@ -145,7 +63,7 @@ async function query(symbol: string, modules: string[], retry = true): Promise<R
   // cas, une session expirée se lirait comme « cet actif n'a pas de profil », et la
   // fiche perdrait ses sections sans que rien ne l'explique.
   if (body.quoteSummary?.error) {
-    globalForSession.__zenkuuYahooSession = null
+    forgetYahooSession()
     if (retry) return query(symbol, modules, false)
     throw new ProviderError(PROVIDER_ID, 'Profil refusé par Yahoo', { retryable: true })
   }

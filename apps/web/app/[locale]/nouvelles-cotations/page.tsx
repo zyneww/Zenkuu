@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: 'Nouvelles cryptomonnaies',
   description:
     'Les cryptomonnaies référencées le plus récemment : cours, capitalisation, volume et date du premier relevé de prix connu.',
-  alternates: { canonical: '/crypto/nouvelles' },
+  alternates: { canonical: '/nouvelles-cotations' },
 }
 
 /**
@@ -105,11 +105,11 @@ export default async function NewListingsPage() {
 
       <p className="text-sm text-ink-muted">
         Pour le marché établi, voir les{' '}
-        <Link href="/crypto/all-coins" className="text-brand hover:underline">
+        <Link href="/classements" className="text-brand hover:underline">
           classements complets
         </Link>{' '}
         ou les{' '}
-        <Link href="/crypto/highlights" className="text-brand hover:underline">
+        <Link href="/points-marquants" className="text-brand hover:underline">
           points marquants du jour
         </Link>
         .

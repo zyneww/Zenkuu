@@ -101,7 +101,7 @@ export default async function DashboardPage() {
             description="Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici."
             action={
               <Link
-                href="/crypto"
+                href="/marches"
                 className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
               >
                 Parcourir les cryptomonnaies

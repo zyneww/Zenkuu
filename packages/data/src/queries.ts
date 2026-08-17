@@ -21,6 +21,7 @@ import {
 import { fetchExchangeRates } from './providers/frankfurter'
 import {
   fetchPool,
+  fetchPoolUniverse,
   fetchTokenPools,
   fetchTrendingPools,
   networkFromPlatform,
@@ -32,6 +33,12 @@ import {
   type MacroObservation,
 } from './providers/worldbank'
 import { fetchAssetProfile, type AssetProfile } from './providers/yahoo-profile'
+import {
+  fetchBondFundScreen,
+  fetchEtfScreen,
+  fetchStockScreen,
+  type YahooScreenRow,
+} from './providers/yahoo-screener'
 import { findUniverseEntry, findUniverseEntryBySymbol, toSlug } from './providers/yahoo-universe'
 import {
   SENTIMENT_SOURCE,
@@ -1147,6 +1154,23 @@ export function getTrendingPools(network?: string): Promise<DataResult<DexPool[]
   )
 }
 
+/**
+ * Univers de pools pour le SCREENER — cinq pages, toutes chaînes.
+ *
+ * Distinct de `getTrendingPools`, qui sert un bandeau de vingt lignes. La borne à
+ * cinq pages et le motif du dédoublonnage sont détaillés dans `fetchPoolUniverse` :
+ * au-delà, un pool porte quelques dizaines de milliers de dollars de réserve, et un
+ * filtre non borné remonterait d'abord ce bruit.
+ */
+export function getPoolUniverse(): Promise<DataResult<DexPool[]>> {
+  return runStandalone(
+    'pools:universe:v1',
+    GECKOTERMINAL_SOURCE,
+    fetchPoolUniverse,
+    POOLS_TTL_SECONDS,
+  )
+}
+
 /* ═════════════════════════════════════════════════════════════════════════════
    TRÉSORERIES D'ENTREPRISE ET COLLECTIONS NFT
    ═════════════════════════════════════════════════════════════════════════════ */
@@ -1653,6 +1677,71 @@ export async function getAssetProfile(
      */
     return { ok: false, kind: 'error', reason: detail, source }
   }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SCREENERS BOURSIERS — actions, ETF, fonds obligataires
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Quinze minutes.
+ *
+ * ── PLUS LONG QUE LE PAS DU SITE, ET DÉLIBÉRÉMENT ────────────────────────────
+ *
+ * Le pas commun est de trois minutes, réglé sur des cours crypto qui bougent la nuit.
+ * Ces écrans-ci coûtent SIX à HUIT requêtes chacun sur un endpoint non officiel, et ce
+ * qu'ils portent ne se lit pas à la minute : un PER, une capitalisation, un rendement
+ * de dividende sont des grandeurs de séance. Un rafraîchissement toutes les trois
+ * minutes multiplierait le trafic sortant par cinq pour un tableau identique.
+ *
+ * Le cours affiché est donc daté à quinze minutes près, ce que la note de source dit.
+ */
+const SCREEN_TTL_SECONDS = 15 * 60
+
+const YAHOO_SCREEN_SOURCE: DataSource = {
+  label: 'Yahoo Finance',
+  attributionUrl: 'https://finance.yahoo.com',
+}
+
+/**
+ * Population d'ACTIONS pour le screener — six écrans prédéfinis, dédoublonnés.
+ *
+ * Voir `yahoo-screener.ts` pour le choix des écrans : chacun est biaisé par
+ * construction, et c'est leur union qui approche un balayage.
+ */
+export function getStockScreen(): Promise<DataResult<YahooScreenRow[]>> {
+  return runStandalone(
+    /* `v2` : les conventions de pourcentage de Yahoo ont été relevées champ par champ,
+       et deux d'entre elles étaient traitées à l'envers — voir `toPercent`. Une entrée
+       `v1` en cache porte encore les valeurs fausses, et sans ce changement de version
+       le tableau les servirait jusqu'à leur expiration naturelle. */
+    'screen:stocks:v2',
+    YAHOO_SCREEN_SOURCE,
+    fetchStockScreen,
+    SCREEN_TTL_SECONDS,
+  )
+}
+
+/** Population d'ETF pour le screener — sélection américaine, ce que la page annonce. */
+export function getEtfScreen(): Promise<DataResult<YahooScreenRow[]>> {
+  return runStandalone('screen:etf:v2', YAHOO_SCREEN_SOURCE, fetchEtfScreen, SCREEN_TTL_SECONDS)
+}
+
+/**
+ * Population de FONDS OBLIGATAIRES — et ce ne sont pas des obligations.
+ *
+ * Aucune source gratuite ne publie de cotation d'obligation individuelle. Ce que cet
+ * écran recense, ce sont des fonds INVESTIS en obligations : une exposition au marché
+ * obligataire, avec ses frais et son encours propres. L'onglet le dit en toutes
+ * lettres et affiche des colonnes de fonds, pas de titre.
+ */
+export function getBondFundScreen(): Promise<DataResult<YahooScreenRow[]>> {
+  return runStandalone(
+    'screen:bonds:v2',
+    YAHOO_SCREEN_SOURCE,
+    fetchBondFundScreen,
+    SCREEN_TTL_SECONDS,
+  )
 }
 
 /* ════════════════════════════════════════════════════════════════════════════

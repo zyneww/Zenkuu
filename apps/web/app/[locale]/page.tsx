@@ -28,13 +28,25 @@ import { ExploreTable } from '@/components/home/ExploreTable'
 import { GlobalPulse } from '@/components/home/GlobalPulse'
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { HighlightPanel } from '@/components/home/HighlightPanel'
+import { HomeHeatmap } from '@/components/home/HomeHeatmap'
 import { HomeMasthead } from '@/components/home/HomeMasthead'
 import { MarketSummaryHero } from '@/components/home/MarketSummaryHero'
+import { MarketTicker } from '@/components/home/MarketTicker'
 import { RecentlyAdded } from '@/components/home/RecentlyAdded'
 import { TrendingPanel } from '@/components/home/TrendingPanel'
 import { NarrativesPanel, NewsPanel, SentimentPanel } from '@/components/home/SidePanels'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
+import { withDeadline } from '@/lib/deadline'
+
+/**
+ * Combien de temps l'accueil accepte d'attendre les taux de change.
+ *
+ * Deux secondes : dix fois plus que le temps de réponse ordinaire de la source
+ * (moins de 200 ms), donc large pour un jour normal — et cent fois moins que son
+ * délai d'expiration, donc invisible le jour où elle tombe. Voir le point d'appel.
+ */
+const FOREX_DEADLINE_MS = 2_000
 
 // Régénération alignée sur le TTL du cache applicatif : les deux durées de vie
 // doivent coïncider, sinon la fraîcheur affichée devient imprévisible (§9).
@@ -124,13 +136,38 @@ export default async function HomePage() {
       getCryptoGlobalStats('eur'),
       getTrendingCrypto('eur'),
       getCryptoOverview('eur', 5),
-      getForexRates(),
+      /*
+       * LES DEVISES ONT UNE ÉCHÉANCE ICI, ET NULLE PART AILLEURS.
+       *
+       * Leur fournisseur s'accorde 25 secondes, à bon droit : la BCE ne publie qu'un
+       * taux par jour ouvré, et une page qui PARLE de devises préfère attendre que se
+       * déclarer vide. Mais sur cette page-ci, la donnée ne sert qu'à un ruban et à un
+       * compteur de couverture — rien qui vaille de retenir le premier écran.
+       *
+       * Mesuré : 25,3 secondes de premier octet sur l'accueil, cache froid, pendant
+       * que `api.frankfurter.dev` rendait 522. Le haut de page attendait une source
+       * morte pour un bandeau décoratif.
+       *
+       * L'en-tête de ce fichier tirait déjà la leçon pour les classes Yahoo — « un
+       * `Promise.all` fait attendre la plus lente avant de rendre quoi que ce soit » —
+       * et la réglait par un `Suspense` par classe. Les devises étaient restées dans le
+       * lot bloquant ; l'échéance les en sort sans démonter le haut de page, puisque le
+       * compteur qu'elles alimentent est sur le premier écran.
+       *
+       * L'appel N'EST PAS annulé : il continue et remplit le cache pour la visite
+       * suivante. Voir `withDeadline`.
+       */
+      withDeadline(
+        getForexRates(),
+        FOREX_DEADLINE_MS,
+        'Les taux de change n’ont pas répondu à temps. Ils reviendront d’eux-mêmes.',
+      ),
       getTopNarratives(6),
       getNews(6),
       getSentiment(),
       // `4` seulement : le panneau n'en montre que quatre, et cette requête part sur
       // un quota Coinpaprika distinct de celui de CoinGecko. La page complète
-      // `/crypto/nouvelles` en demande cent, avec sa propre clé de cache.
+      // `/nouvelles-cotations` en demande cent, avec sa propre clé de cache.
       getNewListings(4),
     ])
 
@@ -161,9 +198,29 @@ export default async function HomePage() {
     yahooSymbols +
     (forex.ok ? forex.data.length : 0)
 
+  /*
+   * LE RUBAN RÉUTILISE CE QUI EST DÉJÀ CHARGÉ, et n'ajoute aucun appel.
+   *
+   * Cinq cryptoactifs et cinq paires de devises viennent des deux requêtes que le
+   * haut de page fait de toute façon. Y ajouter les indices coûterait un appel Yahoo
+   * — la source la plus lente et la plus fragile du site — pour un bandeau décoratif
+   * qui bloquerait le premier rendu. Le mélange crypto + devises suffit à dire de quoi
+   * le site parle, qui est toute la fonction de ce ruban.
+   */
+  const tickerAssets = [...cryptoTop.slice(0, 6), ...(forex.ok ? forex.data.slice(0, 6) : [])]
+
   return (
     <div className="space-y-10">
       <h1 className="sr-only">{fr.site.name} — explorer les marchés</h1>
+
+      {/* ── Le ruban, EN PLEINE LARGEUR et avant tout le reste ───────────────
+          `-mt-*` annule l'espacement vertical de la disposition : un bandeau défilant
+          qui flotte à quarante pixels sous l'en-tête se lit comme un élément de la
+          page, alors qu'il en est la bordure haute. `shell-bleed` le fait déborder de
+          la colonne centrée jusqu'aux bords de l'écran, comme chez la référence. */}
+      <div className="shell-bleed -mt-6">
+        <MarketTicker assets={tickerAssets} />
+      </div>
 
       <HomeMasthead
         stats={globalStats.ok ? globalStats.data : null}
@@ -264,7 +321,7 @@ export default async function HomePage() {
             title={fr.home.gainersTitle}
             hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
             assets={overview.ok ? overview.data.gainers : null}
-            href="/crypto/highlights"
+            href="/points-marquants"
             unavailableReason={overview.ok ? undefined : overview.reason}
           />
 
@@ -272,7 +329,7 @@ export default async function HomePage() {
             title={fr.home.losersTitle}
             hint={overview.ok ? fr.home.moversHint(overview.data.universeSize) : undefined}
             assets={overview.ok ? overview.data.losers : null}
-            href="/crypto/highlights"
+            href="/points-marquants"
             unavailableReason={overview.ok ? undefined : overview.reason}
           />
         </div>
@@ -285,6 +342,15 @@ export default async function HomePage() {
           <NarrativesPanel result={narratives} />
           <SentimentPanel result={sentiment} />
         </div>
+
+        {/* ── La carte thermique ───────────────────────────────────────
+            APRÈS les listes et non avant, et l'ordre est le raisonnement : les trois
+            panneaux répondent à « qu'est-ce qui bouge », la carte à « dans quelles
+            proportions ». La seconde question ne se pose qu'une fois la première
+            répondue. Sous `<Suspense>` — voir l'en-tête de `HomeHeatmap`. */}
+        <Suspense fallback={<HeatmapSkeleton />}>
+          <HomeHeatmap />
+        </Suspense>
       </AssetClassSection>
 
       {/* ── ACTIONS · ETF · INDICES · MATIÈRES PREMIÈRES ──────────────────────
@@ -378,5 +444,22 @@ function SectionSkeleton() {
         />
       ))}
     </div>
+  )
+}
+
+/**
+ * Substitut de la carte thermique.
+ *
+ * Distinct de `SectionSkeleton` parce qu'il remplace une figure d'un seul bloc, là où
+ * l'autre remplace trois panneaux côte à côte. La hauteur reprend celle que
+ * `GroupedTreemap` occupe réellement — même motif que ci-dessus : un substitut plus
+ * court ferait sauter tout le bas de la page à l'arrivée des données.
+ */
+function HeatmapSkeleton() {
+  return (
+    <div
+      className="h-[min(78vh,640px)] animate-pulse rounded-card border border-border-subtle bg-surface-muted"
+      aria-hidden="true"
+    />
   )
 }

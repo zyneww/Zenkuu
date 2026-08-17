@@ -186,7 +186,7 @@ export function ExploreTable({
         />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
+          <div className="overflow-x-auto rounded-card bg-surface">
             {/* Colonnes prioritaires sous `sm` : actif, prix, variation. Voir la note
                 de `MarketTable`, qui pose la règle pour tous les tableaux du site. */}
             <table className="w-full border-collapse text-sm sm:min-w-[680px]">
@@ -221,13 +221,15 @@ export function ExploreTable({
                     <th scope="row" className="px-3 py-2.5 text-left font-normal">
                       <Link
                         href={assetHref(asset.assetClass, asset.id)}
-                        className="flex min-w-0 items-center gap-2"
+                        className="flex min-w-0 items-center gap-3"
                       >
                         <AssetLogo asset={asset} size={24} />
-                        <span className="truncate font-medium text-ink group-hover:text-brand-strong">
+                        {/* `flex-1` sur le nom pousse le symbole contre le bord droit
+                            de la colonne — voir la note détaillée dans `MarketTable`. */}
+                        <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
                           {asset.name}
                         </span>
-                        <span className="shrink-0 text-xs uppercase text-ink-muted">
+                        <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
                           {asset.symbol}
                         </span>
                       </Link>

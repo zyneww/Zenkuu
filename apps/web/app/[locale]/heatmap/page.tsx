@@ -43,7 +43,7 @@ export const metadata: Metadata = {
 export default async function HeatmapPage() {
   /*
    * Les deux jeux partent ENSEMBLE et ne coûtent rien : `getCategories` sert déjà
-   * `/categories` et les graphiques, `getMoversUniverse` sert déjà `/crypto/mouvements`.
+   * `/categories` et les graphiques, `getMoversUniverse` sert déjà `/mouvements`.
    * Leurs clés de cache ne dépendent d'aucun actif — un seul téléchargement de chaque
    * alimente tout le site.
    */

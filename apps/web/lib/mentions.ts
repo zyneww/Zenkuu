@@ -62,12 +62,112 @@ export interface MentionTarget {
   symbol?: string
 }
 
+/**
+ * Émetteurs de fonds, retirés en tête de nom.
+ *
+ * ── LE PROBLÈME, MESURÉ ─────────────────────────────────────────────────────
+ *
+ * Un ETF s'appelle « SPDR S&P 500 » ou « iShares Core MSCI World (UCITS) ». Aucune
+ * rédaction n'écrit jamais ces noms-là : elle écrit « le S&P 500 » et « le MSCI
+ * World ». La recherche mot pour mot ne trouvait donc RIEN sur ces fiches, non parce
+ * que le sujet est absent de la presse — il est partout — mais parce que le nom
+ * cherché est un nom de produit et non un nom de sujet.
+ *
+ * ── POURQUOI CE N'EST PAS UNE DÉDUCTION INTERDITE ───────────────────────────
+ *
+ * Le §5 interdit d'inventer une donnée. Retirer « SPDR » de « SPDR S&P 500 » n'invente
+ * rien : c'est une opération sur la CHAÎNE CHERCHÉE, pas sur le résultat. Le panneau
+ * continue de s'intituler « Articles mentionnant X » et l'article affiché contient
+ * bien, mot pour mot, la sous-chaîne cherchée. On élargit la question, on ne fabrique
+ * pas la réponse.
+ *
+ * La liste est celle des émetteurs réellement présents dans l'univers suivi. Un
+ * émetteur inconnu ne casse rien : son nom reste dans la chaîne, et la recherche se
+ * comporte comme avant.
+ */
+const FUND_ISSUERS = [
+  'spdr',
+  'ishares',
+  'vanguard',
+  'invesco',
+  'amundi',
+  'xtrackers',
+  'lyxor',
+  'wisdomtree',
+  'schwab',
+  'fidelity',
+  'vaneck',
+  'proshares',
+  'direxion',
+  'global x',
+  'first trust',
+  'jpmorgan',
+  'bnp paribas',
+  'ark',
+]
+
+/** Mots de structure d'un nom de fonds : ils décrivent le véhicule, pas le sujet. */
+const FUND_NOISE = /\b(ucits|etf|etc|etn|core|trust|shares|fund|index|acc|dist|plc|nv|inc|corp|ltd)\b/gi
+
+/**
+ * Autres écritures sous lesquelles cet actif peut être nommé.
+ *
+ * ── DEUX RÈGLES, ET UN GARDE-FOU QUI COMPTE PLUS QU'ELLES ───────────────────
+ *
+ * 1. Le CONTENU DES PARENTHÈSES. « Invesco QQQ (Nasdaq 100) » porte son vrai sujet
+ *    entre parenthèses ; c'est même le cas le plus fréquent de l'univers suivi.
+ * 2. Le nom DÉBARRASSÉ de son émetteur et de ses mots de structure.
+ *
+ * Le garde-fou : un alias n'est retenu que s'il compte AU MOINS DEUX MOTS ou contient
+ * un chiffre. Sans lui, « SPDR Gold Shares » produirait l'alias « Gold », qui
+ * remonterait tout article citant l'or — c'est-à-dire un fil qui ne parle plus de
+ * l'actif mais de sa matière. « S&P 500 », « Russell 2000 » et « MSCI World » passent ;
+ * « Gold », « Bond » et « World » sont écartés.
+ *
+ * C'est délibérément conservateur : mieux vaut un fil court et exact qu'un fil fourni
+ * dont la moitié ne concerne pas la fiche qu'on lit (§5).
+ */
+function aliasesOf(name: string): string[] {
+  const aliases = new Set<string>()
+
+  for (const match of name.matchAll(/\(([^)]+)\)/g)) {
+    const inner = match[1]?.trim()
+    if (inner) aliases.add(inner)
+  }
+
+  let stripped = name.replace(/\([^)]*\)/g, ' ')
+
+  for (const issuer of FUND_ISSUERS) {
+    /* En TÊTE uniquement (`^`) : « ARK » retiré n'importe où amputerait un nom qui le
+       contiendrait par hasard, et un émetteur ne signe qu'au début. */
+    stripped = stripped.replace(new RegExp(`^\\s*${escapeRegExp(issuer)}\\b`, 'i'), ' ')
+  }
+
+  stripped = stripped.replace(FUND_NOISE, ' ').replace(/\s+/g, ' ').trim()
+
+  if (stripped && stripped !== name) aliases.add(stripped)
+
+  return [...aliases].filter((alias) => {
+    if (alias.length < 3) return false
+    return /\d/.test(alias) || alias.split(/\s+/).length >= 2
+  })
+}
+
 export function mentions(text: string, target: MentionTarget): boolean {
   if (!text) return false
 
+  const folded = fold(text)
+
   // Les noms d'un ou deux caractères ne sont pas cherchables : trop de faux positifs
   // pour que le résultat veuille dire quelque chose.
-  if (target.name.length >= 3 && wordPattern(target.name).test(fold(text))) return true
+  if (target.name.length >= 3 && wordPattern(target.name).test(folded)) return true
+
+  /* Les alias sont essayés APRÈS le nom exact, ce qui n'est pas qu'une question
+     d'ordre : le nom complet coûte une expression régulière, les alias jusqu'à trois.
+     Sur sept cents articles et une fiche, l'écart se mesure. */
+  for (const alias of aliasesOf(target.name)) {
+    if (wordPattern(alias).test(folded)) return true
+  }
 
   const symbol = target.symbol?.trim()
   if (!symbol || symbol.length < 3) return false
