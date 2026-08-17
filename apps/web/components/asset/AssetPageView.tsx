@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import type { AssetClass } from '@zenith/data'
+import type { AssetClass, NewsItem } from '@zenith/data'
 import {
   getAsset,
   getAssetHistory,
@@ -321,6 +321,24 @@ export async function AssetPageView({ assetClass, id, searchParams }: AssetPageV
       </div>
     </div>
   )
+}
+
+/**
+ * Filtre les articles d'actualité qui mentionnent un actif par son nom ou son symbole.
+ *
+ * La correspondance porte sur le titre et l'extrait, en ignorant la casse. On ne cherche
+ * pas dans le texte intégral — dont on ne dispose pas — mais le titre seul suffit pour
+ * écarter les articles hors sujet lorsqu'on affiche une fiche d'actif précise.
+ */
+export function mentioning(
+  items: NewsItem[],
+  { name, symbol }: { name: string; symbol?: string },
+): NewsItem[] {
+  const terms = [name, symbol].filter(Boolean).map((t) => t!.toLowerCase())
+  return items.filter((item) => {
+    const haystack = `${item.title} ${item.excerpt ?? ''}`.toLowerCase()
+    return terms.some((term) => haystack.includes(term))
+  })
 }
 
 /**
