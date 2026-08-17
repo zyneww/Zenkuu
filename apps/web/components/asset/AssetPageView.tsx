@@ -1,4 +1,4 @@
-import { Activity, LayoutGrid, Newspaper, Shapes, Store } from 'lucide-react'
+import { Activity, LayoutGrid, Shapes, Store } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 
@@ -9,7 +9,9 @@ import {
   getAssetProfile,
   getAssetTickers,
   getExchangeRates,
+  getAssetNews,
   getNews,
+  NEWS_POOL,
   getPeers,
   getSpotExchanges,
   getTrendingCryptoAssets,
@@ -22,13 +24,13 @@ import { AssetConverter } from '@/components/asset/AssetConverter'
 import { AssetGlobalPrices } from '@/components/asset/AssetGlobalPrices'
 import { LiveBinancePrice } from '@/components/asset/LiveBinancePrice'
 import { AssetMetricRail } from '@/components/asset/AssetMetricRail'
-import { AssetMetricCatalogue } from '@/components/asset/AssetMetricCatalogue'
 import { AssetAnalysis } from '@/components/asset/AssetAnalysis'
 import { AssetChangeGrid } from '@/components/asset/AssetChangeGrid'
 import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetYearPerformance } from '@/components/asset/AssetYearPerformance'
-import { AssetNewsPanel } from '@/components/asset/AssetNewsPanel'
+import { AssetNewsAside } from '@/components/asset/AssetNewsAside'
+import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
 import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
 import { AssetFundamentals } from '@/components/asset/AssetFundamentals'
 import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
@@ -54,8 +56,9 @@ import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
 import { AssetTabFiller } from '@/components/asset/AssetTabFiller'
 import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
-import { WatchlistButton } from '@/components/watchlist/WatchlistButton'
+import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { getContent } from '@/lib/content'
+import { mentioning } from '@/lib/mentions'
 import { assetHref, marketHref } from '@/lib/asset-routes'
 import type { MetricGroup } from '@/lib/asset-metrics'
 import { AlertButton } from '@/components/alerts/AlertButton'
@@ -156,8 +159,8 @@ const RAIL_GROUPS = ['market', 'range', 'change'] as const satisfies readonly Me
  * transformerait un raccourci en travail de sélection.
  */
 const BENCHMARK_OPTIONS = [
-  { id: 'bitcoin', label: 'Bitcoin' },
-  { id: 'ethereum', label: 'Ethereum' },
+  { id: 'bitcoin', label: 'Bitcoin', symbol: 'BTC' },
+  { id: 'ethereum', label: 'Ethereum', symbol: 'ETH' },
 ]
 
 export interface AssetPageViewProps {
@@ -168,8 +171,17 @@ export interface AssetPageViewProps {
 
 export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   const fr = await getContent()
-  const [asset, history, peers, rates, tickers, news, trending, exchanges, profileResult] =
-    await Promise.all([
+  const [
+    asset,
+    history,
+    peers,
+    rates,
+    tickers,
+    news,
+    trending,
+    exchanges,
+    profileResult,
+  ] = await Promise.all([
     getAsset(id, assetClass, 'eur'),
     getAssetHistory(id, assetClass, SERVER_RANGE_DAYS, 'eur'),
     // `getPeers` dérive de l'aperçu déjà mis en cache par l'accueil : les
@@ -193,12 +205,25 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     // d'accueil — la fiche se branche sur le même cache. Sur un cache froid, la
     // tendance coûte un appel ; il est partagé par TOUTES les fiches et par l'accueil,
     // ce qui le rend négligeable à l'échelle du site.
-    // 200 et non 40 : la fiche cherche les articles qui NOMMENT cet actif, et le tour
-    // à tour de `fetchNews` ne garde qu'un ou deux articles par source dans les
-    // quarante premiers — assez pour un fil d'accueil, pas pour une recherche par nom.
-    // Depuis que `getNews` met en cache un réservoir unique, demander plus ne coûte
-    // strictement rien de plus au réseau (voir son en-tête).
-    getNews(200),
+    /*
+     * LE RÉSERVOIR ENTIER, et le chiffre n'est pas choisi au jugé.
+     *
+     * La fiche ne cherche pas « les dernières actualités » : elle cherche les articles
+     * qui NOMMENT cet actif. Ce sont deux besoins opposés — le premier veut les plus
+     * récents, le second veut la plus grande profondeur possible, parce qu'un actif
+     * hors des dix premières capitalisations n'est nommé qu'une fois toutes les
+     * centaines d'articles.
+     *
+     * 40, puis 200, puis le réservoir complet. Mesuré sur la fiche du SPDR S&P 500 :
+     * à 200, un seul article remontait ; le tour à tour de `fetchNews` n'avait alors
+     * gardé que quatre ou cinq articles par source sur quarante-deux flux.
+     *
+     * DEMANDER PLUS NE COÛTE RIEN AU RÉSEAU, et c'est ce qui rend l'arbitrage évident :
+     * `getNews` met en cache un réservoir UNIQUE, constitué en interrogeant tous les
+     * flux quelle que soit la limite. Celle-ci ne fait que trancher à la sortie du
+     * cache — voir l'en-tête de `NEWS_POOL`.
+     */
+    getNews(NEWS_POOL),
     assetClass === 'crypto' ? getTrendingCryptoAssets('eur') : null,
     /*
      * Palmarès des places, uniquement pour en tirer les LOGOS du tableau « où se
@@ -362,18 +387,36 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              * Comparables de la source, plus les deux références du marché.
              *
              * Réservé à la crypto : la route de comparaison interroge l'historique
-             * crypto, et surtout rapporter une action au bitcoin ne dirait rien
-             * d'utile. Quatre comparables au plus — au-delà, la liste déroulante
-             * devient un annuaire.
+             * crypto, et surtout rapporter une action au bitcoin ne dirait rien d'utile.
+             *
+             * ── LA LISTE N'EST PLUS BORNÉE À QUATRE ─────────────────────────
+             *
+             * Elle l'était au motif qu'« au-delà, la liste déroulante devient un
+             * annuaire ». C'était vrai d'un MENU, qu'on parcourt à l'œil. Le panneau de
+             * comparaison a un champ de recherche et fait défiler sa liste : la borne
+             * ne protégeait plus de rien et privait au contraire d'une vingtaine de
+             * comparables déjà chargés, sans un appel de plus.
+             *
+             * Le symbole et la vignette accompagnent chaque entrée — le panneau les
+             * affiche, et la recherche cherche AUSSI dans le symbole : on tape « sol »
+             * plus volontiers que « Solana ».
              */
             compareOptions={
               assetClass === 'crypto'
                 ? [
                     ...BENCHMARK_OPTIONS.filter((entry) => entry.id !== data.id),
                     ...comparables
-                      .filter((peer) => !BENCHMARK_OPTIONS.some((entry) => entry.id === peer.id))
-                      .slice(0, 4)
-                      .map((peer) => ({ id: peer.id, label: peer.name })),
+                      .filter(
+                        (peer) =>
+                          peer.id !== data.id &&
+                          !BENCHMARK_OPTIONS.some((entry) => entry.id === peer.id),
+                      )
+                      .map((peer) => ({
+                        id: peer.id,
+                        label: peer.name,
+                        ...(peer.symbol ? { symbol: peer.symbol } : {}),
+                        ...(peer.image ? { image: peer.image } : {}),
+                      })),
                   ]
                 : []
             }
@@ -598,37 +641,82 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   )
 
   /*
-   * ── ACTUALITÉS ────────────────────────────────────────────────────────────
+   * ── ACTUALITÉS : UNE COLONNE, PLUS UNE SECTION ────────────────────────────
    *
-   * Le fil quitte le rail de l'aperçu, où il était tronqué à six entrées, pour un
-   * onglet qui peut en montrer trois fois plus. Ce sont NOS propres flux : cet
-   * onglet ne coûte aucun appel supplémentaire, la réponse étant déjà chargée pour
-   * la page.
+   * Le fil a occupé successivement trois places : le rail de l'aperçu (tronqué à six
+   * entrées), un onglet plein écran, puis une section pleine largeur. Il revient à ce
+   * qu'il aurait dû être — une colonne à droite, lisible EN MÊME TEMPS que le
+   * graphique.
+   *
+   * C'est la seule position qui serve l'usage réel : on consulte une chronologie pour
+   * rattacher un décrochage de la courbe à un événement daté. Toute présentation qui
+   * oblige à quitter la courbe des yeux annule ce geste, et c'est ce que faisaient les
+   * trois précédentes.
+   *
+   * Ce sont NOS propres flux, déjà chargés pour la page : la colonne ne coûte aucun
+   * appel supplémentaire. La sélection passe par `mentioning`, la règle partagée avec
+   * `/actualites` — deux listes censées être identiques ne peuvent pas se permettre
+   * deux implémentations.
    */
-  const newsPanel = news.ok ? (
-    <AssetNewsPanel
-      news={news.data}
-      name={data.name}
-      {...(data.symbol ? { symbol: data.symbol } : {})}
-      limit={20}
-      // Aucun article ne cite l'actif : c'est fréquent hors des dix premières
-      // capitalisations, et un onglet blanc y serait la règle plutôt que l'exception.
-      fallback={
-        <>
-          <EmptyState
-            title={`Aucun article ne mentionne ${data.name}`}
-            description="Nos vingt-neuf sources n’ont pas écrit ce nom récemment. Ce n’est pas un silence du marché, seulement l’absence de couverture chez les médias que nous suivons."
-            compact
-          />
-          <AssetTabFiller asset={data} />
-        </>
-      }
-    />
-  ) : (
-    <>
-      <EmptyState title={fr.states.unavailableTitle} compact />
-      <AssetTabFiller asset={data} />
-    </>
+  /*
+   * ── DEUX FILS, FUSIONNÉS — ET L'ORDRE DE FUSION PORTE UN ARBITRAGE ────────
+   *
+   * Le fil de Yahoo est DEMANDÉ pour cet actif : c'est la source qui a fait
+   * l'appariement, et elle connaît les relations qu'aucun titre ne révèle — qu'un
+   * article sur le S&P 500 concerne le fonds qui le réplique, par exemple. Il passe
+   * donc en premier.
+   *
+   * Le fil agrégé apporte ce que Yahoo n'a pas : le français, la presse crypto
+   * spécialisée, les sources européennes. Il complète, il ne double pas.
+   *
+   * ── LA DÉDUPLICATION SE FAIT SUR L'URL, PAS SUR L'IDENTIFIANT ─────────────
+   *
+   * Les identifiants portent le flux d'origine (`yahoo-spy:…` contre `investing:…`),
+   * si bien que le MÊME article repris par deux agrégateurs en porte deux. L'adresse,
+   * elle, désigne l'article. Sans cela, la colonne afficherait deux fois le même
+   * titre à quelques lignes d'écart — ce qui se lit comme un défaut, pas comme deux
+   * sources.
+   *
+   * Le tri chronologique est fait plus bas, par `AssetNewsRail` : le faire ici aussi
+   * serait un doublon, et le rail en a besoin de toute façon pour couper par journée.
+   */
+  /*
+   * ── CET APPEL EST SÉQUENTIEL, ET IL DOIT L'ÊTRE ───────────────────────────
+   *
+   * Tout le reste de la fiche part en parallèle plus haut. Celui-ci ne le peut pas :
+   * il lui faut le SYMBOLE de l'actif, que seule la réponse de `getAsset` porte.
+   *
+   * Pour la crypto, Yahoo cote `HYPE-USD` et non `hyperliquid-USD` — l'identifiant
+   * CoinGecko, qui est ce que l'URL transporte, ne lui dit rien. Pour les autres
+   * classes, notre univers accepte les deux formes ; on lui passe donc le symbole
+   * dans tous les cas plutôt que d'écrire deux chemins.
+   *
+   * Le coût est UNE requête RSS, mise en cache trois minutes et partagée par tous les
+   * visiteurs de la fiche. C'est le prix d'un fil qui passe de deux articles à une
+   * vingtaine sur les classes qui n'en avaient pas — voir `fetchSymbolNews`.
+   */
+  const symbolNews = await getAssetNews(assetClass, data.symbol)
+
+  const mentioned = news.ok
+    ? mentioning(news.data, {
+        name: data.name,
+        ...(data.symbol ? { symbol: data.symbol } : {}),
+      })
+    : []
+
+  const seenUrls = new Set<string>()
+  const assetNews = [...(symbolNews.ok ? symbolNews.data : []), ...mentioned]
+    .filter((item) => {
+      if (seenUrls.has(item.url)) return false
+      seenUrls.add(item.url)
+      return true
+    })
+    .slice(0, 40)
+
+  const newsAside = (
+    <AssetNewsAside count={assetNews.length}>
+      <AssetNewsRail news={assetNews} name={data.name} />
+    </AssetNewsAside>
   )
 
   /*
@@ -726,22 +814,24 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       />
 
       {/*
-        ── LE CATALOGUE DE MÉTRIQUES ────────────────────────────────────────────
+        ── LE CATALOGUE DE MÉTRIQUES A ÉTÉ RETIRÉ ───────────────────────────────
 
-        C'est l'écran le plus dense de la référence, et il nous manquait : vingt mesures
-        au registre, chacune avec son libellé et son explication, mais qui n'existaient
-        qu'en lignes de texte dans le rail ou une par une sur leur page dédiée. La
-        grille les montre TOUTES, avec leur courbe quand la source en publie une.
+        `AssetMetricCatalogue` rendait ici les dix-sept mesures en grille, chacune avec
+        sa courbe. C'était l'écran le plus dense de la page, et c'est précisément ce qui
+        le condamne : il REDISAIT le rail de gauche.
 
-        Il est ici et non dans un sixième onglet : la rangée est passée de sept à cinq
-        parce que sa longueur se paie à chaque visite, et ce contenu appartient au même
-        geste que les indicateurs et le risque juste au-dessus — regarder l'actif de
-        près. Son en-tête détaille le reste.
+        Les deux affichaient les mêmes mesures, tirées du même registre
+        (`lib/asset-metrics.ts`), à deux endroits de la même page — en lignes serrées à
+        gauche, en cartes de deux cents pixels au milieu. Un lecteur qui cherchait la
+        capitalisation la trouvait deux fois, et devait comprendre pourquoi elle
+        méritait deux traitements. Elle n'en méritait qu'un.
 
-        Il ne coûte AUCUN appel supplémentaire : ses courbes viennent de la même année
-        d'historique que `AssetAnalysis`, partagée par `useAssetSeries`.
+        Ce qui disparaît en propre, ce sont les COURBES de douze mois que le rail ne
+        porte pas. Six mesures en avaient une ; les onze autres affichaient « Sans
+        historique publié », c'est-à-dire onze cartes occupant la place d'un graphique
+        pour dire qu'il n'y en a pas. Les pages de métrique, elles, subsistent sous
+        `/{classe}/{id}/metriques/{slug}` et portent ces courbes.
       */}
-      <AssetMetricCatalogue asset={data} assetClass={assetClass} />
 
       {/* La série qui fonde tout ce qui précède ferme l'onglet — voir sa note. */}
       {historySection}
@@ -783,12 +873,19 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     { id: 'apercu', label: 'Aperçu', icon: <LayoutGrid size={14} strokeWidth={1.5} />, panel: overview },
     { id: 'places', label: 'Places', icon: <Store size={14} strokeWidth={1.5} />, panel: venues },
     { id: 'analyse', label: 'Analyse', icon: <Activity size={14} strokeWidth={1.5} />, panel: analysis },
-    {
-      id: 'actualites',
-      label: 'Actualités',
-      icon: <Newspaper size={14} strokeWidth={1.5} />,
-      panel: newsPanel,
-    },
+    /*
+     * ── L'ONGLET « ACTUALITÉS » A ÉTÉ RETIRÉ ──────────────────────────
+     *
+     * Il rendait « Articles mentionnant X » sur toute la largeur : une vignette de
+     * trois cents pixels, un article en vedette, puis une grille de cartes. Le
+     * PANNEAU DROIT porte désormais le même fil, au même instant, en colonne
+     * permanente — c'est-à-dire lisible EN REGARDANT le graphique, ce qui est
+     * l'usage réel : on rattache un décrochage à un événement daté.
+     *
+     * Garder les deux aurait donné les mêmes articles à deux endroits, dont l'un
+     * exigeait de quitter la courbe pour les lire. `AssetNewsPanel` reste dans le
+     * dépôt : c'est son emploi EN SECTION qui ne se justifiait plus.
+     */
     {
       id: 'ecosysteme',
       label: 'Écosystème',
@@ -798,7 +895,11 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   ]
 
   return (
-    <div className="space-y-5">
+    /* `space-y-3` et non 5 : cette valeur ne sépare que DEUX choses — l'en-tête
+       d'identité et la barre de sommaire — et cette dernière porte déjà son propre
+       filet. Vingt pixels de blanc PLUS un trait pour dire la même séparation, c'est
+       la dire deux fois ; douze suffisent, et la courbe commence d'autant plus haut. */
+    <div className="space-y-3">
       {/*
         Données structurées : posées ici plutôt que dans chaque page de classe
         d'actif, puisque ce composant sert les six. `Dataset` et non `Product` —
@@ -884,39 +985,46 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             ) : null}
           </>
         }
-        actions={
-          <>
-            {/* L'alerte est proposée À CÔTÉ du suivi, et pas dans un menu : ce sont les
-                deux seules actions que la fiche permet, et elles répondent à la même
-                intention — « je veux garder un œil là-dessus ».
-
-                `available` ne teste PLUS la session. Le retrait des comptes obligatoires
-                a supprimé la seule raison qui la faisait entrer dans ce calcul : une
-                alerte s'arme sans compte, rangée sous le cookie anonyme du navigateur.
-                Ne restent que les deux briques d'exploitation — la base et le service
-                d'envoi —, dont l'absence est une panne à annoncer et non un geste à
-                demander au lecteur. */}
-            <AlertButton
-              assetClass={assetClass}
-              assetId={data.id}
-              label={data.name}
-              {...(data.symbol ? { symbol: data.symbol } : {})}
-              currency={data.currency}
-              price={data.price}
-              path={assetHref(assetClass, data.id)}
-              available={watchlist.available && MAILER_ENABLED}
-            />
-
-            <WatchlistButton
-              assetClass={assetClass}
-              assetId={data.id}
-              label={data.name}
-              {...(data.symbol ? { symbol: data.symbol } : {})}
-              path={assetHref(assetClass, data.id)}
-              initialFollowing={watchlist.following}
-              signedIn={watchlist.available}
-            />
-          </>
+        /*
+         * LE SUIVI EST DÉSORMAIS `WatchlistStar` ET NON `WatchlistButton`.
+         *
+         * Le second porte un libellé, un état d'attente et un message d'échec — tout
+         * ce qu'un bouton de pleine rangée peut se permettre. Contre le rang, dans une
+         * ligne où le nom fait trente pixels, il ferait le double de large que la
+         * pastille qu'il suit.
+         *
+         * L'étoile compacte est celle des tableaux du site : c'est le MÊME geste au
+         * même dessin, et un lecteur qui a suivi un actif depuis un classement
+         * retrouve exactement la même commande sur sa fiche. `WatchlistButton` reste
+         * dans le dépôt pour `/suivi`, où la place ne manque pas.
+         */
+        watchAction={
+          <WatchlistStar
+            assetClass={assetClass}
+            assetId={data.id}
+            label={data.name}
+            {...(data.symbol ? { symbol: data.symbol } : {})}
+            path={assetHref(assetClass, data.id)}
+            initialFollowing={watchlist.following}
+            available={watchlist.available}
+          />
+        }
+        /* `available` ne teste PAS la session. Le retrait des comptes obligatoires a
+           supprimé la seule raison qui la faisait entrer dans ce calcul : une alerte
+           s'arme sans compte, rangée sous le cookie anonyme du navigateur. Ne restent
+           que les deux briques d'exploitation — la base et le service d'envoi —, dont
+           l'absence est une panne à annoncer et non un geste à demander. */
+        alertAction={
+          <AlertButton
+            assetClass={assetClass}
+            assetId={data.id}
+            label={data.name}
+            {...(data.symbol ? { symbol: data.symbol } : {})}
+            currency={data.currency}
+            price={data.price}
+            path={assetHref(assetClass, data.id)}
+            available={watchlist.available && MAILER_ENABLED}
+          />
         }
       />
 
@@ -996,6 +1104,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       */}
       <AssetTabs
         tabs={tabs}
+        aside={newsAside}
         rail={
           /* Le rail passe EN PREMIER dans le document, et à gauche à l'écran. Sur
              téléphone, la grille s'effondre en une colonne et les chiffres arrivent
@@ -1010,7 +1119,16 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              BLANC qui porte la frontière entre eux. Douze pixels suffisaient entre deux
              cartes qui se distinguaient déjà par leur bord ; entre deux listes nues, ils
              font une seule liste de vingt lignes. Voir `RailSection`. */
-          <aside key="rail" className="space-y-6">
+          /* Pas de `key` : elle datait d'une époque où le rail voyageait dans un
+             tableau. Sur un élément passé en prop unique elle est ignorée, et sa
+             présence à côté d'un frère dynamique — la colonne d'actualités — faisait
+             croire à React qu'il rendait une liste, d'où un avertissement de clé
+             manquante pointant sur `AssetLayoutFrame`.
+
+             ⚠️ Un commentaire JSX `{/* … *​/}` serait une SECONDE expression dans cette
+             prop, qui n'en admet qu'une : d'où la forme bloc, comme les autres
+             commentaires de ce bloc. */
+          <aside className="space-y-6">
 
           {/*
             LA BARRE COLLANTE SE PLACE ICI, ET NULLE PART AILLEURS.

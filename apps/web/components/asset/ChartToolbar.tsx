@@ -1,13 +1,16 @@
 'use client'
 
 import {
-  BarChart3,
   CalendarDays,
   Check,
   ChevronDown,
+  Download,
   Link2,
-  Maximize2,
-  MoreHorizontal,
+  LineChart,
+  MoreVertical,
+  Plus,
+  Search,
+  X,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -53,15 +56,36 @@ export interface RangePreset {
  * palier fixe ne couvre : sa profondeur change tous les jours. « Max » ouvre toute
  * l'histoire, ce que la fiche ne proposait pas du tout — on ne pouvait pas voir un
  * actif au-delà d'un an.
+ *
+ * ── LES LIBELLÉS SONT EN CAPITALES ET SANS ESPACE ────────────────────────────
+ *
+ * Ils s'écrivaient « 24 h », « 7 j », « 1 M » — la typographie française, qui insère
+ * une espace insécable entre un nombre et son unité. C'est la règle, et elle n'a pas
+ * sa place ici : ces sept libellés ne sont pas des mesures dans une phrase, ce sont
+ * des ÉTIQUETTES DE BOUTON, et l'espace y coûte deux fois.
+ *
+ * Elle coûte en LARGEUR d'abord — sept boutons, sept espaces, une quinzaine de pixels
+ * pris à une rangée qui doit tenir sur une ligne à côté du calendrier et des icônes.
+ * Elle coûte surtout en LECTURE : « 24 h » se lit comme deux mots, et l'œil qui
+ * balaie la rangée doit apparier chaque nombre à son unité. « 24H » est un seul
+ * glyphe composé, comme sur les deux références, et la rangée se parcourt d'un trait.
+ *
+ * Les capitales font le même travail dans l'autre dimension : elles alignent les
+ * hauteurs de caractères, si bien que les sept étiquettes forment une bande régulière
+ * plutôt qu'une succession de jambages (le « j » de « 7 j » descendait sous la ligne).
+ *
+ * « DEPUIS JANV. » reste écrit en toutes lettres plutôt que réduit à « YTD » : le
+ * sigle est anglais, et il n'y a aucune raison de le franciser en abrégé illisible ni
+ * de le laisser en anglais sur un site français.
  */
 export const RANGE_PRESETS: RangePreset[] = [
-  { id: '1d', label: '24 h', days: 1 },
-  { id: '7d', label: '7 j', days: 7 },
-  { id: '1m', label: '1 M', days: 30 },
-  { id: '3m', label: '3 M', days: 90 },
-  { id: 'ytd', label: 'Depuis janv.', days: null },
-  { id: '1y', label: '1 A', days: 365 },
-  { id: 'max', label: 'Max', days: null },
+  { id: '1d', label: '24H', days: 1 },
+  { id: '7d', label: '7J', days: 7 },
+  { id: '1m', label: '1M', days: 30 },
+  { id: '3m', label: '3M', days: 90 },
+  { id: 'ytd', label: 'DEPUIS JANV.', days: null },
+  { id: '1y', label: '1A', days: 365 },
+  { id: 'max', label: 'MAX', days: null },
 ]
 
 /** Jours écoulés depuis le 1er janvier — recalculé, jamais figé. */
@@ -100,49 +124,148 @@ export type ExportFormat = 'png' | 'jpeg' | 'svg' | 'pdf'
  *
  * ── POURQUOI DES VUES ET NON DES OPTIONS ──────────────────────────────────────
  *
- * Ces quatre entrées ne règlent pas le graphique : elles REMPLACENT ce qui est
- * tracé, et parfois par quelque chose qui n'a ni le même axe ni la même unité. La
- * profondeur n'a pas de temps en abscisse ; TradingView n'obéit à aucun de nos
- * réglages. Les mêler aux commandes de tracé ferait attendre du sélecteur de type ou
- * de la période qu'ils s'y appliquent — ce qu'ils ne peuvent pas.
+ * Ces entrées ne règlent pas le graphique : elles REMPLACENT ce qui est tracé, et
+ * parfois par quelque chose qui n'a ni le même axe ni la même unité. La profondeur n'a
+ * pas de temps en abscisse ; TradingView n'obéit à aucun de nos réglages. Les mêler aux
+ * commandes de tracé ferait attendre du sélecteur de type ou de la période qu'ils s'y
+ * appliquent — ce qu'ils ne peuvent pas.
  *
  * ── CE QUE CHACUNE MONTRE ─────────────────────────────────────────────────────
  *
  *   · `original`     — notre courbe, alimentée par CoinGecko et prolongée en direct ;
  *   · `tradingview`  — l'outil complet, avec ses indicateurs et ses dessins ;
- *   · `depth`        — le carnet de Binance : ce qui tient le prix, à l'instant t ;
- *   · `marketCap`    — la capitalisation, qui ne bouge pas comme le cours (une
- *                      émission de jetons la fait monter à cours constant).
+ *   · `depth`        — le carnet de Binance : ce qui tient le prix, à l'instant t.
  *
- * Les trois dernières dépendent de sources ou de correspondances qui n'existent pas
+ * Les deux dernières dépendent de sources ou de correspondances qui n'existent pas
  * pour tous les actifs : l'appelant ne passe que celles qu'il peut réellement rendre,
  * plutôt que de les afficher grisées (§5).
+ *
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ `marketCap` A ÉTÉ RETIRÉ DE CE TYPE, ET C'EST UNE CORRECTION DE BOGUE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La capitalisation figurait ici comme quatrième vue. Elle est devenue une position de
+ * l'INTERRUPTEUR DE GRANDEUR, à gauche de la barre — c'est ce qu'on trace, pas la façon
+ * de le tracer.
+ *
+ * Le membre, lui, était resté. Il n'était plus produit par aucune entrée du segment,
+ * mais `AssetWorkspace` continuait d'y traduire sa métrique : `view` valait donc
+ * `'marketCap'`, une valeur qu'aucune icône ne porte, et choisir « Capitalisation »
+ * ÉTEIGNAIT LE SEGMENT ENTIER — quatre icônes dont aucune active, et plus aucun moyen
+ * de savoir ce qui était tracé.
+ *
+ * Le type l'autorisait, donc le compilateur n'a rien dit. Le retirer rend cet état
+ * inexprimable, ce qu'une union est faite pour garantir : le bogue ne peut plus revenir
+ * par distraction, il faudrait rajouter le membre exprès.
  */
-export type ChartView = 'original' | 'tradingview' | 'depth' | 'marketCap'
+export type ChartView = 'original' | 'tradingview' | 'depth'
+
+/**
+ * Une entrée de la liste des rendus : ce qu'elle affiche, et ce qu'elle pose.
+ *
+ * `kind` est OPTIONNEL, et l'absence porte un sens : la vue n'admet pas de type de
+ * tracé. Y mettre une valeur par défaut ferait basculer le type de la courbe maison
+ * en passant sur TradingView, dont le réglage ne suivrait pas au retour.
+ *
+ * ── LE CHAMP `icon` A DISPARU ───────────────────────────────────────────────
+ *
+ * Ces entrées étaient rendues en pictogrammes, dans un segment de la rangée principale.
+ * Elles vivent désormais dans le menu des réglages, en LIBELLÉS — voir le commentaire
+ * de ce menu pour le motif. Un `label` se lit sans survol ; un pictogramme demandait
+ * d'attendre l'infobulle pour savoir ce qu'on allait obtenir.
+ *
+ * Le type `RenderIcon` et la table `RENDER_ICONS` sont partis avec lui : garder une
+ * table de pictogrammes que rien ne rend est la façon la plus sûre de la voir
+ * réapparaître par erreur.
+ */
+export interface RenderOption {
+  id: string
+  label: string
+  view: ChartView
+  kind?: string
+}
+
+/**
+ * Un actif proposable en superposition.
+ *
+ * `image` et `symbol` sont FACULTATIFS et servent le panneau de comparaison : la
+ * référence y liste ses actifs avec leur vignette et leur sigle entre parenthèses —
+ * « Ethereum (ETH) ». Une page qui ne les connaît pas passe le seul libellé, et la
+ * ligne se rend sans vignette plutôt que de ne pas se rendre.
+ */
+export interface CompareOption {
+  id: string
+  label: string
+  symbol?: string
+  image?: string
+}
+
+/**
+ * Nombre maximal de séries superposées à celle de la fiche.
+ *
+ * QUATRE, comme la référence, et ce n'est pas un chiffre rond choisi au hasard : le
+ * panneau montre autant d'emplacements que de places disponibles, si bien que la
+ * limite se VOIT avant d'être atteinte plutôt que de se manifester par un clic sans
+ * effet. Au-delà, cinq courbes indexées sur la même base finissent par se croiser
+ * partout et l'infobulle ne tient plus dans le cadre.
+ */
+export const COMPARE_MAX = 4
 
 interface ChartToolbarProps {
   metric: string
   metricOptions: { key: string; label: string }[]
   onMetricChange: (key: string) => void
 
-  compareId: string
-  compareOptions: { id: string; label: string }[]
-  onCompareChange: (id: string) => void
-
-  kind: string
-  kindOptions: { key: string; label: string }[]
-  onKindChange: (key: string) => void
+  /**
+   * Actifs superposés — PLUSIEURS désormais, jusqu'à `COMPARE_MAX`.
+   *
+   * C'était un identifiant unique, servi par un menu à choix simple. La référence
+   * ouvre un panneau qui garde quatre emplacements, et la différence n'est pas
+   * qu'ergonomique : comparer un actif à UN autre répond à « lequel des deux a le
+   * mieux tenu », comparer à TROIS répond à « où se situe-t-il », qui est la question
+   * qu'on se pose devant une fiche.
+   */
+  compareIds: string[]
+  compareOptions: CompareOption[]
+  onCompareChange: (ids: string[]) => void
 
   /**
-   * Vue active et vues proposées.
+   * Grandeurs du MÊME actif superposées à celle qui est tracée.
    *
-   * `views` est une LISTE et non un booléen par entrée : c'est l'appelant qui sait
-   * lesquelles ses sources permettent, et une liste vide fait disparaître le groupe
-   * entier plutôt que de laisser un sélecteur à un seul choix.
+   * C'est l'onglet « Grandeurs » du panneau de comparaison. Il ne coûte aucun appel :
+   * la source publie le cours, la capitalisation et le volume dans la même réponse, et
+   * la fiche les a déjà. Superposer le cours et la capitalisation répond à la seule
+   * question que ni l'un ni l'autre ne tranche seul — « cet actif a-t-il monté, ou
+   * a-t-il seulement émis des jetons ? ».
    */
+  compareMetrics: string[]
+  onCompareMetricsChange: (keys: string[]) => void
+
+  kind: string
+  onKindChange: (key: string) => void
+
   view: ChartView
-  views: { id: ChartView; label: string }[]
   onViewChange: (view: ChartView) => void
+
+  /**
+   * Rendus proposés — LE SEGMENT D'ICÔNES, EN UNE SEULE LISTE.
+   *
+   * Il y avait deux props pour deux axes : `views` (courbe maison, TradingView,
+   * profondeur) et `kindOptions` (aire, ligne, chandeliers, barres, ligne de base).
+   * L'un vivait dans un segment, l'autre dans un menu, et le lecteur devait deviner
+   * lequel des deux commandait ce qu'il voyait.
+   *
+   * Ils n'en font plus qu'un. Chaque entrée pose un COUPLE : la vue, et le type de
+   * tracé quand la vue en admet un. `kind` absent signifie « cette vue ne se règle
+   * pas » — TradingView a ses propres commandes, une profondeur de carnet n'a pas de
+   * chandeliers.
+   *
+   * C'est l'APPELANT qui compose la liste, parce que lui seul sait ce que ses sources
+   * permettent : pas de chandeliers sans OHLC, pas de profondeur sans carnet. Une
+   * liste à une seule entrée fait disparaître le segment — un sélecteur à un choix
+   * n'est pas un sélecteur.
+   */
+  renderOptions: RenderOption[]
 
   /**
    * Pas de bougie, quand une place de trading en fournit pour cet actif.
@@ -173,18 +296,43 @@ interface ChartToolbarProps {
 
   onCopyLink: () => void
   onExport: (format: ExportFormat) => void
-  onFullscreen: () => void
 
-  /**
-   * Sélecteur de devise, monté par l'appelant.
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * `currencyLabel` ET `currencySlot` ONT DISPARU — LA DEVISE EST CELLE DU SITE
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * Passé en NŒUD et non construit ici : la liste des devises convertibles dépend des
-   * taux chargés par la page et de la devise d'origine de l'actif, deux choses que la
-   * barre n'a aucune raison de connaître. Elle sait où le poser et à côté de quoi,
-   * c'est tout — exactement le partage retenu pour le cours dans `AssetRailIdentity`.
+   * La barre portait son propre sélecteur de devise, replié derrière un bouton qui en
+   * affichait le code. Deux sélecteurs coexistaient donc sur la même page : celui de
+   * l'en-tête, qui commande tout le site, et celui-ci, qui ne commandait que le
+   * graphique. Ils pouvaient afficher deux codes différents, et c'est arrivé.
+   *
+   * Un cours lu dans la mauvaise unité est un cours faux — c'était l'argument qui
+   * justifiait d'inscrire le code SUR le bouton. Il vaut toujours, et il conclut
+   * désormais dans l'autre sens : la seule façon de ne jamais se tromper d'unité est
+   * qu'il n'y ait qu'une unité à choisir sur la page. Le graphique suit donc le
+   * sélecteur global, et l'encart de conversion au-dessus de la courbe continue de
+   * nommer la devise d'origine et la date du taux (§5).
    */
-  currencySlot?: React.ReactNode
 }
+
+/**
+ * Pictogramme de chaque vue.
+ *
+ * Déclaré hors du composant : ces nœuds sont constants, et les recréer à chaque rendu
+ * ferait quatre allocations par frappe de clavier dans la barre.
+ *
+ * `marketCap` n'y figure pas — la vue est filtrée avant d'arriver ici, voir le segment.
+ */
+/**
+ * Types de tracé qui dessinent des BOUGIES, et pour lesquels un pas a un sens.
+ *
+ * Écrit ici plutôt qu'importé de `chart-kinds.ts` : cette barre ne connaît ses types
+ * que par les libellés que l'appelant lui passe, et lui faire importer le registre des
+ * rendus la lierait à un module qu'elle n'utilise pas autrement. Les deux listes
+ * doivent rester d'accord — c'est le coût, et il se limite à deux chaînes.
+ */
+const OHLC_TOOLBAR_KINDS: ReadonlySet<string> = new Set(['candles', 'bars'])
 
 export function ChartToolbar(props: ChartToolbarProps) {
   return (
@@ -245,115 +393,37 @@ export function ChartToolbar(props: ChartToolbarProps) {
     <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
       {/* GAUCHE — ce qui décide de ce qu'on trace. */}
       <div className="flex min-w-0 flex-wrap items-center gap-1">
-      <Dropdown
-        label={props.metricOptions.find((entry) => entry.key === props.metric)?.label ?? 'Grandeur'}
-      >
-        {(close) =>
-          props.metricOptions.map((entry) => (
-            <MenuItem
-              key={entry.key}
-              selected={entry.key === props.metric}
-              onClick={() => {
-                props.onMetricChange(entry.key)
-                close()
-              }}
-            >
-              {entry.label}
-            </MenuItem>
-          ))
-        }
-      </Dropdown>
-
-      {props.compareOptions.length > 0 ? (
-        <Dropdown
-          label={
-            props.compareOptions.find((entry) => entry.id === props.compareId)?.label ?? 'Comparer'
-          }
-          active={props.compareId !== ''}
-        >
-          {(close) => (
-            <>
-              <MenuItem
-                selected={props.compareId === ''}
-                onClick={() => {
-                  props.onCompareChange('')
-                  close()
-                }}
-              >
-                Aucune comparaison
-              </MenuItem>
-              {props.compareOptions.map((entry) => (
-                <MenuItem
-                  key={entry.id}
-                  selected={entry.id === props.compareId}
-                  onClick={() => {
-                    props.onCompareChange(entry.id)
-                    close()
-                  }}
-                >
-                  {entry.label}
-                </MenuItem>
-              ))}
-            </>
-          )}
-        </Dropdown>
-      ) : null}
-
-      <Dropdown
-        label={props.kindOptions.find((entry) => entry.key === props.kind)?.label ?? 'Type'}
-        icon={<BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />}
-      >
-        {(close) =>
-          props.kindOptions.map((entry) => (
-            <MenuItem
-              key={entry.key}
-              selected={entry.key === props.kind}
-              onClick={() => {
-                props.onKindChange(entry.key)
-                close()
-              }}
-            >
-              {entry.label}
-            </MenuItem>
-          ))
-        }
-      </Dropdown>
-
       {/*
-        GROUPE DE VUES — un segment plein, et non des boutons détachés.
+        ── LA GRANDEUR EST UN INTERRUPTEUR, PLUS UN MENU ───────────────────────
 
-        Chez OKX ces quatre entrées forment un bloc soudé sur fond creusé, et la forme
-        porte le sens : elle dit « une seule à la fois », là où des boutons séparés se
-        liraient comme des options cumulables. Un seul est allumé, et le fond du groupe
-        reste visible autour — c'est ce qui distingue un sélecteur d'un alignement
-        d'actions.
+        Elle était repliée derrière « Prix ▾ ». Un menu est la forme juste quand les
+        options sont nombreuses ou rarement changées ; ici elles sont DEUX ou trois, et
+        passer du cours à la capitalisation est un geste de lecture courant — c'est la
+        question « cet actif a-t-il monté, ou a-t-il seulement émis des jetons ? », que
+        le cours seul ne peut pas trancher.
 
-        Il a REJOINT LA GAUCHE. Il vivait à droite, avec le lien et le plein écran,
-        c'est-à-dire avec ce qu'on fait du graphique. C'était un mauvais voisinage : ces
-        quatre entrées ne font rien du graphique, elles décident lequel est tracé. Chez
-        la référence, le choix de rendu est la dernière chose du groupe de gauche, juste
-        après le type de courbe — et c'est là qu'il se cherche.
+        Repliée, la bascule coûtait deux clics et, surtout, ne DISAIT PAS qu'elle
+        existait : rien dans « Prix ▾ » n'annonce une capitalisation derrière. Le
+        segment montre les deux termes côte à côte, ce qui est exactement la forme de
+        CoinGecko — et la forme y porte le sens : l'un ou l'autre, jamais les deux.
+
+        Le sélecteur ne paraît pas s'il n'y a qu'une grandeur : un interrupteur à une
+        position n'est pas un interrupteur.
       */}
-      {props.views.length > 1 ? (
+      {props.metricOptions.length > 1 ? (
         <span
           role="group"
-          aria-label="Vue du graphique"
-          /* Le SEGMENT s'enroule lui aussi à 320 px. Ses quatre entrées — Original,
-             TradingView, Profondeur, Capitalisation — font 323 px à elles seules : sans
-             `flex-wrap`, il débordait de sa propre boîte et poussait la page de 44 px
-             sur iPhone SE. Le fond creusé englobe alors deux lignes au lieu d'une, ce
-             qui reste lisible comme un groupe — c'est le fond qui le dit, pas
-             l'alignement. */
-          className="flex min-w-0 flex-wrap items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
+          aria-label="Grandeur tracée"
+          className="flex min-w-0 items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
         >
-          {props.views.map((entry) => (
+          {props.metricOptions.map((entry) => (
             <button
-              key={entry.id}
+              key={entry.key}
               type="button"
-              onClick={() => props.onViewChange(entry.id)}
-              aria-pressed={entry.id === props.view}
-              className={`flex h-6 items-center rounded-sm px-2 text-xs font-medium transition-colors duration-150 ${
-                entry.id === props.view
+              onClick={() => props.onMetricChange(entry.key)}
+              aria-pressed={entry.key === props.metric}
+              className={`flex h-6 items-center justify-center whitespace-nowrap rounded-sm px-2 text-xs font-medium transition-colors duration-150 ${
+                entry.key === props.metric
                   ? 'bg-overlay text-ink shadow-sm'
                   : 'text-ink-muted hover:text-ink'
               }`}
@@ -363,10 +433,117 @@ export function ChartToolbar(props: ChartToolbarProps) {
           ))}
         </span>
       ) : null}
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        « COMPARER » EST UN PANNEAU, PLUS UN MENU À CHOIX SIMPLE
+        ══════════════════════════════════════════════════════════════════════
+
+        C'était un `Dropdown` ordinaire : une liste d'actifs, un clic, un actif
+        comparé, le menu se referme. La référence ouvre au même endroit un PANNEAU —
+        deux onglets, un champ de recherche, quatre emplacements et un bouton de
+        validation — et l'écart entre les deux formes n'est pas décoratif.
+
+        Un menu impose UN choix et se referme dessus. Choisir quatre actifs y demande
+        quatre allers-retours, et l'on ne voit jamais sa sélection : à chaque
+        réouverture, une seule ligne est cochée. Le panneau montre au contraire l'état
+        complet — ce qui est retenu, combien de places restent — et c'est cet état-là
+        qui manquait, pas le nombre de clics.
+
+        Voir `ComparePanel` pour l'anatomie détaillée.
+      */}
+      {props.compareOptions.length > 0 || props.metricOptions.length > 1 ? (
+        <ComparePanel
+          ids={props.compareIds}
+          options={props.compareOptions}
+          onChange={props.onCompareChange}
+          metric={props.metric}
+          metrics={props.compareMetrics}
+          metricOptions={props.metricOptions}
+          onMetricsChange={props.onCompareMetricsChange}
+        />
+      ) : null}
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        LE RENDU REVIENT DANS LA RANGÉE, EN UN SEUL BOUTON-ICÔNE
+        ══════════════════════════════════════════════════════════════════════
+
+        Il a fait trois séjours : un segment de quatre pictogrammes dans la rangée,
+        puis une section d'un menu « réglages », puis ceci. Le va-et-vient valait la
+        peine parce que les deux formes précédentes étaient fausses pour des raisons
+        opposées.
+
+        Le SEGMENT prenait quatre emplacements dans la rangée principale pour un
+        réglage qu'on pose une fois. Le MENU DE RÉGLAGES le noyait au contraire parmi
+        la devise et quatre cases à cocher, derrière un bouton dont l'étiquette était
+        un code de devise — rien n'y annonçait qu'on pouvait passer en chandeliers.
+
+        La référence tranche : UN bouton-icône, immédiatement à droite de « Compare »,
+        qui n'ouvre que les types de tracé. Un emplacement au lieu de quatre, et une
+        promesse exacte — l'icône est une courbe, le menu ne contient que des courbes.
+
+        Il disparaît quand l'appelant n'a qu'un rendu à proposer : un sélecteur à un
+        choix n'est pas un sélecteur.
+      */}
+      {props.renderOptions.length > 1 ? (
+        <Dropdown
+          label=""
+          icon={<LineChart className="h-3.5 w-3.5" aria-hidden="true" />}
+          title="Type de tracé"
+        >
+          {(close) =>
+            props.renderOptions.map((entry) => {
+              /* Une entrée sans `kind` — TradingView, profondeur — n'est active que
+                 sur sa vue. Une entrée AVEC `kind` exige les deux : sans cette
+                 seconde condition, « Courbe » et « Chandeliers » se cocheraient
+                 ensemble, tous deux étant la vue `original`. */
+              const active =
+                entry.view === props.view &&
+                (entry.kind === undefined || entry.kind === props.kind)
+
+              return (
+                <MenuItem
+                  key={entry.id}
+                  selected={active}
+                  onClick={() => {
+                    if (entry.kind !== undefined) props.onKindChange(entry.kind)
+                    props.onViewChange(entry.view)
+                    close()
+                  }}
+                >
+                  {entry.label}
+                </MenuItem>
+              )
+            })
+          }
+        </Dropdown>
+      ) : null}
       </div>
 
-      {/* DROITE — le cadrage temporel, puis ce qu'on fait du résultat. */}
-      <div className="flex min-w-0 flex-wrap items-center gap-1">
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        DROITE — LE CADRAGE TEMPOREL, DANS UN CADRE QUI L'ENGLOBE
+        ══════════════════════════════════════════════════════════════════════
+
+        Les paliers, le calendrier, le lien et le téléchargement flottaient nus sur le
+        fond de la page, séparés du reste par du seul espace. C'est ce que fait
+        TradingView ; ce n'est pas ce que fait CoinGecko, dont la rangée est une
+        PASTILLE unique — fond creusé, bord arrondi, filet discret — à l'intérieur de
+        laquelle le palier actif ressort en blanc.
+
+        La différence n'est pas décorative. Un cadre commun dit « ces sept boutons
+        forment un seul réglage » ; sept boutons nus se lisent comme sept commandes
+        indépendantes, et l'on cherche alors lequel est actif au lieu de le voir.
+
+        C'est aussi ce qui permet au palier actif de se signaler par un simple fond
+        clair, sans bordure propre : le contraste avec le creux du cadre suffit. La
+        version précédente devait border le palier actif faute de fond derrière lui.
+
+        `rounded-pill` et non `rounded-control` : la référence arrondit complètement
+        cette rangée, et c'est cohérent — une pastille qui contient des pastilles.
+      */}
+      <div className="flex min-w-0 flex-wrap items-center gap-1 rounded-pill border border-border-subtle bg-surface-muted px-1 py-1">
       {/*
         DEUX FAÇONS DE CADRER LE TEMPS, ET ELLES NE RÉPONDENT PAS À LA MÊME QUESTION.
 
@@ -379,7 +556,24 @@ export function ChartToolbar(props: ChartToolbarProps) {
         éteint le palier de durée et réciproquement. Les mêler dans une seule rangée
         ferait croire à sept réglages du même genre, dont deux se contrediraient.
       */}
-      {props.intervals.length > 0 ? (
+      {/*
+        ── LES PAS DE BOUGIE NE S'AFFICHENT QU'EN MODE CHANDELIERS ────────────
+
+        Six boutons supplémentaires — 1 m, 5 m, 15 m, 1 h, 4 h, 1 J — s'affichaient dès
+        que la source proposait des bougies, c'est-à-dire sur toutes les fiches crypto,
+        y compris quand la courbe tracée était une aire.
+
+        Or un PAS ne décrit qu'une bougie : sur une ligne continue il ne change rien de
+        visible à la finesse perçue, et il occupe pourtant le tiers du groupe de droite.
+        Il ne paraît donc que là où il commande réellement quelque chose. Le lecteur qui
+        veut ce réglage passe en chandeliers, ce qui est exactement le geste qui le rend
+        pertinent.
+
+        `props.intervalId` est testé en plus du type : un pas déjà choisi doit rester
+        visible même si l'on revient à l'aire, sans quoi un bouton actif disparaîtrait
+        en laissant son effet en place.
+      */}
+      {props.intervals.length > 0 && (OHLC_TOOLBAR_KINDS.has(props.kind) || props.intervalId) ? (
         /* `flex-wrap` sur les GROUPES autant que sur la barre : un groupe est un
            élément flexible comme un autre, avec une largeur minimale égale à son
            contenu. Sept boutons de palier tiennent à 1 200 px et POUSSENT LA PAGE à
@@ -429,14 +623,23 @@ export function ChartToolbar(props: ChartToolbarProps) {
                 props.onRangeChange(preset)
               }}
               aria-pressed={active}
-              /* Le palier ACTIF est encadré, les six autres sont nus — c'est la forme
-                 de la référence, et elle vaut mieux qu'un simple fond coloré : sur sept
-                 boutons serrés, une bordure délimite l'état courant sans avoir à
-                 recourir à un aplat plus soutenu que le reste de la barre. */
-              className={`flex h-7 items-center justify-center rounded-control border px-2 text-xs font-medium transition-colors duration-150 ${
+              /*
+                LE PALIER ACTIF PORTE UN FOND, PLUS UNE BORDURE.
+
+                Il était bordé, faute de mieux : la rangée flottait sur le fond de la
+                page, et un aplat clair sur du clair n'aurait rien délimité. La rangée
+                est désormais une pastille creusée (voir son commentaire), donc le
+                contraste existe — un fond suffit, et c'est exactement ce que fait la
+                référence : « 24H » y ressort en pastille pleine sur le creux.
+
+                `rounded-pill` pour s'accorder au cadre qui les contient, et `h-6` au
+                lieu de `h-7` pour que la pastille du cadre ne grossisse pas la rangée
+                de ses deux pixels de rembourrage.
+              */
+              className={`flex h-6 items-center justify-center rounded-pill px-2.5 text-xs font-medium transition-colors duration-150 ${
                 active
-                  ? 'border-brand bg-brand-soft text-brand-strong'
-                  : 'border-transparent text-ink-muted hover:bg-surface-muted hover:text-ink'
+                  ? 'bg-overlay text-ink shadow-sm'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
               {preset.label}
@@ -450,10 +653,6 @@ export function ChartToolbar(props: ChartToolbarProps) {
         onChange={props.onCustomRange}
       />
 
-      {/* La devise suit les paliers : c'est l'unité dans laquelle ils se lisent, elle
-          appartient donc à leur voisinage immédiat. */}
-      {props.currencySlot}
-
       {/* Un filet sépare le CADRAGE de ce qu'on fait du résultat — deux familles qui
           se suivent sur la même ligne et qu'aucun blanc ne distinguerait. */}
       <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-border-subtle" />
@@ -465,28 +664,52 @@ export function ChartToolbar(props: ChartToolbarProps) {
         />
 
         {/*
-          LE PLEIN ÉCRAN SORT DU MENU « ⋯ ».
+          ══════════════════════════════════════════════════════════════════════
+          LE « ⋮ » FERME LA BARRE — OPTIONS D'AFFICHAGE PUIS EXPORT
+          ══════════════════════════════════════════════════════════════════════
 
-          Il y était rangé avec les options d'affichage et les formats d'export, ce qui
-          en faisait un réglage parmi d'autres. C'en est un d'une autre nature : il ne
-          change RIEN à ce qui est tracé, il change la taille du cadre — et c'est
-          justement la commande qu'on cherche quand la courbe est trop petite pour être
-          lue, donc au moment précis où fouiller un menu est le plus pénible. Les deux
-          références la posent en icône visible, au même coin.
+          Ce bout de rangée a porté successivement le plein écran, un « ⋯ »
+          fourre-tout, puis une flèche de téléchargement seule. Le fourre-tout avait
+          été retiré pour une raison juste — « un ⋯ ne promet rien, et c'est
+          précisément ce qui le rend impossible à chercher » — et la conclusion qu'on
+          en avait tirée était trop large : ce n'est pas le pictogramme qui était en
+          cause, c'est ce qu'on y avait mis. Il contenait la DEVISE, réglage de lecture
+          qu'on change en cours de consultation, à côté de formats de fichier.
+
+          La devise est partie ailleurs (voir les props). Ce qui reste — échelle
+          logarithmique, sous-panneau de volume, moyenne mobile, extrêmes historiques,
+          et les quatre formats d'export — forme enfin une famille cohérente : tout ce
+          qui se règle UNE FOIS et ne change pas ce qui est tracé. C'est exactement le
+          contenu du « ⋮ » de la référence, et c'est sa place, en bout de rangée.
+
+          ── POURQUOI L'EXPORT EST UN SOUS-BLOC ET NON UN BOUTON ─────────────
+
+          Les quatre formats ne sont pas interchangeables. PNG et JPEG sont des images
+          de pixels, bonnes pour un message ou une diapositive ; SVG est vectoriel,
+          donc net à l'impression et retouchable ; PDF est ce qu'on joint à une note.
+          Choisir à la place du lecteur reviendrait à décider de l'usage qu'il fera du
+          fichier. Aucun n'est produit par une bibliothèque tierce — voir `exportChart`.
+
+          ── ET LE PLEIN ÉCRAN ? ─────────────────────────────────────────────
+
+          Il ne revient pas : la référence n'en a pas à cet endroit. Le cadre garde
+          `chart-frame` et son comportement, appelé par un double-clic sur la courbe —
+          geste que les deux références acceptent aussi.
         */}
-        <IconButton
-          label="Afficher le graphique en plein écran"
-          onClick={props.onFullscreen}
-          icon={<Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />}
-        />
-
         <Dropdown
           label=""
-          icon={<MoreHorizontal className="h-4 w-4" aria-hidden="true" />}
+          icon={<MoreVertical className="h-3.5 w-3.5" aria-hidden="true" />}
           align="right"
+          active={props.logScale || props.showMovingAverage || props.showPriceLines}
+          title="Options d’affichage et export"
         >
           {(close) => (
             <>
+              {/* Les options d'affichage NE FERMENT PAS le menu : on en active
+                  volontiers deux ou trois d'affilée — l'échelle logarithmique et la
+                  moyenne mobile vont ensemble — et refermer après chacune imposerait
+                  de rouvrir autant de fois. Les exports, eux, ferment : ils produisent
+                  un fichier, l'action est terminée. */}
               <MenuItem selected={props.logScale} onClick={props.onToggleLog}>
                 Échelle logarithmique
               </MenuItem>
@@ -506,23 +729,16 @@ export function ChartToolbar(props: ChartToolbarProps) {
 
               <Separator />
 
-              {/*
-                QUATRE FORMATS, et le choix n'est pas cosmétique. PNG et JPEG sont des
-                images de pixels, bonnes pour un message ou une diapositive. SVG est
-                vectoriel : il reste net à l'impression et se retouche. PDF est le
-                format qu'on joint à une note.
-
-                Aucun n'est produit par une bibliothèque tierce — voir `exportChart`.
-              */}
               {(['png', 'jpeg', 'svg', 'pdf'] as const).map((format) => (
                 <MenuItem
                   key={format}
+                  icon={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
                   onClick={() => {
                     props.onExport(format)
                     close()
                   }}
                 >
-                  Exporter en {format.toUpperCase()}
+                  Télécharger en {format.toUpperCase()}
                 </MenuItem>
               ))}
             </>
@@ -547,12 +763,15 @@ function Dropdown({
   icon,
   active = false,
   align = 'left',
+  title,
   children,
 }: {
   label: string
   icon?: React.ReactNode
   active?: boolean
   align?: 'left' | 'right'
+  /** Infobulle et nom accessible — indispensable quand le bouton n'a qu'une icône. */
+  title?: string
   children: (close: () => void) => React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -604,6 +823,7 @@ function Dropdown({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
+        {...(title ? { title, 'aria-label': title } : {})}
         className={`flex h-7 items-center gap-1 rounded-control border px-2 text-xs font-medium transition-colors duration-150 ${
           open
             ? 'border-border-subtle bg-surface-muted text-ink'
@@ -642,11 +862,21 @@ function MenuItem({
   children,
   selected = false,
   disabled = false,
+  icon,
   onClick,
 }: {
   children: React.ReactNode
   selected?: boolean
   disabled?: boolean
+  /**
+   * Pictogramme posé à la place de la coche.
+   *
+   * Réservé aux entrées d'ACTION — celles qui font quelque chose et se referment —
+   * par opposition aux entrées d'ÉTAT, qui se cochent. Les deux familles cohabitent
+   * dans le menu « ⋮ », et rien ne les distinguerait sans cela : « Télécharger en
+   * PNG » aurait la même colonne vide que « Moyenne mobile » éteinte.
+   */
+  icon?: React.ReactNode
   onClick: () => void
 }) {
   return (
@@ -663,8 +893,12 @@ function MenuItem({
       {/* La coche occupe sa place même absente : sans elle, les libellés se
           décaleraient d'un cran en cochant une option, ce qui fait sursauter le menu
           sous le curseur. */}
-      <span className="w-3.5 shrink-0">
-        {selected ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : null}
+      <span className="w-3.5 shrink-0 text-ink-muted">
+        {selected ? (
+          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+        ) : (
+          (icon ?? null)
+        )}
       </span>
       {children}
     </button>
@@ -673,6 +907,361 @@ function MenuItem({
 
 function Separator() {
   return <hr className="my-1 border-0 border-t border-border-subtle" />
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * PANNEAU DE COMPARAISON — deux onglets, quatre emplacements, une validation
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Relevé sur CoinGecko, dont c'est la commande la mieux dessinée de la barre. Quatre
+ * pièces, et chacune règle un problème que le menu à choix simple laissait ouvert.
+ *
+ * ── LES DEUX ONGLETS : « ACTIFS » ET « GRANDEURS » ───────────────────────────
+ *
+ * Ils portent deux comparaisons qui ne se ressemblent pas. « Actifs » superpose
+ * d'AUTRES actifs à celui de la fiche — c'est la question « où se situe-t-il ».
+ * « Grandeurs » superpose d'autres MESURES DU MÊME actif : le cours et la
+ * capitalisation, dont l'écart est la seule façon de répondre à « a-t-il monté, ou
+ * a-t-il seulement émis des jetons ? ».
+ *
+ * Les mêler dans une liste unique aurait fait cohabiter « Ethereum » et
+ * « Capitalisation », deux entrées dont rien n'indique qu'elles ne s'excluent pas.
+ *
+ * L'onglet « Grandeurs » ne coûte AUCUN appel : la source publie le cours, la
+ * capitalisation et le volume dans la même réponse, et la fiche les a déjà.
+ *
+ * ── LES QUATRE EMPLACEMENTS, MONTRÉS MÊME VIDES ──────────────────────────────
+ *
+ * C'est la pièce qui porte tout le reste. Ils affichent l'état complet de la
+ * sélection — ce qui est retenu, et combien de places restent — là où un menu
+ * n'affiche qu'une coche à la fois. La limite se VOIT donc avant d'être atteinte,
+ * plutôt que de se manifester par un clic sans effet.
+ *
+ * Un emplacement occupé est un bouton de RETRAIT : c'est là que l'œil va chercher ce
+ * qu'il veut enlever, et non dans la liste du dessous où il faudrait retrouver la
+ * ligne cochée parmi cinquante.
+ *
+ * ── LA RECHERCHE FILTRE, ELLE N'INTERROGE PAS ────────────────────────────────
+ *
+ * Les comparables sont déjà en mémoire — la page les a passés en props. Le champ
+ * filtre donc une liste locale, sans aller-retour : la frappe est instantanée, ce qui
+ * est la condition pour qu'on s'en serve plutôt que de faire défiler.
+ *
+ * ── « TERMINÉ » NE VALIDE RIEN ───────────────────────────────────────────────
+ *
+ * Chaque clic applique immédiatement son effet : la courbe apparaît pendant que le
+ * panneau est encore ouvert, ce qui permet de juger la comparaison avant de refermer.
+ * Le bouton ne fait que fermer, et il existe parce qu'un panneau de cette taille a
+ * besoin d'une sortie explicite — cliquer à côté marche aussi, mais ne se devine pas.
+ */
+function ComparePanel({
+  ids,
+  options,
+  onChange,
+  metric,
+  metrics,
+  metricOptions,
+  onMetricsChange,
+}: {
+  ids: string[]
+  options: CompareOption[]
+  onChange: (ids: string[]) => void
+  /** Grandeur DÉJÀ tracée : elle ne peut pas être superposée à elle-même. */
+  metric: string
+  metrics: string[]
+  metricOptions: { key: string; label: string }[]
+  onMetricsChange: (keys: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [tab, setTab] = useState<'assets' | 'metrics'>('assets')
+  const [query, setQuery] = useState('')
+  const rootRef = useRef<HTMLDivElement>(null)
+  const { state, mounted, onTransitionEnd } = usePresence(open)
+  const close = useCallback(() => setOpen(false), [])
+
+  useEffect(() => {
+    if (!open) return
+
+    function onPointerDown(event: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false)
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  const byId = new Map(options.map((entry) => [entry.id, entry]))
+
+  /* Les grandeurs superposables excluent celle qui est DÉJÀ tracée : la proposer
+     laisserait cocher « Prix » sous une courbe de prix, et l'indice résultant serait
+     plat à 100 sur toute la fenêtre. */
+  const overlayMetrics = metricOptions.filter((entry) => entry.key !== metric)
+
+  /* Total des deux familles : les emplacements sont partagés, parce que c'est le
+     nombre de COURBES que le cadre peut porter qui est limité, pas leur nature. */
+  const used = ids.length + metrics.length
+  const full = used >= COMPARE_MAX
+
+  const needle = query.trim().toLowerCase()
+  const shown = needle
+    ? options.filter(
+        (entry) =>
+          entry.label.toLowerCase().includes(needle) ||
+          (entry.symbol?.toLowerCase().includes(needle) ?? false),
+      )
+    : options
+
+  function toggleAsset(id: string) {
+    if (ids.includes(id)) onChange(ids.filter((entry) => entry !== id))
+    else if (!full) onChange([...ids, id])
+  }
+
+  function toggleMetric(key: string) {
+    if (metrics.includes(key)) onMetricsChange(metrics.filter((entry) => entry !== key))
+    else if (!full) onMetricsChange([...metrics, key])
+  }
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className={`flex h-7 items-center gap-1 rounded-control border px-2 text-xs font-medium transition-colors duration-150 ${
+          open
+            ? 'border-border-subtle bg-surface-muted text-ink'
+            : used > 0
+              ? 'border-brand bg-brand-soft text-brand-strong'
+              : 'border-border-subtle text-ink-muted hover:bg-surface-muted hover:text-ink'
+        }`}
+      >
+        Comparer
+        {/* Le DÉCOMPTE sur le bouton fermé : c'est la seule façon de savoir qu'une
+            comparaison est active sans rouvrir le panneau. La teinte de marque dit
+            « il y a quelque chose », le nombre dit combien. */}
+        {used > 0 ? <span className="tabular">({used})</span> : null}
+        <ChevronDown
+          className={`h-3 w-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {mounted ? (
+        <div
+          role="dialog"
+          aria-label="Comparer"
+          data-state={state}
+          onTransitionEnd={onTransitionEnd}
+          className="menu-panel absolute left-0 top-full z-50 mt-1 w-64 rounded-dense border border-border-subtle bg-overlay p-2 shadow-overlay"
+        >
+          {/* ── Onglets ─────────────────────────────────────────────────────
+              Absents quand une seule famille a quelque chose à proposer : deux
+              onglets dont l'un est vide font chercher ce qui n'y est pas. */}
+          {options.length > 0 && overlayMetrics.length > 0 ? (
+            <div
+              role="tablist"
+              className="mb-2 flex items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
+            >
+              {(
+                [
+                  ['assets', 'Actifs'],
+                  ['metrics', 'Grandeurs'],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === id}
+                  onClick={() => setTab(id)}
+                  className={`flex h-6 flex-1 items-center justify-center rounded-sm text-xs font-medium transition-colors duration-150 ${
+                    tab === id ? 'bg-overlay text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {/* ── Emplacements ────────────────────────────────────────────────
+              Quatre cases, occupées ou non. Voir l'en-tête : c'est la pièce qui rend
+              l'état lisible, et elle reste affichée même vide. */}
+          <p className="px-0.5 pb-1 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+            Sélection
+          </p>
+          <div className="mb-2 grid grid-cols-4 gap-1">
+            {Array.from({ length: COMPARE_MAX }, (_, index) => {
+              const assetId = ids[index]
+              const metricKey = assetId === undefined ? metrics[index - ids.length] : undefined
+
+              if (assetId !== undefined) {
+                const entry = byId.get(assetId)
+                return (
+                  <button
+                    key={`a-${assetId}`}
+                    type="button"
+                    onClick={() => toggleAsset(assetId)}
+                    title={`Retirer ${entry?.label ?? assetId}`}
+                    className="flex h-10 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-control border border-brand bg-brand-soft px-1 text-brand-strong transition-colors duration-150 hover:border-down hover:text-down"
+                  >
+                    <X className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    <span className="max-w-full truncate text-[0.625rem] font-medium leading-none">
+                      {entry?.symbol?.toUpperCase() ?? entry?.label ?? assetId}
+                    </span>
+                  </button>
+                )
+              }
+
+              if (metricKey !== undefined) {
+                const label =
+                  metricOptions.find((entry) => entry.key === metricKey)?.label ?? metricKey
+                return (
+                  <button
+                    key={`m-${metricKey}`}
+                    type="button"
+                    onClick={() => toggleMetric(metricKey)}
+                    title={`Retirer ${label}`}
+                    className="flex h-10 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-control border border-brand bg-brand-soft px-1 text-brand-strong transition-colors duration-150 hover:border-down hover:text-down"
+                  >
+                    <X className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    <span className="max-w-full truncate text-[0.625rem] font-medium leading-none">
+                      {label}
+                    </span>
+                  </button>
+                )
+              }
+
+              return (
+                <span
+                  key={`empty-${index}`}
+                  aria-hidden="true"
+                  className="flex h-10 items-center justify-center rounded-control border border-dashed border-border-subtle text-ink-muted"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </span>
+              )
+            })}
+          </div>
+
+          {tab === 'assets' && options.length > 0 ? (
+            <>
+              {/* La recherche n'apparaît qu'au-delà de huit entrées : sous ce seuil, la
+                  liste entière tient sans défilement et un champ de filtre y ajoute
+                  une étape pour rien. */}
+              {options.length > 8 ? (
+                <div className="relative mb-1.5">
+                  <Search
+                    className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-ink-muted"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Rechercher un actif"
+                    aria-label="Rechercher un actif à comparer"
+                    className="h-7 w-full rounded-control border border-border-subtle bg-surface pl-7 pr-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+                  />
+                </div>
+              ) : null}
+
+              <div className="max-h-52 overflow-y-auto">
+                {shown.length === 0 ? (
+                  <p className="px-2 py-3 text-center text-xs text-ink-muted">
+                    Aucun actif ne correspond.
+                  </p>
+                ) : (
+                  shown.map((entry) => {
+                    const selected = ids.includes(entry.id)
+                    return (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        /* Une entrée non retenue devient inerte quand les quatre places
+                           sont prises. Elle reste VISIBLE et grisée plutôt que masquée :
+                           la faire disparaître donnerait l'impression que la liste a
+                           changé, alors que c'est la sélection qui est pleine. */
+                        disabled={!selected && full}
+                        onClick={() => toggleAsset(entry.id)}
+                        className={`flex w-full items-center gap-2 rounded-control px-2 py-1.5 text-left text-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 ${
+                          selected ? 'text-brand-strong' : 'text-ink hover:bg-surface-muted'
+                        }`}
+                      >
+                        <span className="w-3.5 shrink-0">
+                          {selected ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : null}
+                        </span>
+                        {entry.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- vignettes de fournisseurs non déclarés
+                          <img
+                            src={entry.image}
+                            alt=""
+                            loading="lazy"
+                            className="h-4 w-4 shrink-0 rounded-pill"
+                          />
+                        ) : null}
+                        <span className="min-w-0 truncate">
+                          {entry.label}
+                          {entry.symbol ? (
+                            <span className="text-ink-muted"> ({entry.symbol.toUpperCase()})</span>
+                          ) : null}
+                        </span>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </>
+          ) : null}
+
+          {tab === 'metrics' || options.length === 0 ? (
+            <div className="max-h-52 overflow-y-auto">
+              {overlayMetrics.map((entry) => {
+                const selected = metrics.includes(entry.key)
+                return (
+                  <MenuItem
+                    key={entry.key}
+                    selected={selected}
+                    disabled={!selected && full}
+                    onClick={() => toggleMetric(entry.key)}
+                  >
+                    {entry.label}
+                  </MenuItem>
+                )
+              })}
+            </div>
+          ) : null}
+
+          <div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2">
+            {/* Le RAPPEL DE LA BASE 100, à l'endroit où l'on décide de comparer.
+                Superposer deux séries de prix impose de les indexer — sans quoi un
+                actif à 100 000 € écrase un actif à 3 € — et l'axe cesse alors de porter
+                des montants. Le dire ici évite qu'on cherche ensuite pourquoi les
+                euros ont disparu de l'échelle. */}
+            <p className="pr-2 text-[0.625rem] leading-snug text-ink-muted">
+              {used > 0 ? 'Courbes indexées en base 100.' : `${COMPARE_MAX} courbes au plus.`}
+            </p>
+            <button
+              type="button"
+              onClick={close}
+              className="h-6 shrink-0 rounded-control bg-brand px-3 text-xs font-medium text-white transition-opacity duration-150 hover:opacity-90"
+            >
+              Terminé
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function IconButton({
@@ -690,7 +1279,10 @@ function IconButton({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="flex h-7 w-7 items-center justify-center rounded-control text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+      /* `h-6 w-6` et `rounded-pill` : ces icônes vivent DANS la pastille de cadrage
+         (voir son commentaire), et une pastille de 28 px dans un cadre de 32 px n'aurait
+         plus de place pour son propre rembourrage. La forme ronde s'accorde au cadre. */
+      className="flex h-6 w-6 items-center justify-center rounded-pill text-ink-muted transition-colors duration-150 hover:bg-overlay hover:text-ink"
     >
       {icon}
     </button>

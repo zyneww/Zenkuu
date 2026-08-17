@@ -22,7 +22,7 @@ import { assetHref } from '@/lib/asset-routes'
  * Ils restent AUSSI dans l'onglet « Écosystème », en grille et avec leurs courbes :
  * ce n'est pas un doublon mais deux profondeurs. Ici quatre noms pour situer, là-bas
  * la grille complète pour comparer. C'est le même rapport qu'entre l'extrait de
- * `/crypto/mouvements` et le registre de `/places`.
+ * `/mouvements` et le registre de `/places`.
  *
  * ── QUATRE, ET LES QUATRE PREMIERS ───────────────────────────────────────────
  *

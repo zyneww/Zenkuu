@@ -70,6 +70,7 @@
 export function AssetLayoutFrame({
   rail,
   tabsBar,
+  aside,
   children,
 }: {
   rail: React.ReactNode
@@ -92,6 +93,21 @@ export function AssetLayoutFrame({
    * salissure, là où le même effet sur un en-tête de 64 pixels passe pour une matière.
    */
   tabsBar?: React.ReactNode
+  /**
+   * Colonne d'actualités, à droite du contenu.
+   *
+   * ── ELLE REVIENT, ET LE COMMENTAIRE DU HAUT DE CE FICHIER A EU TORT ─────
+   *
+   * Il explique longuement pourquoi la colonne a été retirée : elle doublait la
+   * section « Actualités » sur une page devenue unique. Le constat était exact et la
+   * conclusion inverseée — c'est la SECTION qui a été supprimée depuis, pas la
+   * colonne. Voir l'en-tête de `AssetNewsAside` pour le raisonnement complet.
+   *
+   * Elle est passée par ici plutôt que rendue dans les sections, parce qu'elle doit
+   * accompagner la page ENTIÈRE : placée dans « Aperçu », elle disparaîtrait dès
+   * qu'on descend vers « Places », c'est-à-dire au moment où l'on continue de lire.
+   */
+  aside?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -134,9 +150,87 @@ export function AssetLayoutFrame({
         valeur et parfois un écart — d'où les « Plus haut hi… » tronqués. C'est aussi
         la largeur EXACTE de la colonne latérale de la référence, mesurée au navigateur.
       */}
-      <div className="grid items-start gap-6 pt-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <div className="min-w-0">{rail}</div>
-        <div className="min-w-0">{children}</div>
+      {/*
+        ── TROIS COLONNES À PARTIR DE `xl`, DEUX À `lg`, UNE EN DESSOUS ───────
+
+        La colonne d'actualités n'entre PAS dans la grille : elle est posée en frère
+        d'un conteneur `flex`, avec sa propre largeur fixe. Le motif est concret — une
+        troisième piste de grille exigerait de redéclarer les deux autres à chaque
+        point d'arrêt, et de définir ce que devient la piste vide quand la colonne est
+        repliée. En `flex`, elle se retire d'elle-même et le contenu reprend la place.
+
+        `min-w-0` sur la zone centrale est OBLIGATOIRE et non décoratif : un enfant de
+        `flex` a une largeur minimale automatique égale à son contenu, et le graphique
+        comme les tableaux dépasseraient alors leur colonne au lieu de défiler — c'est
+        le piège que `scripts/audit-overflow.mjs` existe pour traquer.
+      */}
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        ⚠️ `items-stretch` ET NON `items-start` — LA COLONNE COLLANTE EN DÉPEND
+        ══════════════════════════════════════════════════════════════════════
+
+        Cette rangée portait `items-start`, ce qui paraît anodin et cassait le
+        comportement collant de la colonne d'actualités. Constaté au navigateur : à
+        3000 pixels de défilement, le panneau était à −2719, c'est-à-dire très loin
+        hors de l'écran.
+
+        La raison n'est pas dans le panneau mais ICI. `position: sticky` ne peut se
+        déplacer que DANS LA BOÎTE DE SON PARENT : c'est la course dont il dispose. Avec
+        `items-start`, la colonne prend la hauteur de son contenu — un millier de pixels
+        — alors que la rangée en fait plusieurs milliers. Le panneau remplissait donc sa
+        colonne entièrement, sans un pixel de course, et défilait comme un bloc ordinaire.
+
+        `items-stretch` (le défaut de flexbox, ici écrit en clair pour qu'on ne le
+        retire pas par distraction) étire la colonne sur toute la hauteur de la rangée.
+        Le panneau y trouve alors la course qu'il lui faut et reste visible jusqu'en bas.
+
+        Ce qui justifiait `items-start` a disparu depuis : la zone centrale était une
+        GRILLE dont les pistes s'étiraient, et l'alignement en tête évitait que le rail
+        de chiffres ne soit distendu. Le rail flotte désormais (voir plus bas), et un
+        flottant ne s'étire pas.
+      */}
+      <div className="flex items-stretch gap-6 pt-4">
+        {/*
+          ── LA GRILLE A CÉDÉ LA PLACE À UN FLOTTANT ───────────────────────────
+
+          Cette zone était `grid lg:grid-cols-[18rem_1fr]`. Une grille impose ses
+          pistes sur TOUTE sa hauteur : le rail s'arrêtait après la fiche technique et
+          laissait dix-huit rems de vide sur des milliers de pixels, pendant que les
+          tableaux de droite étaient à l'étroit.
+
+          Le rail flotte donc, et chaque section ouvre son propre contexte de
+          formatage : elle se rétrécit tant qu'elle longe le rail, et reprend toute la
+          largeur dès qu'elle commence sous lui. Les trois règles et leur raisonnement
+          complet vivent dans `globals.css` — c'est du CSS pur, sans mesure ni
+          JavaScript.
+
+          `flow-root` sur le conteneur : sans lui, un flottant plus haut que ses
+          voisines déborderait hors de cette boîte et passerait sous la colonne
+          d'actualités.
+
+          `min-w-0` reste OBLIGATOIRE, et pour la raison notée plus bas : un enfant de
+          `flex` a une largeur minimale égale à son contenu, et les tableaux
+          dépasseraient leur colonne au lieu de défiler.
+        */}
+        <div className="min-w-0 flex-1 [display:flow-root]">
+          <div className="asset-rail min-w-0">{rail}</div>
+          {children}
+        </div>
+
+        {/*
+          LA COLONNE EST ENVELOPPÉE, ET CE N'EST PAS COSMÉTIQUE.
+
+          Posée nue en second enfant du conteneur flexible, elle faisait apparaître un
+          avertissement de clé manquante pointant sur ce composant — le compilateur
+          React, actif sur ce projet, regroupe les enfants dynamiques d'un même parent
+          en tableau lorsqu'il les mémoïse, et un élément reçu en prop n'a pas de clé à
+          lui.
+
+          L'enveloppe rend le second enfant STATIQUE : le tableau disparaît, et avec lui
+          la question de la clé. Elle ne coûte aucun nœud visible — `contents` retire la
+          boîte de la mise en page, la colonne se pose donc exactement comme avant.
+        */}
+        <div className="contents">{aside}</div>
       </div>
     </>
   )

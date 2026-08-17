@@ -41,8 +41,8 @@ import { usePathname } from '@/i18n/navigation'
  */
 
 const TABS = [
-  { href: '/crypto/mouvements', label: 'Données de trading', exact: false },
-  { href: '/crypto/highlights', label: 'Points marquants', exact: false },
+  { href: '/mouvements', label: 'Données de trading', exact: false },
+  { href: '/points-marquants', label: 'Points marquants', exact: false },
 ] as const
 
 export function MarketDataTabs() {

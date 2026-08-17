@@ -78,7 +78,7 @@ export function DexPoolTable({
     /* `rounded-card` sur l'enveloppe, angles VIFS à l'intérieur : le tableau est un
        instrument qu'on parcourt, ses cellules doivent s'abouter. Voir la doctrine des
        deux familles de rayons dans globals.css. */
-    <div className="overflow-x-auto rounded-card border border-border-subtle">
+    <div className="overflow-x-auto rounded-card">
       {/* COLONNES PRIORITAIRES SOUS `sm`.
 
           Sept colonnes ne tiennent pas dans 320 pixels, et un tableau qui défile

@@ -1,8 +1,12 @@
 'use client'
 
+import Image from 'next/image'
+import { useState } from 'react'
+
 import type { NewsItem } from '@zenkuu/data'
 
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
+import { isOptimizableNewsImage } from '@/lib/news-image-hosts'
 
 /**
  * Rail d'actualités de la fiche — la CHRONOLOGIE, pas le fil.
@@ -62,6 +66,26 @@ export function AssetNewsRail({
     <div className="space-y-4">
       {groups.map((group) => (
         <section key={group.key}>
+          {/*
+            LE TITRE DE JOURNÉE REDEVIENT COLLANT.
+
+            Il l'avait été, puis ne l'avait plus été, et les deux décisions étaient
+            justes en leur temps — c'est le CONTENANT qui a changé deux fois :
+
+              · fil dans un cadre défilant  → collant, il se fixe en haut du cadre ;
+              · fil défilant avec la page   → NON collant, sinon il se fixerait au bord
+                de la fenêtre, c'est-à-dire derrière l'en-tête du site : invisible tout
+                en réservant sa place, le pire des deux mondes ;
+              · fil dans un cadre défilant  → collant de nouveau (état actuel).
+
+            Le cadre est revenu avec `overscroll-contain` — voir `AssetNewsAside`. Le
+            titre se fixe donc en haut de la surface défilante, et l'on sait toujours
+            quelle journée on lit, même après vingt articles.
+
+            `bg-canvas` est indispensable : sans fond, les articles défileraient VISIBLES
+            derrière le titre. Le `-mx-0.5 px-0.5` étend ce fond d'un demi-cran de chaque
+            côté pour couvrir les descendants qui affleurent.
+          */}
           <h3 className="sticky top-0 z-10 -mx-0.5 bg-canvas/95 px-0.5 pb-1.5 pt-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted backdrop-blur">
             {group.label}
           </h3>
@@ -73,25 +97,46 @@ export function AssetNewsRail({
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className="group block"
+                  className="group flex gap-2.5"
                 >
-                  {/* La puce et l'heure AVANT le titre, comme chez CoinGecko : dans une
-                      colonne qu'on parcourt du regard pour situer un événement, c'est
-                      le QUAND qu'on cherche en premier, pas le quoi. */}
-                  <span className="mb-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
-                    <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-pill bg-border-subtle"
-                      aria-hidden="true"
-                    />
-                    <RelativeTime iso={item.publishedAt} />
-                  </span>
+                  {/*
+                    ── LA VIGNETTE, ET POURQUOI ELLE EST PETITE ────────────────
 
-                  <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand-strong">
-                    {item.title}
-                  </span>
+                    Le rail n'en portait aucune, au motif — écrit en tête de fichier —
+                    qu'il sacrifie le confort de lecture à la densité temporelle. Le
+                    principe reste juste ; c'est la conclusion qui allait trop loin.
 
-                  <span className="mt-1.5 inline-flex items-center rounded-pill border border-border-subtle px-2 py-0.5 text-micro text-ink-muted">
-                    {item.source}
+                    Une vignette de 48 pixels ne coûte pas de hauteur : elle tient dans
+                    celle que le titre occupe déjà, sur deux lignes. Et elle gagne ce
+                    qu'aucun texte ne donne aussi vite — la reconnaissance de l'article
+                    déjà vu ailleurs, et l'identification du sujet (un graphique, un
+                    portrait, un logo de plateforme) avant même d'avoir lu.
+
+                    Elle est DÉCORATIVE : `alt=""` et le lien porte déjà le titre. Une
+                    description de vignette d'article ne serait de toute façon qu'une
+                    répétition du titre pour un lecteur d'écran.
+                  */}
+                  <NewsThumbnail item={item} />
+
+                  <span className="min-w-0 flex-1">
+                    {/* La puce et l'heure AVANT le titre, comme chez CoinGecko : dans une
+                        colonne qu'on parcourt du regard pour situer un événement, c'est
+                        le QUAND qu'on cherche en premier, pas le quoi. */}
+                    <span className="mb-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
+                      <span
+                        className="h-1.5 w-1.5 shrink-0 rounded-pill bg-border-subtle"
+                        aria-hidden="true"
+                      />
+                      <RelativeTime iso={item.publishedAt} />
+                    </span>
+
+                    <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand-strong">
+                      {item.title}
+                    </span>
+
+                    <span className="mt-1.5 inline-flex items-center rounded-pill border border-border-subtle px-2 py-0.5 text-micro text-ink-muted">
+                      {item.source}
+                    </span>
                   </span>
                 </a>
               </li>
@@ -107,6 +152,54 @@ export function AssetNewsRail({
     appelé dans la boucle de rendu du parent. */
 function RelativeTime({ iso }: { iso: string }) {
   return <>{useRelativeTime(iso)}</>
+}
+
+/**
+ * Vignette d'un article — ou rien du tout.
+ *
+ * ── TROIS ISSUES, ET AUCUNE N'EST UNE IMAGE BRISÉE ──────────────────────────
+ *
+ * 1. L'article n'a pas de vignette. Sept des vingt-neuf flux n'en publient aucune, et
+ *    `fetchOgImage` ne complète qu'un lot borné. On rend `null` : la ligne redevient
+ *    ce qu'elle était, du texte pleine largeur.
+ *
+ * 2. L'hôte n'est pas déclaré dans `next.config.ts`. On rend `null` AVANT d'essayer.
+ *    C'est le point qui compte : l'optimiseur de Next lève sur un hôte inconnu, et
+ *    comme la vérification a lieu au rendu, une seule vignette d'un éditeur qui a
+ *    changé de CDN mettrait la fiche entière en erreur 500. Voir `news-image-hosts`.
+ *
+ * 3. L'hôte est déclaré mais le fichier a disparu. `onError` retire alors la vignette,
+ *    ce que le point 2 ne peut pas prévoir — un 404 ne s'anticipe pas.
+ *
+ * ── `sizes` EST OBLIGATOIRE ET NON DÉCORATIF ────────────────────────────────
+ *
+ * Sans lui, Next demande la plus grande variante possible, soit plusieurs centaines de
+ * kilo-octets par vignette de 48 pixels. Déclaré, il fait servir la variante de 96 px
+ * — le double, pour les écrans à densité élevée.
+ */
+function NewsThumbnail({ item }: { item: NewsItem }) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed || !isOptimizableNewsImage(item.imageUrl)) return null
+
+  return (
+    <span className="block h-12 w-12 shrink-0 overflow-hidden rounded-control bg-surface-muted">
+      <Image
+        src={item.imageUrl}
+        alt=""
+        width={48}
+        height={48}
+        sizes="48px"
+        /* `no-referrer` : la vignette est hébergée par l'ÉDITEUR, l'afficher fait donc
+           appeler son serveur depuis le navigateur du lecteur. Sans cet attribut, il
+           saurait depuis quelle fiche de ZENKUU l'image a été chargée — voir la note du
+           champ dans `types.ts`. */
+        referrerPolicy="no-referrer"
+        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+        onError={() => setFailed(true)}
+      />
+    </span>
+  )
 }
 
 interface DayGroup {

@@ -184,6 +184,45 @@ export function formatCompact(
   }).format(scaled)}${unit.suffix}`
 }
 
+/**
+ * ÉCHELLE ABRÉGÉE D'UN AXE — « 1,7 Bn », « 1,292 Bn », « 63,24 k ».
+ *
+ * Distincte de `formatCompact`, et l'écart tient en un mot : la PRÉCISION s'exprime
+ * ici en chiffres significatifs, là-bas en décimales.
+ *
+ * ── POURQUOI CETTE SECONDE FONCTION EXISTE ───────────────────────────────────
+ *
+ * `formatCompact` sert des libellés ISOLÉS — une tuile de carte thermique, un
+ * compteur, une infobulle de volume. Chacun se lit seul, et l'ordre de grandeur y
+ * suffit : « 1,3 Bn » dit tout ce qu'on attend d'une tuile.
+ *
+ * Un AXE est l'inverse : ses six graduations se lisent LES UNES CONTRE LES AUTRES, et
+ * leur seul office est de se distinguer. Mesuré sur une capitalisation de bitcoin en
+ * fenêtre de sept jours, `formatCompact` rendait « 1,3 Bn » aux six graduations —
+ * l'actif ne bouge que d'un ou deux pour cent en une semaine, et 1 292, 1 301 et
+ * 1 310 milliards partagent le même dixième.
+ *
+ * Aucun nombre fixe de décimales ne peut convenir, parce que l'écart entre graduations
+ * dépend de la fenêtre affichée : un dixième suffit sur un an, il en faut trois sur
+ * sept jours. Les chiffres significatifs règlent cela sans connaître la fenêtre —
+ * quatre donnent « 1,7 Bn » là où le nombre est rond, « 1,292 Bn » là où il ne l'est
+ * pas.
+ *
+ * Le `null` d'entrée est propagé comme partout ailleurs ici : une valeur absente reste
+ * absente, elle ne devient pas « 0 » (§5).
+ */
+export function formatCompactAxis(
+  value: number | undefined,
+  locale: string = DEFAULT_LOCALE,
+): string | null {
+  if (value === undefined || !Number.isFinite(value)) return null
+
+  return new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    maximumSignificantDigits: 4,
+  }).format(value)
+}
+
 export function formatNumber(
   value: number | undefined,
   maximumFractionDigits = 2,

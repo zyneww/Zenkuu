@@ -237,7 +237,7 @@ export function NewListingsTable({
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-card border border-border-subtle">
+      <div className="overflow-x-auto rounded-card">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
         <table className="w-full border-collapse text-sm sm:min-w-[42rem]">
           <thead>
@@ -369,7 +369,7 @@ function Identity({ listing, match }: { listing: NewListing; match?: ListingMatc
    */
   const href = match
     ? `/crypto/${match.id}`
-    : `/crypto/resoudre/${encodeURIComponent(listing.name)}`
+    : `/resoudre/${encodeURIComponent(listing.name)}`
 
   return (
     <Link

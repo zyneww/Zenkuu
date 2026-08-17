@@ -35,9 +35,22 @@ import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
  * ── CE QUE LE BLOC PORTE, DANS L'ORDRE DE LECTURE ─────────────────────────────
  *
  *   1. Fil d'Ariane et FRAÎCHEUR de la donnée, aux deux bouts d'une même ligne.
- *   2. Logo, nom, code, rang, catégories.
+ *   2. Logo, nom, code, rang — et l'ÉTOILE DE SUIVI.
  *   3. Cours, variation, cours en actif de référence, amplitude du jour.
- *   4. Les deux actions : alerte et suivi.
+ *   4. L'alerte, sous le cours.
+ *
+ * ── LA RANGÉE DE DEUX BOUTONS A DISPARU ──────────────────────────────
+ *
+ * « Créer une alerte » et « Suivre » formaient une ligne sous l'identité. Deux boutons
+ * bordés de même taille et de même poids, alors qu'ils ne se valent pas : suivre est
+ * un geste qu'on répète sur des dizaines d'actifs, armer une alerte se fait une fois
+ * et ouvre un formulaire.
+ *
+ * Le suivi devient donc une ÉTOILE posée contre le rang, là où CoinGecko la met et là
+ * où le même geste se trouve déjà dans nos tableaux — un lecteur qui a cliqué une
+ * étoile en liste retrouve la même sur la fiche. L'alerte descend sous le cours,
+ * puisque c'est un SEUIL DE PRIX qu'elle arme : elle est enfin à côté du nombre
+ * qu'elle surveille.
  *
  * La fraîcheur monte ici depuis la barre de méta des onglets, où elle était en gris
  * de 11 pixels sous le mot « Source ». C'est pourtant la réponse à « ce que je lis,
@@ -53,7 +66,8 @@ export async function AssetPageHeader({
   asset,
   assetClass,
   price,
-  actions,
+  watchAction,
+  alertAction,
   rankLabel,
   breadcrumb,
   sourceLabel,
@@ -68,8 +82,11 @@ export async function AssetPageHeader({
    * poser le prix et à quelle taille, pas d'où il vient.
    */
   price: React.ReactNode
-  /** Alerte et suivi. Passés en enfant pour la même raison que le prix. */
-  actions: React.ReactNode
+  /** Étoile de suivi, posée contre le rang. Passée en enfant — c'est un composant
+      client, que ce bloc serveur peut placer mais pas construire. */
+  watchAction: React.ReactNode
+  /** Bouton d'alerte, posé sous le cours. Même raison. */
+  alertAction: React.ReactNode
   rankLabel: string
   breadcrumb: React.ReactNode
   sourceLabel: string | null
@@ -170,6 +187,12 @@ export async function AssetPageHeader({
                   <span className="sr-only"> — {rankLabel}</span>
                 </span>
               ) : null}
+
+              {/* L'étoile FERME la ligne d'identité, après le rang. Elle est alignée
+                  sur la ligne de base des autres éléments et non centrée verticalement
+                  sur le titre : dans une ligne où le nom fait trente pixels et le rang
+                  onze, un centrage la ferait flotter au milieu de nulle part. */}
+              <span className="-my-1.5">{watchAction}</span>
             </div>
 
             {/* Sous-titre de classement, comme le « Blockchains (L1) » de la référence.
@@ -240,19 +263,34 @@ export async function AssetPageHeader({
           {/* Cours en actif de référence — voir son en-tête. Absent hors crypto. */}
           <AssetBenchmarkRatio asset={asset} />
 
-          {/* L'amplitude du jour ACCOLÉE au cours, et l'endroit est dicté par la
-              lecture : un curseur ne situe rien s'il est éloigné du chiffre qu'il
-              situe. Largeur bornée pour qu'il ne s'étire pas sur tout l'écran. */}
-          <div className="max-w-sm">
-            <AssetRangeBar asset={asset} isRate={isForex} />
+          {/*
+            ── L'AMPLITUDE ET L'ALERTE PARTAGENT UNE LIGNE ────────────────────
+
+            Elles en occupaient deux, empilées. Le bouton d'alerte prenait donc à lui
+            seul une rangée de 40 pixels dans une colonne déjà plus haute que sa
+            voisine — et c'est cette différence de hauteur qui creusait le vide sous les
+            pastilles de catégorie, mesuré à 72 pixels sur la fiche Hyperliquid.
+
+            Les réunir tient parce qu'elles disent la même chose : la barre montre entre
+            quelles bornes le cours a évolué aujourd'hui, le bouton arme un seuil DANS
+            ces bornes. C'est même le rapprochement qui rend le geste évident — on voit
+            l'intervalle, puis le bouton qui le surveille, sans quitter la ligne.
+
+            `items-end` : la barre porte ses deux bornes chiffrées sous elle, le bouton
+            n'a rien dessous. Alignés par le haut, le bouton flotterait au-dessus du
+            vide laissé par ces chiffres.
+
+            La ligne se replie sous `sm`, où 384 pixels de barre et un bouton ne tiennent
+            pas côte à côte — et où la colonne est de toute façon seule sur sa ligne.
+          */}
+          <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+            <div className="min-w-0 max-w-sm flex-1">
+              <AssetRangeBar asset={asset} isRate={isForex} />
+            </div>
+            <div className="shrink-0">{alertAction}</div>
           </div>
         </div>
       </div>
-
-      {/* ── Les deux actions ───────────────────────────────────────────────────
-          Sous l'identité plutôt qu'à côté : à droite du cours, elles se seraient
-          disputé la ligne avec lui sur un écran moyen, et le cours doit gagner. */}
-      <div className="flex flex-wrap gap-2">{actions}</div>
     </header>
   )
 }

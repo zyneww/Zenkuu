@@ -72,7 +72,7 @@ export function PriceHistoryTable({
         <HistoryExport rows={exportRows} assetName={assetName} currency={currency} />
       </div>
 
-      <div className="overflow-x-auto rounded-card border border-border-subtle bg-panel">
+      <div className="overflow-x-auto rounded-card bg-panel">
         <table className="w-full min-w-[380px] border-collapse text-sm">
           <caption className="sr-only">
             Dernière valeur connue par journée, sur les {rows.length} derniers jours

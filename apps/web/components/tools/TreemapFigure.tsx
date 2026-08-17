@@ -1,7 +1,21 @@
 import { formatCompact, formatPercent } from '@zenkuu/ui'
 
-import { HEATMAP_CLAMP, heatTone, squarify } from '@/components/tools/treemap'
+import {
+  HEATMAP_CLAMP,
+  TILE_INK,
+  heatScaleSwatches,
+  heatTone,
+  squarify,
+} from '@/components/tools/treemap'
 import { Link } from '@/i18n/navigation'
+
+/**
+ * Cette figure ne connaît qu'un seul fond — celui de `heatTone`, toujours saturé — et
+ * son encre est donc constante. Elle l'importe malgré tout de `treemap.ts` : c'est là
+ * que vivent les mesures de contraste, et deux figures qui écrivent leurs couleurs en
+ * dur chacune de son côté est exactement ce qui a laissé passer une valeur à 3,82:1.
+ */
+const INK = TILE_INK
 
 /**
  * LA FIGURE, sans les commandes qui la pilotent.
@@ -37,7 +51,44 @@ export interface TreemapTile {
   href?: string
   /** Nom complet, pour l'infobulle et les lecteurs d'écran. */
   title?: string
+  /**
+   * Logo de l'actif, affiché dans les tuiles ASSEZ GRANDES pour l'accueillir.
+   *
+   * Il ne remplace pas l'étiquette, il la précède : un logo seul n'identifie que ce
+   * qu'on reconnaît déjà, et une carte thermique sert justement à repérer ce qu'on ne
+   * cherchait pas. Sur les petites tuiles il disparaît — seize pixels d'image sur une
+   * tuile de trente en largeur ne laisseraient plus la place au symbole.
+   */
+  image?: string
 }
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ANATOMIE D'UNE TUILE — jointive, centrée, sans arrondi
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Trois changements, tous relevés sur la carte de CoinGecko :
+ *
+ *   · PAS DE GOUTTIÈRE. Les tuiles portaient `border-2 border-surface`, une bordure de
+ *     la couleur du fond qui tenait lieu d'espacement. Le procédé était défendable,
+ *     mais la référence n'en a pas : ses rectangles se touchent, et c'est ce qui donne
+ *     à la carte son aspect de pavage plein plutôt que de mosaïque. Sur les tuiles les
+ *     plus petites, quatre pixels de bordure mangeaient d'ailleurs la moitié de la
+ *     surface.
+ *
+ *   · PAS D'ARRONDI. `rounded-[4px]` sur une tuile de dix pixels de côté n'arrondit
+ *     rien, il grignote. La référence pave en rectangles francs.
+ *
+ *   · TEXTE CENTRÉ, plus ancré en bas. Chez la référence, « BTC » et sa variation sont
+ *     au centre de leur tuile — ce qui est la seule position qui reste correcte quand la
+ *     police varie de sept à cinquante-six pixels. Ancré en bas, un grand texte se
+ *     collait au bord inférieur et laissait un vide en haut.
+ *
+ * `overflow-hidden` reste indispensable : sans lui, une étiquette trop longue déborde
+ * sur les tuiles voisines et rend la carte illisible aux petites tailles.
+ */
+const TILE_CLASS =
+  'absolute flex flex-col items-center justify-center overflow-hidden px-1 text-center'
 
 export function TreemapFigure({
   tiles,
@@ -80,7 +131,10 @@ export function TreemapFigure({
 
   return (
     /* Hauteur fixe en pixels, positions en pourcentages : la figure s'adapte en largeur
-       sans que rien ne soit recalculé, et reste lisible en hauteur. */
+       sans que rien ne soit recalculé, et reste lisible en hauteur.
+
+       Le CADRE garde son arrondi et sa bordure — c'est un bloc de la page. Ce sont les
+       TUILES qui les perdent, voir `TILE_CLASS`. */
     <div
       className="relative w-full overflow-hidden rounded-card border border-border-subtle bg-surface"
       style={{ height }}
@@ -105,12 +159,70 @@ export function TreemapFigure({
 
         const share = total > 0 ? (tile.value / total) * 100 : 0
 
+        /*
+          ══════════════════════════════════════════════════════════════════════
+          LA TYPOGRAPHIE SUIT L'AIRE DE LA TUILE — c'est la signature de CoinGecko
+          ══════════════════════════════════════════════════════════════════════
+
+          Toutes les étiquettes faisaient 11 pixels, quelle que soit la tuile. Sur la
+          référence, « BTC » remplit sa tuile de bord à bord tandis que les jetons du
+          coin portent des caractères de six pixels — et cette hiérarchie EST
+          l'information : on voit le poids du marché avant d'avoir lu un chiffre.
+
+          La taille est calculée sur la racine carrée de l'aire, et non sur l'aire :
+          une tuile quatre fois plus grande doit porter un texte deux fois plus grand,
+          pas quatre — sans quoi la plus grande tuile écraserait tout le reste. C'est la
+          relation entre une surface et une longueur.
+
+          Le facteur `0.42` et les bornes `[7, 56]` sont réglés pour que la plus petite
+          tuile lisible reste au-dessus du seuil de lisibilité du site (7 px) et que la
+          plus grande n'excède pas une hauteur de titre. La racine est bornée par la
+          plus PETITE dimension : un rectangle très plat ne peut pas porter un texte
+          plus haut que lui.
+        */
+        const minSide = Math.min(box.width, box.height)
+        const labelSize = Math.max(7, Math.min(56, Math.sqrt(box.width * box.height) * 0.42))
+        const showValue = minSide > 6 && labelSize >= 11
+
+        /*
+          ── L'ICÔNE NE PARAÎT QUE SI ELLE TIENT VRAIMENT ────────────────────
+          
+          Le seuil porte sur la taille d'étiquette calculée, donc sur l'aire réelle de
+          la tuile : à 16 pixels de police, la tuile fait au moins 38 × 38 et une
+          vignette de 20 px y laisse encore la place au symbole. En dessous, l'icône
+          chasserait le texte — et un logo sans nom n'identifie que ce qu'on reconnaît
+          déjà, alors qu'une carte thermique sert à repérer ce qu'on ne cherchait pas.
+
+          Servie en `<img>` brut et non par l'optimiseur : ces vignettes viennent de
+          domaines d'éditeurs NFT non déclarés dans `next.config.ts`, et l'optimiseur
+          lèverait au rendu. `onError` n'est pas nécessaire — une image absente laisse
+          simplement l'étiquette, qui suffit.
+        */
+        const showImage = tile.image !== undefined && labelSize >= 16
+
         const body = (
           <>
+            {showImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- domaines d'éditeurs non déclarés
+              <img
+                src={tile.image}
+                alt=""
+                className="mb-1 shrink-0 rounded-pill object-cover ring-1 ring-white/25"
+                style={{
+                  width: `${Math.min(28, labelSize * 1.1).toFixed(0)}px`,
+                  height: `${Math.min(28, labelSize * 1.1).toFixed(0)}px`,
+                }}
+                loading="lazy"
+              />
+            ) : null}
+
             {/* Étiquettes toujours présentes dans le DOM — donc lisibles par un lecteur
-                d'écran et par un moteur — mais masquées visuellement quand la tuile est
-                trop petite, pour ne pas déborder sur ses voisines. */}
-            <span className="block truncate text-[0.6875rem] font-medium leading-tight text-ink">
+                d'écran et par un moteur — mais dimensionnées à la tuile pour ne pas
+                déborder sur ses voisines. */}
+            <span
+              className={`block max-w-full truncate font-semibold leading-none ${INK.label}`}
+              style={{ fontSize: `${labelSize.toFixed(1)}px` }}
+            >
               {tile.label}
             </span>
             {/*
@@ -125,9 +237,16 @@ export function TreemapFigure({
               La PART est ce qui manquait le plus : un montant seul ne se situe pas,
               « 439 Md $ » ne dit pas si c'est beaucoup. Elle est omise sous 0,1 %, où
               elle n'apprendrait rien et allongerait la ligne pour rien.
+
+              Le SEUIL porte désormais sur la taille de police calculée et non sur les
+              pourcentages de la boîte : c'est la seule mesure qui dise si la ligne sera
+              réellement lisible, et elle tient compte des proportions de la tuile.
             */}
-            {box.height > 5 && box.width > 5 ? (
-              <span className="tabular block truncate text-micro leading-tight text-ink-muted">
+            {showValue ? (
+              <span
+                className={`tabular block truncate leading-tight ${INK.value}`}
+                style={{ fontSize: `${Math.max(7, labelSize * 0.5).toFixed(1)}px` }}
+              >
                 {formatCompact(tile.value)}
                 {valueUnit}
                 {share >= 0.1 ? ` (${share.toFixed(1).replace('.', ',')} %)` : ''}
@@ -137,33 +256,54 @@ export function TreemapFigure({
           </>
         )
 
-        /* Une tuile sans destination reste une `div` et non un lien inerte : un lien
-           qui ne mène nulle part est atteignable au clavier et ne fait rien, ce qui est
-           la définition d'un piège de tabulation utile à personne. */
-        return tile.href !== undefined ? (
-          <Link
+        /*
+          ══════════════════════════════════════════════════════════════════════
+          TROIS RENDUS POSSIBLES, ET LE CHOIX N'EST PAS COSMÉTIQUE
+          ══════════════════════════════════════════════════════════════════════
+
+          · SANS destination → une `div`. Un lien qui ne mène nulle part reste
+            atteignable au clavier et ne fait rien : c'est la définition d'un piège de
+            tabulation utile à personne.
+
+          · destination INTERNE → le `Link` de next-intl, qui préfixe la locale
+            courante (`/fr/crypto/bitcoin`) et précharge la route.
+
+          · destination EXTERNE → une balise `<a>` NUE, et c'est indispensable. Passer
+            une URL absolue au `Link` de next-intl lui fait préfixer la locale :
+            `https://cryptopunks.app/` deviendrait `/fr/https://cryptopunks.app/`, un
+            chemin interne qui répond 404. Le défaut n'existait pas tant qu'aucune tuile
+            ne pointait dehors — les collections NFT sont les premières.
+
+            `nofollow` : nous citons une collection, nous ne la recommandons pas — même
+            règle que les liens de places de cotation. `noopener noreferrer` ferme
+            l'accès à notre fenêtre depuis la page ouverte.
+        */
+        if (tile.href === undefined) {
+          return (
+            <div key={box.id} title={caption} className={TILE_CLASS} style={style}>
+              {body}
+            </div>
+          )
+        }
+
+        const tileClass = TILE_CLASS + ' transition-opacity duration-150 hover:opacity-80'
+
+        return tile.href.startsWith('http') ? (
+          <a
             key={box.id}
             href={tile.href}
+            target="_blank"
+            rel="nofollow noopener noreferrer"
             title={caption}
-            className="absolute flex flex-col justify-end overflow-hidden rounded-[4px] border-2 border-surface p-1 transition-opacity duration-150 hover:opacity-75"
+            className={tileClass}
             style={style}
           >
+            {body}
+          </a>
+        ) : (
+          <Link key={box.id} href={tile.href} title={caption} className={tileClass} style={style}>
             {body}
           </Link>
-        ) : (
-          <div
-            key={box.id}
-            title={caption}
-            /* Même anatomie que la tuile cliquable — rayon de 4 pixels et bordure de 2
-               qui TIENT LIEU DE GOUTTIÈRE : les tuiles ne sont pas espacées, elles sont
-               bordées de la couleur du fond, ce qui laisse toute la surface au pavage
-               sans que les rectangles ne se touchent. C'est le procédé de la référence.
-               Les étiquettes sont ancrées EN BAS, comme chez elle. */
-            className="absolute flex flex-col justify-end overflow-hidden rounded-[4px] border-2 border-surface p-1"
-            style={style}
-          >
-            {body}
-          </div>
         )
       })}
     </div>
@@ -179,8 +319,12 @@ export function TreemapLegend() {
         className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
         aria-hidden="true"
       >
-        {[-10, -6, -3, 0, 3, 6, 10].map((step) => (
-          <span key={step} className="flex-1" style={{ backgroundColor: heatTone(step) }} />
+        {/* Les paliers sont lus dans `treemap.ts` plutôt que réécrits ici. La liste
+            était écrite à la main — sept valeurs choisies pour « faire dégradé » — et
+            elle a cessé de décrire l'échelle le jour où celle-ci est passée en paliers
+            discrets : la légende annonçait un continuum que la figure ne peignait plus. */}
+        {heatScaleSwatches().map((tone, index) => (
+          <span key={index} className="flex-1" style={{ backgroundColor: tone }} />
         ))}
       </span>
       <span>+{HEATMAP_CLAMP} %</span>

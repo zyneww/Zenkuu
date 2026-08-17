@@ -173,7 +173,7 @@ export function AssetTickers({
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-card border border-border-subtle bg-panel">
+      <div className="overflow-x-auto rounded-card bg-panel">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Sur un
             téléphone il reste la place, la paire et le prix : c'est ce qu'on vient
             vérifier ici, « combien coûte-t-il où ». Le volume, qui sert à juger si la

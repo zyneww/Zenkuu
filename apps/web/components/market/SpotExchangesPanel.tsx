@@ -81,7 +81,7 @@ export function SpotExchangesTable({
    *
    * Ce tableau sert à deux endroits : le registre complet de `/places`, où il est
    * trié et paginé par `SpotExchangesExplorer`, et l'extrait de vingt-cinq lignes de
-   * `/crypto/mouvements`, rendu CÔTÉ SERVEUR. Rendre le tri obligatoire aurait imposé
+   * `/mouvements`, rendu CÔTÉ SERVEUR. Rendre le tri obligatoire aurait imposé
    * à l'extrait de devenir un composant client pour une fonction dont il n'a pas
    * l'usage — il montre un dessus de panier, pas un classement à explorer.
    *
@@ -101,7 +101,7 @@ export function SpotExchangesTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-card border border-border-subtle">
+      <div className="overflow-x-auto rounded-card">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Ne restent
             que la place, son volume et sa part ; la barre de part est élastique, elle
             absorbe seule le rétrécissement. */}
@@ -173,28 +173,26 @@ export function SpotExchangesTable({
                         donc là où se trouve réellement le marché : chez la place
                         elle-même, dont la source publie l'adresse.
 
-                        `nofollow` et `noopener` : le §1 dit que ce site situe
-                        l'activité sans y donner accès. Un lien sortant vers une
-                        plateforme d'échange ne doit donc transmettre ni autorité de
-                        référencement, ni prise sur l'onglet d'origine. `target`
-                        préserve la page en cours — on consulte un classement, on ne le
-                        quitte pas pour aller voir une place.
+                        ── LE NOM MÈNE DÉSORMAIS À NOTRE FICHE, PAS AU SITE ─────
 
-                        Une place sans adresse publiée reste en texte simple, plutôt
-                        qu'en lien mort : la source ne la renseigne pas toujours.
+                        Il pointait vers la plateforme elle-même, en `nofollow` — un
+                        choix cohérent avec le §1 tant qu'il n'existait rien chez nous
+                        à quoi renvoyer. `/places/[id]` existe maintenant : profil,
+                        volume, paires cotées, note de confiance.
+
+                        Envoyer hors du site depuis un classement était surtout un
+                        aller SANS RETOUR : on quittait le tableau pour une page
+                        commerciale, et il fallait revenir en arrière pour comparer la
+                        place suivante. La fiche garde le lecteur dans le même
+                        registre, et c'est ELLE qui porte le lien sortant — une fois,
+                        au bon endroit, toujours en `nofollow`.
                       */}
-                      {exchange.url ? (
-                        <a
-                          href={exchange.url}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className="truncate font-medium text-ink transition-colors duration-150 hover:text-brand-strong hover:underline"
-                        >
-                          {exchange.name}
-                        </a>
-                      ) : (
-                        <span className="truncate font-medium text-ink">{exchange.name}</span>
-                      )}
+                      <Link
+                        href={`/places/${exchange.id}`}
+                        className="truncate font-medium text-ink transition-colors duration-150 hover:text-brand-strong"
+                      >
+                        {exchange.name}
+                      </Link>
                     </span>
                   </td>
 
@@ -252,7 +250,7 @@ export function SpotExchangesTable({
  * En-tête de colonne, TRIABLE OU NON selon ce que l'appelant fournit.
  *
  * Le tableau sert deux contextes — le registre trié de `/places` et l'extrait rendu
- * côté serveur de `/crypto/mouvements` — et cette bascule est ce qui lui permet de
+ * côté serveur de `/mouvements` — et cette bascule est ce qui lui permet de
  * n'exister qu'en un seul exemplaire. Sans elle, il aurait fallu deux tableaux jumeaux
  * qui auraient divergé au premier ajustement de colonne.
  *

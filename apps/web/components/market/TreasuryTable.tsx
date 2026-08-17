@@ -6,6 +6,7 @@ import type { TreasuryHolder, TreasuryReport } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
+import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 
 /**
  * Registre des détenteurs institutionnels.
@@ -68,53 +69,92 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
     initial: { key: 'holdings', direction: 'desc' },
   })
 
+  /* « Société » et « détenus » sont verrouillées : sans le nom ni la quantité, un
+     registre de détenteurs ne détient plus rien. Tout le reste est dérivable ou
+     secondaire, donc retirable. */
+  const prefs = useColumnPreferences('tresoreries', [
+    { id: 'rank', label: 'Rang' },
+    { id: 'name', label: 'Société', locked: true },
+    { id: 'holdings', label: `${unit} détenus`, locked: true },
+    { id: 'currentValue', label: 'Valeur actuelle' },
+    { id: 'entryValue', label: 'Coût d’entrée' },
+    { id: 'gain', label: 'Plus-value latente' },
+    { id: 'supply', label: '% de l’offre' },
+  ])
+
   return (
     <div className="space-y-2">
-      <div className="overflow-x-auto rounded-card border border-border-subtle">
+      <div className="flex justify-end">
+        <ColumnPicker prefs={prefs} />
+      </div>
+
+      <div className="overflow-x-auto rounded-card">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Le rang
             disparaît avec les autres : le registre arrive TRIÉ par avoirs décroissants,
             l'ordre des lignes le dit déjà. */}
         <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
-              <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
-                #
-              </th>
-              <SortableHeader label="Société" sortKey="name" align="left" sort={sort} onToggle={toggle} />
+              {prefs.isVisible('rank') ? (
+                <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
+                  #
+                </th>
+              ) : null}
+              <SortableHeader
+                label="Société"
+                sortKey="name"
+                align="left"
+                sort={sort}
+                onToggle={toggle}
+                columnPrefs={prefs}
+              />
               <SortableHeader
                 label={`${unit} détenus`}
                 sortKey="holdings"
                 sort={sort}
                 onToggle={toggle}
+                columnPrefs={prefs}
               />
-              <SortableHeader
-                label="Valeur actuelle $"
-                sortKey="currentValue"
-                className="hidden sm:table-cell"
-                sort={sort}
-                onToggle={toggle}
-              />
-              <SortableHeader
-                label="Coût d’entrée $"
-                sortKey="entryValue"
-                className="hidden md:table-cell"
-                sort={sort}
-                onToggle={toggle}
-              />
-              <SortableHeader
-                label="Plus-value latente"
-                sortKey="gain"
-                className="hidden lg:table-cell"
-                sort={sort}
-                onToggle={toggle}
-              />
-              <SortableHeader
-                label="% de l’offre"
-                sortKey="supply"
-                className="hidden lg:table-cell"
-                sort={sort}
-                onToggle={toggle}
-              />
+              {prefs.isVisible('currentValue') ? (
+                <SortableHeader
+                  label="Valeur actuelle $"
+                  sortKey="currentValue"
+                  className="hidden sm:table-cell"
+                  sort={sort}
+                  onToggle={toggle}
+                  columnPrefs={prefs}
+                />
+              ) : null}
+              {prefs.isVisible('entryValue') ? (
+                <SortableHeader
+                  label="Coût d’entrée $"
+                  sortKey="entryValue"
+                  className="hidden md:table-cell"
+                  sort={sort}
+                  onToggle={toggle}
+                  columnPrefs={prefs}
+                />
+              ) : null}
+              {prefs.isVisible('gain') ? (
+                <SortableHeader
+                  label="Plus-value latente"
+                  sortKey="gain"
+                  className="hidden lg:table-cell"
+                  sort={sort}
+                  onToggle={toggle}
+                  columnPrefs={prefs}
+                />
+              ) : null}
+              {prefs.isVisible('supply') ? (
+                <SortableHeader
+                  label="% de l’offre"
+                  sortKey="supply"
+                  className="hidden lg:table-cell"
+                  sort={sort}
+                  onToggle={toggle}
+                  columnPrefs={prefs}
+                />
+              ) : null}
             </tr>
           </thead>
 
@@ -127,9 +167,11 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
 
               return (
                 <tr key={`${holder.name}-${index}`} className="transition-colors hover:bg-surface-muted">
-                  <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                    {index + 1}
-                  </td>
+                  {prefs.isVisible('rank') ? (
+                    <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
+                      {index + 1}
+                    </td>
+                  ) : null}
 
                   <td className="px-3 py-2.5">
                     <span className="block truncate font-medium text-ink">{holder.name}</span>
@@ -143,33 +185,41 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                     {formatCompact(holder.holdings)}
                   </td>
 
-                  <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
-                    {holder.currentValueUsd !== undefined
-                      ? formatCompact(holder.currentValueUsd)
-                      : '—'}
-                  </td>
+                  {prefs.isVisible('currentValue') ? (
+                    <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
+                      {holder.currentValueUsd !== undefined
+                        ? formatCompact(holder.currentValueUsd)
+                        : '—'}
+                    </td>
+                  ) : null}
 
-                  <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
-                    {holder.entryValueUsd !== undefined
-                      ? formatCompact(holder.entryValueUsd)
-                      : '—'}
-                  </td>
+                  {prefs.isVisible('entryValue') ? (
+                    <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
+                      {holder.entryValueUsd !== undefined
+                        ? formatCompact(holder.entryValueUsd)
+                        : '—'}
+                    </td>
+                  ) : null}
 
-                  <td
-                    className={`tabular hidden px-3 py-2.5 text-right lg:table-cell ${
-                      gain === undefined ? 'text-ink-muted' : gain >= 0 ? 'text-up' : 'text-down'
-                    }`}
-                  >
-                    {gain === undefined
-                      ? '—'
-                      : `${gain >= 0 ? '+' : ''}${gain.toFixed(1).replace('.', ',')} %`}
-                  </td>
+                  {prefs.isVisible('gain') ? (
+                    <td
+                      className={`tabular hidden px-3 py-2.5 text-right lg:table-cell ${
+                        gain === undefined ? 'text-ink-muted' : gain >= 0 ? 'text-up' : 'text-down'
+                      }`}
+                    >
+                      {gain === undefined
+                        ? '—'
+                        : `${gain >= 0 ? '+' : ''}${gain.toFixed(1).replace('.', ',')} %`}
+                    </td>
+                  ) : null}
 
-                  <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
-                    {holder.percentOfSupply !== undefined
-                      ? `${holder.percentOfSupply.toFixed(3).replace('.', ',')} %`
-                      : '—'}
-                  </td>
+                  {prefs.isVisible('supply') ? (
+                    <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
+                      {holder.percentOfSupply !== undefined
+                        ? `${holder.percentOfSupply.toFixed(3).replace('.', ',')} %`
+                        : '—'}
+                    </td>
+                  ) : null}
                 </tr>
               )
             })}

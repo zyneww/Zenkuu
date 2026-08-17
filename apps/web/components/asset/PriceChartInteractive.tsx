@@ -19,9 +19,12 @@ import {
 } from 'lightweight-charts'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { formatCompactAxis } from '@zenkuu/ui'
+
 import { ZenkuuMark } from '@/components/BrandMark'
 import { ChartNavigator } from '@/components/asset/ChartNavigator'
 import {
+  ASSET_CHART_HEIGHT,
   OHLC_KINDS,
   type ChartCandle,
   type ChartHandle,
@@ -57,6 +60,12 @@ interface PriceChartInteractiveProps {
   /** Facteur appliqué aux prix pour la devise choisie (1 = devise d'origine). */
   rate: number
   currency: string
+  /**
+   * Hauteur du TRACÉ, axe temporel compris. Par défaut `ASSET_CHART_HEIGHT`.
+   *
+   * Reste réglable : la vue « profondeur du carnet » et les aperçus de la page
+   * d'accueil montent le même composant dans des cadres bien plus courts.
+   */
   height?: number
   /** Fenêtre en jours — détermine le format de l'axe temporel. */
   days: number
@@ -94,13 +103,34 @@ interface PriceChartInteractiveProps {
    * d'un axe qu'on n'affiche pas. Un croisement visuel y suggère un dépassement qui
    * n'a pas eu lieu.
    *
-   * Celle retenue ramène les DEUX séries à 100 à leur premier point commun. L'axe ne
-   * porte plus des montants mais un indice, et une courbe au-dessus de l'autre
-   * signifie exactement ce qu'elle a l'air de signifier : elle a plus progressé
-   * depuis le début de la fenêtre. Le coût assumé : tant que la comparaison est
-   * active, on ne lit plus de prix — d'où la mention dans la légende.
+   * Celle retenue ramène TOUTES les séries à 100 à leur premier point. L'axe ne porte
+   * plus des montants mais un indice, et une courbe au-dessus d'une autre signifie
+   * exactement ce qu'elle a l'air de signifier : elle a plus progressé depuis le début
+   * de la fenêtre. Le coût assumé : tant que la comparaison est active, on ne lit plus
+   * de prix — d'où la mention dans la légende.
+   *
+   * ── PLUSIEURS COURBES, ET NON PLUS UNE SEULE ─────────────────────────────
+   *
+   * Le panneau de comparaison en accepte quatre. Elles se distinguent par leur
+   * COULEUR, prise dans la palette des séries, et partagent toutes le trait tireté qui
+   * les sépare de la courbe principale. C'est le bon partage : le style du trait dit
+   * « ceci n'est pas l'actif de la fiche » et reste lisible pour qui ne perçoit pas les
+   * couleurs (§9) ; la teinte, elle, ne fait que distinguer les comparants entre eux,
+   * ce que la légende sous le graphique reprend par écrit.
    */
-  compare?: { label: string; points: ChartPoint[] } | null
+  compare?: { id: string; label: string; points: ChartPoint[] }[]
+  /**
+   * L'échelle porte-t-elle une grandeur qui se compte en milliards ?
+   *
+   * Posé par l'appelant plutôt que déduit de la magnitude des points, et la nuance
+   * compte : un bitcoin à 63 000 € et une capitalisation de 63 000 € sont le même
+   * nombre, mais on vient lire le premier au chiffre près et le second à l'ordre de
+   * grandeur. Seule la fiche sait laquelle des deux elle trace.
+   *
+   * Voir `formatCompactPrice` pour ce que cela change, et pourquoi seule l'ÉCHELLE est
+   * concernée.
+   */
+  compactValues?: boolean
   /** Poignée rendue au parent pour la capture d'image. */
   handleRef?: React.MutableRefObject<ChartHandle | null>
   /**
@@ -165,7 +195,7 @@ export function PriceChartInteractive({
   kind = 'area',
   rate,
   currency,
-  height = 320,
+  height = ASSET_CHART_HEIGHT,
   days,
   label,
   showVolume = false,
@@ -175,6 +205,7 @@ export function PriceChartInteractive({
   referenceLines,
   handleRef,
   compare,
+  compactValues = false,
   showNavigator = true,
 }: PriceChartInteractiveProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -199,11 +230,44 @@ export function PriceChartInteractive({
   const mainRef = useRef<ISeriesApi<SeriesType> | null>(null)
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   const averageRef = useRef<ISeriesApi<'Line'> | null>(null)
-  const compareRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const compareRef = useRef<ISeriesApi<'Line'>[]>([])
   const priceLinesRef = useRef<IPriceLine[]>([])
 
-  /** Comparaison active : l'axe cesse de porter des montants (voir `compare`). */
-  const indexed = (compare?.points.length ?? 0) > 1
+  /**
+   * Courbes de comparaison réellement traçables.
+   *
+   * Une série d'un seul point ne s'indexe pas — la base 100 se calcule sur son premier
+   * point, et la courbe serait une horizontale à 100. On les écarte ICI plutôt qu'à
+   * l'affichage : c'est ce décompte qui décide combien de séries créer, et en créer une
+   * qu'on n'alimentera pas laisse une entrée vide dans la légende du graphique.
+   */
+  const overlays = useMemo(
+    () => (compare ?? []).filter((entry) => entry.points.length > 1),
+    [compare],
+  )
+
+  /**
+   * Comparaison active : l'axe cesse de porter des montants (voir `compare`).
+   *
+   * Le NOMBRE de courbes, et non un booléen : c'est lui qui commande la création des
+   * séries, et l'effet doit se rejouer quand on passe de deux comparants à trois — pas
+   * seulement quand on passe de zéro à un.
+   */
+  const overlayCount = overlays.length
+  const indexed = overlayCount > 0
+
+  /**
+   * Formateur de l'ÉCHELLE, choisi une fois pour les deux endroits qui le posent.
+   *
+   * Il est calculé ici plutôt qu'à chacun de ces endroits parce qu'ils DOIVENT dire la
+   * même chose : l'un s'applique à la création du graphique, l'autre à chaque
+   * changement d'unité. Deux expressions recopiées finiraient par diverger, et l'axe
+   * afficherait alors une unité au premier rendu et une autre au premier réglage.
+   */
+  const axisFormatter = useMemo(
+    () => (indexed ? formatIndex : compactValues ? formatCompactPrice : formatPrice),
+    [indexed, compactValues],
+  )
 
   /**
    * L'axe porte-t-il une HEURE, ou seulement une date ?
@@ -224,6 +288,10 @@ export function PriceChartInteractive({
   const showsTime = days <= 7
 
   const [legend, setLegend] = useState<LegendState>({})
+
+  /* Volume par horodatage de graphique, pour l'infobulle. Remplie au montage des
+     séries, lue par la croix de visée — voir les deux notes qui s'y rapportent. */
+  const volumeByTime = useRef<Map<number, number>>(new Map())
 
   const usesCandles = OHLC_KINDS.includes(kind) && (candles?.length ?? 0) > 1
 
@@ -320,6 +388,20 @@ export function PriceChartInteractive({
         pinch: false,
         axisDoubleClickReset: false,
       },
+      /*
+        `formatPrice` ICI, et non `axisFormatter`.
+
+        Cet effet ne se rejoue qu'au montage — c'est tout l'intérêt : recréer
+        l'instance à chaque changement d'unité perdrait le zoom et la position du
+        lecteur. Y lire `axisFormatter` l'aurait donc figé à sa valeur du premier
+        rendu, ou obligé à le mettre en dépendance et à reconstruire le graphique
+        chaque fois qu'on bascule sur la capitalisation.
+
+        L'effet « Unité de l'axe », juste en dessous, pose le bon formateur — et il
+        s'exécute dans le même commit que celui-ci, avant la première peinture. Le
+        formateur ci-dessous n'est donc jamais visible : c'est une valeur de départ,
+        pas un affichage transitoire.
+      */
       localization: { locale: 'fr-FR', priceFormatter: formatPrice },
     })
 
@@ -369,14 +451,18 @@ export function PriceChartInteractive({
 
   /* ── Unité de l'axe ─────────────────────────────────────────────────── */
   useEffect(() => {
-    // En comparaison, l'axe porte un INDICE et non un montant. Laisser le formateur
-    // de prix ferait lire « 112 € » là où la valeur signifie « +12 % depuis le début
-    // de la fenêtre » — un contresens complet, et précisément le genre d'unité fausse
-    // que le §5 proscrit.
+    // Trois unités possibles sur le même axe, et deux contresens à éviter :
+    //
+    //   · en COMPARAISON, l'axe porte un INDICE et non un montant. Laisser le
+    //     formateur de prix ferait lire « 112 € » là où la valeur signifie « +12 %
+    //     depuis le début de la fenêtre » — exactement le genre d'unité fausse que le
+    //     §5 proscrit ;
+    //   · sur une CAPITALISATION, treize chiffres par graduation dévorent le quart du
+    //     cadre. Voir `formatCompactPrice`.
     chartRef.current?.applyOptions({
-      localization: { priceFormatter: indexed ? formatIndex : formatPrice },
+      localization: { priceFormatter: axisFormatter },
     })
-  }, [indexed])
+  }, [axisFormatter])
 
   /* ── Format de l'axe temporel : une option, pas une reconstruction ────────── */
   useEffect(() => {
@@ -422,27 +508,29 @@ export function PriceChartInteractive({
       : null
     averageRef.current = average
 
-    // Trait TIRETÉ pour la comparaison : les deux courbes portent la même unité
+    // Trait TIRETÉ pour les comparaisons : toutes les courbes portent la même unité
     // (l'indice) et ne peuvent donc pas se distinguer par leur échelle. Le style du
-    // trait fait ce travail, et il reste lisible pour qui ne perçoit pas les
-    // couleurs — ce qu'une seconde teinte seule n'aurait pas garanti (§9).
-    const comparison = indexed
-      ? chart.addSeries(LineSeries, {
-          lineWidth: 1,
-          lineStyle: LineStyle.Dashed,
-          priceLineVisible: false,
-          lastValueVisible: false,
-          crosshairMarkerVisible: false,
-        })
-      : null
-    compareRef.current = comparison
+    // trait sépare l'actif de la fiche de ses comparants, et il reste lisible pour qui
+    // ne perçoit pas les couleurs — ce qu'une teinte seule n'aurait pas garanti (§9).
+    // Entre comparants, c'est la teinte qui distingue : quatre traits tiretés
+    // identiques seraient impossibles à rapporter à leur légende.
+    const comparisons = Array.from({ length: overlayCount }, () =>
+      chart.addSeries(LineSeries, {
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      }),
+    )
+    compareRef.current = comparisons
 
     return () => {
       priceLinesRef.current = []
       mainRef.current = null
       volumeRef.current = null
       averageRef.current = null
-      compareRef.current = null
+      compareRef.current = []
 
       // Sentinelle indispensable. React nettoie les effets DANS LEUR ORDRE DE
       // DÉCLARATION : au démontage, l'effet de création ci-dessus s'exécute en
@@ -459,9 +547,11 @@ export function PriceChartInteractive({
       chart.removeSeries(main)
       if (volume) chart.removeSeries(volume)
       if (average) chart.removeSeries(average)
-      if (comparison) chart.removeSeries(comparison)
+      for (const comparison of comparisons) chart.removeSeries(comparison)
     }
-  }, [kind, showVolume, showMovingAverage, indexed])
+    /* `overlayCount` et non `indexed` : passer de deux comparants à trois doit
+       recréer les séries, et le booléen ne bougeait pas dans ce cas. */
+  }, [kind, showVolume, showMovingAverage, overlayCount])
 
   /* ── Données ──────────────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -507,25 +597,42 @@ export function PriceChartInteractive({
       )
     }
 
-    /* Second actif — même traitement, même échelle. */
-    const comparison = compareRef.current
-    if (comparison && compare) {
-      comparison.applyOptions({ color: palette.muted })
+    /* Actifs et grandeurs superposés — même traitement, même échelle indicée.
+
+       La série et sa donnée sont appariées PAR INDEX : `overlayCount` a commandé la
+       création, et l'effet de données se rejoue après celui de création. Le garde sur
+       l'existence reste nécessaire pour le rendu intermédiaire, où `compare` a déjà
+       changé alors que les séries n'ont pas encore été recréées. */
+    overlays.forEach((entry, index) => {
+      const comparison = compareRef.current[index]
+      if (!comparison) return
+
+      comparison.applyOptions({
+        color: palette.compare[index % palette.compare.length] ?? palette.muted,
+      })
       comparison.setData(
-        indexSeries(compare.points).map((row) => ({
+        indexSeries(entry.points).map((row) => ({
           time: toChartTime(showsTime, row.timestamp),
           value: row.value,
         })),
       )
-    }
+    })
 
     applySeriesTheme(main, kind, palette, rising)
     applyChartTheme(chart, palette)
 
-    /* Volume — uniquement si la source l'a réellement fourni. */
-    const volume = volumeRef.current
-    if (volume) {
-      const source: { timestamp: number; volume?: number; up: boolean }[] = usesCandles
+    /*
+     * ── LE VOLUME, PRÉPARÉ UNE FOIS POUR DEUX USAGES ───────────────────────
+     *
+     * Il ne servait qu'au SOUS-PANNEAU, et n'était donc calculé que si celui-ci
+     * existait. L'infobulle en a désormais besoin aussi, et sans condition — voir le
+     * gestionnaire de croix de visée pour le pourquoi.
+     *
+     * La normalisation est donc sortie du `if`. Le sous-panneau, lui, reste
+     * conditionnel : c'est une série de plus dans le graphique, pas une donnée de plus.
+     */
+    const volumeRows = (
+      usesCandles
         ? (candles ?? []).map((c) => ({
             timestamp: c.timestamp,
             volume: c.volume,
@@ -536,15 +643,34 @@ export function PriceChartInteractive({
             volume: p.volume,
             up: p.price >= (points[index - 1]?.price ?? p.price),
           }))
+    )
+      .filter((row): row is typeof row & { volume: number } => row.volume !== undefined)
+      /* Le décalage de fuseau est appliqué ICI, une bonne fois : les deux usages
+         indexent sur l'horodatage que le graphique manipule, jamais sur le brut. */
+      .map((row) => ({
+        time: toChartTime(showsTime, row.timestamp),
+        value: row.volume * rate,
+        up: row.up,
+      }))
 
+    /*
+     * ── TABLE HORODATAGE → VOLUME, POUR L'INFOBULLE ────────────────────────
+     *
+     * Une `ref` et non un état : elle est lue dans un écouteur d'événement, et la
+     * poser en état déclencherait un rendu à chaque changement de série.
+     */
+    volumeByTime.current = new Map(volumeRows.map((row) => [row.time as number, row.value]))
+
+    /* Sous-panneau — uniquement si le lecteur l'a demandé ET si la source a fourni
+       de quoi le tracer. */
+    const volume = volumeRef.current
+    if (volume) {
       volume.setData(
-        source
-          .filter((row): row is typeof row & { volume: number } => row.volume !== undefined)
-          .map((row) => ({
-            time: toChartTime(showsTime, row.timestamp),
-            value: row.volume * rate,
-            color: withAlpha(row.up ? palette.up : palette.down, 0.45),
-          })),
+        volumeRows.map((row) => ({
+          time: row.time,
+          value: row.value,
+          color: withAlpha(row.up ? palette.up : palette.down, 0.45),
+        })),
       )
     }
 
@@ -626,7 +752,10 @@ export function PriceChartInteractive({
     showMovingAverage,
     referenceLines,
     indexed,
-    compare,
+    // `overlays` et non `compare` : c'est la liste FILTRÉE qui alimente les séries, et
+    // elle est mémoïsée sur `compare`. Lister les deux ne changerait rien au nombre de
+    // rejeux ; ne lister que `compare` laissait l'analyseur signaler l'écart.
+    overlays,
     // Le décalage horaire fait partie de la donnée remise à la bibliothèque : passer
     // de « 7 j » à « 1 M » change les horodatages eux-mêmes, pas seulement le format.
     showsTime,
@@ -759,9 +888,29 @@ export function PriceChartInteractive({
         next.price = value.value as number
       }
 
-      if (volume) {
-        const volumePoint = param.seriesData.get(volume)
-        if (volumePoint && 'value' in volumePoint) next.volume = volumePoint.value as number
+      /*
+       * ── LE VOLUME NE DÉPEND PLUS DU SOUS-PANNEAU ─────────────────────────
+       *
+       * Il était lu dans la SÉRIE de volume, laquelle n'existe que si le lecteur a
+       * coché « Volume en sous-panneau ». L'infobulle n'affichait donc « Vol » que
+       * dans un mode qu'à peu près personne n'active — alors que la donnée est là,
+       * dans les mêmes points, depuis le début.
+       *
+       * CoinGecko l'affiche toujours, et c'est justifié : sur un point de courbe, le
+       * volume dit si le mouvement a été SUIVI. Un décrochage à volume nul et un
+       * décrochage à volume triple ne racontent pas la même chose, et le cours seul
+       * ne permet pas de les distinguer.
+       *
+       * La série reste consultée EN PREMIER quand elle existe : elle porte la valeur
+       * déjà convertie dans la devise d'affichage, et la relire évite d'appliquer le
+       * taux deux fois.
+       */
+      const fromSeries = volume ? param.seriesData.get(volume) : undefined
+      if (fromSeries && 'value' in fromSeries) {
+        next.volume = fromSeries.value as number
+      } else {
+        const raw = volumeByTime.current.get(param.time as number)
+        if (raw !== undefined) next.volume = raw
       }
 
       setLegend(next)
@@ -978,25 +1127,48 @@ function FloatingTooltip({
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute z-20 min-w-[10rem] rounded-dense border border-border-subtle bg-overlay px-2.5 py-1.5 text-[0.6875rem] shadow-overlay"
+      /*
+        ── LA FORME DE LA RÉFÉRENCE, ET CE QUI CHANGE ────────────────────────
+
+        Trois écarts avec la version précédente, tous relevés sur la capture de
+        CoinGecko :
+
+          · `rounded-card` et non `rounded-dense`. La bulle de la référence est
+            franchement arrondie — c'est une carte flottante, pas un contrôle. Voir
+            les deux familles de rayons dans `globals.css`.
+
+          · pas de BORDURE, une ombre portée plus marquée à la place. Une bordure sur
+            fond sombre dessine un liseré gris qui découpe la bulle ; l'ombre la fait
+            flotter, ce qui est l'effet voulu au-dessus d'une courbe.
+
+          · les LIBELLÉS et les valeurs sur la même ligne, en `Prix :` / `Vol :`. La
+            référence les met bout à bout plutôt qu'aux deux bords, ce qui resserre la
+            bulle — et sur une bulle qui suit le curseur, la largeur compte : chaque
+            pixel de plus est un pixel de courbe masqué.
+      */
+      className="pointer-events-none absolute z-20 min-w-[9rem] rounded-card bg-overlay px-3 py-2 text-[0.6875rem] shadow-overlay ring-1 ring-inset ring-white/5"
       style={{
         left: legend.x,
         top: legend.y,
         transform: `translate(${flip ? 'calc(-100% - 12px)' : '12px'}, -50%)`,
       }}
     >
-      <p className="tabular mb-1 text-ink-muted">{legend.time}</p>
-      <p className="tabular flex items-baseline justify-between gap-3">
+      {/* La date en PREMIER et en gris : c'est le repère, pas la valeur. Elle porte
+          désormais son fuseau — voir `formatStamp`. */}
+      <p className="tabular mb-1.5 whitespace-nowrap text-ink-muted">{legend.time}</p>
+
+      <p className="tabular whitespace-nowrap">
         {/* « Indice » et non « Cours » en comparaison : l'axe ne porte alors plus des
             montants mais une base 100, et l'infobulle ne doit pas contredire la
             mention qui l'explique sous le graphique. */}
-        <span className="text-ink-muted">{indexed ? 'Indice' : 'Cours'}</span>
+        <span className="text-ink-muted">{indexed ? 'Indice' : 'Prix'} : </span>
         <span className="font-semibold text-ink">{formatPrice(legend.price ?? 0)}</span>
       </p>
+
       {legend.volume !== undefined ? (
-        <p className="tabular flex items-baseline justify-between gap-3">
-          <span className="text-ink-muted">Volume</span>
-          <span className="font-medium text-ink">{formatCompact(legend.volume)}</span>
+        <p className="tabular mt-0.5 whitespace-nowrap">
+          <span className="text-ink-muted">Vol : </span>
+          <span className="font-semibold text-ink">{formatCompact(legend.volume)}</span>
         </p>
       ) : null}
     </div>
@@ -1088,6 +1260,17 @@ interface Palette {
   accent: string
   muted: string
   border: string
+  /**
+   * Teintes des courbes de COMPARAISON, dans l'ordre de leur ajout.
+   *
+   * Les mêmes jetons que les autres figures du site (`--color-data-1` à `-4`),
+   * ordonnés par distance perceptuelle. Inventer une palette pour ce graphique aurait
+   * fait diverger les couleurs d'un même actif entre une courbe et un camembert.
+   *
+   * Quatre suffisent : c'est `COMPARE_MAX`, et le panneau de comparaison n'en laisse
+   * pas choisir davantage.
+   */
+  compare: string[]
 }
 
 /**
@@ -1104,6 +1287,12 @@ function readPalette(): Palette {
     accent: token('--color-brand', '#3d63c2'),
     muted: token('--color-ink-muted', '#64748b'),
     border: token('--color-border-subtle', '#e5e7eb'),
+    compare: [
+      token('--color-data-1', '#3d63c2'),
+      token('--color-data-2', '#c2853d'),
+      token('--color-data-3', '#3da4c2'),
+      token('--color-data-4', '#9c3dc2'),
+    ],
   }
 }
 
@@ -1260,6 +1449,45 @@ function formatIndex(value: number): string {
   return value.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
+/**
+ * ÉCHELLE ABRÉGÉE — « 1,7 Bn » plutôt que « 1 700 000 000 000 ».
+ *
+ * Réservée aux grandeurs qui se comptent en milliards : capitalisation, volume. Un
+ * cours ne passe jamais par ici, et c'est voulu — abréger « 63 240 € » en « 63,2 k »
+ * ferait perdre la précision qu'on vient justement lire sur une courbe de prix.
+ *
+ * ── POURQUOI L'AXE ET PAS L'INFOBULLE ────────────────────────────────────────
+ *
+ * L'axe a QUATRE-VINGTS pixels de large et six graduations. Sans abréviation, une
+ * capitalisation y écrivait treize chiffres et trois séparateurs : la bibliothèque
+ * élargit alors la colonne d'échelle jusqu'à lui donner le quart du cadre, qu'elle
+ * prend au tracé. C'est ce que fait la référence, dont l'axe porte « €1.7T ».
+ *
+ * L'infobulle, elle, garde le montant EXACT. Elle n'a pas de contrainte de largeur,
+ * et c'est le seul endroit où l'on vient chercher une valeur précise — la référence
+ * fait le même partage.
+ *
+ * ── LA PRÉCISION EST EN CHIFFRES SIGNIFICATIFS, PAS EN DÉCIMALES ─────────────
+ *
+ * C'est tout l'objet de `formatCompactAxis`, dont la note détaille la mesure : avec
+ * une décimale fixe, les six graduations d'une capitalisation sur sept jours
+ * affichaient TOUTES « 1,3 Bn ».
+ *
+ * Elle vit dans `@zenkuu/ui` et non ici parce que le tracé SVG rendu avant
+ * l'hydratation doit écrire exactement les mêmes étiquettes : deux échelles
+ * différentes feraient sauter l'axe au moment de la bascule.
+ *
+ * Ce n'est donc PAS le `formatCompact` du sous-panneau de volume, et l'écart est
+ * assumé : un histogramme de volume se lit à l'ordre de grandeur, une échelle de prix
+ * se lit à la graduation près.
+ *
+ * Le repli couvre le `null` d'une valeur non finie — que la bibliothèque ne devrait
+ * jamais passer à un formateur d'axe, mais qui rendrait l'axe muet si elle le faisait.
+ */
+function formatCompactPrice(value: number): string {
+  return formatCompactAxis(value) ?? formatPrice(value)
+}
+
 function formatPrice(value: number): string {
   return new Intl.NumberFormat('fr-FR', {
     maximumFractionDigits: priceDigits(value),
@@ -1316,12 +1544,59 @@ function formatCompact(value: number): string {
  */
 function formatStamp(time: UTCTimestamp, days: number): string {
   const date = new Date((time as number) * 1000)
-  return date.toLocaleString(
+
+  const texte = date.toLocaleString(
     'fr-FR',
     days <= 7
-      ? { timeZone: 'UTC', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
+      ? /*
+         * L'ANNÉE FIGURE MÊME SUR LES FENÊTRES COURTES.
+         *
+         * « 14 août, 21:00 » ne dit pas de quelle année il s'agit — ce qui n'a l'air
+         * de rien tant qu'on regarde les sept derniers jours, et devient faux dès
+         * qu'on lit une capture d'écran, qu'on compare deux fiches ou qu'on remonte
+         * la courbe d'un an au palier suivant. La référence date toujours en entier,
+         * et cinq caractères de plus ne coûtent rien à une bulle de 160 pixels.
+         */
+        {
+          timeZone: 'UTC',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }
       : { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' },
   )
+
+  /*
+   * ── LE FUSEAU EST AJOUTÉ À LA MAIN, ET IL LE FAUT ─────────────────────────
+   *
+   * CoinGecko date ses infobulles « Aug 17, 2026, 04:05:00 GMT+2 » : sans le fuseau,
+   * une heure ne dit pas de quelle heure il s'agit — et sur un actif coté à New York
+   * lu depuis Paris, l'écart est de six heures.
+   *
+   * Il ne peut PAS venir de `Intl` (`timeZoneName: 'shortOffset'`) : le formateur
+   * annoncerait alors « UTC », qui est le fuseau qu'on lui a demandé, et non celui du
+   * lecteur. Or l'heure affichée est bien LOCALE — la valeur a été décalée à l'aller
+   * par `toChartTime`, parce que la bibliothèque de tracé ne rend qu'en UTC. Le
+   * `timeZone: 'UTC'` ci-dessus est la contrepartie exacte de ce décalage, pas une
+   * déclaration de fuseau.
+   *
+   * On lit donc le décalage RÉEL du navigateur et on l'écrit soi-même. `getTimezoneOffset`
+   * rend des minutes, et de signe INVERSE à l'usage courant : Paris en été vaut −120,
+   * ce qui s'écrit « GMT+2 ».
+   *
+   * Les fuseaux à minutes non nulles existent (Inde : +5:30, Népal : +5:45) et ne sont
+   * pas des cas d'école — d'où la partie fractionnaire, affichée seulement quand elle
+   * n'est pas nulle.
+   */
+  const decalageMinutes = -date.getTimezoneOffset()
+  const signe = decalageMinutes >= 0 ? '+' : '−'
+  const heures = Math.floor(Math.abs(decalageMinutes) / 60)
+  const minutes = Math.abs(decalageMinutes) % 60
+  const fuseau = `GMT${signe}${heures}${minutes ? `:${String(minutes).padStart(2, '0')}` : ''}`
+
+  return `${texte} ${fuseau}`
 }
 
 /** Applique une transparence à une couleur hexadécimale ou `rgb()` issue des jetons. */

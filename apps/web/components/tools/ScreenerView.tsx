@@ -492,7 +492,7 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
           compact
         />
       ) : (
-        <div className="overflow-x-auto rounded-card border border-border-subtle">
+        <div className="overflow-x-auto rounded-card">
           {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Chaque
               jeu déclare lui-même ce qu'il sacrifie en premier : sur 375 pixels, sept
               colonnes ne font pas un tableau mais un défilement latéral. */}
@@ -570,13 +570,15 @@ export function ScreenerView({ assets }: { assets: MarketAsset[] }) {
                   <th scope="row" className="px-3 py-2.5 text-left font-normal">
                     <Link
                       href={assetHref(asset.assetClass, asset.id)}
-                      className="flex min-w-0 items-center gap-2"
+                      className="flex min-w-0 items-center gap-3"
                     >
                       <AssetLogo asset={asset} size={22} />
-                      <span className="truncate font-medium text-ink group-hover:text-brand-strong">
+                      {/* `flex-1` sur le nom pousse le symbole contre le bord droit de
+                          la colonne — voir la note détaillée dans `MarketTable`. */}
+                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
                         {asset.name}
                       </span>
-                      <span className="shrink-0 text-xs uppercase text-ink-muted">
+                      <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
                         {asset.symbol}
                       </span>
                     </Link>

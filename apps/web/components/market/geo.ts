@@ -15,11 +15,10 @@
  *
  * ── LE CHARGEMENT EST DIFFÉRÉ, ET MÉMORISÉ ──────────────────────────────────
  *
- * Ni la carte ni le globe ne sont visibles au premier rendu de la page : les deux
- * attendent un clic sur leur bouton. Charger le fond au montage ferait payer
- * quarante-cinq kilo-octets à tout visiteur de `/macro`, y compris à celui qui ne
- * regarde que le classement. La promesse est mise en cache au niveau du module — deux
- * bascules entre globe et carte ne déclenchent donc qu'un seul téléchargement.
+ * Le fond est demandé au montage de la carte, pas au rendu de la page : il n'entre
+ * donc pas dans le coût du premier affichage, et un visiteur qui ne descend pas
+ * jusqu'à la figure ne le paie jamais. La promesse est mémorisée au niveau du module,
+ * ce qui évite un second téléchargement si la carte se remonte.
  */
 
 export interface CountryFeature {
@@ -138,23 +137,14 @@ export function countryPath(country: CountryFeature, width: number, height: numb
     .join('')
 }
 
-/**
- * Point d'un pays sur la sphère unité, en coordonnées cartésiennes.
+/*
+ * `toSphere` VIVAIT ICI, et est parti avec le globe.
  *
- * Convention de three.js : `y` vers le haut, et la longitude tourne autour de cet axe.
- * Le décalage de 180° sur la longitude place le méridien de Greenwich face à la caméra
- * par défaut — sans lui, le globe s'ouvre sur le Pacifique.
+ * Elle projetait une coordonnée sur la sphère unité dans la convention de three.js.
+ * Plus rien ne l'appelle depuis que `/macro` n'a qu'une représentation. Elle n'est pas
+ * gardée « au cas où » : une fonction sans appelant est une fonction sans test et sans
+ * garantie, et la retrouver dans l'historique coûte moins cher que de la maintenir.
  */
-export function toSphere(lon: number, lat: number, radius = 1): [number, number, number] {
-  const phi = ((90 - lat) * Math.PI) / 180
-  const theta = ((lon + 180) * Math.PI) / 180
-
-  return [
-    -radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta),
-  ]
-}
 
 /**
  * Échelle de couleur d'une valeur macroéconomique.

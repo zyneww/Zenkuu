@@ -48,7 +48,7 @@ export function readChartView(raw: string | string[] | undefined): ChartView {
 export function ChartsTabs({ current }: { current: ChartView }) {
   const tabs: LinkTab[] = CHART_VIEWS.map((view) => ({
     id: view.id,
-    href: view.id === 'global' ? '/crypto/graphiques' : `/crypto/graphiques?vue=${view.id}`,
+    href: view.id === 'global' ? '/graphiques' : `/graphiques?vue=${view.id}`,
     label: view.label,
   }))
 

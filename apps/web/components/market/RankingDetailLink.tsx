@@ -22,8 +22,8 @@ import { Link } from '@/i18n/navigation'
  *
  * ── UN COMPOSANT PARTAGÉ, ET NON DEUX COPIES ─────────────────────────────────
  *
- * Deux surfaces l'utilisent : les quatre palmarès de `/crypto/all-coins`, qui vivent
- * dans un composant CLIENT, et les deux cartes de `/crypto/mouvements`, rendues côté
+ * Deux surfaces l'utilisent : les quatre palmarès de `/classements`, qui vivent
+ * dans un composant CLIENT, et les deux cartes de `/mouvements`, rendues côté
  * serveur. Un composant sans état ni effet traverse la frontière sans rien exiger — et
  * le recopier des deux côtés aurait garanti qu'un des deux liens perde la période le
  * jour où l'autre gagne un paramètre.
@@ -38,7 +38,7 @@ export function RankingDetailLink({
 }) {
   return (
     <Link
-      href={`/crypto/classement/${type}?periode=${period}`}
+      href={`/classements/${type}?periode=${period}`}
       className="group inline-flex shrink-0 items-center gap-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
     >
       Voir en détail

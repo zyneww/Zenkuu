@@ -20,6 +20,43 @@
  * compilation ; c'est la CONSTANTE qui commandait le déménagement.
  */
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * HAUTEUR DU TRACÉ SUR UNE FICHE D'ACTIF — mesurée chez CoinGecko, pas estimée
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Relevé au navigateur sur `coingecko.com/en/coins/bitcoin`, cadre de 913 pixels de
+ * large :
+ *
+ *   · `.highcharts-plot-background`  →  503 px — la zone où la courbe est peinte ;
+ *   · `.highcharts-navigator`        →   55 px — la bande de navigation du dessous ;
+ *   · `#gecko-coin-chart`            →  624 px — le tout, axes et marges compris.
+ *
+ * Notre cadre en faisait 320, dont 292 de peinture et 28 d'axe temporel : la courbe
+ * occupait un peu plus de la MOITIÉ de la surface de la référence. L'écart ne se voyait
+ * pas sur une fenêtre de sept jours et se voyait beaucoup sur « MAX », où dix ans
+ * d'histoire s'écrasaient dans trois cents pixels.
+ *
+ * ── POURQUOI 531 ET NON 624 ──────────────────────────────────────────────────
+ *
+ * Cette constante décrit le TRACÉ, axe temporel compris — pas le bloc entier. On vise
+ * donc les 503 pixels de peinture de la référence, auxquels s'ajoutent les 28 pixels
+ * que notre axe temporel occupe sous la courbe. La bande de navigation et la barre
+ * d'outils vivent en dehors de cette boîte, et s'ajoutent d'elles-mêmes.
+ *
+ * ── POURQUOI UNE CONSTANTE PARTAGÉE ──────────────────────────────────────────
+ *
+ * Deux tracés se succèdent au même endroit : la courbe SVG rendue par le serveur, puis
+ * le canevas une fois la bibliothèque arrivée. Deux hauteurs écrites séparément
+ * feraient SAUTER la page au moment de la bascule — c'est le décalage de mise en page
+ * le plus visible qu'une fiche puisse produire, puisqu'il déplace tout ce qui suit.
+ *
+ * Elle vit ici plutôt que dans `PriceChartInteractive` pour la raison qui a fait naître
+ * ce fichier : le module du graphique pèse 240 Ko et n'est chargé qu'après
+ * l'hydratation. Y prendre un nombre le rappellerait tout entier.
+ */
+export const ASSET_CHART_HEIGHT = 531
+
 export interface ChartPoint {
   timestamp: number
   price: number

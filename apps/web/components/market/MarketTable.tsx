@@ -16,7 +16,7 @@
  * ne recrée l'ambiguïté.
  */
 
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, Sparkline } from '@zenkuu/ui'
@@ -25,6 +25,12 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
 import { Pagination } from '@/components/ui/Pagination'
+import {
+  ColumnHeader,
+  ColumnPicker,
+  useColumnPreferences,
+  type ColumnDef,
+} from '@/components/ui/table-columns'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
@@ -71,6 +77,37 @@ interface MarketTableProps {
    * où elle se lit comme une vignette de complément.
    */
   chartPosition?: 'inline' | 'end'
+
+  /* ── PORTÉE « Échangeables / Tous les actifs » ───────────────────────
+
+     Les quatre champs voyagent ENSEMBLE ou pas du tout : l'appelant ne les fournit
+     que là où le partage distingue réellement des lignes (voir `MarketBrowser`). Ils
+     sont donc tous optionnels, et le groupe ne se rend que si `onScopeChange` est là.
+
+     L'ÉTAT RESTE CHEZ L'APPELANT : c'est lui qui filtre la liste, ce tableau ne fait
+     que rendre les deux boutons à côté du sélecteur de colonnes — l'endroit où les
+     réglages d'affichage se regroupent. */
+  scope?: 'tradable' | 'all'
+  onScopeChange?: (scope: 'tradable' | 'all') => void
+  tradableCount?: number
+  totalCount?: number
+
+  /**
+   * Ce qui tient la GAUCHE de la rangée d'affichage, à défaut des portées.
+   *
+   * La rangée porte « Colonnes » à droite, et les portées à gauche quand elles ont un
+   * sens. Là où elles n'en ont pas — la moitié des classes d'actifs — elle n'avait
+   * plus qu'un `<span />` vide à gauche : une rangée entière pour un seul bouton.
+   *
+   * Ce passe-plat la laisse accueillir ce que l'appelant a de mieux à y mettre. En
+   * pratique les vues rapides, qui gagnent ainsi une rangée sur les pages où les
+   * portées manquent — voir `MarketBrowser`.
+   *
+   * IGNORÉ quand les portées sont fournies : les deux se disputeraient la même place,
+   * et c'est aux portées qu'elle revient (elles commandent CE TABLEAU, là où les vues
+   * rapides commandent la liste qu'on lui passe).
+   */
+  leadingSlot?: React.ReactNode
 }
 
 function buildHref(
@@ -99,6 +136,11 @@ export function MarketTable({
   period,
   watchlist,
   chartPosition = 'end',
+  scope,
+  onScopeChange,
+  tradableCount,
+  totalCount,
+  leadingSlot,
 }: MarketTableProps) {
   const fr = useContent()
   /**
@@ -142,8 +184,103 @@ export function MarketTable({
    */
   const showDayRange = !showMarketCap && has('high24h') && has('low24h')
 
+  /**
+   * ── LES COLONNES DÉCLARÉES, ET CE QUE LA LISTE CONTIENT VRAIMENT ──────────
+   *
+   * Elle ne liste QUE les colonnes que cette classe d'actifs possède réellement :
+   * une paire de devises n'a pas de capitalisation, et proposer de l'afficher
+   * offrirait de cocher une case qui ne changerait rien. Le sélecteur décrit donc ce
+   * tableau-ci, pas un tableau générique.
+   *
+   * `locked` sur le nom et le cours : ce sont les deux colonnes sans lesquelles une
+   * ligne cesse d'identifier quoi que ce soit. On peut tout retirer autour.
+   */
+  const columns: ColumnDef[] = [
+    ...(showRank ? [{ id: 'rank', label: fr.market.columns.rank }] : []),
+    { id: 'name', label: fr.market.columns.name, locked: true },
+    { id: 'price', label: fr.market.columns.price, locked: true },
+    {
+      id: 'change24h',
+      label: selected
+        ? `${fr.market.columns.variation} (${selected.label})`
+        : fr.market.columns.change24h,
+    },
+    ...(show7d ? [{ id: 'change7d', label: fr.market.columns.change7d }] : []),
+    ...(showChart ? [{ id: 'chart', label: fr.market.columns.chart }] : []),
+    ...(showVolume ? [{ id: 'volume', label: fr.market.columns.volume }] : []),
+    ...(showMarketCap ? [{ id: 'marketCap', label: fr.market.columns.marketCap }] : []),
+    ...(showDayRange ? [{ id: 'dayRange', label: fr.market.columns.dayRange }] : []),
+  ]
+
+  /* La clé porte la CLASSE D'ACTIF : quelqu'un qui masque la capitalisation sur les
+     cryptomonnaies ne demande pas la même chose sur les devises, et une clé commune
+     ferait voyager un choix d'un tableau à un autre sans qu'il l'ait dit. */
+  const prefs = useColumnPreferences(`marches:${assetClass}`, columns)
+
+  /* Le tri de ce tableau vit dans l'URL — la pagination est servie par le serveur,
+     qui doit connaître le critère. Le menu d'en-tête NAVIGUE donc au lieu de trier en
+     mémoire, ce qui préserve le partage par lien que les autres tableaux n'ont pas. */
+  const router = useRouter()
+
+  function onSort(key: string, nextDirection: 'asc' | 'desc') {
+    router.push(
+      buildHref(basePath, { page: 1, sortBy: key as MarketSort, direction: nextDirection }),
+    )
+  }
+
+  const sortState = { key: sortBy as string, direction }
+
+  const shows = {
+    rank: showRank && prefs.isVisible('rank'),
+    change7d: show7d && prefs.isVisible('change7d'),
+    chartInline: chartInline && prefs.isVisible('chart'),
+    chartAtEnd: chartAtEnd && prefs.isVisible('chart'),
+    volume: showVolume && prefs.isVisible('volume'),
+    marketCap: showMarketCap && prefs.isVisible('marketCap'),
+    dayRange: showDayRange && prefs.isVisible('dayRange'),
+    change24h: prefs.isVisible('change24h'),
+  }
+
   return (
     <div className="space-y-3">
+      {/* Les réglages d'affichage sur UNE rangée, au-dessus du tableau : la portée à
+          gauche, les colonnes à droite. Tous deux disent ce qu'on montre — l'un en
+          lignes, l'autre en colonnes — et se cherchent donc au même endroit. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {onScopeChange ? (
+          <div
+            className="flex items-center gap-1 rounded-control border border-border-subtle p-0.5"
+            role="group"
+            aria-label="Portée"
+          >
+            <ScopeButton
+              active={scope === 'tradable'}
+              onClick={() => onScopeChange('tradable')}
+              count={tradableCount ?? 0}
+              title="Seuls les actifs dont la source publie un volume sur 24 heures"
+            >
+              Échangeables
+            </ScopeButton>
+            <ScopeButton
+              active={scope !== 'tradable'}
+              onClick={() => onScopeChange('all')}
+              count={totalCount ?? assets.length}
+              title="Tous les actifs de cette page, volume publié ou non"
+            >
+              Tous les actifs
+            </ScopeButton>
+          </div>
+        ) : (
+          /* Sans portée, la gauche revient à ce que l'appelant y pose — en pratique
+             les vues rapides, descendues d'une rangée (voir `leadingSlot`). Le
+             `<span />` de repli n'est pas décoratif : `justify-between` sur un enfant
+             unique collerait le sélecteur de colonnes à gauche, alors qu'on le cherche
+             au bord droit. */
+          (leadingSlot ?? <span />)
+        )}
+
+        <ColumnPicker prefs={prefs} />
+      </div>
       {/*
         ── COLONNES PRIORITAIRES PLUTÔT QUE DÉFILEMENT HORIZONTAL ──────────────
 
@@ -160,7 +297,16 @@ export function MarketTable({
         clic de là. Un tableau tronqué qui l'annonce vaut mieux qu'un tableau complet
         qu'on ne peut pas atteindre.
       */}
-      <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
+      {/*
+        LE CONTOUR DE LA CARTE EST RETIRÉ, et ce n'est pas un simple allègement.
+
+        Le tableau vivait dans un cadre bordé, posé dans une page elle-même bordée de
+        sections : trois filets parallèles se croisaient à chaque coin sans qu'aucun
+        ne sépare quoi que ce soit. Les lignes du tableau font déjà la grille, et
+        c'est le rôle d'un tableau de la faire. Le fond `surface` suffit à détacher le
+        bloc de la page.
+      */}
+      <div className="overflow-x-auto rounded-card bg-surface">
         <table className="w-full border-collapse text-sm sm:min-w-[640px]">
           <caption className="sr-only">{fr.assetClass[assetClass]}</caption>
 
@@ -168,68 +314,102 @@ export function MarketTable({
             <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
               {/* Le rang coûte quarante pixels pour redire ce que l'ORDRE des lignes
                   dit déjà. Il part le premier. */}
-              {showRank ? (
-                <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
-                  {fr.market.columns.rank}
+              {/* L'étoile a sa propre colonne, sans en-tête : un intitulé « Suivi »
+                  sur trente pixels serait tronqué, et la forme de l'étoile dit déjà ce
+                  que la colonne fait. Le libellé vit dans le `aria-label` de chaque
+                  bouton, où il est nominatif — « Suivre Bitcoin » plutôt que « Suivi ». */}
+              {watchlist ? (
+                <th scope="col" className="w-8 px-1 py-2.5">
+                  <span className="sr-only">{fr.market.columns.watch}</span>
                 </th>
               ) : null}
-              <th scope="col" className="px-3 py-2.5 font-medium">
-                {fr.market.columns.name}
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right font-medium">
-                {fr.market.columns.price}
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right font-medium">
-                {selected
-                  ? `${fr.market.columns.variation} (${selected.label})`
-                  : fr.market.columns.change24h}
-              </th>
-              {show7d ? (
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
-                  {fr.market.columns.change7d}
-                </th>
-              ) : null}
-              {chartInline ? (
-                <th scope="col" className="hidden px-3 py-2.5 font-medium lg:table-cell">
-                  {fr.market.columns.chart}
-                </th>
-              ) : null}
-              {showVolume ? (
-                <SortableHeader
-                  label={fr.market.columns.volume}
-                  field="volume24h"
-                  activeField={sortBy}
-                  direction={direction}
-                  sortable={sortable}
-                  basePath={basePath}
-                  className="hidden md:table-cell"
-                />
-              ) : null}
-              {showMarketCap ? (
-                <SortableHeader
-                  label={fr.market.columns.marketCap}
-                  field="marketCap"
-                  activeField={sortBy}
-                  direction={direction}
-                  sortable={sortable}
-                  basePath={basePath}
+
+              {shows.rank ? (
+                <ColumnHeader
+                  label={fr.market.columns.rank}
+                  columnId="rank"
+                  columnPrefs={prefs}
+                  align="left"
                   className="hidden sm:table-cell"
                 />
               ) : null}
-              {showDayRange ? (
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium md:table-cell">
-                  {fr.market.columns.dayRange}
-                </th>
+              <ColumnHeader
+                label={fr.market.columns.name}
+                columnId="name"
+                columnPrefs={prefs}
+                align="left"
+              />
+              <ColumnHeader label={fr.market.columns.price} columnId="price" columnPrefs={prefs} />
+              {shows.change24h ? (
+                <ColumnHeader
+                  label={
+                    selected
+                      ? `${fr.market.columns.variation} (${selected.label})`
+                      : fr.market.columns.change24h
+                  }
+                  columnId="change24h"
+                  columnPrefs={prefs}
+                />
               ) : null}
-              {chartAtEnd ? (
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
-                  {fr.market.columns.chart}
-                </th>
+              {shows.change7d ? (
+                <ColumnHeader
+                  label={fr.market.columns.change7d}
+                  columnId="change7d"
+                  columnPrefs={prefs}
+                  className="hidden sm:table-cell"
+                />
               ) : null}
-              {watchlist ? (
-                <th scope="col" className="px-3 py-2.5 text-right font-medium">
-                  <span className="sr-only">{fr.market.columns.watch}</span>
-                </th>
+              {shows.chartInline ? (
+                <ColumnHeader
+                  label={fr.market.columns.chart}
+                  columnId="chart"
+                  columnPrefs={prefs}
+                  align="left"
+                  className="hidden lg:table-cell"
+                />
+              ) : null}
+              {shows.volume ? (
+                <ColumnHeader
+                  label={fr.market.columns.volume}
+                  columnId="volume"
+                  columnPrefs={prefs}
+                  /* `sortKey` n'est fourni que si le fournisseur sait trier sur
+                     l'ENSEMBLE du classement. Sinon le menu n'offre pas le tri plutôt
+                     que d'en offrir un qui ne réordonnerait que la page courante. */
+                  sortKey={sortable ? 'volume24h' : undefined}
+                  sort={sortable ? sortState : null}
+                  onSort={onSort}
+                  hint={fr.market.sortByVolume}
+                  className="hidden md:table-cell"
+                />
+              ) : null}
+              {shows.marketCap ? (
+                <ColumnHeader
+                  label={fr.market.columns.marketCap}
+                  columnId="marketCap"
+                  columnPrefs={prefs}
+                  sortKey={sortable ? 'marketCap' : undefined}
+                  sort={sortable ? sortState : null}
+                  onSort={onSort}
+                  hint={fr.market.sortByMarketCap}
+                  className="hidden sm:table-cell"
+                />
+              ) : null}
+              {shows.dayRange ? (
+                <ColumnHeader
+                  label={fr.market.columns.dayRange}
+                  columnId="dayRange"
+                  columnPrefs={prefs}
+                  className="hidden md:table-cell"
+                />
+              ) : null}
+              {shows.chartAtEnd ? (
+                <ColumnHeader
+                  label={fr.market.columns.chart}
+                  columnId="chart"
+                  columnPrefs={prefs}
+                  className="hidden lg:table-cell"
+                />
               ) : null}
             </tr>
           </thead>
@@ -240,7 +420,34 @@ export function MarketTable({
 
               return (
                 <tr key={asset.id} className="group transition-colors hover:bg-surface-muted/60">
-                  {showRank ? (
+                  {/*
+                    L'ÉTOILE OUVRE LA LIGNE, DEVANT LE RANG.
+
+                    Elle fermait la ligne, tout à droite, après le graphique : c'est
+                    l'endroit où CoinGecko la mettait autrefois et où plus personne ne
+                    la met. Le geste « je garde un œil là-dessus » se fait en PARCOURANT
+                    la colonne des noms, de haut en bas ; une commande placée à huit
+                    cents pixels de là oblige à traverser le tableau pour chaque ligne.
+
+                    Elle reste visible à toutes les largeurs, contrairement au rang :
+                    c'est la seule cellule ACTIONNABLE de la ligne, et la masquer sur
+                    téléphone retirerait la fonction plutôt qu'une information.
+                  */}
+                  {watchlist ? (
+                    <td className="px-1 py-2.5">
+                      <WatchlistStar
+                        assetClass={asset.assetClass}
+                        assetId={asset.id}
+                        label={asset.name}
+                        symbol={asset.symbol}
+                        path={basePath}
+                        initialFollowing={followed.has(asset.id)}
+                        available={watchlist.available}
+                      />
+                    </td>
+                  ) : null}
+
+                  {shows.rank ? (
                     <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
                       {asset.rank ?? '—'}
                     </td>
@@ -254,12 +461,28 @@ export function MarketTable({
                         `min-w-0` + `truncate` : à 393 px, « Wrapped liquid staked Ether »
                         pousserait la colonne bien au-delà de l'écran. Le nom se coupe,
                         le SYMBOLE reste — c'est lui qui identifie à coup sûr. */}
-                    <Link href={href} className="flex min-w-0 items-center gap-2">
+                    {/*
+                      L'ABRÉVIATION EST POUSSÉE À DROITE DE LA COLONNE, et c'est la
+                      seule façon de les aligner.
+
+                      Elle suivait le nom à une gouttière fixe. Comme les noms vont de
+                      « XRP » à « Wrapped liquid staked Ether », les symboles formaient
+                      une colonne en dents de scie, et l'œil devait les chercher un par
+                      un au lieu de les balayer.
+
+                      `flex-1` sur le nom lui fait prendre toute la place restante :
+                      le symbole se cale contre le bord droit de la colonne, qui est
+                      le MÊME pour toutes les lignes puisqu'un tableau partage la
+                      largeur de ses colonnes. L'alignement découle de la structure,
+                      sans largeur écrite à la main qui se périmerait au premier nom
+                      plus long.
+                    */}
+                    <Link href={href} className="flex min-w-0 items-center gap-3">
                       <AssetLogo asset={asset} size={24} />
-                      <span className="truncate font-medium text-ink group-hover:text-brand-strong">
+                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
                         {asset.name}
                       </span>
-                      <span className="shrink-0 text-xs uppercase text-ink-muted">
+                      <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
                         {asset.symbol}
                       </span>
                     </Link>
@@ -269,6 +492,7 @@ export function MarketTable({
                     <Money value={asset.price} from={asset.currency} asRate={isForex} />
                   </td>
 
+                  {shows.change24h ? (
                   <td className="px-3 py-2.5 text-right">
                     <ChangeBadge
                       value={selected ? asset[selected.field] : asset.change24h}
@@ -279,32 +503,33 @@ export function MarketTable({
                       size="sm"
                     />
                   </td>
+                  ) : null}
 
-                  {show7d ? (
+                  {shows.change7d ? (
                     <td className="hidden px-3 py-2.5 text-right sm:table-cell">
                       <ChangeBadge value={asset.change7d} periodLabel="sur 7 jours" size="sm" />
                     </td>
                   ) : null}
 
-                  {chartInline ? (
+                  {shows.chartInline ? (
                     <td className="hidden px-3 py-2.5 lg:table-cell">
                       <Sparkline values={asset.sparkline7d} label={`Évolution de ${asset.name}`} />
                     </td>
                   ) : null}
 
-                  {showVolume ? (
+                  {shows.volume ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
                       <Money value={asset.volume24h} from={asset.currency} compact />
                     </td>
                   ) : null}
 
-                  {showMarketCap ? (
+                  {shows.marketCap ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
                       <Money value={asset.marketCap} from={asset.currency} compact />
                     </td>
                   ) : null}
 
-                  {showDayRange ? (
+                  {shows.dayRange ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-xs text-ink-muted md:table-cell">
                       {asset.low24h !== undefined && asset.high24h !== undefined ? (
                         <>
@@ -318,7 +543,7 @@ export function MarketTable({
                     </td>
                   ) : null}
 
-                  {chartAtEnd ? (
+                  {shows.chartAtEnd ? (
                     <td className="hidden px-3 py-2.5 text-right lg:table-cell">
                       <span className="inline-flex justify-end">
                         <Sparkline
@@ -329,19 +554,8 @@ export function MarketTable({
                     </td>
                   ) : null}
 
-                  {watchlist ? (
-                    <td className="px-3 py-2.5 text-right">
-                      <WatchlistStar
-                        assetClass={asset.assetClass}
-                        assetId={asset.id}
-                        label={asset.name}
-                        symbol={asset.symbol}
-                        path={basePath}
-                        initialFollowing={followed.has(asset.id)}
-                        available={watchlist.available}
-                      />
-                    </td>
-                  ) : null}
+                  {/* L'étoile qui fermait la ligne a REJOINT SON DÉBUT — voir la note
+                      à la première cellule. Elle n'existe plus ici. */}
                 </tr>
               )
             })}
@@ -352,7 +566,20 @@ export function MarketTable({
       {sortable ? <p className="text-xs text-ink-muted">{fr.market.sortNotSupported}</p> : null}
 
       {/*
-        LE TOTAL EST INCONNU, ET LA BARRE LE SAIT.
+        ── LE PIED EXISTE MÊME SANS PAGINATION ────────────────────────────────
+
+        Il ne se rendait QUE sur les classes paginées, c'est-à-dire la crypto. Les six
+        autres — actions, ETF, indices, devises, matières premières — refermaient leur
+        tableau sur rien : ni décompte, ni borne, rien qui dise si les douze lignes
+        affichées sont tout ce qui existe ou le début d'une liste plus longue.
+
+        C'est la question qu'un pied de tableau répond en premier, avant même de
+        proposer de tourner la page. `Pagination` la traite déjà seule : sans
+        `hrefFor` ni `onPageChange`, elle n'affiche aucun bouton — juste
+        « 12 matières premières ». Voir `counterText`, qui raccourcit de lui-même sur
+        une page unique.
+
+        ── LE TOTAL EST INCONNU SUR LES CLASSES PAGINÉES, ET LA BARRE LE SAIT ──
 
         La source pagine elle-même et ne renvoie jamais le nombre d'actifs qu'elle
         détient. `Pagination` reçoit donc `count` + `hasNext` plutôt que `total` : elle
@@ -364,6 +591,9 @@ export function MarketTable({
         exact de la taille de page, où l'on proposera une dernière page vide. Elle
         s'annoncera alors elle-même comme telle, ce qui reste préférable à masquer une
         page qui existe.
+
+        Sur les classes NON paginées, l'univers entier tient dans la réponse : `total`
+        est donc connu, et le compteur peut l'écrire.
 
         `hrefFor` et non un rappel : la page vit dans l'adresse, chaque cran est donc un
         vrai lien — ouvrable dans un onglet, indexable, fonctionnel sans JavaScript.
@@ -377,63 +607,62 @@ export function MarketTable({
           unit="actif"
           hrefFor={(target) => buildHref(basePath, { page: target, sortBy, direction })}
         />
-      ) : null}
+      ) : (
+        <Pagination page={1} perPage={assets.length} total={assets.length} unit="actif" />
+      )}
     </div>
   )
 }
 
-interface SortableHeaderProps {
-  label: string
-  field: MarketSort
-  activeField: MarketSort
-  direction: SortDirection
-  sortable: boolean
-  basePath: string
-  className?: string
-}
-
-function SortableHeader({
-  label,
-  field,
-  activeField,
-  direction,
-  sortable,
-  basePath,
-  className = '',
-}: SortableHeaderProps) {
-  const fr = useContent()
-  if (!sortable) {
-    return (
-      <th scope="col" className={`px-3 py-2.5 text-right font-medium ${className}`}>
-        {label}
-      </th>
-    )
-  }
-
-  const isActive = activeField === field
-  // Cliquer sur la colonne active inverse le sens ; changer de colonne repart en
-  // décroissant, l'ordre attendu par défaut pour un classement de marché.
-  const nextDirection: SortDirection = isActive && direction === 'desc' ? 'asc' : 'desc'
-
+/**
+ * Bouton de portée — « Échangeables » / « Tous les actifs ».
+ *
+ * Il vivait dans `MarketBrowser`, qui rendait les deux boutons dans sa propre rangée.
+ * Il descend avec eux : c'est ce tableau qui les affiche désormais, à côté du sélecteur
+ * de colonnes. L'ÉTAT, lui, reste chez l'appelant — c'est lui qui filtre la liste.
+ */
+function ScopeButton({
+  active,
+  onClick,
+  count,
+  title,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  count: number
+  title: string
+  children: React.ReactNode
+}) {
   return (
-    <th
-      scope="col"
-      className={`px-3 py-2.5 text-right font-medium ${className}`}
-      aria-sort={isActive ? (direction === 'desc' ? 'descending' : 'ascending') : 'none'}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      title={title}
+      className={`flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+        active ? 'bg-surface-muted text-ink' : 'text-ink-muted hover:text-ink'
+      }`}
     >
-      <Link
-        // Le tri renvoie toujours en page 1 : rester en page 7 après un changement de
-        // critère afficherait un extrait arbitraire d'un classement différent.
-        href={buildHref(basePath, { page: 1, sortBy: field, direction: nextDirection })}
-        className={`inline-flex items-center gap-1 hover:text-brand-strong ${isActive ? 'text-ink' : ''}`}
-        title={field === 'marketCap' ? fr.market.sortByMarketCap : fr.market.sortByVolume}
-      >
-        {label}
-        <span aria-hidden="true" className="text-[0.6em]">
-          {isActive ? (direction === 'desc' ? '▼' : '▲') : '⇅'}
-        </span>
-      </Link>
-    </th>
+      {children}
+      {/* Le décompte est DANS le bouton, comme chez la référence : il transforme un
+          choix abstrait en information — on voit avant de cliquer combien de lignes
+          l'autre portée retirerait. */}
+      <span className="tabular text-[0.6875rem] text-ink-muted">{count}</span>
+    </button>
   )
 }
 
+/*
+ * `SortableHeader` VIVAIT ICI, et a été remplacé par `ColumnHeader`.
+ *
+ * Il rendait un `<Link>` dans un `<th>` : le tri était donc partageable par URL, ce
+ * que le nouvel en-tête conserve en naviguant depuis son menu. Ce qu'il ne savait pas
+ * faire, c'était offrir autre chose que le tri — masquer une colonne n'avait aucun
+ * geste, et le sens du tri se devinait à une flèche.
+ *
+ * La perte réelle est le clic sans JavaScript, qu'un `<Link>` autorisait. Elle est
+ * assumée : ce tableau est déjà un composant client, ses étoiles de suivi et son
+ * sélecteur de période le sont aussi, et personne n'atteint cette page avec
+ * JavaScript désactivé pour y trier une colonne.
+ */

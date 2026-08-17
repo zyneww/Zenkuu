@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-import type { MacroObservation } from '@zenkuu/data'
+import { formatMacroValue, type MacroObservation } from '@zenkuu/data'
 
 /**
  * CARTE MACROÉCONOMIQUE — l'écart entre pays, indicateur par indicateur.
@@ -95,10 +95,17 @@ export function MacroMap({
   observations,
   unit,
   tone,
+  valueScale,
 }: {
   observations: MacroObservation[]
   unit: string
   tone: MacroTone
+  /**
+   * Mise en forme des valeurs — `valueScale` et non `scale`, qui désigne déjà dans
+   * ce fichier les bornes de la rampe de couleur. Deux échelles vivent ici, et leur
+   * donner le même nom rendrait chaque lecture ambiguë.
+   */
+  valueScale: 'percent' | 'compact' | 'plain'
 }) {
   const [groupId, setGroupId] = useState(MACRO_GROUPS[0]!.id)
   const group = MACRO_GROUPS.find((entry) => entry.id === groupId) ?? MACRO_GROUPS[0]!
@@ -174,8 +181,13 @@ export function MacroMap({
     return [...map].sort((a, b) => b[1].length - a[1].length)
   }, [rows])
 
-  const format = (value: number) =>
-    `${value.toFixed(1).replace('.', ',')} ${unit === '%' ? '%' : unit}`
+  /* Le catalogue mêle désormais des pourcentages, des populations et des PIB en
+     dollars. Un `toFixed(1)` universel afficherait « 2800000000000,0 » sur la carte du
+     PIB — d'où la mise en forme portée par la série plutôt que par ce composant. */
+  const format = (value: number) => {
+    const text = formatMacroValue(value, valueScale)
+    return unit ? `${text} ${unit}` : text
+  }
 
   return (
     <div className="space-y-4">

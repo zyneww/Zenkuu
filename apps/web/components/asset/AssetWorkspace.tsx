@@ -4,9 +4,10 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenkuu/data'
-import { EmptyState, PriceChart, formatNumber } from '@zenkuu/ui'
+import { EmptyState, PriceChart, formatCompactAxis, formatNumber } from '@zenkuu/ui'
 
 import {
+  ASSET_CHART_HEIGHT,
   OHLC_KINDS,
   type ChartCandle,
   type ChartHandle,
@@ -49,8 +50,11 @@ import {
   type ChartView,
   type ExportFormat,
   type RangePreset,
+  type CompareOption,
+  type RenderOption,
 } from '@/components/asset/ChartToolbar'
 import { useContent } from '@/components/locale/ContentProvider'
+import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { useLiveTicker } from '@/components/asset/useLiveTicker'
 import { appendLivePoint, mergeCandle } from '@/components/asset/live-series'
 import { AssetDepthChart } from '@/components/asset/AssetDepthChart'
@@ -77,8 +81,9 @@ import {
  * vrai rôle.
  */
 
-/** Types proposés dans la barre d'outils, dans l'ordre d'affichage. */
-const CHART_KINDS = ['area', 'line', 'candles', 'bars', 'baseline'] as const satisfies readonly ChartKind[]
+/* La liste des cinq types de tracé a disparu avec le menu qui les proposait : il n'en
+   reste que deux, posés par `renderOptions` sur les icônes du segment. Voir la note de
+   cette valeur pour le détail des trois rendus fusionnés. */
 
 /*
  * ── LA BARRE DE SOUS-ONGLETS A ÉTÉ SUPPRIMÉE ─────────────────────────────────
@@ -112,15 +117,27 @@ const CHART_KINDS = ['area', 'line', 'candles', 'bars', 'baseline'] as const sat
  * appel réseau. C'est ce qui rend ce sélecteur évident — la donnée était déjà là,
  * seule la courbe manquait.
  *
- * `price` reste le défaut : c'est ce qu'on vient voir. Les deux autres répondent à
- * des questions voisines mais distinctes — la capitalisation dit la TAILLE (elle
- * monte quand des jetons sont émis, même à cours constant), le volume dit
- * l'ACTIVITÉ.
+ * `price` reste le défaut : c'est ce qu'on vient voir. La capitalisation répond à une
+ * question voisine mais distincte — elle dit la TAILLE, et monte quand des jetons sont
+ * émis, même à cours constant.
+ *
+ * ── « VOLUME » A QUITTÉ L'INTERRUPTEUR ──────────────────────────────────────
+ *
+ * Il y figurait comme troisième position, et c'était un doublon : l'infobulle du
+ * graphique affiche le volume du point survolé, en permanence et sur la même courbe.
+ * Le lecteur avait donc deux chemins vers la même donnée, dont l'un lui faisait perdre
+ * le cours de vue pour la lire.
+ *
+ * La référence tranche de la même façon : son interrupteur ne porte que « Price » et
+ * « Market Cap », et le volume vit dans l'infobulle. Deux positions au lieu de trois
+ * font aussi un interrupteur qui se lit d'un coup d'œil.
+ *
+ * La donnée n'est pas perdue et le tracé reste possible : `chartMetric` sait encore
+ * dessiner `volume`, seule l'entrée du sélecteur disparaît.
  */
 const METRICS = [
   { key: 'price', message: 'price' },
   { key: 'marketCap', message: 'marketCap' },
-  { key: 'volume', message: 'volume' },
 ] as const satisfies readonly { key: string; message: string }[]
 
 type ChartMetric = (typeof METRICS)[number]['key']
@@ -151,7 +168,6 @@ const KLINE_LIMIT = 500
 const METRIC_LABELS: Record<ChartMetric, string> = {
   price: 'Prix',
   marketCap: 'Capitalisation',
-  volume: 'Volume',
 }
 
 /* Les paliers de période vivent désormais dans `ChartToolbar`, avec « Depuis janv. »
@@ -171,7 +187,7 @@ interface AssetWorkspaceProps {
    * comparables de la source, et coder « bitcoin, ethereum » en dur dans un widget
    * qui sert aussi les actions et les devises n'aurait aucun sens.
    */
-  compareOptions?: { id: string; label: string }[]
+  compareOptions?: CompareOption[]
 }
 
 /**
@@ -192,7 +208,31 @@ export function AssetWorkspace({
 }: AssetWorkspaceProps) {
   const fr = useContent()
   const [days, setDays] = useState(initialDays)
-  const [currency, setCurrency] = useState(asset.currency)
+  /**
+   * ═════════════════════════════════════════════════════════════════════════════
+   * LA DEVISE VIENT DU SITE, PLUS D'UN ÉTAT LOCAL
+   * ═════════════════════════════════════════════════════════════════════════════
+   *
+   * C'était un `useState`, piloté par un sélecteur propre à la barre d'outils. Le
+   * site en a un autre, dans ses préférences, qui commande les classements, les
+   * tableaux et les convertisseurs. Les deux coexistaient sur la même page et
+   * pouvaient afficher deux codes différents : le bandeau de l'actif en euros, sa
+   * courbe en dollars, sans que rien ne rapproche les deux.
+   *
+   * Le graphique lit donc le contexte. Le sélecteur local a disparu avec
+   * `currencySlot` — voir `ChartToolbar`.
+   *
+   * ── LE REPLI SUR LA DEVISE D'ORIGINE N'EST PAS UNE PRÉCAUTION DE FAÇADE ─────
+   *
+   * Le fournisseur mondial n'a pas toujours le taux de la devise choisie — c'est le
+   * cas des cryptomonnaies et des métaux proposés par le sélecteur global. Sans le
+   * garde ci-dessous, `rate` retomberait à 1 et la courbe afficherait des montants en
+   * euros sous une étiquette « BTC ». On reste alors sur la devise de la série, ce que
+   * l'axe annonce correctement.
+   */
+  const { currency: siteCurrency } = useCurrency()
+  const currency =
+    siteCurrency === asset.currency || rates?.rates[siteCurrency] ? siteCurrency : asset.currency
   const [history, setHistory] = useState<PriceHistory | null>(initialHistory)
   const [loading, setLoading] = useState(false)
 
@@ -211,7 +251,14 @@ export function AssetWorkspace({
   const [showPriceLines, setShowPriceLines] = useState(false)
   const [metric, setMetric] = useState<ChartMetric>('price')
   const [logScale, setLogScale] = useState(false)
-  const [compareId, setCompareId] = useState('')
+  /**
+   * Actifs superposés, et grandeurs superposées — deux listes, une seule limite.
+   *
+   * C'était `compareId`, une chaîne unique. Le panneau de comparaison en accepte
+   * désormais quatre au total, toutes familles confondues — voir `COMPARE_MAX`.
+   */
+  const [compareIds, setCompareIds] = useState<string[]>([])
+  const [compareMetrics, setCompareMetrics] = useState<string[]>([])
   /**
    * Vue du cadre, et pas de bougie choisi.
    *
@@ -241,10 +288,9 @@ export function AssetWorkspace({
    * deux concordent, et le désaccord transitoire n'affiche rien au lieu d'un
    * mensonge.
    */
-  const [compareSeries, setCompareSeries] = useState<{
-    id: string
-    points: { timestamp: number; price: number }[]
-  } | null>(null)
+  const [compareSeries, setCompareSeries] = useState<
+    { id: string; points: { timestamp: number; price: number }[] }[]
+  >([])
 
   /** Poignée de capture, fournie par le graphique une fois monté. */
   const chartHandle = useRef<ChartHandle | null>(null)
@@ -328,13 +374,9 @@ export function AssetWorkspace({
     return { timestamp: tick.at, price: tick.price * usdToSeries }
   }, [tick, usdToSeries])
 
-  const convertible = useMemo(() => {
-    if (!rates) return []
-    // Une devise n'est proposée que si le taux existe DANS LES DEUX SENS : sans le
-    // taux de la devise d'origine, la conversion serait impossible à calculer.
-    if (!rates.rates[asset.currency]) return [asset.currency]
-    return Object.keys(rates.rates)
-  }, [rates, asset.currency])
+  /* `convertible` a disparu avec le sélecteur de devise local : la liste des devises
+     proposables est celle du fournisseur global, qui la dérive des mêmes taux. Le
+     garde équivalent vit désormais sur `currency`, en haut de ce composant. */
 
   /**
    * Jeton de la dernière requête d'historique émise.
@@ -670,17 +712,53 @@ export function AssetWorkspace({
    *
    * La capitalisation, elle, se vérifie VRAIMENT : la série l'a ou ne l'a pas.
    */
-  const availableViews = useMemo(() => {
-    const entries: { id: ChartView; label: string }[] = [{ id: 'original', label: 'Original' }]
+  /**
+   * ── LES RENDUS PROPOSÉS, EN UNE SEULE LISTE ────────────────────────────────
+   *
+   * Elle remplace `availableViews` ET `kindOptions`, qui décrivaient deux axes du même
+   * choix — voir `RenderOption` dans `ChartToolbar`. Chaque entrée pose un couple
+   * (vue, type de tracé).
+   *
+   * ── CINQ TYPES DE TRACÉ SONT DEVENUS DEUX ──────────────────────────────────
+   *
+   * Le menu supprimé proposait aire, ligne, chandeliers, barres et ligne de base. Trois
+   * dessinent la même information — une aire est une ligne remplie, une ligne de base
+   * une aire coupée à une référence — et « barres » est la variante américaine des
+   * chandeliers. Restent les deux lectures réellement distinctes : la COURBE, qui suit
+   * une valeur, et l'OHLC, qui montre l'amplitude de chaque période.
+   *
+   * ── LA CAPITALISATION N'EST PLUS ICI ───────────────────────────────────────
+   *
+   * Elle figurait parmi les vues, ce qui obligeait `selectView` à la détourner vers le
+   * sélecteur de grandeur. Ce détour n'a plus lieu d'être : elle est désormais une
+   * position visible de l'interrupteur de grandeur, à gauche de la barre. Une commande,
+   * un état.
+   */
+  const renderOptions = useMemo<RenderOption[]>(() => {
+    const entries: RenderOption[] = [
+      { id: 'line', label: 'Courbe', view: 'original', kind: 'area' },
+    ]
+
+    /* Les chandeliers exigent de l'OHLC, que la source ne publie QUE pour le prix — et
+       pas pour tous les actifs. La condition est la même que celle qui filtrait le
+       menu supprimé : la déplacer ici plutôt que de la dupliquer évite qu'un bouton
+       reste offert quand rien ne peut être dessiné derrière (§5). */
+    if (!candlesUnavailable && metric === 'price') {
+      entries.push({
+        id: 'candles',
+        label: 'Chandeliers',
+        view: 'original',
+        kind: 'candles',
+      })
+    }
+
     if (assetClass === 'crypto') {
-      entries.push({ id: 'tradingview', label: 'TradingView' })
-      entries.push({ id: 'depth', label: 'Profondeur' })
+      entries.push({ id: 'tradingview', label: 'TradingView', view: 'tradingview' })
+      entries.push({ id: 'depth', label: 'Profondeur du carnet', view: 'depth' })
     }
-    if (metricAvailable.marketCap) {
-      entries.push({ id: 'marketCap', label: 'Capitalisation' })
-    }
+
     return entries
-  }, [assetClass, metricAvailable.marketCap])
+  }, [assetClass, candlesUnavailable, metric])
 
   const availableIntervals = useMemo(
     () =>
@@ -690,14 +768,20 @@ export function AssetWorkspace({
     [assetClass],
   )
 
-  /**
-   * Vue ALLUMÉE dans la barre, qui n'est pas tout à fait l'état interne.
+  /*
+   * ── `activeView` A DISPARU, ET SON ABSENCE CORRIGE UN DÉFAUT ──────────────
    *
-   * La capitalisation n'est pas une vue mais une grandeur (voir `selectView`). Elle
-   * doit pourtant s'allumer comme les autres, sans quoi le lecteur qui vient de la
-   * choisir verrait « Original » rester actif — et conclurait que son clic a échoué.
+   * Il valait `metric === 'marketCap' ? 'marketCap' : view`, pour allumer l'entrée
+   * « Capitalisation » du segment quand on choisissait cette grandeur.
+   *
+   * Cette entrée n'existe plus : la capitalisation est devenue une position de
+   * l'interrupteur de grandeur, à gauche. La traduction laissait donc `view` valoir
+   * `'marketCap'` — une valeur qu'AUCUNE entrée du segment ne porte, si bien que
+   * choisir « Capitalisation » éteignait le segment entier. Le lecteur voyait quatre
+   * icônes dont aucune n'était active, et ne pouvait plus savoir ce qui était tracé.
+   *
+   * `view` est passé tel quel. Une commande, un état.
    */
-  const activeView: ChartView = metric === 'marketCap' ? 'marketCap' : view
 
   /**
    * Changement de grandeur — qui abandonne le pas de bougie s'il y en avait un.
@@ -716,28 +800,28 @@ export function AssetWorkspace({
   }
 
   /**
-   * Bascule de vue — la capitalisation N'EST PAS une vue séparée, c'est une grandeur.
+   * Bascule de vue — désormais UNE SEULE LIGNE, et c'est le but.
    *
-   * OKX la présente au même rang que les autres, et ce classement se défend du point
-   * de vue du lecteur : les quatre entrées répondent bien à « qu'est-ce que je
-   * regarde ? ». Mais chez nous la capitalisation est déjà une valeur du sélecteur de
-   * grandeur, sur exactement le même graphique. La traiter comme une vue autonome
-   * créerait deux commandes pour un seul état, qui se contrediraient dès qu'on
-   * toucherait l'une sans l'autre.
+   * ── DEUX DÉTOURS RETIRÉS, TOUS DEUX DEVENUS FAUX ──────────────────────────
    *
-   * Le bouton pilote donc la grandeur, et l'affichage reste la vue « originale ».
+   * Cette fonction en portait deux, hérités de l'époque où « Capitalisation » était
+   * une entrée du segment de vues :
+   *
+   *   · `if (next === 'marketCap')` détournait le clic vers le sélecteur de grandeur.
+   *     Code MORT depuis que `renderOptions` n'émet plus cette entrée.
+   *
+   *   · `if (metric === 'marketCap') setMetric('price')` remettait la grandeur sur le
+   *     prix dès qu'on cliquait une autre vue. C'était juste tant qu'une vue et une
+   *     grandeur se disputaient le même état ; c'est un DÉFAUT maintenant que non :
+   *     un lecteur qui regarde la capitalisation et clique l'icône « Chandeliers »
+   *     demande un autre TRACÉ, pas une autre grandeur — et se retrouvait devant le
+   *     cours sans avoir rien demandé de tel.
+   *
+   * Les deux axes sont enfin indépendants : la grandeur se change à gauche, le rendu
+   * au milieu, et l'un ne réécrit plus l'autre.
    */
   function selectView(next: ChartView) {
-    if (next === 'marketCap') {
-      setView('original')
-      selectMetric('marketCap')
-      return
-    }
-
     setView(next)
-    // Revenir sur la courbe après un détour par la capitalisation doit ramener le
-    // prix : sinon le bouton « Original » afficherait une courbe de capitalisation.
-    if (metric === 'marketCap') setMetric('price')
   }
 
   /*
@@ -746,7 +830,11 @@ export function AssetWorkspace({
    * plutôt que de laisser un type sélectionné qui ne peut rien dessiner.
    */
   const effectiveKind: ChartKind =
-    metric === 'price' && !compareId ? kind : OHLC_KINDS.includes(kind) ? 'area' : kind
+    metric === 'price' && compareIds.length === 0 && compareMetrics.length === 0
+      ? kind
+      : OHLC_KINDS.includes(kind)
+        ? 'area'
+        : kind
 
   /** Extrêmes historiques — seulement sur la courbe de prix, où ils ont un sens. */
   const referenceLines = useMemo<ChartReferenceLine[]>(() => {
@@ -764,34 +852,95 @@ export function AssetWorkspace({
    * l'autre ne veut rien dire, et la base 100 est calculée sur le premier point de
    * CHAQUE série — des fenêtres différentes donneraient deux origines différentes.
    */
+  /*
+   * `compareIds` est un TABLEAU, et un tableau change d'identité à chaque rendu. Le
+   * lister tel quel dans les dépendances relancerait quatre requêtes à chaque frappe
+   * dans le champ de recherche du panneau. On dépend donc de sa forme sérialisée —
+   * seule une vraie modification de la sélection la fait changer.
+   */
+  const compareKey = compareIds.join(',')
+
   useEffect(() => {
     // Sortie IMMÉDIATE sans toucher à l'état quand aucune comparaison n'est demandée.
-    // Remettre la série à `null` ici serait un `setState` synchrone dans un effet,
-    // donc un rendu en cascade — et surtout ce serait inutile : la concordance
-    // d'identifiant plus bas suffit à neutraliser une série qui n'a plus cours.
-    if (!compareId) return
+    // Remettre la liste à vide ici serait un `setState` synchrone dans un effet, donc
+    // un rendu en cascade — et surtout ce serait inutile : le filtre par identifiant
+    // plus bas suffit à neutraliser des séries qui n'ont plus cours.
+    if (compareKey === '') return
 
     let cancelled = false
-    fetch(`/api/historique?classe=crypto&id=${encodeURIComponent(compareId)}&jours=${days}`)
-      .then((response) => response.json())
-      .then((payload) => {
-        if (cancelled) return
-        setCompareSeries(payload?.ok ? { id: compareId, points: payload.points } : null)
-      })
-      .catch(() => {
-        if (!cancelled) setCompareSeries(null)
-      })
+    const wanted = compareKey.split(',')
+
+    /*
+     * TOUTES LES SÉRIES PARTENT ENSEMBLE, et l'état n'est posé qu'une fois.
+     *
+     * Les écrire au fil de l'eau ferait apparaître les courbes l'une après l'autre,
+     * chacune redéclenchant un rendu du graphique — quatre reconstructions de séries
+     * lightweight-charts pour une seule sélection. Un `Promise.all` coûte l'attente
+     * de la plus lente et rend une figure complète d'un coup.
+     *
+     * Une série en échec est ÉCARTÉE, pas remplacée : la comparaison se fait à trois
+     * courbes plutôt que de tomber entièrement parce qu'une source a fléchi.
+     */
+    Promise.all(
+      wanted.map((id) =>
+        fetch(`/api/historique?classe=crypto&id=${encodeURIComponent(id)}&jours=${days}`)
+          .then((response) => response.json())
+          .then((payload) =>
+            payload?.ok
+              ? { id, points: payload.points as { timestamp: number; price: number }[] }
+              : null,
+          )
+          .catch(() => null),
+      ),
+    ).then((rows) => {
+      if (cancelled) return
+      setCompareSeries(rows.filter((row) => row !== null))
+    })
 
     return () => {
       cancelled = true
     }
-  }, [compareId, days])
+  }, [compareKey, days])
 
-  const compareLabel = compareOptions.find((entry) => entry.id === compareId)?.label
-  const compare =
-    compareSeries && compareSeries.id === compareId && compareLabel
-      ? { label: compareLabel, points: compareSeries.points }
-      : null
+  /**
+   * Courbes superposées, dans l'ordre où elles ont été choisies.
+   *
+   * Deux familles s'y rejoignent, et le graphique ne fait pas la différence : des
+   * AUTRES ACTIFS, dont les points arrivent du réseau, et d'autres GRANDEURS du même
+   * actif, qui sont déjà dans `history` — la source publie cours, capitalisation et
+   * volume dans la même réponse. Les secondes ne coûtent donc aucun appel.
+   *
+   * Le filtre sur `compareIds` reste indispensable : entre le choix d'Ethereum et
+   * l'arrivée de sa série, l'état contient encore les points du précédent. Ne rendre
+   * que ce qui concorde affiche une courbe de moins pendant un instant, là où l'ancien
+   * code affichait une courbe sous le mauvais nom.
+   */
+  const compare = useMemo(() => {
+    const rows: { id: string; label: string; points: { timestamp: number; price: number }[] }[] = []
+
+    for (const id of compareIds) {
+      const series = compareSeries.find((entry) => entry.id === id)
+      const label = compareOptions.find((entry) => entry.id === id)?.label
+      if (series && label) rows.push({ id, label, points: series.points })
+    }
+
+    for (const key of compareMetrics) {
+      const points = (history?.points ?? [])
+        .map((point) => ({
+          timestamp: point.timestamp,
+          price: key === 'marketCap' ? point.marketCap : key === 'volume' ? point.volume : undefined,
+        }))
+        .filter((point): point is { timestamp: number; price: number } => point.price !== undefined)
+
+      // Un point unique ne s'indexe pas : la base 100 se calcule sur le premier point
+      // et la courbe serait une horizontale à 100.
+      if (points.length > 1) {
+        rows.push({ id: `metric:${key}`, label: METRIC_LABELS[key as ChartMetric] ?? key, points })
+      }
+    }
+
+    return rows
+  }, [compareIds, compareSeries, compareOptions, compareMetrics, history])
 
   /**
    * Choix d'un palier de période.
@@ -834,6 +983,18 @@ export function AssetWorkspace({
     selectRange(snapToAllowedDepth(Math.max(1, depth)))
   }
 
+  /**
+   * Plein écran — appelé au DOUBLE-CLIC sur le cadre, plus par un bouton de la barre.
+   *
+   * Le bouton a disparu quand la rangée de droite s'est alignée sur CoinGecko, qui ne
+   * porte que le calendrier, le lien et le téléchargement. Le geste, lui, reste : il
+   * est même plus direct que le bouton qu'il remplace, puisqu'il se fait là où l'œil
+   * est déjà — sur la courbe trop petite pour être lue.
+   *
+   * Le double-clic est posé sur le CADRE et non sur le graphique : la bibliothèque de
+   * tracé pose son propre canevas et absorbe une partie des événements, mais le
+   * double-clic remonte jusqu'au conteneur.
+   */
   function toggleFullscreen() {
     const frame = chartFrame.current
     if (!frame) return
@@ -873,7 +1034,7 @@ export function AssetWorkspace({
     url.searchParams.set('metrique', metric)
     url.searchParams.set('jours', String(days))
     url.searchParams.set('type', kind)
-    if (compareId) url.searchParams.set('comparer', compareId)
+    if (compareIds.length > 0) url.searchParams.set('comparer', compareIds.join(','))
     else url.searchParams.delete('comparer')
 
     void navigator.clipboard?.writeText(url.toString()).then(
@@ -931,7 +1092,12 @@ export function AssetWorkspace({
             fond noir par défaut, sans hériter d'aucun style de son ancien parent, et
             il n'y a que là que ce bloc a besoin d'un fond, d'un rembourrage et d'une
             hauteur à distribuer. Voir `globals.css`. */}
-        <div ref={chartFrame} className="chart-frame">
+        <div
+          ref={chartFrame}
+          className="chart-frame"
+          onDoubleClick={toggleFullscreen}
+          title="Double-cliquez pour afficher le graphique en plein écran"
+        >
             {/*
               UNE SEULE BARRE, là où trois rangées s'empilaient. Voir l'en-tête de
               `ChartToolbar` : le quart de la hauteur du cadre servait à choisir quoi
@@ -944,19 +1110,15 @@ export function AssetWorkspace({
                 label: METRIC_LABELS[entry.key],
               }))}
               onMetricChange={(key) => selectMetric(key as ChartMetric)}
-              compareId={compareId}
+              compareIds={compareIds}
               compareOptions={compareOptions}
-              onCompareChange={setCompareId}
+              onCompareChange={setCompareIds}
+              compareMetrics={compareMetrics}
+              onCompareMetricsChange={setCompareMetrics}
               kind={effectiveKind}
-              // Les chandeliers disparaissent aussi quand la grandeur tracée n'est pas
-              // le prix : la source ne publie d'OHLC que pour lui.
-              kindOptions={CHART_KINDS.filter(
-                (entry) =>
-                  !((candlesUnavailable || metric !== 'price') && OHLC_KINDS.includes(entry)),
-              ).map((entry) => ({ key: entry, label: fr.asset.chart.kinds[entry] }))}
               onKindChange={(key) => setKind(key as ChartKind)}
-              view={activeView}
-              views={availableViews}
+              view={view}
+              renderOptions={renderOptions}
               onViewChange={selectView}
               intervals={availableIntervals}
               intervalId={intervalId}
@@ -976,15 +1138,6 @@ export function AssetWorkspace({
               onTogglePriceLines={() => setShowPriceLines((value) => !value)}
               onCopyLink={copyLink}
               onExport={(format) => void handleExport(format)}
-              onFullscreen={toggleFullscreen}
-              currencySlot={
-                <CurrencySelector
-                  value={currency}
-                  options={convertible}
-                  onChange={setCurrency}
-                  disabled={convertible.length < 2}
-                />
-              }
             />
 
             {/* Accusé de copie — une ligne discrète plutôt qu'une notification
@@ -1028,6 +1181,10 @@ export function AssetWorkspace({
                 referenceLines={referenceLines}
                 handleRef={chartHandle}
                 compare={compare}
+                /* La capitalisation et le volume se comptent en milliards ; le cours,
+                   non. C'est ici que la distinction existe — le graphique, lui, ne
+                   voit que des nombres. */
+                compactValues={metric !== 'price'}
               />
             )}
 
@@ -1041,11 +1198,11 @@ export function AssetWorkspace({
               </p>
             ) : null}
 
-            {compare ? (
+            {compare.length > 0 ? (
               <p className="mt-2 text-[0.6875rem] leading-relaxed text-ink-muted">
-                Les deux courbes sont ramenées à 100 au début de la période : l’axe montre une
-                progression relative, pas un montant. Trait plein : {asset.name}. Trait tireté :{' '}
-                {compare.label}.
+                Toutes les courbes sont ramenées à 100 au début de la période : l’axe montre
+                une progression relative, pas un montant. Trait plein&nbsp;: {asset.name}.
+                Traits tiretés&nbsp;: {compare.map((entry) => entry.label).join(', ')}.
               </p>
             ) : null}
         </div>
@@ -1091,6 +1248,7 @@ function OverviewTab({
   referenceLines,
   handleRef,
   compare,
+  compactValues,
 }: {
   history: PriceHistory | null
   candles: ChartCandle[] | null
@@ -1106,7 +1264,10 @@ function OverviewTab({
   logScale: boolean
   referenceLines: ChartReferenceLine[]
   handleRef: React.MutableRefObject<ChartHandle | null>
-  compare: { label: string; points: { timestamp: number; price: number }[] } | null
+  /** Courbes superposées — zéro à quatre. Vide = aucune comparaison. */
+  compare: { id: string; label: string; points: { timestamp: number; price: number }[] }[]
+  /** La grandeur tracée se compte-t-elle en milliards ? Voir `formatCompactPrice`. */
+  compactValues: boolean
 }) {
   const fr = useContent()
   const [interactive, setInteractive] = useState(false)
@@ -1173,14 +1334,24 @@ function OverviewTab({
           referenceLines={referenceLines}
           handleRef={handleRef}
           compare={compare}
+          compactValues={compactValues}
         />
       ) : (
         <PriceChart
           points={history.points.map((point) => ({ ...point, price: point.price * rate }))}
           currency={currency}
           label={label}
-          height={320}
-          formatPrice={(value) => formatNumber(value, value >= 100 ? 0 : 2)}
+          /* LA MÊME hauteur que le graphique interactif, et c'est ce qui évite le
+             décalage de mise en page au moment de la bascule — voir la note de
+             `ASSET_CHART_HEIGHT`. */
+          height={ASSET_CHART_HEIGHT}
+          /* La même règle que sur le graphique interactif, et il FAUT qu'elle soit la
+             même : ce tracé SVG est celui qu'on voit avant l'hydratation, et deux
+             échelles différentes feraient sauter les étiquettes de l'axe au moment de
+             la bascule. */
+          formatPrice={(value) =>
+            compactValues ? formatCompactAxis(value) : formatNumber(value, value >= 100 ? 0 : 2)
+          }
           formatDate={(timestamp) =>
             new Intl.DateTimeFormat('fr-FR',
               days <= 1
@@ -1215,42 +1386,20 @@ function OverviewTab({
  * commande du graphique et n'avait pas vocation à régler le libellé d'une phrase.
  */
 
-function CurrencySelector({
-  value,
-  options,
-  onChange,
-  disabled,
-}: {
-  value: string
-  options: string[]
-  onChange: (currency: string) => void
-  disabled: boolean
-}) {
-  const fr = useContent()
-  return (
-    <label className="flex items-center gap-2 text-xs text-ink-muted">
-      <span className="sr-only">{fr.asset.currencyLabel}</span>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
-        /* Aligné sur la grammaire de la barre d'outils qui l'accueille désormais :
-           28 pixels de haut comme tous ses voisins, coins vifs, pas de bordure au
-           repos. Un `<select>` natif reste un `<select>` natif — c'est le seul
-           contrôle de la barre dont le navigateur dessine encore le menu — mais son
-           bouton, lui, ne doit plus jurer avec les six commandes d'à côté. */
-        className="h-7 cursor-pointer bg-transparent px-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
-        aria-label={fr.asset.currencyLabel}
-      >
-        {options.map((code) => (
-          <option key={code} value={code}>
-            {code}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
-}
+/*
+ * ═════════════════════════════════════════════════════════════════════════════
+ * `CurrencySelector` A ÉTÉ RETIRÉ — IL N'Y A PLUS QU'UN SÉLECTEUR SUR LA PAGE
+ * ═════════════════════════════════════════════════════════════════════════════
+ *
+ * Ce `<select>` a vécu dans une rangée à lui, puis dans le menu de réglages de la
+ * barre d'outils. Les deux emplacements partageaient le même défaut : ils faisaient
+ * cohabiter DEUX commandes de devise sur une même page — celle-ci pour le graphique,
+ * celle des préférences pour tout le reste — sans que rien ne les rapproche. Le
+ * bandeau de l'actif pouvait afficher des euros au-dessus d'une courbe en dollars.
+ *
+ * Le graphique lit désormais `useCurrency`, comme les classements et les tableaux.
+ * Voir la déclaration de `currency` en tête de `AssetWorkspace`.
+ */
 
 function formatDay(iso: string): string {
   const date = new Date(iso)

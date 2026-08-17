@@ -100,56 +100,124 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
         </div>
       ) : null}
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        {hasOfficial ? (
-          <LinkGroup
-            title="Ressources officielles"
-            links={[
-              ...(asset.homepageUrl ? [{ label: 'Site officiel', url: asset.homepageUrl }] : []),
-              ...(asset.whitepaperUrl ? [{ label: 'Livre blanc', url: asset.whitepaperUrl }] : []),
-              ...(asset.sourceCodeUrl ? [{ label: 'Code source', url: asset.sourceCodeUrl }] : []),
-            ]}
-          />
+      {/*
+        ── UNE LIGNE PAR CATÉGORIE, VALEUR À DROITE — la forme « Info » de CoinGecko.
+
+        Les liens étaient rangés en TROIS GROUPES TITRÉS, chacun dépliant une grappe de
+        pastilles bordées : « Ressources officielles » avec trois pastilles, puis
+        « Explorateurs de blocs » avec six, puis « Communauté » avec deux. Dans une
+        colonne de 288 pixels, cela faisait une trentaine de lignes et quatre niveaux de
+        titre pour une poignée de liens.
+
+        La référence traite exactement la même matière en LIGNES DE TABLEAU :
+        un libellé à gauche, la ou les pastilles à droite, un filet entre chaque. C'est
+        la forme d'une fiche signalétique, et elle a trois propriétés que la grappe
+        n'avait pas :
+
+          · les libellés s'alignent, donc se balaient d'un regard ;
+          · une catégorie absente retire UNE ligne, pas un titre et son bloc ;
+          · la hauteur devient proportionnelle au nombre de catégories, pas au nombre
+            de liens — six explorateurs tiennent sur la même ligne que le site officiel.
+
+        `dl` et non `ul` : ce sont des couples nom/valeur, et c'est l'élément que la
+        norme prévoit pour cela. Un lecteur d'écran annonce alors « Explorateurs,
+        etherscan.io » plutôt que deux listes sans rapport.
+      */}
+      <dl className="divide-y divide-border-subtle/60">
+        {asset.homepageUrl ? (
+          <SheetRow label="Site" links={[{ label: hostLabel(asset.homepageUrl), url: asset.homepageUrl }]} />
+        ) : null}
+
+        {asset.whitepaperUrl ? (
+          <SheetRow label="Livre blanc" links={[{ label: 'Lire', url: asset.whitepaperUrl }]} />
+        ) : null}
+
+        {asset.sourceCodeUrl ? (
+          <SheetRow label="Code source" links={[{ label: hostLabel(asset.sourceCodeUrl), url: asset.sourceCodeUrl }]} />
         ) : null}
 
         {explorers.length > 0 ? (
-          <LinkGroup
-            title="Explorateurs de blocs"
+          <SheetRow
+            label="Explorateurs"
             links={explorers.map((url) => ({ label: hostLabel(url), url }))}
           />
         ) : null}
 
         {community.length > 0 ? (
-          <LinkGroup
-            title="Communauté"
+          <SheetRow
+            label="Communauté"
             links={community.map(([label, url]) => ({ label, url }))}
           />
         ) : null}
-      </div>
+      </dl>
     </section>
   )
 }
 
-function LinkGroup({ title, links }: { title: string; links: { label: string; url: string }[] }) {
+/**
+ * Une ligne de la fiche : un libellé, et ses liens alignés à droite.
+ *
+ * ── LES LIENS SONT PLAFONNÉS, ET LE RESTE SE DÉPLIE ─────────────────────────
+ *
+ * Certains actifs déclarent huit explorateurs de blocs. Les poser tous sur une ligne
+ * de 180 pixels utiles produirait quatre rangées d'enroulement, c'est-à-dire
+ * exactement la grappe qu'on vient de remplacer.
+ *
+ * Les deux premiers sont donc visibles, et les autres derrière un « +6 » — la même
+ * mécanique que le « 14 more » de la référence. C'est un `<details>` natif : il
+ * s'ouvre sans JavaScript, reste imprimable, et se referme d'un second clic.
+ */
+function SheetRow({
+  label,
+  links,
+}: {
+  label: string
+  links: { label: string; url: string }[]
+}) {
+  const visible = links.slice(0, 2)
+  const hidden = links.slice(2)
+
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-ink">{title}</h3>
-      <ul className="flex flex-wrap gap-2">
-        {links.map((link) => (
-          <li key={link.url}>
-            <a
-              href={link.url}
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-3 py-1.5 text-xs text-ink transition-colors hover:border-brand hover:text-brand-strong"
-            >
-              {link.label}
-              <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span className="sr-only">(nouvelle fenêtre)</span>
-            </a>
-          </li>
+    <div className="flex items-start justify-between gap-3 py-2">
+      <dt className="shrink-0 pt-1 text-xs text-ink-muted">{label}</dt>
+
+      <dd className="flex min-w-0 flex-wrap items-center justify-end gap-1">
+        {visible.map((link) => (
+          <SheetLink key={link.url} {...link} />
         ))}
-      </ul>
+
+        {hidden.length > 0 ? (
+          <details className="group/details relative">
+            <summary className="flex cursor-pointer list-none items-center rounded-control border border-border-subtle bg-surface px-2 py-1 text-[0.6875rem] text-ink-muted transition-colors hover:border-brand hover:text-ink">
+              +{hidden.length}
+            </summary>
+            {/* Le dépliant se pose EN SURIMPRESSION plutôt qu'en flux : dans une colonne
+                de rail, pousser les blocs suivants de six lignes à chaque ouverture
+                ferait sauter tout ce qui est en dessous. */}
+            <div className="absolute right-0 z-20 mt-1 flex w-max max-w-[16rem] flex-wrap justify-end gap-1 rounded-card border border-border-subtle bg-surface p-2 shadow-lg">
+              {hidden.map((link) => (
+                <SheetLink key={link.url} {...link} />
+              ))}
+            </div>
+          </details>
+        ) : null}
+      </dd>
     </div>
+  )
+}
+
+function SheetLink({ label, url }: { label: string; url: string }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="nofollow noopener noreferrer"
+      title={label}
+      className="inline-flex max-w-[9rem] items-center gap-1 rounded-control border border-border-subtle bg-surface px-2 py-1 text-[0.6875rem] text-ink transition-colors hover:border-brand hover:text-brand-strong"
+    >
+      <span className="truncate">{label}</span>
+      <ExternalLink className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
+      <span className="sr-only">(nouvelle fenêtre)</span>
+    </a>
   )
 }

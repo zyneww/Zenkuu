@@ -1,4 +1,3 @@
-import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
@@ -7,11 +6,9 @@ import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 import { MetricValue } from '@/components/asset/MetricValue'
 import { InfoTip } from '@/components/ui/InfoTip'
 import { RailSection } from '@/components/ui/RailSection'
-import { ASSET_CLASS_SEGMENT } from '@/lib/asset-routes'
 import {
   METRICS,
   extremeMessage,
-  metricHref,
   type MetricDef,
   type MetricGroup,
 } from '@/lib/asset-metrics'
@@ -90,7 +87,6 @@ export async function AssetMetricRail({
 }) {
   const t = await getTranslations('metric')
   const isForex = assetClass === 'forex'
-  const segment = ASSET_CLASS_SEGMENT[assetClass]
 
   /**
    * Clé de message d'une métrique.
@@ -113,11 +109,6 @@ export async function AssetMetricRail({
   })).filter((entry) => entry.rows.length > 0)
 
   if (groups.length === 0) return null
-
-  /* Porte d'entrée du catalogue de métriques : la première mesure réellement présente,
-     dans l'ordre des groupes. Calculée ici plutôt que dans la boucle — elle ne dépend
-     pas du groupe qui affiche le lien. */
-  const entryMetric = groups[0]?.rows[0]?.metric.slug
 
   return (
     /*
@@ -144,21 +135,28 @@ export async function AssetMetricRail({
                 >
                   <dt className="flex min-w-0 flex-1 items-center gap-1">
                     {/*
-                      La ligne entière est un lien, pas seulement le libellé : une
-                      cible de clic d'un mot sur une ligne de 250 pixels se rate, et
-                      c'est la valeur que l'œil vise en premier de toute façon.
+                      ── LE LIBELLÉ N'EST PLUS UN LIEN ─────────────────────────
+
+                      Chacune des vingt lignes menait à sa page de métrique, sous un
+                      soulignement pointillé. Deux défauts en découlaient, et le second
+                      est le vrai motif.
+
+                      Le rail devenait une colonne de vingt liens. Sur une page qui en
+                      porte déjà une centaine, vingt destinations alignées dans la
+                      colonne la plus dense ne se lisent plus comme des portes : elles
+                      se lisent comme du texte souligné, et l'œil finit par ignorer le
+                      soulignement.
+
+                      Surtout, ces pages n'existent PLUS comme destination de premier
+                      plan : le catalogue « Toutes les métriques » a été retiré de la
+                      fiche, et un rail qui continuerait de pointer vingt fois vers lui
+                      enverrait vers une profondeur que la page ne revendique plus.
+
+                      L'INFOBULLE RESTE, et elle suffit : la question qu'on se pose
+                      devant « valorisation diluée » est « qu'est-ce que c'est », à
+                      laquelle elle répond sur place — pas « montre-moi sa courbe ».
                     */}
-                    <Link
-                      href={metricHref(segment, asset.id, metric.slug)}
-                      // Soulignement POINTILLÉ permanent, repris de la référence : il
-                      // annonce « ce libellé s'explique » sans occuper de place, là
-                      // où vingt icônes « ⓘ » en colonne feraient une ponctuation.
-                      // Il devient CONTINU au survol — la promesse se confirme quand
-                      // le lien devient réellement actionnable.
-                      className="truncate text-xs text-ink-muted underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand-strong hover:decoration-solid"
-                    >
-                      {label}
-                    </Link>
+                    <span className="truncate text-xs text-ink-muted">{label}</span>
                     {/*
                       L'INFOBULLE EST POSÉE EN PERMANENCE, PAS RÉVÉLÉE AU SURVOL.
                      
@@ -217,34 +215,18 @@ export async function AssetMetricRail({
           </dl>
 
           {/*
-            ── « TOUTES LES MÉTRIQUES », AU PIED DU DERNIER GROUPE ────────────────
+            ── « EXPLORER TOUTES LES MÉTRIQUES » A ÉTÉ RETIRÉ ──────────────────
 
-            La référence ferme sa colonne de repères par « Explore all metrics → ». Nous
-            avions déjà les pages — une par mesure, avec sa série et son explication,
-            sous `/{classe}/{id}/metriques/{slug}` — mais RIEN n'y menait sinon le
-            libellé de la ligne, dont le soulignement pointillé promet une explication
-            plutôt qu'un catalogue. Un lecteur qui veut voir la capitalisation dans le
-            temps devait deviner que le mot était cliquable.
+            Il fermait le dernier groupe et menait au catalogue des dix-sept mesures,
+            lequel a quitté la fiche. Un lien de pied de colonne vers une section
+            supprimée est la pire des deux options : il subsiste, il attire l'œil, et
+            il ne mène plus là où il prétend.
 
-            Le lien ne s'affiche qu'une fois, sous le DERNIER groupe : posé sous chacun,
-            il serait quatre fois la même promesse, et l'œil cesserait de la lire dès la
-            deuxième.
+            Les pages de métrique elles-mêmes SUBSISTENT sous
+            `/{classe}/{id}/metriques/{slug}` : elles sont indexées et partagées. Ce
+            qui disparaît est leur mise en avant depuis ce rail, pas leur existence.
           */}
-          {group === groups[groups.length - 1]?.group && entryMetric ? (
-            <Link
-              /* On entre par la PREMIÈRE mesure du PREMIER groupe — la capitalisation
-                 dans presque tous les cas — et non par celle du groupe qui porte le
-                 lien, qui serait « variation 1 heure » : une porte d'entrée sur un
-                 catalogue doit ouvrir sur ce qu'on y cherche le plus souvent. Chaque
-                 page de métrique liste toutes ses sœurs, la promesse tient donc quel
-                 que soit le point d'arrivée — mais elle tient mieux ici. */
-              href={metricHref(segment, asset.id, entryMetric)}
-              className="mt-2 flex items-center gap-1 text-xs font-medium text-brand-strong transition-colors duration-150 hover:underline"
-            >
-              Explorer toutes les métriques
-              <span aria-hidden="true">→</span>
-            </Link>
-          ) : null}
+
         </RailSection>
       ))}
     </aside>

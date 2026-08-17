@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
@@ -133,17 +134,16 @@ export function AssetStickyBar({
           </span>
 
           {/*
-            « HAUT DE PAGE » DISPARAÎT SOUS `sm`, ET C'EST UN DÉBORDEMENT MESURÉ.
+            IL ÉTAIT MASQUÉ SOUS `sm`, ET IL NE L'EST PLUS.
 
-            La barre aligne six éléments dans la largeur de l'écran : logo, nom, code,
-            cours, variation, et ce bouton. À 375 pixels, l'audit relève 31 pixels de
-            trop — et c'est le dernier arrivé qui les provoque, les cinq autres étant
-            tous indispensables à ce qu'une barre d'identité doit dire.
+            La barre aligne six éléments : logo, nom, code, cours, variation, et ce
+            bouton. À 375 pixels, l'audit relevait 31 pixels de trop, et c'est ce
+            bouton — le plus large — qui les provoquait. Le masquer était la bonne
+            réponse tant qu'il portait « Haut de page » en toutes lettres.
 
-            Il ne perd rien à personne : sur un téléphone, le geste de retour en haut
-            existe déjà dans le système — un appui sur la barre d'état sous iOS, le
-            bouton retour ailleurs — et personne ne le cherche dans la page. Sur un
-            écran d'ordinateur, où ce raccourci n'existe pas, il reste.
+            Réduit à une icône de vingt-huit pixels, il ne coûte plus la largeur qui
+            justifiait son retrait. Il revient donc partout, et c'est sur téléphone —
+            là où la fiche fait le plus d'écrans — qu'il sert le plus.
           */}
           <button
             type="button"
@@ -151,9 +151,29 @@ export function AssetStickyBar({
             // `tabIndex={-1}` quand la barre est invisible : un contrôle transparent
             // mais focalisable piège la tabulation dans une zone que personne ne voit.
             tabIndex={shown ? 0 : -1}
-            className="hidden shrink-0 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink sm:block"
+            title="Remonter en haut de la page"
+            aria-label="Remonter en haut de la page"
+            /*
+              ── LE LIBELLÉ EST DEVENU UNE ICÔNE ────────────────────────────
+
+              « Haut de page » occupait quatre-vingts pixels dans une barre de 48 de haut
+              qui porte déjà le nom de l'actif, son code, son cours et sa variation —
+              c'est-à-dire tout ce pourquoi la barre existe. Le seul contrôle de la bande
+              en était aussi le plus large.
+
+              Une flèche vers le haut dans un carré dit la même chose en vingt-huit
+              pixels : c'est la convention de CoinGecko, de TradingView et de la moitié
+              des sites qui ont une barre collante. Le libellé subsiste en `title` et en
+              `aria-label`, donc rien n'est perdu pour un lecteur d'écran ni pour
+              quelqu'un qui hésite.
+
+              Il redevient visible SOUS `sm`, où il était masqué faute de place : à
+              vingt-huit pixels, il tient désormais partout — et c'est sur téléphone,
+              où la page fait le plus d'écrans, qu'on en a le plus besoin.
+            */
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
           >
-            Haut de page
+            <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>

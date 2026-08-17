@@ -9,6 +9,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { Link } from '@/i18n/navigation'
 import { Pagination } from '@/components/ui/Pagination'
+import { ColumnHeader, ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { assetHref } from '@/lib/asset-routes'
 
 /**
@@ -16,7 +17,7 @@ import { assetHref } from '@/lib/asset-routes'
  *
  * ── CE QU'ELLE AJOUTE AUX DIX PREMIÈRES LIGNES ───────────────────────────────
  *
- * Les palmarès de `/crypto/all-coins` et de `/crypto/mouvements` montrent dix lignes
+ * Les palmarès de `/classements` et de `/mouvements` montrent dix lignes
  * chacun, ce qui est le bon nombre pour COMPARER quatre classements d'un regard. Ce
  * n'est pas le bon nombre pour chercher un actif précis, ni pour voir où s'arrête une
  * hausse — deux usages qui demandent la liste entière.
@@ -71,59 +72,100 @@ export function RankingDetailTable({
     setPage(1)
   }
 
+  /* Aucune de ces colonnes n'est triable ici, et c'est délibéré (voir l'en-tête) : le
+     classement est CELUI QU'ON A DEMANDÉ en arrivant. Leur menu ne porte donc que le
+     masquage, ce qui reste utile — on vient parfois voir un palmarès sans vouloir de
+     sa capitalisation. */
+  const prefs = useColumnPreferences('palmares', [
+    { id: 'rank', label: 'Rang' },
+    { id: 'name', label: 'Actif', locked: true },
+    { id: 'price', label: 'Prix', locked: true },
+    { id: 'change', label: periodLabel },
+    { id: 'metric', label: metric === 'turnover' ? 'Rotation' : 'Volume 24 h' },
+    { id: 'marketCap', label: 'Capitalisation' },
+    { id: 'chart', label: '7 jours' },
+  ])
+
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-card border border-border-subtle">
+      <div className="flex justify-end">
+        <ColumnPicker prefs={prefs} />
+      </div>
+
+      <div className="overflow-x-auto rounded-card">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`, qui pose
             la règle pour tous les tableaux du site. */}
         <table className="w-full border-collapse text-sm sm:min-w-[44rem]">
           <thead>
             <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
-              <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
-                #
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                Actif
-              </th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">
-                Prix
-              </th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">
-                {periodLabel}
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium sm:table-cell">
-                {metric === 'turnover' ? 'Rotation' : 'Volume 24 h'}
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium md:table-cell">
-                Capitalisation
-              </th>
-              <th scope="col" className="hidden px-3 py-2 text-right font-medium lg:table-cell">
-                7 jours
-              </th>
+              {prefs.isVisible('rank') ? (
+                <ColumnHeader
+                  label="#"
+                  columnId="rank"
+                  columnPrefs={prefs}
+                  align="left"
+                  className="hidden sm:table-cell"
+                />
+              ) : null}
+              <ColumnHeader label="Actif" columnId="name" columnPrefs={prefs} align="left" />
+              <ColumnHeader label="Prix" columnId="price" columnPrefs={prefs} />
+              {prefs.isVisible('change') ? (
+                <ColumnHeader label={periodLabel} columnId="change" columnPrefs={prefs} />
+              ) : null}
+              {prefs.isVisible('metric') ? (
+                <ColumnHeader
+                  label={metric === 'turnover' ? 'Rotation' : 'Volume 24 h'}
+                  columnId="metric"
+                  columnPrefs={prefs}
+                  className="hidden sm:table-cell"
+                />
+              ) : null}
+              {prefs.isVisible('marketCap') ? (
+                <ColumnHeader
+                  label="Capitalisation"
+                  columnId="marketCap"
+                  columnPrefs={prefs}
+                  className="hidden md:table-cell"
+                />
+              ) : null}
+              {prefs.isVisible('chart') ? (
+                <ColumnHeader
+                  label="7 jours"
+                  columnId="chart"
+                  columnPrefs={prefs}
+                  className="hidden lg:table-cell"
+                />
+              ) : null}
             </tr>
           </thead>
 
           <tbody className="divide-y divide-border-subtle">
             {rows.map((asset, index) => (
               <tr key={asset.id} className="transition-colors hover:bg-surface-muted">
-                <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                  {/* Le rang est celui du CLASSEMENT, pas de la page : la ligne 1 de la
-                      page 3 est la 51e du palmarès, et l'écrire « 1 » ferait croire à
-                      trois premières places. */}
-                  {(page - 1) * perPage + index + 1}
-                </td>
+                {prefs.isVisible('rank') ? (
+                  <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
+                    {/* Le rang est celui du CLASSEMENT, pas de la page : la ligne 1 de la
+                        page 3 est la 51e du palmarès, et l'écrire « 1 » ferait croire à
+                        trois premières places. */}
+                    {(page - 1) * perPage + index + 1}
+                  </td>
+                ) : null}
 
                 <td className="px-3 py-2.5">
+                  {/* Le symbole est POUSSÉ À DROITE de la colonne plutôt que collé au
+                      nom — même raisonnement que dans `MarketTable` : c'est la seule
+                      façon d'obtenir une colonne de symboles alignée sous des noms de
+                      longueurs très inégales. */}
                   <Link
                     href={assetHref(asset.assetClass, asset.id)}
-                    className="group flex min-w-0 items-center gap-2.5"
+                    className="group flex min-w-0 items-center gap-3"
                   >
                     <AssetLogo asset={asset} size={22} />
-                    <span className="min-w-0 truncate font-medium text-ink group-hover:text-brand-strong">
+                    <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
                       {asset.name}
-                      <span className="ml-1.5 text-xs uppercase text-ink-muted">
-                        {asset.symbol}
-                      </span>
+                    </span>
+                    <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
+                      {asset.symbol}
                     </span>
                   </Link>
                 </td>
@@ -132,35 +174,43 @@ export function RankingDetailTable({
                   <Money value={asset.price} from={asset.currency} />
                 </td>
 
-                <td className="px-3 py-2.5 text-right">
-                  <ChangeBadge
-                    value={asset[field] as number | undefined}
-                    periodLabel={periodLabel}
-                    size="sm"
-                  />
-                </td>
+                {prefs.isVisible('change') ? (
+                  <td className="px-3 py-2.5 text-right">
+                    <ChangeBadge
+                      value={asset[field] as number | undefined}
+                      periodLabel={periodLabel}
+                      size="sm"
+                    />
+                  </td>
+                ) : null}
 
-                <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
-                  {metric === 'turnover' ? (
-                    turnover(asset)
-                  ) : (
-                    <Money value={asset.volume24h} from={asset.currency} compact />
-                  )}
-                </td>
+                {prefs.isVisible('metric') ? (
+                  <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
+                    {metric === 'turnover' ? (
+                      turnover(asset)
+                    ) : (
+                      <Money value={asset.volume24h} from={asset.currency} compact />
+                    )}
+                  </td>
+                ) : null}
 
-                <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
-                  <Money value={asset.marketCap} from={asset.currency} compact />
-                </td>
+                {prefs.isVisible('marketCap') ? (
+                  <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
+                    <Money value={asset.marketCap} from={asset.currency} compact />
+                  </td>
+                ) : null}
 
-                <td className="hidden px-3 py-2.5 text-right lg:table-cell">
-                  {asset.sparkline7d ? (
-                    <span className="inline-block">
-                      <Sparkline values={asset.sparkline7d} label={`Évolution de ${asset.name}`} />
-                    </span>
-                  ) : (
-                    <span className="text-xs text-ink-muted">—</span>
-                  )}
-                </td>
+                {prefs.isVisible('chart') ? (
+                  <td className="hidden px-3 py-2.5 text-right lg:table-cell">
+                    {asset.sparkline7d ? (
+                      <span className="inline-block">
+                        <Sparkline values={asset.sparkline7d} label={`Évolution de ${asset.name}`} />
+                      </span>
+                    ) : (
+                      <span className="text-xs text-ink-muted">—</span>
+                    )}
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>

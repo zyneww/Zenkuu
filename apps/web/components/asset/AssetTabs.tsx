@@ -192,6 +192,7 @@ function scrollToSection(node: HTMLElement): void {
 export function AssetTabs({
   tabs,
   rail,
+  aside,
 }: {
   tabs: AssetTab[]
   /**
@@ -213,6 +214,15 @@ export function AssetTabs({
    * parfaitement placer.
    */
   rail: React.ReactNode
+  /**
+   * Colonne d'actualités, transmise telle quelle au cadre.
+   *
+   * Elle transite par ici pour la même raison que le rail : c'est ce composant qui
+   * monte le cadre, et le cadre est le seul à connaître la géométrie des colonnes.
+   * Ce composant, lui, ne fait que la passer — elle ne partage aucun état avec la
+   * barre de sommaire.
+   */
+  aside?: React.ReactNode
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? '')
   const base = useId()
@@ -480,6 +490,10 @@ export function AssetTabs({
         registerSection(tab.id, node)
       }}
       data-section={tab.id}
+      /* `asset-section` ouvre un contexte de formatage à partir de `lg` : la section
+         se rétrécit tant qu'elle longe le rail flottant, et reprend toute la largeur
+         dès qu'elle commence sous lui. Voir `globals.css`. */
+      className="asset-section"
       role="tabpanel"
       id={`${base}-panel-${tab.id}`}
       aria-labelledby={`${base}-tab-${tab.id}`}
@@ -498,12 +512,22 @@ export function AssetTabs({
   ))
 
   return (
-    <AssetLayoutFrame tabsBar={bar} rail={rail}>
+    <AssetLayoutFrame tabsBar={bar} rail={rail} aside={aside}>
       {/* `space-y-12` : les sections ne sont plus séparées par un changement d'écran,
           c'est donc le blanc qui doit dire où l'une finit et où l'autre commence. En
           dessous, les titres de premier niveau de deux sections voisines se lisent
-          comme deux titres de la même. */}
-      <div className="space-y-12 pt-1">{sections}</div>
+          comme deux titres de la même.
+
+          `asset-sections` retire la BOÎTE de cette enveloppe à partir de `lg`, sans la
+          retirer de l'arbre : sans quoi elle formerait à elle seule un bloc rétréci le
+          long du rail flottant sur toute sa hauteur, et les sections n'y gagneraient
+          rien. Ses marges d'espacement survivent — elles visent ses enfants. Voir
+          `globals.css`. */}
+      {/* PAS de `pt-1` ici : `asset-sections` retire la boîte de cette enveloppe à
+          partir de `lg`, et un rembourrage sans boîte ne rembourre rien. Il donnait
+          donc quatre pixels sur téléphone et zéro sur ordinateur — un écart que rien
+          n'expliquait. La réserve haute appartient au cadre, qui en a une (`pt-4`). */}
+      <div className="asset-sections space-y-12">{sections}</div>
     </AssetLayoutFrame>
   )
 }

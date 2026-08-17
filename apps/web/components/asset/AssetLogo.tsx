@@ -6,6 +6,14 @@ import { useState } from 'react'
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { findUniverseEntryBySymbol, type CommodityFamily } from '@zenkuu/data'
 
+import {
+  COMMODITY_DRAWN,
+  CommodityGlyph,
+  CurrencyFlag,
+  INDEX_FLAGGED,
+  IndexGlyph,
+  PairGlyph,
+} from '@/components/asset/glyphs'
 import { monogram } from '@/components/asset/monogram'
 
 /**
@@ -23,9 +31,15 @@ import { monogram } from '@/components/asset/monogram'
  * tombe sur la suivante :
  *
  *   1. image fournie par la source        (crypto)
- *   2. emoji de famille                   (matières premières)
- *   3. logo par domaine                   (actions, ETF — exige une clé)
- *   4. monogramme                         (tout le reste, et tous les échecs)
+ *   2. paire de drapeaux                  (devises)
+ *   3. pictogramme dessiné                (matières premières)
+ *   4. drapeau + monogramme               (indices)
+ *   5. logo par domaine                   (actions, ETF — exige une clé)
+ *   6. monogramme                         (tout le reste, et tous les échecs)
+ *
+ * Les branches 2, 3 et 4 sont NOUVELLES et remplacent trois chemins qui tombaient
+ * tous sur le monogramme. Voir `glyphs.tsx` pour ce qu'elles dessinent et pourquoi
+ * elles sont écrites en SVG plutôt que servies en images.
  *
  * ── POURQUOI UN COMPOSANT CLIENT ──────────────────────────────────────────────
  *
@@ -111,22 +125,57 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
 
   const entry = findUniverseEntryBySymbol(asset.symbol)
 
-  // ── 2. Matière première : emoji dans une pastille teintée ─────────────────
-  if (entry?.emoji) {
-    return (
-      <span
-        className={`flex shrink-0 items-center justify-center rounded-pill ${
-          entry.family ? FAMILY_TINT[entry.family] : 'bg-surface-muted'
-        }`}
-        style={{ width: size, height: size, fontSize: Math.round(size * 0.58) }}
-        aria-hidden="true"
-      >
-        {entry.emoji}
-      </span>
-    )
+  // ── 2. Devise : les drapeaux de la paire ──────────────────────────────────
+  if (asset.assetClass === 'forex') {
+    /*
+     * Le symbole arrive sous plusieurs formes selon le chemin — « EUR/USD » depuis le
+     * classement, « EURUSD » depuis certaines recherches. On retire tout ce qui n'est
+     * pas une lettre puis on coupe en deux : les codes ISO 4217 font TOUS trois
+     * lettres, ce découpage est donc exact et non une heuristique.
+     */
+    const letters = asset.symbol.replace(/[^A-Za-z]/g, '').toUpperCase()
+    if (letters.length === 6) {
+      return <PairGlyph base={letters.slice(0, 3)} quote={letters.slice(3)} size={size} />
+    }
+    if (letters.length === 3) {
+      return <CurrencyFlag code={letters} size={size} />
+    }
   }
 
-  // ── 3. Action ou ETF : logo de l'émetteur, par son domaine ────────────────
+  // ── 3. Matière première : pictogramme dessiné, ou l'émoji en repli ────────
+  if (entry?.emoji || asset.assetClass === 'commodity') {
+    const glyph = <CommodityGlyph symbol={asset.symbol} size={size} />
+    if (COMMODITY_DRAWN.has(asset.symbol)) return glyph
+
+    /* L'émoji SUBSISTE pour toute matière qu'aucun pictogramme ne couvre : ajouter une
+       ligne au catalogue ne doit pas exiger d'ouvrir un éditeur vectoriel le même
+       jour. La pastille teintée par famille reste, elle porte l'information de
+       catégorie que le pictogramme ne donne pas. */
+    if (entry?.emoji) {
+      return (
+        <span
+          className={`flex shrink-0 items-center justify-center rounded-pill ${
+            entry.family ? FAMILY_TINT[entry.family] : 'bg-surface-muted'
+          }`}
+          style={{ width: size, height: size, fontSize: Math.round(size * 0.58) }}
+          aria-hidden="true"
+        >
+          {entry.emoji}
+        </span>
+      )
+    }
+  }
+
+  // ── 4. Indice : drapeau de sa place, écusson du monogramme ────────────────
+  if (asset.assetClass === 'index' && entry?.country) {
+    const glyph = <IndexGlyph country={entry.country} label={label} size={size} />
+    /* `IndexGlyph` rend `null` pour un pays absent de sa table. On ne peut pas le
+       savoir avant de l'appeler, mais la table des drapeaux, elle, est consultable :
+       le test porte donc sur elle plutôt que sur le résultat du rendu. */
+    if (INDEX_FLAGGED.has(entry.country)) return glyph
+  }
+
+  // ── 5. Action ou ETF : logo de l'émetteur, par son domaine ────────────────
   const isCompany = asset.assetClass === 'stock' || asset.assetClass === 'etf'
   if (isCompany && entry?.domain && LOGO_TOKEN && !failed) {
     return (

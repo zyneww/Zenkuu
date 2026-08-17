@@ -6,6 +6,7 @@ export { Sparkline } from './Sparkline'
 export { SourceNote } from './SourceNote'
 export {
   formatCompact,
+  formatCompactAxis,
   formatCurrency,
   formatDateTime,
   formatNumber,

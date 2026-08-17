@@ -1,6 +1,7 @@
 import type { NftCollection } from '@zenkuu/data'
 import { formatCompact, formatShare } from '@zenkuu/ui'
 
+import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
 
 /**
@@ -51,6 +52,19 @@ export function NftOverview({ collections }: { collections: NftCollection[] }) {
     title: collection.name,
     value: collection.marketCapUsd as number,
     ...(collection.floorChange24h !== undefined ? { change: collection.floorChange24h } : {}),
+    /*
+      ── ICÔNE ET LIEN, LES DEUX VENANT DE LA SOURCE ─────────────────────────
+
+      L'image est la vignette publiée par la source ; la destination est le SITE OFFICIEL
+      de la collection, également publié — voir `NftCollection.homepage` pour le choix de
+      cette destination plutôt qu'une URL construite, qu'on n'a pas pu vérifier.
+
+      Les deux sont facultatifs et se retirent d'eux-mêmes : une collection sans image
+      garde son symbole, une collection sans site garde une tuile inerte. C'est ce qui
+      rend l'ajout sûr — aucune tuile ne peut se casser faute de champ.
+    */
+    ...(collection.image ? { image: collection.image } : {}),
+    ...(collection.homepage ? { href: collection.homepage } : {}),
   }))
 
   return (
@@ -79,12 +93,20 @@ export function NftOverview({ collections }: { collections: NftCollection[] }) {
           <TreemapLegend />
         </div>
 
-        <TreemapFigure
-          tiles={tiles}
-          periodLabel="24 heures"
-          height="min(45vh, 360px)"
-          valueUnit=" $"
-        />
+        {/* Même cadre que la carte du marché : une figure de tuiles est la seule du
+            site dont la lisibilité dépend directement de sa surface. */}
+        <HeatmapFrame>
+          <TreemapFigure
+            tiles={tiles}
+            periodLabel="24 heures"
+            /* PLUS HAUTE que les autres cartes : six tuiles seulement, dont les
+               vignettes et les noms complets demandent de la place. À 360 pixels, les
+               trois dernières collections ne pouvaient porter ni image ni montant. Les
+               cartes de marché, elles, pavent cent tuiles et gagnent à rester compactes. */
+            height="min(62vh, 520px)"
+            valueUnit=" $"
+          />
+        </HeatmapFrame>
 
         <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
           Surface : capitalisation de la collection. Couleur : variation du{' '}

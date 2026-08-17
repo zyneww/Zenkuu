@@ -296,7 +296,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-card border border-border-subtle">
+      <div className="overflow-x-auto rounded-card">
         {/* PAS DE COLONNES PRIORITAIRES ICI — et c'est le seul tableau du site dans ce
             cas. Les colonnes SONT les actifs que le lecteur a lui-même choisis :
             en masquer une reviendrait à retirer de la comparaison ce qu'il vient d'y

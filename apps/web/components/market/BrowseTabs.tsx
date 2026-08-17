@@ -2,7 +2,7 @@ import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 
 import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
 import { getContent } from '@/lib/content'
-import { marketHref } from '@/lib/asset-routes'
+import { ASSET_CLASS_SEGMENT } from '@/lib/asset-routes'
 
 /**
  * Onglets de la page « Parcourir » — CENTRÉS, et précédés de leur intitulé.
@@ -46,8 +46,30 @@ import { marketHref } from '@/lib/asset-routes'
  * appeler « futures » un contrat sans date serait faux au sens propre.
  */
 
-/** Onglet supplémentaire, hors énumération des classes d'actifs. */
+/**
+ * Onglets supplémentaires, hors énumération des classes d'actifs.
+ *
+ * ── TROIS ONGLETS QUI NE SONT PAS DES CLASSES, ET LEURS TROIS RAISONS ─────
+ *
+ * `derives` liste des CONTRATS, sur place dans `/marches`. Les deux autres mènent
+ * ailleurs, et c'est ce qui les distingue : ils ne décrivent pas un actif qu'on
+ * achète mais une INFRASTRUCTURE où il s'échange — des plateformes, pas des cotations.
+ * Un tableau de places n'a ni prix, ni capitalisation, ni fiche à ouvrir : il ne
+ * partage aucune colonne avec `MarketPageView`, et l'y faire entrer aurait demandé de
+ * rendre optionnel presque tout ce que ce composant sait faire.
+ *
+ * Ils vivent donc dans la même barre — parce que la question « où ça s'échange » se
+ * pose en parcourant les marchés — mais sur leurs propres pages.
+ */
 export const DERIVATIVES_TAB = 'derives'
+export const EXCHANGES_TAB = 'places'
+export const PERPETUALS_TAB = 'perpetuels'
+
+/** Les onglets qui quittent `/marches` — voir la note ci-dessus. */
+export type ExtraTab =
+  | typeof DERIVATIVES_TAB
+  | typeof EXCHANGES_TAB
+  | typeof PERPETUALS_TAB
 
 /** `nft` est déclaré dans le domaine mais aucune source ne l'alimente encore. */
 const HIDDEN: readonly AssetClass[] = ['nft']
@@ -56,9 +78,9 @@ export async function BrowseTabs({
   current,
   hrefFor,
 }: {
-  /** Classe active, ou `derives` pour l'onglet hors classes. */
-  current: AssetClass | typeof DERIVATIVES_TAB
-  hrefFor: (target: AssetClass | typeof DERIVATIVES_TAB) => string
+  /** Classe active, ou l'un des trois onglets hors classes. */
+  current: AssetClass | ExtraTab
+  hrefFor: (target: AssetClass | ExtraTab) => string
 }) {
   const fr = await getContent()
 
@@ -69,8 +91,13 @@ export async function BrowseTabs({
    * ordre alphabétique ferait ouvrir « Actions » en premier sur un site dont les
    * neuf dixièmes des données sont crypto.
    */
-  const ORDER: (AssetClass | typeof DERIVATIVES_TAB)[] = [
+  const ORDER: (AssetClass | ExtraTab)[] = [
     'crypto',
+    /* Les deux places suivent immédiatement la crypto, et avant les dérivés : la
+       question « où ça s'échange » vient juste après « qu'est-ce qui s'échange », et
+       bien avant le détail contrat par contrat. */
+    EXCHANGES_TAB,
+    PERPETUALS_TAB,
     DERIVATIVES_TAB,
     'etf',
     'stock',
@@ -79,14 +106,25 @@ export async function BrowseTabs({
     'commodity',
   ]
 
+  const EXTRA_LABELS: Record<ExtraTab, string> = {
+    [DERIVATIVES_TAB]: 'Dérivés',
+    /* « Places » et non « Exchanges » : le site est francophone, et « place » est le
+       mot que la finance française emploie depuis toujours pour désigner un lieu de
+       cotation. « Perpétuels » n'a pas d'équivalent — c'est le nom du produit. */
+    [EXCHANGES_TAB]: 'Places',
+    [PERPETUALS_TAB]: 'Perpétuels',
+  }
+
+  const isExtra = (entry: AssetClass | ExtraTab): entry is ExtraTab => entry in EXTRA_LABELS
+
   const tabs: LinkTab[] = ORDER.filter(
-    (entry) => entry === DERIVATIVES_TAB || !HIDDEN.includes(entry as AssetClass),
+    (entry) => isExtra(entry) || !HIDDEN.includes(entry as AssetClass),
   )
-    .filter((entry) => entry === DERIVATIVES_TAB || ASSET_CLASSES.includes(entry as AssetClass))
+    .filter((entry) => isExtra(entry) || ASSET_CLASSES.includes(entry as AssetClass))
     .map((entry) => ({
       id: entry,
       href: hrefFor(entry),
-      label: entry === DERIVATIVES_TAB ? 'Dérivés' : fr.assetClass[entry as AssetClass],
+      label: isExtra(entry) ? EXTRA_LABELS[entry] : fr.assetClass[entry as AssetClass],
     }))
 
   return (
@@ -96,9 +134,20 @@ export async function BrowseTabs({
   )
 }
 
-/** Destination d'un onglet — une seule page, un paramètre. */
-export function browseHref(target: AssetClass | typeof DERIVATIVES_TAB): string {
+/**
+ * Destination d'un onglet — une seule page, un paramètre.
+ *
+ * Le segment est lu directement dans `ASSET_CLASS_SEGMENT` et non déduit de
+ * `marketHref` : depuis que celle-ci rend elle-même `/marches?classe=…`, en retirer le
+ * premier caractère donnerait `marches?classe=etf` — une URL relative qui
+ * fonctionnerait depuis la racine et casserait partout ailleurs.
+ */
+export function browseHref(target: AssetClass | ExtraTab): string {
   if (target === DERIVATIVES_TAB) return '/marches?vue=derives'
+  /* Ces deux-là sortent de `/marches` : ce sont de vraies pages, indexables et
+     partageables, et non des vues paramétrées. */
+  if (target === EXCHANGES_TAB) return '/places'
+  if (target === PERPETUALS_TAB) return '/perpetuels'
   if (target === 'crypto') return '/marches'
-  return `/marches?classe=${marketHref(target).slice(1)}`
+  return `/marches?classe=${ASSET_CLASS_SEGMENT[target]}`
 }

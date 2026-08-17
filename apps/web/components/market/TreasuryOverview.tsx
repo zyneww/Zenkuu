@@ -1,10 +1,12 @@
 import type { TreasuryReport } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
-/* `TreemapLegend` n'est délibérément PAS importée — voir la note sur la couleur dans
-   l'en-tête ci-dessous : sans variation à peindre, une échelle de couleurs décrirait
-   quelque chose qui n'existe pas sur la figure. */
-import { TreemapFigure, type TreemapTile } from '@/components/tools/TreemapFigure'
+import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
+import {
+  TreemapFigure,
+  TreemapLegend,
+  type TreemapTile,
+} from '@/components/tools/TreemapFigure'
 
 /**
  * VUE D'ENSEMBLE DES TRÉSORERIES — quatre nombres et une carte, avant les tableaux.
@@ -40,15 +42,29 @@ import { TreemapFigure, type TreemapTile } from '@/components/tools/TreemapFigur
  * moitié de la carte se voit ; « 640 000 BTC » en tête d'un tableau de deux cents
  * lignes, non.
  *
- * ── LA COULEUR N'EST PAS UNE VARIATION, ET C'EST POURQUOI ELLE EST ABSENTE ────
+ * ── LA COULEUR PORTE LA PLUS-VALUE LATENTE ────────────────────────────────────
  *
- * Les autres cartes thermiques du site colorent une variation sur une fenêtre. Ce
- * registre n'en a pas : il recense des positions DÉCLARÉES, à la date de leur annonce,
- * sans historique. Colorer par plus-value latente serait tentant et faux — la valeur
- * d'entrée manque pour une partie des lignes, et une tuile grise au milieu de tuiles
- * vertes se lirait comme une perte.
+ * Les autres cartes thermiques du site colorent une variation sur une FENÊTRE — 24 h,
+ * 7 jours. Ce registre n'en a pas : il recense des positions déclarées, à la date de
+ * leur annonce, sans historique. Les tuiles sont donc restées neutres un temps, au
+ * motif qu'il n'y avait rien à peindre.
  *
- * Les tuiles restent donc neutres, et la légende disparaît avec la couleur.
+ * C'était une conclusion trop rapide. Il y a bien une grandeur variable ici, et c'est
+ * même la seule question qu'on pose à un tel registre : l'écart entre ce qu'une
+ * société a PAYÉ (`entryValueUsd`) et ce que sa position VAUT aujourd'hui. Une carte
+ * qui la peint répond d'un regard à « qui est en gain » ; une carte grise ne répond à
+ * rien et laisse le lecteur diviser deux colonnes de tableau.
+ *
+ * L'objection qui avait fait renoncer — « la valeur d'entrée manque pour une partie
+ * des lignes » — reste vraie et elle ne pèse pas ce qu'on croyait : `heatTone` rend un
+ * gris de LACUNE, distinct des paliers rouges. Une tuile sans coût d'entrée se lit
+ * donc « non communiqué », pas « à l'équilibre », et la note sous la figure le dit.
+ * C'est exactement le traitement que la carte du marché applique à un actif dont la
+ * source ne publie pas la fenêtre demandée.
+ *
+ * ⚠️ Ce n'est ni un résultat réalisé — la position n'a pas été vendue — ni une
+ * performance boursière de la société. La note le précise, faute de quoi la carte se
+ * lirait comme un palmarès d'actionnaires.
  */
 export function TreasuryOverview({
   reports,
@@ -85,11 +101,30 @@ export function TreasuryOverview({
       const value = holder.currentValueUsd
       if (value === undefined || value <= 0) continue
 
+      /*
+       * ── LA COULEUR PORTE LA PLUS-VALUE LATENTE ────────────────────────────
+       *
+       * `entryValueUsd` est ce que la société déclare avoir payé ; la tuile peint
+       * l'écart avec ce que la position vaut aujourd'hui, en pourcentage du coût.
+       * C'est la seule grandeur variable de ce registre, et c'est la question qu'on
+       * lui pose réellement : qui est en gain, qui est en perte.
+       *
+       * ⚠️ ABSENT N'EST PAS ZÉRO. La source publie `0` pour « non communiqué » ;
+       * l'adaptateur a déjà traduit ce zéro en champ manquant (voir
+       * `TreasuryHolder.entryValueUsd`), et le laisser passer donnerait une
+       * plus-value infinie. Sans coût d'entrée, la tuile reste donc GRISE — ce que
+       * `heatTone` fait d'une variation absente, et qui se lit comme « on ne sait
+       * pas » plutôt que comme « stable ».
+       */
+      const cost = holder.entryValueUsd
+      const gain = cost !== undefined && cost > 0 ? ((value - cost) / cost) * 100 : undefined
+
       tiles.push({
         id: `${entry.coin}:${holder.name}`,
         label: holder.ticker?.split('.')[0] ?? holder.name,
         title: `${holder.name} · ${formatCompact(holder.holdings)} ${entry.unit}`,
         value,
+        ...(gain !== undefined ? { change: gain } : {}),
       })
     }
   }
@@ -121,27 +156,31 @@ export function TreasuryOverview({
         <div className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="display-sm text-ink">Répartition par détenteur</h2>
-            <p className="text-xs text-ink-muted">
-              {tiles.length} positions · surface = valeur au cours du jour
-            </p>
+            <TreemapLegend />
           </div>
 
-          {/* Plus basse que les cartes thermiques du marché : celle-ci n'a que quelques
-              dizaines de tuiles, et une hauteur de sept cents pixels y laisserait des
-              rectangles démesurés pour des positions marginales. */}
-          <TreemapFigure
-            tiles={tiles.slice(0, 60)}
-            periodLabel=""
-            height="min(50vh, 400px)"
-            valueUnit=" $"
-          />
+          {/* LA MÊME HAUTEUR que la carte des collections et celle du marché : ces trois
+              figures sont le même objet, et une hauteur qui varierait de l'une à l'autre
+              se verrait en passant de page en page. */}
+          <HeatmapFrame>
+            <TreemapFigure
+              tiles={tiles.slice(0, 60)}
+              periodLabel="l’acquisition"
+              height="min(62vh, 520px)"
+              valueUnit=" $"
+            />
+          </HeatmapFrame>
 
           <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
-            Surface : valeur de la position au cours du jour. Les tuiles ne sont pas
-            colorées, et c’est délibéré : ce registre recense des positions{' '}
-            <strong className="text-ink">déclarées</strong>, à la date de leur annonce, sans
-            historique — il n’existe aucune variation à peindre. Une société qui aurait vendu
-            sans le publier y figure encore. Montants en dollars.
+            {tiles.length} positions. Surface : valeur au cours du jour. Couleur :{' '}
+            <strong className="text-ink">plus-value latente</strong> — l’écart entre cette
+            valeur et le coût d’acquisition déclaré, rapporté à ce coût. Ce n’est ni un
+            résultat réalisé ni une performance boursière : la position n’a pas été vendue.
+            Une tuile <strong className="text-ink">grise</strong> signale une société qui n’a
+            pas communiqué son coût d’entrée — l’absence est affichée comme telle, jamais
+            remplacée par zéro. Ce registre recense enfin des positions{' '}
+            <strong className="text-ink">déclarées</strong>, à la date de leur annonce : une
+            société qui aurait vendu sans le publier y figure encore. Montants en dollars.
           </p>
         </div>
       ) : null}

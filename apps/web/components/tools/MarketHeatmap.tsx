@@ -5,12 +5,8 @@ import { useMemo, useState } from 'react'
 import type { MarketAsset, MarketCategory } from '@zenkuu/data'
 
 import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
-import { TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
-import {
-  GroupedTreemap,
-  type HeatmapColorMode,
-  type TreemapGroup,
-} from '@/components/tools/GroupedTreemap'
+import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
+import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
 import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 
 /**
@@ -18,30 +14,48 @@ import { HEATMAP_CLAMP } from '@/components/tools/treemap'
  *
  * ── POURQUOI LES DEUX, ET PAS L'UNE OU L'AUTRE ────────────────────────────────
  *
- * Nous avions la carte par SECTEUR ; la référence a les deux, sur deux pages
- * distinctes. Ce n'est pas une redite : les deux figures répondent à des questions qui
- * ne se déduisent pas l'une de l'autre.
- *
  * Par pièce, on voit QUI bouge — un actif isolé peut prendre dix pour cent sans que
  * son secteur frémisse. Par secteur, on voit OÙ ça bouge — dix actifs d'un même
  * narratif qui montent de deux pour cent chacun ne se remarquent nulle part
- * individuellement, et sautent aux yeux groupés.
+ * individuellement, et sautent aux yeux additionnés.
  *
  * Une bascule plutôt que deux blocs empilés : les deux occupent exactement la même
- * place à l'écran, et les mettre l'un sous l'autre doublerait la hauteur d'une page
- * qui en a déjà beaucoup. La bascule est aussi ce qui rend la comparaison possible —
- * la figure change sous l'œil, au même endroit.
+ * place à l'écran, et la comparaison devient possible — la figure change sous l'œil,
+ * au même endroit.
  *
- * ── LA PÉRIODE NE S'APPLIQUE QU'AUX PIÈCES, ET LA BARRE LE DIT ────────────────
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE PAVAGE GROUPÉ A ÉTÉ RETIRÉ — LA FIGURE EST CELLE DES COLLECTIONS NFT
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * `MarketAsset` porte cinq fenêtres de variation, publiées dans la même réponse :
- * changer de période ne coûte donc aucun appel. `MarketCategory` n'en porte QU'UNE,
- * les vingt-quatre heures — la source ne publie pas d'historique sectoriel sur son
- * palier gratuit.
+ * Cette carte passait par `GroupedTreemap` : chaque secteur recevait son cadre, son
+ * titre et sa teinte identifiante, et les actifs étaient pavés à l'intérieur. La
+ * figure était juste et elle ne ressemblait à aucune autre du site — trois cartes
+ * thermiques, deux dessins.
  *
- * Les pastilles de période DISPARAISSENT donc en mode secteur, au lieu d'être
- * grisées ou de rester actives sans effet. Un contrôle inopérant est pire qu'un
- * contrôle absent : il fait douter de la donnée plutôt que de l'interface.
+ * Trois différences se cumulaient, et chacune coûtait de la lisibilité :
+ *
+ *   · LES CADRES MANGENT LA SURFACE. Vingt titres de groupe à douze pixels, vingt
+ *     bordures et vingt marges intérieures : sur une figure de cinq cents pixels de
+ *     haut, un bon quart de la place servait à nommer des familles plutôt qu'à
+ *     montrer des actifs. Les tuiles du bas descendaient sous le seuil où elles
+ *     peuvent porter leur montant.
+ *
+ *   · LA COLORATION CATÉGORIELLE ÉTAIT LE DÉFAUT, et elle répond à une autre
+ *     question que celle qu'on pose à une carte thermique. « De quoi ce marché
+ *     est-il fait » se lit dans un tableau de secteurs ; « qu'est-ce qui monte » ne
+ *     se lit QUE sur une carte colorée par la variation. Le mode par défaut cachait
+ *     donc précisément ce que la figure sait faire de mieux.
+ *
+ *   · LE RATTACHEMENT ÉTAIT PARTIEL. Les secteurs se déduisaient des trois actifs
+ *     principaux de chaque catégorie ; toute la longue traîne atterrissait dans un
+ *     groupe « Autres » qui finissait par être le plus gros de la carte. Un
+ *     groupement dont le premier groupe est le fourre-tout ne groupe plus rien.
+ *
+ * La figure est donc désormais `TreemapFigure`, exactement celle des collections NFT
+ * et des trésoreries : pavage plat, tuiles jointives, couleur = variation, montant et
+ * part sur une ligne. Une seule anatomie de tuile sur tout le site, et la bascule
+ * « Pièces / Secteurs » suffit à répondre à la question du découpage — sans qu'un
+ * découpage ait à en dessiner un second par-dessus.
  *
  * ── AUCUN APPEL SUPPLÉMENTAIRE, DANS LES DEUX MODES ───────────────────────────
  *
@@ -77,51 +91,22 @@ const PERIOD_WORDS: Record<PeriodId, string> = {
 /** Nombres de tuiles proposés. Au-delà de 100, une tuile n'est plus qu'un pixel. */
 const COUNTS = [25, 50, 100] as const
 
-const COLOR_MODES = [
-  { id: 'categorical', label: 'Catégoriel' },
-  { id: 'change', label: 'Variation' },
+/**
+ * ── CE QUE LA SURFACE MESURE ───────────────────────────────────────
+ *
+ * La capitalisation dit ce que le marché VAUT, le volume ce qu'il A FAIT aujourd'hui.
+ * Les deux cartes ne se ressemblent pas : Bitcoin écrase la première et partage la
+ * seconde avec des jetons cent fois plus petits mais bien plus échangés.
+ *
+ * C'est le second sélecteur de TradingView, et il répond à la question qu'une carte de
+ * capitalisation ne peut pas poser : « où l'activité s'est-elle concentrée ».
+ */
+const SIZE_MODES = [
+  { id: 'marketCap', label: 'Capitalisation' },
+  { id: 'volume24h', label: 'Volume 24 h' },
 ] as const
 
-/**
- * Secteur d'appartenance de chaque actif, DÉDUIT DES CATÉGORIES DÉJÀ CHARGÉES.
- *
- * ── D'OÙ VIENT CE RATTACHEMENT, ET CE QU'IL VAUT ─────────────────────────────
- *
- * `MarketAsset` ne porte aucun secteur : la source ne le publie pas dans le
- * classement. En revanche, chaque catégorie publie ses TROIS actifs principaux
- * (`topAssetIds`), dans la même réponse que celle déjà chargée pour les secteurs. En
- * parcourant les catégories, on obtient donc un rattachement RÉEL — pas deviné — pour
- * les actifs qui dominent au moins un secteur.
- *
- * Sa limite est nette et il faut la nommer : un actif qui n'est premier de rien
- * n'apparaît dans aucune liste, et reste donc sans secteur. C'est le cas de la longue
- * traîne, qui atterrit dans « Autres » — exactement comme le groupe « Other » de la
- * référence, et pour la même raison.
- *
- * ── LE PREMIER SECTEUR L'EMPORTE, ET IL EST LE PLUS GROS ─────────────────────
- *
- * Bitcoin relève de « Layer 1 » comme de « Proof of Work » ; une carte doit pourtant
- * le poser quelque part et une seule fois, sans quoi les surfaces compteraient deux
- * fois la même capitalisation. Les catégories étant parcourues par capitalisation
- * décroissante, le secteur retenu est le plus large de ceux auxquels l'actif
- * appartient — celui sous lequel on le cherche.
- */
-function buildSectorIndex(categories: MarketCategory[]): Map<string, string> {
-  const index = new Map<string, string>()
-
-  const ordered = [...categories]
-    .filter((category) => (category.marketCap ?? 0) > 0)
-    .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
-
-  for (const category of ordered) {
-    for (const assetId of category.topAssetIds ?? []) {
-      // `has` avant `set` : le premier rencontré gagne, donc le plus gros secteur.
-      if (!index.has(assetId)) index.set(assetId, category.name)
-    }
-  }
-
-  return index
-}
+type SizeId = (typeof SIZE_MODES)[number]['id']
 
 export function MarketHeatmap({
   assets,
@@ -130,19 +115,18 @@ export function MarketHeatmap({
   assets: MarketAsset[]
   categories: MarketCategory[]
 }) {
-  /* Les pièces d'abord : c'est la lecture que la référence met en avant, et celle
-     qu'un lecteur cherche quand il arrive sur « où le marché bouge-t-il ». */
+  /* Les pièces d'abord : c'est la lecture qu'un lecteur cherche en arrivant sur
+     « où le marché bouge-t-il ». */
   const [mode, setMode] = useState<ModeId>(assets.length > 0 ? 'coins' : 'sectors')
   const [period, setPeriod] = useState<PeriodId>('change24h')
   const [count, setCount] = useState<number>(50)
-
-  /* « Catégoriel » par défaut, comme la référence : c'est la lecture de COMPOSITION —
-     de quoi ce marché est fait — et elle précède naturellement celle du mouvement du
-     jour, qui reste à un clic. */
-  const [colorMode, setColorMode] = useState<HeatmapColorMode>('categorical')
+  const [sizeBy, setSizeBy] = useState<SizeId>('marketCap')
 
   const tiles = useMemo<TreemapTile[]>(() => {
     if (mode === 'sectors') {
+      /* Les secteurs n'ont qu'une grandeur — la source ne publie pas leur volume — et
+         le sélecteur de taille disparaît donc dans ce mode (voir plus bas). Rien à
+         arbitrer ici. */
       return categories
         .filter((category) => (category.marketCap ?? 0) > 0)
         .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
@@ -159,8 +143,8 @@ export function MarketHeatmap({
     }
 
     return assets
-      .filter((asset) => (asset.marketCap ?? 0) > 0)
-      .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
+      .filter((asset) => (asset[sizeBy] ?? 0) > 0)
+      .sort((a, b) => (b[sizeBy] ?? 0) - (a[sizeBy] ?? 0))
       .slice(0, count)
       .map((asset) => ({
         id: asset.id,
@@ -168,56 +152,14 @@ export function MarketHeatmap({
         // et « Bitcoin » se tronque. Le nom complet part dans l'infobulle.
         label: asset.symbol.toUpperCase(),
         title: asset.name,
-        value: asset.marketCap as number,
+        value: asset[sizeBy] as number,
         // Une fenêtre non publiée pour cet actif laisse la tuile GRISE plutôt que la
         // colorer avec la variation d'une autre période — voir `heatTone`.
         ...(asset[period] !== undefined ? { change: asset[period] as number } : {}),
+        ...(asset.image ? { image: asset.image } : {}),
         href: `/crypto/${asset.id}`,
       }))
-  }, [mode, assets, categories, count, period])
-
-  /**
-   * Regroupement des tuiles, DANS L'ORDRE DE POIDS DÉCROISSANT.
-   *
-   * Les pièces sont rangées sous leur secteur ; les secteurs, eux, forment chacun leur
-   * propre groupe d'une seule tuile. Ce second cas peut sembler inutile — un groupe à
-   * un élément — et il ne l'est pas : c'est ce qui donne au mode « Secteurs » le même
-   * cadre, le même titre et la même palette que l'autre, plutôt qu'une figure d'un
-   * dessin différent selon la bascule.
-   *
-   * L'ORDRE compte doublement. Il décide de la place dans le pavage — les gros groupes
-   * d'abord, en haut à gauche — et il décide de la teinte, puisque celle-ci suit
-   * l'index. Trier par poids garantit donc que les mêmes secteurs gardent les mêmes
-   * couleurs d'une période à l'autre, tant que leur classement ne bouge pas.
-   */
-  const groups = useMemo<TreemapGroup[]>(() => {
-    if (mode === 'sectors') {
-      return tiles.map((tile) => ({ id: tile.id, label: tile.label, tiles: [tile] }))
-    }
-
-    const sectorOf = buildSectorIndex(categories)
-    const buckets = new Map<string, TreemapTile[]>()
-
-    for (const tile of tiles) {
-      /* `Autres` accueille ce que le rattachement ne couvre pas — la longue traîne, qui
-         n'est première d'aucun secteur. Le nommer plutôt que d'écarter ces actifs :
-         les faire disparaître changerait la somme des surfaces sans le dire. */
-      const sector = sectorOf.get(tile.id) ?? 'Autres'
-      const bucket = buckets.get(sector)
-      if (bucket) bucket.push(tile)
-      else buckets.set(sector, [tile])
-    }
-
-    return [...buckets.entries()]
-      .map(([label, groupTiles]) => ({
-        id: label,
-        label,
-        tiles: groupTiles,
-        weight: groupTiles.reduce((sum, tile) => sum + tile.value, 0),
-      }))
-      .sort((a, b) => b.weight - a.weight)
-      .map(({ id, label, tiles: groupTiles }) => ({ id, label, tiles: groupTiles }))
-  }, [mode, tiles, categories])
+  }, [mode, assets, categories, count, period, sizeBy])
 
   if (tiles.length === 0) return null
 
@@ -238,7 +180,9 @@ export function MarketHeatmap({
             ))}
           </ChipGroup>
 
-          {/* Absentes en mode secteur — voir l'en-tête du fichier. */}
+          {/* Absentes en mode secteur : la source ne publie qu'une fenêtre de variation
+              par catégorie. Un contrôle inopérant est pire qu'un contrôle absent — il
+              fait douter de la donnée plutôt que de l'interface. */}
           {mode === 'coins' ? (
             <ChipGroup label="Variation">
               {PERIODS.map((entry) => (
@@ -252,16 +196,21 @@ export function MarketHeatmap({
             </ChipGroup>
           ) : null}
 
-          <ChipGroup label="Couleur">
-            {COLOR_MODES.map((entry) => (
-              <Chip
-                key={entry.id}
-                active={colorMode === entry.id}
-                onClick={() => setColorMode(entry.id)}
-                label={entry.label}
-              />
-            ))}
-          </ChipGroup>
+          {/* Absent en mode secteur : la source ne publie pas le volume d'un secteur,
+             et un sélecteur dont la seconde option ne rendrait rien vaut moins que son
+             absence — même raisonnement que pour les périodes ci-dessus. */}
+          {mode === 'coins' ? (
+            <ChipGroup label="Taille">
+              {SIZE_MODES.map((entry) => (
+                <Chip
+                  key={entry.id}
+                  active={sizeBy === entry.id}
+                  onClick={() => setSizeBy(entry.id)}
+                  label={entry.label}
+                />
+              ))}
+            </ChipGroup>
+          ) : null}
 
           <ChipGroup label="Tuiles">
             {COUNTS.map((size) => (
@@ -275,38 +224,38 @@ export function MarketHeatmap({
           </ChipGroup>
         </div>
 
-        {/* La légende ne décrit QUE la coloration par variation. L'afficher en mode
-            catégoriel annoncerait une échelle qui ne s'applique à rien — les couleurs
-            y identifient des familles, elles ne mesurent aucune grandeur. */}
-        {colorMode === 'change' ? <TreemapLegend /> : null}
+        {/* La légende accompagne désormais TOUJOURS la figure : il n'existe plus qu'une
+            coloration, celle de la variation, et elle mesure bien une grandeur. */}
+        <TreemapLegend />
       </div>
 
-      <GroupedTreemap
-        groups={groups}
-        colorMode={colorMode}
-        periodLabel={periodWord}
-        valueUnit=" $"
-      />
+      <HeatmapFrame>
+        <TreemapFigure
+          tiles={tiles}
+          periodLabel={periodWord}
+          /* La MÊME hauteur que la carte des collections et celle des trésoreries : ces
+             trois figures sont désormais le même objet, et une hauteur qui varierait de
+             l'une à l'autre se verrait en passant de page en page. */
+          height="min(62vh, 520px)"
+          valueUnit=" $"
+        />
+      </HeatmapFrame>
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
-        Surface : capitalisation. Couleur : variation sur {periodWord}, saturée au-delà de
-        ±{HEATMAP_CLAMP} % pour qu’une tuile minuscule et très volatile n’écrase pas
+        {/* La phrase SUIT le sélecteur de taille. Elle disait « capitalisation » en dur,
+            ce qui devenait faux dès qu'on basculait sur les volumes — une légende qui
+            décrit une autre figure que celle affichée est pire qu'une légende absente. */}
+        Surface :{' '}
+        {mode === 'sectors' || sizeBy === 'marketCap'
+          ? 'capitalisation'
+          : 'volume sur 24 heures'}
+        . Couleur : variation sur {periodWord}, par paliers et saturée au-delà de ±
+        {HEATMAP_CLAMP} % pour qu’une tuile minuscule et très volatile n’écrase pas
         l’échelle.{' '}
-        {mode === 'sectors' ? (
-          <>
-            Les surfaces <strong className="text-ink">ne partagent pas un tout</strong> — un
-            actif appartient à plusieurs secteurs, leur somme dépasse donc la capitalisation
-            mondiale. La source ne publiant pas d’historique sectoriel sur son palier
-            gratuit, la couleur ne connaît qu’une fenêtre.
-          </>
-        ) : (
-          <>
-            Les surfaces se partagent un tout, cette fois : ce sont les{' '}
-            {Math.min(count, tiles.length)} premières capitalisations, chacune comptée une
-            seule fois. Une tuile grise signale une fenêtre que la source ne publie pas
-            pour cet actif.
-          </>
-        )}{' '}
+        {mode === 'coins'
+          ? `Les surfaces se partagent un tout : ce sont les ${count} premières capitalisations, chacune comptée une seule fois.`
+          : 'Les surfaces NE se partagent PAS un tout : un actif appartient à plusieurs narratifs, si bien que la somme des rectangles dépasse la capitalisation mondiale. Cette carte compare les secteurs entre eux, elle ne les additionne pas.'}{' '}
+        Une tuile grise signale une fenêtre que la source ne publie pas pour cet actif.
         Montants en dollars, tels que publiés.
       </p>
     </div>

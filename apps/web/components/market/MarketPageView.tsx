@@ -9,6 +9,7 @@ import { MarketStatsStrip } from '@/components/market/MarketStatsStrip'
 import type { MarketSort, SortDirection } from '@/components/market/MarketTable'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
+import { getWatchlistIds } from '@/lib/watchlist-actions'
 
 /**
  * Corps commun à toutes les pages de classement.
@@ -47,7 +48,7 @@ export interface MarketPageViewProps {
   title: string
   subtitle: string
   searchParams: Record<string, string | string[] | undefined>
-  /** Surcharge la taille de page par défaut de la classe (voir `/crypto/all-coins`). */
+  /** Surcharge la taille de page par défaut de la classe (voir `/classements`). */
   perPage?: number
   /** Surcharge la base des liens de tri et de pagination, pour les pages dérivées. */
   basePath?: string
@@ -104,14 +105,29 @@ export async function MarketPageView({
   const sortBy: MarketSort = searchParams['tri'] === 'volume' ? 'volume24h' : 'marketCap'
   const direction: SortDirection = searchParams['sens'] === 'asc' ? 'asc' : 'desc'
 
-  const ranking = await getRanking({
-    assetClass,
-    page,
-    perPage: config.perPage,
-    sortBy,
-    sortDirection: direction,
-    currency: 'eur',
-  })
+  /*
+   * LE CLASSEMENT ET LA LISTE DE SUIVI PARTENT ENSEMBLE.
+   *
+   * `getWatchlistIds` lit la liste complète de la classe en UNE requête — voir son
+   * en-tête, qui explique pourquoi `getWatchlistState` (un appel par actif) serait
+   * ruineux ici. Sans base configurée, elle rend `available: false` et les étoiles se
+   * rendent inertes plutôt que d'apparaître puis d'échouer au clic.
+   *
+   * `Promise.all` et non deux `await` : la liste de suivi vit dans notre base, le
+   * classement chez un fournisseur distant. Les enchaîner ferait attendre l'un pour
+   * l'autre sans qu'aucun ne dépende du résultat du premier.
+   */
+  const [ranking, watchlist] = await Promise.all([
+    getRanking({
+      assetClass,
+      page,
+      perPage: config.perPage,
+      sortBy,
+      sortDirection: direction,
+      currency: 'eur',
+    }),
+    getWatchlistIds(assetClass),
+  ])
 
   return (
     <div className="space-y-5">
@@ -156,6 +172,7 @@ export async function MarketPageView({
             sortable={config.sortable}
             paginated={config.paginated}
             basePath={listPath}
+            watchlist={watchlist}
           />
 
           <SourceNote

@@ -47,14 +47,14 @@ export function MoversFilters({
     const nextPeriod = next.period ?? period
     const nextUniverse = next.universe ?? universe
 
-    // Les valeurs par défaut ne sont pas écrites dans l'URL : `/crypto/mouvements`
-    // et `/crypto/mouvements?periode=24h&univers=100` doivent rester une seule page
+    // Les valeurs par défaut ne sont pas écrites dans l'URL : `/mouvements`
+    // et `/mouvements?periode=24h&univers=100` doivent rester une seule page
     // aux yeux d'un moteur de recherche (§9).
     if (nextPeriod !== '24h') query.set('periode', nextPeriod)
     if (nextUniverse !== 100) query.set('univers', String(nextUniverse))
 
     const search = query.toString()
-    router.push(search ? `/crypto/mouvements?${search}` : '/crypto/mouvements', {
+    router.push(search ? `/mouvements?${search}` : '/mouvements', {
       scroll: false,
     })
   }
