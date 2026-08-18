@@ -13,8 +13,10 @@ import {
   type SortDirection,
   type WatchlistContext,
 } from '@/components/market/MarketTable'
+import { fr } from '@/content/fr'
 
 type QuickView = 'all' | 'gainers' | 'losers'
+type Scope = 'all' | 'tradable'
 
 const QUICK_VIEWS: { key: QuickView; label: string }[] = [
   { key: 'all', label: 'Tous' },
