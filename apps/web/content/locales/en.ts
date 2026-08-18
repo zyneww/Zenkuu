@@ -177,6 +177,14 @@ const en: Translation = {
       losers: 'Losers',
       categories: 'Categories',
     },
+  
+    summaryTitle: "Market summary",
+    topIndicesTitle: "Leading indices",
+    volumeLeadersTitle: "Highest volumes",
+    economyTitle: "Economy",
+    heroMarketCap: "Crypto market cap",
+    heroLoading: "Loading the series…",
+    heroUnavailable: "Series temporarily unavailable.",
   },
 
   market: {

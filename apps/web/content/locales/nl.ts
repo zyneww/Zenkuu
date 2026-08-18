@@ -50,6 +50,8 @@ const nl: Translation = {
     currency: 'Lokale valuta',
     search: 'Zoeken',
     noMatch: 'Geen enkele valuta komt overeen.',
+  
+    languageHint: "Talen die als vertaald zijn gemarkeerd wijzigen de interface. De overige bewaren uw voorkeur in afwachting van hun vertaalbestand — wij melden liever wat ontbreekt dan een niet-nagelezen automatische vertaling te tonen.",
   },
 
   theme: {
@@ -108,6 +110,23 @@ const nl: Translation = {
     sentimentTitle: 'Marktsentiment',
     coverageTitle: 'Dekking per activaklasse',
     seeAll: 'Alles bekijken',
+  
+    topMarketCapTitle: "Grootste marktkapitalisaties",
+    marketCapCardTitle: "Marktkapitalisatie",
+    volumeCardTitle: "Verhandeld volume 24 u",
+    narrativesTitle: "Actiefste sectoren · 24 u",
+    forexTitle: "Valuta’s · ECB-referentie",
+    forexHint: "Koersen één keer per werkdag gepubliceerd",
+    watchlistTitle: "Mijn volglijst",
+    watchlistEmptyTitle: "Uw volglijst is leeg",
+    watchlistEmptyBody: "Activa die u vanaf een detailpagina toevoegt verschijnen hier. De lijst hoort bij uw account.",
+    tabs: {
+      all: "Alles",
+      trending: "Trending",
+      gainers: "Stijgers",
+      losers: "Dalers",
+      categories: "Categorieën",
+    },
   },
 
   assetClass: {
@@ -129,6 +148,29 @@ const nl: Translation = {
   auth: {
     signIn: 'Inloggen',
     signUp: 'Registreren',
+  
+    unavailableTitle: "Accounts binnenkort beschikbaar",
+    unavailableBody: "Authenticatie is op deze instantie nog niet ingesteld. Met een account blijft uw volglijst bewaard en krijgt u toegang tot koersmeldingen en weergavevoorkeuren.",
+    signInTitle: "Inloggen bij ZENKUU",
+    signInSubtitle: "Vind uw volglijst en uw voorkeuren terug.",
+    signUpTitle: "Een ZENKUU-account aanmaken",
+    signUpSubtitle: "Gratis. Geen bankgegevens nodig — ZENKUU beheert geen gelden en geen transacties.",
+    close: "Sluiten",
+    overlaySignInTitle: "Welkom bij ZENKUU",
+    overlaySignInSubtitle: "In enkele seconden inloggen of registreren.",
+    overlaySignUpTitle: "Uw account aanmaken",
+    overlaySignUpSubtitle: "Gratis, zonder bankgegevens.",
+    switchToSignUp: "Nog geen account?",
+    switchToSignIn: "Hebt u al een account?",
+    benefitsTitle: "Wat een account oplevert",
+    benefits: [
+      "Uw volglijst bewaard en terug te vinden op al uw apparaten",
+      "Weergavevaluta en thema onthouden",
+      "Uw instellingen meteen toegepast, zonder opnieuw in te stellen",
+    ],
+    benefitsNote: "ZENKUU voert geen orders uit, houdt geen gelden aan en verkoopt geen gegevens door. Een account dient alleen om uw instellingen terug te vinden.",
+    legalPrefix: "Door verder te gaan aanvaardt u onze gebruiksvoorwaarden, beschreven",
+    legalLink: "op de pagina Over ons",
   },
 
   notFound: {
@@ -136,6 +178,176 @@ const nl: Translation = {
     body: 'De pagina die u zoekt is verplaatst of heeft nooit bestaan. Begin de klim opnieuw vanaf de startpagina.',
     cta: 'Terug naar home',
   },
-}
+
+
+  market: {
+    columns: {
+      rank: "#",
+      name: "Actief",
+      price: "Prijs",
+      change1h: "1 u",
+      change24h: "24 u",
+      change7d: "7 d",
+      volume: "Volume 24 u",
+      marketCap: "Marktkapitalisatie",
+      chart: "7 dagen",
+      variation: "Verandering",
+      watch: "Volgen",
+      dayRange: "Laagste / hoogste 24 u",
+    },
+    sortByMarketCap: "Sorteren op marktkapitalisatie",
+    sortByVolume: "Sorteren op volume",
+    sortNotSupported: "Het sorteren geldt voor de volledige ranglijst. Kolommen met veranderingen zijn niet sorteerbaar: de bron staat dat voor de hele markt niet toe.",
+    previous: "Vorige pagina",
+    next: "Volgende pagina",
+    emptyPage: "Geen activa op deze pagina van de ranglijst. Ga terug naar de eerste pagina.",
+  },
+
+  crypto: {
+    title: "Ranglijst van cryptomunten",
+    subtitle: "Prijs, marktkapitalisatie en volume in euro, elke 5 minuten bijgewerkt.",
+  },
+
+  forex: {
+    title: "Wisselkoersen",
+    subtitle: "Referentiekoersen gepubliceerd door de Europese Centrale Bank, één keer per werkdag.",
+  },
+
+  stocks: {
+    title: "Aandelen",
+    subtitle: "Koersen en marktkapitalisaties van de belangrijkste beursgenoteerde bedrijven.",
+  },
+
+  etf: {
+    title: "ETF’s",
+    subtitle: "Beursgenoteerde indexfondsen: koers, verandering en volume.",
+  },
+
+  commodities: {
+    title: "Grondstoffen",
+    subtitle: "Energie, edele en industriële metalen, landbouwproducten.",
+  },
+
+  indices: {
+    title: "Beursindices",
+    subtitle: "De grote wereldindices en hun recente verloop.",
+  },
+
+  asset: {
+    statsTitle: "Marktstatistieken",
+    similarTitle: "Vergelijkbare activa",
+    rangeTitle: "Periode",
+    ranges: {
+      d1: "24 u",
+      d7: "7 d",
+      d30: "30 d",
+      d90: "90 d",
+      y1: "1 jaar",
+    },
+    chart: {
+      kindTitle: "Grafiektype",
+      kinds: {
+        area: "Vlak",
+        line: "Lijn",
+        baseline: "Afwijking",
+        candles: "Kandelaars",
+        bars: "Staven",
+      },
+      optionsTitle: "Weergave",
+      volume: "Volume",
+      movingAverage: "Voortschrijdend gemiddelde",
+      priceLines: "Uitersten",
+      loadingCandles: "Kandelaars laden…",
+      candlesUnavailable: "Deze bron publiceert geen kandelaars voor dit actief — de weergaven Kandelaars en Staven zijn daarom niet beschikbaar.",
+      volumeUnavailable: "Volume niet door de bron gepubliceerd voor deze periode.",
+    },
+    tabs: {
+      overview: "Grafiek",
+      history: "Rendement",
+      stats: "Statistieken",
+      about: "Over",
+      faq: "FAQ",
+    },
+    currencyLabel: "Weergavevaluta",
+    loadingSeries: "Reeks laden…",
+    performanceTitle: "Rendement per periode",
+    performanceNote: "Veranderingen berekend op de jaarreeks die voor dit actief is geladen; die over 24 uur komt onbewerkt van de bron.",
+    rangeYearTitle: "Uitersten over een jaar",
+    lowest: "Laagste",
+    highest: "Hoogste",
+    faq: {
+      buyA: "Nee. ZENKUU is een informatieplatform: wij voeren geen orders uit, houden geen gelden aan en zijn noch makelaar noch handelsplatform.",
+    },
+    stats: {
+      marketCap: "Marktkapitalisatie",
+      volume: "Volume 24 u",
+      circulating: "Circulerend aanbod",
+      total: "Totaal aanbod",
+      max: "Maximaal aanbod",
+      ath: "Hoogste ooit",
+      atl: "Laagste ooit",
+      rank: "Rang",
+      low24h: "Laagste 24 u",
+      high24h: "Hoogste 24 u",
+      previousClose: "Vorige slotkoers",
+      exchange: "Beurs",
+      high52w: "Hoogste 52 weken",
+      low52w: "Laagste 52 weken",
+    },
+    noDescription: "De bron levert geen beschrijving voor dit actief.",
+    readOnly: "Uitsluitend informatiepagina. ZENKUU maakt kopen, verkopen of orders plaatsen niet mogelijk.",
+    officialLinks: "Officiële links",
+    website: "Officiële website",
+    notFoundTitle: "Actief niet gevonden",
+    notFoundBody: "Dit kenmerk komt niet overeen met een actief dat onze bronnen kennen.",
+    backToRanking: "Terug naar de ranglijst",
+    chartUnavailable: "Koershistorie niet beschikbaar voor dit actief.",
+  },
+
+  categories: {
+    title: "Categorieën en sectoren",
+    subtitle: "Rendement van de grote thema’s van de cryptomarkt over 24 uur.",
+    columns: {
+      name: "Categorie",
+      marketCap: "Marktkapitalisatie",
+      change: "24 u",
+      volume: "Volume 24 u",
+    },
+  },
+
+  news: {
+    title: "Marktnieuws",
+    subtitle: "Samengebracht uit de openbare feeds van de belangrijkste uitgevers.",
+    unavailable: "Nieuwsstroom momenteel niet beschikbaar.",
+  },
+
+  sentiment: {
+    title: "Fear & Greed-index",
+    subtitle: "Samengestelde maatstaf voor het sentiment op de cryptomarkt, van 0 (extreme angst) tot 100 (extreme hebzucht).",
+    scale: {
+      extremeFear: "Extreme angst",
+      fear: "Angst",
+      neutral: "Neutraal",
+      greed: "Hebzucht",
+      extremeGreed: "Extreme hebzucht",
+    },
+    disclaimer: "Sentimentindicator, geen aanbeveling. Hij voorspelt geen enkele koersontwikkeling.",
+  },
+
+  footer: {
+    positioning: "Informatieplatform, zonder uitvoering van orders of bewaring van gelden.",
+    community: "Gemeenschap",
+    locale: "Nederlands · EUR",
+    localeHint: "De site wordt in het Frans gepubliceerd, met de euro als referentievaluta. Andere talen en valuta’s volgen.",
+    disclaimer: "ZENKUU is een informatieplatform dat alleen leest. Geen functie om te kopen, te verkopen of een portemonnee te koppelen. De getoonde informatie vormt geen beleggingsadvies.",
+    dataNote: "Marktgegevens uit openbare bronnen, elke 5 minuten bijgewerkt.",
+  },
+
+  placeholder: {
+    plannedTitle: "Wat deze pagina zal bevatten",
+    meanwhileTitle: "In de tussentijd",
+    meanwhileBody: "De pagina Methodologie legt nu al uit waar onze cijfers vandaan komen, hoe vaak ze worden bijgewerkt en wat we bij gebrek aan bron niet tonen.",
+    meanwhileCta: "Bekijk de methodologie",
+  },}
 
 export default nl

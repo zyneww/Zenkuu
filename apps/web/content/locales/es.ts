@@ -167,6 +167,14 @@ const es: Translation = {
       losers: 'Bajadas',
       categories: 'Categorías',
     },
+  
+    summaryTitle: "Resumen de los mercados",
+    topIndicesTitle: "Índices principales",
+    volumeLeadersTitle: "Mayores volúmenes",
+    economyTitle: "Economía",
+    heroMarketCap: "Capitalización cripto",
+    heroLoading: "Cargando la serie…",
+    heroUnavailable: "Serie momentáneamente no disponible.",
   },
 
   market: {

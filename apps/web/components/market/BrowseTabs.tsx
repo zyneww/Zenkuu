@@ -1,7 +1,7 @@
 import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 
 import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 import { ASSET_CLASS_SEGMENT } from '@/lib/asset-routes'
 
 /**
@@ -83,6 +83,7 @@ export async function BrowseTabs({
   hrefFor: (target: AssetClass | ExtraTab) => string
 }) {
   const fr = await getContent()
+  const t = await getPhrase()
 
   /*
    * L'ordre suit la LIQUIDITÉ RÉELLE de nos sources, pas l'ordre de l'énumération.
@@ -106,13 +107,22 @@ export async function BrowseTabs({
     'commodity',
   ]
 
+  /*
+    Les trois onglets qui ne correspondent à aucune classe d'actif, et qui n'ont donc
+    pas d'entrée dans `fr.assetClass`.
+
+    « Places » et non « Exchanges » : « place » est le mot que la finance française
+    emploie depuis toujours pour désigner un lieu de cotation. « Perpétuels » n'a pas
+    d'équivalent — c'est le nom du produit.
+
+    Ils passent par la table de phrases plutôt que par le dictionnaire : ce sont trois
+    libellés écrits une fois, à un endroit, ce qui est exactement le partage décrit
+    dans `content/phrases.ts`.
+  */
   const EXTRA_LABELS: Record<ExtraTab, string> = {
-    [DERIVATIVES_TAB]: 'Dérivés',
-    /* « Places » et non « Exchanges » : le site est francophone, et « place » est le
-       mot que la finance française emploie depuis toujours pour désigner un lieu de
-       cotation. « Perpétuels » n'a pas d'équivalent — c'est le nom du produit. */
-    [EXCHANGES_TAB]: 'Places',
-    [PERPETUALS_TAB]: 'Perpétuels',
+    [DERIVATIVES_TAB]: t('Dérivés'),
+    [EXCHANGES_TAB]: t('Places'),
+    [PERPETUALS_TAB]: t('Perpétuels'),
   }
 
   const isExtra = (entry: AssetClass | ExtraTab): entry is ExtraTab => entry in EXTRA_LABELS
@@ -128,7 +138,7 @@ export async function BrowseTabs({
     }))
 
   return (
-    <TabsBar ariaLabel="Classes d’actifs" lead="Marchés" center>
+    <TabsBar ariaLabel={t('Classes d’actifs')} lead={t('Marchés')} center>
       <LinkTabs tabs={tabs} active={current} />
     </TabsBar>
   )

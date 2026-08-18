@@ -168,6 +168,14 @@ const de: Translation = {
       losers: 'Verlierer',
       categories: 'Kategorien',
     },
+  
+    summaryTitle: "Marktüberblick",
+    topIndicesTitle: "Wichtigste Indizes",
+    volumeLeadersTitle: "Höchste Volumen",
+    economyTitle: "Wirtschaft",
+    heroMarketCap: "Krypto-Marktkapitalisierung",
+    heroLoading: "Reihe wird geladen…",
+    heroUnavailable: "Reihe vorübergehend nicht verfügbar.",
   },
 
   market: {

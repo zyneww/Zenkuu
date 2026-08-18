@@ -48,6 +48,8 @@ const zh: Translation = {
     currency: '显示货币',
     search: '搜索',
     noMatch: '没有匹配的货币。',
+  
+    languageHint: "标注为已翻译的语言会切换界面。其余语言只会记住你的选择，等待各自的翻译文件——我们宁可如实说明缺什么，也不愿提供未经校对的机器翻译。",
   },
 
   theme: {
@@ -106,6 +108,23 @@ const zh: Translation = {
     sentimentTitle: '市场情绪',
     coverageTitle: '各资产类别覆盖情况',
     seeAll: '查看全部',
+  
+    topMarketCapTitle: "市值前列",
+    marketCapCardTitle: "市场总市值",
+    volumeCardTitle: "24 小时成交额",
+    narrativesTitle: "最活跃板块 · 24 小时",
+    forexTitle: "货币 · 欧洲央行参考汇率",
+    forexHint: "汇率每个工作日公布一次",
+    watchlistTitle: "我的自选",
+    watchlistEmptyTitle: "你的自选列表为空",
+    watchlistEmptyBody: "从详情页添加的资产会显示在这里。列表与你的账户关联。",
+    tabs: {
+      all: "全部",
+      trending: "热门",
+      gainers: "涨幅",
+      losers: "跌幅",
+      categories: "分类",
+    },
   },
 
   assetClass: {
@@ -127,6 +146,29 @@ const zh: Translation = {
   auth: {
     signIn: '登录',
     signUp: '注册',
+  
+    unavailableTitle: "账户即将开放",
+    unavailableBody: "本实例尚未配置身份验证。有了账户，自选列表会长期保存，并可使用价格提醒和显示偏好。",
+    signInTitle: "登录 ZENKUU",
+    signInSubtitle: "找回你的自选列表和偏好设置。",
+    signUpTitle: "创建 ZENKUU 账户",
+    signUpSubtitle: "免费。无需银行信息——ZENKUU 既不经手资金，也不处理交易。",
+    close: "关闭",
+    overlaySignInTitle: "欢迎来到 ZENKUU",
+    overlaySignInSubtitle: "几秒即可登录或注册。",
+    overlaySignUpTitle: "创建你的账户",
+    overlaySignUpSubtitle: "免费，无需银行信息。",
+    switchToSignUp: "还没有账户？",
+    switchToSignIn: "已经有账户了？",
+    benefitsTitle: "账户能带来什么",
+    benefits: [
+      "自选列表得以保存，在所有设备上都能找回",
+      "记住显示货币与主题",
+      "打开即应用你的设置，无需重新配置",
+    ],
+    benefitsNote: "ZENKUU 不执行任何委托，不托管资金，也不转售数据。账户只用于找回你的设置。",
+    legalPrefix: "继续即表示你接受我们的使用条款，条款说明见",
+    legalLink: "“关于”页面",
   },
 
   notFound: {
@@ -134,6 +176,176 @@ const zh: Translation = {
     body: '您要找的页面已迁移或从未存在。请从首页重新出发。',
     cta: '返回首页',
   },
-}
+
+
+  market: {
+    columns: {
+      rank: "#",
+      name: "资产",
+      price: "价格",
+      change1h: "1 小时",
+      change24h: "24 小时",
+      change7d: "7 天",
+      volume: "24 小时成交量",
+      marketCap: "市值",
+      chart: "7 天走势",
+      variation: "涨跌幅",
+      watch: "关注",
+      dayRange: "24 小时最低 / 最高",
+    },
+    sortByMarketCap: "按市值排序",
+    sortByVolume: "按成交量排序",
+    sortNotSupported: "排序作用于整个榜单。涨跌幅列无法排序：数据源不支持在全市场范围内这样做。",
+    previous: "上一页",
+    next: "下一页",
+    emptyPage: "榜单的这一页没有资产。请返回第一页。",
+  },
+
+  crypto: {
+    title: "加密货币排行",
+    subtitle: "以欧元计的价格、市值与成交量，每 5 分钟更新一次。",
+  },
+
+  forex: {
+    title: "汇率",
+    subtitle: "欧洲中央银行每个工作日公布一次的参考汇率。",
+  },
+
+  stocks: {
+    title: "股票",
+    subtitle: "主要上市公司的股价与市值。",
+  },
+
+  etf: {
+    title: "ETF",
+    subtitle: "交易所交易的指数基金：价格、涨跌与成交量。",
+  },
+
+  commodities: {
+    title: "大宗商品",
+    subtitle: "能源、贵金属与工业金属、农产品。",
+  },
+
+  indices: {
+    title: "股票指数",
+    subtitle: "全球主要指数及其近期走势。",
+  },
+
+  asset: {
+    statsTitle: "市场统计",
+    similarTitle: "可比资产",
+    rangeTitle: "周期",
+    ranges: {
+      d1: "24 小时",
+      d7: "7 天",
+      d30: "30 天",
+      d90: "90 天",
+      y1: "1 年",
+    },
+    chart: {
+      kindTitle: "图表类型",
+      kinds: {
+        area: "面积图",
+        line: "折线图",
+        baseline: "基准差",
+        candles: "K 线",
+        bars: "美国线",
+      },
+      optionsTitle: "显示",
+      volume: "成交量",
+      movingAverage: "移动平均",
+      priceLines: "极值",
+      loadingCandles: "正在加载 K 线…",
+      candlesUnavailable: "该数据源不提供此资产的 K 线数据——因此 K 线与美国线视图不可用。",
+      volumeUnavailable: "数据源未公布该时段的成交量。",
+    },
+    tabs: {
+      overview: "图表",
+      history: "表现",
+      stats: "统计",
+      about: "简介",
+      faq: "常见问题",
+    },
+    currencyLabel: "显示货币",
+    loadingSeries: "正在加载数据序列…",
+    performanceTitle: "各周期表现",
+    performanceNote: "涨跌幅根据为该资产加载的一年期序列计算；24 小时的数值直接取自数据源。",
+    rangeYearTitle: "一年内极值",
+    lowest: "最低",
+    highest: "最高",
+    faq: {
+      buyA: "不能。ZENKUU 是信息平台：我们不执行任何委托，不托管资金，既非经纪商也非交易所。",
+    },
+    stats: {
+      marketCap: "市值",
+      volume: "24 小时成交量",
+      circulating: "流通量",
+      total: "总供应量",
+      max: "最大供应量",
+      ath: "历史最高",
+      atl: "历史最低",
+      rank: "排名",
+      low24h: "24 小时最低",
+      high24h: "24 小时最高",
+      previousClose: "前收盘价",
+      exchange: "上市市场",
+      high52w: "52 周最高",
+      low52w: "52 周最低",
+    },
+    noDescription: "数据源未提供该资产的介绍。",
+    readOnly: "仅供参考的信息页面。ZENKUU 不提供买入、卖出或下单功能。",
+    officialLinks: "官方链接",
+    website: "官方网站",
+    notFoundTitle: "未找到该资产",
+    notFoundBody: "此标识与我们数据源中的任何资产都不匹配。",
+    backToRanking: "返回排行",
+    chartUnavailable: "该资产暂无价格历史。",
+  },
+
+  categories: {
+    title: "分类与板块",
+    subtitle: "加密市场主要叙事在 24 小时内的表现。",
+    columns: {
+      name: "分类",
+      marketCap: "市值",
+      change: "24 小时",
+      volume: "24 小时成交量",
+    },
+  },
+
+  news: {
+    title: "市场资讯",
+    subtitle: "汇集自各大媒体的公开信息流。",
+    unavailable: "资讯流暂时不可用。",
+  },
+
+  sentiment: {
+    title: "恐惧与贪婪指数",
+    subtitle: "衡量加密市场情绪的综合指标，从 0（极度恐惧）到 100（极度贪婪）。",
+    scale: {
+      extremeFear: "极度恐惧",
+      fear: "恐惧",
+      neutral: "中性",
+      greed: "贪婪",
+      extremeGreed: "极度贪婪",
+    },
+    disclaimer: "这是情绪指标，不是投资建议。它不预测任何价格走势。",
+  },
+
+  footer: {
+    positioning: "信息平台，不执行委托，也不托管资金。",
+    community: "社区",
+    locale: "简体中文 · EUR",
+    localeHint: "本站以法语发布，以欧元为基准货币。其他语言和货币将陆续推出。",
+    disclaimer: "ZENKUU 是只读的信息平台。没有买入、卖出或连接钱包的功能。所显示的信息不构成投资建议。",
+    dataNote: "市场数据来自公开数据源，每 5 分钟更新一次。",
+  },
+
+  placeholder: {
+    plannedTitle: "本页将会包含的内容",
+    meanwhileTitle: "在此之前",
+    meanwhileBody: "“方法”页面已经说明了我们的数字从何而来、多久更新一次，以及因缺少数据源而未予展示的内容。",
+    meanwhileCta: "查看方法",
+  },}
 
 export default zh

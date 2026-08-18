@@ -50,6 +50,8 @@ const vi: Translation = {
     currency: 'Tiền tệ hiển thị',
     search: 'Tìm kiếm',
     noMatch: 'Không có tiền tệ nào khớp.',
+  
+    languageHint: "Những ngôn ngữ được đánh dấu là đã dịch sẽ thay đổi giao diện. Các ngôn ngữ còn lại chỉ ghi nhớ lựa chọn của bạn trong khi chờ tệp dịch — chúng tôi thà nói rõ điều gì còn thiếu hơn là đưa ra bản dịch máy chưa hiệu đính.",
   },
 
   theme: {
@@ -108,6 +110,23 @@ const vi: Translation = {
     sentimentTitle: 'Tâm lý thị trường',
     coverageTitle: 'Phạm vi theo lớp tài sản',
     seeAll: 'Xem tất cả',
+  
+    topMarketCapTitle: "Vốn hoá lớn nhất",
+    marketCapCardTitle: "Vốn hoá thị trường",
+    volumeCardTitle: "Khối lượng giao dịch 24 giờ",
+    narrativesTitle: "Ngành sôi động nhất · 24 giờ",
+    forexTitle: "Tiền tệ · tham chiếu ECB",
+    forexHint: "Tỷ giá công bố một lần mỗi ngày làm việc",
+    watchlistTitle: "Danh sách theo dõi của tôi",
+    watchlistEmptyTitle: "Danh sách theo dõi của bạn đang trống",
+    watchlistEmptyBody: "Những tài sản được thêm từ trang chi tiết sẽ hiện ở đây. Danh sách gắn với tài khoản của bạn.",
+    tabs: {
+      all: "Tất cả",
+      trending: "Xu hướng",
+      gainers: "Tăng giá",
+      losers: "Giảm giá",
+      categories: "Danh mục",
+    },
   },
 
   assetClass: {
@@ -129,6 +148,29 @@ const vi: Translation = {
   auth: {
     signIn: 'Đăng nhập',
     signUp: 'Đăng ký',
+  
+    unavailableTitle: "Tài khoản sắp có",
+    unavailableBody: "Xác thực chưa được cấu hình trên bản triển khai này. Tài khoản sẽ giúp danh sách theo dõi được lưu lại và mở quyền dùng cảnh báo giá cùng tuỳ chọn hiển thị.",
+    signInTitle: "Đăng nhập ZENKUU",
+    signInSubtitle: "Lấy lại danh sách theo dõi và các tuỳ chọn của bạn.",
+    signUpTitle: "Tạo tài khoản ZENKUU",
+    signUpSubtitle: "Miễn phí. Không cần thông tin ngân hàng — ZENKUU không quản lý tiền cũng không xử lý giao dịch.",
+    close: "Đóng",
+    overlaySignInTitle: "Chào mừng đến với ZENKUU",
+    overlaySignInSubtitle: "Đăng nhập hoặc đăng ký trong vài giây.",
+    overlaySignUpTitle: "Tạo tài khoản của bạn",
+    overlaySignUpSubtitle: "Miễn phí, không cần thông tin ngân hàng.",
+    switchToSignUp: "Chưa có tài khoản?",
+    switchToSignIn: "Bạn đã có tài khoản?",
+    benefitsTitle: "Tài khoản mang lại gì",
+    benefits: [
+      "Danh sách theo dõi được giữ lại và tìm thấy trên mọi thiết bị",
+      "Ghi nhớ tiền tệ hiển thị và giao diện sáng/tối",
+      "Thiết lập của bạn được áp dụng ngay khi mở, không phải cấu hình lại",
+    ],
+    benefitsNote: "ZENKUU không thực hiện lệnh nào, không giữ tiền và không bán lại dữ liệu. Tài khoản chỉ dùng để tìm lại thiết lập của bạn.",
+    legalPrefix: "Khi tiếp tục, bạn chấp nhận điều khoản sử dụng của chúng tôi, được mô tả",
+    legalLink: "trên trang Giới thiệu",
   },
 
   notFound: {
@@ -136,6 +178,176 @@ const vi: Translation = {
     body: 'Trang bạn tìm đã được chuyển đi hoặc chưa từng tồn tại. Hãy bắt đầu lại từ trang chủ.',
     cta: 'Về trang chủ',
   },
-}
+
+
+  market: {
+    columns: {
+      rank: "#",
+      name: "Tài sản",
+      price: "Giá",
+      change1h: "1 giờ",
+      change24h: "24 giờ",
+      change7d: "7 ngày",
+      volume: "Khối lượng 24 giờ",
+      marketCap: "Vốn hoá",
+      chart: "7 ngày",
+      variation: "Biến động",
+      watch: "Theo dõi",
+      dayRange: "Thấp nhất / cao nhất 24 giờ",
+    },
+    sortByMarketCap: "Sắp xếp theo vốn hoá",
+    sortByVolume: "Sắp xếp theo khối lượng",
+    sortNotSupported: "Việc sắp xếp áp dụng cho toàn bộ bảng xếp hạng. Các cột biến động không sắp xếp được: nguồn không cho phép làm vậy trên toàn thị trường.",
+    previous: "Trang trước",
+    next: "Trang sau",
+    emptyPage: "Không có tài sản nào ở trang này của bảng xếp hạng. Hãy quay lại trang đầu.",
+  },
+
+  crypto: {
+    title: "Bảng xếp hạng tiền mã hoá",
+    subtitle: "Giá, vốn hoá và khối lượng tính bằng euro, cập nhật mỗi 5 phút.",
+  },
+
+  forex: {
+    title: "Tỷ giá hối đoái",
+    subtitle: "Tỷ giá tham chiếu do Ngân hàng Trung ương châu Âu công bố, một lần mỗi ngày làm việc.",
+  },
+
+  stocks: {
+    title: "Cổ phiếu",
+    subtitle: "Giá và vốn hoá của các doanh nghiệp niêm yết chủ chốt.",
+  },
+
+  etf: {
+    title: "ETF",
+    subtitle: "Quỹ chỉ số niêm yết: giá, biến động và khối lượng.",
+  },
+
+  commodities: {
+    title: "Hàng hoá",
+    subtitle: "Năng lượng, kim loại quý và kim loại công nghiệp, nông sản.",
+  },
+
+  indices: {
+    title: "Chỉ số chứng khoán",
+    subtitle: "Các chỉ số lớn của thế giới và diễn biến gần đây.",
+  },
+
+  asset: {
+    statsTitle: "Thống kê thị trường",
+    similarTitle: "Tài sản tương đương",
+    rangeTitle: "Khoảng thời gian",
+    ranges: {
+      d1: "24 giờ",
+      d7: "7 ngày",
+      d30: "30 ngày",
+      d90: "90 ngày",
+      y1: "1 năm",
+    },
+    chart: {
+      kindTitle: "Kiểu biểu đồ",
+      kinds: {
+        area: "Vùng",
+        line: "Đường",
+        baseline: "Chênh lệch",
+        candles: "Nến",
+        bars: "Thanh",
+      },
+      optionsTitle: "Hiển thị",
+      volume: "Khối lượng",
+      movingAverage: "Trung bình động",
+      priceLines: "Cực trị",
+      loadingCandles: "Đang tải nến…",
+      candlesUnavailable: "Nguồn này không công bố dữ liệu nến cho tài sản trên — vì vậy chế độ Nến và Thanh không khả dụng.",
+      volumeUnavailable: "Nguồn không công bố khối lượng cho khoảng thời gian này.",
+    },
+    tabs: {
+      overview: "Biểu đồ",
+      history: "Hiệu suất",
+      stats: "Thống kê",
+      about: "Giới thiệu",
+      faq: "Hỏi đáp",
+    },
+    currencyLabel: "Tiền tệ hiển thị",
+    loadingSeries: "Đang tải chuỗi dữ liệu…",
+    performanceTitle: "Hiệu suất theo kỳ",
+    performanceNote: "Biến động được tính trên chuỗi một năm đã tải cho tài sản này; con số 24 giờ lấy nguyên từ nguồn.",
+    rangeYearTitle: "Cực trị trong một năm",
+    lowest: "Thấp nhất",
+    highest: "Cao nhất",
+    faq: {
+      buyA: "Không. ZENKUU là nền tảng thông tin: chúng tôi không thực hiện lệnh, không giữ tiền và không phải là môi giới hay sàn giao dịch.",
+    },
+    stats: {
+      marketCap: "Vốn hoá",
+      volume: "Khối lượng 24 giờ",
+      circulating: "Lượng lưu hành",
+      total: "Tổng cung",
+      max: "Cung tối đa",
+      ath: "Đỉnh lịch sử",
+      atl: "Đáy lịch sử",
+      rank: "Hạng",
+      low24h: "Thấp nhất 24 giờ",
+      high24h: "Cao nhất 24 giờ",
+      previousClose: "Đóng cửa phiên trước",
+      exchange: "Sàn niêm yết",
+      high52w: "Cao nhất 52 tuần",
+      low52w: "Thấp nhất 52 tuần",
+    },
+    noDescription: "Nguồn không cung cấp mô tả cho tài sản này.",
+    readOnly: "Trang chỉ mang tính thông tin. ZENKUU không cho phép mua, bán hay đặt lệnh.",
+    officialLinks: "Liên kết chính thức",
+    website: "Trang chính thức",
+    notFoundTitle: "Không tìm thấy tài sản",
+    notFoundBody: "Mã này không khớp với bất kỳ tài sản nào mà nguồn của chúng tôi biết.",
+    backToRanking: "Quay lại bảng xếp hạng",
+    chartUnavailable: "Không có lịch sử giá cho tài sản này.",
+  },
+
+  categories: {
+    title: "Danh mục và ngành",
+    subtitle: "Hiệu suất của các chủ đề lớn trên thị trường tiền mã hoá trong 24 giờ.",
+    columns: {
+      name: "Danh mục",
+      marketCap: "Vốn hoá",
+      change: "24 giờ",
+      volume: "Khối lượng 24 giờ",
+    },
+  },
+
+  news: {
+    title: "Tin tức thị trường",
+    subtitle: "Tổng hợp từ các nguồn tin công khai của những đơn vị xuất bản lớn.",
+    unavailable: "Dòng tin tạm thời không khả dụng.",
+  },
+
+  sentiment: {
+    title: "Chỉ số Fear & Greed",
+    subtitle: "Thước đo tổng hợp tâm lý thị trường tiền mã hoá, từ 0 (sợ hãi tột độ) đến 100 (tham lam tột độ).",
+    scale: {
+      extremeFear: "Sợ hãi tột độ",
+      fear: "Sợ hãi",
+      neutral: "Trung tính",
+      greed: "Tham lam",
+      extremeGreed: "Tham lam tột độ",
+    },
+    disclaimer: "Chỉ báo tâm lý, không phải khuyến nghị. Nó không dự đoán bất kỳ diễn biến giá nào.",
+  },
+
+  footer: {
+    positioning: "Nền tảng thông tin, không thực hiện lệnh và không giữ tiền.",
+    community: "Cộng đồng",
+    locale: "Tiếng Việt · EUR",
+    localeHint: "Trang được xuất bản bằng tiếng Pháp, lấy euro làm tiền tệ tham chiếu. Các ngôn ngữ và tiền tệ khác sẽ có sau.",
+    disclaimer: "ZENKUU là nền tảng thông tin chỉ để đọc. Không có chức năng mua, bán hay kết nối ví. Thông tin hiển thị không phải là lời khuyên đầu tư.",
+    dataNote: "Dữ liệu thị trường lấy từ các nguồn công khai, cập nhật mỗi 5 phút.",
+  },
+
+  placeholder: {
+    plannedTitle: "Trang này sẽ có gì",
+    meanwhileTitle: "Trong lúc chờ",
+    meanwhileBody: "Trang Phương pháp đã nêu rõ số liệu của chúng tôi đến từ đâu, được cập nhật bao lâu một lần và điều gì chúng tôi không hiển thị vì thiếu nguồn.",
+    meanwhileCta: "Xem phương pháp",
+  },}
 
 export default vi

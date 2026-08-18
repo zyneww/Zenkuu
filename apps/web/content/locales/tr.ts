@@ -50,6 +50,8 @@ const tr: Translation = {
     currency: 'Görüntüleme para birimi',
     search: 'Ara',
     noMatch: 'Eşleşen para birimi yok.',
+  
+    languageHint: "Çevrildi olarak işaretli diller arayüzü değiştirir. Diğerleri, çeviri dosyaları hazır olana dek tercihinizi kaydeder — düzeltilmemiş bir makine çevirisi sunmaktansa neyin eksik olduğunu söylemeyi yeğliyoruz.",
   },
 
   theme: {
@@ -108,6 +110,23 @@ const tr: Translation = {
     sentimentTitle: 'Piyasa duyarlılığı',
     coverageTitle: 'Varlık sınıfına göre kapsam',
     seeAll: 'Tümünü gör',
+  
+    topMarketCapTitle: "En büyük piyasa değerleri",
+    marketCapCardTitle: "Piyasa değeri",
+    volumeCardTitle: "24 saatlik işlem hacmi",
+    narrativesTitle: "En hareketli sektörler · 24 sa",
+    forexTitle: "Para birimleri · AMB referansı",
+    forexHint: "Kurlar iş günü başına bir kez yayımlanır",
+    watchlistTitle: "İzleme listem",
+    watchlistEmptyTitle: "İzleme listeniz boş",
+    watchlistEmptyBody: "Bir varlık sayfasından eklediğiniz varlıklar burada görünecek. Liste hesabınıza bağlıdır.",
+    tabs: {
+      all: "Tümü",
+      trending: "Öne çıkanlar",
+      gainers: "Yükselenler",
+      losers: "Düşenler",
+      categories: "Kategoriler",
+    },
   },
 
   assetClass: {
@@ -129,6 +148,29 @@ const tr: Translation = {
   auth: {
     signIn: 'Giriş yap',
     signUp: 'Kaydol',
+  
+    unavailableTitle: "Hesaplar yakında",
+    unavailableBody: "Bu örnekte kimlik doğrulama henüz yapılandırılmadı. Hesaplar izleme listesini kalıcı kılacak, fiyat uyarılarına ve görüntüleme tercihlerine erişim verecek.",
+    signInTitle: "ZENKUU’ya giriş yap",
+    signInSubtitle: "İzleme listenizi ve tercihlerinizi geri alın.",
+    signUpTitle: "ZENKUU hesabı oluştur",
+    signUpSubtitle: "Ücretsiz. Banka bilgisi istenmez — ZENKUU ne fon ne de işlem yönetir.",
+    close: "Kapat",
+    overlaySignInTitle: "ZENKUU’ya hoş geldiniz",
+    overlaySignInSubtitle: "Saniyeler içinde giriş yapın ya da kaydolun.",
+    overlaySignUpTitle: "Hesabınızı oluşturun",
+    overlaySignUpSubtitle: "Ücretsiz, banka bilgisi olmadan.",
+    switchToSignUp: "Henüz hesabınız yok mu?",
+    switchToSignIn: "Zaten hesabınız var mı?",
+    benefitsTitle: "Hesabın sağladıkları",
+    benefits: [
+      "İzleme listeniz saklanır ve tüm cihazlarınızda karşınıza çıkar",
+      "Görüntüleme para birimi ve tema hatırlanır",
+      "Ayarlarınız açılışta uygulanır, yeniden yapılandırmaya gerek kalmaz",
+    ],
+    benefitsNote: "ZENKUU hiçbir emir gerçekleştirmez, fon tutmaz ve veri satmaz. Hesap yalnızca ayarlarınıza yeniden ulaşmak içindir.",
+    legalPrefix: "Devam ederek kullanım koşullarımızı kabul etmiş olursunuz; koşullar",
+    legalLink: "Hakkında sayfasında açıklanmıştır",
   },
 
   notFound: {
@@ -136,6 +178,176 @@ const tr: Translation = {
     body: 'Aradığınız sayfa taşınmış ya da hiç var olmamış. Tırmanışa ana sayfadan yeniden başlayın.',
     cta: 'Ana sayfaya dön',
   },
-}
+
+
+  market: {
+    columns: {
+      rank: "#",
+      name: "Varlık",
+      price: "Fiyat",
+      change1h: "1 sa",
+      change24h: "24 sa",
+      change7d: "7 g",
+      volume: "Hacim 24 sa",
+      marketCap: "Piyasa değeri",
+      chart: "7 gün",
+      variation: "Değişim",
+      watch: "İzle",
+      dayRange: "24 sa en düşük / en yüksek",
+    },
+    sortByMarketCap: "Piyasa değerine göre sırala",
+    sortByVolume: "Hacme göre sırala",
+    sortNotSupported: "Sıralama tüm listeyi kapsar. Değişim sütunları sıralanamaz: kaynak buna piyasanın tamamı ölçeğinde izin vermiyor.",
+    previous: "Önceki sayfa",
+    next: "Sonraki sayfa",
+    emptyPage: "Listenin bu sayfasında varlık yok. İlk sayfaya dönün.",
+  },
+
+  crypto: {
+    title: "Kripto para sıralaması",
+    subtitle: "Euro cinsinden fiyat, piyasa değeri ve hacim; 5 dakikada bir güncellenir.",
+  },
+
+  forex: {
+    title: "Döviz kurları",
+    subtitle: "Avrupa Merkez Bankası’nın iş günü başına bir kez yayımladığı referans kurlar.",
+  },
+
+  stocks: {
+    title: "Hisse senetleri",
+    subtitle: "Başlıca halka açık şirketlerin fiyatları ve piyasa değerleri.",
+  },
+
+  etf: {
+    title: "ETF’ler",
+    subtitle: "Borsada işlem gören endeks fonları: fiyat, değişim ve hacim.",
+  },
+
+  commodities: {
+    title: "Emtialar",
+    subtitle: "Enerji, değerli ve sanayi metalleri, tarım ürünleri.",
+  },
+
+  indices: {
+    title: "Borsa endeksleri",
+    subtitle: "Başlıca dünya endeksleri ve son seyirleri.",
+  },
+
+  asset: {
+    statsTitle: "Piyasa istatistikleri",
+    similarTitle: "Benzer varlıklar",
+    rangeTitle: "Dönem",
+    ranges: {
+      d1: "24 sa",
+      d7: "7 g",
+      d30: "30 g",
+      d90: "90 g",
+      y1: "1 yıl",
+    },
+    chart: {
+      kindTitle: "Grafik türü",
+      kinds: {
+        area: "Alan",
+        line: "Çizgi",
+        baseline: "Sapma",
+        candles: "Mum",
+        bars: "Çubuk",
+      },
+      optionsTitle: "Görünüm",
+      volume: "Hacim",
+      movingAverage: "Hareketli ortalama",
+      priceLines: "Uç değerler",
+      loadingCandles: "Mumlar yükleniyor…",
+      candlesUnavailable: "Bu kaynak, bu varlık için mum verisi yayımlamıyor — Mum ve Çubuk görünümleri bu nedenle kullanılamaz.",
+      volumeUnavailable: "Kaynak bu dönem için hacim yayımlamıyor.",
+    },
+    tabs: {
+      overview: "Grafik",
+      history: "Getiri",
+      stats: "İstatistikler",
+      about: "Hakkında",
+      faq: "SSS",
+    },
+    currencyLabel: "Görüntüleme para birimi",
+    loadingSeries: "Seri yükleniyor…",
+    performanceTitle: "Döneme göre getiri",
+    performanceNote: "Değişimler bu varlık için yüklenen bir yıllık seri üzerinden hesaplanır; 24 saatlik değer kaynaktan olduğu gibi alınır.",
+    rangeYearTitle: "Bir yıllık uç değerler",
+    lowest: "En düşük",
+    highest: "En yüksek",
+    faq: {
+      buyA: "Hayır. ZENKUU bir bilgi platformudur: hiçbir emir gerçekleştirmez, fon tutmaz, ne aracı kurum ne de borsadır.",
+    },
+    stats: {
+      marketCap: "Piyasa değeri",
+      volume: "Hacim 24 sa",
+      circulating: "Dolaşımdaki arz",
+      total: "Toplam arz",
+      max: "Azami arz",
+      ath: "Tüm zamanların zirvesi",
+      atl: "Tüm zamanların dibi",
+      rank: "Sıra",
+      low24h: "24 sa en düşük",
+      high24h: "24 sa en yüksek",
+      previousClose: "Önceki kapanış",
+      exchange: "İşlem gördüğü borsa",
+      high52w: "52 hafta en yüksek",
+      low52w: "52 hafta en düşük",
+    },
+    noDescription: "Kaynak bu varlık için bir açıklama vermiyor.",
+    readOnly: "Yalnızca bilgi sayfası. ZENKUU alım, satım ya da emir iletimine izin vermez.",
+    officialLinks: "Resmî bağlantılar",
+    website: "Resmî site",
+    notFoundTitle: "Varlık bulunamadı",
+    notFoundBody: "Bu tanımlayıcı, kaynaklarımızın bildiği hiçbir varlığa karşılık gelmiyor.",
+    backToRanking: "Sıralamaya dön",
+    chartUnavailable: "Bu varlık için fiyat geçmişi kullanılamıyor.",
+  },
+
+  categories: {
+    title: "Kategoriler ve sektörler",
+    subtitle: "Kripto piyasasının başlıca temalarının 24 saatlik getirisi.",
+    columns: {
+      name: "Kategori",
+      marketCap: "Piyasa değeri",
+      change: "24 sa",
+      volume: "Hacim 24 sa",
+    },
+  },
+
+  news: {
+    title: "Piyasa haberleri",
+    subtitle: "Başlıca yayıncıların herkese açık akışlarından derlenmiştir.",
+    unavailable: "Haber akışı şu an kullanılamıyor.",
+  },
+
+  sentiment: {
+    title: "Fear & Greed endeksi",
+    subtitle: "Kripto piyasası duyarlılığının bileşik ölçüsü: 0 (aşırı korku) ile 100 (aşırı açgözlülük) arasında.",
+    scale: {
+      extremeFear: "Aşırı korku",
+      fear: "Korku",
+      neutral: "Nötr",
+      greed: "Açgözlülük",
+      extremeGreed: "Aşırı açgözlülük",
+    },
+    disclaimer: "Duyarlılık göstergesidir, tavsiye değildir. Hiçbir fiyat hareketini öngörmez.",
+  },
+
+  footer: {
+    positioning: "Bilgi platformu; emir gerçekleştirmez, fon saklamaz.",
+    community: "Topluluk",
+    locale: "Türkçe · EUR",
+    localeHint: "Site Fransızca yayımlanır ve referans para birimi eurodur. Başka diller ve para birimleri sonradan eklenecek.",
+    disclaimer: "ZENKUU yalnızca okunabilir bir bilgi platformudur. Alım, satım ya da cüzdan bağlama işlevi yoktur. Gösterilen bilgiler yatırım tavsiyesi değildir.",
+    dataNote: "Piyasa verileri kamuya açık kaynaklardan gelir, 5 dakikada bir güncellenir.",
+  },
+
+  placeholder: {
+    plannedTitle: "Bu sayfada neler olacak",
+    meanwhileTitle: "Bu arada",
+    meanwhileBody: "Yöntem sayfası, rakamlarımızın nereden geldiğini, hangi sıklıkta güncellendiğini ve kaynak yokluğunda neyi göstermediğimizi şimdiden açıklıyor.",
+    meanwhileCta: "Yöntemi gör",
+  },}
 
 export default tr
