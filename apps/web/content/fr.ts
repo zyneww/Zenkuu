@@ -238,6 +238,16 @@ export const fr = {
     subtitle: 'Les grands indices mondiaux et leur évolution récente.',
   },
 
+  marches: {
+    title: 'Parcourir les marchés',
+    subtitle:
+      'Les sept marchés suivis, triables et paginés sur une seule page. Lecture seule : aucun ordre ne part d\u2019ici.',
+    scopeAll: 'Tous',
+    scopeTradable: 'Échangeables',
+    scopeTradableTitle:
+      'Seuls les actifs dont la source publie un volume sur 24 heures',
+  },
+
   asset: {
     priceLabel: (name: string) => `Cours de ${name}`,
     statsTitle: 'Statistiques de marché',
