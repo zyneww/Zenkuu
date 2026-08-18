@@ -4,6 +4,7 @@ import { ChangeBadge, formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { Panel } from '@/components/ui/Panel'
+import { getPhrase } from '@/lib/content'
 
 /**
  * SECTEURS AUXQUELS L'ACTIF APPARTIENT, ET SON POIDS DANS CHACUN.
@@ -58,6 +59,7 @@ import { Panel } from '@/components/ui/Panel'
  * rien et laisse croire à un secteur vide.
  */
 export async function AssetSectors({ asset }: { asset: AssetDetail }) {
+  const t = await getPhrase()
   const names = asset.categories ?? []
   if (names.length === 0) return null
 
@@ -123,9 +125,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
         <Link
           href="/categories"
           className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
-        >
-          Tous les secteurs
-        </Link>
+        >{t('Tous les secteurs')}</Link>
       </div>
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
@@ -211,9 +211,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
         <p className="text-xs text-ink-muted">
           {hidden} autre{hidden > 1 ? 's' : ''} secteur{hidden > 1 ? 's' : ''} rattache
           {hidden > 1 ? 'nt' : ''} {asset.name} chez la source, de capitalisation plus faible.{' '}
-          <Link href="/categories" className="font-medium text-brand-strong hover:underline">
-            Voir la liste complète
-          </Link>
+          <Link href="/categories" className="font-medium text-brand-strong hover:underline">{t('Voir la liste complète')}</Link>
           .
         </p>
       ) : null}

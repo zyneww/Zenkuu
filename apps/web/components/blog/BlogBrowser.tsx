@@ -7,6 +7,7 @@ import { EmptyState } from '@zenkuu/ui'
 
 import { BlogCard } from '@/components/blog/BlogCard'
 import { BLOG_CATEGORIES, type Article, type BlogCategory } from '@/content/blog'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Filtres et liste des articles.
@@ -29,6 +30,7 @@ import { BLOG_CATEGORIES, type Article, type BlogCategory } from '@/content/blog
 const GRID_SIZE = 12
 
 export function BlogBrowser({ articles }: { articles: Article[] }) {
+  const t = usePhrase()
   const [category, setCategory] = useState<BlogCategory | 'toutes'>('toutes')
   const [query, setQuery] = useState('')
 
@@ -54,7 +56,7 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
         {/* Puces INTÉGRÉES au flux plutôt qu'une barre collante : une barre qui suit
             le défilement mange de la hauteur sur mobile, et le lecteur d'un article
             n'a pas besoin des filtres sous les yeux en permanence. */}
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrer par catégorie">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('Filtrer par catégorie')}>
           <CategoryChip
             active={category === 'toutes'}
             onClick={() => setCategory('toutes')}
@@ -80,8 +82,8 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher un article…"
-            aria-label="Rechercher parmi les articles du blog"
+            placeholder={t('Rechercher un article…')}
+            aria-label={t('Rechercher parmi les articles du blog')}
             className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
@@ -89,8 +91,8 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
 
       {visible.length === 0 ? (
         <EmptyState
-          title="Aucun article ne correspond"
-          description="Essayez un autre terme, ou revenez à toutes les catégories."
+          title={t('Aucun article ne correspond')}
+          description={t('Essayez un autre terme, ou revenez à toutes les catégories.')}
           compact
         />
       ) : (

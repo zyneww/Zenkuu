@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Rubrique « Données & sources ».
@@ -46,18 +47,13 @@ const SOURCES = [
   },
 ] as const
 
-export function SettingsSources() {
+export async function SettingsSources() {
+  const t = await getPhrase()
   return (
     <section className="space-y-6" aria-labelledby="sources-titre">
       <div className="space-y-1">
-        <h2 id="sources-titre" className="display-sm text-ink">
-          Données &amp; sources
-        </h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Chaque chiffre affiché sur ZENKUU vient de l’une de ces sources et lui est
-          attribué à l’endroit où il apparaît. Aucune valeur n’est estimée, interpolée
-          ni comblée : une donnée absente est rendue comme absente.
-        </p>
+        <h2 id="sources-titre" className="display-sm text-ink">{t('Données & sources')}</h2>
+        <p className="text-sm leading-relaxed text-ink-muted">{t('Chaque chiffre affiché sur ZENKUU vient de l’une de ces sources et lui est attribué à l’endroit où il apparaît. Aucune valeur n’est estimée, interpolée ni comblée : une donnée absente est rendue comme absente.')}</p>
       </div>
 
       <ul className="divide-y divide-border-subtle rounded-card border border-border-subtle">
@@ -70,9 +66,7 @@ export function SettingsSources() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-brand hover:underline"
-              >
-                Site de la source
-              </a>
+              >{t('Site de la source')}</a>
             </div>
             <p className="mt-1 text-xs text-ink-muted">{source.scope}</p>
             <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">{source.note}</p>
@@ -82,11 +76,7 @@ export function SettingsSources() {
 
       <div className="border-l-2 border-accent bg-surface-muted p-4">
         <p className="text-xs leading-relaxed text-ink-muted">
-          <strong className="text-ink">Ce que ZENKUU ne fait pas.</strong> Aucun ordre
-          n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et
-          aucune donnée personnelle n’est revendue. Les liens vers des plateformes
-          tierces sont cités sans recommandation.
-        </p>
+          <strong className="text-ink">{t('Ce que ZENKUU ne fait pas.')}</strong>{t('Aucun ordre n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et aucune donnée personnelle n’est revendue. Les liens vers des plateformes tierces sont cités sans recommandation.')}</p>
       </div>
 
       <p className="text-sm text-ink-muted">

@@ -12,6 +12,7 @@ import {
   type CountryFeature,
   type MacroTone,
 } from '@/components/market/geo'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * PLANISPHÈRE CHOROPLÈTHE — la carte de TradingView, à notre sauce.
@@ -107,6 +108,7 @@ export function MacroChoropleth({
   /** Remonté au parent, qui en a besoin pour exporter la figure en image. */
   svgRef?: RefObject<SVGSVGElement | null>
 }) {
+  const t = usePhrase()
   const [countries, setCountries] = useState<CountryFeature[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
@@ -192,9 +194,7 @@ export function MacroChoropleth({
 
   if (!countries) {
     return (
-      <div className="flex h-full items-center justify-center rounded-card bg-surface text-xs text-ink-muted">
-        Chargement de la carte…
-      </div>
+      <div className="flex h-full items-center justify-center rounded-card bg-surface text-xs text-ink-muted">{t('Chargement de la carte…')}</div>
     )
   }
 
@@ -220,7 +220,7 @@ export function MacroChoropleth({
            au bouton enfoncé, ce qui est exactement le signal recherché. */
         className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
         role="img"
-        aria-label="Carte du monde"
+        aria-label={t('Carte du monde')}
         onPointerDown={(event) => {
           /* Bouton principal uniquement : un clic droit ouvre le menu contextuel du
              navigateur, et le capturer empêcherait d'enregistrer l'image. */
@@ -328,7 +328,7 @@ export function MacroChoropleth({
           initiale est un contrôle qui ne fait rien. */}
       <div className="absolute bottom-3 right-3 flex flex-col gap-1">
         {view.k > 1 ? (
-          <ZoomButton onClick={() => setView(IDENTITY)} label="Recentrer la carte">
+          <ZoomButton onClick={() => setView(IDENTITY)} label={t('Recentrer la carte')}>
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
           </ZoomButton>
         ) : null}
@@ -341,7 +341,7 @@ export function MacroChoropleth({
         </ZoomButton>
         <ZoomButton
           onClick={() => zoomBy(1 / 1.5)}
-          label="Réduire"
+          label={t('Réduire')}
           disabled={view.k <= MIN_ZOOM}
         >
           <Minus className="h-3.5 w-3.5" aria-hidden="true" />

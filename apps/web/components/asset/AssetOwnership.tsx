@@ -2,6 +2,7 @@ import type { AssetProfile } from '@zenkuu/data'
 import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Panel } from '@/components/ui/Panel'
+import { getPhrase } from '@/lib/content'
 
 /**
  * RÉPARTITION DU CAPITAL — qui détient l'entreprise.
@@ -31,13 +32,14 @@ import { Panel } from '@/components/ui/Panel'
  * structurellement élevée chez un fondateur encore présent, et basse chez une société
  * ancienne. Elle ne dit ni confiance ni défiance, seulement une structure.
  */
-export function AssetOwnership({
+export async function AssetOwnership({
   profile,
   assetName,
 }: {
   profile: AssetProfile
   assetName: string
 }) {
+  const t = await getPhrase()
   const ownership = profile.ownership
   if (!ownership) return null
 
@@ -61,7 +63,7 @@ export function AssetOwnership({
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="display-sm text-ink">Répartition du capital</h2>
+        <h2 className="display-sm text-ink">{t('Répartition du capital')}</h2>
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
           Qui détient {assetName}, d’après les déclarations réglementaires. Elles sont
           trimestrielles : une position affichée ici a pu changer depuis sa date de dépôt.
@@ -79,14 +81,14 @@ export function AssetOwnership({
             <dl>
               <Line label="Institutions" value={formatShare(ownership.institutionsPercent)} />
               <Line
-                label="Initiés"
+                label={t('Initiés')}
                 value={formatShare(ownership.insidersPercent)}
                 hint="dirigeants et administrateurs"
               />
               <Line
                 label="Public"
                 value={formatShare(publicShare)}
-                hint="par différence, non déclaré comme tel"
+                hint={t('par différence, non déclaré comme tel')}
               />
             </dl>
           </Panel>
@@ -94,8 +96,8 @@ export function AssetOwnership({
 
         {holders.length > 0 ? (
           <Panel
-            title="Principaux détenteurs institutionnels"
-            subtitle="Dix premières lignes déclarées"
+            title={t('Principaux détenteurs institutionnels')}
+            subtitle={t('Dix premières lignes déclarées')}
           >
             <ol className="space-y-1.5">
               {holders.map((holder, index) => (

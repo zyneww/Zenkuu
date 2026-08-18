@@ -46,12 +46,13 @@ export async function generateMetadata(): Promise<Metadata> {
  * avec un lien vers sa fiche : c'est un manque annoncé, pas un chiffre inventé (§5).
  */
 export default async function DashboardPage() {
+  const t = await getPhrase()
   if (!DB_ENABLED) {
     return (
       <Shell>
         <EmptyState
-          title="Base de données non configurée"
-          description="La liste de suivi est conservée en base, et c’est elle que cette page réunit. Vos préférences d’affichage, elles, restent enregistrées sur cet appareil."
+          title={t('Base de données non configurée')}
+          description={t('La liste de suivi est conservée en base, et c’est elle que cette page réunit. Vos préférences d’affichage, elles, restent enregistrées sur cet appareil.')}
           action={<HomeLink />}
         />
         <DashboardPreferences />
@@ -91,33 +92,27 @@ export default async function DashboardPage() {
       <section className="space-y-4" aria-labelledby="suivi-titre">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id="suivi-titre" className="display-sm text-ink">
-              Ma liste de suivi
-            </h2>
+            <h2 id="suivi-titre" className="display-sm text-ink">{t('Ma liste de suivi')}</h2>
             <p className="mt-1 text-sm text-ink-muted">
               {followed.length > 0
                 ? `${followed.length} actif${followed.length > 1 ? 's' : ''} suivi${followed.length > 1 ? 's' : ''}.`
                 : 'Aucun actif suivi pour le moment.'}
             </p>
           </div>
-          <Link href="/suivi" className="text-sm font-medium text-brand-strong hover:underline">
-            Vue détaillée
-          </Link>
+          <Link href="/suivi" className="text-sm font-medium text-brand-strong hover:underline">{t('Vue détaillée')}</Link>
         </div>
 
         {watchlistError ? (
-          <EmptyState title="Liste de suivi indisponible" description={watchlistError} />
+          <EmptyState title={t('Liste de suivi indisponible')} description={watchlistError} />
         ) : followed.length === 0 ? (
           <EmptyState
             title="Aucun actif suivi"
-            description="Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici."
+            description={t('Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici.')}
             action={
               <Link
                 href="/marches"
                 className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
-              >
-                Parcourir les cryptomonnaies
-              </Link>
+              >{t('Parcourir les cryptomonnaies')}</Link>
             }
           />
         ) : (
@@ -194,13 +189,12 @@ async function Shell({ children }: { children: React.ReactNode }) {
   )
 }
 
-function HomeLink() {
+async function HomeLink() {
+  const t = await getPhrase()
   return (
     <Link
       href="/"
       className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
-    >
-      Retour à l’accueil
-    </Link>
+    >{t('Retour à l’accueil')}</Link>
   )
 }

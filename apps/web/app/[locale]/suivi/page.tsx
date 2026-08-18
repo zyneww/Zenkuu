@@ -53,12 +53,13 @@ export async function generateMetadata(): Promise<Metadata> {
  * perte de données de notre fait.
  */
 export default async function SuiviPage() {
+  const t = await getPhrase()
   if (!DB_ENABLED) {
     return (
       <Shell>
         <EmptyState
-          title="Base de données non configurée"
-          description="Les listes de suivi sont conservées en base. Tant qu’aucune n’est configurée sur cette instance, elles ne peuvent pas l’être."
+          title={t('Base de données non configurée')}
+          description={t('Les listes de suivi sont conservées en base. Tant qu’aucune n’est configurée sur cette instance, elles ne peuvent pas l’être.')}
           action={<HomeLink />}
         />
       </Shell>
@@ -77,7 +78,7 @@ export default async function SuiviPage() {
     return (
       <Shell>
         <EmptyState
-          title="Liste de suivi indisponible"
+          title={t('Liste de suivi indisponible')}
           description={result.reason}
           action={<HomeLink />}
         />
@@ -92,14 +93,12 @@ export default async function SuiviPage() {
       <Shell signedIn={signedIn}>
         <EmptyState
           title="Aucun actif suivi"
-          description="Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici. Aucun compte n’est nécessaire."
+          description={t('Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici. Aucun compte n’est nécessaire.')}
           action={
             <Link
               href="/marches"
               className="inline-block rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-            >
-              Parcourir les cryptomonnaies
-            </Link>
+            >{t('Parcourir les cryptomonnaies')}</Link>
           }
         />
       </Shell>
@@ -160,7 +159,7 @@ export default async function SuiviPage() {
   )
 }
 
-function Shell({
+async function Shell({
   children,
   signedIn = true,
 }: {
@@ -176,14 +175,12 @@ function Shell({
    */
   signedIn?: boolean
 }) {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Ma liste de suivi</h1>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Les actifs que vous suivez. Les cours ne sont pas repris ici : ils vivent sur
-          les fiches, où ils sont toujours à jour.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{t('Ma liste de suivi')}</h1>
+        <p className="text-sm leading-relaxed text-ink-muted">{t('Les actifs que vous suivez. Les cours ne sont pas repris ici : ils vivent sur les fiches, où ils sont toujours à jour.')}</p>
       </header>
 
       {!signedIn ? (
@@ -200,13 +197,12 @@ function Shell({
   )
 }
 
-function HomeLink() {
+async function HomeLink() {
+  const t = await getPhrase()
   return (
     <Link
       href="/"
       className="inline-block rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-    >
-      Retour à l’accueil
-    </Link>
+    >{t('Retour à l’accueil')}</Link>
   )
 }

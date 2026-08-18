@@ -19,6 +19,7 @@ import {
   windowRange,
   type SeriesPoint,
 } from '@/lib/series-stats'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Onglet « Analyse » — indicateurs, risque, saisonnalité, performance relative.
@@ -82,6 +83,7 @@ interface AssetAnalysisProps {
 }
 
 export function AssetAnalysis(props: AssetAnalysisProps) {
+  const t = usePhrase()
   const visible = usePanelVisible()
 
   const [points, setPoints] = useState<SeriesPoint[] | null>(null)
@@ -209,7 +211,7 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
     return (
       <EmptyState
         title="Analyse indisponible"
-        description="La source n’a pas fourni d’historique suffisant pour calculer ces indicateurs."
+        description={t('La source n’a pas fourni d’historique suffisant pour calculer ces indicateurs.')}
         compact
       />
     )
@@ -219,10 +221,10 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
     <div className="space-y-4">
       {summary === undefined && pending.candles ? <SkeletonPanel lines={3} /> : null}
       {summary ? (
-        <Panel title="Synthèse technique" rule={false}>
+        <Panel title={t('Synthèse technique')} rule={false}>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <TechnicalGauge tally={summary.oscillators} title="Oscillateurs" />
-            <TechnicalGauge tally={summary.overall} title="Synthèse" />
+            <TechnicalGauge tally={summary.overall} title={t('Synthèse')} />
             <TechnicalGauge tally={summary.movingAverages} title="Moyennes mobiles" />
           </div>
 
@@ -231,13 +233,7 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
             <ReadingTable title="Moyennes mobiles" readings={summary.movingAverageReadings} />
           </div>
 
-          <p className="mt-5 border-t border-border-subtle pt-3 text-[0.6875rem] leading-relaxed text-ink-muted">
-            Calculé sur les bougies quotidiennes des douze derniers mois. Les seuils de lecture
-            (30/70 pour le RSI, ±100 pour le CCI, 20/80 pour le stochastique) sont des conventions
-            d’usage, pas des règles universelles : deux sites peuvent afficher des verdicts
-            différents sur le même actif. Ceci décrit le passé et ne constitue pas un conseil en
-            investissement.
-          </p>
+          <p className="mt-5 border-t border-border-subtle pt-3 text-[0.6875rem] leading-relaxed text-ink-muted">{t('Calculé sur les bougies quotidiennes des douze derniers mois. Les seuils de lecture (30/70 pour le RSI, ±100 pour le CCI, 20/80 pour le stochastique) sont des conventions d’usage, pas des règles universelles : deux sites peuvent afficher des verdicts différents sur le même actif. Ceci décrit le passé et ne constitue pas un conseil en investissement.')}</p>
         </Panel>
       ) : null}
 
@@ -318,18 +314,19 @@ function RiskPanel({
   atl,
   atlDate,
 }: AssetAnalysisProps & { points: SeriesPoint[] }) {
+  const t = usePhrase()
   const volatility = annualizedVolatility(points)
   const drawdown = maxDrawdown(points)
   const range7 = windowRange(points, 7)
   const range30 = windowRange(points, 30)
 
   return (
-    <Panel title="Risque et extrêmes">
+    <Panel title={t('Risque et extrêmes')}>
       <dl>
         {volatility !== undefined ? (
           <Row
-            label="Volatilité annualisée"
-            hint="Écart-type des rendements quotidiens, ramené à l’année"
+            label={t('Volatilité annualisée')}
+            hint={t('Écart-type des rendements quotidiens, ramené à l’année')}
             // `formatShare` et non `formatPercent` : une volatilité n'a pas de signe.
             // Un « +84 % » ferait lire une hausse là où il n'y a qu'une amplitude.
             value={formatShare(volatility)}
@@ -434,8 +431,9 @@ function RelativePanel({
   points: SeriesPoint[]
   benchmarks: Record<string, SeriesPoint[]>
 }) {
+  const t = usePhrase()
   return (
-    <Panel title="Face au marché">
+    <Panel title={t('Face au marché')}>
       <div className="space-y-4">
         {BENCHMARKS.filter((entry) => benchmarks[entry.id]).map((entry) => {
           const reference = benchmarks[entry.id]!
@@ -472,9 +470,7 @@ function RelativePanel({
         })}
       </div>
 
-      <p className="mt-4 border-t border-border-subtle pt-3 text-[0.6875rem] leading-relaxed text-ink-muted">
-        Écart en points de pourcentage entre les deux rendements sur la même fenêtre.
-      </p>
+      <p className="mt-4 border-t border-border-subtle pt-3 text-[0.6875rem] leading-relaxed text-ink-muted">{t('Écart en points de pourcentage entre les deux rendements sur la même fenêtre.')}</p>
     </Panel>
   )
 }
@@ -490,6 +486,7 @@ function RelativePanel({
  * dans les deux cas illisible. Normalisée, chaque grille utilise toute sa gamme.
  */
 function SeasonalityPanel({ points }: { points: SeriesPoint[] }) {
+  const t = usePhrase()
   const returns = monthlyReturns(points)
   if (returns.length < 2) return null
 
@@ -509,7 +506,7 @@ function SeasonalityPanel({ points }: { points: SeriesPoint[] }) {
             illisibles. Le défilement latéral est ici la bonne réponse, et l'enveloppe
             `overflow-x-auto` le contient sans jamais élargir la page. */}
         <table className="w-full min-w-[520px] border-collapse text-xs">
-          <caption className="sr-only">Rendement mois par mois, en pourcentage</caption>
+          <caption className="sr-only">{t('Rendement mois par mois, en pourcentage')}</caption>
           <thead>
             <tr className="text-ink-muted">
               <th scope="col" className="py-1 text-left font-medium">
@@ -608,6 +605,7 @@ function relativeDay(iso: string): string | undefined {
  * contenu qui la remplace ne déplace rien.
  */
 function SkeletonPanel({ lines = 1 }: { lines?: number }) {
+  const t = usePhrase()
   return (
     <div className="rounded-card border border-border-subtle bg-panel p-4">
       <div className="h-3 w-32 rounded-card bg-surface-muted" />
@@ -615,7 +613,7 @@ function SkeletonPanel({ lines = 1 }: { lines?: number }) {
         className="mt-4 rounded-card bg-surface-muted"
         style={{ height: `${lines * 48}px` }}
       />
-      <span className="sr-only">Chargement des données d’analyse…</span>
+      <span className="sr-only">{t('Chargement des données d’analyse…')}</span>
     </div>
   )
 }

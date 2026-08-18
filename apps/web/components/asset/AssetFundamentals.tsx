@@ -2,6 +2,7 @@ import type { AssetProfile } from '@zenkuu/data'
 import { formatCompact, formatNumber, formatPercent, formatShare } from '@zenkuu/ui'
 
 import { Panel } from '@/components/ui/Panel'
+import { getPhrase } from '@/lib/content'
 
 /**
  * COMPTES D'UNE VALEUR BOURSIÈRE — valorisation, résultats, dividende.
@@ -37,7 +38,7 @@ import { Panel } from '@/components/ui/Panel'
  * intention : regarder l'actif DE PRÈS, après avoir vu son cours. L'Aperçu répond à
  * « combien », l'Analyse à « pourquoi ».
  */
-export function AssetFundamentals({
+export async function AssetFundamentals({
   profile,
   currency,
   assetName,
@@ -47,6 +48,7 @@ export function AssetFundamentals({
   currency: string
   assetName: string
 }) {
+  const t = await getPhrase()
   const valuation = profile.valuation
   const earnings = profile.earnings
   const dividend = profile.dividend
@@ -61,7 +63,7 @@ export function AssetFundamentals({
             lecteur chercher lequel porte quoi. Celui-ci décrit d'ailleurs mieux ce qu'il
             coiffe — ce sont les comptes publiés de la société, pas des repères de
             marché. Même arbitrage que pour « Valorisation » dans `AssetProfileRail`. */}
-        <h2 className="display-sm text-ink">Comptes de l’entreprise</h2>
+        <h2 className="display-sm text-ink">{t('Comptes de l’entreprise')}</h2>
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
           Ce que {assetName} gagne et ce qu’elle doit, tel que la société le publie. Les
           montants sont en {currency.toUpperCase()}, devise de cotation — ils ne suivent pas
@@ -89,13 +91,14 @@ export function AssetFundamentals({
  * avec quel argent il fonctionne (trésorerie, dette). Les éclater en trois panneaux
  * distincts ferait trois cartes de quatre lignes, et perdrait l'enchaînement.
  */
-function ValuationPanel({
+async function ValuationPanel({
   valuation,
   currency,
 }: {
   valuation: NonNullable<AssetProfile['valuation']>
   currency: string
 }) {
+  const t = await getPhrase()
   const money = (value: number | undefined) =>
     value === undefined ? null : `${formatCompact(value)} ${currency.toUpperCase()}`
 
@@ -136,7 +139,7 @@ function ValuationPanel({
   if (groups.length === 0) return null
 
   return (
-    <Panel title="Valorisation et rentabilité" subtitle="Yahoo Finance, derniers comptes publiés">
+    <Panel title={t('Valorisation et rentabilité')} subtitle={t('Yahoo Finance, derniers comptes publiés')}>
       <div className="space-y-3">
         {groups.map((rows, index) => (
           <dl
@@ -171,7 +174,8 @@ function ValuationPanel({
  * C'est le seul mouvement de cours de la fiche dont on connaisse la date à l'avance.
  * L'enterrer sous quatre lignes d'historique inverserait l'ordre d'importance.
  */
-function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile['earnings']> }) {
+async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile['earnings']> }) {
+  const t = await getPhrase()
   const quarters = earnings.quarters ?? []
   const years = earnings.years ?? []
   const next = earnings.nextDate ? formatDay(earnings.nextDate) : null
@@ -179,7 +183,7 @@ function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile['earni
   if (quarters.length === 0 && years.length === 0 && !next) return null
 
   return (
-    <Panel title="Résultats" subtitle="Bénéfice par action, publié contre attendu">
+    <Panel title={t('Résultats')} subtitle={t('Bénéfice par action, publié contre attendu')}>
       <div className="space-y-3">
         {next ? (
           <p className="rounded-card bg-surface-muted px-3 py-2 text-xs leading-relaxed text-ink">
@@ -200,7 +204,7 @@ function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile['earni
               <tr className="text-ink-muted">
                 <th scope="col" className="pb-1.5 text-left font-medium">Trimestre</th>
                 <th scope="col" className="pb-1.5 text-right font-medium">Attendu</th>
-                <th scope="col" className="pb-1.5 text-right font-medium">Publié</th>
+                <th scope="col" className="pb-1.5 text-right font-medium">{t('Publié')}</th>
                 <th scope="col" className="pb-1.5 text-right font-medium">Écart</th>
               </tr>
             </thead>
@@ -242,9 +246,7 @@ function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile['earni
 
         {years.length > 0 ? (
           <div className="border-t border-border-subtle pt-3">
-            <p className="mb-1.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
-              Par exercice
-            </p>
+            <p className="mb-1.5 text-micro font-medium uppercase tracking-wide text-ink-muted">{t('Par exercice')}</p>
             <dl>
               {years.map((year) => (
                 <div

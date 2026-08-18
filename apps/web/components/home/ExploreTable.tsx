@@ -11,6 +11,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { Pagination } from '@/components/ui/Pagination'
 import { assetHref } from '@/lib/asset-routes'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Tableau d'exploration de l'accueil.
@@ -61,6 +62,7 @@ export function ExploreTable({
   /** Classement complet de la classe affichée — paginé et trié côté serveur. */
   moreHref?: string
 }) {
+  const t = usePhrase()
   const [tab, setTab] = useState<Tab>('marketCap')
   const [periodKey, setPeriodKey] = useState('24h')
   const [query, setQuery] = useState('')
@@ -129,15 +131,15 @@ export function ExploreTable({
               setQuery(event.target.value)
               setPage(1)
             }}
-            placeholder="Filtrer par nom ou symbole…"
-            aria-label="Filtrer les actifs affichés"
+            placeholder={t('Filtrer par nom ou symbole…')}
+            aria-label={t('Filtrer les actifs affichés')}
             className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Classer par">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('Classer par')}>
           {TABS.map((entry) => (
             <button
               key={entry.key}
@@ -158,7 +160,7 @@ export function ExploreTable({
         <div
           className="ml-auto flex items-center gap-1 rounded-card border border-border-subtle bg-surface p-1"
           role="group"
-          aria-label="Période de variation"
+          aria-label={t('Période de variation')}
         >
           {PERIODS.map((entry) => (
             <button
@@ -180,8 +182,8 @@ export function ExploreTable({
 
       {rows.length === 0 ? (
         <EmptyState
-          title="Aucun actif ne correspond"
-          description="Essayez un autre terme, ou revenez au classement par capitalisation."
+          title={t('Aucun actif ne correspond')}
+          description={t('Essayez un autre terme, ou revenez au classement par capitalisation.')}
           compact
         />
       ) : (
@@ -284,9 +286,7 @@ export function ExploreTable({
           />
 
           <p className="text-right">
-            <Link href={moreHref} className="text-sm font-medium text-brand hover:underline">
-              Voir toutes les cotations
-            </Link>
+            <Link href={moreHref} className="text-sm font-medium text-brand hover:underline">{t('Voir toutes les cotations')}</Link>
           </p>
         </>
       )}

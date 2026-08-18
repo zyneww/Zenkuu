@@ -35,6 +35,7 @@ import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
 import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
 import { TreasuryOverview } from '@/components/market/TreasuryOverview'
 import { TreasuryTable } from '@/components/market/TreasuryTable'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -115,6 +116,7 @@ export default async function Page({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const view = readChartView((await searchParams)['vue'])
   const entry = TITLES[view]
 
@@ -150,13 +152,13 @@ export default async function Page({
         avec le reste du site, donc pratiquement toujours en cache.
       */}
       {view === 'tresoreries' ? (
-        <Suspense fallback={<LoadingNote label="Lecture des registres de trésorerie…" />}>
+        <Suspense fallback={<LoadingNote label={t('Lecture des registres de trésorerie…')} />}>
           <TreasuriesSection />
         </Suspense>
       ) : null}
 
       {view === 'nft' ? (
-        <Suspense fallback={<LoadingNote label="Lecture des collections…" />}>
+        <Suspense fallback={<LoadingNote label={t('Lecture des collections…')} />}>
           <NftSection />
         </Suspense>
       ) : null}
@@ -174,20 +176,18 @@ export default async function Page({
  * froid, et une silhouette qui palpite une demi-minute se lit comme un blocage. Dire ce
  * qu'on attend, et pourquoi c'est long, informe là où une animation décore.
  */
-function LoadingNote({ label }: { label: string }) {
+async function LoadingNote({ label }: { label: string }) {
+  const t = await getPhrase()
   return (
     <p className="rounded-card border border-border-subtle bg-surface px-4 py-6 text-sm text-ink-muted">
       {label}
-      <span className="block pt-1 text-xs">
-        Cette source se demande une entrée à la fois et limite fortement les appels
-        gratuits : le premier chargement peut prendre plusieurs dizaines de secondes. Les
-        suivants sont servis depuis le cache pendant une heure.
-      </span>
+      <span className="block pt-1 text-xs">{t('Cette source se demande une entrée à la fois et limite fortement les appels gratuits : le premier chargement peut prendre plusieurs dizaines de secondes. Les suivants sont servis depuis le cache pendant une heure.')}</span>
     </p>
   )
 }
 
 async function GlobalView() {
+  const t = await getPhrase()
   const [globalStats, btc, eth, sentiment] = await Promise.all([
     getCryptoGlobalStats('eur'),
     getAssetHistory('bitcoin', 'crypto', 365, 'eur'),
@@ -216,7 +216,7 @@ async function GlobalView() {
           />
         </>
       ) : (
-        <EmptyState title="Agrégats mondiaux indisponibles" description={globalStats.reason} />
+        <EmptyState title={t('Agrégats mondiaux indisponibles')} description={globalStats.reason} />
       )}
 
       <MarketOverviewCard result={globalStats} series={marketCapSeries} />
@@ -235,7 +235,7 @@ async function GlobalView() {
         Il n'apparaît que s'il a abouti. Un encadré d'échec de plus n'apprendrait rien
         que la carte d'aperçu juste au-dessus ne dise déjà.
       */}
-      <Suspense fallback={<LoadingNote label="Assemblage du panier de capitalisations…" />}>
+      <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
         <BasketSection />
       </Suspense>
 
@@ -306,6 +306,7 @@ async function BasketSection() {
 /* ── DOMINANCE ──────────────────────────────────────────────────────────────── */
 
 async function DominanceSection() {
+  const t = await getPhrase()
   const globalStats = await getCryptoGlobalStats('eur')
   const series = getMarketCapSeriesState('EUR')
 
@@ -341,18 +342,11 @@ async function DominanceSection() {
 
       <div className="space-y-4">
         <div className="rounded-card border border-brand/25 bg-brand-soft/55 px-4 py-3">
-          <h2 className="text-xs font-semibold text-ink">Et sur un an ?</h2>
-          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">
-            La dominance ci-dessus est la vraie : Bitcoin rapporté au marché entier, tel que
-            la source le publie. Sa profondeur est celle de nos propres relevés, c’est-à-dire
-            quelques heures. Pour voir la tendance sur douze mois, il faut accepter une
-            mesure approchante — la part de Bitcoin dans un panier de neuf actifs, dont la
-            composition est listée sous les courbes. Choisissez la vue
-            «&nbsp;Répartition&nbsp;».
-          </p>
+          <h2 className="text-xs font-semibold text-ink">{t('Et sur un an ?')}</h2>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">{t('La dominance ci-dessus est la vraie : Bitcoin rapporté au marché entier, tel que la source le publie. Sa profondeur est celle de nos propres relevés, c’est-à-dire quelques heures. Pour voir la tendance sur douze mois, il faut accepter une mesure approchante — la part de Bitcoin dans un panier de neuf actifs, dont la composition est listée sous les courbes. Choisissez la vue « Répartition ».')}</p>
         </div>
 
-        <Suspense fallback={<LoadingNote label="Assemblage du panier de capitalisations…" />}>
+        <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
           <BasketSection />
         </Suspense>
       </div>
@@ -405,12 +399,13 @@ async function HeatmapSection() {
 /* ── CATÉGORIES ─────────────────────────────────────────────────────────────── */
 
 async function CategoriesSection() {
+  const t = await getPhrase()
   const categories = await getCategories()
 
   if (!categories.ok || categories.data.length === 0) {
     return (
       <EmptyState
-        title="Catégories indisponibles"
+        title={t('Catégories indisponibles')}
         description={categories.ok ? null : categories.reason}
         source={categories.source?.label ?? null}
         tone={categories.ok ? 'neutral' : 'warning'}
@@ -437,6 +432,7 @@ async function CategoriesSection() {
 /* ── TRÉSORERIES ────────────────────────────────────────────────────────────── */
 
 async function TreasuriesSection() {
+  const t = await getPhrase()
   /*
    * Les deux registres partent ENSEMBLE, et chacun peut échouer seul : le fournisseur
    * est plafonné à cinq appels par minute, et il est normal que le second attende. Un
@@ -451,7 +447,7 @@ async function TreasuriesSection() {
   if (!bitcoin.ok && !ethereum.ok) {
     return (
       <EmptyState
-        title="Registres de trésorerie indisponibles"
+        title={t('Registres de trésorerie indisponibles')}
         description={bitcoin.reason}
         source={bitcoin.source?.label ?? null}
         tone="warning"
@@ -524,6 +520,7 @@ async function TreasuriesSection() {
 /* ── NFT ────────────────────────────────────────────────────────────────────── */
 
 async function NftSection() {
+  const t = await getPhrase()
   const collections = await getNftCollections()
 
   if (!collections.ok) {
@@ -556,12 +553,7 @@ async function NftSection() {
         réservé à l'offre payante.
       */}
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-        <strong className="text-ink">Sélection, et non classement.</strong> La source
-        réserve son classement des collections à son offre payante ; seule la fiche d’une
-        collection nommée est gratuite. Cette liste est donc arrêtée à la main sur des
-        collections de référence, et l’ordre d’affichage n’est qu’un tri par
-        capitalisation — d’autres collections plus grandes peuvent exister sans figurer ici.
-      </p>
+        <strong className="text-ink">{t('Sélection, et non classement.')}</strong>{t('La source réserve son classement des collections à son offre payante ; seule la fiche d’une collection nommée est gratuite. Cette liste est donc arrêtée à la main sur des collections de référence, et l’ordre d’affichage n’est qu’un tri par capitalisation — d’autres collections plus grandes peuvent exister sans figurer ici.')}</p>
 
       <SourceNote
         label={`${collections.source.label} · montants en USD`}

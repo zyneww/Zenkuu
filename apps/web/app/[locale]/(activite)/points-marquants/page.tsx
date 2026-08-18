@@ -111,7 +111,7 @@ export default async function HighlightsPage() {
       {/* Rangée de cartes : les quatre plus fortes hausses, courbe 7 jours en fond.
           La série est celle déjà chargée pour les palmarès — aucun appel de plus. */}
       {ranked && ranked.gainers.length >= 4 ? (
-        <section aria-label="Plus fortes hausses du jour" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section aria-label={t('Plus fortes hausses du jour')} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ranked.gainers.slice(0, 4).map((asset, index) => (
             <MetricCard
               key={asset.id}
@@ -128,9 +128,7 @@ export default async function HighlightsPage() {
 
       {universe.ok && assets.length > 0 ? (
         <section className="space-y-5" aria-labelledby="palmares-titre">
-          <h2 id="palmares-titre" className="display-md text-ink">
-            Palmarès du jour
-          </h2>
+          <h2 id="palmares-titre" className="display-md text-ink">{t('Palmarès du jour')}</h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             <TrendingPanel
@@ -153,8 +151,8 @@ export default async function HighlightsPage() {
             />
 
             <HighlightPanel
-              title="Volumes les plus élevés"
-              hint="Montants échangés sur 24 h"
+              title={t('Volumes les plus élevés')}
+              hint={t('Montants échangés sur 24 h')}
               assets={byVolume}
               href="/classements"
             />
@@ -184,12 +182,8 @@ export default async function HighlightsPage() {
 
       <section className="space-y-5" aria-labelledby="nouveautes-titre">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 id="nouveautes-titre" className="display-md text-ink">
-            Ce qui vient d’apparaître
-          </h2>
-          <Link href="/nouvelles-cotations" className="text-sm font-medium text-brand-strong hover:underline">
-            Toutes les cotations récentes
-          </Link>
+          <h2 id="nouveautes-titre" className="display-md text-ink">{t('Ce qui vient d’apparaître')}</h2>
+          <Link href="/nouvelles-cotations" className="text-sm font-medium text-brand-strong hover:underline">{t('Toutes les cotations récentes')}</Link>
         </div>
 
         {recent.length > 0 && listings.ok ? (
@@ -215,7 +209,7 @@ export default async function HighlightsPage() {
           </>
         ) : (
           <EmptyState
-            title="Cotations récentes indisponibles"
+            title={t('Cotations récentes indisponibles')}
             description={listings.ok ? null : listings.reason}
             compact
           />
@@ -225,17 +219,10 @@ export default async function HighlightsPage() {
       <section className="space-y-5" aria-labelledby="secteurs-titre">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="space-y-1">
-            <h2 id="secteurs-titre" className="display-md text-ink">
-              Secteurs en tête
-            </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-              Un narratif en tête explique souvent la présence d’une demi-douzaine de
-              jetons dans les palmarès ci-dessus.
-            </p>
+            <h2 id="secteurs-titre" className="display-md text-ink">{t('Secteurs en tête')}</h2>
+            <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{t('Un narratif en tête explique souvent la présence d’une demi-douzaine de jetons dans les palmarès ci-dessus.')}</p>
           </div>
-          <Link href="/categories" className="text-sm font-medium text-brand-strong hover:underline">
-            Toutes les catégories
-          </Link>
+          <Link href="/categories" className="text-sm font-medium text-brand-strong hover:underline">{t('Toutes les catégories')}</Link>
         </div>
 
         {narratives.ok && narratives.data.length > 0 ? (
@@ -282,14 +269,13 @@ export default async function HighlightsPage() {
  * colonnes du panneau générique ne sait présenter.
  */
 async function RotationPanel({ entries }: { entries: { asset: MarketAsset; ratio: number }[] }) {
+  const t = await getPhrase()
   const fr = await getContent()
   return (
     <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
       <div className="mb-2">
-        <h2 className="text-sm font-semibold text-ink">Rotation la plus rapide</h2>
-        <p className="mt-0.5 text-[0.6875rem] text-ink-muted">
-          Volume 24 h rapporté à la capitalisation, au-dessus de 50 M$
-        </p>
+        <h2 className="text-sm font-semibold text-ink">{t('Rotation la plus rapide')}</h2>
+        <p className="mt-0.5 text-[0.6875rem] text-ink-muted">{t('Volume 24 h rapporté à la capitalisation, au-dessus de 50 M$')}</p>
       </div>
 
       {entries.length > 0 ? (

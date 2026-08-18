@@ -8,6 +8,7 @@ import { formatCompact, formatShare } from '@zenkuu/ui'
 import { Panel } from '@/components/ui/Panel'
 import { RailSection } from '@/components/ui/RailSection'
 import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
+import { getPhrase } from '@/lib/content'
 
 /**
  * COMPOSITION D'UN FONDS — positions, secteurs, nature des actifs.
@@ -34,7 +35,8 @@ import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
  * En écrire une seconde donnerait deux anneaux qui divergeraient à la première
  * retouche.
  */
-export function AssetHoldings({ profile, assetName }: { profile: AssetProfile; assetName: string }) {
+export async function AssetHoldings({ profile, assetName }: { profile: AssetProfile; assetName: string }) {
+  const t = await getPhrase()
   const holdings = profile.holdings ?? []
   const sectors = profile.sectors ?? []
   const allocation = profile.allocation ?? []
@@ -113,7 +115,7 @@ export function AssetHoldings({ profile, assetName }: { profile: AssetProfile; a
           {sectorParts.length > 0 ? (
             <ShareDonut
               title="Exposition sectorielle"
-              subtitle="Part de chaque secteur dans le portefeuille du fonds"
+              subtitle={t('Part de chaque secteur dans le portefeuille du fonds')}
               parts={sectorParts}
               restNoun="secteurs"
               valueHeader="Part"
@@ -121,7 +123,7 @@ export function AssetHoldings({ profile, assetName }: { profile: AssetProfile; a
           ) : null}
 
           {allocation.length > 0 ? (
-            <Panel title="Nature des actifs">
+            <Panel title={t('Nature des actifs')}>
               <dl className="space-y-1.5">
                 {allocation.map((entry) => (
                   <div key={entry.label} className="flex items-baseline justify-between gap-3">

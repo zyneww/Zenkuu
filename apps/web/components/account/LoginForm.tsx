@@ -157,15 +157,12 @@ export function LoginForm({
             <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
               Se connecter
             </h2>
-            <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-              Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne
-              correspond à aucun compte, il en crée un.
-            </p>
+            <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne correspond à aucun compte, il en crée un.')}</p>
           </div>
         )}
 
         <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-ink">Adresse électronique</span>
+          <span className="mb-1.5 block text-xs font-medium text-ink">{t('Adresse électronique')}</span>
           <div className="flex items-center gap-2 rounded-control border border-border-subtle bg-surface-muted px-2.5 focus-within:border-brand">
             <Mail className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
             <input
@@ -233,9 +230,7 @@ export function LoginForm({
           }}
           className="-ml-1 flex items-center gap-1 rounded-control px-1 py-0.5 text-xs text-ink-muted transition-colors hover:text-ink"
         >
-          <ArrowLeft className="h-3 w-3" aria-hidden="true" />
-          Changer d’adresse
-        </button>
+          <ArrowLeft className="h-3 w-3" aria-hidden="true" />{t('Changer d’adresse')}</button>
         <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
           Votre code
         </h2>
@@ -246,7 +241,7 @@ export function LoginForm({
       </div>
 
       <label className="block">
-        <span className="mb-1.5 block text-xs font-medium text-ink">Code à six chiffres</span>
+        <span className="mb-1.5 block text-xs font-medium text-ink">{t('Code à six chiffres')}</span>
         <input
           ref={codeRef}
           type="text"
@@ -275,9 +270,7 @@ export function LoginForm({
       </button>
 
       <p className="flex items-start gap-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">
-        <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-        Ce que vous avez déjà suivi ou surveillé depuis ce navigateur rejoindra votre compte.
-      </p>
+        <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />{t('Ce que vous avez déjà suivi ou surveillé depuis ce navigateur rejoindra votre compte.')}</p>
     </form>
   )
 }

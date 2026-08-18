@@ -12,6 +12,7 @@ import { InfoTip } from '@/components/ui/InfoTip'
 import { Panel } from '@/components/ui/Panel'
 import { Link } from '@/i18n/navigation'
 import type { SeriesPoint } from '@/lib/series-stats'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * CATALOGUE DE MÉTRIQUES — une carte par mesure, filtrable par catégorie.
@@ -126,6 +127,7 @@ export function AssetMetricGrid({
   assetClass: string
   assetId: string
 }) {
+  const t = usePhrase()
   const visible = usePanelVisible()
   const { series, settled } = useAssetSeries(assetClass, assetId, RANGE_DAYS, visible)
 
@@ -173,7 +175,7 @@ export function AssetMetricGrid({
     <section className="space-y-3">
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="display-sm text-ink">Toutes les métriques</h2>
+          <h2 className="display-sm text-ink">{t('Toutes les métriques')}</h2>
           <span className="tabular shrink-0 text-xs text-ink-muted">{all.length} mesures</span>
         </div>
 
@@ -192,11 +194,7 @@ export function AssetMetricGrid({
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
           Six mesures portent une courbe sur douze mois. Trois sont publiées par la source —
           cours, capitalisation, volume, toutes trois transportées par la même réponse — et
-          trois sont <strong className="font-medium text-ink">calculées</strong> à partir
-          d’elles. Les autres n’existent qu’à l’instant présent chez la source : leur carte
-          donne la valeur et s’arrête là, plutôt que de tracer une ligne qui aurait l’air
-          d’une histoire.
-        </p>
+          trois sont <strong className="font-medium text-ink">calculées</strong>{t('à partir d’elles. Les autres n’existent qu’à l’instant présent chez la source : leur carte donne la valeur et s’arrête là, plutôt que de tracer une ligne qui aurait l’air d’une histoire.')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
@@ -227,7 +225,7 @@ export function AssetMetricGrid({
           </div>
 
           <label className="relative mt-3 block">
-            <span className="sr-only">Rechercher une métrique</span>
+            <span className="sr-only">{t('Rechercher une métrique')}</span>
             <Search
               size={13}
               strokeWidth={1.5}
@@ -326,6 +324,7 @@ function Card({
   points: { timestamp: number; value: number }[] | null
   loading: boolean
 }) {
+  const t = usePhrase()
   /* Une mesure « traçable » est celle qui a une colonne dans la source OU une courbe
      que nous avons calculée. Les deux réservent la zone de graphique ; le reste y met
      une phrase d'absence. */
@@ -386,7 +385,7 @@ function Card({
           */
           <div className="flex h-full flex-col justify-end pb-1">
             <div className="border-t border-dashed border-border-subtle" />
-            <span className="mt-1 text-micro text-ink-muted">Sans historique publié</span>
+            <span className="mt-1 text-micro text-ink-muted">{t('Sans historique publié')}</span>
           </div>
         ) : loading ? (
           <div className="h-8 animate-pulse rounded bg-surface" />
@@ -397,7 +396,7 @@ function Card({
             {...(card.axisFormat ? { format: card.axisFormat } : {})}
           />
         ) : (
-          <p className="text-micro leading-snug text-ink-muted">Série indisponible.</p>
+          <p className="text-micro leading-snug text-ink-muted">{t('Série indisponible.')}</p>
         )}
       </div>
     </Panel>

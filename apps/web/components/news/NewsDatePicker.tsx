@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useRouter } from '@/i18n/navigation'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Sélecteur de date du fil d'actualités.
@@ -45,6 +46,7 @@ const MOIS = [
 const JOURS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 export function NewsDatePicker({ selected, oldestAvailable, unavailableReason }: Props) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -134,23 +136,21 @@ export function NewsDatePicker({ selected, oldestAvailable, unavailableReason }:
             onClick={clear}
             className="flex items-center gap-1 rounded-card border border-border-subtle px-2 py-2 text-xs text-ink-muted transition-colors hover:border-brand hover:text-ink"
           >
-            <X className="h-3.5 w-3.5" aria-hidden="true" />
-            Revenir au direct
-          </button>
+            <X className="h-3.5 w-3.5" aria-hidden="true" />{t('Revenir au direct')}</button>
         ) : null}
       </div>
 
       {open ? (
         <div
           role="dialog"
-          aria-label="Choisir une date"
+          aria-label={t('Choisir une date')}
           className="absolute left-0 top-full z-50 mt-2 w-72 border border-border-subtle bg-overlay p-3 shadow-overlay"
         >
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setCursor(addMonths(cursor, -1))}
-              aria-label="Mois précédent"
+              aria-label={t('Mois précédent')}
               className="flex h-7 w-7 items-center justify-center text-ink-muted transition-colors hover:text-ink"
             >
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />

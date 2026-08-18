@@ -19,6 +19,7 @@ import type {
 } from '@/components/tools/screener-markets'
 import { Pagination } from '@/components/ui/Pagination'
 import type { ScreenCriteria } from '@/lib/screen-actions'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -113,6 +114,7 @@ export function ScreenerView({
   market: ScreenerMarket
   total: number
 }) {
+  const t = usePhrase()
   const [preset, setPreset] = useState('tout')
   const [query, setQuery] = useState('')
 
@@ -400,9 +402,7 @@ export function ScreenerView({
               type="button"
               onClick={reset}
               className="rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
-            >
-              Réinitialiser les filtres
-            </button>
+            >{t('Réinitialiser les filtres')}</button>
           ) : null}
         </div>
       </div>
@@ -425,7 +425,7 @@ export function ScreenerView({
       <div
         className="flex flex-wrap items-center gap-1 border-b border-border-subtle"
         role="group"
-        aria-label="Colonnes affichées"
+        aria-label={t('Colonnes affichées')}
       >
         {market.columnSets.length > 1
           ? market.columnSets.map((entry) => (
@@ -454,8 +454,8 @@ export function ScreenerView({
 
       {sortedRows.length === 0 ? (
         <EmptyState
-          title="Aucune ligne ne satisfait ces critères"
-          description="Assouplissez un seuil, ou réinitialisez les filtres."
+          title={t('Aucune ligne ne satisfait ces critères')}
+          description={t('Assouplissez un seuil, ou réinitialisez les filtres.')}
           compact
         />
       ) : (

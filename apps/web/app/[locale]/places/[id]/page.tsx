@@ -7,6 +7,7 @@ import { EmptyState, SourceNote, formatCompact } from '@zenkuu/ui'
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { ExchangeTickersTable } from '@/components/market/ExchangeTickersTable'
 import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
 
 /* Une heure, comme le TTL de la donnée — voir `getExchangeProfile`. */
 export const revalidate = 3600
@@ -60,6 +61,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
  * jugement, pas une mesure, et il n'est pas le nôtre.
  */
 export default async function ExchangePage({ params }: RouteProps) {
+  const t = await getPhrase()
   const { id } = await params
   const result = await getExchangeProfile(id)
 
@@ -81,7 +83,7 @@ export default async function ExchangePage({ params }: RouteProps) {
     return (
       <div className="space-y-6 py-6">
         <EmptyState
-          title="Fiche de place indisponible"
+          title={t('Fiche de place indisponible')}
           description={result.reason}
           source={result.source?.label ?? null}
           tone="warning"
@@ -97,7 +99,7 @@ export default async function ExchangePage({ params }: RouteProps) {
 
   return (
     <div className="space-y-8 py-6">
-      <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
+      <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
             <Link href="/" className="hover:text-brand-strong">
@@ -142,7 +144,7 @@ export default async function ExchangePage({ params }: RouteProps) {
                   liste qui est le nôtre — d'où l'infobulle qui le dit. */}
               {place.centralized !== undefined ? (
                 <span
-                  title="Nature publiée par la source"
+                  title={t('Nature publiée par la source')}
                   className={`rounded-pill px-2 py-0.5 font-medium ${
                     place.centralized ? 'bg-surface-muted' : 'bg-up-soft text-up'
                   }`}
@@ -176,30 +178,30 @@ export default async function ExchangePage({ params }: RouteProps) {
         {place.derivatives ? (
           <>
             <Stat
-              label="Intérêt ouvert"
+              label={t('Intérêt ouvert')}
               value={place.openInterestBtc !== undefined ? `${formatCompact(place.openInterestBtc)} ₿` : '—'}
-              hint="positions non dénouées"
+              hint={t('positions non dénouées')}
             />
             <Stat
               label="Volume 24 h"
               value={place.volume24hBtc !== undefined ? `${formatCompact(place.volume24hBtc)} ₿` : '—'}
-              hint="en bitcoin, unité de la source"
+              hint={t('en bitcoin, unité de la source')}
             />
             <Stat
-              label="Contrats perpétuels"
+              label={t('Contrats perpétuels')}
               value={place.perpetualPairs !== undefined ? String(place.perpetualPairs) : '—'}
-              hint="sans échéance"
+              hint={t('sans échéance')}
             />
             <Stat
-              label="Contrats à échéance"
+              label={t('Contrats à échéance')}
               value={place.futuresPairs !== undefined ? String(place.futuresPairs) : '—'}
-              hint="avec date de règlement"
+              hint={t('avec date de règlement')}
             />
           </>
         ) : (
           <>
             <Stat
-              label="Note de confiance"
+              label={t('Note de confiance')}
               value={place.trustScore !== undefined ? `${place.trustScore} / 10` : '—'}
               hint={
                 place.trustRank !== undefined
@@ -210,17 +212,17 @@ export default async function ExchangePage({ params }: RouteProps) {
             <Stat
               label="Volume 24 h"
               value={place.volume24hBtc !== undefined ? `${formatCompact(place.volume24hBtc)} ₿` : '—'}
-              hint="en bitcoin, unité de la source"
+              hint={t('en bitcoin, unité de la source')}
             />
             <Stat
-              label="Actifs cotés"
+              label={t('Actifs cotés')}
               value={place.coins !== undefined ? String(place.coins) : '—'}
-              hint="référencés par la source"
+              hint={t('référencés par la source')}
             />
             <Stat
               label="Paires"
               value={place.pairs !== undefined ? String(place.pairs) : '—'}
-              hint="couples cotés"
+              hint={t('couples cotés')}
             />
           </>
         )}
@@ -230,8 +232,8 @@ export default async function ExchangePage({ params }: RouteProps) {
         <ExchangeTickersTable tickers={place.tickers} derivatives={place.derivatives} />
       ) : (
         <EmptyState
-          title="Aucune paire publiée"
-          description="La source ne détaille pas les paires cotées sur cette place."
+          title={t('Aucune paire publiée')}
+          description={t('La source ne détaille pas les paires cotées sur cette place.')}
           compact
         />
       )}
@@ -285,17 +287,12 @@ export default async function ExchangePage({ params }: RouteProps) {
         <SourceNote label={result.source.label} href={result.source.attributionUrl} />
       ) : null}
 
-      <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-        ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction. Cette
-        fiche situe une place d’échange ; elle n’y donne pas accès, et la note de
-        confiance affichée est un jugement publié par la source, ni une mesure ni un avis
-        de ZENKUU.
-      </p>
+      <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">{t('ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction. Cette fiche situe une place d’échange ; elle n’y donne pas accès, et la note de confiance affichée est un jugement publié par la source, ni une mesure ni un avis de ZENKUU.')}</p>
     </div>
   )
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+async function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
     <div className="rounded-card bg-surface p-3">
       <p className="text-micro uppercase tracking-wide text-ink-muted">{label}</p>

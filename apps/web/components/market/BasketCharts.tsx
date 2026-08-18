@@ -9,6 +9,7 @@ import { AreaPlot, type PlotSeries } from '@/components/charts/AreaPlot'
 import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
 import { dataColor } from '@/components/charts/chart-theme'
 import { Link } from '@/i18n/navigation'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * QUATRE COURBES LONGUES, TIRÉES D'UN SEUL RELEVÉ.
@@ -91,6 +92,7 @@ const LEAD: Record<ViewId, string> = {
 }
 
 export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
+  const t = usePhrase()
   const [view, setView] = useState<ViewId>('total')
   const [days, setDays] = useState<number>(365)
 
@@ -199,13 +201,11 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
     <section className="space-y-4" aria-labelledby="panier-titre">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
-          <h2 id="panier-titre" className="display-md text-ink">
-            Panier de capitalisations
-          </h2>
+          <h2 id="panier-titre" className="display-md text-ink">{t('Panier de capitalisations')}</h2>
           <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{LEAD[view]}</p>
         </div>
 
-        <ChipGroup label="Période">
+        <ChipGroup label={t('Période')}>
           {RANGES.map((range) => (
             <Chip
               key={range.days}
@@ -295,9 +295,7 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
               ) : null}
             </>
           ) : (
-            <p className="py-16 text-center text-sm text-ink-muted">
-              Pas assez de points sur la période choisie.
-            </p>
+            <p className="py-16 text-center text-sm text-ink-muted">{t('Pas assez de points sur la période choisie.')}</p>
           )}
         </div>
       </div>
@@ -319,18 +317,13 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
  * d'aujourd'hui qui explique la forme d'aujourd'hui.
  */
 function Composition({ basket }: { basket: MarketCapBasket }) {
+  const t = usePhrase()
   const total = basket.members.reduce((sum, member) => sum + member.latest, 0)
 
   return (
     <div className="rounded-card border border-border-subtle bg-surface p-4">
-      <h3 className="text-sm font-semibold text-ink">Composition du panier</h3>
-      <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">
-        Liste FIGÉE, et non « les neuf premières capitalisations du jour ». Un panier
-        recalculé chaque jour ferait sauter la courbe le jour où un actif entre dans le
-        classement — un mouvement de composition qui se lirait comme un mouvement de
-        marché. Le prix de ce choix est qu’il vieillit : c’est un défaut visible et
-        corrigible, là où le saut serait invisible.
-      </p>
+      <h3 className="text-sm font-semibold text-ink">{t('Composition du panier')}</h3>
+      <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">{t('Liste FIGÉE, et non « les neuf premières capitalisations du jour ». Un panier recalculé chaque jour ferait sauter la courbe le jour où un actif entre dans le classement — un mouvement de composition qui se lirait comme un mouvement de marché. Le prix de ce choix est qu’il vieillit : c’est un défaut visible et corrigible, là où le saut serait invisible.')}</p>
 
       <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-5">
         {basket.members.map((member) => (

@@ -1,5 +1,6 @@
 import type { DerivativeMarket } from '@zenkuu/data'
 import { ChangeBadge, formatCurrency, formatPercent } from '@zenkuu/ui'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Panneau des produits dérivés — intérêt ouvert et taux de financement.
@@ -35,7 +36,8 @@ function byExchange(markets: DerivativeMarket[]) {
   return [...grouped.values()].sort((a, b) => b.openInterest - a.openInterest)
 }
 
-export function DerivativesPanel({ markets }: { markets: DerivativeMarket[] }) {
+export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[] }) {
+  const t = await getPhrase()
   if (markets.length === 0) return null
 
   const exchanges = byExchange(markets).slice(0, 8)
@@ -53,14 +55,8 @@ export function DerivativesPanel({ markets }: { markets: DerivativeMarket[] }) {
   return (
     <section className="space-y-8" aria-labelledby="derives-titre">
       <div className="space-y-1">
-        <h2 id="derives-titre" className="display-md text-ink">
-          Produits dérivés
-        </h2>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Intérêt ouvert et taux de financement des contrats à terme, place par place.
-          L’intérêt ouvert mesure la valeur des positions encore ouvertes — il dit
-          l’exposition du marché, pas sa direction.
-        </p>
+        <h2 id="derives-titre" className="display-md text-ink">{t('Produits dérivés')}</h2>
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{t('Intérêt ouvert et taux de financement des contrats à terme, place par place. L’intérêt ouvert mesure la valeur des positions encore ouvertes — il dit l’exposition du marché, pas sa direction.')}</p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -104,21 +100,15 @@ export function DerivativesPanel({ markets }: { markets: DerivativeMarket[] }) {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink">Taux de financement extrêmes</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('Taux de financement extrêmes')}</h3>
 
           {funded.length === 0 ? (
-            <p className="text-sm text-ink-muted">
-              Aucun contrat perpétuel avec taux de financement publié pour l’instant.
-            </p>
+            <p className="text-sm text-ink-muted">{t('Aucun contrat perpétuel avec taux de financement publié pour l’instant.')}</p>
           ) : (
             <>
-              <FundingGroup title="Les plus élevés" rows={highest} />
-              <FundingGroup title="Les plus bas" rows={lowest} />
-              <p className="text-xs leading-relaxed text-ink-muted">
-                Taux par période de financement — le plus souvent huit heures, jamais
-                annualisé ici. Un taux positif signifie que les positions acheteuses
-                paient les vendeuses.
-              </p>
+              <FundingGroup title={t('Les plus élevés')} rows={highest} />
+              <FundingGroup title={t('Les plus bas')} rows={lowest} />
+              <p className="text-xs leading-relaxed text-ink-muted">{t('Taux par période de financement — le plus souvent huit heures, jamais annualisé ici. Un taux positif signifie que les positions acheteuses paient les vendeuses.')}</p>
             </>
           )}
         </div>

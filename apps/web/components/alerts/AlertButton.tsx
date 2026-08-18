@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { createPriceAlert, type AlertActionResult } from '@/lib/alert-actions'
 import { readIdentityCookie } from '@/lib/identity-cookie'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Création d'une alerte de prix — fenêtre complète, sur le modèle de TradingView.
@@ -101,6 +102,7 @@ export function AlertButton({
    */
   available: boolean
 }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const [done, setDone] = useState(false)
 
@@ -110,9 +112,7 @@ export function AlertButton({
         href="/alertes"
         className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
       >
-        <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-        Créer une alerte
-      </Link>
+        <Bell className="h-3.5 w-3.5" aria-hidden="true" />{t('Créer une alerte')}</Link>
     )
   }
 
@@ -178,6 +178,7 @@ function AlertDialog({
   onClose: () => void
   onCreated: () => void
 }) {
+  const t = usePhrase()
   const { currency: display, convert } = useCurrency()
 
   /*
@@ -316,7 +317,7 @@ function AlertDialog({
       >
         <div className="flex items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-ink">Créer une alerte</h2>
+            <h2 className="truncate text-sm font-semibold text-ink">{t('Créer une alerte')}</h2>
             <p className="truncate text-xs text-ink-muted">
               {label}
               {symbol ? <span className="uppercase"> · {symbol}</span> : null}
@@ -335,7 +336,7 @@ function AlertDialog({
         <form onSubmit={submit} className="space-y-5 p-4">
           {/* ── 1. CONDITION ────────────────────────────────────────────────── */}
           <Section title="Condition">
-            <div className="flex gap-1" role="group" aria-label="Sens du franchissement">
+            <div className="flex gap-1" role="group" aria-label={t('Sens du franchissement')}>
               {(['above', 'below'] as const).map((value) => (
                 <button
                   key={value}
@@ -407,16 +408,13 @@ function AlertDialog({
             </p>
 
             {immediate ? (
-              <p className="rounded-control border border-accent/40 bg-accent-soft px-2.5 py-1.5 text-[0.6875rem] leading-relaxed text-ink">
-                Ce seuil est déjà franchi : l’alerte partira au prochain relevé, dans quelques
-                minutes.
-              </p>
+              <p className="rounded-control border border-accent/40 bg-accent-soft px-2.5 py-1.5 text-[0.6875rem] leading-relaxed text-ink">{t('Ce seuil est déjà franchi : l’alerte partira au prochain relevé, dans quelques minutes.')}</p>
             ) : null}
           </Section>
 
           {/* ── 2. DÉCLENCHEMENT ────────────────────────────────────────────── */}
-          <Section title="Déclenchement">
-            <div className="flex gap-1" role="group" aria-label="Fréquence">
+          <Section title={t('Déclenchement')}>
+            <div className="flex gap-1" role="group" aria-label={t('Fréquence')}>
               {(
                 [
                   { value: 'once', label: 'Une seule fois', hint: 'L’alerte se désarme après l’envoi' },
@@ -441,9 +439,7 @@ function AlertDialog({
             </div>
 
             <label className="block">
-              <span className="mb-1 block text-[0.6875rem] text-ink-muted">
-                Échéance — vide pour une surveillance sans fin
-              </span>
+              <span className="mb-1 block text-[0.6875rem] text-ink-muted">{t('Échéance — vide pour une surveillance sans fin')}</span>
               <input
                 type="date"
                 value={expires}
@@ -462,8 +458,8 @@ function AlertDialog({
               value={title}
               maxLength={80}
               onChange={(event) => setTitle(event.target.value)}
-              aria-label="Nom de l’alerte"
-              placeholder="Nom de l’alerte"
+              aria-label={t('Nom de l’alerte')}
+              placeholder={t('Nom de l’alerte')}
               className="h-9 w-full rounded-control border border-border-subtle bg-surface px-2.5 text-sm text-ink outline-none focus:border-brand placeholder:text-ink-muted"
             />
             <textarea
@@ -472,7 +468,7 @@ function AlertDialog({
               rows={2}
               onChange={(event) => setNote(event.target.value)}
               aria-label="Message"
-              placeholder="Message repris dans le courriel — « sortir la moitié », « vérifier le volume »…"
+              placeholder={t('Message repris dans le courriel — « sortir la moitié », « vérifier le volume »…')}
               className="w-full resize-none rounded-control border border-border-subtle bg-surface px-2.5 py-2 text-sm text-ink outline-none focus:border-brand placeholder:text-ink-muted"
             />
           </Section>
@@ -485,14 +481,11 @@ function AlertDialog({
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              aria-label="Adresse de notification"
+              aria-label={t('Adresse de notification')}
               placeholder="vous@exemple.fr"
               className="h-9 w-full rounded-control border border-border-subtle bg-surface px-2.5 text-sm text-ink outline-none focus:border-brand placeholder:text-ink-muted"
             />
-            <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-              Le courriel est notre seul canal. Aucun compte n’est nécessaire : l’alerte est
-              rattachée à ce navigateur, et à votre compte si vous en ouvrez un.
-            </p>
+            <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Le courriel est notre seul canal. Aucun compte n’est nécessaire : l’alerte est rattachée à ce navigateur, et à votre compte si vous en ouvrez un.')}</p>
           </Section>
 
           {feedback ? (

@@ -2,6 +2,7 @@
 
 import { PanelRight, Sparkles } from 'lucide-react'
 import { useSyncExternalStore } from 'react'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * COLONNE D'ACTUALITÉS, À DROITE DE LA FICHE — le panneau « Insights » de CoinGecko.
@@ -99,6 +100,7 @@ export function AssetNewsAside({
   /** Nombre d'articles, annoncé sur le bouton quand la colonne est repliée. */
   count: number
 }) {
+  const t = usePhrase()
   const collapsed =
     useSyncExternalStore(subscribe, readCollapsed, () => '') === '1'
 
@@ -121,11 +123,11 @@ export function AssetNewsAside({
          l'asymétrie était réelle : replier la colonne faisait disparaître un repère
          nommé de la liste des régions d'un lecteur d'écran, et le remplaçait par un
          repère anonyme. Un repère sans nom n'aide personne à s'orienter. */
-      <aside className="hidden shrink-0 xl:block" aria-label="Actualités de l’actif">
+      <aside className="hidden shrink-0 xl:block" aria-label={t('Actualités de l’actif')}>
         <button
           type="button"
           onClick={toggle}
-          title="Afficher les actualités"
+          title={t('Afficher les actualités')}
           className="sticky top-40 flex flex-col items-center gap-2 rounded-card border border-border-subtle bg-surface px-2 py-3 text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
         >
           <PanelRight className="h-4 w-4" aria-hidden="true" />
@@ -141,7 +143,7 @@ export function AssetNewsAside({
   }
 
   return (
-    <aside className="hidden w-[20rem] shrink-0 xl:block" aria-label="Actualités de l’actif">
+    <aside className="hidden w-[20rem] shrink-0 xl:block" aria-label={t('Actualités de l’actif')}>
       {/*
         ══════════════════════════════════════════════════════════════════════
         LA COLONNE A SON PROPRE ASCENSEUR, ET RESTE VISIBLE JUSQU'EN BAS
@@ -208,17 +210,15 @@ export function AssetNewsAside({
           <button
             type="button"
             onClick={toggle}
-            title="Masquer les actualités"
-            aria-label="Masquer les actualités"
+            title={t('Masquer les actualités')}
+            aria-label={t('Masquer les actualités')}
             className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
           >
             <PanelRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
 
           <h2 className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-ink">
-            <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />
-            Ce qui s’est passé
-          </h2>
+            <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />{t('Ce qui s’est passé')}</h2>
         </div>
 
         {/*

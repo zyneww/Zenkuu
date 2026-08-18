@@ -14,6 +14,7 @@ import { classify } from '@/components/home/SidePanels'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 import { getContent } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Bandeau de trois cartes au-dessus du classement.
@@ -87,9 +88,10 @@ function CardShell({
   )
 }
 
-function GlobalCapCard({ stats }: { stats: GlobalMarketStats }) {
+async function GlobalCapCard({ stats }: { stats: GlobalMarketStats }) {
+  const t = await getPhrase()
   return (
-    <CardShell title="Capitalisation boursière mondiale" badge="24 h">
+    <CardShell title={t('Capitalisation boursière mondiale')} badge="24 h">
       <div className="flex items-end justify-between gap-3">
         <p className="tabular text-2xl font-semibold text-ink">
           <Money value={stats.totalMarketCap} from={stats.currency} compact />
@@ -113,12 +115,13 @@ function GlobalCapCard({ stats }: { stats: GlobalMarketStats }) {
  * lecteur d'écran, et la couleur seule ne porte jamais l'information (§9).
  */
 async function SentimentCard({ sentiment }: { sentiment: SentimentIndex }) {
+  const t = await getPhrase()
   const fr = await getContent()
   const label = classify(sentiment.value, fr.sentiment.scale)
   const tone = sentiment.value < 45 ? 'text-down' : sentiment.value > 55 ? 'text-up' : 'text-ink'
 
   return (
-    <CardShell title="Sentiment du marché" badge="Fear &amp; Greed" href="/sentiment">
+    <CardShell title={t('Sentiment du marché')} badge="Fear &amp; Greed" href="/sentiment">
       <div
         className="h-2 overflow-hidden rounded-pill bg-surface-muted"
         role="img"
@@ -168,9 +171,10 @@ function TrendingCard({ assets }: { assets: TrendingAsset[] }) {
   )
 }
 
-function GainersCard({ assets }: { assets: MarketAsset[] }) {
+async function GainersCard({ assets }: { assets: MarketAsset[] }) {
+  const t = await getPhrase()
   return (
-    <CardShell title="Les meilleures performances" badge="24 h" href="/crypto?vue=gagnants">
+    <CardShell title={t('Les meilleures performances')} badge="24 h" href="/crypto?vue=gagnants">
       <ul className="space-y-2.5">
         {assets.map((asset) => (
           <li key={asset.id} className="flex items-center justify-between gap-3">

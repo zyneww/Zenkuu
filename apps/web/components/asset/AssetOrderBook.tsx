@@ -7,6 +7,7 @@ import { formatCompact } from '@zenkuu/ui'
 
 import { usePanelVisible } from '@/components/asset/panel-visibility'
 import { Panel } from '@/components/ui/Panel'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Carnet d'ordres et ruban de transactions — Binance, depuis le navigateur.
@@ -162,6 +163,7 @@ interface Trade {
 }
 
 export function AssetOrderBook({ symbol }: { symbol: string }) {
+  const t = usePhrase()
   const visible = usePanelVisible()
   /* Les niveaux BRUTS sont conservés en l'état, le regroupement se fait au rendu.
      Stocker les niveaux déjà agrégés obligerait à refaire un appel réseau à chaque
@@ -286,7 +288,7 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       <Panel
-        title="Carnet d’ordres"
+        title={t('Carnet d’ordres')}
         subtitle={`Offres et demandes sur Binance pour la paire ${symbol.toUpperCase()}/USDT`}
       >
         <TickSelector ladder={ladder} value={activeTick} onChange={setTick} />
@@ -296,7 +298,7 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
             d'autant plus que la BARRE, elle, mesure le cumul. */}
         <div className="mb-1 flex items-baseline justify-between border-b border-border-subtle pb-1 text-micro uppercase tracking-wide text-ink-muted">
           <span>Prix (USDT)</span>
-          <span>Quantité</span>
+          <span>{t('Quantité')}</span>
         </div>
 
         {/* Les VENTES en haut, prix décroissant vers le milieu, puis l'écart, puis
@@ -321,8 +323,8 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
       </Panel>
 
       <Panel
-        title="Dernières transactions"
-        subtitle="Flux réel de Binance, rafraîchi toutes les trois secondes"
+        title={t('Dernières transactions')}
+        subtitle={t('Flux réel de Binance, rafraîchi toutes les trois secondes')}
       >
         <table className="w-full border-collapse text-xs">
           <caption className="sr-only">
@@ -336,9 +338,7 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
               <th scope="col" className="py-1 text-right font-medium">
                 Prix
               </th>
-              <th scope="col" className="py-1 text-right font-medium">
-                Quantité
-              </th>
+              <th scope="col" className="py-1 text-right font-medium">{t('Quantité')}</th>
             </tr>
           </thead>
           <tbody>
@@ -493,6 +493,7 @@ function BookSide({
  * ligne « Valeur » est étiquetée en conséquence — elle borne, elle ne prédit pas.
  */
 function DepthTooltip({ level, rank }: { level: Level; rank: number }) {
+  const t = usePhrase()
   return (
     <span
       role="tooltip"
@@ -501,10 +502,10 @@ function DepthTooltip({ level, rank }: { level: Level; rank: number }) {
       {/* `formatCompact` rend `null` sur une valeur non finie. Le tiret cadratin est
           donc explicite plutôt que laissé à l'interpolation, qui écrirait « null »
           en toutes lettres dans l'infobulle. */}
-      <TooltipRow label="Niveaux balayés" value={String(rank + 1)} />
-      <TooltipRow label="Quantité cumulée" value={formatCompact(level.total) ?? '—'} />
+      <TooltipRow label={t('Niveaux balayés')} value={String(rank + 1)} />
+      <TooltipRow label={t('Quantité cumulée')} value={formatCompact(level.total) ?? '—'} />
       <TooltipRow
-        label="Valeur au plus"
+        label={t('Valeur au plus')}
         value={
           formatCompact(level.total * level.price) === null
             ? '—'

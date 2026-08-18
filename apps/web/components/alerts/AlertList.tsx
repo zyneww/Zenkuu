@@ -6,6 +6,7 @@ import { useState, useTransition } from 'react'
 
 import { Money } from '@/components/locale/Money'
 import { rearmPriceAlert, removePriceAlert } from '@/lib/alert-actions'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 export interface AlertRow {
   id: number
@@ -66,6 +67,7 @@ export interface AlertRow {
  * aucune, ce qui est le cas majoritaire et doit rester le cas le plus silencieux.
  */
 export function AlertList({ alerts }: { alerts: AlertRow[] }) {
+  const t = usePhrase()
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -146,9 +148,7 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
               {alert.recurring || alert.expiresAt ? (
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   {alert.recurring ? (
-                    <Tag icon={<Repeat className="h-2.5 w-2.5" aria-hidden="true" />}>
-                      À chaque fois
-                    </Tag>
+                    <Tag icon={<Repeat className="h-2.5 w-2.5" aria-hidden="true" />}>{t('À chaque fois')}</Tag>
                   ) : null}
                   {alert.expiresAt ? (
                     <Tag icon={<CalendarClock className="h-2.5 w-2.5" aria-hidden="true" />}>
@@ -173,7 +173,7 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
                   type="button"
                   onClick={() => act('rearm', alert.id)}
                   disabled={pending}
-                  title="Réarmer cette alerte"
+                  title={t('Réarmer cette alerte')}
                   aria-label={`Réarmer l’alerte sur ${alert.label}`}
                   className="rounded-sm p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink disabled:opacity-50"
                 >

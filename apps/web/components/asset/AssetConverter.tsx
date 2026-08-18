@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 
 import { SUPPORTED_CURRENCIES } from '@zenkuu/data'
 import { formatCurrency } from '@zenkuu/ui'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Convertisseur actif ↔ devise.
@@ -25,6 +26,7 @@ export function AssetConverter({
   symbol: string
   pricesByCurrency: Record<string, number>
 }) {
+  const t = usePhrase()
   const currencies = useMemo(
     () => SUPPORTED_CURRENCIES.filter((code) => pricesByCurrency[code.toLowerCase()] !== undefined),
     [pricesByCurrency],
@@ -73,9 +75,7 @@ export function AssetConverter({
           <output className="tabular w-full min-w-0 truncate text-sm text-ink">
             {converted !== undefined ? formatCurrency(converted, currency) : '—'}
           </output>
-          <label className="sr-only" htmlFor="convertisseur-devise">
-            Devise de conversion
-          </label>
+          <label className="sr-only" htmlFor="convertisseur-devise">{t('Devise de conversion')}</label>
           <select
             id="convertisseur-devise"
             value={currency}
@@ -92,9 +92,7 @@ export function AssetConverter({
       </div>
 
       {!valid && amount.trim() !== '' ? (
-        <p role="status" className="text-xs text-ink-muted">
-          Saisissez un nombre positif.
-        </p>
+        <p role="status" className="text-xs text-ink-muted">{t('Saisissez un nombre positif.')}</p>
       ) : null}
     </section>
   )

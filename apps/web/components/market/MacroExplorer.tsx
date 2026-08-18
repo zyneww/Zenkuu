@@ -27,6 +27,7 @@ import {
 } from '@/components/market/map-export'
 import { macroColor, percentile, type MacroTone } from '@/components/market/geo'
 import { usePresence } from '@/components/nav/usePresence'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * CARTE MACROÉCONOMIQUE — une seule représentation, désormais.
@@ -84,6 +85,7 @@ export function MacroExplorer({
   /** Année portée par l'URL, pour qu'un lien partagé rouvre la même vue. */
   initialYear: number | null
 }) {
+  const t = usePhrase()
   const [selected, setSelected] = useState<string | null>(null)
 
   const figureRef = useRef<HTMLDivElement>(null)
@@ -274,9 +276,7 @@ export function MacroExplorer({
       {years.length > 1 && activeYear !== null ? (
         <div className="space-y-1.5 rounded-card bg-surface px-4 py-3">
           <div className="flex items-baseline justify-between gap-3">
-            <label htmlFor="macro-annee" className="text-xs font-medium text-ink">
-              Année observée
-            </label>
+            <label htmlFor="macro-annee" className="text-xs font-medium text-ink">{t('Année observée')}</label>
             <span className="tabular text-sm font-semibold text-ink">{activeYear}</span>
           </div>
 
@@ -413,6 +413,7 @@ function ExportMenu({
   indicatorLabel: string
   year: number | null
 }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const [done, setDone] = useState<string | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
@@ -516,8 +517,8 @@ function ExportMenu({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label="Aperçu de la carte"
-        title="Aperçu de la carte"
+        aria-label={t('Aperçu de la carte')}
+        title={t('Aperçu de la carte')}
         className="flex h-7 w-7 items-center justify-center rounded-sm border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
       >
         <Camera className="h-3.5 w-3.5" aria-hidden="true" />
@@ -528,19 +529,11 @@ function ExportMenu({
           role="menu"
           className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-card border border-border-subtle bg-surface py-1 shadow-lg"
         >
-          <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
-            Aperçu de la carte
-          </p>
+          <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Aperçu de la carte')}</p>
 
-          <MenuItem icon={<Download className="h-3.5 w-3.5" />} onClick={onDownload}>
-            Télécharger l’image
-          </MenuItem>
-          <MenuItem icon={<Copy className="h-3.5 w-3.5" />} onClick={onCopyImage}>
-            Copier l’image
-          </MenuItem>
-          <MenuItem icon={<Link2 className="h-3.5 w-3.5" />} onClick={onCopyLink}>
-            Copier le lien
-          </MenuItem>
+          <MenuItem icon={<Download className="h-3.5 w-3.5" />} onClick={onDownload}>{t('Télécharger l’image')}</MenuItem>
+          <MenuItem icon={<Copy className="h-3.5 w-3.5" />} onClick={onCopyImage}>{t('Copier l’image')}</MenuItem>
+          <MenuItem icon={<Link2 className="h-3.5 w-3.5" />} onClick={onCopyLink}>{t('Copier le lien')}</MenuItem>
 
           <p className="border-t border-border-subtle px-3 pb-1 pt-1.5 text-[0.625rem] leading-snug text-ink-muted">
             {indicatorLabel}
@@ -700,6 +693,7 @@ function CountryPanel({
   regional: { rank: number; total: number } | null
   onClose: () => void
 }) {
+  const t = usePhrase()
   const { state, mounted, onTransitionEnd } = usePresence(row !== null)
 
   /**
@@ -838,11 +832,11 @@ function CountryPanel({
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border-subtle pt-3">
         <Measure label="Rang mondial" value={`${rank} / ${total}`} />
         {regional ? (
-          <Measure label="Dans sa région" value={`${regional.rank} / ${regional.total}`} />
+          <Measure label={t('Dans sa région')} value={`${regional.rank} / ${regional.total}`} />
         ) : null}
 
         {stats?.median != null ? (
-          <Measure label="Médiane mondiale" value={formatMacroValue(stats.median, scale)} />
+          <Measure label={t('Médiane mondiale')} value={formatMacroValue(stats.median, scale)} />
         ) : null}
 
         {/* L'ÉCART À LA MÉDIANE est signé et coloré, parce que c'est une position et
@@ -850,7 +844,7 @@ function CountryPanel({
             décrivent deux situations opposées qu'un nombre nu confondrait. */}
         {gap !== null ? (
           <Measure
-            label="Écart à la médiane"
+            label={t('Écart à la médiane')}
             value={`${gap >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(gap), scale)}`}
             tone={gap >= 0 ? 'up' : 'down'}
           />
@@ -943,11 +937,7 @@ function CountryPanel({
         </div>
       ) : null}
 
-      <p className="text-[0.625rem] leading-relaxed text-ink-muted">
-        Série annuelle publiée avec plusieurs mois de retard, et à des dates différentes
-        selon les pays. Deux pays voisins sur la carte peuvent décrire deux moments
-        distincts.
-      </p>
+      <p className="text-[0.625rem] leading-relaxed text-ink-muted">{t('Série annuelle publiée avec plusieurs mois de retard, et à des dates différentes selon les pays. Deux pays voisins sur la carte peuvent décrire deux moments distincts.')}</p>
     </aside>
   )
 }

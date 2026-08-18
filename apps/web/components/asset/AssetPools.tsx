@@ -8,6 +8,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { usePanelVisible } from '@/components/asset/panel-visibility'
 import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { Link } from '@/i18n/navigation'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * POOLS DE LIQUIDITÉ DU JETON — notre réponse à « l'écosystème applicatif ».
@@ -99,6 +100,7 @@ export function AssetPools({
   contracts: Record<string, string>
   assetName: string
 }) {
+  const t = usePhrase()
   const visible = usePanelVisible()
   const [pools, setPools] = useState<DexPool[] | null>(null)
   const [settled, setSettled] = useState(false)
@@ -138,13 +140,11 @@ export function AssetPools({
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="display-sm text-ink">Pools de liquidité</h2>
+        <h2 className="display-sm text-ink">{t('Pools de liquidité')}</h2>
         <Link
           href="/marches"
           className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
-        >
-          Tous les marchés on-chain
-        </Link>
+        >{t('Tous les marchés on-chain')}</Link>
       </div>
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">

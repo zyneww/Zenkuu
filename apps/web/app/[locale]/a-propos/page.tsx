@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation'
 
 import { KeyFigures } from '@/components/about/KeyFigures'
 import { getContent, getSeo } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -63,22 +64,16 @@ const PRINCIPLES = [
   },
 ]
 
-export default function AProposPage() {
+export default async function AProposPage() {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-4xl space-y-12 py-6">
       {/* Sans surtitre. « Notre mission » en petites capitales colorées au-dessus du
           titre est une convention de page d'accueil logicielle : elle occupe une
           ligne pour annoncer que la ligne suivante est un titre. */}
       <header className="space-y-4">
-        <h1 className="display-xl text-ink">
-          Rendre lisible n’importe quel marché, au même endroit
-        </h1>
-        <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">
-          ZENKUU réunit les cryptomonnaies, les devises, les actions, les ETF, les
-          matières premières et les indices — avec la même profondeur de lecture pour
-          chacun, et sans jamais vous demander d’ouvrir un compte pour consulter un
-          cours.
-        </p>
+        <h1 className="display-xl text-ink">{t('Rendre lisible n’importe quel marché, au même endroit')}</h1>
+        <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">{t('ZENKUU réunit les cryptomonnaies, les devises, les actions, les ETF, les matières premières et les indices — avec la même profondeur de lecture pour chacun, et sans jamais vous demander d’ouvrir un compte pour consulter un cours.')}</p>
       </header>
 
       <section className="max-w-2xl space-y-6">
@@ -93,33 +88,19 @@ export default function AProposPage() {
       <KeyFigures />
 
       <Section title="Pourquoi ce site existe">
-        <p>
-          La plupart des sites de suivi de marché sont mono-actif : l’un couvre la
-          crypto, l’autre la bourse, un troisième les devises. Suivre un patrimoine
-          diversifié impose donc d’ouvrir trois onglets et de jongler entre trois
-          conventions d’affichage. ZENKUU part de l’intuition inverse — une seule
-          grille de lecture, appliquée à toutes les classes d’actifs.
-        </p>
+        <p>{t('La plupart des sites de suivi de marché sont mono-actif : l’un couvre la crypto, l’autre la bourse, un troisième les devises. Suivre un patrimoine diversifié impose donc d’ouvrir trois onglets et de jongler entre trois conventions d’affichage. ZENKUU part de l’intuition inverse — une seule grille de lecture, appliquée à toutes les classes d’actifs.')}</p>
       </Section>
 
-      <Section title="Ce que nous ne faisons pas">
+      <Section title={t('Ce que nous ne faisons pas')}>
         <ul className="space-y-2">
           <li>
-            <strong className="text-ink">Aucune exécution d’ordre.</strong> Vous ne
-            trouverez nulle part sur ce site un bouton d’achat, de vente ou de dépôt.
-            Ce n’est pas une fonctionnalité manquante, c’est un choix de départ.
-          </li>
+            <strong className="text-ink">{t('Aucune exécution d’ordre.')}</strong>{t('Vous ne trouverez nulle part sur ce site un bouton d’achat, de vente ou de dépôt. Ce n’est pas une fonctionnalité manquante, c’est un choix de départ.')}</li>
           <li>
-            <strong className="text-ink">Aucune conservation de fonds.</strong> ZENKUU
-            ne se connecte à aucun portefeuille ni à aucun courtier.
-          </li>
+            <strong className="text-ink">{t('Aucune conservation de fonds.')}</strong>{t('ZENKUU ne se connecte à aucun portefeuille ni à aucun courtier.')}</li>
           <li>
-            <strong className="text-ink">Aucun conseil en investissement.</strong> Nous
-            affichons des données et des indicateurs publiés par des tiers. Rien de ce
-            que vous lisez ici ne constitue une recommandation personnalisée.
-          </li>
+            <strong className="text-ink">Aucun conseil en investissement.</strong>{t('Nous affichons des données et des indicateurs publiés par des tiers. Rien de ce que vous lisez ici ne constitue une recommandation personnalisée.')}</li>
           <li>
-            <strong className="text-ink">Aucune donnée inventée.</strong> Le détail se
+            <strong className="text-ink">{t('Aucune donnée inventée.')}</strong> Le détail se
             trouve dans la{' '}
             <Link
               href="/methodologie"
@@ -132,35 +113,20 @@ export default function AProposPage() {
         </ul>
       </Section>
 
-      <Section title="Comment nous nous finançons">
-        <p>
-          Le site est gratuit à l’usage. Il pourra à terme être financé par de la
-          publicité display, un abonnement optionnel sans publicité, et des liens
-          d’affiliation vers des plateformes tierces clairement identifiés comme tels.
-          Aucun de ces leviers ne modifiera les chiffres affichés ni l’ordre des
-          classements.
-        </p>
+      <Section title={t('Comment nous nous finançons')}>
+        <p>{t('Le site est gratuit à l’usage. Il pourra à terme être financé par de la publicité display, un abonnement optionnel sans publicité, et des liens d’affiliation vers des plateformes tierces clairement identifiés comme tels. Aucun de ces leviers ne modifiera les chiffres affichés ni l’ordre des classements.')}</p>
       </Section>
 
       <Section title="Langue et devise">
-        <p>
-          ZENKUU est publié en français, avec l’euro comme devise de référence. Quand
-          une conversion est appliquée, la devise d’origine et la date du taux utilisé
-          sont affichées à côté du montant, afin qu’un chiffre converti ne puisse
-          jamais être confondu avec un cours réellement coté.
-        </p>
+        <p>{t('ZENKUU est publié en français, avec l’euro comme devise de référence. Quand une conversion est appliquée, la devise d’origine et la date du taux utilisé sont affichées à côté du montant, afin qu’un chiffre converti ne puisse jamais être confondu avec un cours réellement coté.')}</p>
       </Section>
 
       {/* Deux renvois en texte, sur un filet. Un encadré coloré contenant une
           phrase d'accroche et deux boutons de même poids est un pied de page
           promotionnel : ici, ce sont deux liens vers deux pages, rien de plus. */}
       <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
-        <Link href="/pourquoi-zenkuu" className="text-sm text-brand hover:underline">
-          Les partis pris, en détail
-        </Link>
-        <Link href="/methodologie" className="text-sm text-brand hover:underline">
-          Les sources et leurs limites
-        </Link>
+        <Link href="/pourquoi-zenkuu" className="text-sm text-brand hover:underline">{t('Les partis pris, en détail')}</Link>
+        <Link href="/methodologie" className="text-sm text-brand hover:underline">{t('Les sources et leurs limites')}</Link>
       </section>
     </div>
   )

@@ -15,6 +15,7 @@ import { CategorySpotlight } from '@/components/categories/CategorySpotlight'
 import { Money } from '@/components/locale/Money'
 import { SectorHighlights } from '@/components/categories/SectorHighlights'
 import { getContent } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -59,6 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * construction, plutôt qu'un total gonflé (§5).
  */
 export default async function CategoriesPage() {
+  const t = await getPhrase()
   const fr = await getContent()
   const [categories, globalStats] = await Promise.all([
     getCategories(),
@@ -102,7 +104,7 @@ export default async function CategoriesPage() {
 
       <CategorySpotlight
         title="Secteurs en forte hausse"
-        hint="Les quatre plus fortes progressions sur 24 heures, parmi les secteurs pesant au moins 10 M$."
+        hint={t('Les quatre plus fortes progressions sur 24 heures, parmi les secteurs pesant au moins 10 M$.')}
         categories={gainers}
       />
 
@@ -138,6 +140,7 @@ async function CategoriesHero({
   categories: MarketCategory[] | null
   globalStats: { totalMarketCap: number; marketCapChange24h: number; currency: string } | null
 }) {
+  const t = await getPhrase()
   const fr = await getContent()
   const rated = (categories ?? []).filter((category) => category.marketCapChange24h !== undefined)
   const rising = rated.filter((category) => (category.marketCapChange24h ?? 0) > 0).length
@@ -154,8 +157,8 @@ async function CategoriesHero({
       {categories && rated.length > 0 ? (
         <dl className="mt-8 flex flex-wrap gap-x-12 gap-y-5">
           <HeroStat label="Secteurs suivis" value={String(categories.length)} />
-          <HeroStat label="En hausse sur 24 h" value={String(rising)} tone="up" />
-          <HeroStat label="En repli sur 24 h" value={String(rated.length - rising)} tone="down" />
+          <HeroStat label={t('En hausse sur 24 h')} value={String(rising)} tone="up" />
+          <HeroStat label={t('En repli sur 24 h')} value={String(rated.length - rising)} tone="down" />
 
           {globalStats ? (
             <div>
@@ -180,7 +183,7 @@ async function CategoriesHero({
   )
 }
 
-function HeroStat({
+async function HeroStat({
   label,
   value,
   tone,
@@ -207,38 +210,27 @@ function HeroStat({
  * bande, deux actions — mais le contenu renvoie à ce qui engage ZENKUU plutôt
  * qu'à une inscription.
  */
-function MethodologyBand() {
+async function MethodologyBand() {
+  const t = await getPhrase()
   return (
     <section
       className="rounded-lg bg-surface-muted p-6 sm:p-10"
       aria-labelledby="categories-methodologie"
     >
       <div className="max-w-2xl space-y-3">
-        <h2 id="categories-methodologie" className="display-md text-ink">
-          D’où viennent ces secteurs ?
-        </h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Les catégories ne sont pas définies par ZENKUU : elles proviennent telles quelles
-          de la source de données, qui décide seule du rattachement d’un actif à un secteur.
-          Un même actif peut relever de plusieurs d’entre eux, si bien que les
-          capitalisations par secteur ne s’additionnent pas — la capitalisation mondiale
-          affichée plus haut est celle que publie la source, et non la somme de ce tableau.
-        </p>
+        <h2 id="categories-methodologie" className="display-md text-ink">{t('D’où viennent ces secteurs ?')}</h2>
+        <p className="text-sm leading-relaxed text-ink-muted">{t('Les catégories ne sont pas définies par ZENKUU : elles proviennent telles quelles de la source de données, qui décide seule du rattachement d’un actif à un secteur. Un même actif peut relever de plusieurs d’entre eux, si bien que les capitalisations par secteur ne s’additionnent pas — la capitalisation mondiale affichée plus haut est celle que publie la source, et non la somme de ce tableau.')}</p>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           href="/methodologie"
           className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-        >
-          Méthodologie &amp; sources
-        </Link>
+        >{t('Méthodologie & sources')}</Link>
         <Link
           href="/apprendre"
           className="rounded-control border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-        >
-          Apprendre à lire ces chiffres
-        </Link>
+        >{t('Apprendre à lire ces chiffres')}</Link>
       </div>
     </section>
   )

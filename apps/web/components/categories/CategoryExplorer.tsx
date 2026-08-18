@@ -10,6 +10,7 @@ import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
 import { CategoryCard } from '@/components/categories/CategoryCard'
 import { Pagination } from '@/components/ui/Pagination'
 import { SortableHeader } from '@/components/ui/SortableTable'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 type SortKey = 'marketCap' | 'volume' | 'change' | 'name'
 type Direction = 'asc' | 'desc'
@@ -39,6 +40,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 const PAGE_SIZE = 50
 
 export function CategoryExplorer({ categories }: { categories: MarketCategory[] }) {
+  const t = usePhrase()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>('marketCap')
   const [direction, setDirection] = useState<Direction>('desc')
@@ -114,9 +116,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
     <section className="space-y-5" aria-labelledby="explorer-secteurs">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="explorer-secteurs" className="display-md text-ink">
-            Tous les secteurs
-          </h2>
+          <h2 id="explorer-secteurs" className="display-md text-ink">{t('Tous les secteurs')}</h2>
           {/* Le décompte est explicité : la source publie environ 750 entrées, mais
               la moitié sont des rubriques de taxonomie sans aucun actif valorisé —
               ni capitalisation, ni volume, ni composant (vérifié sur la réponse
@@ -141,8 +141,8 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
               setQuery(event.target.value)
               setPage(1)
             }}
-            placeholder="Filtrer les secteurs…"
-            aria-label="Filtrer les secteurs par nom ou par définition"
+            placeholder={t('Filtrer les secteurs…')}
+            aria-label={t('Filtrer les secteurs par nom ou par définition')}
             className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
@@ -152,7 +152,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
         <div
           className="flex flex-wrap items-center gap-2"
           role="group"
-          aria-label="Trier les secteurs"
+          aria-label={t('Trier les secteurs')}
         >
           {SORTS.map((entry) => (
             <SortChip
@@ -165,7 +165,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           ))}
         </div>
 
-        <div className="ml-auto flex items-center gap-1" role="group" aria-label="Mode d’affichage">
+        <div className="ml-auto flex items-center gap-1" role="group" aria-label={t('Mode d’affichage')}>
           <ViewButton
             active={view === 'table'}
             onClick={() => setView('table')}
@@ -193,8 +193,8 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
 
       {visible.length === 0 ? (
         <EmptyState
-          title="Aucun secteur ne correspond"
-          description="Essayez un autre terme, ou effacez le filtre."
+          title={t('Aucun secteur ne correspond')}
+          description={t('Essayez un autre terme, ou effacez le filtre.')}
           compact
         />
       ) : view === 'grid' ? (
@@ -283,6 +283,7 @@ function CategoryTable({
   direction: Direction
   onSort: (key: SortKey) => void
 }) {
+  const t = usePhrase()
   /* L'état du tri est porté ici par DEUX variables — clé et sens — là où le composant
      partagé n'en attend qu'une. On les assemble plutôt que de refondre l'explorateur :
      sa logique de tri gère des cas que le mécanisme générique ne connaît pas, comme le
@@ -292,7 +293,7 @@ function CategoryTable({
     <div className="overflow-x-auto rounded-card bg-surface">
       {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
       <table className="w-full border-collapse text-sm sm:min-w-[680px]">
-        <caption className="sr-only">Secteurs de marché</caption>
+        <caption className="sr-only">{t('Secteurs de marché')}</caption>
         <thead>
           <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
             <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>

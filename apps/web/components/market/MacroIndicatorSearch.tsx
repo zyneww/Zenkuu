@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MACRO_INDICATORS, MACRO_THEMES } from '@zenkuu/data'
 
 import { useRouter } from '@/i18n/navigation'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * RECHERCHE D'INDICATEUR MACROÉCONOMIQUE.
@@ -75,6 +76,7 @@ const ENTRIES: Entry[] = MACRO_INDICATORS.map((indicator) => {
 })
 
 export function MacroIndicatorSearch({ current }: { current: string }) {
+  const t = usePhrase()
   const router = useRouter()
 
   const [open, setOpen] = useState(false)
@@ -212,7 +214,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
           placeholder={`Rechercher parmi ${ENTRIES.length} indicateurs`}
-          aria-label="Rechercher un indicateur macroéconomique"
+          aria-label={t('Rechercher un indicateur macroéconomique')}
           /* `appearance-none` retire la croix native de `type="search"`, qui vide le
              champ sans prévenir le composant sur certains moteurs. */
           className="w-full appearance-none bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted [&::-webkit-search-cancel-button]:hidden"
@@ -224,7 +226,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
               setQuery('')
               inputRef.current?.focus()
             }}
-            aria-label="Effacer la recherche"
+            aria-label={t('Effacer la recherche')}
             className="shrink-0 text-ink-muted transition-colors hover:text-ink"
           >
             <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -237,7 +239,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
           ref={listRef}
           id="macro-indicateurs"
           role="listbox"
-          aria-label="Indicateurs macroéconomiques"
+          aria-label={t('Indicateurs macroéconomiques')}
           /*
             `z-30` et non davantage : la carte et sa légende sont en dessous, mais
             l'en-tête collant du site est au-dessus — un panneau qui le recouvrirait

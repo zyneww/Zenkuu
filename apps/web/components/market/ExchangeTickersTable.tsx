@@ -12,6 +12,7 @@ import { Pagination } from '@/components/ui/Pagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { ExpandingSearch } from '@/components/ui/ExpandingSearch'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * PAIRES COTÉES SUR UNE PLACE.
@@ -46,6 +47,7 @@ export function ExchangeTickersTable({
   /** Décide du jeu de colonnes — voir l'en-tête. */
   derivatives: boolean
 }) {
+  const t = usePhrase()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
@@ -93,7 +95,7 @@ export function ExchangeTickersTable({
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="display-sm text-ink">Paires cotées</h2>
+          <h2 className="display-sm text-ink">{t('Paires cotées')}</h2>
           <p className="text-xs text-ink-muted">
             Les {tickers.length} paires les plus actives publiées par la source, pas
             l’intégralité du catalogue de la place.
@@ -106,15 +108,15 @@ export function ExchangeTickersTable({
             setQuery(next)
             setPage(1)
           }}
-          placeholder="Filtrer une paire…"
-          label="Filtrer les paires de cette place"
+          placeholder={t('Filtrer une paire…')}
+          label={t('Filtrer les paires de cette place')}
         />
       </div>
 
       {visible.length === 0 ? (
         <EmptyState
-          title="Aucune paire ne correspond"
-          description="Effacez la recherche pour retrouver la liste complète."
+          title={t('Aucune paire ne correspond')}
+          description={t('Effacez la recherche pour retrouver la liste complète.')}
           compact
         />
       ) : (
@@ -123,7 +125,7 @@ export function ExchangeTickersTable({
             {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Ne
                 restent que la paire et son cours : c'est ce qu'on vient vérifier. */}
             <table className="w-full border-collapse text-sm sm:min-w-[44rem]">
-              <caption className="sr-only">Paires cotées sur cette place</caption>
+              <caption className="sr-only">{t('Paires cotées sur cette place')}</caption>
 
               <thead>
                 <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
@@ -144,12 +146,12 @@ export function ExchangeTickersTable({
                            centimètres plus haut. Deux colonnes du même nom dans deux
                            unités différentes, sur la même page, sans que rien ne le
                            dise — c'est ainsi qu'on lit un chiffre pour un autre. */
-                        label="Intérêt ouvert $"
+                        label={t('Intérêt ouvert $')}
                         sortKey="openInterest"
                         className="hidden sm:table-cell"
                         sort={sort}
                         onToggle={toggle}
-                        title="Positions non dénouées sur ce contrat, en dollars"
+                        title={t('Positions non dénouées sur ce contrat, en dollars')}
                       />
                       <SortableHeader
                         label="Financement"
@@ -157,18 +159,18 @@ export function ExchangeTickersTable({
                         className="hidden md:table-cell"
                         sort={sort}
                         onToggle={toggle}
-                        title="Taux échangé entre acheteurs et vendeurs, par période de financement"
+                        title={t('Taux échangé entre acheteurs et vendeurs, par période de financement')}
                       />
                     </>
                   ) : (
                     <>
                       <SortableHeader
-                        label="Écart"
+                        label={t('Écart')}
                         sortKey="spread"
                         className="hidden md:table-cell"
                         sort={sort}
                         onToggle={toggle}
-                        title="Écart entre la meilleure offre et la meilleure demande"
+                        title={t('Écart entre la meilleure offre et la meilleure demande')}
                       />
                       {/*
                         ── « CONFIANCE » PAR PAIRE N'EXISTE QUE SI LA SOURCE LA PUBLIE

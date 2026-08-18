@@ -11,6 +11,7 @@ import { ChangeBadge, EmptyState, Sparkline } from '@zenkuu/ui'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Tableau de classements — plusieurs palmarès CÔTE À CÔTE.
@@ -37,6 +38,7 @@ const PERIODS: { key: Period; label: string; field: keyof MarketAsset; long: str
 const ROWS = 10
 
 export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
+  const t = usePhrase()
   const [period, setPeriod] = useState<Period>('24h')
 
   const meta = PERIODS.find((entry) => entry.key === period) ?? PERIODS[1]!
@@ -89,7 +91,7 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
         <div
           className="flex items-center gap-1 rounded-card border border-border-subtle bg-surface p-1"
           role="group"
-          aria-label="Période des classements"
+          aria-label={t('Période des classements')}
         >
           {PERIODS.map((entry) => (
             <button
@@ -127,8 +129,8 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
           detail={{ type: 'baisses', period }}
         />
         <Board
-          title="Volumes les plus élevés"
-          hint="sur 24 heures"
+          title={t('Volumes les plus élevés')}
+          hint={t('sur 24 heures')}
           assets={boards.byVolume}
           field={field}
           periodLabel={meta.long}
@@ -164,6 +166,7 @@ function Board({
   /** Palmarès complet correspondant — omis, aucun lien n'est rendu. */
   detail?: { type: string; period: Period }
 }) {
+  const t = usePhrase()
   return (
     <section className="space-y-3" aria-label={title}>
       <div className="flex items-baseline justify-between gap-3">
@@ -176,8 +179,8 @@ function Board({
 
       {assets.length === 0 ? (
         <EmptyState
-          title="Rien à classer"
-          description="Aucun actif ne remplit ce critère sur la période choisie."
+          title={t('Rien à classer')}
+          description={t('Aucun actif ne remplit ce critère sur la période choisie.')}
           compact
         />
       ) : (
@@ -236,10 +239,11 @@ function TurnoverBoard({
   periodLabel: string
   period: Period
 }) {
+  const t = usePhrase()
   return (
-    <section className="space-y-3" aria-label="Rotation la plus forte">
+    <section className="space-y-3" aria-label={t('Rotation la plus forte')}>
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-ink">Rotation la plus forte</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('Rotation la plus forte')}</h3>
         <span className="flex items-center gap-2">
           <span className="text-xs text-ink-muted">volume / capitalisation</span>
           <RankingDetailLink type="rotation" period={period} />
@@ -247,7 +251,7 @@ function TurnoverBoard({
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState title="Rien à classer" compact />
+        <EmptyState title={t('Rien à classer')} compact />
       ) : (
         <ol className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-surface">
           {rows.map((row, index) => (

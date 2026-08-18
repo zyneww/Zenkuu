@@ -3,6 +3,7 @@ import { MIN_POINTS_FOR_CHART } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
 import { AreaSpark } from '@/components/charts/AreaSpark'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Dominance de Bitcoin — répartition actuelle, et courbe de nos propres relevés.
@@ -26,7 +27,7 @@ import { AreaSpark } from '@/components/charts/AreaSpark'
  * entière, pas un extrait — et c'est ce qui rend la barre de répartition plus
  * informative que la courbe qu'elle accompagne.
  */
-export function DominanceView({
+export async function DominanceView({
   series,
   current,
 }: {
@@ -34,6 +35,7 @@ export function DominanceView({
   /** Part de marché par symbole, ex. `{ btc: 56.3, eth: 10.1 }`. */
   current?: Record<string, number>
 }) {
+  const t = await getPhrase()
   const points = series.points
     .filter((point) => typeof point.btcDominance === 'number')
     .map((point) => ({ x: point.timestamp, y: point.btcDominance as number }))
@@ -52,7 +54,7 @@ export function DominanceView({
       {entries.length > 0 ? (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-sm font-semibold text-ink">Répartition actuelle</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('Répartition actuelle')}</h2>
             <p className="tabular text-xs text-ink-muted">
               part de la capitalisation mondiale
             </p>
@@ -111,7 +113,7 @@ export function DominanceView({
       {/* ── COURBE DE NOS RELEVÉS ──────────────────────────────────────────── */}
       <section className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold text-ink">Dominance de Bitcoin dans le temps</h2>
+          <h2 className="text-sm font-semibold text-ink">{t('Dominance de Bitcoin dans le temps')}</h2>
           {series.ready ? (
             <p className="text-xs text-ink-muted">relevés ZENKUU sur {formatDepth(series.spanMinutes)}</p>
           ) : null}
@@ -128,7 +130,7 @@ export function DominanceView({
           </div>
         ) : (
           <EmptyState
-            title="Courbe en cours de constitution"
+            title={t('Courbe en cours de constitution')}
             description={
               'Aucune source gratuite ne publie l’historique de dominance : nous l’enregistrons ' +
               'à chaque lecture des statistiques globales. La courbe apparaîtra dès que ' +

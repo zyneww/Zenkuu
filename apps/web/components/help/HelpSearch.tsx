@@ -5,6 +5,7 @@ import { BookOpen, Database, Scale, Search, User, type LucideIcon } from 'lucide
 import { useMemo, useState } from 'react'
 
 import { HELP_ARTICLES, HELP_CATEGORIES, type HelpCategory } from '@/content/aide'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Recherche et arborescence du Centre d'aide.
@@ -29,6 +30,7 @@ const ICONS: Record<HelpCategory['icon'], LucideIcon> = {
 }
 
 export function HelpSearch() {
+  const t = usePhrase()
   const [query, setQuery] = useState('')
 
   const normalized = query.trim().toLowerCase()
@@ -57,8 +59,8 @@ export function HelpSearch() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Décrivez votre question en quelques mots…"
-          aria-label="Rechercher dans le centre d’aide"
+          placeholder={t('Décrivez votre question en quelques mots…')}
+          aria-label={t('Rechercher dans le centre d’aide')}
           className="w-full rounded-card border border-border-subtle bg-surface py-3.5 pl-11 pr-4 text-base text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
         />
       </div>
@@ -74,9 +76,7 @@ export function HelpSearch() {
           </h2>
 
           {results.length === 0 ? (
-            <p className="text-sm leading-relaxed text-ink-muted">
-              Reformulez avec un autre terme, ou parcourez les rubriques ci-dessous.
-            </p>
+            <p className="text-sm leading-relaxed text-ink-muted">{t('Reformulez avec un autre terme, ou parcourez les rubriques ci-dessous.')}</p>
           ) : (
             <ul className="space-y-2">
               {results.map((article) => (
@@ -100,9 +100,7 @@ export function HelpSearch() {
         </section>
       ) : (
         <section className="space-y-3" aria-labelledby="rubriques">
-          <h2 id="rubriques" className="text-sm font-semibold text-ink">
-            Parcourir par rubrique
-          </h2>
+          <h2 id="rubriques" className="text-sm font-semibold text-ink">{t('Parcourir par rubrique')}</h2>
 
           <ul className="grid gap-3 sm:grid-cols-2">
             {HELP_CATEGORIES.map((category) => {

@@ -106,7 +106,8 @@ const COMPARISON = [
   { feature: 'Donnée manquante signalée comme telle', zenkuu: true, mono: false, broker: false },
 ]
 
-export default function PourquoiZenkuuPage() {
+export default async function PourquoiZenkuuPage() {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-5xl space-y-14 py-6">
       {/* ── HÉROS ─────────────────────────────────────────────────────────────
@@ -114,25 +115,17 @@ export default function PourquoiZenkuuPage() {
           POSER une position, il dessert tout ce qui se lit ensuite. */}
       <header className="mx-auto max-w-3xl space-y-5 text-center">
         <h1 className="display-xl text-brand-strong">Pourquoi ZENKUU</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          La plupart des plateformes de suivi de marché sont adossées à un service
-          qu’elles cherchent à vous vendre. ZENKUU n’a rien à vous vendre : c’est un
-          site d’information, et cela change ce qu’il peut se permettre d’afficher.
-        </p>
+        <p className="text-lg leading-relaxed text-ink-muted">{t('La plupart des plateformes de suivi de marché sont adossées à un service qu’elles cherchent à vous vendre. ZENKUU n’a rien à vous vendre : c’est un site d’information, et cela change ce qu’il peut se permettre d’afficher.')}</p>
 
         <div className="flex flex-wrap justify-center gap-3 pt-1">
           <Link
             href="/marches"
             className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-          >
-            Explorer les marchés
-          </Link>
+          >{t('Explorer les marchés')}</Link>
           <Link
             href="/methodologie"
             className="rounded-control border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-          >
-            Méthodologie &amp; sources
-          </Link>
+          >{t('Méthodologie & sources')}</Link>
         </div>
       </header>
 
@@ -149,9 +142,7 @@ export default function PourquoiZenkuuPage() {
           déborder d'une hauteur imposée. C'est l'exemple exact où `items-start`
           serait le mauvais réflexe. */}
       <section aria-labelledby="partis-pris" className="space-y-4">
-        <h2 id="partis-pris" className="display-sm text-center text-ink">
-          Quatre partis pris, et ce qui les rend vérifiables
-        </h2>
+        <h2 id="partis-pris" className="display-sm text-center text-ink">{t('Quatre partis pris, et ce qui les rend vérifiables')}</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           {SECTIONS.map((section) => (
@@ -195,9 +186,7 @@ export default function PourquoiZenkuuPage() {
               colonnes de verdicts ne portent qu'un signe, elles se resserrent sans
               perte ; seuls les en-têtes reviennent à la ligne. */}
           <table className="w-full border-collapse text-sm sm:min-w-[520px]">
-            <caption className="sr-only">
-              Comparaison entre ZENKUU, un site de suivi mono-actif et une plateforme d’échange
-            </caption>
+            <caption className="sr-only">{t('Comparaison entre ZENKUU, un site de suivi mono-actif et une plateforme d’échange')}</caption>
             <thead>
               <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
                 <th scope="col" className="px-3 py-2.5 font-medium">Fonctionnement</th>
@@ -207,9 +196,7 @@ export default function PourquoiZenkuuPage() {
                 <th scope="col" className="px-3 py-2.5 text-center font-medium">
                   Site mono-actif
                 </th>
-                <th scope="col" className="px-3 py-2.5 text-center font-medium">
-                  Plateforme d’échange
-                </th>
+                <th scope="col" className="px-3 py-2.5 text-center font-medium">{t('Plateforme d’échange')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle">
@@ -229,21 +216,14 @@ export default function PourquoiZenkuuPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="display-sm text-ink">Ce que ZENKUU n’est pas</h2>
+        <h2 className="display-sm text-ink">{t('Ce que ZENKUU n’est pas')}</h2>
         <ul className="max-w-2xl space-y-2.5 text-base leading-relaxed text-ink-muted">
           <li>
-            <strong className="text-ink">Ni plateforme d’échange, ni courtier.</strong> Aucune
-            fonction d’ordre, de dépôt ou de retrait n’existe sur ce site.
-          </li>
+            <strong className="text-ink">{t('Ni plateforme d’échange, ni courtier.')}</strong>{t('Aucune fonction d’ordre, de dépôt ou de retrait n’existe sur ce site.')}</li>
           <li>
-            <strong className="text-ink">Ni conseiller en investissement.</strong> Les
-            indicateurs affichés décrivent des données passées. Aucun n’est assorti d’un
-            signal d’achat ou de vente.
-          </li>
+            <strong className="text-ink">Ni conseiller en investissement.</strong>{t('Les indicateurs affichés décrivent des données passées. Aucun n’est assorti d’un signal d’achat ou de vente.')}</li>
           <li>
-            <strong className="text-ink">Ni fournisseur de données.</strong> ZENKUU relaie
-            des sources tierces, qu’il nomme. Il ne produit aucune cotation.
-          </li>
+            <strong className="text-ink">{t('Ni fournisseur de données.')}</strong>{t('ZENKUU relaie des sources tierces, qu’il nomme. Il ne produit aucune cotation.')}</li>
         </ul>
       </section>
 
@@ -260,12 +240,8 @@ export default function PourquoiZenkuuPage() {
         <Link
           href="/bien-demarrer"
           className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-        >
-          Bien démarrer
-        </Link>
-        <Link href="/apprendre" className="text-sm text-brand hover:underline">
-          Apprendre à lire les chiffres
-        </Link>
+        >{t('Bien démarrer')}</Link>
+        <Link href="/apprendre" className="text-sm text-brand hover:underline">{t('Apprendre à lire les chiffres')}</Link>
       </section>
     </div>
   )

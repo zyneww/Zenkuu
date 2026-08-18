@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
 import { getContent, getSeo } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -65,17 +66,14 @@ const SOURCES = [
   { name: 'Alternative.me', usage: 'Indice de peur et d’avidité', url: 'https://alternative.me/crypto/fear-and-greed-index/' },
 ]
 
-export default function DeveloppeursPage() {
+export default async function DeveloppeursPage() {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-3xl space-y-10 py-6">
       <header className="space-y-3">
-        <h1 className="display-lg text-ink">API & développeurs</h1>
+        <h1 className="display-lg text-ink">{t('API & développeurs')}</h1>
         <p className="text-base leading-relaxed text-ink-muted">
-          ZENKUU n’expose <strong className="text-ink">aucune API publique</strong> à ce
-          jour. Les routes ci-dessous sont internes : elles servent les pages du site,
-          ne sont pas versionnées et peuvent changer sans préavis. Elles sont
-          documentées par transparence, pas comme un contrat.
-        </p>
+          ZENKUU n’expose <strong className="text-ink">aucune API publique</strong>{t('à ce jour. Les routes ci-dessous sont internes : elles servent les pages du site, ne sont pas versionnées et peuvent changer sans préavis. Elles sont documentées par transparence, pas comme un contrat.')}</p>
       </header>
 
       <section className="space-y-3">
@@ -88,7 +86,7 @@ export default function DeveloppeursPage() {
             <thead>
               <tr className="border-b border-border-subtle text-xs uppercase tracking-wide text-ink-muted">
                 <th scope="col" className="py-2 pr-3 font-medium">Route</th>
-                <th scope="col" className="py-2 pr-3 font-medium">Paramètres</th>
+                <th scope="col" className="py-2 pr-3 font-medium">{t('Paramètres')}</th>
                 <th scope="col" className="py-2 font-medium">Rôle</th>
               </tr>
             </thead>
@@ -112,12 +110,8 @@ export default function DeveloppeursPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-ink">Sources de données</h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          ZENKUU ne produit aucune cotation. Si vous avez besoin de données brutes,
-          adressez-vous directement aux sources — c’est plus fiable que de passer par
-          un intermédiaire, et leurs conditions d’utilisation s’appliquent.
-        </p>
+        <h2 className="text-lg font-semibold text-ink">{t('Sources de données')}</h2>
+        <p className="text-sm leading-relaxed text-ink-muted">{t('ZENKUU ne produit aucune cotation. Si vous avez besoin de données brutes, adressez-vous directement aux sources — c’est plus fiable que de passer par un intermédiaire, et leurs conditions d’utilisation s’appliquent.')}</p>
         <ul className="space-y-2">
           {SOURCES.map((source) => (
             <li
@@ -140,14 +134,8 @@ export default function DeveloppeursPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-ink">Limites de débit</h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Les sources gratuites imposent des plafonds stricts, et ZENKUU s’y astreint
-          par une limitation de débit à fenêtre glissante côté serveur. Sans clé,
-          CoinGecko refuse au-delà d’environ cinq requêtes par minute — un plafond
-          mesuré, pas estimé. C’est ce qui explique les durées de cache de 5 à 30
-          minutes et l’absence de cotation en continu.
-        </p>
+        <h2 className="text-lg font-semibold text-ink">{t('Limites de débit')}</h2>
+        <p className="text-sm leading-relaxed text-ink-muted">{t('Les sources gratuites imposent des plafonds stricts, et ZENKUU s’y astreint par une limitation de débit à fenêtre glissante côté serveur. Sans clé, CoinGecko refuse au-delà d’environ cinq requêtes par minute — un plafond mesuré, pas estimé. C’est ce qui explique les durées de cache de 5 à 30 minutes et l’absence de cotation en continu.')}</p>
         <p className="text-sm leading-relaxed text-ink-muted">
           Le détail est publié sur la{' '}
           <Link href="/methodologie" className="underline underline-offset-2 hover:text-brand-strong">

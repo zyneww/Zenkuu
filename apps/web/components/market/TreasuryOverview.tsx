@@ -7,6 +7,7 @@ import {
   TreemapLegend,
   type TreemapTile,
 } from '@/components/tools/TreemapFigure'
+import { getPhrase } from '@/lib/content'
 
 /**
  * VUE D'ENSEMBLE DES TRÉSORERIES — quatre nombres et une carte, avant les tableaux.
@@ -66,12 +67,13 @@ import {
  * performance boursière de la société. La note le précise, faute de quoi la carte se
  * lirait comme un palmarès d'actionnaires.
  */
-export function TreasuryOverview({
+export async function TreasuryOverview({
   reports,
 }: {
   /** Registres disponibles, un par actif suivi. Un registre en échec n'y figure pas. */
   reports: { coin: string; label: string; unit: string; report: TreasuryReport }[]
 }) {
+  const t = await getPhrase()
   if (reports.length === 0) return null
 
   /* Entités DISTINCTES : une société présente dans les deux registres ne compte qu'une
@@ -134,11 +136,11 @@ export function TreasuryOverview({
   return (
     <section className="space-y-5">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Entités recensées" value={String(entities.size)} hint="sociétés et fonds distincts" />
+        <Stat label={t('Entités recensées')} value={String(entities.size)} hint={t('sociétés et fonds distincts')} />
         <Stat
           label="Pays"
           value={countries.size > 0 ? String(countries.size) : '—'}
-          hint="tels que déclarés à la source"
+          hint={t('tels que déclarés à la source')}
         />
         <Stat
           label="Actifs suivis"
@@ -148,14 +150,14 @@ export function TreasuryOverview({
         <Stat
           label="Valeur totale"
           value={`${formatCompact(totalValueUsd)} $`}
-          hint="au cours du jour"
+          hint={t('au cours du jour')}
         />
       </div>
 
       {tiles.length > 1 ? (
         <div className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="display-sm text-ink">Répartition par détenteur</h2>
+            <h2 className="display-sm text-ink">{t('Répartition par détenteur')}</h2>
             <TreemapLegend />
           </div>
 

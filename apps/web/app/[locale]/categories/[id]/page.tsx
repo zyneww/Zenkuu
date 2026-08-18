@@ -11,6 +11,7 @@ import {
 import { ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
 import { MarketTable } from '@/components/market/MarketTable'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -59,6 +60,7 @@ export default async function CategoryPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  const t = await getPhrase()
   const { id } = await params
 
   // Séquentiel et non parallèle, contrairement au reste du site : si le secteur
@@ -71,7 +73,7 @@ export default async function CategoryPage({
 
   return (
     <div className="space-y-10">
-      <nav aria-label="Fil d’Ariane" className="text-sm text-ink-muted">
+      <nav aria-label={t('Fil d’Ariane')} className="text-sm text-ink-muted">
         <Link href="/categories" className="hover:text-brand-strong hover:underline">
           Secteurs
         </Link>
@@ -95,7 +97,7 @@ export default async function CategoryPage({
 
         <dl className="flex flex-wrap gap-x-12 gap-y-4">
           <Stat
-            label="Capitalisation du secteur"
+            label={t('Capitalisation du secteur')}
             value={formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
           />
           <Stat
@@ -103,7 +105,7 @@ export default async function CategoryPage({
             value={formatCurrency(category.volume24h, 'USD', { compact: true }) ?? '—'}
           />
           <Stat
-            label="Actifs listés ici"
+            label={t('Actifs listés ici')}
             value={assets.ok ? String(assets.data.length) : '—'}
           />
         </dl>
@@ -111,9 +113,7 @@ export default async function CategoryPage({
 
       <section className="space-y-4" aria-labelledby="composants-titre">
         <div className="space-y-1">
-          <h2 id="composants-titre" className="display-md text-ink">
-            Les actifs de ce secteur
-          </h2>
+          <h2 id="composants-titre" className="display-md text-ink">{t('Les actifs de ce secteur')}</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
             Les cinquante plus grandes capitalisations rattachées à ce secteur. Le
             rattachement est décidé par la source, pas par ZENKUU : un même actif relève
@@ -148,7 +148,7 @@ export default async function CategoryPage({
           </>
         ) : (
           <EmptyState
-            title="Composition du secteur indisponible"
+            title={t('Composition du secteur indisponible')}
             description={
               assets.ok
                 ? 'La source ne rattache aucun actif coté à ce secteur pour le moment.'
@@ -172,7 +172,7 @@ export default async function CategoryPage({
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+async function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted">{label}</dt>

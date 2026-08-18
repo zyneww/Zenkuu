@@ -9,6 +9,7 @@ import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 import { formatAbsolute, useRelativeTime } from '@/components/locale/useRelativeTime'
 import { availableMentions, citedAssets, mentions } from '@/components/news/mentions'
 import { Pagination } from '@/components/ui/Pagination'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Fil d'actualités : rubriques, sources, recherche, vignettes.
@@ -68,6 +69,7 @@ export function NewsFeed({
    */
   quotes?: Record<string, number>
 }) {
+  const t = usePhrase()
   const [category, setCategory] = useState<string>('all')
   const [source, setSource] = useState<string>('all')
   const [lang, setLang] = useState<string>('all')
@@ -210,16 +212,14 @@ export function NewsFeed({
           */}
           {assetOptions.length > 0 ? (
             <>
-              <label htmlFor="filtre-actif" className="sr-only">
-                Filtrer par actif mentionné
-              </label>
+              <label htmlFor="filtre-actif" className="sr-only">{t('Filtrer par actif mentionné')}</label>
               <select
                 id="filtre-actif"
                 value={mention}
                 onChange={(event) => setMention(event.target.value)}
                 className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
               >
-                <option value="all">Tous les sujets</option>
+                <option value="all">{t('Tous les sujets')}</option>
                 {assetOptions.map((option) => (
                   <option key={option.id} value={option.id}>
                     Mentionnant {option.label}
@@ -231,16 +231,14 @@ export function NewsFeed({
 
           {langs.length > 1 ? (
             <>
-              <label htmlFor="filtre-langue" className="sr-only">
-                Filtrer par langue
-              </label>
+              <label htmlFor="filtre-langue" className="sr-only">{t('Filtrer par langue')}</label>
               <select
                 id="filtre-langue"
                 value={lang}
                 onChange={(event) => setLang(event.target.value)}
                 className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
               >
-                <option value="all">Toutes les langues</option>
+                <option value="all">{t('Toutes les langues')}</option>
                 {langs.map((entry) => (
                   <option key={entry} value={entry}>
                     {NEWS_LANG_LABELS[entry as keyof typeof NEWS_LANG_LABELS] ?? entry}
@@ -252,16 +250,14 @@ export function NewsFeed({
 
           {sources.length > 1 ? (
             <>
-              <label htmlFor="filtre-source" className="sr-only">
-                Filtrer par source
-              </label>
+              <label htmlFor="filtre-source" className="sr-only">{t('Filtrer par source')}</label>
               <select
                 id="filtre-source"
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
                 className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
               >
-                <option value="all">Toutes les sources</option>
+                <option value="all">{t('Toutes les sources')}</option>
                 {sources.map((entry) => (
                   <option key={entry} value={entry}>
                     {entry}
@@ -303,14 +299,12 @@ export function NewsFeed({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Rechercher…"
-              aria-label="Rechercher dans les actualités"
+              aria-label={t('Rechercher dans les actualités')}
               className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-8 pr-3 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
           </div>
 
-          <label htmlFor="tri-actualites" className="sr-only">
-            Trier les actualités
-          </label>
+          <label htmlFor="tri-actualites" className="sr-only">{t('Trier les actualités')}</label>
           <select
             id="tri-actualites"
             value={sort}
@@ -328,8 +322,8 @@ export function NewsFeed({
 
       {ordered.length === 0 ? (
         <EmptyState
-          title="Aucun article ne correspond"
-          description="Essayez un autre terme, une autre rubrique ou une autre source."
+          title={t('Aucun article ne correspond')}
+          description={t('Essayez un autre terme, une autre rubrique ou une autre source.')}
           compact
         />
       ) : (

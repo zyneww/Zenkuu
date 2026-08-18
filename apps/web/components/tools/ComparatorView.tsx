@@ -20,6 +20,7 @@ import {
   windowLabel,
 } from '@/components/tools/compare-series'
 import { assetHref } from '@/lib/asset-routes'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Comparateur de deux à six actifs, TOUTES CLASSES CONFONDUES.
@@ -82,6 +83,7 @@ import { assetHref } from '@/lib/asset-routes'
 type Scope = 'always' | 'sameClass'
 
 export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
+  const t = usePhrase()
   /* Un seul plafond désormais : l'abonnement qui en distinguait deux a été retiré
      du site. Voir `lib/limits.ts`. */
   const max = COMPARE_LIMIT
@@ -245,9 +247,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             >
               {() => (
                 <>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  Ajouter un actif
-                </>
+                  <Plus className="h-4 w-4" aria-hidden="true" />{t('Ajouter un actif')}</>
               )}
             </AssetPicker>
           ) : null}
@@ -291,9 +291,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           </p>
         </div>
       ) : (
-        <p className="rounded-card border border-border-subtle bg-surface px-4 py-10 text-center text-sm text-ink-muted">
-          La source ne publie pas de série récente pour les actifs sélectionnés.
-        </p>
+        <p className="rounded-card border border-border-subtle bg-surface px-4 py-10 text-center text-sm text-ink-muted">{t('La source ne publie pas de série récente pour les actifs sélectionnés.')}</p>
       )}
 
       <div className="overflow-x-auto rounded-card">
@@ -304,7 +302,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             576 pixels disparaît sous `sm` : à deux actifs, le tableau tient dans un
             téléphone et n'a aucune raison de défiler. */}
         <table className="w-full border-collapse text-sm sm:min-w-[36rem]">
-          <caption className="sr-only">Comparaison chiffrée</caption>
+          <caption className="sr-only">{t('Comparaison chiffrée')}</caption>
           <thead>
             <tr className="border-b border-border-subtle text-left">
               <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
@@ -340,7 +338,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
 
             {/* Le rang est INTERNE à une classe : « 4ᵉ » ne veut rien dire si l'un est
                 4ᵉ crypto et l'autre 4ᵉ action. */}
-            <Row label="Rang dans sa classe" scope="sameClass" homogeneous={homogeneous}>
+            <Row label={t('Rang dans sa classe')} scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>{asset.rank !== undefined ? `#${asset.rank}` : '—'}</Cell>
               ))}
@@ -431,7 +429,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
                 </Cell>
               ))}
             </Row>
-            <Row label="Part de l’offre maximale" scope="sameClass" homogeneous={homogeneous}>
+            <Row label={t('Part de l’offre maximale')} scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {/* Rapport de deux valeurs publiées, pas une estimation : il dit
@@ -448,13 +446,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
       </div>
 
       {!homogeneous ? (
-        <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">
-          Certaines lignes disparaissent quand la comparaison mêle plusieurs classes —
-          volume, rang, offre. Ce n’est pas une donnée manquante mais une grandeur qui
-          change de définition : le volume d’une place boursière se compte en titres
-          échangés, celui d’un agrégateur crypto en monnaie. Les aligner donnerait un
-          rapport sans signification.
-        </p>
+        <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">{t('Certaines lignes disparaissent quand la comparaison mêle plusieurs classes — volume, rang, offre. Ce n’est pas une donnée manquante mais une grandeur qui change de définition : le volume d’une place boursière se compte en titres échangés, celui d’un agrégateur crypto en monnaie. Les aligner donnerait un rapport sans signification.')}</p>
       ) : null}
     </div>
   )

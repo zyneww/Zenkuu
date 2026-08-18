@@ -3,6 +3,7 @@ import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
+import { getPhrase } from '@/lib/content'
 
 /**
  * VUE D'ENSEMBLE DES COLLECTIONS NFT — trois compteurs et une carte thermique.
@@ -34,7 +35,8 @@ import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/too
  * nombre d'exemplaires en vente bouge lui aussi — et la note le précise, faute de quoi
  * la carte se lirait comme une carte de capitalisations colorée par elle-même.
  */
-export function NftOverview({ collections }: { collections: NftCollection[] }) {
+export async function NftOverview({ collections }: { collections: NftCollection[] }) {
+  const t = await getPhrase()
   const ranked = collections
     .filter((collection) => (collection.marketCapUsd ?? 0) > 0)
     .sort((a, b) => (b.marketCapUsd ?? 0) - (a.marketCapUsd ?? 0))
@@ -71,25 +73,25 @@ export function NftOverview({ collections }: { collections: NftCollection[] }) {
     <section className="space-y-5">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Stat
-          label="Capitalisation de la sélection"
+          label={t('Capitalisation de la sélection')}
           value={`${formatCompact(total)} $`}
           hint={`${ranked.length} collections suivies`}
         />
         <Stat
           label="Volume 24 h"
           value={`${formatCompact(volume)} $`}
-          hint="ventes sur les mêmes collections"
+          hint={t('ventes sur les mêmes collections')}
         />
         <Stat
           label={`Part de ${leader.name}`}
           value={formatShare(leaderShare) ?? '—'}
-          hint="de la sélection, pas du marché NFT"
+          hint={t('de la sélection, pas du marché NFT')}
         />
       </div>
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="display-sm text-ink">Carte des collections</h2>
+          <h2 className="display-sm text-ink">{t('Carte des collections')}</h2>
           <TreemapLegend />
         </div>
 

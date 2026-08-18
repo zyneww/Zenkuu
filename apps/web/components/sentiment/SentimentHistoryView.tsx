@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import type { SentimentPoint } from '@zenkuu/data'
 
 import { SentimentChart } from '@/components/sentiment/SentimentChart'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Sélecteur de période de l'historique.
@@ -22,6 +23,7 @@ const RANGES = [
 ]
 
 export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
+  const t = usePhrase()
   const [days, setDays] = useState(90)
 
   const visible = useMemo(() => points.slice(-days), [points, days])
@@ -44,14 +46,12 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
   return (
     <section className="space-y-4" aria-labelledby="historique-titre">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="historique-titre" className="display-sm text-ink">
-          Évolution de l’indice
-        </h2>
+        <h2 id="historique-titre" className="display-sm text-ink">{t('Évolution de l’indice')}</h2>
 
         <div
           className="flex items-center gap-1 rounded-card border border-border-subtle bg-surface p-1"
           role="group"
-          aria-label="Période affichée"
+          aria-label={t('Période affichée')}
         >
           {available.map((range) => (
             <button
@@ -75,9 +75,9 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
 
       {stats ? (
         <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle">
-          <Cell label="Plus bas sur la période" value={stats.min} />
+          <Cell label={t('Plus bas sur la période')} value={stats.min} />
           <Cell label="Moyenne" value={stats.moyenne} />
-          <Cell label="Plus haut sur la période" value={stats.max} />
+          <Cell label={t('Plus haut sur la période')} value={stats.max} />
         </dl>
       ) : null}
     </section>

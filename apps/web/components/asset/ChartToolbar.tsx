@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
 import { Calendar } from '@/components/ui/Calendar'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Barre d'outils du graphique — UNE SEULE RANGÉE.
@@ -335,6 +336,7 @@ interface ChartToolbarProps {
 const OHLC_TOOLBAR_KINDS: ReadonlySet<string> = new Set(['candles', 'bars'])
 
 export function ChartToolbar(props: ChartToolbarProps) {
+  const t = usePhrase()
   return (
     /*
       ── DEUX GROUPES, TENUS AUX DEUX BORDS ────────────────────────────────────
@@ -413,7 +415,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
       {props.metricOptions.length > 1 ? (
         <span
           role="group"
-          aria-label="Grandeur tracée"
+          aria-label={t('Grandeur tracée')}
           className="flex min-w-0 items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
         >
           {props.metricOptions.map((entry) => (
@@ -490,7 +492,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
         <Dropdown
           label=""
           icon={<LineChart className="h-3.5 w-3.5" aria-hidden="true" />}
-          title="Type de tracé"
+          title={t('Type de tracé')}
         >
           {(close) =>
             props.renderOptions.map((entry) => {
@@ -581,7 +583,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
         <div
           className="flex min-w-0 flex-wrap items-center gap-0.5"
           role="group"
-          aria-label="Pas de bougie"
+          aria-label={t('Pas de bougie')}
         >
           {props.intervals.map((interval) => (
             <button
@@ -606,7 +608,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
       <div
         className="flex min-w-0 flex-wrap items-center gap-0.5"
         role="group"
-        aria-label="Période affichée"
+        aria-label={t('Période affichée')}
       >
         {RANGE_PRESETS.map((preset) => {
           // Un palier de durée n'est « actif » que si AUCUN pas ne l'est : sans cette
@@ -658,7 +660,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
       <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-border-subtle" />
 
         <IconButton
-          label="Copier le lien de cette vue"
+          label={t('Copier le lien de cette vue')}
           onClick={props.onCopyLink}
           icon={<Link2 className="h-3.5 w-3.5" aria-hidden="true" />}
         />
@@ -701,7 +703,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
           icon={<MoreVertical className="h-3.5 w-3.5" aria-hidden="true" />}
           align="right"
           active={props.logScale || props.showMovingAverage || props.showPriceLines}
-          title="Options d’affichage et export"
+          title={t('Options d’affichage et export')}
         >
           {(close) => (
             <>
@@ -710,9 +712,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
                   moyenne mobile vont ensemble — et refermer après chacune imposerait
                   de rouvrir autant de fois. Les exports, eux, ferment : ils produisent
                   un fichier, l'action est terminée. */}
-              <MenuItem selected={props.logScale} onClick={props.onToggleLog}>
-                Échelle logarithmique
-              </MenuItem>
+              <MenuItem selected={props.logScale} onClick={props.onToggleLog}>{t('Échelle logarithmique')}</MenuItem>
               <MenuItem
                 selected={props.showVolume}
                 disabled={!props.volumeAvailable}
@@ -723,9 +723,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
               <MenuItem selected={props.showMovingAverage} onClick={props.onToggleMovingAverage}>
                 Moyenne mobile
               </MenuItem>
-              <MenuItem selected={props.showPriceLines} onClick={props.onTogglePriceLines}>
-                Extrêmes historiques
-              </MenuItem>
+              <MenuItem selected={props.showPriceLines} onClick={props.onTogglePriceLines}>{t('Extrêmes historiques')}</MenuItem>
 
               <Separator />
 
@@ -973,6 +971,7 @@ function ComparePanel({
   metricOptions: { key: string; label: string }[]
   onMetricsChange: (keys: string[]) => void
 }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'assets' | 'metrics'>('assets')
   const [query, setQuery] = useState('')
@@ -1096,9 +1095,7 @@ function ComparePanel({
           {/* ── Emplacements ────────────────────────────────────────────────
               Quatre cases, occupées ou non. Voir l'en-tête : c'est la pièce qui rend
               l'état lisible, et elle reste affichée même vide. */}
-          <p className="px-0.5 pb-1 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
-            Sélection
-          </p>
+          <p className="px-0.5 pb-1 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Sélection')}</p>
           <div className="mb-2 grid grid-cols-4 gap-1">
             {Array.from({ length: COMPARE_MAX }, (_, index) => {
               const assetId = ids[index]
@@ -1168,8 +1165,8 @@ function ComparePanel({
                     type="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Rechercher un actif"
-                    aria-label="Rechercher un actif à comparer"
+                    placeholder={t('Rechercher un actif')}
+                    aria-label={t('Rechercher un actif à comparer')}
                     className="h-7 w-full rounded-control border border-border-subtle bg-surface pl-7 pr-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
                   />
                 </div>
@@ -1177,9 +1174,7 @@ function ComparePanel({
 
               <div className="max-h-52 overflow-y-auto">
                 {shown.length === 0 ? (
-                  <p className="px-2 py-3 text-center text-xs text-ink-muted">
-                    Aucun actif ne correspond.
-                  </p>
+                  <p className="px-2 py-3 text-center text-xs text-ink-muted">{t('Aucun actif ne correspond.')}</p>
                 ) : (
                   shown.map((entry) => {
                     const selected = ids.includes(entry.id)
@@ -1254,9 +1249,7 @@ function ComparePanel({
               type="button"
               onClick={close}
               className="h-6 shrink-0 rounded-control bg-brand px-3 text-xs font-medium text-white transition-opacity duration-150 hover:opacity-90"
-            >
-              Terminé
-            </button>
+            >{t('Terminé')}</button>
           </div>
         </div>
       ) : null}
@@ -1314,6 +1307,7 @@ function DateRangePicker({
   value: { from: string; to: string } | null
   onChange: (range: { from: string; to: string } | null) => void
 }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -1343,8 +1337,8 @@ function DateRangePicker({
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        title="Choisir des dates précises"
-        aria-label="Choisir des dates précises"
+        title={t('Choisir des dates précises')}
+        aria-label={t('Choisir des dates précises')}
         className={`flex h-7 items-center gap-1 px-1.5 text-xs transition-colors duration-150 ${
           value
             ? 'bg-brand-soft font-medium text-brand-strong'

@@ -8,6 +8,7 @@ import {
   type PreferenceTab,
 } from '@/components/settings/PreferenceOverlay'
 import { useSettings, type ThemeMode } from '@/lib/stores/settings'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Rubrique « Préférences ».
@@ -37,6 +38,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
 }
 
 export function SettingsPreferences() {
+  const t = usePhrase()
   const [tab, setTab] = useState<PreferenceTab | null>(null)
   const { theme, language, setTheme } = useSettings()
   const { currency } = useCurrency()
@@ -44,12 +46,8 @@ export function SettingsPreferences() {
   return (
     <section className="space-y-6" aria-labelledby="preferences-titre">
       <div className="space-y-1">
-        <h2 id="preferences-titre" className="display-sm text-ink">
-          Préférences
-        </h2>
-        <p className="text-sm text-ink-muted">
-          Ces réglages sont enregistrés dans ce navigateur, sur cet appareil.
-        </p>
+        <h2 id="preferences-titre" className="display-sm text-ink">{t('Préférences')}</h2>
+        <p className="text-sm text-ink-muted">{t('Ces réglages sont enregistrés dans ce navigateur, sur cet appareil.')}</p>
       </div>
 
       <div className="divide-y divide-border-subtle rounded-card border border-border-subtle">
@@ -60,7 +58,7 @@ export function SettingsPreferences() {
              périmerait à nouveau au prochain ajout — mais de la RÈGLE : une langue
              traduite change l'interface, une autre enregistre seulement la préférence.
              Cette règle-là, elle, ne bougera pas. */
-          description="Les langues traduites changent l’interface ; les autres enregistrent votre préférence en attendant leur traduction. Le sélecteur signale lesquelles le sont."
+          description={t('Les langues traduites changent l’interface ; les autres enregistrent votre préférence en attendant leur traduction. Le sélecteur signale lesquelles le sont.')}
         >
           <button
             type="button"
@@ -72,8 +70,8 @@ export function SettingsPreferences() {
         </Row>
 
         <Row
-          label="Devise d’affichage"
-          description="Les cours sont convertis depuis leur devise de cotation au taux de référence BCE, dont la date est rappelée sous chaque montant. Une conversion n’est pas un cours coté."
+          label={t('Devise d’affichage')}
+          description={t('Les cours sont convertis depuis leur devise de cotation au taux de référence BCE, dont la date est rappelée sous chaque montant. Une conversion n’est pas un cours coté.')}
         >
           <button
             type="button"
@@ -85,13 +83,13 @@ export function SettingsPreferences() {
         </Row>
 
         <Row
-          label="Thème"
-          description="« Système » suit le réglage de votre appareil, y compris sa bascule automatique le soir."
+          label={t('Thème')}
+          description={t('« Système » suit le réglage de votre appareil, y compris sa bascule automatique le soir.')}
         >
           <div
             className="flex items-center gap-0.5 rounded-card border border-border-subtle p-0.5"
             role="group"
-            aria-label="Thème"
+            aria-label={t('Thème')}
           >
             {THEMES.map((entry) => (
               <button
@@ -113,10 +111,7 @@ export function SettingsPreferences() {
         </Row>
       </div>
 
-      <p className="text-xs leading-relaxed text-ink-muted">
-        Ces trois réglages ne sont pas rattachés à votre compte : ils ne suivent donc
-        pas d’un appareil à l’autre. Seule votre liste de suivi est synchronisée.
-      </p>
+      <p className="text-xs leading-relaxed text-ink-muted">{t('Ces trois réglages ne sont pas rattachés à votre compte : ils ne suivent donc pas d’un appareil à l’autre. Seule votre liste de suivi est synchronisée.')}</p>
 
       <PreferenceOverlay tab={tab} onTabChange={setTab} onClose={() => setTab(null)} />
     </section>

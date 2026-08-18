@@ -1,3 +1,19 @@
+'use client'
+
+/*
+ * `'use client'` alors que ce module ne tient aucun état, et la raison n'est pas
+ * cosmétique.
+ *
+ * `SpotExchangesTable` est importé par `SpotExchangesExplorer`, qui est un composant
+ * client : son code part donc dans le navigateur, où `getPhrase()` — qui lit la locale
+ * de la requête serveur — lève « `getLocale` is not supported in Client Components ».
+ * L'erreur ne se voit ni au typage ni à la compilation, seulement au rendu.
+ *
+ * `SpotExchangesPanel`, lui, est rendu par une page serveur. Un même module ne peut
+ * pas servir `getPhrase()` d'un côté et `usePhrase()` de l'autre : on tranche pour le
+ * client, que le serveur sait rendre, plutôt que l'inverse.
+ */
+
 import { ArrowRight } from 'lucide-react'
 
 import type { SpotExchange } from '@zenkuu/data'
@@ -5,6 +21,7 @@ import type { SpotExchange } from '@zenkuu/data'
 import { Link } from '@/i18n/navigation'
 import type { ExchangeSortKey } from '@/components/market/SpotExchangesExplorer'
 import { SortableHeader, type SortState } from '@/components/ui/SortableTable'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Répartition du volume au comptant entre les places de marché.
@@ -25,15 +42,14 @@ import { SortableHeader, type SortState } from '@/components/ui/SortableTable'
  * n'est pas, d'où la mention explicite sous le tableau.
  */
 export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] }) {
+  const t = usePhrase()
   if (exchanges.length === 0) return null
 
   return (
     <section className="space-y-4" aria-labelledby="places-titre">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
         <div className="min-w-0 space-y-1">
-          <h2 id="places-titre" className="display-md text-ink">
-            Où s’échange le marché au comptant
-          </h2>
+          <h2 id="places-titre" className="display-md text-ink">{t('Où s’échange le marché au comptant')}</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
             Les {exchanges.length} premières places par note de confiance, et le volume
             qu’elles déclarent sur 24 heures. ZENKUU ne référence aucun carnet d’ordres et
@@ -96,6 +112,7 @@ export function SpotExchangesTable({
   sort?: SortState<ExchangeSortKey> | null
   onToggleSort?: (key: ExchangeSortKey) => void
 }) {
+  const t = usePhrase()
   const total = shareTotal ?? exchanges.reduce((sum, exchange) => sum + exchange.volume24hBtc, 0)
   if (total <= 0) return null
 
@@ -117,7 +134,7 @@ export function SpotExchangesTable({
               />
               <HeadCell label="Volume 24 h (BTC)" sortKey="volume" sort={sort} onToggle={onToggleSort} />
               <HeadCell
-                label="Part du volume affiché"
+                label={t('Part du volume affiché')}
                 sortKey="share"
                 align="left"
                 sort={sort}
@@ -237,11 +254,7 @@ export function SpotExchangesTable({
         </table>
       </div>
 
-      <p className="text-xs leading-relaxed text-ink-muted">
-        La note de confiance est un jugement publié par la source sur la qualité de la
-        liquidité déclarée — pas une mesure, et pas un avis de ZENKUU. Les volumes sont
-        ceux annoncés par les places elles-mêmes.
-      </p>
+      <p className="text-xs leading-relaxed text-ink-muted">{t('La note de confiance est un jugement publié par la source sur la qualité de la liquidité déclarée — pas une mesure, et pas un avis de ZENKUU. Les volumes sont ceux annoncés par les places elles-mêmes.')}</p>
     </div>
   )
 }

@@ -64,6 +64,7 @@ import type { MetricGroup } from '@/lib/asset-metrics'
 import { AlertButton } from '@/components/alerts/AlertButton'
 import { MAILER_ENABLED } from '@/lib/mailer'
 import { getWatchlistState } from '@/lib/watchlist-actions'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Fiche d'un actif.
@@ -170,6 +171,7 @@ export interface AssetPageViewProps {
 }
 
 export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
+  const t = await getPhrase()
   const fr = await getContent()
   const [
     asset,
@@ -466,7 +468,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               et suit donc la devise choisie par le lecteur.
             */}
             <ShareDonut
-              title="Volume par place de cotation"
+              title={t('Volume par place de cotation')}
               subtitle={`Volume 24 h de ${data.name}, réparti entre les places qui le cotent.${trustNote}`}
               parts={byExchange}
               restNoun="places"
@@ -474,7 +476,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               valueCurrency="EUR"
             />
             <ShareDonut
-              title="Volume par devise de cotation"
+              title={t('Volume par devise de cotation')}
               subtitle={`Contre quoi cet actif se négocie réellement.${trustNote}`}
               parts={byPair}
               restNoun="paires"
@@ -525,8 +527,8 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       ) : assetClass === 'crypto' || assetClass === 'forex' ? (
         <>
           <EmptyState
-            title="Aucune place de cotation publiée"
-            description="La source ne renseigne pas les places qui cotent cet actif."
+            title={t('Aucune place de cotation publiée')}
+            description={t('La source ne renseigne pas les places qui cotent cet actif.')}
             compact
           />
           {/* Le carnet d'ordres, lui, peut très bien être présent au-dessus : ce repli
@@ -625,9 +627,9 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         <AssetOwnership profile={profile} assetName={data.name} />
       ) : (
         <section className="space-y-3">
-          <h2 className="display-sm text-ink">Détentions institutionnelles</h2>
+          <h2 className="display-sm text-ink">{t('Détentions institutionnelles')}</h2>
           <EmptyState
-            title="Non publiées par nos sources"
+            title={t('Non publiées par nos sources')}
             description={`Aucune de nos sources ne publie les trésoreries d’entreprise exposées à ${data.name}. Nous préférons le dire plutôt que d’estimer : une détention déduite de la répartition de l’offre serait un chiffre inventé, pas un relevé.`}
             compact
           />
@@ -733,7 +735,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    */
   const historySection = (
     <section className="space-y-4">
-      <h2 className="display-sm text-ink">Historique des cours</h2>
+      <h2 className="display-sm text-ink">{t('Historique des cours')}</h2>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
@@ -1298,11 +1300,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             ) : null}
 
             {about.credit === 'zenkuu' ? (
-              <p className="text-micro text-ink-muted opacity-80">
-                Présentation rédigée par ZENKUU : aucune source de cotation ne publie de
-                notice pour cet instrument. Elle ne décrit que sa construction, jamais son
-                niveau — le cours et les variations viennent, eux, de la source.
-              </p>
+              <p className="text-micro text-ink-muted opacity-80">{t('Présentation rédigée par ZENKUU : aucune source de cotation ne publie de notice pour cet instrument. Elle ne décrit que sa construction, jamais son niveau — le cours et les variations viennent, eux, de la source.')}</p>
             ) : null}
           </section>
         ) : null}
@@ -1389,9 +1387,10 @@ function frenchOf(name: string): string {
  */
 
 async function Breadcrumb({ assetClass, name }: { assetClass: AssetClass; name: string }) {
+  const t = await getPhrase()
   const fr = await getContent()
   return (
-    <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
+    <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
       <ol className="flex flex-wrap items-center gap-1.5">
         <li>
           <Link href="/" className="hover:text-brand-strong">

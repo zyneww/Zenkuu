@@ -8,6 +8,7 @@ import { EmptyState } from '@zenkuu/ui'
 
 import { CoverArt } from '@/components/editorial/CoverArt'
 import { LESSON_TOPICS, LEVELS, levelLabel, type Level } from '@/content/apprendre'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Bibliothèque de contenus pédagogiques.
@@ -35,6 +36,7 @@ import { LESSON_TOPICS, LEVELS, levelLabel, type Level } from '@/content/apprend
  * la donnée inventée (§5). La note sous le parcours de départ le dit déjà.
  */
 export function LessonBrowser() {
+  const t = usePhrase()
   const [level, setLevel] = useState<Level | 'tous'>('tous')
   const [query, setQuery] = useState('')
 
@@ -67,13 +69,13 @@ export function LessonBrowser() {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher une notion…"
-            aria-label="Rechercher une fiche"
+            placeholder={t('Rechercher une notion…')}
+            aria-label={t('Rechercher une fiche')}
             className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Filtrer par niveau">
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Filtrer par niveau')}>
           <FilterButton active={level === 'tous'} onClick={() => setLevel('tous')} label="Tous niveaux" />
           {LEVELS.map((entry) => (
             <FilterButton
@@ -89,7 +91,7 @@ export function LessonBrowser() {
 
       {/* Sommaire des thèmes : atteindre une section sans faire défiler toute la page. */}
       {topics.length > 1 ? (
-        <nav aria-label="Thèmes" className="flex flex-wrap gap-2">
+        <nav aria-label={t('Thèmes')} className="flex flex-wrap gap-2">
           {topics.map((topic) => (
             <a
               key={topic.id}
@@ -110,8 +112,8 @@ export function LessonBrowser() {
 
       {topics.length === 0 ? (
         <EmptyState
-          title="Aucune fiche ne correspond"
-          description="Essayez un autre terme, ou élargissez le filtre de niveau."
+          title={t('Aucune fiche ne correspond')}
+          description={t('Essayez un autre terme, ou élargissez le filtre de niveau.')}
           compact
         />
       ) : (

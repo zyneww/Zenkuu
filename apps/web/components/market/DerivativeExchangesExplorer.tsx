@@ -11,6 +11,7 @@ import { Link } from '@/i18n/navigation'
 import { Pagination } from '@/components/ui/Pagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * REGISTRE DES PLACES DE PRODUITS DÉRIVÉS.
@@ -56,6 +57,7 @@ export function DerivativeExchangesExplorer({
 }: {
   exchanges: DerivativeExchange[]
 }) {
+  const t = usePhrase()
   const [filter, setFilter] = useState<FilterId>('all')
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -147,7 +149,7 @@ export function DerivativeExchangesExplorer({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Nature de la place">
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Nature de la place')}>
           {FILTERS.map((entry) => (
             <button
               key={entry.id}
@@ -182,8 +184,8 @@ export function DerivativeExchangesExplorer({
               setQuery(event.target.value)
               setPage(1)
             }}
-            placeholder="Rechercher une place…"
-            aria-label="Rechercher une place de dérivés"
+            placeholder={t('Rechercher une place…')}
+            aria-label={t('Rechercher une place de dérivés')}
             className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
@@ -193,8 +195,8 @@ export function DerivativeExchangesExplorer({
 
       {visible.length === 0 ? (
         <EmptyState
-          title="Aucune place ne correspond"
-          description="Essayez un autre filtre, ou effacez la recherche."
+          title={t('Aucune place ne correspond')}
+          description={t('Essayez un autre filtre, ou effacez la recherche.')}
           compact
         />
       ) : (
@@ -204,9 +206,7 @@ export function DerivativeExchangesExplorer({
                 restent que la place et son intérêt ouvert : c'est la question de la
                 page, et elle tient dans 320 pixels. */}
             <table className="w-full border-collapse text-sm sm:min-w-[52rem]">
-              <caption className="sr-only">
-                Places de produits dérivés, classées par intérêt ouvert
-              </caption>
+              <caption className="sr-only">{t('Places de produits dérivés, classées par intérêt ouvert')}</caption>
 
               <thead>
                 <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
@@ -232,12 +232,12 @@ export function DerivativeExchangesExplorer({
                     </th>
                   ) : null}
                   <SortableHeader
-                    label="Intérêt ouvert ₿"
+                    label={t('Intérêt ouvert ₿')}
                     sortKey="openInterest"
                     sort={sort}
                     onToggle={toggle}
                     columnPrefs={prefs}
-                    title="Somme des positions non dénouées, en bitcoin"
+                    title={t('Somme des positions non dénouées, en bitcoin')}
                   />
                   {prefs.isVisible('volume') ? (
                     <SortableHeader
@@ -257,18 +257,18 @@ export function DerivativeExchangesExplorer({
                       sort={sort}
                       onToggle={toggle}
                       columnPrefs={prefs}
-                      title="Volume 24 h rapporté à l’intérêt ouvert"
+                      title={t('Volume 24 h rapporté à l’intérêt ouvert')}
                     />
                   ) : null}
                   {prefs.isVisible('perpetual') ? (
                     <SortableHeader
-                      label="Perpétuels"
+                      label={t('Perpétuels')}
                       sortKey="perpetual"
                       className="hidden md:table-cell"
                       sort={sort}
                       onToggle={toggle}
                       columnPrefs={prefs}
-                      title="Nombre de contrats sans échéance cotés"
+                      title={t('Nombre de contrats sans échéance cotés')}
                     />
                   ) : null}
                   {prefs.isVisible('year') ? (
@@ -394,14 +394,13 @@ export function DerivativeExchangesExplorer({
  * source, alors que c'est une lacune de notre part.
  */
 function KindBadge({ kind }: { kind: DerivativeExchange['kind'] }) {
+  const t = usePhrase()
   if (kind === 'dex') {
     return (
       <span
         className="rounded-control bg-up-soft px-1.5 py-0.5 text-[0.625rem] font-medium text-up"
-        title="Positions réglées sur chaîne par contrat autonome"
-      >
-        Décentralisée
-      </span>
+        title={t('Positions réglées sur chaîne par contrat autonome')}
+      >{t('Décentralisée')}</span>
     )
   }
 
@@ -409,17 +408,15 @@ function KindBadge({ kind }: { kind: DerivativeExchange['kind'] }) {
     return (
       <span
         className="rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.625rem] font-medium text-ink-muted"
-        title="Fonds détenus par l’opérateur de la plateforme"
-      >
-        Dépositaire
-      </span>
+        title={t('Fonds détenus par l’opérateur de la plateforme')}
+      >{t('Dépositaire')}</span>
     )
   }
 
   return (
     <span
       className="text-[0.625rem] text-ink-muted opacity-70"
-      title="ZENKUU n’a pas encore classé cette place"
+      title={t('ZENKUU n’a pas encore classé cette place')}
     >
       non classée
     </span>

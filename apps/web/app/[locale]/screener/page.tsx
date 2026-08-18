@@ -25,6 +25,8 @@ import {
   type ScreenerMarket,
   type ScreenerRow,
 } from '@/components/tools/screener-markets'
+import { getPhrase } from '@/lib/content'
+import { emphasise } from '@/components/locale/emphasise'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -77,6 +79,7 @@ export default async function ScreenerPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const market = readMarket((await searchParams)['marche'])
 
   return (
@@ -92,7 +95,7 @@ export default async function ScreenerPage({
           partageable, navigable au bouton « retour », et surtout permet de ne charger
           qu'une population par visite. Une bascule React aurait demandé les six. */}
       <nav
-        aria-label="Marché examiné"
+        aria-label={t('Marché examiné')}
         className="flex flex-wrap items-center gap-1 border-b border-border-subtle"
       >
         {SCREENER_MARKETS.map((entry) => (
@@ -132,15 +135,12 @@ export default async function ScreenerPage({
   )
 }
 
-function LoadingNote({ market }: { market: ScreenerMarket }) {
+async function LoadingNote({ market }: { market: ScreenerMarket }) {
+  const t = await getPhrase()
   return (
     <p className="rounded-card border border-border-subtle bg-surface px-4 py-6 text-sm text-ink-muted">
       Lecture de la population « {market.label} »…
-      <span className="block pt-1 text-xs">
-        Ces sources se demandent par tranches et limitent les appels gratuits : le
-        premier chargement peut prendre quelques secondes. Les suivants sont servis
-        depuis le cache.
-      </span>
+      <span className="block pt-1 text-xs">{t('Ces sources se demandent par tranches et limitent les appels gratuits : le premier chargement peut prendre quelques secondes. Les suivants sont servis depuis le cache.')}</span>
     </p>
   )
 }
@@ -153,6 +153,7 @@ function LoadingNote({ market }: { market: ScreenerMarket }) {
  * pas les six sources.
  */
 async function MarketSection({ market }: { market: ScreenerMarket }) {
+  const t = await getPhrase()
   const loaded = await load(market)
 
   if (!loaded.result.ok) {
@@ -170,7 +171,7 @@ async function MarketSection({ market }: { market: ScreenerMarket }) {
     return (
       <EmptyState
         title="Population vide"
-        description="La source n’a renvoyé aucune ligne pour ce marché."
+        description={t('La source n’a renvoyé aucune ligne pour ce marché.')}
         compact
       />
     )
@@ -235,11 +236,12 @@ async function load(
  * du filtre soit interprétable. Chaque marché a une borne, elle a une raison, et les
  * deux sont dites.
  */
-function Scope({ market }: { market: ScreenerMarket }) {
+async function Scope({ market }: { market: ScreenerMarket }) {
+  const t = await getPhrase()
   return (
     <section className="max-w-2xl space-y-2 border-t border-border-subtle pt-6">
-      <h2 className="text-sm font-semibold text-ink">Ce que cet onglet examine</h2>
-      {SCOPE[market.id]}
+      <h2 className="text-sm font-semibold text-ink">{t('Ce que cet onglet examine')}</h2>
+      {scopeFor(market.id, t)}
       <p className="text-sm text-ink-muted">
         Le filtrage est instantané parce qu’il porte sur des données déjà reçues avec la
         page — aucun aller-retour serveur n’est déclenché à chaque réglage. Voir la{' '}
@@ -252,82 +254,73 @@ function Scope({ market }: { market: ScreenerMarket }) {
   )
 }
 
-const SCOPE: Record<ScreenerMarket['id'], React.ReactNode> = {
-  actions: (
-    <>
-      <p className="text-sm leading-relaxed text-ink-muted">
-        Environ mille valeurs, obtenues en combinant six écrans prédéfinis de la source —
-        les plus échangées, les plus fortes hausses, les plus fortes baisses, les valeurs
-        de croissance décotées, les petites capitalisations offensives et les plus vendues
-        à découvert. Chacun de ces écrans est{' '}
-        <strong className="text-ink">biaisé par construction</strong> ; c’est leur union
-        qui approche un balayage, et elle ne le remplace pas.
-      </p>
-      <p className="text-sm leading-relaxed text-ink-muted">
-        Les lignes ne sont pas cliquables : nos fiches d’actif reposent sur une liste de
-        symboles arrêtée à la main, bien plus courte que cette population. Lier chaque
-        ligne mènerait à des centaines de pages inexistantes.
-      </p>
-    </>
-  ),
-  etf: (
-    <p className="text-sm leading-relaxed text-ink-muted">
-      Les cinq cents premiers ETF américains par encours, seul écran d’ETF que la source
-      publie. Un ETF <strong className="text-ink">européen n’y figure pas</strong> — la
-      sélection est américaine, et laisser croire l’inverse serait pire que la limite
-      elle-même. Les frais affichés sont les frais courants annuels, prélevés sur l’actif
-      du fonds.
-    </p>
-  ),
-  obligations: (
-    <>
-      <p className="text-sm leading-relaxed text-ink-muted">
-        <strong className="text-ink">Ce ne sont pas des obligations.</strong> Une
-        obligation est un titre de créance avec son émetteur, son coupon, son échéance et
-        sa notation ; aucune source gratuite ne publie ces cotations, et tous les écrans
-        obligataires de la source répondent qu’ils n’existent pas.
-      </p>
-      <p className="text-sm leading-relaxed text-ink-muted">
-        Ce que cet onglet recense, ce sont des{' '}
-        <strong className="text-ink">fonds investis en obligations</strong> à haut
-        rendement — une exposition au marché obligataire, pas le marché lui-même. Ses
-        colonnes sont donc celles d’un fonds : valeur liquidative, frais, distribution,
-        performance annualisée. Cinquante-sept lignes, ce que la source publie.
-      </p>
-    </>
-  ),
-  crypto: (
-    <>
-      <p className="text-sm leading-relaxed text-ink-muted">
-        Les 250 plus grandes capitalisations. Deux raisons à cette borne : la source
-        plafonne une page de classement à 250 lignes, et balayer les quinze mille jetons
-        référencés demanderait une soixantaine d’appels par affichage — infaisable sur un
-        accès gratuit.
-      </p>
-      <p className="text-sm leading-relaxed text-ink-muted">
-        Surtout, en dessous de quelques millions de capitalisation, un seul échange
-        déplace un cours de dizaines de points : un filtre non borné remonterait d’abord
-        ce bruit, et le présenterait comme un résultat.
-      </p>
-    </>
-  ),
-  cex: (
-    <p className="text-sm leading-relaxed text-ink-muted">
-      Les cent premières places d’échange dépositaires, classées par la source. La{' '}
-      <strong className="text-ink">note de confiance</strong> est publiée par elle et
-      n’est pas notre évaluation : elle mêle liquidité, écart de cours, trafic déclaré et
-      qualité des interfaces de programmation. Les volumes sont libellés en bitcoin, unité
-      dans laquelle la source les publie — les convertir supposerait de choisir un cours
-      et un instant, ce qui ferait d’une mesure une estimation.
-    </p>
-  ),
-  dex: (
-    <p className="text-sm leading-relaxed text-ink-muted">
-      Une centaine de pools en vue, toutes chaînes confondues, sur cinq pages du
-      classement de la source. Au-delà, un pool porte quelques dizaines de milliers de
-      dollars de réserve : à cette profondeur, une seule transaction déplace le cours de
-      plusieurs points. Tous les montants sont{' '}
-      <strong className="text-ink">en dollars</strong> — cette source ne cote pas en euro.
-    </p>
-  ),
+/**
+ * Ce que chaque onglet examine, et ce qu'il n'examine pas.
+ *
+ * FONCTION et non constante de module : le texte doit être traduit, et une constante
+ * évaluée au chargement ne connaît pas la langue de la requête.
+ *
+ * Les paragraphes portent leur emphase en `**` plutôt qu'en `<strong>` imbriqué —
+ * voir `components/locale/emphasise` pour la raison, qui tient à l'ordre des mots.
+ */
+function scopeFor(
+  id: ScreenerMarket['id'],
+  t: (text: string) => string,
+): React.ReactNode {
+  const paragraph = (text: string) => (
+    <p className="text-sm leading-relaxed text-ink-muted">{emphasise(t(text))}</p>
+  )
+
+  switch (id) {
+    case 'actions':
+      return (
+        <>
+          {paragraph(
+            'Environ mille valeurs, obtenues en combinant six écrans prédéfinis de la source — les plus échangées, les plus fortes hausses, les plus fortes baisses, les valeurs de croissance décotées, les petites capitalisations offensives et les plus vendues à découvert. Chacun de ces écrans est **biaisé par construction** ; c’est leur union qui approche un balayage, et elle ne le remplace pas.',
+          )}
+          {paragraph(
+            'Les lignes ne sont pas cliquables : nos fiches d’actif reposent sur une liste de symboles arrêtée à la main, bien plus courte que cette population. Lier chaque ligne mènerait à des centaines de pages inexistantes.',
+          )}
+        </>
+      )
+
+    case 'etf':
+      return paragraph(
+        'Les cinq cents premiers ETF américains par encours, seul écran d’ETF que la source publie. Un ETF **européen n’y figure pas** — la sélection est américaine, et laisser croire l’inverse serait pire que la limite elle-même. Les frais affichés sont les frais courants annuels, prélevés sur l’actif du fonds.',
+      )
+
+    case 'obligations':
+      return (
+        <>
+          {paragraph(
+            '**Ce ne sont pas des obligations.** Une obligation est un titre de créance avec son émetteur, son coupon, son échéance et sa notation ; aucune source gratuite ne publie ces cotations, et tous les écrans obligataires de la source répondent qu’ils n’existent pas.',
+          )}
+          {paragraph(
+            'Ce que cet onglet recense, ce sont des **fonds investis en obligations** à haut rendement — une exposition au marché obligataire, pas le marché lui-même. Ses colonnes sont donc celles d’un fonds : valeur liquidative, frais, distribution, performance annualisée. Cinquante-sept lignes, ce que la source publie.',
+          )}
+        </>
+      )
+
+    case 'crypto':
+      return (
+        <>
+          {paragraph(
+            'Les 250 plus grandes capitalisations. Deux raisons à cette borne : la source plafonne une page de classement à 250 lignes, et balayer les quinze mille jetons référencés demanderait une soixantaine d’appels par affichage — infaisable sur un accès gratuit.',
+          )}
+          {paragraph(
+            'Surtout, en dessous de quelques millions de capitalisation, un seul échange déplace un cours de dizaines de points : un filtre non borné remonterait d’abord ce bruit, et le présenterait comme un résultat.',
+          )}
+        </>
+      )
+
+    case 'cex':
+      return paragraph(
+        'Les cent premières places d’échange dépositaires, classées par la source. La **note de confiance** est publiée par elle et n’est pas notre évaluation : elle mêle liquidité, écart de cours, trafic déclaré et qualité des interfaces de programmation. Les volumes sont libellés en bitcoin, unité dans laquelle la source les publie — les convertir supposerait de choisir un cours et un instant, ce qui ferait d’une mesure une estimation.',
+      )
+
+    case 'dex':
+      return paragraph(
+        'Une centaine de pools en vue, toutes chaînes confondues, sur cinq pages du classement de la source. Au-delà, un pool porte quelques dizaines de milliers de dollars de réserve : à cette profondeur, une seule transaction déplace le cours de plusieurs points. Tous les montants sont **en dollars** — cette source ne cote pas en euro.',
+      )
+  }
 }

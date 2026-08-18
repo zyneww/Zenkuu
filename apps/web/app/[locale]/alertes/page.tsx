@@ -51,12 +51,13 @@ export async function generateMetadata(): Promise<Metadata> {
  * fonction plutôt qu'à un chiffre.
  */
 export default async function AlertesPage() {
+  const t = await getPhrase()
   if (!DB_ENABLED) {
     return (
       <Shell>
         <EmptyState
-          title="Base de données non configurée"
-          description="Les alertes sont conservées en base. Tant qu’aucune n’est configurée sur cette instance, elles ne peuvent pas être enregistrées."
+          title={t('Base de données non configurée')}
+          description={t('Les alertes sont conservées en base. Tant qu’aucune n’est configurée sur cette instance, elles ne peuvent pas être enregistrées.')}
           action={<HomeLink />}
         />
       </Shell>
@@ -67,8 +68,8 @@ export default async function AlertesPage() {
     return (
       <Shell>
         <EmptyState
-          title="Envoi de courriel non configuré"
-          description="Les alertes de prix préviennent par courriel. Tant que le service d’envoi n’est pas configuré sur cette instance, elles ne sont pas proposées — plutôt que d’être enregistrées sans jamais partir."
+          title={t('Envoi de courriel non configuré')}
+          description={t('Les alertes de prix préviennent par courriel. Tant que le service d’envoi n’est pas configuré sur cette instance, elles ne sont pas proposées — plutôt que d’être enregistrées sans jamais partir.')}
           action={<HomeLink />}
         />
       </Shell>
@@ -102,14 +103,12 @@ export default async function AlertesPage() {
       <Shell quota={{ armed, limit: ALERT_LIMIT }} signedIn={account !== null}>
         <EmptyState
           title="Aucune alerte"
-          description="Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil. Aucun compte n’est nécessaire."
+          description={t('Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil. Aucun compte n’est nécessaire.')}
           action={
             <Link
               href="/marches"
               className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-            >
-              Parcourir les cryptomonnaies
-            </Link>
+            >{t('Parcourir les cryptomonnaies')}</Link>
           }
         />
       </Shell>
@@ -156,7 +155,7 @@ export default async function AlertesPage() {
  * devise inconnue.
  */
 
-function Shell({
+async function Shell({
   children,
   quota,
   signedIn = false,
@@ -173,15 +172,12 @@ function Shell({
    */
   signedIn?: boolean
 }) {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Mes alertes</h1>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Les cours sont relevés toutes les quinze minutes. Au franchissement du seuil, un
-          courriel part sur l’adresse indiquée à la création. Une alerte ordinaire se désarme
-          alors ; une alerte « à chaque fois » reste armée, avec au plus un envoi par jour.
-        </p>
+        <p className="text-sm leading-relaxed text-ink-muted">{t('Les cours sont relevés toutes les quinze minutes. Au franchissement du seuil, un courriel part sur l’adresse indiquée à la création. Une alerte ordinaire se désarme alors ; une alerte « à chaque fois » reste armée, avec au plus un envoi par jour.')}</p>
       </header>
 
       {quota ? (
@@ -209,13 +205,12 @@ function Shell({
   )
 }
 
-function HomeLink() {
+async function HomeLink() {
+  const t = await getPhrase()
   return (
     <Link
       href="/"
       className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-    >
-      Retour à l’accueil
-    </Link>
+    >{t('Retour à l’accueil')}</Link>
   )
 }

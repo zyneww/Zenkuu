@@ -184,6 +184,7 @@ export function ColumnHeader({
   /** Précision affichée en bas du menu — d'où vient le chiffre, ce qu'il couvre. */
   hint?: string
 }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -269,9 +270,7 @@ export function ColumnHeader({
                     onSort(sortKey, 'desc')
                     setOpen(false)
                   }}
-                >
-                  Du plus grand au plus petit
-                </MenuRow>
+                >{t('Du plus grand au plus petit')}</MenuRow>
                 <MenuRow
                   icon={<ArrowUp className="h-3.5 w-3.5" />}
                   active={isActive && sort?.direction === 'asc'}
@@ -279,9 +278,7 @@ export function ColumnHeader({
                     onSort(sortKey, 'asc')
                     setOpen(false)
                   }}
-                >
-                  Du plus petit au plus grand
-                </MenuRow>
+                >{t('Du plus petit au plus grand')}</MenuRow>
               </>
             ) : null}
 
@@ -417,9 +414,7 @@ export function ColumnPicker({
           role="menu"
           className="absolute right-0 z-30 mt-1 w-56 rounded-card border border-border-subtle bg-surface py-1 shadow-lg"
         >
-          <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
-            Colonnes affichées
-          </p>
+          <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Colonnes affichées')}</p>
 
           {prefs.columns.map((column) => {
             const checked = prefs.isVisible(column.id)
@@ -454,9 +449,7 @@ export function ColumnPicker({
               onClick={() => prefs.reset()}
               className="mt-1 flex w-full items-center gap-2.5 border-t border-border-subtle px-3 pb-1 pt-2 text-left text-xs text-ink transition-colors duration-100 hover:bg-surface-muted"
             >
-              <RotateCcw className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
-              Tout réafficher
-            </button>
+              <RotateCcw className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />{t('Tout réafficher')}</button>
           ) : null}
         </div>
       ) : null}

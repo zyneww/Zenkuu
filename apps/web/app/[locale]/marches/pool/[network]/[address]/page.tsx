@@ -7,6 +7,7 @@ import { ChangeBadge, EmptyState, SourceNote, formatCompact } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { Panel } from '@/components/ui/Panel'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Une minute, alignée sur le TTL de la source on-chain.
@@ -60,6 +61,7 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
  * classique s'arrête à 24 h ; sur la chaîne, cinq minutes est une éternité.
  */
 export default async function Page({ params }: RouteParams) {
+  const t = await getPhrase()
   const { network, address } = await params
   const pool = await getPool(network, address)
 
@@ -96,10 +98,8 @@ export default async function Page({ params }: RouteParams) {
 
   return (
     <div className="space-y-5">
-      <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
-        <Link href="/marches" className="transition-colors hover:text-ink">
-          Marchés avancés
-        </Link>
+      <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
+        <Link href="/marches" className="transition-colors hover:text-ink">{t('Marchés avancés')}</Link>
         <span className="mx-1.5">/</span>
         <span className="uppercase">{network}</span>
         <span className="mx-1.5">/</span>
@@ -144,20 +144,20 @@ export default async function Page({ params }: RouteParams) {
       </header>
 
       {/* ── MESURES ─────────────────────────────────────────────────────────── */}
-      <Panel title="Mesures du pool">
+      <Panel title={t('Mesures du pool')}>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
-          <Measure label="Réserve" value={data.liquidityUsd} />
+          <Measure label={t('Réserve')} value={data.liquidityUsd} />
           <Measure label="Volume 24 h" value={data.volume24hUsd} />
           <Measure label="Capitalisation" value={data.marketCapUsd} />
-          <Measure label="Valorisation diluée" value={data.fdvUsd} />
+          <Measure label={t('Valorisation diluée')} value={data.fdvUsd} />
         </dl>
       </Panel>
 
       {/* ── VARIATIONS ──────────────────────────────────────────────────────── */}
       {data.priceChange ? (
         <Panel
-          title="Variation par fenêtre"
-          subtitle="Un site de cotation s’arrête à 24 h ; sur la chaîne, cinq minutes comptent."
+          title={t('Variation par fenêtre')}
+          subtitle={t('Un site de cotation s’arrête à 24 h ; sur la chaîne, cinq minutes comptent.')}
         >
           <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-6">
             {(['m5', 'm15', 'm30', 'h1', 'h6', 'h24'] as const).map((window) => (
@@ -175,8 +175,8 @@ export default async function Page({ params }: RouteParams) {
       {/* ── TRANSACTIONS ────────────────────────────────────────────────────── */}
       {data.trades24h ? (
         <Panel
-          title="Transactions sur 24 h"
-          subtitle="Le nombre d’adresses distinctes est plus difficile à gonfler que celui des transactions : combien de mains, et non combien de gestes."
+          title={t('Transactions sur 24 h')}
+          subtitle={t('Le nombre d’adresses distinctes est plus difficile à gonfler que celui des transactions : combien de mains, et non combien de gestes.')}
         >
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
             <Count label="Achats" value={data.trades24h.buys} tone="up" />
@@ -193,9 +193,7 @@ export default async function Page({ params }: RouteParams) {
           <h2 className="text-sm font-semibold text-ink">
             Où ce jeton se négocie aussi, sur {network}
           </h2>
-          <p className="text-xs text-ink-muted">
-            Les autres pools du même jeton de base, du plus profond au moins profond.
-          </p>
+          <p className="text-xs text-ink-muted">{t('Les autres pools du même jeton de base, du plus profond au moins profond.')}</p>
           <DexPoolTable pools={others.slice(0, 12)} />
         </section>
       ) : null}
@@ -214,7 +212,7 @@ const WINDOW_LABEL: Record<string, string> = {
   h24: '24 h',
 }
 
-function Measure({ label, value }: { label: string; value?: number }) {
+async function Measure({ label, value }: { label: string; value?: number }) {
   return (
     <div>
       <dt className="text-xs text-ink-muted">{label}</dt>
@@ -225,7 +223,7 @@ function Measure({ label, value }: { label: string; value?: number }) {
   )
 }
 
-function Count({ label, value, tone }: { label: string; value: number; tone: 'up' | 'down' }) {
+async function Count({ label, value, tone }: { label: string; value: number; tone: 'up' | 'down' }) {
   return (
     <div>
       <dt className="text-xs text-ink-muted">{label}</dt>

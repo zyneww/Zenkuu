@@ -100,7 +100,7 @@ export default async function BlogPage() {
           sont cliquables. Deux mécanismes pour un même filtre seraient pires. */}
       {hasArticles ? (
         <nav
-          aria-label="Rubriques du blog"
+          aria-label={t('Rubriques du blog')}
           className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-b border-border-subtle pb-4"
         >
           {BLOG_CATEGORIES.map((entry) => (
@@ -176,8 +176,8 @@ export default async function BlogPage() {
         </article>
       ) : (
         <EmptyState
-          title="Aucun article publié pour l’instant"
-          description="Plutôt que de remplir cette page de billets de circonstance, elle reste vide jusqu’au premier vrai article. Les contenus explicatifs du site sont, eux, bien réels."
+          title={t('Aucun article publié pour l’instant')}
+          description={t('Plutôt que de remplir cette page de billets de circonstance, elle reste vide jusqu’au premier vrai article. Les contenus explicatifs du site sont, eux, bien réels.')}
           action={
             <div className="flex flex-wrap justify-center gap-3">
               <Link
@@ -189,9 +189,7 @@ export default async function BlogPage() {
               <Link
                 href="/methodologie"
                 className="rounded-control border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-              >
-                Méthodologie &amp; sources
-              </Link>
+              >{t('Méthodologie & sources')}</Link>
             </div>
           }
         />
@@ -208,7 +206,7 @@ export default async function BlogPage() {
            elles restent pourtant la meilleure réponse à « de quoi ce blog parlera ».
            Elles descendent donc ici, en ligne, sous l'état vide. */
         <section className="mx-auto max-w-3xl space-y-3 border-t border-border-subtle pt-8 text-center">
-          <h2 className="text-base font-semibold text-ink">Ce qu’on y trouvera</h2>
+          <h2 className="text-base font-semibold text-ink">{t('Ce qu’on y trouvera')}</h2>
           <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2">
             {BLOG_CATEGORIES.map((entry) => (
               <li key={entry.id} className="text-sm">

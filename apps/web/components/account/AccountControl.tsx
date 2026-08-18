@@ -194,7 +194,7 @@ export function AccountControl({
     <button
       type="button"
       onClick={toggle}
-      aria-label="Réglages d’affichage"
+      aria-label={t('Réglages d’affichage')}
       aria-expanded={menuOpen}
       aria-haspopup="menu"
       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-control border transition-colors duration-150 ${
@@ -234,18 +234,10 @@ export function AccountControl({
               <AccountHeader account={account} />
 
               <div className="border-t border-border-subtle p-1.5">
-                <MenuLink href="/tableau-de-bord" icon={<LayoutGrid className="h-4 w-4" />} onNavigate={close}>
-                  Vue d’ensemble
-                </MenuLink>
-                <MenuLink href="/suivi" icon={<Star className="h-4 w-4" />} onNavigate={close}>
-                  Liste de suivi
-                </MenuLink>
-                <MenuLink href="/alertes" icon={<Bell className="h-4 w-4" />} onNavigate={close}>
-                  Alertes de prix
-                </MenuLink>
-                <MenuLink href="/screener" icon={<ListFilter className="h-4 w-4" />} onNavigate={close}>
-                  Écrans enregistrés
-                </MenuLink>
+                <MenuLink href="/tableau-de-bord" icon={<LayoutGrid className="h-4 w-4" />} onNavigate={close}>{t('Vue d’ensemble')}</MenuLink>
+                <MenuLink href="/suivi" icon={<Star className="h-4 w-4" />} onNavigate={close}>{t('Liste de suivi')}</MenuLink>
+                <MenuLink href="/alertes" icon={<Bell className="h-4 w-4" />} onNavigate={close}>{t('Alertes de prix')}</MenuLink>
+                <MenuLink href="/screener" icon={<ListFilter className="h-4 w-4" />} onNavigate={close}>{t('Écrans enregistrés')}</MenuLink>
               </div>
             </>
           ) : available ? (
@@ -334,6 +326,7 @@ export function AccountControl({
  * souvient pas toujours de laquelle on a utilisée.
  */
 function AccountHeader({ account }: { account: AccountSummary }) {
+  const t = usePhrase()
   const [editing, setEditing] = useState(false)
   const [handle, setHandle] = useState(account.handle)
   const [copied, setCopied] = useState(false)
@@ -373,7 +366,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
             <button
               type="submit"
               disabled={pending}
-              aria-label="Enregistrer le pseudonyme"
+              aria-label={t('Enregistrer le pseudonyme')}
               className="shrink-0 rounded-control p-1 text-brand-strong hover:bg-surface-muted"
             >
               <Check className="h-3.5 w-3.5" aria-hidden="true" />
@@ -383,7 +376,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
           <button
             type="button"
             onClick={() => setEditing(true)}
-            title="Modifier le pseudonyme"
+            title={t('Modifier le pseudonyme')}
             className="block max-w-full truncate text-left text-sm font-semibold text-ink hover:text-brand-strong"
           >
             {account.handle}
@@ -396,7 +389,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
           </span>
           <button
             type="button"
-            aria-label="Copier l’adresse"
+            aria-label={t('Copier l’adresse')}
             onClick={() => {
               void navigator.clipboard?.writeText(account.email)
               setCopied(true)
@@ -420,9 +413,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
           seule chose qu'un compte change réellement.
         */}
         <p className="mt-1.5 inline-flex items-center gap-1 rounded-pill border border-border-subtle px-1.5 py-0.5 text-[0.625rem] font-medium text-ink-muted">
-          <UserRound className="h-2.5 w-2.5" aria-hidden="true" />
-          Liste synchronisée
-        </p>
+          <UserRound className="h-2.5 w-2.5" aria-hidden="true" />{t('Liste synchronisée')}</p>
       </div>
     </div>
   )
@@ -436,22 +427,19 @@ function AccountHeader({ account }: { account: AccountSummary }) {
  * la page sous les doigts de quelqu'un qui explorait.
  */
 function SecurityRow({ onDone }: { onDone: () => void }) {
+  const t = usePhrase()
   const [armed, setArmed] = useState(false)
   const [pending, startTransition] = useTransition()
 
   if (!armed) {
     return (
-      <MenuButton icon={<Shield className="h-4 w-4" />} onClick={() => setArmed(true)}>
-        Sécurité des sessions
-      </MenuButton>
+      <MenuButton icon={<Shield className="h-4 w-4" />} onClick={() => setArmed(true)}>{t('Sécurité des sessions')}</MenuButton>
     )
   }
 
   return (
     <div className="rounded-card bg-surface-muted p-2">
-      <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-        Fermer toutes les sessions, y compris celle-ci ?
-      </p>
+      <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Fermer toutes les sessions, y compris celle-ci ?')}</p>
       <div className="mt-2 flex gap-1">
         <button
           type="button"
@@ -506,23 +494,19 @@ function SignOutRow() {
  * qui va disparaître. Le second bouton, lui, le nomme.
  */
 function DangerRow() {
+  const t = usePhrase()
   const [armed, setArmed] = useState(false)
   const [pending, startTransition] = useTransition()
 
   if (!armed) {
     return (
-      <MenuButton icon={<Trash2 className="h-4 w-4" />} tone="danger" onClick={() => setArmed(true)}>
-        Supprimer le compte
-      </MenuButton>
+      <MenuButton icon={<Trash2 className="h-4 w-4" />} tone="danger" onClick={() => setArmed(true)}>{t('Supprimer le compte')}</MenuButton>
     )
   }
 
   return (
     <div className="rounded-card border border-down/40 bg-down-soft p-2">
-      <p className="text-[0.6875rem] leading-relaxed text-ink">
-        Supprime définitivement le compte, la liste de suivi, les alertes et les écrans
-        enregistrés.
-      </p>
+      <p className="text-[0.6875rem] leading-relaxed text-ink">{t('Supprime définitivement le compte, la liste de suivi, les alertes et les écrans enregistrés.')}</p>
       <div className="mt-2 flex gap-1">
         <button
           type="button"

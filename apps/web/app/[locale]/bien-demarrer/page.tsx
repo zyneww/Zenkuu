@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
 import { getContent, getSeo } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -64,7 +65,8 @@ const STEPS = [
   },
 ]
 
-export default function BienDemarrerPage() {
+export default async function BienDemarrerPage() {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-5xl space-y-6 py-6">
       {/* Fil d'Ariane, comme sur la référence : cette page est une FEUILLE du centre
@@ -75,24 +77,19 @@ export default function BienDemarrerPage() {
           fil d'Ariane est le premier recours de qui s'est perdu — il ne peut pas être la
           cible la plus difficile de la page. */}
       <nav
-        aria-label="Fil d’Ariane"
+        aria-label={t('Fil d’Ariane')}
         className="flex items-center text-xs text-ink-muted"
       >
-        <Link href="/aide" className="inline-flex items-center transition-colors hover:text-ink">
-          Centre d’aide
-        </Link>
+        <Link href="/aide" className="inline-flex items-center transition-colors hover:text-ink">{t('Centre d’aide')}</Link>
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
-        <span className="text-ink">Bien démarrer</span>
+        <span className="text-ink">{t('Bien démarrer')}</span>
       </nav>
 
       <header className="space-y-3">
-        <h1 className="display-lg text-ink">Bien démarrer</h1>
-        <p className="max-w-2xl text-base leading-relaxed text-ink-muted">
-          Cinq étapes pour prendre en main ZENKUU. Aucune ne demande de compte : tout
-          ce qui suit est accessible sans inscription.
-        </p>
+        <h1 className="display-lg text-ink">{t('Bien démarrer')}</h1>
+        <p className="max-w-2xl text-base leading-relaxed text-ink-muted">{t('Cinq étapes pour prendre en main ZENKUU. Aucune ne demande de compte : tout ce qui suit est accessible sans inscription.')}</p>
       </header>
 
       {/*
@@ -116,9 +113,7 @@ export default function BienDemarrerPage() {
           aria-label="Sommaire"
           className="rounded-card border border-border-subtle bg-surface p-3 lg:sticky lg:top-20"
         >
-          <p className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted">
-            Les cinq étapes
-          </p>
+          <p className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Les cinq étapes')}</p>
           <ol className="space-y-0.5">
             {STEPS.map((step, index) => (
               <li key={step.title}>
@@ -164,11 +159,7 @@ export default function BienDemarrerPage() {
             ))}
           </ol>
 
-          <p className="rounded-card bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-muted">
-            ZENKUU est une plateforme d’information en lecture seule. Aucune de ces
-            étapes ne mène à un achat, une vente ou une connexion à un portefeuille — le
-            site n’en propose pas.
-          </p>
+          <p className="rounded-card bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-muted">{t('ZENKUU est une plateforme d’information en lecture seule. Aucune de ces étapes ne mène à un achat, une vente ou une connexion à un portefeuille — le site n’en propose pas.')}</p>
         </div>
       </div>
     </div>

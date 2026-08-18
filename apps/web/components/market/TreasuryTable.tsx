@@ -7,6 +7,7 @@ import { formatCompact } from '@zenkuu/ui'
 
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Registre des détenteurs institutionnels.
@@ -28,6 +29,7 @@ import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-column
 type HolderSortKey = 'name' | 'holdings' | 'currentValue' | 'entryValue' | 'gain' | 'supply'
 
 export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: string }) {
+  const t = usePhrase()
   /*
    * LA PLUS-VALUE EST CALCULÉE DANS L'EXTRACTEUR, pas stockée sur la ligne.
    *
@@ -101,7 +103,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                 </th>
               ) : null}
               <SortableHeader
-                label="Société"
+                label={t('Société')}
                 sortKey="name"
                 align="left"
                 sort={sort}
@@ -127,7 +129,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
               ) : null}
               {prefs.isVisible('entryValue') ? (
                 <SortableHeader
-                  label="Coût d’entrée $"
+                  label={t('Coût d’entrée $')}
                   sortKey="entryValue"
                   className="hidden md:table-cell"
                   sort={sort}
@@ -147,7 +149,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
               ) : null}
               {prefs.isVisible('supply') ? (
                 <SortableHeader
-                  label="% de l’offre"
+                  label={t('% de l’offre')}
                   sortKey="supply"
                   className="hidden lg:table-cell"
                   sort={sort}

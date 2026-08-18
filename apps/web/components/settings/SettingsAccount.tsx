@@ -11,6 +11,7 @@ import {
   updateHandle,
 } from '@/lib/auth-actions'
 import { readIdentityCookie } from '@/lib/identity-cookie'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Rubrique « Compte » des paramètres.
@@ -35,6 +36,7 @@ import { readIdentityCookie } from '@/lib/identity-cookie'
  * appellent les mêmes actions serveur, il n'y a donc qu'une seule vérité.
  */
 export function SettingsAccount() {
+  const t = usePhrase()
   const [identity, setIdentity] = useState<{ handle: string; email: string } | null | undefined>(
     undefined,
   )
@@ -57,7 +59,7 @@ export function SettingsAccount() {
       <section className="space-y-4">
         <Heading
           title="Compte"
-          description="Vous n’êtes pas connecté. Ce n’est pas un obstacle : la liste de suivi, les alertes et les écrans enregistrés fonctionnent sans compte, rangés dans ce navigateur."
+          description={t('Vous n’êtes pas connecté. Ce n’est pas un obstacle : la liste de suivi, les alertes et les écrans enregistrés fonctionnent sans compte, rangés dans ce navigateur.')}
         />
 
         <div className="rounded-card border border-border-subtle bg-surface p-4">
@@ -87,7 +89,7 @@ export function SettingsAccount() {
     <section className="space-y-4">
       <Heading
         title="Compte"
-        description="Ce que ZENKUU sait de vous tient en deux lignes : une adresse et un pseudonyme. Il n’y a ni mot de passe, ni profil, ni identité vérifiée."
+        description={t('Ce que ZENKUU sait de vous tient en deux lignes : une adresse et un pseudonyme. Il n’y a ni mot de passe, ni profil, ni identité vérifiée.')}
       />
 
       <HandleCard handle={identity.handle} email={identity.email} />
@@ -115,6 +117,7 @@ function Heading({ title, description }: { title: string; description: string })
  * la description honnête de ce qui se passe.
  */
 function HandleCard({ handle, email }: { handle: string; email: string }) {
+  const t = usePhrase()
   const [draft, setDraft] = useState(handle)
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -159,21 +162,19 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
       </label>
 
       <div>
-        <span className="mb-1.5 block text-xs font-medium text-ink">Adresse électronique</span>
+        <span className="mb-1.5 block text-xs font-medium text-ink">{t('Adresse électronique')}</span>
         <p className="flex items-center gap-2 text-sm text-ink">
           <Mail className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
           {email}
         </p>
-        <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">
-          Elle identifie le compte et ne se modifie donc pas. Se connecter avec une autre adresse
-          ouvre un autre compte, avec sa propre liste.
-        </p>
+        <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">{t('Elle identifie le compte et ne se modifie donc pas. Se connecter avec une autre adresse ouvre un autre compte, avec sa propre liste.')}</p>
       </div>
     </div>
   )
 }
 
 function SessionsCard() {
+  const t = usePhrase()
   const [pendingOne, startOne] = useTransition()
   const [pendingAll, startAll] = useTransition()
 
@@ -184,10 +185,7 @@ function SessionsCard() {
           <ShieldCheck className="h-4 w-4 text-ink-muted" aria-hidden="true" />
           Sessions
         </h3>
-        <p className="text-xs leading-relaxed text-ink-muted">
-          Une session dure soixante jours. « Tout fermer » révoque celles de tous vos appareils, y
-          compris celui-ci — le geste à faire après avoir utilisé un poste partagé.
-        </p>
+        <p className="text-xs leading-relaxed text-ink-muted">{t('Une session dure soixante jours. « Tout fermer » révoque celles de tous vos appareils, y compris celui-ci — le geste à faire après avoir utilisé un poste partagé.')}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -202,9 +200,7 @@ function SessionsCard() {
           }
           className="inline-flex h-9 items-center gap-2 rounded-control border border-border-subtle px-3 text-sm font-medium text-ink transition-colors hover:border-brand disabled:opacity-50"
         >
-          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-          Se déconnecter
-        </button>
+          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />{t('Se déconnecter')}</button>
 
         <button
           type="button"
@@ -232,6 +228,7 @@ function SessionsCard() {
  * après une phrase qui le fait.
  */
 function DangerCard() {
+  const t = usePhrase()
   const [armed, setArmed] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -239,14 +236,8 @@ function DangerCard() {
     <div className="space-y-3 rounded-card border border-down/40 bg-surface p-4">
       <div className="space-y-1">
         <h3 className="flex items-center gap-2 text-sm font-medium text-ink">
-          <Trash2 className="h-4 w-4 text-down" aria-hidden="true" />
-          Supprimer le compte
-        </h3>
-        <p className="text-xs leading-relaxed text-ink-muted">
-          Efface le compte, la liste de suivi, les alertes et les écrans enregistrés. Immédiat et
-          sans période de grâce : conserver trente jours des données que personne ne réclame serait
-          moins protecteur, pas plus.
-        </p>
+          <Trash2 className="h-4 w-4 text-down" aria-hidden="true" />{t('Supprimer le compte')}</h3>
+        <p className="text-xs leading-relaxed text-ink-muted">{t('Efface le compte, la liste de suivi, les alertes et les écrans enregistrés. Immédiat et sans période de grâce : conserver trente jours des données que personne ne réclame serait moins protecteur, pas plus.')}</p>
       </div>
 
       {armed ? (

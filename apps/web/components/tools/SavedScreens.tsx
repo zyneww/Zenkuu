@@ -10,6 +10,7 @@ import {
   type ScreenCriteria,
   type SavedScreenRow,
 } from '@/lib/screen-actions'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Barre des écrans de screener enregistrés.
@@ -34,6 +35,7 @@ export function SavedScreens({
   criteria: ScreenCriteria
   onApply: (criteria: ScreenCriteria) => void
 }) {
+  const t = usePhrase()
   const [all, setScreens] = useState<SavedScreenRow[]>([])
 
   /*
@@ -128,8 +130,8 @@ export function SavedScreens({
               value={draft}
               maxLength={40}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Nom de l’écran"
-              aria-label="Nom de l’écran à enregistrer"
+              placeholder={t('Nom de l’écran')}
+              aria-label={t('Nom de l’écran à enregistrer')}
               className="w-40 rounded-card border border-border-subtle bg-surface px-2 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
             <button
@@ -146,9 +148,7 @@ export function SavedScreens({
             onClick={() => setNaming(true)}
             className="inline-flex items-center gap-1.5 rounded-control border border-dashed border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
           >
-            <BookmarkPlus className="h-3.5 w-3.5" aria-hidden="true" />
-            Enregistrer cet écran
-          </button>
+            <BookmarkPlus className="h-3.5 w-3.5" aria-hidden="true" />{t('Enregistrer cet écran')}</button>
         )}
       </div>
 

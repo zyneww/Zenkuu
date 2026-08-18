@@ -9,6 +9,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 import { monogram } from '@/components/asset/monogram'
 import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Tiroir des marchés — la colonne de gauche des plateformes de trading.
@@ -67,6 +68,7 @@ interface SearchResponse {
 }
 
 export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<AssetClass | null>(null)
@@ -192,7 +194,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
-        aria-label="Ouvrir la liste des marchés"
+        aria-label={t('Ouvrir la liste des marchés')}
         className={`fixed left-0 top-1/2 z-40 hidden -translate-y-1/2 items-center gap-1.5 border border-l-0 border-border-subtle bg-panel py-4 pl-1 pr-1.5 text-ink-muted shadow-overlay transition-colors duration-150 hover:bg-surface-muted hover:text-ink lg:flex ${
           open ? 'pointer-events-none opacity-0' : 'opacity-100'
         }`}
@@ -202,9 +204,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
           aria-hidden="true"
           className="text-micro font-semibold uppercase tracking-widest"
           style={{ writingMode: 'vertical-rl' }}
-        >
-          Marchés
-        </span>
+        >{t('Marchés')}</span>
       </button>
 
       {/* Voile : il ne bloque pas le défilement, à la différence de la recherche
@@ -220,7 +220,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
       <div
         ref={panelRef}
         role="dialog"
-        aria-label="Marchés"
+        aria-label={t('Marchés')}
         aria-modal="false"
         className={`fixed inset-y-0 left-0 z-50 flex w-80 flex-col border-r border-border-subtle bg-panel shadow-overlay transition-transform duration-200 ease-out ${
           open ? 'translate-x-0' : '-translate-x-full'
@@ -228,11 +228,11 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
       >
         {/* ── En-tête ──────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-3 py-2.5">
-          <h2 className="text-sm font-semibold text-ink">Marchés</h2>
+          <h2 className="text-sm font-semibold text-ink">{t('Marchés')}</h2>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Fermer la liste des marchés"
+            aria-label={t('Fermer la liste des marchés')}
             className="flex h-7 w-7 items-center justify-center text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -248,15 +248,15 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Rechercher une crypto, une action…"
-              aria-label="Rechercher un actif"
+              placeholder={t('Rechercher une crypto, une action…')}
+              aria-label={t('Rechercher un actif')}
               className="h-8 min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted"
             />
             {query ? (
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                aria-label="Effacer la recherche"
+                aria-label={t('Effacer la recherche')}
                 className="shrink-0 text-ink-muted transition-colors hover:text-ink"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
