@@ -34,6 +34,7 @@ import {
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 export type MarketSort = 'marketCap' | 'volume24h'
 export type SortDirection = 'asc' | 'desc'
@@ -143,6 +144,7 @@ export function MarketTable({
   leadingSlot,
 }: MarketTableProps) {
   const fr = useContent()
+  const t = usePhrase()
   /**
    * Colonnes déduites de la donnée réellement présente.
    *
@@ -259,15 +261,15 @@ export function MarketTable({
               count={tradableCount ?? 0}
               title="Seuls les actifs dont la source publie un volume sur 24 heures"
             >
-              Échangeables
+              {t("Échangeables")}
             </ScopeButton>
             <ScopeButton
               active={scope !== 'tradable'}
               onClick={() => onScopeChange('all')}
               count={totalCount ?? assets.length}
-              title="Tous les actifs de cette page, volume publié ou non"
+              title={t("Tous les actifs de cette page, volume publié ou non")}
             >
-              Tous les actifs
+              {t("Tous les actifs")}
             </ScopeButton>
           </div>
         ) : (

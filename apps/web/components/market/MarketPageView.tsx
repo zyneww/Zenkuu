@@ -10,6 +10,7 @@ import type { MarketSort, SortDirection } from '@/components/market/MarketTable'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
 import { getWatchlistIds } from '@/lib/watchlist-actions'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Corps commun à toutes les pages de classement.
@@ -98,6 +99,7 @@ export async function MarketPageView({
   children,
 }: MarketPageViewProps) {
   const fr = await getContent()
+  const t = await getPhrase()
   const base = CONFIG[assetClass]
   const config = { ...base, perPage: perPage ?? base.perPage }
   const listPath = basePath ?? marketHref(assetClass)
@@ -155,11 +157,13 @@ export async function MarketPageView({
 
           <MarketStatsStrip
             assets={ranking.data}
-            scopeLabel={
-              config.paginated
-                ? `les ${ranking.data.length} actifs de cette page`
-                : `les ${ranking.data.length} actifs suivis dans cette classe`
-            }
+            /* LA PORTÉE EST UNE PHRASE, pas un fragment concaténé : le nombre y
+               occupe un emplacement nommé, ce qui laisse chaque langue le placer où
+               sa grammaire l'exige. */
+            scopeLabel={(config.paginated
+              ? t('les {n} actifs de cette page')
+              : t('les {n} actifs suivis dans cette classe')
+            ).replace('{n}', String(ranking.data.length))}
           />
 
           <MarketBrowser

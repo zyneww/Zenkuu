@@ -63,6 +63,7 @@ export default async function Page({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const params = await searchParams
 
   /*
@@ -109,11 +110,11 @@ export default async function Page({
       ) : (
         <MarketPageView
           assetClass={assetClass}
-          title="Parcourir les marchés"
-          subtitle={
+          title={t('Parcourir les marchés')}
+          subtitle={t(
             'Les sept marchés suivis, triables et paginés sur une seule page. ' +
-            'Lecture seule : aucun ordre ne part d’ici.'
-          }
+              'Lecture seule : aucun ordre ne part d’ici.',
+          )}
           searchParams={params}
           basePath={browseHref(assetClass)}
           /* `null` et non l'absence de prop : sans cela `AssetClassTabs` s'ajouterait

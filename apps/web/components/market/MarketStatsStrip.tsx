@@ -1,5 +1,6 @@
 import type { MarketAsset } from '@zenkuu/data'
 import { ChangeBadge } from '@zenkuu/ui'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Bandeau de synthèse au-dessus d'un classement.
@@ -14,13 +15,14 @@ import { ChangeBadge } from '@zenkuu/ui'
  * portée doit être annoncée — d'où le libellé explicite, qui vaut mieux qu'un
  * « Marché » vague suggérant une exhaustivité fausse (§5).
  */
-export function MarketStatsStrip({
+export async function MarketStatsStrip({
   assets,
   scopeLabel,
 }: {
   assets: MarketAsset[]
   scopeLabel: string
 }) {
+  const t = await getPhrase()
   const withChange = assets.filter((asset) => asset.change24h !== undefined)
   if (withChange.length === 0) return null
 
@@ -35,17 +37,24 @@ export function MarketStatsStrip({
     // choix est structurel, pas décoratif — c'est ce qui permet à un lecteur d'écran
     // d'annoncer « Actifs affichés : 50 » plutôt que deux fragments sans lien.
     <dl
-      aria-label="Synthèse de la sélection affichée"
+      aria-label={t("Synthèse de la sélection affichée")}
       className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-4"
     >
-      <Cell label="Actifs affichés" value={String(assets.length)} />
-      <Cell label="Variation moyenne 24 h" node={<ChangeBadge value={average} size="sm" />} />
-      <Cell label="En hausse" value={String(gainers)} tone="up" />
-      <Cell label="En baisse" value={String(losers)} tone="down" />
+      <Cell label={t("Actifs affichés")} value={String(assets.length)} />
+      <Cell label={t("Variation moyenne 24 h")} node={<ChangeBadge value={average} size="sm" />} />
+      <Cell label={t("En hausse")} value={String(gainers)} tone="up" />
+      <Cell label={t("En baisse")} value={String(losers)} tone="down" />
 
       <div className="col-span-2 bg-surface px-3 py-2 sm:col-span-4">
         <p className="text-[0.6875rem] text-ink-muted">
-          Calculé sur {scopeLabel}, pas sur l’ensemble du marché.
+          {/* UNE SEULE PHRASE, avec un emplacement nommé, et non deux fragments
+              collés autour de la variable. L'ordre des mots change d'une langue à
+              l'autre : « Calculé sur X » se dit « X 上で計算 » en japonais, et deux
+              moitiés traduites séparément ne peuvent pas se réordonner. */}
+          {t('Calculé sur {portée}, pas sur l’ensemble du marché.').replace(
+            '{portée}',
+            scopeLabel,
+          )}
         </p>
       </div>
     </dl>

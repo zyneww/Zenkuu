@@ -5,6 +5,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Bandeau de trois cartes au-dessus d'un classement.
@@ -37,14 +38,23 @@ interface HighlightsProps {
   assetClass: AssetClass
 }
 
-export function MarketHighlights({ assets, assetClass }: HighlightsProps) {
+export async function MarketHighlights({ assets, assetClass }: HighlightsProps) {
+  const t = await getPhrase()
   const cards = buildCards(assets, assetClass)
   if (cards.length === 0) return null
 
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      {/* La traduction a lieu ICI et non dans `buildCards` : cette fonction est une
+          table de correspondance pure, et lui passer un traducteur l'obligerait à
+          porter un argument qui ne décrit rien de ce qu'elle compose. La CLÉ reste le
+          titre français — c'est un identifiant de liste, pas un affichage. */}
       {cards.map((card) => (
-        <Card key={card.title} title={card.title} note={card.note}>
+        <Card
+          key={card.title}
+          title={t(card.title)}
+          {...(card.note ? { note: t(card.note) } : {})}
+        >
           {card.rows.map((row) => (
             <Row key={row.asset.id} asset={row.asset} trailing={row.trailing} />
           ))}

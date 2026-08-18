@@ -13,6 +13,7 @@ import {
   type SortDirection,
   type WatchlistContext,
 } from '@/components/market/MarketTable'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { ExpandingSearch } from '@/components/ui/ExpandingSearch'
 
 /**
@@ -108,6 +109,7 @@ export function MarketBrowser({
   watchlist,
   ...tableProps
 }: MarketBrowserProps) {
+  const t = usePhrase()
   const [query, setQuery] = useState('')
   const [view, setView] = useState<QuickView>('all')
   const [scope, setScope] = useState<Scope>('all')
@@ -247,7 +249,7 @@ export function MarketBrowser({
             className={`h-3.5 w-3.5 ${view === 'watchlist' ? 'fill-current' : ''}`}
             aria-hidden="true"
           />
-          Favoris
+          {t('Favoris')}
           {followedCount > 0 ? (
             <span className="tabular text-[0.6875rem] opacity-70">{followedCount}</span>
           ) : null}
@@ -260,14 +262,14 @@ export function MarketBrowser({
           type="button"
           onClick={() => setView(entry.key)}
           aria-pressed={view === entry.key}
-          title={entry.hint}
+          title={t(entry.hint)}
           className={`rounded-control px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${
             view === entry.key
               ? 'bg-brand-soft text-brand-strong'
               : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
           }`}
         >
-          {entry.label}
+          {t(entry.label)}
         </button>
       ))}
     </div>
@@ -301,7 +303,7 @@ export function MarketBrowser({
             <div
               className="flex items-center gap-0.5 rounded-control border border-border-subtle p-0.5"
               role="group"
-              aria-label="Période de variation"
+              aria-label={t('Période de variation')}
             >
               {CHANGE_PERIODS.map((entry) => (
                 <button
@@ -309,14 +311,14 @@ export function MarketBrowser({
                   type="button"
                   onClick={() => setLocalPeriod(entry.key)}
                   aria-pressed={localPeriod === entry.key}
-                  title={`Variation ${entry.longLabel}`}
+                  title={t(`Variation ${entry.longLabel}`)}
                   className={`rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-150 ${
                     localPeriod === entry.key
                       ? 'bg-brand text-on-brand'
                       : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                   }`}
                 >
-                  {entry.label}
+                  {t(entry.label)}
                 </button>
               ))}
             </div>
@@ -325,8 +327,8 @@ export function MarketBrowser({
           <ExpandingSearch
             value={query}
             onChange={setQuery}
-            placeholder="Filtrer cette page…"
-            label="Filtrer les actifs affichés sur cette page"
+            placeholder={t('Filtrer cette page…')}
+            label={t('Filtrer les actifs affichés sur cette page')}
           />
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, Columns3, EyeOff, RotateCcw } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * COLONNES CHOISIES PAR LE LECTEUR — le mécanisme partagé par tous les tableaux.
@@ -351,11 +352,20 @@ function MenuRow({
  */
 export function ColumnPicker({
   prefs,
-  label = 'Colonnes',
+  label,
 }: {
   prefs: ColumnPreferences
+  /**
+   * Libellé du bouton.
+   *
+   * Sans valeur par défaut ECRITE dans la signature : le defaut est desormais
+   * « Colonnes » TRADUIT, ce qui suppose le traducteur — et un parametre par defaut
+   * ne peut pas appeler un crochet. Il est donc resolu dans le corps.
+   */
   label?: string
 }) {
+  const t = usePhrase()
+  const shown = label ?? t('Colonnes')
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -391,7 +401,7 @@ export function ColumnPicker({
         }`}
       >
         <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
-        {label}
+        {shown}
         {/* Le décompte des colonnes masquées est AFFICHÉ : sans lui, un tableau
             amputé la semaine dernière se lit aujourd'hui comme un tableau incomplet,
             et l'on cherche la donnée manquante du côté de la source. */}
