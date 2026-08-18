@@ -1,0 +1,121 @@
+{
+  "metric": {
+    "price": {
+      "label": "Koers",
+      "help": "Laatste koers gepubliceerd door de bron, omgerekend naar de valuta die u hebt gekozen. Dit is geen uitvoeringskoers: afhankelijk van het platform en het moment zou een echte order op een nabij maar afwijkend niveau worden uitgevoerd."
+    },
+    "marketCap": {
+      "label": "Marktkapitalisatie",
+      "help": "Totale waarde van het circulerende aanbod, tegen de huidige koers. Dit is de gangbaarste maat voor omvang, maar hij negeert de nog niet uitgegeven tokens — zie de verwaterde waardering."
+    },
+    "volume24h": {
+      "label": "Volume 24 u",
+      "help": "Totaal verhandeld bedrag over de laatste 24 uur, over alle handelsplatformen samen. Een laag volume maakt de koers gevoeliger voor één enkele order."
+    },
+    "fdv": {
+      "label": "Verwaterde waardering",
+      "help": "Kapitalisatie die het activum zou bereiken als het volledige maximale aanbod circuleerde. Overgenomen zoals de bron hem geeft, nooit herberekend: de regels over vergrendelde of verbrande tokens zijn van haar."
+    },
+    "tvl": {
+      "label": "Vergrendelde waarde",
+      "help": "Bedrag gestort in de contracten van het protocol. Bestaat alleen voor gedecentraliseerde financiën, en meet het gebruik eerder dan de koers."
+    },
+    "rank": {
+      "label": "Rang",
+      "help": "Positie naar marktkapitalisatie binnen de eigen activaklasse, zoals de bron die publiceert."
+    },
+    "exchange": {
+      "label": "Handelsplatform",
+      "help": "Markt waarop de bron de referentiekoers van dit activum afleest."
+    },
+    "high24h": {
+      "label": "Hoogste 24 u",
+      "help": "Hoogste koers bereikt over de laatste 24 uur."
+    },
+    "low24h": {
+      "label": "Laagste 24 u",
+      "help": "Laagste koers bereikt over de laatste 24 uur."
+    },
+    "ath": {
+      "label": "Hoogste ooit",
+      "help": "Hoogste koers ooit bereikt. Het percentage geeft het verschil tussen de huidige koers en dat record."
+    },
+    "athWindow": {
+      "label": "Hoogste over 52 weken",
+      "help": "Hoogste koers van het afgelopen jaar. De bron publiceert geen absoluut record voor deze activaklasse."
+    },
+    "atl": {
+      "label": "Laagste ooit",
+      "help": "Laagste koers ooit bereikt. Het percentage geeft de stijging sinds die bodem."
+    },
+    "atlWindow": {
+      "label": "Laagste over 52 weken",
+      "help": "Laagste koers van het afgelopen jaar. De bron publiceert geen absolute bodem voor deze activaklasse."
+    },
+    "circulatingSupply": {
+      "label": "Circulerend aanbod",
+      "help": "Aantal eenheden dat daadwerkelijk in omloop is, zonder vergrendelde, gereserveerde of vernietigde tokens."
+    },
+    "totalSupply": {
+      "label": "Totaal aanbod",
+      "help": "Aantal tot op heden aangemaakte eenheden, vergrendelde tokens inbegrepen, na aftrek van de vernietigde."
+    },
+    "maxSupply": {
+      "label": "Maximaal aanbod",
+      "help": "Plafond aan eenheden dat het protocol ooit zal toestaan. Afwezig wanneer geen plafond in het protocol is vastgelegd."
+    },
+    "issuedShare": {
+      "label": "Uitgegeven aanbod",
+      "help": "Aandeel van het maximale aanbod dat al circuleert. Berekend uit twee door de bron gepubliceerde getallen, nooit geschat."
+    },
+    "change1h": {
+      "label": "1 uur",
+      "help": "Koersverandering over het laatste uur. Het rumoerigste venster: op een weinig verhandeld activum weerspiegelt het vaker één enkele order dan een onderliggende beweging."
+    },
+    "change24h": {
+      "label": "24 uur",
+      "help": "Koersverandering over de laatste 24 uur, zoals de bron die publiceert. Dit is het referentievenster van de ranglijsten."
+    },
+    "change7d": {
+      "label": "7 dagen",
+      "help": "Koersverandering over de afgelopen week."
+    },
+    "change14d": {
+      "label": "14 dagen",
+      "help": "Koersverandering over de laatste twee weken."
+    },
+    "change30d": {
+      "label": "30 dagen",
+      "help": "Koersverandering over de afgelopen maand."
+    },
+    "change1y": {
+      "label": "1 jaar",
+      "help": "Koersverandering over het afgelopen jaar. Een ontbrekende periode betekent dat de bron hem niet publiceert — nooit dat hij nul is."
+    }
+  },
+  "metricPage": {
+    "breadcrumb": "Maatstaven",
+    "definitionTitle": "Definitie",
+    "sourceTitle": "Bron en versheid",
+    "noSeriesTitle": "Geen historiek voor deze maat",
+    "noSeriesBody": "De bron publiceert voor deze maatstaf alleen een momentwaarde, zonder tijdreeks. Er wordt geen grafiek getoond: een curve tekenen zou betekenen dat de ontbrekende punten worden verzonnen.",
+    "otherMetrics": "Andere maatstaven van {name}",
+    "backToAsset": "Terug naar de fiche",
+    "currentValue": "Huidige waarde"
+  },
+  "chartCard": {
+    "expand": "Vergroten",
+    "collapse": "Verkleinen",
+    "settings": "Grafiekinstellingen",
+    "latest": "Laatste",
+    "share": "% Aandeel",
+    "total": "Totaal",
+    "other": "Overige",
+    "noData": "Reeks door de bron niet gepubliceerd voor deze periode."
+  },
+  "search": {
+    "placeholder": "Zoeken",
+    "shortcut": "Ctrl + K",
+    "open": "Zoeken openen"
+  }
+}

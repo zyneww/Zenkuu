@@ -157,4 +157,9 @@ export const ptBRPhrases: Phrases = {
   "7 J": "7 D",
   "1 M": "1 M",
   "1 A": "1 A",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Plataformas de derivativos',
+  'Widgets de marché': 'Widgets de mercado',
+  'Cotations ZENKUU': 'Cotações ZENKUU',
 }

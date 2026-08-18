@@ -157,4 +157,9 @@ export const itPhrases: Phrases = {
   "7 J": "7 G",
   "1 M": "1 M",
   "1 A": "1 A",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Sedi di derivati',
+  'Widgets de marché': 'Widget di mercato',
+  'Cotations ZENKUU': 'Quotazioni ZENKUU',
 }

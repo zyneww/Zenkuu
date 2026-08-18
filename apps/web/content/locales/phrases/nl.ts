@@ -157,4 +157,9 @@ export const nlPhrases: Phrases = {
   "7 J": "7 d",
   "1 M": "1 m",
   "1 A": "1 j",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Derivatenplatformen',
+  'Widgets de marché': 'Marktwidgets',
+  'Cotations ZENKUU': 'ZENKUU-koersen',
 }

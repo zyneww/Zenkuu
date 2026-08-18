@@ -19,18 +19,31 @@ import { HighlightPanel } from '@/components/home/HighlightPanel'
 import { TrendingPanel } from '@/components/home/TrendingPanel'
 import { MacroBand } from '@/components/market/MacroBand'
 import { Money } from '@/components/locale/Money'
-import { getContent } from '@/lib/content'
-import { getPhrase } from '@/lib/content'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Points marquants',
-  description:
-    'Ce qui bouge aujourd’hui sur le marché crypto : tendances, plus fortes hausses et baisses, volumes les plus élevés, secteurs en tête et cotations récentes.',
-  alternates: { canonical: '/points-marquants' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Points marquants'),
+    description: seo(
+      '/points-marquants',
+      'Ce qui bouge aujourd’hui sur le marché crypto : tendances, plus fortes hausses et baisses, volumes les plus élevés, secteurs en tête et cotations récentes.',
+    ),
+    alternates: { canonical: '/points-marquants' },
+  }
 }
 
 /**

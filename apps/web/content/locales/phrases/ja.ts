@@ -157,4 +157,9 @@ export const jaPhrases: Phrases = {
   "7 J": "7日",
   "1 M": "1か月",
   "1 A": "1年",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'デリバティブ取引所',
+  'Widgets de marché': '市場ウィジェット',
+  'Cotations ZENKUU': 'ZENKUU の価格',
 }

@@ -165,4 +165,9 @@ export const dePhrases: Phrases = {
   "7 J": "7 T",
   "1 M": "1 M",
   "1 A": "1 J",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Derivate-Handelsplätze',
+  'Widgets de marché': 'Markt-Widgets',
+  'Cotations ZENKUU': 'ZENKUU-Kurse',
 }

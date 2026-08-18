@@ -157,4 +157,9 @@ export const ruPhrases: Phrases = {
   "7 J": "7 д",
   "1 M": "1 мес.",
   "1 A": "1 год",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Площадки производных',
+  'Widgets de marché': 'Рыночные виджеты',
+  'Cotations ZENKUU': 'Котировки ZENKUU',
 }

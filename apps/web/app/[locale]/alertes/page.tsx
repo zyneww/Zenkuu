@@ -10,11 +10,23 @@ import { ALERT_LIMIT } from '@/lib/limits'
 import { MAILER_ENABLED } from '@/lib/mailer'
 import { currentAccount, ownerId } from '@/lib/session'
 import type { AssetClass } from '@zenkuu/data'
+import { getPhrase } from '@/lib/content'
 
-export const metadata: Metadata = {
-  title: 'Mes alertes',
-  // Page strictement personnelle : son contenu diffère pour chaque visiteur.
-  robots: { index: false, follow: false },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+
+  return {
+    title: t('Mes alertes'),
+    // Page strictement personnelle : son contenu diffère pour chaque visiteur.
+    robots: { index: false, follow: false },
+  }
 }
 
 /**

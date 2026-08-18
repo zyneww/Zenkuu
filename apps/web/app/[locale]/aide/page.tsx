@@ -5,7 +5,7 @@ import { LifeBuoy } from 'lucide-react'
 
 import { HelpSearch } from '@/components/help/HelpSearch'
 import { HELP_ARTICLES, HELP_STARTING_POINTS } from '@/content/aide'
-import { getContent } from '@/lib/content'
+import { getContent, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -16,10 +16,13 @@ import { getContent } from '@/lib/content'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
   title: fr.pages.help,
-  description:
+  description: seo(
+    '/aide',
     'Questions fréquentes sur les données de ZENKUU, leur fraîcheur, les graphiques et les limites de ce que le site affiche.',
+  ),
   alternates: { canonical: '/aide' },
   }
 }

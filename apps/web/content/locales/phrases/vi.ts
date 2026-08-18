@@ -157,4 +157,9 @@ export const viPhrases: Phrases = {
   "7 J": "7 ngày",
   "1 M": "1 tháng",
   "1 A": "1 năm",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Sàn phái sinh',
+  'Widgets de marché': 'Tiện ích thị trường',
+  'Cotations ZENKUU': 'Giá ZENKUU',
 }

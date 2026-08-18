@@ -6,17 +6,31 @@ import { Card, CardHeader, EmptyState, SourceNote } from '@zenkuu/ui'
 import { AssetList } from '@/components/AssetList'
 import { ConverterWidget } from '@/components/widgets/ConverterWidget'
 import { TickerWidget } from '@/components/widgets/TickerWidget'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Widgets de marché',
-  description:
-    'Bandeau de cotations, convertisseur et classement compact — des widgets natifs ZENKUU, intégrables dans une page tierce.',
-  alternates: { canonical: '/widgets' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Widgets de marché'),
+    description: seo(
+      '/widgets',
+      'Bandeau de cotations, convertisseur et classement compact — des widgets natifs ZENKUU, intégrables dans une page tierce.',
+    ),
+    alternates: { canonical: '/widgets' },
+  }
 }
 
 /**

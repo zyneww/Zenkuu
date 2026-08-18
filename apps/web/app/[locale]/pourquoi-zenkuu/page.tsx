@@ -1,12 +1,27 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import { Check, Minus } from 'lucide-react'
+import { getPhrase, getSeo } from '@/lib/content'
 
-export const metadata: Metadata = {
-  title: 'Pourquoi ZENKUU',
-  description:
-    'Multi-actifs, gratuit, en lecture seule et sans donnée inventée : les partis pris qui distinguent ZENKUU des plateformes de suivi de marché existantes.',
-  alternates: { canonical: '/pourquoi-zenkuu' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Pourquoi ZENKUU'),
+    description: seo(
+      '/pourquoi-zenkuu',
+      'Multi-actifs, gratuit, en lecture seule et sans donnée inventée : les partis pris qui distinguent ZENKUU des plateformes de suivi de marché existantes.',
+    ),
+    alternates: { canonical: '/pourquoi-zenkuu' },
+  }
 }
 
 /**

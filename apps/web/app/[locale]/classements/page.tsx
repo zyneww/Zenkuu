@@ -5,17 +5,31 @@ import { CACHE_TTL_SECONDS, getMoversUniverse } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { RankingBoard } from '@/components/market/RankingBoard'
-import { getPhrase } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Classements crypto',
-  description:
-    'Plus fortes hausses, plus fortes baisses, volumes les plus élevés et rotation la plus forte, sur 1 heure à 30 jours.',
-  alternates: { canonical: '/classements' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Classements crypto'),
+    description: seo(
+      '/classements',
+      'Plus fortes hausses, plus fortes baisses, volumes les plus élevés et rotation la plus forte, sur 1 heure à 30 jours.',
+    ),
+    alternates: { canonical: '/classements' },
+  }
 }
 
 /**

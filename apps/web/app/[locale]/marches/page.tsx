@@ -6,21 +6,22 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { BrowseTabs, DERIVATIVES_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { MarketPageView } from '@/components/market/MarketPageView'
-import { getContent } from '@/lib/content'
 import { assetClassFromSegment } from '@/lib/asset-routes'
-import { getPhrase } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
 export async function generateMetadata(): Promise<Metadata> {
-  const fr = await getContent()
+  const t = await getPhrase()
+  const seo = await getSeo()
   return {
-    title: 'Parcourir les marchés',
-    description:
-      `Les sept marchés suivis par ${fr.site.name} sur une seule page : cryptomonnaies, ` +
-      'dérivés, ETF, actions, indices, devises et matières premières.',
+    title: t('Parcourir les marchés'),
+    description: seo(
+      '/marches',
+      'Les sept marchés suivis par Zenkuu sur une seule page : cryptomonnaies, dérivés, ETF, actions, indices, devises et matières premières.',
+    ),
     alternates: { canonical: '/marches' },
   }
 }

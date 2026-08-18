@@ -6,10 +6,21 @@ import { SettingsPreferences } from '@/components/settings/SettingsPreferences'
 import { SettingsSources } from '@/components/settings/SettingsSources'
 import { getPhrase } from '@/lib/content'
 
-export const metadata: Metadata = {
-  title: 'Paramètres',
-  // Écran de réglages : personnel, et sans contenu à référencer.
-  robots: { index: false, follow: false },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+
+  return {
+    title: t('Paramètres'),
+    // Écran de réglages : personnel, et sans contenu à référencer.
+    robots: { index: false, follow: false },
+  }
 }
 
 /**

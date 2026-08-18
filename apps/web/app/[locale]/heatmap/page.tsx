@@ -5,17 +5,31 @@ import { CACHE_TTL_SECONDS, getCategories, getMoversUniverse } from '@zenkuu/dat
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
-import { getPhrase } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Carte thermique du marché',
-  description:
-    'Le marché crypto en une figure, par pièce ou par secteur : la surface porte la capitalisation, la couleur porte la variation.',
-  alternates: { canonical: '/heatmap' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Carte thermique du marché'),
+    description: seo(
+      '/heatmap',
+      'Le marché crypto en une figure, par pièce ou par secteur : la surface porte la capitalisation, la couleur porte la variation.',
+    ),
+    alternates: { canonical: '/heatmap' },
+  }
 }
 
 /**

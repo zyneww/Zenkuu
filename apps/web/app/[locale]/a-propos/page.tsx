@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
 import { KeyFigures } from '@/components/about/KeyFigures'
-import { getContent } from '@/lib/content'
+import { getContent, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -13,10 +13,13 @@ import { getContent } from '@/lib/content'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
   title: fr.pages.about,
-  description:
+  description: seo(
+    '/a-propos',
     'ZENKUU est une plateforme d’analyse de marché multi-actifs, en lecture seule : ni courtier, ni plateforme d’échange, ni conseiller en investissement.',
+  ),
   alternates: { canonical: '/a-propos' },
   }
 }

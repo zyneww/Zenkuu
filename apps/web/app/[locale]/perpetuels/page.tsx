@@ -5,17 +5,31 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, PERPETUALS_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { DerivativeExchangesExplorer } from '@/components/market/DerivativeExchangesExplorer'
-import { getPhrase } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 
 /* Dix minutes, comme le TTL de la donnée elle-même : l'intérêt ouvert est une
    position, et une position se déplace dans la journée. */
 export const revalidate = 600
 
-export const metadata: Metadata = {
-  title: 'Places de produits dérivés',
-  description:
-    'Les places de contrats perpétuels classées par intérêt ouvert : exposition portée, volume sur 24 heures, rotation, nombre de contrats. Plateformes décentralisées et dépositaires distinguées. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
-  alternates: { canonical: '/perpetuels' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Places de produits dérivés'),
+    description: seo(
+      '/perpetuels',
+      'Les places de contrats perpétuels classées par intérêt ouvert : exposition portée, volume sur 24 heures, rotation, nombre de contrats. Plateformes décentralisées et dépositaires distinguées. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
+    ),
+    alternates: { canonical: '/perpetuels' },
+  }
 }
 
 /**

@@ -5,7 +5,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, EXCHANGES_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { SpotExchangesExplorer } from '@/components/market/SpotExchangesExplorer'
-import { getPhrase } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 
 /*
  * Une heure, comme le TTL de la donnée elle-même (voir `getSpotExchanges`). Régénérer
@@ -14,11 +14,25 @@ import { getPhrase } from '@/lib/content'
  */
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'Places de cotation',
-  description:
-    'Les cent premières places d’échange au comptant classées par note de confiance : volume déclaré sur 24 heures, part du volume affiché, pays. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
-  alternates: { canonical: '/places' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Places de cotation'),
+    description: seo(
+      '/places',
+      'Les cent premières places d’échange au comptant classées par note de confiance : volume déclaré sur 24 heures, part du volume affiché, pays. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
+    ),
+    alternates: { canonical: '/places' },
+  }
 }
 
 /**

@@ -1,0 +1,121 @@
+{
+  "metric": {
+    "price": {
+      "label": "Prezzo",
+      "help": "Ultima quotazione pubblicata dalla fonte, convertita nella valuta che hai scelto. Non è un prezzo di esecuzione: a seconda della sede e del momento, un ordine reale verrebbe eseguito a un livello vicino ma diverso."
+    },
+    "marketCap": {
+      "label": "Capitalizzazione",
+      "help": "Valore totale dell’offerta in circolazione, al prezzo attuale. È la misura di dimensione più diffusa, ma ignora i token non ancora emessi — vedi la valutazione diluita."
+    },
+    "volume24h": {
+      "label": "Volume 24 O",
+      "help": "Importo totale scambiato nelle ultime 24 ore, su tutte le sedi di negoziazione. Un volume basso rende il prezzo più sensibile a un singolo ordine."
+    },
+    "fdv": {
+      "label": "Valutazione diluita",
+      "help": "Capitalizzazione che l’asset raggiungerebbe se circolasse l’intera offerta massima. Ripresa così com’è dalla fonte, mai ricalcolata: le regole sui token bloccati o bruciati appartengono a lei."
+    },
+    "tvl": {
+      "label": "Valore bloccato",
+      "help": "Importo depositato nei contratti del protocollo. Esiste solo per la finanza decentralizzata, e misura l’utilizzo più che il prezzo."
+    },
+    "rank": {
+      "label": "Posizione",
+      "help": "Posizione per capitalizzazione all’interno della sua classe di asset, così come la pubblica la fonte."
+    },
+    "exchange": {
+      "label": "Sede di negoziazione",
+      "help": "Mercato sul quale la fonte rileva il prezzo di riferimento di questo asset."
+    },
+    "high24h": {
+      "label": "Massimo 24 O",
+      "help": "Prezzo più alto raggiunto nelle ultime 24 ore."
+    },
+    "low24h": {
+      "label": "Minimo 24 O",
+      "help": "Prezzo più basso raggiunto nelle ultime 24 ore."
+    },
+    "ath": {
+      "label": "Massimo storico",
+      "help": "Prezzo più alto mai raggiunto. La percentuale indica lo scarto tra il prezzo attuale e questo record."
+    },
+    "athWindow": {
+      "label": "Massimo a 52 settimane",
+      "help": "Prezzo più alto dell’anno trascorso. La fonte non pubblica un record assoluto per questa classe di asset."
+    },
+    "atl": {
+      "label": "Minimo storico",
+      "help": "Prezzo più basso mai raggiunto. La percentuale indica il progresso da questo minimo."
+    },
+    "atlWindow": {
+      "label": "Minimo a 52 settimane",
+      "help": "Prezzo più basso dell’anno trascorso. La fonte non pubblica un minimo assoluto per questa classe di asset."
+    },
+    "circulatingSupply": {
+      "label": "Offerta in circolazione",
+      "help": "Numero di unità effettivamente in circolazione, esclusi i token bloccati, riservati o distrutti."
+    },
+    "totalSupply": {
+      "label": "Offerta totale",
+      "help": "Numero di unità create finora, token bloccati compresi, al netto di quelli distrutti."
+    },
+    "maxSupply": {
+      "label": "Offerta massima",
+      "help": "Tetto di unità che il protocollo autorizzerà mai. Assente quando nessun tetto è iscritto nel protocollo."
+    },
+    "issuedShare": {
+      "label": "Offerta emessa",
+      "help": "Quota dell’offerta massima già in circolazione. Calcolata a partire da due numeri pubblicati dalla fonte, mai stimata."
+    },
+    "change1h": {
+      "label": "1 ora",
+      "help": "Variazione del prezzo nell’ultima ora. La più rumorosa delle finestre: su un asset poco scambiato riflette spesso un singolo ordine più che un movimento di fondo."
+    },
+    "change24h": {
+      "label": "24 ore",
+      "help": "Variazione del prezzo nelle ultime 24 ore, così come la pubblica la fonte. È la finestra di riferimento delle classifiche."
+    },
+    "change7d": {
+      "label": "7 giorni",
+      "help": "Variazione del prezzo nella settimana trascorsa."
+    },
+    "change14d": {
+      "label": "14 giorni",
+      "help": "Variazione del prezzo nelle ultime due settimane."
+    },
+    "change30d": {
+      "label": "30 giorni",
+      "help": "Variazione del prezzo nel mese trascorso."
+    },
+    "change1y": {
+      "label": "1 anno",
+      "help": "Variazione del prezzo nell’anno trascorso. Un periodo assente significa che la fonte non lo pubblica — mai che vale zero."
+    }
+  },
+  "metricPage": {
+    "breadcrumb": "Metriche",
+    "definitionTitle": "Definizione",
+    "sourceTitle": "Fonte e freschezza",
+    "noSeriesTitle": "Nessuno storico per questa misura",
+    "noSeriesBody": "La fonte pubblica solo un valore istantaneo per questa metrica, senza serie temporale. Nessun grafico viene mostrato: tracciare una curva significherebbe inventare i punti mancanti.",
+    "otherMetrics": "Altre metriche di {name}",
+    "backToAsset": "Torna alla scheda",
+    "currentValue": "Valore attuale"
+  },
+  "chartCard": {
+    "expand": "Ingrandisci",
+    "collapse": "Riduci",
+    "settings": "Impostazioni del grafico",
+    "latest": "Ultimo",
+    "share": "% Quota",
+    "total": "Totale",
+    "other": "Altri",
+    "noData": "Serie non pubblicata dalla fonte per questo periodo."
+  },
+  "search": {
+    "placeholder": "Cerca",
+    "shortcut": "Ctrl + K",
+    "open": "Apri la ricerca"
+  }
+}

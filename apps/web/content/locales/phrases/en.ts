@@ -169,4 +169,9 @@ export const enPhrases: Phrases = {
   "7 J": "7D",
   "1 M": "1M",
   "1 A": "1Y",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Derivatives venues',
+  'Widgets de marché': 'Market widgets',
+  'Cotations ZENKUU': 'ZENKUU quotes',
 }

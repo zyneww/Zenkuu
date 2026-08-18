@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { getContent } from '@/lib/content'
+import { getContent, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -11,10 +11,13 @@ import { getContent } from '@/lib/content'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
   title: fr.pages.changelog,
-  description:
+  description: seo(
+    '/nouveautes',
     'Journal des évolutions de ZENKUU : fonctionnalités livrées, sources de données ajoutées et limites connues.',
+  ),
   alternates: { canonical: '/nouveautes' },
   }
 }

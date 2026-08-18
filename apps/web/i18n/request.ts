@@ -51,6 +51,15 @@ const MESSAGES: Record<string, () => Promise<{ default: Record<string, unknown> 
   en: () => import('../messages/en.json'),
   es: () => import('../messages/es.json'),
   de: () => import('../messages/de.json'),
+  it: () => import('../messages/it.json'),
+  nl: () => import('../messages/nl.json'),
+  pl: () => import('../messages/pl.json'),
+  'pt-BR': () => import('../messages/pt-BR.json'),
+  ru: () => import('../messages/ru.json'),
+  tr: () => import('../messages/tr.json'),
+  vi: () => import('../messages/vi.json'),
+  ja: () => import('../messages/ja.json'),
+  zh: () => import('../messages/zh.json'),
 }
 
 export default getRequestConfig(async ({ requestLocale }) => {

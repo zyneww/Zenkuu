@@ -4,7 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { CoverArt } from '@/components/editorial/CoverArt'
 import { LessonBrowser } from '@/components/learn/LessonBrowser'
 import { LESSONS, levelLabel } from '@/content/apprendre'
-import { getContent } from '@/lib/content'
+import { getContent, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -15,10 +15,13 @@ import { getContent } from '@/lib/content'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
   title: fr.pages.learn,
-  description:
+  description: seo(
+    '/apprendre',
     'Comprendre ce que vous regardez : capitalisation, volume, offre, chandeliers, moyennes mobiles et indices de sentiment — expliqués sans jargon.',
+  ),
   alternates: { canonical: '/apprendre' },
   }
 }

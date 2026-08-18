@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { getContent } from '@/lib/content'
+import { getContent, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -12,10 +12,13 @@ import { getContent } from '@/lib/content'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
   title: fr.pages.developers,
-  description:
+  description: seo(
+    '/developpeurs',
     'Les routes internes de ZENKUU, les sources de données publiques utilisées, et l’état réel d’une API publique ZENKUU.',
+  ),
   alternates: { canonical: '/developpeurs' },
   }
 }

@@ -20,19 +20,32 @@ import { MacroBand } from '@/components/market/MacroBand'
 import { RankingDetailLink } from '@/components/market/RankingDetailLink'
 import { MoversFilters } from '@/components/market/MoversFilters'
 import { SpotExchangesPanel } from '@/components/market/SpotExchangesPanel'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 import { PERIOD_LABELS, UNIVERSE_LABELS } from '@/content/movers'
-import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Données de trading',
-  description:
-    'Vue macro, places au comptant, produits dérivés et classements de variation du marché crypto : capitalisation, dominance, volumes par plateforme, intérêt ouvert, taux de financement, plus fortes hausses et baisses.',
-  alternates: { canonical: '/mouvements' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Données de trading'),
+    description: seo(
+      '/mouvements',
+      'Vue macro, places au comptant, produits dérivés et classements de variation du marché crypto : capitalisation, dominance, volumes par plateforme, intérêt ouvert, taux de financement, plus fortes hausses et baisses.',
+    ),
+    alternates: { canonical: '/mouvements' },
+  }
 }
 
 /**

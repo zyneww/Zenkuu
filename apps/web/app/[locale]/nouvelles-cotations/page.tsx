@@ -6,17 +6,31 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { NewListingsTable } from '@/components/market/NewListingsTable'
 import { buildListingIndex } from '@/lib/listing-match'
-import { getPhrase } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Nouvelles cryptomonnaies',
-  description:
-    'Les cryptomonnaies référencées le plus récemment : cours, capitalisation, volume et date du premier relevé de prix connu.',
-  alternates: { canonical: '/nouvelles-cotations' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Nouvelles cryptomonnaies'),
+    description: seo(
+      '/nouvelles-cotations',
+      'Les cryptomonnaies référencées le plus récemment : cours, capitalisation, volume et date du premier relevé de prix connu.',
+    ),
+    alternates: { canonical: '/nouvelles-cotations' },
+  }
 }
 
 /**

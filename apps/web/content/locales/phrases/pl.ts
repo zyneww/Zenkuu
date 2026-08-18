@@ -157,4 +157,9 @@ export const plPhrases: Phrases = {
   "7 J": "7 dni",
   "1 M": "1 mies.",
   "1 A": "1 rok",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Giełdy instrumentów pochodnych',
+  'Widgets de marché': 'Widżety rynkowe',
+  'Cotations ZENKUU': 'Notowania ZENKUU',
 }

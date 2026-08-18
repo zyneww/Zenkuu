@@ -150,4 +150,9 @@ export const zhPhrases: Phrases = {
   "7 J": "7 天",
   "1 M": "1 个月",
   "1 A": "1 年",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': '衍生品平台',
+  'Widgets de marché': '市场小组件',
+  'Cotations ZENKUU': 'ZENKUU 行情',
 }

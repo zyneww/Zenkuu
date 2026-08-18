@@ -15,7 +15,7 @@ import {
   readingMinutes,
   sortedArticles,
 } from '@/content/blog'
-import { getContent, getPhrase } from '@/lib/content'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 const hasArticles = ARTICLES.length > 0
 
@@ -28,10 +28,13 @@ const hasArticles = ARTICLES.length > 0
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
     title: fr.pages.blog,
-    description:
+    description: seo(
+      '/blog',
       'Le blog de ZENKUU — méthode, produit, marché et coulisses. Comment les chiffres sont collectés, vérifiés et affichés.',
+    ),
     alternates: {
       canonical: '/blog',
       types: { 'application/rss+xml': '/blog/rss.xml' },

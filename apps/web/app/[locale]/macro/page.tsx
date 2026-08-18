@@ -14,6 +14,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { MacroExplorer } from '@/components/market/MacroExplorer'
 import { MacroIndicatorSearch } from '@/components/market/MacroIndicatorSearch'
 import { MacroMap, type MacroTone } from '@/components/market/MacroMap'
+import { getPhrase, getSeo } from '@/lib/content'
 
 /** Les cinq séries gardées en accès direct — voir la note sur la rangée de raccourcis. */
 const FEATURED = ['inflation', 'chomage', 'croissance', 'dette', 'interets'] as const
@@ -22,11 +23,25 @@ export const revalidate = 3600
 const _ttlGuard: number = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Carte macroéconomique',
-  description:
-    'Inflation, chômage, croissance, dette publique et taux d’intérêt réels, pays par pays, d’après les séries de la Banque mondiale.',
-  alternates: { canonical: '/macro' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Carte macroéconomique'),
+    description: seo(
+      '/macro',
+      'Inflation, chômage, croissance, dette publique et taux d’intérêt réels, pays par pays, d’après les séries de la Banque mondiale.',
+    ),
+    alternates: { canonical: '/macro' },
+  }
 }
 
 /**

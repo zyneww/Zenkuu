@@ -13,16 +13,31 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { ConverterView } from '@/components/tools/ConverterView'
 import { assetHref } from '@/lib/asset-routes'
+import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
-export const metadata: Metadata = {
-  title: 'Convertisseur',
-  description:
-    'Convertir un montant entre une cryptomonnaie, une action, un ETF, un indice ou une matière première et cinq devises, au dernier cours reçu.',
-  alternates: { canonical: '/convertisseur' },
+/**
+ * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
+ *
+ * Un `export const metadata` est évalué une fois au chargement du module : il ne
+ * peut pas connaître la locale de la requête, et servait donc un titre français sur
+ * les pages traduites. `generateMetadata` est appelée par requête.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getPhrase()
+  const seo = await getSeo()
+
+  return {
+    title: t('Convertisseur'),
+    description: seo(
+      '/convertisseur',
+      'Convertir un montant entre une cryptomonnaie, une action, un ETF, un indice ou une matière première et cinq devises, au dernier cours reçu.',
+    ),
+    alternates: { canonical: '/convertisseur' },
+  }
 }
 
 /**

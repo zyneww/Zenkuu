@@ -1,0 +1,121 @@
+{
+  "metric": {
+    "price": {
+      "label": "Giá",
+      "help": "Giá mới nhất do nguồn công bố, đã quy đổi sang đơn vị tiền tệ bạn chọn. Đây không phải giá khớp lệnh: tuỳ sàn và tuỳ thời điểm, một lệnh thật sẽ khớp ở mức gần nhưng khác."
+    },
+    "marketCap": {
+      "label": "Vốn hoá",
+      "help": "Tổng giá trị nguồn cung đang lưu hành theo giá hiện tại. Đây là thước đo quy mô phổ biến nhất, nhưng bỏ qua số token chưa phát hành — xem định giá pha loãng."
+    },
+    "volume24h": {
+      "label": "Khối lượng 24 giờ",
+      "help": "Tổng giá trị giao dịch trong 24 giờ qua, gộp mọi sàn. Khối lượng thấp khiến giá nhạy hơn với một lệnh đơn lẻ."
+    },
+    "fdv": {
+      "label": "Định giá pha loãng",
+      "help": "Vốn hoá mà tài sản sẽ đạt nếu toàn bộ nguồn cung tối đa được lưu hành. Lấy nguyên từ nguồn, không bao giờ tính lại: các quy tắc về token bị khoá hay bị đốt thuộc về nguồn."
+    },
+    "tvl": {
+      "label": "Giá trị bị khoá",
+      "help": "Số tiền gửi trong các hợp đồng của giao thức. Chỉ tồn tại với tài chính phi tập trung, và đo mức sử dụng hơn là giá."
+    },
+    "rank": {
+      "label": "Hạng",
+      "help": "Vị trí theo vốn hoá trong cùng loại tài sản, đúng như nguồn công bố."
+    },
+    "exchange": {
+      "label": "Sàn giao dịch",
+      "help": "Thị trường nơi nguồn lấy giá tham chiếu của tài sản này."
+    },
+    "high24h": {
+      "label": "Cao nhất 24 giờ",
+      "help": "Giá cao nhất đạt được trong 24 giờ qua."
+    },
+    "low24h": {
+      "label": "Thấp nhất 24 giờ",
+      "help": "Giá thấp nhất chạm tới trong 24 giờ qua."
+    },
+    "ath": {
+      "label": "Đỉnh lịch sử",
+      "help": "Giá cao nhất từng đạt được. Tỷ lệ phần trăm cho biết khoảng cách giữa giá hiện tại và kỷ lục đó."
+    },
+    "athWindow": {
+      "label": "Đỉnh 52 tuần",
+      "help": "Giá cao nhất của năm vừa qua. Nguồn không công bố kỷ lục tuyệt đối cho loại tài sản này."
+    },
+    "atl": {
+      "label": "Đáy lịch sử",
+      "help": "Giá thấp nhất từng chạm tới. Tỷ lệ phần trăm cho biết mức tăng kể từ đáy đó."
+    },
+    "atlWindow": {
+      "label": "Đáy 52 tuần",
+      "help": "Giá thấp nhất của năm vừa qua. Nguồn không công bố đáy tuyệt đối cho loại tài sản này."
+    },
+    "circulatingSupply": {
+      "label": "Nguồn cung lưu hành",
+      "help": "Số đơn vị thực sự đang lưu hành, không tính token bị khoá, để dành hay đã huỷ."
+    },
+    "totalSupply": {
+      "label": "Tổng nguồn cung",
+      "help": "Số đơn vị đã tạo ra đến nay, bao gồm token bị khoá, sau khi trừ phần đã huỷ."
+    },
+    "maxSupply": {
+      "label": "Nguồn cung tối đa",
+      "help": "Trần số đơn vị mà giao thức sẽ cho phép. Không có khi giao thức không ghi trần nào."
+    },
+    "issuedShare": {
+      "label": "Nguồn cung đã phát hành",
+      "help": "Phần nguồn cung tối đa đã lưu hành. Tính từ hai con số do nguồn công bố, không bao giờ ước lượng."
+    },
+    "change1h": {
+      "label": "1 giờ",
+      "help": "Biến động giá trong một giờ qua. Khung ồn ào nhất: với tài sản ít giao dịch, nó thường phản ánh một lệnh đơn lẻ hơn là một xu hướng thực."
+    },
+    "change24h": {
+      "label": "24 giờ",
+      "help": "Biến động giá trong 24 giờ qua, đúng như nguồn công bố. Đây là khung tham chiếu của các bảng xếp hạng."
+    },
+    "change7d": {
+      "label": "7 ngày",
+      "help": "Biến động giá trong tuần qua."
+    },
+    "change14d": {
+      "label": "14 ngày",
+      "help": "Biến động giá trong hai tuần qua."
+    },
+    "change30d": {
+      "label": "30 ngày",
+      "help": "Biến động giá trong tháng qua."
+    },
+    "change1y": {
+      "label": "1 năm",
+      "help": "Biến động giá trong năm qua. Một kỳ hạn vắng mặt nghĩa là nguồn không công bố nó — không bao giờ có nghĩa là bằng không."
+    }
+  },
+  "metricPage": {
+    "breadcrumb": "Chỉ số",
+    "definitionTitle": "Định nghĩa",
+    "sourceTitle": "Nguồn và độ mới",
+    "noSeriesTitle": "Không có lịch sử cho phép đo này",
+    "noSeriesBody": "Nguồn chỉ công bố một giá trị tức thời cho chỉ số này, không có chuỗi thời gian. Không hiển thị biểu đồ: vẽ một đường cong sẽ đồng nghĩa với bịa ra những điểm còn thiếu.",
+    "otherMetrics": "Chỉ số khác của {name}",
+    "backToAsset": "Quay lại trang tài sản",
+    "currentValue": "Giá trị hiện tại"
+  },
+  "chartCard": {
+    "expand": "Phóng to",
+    "collapse": "Thu nhỏ",
+    "settings": "Cài đặt biểu đồ",
+    "latest": "Mới nhất",
+    "share": "% Tỷ trọng",
+    "total": "Tổng",
+    "other": "Khác",
+    "noData": "Nguồn không công bố chuỗi cho kỳ này."
+  },
+  "search": {
+    "placeholder": "Tìm kiếm",
+    "shortcut": "Ctrl + K",
+    "open": "Mở tìm kiếm"
+  }
+}

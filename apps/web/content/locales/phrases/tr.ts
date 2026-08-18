@@ -157,4 +157,9 @@ export const trPhrases: Phrases = {
   "7 J": "7 g",
   "1 M": "1 ay",
   "1 A": "1 yıl",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Türev borsaları',
+  'Widgets de marché': 'Piyasa bileşenleri',
+  'Cotations ZENKUU': 'ZENKUU fiyatları',
 }

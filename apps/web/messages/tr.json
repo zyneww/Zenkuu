@@ -1,0 +1,121 @@
+{
+  "metric": {
+    "price": {
+      "label": "Fiyat",
+      "help": "Kaynağın yayımladığı son fiyat, seçtiğiniz para birimine çevrilmiş hâliyle. Bu bir gerçekleşme fiyatı değildir: borsaya ve ana göre gerçek bir emir yakın ama farklı bir seviyeden karşılanırdı."
+    },
+    "marketCap": {
+      "label": "Piyasa değeri",
+      "help": "Dolaşımdaki arzın güncel fiyattan toplam değeri. En yaygın büyüklük ölçüsüdür, ama henüz ihraç edilmemiş token’ları yok sayar — seyreltilmiş değerlemeye bakın."
+    },
+    "volume24h": {
+      "label": "Hacim 24 sa",
+      "help": "Son 24 saatte, tüm borsalarda işlem gören toplam tutar. Düşük hacim, fiyatı tek bir emre karşı daha duyarlı kılar."
+    },
+    "fdv": {
+      "label": "Seyreltilmiş değerleme",
+      "help": "Azami arzın tamamı dolaşımda olsaydı varlığın ulaşacağı piyasa değeri. Kaynaktan olduğu gibi alınır, asla yeniden hesaplanmaz: kilitli ya da yakılmış token’lara ilişkin kurallar kaynağa aittir."
+    },
+    "tvl": {
+      "label": "Kilitli değer",
+      "help": "Protokolün sözleşmelerine yatırılmış tutar. Yalnızca merkeziyetsiz finans için vardır ve fiyattan çok kullanımı ölçer."
+    },
+    "rank": {
+      "label": "Sıra",
+      "help": "Kendi varlık sınıfı içinde piyasa değerine göre konum — kaynağın yayımladığı hâliyle."
+    },
+    "exchange": {
+      "label": "Borsa",
+      "help": "Kaynağın bu varlığın referans fiyatını okuduğu piyasa."
+    },
+    "high24h": {
+      "label": "En yüksek 24 sa",
+      "help": "Son 24 saatte ulaşılan en yüksek fiyat."
+    },
+    "low24h": {
+      "label": "En düşük 24 sa",
+      "help": "Son 24 saatte ulaşılan en düşük fiyat."
+    },
+    "ath": {
+      "label": "Tüm zamanların zirvesi",
+      "help": "Şimdiye dek ulaşılan en yüksek fiyat. Yüzde, güncel fiyat ile bu rekor arasındaki farkı gösterir."
+    },
+    "athWindow": {
+      "label": "52 haftanın zirvesi",
+      "help": "Geçen yılın en yüksek fiyatı. Kaynak bu varlık sınıfı için mutlak bir rekor yayımlamıyor."
+    },
+    "atl": {
+      "label": "Tüm zamanların dibi",
+      "help": "Şimdiye dek görülen en düşük fiyat. Yüzde, bu dipten bu yana kaydedilen yükselişi gösterir."
+    },
+    "atlWindow": {
+      "label": "52 haftanın dibi",
+      "help": "Geçen yılın en düşük fiyatı. Kaynak bu varlık sınıfı için mutlak bir dip yayımlamıyor."
+    },
+    "circulatingSupply": {
+      "label": "Dolaşımdaki arz",
+      "help": "Fiilen dolaşımda olan birim sayısı; kilitli, ayrılmış veya imha edilmiş token’lar hariç."
+    },
+    "totalSupply": {
+      "label": "Toplam arz",
+      "help": "Bugüne dek oluşturulan birim sayısı, kilitli token’lar dâhil, imha edilenler düşülerek."
+    },
+    "maxSupply": {
+      "label": "Azami arz",
+      "help": "Protokolün hiçbir zaman aşmayacağı birim tavanı. Protokolde bir tavan yazılı değilse bulunmaz."
+    },
+    "issuedShare": {
+      "label": "İhraç edilen arz",
+      "help": "Azami arzın hâlihazırda dolaşımdaki payı. Kaynağın yayımladığı iki sayıdan hesaplanır, asla tahmin edilmez."
+    },
+    "change1h": {
+      "label": "1 saat",
+      "help": "Son bir saatteki fiyat değişimi. Pencerelerin en gürültülüsü: az işlem gören bir varlıkta çoğu zaman esas bir hareketi değil, tek bir emri yansıtır."
+    },
+    "change24h": {
+      "label": "24 saat",
+      "help": "Son 24 saatteki fiyat değişimi — kaynağın yayımladığı hâliyle. Sıralamaların referans penceresi budur."
+    },
+    "change7d": {
+      "label": "7 gün",
+      "help": "Geçen haftaki fiyat değişimi."
+    },
+    "change14d": {
+      "label": "14 gün",
+      "help": "Son iki haftadaki fiyat değişimi."
+    },
+    "change30d": {
+      "label": "30 gün",
+      "help": "Geçen aydaki fiyat değişimi."
+    },
+    "change1y": {
+      "label": "1 yıl",
+      "help": "Geçen yıldaki fiyat değişimi. Eksik bir dönem, kaynağın onu yayımlamadığı anlamına gelir — asla sıfır olduğu anlamına değil."
+    }
+  },
+  "metricPage": {
+    "breadcrumb": "Ölçütler",
+    "definitionTitle": "Tanım",
+    "sourceTitle": "Kaynak ve tazelik",
+    "noSeriesTitle": "Bu ölçüt için geçmiş yok",
+    "noSeriesBody": "Kaynak bu ölçüt için yalnızca anlık bir değer yayımlıyor, zaman serisi yok. Grafik gösterilmiyor: bir eğri çizmek, eksik noktaları uydurmak olurdu.",
+    "otherMetrics": "{name} için diğer ölçütler",
+    "backToAsset": "Varlık sayfasına dön",
+    "currentValue": "Güncel değer"
+  },
+  "chartCard": {
+    "expand": "Büyüt",
+    "collapse": "Küçült",
+    "settings": "Grafik ayarları",
+    "latest": "Son",
+    "share": "% Pay",
+    "total": "Toplam",
+    "other": "Diğerleri",
+    "noData": "Kaynak bu dönem için seriyi yayımlamıyor."
+  },
+  "search": {
+    "placeholder": "Ara",
+    "shortcut": "Ctrl + K",
+    "open": "Aramayı aç"
+  }
+}

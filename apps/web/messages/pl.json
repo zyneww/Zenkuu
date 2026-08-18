@@ -1,0 +1,121 @@
+{
+  "metric": {
+    "price": {
+      "label": "Cena",
+      "help": "Ostatni kurs opublikowany przez źródło, przeliczony na wybraną przez Ciebie walutę. To nie jest cena wykonania: zależnie od giełdy i chwili rzeczywiste zlecenie zrealizowałoby się po zbliżonym, lecz innym kursie."
+    },
+    "marketCap": {
+      "label": "Kapitalizacja",
+      "help": "Łączna wartość podaży w obiegu po bieżącym kursie. To najpowszechniejsza miara wielkości, ale pomija tokeny jeszcze niewyemitowane — zobacz wycenę w pełnym rozwodnieniu."
+    },
+    "volume24h": {
+      "label": "Wolumen 24 godz.",
+      "help": "Łączna kwota obrotu z ostatnich 24 godzin, ze wszystkich giełd razem. Niski wolumen sprawia, że kurs mocniej reaguje na pojedyncze zlecenie."
+    },
+    "fdv": {
+      "label": "Wycena rozwodniona",
+      "help": "Kapitalizacja, jaką aktywo osiągnęłoby, gdyby w obiegu była cała podaż maksymalna. Przejęta od źródła bez zmian, nigdy przeliczana: zasady dotyczące tokenów zablokowanych lub spalonych należą do niego."
+    },
+    "tvl": {
+      "label": "Wartość zablokowana",
+      "help": "Kwota zdeponowana w kontraktach protokołu. Istnieje wyłącznie dla finansów zdecentralizowanych i mierzy raczej użycie niż cenę."
+    },
+    "rank": {
+      "label": "Pozycja",
+      "help": "Miejsce według kapitalizacji w obrębie swojej klasy aktywów, zgodnie z publikacją źródła."
+    },
+    "exchange": {
+      "label": "Giełda",
+      "help": "Rynek, na którym źródło odczytuje kurs odniesienia tego aktywa."
+    },
+    "high24h": {
+      "label": "Maksimum 24 godz.",
+      "help": "Najwyższy kurs osiągnięty w ciągu ostatnich 24 godzin."
+    },
+    "low24h": {
+      "label": "Minimum 24 godz.",
+      "help": "Najniższy kurs osiągnięty w ciągu ostatnich 24 godzin."
+    },
+    "ath": {
+      "label": "Maksimum historyczne",
+      "help": "Najwyższy kurs w historii. Procent wskazuje odstęp między bieżącym kursem a tym rekordem."
+    },
+    "athWindow": {
+      "label": "Maksimum 52 tygodni",
+      "help": "Najwyższy kurs minionego roku. Źródło nie publikuje rekordu bezwzględnego dla tej klasy aktywów."
+    },
+    "atl": {
+      "label": "Minimum historyczne",
+      "help": "Najniższy kurs w historii. Procent wskazuje wzrost od tego dna."
+    },
+    "atlWindow": {
+      "label": "Minimum 52 tygodni",
+      "help": "Najniższy kurs minionego roku. Źródło nie publikuje dna bezwzględnego dla tej klasy aktywów."
+    },
+    "circulatingSupply": {
+      "label": "Podaż w obiegu",
+      "help": "Liczba jednostek faktycznie krążących, bez tokenów zablokowanych, zarezerwowanych lub zniszczonych."
+    },
+    "totalSupply": {
+      "label": "Podaż całkowita",
+      "help": "Liczba jednostek utworzonych do dziś, wraz z tokenami zablokowanymi, po odjęciu zniszczonych."
+    },
+    "maxSupply": {
+      "label": "Podaż maksymalna",
+      "help": "Pułap jednostek, jaki protokół kiedykolwiek dopuści. Nieobecny, gdy żaden pułap nie jest zapisany w protokole."
+    },
+    "issuedShare": {
+      "label": "Podaż wyemitowana",
+      "help": "Udział podaży maksymalnej już będący w obiegu. Wyliczony z dwóch liczb opublikowanych przez źródło, nigdy szacowany."
+    },
+    "change1h": {
+      "label": "1 godzina",
+      "help": "Zmiana kursu w ostatniej godzinie. Najbardziej zaszumione okno: na aktywie o niskim obrocie odzwierciedla częściej pojedyncze zlecenie niż ruch zasadniczy."
+    },
+    "change24h": {
+      "label": "24 godziny",
+      "help": "Zmiana kursu w ciągu ostatnich 24 godzin, zgodnie z publikacją źródła. To okno odniesienia dla zestawień."
+    },
+    "change7d": {
+      "label": "7 dni",
+      "help": "Zmiana kursu w minionym tygodniu."
+    },
+    "change14d": {
+      "label": "14 dni",
+      "help": "Zmiana kursu w ciągu ostatnich dwóch tygodni."
+    },
+    "change30d": {
+      "label": "30 dni",
+      "help": "Zmiana kursu w minionym miesiącu."
+    },
+    "change1y": {
+      "label": "1 rok",
+      "help": "Zmiana kursu w minionym roku. Brak okresu oznacza, że źródło go nie publikuje — nigdy że wynosi zero."
+    }
+  },
+  "metricPage": {
+    "breadcrumb": "Wskaźniki",
+    "definitionTitle": "Definicja",
+    "sourceTitle": "Źródło i świeżość",
+    "noSeriesTitle": "Brak historii dla tej miary",
+    "noSeriesBody": "Źródło publikuje dla tego wskaźnika wyłącznie wartość chwilową, bez szeregu czasowego. Nie pokazujemy wykresu: narysowanie krzywej oznaczałoby wymyślenie brakujących punktów.",
+    "otherMetrics": "Inne wskaźniki: {name}",
+    "backToAsset": "Powrót do karty",
+    "currentValue": "Wartość bieżąca"
+  },
+  "chartCard": {
+    "expand": "Powiększ",
+    "collapse": "Zmniejsz",
+    "settings": "Ustawienia wykresu",
+    "latest": "Ostatnia",
+    "share": "% Udział",
+    "total": "Razem",
+    "other": "Pozostałe",
+    "noData": "Szereg nieopublikowany przez źródło dla tego okresu."
+  },
+  "search": {
+    "placeholder": "Szukaj",
+    "shortcut": "Ctrl + K",
+    "open": "Otwórz wyszukiwanie"
+  }
+}

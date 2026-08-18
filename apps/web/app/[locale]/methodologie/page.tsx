@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { getAvailability } from '@zenkuu/data'
 
-import { getContent } from '@/lib/content'
+import { getContent, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -13,10 +13,13 @@ import { getContent } from '@/lib/content'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const seo = await getSeo()
   return {
   title: fr.pages.methodology,
-  description:
+  description: seo(
+    '/methodologie',
     'D’où viennent les chiffres affichés sur ZENKUU, à quelle fréquence ils sont actualisés, et ce que nous choisissons de ne pas afficher faute de source fiable.',
+  ),
   }
 }
 

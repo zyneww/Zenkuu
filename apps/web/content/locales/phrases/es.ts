@@ -164,4 +164,9 @@ export const esPhrases: Phrases = {
   "7 J": "7 D",
   "1 M": "1 M",
   "1 A": "1 A",
+
+  /* ── Titres de page ─────────────────────────────────────────────── */
+  'Places de produits dérivés': 'Plataformas de derivados',
+  'Widgets de marché': 'Widgets de mercado',
+  'Cotations ZENKUU': 'Cotizaciones ZENKUU',
 }
