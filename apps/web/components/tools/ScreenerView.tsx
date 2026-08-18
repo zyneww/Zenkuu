@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react'
 
-import { ChangeBadge, EmptyState, formatCompact, formatNumber } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState, formatCompact, formatCurrency, formatNumber } from '@zenkuu/ui'
 
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
 import { Link } from '@/i18n/navigation'
+import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { Money } from '@/components/locale/Money'
 import { ExportMenu } from '@/components/tools/ExportMenu'
 import { SavedScreens } from '@/components/tools/SavedScreens'
@@ -71,16 +72,31 @@ function compactAmount(value: number): string {
   return formatCompact(value) ?? String(value)
 }
 
-/** Libellé du seuil, tel qu'il s'affiche à droite du curseur. */
-function displayThreshold(filter: ScreenerFilter, value: number): string {
+/**
+ * Libellé du seuil, tel qu'il s'affiche à droite du curseur.
+ *
+ * `currency` est la devise du SITE, passée par l'appelant : un seuil marqué
+ * `currency` s'écrit dans l'unité que le tableau affiche, faute de quoi le nombre du
+ * curseur et celui de la colonne ne parleraient pas de la même chose.
+ */
+function displayThreshold(
+  filter: ScreenerFilter,
+  value: number,
+  currency: string,
+): string {
   if (!isActive(filter, value)) return 'aucun'
+
+  const prefix = filter.direction === 'max' ? '≤ ' : ''
+
+  if (filter.currency) {
+    return `${prefix}${formatCurrency(value, currency, { compact: true }) ?? compactAmount(value)}`
+  }
 
   const unit = filter.unit ?? ''
   const amount = filter.steps
     ? compactAmount(value)
     : (formatNumber(value, Number.isInteger(value) ? 0 : 2) ?? String(value))
 
-  const prefix = filter.direction === 'max' ? '≤ ' : ''
   /* Une unité qui commence par une lettre ou un espace se colle sans blanc
      supplémentaire — « 15 ans », « /10 » — là où un symbole en demande un. */
   const gap = unit === '' || unit.startsWith('/') || unit.startsWith(' ') ? '' : ' '
@@ -99,6 +115,11 @@ export function ScreenerView({
 }) {
   const [preset, setPreset] = useState('tout')
   const [query, setQuery] = useState('')
+
+  /* La devise du site sert DEUX fois : à écrire les seuils monétaires, et à les
+     comparer. Les deux doivent passer par la même conversion, sinon le curseur
+     annonce une échelle et le filtre en applique une autre. */
+  const { currency, convert } = useCurrency()
 
   /**
    * Seuils courants, un par filtre du marché.
@@ -144,7 +165,7 @@ export function ScreenerView({
         const threshold = thresholds[filter.key] ?? neutralOf(filter)
         if (!isActive(filter, threshold)) continue
 
-        const value = row.values[filter.key]
+        const raw = row.values[filter.key]
         /*
          * UN CRITÈRE PORTÉ SUR UNE DONNÉE ABSENTE EXCLUT LA LIGNE.
          *
@@ -153,7 +174,13 @@ export function ScreenerView({
          * et laisser passer ces lignes remplirait un filtre « peu chères » de sociétés
          * déficitaires. L'absence n'est ni un zéro ni un laissez-passer (§5).
          */
-        if (value === undefined) return false
+        if (raw === undefined) return false
+
+        /* UN SEUIL MONÉTAIRE SE COMPARE DANS LA DEVISE AFFICHÉE, et la conversion part
+           de la devise DÉCLARÉE PAR LA LIGNE : elle varie d'une place de cotation à
+           l'autre sur les actions, et comparer un montant en yens à un seuil en euros
+           écarterait toute la cote de Tokyo. */
+        const value = filter.currency ? convert(raw, row.currency) : raw
 
         if (filter.direction === 'max') {
           if (value > threshold) return false
@@ -162,7 +189,7 @@ export function ScreenerView({
 
       return true
     })
-  }, [source, market.filters, thresholds, query])
+  }, [source, market.filters, thresholds, query, convert])
 
   /*
    * ── TRI, APPLIQUÉ APRÈS LE FILTRE ─────────────────────────────────────────
@@ -313,6 +340,7 @@ export function ScreenerView({
           <FilterSlider
             key={filter.key}
             filter={filter}
+            currency={currency}
             value={thresholdOf(filter)}
             onChange={(value) => {
               /* Toucher un curseur ÉTEINT le préréglage : celui-ci a posé des seuils,
@@ -683,10 +711,13 @@ function hiddenClass(column: ScreenerColumn): string {
  */
 function FilterSlider({
   filter,
+  currency,
   value,
   onChange,
 }: {
   filter: ScreenerFilter
+  /** Devise du site — celle dans laquelle un seuil monétaire s'écrit et se compare. */
+  currency: string
   value: number
   onChange: (value: number) => void
 }) {
@@ -697,7 +728,7 @@ function FilterSlider({
     <label className="block">
       <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
         {filter.label}
-        <span className="tabular text-ink">{displayThreshold(filter, value)}</span>
+        <span className="tabular text-ink">{displayThreshold(filter, value, currency)}</span>
       </span>
       <input
         type="range"

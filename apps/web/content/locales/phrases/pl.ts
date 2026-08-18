@@ -1,0 +1,105 @@
+import type { Phrases } from '@/content/phrases'
+
+/** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
+export const plPhrases: Phrases = {
+  Parcourir: 'Przeglądaj',
+  Données: 'Dane',
+  Analyse: 'Analiza',
+  Actualités: 'Aktualności',
+  Plus: 'Więcej',
+
+  Palmarès: 'Rankingi',
+  Classements: 'Rankingi',
+  'Le classement complet, page par page': 'Pełny ranking, strona po stronie',
+  'Nouvelles cryptomonnaies': 'Nowe kryptowaluty',
+  'Les actifs référencés le plus récemment': 'Najnowsze notowane aktywa',
+  'Activité du marché': 'Aktywność rynku',
+  'Places de cotation': 'Giełdy',
+  'Où le marché s’échange, et avec quelle confiance':
+    'Gdzie handluje rynek i z jakim zaufaniem',
+  'Places de dérivés': 'Giełdy instrumentów pochodnych',
+  'Où se portent les positions à effet de levier': 'Gdzie znajdują się pozycje lewarowane',
+  Nouveautés: 'Nowości',
+  'Ce qui a changé récemment': 'Co zmieniło się ostatnio',
+
+  Visualisations: 'Wykresy',
+  'Graphiques globaux': 'Wykresy globalne',
+  'Capitalisation, dominance, secteurs et trésoreries':
+    'Kapitalizacja, dominacja, sektory i rezerwy spółek',
+  'Heatmap sectorielle': 'Mapa cieplna sektorów',
+  'Les secteurs en un coup d’œil': 'Sektory na pierwszy rzut oka',
+  Indicateurs: 'Wskaźniki',
+  'Indice de sentiment': 'Indeks nastrojów',
+  'Fear & Greed du marché crypto': 'Fear & Greed rynku kryptowalut',
+  'Carte macroéconomique': 'Mapa makroekonomiczna',
+  'Inflation, chômage, dette : l’état des économies':
+    'Inflacja, bezrobocie, dług: stan gospodarek',
+  Outils: 'Narzędzia',
+  Screener: 'Skaner',
+  'Filtrer le marché sur vos critères': 'Filtrowanie rynku według własnych kryteriów',
+  Comparateur: 'Porównywarka',
+  'Deux à quatre actifs côte à côte': 'Od dwóch do czterech aktywów obok siebie',
+  Convertisseur: 'Przelicznik',
+  'Conversion entre actifs et devises': 'Przeliczanie między aktywami i walutami',
+
+  'Toute l’actualité': 'Wszystkie aktualności',
+  Blog: 'Blog',
+  'Le fil complet, toutes sources confondues': 'Pełny strumień ze wszystkich źródeł',
+  'Analyses et coulisses du produit': 'Analizy i kulisy produktu',
+
+  'Suivi du marché': 'Śledzenie rynku',
+  'Ma liste de suivi': 'Moja lista obserwowanych',
+  'Les actifs rattachés à votre compte': 'Aktywa powiązane z Twoim kontem',
+  'Mes alertes': 'Moje alerty',
+  'Un courriel au franchissement d’un seuil de prix':
+    'E-mail przy przekroczeniu progu cenowego',
+  'Mon compte': 'Moje konto',
+  'Liste de suivi, alertes et écrans, retrouvés partout':
+    'Lista obserwowanych, alerty i filtry — dostępne wszędzie',
+
+  Apprendre: 'Nauka',
+  'Comprendre les marchés, pas à pas': 'Zrozumieć rynki, krok po kroku',
+  'Bien démarrer': 'Pierwsze kroki',
+  'Prendre en main ZENKUU en cinq minutes': 'Poznaj ZENKUU w pięć minut',
+  'Centre d’aide': 'Centrum pomocy',
+  'Questions fréquentes et assistance': 'Najczęstsze pytania i wsparcie',
+  Ressources: 'Zasoby',
+  'Méthodologie & sources': 'Metodologia i źródła',
+  'D’où viennent nos chiffres, et à quelle fréquence':
+    'Skąd pochodzą nasze dane i jak często',
+  'API & développeurs': 'API i programiści',
+  'Accéder aux données par programme': 'Programowy dostęp do danych',
+  ZENKUU: 'ZENKUU',
+  'À propos': 'O nas',
+  'Notre positionnement et nos limites': 'Nasze podejście i nasze ograniczenia',
+  'Pourquoi ZENKUU': 'Dlaczego ZENKUU',
+  'Nos partis pris, et ce qu’on refuse de faire':
+    'Nasze wybory i to, czego robić nie chcemy',
+  'Volumes et exposition, ou extrêmes du jour': 'Wolumeny i ekspozycja albo ekstrema dnia',
+
+  /* ── Titres et chapeaux de page ─────────────────────────────────────────── */
+  "Données de trading": "Dane handlowe",
+  "L’activité du marché crypto en quatre plans : les agrégats mondiaux, la répartition du volume entre les places, l’exposition sur les produits dérivés, puis les mouvements de la période.": "Aktywność rynku kryptowalut z czterech perspektyw: globalne agregaty, podział wolumenu między giełdy, ekspozycja na instrumentach pochodnych oraz ruchy w danym okresie.",
+  "Points marquants": "Najważniejsze",
+  "Ce qui sort de l’ordinaire aujourd’hui : ce qu’on regarde, ce qui bouge, ce qui s’échange, ce qui apparaît.": "Co dziś wykracza poza zwyczajność: co się ogląda, co się rusza, czym się handluje, co się pojawia.",
+  "Comment les chiffres affichés sur ZENKUU sont collectés, vérifiés et présentés — et ce qu’ils ne disent pas.": "Jak dane prezentowane w ZENKUU są zbierane, weryfikowane i przedstawiane — i czego nie mówią.",
+  "Classements crypto": "Rankingi kryptowalut",
+  "Quatre palmarès à confronter : ce qui monte, ce qui baisse, ce qui s’échange le plus, et ce qui tourne le plus vite au regard de sa taille.": "Cztery rankingi do porównania: co rośnie, co spada, czym handluje się najwięcej i co obraca się najszybciej w stosunku do swojej wielkości.",
+  "Deux à six actifs côte à côte, toutes classes confondues : trajectoires ramenées à une base commune, puis les chiffres qui les séparent.": "Od dwóch do sześciu aktywów obok siebie, ze wszystkich klas: przebiegi sprowadzone do wspólnej bazy, a potem liczby, które je różnią.",
+  "Carte thermique du marché": "Mapa cieplna rynku",
+  "Le marché en un coup d’œil : la surface porte la capitalisation, la couleur porte la variation. Basculez entre les pièces et les secteurs, et cliquez un rectangle pour l’ouvrir.": "Rynek na pierwszy rzut oka: powierzchnia oznacza kapitalizację, kolor — zmianę. Przełączaj między monetami a sektorami i kliknij prostokąt, aby go otworzyć.",
+  "Dérivés": "Instrumenty pochodne",
+  "Les contrats les plus actifs, leur intérêt ouvert et leur taux de financement. Un contrat perpétuel n’a pas d’échéance : son taux de financement est ce qui le raccroche au cours au comptant.": "Najbardziej aktywne kontrakty, ich otwarte pozycje i stawka finansowania. Kontrakt wieczysty nie ma terminu wygaśnięcia: to stawka finansowania wiąże go z ceną spot.",
+  "Les trois cents actifs dont la source a relevé un cours pour la première fois le plus récemment, du plus récent au plus ancien. Ceux que nous suivons par ailleurs portent leur logo et mènent à leur fiche.": "Trzysta aktywów, dla których źródło ostatnio po raz pierwszy odnotowało kurs, od najnowszych do najstarszych. Te, które śledzimy również gdzie indziej, mają swoje logo i prowadzą do własnej strony.",
+  "Paramètres": "Ustawienia",
+  "Vos réglages d’affichage, votre compte et l’origine des chiffres. ZENKUU n’exécute aucun ordre et ne détient aucun fonds : il n’y a ici ni moyen de paiement, ni limite de transaction, ni vérification d’identité — et rien à payer, le site n’ayant pas d’offre payante.": "Twoje ustawienia wyświetlania, konto i pochodzenie danych. ZENKUU nie realizuje żadnych zleceń i nie przechowuje środków: nie ma tu metody płatności, limitu transakcji ani weryfikacji tożsamości — i nie ma za co płacić, serwis nie ma oferty płatnej.",
+  "Les places de contrats perpétuels, classées par l’exposition qu’elles portent réellement — l’intérêt ouvert — et non par le volume qu’elles affichent. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce registre situe l’activité, il n’y donne pas accès.": "Giełdy kontraktów wieczystych, uszeregowane według faktycznie ponoszonej ekspozycji — otwartych pozycji — a nie według deklarowanego wolumenu. ZENKUU nie prowadzi księgi zleceń i nie umożliwia żadnej transakcji: ten rejestr lokalizuje aktywność, nie daje do niej dostępu.",
+  "Où s’échange le marché au comptant": "Gdzie handluje rynek kasowy",
+  "Les places d’échange classées par note de confiance, avec le volume qu’elles déclarent sur 24 heures et la part qu’il représente dans ce classement. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce registre situe l’activité, il n’y donne pas accès.": "Giełdy uszeregowane według oceny zaufania, z wolumenem deklarowanym w ciągu 24 godzin i jego udziałem w tym rankingu. ZENKUU nie prowadzi księgi zleceń i nie umożliwia żadnej transakcji: ten rejestr lokalizuje aktywność, nie daje do niej dostępu.",
+  "Tableau de bord": "Pulpit",
+  "Vos actifs suivis et vos préférences d’affichage. ZENKUU n’exécute aucun ordre et ne détient aucun fonds : il n’y a donc ici ni solde, ni portefeuille, ni performance — seulement ce que vous avez choisi de suivre.": "Śledzone przez Ciebie aktywa i preferencje wyświetlania. ZENKUU nie realizuje żadnych zleceń i nie przechowuje środków: nie ma tu więc ani salda, ani portfela, ani wyników — tylko to, co wybrałeś do śledzenia.",
+
+  /* ── Compte ─────────────────────────────────────────── */
+  "Se connecter": "Zaloguj się",
+  "Vérification…": "Weryfikacja…",
+}

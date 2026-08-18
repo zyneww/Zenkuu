@@ -8,6 +8,7 @@ import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { MarketPageView } from '@/components/market/MarketPageView'
 import { getContent } from '@/lib/content'
 import { assetClassFromSegment } from '@/lib/asset-routes'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -148,17 +149,14 @@ export default async function Page({
  * ouvrir. Tri, pagination et colonnes du classement n'auraient rien à trier.
  */
 async function DerivativesView() {
+  const t = await getPhrase()
   const derivatives = await getDerivatives(100)
 
   return (
     <div className="space-y-5">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Dérivés</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Les contrats les plus actifs, leur intérêt ouvert et leur taux de financement.
-          Un contrat perpétuel n’a pas d’échéance : son taux de financement est ce qui
-          le raccroche au cours au comptant.
-        </p>
+        <h1 className="display-xl text-ink">{t("Dérivés")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Les contrats les plus actifs, leur intérêt ouvert et leur taux de financement. Un contrat perpétuel n’a pas d’échéance : son taux de financement est ce qui le raccroche au cours au comptant.")}</p>
       </header>
 
       {derivatives.ok && derivatives.data.length > 0 ? (

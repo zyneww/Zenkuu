@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { viPhrases } from './phrases/vi'
 
 /**
  * Văn bản giao diện — tiếng Việt.
@@ -8,6 +9,8 @@ import type { Translation } from './index'
  * `content/locales/index.ts` đặt trước tiếng Pháp chính vì lý do này.
  */
 const vi: Translation = {
+  phrases: viPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Theo dõi và phân tích thị trường đa tài sản',

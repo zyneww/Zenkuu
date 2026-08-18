@@ -1,6 +1,7 @@
 import { getLocale } from 'next-intl/server'
 
 import { loadContent, type Content } from '@/content/locales'
+import { translate } from '@/content/phrases'
 
 /**
  * Dictionnaire d'interface du rendu serveur en cours.
@@ -19,4 +20,22 @@ import { loadContent, type Content } from '@/content/locales'
  */
 export async function getContent(): Promise<Content> {
   return loadContent(await getLocale())
+}
+
+/**
+ * Traducteur de PHRASES pour le rendu serveur en cours.
+ *
+ * Rend une fonction plutôt qu'une table, et l'usage explique pourquoi :
+ *
+ *     const t = await getPhrase()
+ *     <h1>{t('Carte thermique du marché')}</h1>
+ *
+ * Le texte français reste À SA PLACE, dans le composant : un relecteur voit ce que la
+ * page affiche sans ouvrir un second fichier, et une phrase non traduite se rend en
+ * français plutôt que de laisser un trou. Voir `content/phrases.ts` pour le partage
+ * avec le dictionnaire structuré.
+ */
+export async function getPhrase(): Promise<(text: string) => string> {
+  const content = await getContent()
+  return (text) => translate(content.phrases, text)
 }

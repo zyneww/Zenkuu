@@ -5,6 +5,7 @@ import { CACHE_TTL_SECONDS, getMoversUniverse } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { RankingBoard } from '@/components/market/RankingBoard'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -37,16 +38,14 @@ export const metadata: Metadata = {
  * Un seul appel réseau alimente les quatre : c'est le même univers, trié quatre fois.
  */
 export default async function RankingsPage() {
+  const t = await getPhrase()
   const result = await getMoversUniverse(250, 'eur')
 
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Classements crypto</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Quatre palmarès à confronter : ce qui monte, ce qui baisse, ce qui s’échange le
-          plus, et ce qui tourne le plus vite au regard de sa taille.
-        </p>
+        <h1 className="display-xl text-ink">{t("Classements crypto")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Quatre palmarès à confronter : ce qui monte, ce qui baisse, ce qui s’échange le plus, et ce qui tourne le plus vite au regard de sa taille.")}</p>
       </header>
 
       {result.ok && result.data.length > 0 ? (

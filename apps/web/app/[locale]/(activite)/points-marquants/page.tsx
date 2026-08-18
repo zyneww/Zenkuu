@@ -20,6 +20,7 @@ import { TrendingPanel } from '@/components/home/TrendingPanel'
 import { MacroBand } from '@/components/market/MacroBand'
 import { Money } from '@/components/locale/Money'
 import { getContent } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -49,6 +50,7 @@ export const metadata: Metadata = {
  * donnée.
  */
 export default async function HighlightsPage() {
+  const t = await getPhrase()
   const fr = await getContent()
   const [universe, trending, narratives, listings, globalStats] = await Promise.all([
     getMoversUniverse(250, 'eur'),
@@ -87,11 +89,8 @@ export default async function HighlightsPage() {
   return (
     <div className="space-y-12 sm:space-y-16">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Points marquants</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Ce qui sort de l’ordinaire aujourd’hui : ce qu’on regarde, ce qui bouge, ce qui
-          s’échange, ce qui apparaît.
-        </p>
+        <h1 className="display-xl text-ink">{t("Points marquants")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Ce qui sort de l’ordinaire aujourd’hui : ce qu’on regarde, ce qui bouge, ce qui s’échange, ce qui apparaît.")}</p>
       </header>
 
       {globalStats.ok ? <MacroBand stats={globalStats.data} /> : null}

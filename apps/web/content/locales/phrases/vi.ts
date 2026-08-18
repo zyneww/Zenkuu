@@ -1,0 +1,105 @@
+import type { Phrases } from '@/content/phrases'
+
+/** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
+export const viPhrases: Phrases = {
+  Parcourir: 'Duyệt',
+  Données: 'Dữ liệu',
+  Analyse: 'Phân tích',
+  Actualités: 'Tin tức',
+  Plus: 'Thêm',
+
+  Palmarès: 'Bảng xếp hạng',
+  Classements: 'Bảng xếp hạng',
+  'Le classement complet, page par page': 'Bảng xếp hạng đầy đủ, từng trang một',
+  'Nouvelles cryptomonnaies': 'Tiền mã hoá mới',
+  'Les actifs référencés le plus récemment': 'Những tài sản được thêm gần đây nhất',
+  'Activité du marché': 'Hoạt động thị trường',
+  'Places de cotation': 'Sàn giao dịch',
+  'Où le marché s’échange, et avec quelle confiance':
+    'Nơi thị trường giao dịch, và mức độ tin cậy',
+  'Places de dérivés': 'Sàn phái sinh',
+  'Où se portent les positions à effet de levier': 'Nơi tập trung các vị thế đòn bẩy',
+  Nouveautés: 'Điểm mới',
+  'Ce qui a changé récemment': 'Những gì vừa thay đổi',
+
+  Visualisations: 'Biểu đồ',
+  'Graphiques globaux': 'Biểu đồ toàn cầu',
+  'Capitalisation, dominance, secteurs et trésoreries':
+    'Vốn hoá, thị phần thống trị, ngành và kho dự trữ doanh nghiệp',
+  'Heatmap sectorielle': 'Bản đồ nhiệt theo ngành',
+  'Les secteurs en un coup d’œil': 'Toàn cảnh các ngành',
+  Indicateurs: 'Chỉ báo',
+  'Indice de sentiment': 'Chỉ số tâm lý',
+  'Fear & Greed du marché crypto': 'Fear & Greed của thị trường tiền mã hoá',
+  'Carte macroéconomique': 'Bản đồ kinh tế vĩ mô',
+  'Inflation, chômage, dette : l’état des économies':
+    'Lạm phát, thất nghiệp, nợ công: tình trạng các nền kinh tế',
+  Outils: 'Công cụ',
+  Screener: 'Bộ lọc',
+  'Filtrer le marché sur vos critères': 'Lọc thị trường theo tiêu chí của bạn',
+  Comparateur: 'So sánh',
+  'Deux à quatre actifs côte à côte': 'Từ hai đến bốn tài sản cạnh nhau',
+  Convertisseur: 'Quy đổi',
+  'Conversion entre actifs et devises': 'Quy đổi giữa tài sản và tiền tệ',
+
+  'Toute l’actualité': 'Toàn bộ tin tức',
+  Blog: 'Blog',
+  'Le fil complet, toutes sources confondues': 'Dòng tin đầy đủ từ mọi nguồn',
+  'Analyses et coulisses du produit': 'Phân tích và hậu trường sản phẩm',
+
+  'Suivi du marché': 'Theo dõi thị trường',
+  'Ma liste de suivi': 'Danh sách theo dõi của tôi',
+  'Les actifs rattachés à votre compte': 'Các tài sản gắn với tài khoản của bạn',
+  'Mes alertes': 'Cảnh báo của tôi',
+  'Un courriel au franchissement d’un seuil de prix':
+    'Một email khi giá vượt ngưỡng',
+  'Mon compte': 'Tài khoản của tôi',
+  'Liste de suivi, alertes et écrans, retrouvés partout':
+    'Danh sách theo dõi, cảnh báo và bộ lọc — có mặt ở mọi nơi',
+
+  Apprendre: 'Học',
+  'Comprendre les marchés, pas à pas': 'Hiểu thị trường, từng bước một',
+  'Bien démarrer': 'Bắt đầu',
+  'Prendre en main ZENKUU en cinq minutes': 'Làm quen với ZENKUU trong năm phút',
+  'Centre d’aide': 'Trung tâm trợ giúp',
+  'Questions fréquentes et assistance': 'Câu hỏi thường gặp và hỗ trợ',
+  Ressources: 'Tài nguyên',
+  'Méthodologie & sources': 'Phương pháp và nguồn',
+  'D’où viennent nos chiffres, et à quelle fréquence':
+    'Số liệu của chúng tôi đến từ đâu, và cập nhật ra sao',
+  'API & développeurs': 'API và nhà phát triển',
+  'Accéder aux données par programme': 'Truy cập dữ liệu bằng chương trình',
+  ZENKUU: 'ZENKUU',
+  'À propos': 'Giới thiệu',
+  'Notre positionnement et nos limites': 'Định vị và giới hạn của chúng tôi',
+  'Pourquoi ZENKUU': 'Vì sao chọn ZENKUU',
+  'Nos partis pris, et ce qu’on refuse de faire':
+    'Những lựa chọn của chúng tôi, và điều chúng tôi từ chối làm',
+  'Volumes et exposition, ou extrêmes du jour': 'Khối lượng và mức phơi nhiễm, hoặc các cực trị trong ngày',
+
+  /* ── Titres et chapeaux de page ─────────────────────────────────────────── */
+  "Données de trading": "Dữ liệu giao dịch",
+  "L’activité du marché crypto en quatre plans : les agrégats mondiaux, la répartition du volume entre les places, l’exposition sur les produits dérivés, puis les mouvements de la période.": "Hoạt động của thị trường tiền mã hoá từ bốn góc nhìn: các tổng hợp toàn cầu, phân bổ khối lượng giữa các sàn, mức phơi nhiễm ở phái sinh, rồi những biến động trong kỳ.",
+  "Points marquants": "Điểm nổi bật",
+  "Ce qui sort de l’ordinaire aujourd’hui : ce qu’on regarde, ce qui bouge, ce qui s’échange, ce qui apparaît.": "Những gì khác thường hôm nay: điều được theo dõi, điều đang biến động, điều đang giao dịch, điều mới xuất hiện.",
+  "Comment les chiffres affichés sur ZENKUU sont collectés, vérifiés et présentés — et ce qu’ils ne disent pas.": "Cách các con số trên ZENKUU được thu thập, kiểm chứng và trình bày — và điều chúng không nói ra.",
+  "Classements crypto": "Bảng xếp hạng tiền mã hoá",
+  "Quatre palmarès à confronter : ce qui monte, ce qui baisse, ce qui s’échange le plus, et ce qui tourne le plus vite au regard de sa taille.": "Bốn bảng xếp hạng để đối chiếu: cái gì tăng, cái gì giảm, cái gì giao dịch nhiều nhất, và cái gì quay vòng nhanh nhất so với quy mô của nó.",
+  "Deux à six actifs côte à côte, toutes classes confondues : trajectoires ramenées à une base commune, puis les chiffres qui les séparent.": "Từ hai đến sáu tài sản cạnh nhau, thuộc mọi loại: các đường đi được quy về cùng một mốc, rồi đến những con số phân biệt chúng.",
+  "Carte thermique du marché": "Bản đồ nhiệt thị trường",
+  "Le marché en un coup d’œil : la surface porte la capitalisation, la couleur porte la variation. Basculez entre les pièces et les secteurs, et cliquez un rectangle pour l’ouvrir.": "Toàn cảnh thị trường: diện tích thể hiện vốn hoá, màu sắc thể hiện mức biến động. Chuyển giữa đồng coin và ngành, rồi bấm vào một ô để mở.",
+  "Dérivés": "Phái sinh",
+  "Les contrats les plus actifs, leur intérêt ouvert et leur taux de financement. Un contrat perpétuel n’a pas d’échéance : son taux de financement est ce qui le raccroche au cours au comptant.": "Những hợp đồng sôi động nhất, vị thế mở và tỷ lệ tài trợ của chúng. Hợp đồng vĩnh cửu không có ngày đáo hạn: tỷ lệ tài trợ là thứ neo nó vào giá giao ngay.",
+  "Les trois cents actifs dont la source a relevé un cours pour la première fois le plus récemment, du plus récent au plus ancien. Ceux que nous suivons par ailleurs portent leur logo et mènent à leur fiche.": "Ba trăm tài sản mà nguồn ghi nhận giá lần đầu gần đây nhất, từ mới đến cũ. Những tài sản chúng tôi cũng theo dõi sẽ có biểu trưng và dẫn tới trang riêng.",
+  "Paramètres": "Cài đặt",
+  "Vos réglages d’affichage, votre compte et l’origine des chiffres. ZENKUU n’exécute aucun ordre et ne détient aucun fonds : il n’y a ici ni moyen de paiement, ni limite de transaction, ni vérification d’identité — et rien à payer, le site n’ayant pas d’offre payante.": "Thiết lập hiển thị, tài khoản của bạn và nguồn gốc các con số. ZENKUU không thực hiện lệnh nào và không giữ tiền: ở đây không có phương thức thanh toán, không có hạn mức giao dịch, không có xác minh danh tính — và không có gì phải trả, vì trang không có gói tính phí.",
+  "Les places de contrats perpétuels, classées par l’exposition qu’elles portent réellement — l’intérêt ouvert — et non par le volume qu’elles affichent. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce registre situe l’activité, il n’y donne pas accès.": "Các sàn hợp đồng vĩnh cửu, xếp theo mức phơi nhiễm thực sự mà họ gánh — vị thế mở — chứ không theo khối lượng họ công bố. ZENKUU không liệt kê sổ lệnh nào và không cho phép giao dịch: sổ ghi này định vị hoạt động, không mở lối vào.",
+  "Où s’échange le marché au comptant": "Nơi thị trường giao ngay giao dịch",
+  "Les places d’échange classées par note de confiance, avec le volume qu’elles déclarent sur 24 heures et la part qu’il représente dans ce classement. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce registre situe l’activité, il n’y donne pas accès.": "Các sàn xếp theo điểm tin cậy, kèm khối lượng họ công bố trong 24 giờ và tỷ trọng trong bảng này. ZENKUU không liệt kê sổ lệnh nào và không cho phép giao dịch: sổ ghi này định vị hoạt động, không mở lối vào.",
+  "Tableau de bord": "Bảng điều khiển",
+  "Vos actifs suivis et vos préférences d’affichage. ZENKUU n’exécute aucun ordre et ne détient aucun fonds : il n’y a donc ici ni solde, ni portefeuille, ni performance — seulement ce que vous avez choisi de suivre.": "Những tài sản bạn theo dõi và tuỳ chọn hiển thị. ZENKUU không thực hiện lệnh nào và không giữ tiền: vì vậy ở đây không có số dư, không có danh mục, không có hiệu suất — chỉ có những gì bạn đã chọn theo dõi.",
+
+  /* ── Compte ─────────────────────────────────────────── */
+  "Se connecter": "Đăng nhập",
+  "Vérification…": "Đang xác minh…",
+}

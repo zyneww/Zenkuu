@@ -6,6 +6,7 @@ import { CACHE_TTL_SECONDS, getRanking, type AssetClass, type MarketAsset } from
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { ComparatorView } from '@/components/tools/ComparatorView'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -75,15 +76,13 @@ const CLASSES: { assetClass: AssetClass; perPage: number }[] = [
  * et c'était un défaut latent AVANT cette page : deux cryptos n'y échappaient que
  * parce qu'elles venaient de la même source.
  */
-export default function ComparatorPage() {
+export default async function ComparatorPage() {
+  const t = await getPhrase()
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Comparateur</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Deux à six actifs côte à côte, toutes classes confondues : trajectoires
-          ramenées à une base commune, puis les chiffres qui les séparent.
-        </p>
+        <h1 className="display-xl text-ink">{t("Comparateur")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Deux à six actifs côte à côte, toutes classes confondues : trajectoires ramenées à une base commune, puis les chiffres qui les séparent.")}</p>
       </header>
 
       {/*

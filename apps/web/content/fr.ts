@@ -1,3 +1,5 @@
+import type { Phrases } from './phrases'
+
 /**
  * Textes de l'interface, en français.
  *
@@ -8,6 +10,17 @@
  */
 
 export const fr = {
+  /**
+   * TABLE DE PHRASES — vide en français, et c'est la définition même.
+   *
+   * Le texte français sert d'identifiant à sa propre traduction : la table du
+   * français est donc l'identité, et `translate` rend l'entrée telle quelle. Elle
+   * figure malgré tout ici parce que c'est ce champ qui donne son TYPE à la branche
+   * `phrases` des douze autres langues — sans lui, `DeepPartial<Content>` refuserait
+   * la moindre clé. Voir `content/phrases.ts`.
+   */
+  phrases: {} as Phrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Suivi et analyse de marché multi-actifs',

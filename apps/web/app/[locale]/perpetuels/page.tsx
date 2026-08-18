@@ -5,6 +5,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, PERPETUALS_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { DerivativeExchangesExplorer } from '@/components/market/DerivativeExchangesExplorer'
+import { getPhrase } from '@/lib/content'
 
 /* Dix minutes, comme le TTL de la donnée elle-même : l'intérêt ouvert est une
    position, et une position se déplace dans la journée. */
@@ -42,6 +43,7 @@ export const metadata: Metadata = {
  * vient le classement.
  */
 export default async function PerpetuelsPage() {
+  const t = await getPhrase()
   const exchanges = await getDerivativeExchanges(100)
 
   return (
@@ -52,13 +54,8 @@ export default async function PerpetuelsPage() {
       <BrowseTabs current={PERPETUALS_TAB} hrefFor={browseHref} />
 
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Où se portent les positions à effet de levier</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Les places de contrats perpétuels, classées par l’exposition qu’elles portent
-          réellement — l’intérêt ouvert — et non par le volume qu’elles affichent. ZENKUU
-          ne référence aucun carnet d’ordres et ne permet aucune transaction : ce
-          registre situe l’activité, il n’y donne pas accès.
-        </p>
+        <h1 className="display-xl text-ink">{t("Où se portent les positions à effet de levier")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Les places de contrats perpétuels, classées par l’exposition qu’elles portent réellement — l’intérêt ouvert — et non par le volume qu’elles affichent. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce registre situe l’activité, il n’y donne pas accès.")}</p>
       </header>
 
       {exchanges.ok && exchanges.data.length > 0 ? (

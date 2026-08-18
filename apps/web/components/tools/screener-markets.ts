@@ -135,8 +135,25 @@ export interface ScreenerFilter {
   min?: number
   max?: number
   step?: number
-  /** Suffixe affiché après le seuil : « € », « % », « ». */
+  /** Suffixe affiché après le seuil : « % », « BTC », « titres ». */
   unit?: string
+  /**
+   * Le seuil est-il un MONTANT, à lire dans la devise du site ?
+   *
+   * ── LE DÉFAUT QUE CE DRAPEAU CORRIGE ─────────────────────────────────
+   *
+   * Les seuils portaient une unité écrite en dur — « € » pour la crypto, « $ » pour
+   * les actions — parce que c'est la devise dans laquelle la SOURCE cote. La colonne
+   * du tableau, elle, convertit vers la devise choisie par le lecteur. Un curseur
+   * annonçant « 1 Md € » filtrait donc une population dont le tableau affichait des
+   * dollars, et les deux nombres ne se rapportaient pas à la même échelle.
+   *
+   * Marqué `currency`, un seuil est LU ET COMPARÉ dans la devise du site : le nombre
+   * du curseur et celui de la colonne parlent enfin de la même chose. La conversion
+   * a lieu ligne par ligne, depuis la devise déclarée par chacune — ce qui compte
+   * sur les actions, où elle varie d'une place de cotation à l'autre.
+   */
+  currency?: boolean
   /** Sens de la comparaison. `min` par défaut. */
   direction?: 'min' | 'max'
 }
@@ -456,8 +473,8 @@ const CRYPTO: ScreenerMarket = {
     },
   ],
   filters: [
-    { key: 'marketCap', label: 'Capitalisation minimale', steps: CAP_STEPS, unit: '€' },
-    { key: 'volume24h', label: 'Volume 24 h minimal', steps: VOLUME_STEPS, unit: '€' },
+    { key: 'marketCap', label: 'Capitalisation minimale', steps: CAP_STEPS, currency: true },
+    { key: 'volume24h', label: 'Volume 24 h minimal', steps: VOLUME_STEPS, currency: true },
     { key: 'change24h', label: 'Variation 24 h minimale', min: -100, max: 50, step: 5, unit: '%' },
     { key: 'change7d', label: 'Variation 7 j minimale', min: -100, max: 100, step: 10, unit: '%' },
     { key: 'turnover', label: 'Rotation minimale', min: 0, max: 100, step: 5, unit: '%' },
@@ -576,7 +593,7 @@ const ACTIONS: ScreenerMarket = {
     },
   ],
   filters: [
-    { key: 'marketCap', label: 'Capitalisation minimale', steps: CAP_STEPS, unit: '$' },
+    { key: 'marketCap', label: 'Capitalisation minimale', steps: CAP_STEPS, currency: true },
     { key: 'volume24h', label: 'Volume minimal', steps: VOLUME_STEPS, unit: 'titres' },
     { key: 'change24h', label: 'Variation du jour minimale', min: -50, max: 50, step: 5, unit: '%' },
     {
@@ -678,7 +695,7 @@ const ETF: ScreenerMarket = {
     },
   ],
   filters: [
-    { key: 'netAssets', label: 'Encours minimal', steps: ASSETS_STEPS, unit: '$' },
+    { key: 'netAssets', label: 'Encours minimal', steps: ASSETS_STEPS, currency: true },
     {
       key: 'expenseRatio',
       label: 'Frais maximaux',
@@ -896,9 +913,9 @@ const DEX: ScreenerMarket = {
       key: 'liquidity',
       label: 'Réserve minimale',
       steps: [0, 10_000, 100_000, 1_000_000, 10_000_000],
-      unit: '$',
+      currency: true,
     },
-    { key: 'volume24h', label: 'Volume minimal', steps: VOLUME_STEPS, unit: '$' },
+    { key: 'volume24h', label: 'Volume minimal', steps: VOLUME_STEPS, currency: true },
     { key: 'change24h', label: 'Variation 24 h minimale', min: -100, max: 100, step: 10, unit: '%' },
     { key: 'trades', label: 'Transactions minimales', min: 0, max: 5_000, step: 250, unit: '' },
   ],

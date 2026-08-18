@@ -5,6 +5,7 @@ import { CACHE_TTL_SECONDS, getCategories, getMoversUniverse } from '@zenkuu/dat
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
  * nulle part individuellement, et sautent aux yeux groupés.
  */
 export default async function HeatmapPage() {
+  const t = await getPhrase()
   /*
    * Les deux jeux partent ENSEMBLE et ne coûtent rien : `getCategories` sert déjà
    * `/categories` et les graphiques, `getMoversUniverse` sert déjà `/mouvements`.
@@ -55,12 +57,8 @@ export default async function HeatmapPage() {
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Carte thermique du marché</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Le marché en un coup d’œil : la surface porte la capitalisation, la couleur porte
-          la variation. Basculez entre les pièces et les secteurs, et cliquez un rectangle
-          pour l’ouvrir.
-        </p>
+        <h1 className="display-xl text-ink">{t("Carte thermique du marché")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Le marché en un coup d’œil : la surface porte la capitalisation, la couleur porte la variation. Basculez entre les pièces et les secteurs, et cliquez un rectangle pour l’ouvrir.")}</p>
       </header>
 
       {hasSectors || hasAssets ? (

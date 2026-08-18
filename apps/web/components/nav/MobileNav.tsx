@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 
 import { Link, usePathname } from '@/i18n/navigation'
 import { NAV_MENUS } from '@/content/navigation'
-import { useContent } from '@/components/locale/ContentProvider'
+import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { usePresence } from '@/components/nav/usePresence'
 
 /**
@@ -40,6 +40,7 @@ import { usePresence } from '@/components/nav/usePresence'
  */
 export function MobileNav() {
   const fr = useContent()
+  const t = usePhrase()
   const pathname = usePathname()
   const panelId = useId()
 
@@ -186,7 +187,7 @@ export function MobileNav() {
                           href={menu.href}
                           className="flex min-h-[3.25rem] items-center text-base font-semibold text-ink"
                         >
-                          {menu.label}
+                          {t(menu.label)}
                         </Link>
                       </li>
                     )
@@ -202,7 +203,7 @@ export function MobileNav() {
                         aria-expanded={isExpanded}
                         className="flex min-h-[3.25rem] w-full items-center justify-between gap-3 text-left text-base font-semibold text-ink"
                       >
-                        {menu.label}
+                        {t(menu.label)}
                         <ChevronDown
                           className={`h-4 w-4 shrink-0 text-ink-muted transition-transform duration-150 ${
                             isExpanded ? 'rotate-180' : ''
@@ -219,7 +220,7 @@ export function MobileNav() {
                                 key={`${menu.label}-titre-${sectionIndex}`}
                                 className="px-1 pb-1 pt-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted/70"
                               >
-                                {section.label}
+                                {t(section.label)}
                               </li>
                             ) : null,
                             ...section.items.map((item) => {
@@ -239,10 +240,10 @@ export function MobileNav() {
                                       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                                       <span className="min-w-0">
                                         <span className="block text-sm font-medium text-ink">
-                                          {item.label}
+                                          {t(item.label)}
                                         </span>
                                         <span className="block truncate text-xs text-ink-muted">
-                                          {item.description}
+                                          {t(item.description)}
                                         </span>
                                       </span>
                                     </Link>
@@ -255,14 +256,14 @@ export function MobileNav() {
                                       <span className="min-w-0">
                                         <span className="flex items-center gap-2">
                                           <span className="text-sm font-medium text-ink">
-                                            {item.label}
+                                            {t(item.label)}
                                           </span>
                                           <span className="rounded bg-surface-muted px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
                                             {fr.nav.soonShort}
                                           </span>
                                         </span>
                                         <span className="block truncate text-xs text-ink-muted">
-                                          {item.description}
+                                          {t(item.description)}
                                         </span>
                                       </span>
                                     </span>

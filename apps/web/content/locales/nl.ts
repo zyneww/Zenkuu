@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { nlPhrases } from './phrases/nl'
 
 /**
  * Interfaceteksten — Nederlands.
@@ -8,6 +9,8 @@ import type { Translation } from './index'
  * het Engels, dat `content/locales/index.ts` vóór het Frans plaatst.
  */
 const nl: Translation = {
+  phrases: nlPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Multi-asset marktvolging en -analyse',

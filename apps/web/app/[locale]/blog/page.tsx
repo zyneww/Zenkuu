@@ -15,7 +15,7 @@ import {
   readingMinutes,
   sortedArticles,
 } from '@/content/blog'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 const hasArticles = ARTICLES.length > 0
 
@@ -82,7 +82,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * attendant, la page le dit franchement plutôt que d'afficher une grille de cartes
  * fantômes.
  */
-export default function BlogPage() {
+export default async function BlogPage() {
+  const t = await getPhrase()
   const featured = featuredArticle()
   const rest = sortedArticles().filter((article) => article.slug !== featured?.slug)
 
@@ -114,11 +115,8 @@ export default function BlogPage() {
 
       {/* ── En-tête centré ─────────────────────────────────────────────────── */}
       <header className="mx-auto max-w-2xl space-y-4 text-center">
-        <h1 className="display-xl text-ink">Blog</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Comment les chiffres affichés sur ZENKUU sont collectés, vérifiés et
-          présentés — et ce qu’ils ne disent pas.
-        </p>
+        <h1 className="display-xl text-ink">{t("Blog")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Comment les chiffres affichés sur ZENKUU sont collectés, vérifiés et présentés — et ce qu’ils ne disent pas.")}</p>
       </header>
 
       {featured ? (

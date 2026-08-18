@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, Mail, ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { requestLoginCode, verifyLoginCode, type AuthResult } from '@/lib/auth-actions'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Le formulaire de connexion, SANS sa coque.
@@ -76,6 +77,7 @@ export function LoginForm({
   density?: 'overlay' | 'panel'
   hideHeading?: boolean
 }) {
+  const t = usePhrase()
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -269,7 +271,7 @@ export function LoginForm({
         className="flex h-9 w-full items-center justify-center gap-2 rounded-control bg-brand text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong disabled:opacity-60"
       >
         {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
-        {pending ? 'Vérification…' : 'Se connecter'}
+        {pending ? t("Vérification…") : t("Se connecter")}
       </button>
 
       <p className="flex items-start gap-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">

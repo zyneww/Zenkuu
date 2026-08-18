@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { zhPhrases } from './phrases/zh'
 
 /**
  * 界面文本 — 简体中文。
@@ -7,6 +8,8 @@ import type { Translation } from './index'
  * 的部分回退到英文 —— `content/locales/index.ts` 之所以把英文排在法文之前，正是为此。
  */
 const zh: Translation = {
+  phrases: zhPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: '多资产市场追踪与分析',

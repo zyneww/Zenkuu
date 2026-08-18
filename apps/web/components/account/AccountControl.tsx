@@ -23,6 +23,7 @@ import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
 import { DisplaySettings } from '@/components/settings/DisplaySettings'
 import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import {
   deleteCurrentAccount,
   signOut,
@@ -98,6 +99,7 @@ export function AccountControl({
   /** Ouvre la fenêtre d'authentification sur l'intention demandée. */
   onOpenAuth: (mode: AuthMode) => void
 }) {
+  const t = usePhrase()
   const [menuOpen, setMenuOpen] = useState(false)
 
   /*
@@ -186,7 +188,7 @@ export function AccountControl({
       <User className="h-4 w-4" aria-hidden="true" />
       {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre porte
           déjà le logo et la recherche. */}
-      <span className="hidden sm:inline">Se connecter</span>
+      <span className="hidden sm:inline">{t("Se connecter")}</span>
     </button>
   ) : (
     <button

@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { trPhrases } from './phrases/tr'
 
 /**
  * Arayüz metinleri — Türkçe.
@@ -8,6 +9,8 @@ import type { Translation } from './index'
  * `content/locales/index.ts` İngilizceyi Fransızcadan önce koymasının nedeni tam da budur.
  */
 const tr: Translation = {
+  phrases: trPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Çok varlıklı piyasa takibi ve analizi',

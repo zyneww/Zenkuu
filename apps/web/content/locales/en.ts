@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { enPhrases } from './phrases/en'
 
 /**
  * Interface strings — English.
@@ -22,6 +23,8 @@ import type { Translation } from './index'
  * too.
  */
 const en: Translation = {
+  phrases: enPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Multi-asset market tracking and analysis',

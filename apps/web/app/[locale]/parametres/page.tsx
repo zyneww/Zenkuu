@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { SettingsAccount } from '@/components/settings/SettingsAccount'
 import { SettingsPreferences } from '@/components/settings/SettingsPreferences'
 import { SettingsSources } from '@/components/settings/SettingsSources'
+import { getPhrase } from '@/lib/content'
 
 export const metadata: Metadata = {
   title: 'Paramètres',
@@ -48,19 +49,15 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const params = await searchParams
   const active = readSection(params['rubrique'])
 
   return (
     <div className="mx-auto max-w-5xl py-6">
       <header className="mb-8 space-y-2">
-        <h1 className="display-xl text-ink">Paramètres</h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Vos réglages d’affichage, votre compte et l’origine des chiffres. ZENKUU
-          n’exécute aucun ordre et ne détient aucun fonds : il n’y a ici ni moyen de
-          paiement, ni limite de transaction, ni vérification d’identité — et rien à
-          payer, le site n’ayant pas d’offre payante.
-        </p>
+        <h1 className="display-xl text-ink">{t("Paramètres")}</h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{t("Vos réglages d’affichage, votre compte et l’origine des chiffres. ZENKUU n’exécute aucun ordre et ne détient aucun fonds : il n’y a ici ni moyen de paiement, ni limite de transaction, ni vérification d’identité — et rien à payer, le site n’ayant pas d’offre payante.")}</p>
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">

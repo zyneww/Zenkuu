@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { jaPhrases } from './phrases/ja'
 
 /**
  * インターフェースのテキスト — 日本語。
@@ -14,6 +15,8 @@ import type { Translation } from './index'
  * ファイルの文字列がそれを上書きすることはありません。
  */
 const ja: Translation = {
+  phrases: jaPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'マルチアセット市場の追跡と分析',

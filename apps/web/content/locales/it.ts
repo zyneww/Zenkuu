@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { itPhrases } from './phrases/it'
 
 /**
  * Testi dell'interfaccia — italiano.
@@ -15,6 +16,8 @@ import type { Translation } from './index'
  * riletta di duemila parole di metodologia varrebbe meno dell'inglese di partenza.
  */
 const it: Translation = {
+  phrases: itPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Monitoraggio e analisi dei mercati multi-asset',

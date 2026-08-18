@@ -10,6 +10,7 @@ import { DashboardPreferences } from '@/components/dashboard/DashboardPreference
 import { Money } from '@/components/locale/Money'
 import { assetHref } from '@/lib/asset-routes'
 import { ownerId } from '@/lib/session'
+import { getPhrase } from '@/lib/content'
 
 export const metadata: Metadata = {
   title: 'Tableau de bord',
@@ -168,16 +169,14 @@ export default async function DashboardPage() {
   )
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+async function Shell({ children }: { children: React.ReactNode }) {
+  const t = await getPhrase()
+
   return (
     <div className="mx-auto max-w-3xl space-y-10 py-6">
       <header className="space-y-2">
-        <h1 className="display-xl text-ink">Tableau de bord</h1>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Vos actifs suivis et vos préférences d’affichage. ZENKUU n’exécute aucun ordre
-          et ne détient aucun fonds : il n’y a donc ici ni solde, ni portefeuille, ni
-          performance — seulement ce que vous avez choisi de suivre.
-        </p>
+        <h1 className="display-xl text-ink">{t("Tableau de bord")}</h1>
+        <p className="text-sm leading-relaxed text-ink-muted">{t("Vos actifs suivis et vos préférences d’affichage. ZENKUU n’exécute aucun ordre et ne détient aucun fonds : il n’y a donc ici ni solde, ni portefeuille, ni performance — seulement ce que vous avez choisi de suivre.")}</p>
       </header>
       {children}
     </div>

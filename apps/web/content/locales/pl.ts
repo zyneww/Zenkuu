@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { plPhrases } from './phrases/pl'
 
 /**
  * Teksty interfejsu — język polski.
@@ -8,6 +9,8 @@ import type { Translation } from './index'
  * angielskiego, który `content/locales/index.ts` umieszcza przed francuskim.
  */
 const pl: Translation = {
+  phrases: plPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Śledzenie i analiza rynków wieloaktywowych',

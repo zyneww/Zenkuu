@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { ruPhrases } from './phrases/ru'
 
 /**
  * Тексты интерфейса — русский.
@@ -9,6 +10,8 @@ import type { Translation } from './index'
  * ставит перед французским.
  */
 const ru: Translation = {
+  phrases: ruPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Отслеживание и анализ мультиактивных рынков',

@@ -6,7 +6,7 @@ import { ChevronDown } from 'lucide-react'
 
 import { NAV_MENUS, type NavMenu } from '@/content/navigation'
 import { ZenkuuWordmark } from '@/components/BrandMark'
-import { useContent } from '@/components/locale/ContentProvider'
+import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { AccountControl } from '@/components/account/AccountControl'
 import { AuthOverlay, type AuthMode } from '@/components/account/AuthOverlay'
 import { MobileNav } from '@/components/nav/MobileNav'
@@ -56,6 +56,7 @@ export function NavBar({
   socialProviders: readonly string[]
 }) {
   const fr = useContent()
+  const t = usePhrase()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   /*
@@ -306,7 +307,7 @@ export function NavBar({
                   href={menu.href}
                   className="flex items-center rounded-control px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
                 >
-                  {menu.label}
+                  {t(menu.label)}
                 </Link>
               ) : (
                 <DropdownMenu
@@ -429,6 +430,7 @@ interface DropdownMenuProps {
 
 function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: DropdownMenuProps) {
   const fr = useContent()
+  const t = usePhrase()
   const panelId = `menu-${menu.label.toLowerCase().replace(/\W+/g, '-')}`
 
   /* Le panneau survit à sa propre fermeture : `mounted` reste vrai pendant la
@@ -448,7 +450,7 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
           isOpen ? 'bg-surface-muted text-ink' : 'text-ink-muted hover:text-ink'
         }`}
       >
-        {menu.label}
+        {t(menu.label)}
         <ChevronDown
           className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           aria-hidden="true"
@@ -494,7 +496,7 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
 
                 {section.label ? (
                   <p className="px-3 pb-1 pt-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted/70">
-                    {section.label}
+                    {t(section.label)}
                   </p>
                 ) : null}
 
@@ -518,10 +520,10 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
                             />
                             <span className="min-w-0">
                               <span className="block text-sm font-medium text-ink">
-                                {item.label}
+                                {t(item.label)}
                               </span>
                               <span className="block text-xs text-ink-muted">
-                                {item.description}
+                                {t(item.description)}
                               </span>
                             </span>
                           </Link>
@@ -533,13 +535,13 @@ function DropdownMenu({ menu, isOpen, onOpen, onClose, onToggle, onNavigate }: D
                             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
                             <span className="min-w-0">
                               <span className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-ink">{item.label}</span>
+                                <span className="text-sm font-medium text-ink">{t(item.label)}</span>
                                 <span className="rounded bg-surface-muted px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
                                   {fr.nav.soonShort}
                                 </span>
                               </span>
                               <span className="block text-xs text-ink-muted">
-                                {item.description}
+                                {t(item.description)}
                               </span>
                             </span>
                           </span>

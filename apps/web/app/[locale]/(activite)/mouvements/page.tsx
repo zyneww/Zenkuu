@@ -22,6 +22,7 @@ import { MoversFilters } from '@/components/market/MoversFilters'
 import { SpotExchangesPanel } from '@/components/market/SpotExchangesPanel'
 import { getContent } from '@/lib/content'
 import { PERIOD_LABELS, UNIVERSE_LABELS } from '@/content/movers'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -72,6 +73,7 @@ export default async function MoversPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const fr = await getContent()
   const params = await searchParams
   const period = readPeriod(params['periode'])
@@ -98,12 +100,8 @@ export default async function MoversPage({
   return (
     <div className="space-y-12 sm:space-y-16">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Données de trading</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          L’activité du marché crypto en quatre plans : les agrégats mondiaux, la
-          répartition du volume entre les places, l’exposition sur les produits dérivés,
-          puis les mouvements de la période.
-        </p>
+        <h1 className="display-xl text-ink">{t("Données de trading")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("L’activité du marché crypto en quatre plans : les agrégats mondiaux, la répartition du volume entre les places, l’exposition sur les produits dérivés, puis les mouvements de la période.")}</p>
       </header>
 
       {globalStats.ok ? <MacroBand stats={globalStats.data} /> : null}

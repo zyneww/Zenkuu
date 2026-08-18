@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { esPhrases } from './phrases/es'
 
 /**
  * Textos de la interfaz — español.
@@ -10,6 +11,8 @@ import type { Translation } from './index'
  * contractual que debe permanecer en inglés.
  */
 const es: Translation = {
+  phrases: esPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Seguimiento y análisis de mercados multiactivo',

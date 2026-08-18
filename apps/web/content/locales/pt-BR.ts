@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { ptBRPhrases } from './phrases/pt-BR'
 
 /**
  * Textos da interface — português do Brasil.
@@ -14,6 +15,8 @@ import type { Translation } from './index'
  * português genérico daria a duas populações um texto que não é o de nenhuma delas.
  */
 const ptBR: Translation = {
+  phrases: ptBRPhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Acompanhamento e análise de mercados multiativos',

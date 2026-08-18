@@ -6,6 +6,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { NewListingsTable } from '@/components/market/NewListingsTable'
 import { buildListingIndex } from '@/lib/listing-match'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
  * précéder les chiffres, pas les suivre en note de bas de page.
  */
 export default async function NewListingsPage() {
+  const t = await getPhrase()
   const [listings, universe] = await Promise.all([
     /*
      * 300 et non 100 — « remonter plus loin en arrière ».
@@ -62,12 +64,8 @@ export default async function NewListingsPage() {
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Nouvelles cryptomonnaies</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Les trois cents actifs dont la source a relevé un cours pour la première fois
-          le plus récemment, du plus récent au plus ancien. Ceux que nous suivons par
-          ailleurs portent leur logo et mènent à leur fiche.
-        </p>
+        <h1 className="display-xl text-ink">{t("Nouvelles cryptomonnaies")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Les trois cents actifs dont la source a relevé un cours pour la première fois le plus récemment, du plus récent au plus ancien. Ceux que nous suivons par ailleurs portent leur logo et mènent à leur fiche.")}</p>
       </header>
 
       <aside className="border-l-2 border-accent bg-surface-muted p-4 text-sm leading-relaxed text-ink-muted">

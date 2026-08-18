@@ -1,9 +1,10 @@
 'use client'
 
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, type ReactNode } from 'react'
 
 import { fr } from '@/content/fr'
 import { merge, type Content, type DeepPartial } from '@/content/locales'
+import { translate } from '@/content/phrases'
 
 /**
  * Dictionnaire d'interface pour les composants CLIENT.
@@ -69,4 +70,23 @@ export function useContent(): Content {
   // branche en bloc par sa version dépouillée, et les fonctions resteraient perdues.
   // La fusion profonde ne remplace que les feuilles réellement transmises.
   return merge(fr, value)
+}
+
+/**
+ * Traducteur de PHRASES pour un composant client.
+ *
+ * Pendant du `getPhrase()` serveur, même usage :
+ *
+ *     const t = usePhrase()
+ *     <button>{t('Comparer')}</button>
+ *
+ * Il lit le contexte DIRECTEMENT plutôt que de passer par `useContent()` : la table
+ * de phrases est un `Record` de chaînes, elle ne perd rien à la sérialisation, et la
+ * refusionner avec le français — qui est vide par définition — coûterait une fusion
+ * profonde par rendu pour un résultat identique.
+ */
+export function usePhrase(): (text: string) => string {
+  const value = useContext(ContentContext)
+  const phrases = value?.phrases
+  return useCallback((text: string) => translate(phrases, text), [phrases])
 }

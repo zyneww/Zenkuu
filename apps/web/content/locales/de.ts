@@ -1,4 +1,5 @@
 import type { Translation } from './index'
+import { dePhrases } from './phrases/de'
 
 /**
  * Oberflächentexte — Deutsch.
@@ -11,6 +12,8 @@ import type { Translation } from './index'
  * vorgeschriebene Quellenangabe, die auf Englisch bleiben muss.
  */
 const de: Translation = {
+  phrases: dePhrases,
+
   site: {
     name: 'Zenkuu',
     tagline: 'Marktbeobachtung und -analyse über alle Anlageklassen',

@@ -5,6 +5,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, EXCHANGES_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { SpotExchangesExplorer } from '@/components/market/SpotExchangesExplorer'
+import { getPhrase } from '@/lib/content'
 
 /*
  * Une heure, comme le TTL de la donnée elle-même (voir `getSpotExchanges`). Régénérer
@@ -45,6 +46,7 @@ export const metadata: Metadata = {
  * confiance reste attribuée à la source, puisque c'est un jugement et non une mesure.
  */
 export default async function PlacesPage() {
+  const t = await getPhrase()
   const exchanges = await getSpotExchanges(100)
 
   return (
@@ -53,13 +55,8 @@ export default async function PlacesPage() {
       <BrowseTabs current={EXCHANGES_TAB} hrefFor={browseHref} />
 
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Où s’échange le marché au comptant</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
-          Les places d’échange classées par note de confiance, avec le volume qu’elles
-          déclarent sur 24 heures et la part qu’il représente dans ce classement. ZENKUU
-          ne référence aucun carnet d’ordres et ne permet aucune transaction : ce
-          registre situe l’activité, il n’y donne pas accès.
-        </p>
+        <h1 className="display-xl text-ink">{t("Où s’échange le marché au comptant")}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t("Les places d’échange classées par note de confiance, avec le volume qu’elles déclarent sur 24 heures et la part qu’il représente dans ce classement. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce registre situe l’activité, il n’y donne pas accès.")}</p>
       </header>
 
       {exchanges.ok && exchanges.data.length > 0 ? (
