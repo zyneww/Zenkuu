@@ -6,7 +6,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { NewsDatePicker } from '@/components/news/NewsDatePicker'
 import { NewsFeed } from '@/components/news/NewsFeed'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 // Les actualités se renouvellent plus vite que les cours : régénération à 3 minutes,
 // alignée sur le TTL propre au fil (`NEWS_TTL_SECONDS`).
@@ -59,6 +59,7 @@ export default async function NewsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const fr = await getContent()
+  const t = await getPhrase()
   const requestedDate = readDate((await searchParams)['date'])
 
   /*
@@ -130,9 +131,9 @@ export default async function NewsPage({
           <NewsFeed articles={articles} quotes={quotes} />
 
           <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-            ZENKUU agrège des titres publiés par des éditeurs tiers et renvoie vers
-            leurs articles. Aucun texte intégral n’est republié, et ZENKUU n’est
-            l’auteur d’aucun de ces contenus.
+            {t(
+              'ZENKUU agrège des titres publiés par des éditeurs tiers et renvoie vers leurs articles. Aucun texte intégral n’est republié, et ZENKUU n’est l’auteur d’aucun de ces contenus.',
+            )}
           </p>
 
           {news?.source ? (

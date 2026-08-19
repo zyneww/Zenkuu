@@ -5,6 +5,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, EXCHANGES_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { SpotExchangesExplorer } from '@/components/market/SpotExchangesExplorer'
+import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /*
@@ -88,22 +89,27 @@ export default async function PlacesPage() {
       )}
 
       <section className="max-w-3xl space-y-2">
-        <h2 className="text-base font-semibold text-ink">Comment lire ce classement</h2>
+        <h2 className="text-base font-semibold text-ink">{t('Comment lire ce classement')}</h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          La <strong className="text-ink">part du volume affiché</strong> rapporte chaque
-          place au total des places de ce tableau, et non au marché mondial : la source
-          en classe plusieurs centaines, on en montre cent. Écrire « part de marché »
-          serait faux d’un facteur inconnu.
+          {emphasise(
+            t(
+              'La **part du volume affiché** rapporte chaque place au total des places de ce tableau, et non au marché mondial : la source en classe plusieurs centaines, on en montre cent. Écrire « part de marché » serait faux d’un facteur inconnu.',
+            ),
+          )}
         </p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Le <strong className="text-ink">volume est en bitcoin</strong>, unité dans
-          laquelle la source le publie. Le convertir en euros supposerait de choisir un
-          cours et un instant — une mesure deviendrait une estimation.
+          {emphasise(
+            t(
+              'Le **volume est en bitcoin**, unité dans laquelle la source le publie. Le convertir en euros supposerait de choisir un cours et un instant — une mesure deviendrait une estimation.',
+            ),
+          )}
         </p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          La <strong className="text-ink">note de confiance</strong> est un jugement
-          publié par la source sur la qualité de la liquidité déclarée. Ce n’est ni une
-          mesure, ni un avis de ZENKUU.
+          {emphasise(
+            t(
+              'La **note de confiance** est un jugement publié par la source sur la qualité de la liquidité déclarée. Ce n’est ni une mesure, ni un avis de ZENKUU.',
+            ),
+          )}
         </p>
       </section>
     </div>

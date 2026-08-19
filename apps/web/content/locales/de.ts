@@ -133,6 +133,7 @@ const de: Translation = {
   },
 
   home: {
+    classMoversHint: (size: number) => `Unter den ${size} verfolgten Werten dieser Klasse`,
     trendingTitle: 'Trends',
     gainersTitle: 'Größte Gewinner',
     losersTitle: 'Größte Verlierer',
@@ -168,7 +169,7 @@ const de: Translation = {
       losers: 'Verlierer',
       categories: 'Kategorien',
     },
-  
+
     summaryTitle: "Marktüberblick",
     topIndicesTitle: "Wichtigste Indizes",
     volumeLeadersTitle: "Höchste Volumen",

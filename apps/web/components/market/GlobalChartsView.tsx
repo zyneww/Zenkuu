@@ -7,6 +7,7 @@ import type { PriceHistory } from '@zenkuu/data'
 import { Chip, ChipGroup as Group } from '@/components/charts/ChipGroup'
 import { TrendChart, type TrendPoint } from '@/components/charts/TrendChart'
 import { dataColor } from '@/components/charts/chart-theme'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Explorateur de courbes longues.
@@ -50,6 +51,7 @@ export function GlobalChartsView({
   /** Séries d'un an, indexées par identifiant d'actif. Une entrée absente = source muette. */
   histories: Partial<Record<SeriesId, PriceHistory>>
 }) {
+  const t = usePhrase()
   const [seriesId, setSeriesId] = useState<SeriesId>('bitcoin')
   const [metric, setMetric] = useState<MetricId>('marketCap')
   const [days, setDays] = useState<number>(365)
@@ -96,11 +98,12 @@ export function GlobalChartsView({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
           <h2 id="courbes-titre" className="display-md text-ink">
-            Courbes longues
+            {t('Courbes longues')}
           </h2>
           <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-            Cours, capitalisation et volume proviennent d’un même relevé de la source —
-            trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.
+            {t(
+              'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.',
+            )}
           </p>
         </div>
 

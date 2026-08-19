@@ -46,12 +46,15 @@ const ru: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `пересчитано из ${from} по курсу ЕЦБ от ${date}`,
+    currencyHint: (date: string) =>
+      `Пересчёт по справочному курсу ЕЦБ от ${date}. Источники котируют в евро; выбранная валюта действует на всём сайте.`,
     open: 'Язык и валюта',
     language: 'Язык',
     currency: 'Местная валюта',
     search: 'Поиск',
     noMatch: 'Ни одна валюта не соответствует.',
-  
+
     languageHint: "Языки, помеченные как переведённые, меняют интерфейс. Остальные лишь сохраняют ваш выбор до появления файла перевода — мы предпочитаем честно сказать, чего не хватает, чем показать невычитанный машинный перевод.",
   },
 
@@ -95,6 +98,16 @@ const ru: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? 'Кривая ещё строится: ни один бесплатный источник не публикует историю мировой капитализации, поэтому мы записываем собственные замеры.'
+        : `Кривая строится — пока ${count} замеров.`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `Замеры ZENKUU за ${Math.round(minutes / 60)} ч`
+        : `Замеры ZENKUU за ${minutes} мин`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `Изменение общей капитализации за последние ${minutes} минут`,
     trendingTitle: 'В тренде',
     gainersTitle: 'Наибольший рост',
     losersTitle: 'Наибольшее падение',
@@ -111,7 +124,7 @@ const ru: Translation = {
     sentimentTitle: 'Настроение рынка',
     coverageTitle: 'Охват по классам активов',
     seeAll: 'Смотреть всё',
-  
+
     topMarketCapTitle: "Крупнейшие капитализации",
     marketCapCardTitle: "Капитализация рынка",
     volumeCardTitle: "Объём торгов за 24 ч",
@@ -149,7 +162,7 @@ const ru: Translation = {
   auth: {
     signIn: 'Войти',
     signUp: 'Зарегистрироваться',
-  
+
     unavailableTitle: "Аккаунты скоро появятся",
     unavailableBody: "Аутентификация в этой сборке пока не настроена. С аккаунтом список наблюдения станет постоянным и откроется доступ к ценовым оповещениям и настройкам отображения.",
     signInTitle: "Вход в ZENKUU",
@@ -182,6 +195,7 @@ const ru: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `Страница ${page}`,
     columns: {
       rank: "#",
       name: "Актив",
@@ -235,6 +249,10 @@ const ru: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `Суммы пересчитаны из ${from} в ${to} по справочному курсу ЕЦБ от ${date}. Источник котирует этот актив в ${from}.`,
+    aboutTitle: (name: string) => `Об активе ${name}`,
+    priceLabel: (name: string) => `Курс ${name}`,
     statsTitle: "Рыночная статистика",
     similarTitle: "Сопоставимые активы",
     rangeTitle: "Период",
@@ -277,6 +295,25 @@ const ru: Translation = {
     lowest: "Минимум",
     highest: "Максимум",
     faq: {
+      buyQ: (name: string) => `Можно ли купить ${name} на ZENKUU?`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `Максимальная эмиссия — ${max} ${symbol}, из них ${circulating} ${symbol} в обращении.`
+          : `Максимальная эмиссия — ${max} ${symbol}.`,
+      supplyQ: (name: string) => `Сколько единиц ${name} будет существовать максимум?`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `Исторический максимум — ${price}, достигнут ${date}.`
+          : `Исторический максимум — ${price}.`,
+      athQ: (name: string) => `Каков исторический максимум ${name}?`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `Капитализация составляет ${cap}, что даёт ${rank}-е место в своём классе активов.`
+          : `Капитализация составляет ${cap}.`,
+      capQ: (name: string) => `Какова капитализация ${name}?`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} торгуется по ${price}. Последнее значение, опубликованное нашим источником ${updated}.`,
+      priceQ: (name: string) => `Сколько стоит ${name} сегодня?`,
       buyA: "Нет. ZENKUU — информационная платформа: мы не исполняем заявок, не храним средств и не являемся ни брокером, ни биржей.",
     },
     stats: {
@@ -317,6 +354,7 @@ const ru: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `Читать на ${source}`,
     title: "Новости рынков",
     subtitle: "Собраны из публичных лент основных изданий.",
     unavailable: "Лента новостей временно недоступна.",
@@ -336,6 +374,7 @@ const ru: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "Информационная платформа: без исполнения заявок и без хранения средств.",
     community: "Сообщество",
     locale: "Русский · EUR",

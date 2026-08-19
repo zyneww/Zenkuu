@@ -142,6 +142,7 @@ const en: Translation = {
   },
 
   home: {
+    classMoversHint: (size: number) => `Among the ${size} assets tracked in this class`,
     trendingTitle: 'Trending',
     gainersTitle: 'Top gainers',
     losersTitle: 'Top losers',
@@ -177,7 +178,7 @@ const en: Translation = {
       losers: 'Losers',
       categories: 'Categories',
     },
-  
+
     summaryTitle: "Market summary",
     topIndicesTitle: "Leading indices",
     volumeLeadersTitle: "Highest volumes",

@@ -124,8 +124,9 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
               pourquoi le nombre est ce qu'il est évite de le prendre pour un
               plafond arbitraire. */}
           <p className="mt-1 text-sm text-ink-muted">
-            {categories.length} secteurs cotés. La source en publie davantage, mais les
-            autres ne portent aucun actif valorisé.
+            {t(
+              '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
+            ).replace('{n}', String(categories.length))}
           </p>
         </div>
 
@@ -436,6 +437,7 @@ function SortChip({
   onClick: () => void
   label: string
 }) {
+  const t = usePhrase()
   return (
     <button
       type="button"
@@ -455,7 +457,9 @@ function SortChip({
       ) : null}
       {active ? (
         <span className="sr-only">
-          , trié {direction === 'desc' ? 'du plus grand au plus petit' : 'du plus petit au plus grand'}
+          {direction === 'desc'
+            ? t(', trié du plus grand au plus petit')
+            : t(', trié du plus petit au plus grand')}
         </span>
       ) : null}
     </button>

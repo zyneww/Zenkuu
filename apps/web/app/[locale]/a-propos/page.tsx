@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
 import { KeyFigures } from '@/components/about/KeyFigures'
-import { getContent, getSeo } from '@/lib/content'
-import { getPhrase } from '@/lib/content'
+import { emphasise, weave } from '@/components/locale/emphasise'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -78,9 +78,9 @@ export default async function AProposPage() {
 
       <section className="max-w-2xl space-y-6">
         {PRINCIPLES.map((principle) => (
-          <article key={principle.title} className="space-y-1.5">
-            <h2 className="text-base font-semibold leading-snug text-ink">{principle.title}</h2>
-            <p className="text-base leading-relaxed text-ink-muted">{principle.body}</p>
+          <article key={t(principle.title)} className="space-y-1.5">
+            <h2 className="text-base font-semibold leading-snug text-ink">{t(principle.title)}</h2>
+            <p className="text-base leading-relaxed text-ink-muted">{t(principle.body)}</p>
           </article>
         ))}
       </section>
@@ -98,17 +98,25 @@ export default async function AProposPage() {
           <li>
             <strong className="text-ink">{t('Aucune conservation de fonds.')}</strong>{t('ZENKUU ne se connecte à aucun portefeuille ni à aucun courtier.')}</li>
           <li>
-            <strong className="text-ink">Aucun conseil en investissement.</strong>{t('Nous affichons des données et des indicateurs publiés par des tiers. Rien de ce que vous lisez ici ne constitue une recommandation personnalisée.')}</li>
+            {emphasise(
+              t(
+                '**Aucun conseil en investissement.** Nous affichons des données et des indicateurs publiés par des tiers. Rien de ce que vous lisez ici ne constitue une recommandation personnalisée.',
+              ),
+            )}
+          </li>
           <li>
-            <strong className="text-ink">{t('Aucune donnée inventée.')}</strong> Le détail se
-            trouve dans la{' '}
-            <Link
-              href="/methodologie"
-              className="underline underline-offset-2 hover:text-brand-strong"
-            >
-              page Méthodologie
-            </Link>
-            .
+            {weave(
+              t('**Aucune donnée inventée.** Le détail se trouve dans la [page Méthodologie](/methodologie).'),
+              (href, label, key) => (
+                <Link
+                  key={key}
+                  href={href}
+                  className="underline underline-offset-2 hover:text-brand-strong"
+                >
+                  {label}
+                </Link>
+              ),
+            )}
           </li>
         </ul>
       </Section>

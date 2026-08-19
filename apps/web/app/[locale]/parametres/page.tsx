@@ -87,8 +87,8 @@ export default async function SettingsPage({
                       : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                   }`}
                 >
-                  <span className="block text-sm font-medium">{section.label}</span>
-                  <span className="hidden text-xs opacity-80 lg:block">{section.hint}</span>
+                  <span className="block text-sm font-medium">{t(section.label)}</span>
+                  <span className="hidden text-xs opacity-80 lg:block">{t(section.hint)}</span>
                 </Link>
               </li>
             ))}

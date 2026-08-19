@@ -45,12 +45,15 @@ const tr: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `${date} tarihli AMB kuruyla ${from} cinsinden çevrildi`,
+    currencyHint: (date: string) =>
+      `${date} tarihli AMB referans kuruyla çevrildi. Kaynaklar euro cinsinden fiyatlar; seçilen para birimi sitenin tamamında geçerlidir.`,
     open: 'Dil ve para birimi',
     language: 'Dil',
     currency: 'Görüntüleme para birimi',
     search: 'Ara',
     noMatch: 'Eşleşen para birimi yok.',
-  
+
     languageHint: "Çevrildi olarak işaretli diller arayüzü değiştirir. Diğerleri, çeviri dosyaları hazır olana dek tercihinizi kaydeder — düzeltilmemiş bir makine çevirisi sunmaktansa neyin eksik olduğunu söylemeyi yeğliyoruz.",
   },
 
@@ -94,6 +97,16 @@ const tr: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? 'Eğri henüz oluşuyor: hiçbir ücretsiz kaynak dünya piyasa değerinin geçmişini yayımlamıyor, bu yüzden kendi ölçümlerimizi kaydediyoruz.'
+        : `Eğri oluşuyor — şimdiye dek ${count} ölçüm.`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `${Math.round(minutes / 60)} saatlik ZENKUU ölçümleri`
+        : `${minutes} dakikalık ZENKUU ölçümleri`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `Son ${minutes} dakikada toplam piyasa değerinin seyri`,
     trendingTitle: 'Öne çıkanlar',
     gainersTitle: 'En çok yükselenler',
     losersTitle: 'En çok düşenler',
@@ -110,7 +123,7 @@ const tr: Translation = {
     sentimentTitle: 'Piyasa duyarlılığı',
     coverageTitle: 'Varlık sınıfına göre kapsam',
     seeAll: 'Tümünü gör',
-  
+
     topMarketCapTitle: "En büyük piyasa değerleri",
     marketCapCardTitle: "Piyasa değeri",
     volumeCardTitle: "24 saatlik işlem hacmi",
@@ -148,7 +161,7 @@ const tr: Translation = {
   auth: {
     signIn: 'Giriş yap',
     signUp: 'Kaydol',
-  
+
     unavailableTitle: "Hesaplar yakında",
     unavailableBody: "Bu örnekte kimlik doğrulama henüz yapılandırılmadı. Hesaplar izleme listesini kalıcı kılacak, fiyat uyarılarına ve görüntüleme tercihlerine erişim verecek.",
     signInTitle: "ZENKUU’ya giriş yap",
@@ -181,6 +194,7 @@ const tr: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `Sayfa ${page}`,
     columns: {
       rank: "#",
       name: "Varlık",
@@ -234,6 +248,10 @@ const tr: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `Tutarlar, ${date} tarihli AMB referans kuruyla ${from} biriminden ${to} birimine çevrildi. Kaynak bu varlığı ${from} cinsinden fiyatlıyor.`,
+    aboutTitle: (name: string) => `${name} hakkında`,
+    priceLabel: (name: string) => `${name} fiyatı`,
     statsTitle: "Piyasa istatistikleri",
     similarTitle: "Benzer varlıklar",
     rangeTitle: "Dönem",
@@ -276,6 +294,25 @@ const tr: Translation = {
     lowest: "En düşük",
     highest: "En yüksek",
     faq: {
+      buyQ: (name: string) => `ZENKUU üzerinden ${name} satın alınabilir mi?`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `Azami arz ${max} ${symbol}; bunun ${circulating} ${symbol} kadarı şu anda dolaşımda.`
+          : `Azami arz ${max} ${symbol}.`,
+      supplyQ: (name: string) => `En fazla kaç adet ${name} var olacak?`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `Tüm zamanların zirvesi ${price}; ${date} tarihinde görüldü.`
+          : `Tüm zamanların zirvesi ${price}.`,
+      athQ: (name: string) => `${name} için tüm zamanların zirvesi nedir?`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `Piyasa değeri ${cap} olup, bu onu kendi varlık sınıfında ${rank}. sıraya yerleştirir.`
+          : `Piyasa değeri ${cap}.`,
+      capQ: (name: string) => `${name} için piyasa değeri nedir?`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} ${price} seviyesinde işlem görüyor. Kaynağımızın yayımladığı son değer: ${updated}.`,
+      priceQ: (name: string) => `${name} bugün kaç para?`,
       buyA: "Hayır. ZENKUU bir bilgi platformudur: hiçbir emir gerçekleştirmez, fon tutmaz, ne aracı kurum ne de borsadır.",
     },
     stats: {
@@ -316,6 +353,7 @@ const tr: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `${source} üzerinde oku`,
     title: "Piyasa haberleri",
     subtitle: "Başlıca yayıncıların herkese açık akışlarından derlenmiştir.",
     unavailable: "Haber akışı şu an kullanılamıyor.",
@@ -335,6 +373,7 @@ const tr: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "Bilgi platformu; emir gerçekleştirmez, fon saklamaz.",
     community: "Topluluk",
     locale: "Türkçe · EUR",

@@ -63,9 +63,20 @@ describe('table de phrases', () => {
    */
   const PROSE = 8
 
+  /**
+   * Un emplacement nommé n'est pas du texte : `{count} articles` ne compte qu'un
+   * mot, et « articles » s'écrit pareil en anglais. Les retirer avant de mesurer
+   * évite de prendre l'espace qui les sépare du mot pour celle d'une phrase.
+   */
+  const words = (text: string) => text.replace(/\{\w+\}/g, '').trim()
+
   it.each(locales)('%s ne recopie aucune phrase française', (locale) => {
     const copied = Object.entries(TABLES[locale])
-      .filter(([key, text]) => key === text && key.includes(' ') && key.length >= PROSE)
+      .filter(([key, text]) => {
+        if (key !== text) return false
+        const prose = words(key)
+        return prose.includes(' ') && prose.length >= PROSE
+      })
       .map(([key]) => key)
 
     expect(copied).toEqual([])

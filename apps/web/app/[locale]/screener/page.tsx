@@ -26,7 +26,7 @@ import {
   type ScreenerRow,
 } from '@/components/tools/screener-markets'
 import { getPhrase } from '@/lib/content'
-import { emphasise } from '@/components/locale/emphasise'
+import { emphasise, weave } from '@/components/locale/emphasise'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -37,11 +37,12 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }): Promise<Metadata> {
+  const t = await getPhrase()
   const market = readMarket((await searchParams)['marche'])
 
   return {
-    title: market.title,
-    description: market.lead,
+    title: t(market.title),
+    description: t(market.lead),
     /*
      * UN SEUL CANONIQUE POUR LES SIX ONGLETS.
      *
@@ -86,7 +87,7 @@ export default async function ScreenerPage({
     <div className="space-y-6">
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">Screener</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">{market.lead}</p>
+        <p className="text-lg leading-relaxed text-ink-muted">{t(market.lead)}</p>
       </header>
 
       {/* ── Les six marchés ──────────────────────────────────────────────────
@@ -109,7 +110,7 @@ export default async function ScreenerPage({
                 : 'border-transparent text-ink-muted hover:text-ink'
             }`}
           >
-            {entry.label}
+            {t(entry.label)}
           </Link>
         ))}
       </nav>
@@ -139,7 +140,7 @@ async function LoadingNote({ market }: { market: ScreenerMarket }) {
   const t = await getPhrase()
   return (
     <p className="rounded-card border border-border-subtle bg-surface px-4 py-6 text-sm text-ink-muted">
-      Lecture de la population « {market.label} »…
+      Lecture de la population « {t(market.label)} »…
       <span className="block pt-1 text-xs">{t('Ces sources se demandent par tranches et limitent les appels gratuits : le premier chargement peut prendre quelques secondes. Les suivants sont servis depuis le cache.')}</span>
     </p>
   )
@@ -159,7 +160,7 @@ async function MarketSection({ market }: { market: ScreenerMarket }) {
   if (!loaded.result.ok) {
     return (
       <EmptyState
-        title={`« ${market.label} » indisponible pour le moment`}
+        title={`« ${t(market.label)} » indisponible pour le moment`}
         description={loaded.result.reason}
         source={loaded.result.source?.label ?? null}
         tone="warning"
@@ -243,12 +244,16 @@ async function Scope({ market }: { market: ScreenerMarket }) {
       <h2 className="text-sm font-semibold text-ink">{t('Ce que cet onglet examine')}</h2>
       {scopeFor(market.id, t)}
       <p className="text-sm text-ink-muted">
-        Le filtrage est instantané parce qu’il porte sur des données déjà reçues avec la
-        page — aucun aller-retour serveur n’est déclenché à chaque réglage. Voir la{' '}
-        <Link href="/methodologie" className="text-brand hover:underline">
-          méthodologie
-        </Link>
-        .
+        {weave(
+          t(
+            'Le filtrage est instantané parce qu’il porte sur des données déjà reçues avec la page — aucun aller-retour serveur n’est déclenché à chaque réglage. Voir la [méthodologie](/methodologie).',
+          ),
+          (href, label, key) => (
+            <Link key={key} href={href} className="text-brand hover:underline">
+              {label}
+            </Link>
+          ),
+        )}
       </p>
     </section>
   )

@@ -1,6 +1,8 @@
 import { Coins, Flame, Layers, Newspaper, Sparkles, TrendingUp, Wallet } from 'lucide-react'
 
 import type { GlobalMarketStats } from '@zenkuu/data'
+
+import { getPhrase } from '@/lib/content'
 import { formatNumber } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
@@ -110,7 +112,8 @@ function Counter({
  * Les destinations existent toutes. Une puce qui ne mène nulle part dans un bandeau
  * de tête est la première chose qu'un visiteur essaie.
  */
-function ShortcutChips() {
+async function ShortcutChips() {
+  const t = await getPhrase()
   const chips = [
     { label: 'Points saillants', href: '/points-marquants', Icon: Sparkles },
     { label: 'Tendances', href: '/graphiques', Icon: TrendingUp },
@@ -128,7 +131,7 @@ function ShortcutChips() {
           className="inline-flex items-center gap-1.5 rounded-pill border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
         >
           <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          {label}
+          {t(label)}
         </Link>
       ))}
     </nav>

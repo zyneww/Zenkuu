@@ -116,13 +116,13 @@ export default async function BienDemarrerPage() {
           <p className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Les cinq étapes')}</p>
           <ol className="space-y-0.5">
             {STEPS.map((step, index) => (
-              <li key={step.title}>
+              <li key={t(step.title)}>
                 <a
                   href={`#etape-${index + 1}`}
                   className="flex items-baseline gap-2 rounded-control px-2 py-1.5 text-xs text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
                 >
                   <span className="tabular shrink-0 text-micro">{index + 1}</span>
-                  <span>{step.title}</span>
+                  <span>{t(step.title)}</span>
                 </a>
               </li>
             ))}
@@ -133,7 +133,7 @@ export default async function BienDemarrerPage() {
           <ol className="space-y-4">
             {STEPS.map((step, index) => (
               <li
-                key={step.title}
+                key={t(step.title)}
                 id={`etape-${index + 1}`}
                 /* `scroll-mt-24` : sans lui, une ancre place le haut de l'étape
                    exactement sous l'en-tête collant, qui en recouvre le titre. */
@@ -146,13 +146,13 @@ export default async function BienDemarrerPage() {
                   {index + 1}
                 </span>
                 <div className="space-y-1.5">
-                  <h2 className="text-base font-semibold text-ink">{step.title}</h2>
-                  <p className="text-sm leading-relaxed text-ink-muted">{step.body}</p>
+                  <h2 className="text-base font-semibold text-ink">{t(step.title)}</h2>
+                  <p className="text-sm leading-relaxed text-ink-muted">{t(step.body)}</p>
                   <Link
                     href={step.href}
                     className="inline-block text-xs text-brand-strong hover:underline"
                   >
-                    {step.linkLabel} →
+                    {t(step.linkLabel)} →
                   </Link>
                 </div>
               </li>

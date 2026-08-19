@@ -6,6 +6,7 @@ import { CACHE_TTL_SECONDS, getRanking, type AssetClass, type MarketAsset } from
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { ComparatorView } from '@/components/tools/ComparatorView'
+import { weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
@@ -113,7 +114,7 @@ export default async function ComparatorPage() {
       <Suspense
         fallback={
           <p className="rounded-card border border-border-subtle bg-surface px-4 py-16 text-center text-sm text-ink-muted">
-            Chargement des six marchés…
+            {t('Chargement des six marchés…')}
           </p>
         }
       >
@@ -121,30 +122,30 @@ export default async function ComparatorPage() {
       </Suspense>
 
       <section className="max-w-2xl space-y-2 border-t border-border-subtle pt-6">
-        <h2 className="text-sm font-semibold text-ink">Ce que le comparateur ne compare pas</h2>
+        <h2 className="text-sm font-semibold text-ink">
+          {t('Ce que le comparateur ne compare pas')}
+        </h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Une grandeur qui change de définition d’une source à l’autre ne se met pas en
-          regard. Le « volume » d’une place boursière se compte en titres échangés, celui
-          d’un agrégateur crypto en monnaie ; un rang est interne à sa classe. Ces
-          lignes-là disparaissent dès que la comparaison mêle plusieurs classes, plutôt
-          que d’aligner des nombres qui ne se répondent pas.
+          {t(
+            'Une grandeur qui change de définition d’une source à l’autre ne se met pas en regard. Le « volume » d’une place boursière se compte en titres échangés, celui d’un agrégateur crypto en monnaie ; un rang est interne à sa classe. Ces lignes-là disparaissent dès que la comparaison mêle plusieurs classes, plutôt que d’aligner des nombres qui ne se répondent pas.',
+          )}
         </p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les variations en pourcentage, elles, se comparent sans réserve : ce sont des
-          rapports sans unité. C’est ce qui rend le graphique honnête d’une classe à
-          l’autre — à condition de le tracer sur une fenêtre de temps commune, ce que
-          fait la page.
+          {t(
+            'Les variations en pourcentage, elles, se comparent sans réserve : ce sont des rapports sans unité. C’est ce qui rend le graphique honnête d’une classe à l’autre — à condition de le tracer sur une fenêtre de temps commune, ce que fait la page.',
+          )}
         </p>
         <p className="text-sm text-ink-muted">
-          Pour une lecture complète d’un actif, voir sa fiche depuis{' '}
-          <Link href="/marches" className="text-brand hover:underline">
-            Parcourir
-          </Link>
-          , ou filtrer le marché avec le{' '}
-          <Link href="/screener" className="text-brand hover:underline">
-            screener
-          </Link>
-          .
+          {weave(
+            t(
+              'Pour une lecture complète d’un actif, voir sa fiche depuis [Parcourir](/marches), ou filtrer le marché avec le [screener](/screener).',
+            ),
+            (href, label, key) => (
+              <Link key={key} href={href} className="text-brand hover:underline">
+                {label}
+              </Link>
+            ),
+          )}
         </p>
       </section>
     </div>

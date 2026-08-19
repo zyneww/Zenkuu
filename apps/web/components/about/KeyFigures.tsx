@@ -2,6 +2,7 @@ import { ASSET_CLASSES, SUPPORTED_CURRENCIES, YAHOO_UNIVERSE } from '@zenkuu/dat
 
 import { HELP_ARTICLES } from '@/content/aide'
 import { LESSONS } from '@/content/apprendre'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Bandeau de chiffres clés.
@@ -62,7 +63,8 @@ const FIGURES: { value: string; label: string; detail: string }[] = [
   },
 ]
 
-export function KeyFigures() {
+export async function KeyFigures() {
+  const t = await getPhrase()
   return (
     <section className="space-y-3" aria-labelledby="chiffres-cles">
       <h2 id="chiffres-cles" className="text-lg font-semibold text-ink">
@@ -72,23 +74,22 @@ export function KeyFigures() {
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {FIGURES.map((figure) => (
           <div
-            key={figure.label}
+            key={t(figure.label)}
             className="rounded-card border border-border-subtle bg-surface p-4"
           >
             <dt className="text-2xl font-bold tracking-tight text-brand-strong">
               {figure.value}{' '}
-              <span className="text-sm font-medium text-ink">{figure.label}</span>
+              <span className="text-sm font-medium text-ink">{t(figure.label)}</span>
             </dt>
-            <dd className="mt-1 text-xs leading-relaxed text-ink-muted">{figure.detail}</dd>
+            <dd className="mt-1 text-xs leading-relaxed text-ink-muted">{t(figure.detail)}</dd>
           </div>
         ))}
       </dl>
 
       <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-        Ces chiffres décrivent le produit, pas une audience. Vous ne trouverez ici ni
-        nombre d’utilisateurs ni volume échangé : ZENKUU n’exécute aucune transaction,
-        et publier des métriques invérifiables contredirait la règle qui interdit
-        d’afficher une donnée qu’on ne peut pas sourcer.
+        {t(
+          'Ces chiffres décrivent le produit, pas une audience. Vous ne trouverez ici ni nombre d’utilisateurs ni volume échangé : ZENKUU n’exécute aucune transaction, et publier des métriques invérifiables contredirait la règle qui interdit d’afficher une donnée qu’on ne peut pas sourcer.',
+        )}
       </p>
     </section>
   )

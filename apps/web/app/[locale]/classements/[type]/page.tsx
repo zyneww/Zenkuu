@@ -13,6 +13,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { RankingDetailTable } from '@/components/market/RankingDetailTable'
 import { PERIOD_LABELS } from '@/content/movers'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -101,13 +102,14 @@ interface RouteParams {
 }
 
 export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const t = await getPhrase()
   const { type } = await params
   if (!isRankingType(type)) return { title: 'Classement introuvable' }
 
   const entry = RANKINGS[type]
   return {
-    title: `${entry.title} — classement complet`,
-    description: entry.lead,
+    title: `${t(entry.title)} — classement complet`,
+    description: t(entry.lead),
     alternates: { canonical: `/classements/${type}` },
   }
 }
@@ -124,6 +126,7 @@ export function generateStaticParams() {
 }
 
 export default async function Page({ params, searchParams }: RouteParams) {
+  const t = await getPhrase()
   const { type } = await params
 
   // Un type inconnu vient de l'URL, saisissable à la main : c'est un 404 franc et non
@@ -149,12 +152,12 @@ export default async function Page({ params, searchParams }: RouteParams) {
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
-        <span className="text-ink">{entry.title}</span>
+        <span className="text-ink">{t(entry.title)}</span>
       </nav>
 
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">{entry.title}</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">{entry.lead}</p>
+        <h1 className="display-xl text-ink">{t(entry.title)}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t(entry.lead)}</p>
       </header>
 
       {/* Le sélecteur de période est fait de LIENS, pas de boutons : chaque période

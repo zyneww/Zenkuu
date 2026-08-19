@@ -1,6 +1,7 @@
 'use client'
 
 import { CalendarDays } from 'lucide-react'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { useMemo, useState } from 'react'
 
 import type { NewListing } from '@zenkuu/data'
@@ -71,6 +72,7 @@ export function NewListingsTable({
    */
   index: Map<string, ListingMatch>
 }) {
+  const t = usePhrase()
   const [query, setQuery] = useState('')
 
   /**
@@ -192,12 +194,12 @@ export function NewListingsTable({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 text-xs text-ink-muted">
-            <span className="sr-only">Filtrer par nom ou symbole</span>
+            <span className="sr-only">{t('Filtrer par nom ou symbole')}</span>
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filtrer par nom ou symbole"
+              placeholder={t('Filtrer par nom ou symbole')}
               className="w-56 rounded-control border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
           </label>

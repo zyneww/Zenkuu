@@ -5,6 +5,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { BrowseTabs, PERPETUALS_TAB, browseHref } from '@/components/market/BrowseTabs'
 import { DerivativeExchangesExplorer } from '@/components/market/DerivativeExchangesExplorer'
+import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /* Dix minutes, comme le TTL de la donnée elle-même : l'intérêt ouvert est une
@@ -87,40 +88,38 @@ export default async function PerpetuelsPage() {
       )}
 
       <section className="max-w-3xl space-y-2">
-        <h2 className="text-base font-semibold text-ink">Comment lire ce classement</h2>
+        <h2 className="text-base font-semibold text-ink">{t('Comment lire ce classement')}</h2>
 
         <p className="text-sm leading-relaxed text-ink-muted">
-          L’<strong className="text-ink">intérêt ouvert</strong> est la somme des
-          positions non dénouées. C’est l’exposition qui reste ouverte à l’instant du
-          relevé, et donc ce qui peut se liquider en cascade lors d’un mouvement brutal.
-          Le volume, lui, compte aussi les allers-retours refermés dans la minute :
-          une place peut en afficher beaucoup sans qu’aucune position ne subsiste le
-          soir. La colonne <strong className="text-ink">rotation</strong> rapporte le
-          second au premier.
+          {emphasise(
+            t(
+              'L’**intérêt ouvert** est la somme des positions non dénouées. C’est l’exposition qui reste ouverte à l’instant du relevé, et donc ce qui peut se liquider en cascade lors d’un mouvement brutal. Le volume, lui, compte aussi les allers-retours refermés dans la minute : une place peut en afficher beaucoup sans qu’aucune position ne subsiste le soir. La colonne **rotation** rapporte le second au premier.',
+            ),
+          )}
         </p>
 
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les <strong className="text-ink">montants sont en bitcoin</strong>, unité dans
-          laquelle la source les publie. Les convertir en euros supposerait de choisir un
-          cours et un instant — une mesure deviendrait une estimation.
+          {emphasise(
+            t(
+              'Les **montants sont en bitcoin**, unité dans laquelle la source les publie. Les convertir en euros supposerait de choisir un cours et un instant — une mesure deviendrait une estimation.',
+            ),
+          )}
         </p>
 
         <p className="text-sm leading-relaxed text-ink-muted">
-          Un <strong className="text-ink">contrat perpétuel</strong> n’a pas d’échéance :
-          il ne se règle jamais, et c’est un taux de financement échangé entre acheteurs
-          et vendeurs — toutes les huit heures chez la plupart des places — qui le
-          raccroche au cours au comptant. Les contrats à échéance, minoritaires ici,
-          sont comptés à part dans la colonne des contrats.
+          {emphasise(
+            t(
+              'Un **contrat perpétuel** n’a pas d’échéance : il ne se règle jamais, et c’est un taux de financement échangé entre acheteurs et vendeurs — toutes les huit heures chez la plupart des places — qui le raccroche au cours au comptant. Les contrats à échéance, minoritaires ici, sont comptés à part dans la colonne des contrats.',
+            ),
+          )}
         </p>
 
         <p className="text-sm leading-relaxed text-ink-muted">
-          La distinction entre place{' '}
-          <strong className="text-ink">décentralisée et dépositaire</strong> est établie
-          par ZENKUU et non par la source, qui ne la publie pas. Le critère est le
-          règlement des positions : sur une place décentralisée, la marge est déposée
-          dans un contrat autonome ; sur une place dépositaire, les fonds sont détenus
-          par l’opérateur. Les places que nous n’avons pas encore classées sont
-          affichées comme telles plutôt que rangées par défaut d’un côté.
+          {emphasise(
+            t(
+              'La distinction entre place **décentralisée et dépositaire** est établie par ZENKUU et non par la source, qui ne la publie pas. Le critère est le règlement des positions : sur une place décentralisée, la marge est déposée dans un contrat autonome ; sur une place dépositaire, les fonds sont détenus par l’opérateur. Les places que nous n’avons pas encore classées sont affichées comme telles plutôt que rangées par défaut d’un côté.',
+            ),
+          )}
         </p>
       </section>
     </div>

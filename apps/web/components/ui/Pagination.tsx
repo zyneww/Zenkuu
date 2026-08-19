@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { pageWindow } from '@/components/ui/page-window'
 import { Link } from '@/i18n/navigation'
 
@@ -122,6 +123,7 @@ export function Pagination({
   onPerPageChange,
   perPageChoices = ROW_CHOICES,
 }: PaginationProps) {
+  const t = usePhrase()
   const known = typeof total === 'number'
 
   /*
@@ -167,7 +169,7 @@ export function Pagination({
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-border-subtle pt-3 text-xs">
       <p className="tabular text-ink-muted">
-        {counterText({ known, total, first, last, unit, singlePage: !navigable })}
+        {counterText({ known, total, first, last, unit, singlePage: !navigable, t })}
       </p>
 
       {navigable ? (
@@ -253,6 +255,20 @@ export function Pagination({
  * les empiler en ternaires imbriqués rendait le corps du composant illisible. Une
  * fonction nommée dit ce que trois points d'interrogation ne disaient pas.
  */
+/**
+ * Les trois phrases du compteur, une par unité comptée.
+ *
+ * ── POURQUOI L'UNITÉ EST DANS LA PHRASE, ET NON À CÔTÉ ───────────────────
+ *
+ * On aurait pu traduire le cadre d'un côté (« Affichage de … sur … {unit} ») et le nom
+ * de l'autre (« places »). Le français et l'anglais s'en accommodent ; le russe non.
+ * « sur 100 places » s'y dit « из 100 площадок », un génitif pluriel qu'aucun
+ * assemblage de deux morceaux nominatifs ne produit. Chaque unité porte donc sa
+ * phrase entière : cela coûte trois clés par unité, et les rend justes dans les
+ * treize langues.
+ */
+const UNITS = ['actif', 'article', 'cotation', 'ligne', 'paire', 'place', 'résultat', 'secteur'] as const
+
 function counterText({
   known,
   total,
@@ -260,6 +276,7 @@ function counterText({
   last,
   unit,
   singlePage,
+  t,
 }: {
   known: boolean
   total: number | undefined
@@ -267,23 +284,38 @@ function counterText({
   last: number
   unit: string
   singlePage: boolean
+  t: (text: string) => string
 }): string {
   /*
-   * TOTAL INCONNU. Pas de « sur N » : la source ne le publie pas, et l'inventer serait
-   * le seul mensonge qu'une barre de pagination sache produire. La phrase commence par
-   * l'unité en capitale parce qu'elle n'a pas de verbe pour la porter.
+   * Une unité hors table — « BTC », un symbole — n'a pas de phrase à elle. Elle
+   * retombe sur « résultat » plutôt que de composer une clé introuvable, ce qui
+   * afficherait la clé elle-même.
    */
-  if (!known) {
-    return `${unit.charAt(0).toUpperCase()}${unit.slice(1)}s ${first} à ${last}`
-  }
+  const counted = (UNITS as readonly string[]).includes(unit) ? unit : 'résultat'
+  const fill = (text: string) =>
+    text
+      .replace('{first}', String(first))
+      .replace('{last}', String(last))
+      .replace('{count}', String(total))
+
+  /*
+   * TOTAL INCONNU. Pas de « sur N » : la source ne le publie pas, et l'inventer serait
+   * le seul mensonge qu'une barre de pagination sache produire.
+   */
+  if (!known) return fill(t(`${capitalise(counted)}s {first} à {last}`))
 
   const count = total as number
-  const plural = count > 1 ? 's' : ''
 
   /* UNE SEULE PAGE. « Affichage de 1 à 10 sur 10 » dit trois fois la même chose. */
-  if (singlePage) return `${count} ${unit}${plural}`
+  if (singlePage) {
+    return fill(t(count > 1 ? `{count} ${counted}s` : `{count} ${counted}`))
+  }
 
-  return `Affichage de ${first} à ${last} sur ${count} ${unit}${plural}`
+  return fill(t(`Affichage de {first} à {last} sur {count} ${counted}s`))
+}
+
+function capitalise(word: string): string {
+  return `${word.charAt(0).toUpperCase()}${word.slice(1)}`
 }
 
 /**

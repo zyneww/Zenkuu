@@ -6,6 +6,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { NewListingsTable } from '@/components/market/NewListingsTable'
 import { buildListingIndex } from '@/lib/listing-match'
+import { emphasise, weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
@@ -84,16 +85,16 @@ export default async function NewListingsPage() {
 
       <aside className="border-l-2 border-accent bg-surface-muted p-4 text-sm leading-relaxed text-ink-muted">
         <p>
-          <strong className="text-ink">Ce que « suivi depuis » signifie.</strong> C’est la
-          date du premier cours relevé par la source, et non la date de création du jeton
-          ni celle de son premier échange ailleurs. Les deux coïncident souvent, jamais
-          par construction.
+          {emphasise(
+            t(
+              '**Ce que « suivi depuis » signifie.** C’est la date du premier cours relevé par la source, et non la date de création du jeton ni celle de son premier échange ailleurs. Les deux coïncident souvent, jamais par construction.',
+            ),
+          )}
         </p>
         <p className="mt-2">
-          Un actif récemment référencé a, par définition, peu d’historique, souvent peu de
-          liquidité, et une capitalisation qui peut se réordonner en quelques heures.
-          ZENKUU publie ces chiffres, ne les recommande pas, et ne propose aucune fonction
-          d’achat ou de vente.
+          {t(
+            'Un actif récemment référencé a, par définition, peu d’historique, souvent peu de liquidité, et une capitalisation qui peut se réordonner en quelques heures. ZENKUU publie ces chiffres, ne les recommande pas, et ne propose aucune fonction d’achat ou de vente.',
+          )}
         </p>
       </aside>
 
@@ -116,15 +117,16 @@ export default async function NewListingsPage() {
       )}
 
       <p className="text-sm text-ink-muted">
-        Pour le marché établi, voir les{' '}
-        <Link href="/classements" className="text-brand hover:underline">
-          classements complets
-        </Link>{' '}
-        ou les{' '}
-        <Link href="/points-marquants" className="text-brand hover:underline">
-          points marquants du jour
-        </Link>
-        .
+        {weave(
+          t(
+            'Pour le marché établi, voir les [classements complets](/classements) ou les [points marquants du jour](/points-marquants).',
+          ),
+          (href, label, key) => (
+            <Link key={key} href={href} className="text-brand hover:underline">
+              {label}
+            </Link>
+          ),
+        )}
       </p>
     </div>
   )

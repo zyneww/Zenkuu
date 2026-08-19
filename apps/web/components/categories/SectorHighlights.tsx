@@ -1,6 +1,8 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 
+import { getPhrase } from '@/lib/content'
+
 import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
@@ -20,7 +22,8 @@ import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
  * secteurs qui montaient le MOINS, présentés comme des baisses. Le groupe disparaît
  * plutôt que de mentir quand aucun secteur ne recule.
  */
-export function SectorHighlights({ categories }: { categories: MarketCategory[] }) {
+export async function SectorHighlights({ categories }: { categories: MarketCategory[] }) {
+  const t = await getPhrase()
   const ranked = categories
     .filter((category) => category.marketCapChange24h !== undefined)
     .sort((a, b) => (b.marketCapChange24h ?? 0) - (a.marketCapChange24h ?? 0))
@@ -57,8 +60,9 @@ export function SectorHighlights({ categories }: { categories: MarketCategory[] 
           affiché est celui des secteurs qui dépassent le plancher de capitalisation,
           pas celui que publie la source. Écrire l'un pour l'autre serait faux. */}
       <p className="text-xs text-ink-muted">
-        Classement établi sur les {categories.length} secteurs retenus pour le classement —
-        ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.
+        {t(
+          'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.',
+        ).replace('{n}', String(categories.length))}
       </p>
     </section>
   )

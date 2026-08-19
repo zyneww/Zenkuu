@@ -5,6 +5,7 @@ import { CACHE_TTL_SECONDS, getCategories, getMoversUniverse } from '@zenkuu/dat
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
+import { emphasise, weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 export const revalidate = 180
@@ -98,31 +99,30 @@ export default async function HeatmapPage() {
       )}
 
       <section className="max-w-2xl space-y-2 border-t border-border-subtle pt-6">
-        <h2 className="text-sm font-semibold text-ink">Comment lire cette carte</h2>
+        <h2 className="text-sm font-semibold text-ink">{t('Comment lire cette carte')}</h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Deux variables sur une seule figure. Un grand rectangle rouge et un petit
-          rectangle rouge affichent la même variation dans un tableau — ici, le premier
-          concerne une part du marché que le second ne pèse pas. C’est ce rapprochement
-          qu’un tableau demande de faire mentalement, ligne à ligne.
+          {t(
+            'Deux variables sur une seule figure. Un grand rectangle rouge et un petit rectangle rouge affichent la même variation dans un tableau — ici, le premier concerne une part du marché que le second ne pèse pas. C’est ce rapprochement qu’un tableau demande de faire mentalement, ligne à ligne.',
+          )}
         </p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les deux découpages ne s’additionnent pas de la même façon, et c’est la seule
-          chose à retenir avant de les comparer. Par{' '}
-          <strong className="text-ink">pièce</strong>, les surfaces se partagent un tout :
-          chaque actif est compté une fois. Par{' '}
-          <strong className="text-ink">secteur</strong>, non — un actif appartient à
-          plusieurs narratifs, Bitcoin relève de « Layer 1 » comme de « Proof of Work », si
-          bien que la somme des rectangles dépasse largement la capitalisation mondiale. La
-          seconde carte compare les secteurs entre eux, elle ne les additionne pas.
+          {emphasise(
+            t(
+              'Les deux découpages ne s’additionnent pas de la même façon, et c’est la seule chose à retenir avant de les comparer. Par **pièce**, les surfaces se partagent un tout : chaque actif est compté une fois. Par **secteur**, non — un actif appartient à plusieurs narratifs, Bitcoin relève de « Layer 1 » comme de « Proof of Work », si bien que la somme des rectangles dépasse largement la capitalisation mondiale. La seconde carte compare les secteurs entre eux, elle ne les additionne pas.',
+            ),
+          )}
         </p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          La période ne s’applique qu’aux pièces : la source publie cinq fenêtres de
-          variation par actif, et une seule par secteur. Le détail de chaque narratif est
-          sur sa page — voir{' '}
-          <Link href="/categories" className="text-brand hover:underline">
-            tous les secteurs
-          </Link>
-          .
+          {weave(
+            t(
+              'La période ne s’applique qu’aux pièces : la source publie cinq fenêtres de variation par actif, et une seule par secteur. Le détail de chaque narratif est sur sa page — voir [tous les secteurs](/categories).',
+            ),
+            (href, label, key) => (
+              <Link key={key} href={href} className="text-brand hover:underline">
+                {label}
+              </Link>
+            ),
+          )}
         </p>
       </section>
     </div>

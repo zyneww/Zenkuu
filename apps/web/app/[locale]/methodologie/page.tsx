@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 
 import { getAvailability } from '@zenkuu/data'
 
-import { getContent, getSeo } from '@/lib/content'
-import { getPhrase } from '@/lib/content'
+import { emphasise } from '@/components/locale/emphasise'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -60,10 +60,10 @@ export default async function MethodologiePage() {
               <tr className="border-b border-border-subtle bg-surface-muted text-left text-xs text-ink-muted">
                 <th scope="col" className="px-3 py-2 font-medium">{t('Classe d’actif')}</th>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  Source
+                  {t('Source')}
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  État
+                  {t('État')}
                 </th>
               </tr>
             </thead>
@@ -108,25 +108,19 @@ export default async function MethodologiePage() {
       <Section title={t('À quelle fréquence')}>
         <ul className="space-y-1.5">
           <li>
-            <strong className="text-ink">Cours et classements</strong> — actualisés
-            toutes les 5 minutes.
+            {emphasise(t('**Cours et classements** — actualisés toutes les 5 minutes.'))}
           </li>
           <li>
-            <strong className="text-ink">{t('Actualités')}</strong> — toutes les 3 minutes.
+            {emphasise(t('**Actualités** — toutes les 3 minutes.'))}
           </li>
           <li>
-            <strong className="text-ink">Tendances</strong> — toutes les 10 minutes.
+            {emphasise(t('**Tendances** — toutes les 10 minutes.'))}
           </li>
           <li>
-            <strong className="text-ink">{t('Catégories et sentiment')}</strong> — toutes les
-            30 minutes ; ces agrégats évoluent lentement et les redemander plus souvent
-            gaspillerait des quotas gratuits sans rien apporter.
+            {emphasise(t('**Catégories et sentiment** — toutes les 30 minutes ; ces agrégats évoluent lentement et les redemander plus souvent gaspillerait des quotas gratuits sans rien apporter.'))}
           </li>
           <li>
-            <strong className="text-ink">{t('Taux de change')}</strong> — la Banque centrale
-            européenne ne publie qu’un taux par jour ouvré. Nous n’affichons donc
-            aucune variation « sur 24 h » pour les devises, mais « depuis le taux BCE
-            précédent ».
+            {emphasise(t('**Taux de change** — la Banque centrale européenne ne publie qu’un taux par jour ouvré. Nous n’affichons donc aucune variation « sur 24 h » pour les devises, mais « depuis le taux BCE précédent ».'))}
           </li>
         </ul>
       </Section>
@@ -135,31 +129,19 @@ export default async function MethodologiePage() {
         <p>{t('Aucun des nombres de ce site n’est calculé par ZENKUU. Ils sont repris tels que nos sources les publient — et comme la principale d’entre elles, CoinGecko, documente publiquement ses méthodes, il n’y a aucune raison de ne pas les reprendre ici : ce que vous lisez sur une fiche est le résultat de ces règles-là, pas des nôtres.')}</p>
 
         <dl className="space-y-4">
-          <Formula term="Cours d’une cryptomonnaie">
-            La source part d’un indice de référence du bitcoin en dollars, calculé comme
-            un <strong className="text-ink">prix moyen pondéré par les volumes</strong>{' '}
-            sur une sélection de plateformes. Toutes les autres paires y sont ramenées —
-            les paires crypto contre crypto par un chemin de conversion, les paires en
-            monnaie par le taux de change. C’est ce qui explique qu’un cours affiché
-            puisse différer de celui d’une plateforme prise isolément : ce n’est pas le
-            prix d’un carnet d’ordres, c’est une moyenne de marché.
-          </Formula>
+          <Formula term={t('Cours d’une cryptomonnaie')}>{emphasise(t('La source part d’un indice de référence du bitcoin en dollars, calculé comme un **prix moyen pondéré par les volumes** sur une sélection de plateformes. Toutes les autres paires y sont ramenées — les paires crypto contre crypto par un chemin de conversion, les paires en monnaie par le taux de change. C’est ce qui explique qu’un cours affiché puisse différer de celui d’une plateforme prise isolément : ce n’est pas le prix d’un carnet d’ordres, c’est une moyenne de marché.'))}</Formula>
 
-          <Formula term="Capitalisation">{t('Cours × offre en circulation. L’offre en circulation exclut les jetons verrouillés, réservés ou brûlés. Nous ne la recalculons jamais : une capitalisation reconstruite à partir de l’offre totale donnerait un chiffre supérieur à celui publié partout ailleurs.')}</Formula>
+          <Formula term={t('Capitalisation')}>{t('Cours × offre en circulation. L’offre en circulation exclut les jetons verrouillés, réservés ou brûlés. Nous ne la recalculons jamais : une capitalisation reconstruite à partir de l’offre totale donnerait un chiffre supérieur à celui publié partout ailleurs.')}</Formula>
 
-          <Formula term="Valorisation diluée">{t('Cours × offre maximale. Elle répond à « combien vaudrait le projet si tous les jetons prévus circulaient », et l’écart avec la capitalisation mesure ce qui reste à émettre. Reprise telle quelle : la source applique ses propres règles sur les jetons brûlés.')}</Formula>
+          <Formula term={t('Valorisation diluée')}>{t('Cours × offre maximale. Elle répond à « combien vaudrait le projet si tous les jetons prévus circulaient », et l’écart avec la capitalisation mesure ce qui reste à émettre. Reprise telle quelle : la source applique ses propres règles sur les jetons brûlés.')}</Formula>
 
-          <Formula term="Écart au plus haut historique">
-            (plus haut − cours actuel) ÷ plus haut. Le plus haut est celui de toute
-            l’histoire cotée de l’actif, pas celui de la fenêtre affichée sur le
-            graphique.
-          </Formula>
+          <Formula term={t('Écart au plus haut historique')}>{emphasise(t('(plus haut − cours actuel) ÷ plus haut. Le plus haut est celui de toute l’histoire cotée de l’actif, pas celui de la fenêtre affichée sur le graphique.'))}</Formula>
 
-          <Formula term="Volume sur 24 heures">{t('Somme des volumes déclarés par les plateformes, sur une fenêtre glissante de vingt-quatre heures — jamais une journée calendaire. Deux relevés à douze heures d’écart portent donc sur deux périodes qui se chevauchent.')}</Formula>
+          <Formula term={t('Volume sur 24 heures')}>{t('Somme des volumes déclarés par les plateformes, sur une fenêtre glissante de vingt-quatre heures — jamais une journée calendaire. Deux relevés à douze heures d’écart portent donc sur deux périodes qui se chevauchent.')}</Formula>
 
-          <Formula term="Capitalisation d’un secteur">{t('Somme des capitalisations des actifs que la source y range. Un même actif appartenant à plusieurs secteurs y compte plusieurs fois : les parts de secteurs ne s’additionnent donc pas à 100 %, et nous ne les présentons jamais comme une répartition.')}</Formula>
+          <Formula term={t('Capitalisation d’un secteur')}>{t('Somme des capitalisations des actifs que la source y range. Un même actif appartenant à plusieurs secteurs y compte plusieurs fois : les parts de secteurs ne s’additionnent donc pas à 100 %, et nous ne les présentons jamais comme une répartition.')}</Formula>
 
-          <Formula term="Variation d’une valeur boursière">{t('Dernier cours contre la clôture de la séance précédente, et non contre le cours d’il y a vingt-quatre heures. Une bourse ferme : « +2 % sur 24 h » n’a pas de sens un lundi matin, « +2 % depuis la clôture de vendredi » en a un.')}</Formula>
+          <Formula term={t('Variation d’une valeur boursière')}>{t('Dernier cours contre la clôture de la séance précédente, et non contre le cours d’il y a vingt-quatre heures. Une bourse ferme : « +2 % sur 24 h » n’a pas de sens un lundi matin, « +2 % depuis la clôture de vendredi » en a un.')}</Formula>
         </dl>
       </Section>
 
@@ -169,12 +151,7 @@ export default async function MethodologiePage() {
         <ul className="mt-3 space-y-1.5">
           <li>{t('Le tableau « où se négocie » affiche la pastille de couleur, paire par paire.')}</li>
           <li>
-            Les <strong className="text-ink">anneaux de répartition du volume</strong>{' '}
-            écartent les paires notées rouge du calcul. Sans ce filtre, une plateforme
-            au volume gonflé apparaît comme la première place de cotation d’un jeton,
-            avec un pourcentage à deux chiffres tiré d’échanges que personne ne
-            considère réels. Le nombre de paires écartées est indiqué sous l’anneau —
-            retirer une donnée en silence serait la même faute que l’inventer.
+            {emphasise(t('Les **anneaux de répartition du volume** écartent les paires notées rouge du calcul. Sans ce filtre, une plateforme au volume gonflé apparaît comme la première place de cotation d’un jeton, avec un pourcentage à deux chiffres tiré d’échanges que personne ne considère réels. Le nombre de paires écartées est indiqué sous l’anneau — retirer une donnée en silence serait la même faute que l’inventer.'))}
           </li>
         </ul>
       </Section>
@@ -183,19 +160,14 @@ export default async function MethodologiePage() {
         <p>{t('Documenter une méthode n’oblige pas à l’adopter. Trois des leurs restent hors de ce site, et il vaut mieux dire pourquoi :')}</p>
         <ul className="mt-3 space-y-1.5">
           <li>
-            <strong className="text-ink">{t('Le classement des plateformes par confiance.')}</strong>{' '}
-            Il repose en partie sur des statistiques de trafic web achetées à un tiers.
-            Nous relayons la note d’une PAIRE, qui décrit un carnet d’ordres observable,
-            pas un palmarès d’entreprises.
+            {emphasise(t('**Le classement des plateformes par confiance.** Il repose en partie sur des statistiques de trafic web achetées à un tiers. Nous relayons la note d’une PAIRE, qui décrit un carnet d’ordres observable, pas un palmarès d’entreprises.'))}
           </li>
           <li>
-            <strong className="text-ink">{t('Les scores composites de projet.')}</strong>{' '}
-            Développeurs, communauté, liquidité agrégés en une note unique : le chiffre
-            est simple à lire et impossible à vérifier. Nous affichons les composantes —
-            commits, contributeurs, abonnés — et laissons la synthèse au lecteur.
+            {emphasise(t('**Les scores composites de projet.** Développeurs, communauté, liquidité agrégés en une note unique : le chiffre est simple à lire et impossible à vérifier. Nous affichons les composantes — commits, contributeurs, abonnés — et laissons la synthèse au lecteur.'))}
           </li>
           <li>
-            <strong className="text-ink">{t('Toute prévision.')}</strong>{t('Les objectifs de cours des analystes sont affichés sur les fiches d’actions parce qu’ils sont un FAIT publié — untel a écrit tel chiffre — jamais comme une valeur attendue.')}</li>
+            {emphasise(t('**Toute prévision.** Les objectifs de cours des analystes sont affichés sur les fiches d’actions parce qu’ils sont un FAIT publié — untel a écrit tel chiffre — jamais comme une valeur attendue.'))}
+          </li>
         </ul>
       </Section>
 
@@ -203,25 +175,16 @@ export default async function MethodologiePage() {
         <p>{t('Quand une donnée n’est pas disponible gratuitement, nous la laissons manquante plutôt que de l’estimer. Concrètement, sur ce site aujourd’hui :')}</p>
         <ul className="mt-3 space-y-1.5">
           <li>
-            La <strong className="text-ink">capitalisation des actions et ETF</strong>{' '}
-            n’est pas affichée : notre source boursière ne l’expose pas sans
-            authentification.
+            {emphasise(t('La **capitalisation des actions et ETF** n’est pas affichée : notre source boursière ne l’expose pas sans authentification.'))}
           </li>
           <li>
-            Le panneau <strong className="text-ink">Tendances</strong> ne montre pas de
-            prix : la source ne les cote qu’en dollars, et les convertir nous-mêmes
-            produirait un montant que personne ne publie.
+            {emphasise(t('Le panneau **Tendances** ne montre pas de prix : la source ne les cote qu’en dollars, et les convertir nous-mêmes produirait un montant que personne ne publie.'))}
           </li>
           <li>
-            Les <strong className="text-ink">plus fortes hausses et baisses</strong>{' '}
-            portent sur un univers annoncé (les cent plus grandes capitalisations), et
-            non sur le marché entier : une variation de +900 % sur un jeton sans
-            liquidité n’informe personne.
+            {emphasise(t('Les **plus fortes hausses et baisses** portent sur un univers annoncé (les cent plus grandes capitalisations), et non sur le marché entier : une variation de +900 % sur un jeton sans liquidité n’informe personne.'))}
           </li>
           <li>
-            Les <strong className="text-ink">capitalisations sectorielles</strong> sont
-            affichées en dollars, parce que la source ne les publie que dans cette
-            devise.
+            {emphasise(t('Les **capitalisations sectorielles** sont affichées en dollars, parce que la source ne les publie que dans cette devise.'))}
           </li>
         </ul>
       </Section>

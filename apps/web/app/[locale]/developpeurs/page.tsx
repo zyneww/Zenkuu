@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { getContent, getSeo } from '@/lib/content'
-import { getPhrase } from '@/lib/content'
+import { weave } from '@/components/locale/emphasise'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -100,7 +100,7 @@ export default async function DeveloppeursPage() {
                   </td>
                   <td className="py-2.5 pr-3 text-xs text-ink-muted">{route.params}</td>
                   <td className="py-2.5 text-xs leading-relaxed text-ink-muted">
-                    {route.description}
+                    {t(route.description)}
                   </td>
                 </tr>
               ))}
@@ -137,11 +137,18 @@ export default async function DeveloppeursPage() {
         <h2 className="text-lg font-semibold text-ink">{t('Limites de débit')}</h2>
         <p className="text-sm leading-relaxed text-ink-muted">{t('Les sources gratuites imposent des plafonds stricts, et ZENKUU s’y astreint par une limitation de débit à fenêtre glissante côté serveur. Sans clé, CoinGecko refuse au-delà d’environ cinq requêtes par minute — un plafond mesuré, pas estimé. C’est ce qui explique les durées de cache de 5 à 30 minutes et l’absence de cotation en continu.')}</p>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Le détail est publié sur la{' '}
-          <Link href="/methodologie" className="underline underline-offset-2 hover:text-brand-strong">
-            page Méthodologie
-          </Link>
-          .
+          {weave(
+            t('Le détail est publié sur la [page Méthodologie](/methodologie).'),
+            (href, label, key) => (
+              <Link
+                key={key}
+                href={href}
+                className="underline underline-offset-2 hover:text-brand-strong"
+              >
+                {label}
+              </Link>
+            ),
+          )}
         </p>
       </section>
     </div>

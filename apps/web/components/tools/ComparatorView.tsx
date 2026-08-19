@@ -11,6 +11,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { COMPARE_LIMIT } from '@/lib/limits'
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { dataColor } from '@/components/charts/chart-theme'
+import { emphasise } from '@/components/locale/emphasise'
 import { Money } from '@/components/locale/Money'
 import { AssetPicker } from '@/components/tools/AssetPicker'
 import {
@@ -274,11 +275,11 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           />
 
           <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-            <strong className="text-ink">{windowLabel(alignment.windowDays)}</strong>, chaque
-            série ramenée à <strong className="text-ink">100</strong> au début de la période.
-            L’axe ne porte donc pas des euros mais un écart relatif : 118 signifie « +18 %
-            depuis le début de la période ». C’est le seul moyen de superposer des actifs
-            dont les cours diffèrent d’un facteur mille.
+            {emphasise(
+              t(
+                '**{window}**, chaque série ramenée à **100** au début de la période. L’axe ne porte donc pas des euros mais un écart relatif : 118 signifie « +18 % depuis le début de la période ». C’est le seul moyen de superposer des actifs dont les cours diffèrent d’un facteur mille.',
+              ).replace('{window}', windowLabel(alignment.windowDays)),
+            )}
             {!homogeneous ? (
               <>
                 {' '}
@@ -402,14 +403,14 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               ))}
             </Row>
 
-            <Row label="Plus haut 24 h" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Plus haut 24 h')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.high24h} from={asset.currency} />
                 </Cell>
               ))}
             </Row>
-            <Row label="Plus bas 24 h" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Plus bas 24 h')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.low24h} from={asset.currency} />

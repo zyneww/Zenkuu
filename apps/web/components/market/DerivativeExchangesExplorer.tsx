@@ -159,14 +159,14 @@ export function DerivativeExchangesExplorer({
                 setPage(1)
               }}
               aria-pressed={filter === entry.id}
-              title={entry.hint}
+              title={t(entry.hint)}
               className={`flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${
                 filter === entry.id
                   ? 'bg-brand-soft text-brand-strong'
                   : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
               }`}
             >
-              {entry.label}
+              {t(entry.label)}
               <span className="tabular text-[0.6875rem] opacity-70">{counts[entry.id]}</span>
             </button>
           ))}

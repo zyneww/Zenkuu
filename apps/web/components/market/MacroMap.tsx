@@ -9,6 +9,8 @@ import {
   type PackedMacroSeries,
 } from '@zenkuu/data'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
+
 /**
  * CARTE MACROÉCONOMIQUE — l'écart entre pays, indicateur par indicateur.
  *
@@ -123,6 +125,7 @@ export function MacroMap({
    */
   valueScale: 'percent' | 'compact' | 'plain'
 }) {
+  const t = usePhrase()
   const [groupId, setGroupId] = useState(MACRO_GROUPS[0]!.id)
   const group = MACRO_GROUPS.find((entry) => entry.id === groupId) ?? MACRO_GROUPS[0]!
 
@@ -222,7 +225,7 @@ export function MacroMap({
                 : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
             }`}
           >
-            {entry.label}
+            {t(entry.label)}
           </button>
         ))}
 
@@ -322,7 +325,7 @@ export function MacroMap({
         </div>
         <span className="tabular text-micro text-ink-muted">≥ {format(scale.high)}</span>
         <p className="text-micro text-ink-muted">
-          Bornes aux 5ᵉ et 95ᵉ centiles — au-delà, la couleur sature.
+          {t('Bornes aux 5ᵉ et 95ᵉ centiles — au-delà, la couleur sature.')}
         </p>
       </div>
     </div>

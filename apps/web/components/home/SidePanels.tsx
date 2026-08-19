@@ -4,7 +4,7 @@ import type { DataResult, MarketCategory, NewsItem, SentimentIndex } from '@zenk
 import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
 import type { Content } from '@/content/locales'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * Narratifs du jour — équivalent du panneau « Narratives Today » de CoinGecko.
@@ -72,6 +72,7 @@ export async function NewsPanel({
   limit?: number
 }) {
   const fr = await getContent()
+  const t = await getPhrase()
   return (
     <Card>
       <CardHeader title={fr.home.newsTitle} />
@@ -112,7 +113,7 @@ export async function NewsPanel({
           */}
           <details className="mt-3 text-[0.6875rem] text-ink-muted">
             <summary className="cursor-pointer list-none transition-colors hover:text-ink">
-              Sources · les articles s’ouvrent chez leur éditeur
+              {t('Sources · les articles s’ouvrent chez leur éditeur')}
             </summary>
             <p className="mt-1.5 leading-relaxed">{result.source.label}</p>
           </details>

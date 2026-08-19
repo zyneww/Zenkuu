@@ -202,7 +202,9 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
           <h2 id="panier-titre" className="display-md text-ink">{t('Panier de capitalisations')}</h2>
-          <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{LEAD[view]}</p>
+          <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
+            {t(LEAD[view])}
+          </p>
         </div>
 
         <ChipGroup label={t('Période')}>
@@ -211,7 +213,7 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
               key={range.days}
               active={days === range.days}
               onClick={() => setDays(range.days)}
-              label={range.label}
+              label={t(range.label)}
             />
           ))}
         </ChipGroup>
@@ -225,7 +227,7 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
                 key={entry.id}
                 active={view === entry.id}
                 onClick={() => setView(entry.id)}
-                label={entry.label}
+                label={t(entry.label)}
               />
             ))}
           </ChipGroup>
@@ -288,7 +290,7 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
                         className="h-2 w-2 shrink-0 rounded-full"
                         style={{ backgroundColor: entry.color }}
                       />
-                      {entry.label}
+                      {t(entry.label)}
                     </li>
                   ))}
                 </ul>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import { Check, Minus } from 'lucide-react'
+import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -147,14 +148,14 @@ export default async function PourquoiZenkuuPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {SECTIONS.map((section) => (
             <article
-              key={section.title}
+              key={t(section.title)}
               className="flex flex-col gap-3 rounded-card border border-border-subtle bg-surface p-6 transition-colors duration-150 hover:border-ink-muted/40"
             >
-              <h3 className="text-lg font-semibold leading-snug text-ink">{section.title}</h3>
+              <h3 className="text-lg font-semibold leading-snug text-ink">{t(section.title)}</h3>
 
               {section.body.map((paragraph, index) => (
                 <p key={index} className="text-sm leading-relaxed text-ink-muted">
-                  {paragraph}
+                  {t(paragraph)}
                 </p>
               ))}
 
@@ -163,7 +164,7 @@ export default async function PourquoiZenkuuPage() {
                   bas de carte par `mt-auto`, il occupe la même place dans les quatre
                   — ce qui le rend repérable sans le rendre criard. */}
               <p className="mt-auto border-l-2 border-brand/40 pl-3 text-xs leading-relaxed text-ink-muted">
-                {section.proof}
+                {t(section.proof)}
               </p>
             </article>
           ))}
@@ -172,12 +173,14 @@ export default async function PourquoiZenkuuPage() {
 
       <section className="space-y-3" aria-labelledby="comparatif">
         <h2 id="comparatif" className="display-sm text-ink">
-          Comment ZENKUU se situe
+          {t('Comment ZENKUU se situe')}
         </h2>
         <p className="max-w-2xl text-base leading-relaxed text-ink-muted">
-          La comparaison porte sur des <strong className="text-ink">types de sites</strong>,
-          pas sur des acteurs nommés : décrire les pratiques d’un concurrent
-          supposerait de les sourcer une par une.
+          {emphasise(
+            t(
+              'La comparaison porte sur des **types de sites**, pas sur des acteurs nommés : décrire les pratiques d’un concurrent supposerait de les sourcer une par une.',
+            ),
+          )}
         </p>
 
         <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
@@ -203,7 +206,7 @@ export default async function PourquoiZenkuuPage() {
               {COMPARISON.map((row) => (
                 <tr key={row.feature}>
                   <th scope="row" className="px-3 py-2.5 text-left font-normal text-ink">
-                    {row.feature}
+                    {t(row.feature)}
                   </th>
                   <Mark value={row.zenkuu} />
                   <Mark value={row.mono} />

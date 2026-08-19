@@ -35,7 +35,7 @@ import { MarketTicker } from '@/components/home/MarketTicker'
 import { RecentlyAdded } from '@/components/home/RecentlyAdded'
 import { TrendingPanel } from '@/components/home/TrendingPanel'
 import { NarrativesPanel, NewsPanel, SentimentPanel } from '@/components/home/SidePanels'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
 import { withDeadline } from '@/lib/deadline'
 
@@ -126,6 +126,7 @@ const YAHOO_SECTIONS: readonly AssetClass[] = ['stock', 'etf', 'index', 'commodi
  */
 export default async function HomePage() {
   const fr = await getContent()
+  const t = await getPhrase()
   const locale = await getLocale()
 
   // Requêtes du HAUT DE PAGE seulement — celles dont le premier écran a besoin. Les
@@ -211,7 +212,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
-      <h1 className="sr-only">{fr.site.name} — explorer les marchés</h1>
+      <h1 className="sr-only">{t('{site} — explorer les marchés').replace('{site}', fr.site.name)}</h1>
 
       {/* ── Le ruban, EN PLEINE LARGEUR et avant tout le reste ───────────────
           `-mt-*` annule l'espacement vertical de la disposition : un bandeau défilant

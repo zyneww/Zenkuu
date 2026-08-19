@@ -45,12 +45,15 @@ const vi: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `quy đổi từ ${from} theo tỷ giá ECB ngày ${date}`,
+    currencyHint: (date: string) =>
+      `Quy đổi theo tỷ giá tham chiếu ECB ngày ${date}. Các nguồn niêm yết bằng euro; đơn vị tiền đã chọn áp dụng cho toàn bộ trang web.`,
     open: 'Ngôn ngữ và tiền tệ',
     language: 'Ngôn ngữ',
     currency: 'Tiền tệ hiển thị',
     search: 'Tìm kiếm',
     noMatch: 'Không có tiền tệ nào khớp.',
-  
+
     languageHint: "Những ngôn ngữ được đánh dấu là đã dịch sẽ thay đổi giao diện. Các ngôn ngữ còn lại chỉ ghi nhớ lựa chọn của bạn trong khi chờ tệp dịch — chúng tôi thà nói rõ điều gì còn thiếu hơn là đưa ra bản dịch máy chưa hiệu đính.",
   },
 
@@ -94,6 +97,16 @@ const vi: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? 'Đường biểu diễn đang hình thành: không nguồn miễn phí nào công bố lịch sử vốn hóa toàn cầu, nên chúng tôi tự ghi lại số liệu.'
+        : `Đường biểu diễn đang hình thành — đã ghi ${count} lần.`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `Số liệu ZENKUU ghi trong ${Math.round(minutes / 60)} giờ`
+        : `Số liệu ZENKUU ghi trong ${minutes} phút`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `Diễn biến tổng vốn hóa trong ${minutes} phút gần nhất`,
     trendingTitle: 'Xu hướng',
     gainersTitle: 'Tăng mạnh nhất',
     losersTitle: 'Giảm mạnh nhất',
@@ -110,7 +123,7 @@ const vi: Translation = {
     sentimentTitle: 'Tâm lý thị trường',
     coverageTitle: 'Phạm vi theo lớp tài sản',
     seeAll: 'Xem tất cả',
-  
+
     topMarketCapTitle: "Vốn hoá lớn nhất",
     marketCapCardTitle: "Vốn hoá thị trường",
     volumeCardTitle: "Khối lượng giao dịch 24 giờ",
@@ -148,7 +161,7 @@ const vi: Translation = {
   auth: {
     signIn: 'Đăng nhập',
     signUp: 'Đăng ký',
-  
+
     unavailableTitle: "Tài khoản sắp có",
     unavailableBody: "Xác thực chưa được cấu hình trên bản triển khai này. Tài khoản sẽ giúp danh sách theo dõi được lưu lại và mở quyền dùng cảnh báo giá cùng tuỳ chọn hiển thị.",
     signInTitle: "Đăng nhập ZENKUU",
@@ -181,6 +194,7 @@ const vi: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `Trang ${page}`,
     columns: {
       rank: "#",
       name: "Tài sản",
@@ -234,6 +248,10 @@ const vi: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `Số tiền được quy đổi từ ${from} sang ${to} theo tỷ giá tham chiếu ECB ngày ${date}. Nguồn niêm yết tài sản này bằng ${from}.`,
+    aboutTitle: (name: string) => `Về ${name}`,
+    priceLabel: (name: string) => `Giá ${name}`,
     statsTitle: "Thống kê thị trường",
     similarTitle: "Tài sản tương đương",
     rangeTitle: "Khoảng thời gian",
@@ -276,6 +294,25 @@ const vi: Translation = {
     lowest: "Thấp nhất",
     highest: "Cao nhất",
     faq: {
+      buyQ: (name: string) => `Có thể mua ${name} trên ZENKUU không?`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `Nguồn cung tối đa là ${max} ${symbol}, trong đó ${circulating} ${symbol} đang lưu hành.`
+          : `Nguồn cung tối đa là ${max} ${symbol}.`,
+      supplyQ: (name: string) => `Tối đa sẽ có bao nhiêu đơn vị ${name}?`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `Đỉnh lịch sử là ${price}, đạt được ngày ${date}.`
+          : `Đỉnh lịch sử là ${price}.`,
+      athQ: (name: string) => `Đỉnh lịch sử của ${name} là bao nhiêu?`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `Vốn hóa đạt ${cap}, xếp thứ ${rank} trong lớp tài sản của nó.`
+          : `Vốn hóa đạt ${cap}.`,
+      capQ: (name: string) => `Vốn hóa của ${name} là bao nhiêu?`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} đang giao dịch ở mức ${price}. Giá trị mới nhất do nguồn của chúng tôi công bố ngày ${updated}.`,
+      priceQ: (name: string) => `Hôm nay giá ${name} là bao nhiêu?`,
       buyA: "Không. ZENKUU là nền tảng thông tin: chúng tôi không thực hiện lệnh, không giữ tiền và không phải là môi giới hay sàn giao dịch.",
     },
     stats: {
@@ -316,6 +353,7 @@ const vi: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `Đọc trên ${source}`,
     title: "Tin tức thị trường",
     subtitle: "Tổng hợp từ các nguồn tin công khai của những đơn vị xuất bản lớn.",
     unavailable: "Dòng tin tạm thời không khả dụng.",
@@ -335,6 +373,7 @@ const vi: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "Nền tảng thông tin, không thực hiện lệnh và không giữ tiền.",
     community: "Cộng đồng",
     locale: "Tiếng Việt · EUR",

@@ -17,6 +17,7 @@ import {
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
+import { weave } from '@/components/locale/emphasise'
 import { BasketCharts } from '@/components/market/BasketCharts'
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
 import { CategoryStatBand } from '@/components/categories/CategoryStatBand'
@@ -73,12 +74,13 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }): Promise<Metadata> {
+  const t = await getPhrase()
   const view = readChartView((await searchParams)['vue'])
   const entry = TITLES[view]
 
   return {
-    title: entry.title,
-    description: entry.lead,
+    title: t(entry.title),
+    description: t(entry.lead),
     alternates: { canonical: '/graphiques' },
   }
 }
@@ -125,8 +127,8 @@ export default async function Page({
       <ChartsTabs current={view} />
 
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">{entry.title}</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">{entry.lead}</p>
+        <h1 className="display-xl text-ink">{t(entry.title)}</h1>
+        <p className="text-lg leading-relaxed text-ink-muted">{t(entry.lead)}</p>
       </header>
 
       {view === 'global' ? <GlobalView /> : null}
@@ -261,11 +263,16 @@ async function GlobalView() {
         <div className="space-y-4">
           <SentimentHistoryView points={sentiment.data} />
           <p className="text-sm text-ink-muted">
-            L’indice et sa méthode sont détaillés sur la{' '}
-            <Link href="/sentiment" className="text-brand hover:underline">
-              page dédiée au sentiment
-            </Link>
-            .
+            {weave(
+              t(
+                'L’indice et sa méthode sont détaillés sur la [page dédiée au sentiment](/sentiment).',
+              ),
+              (href, label, key) => (
+                <Link key={key} href={href} className="text-brand hover:underline">
+                  {label}
+                </Link>
+              ),
+            )}
           </p>
           <SourceNote label={sentiment.source.label} href={sentiment.source.attributionUrl} />
         </div>

@@ -51,12 +51,15 @@ const ja: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `${date} の欧州中央銀行レートで ${from} から換算`,
+    currencyHint: (date: string) =>
+      `${date} の欧州中央銀行の参照レートで換算しています。情報源はユーロ建てで、選んだ通貨はサイト全体に適用されます。`,
     open: '言語と通貨',
     language: '言語',
     currency: '表示通貨',
     search: '検索',
     noMatch: '一致する通貨がありません。',
-  
+
     languageHint: "「翻訳済み」と記された言語は画面表示が切り替わります。それ以外は翻訳ファイルが用意されるまで設定だけを保存します。未校正の機械翻訳を出すより、足りないものをそのまま伝えることを選んでいます。",
   },
 
@@ -100,6 +103,16 @@ const ja: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? '曲線を作成中です。世界の時価総額の履歴を公開している無料の情報源がないため、当サイトで計測値を記録しています。'
+        : `曲線を作成中 — これまでの計測は${count}件。`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `${Math.round(minutes / 60)}時間分の ZENKUU 計測`
+        : `${minutes}分間の ZENKUU 計測`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `直近${minutes}分の時価総額の推移`,
     trendingTitle: 'トレンド',
     gainersTitle: '値上がり率上位',
     losersTitle: '値下がり率上位',
@@ -116,7 +129,7 @@ const ja: Translation = {
     sentimentTitle: '市場センチメント',
     coverageTitle: '資産クラス別の対応状況',
     seeAll: 'すべて表示',
-  
+
     topMarketCapTitle: "時価総額上位",
     marketCapCardTitle: "市場全体の時価総額",
     volumeCardTitle: "24 時間の出来高",
@@ -154,7 +167,7 @@ const ja: Translation = {
   auth: {
     signIn: 'ログイン',
     signUp: '新規登録',
-  
+
     unavailableTitle: "アカウントは近日提供",
     unavailableBody: "この環境では認証がまだ設定されていません。アカウントを使うとウォッチリストが保存され、価格アラートと表示設定が利用できるようになります。",
     signInTitle: "ZENKUU にログイン",
@@ -187,6 +200,7 @@ const ja: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `${page} ページ`,
     columns: {
       rank: "#",
       name: "銘柄",
@@ -240,6 +254,10 @@ const ja: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `金額は ${date} の欧州中央銀行の参照レートで ${from} から ${to} に換算しています。情報源はこの銘柄を ${from} 建てで表示しています。`,
+    aboutTitle: (name: string) => `${name} について`,
+    priceLabel: (name: string) => `${name} の価格`,
     statsTitle: "市場統計",
     similarTitle: "類似の銘柄",
     rangeTitle: "期間",
@@ -282,6 +300,25 @@ const ja: Translation = {
     lowest: "安値",
     highest: "高値",
     faq: {
+      buyQ: (name: string) => `ZENKUU で ${name} を購入できますか？`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `最大供給量は ${max} ${symbol} で、うち ${circulating} ${symbol} が現在流通しています。`
+          : `最大供給量は ${max} ${symbol} です。`,
+      supplyQ: (name: string) => `${name} は最大で何単位まで存在しますか？`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `史上最高値は ${price} で、${date} に記録されました。`
+          : `史上最高値は ${price} です。`,
+      athQ: (name: string) => `${name} の史上最高値は？`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `時価総額は ${cap} で、同じ資産クラスの中で ${rank} 位です。`
+          : `時価総額は ${cap} です。`,
+      capQ: (name: string) => `${name} の時価総額は？`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} は ${price} で取引されています。情報源が公開した最新の値は ${updated} 時点のものです。`,
+      priceQ: (name: string) => `${name} の今日の価格は？`,
       buyA: "いいえ。ZENKUU は情報プラットフォームです。注文を執行せず、資産も預からず、ブローカーでも取引所でもありません。",
     },
     stats: {
@@ -322,6 +359,7 @@ const ja: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `${source} で読む`,
     title: "市場ニュース",
     subtitle: "主要媒体の公開フィードから集約しています。",
     unavailable: "ニュースフィードは一時的に利用できません。",
@@ -341,6 +379,7 @@ const ja: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "情報プラットフォーム。注文の執行も資産の保管も行いません。",
     community: "コミュニティ",
     locale: "日本語 · EUR",

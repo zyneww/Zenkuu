@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 
 import { LoginForm } from '@/components/account/LoginForm'
 import { SocialButtons } from '@/components/account/SocialButtons'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Les deux intentions que le visiteur exprime en arrivant.
@@ -76,6 +77,7 @@ export function AuthOverlay({
   /** Fournisseurs réellement configurés — voir `SocialButtons`. */
   socialProviders: readonly string[]
 }) {
+  const t = usePhrase()
   /*
    * ── SYNCHRONISATION PAR DÉRIVATION, ET NON PAR EFFET ───────────────────────
    *
@@ -141,7 +143,7 @@ export function AuthOverlay({
       className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto px-4 py-[8vh]"
       role="dialog"
       aria-modal="true"
-      aria-label={copy.title}
+      aria-label={t(copy.title)}
     >
       <button
         type="button"
@@ -161,8 +163,8 @@ export function AuthOverlay({
         </button>
 
         <div className="space-y-1.5 pr-8">
-          <h2 className="display-sm text-ink">{copy.title}</h2>
-          <p className="text-xs leading-relaxed text-ink-muted">{copy.lead}</p>
+          <h2 className="display-sm text-ink">{t(copy.title)}</h2>
+          <p className="text-xs leading-relaxed text-ink-muted">{t(copy.lead)}</p>
         </div>
 
         {/*

@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { useMemo, useState } from 'react'
 
 /**
@@ -96,6 +97,7 @@ export function Calendar({
   onChange: (range: { from: string; to: string } | null) => void
 }) {
   const today = useMemo(() => new Date(), [])
+  const t = usePhrase()
   const todayIso = toIsoDay(today)
 
   /* Mois affiché — initialisé sur la borne de DÉBUT quand une plage existe. Ouvrir
@@ -239,10 +241,10 @@ export function Calendar({
       <div className="mt-2 flex items-center justify-between gap-2 border-t border-border-subtle pt-2">
         <p className="text-[0.6875rem] leading-tight text-ink-muted">
           {anchor
-            ? 'Choisissez la seconde date'
+            ? t('Choisissez la seconde date')
             : value
               ? `${formatShortDay(value.from)} → ${formatShortDay(value.to)}`
-              : 'Choisissez une première date'}
+              : t('Choisissez une première date')}
         </p>
 
         {value || anchor ? (

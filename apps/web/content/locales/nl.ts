@@ -45,12 +45,15 @@ const nl: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `omgerekend vanuit ${from} tegen de ECB-koers van ${date}`,
+    currencyHint: (date: string) =>
+      `Omgerekend tegen de ECB-referentiekoers van ${date}. Bronnen noteren in euro; de gekozen valuta geldt voor de hele site.`,
     open: 'Taal en valuta',
     language: 'Taal',
     currency: 'Lokale valuta',
     search: 'Zoeken',
     noMatch: 'Geen enkele valuta komt overeen.',
-  
+
     languageHint: "Talen die als vertaald zijn gemarkeerd wijzigen de interface. De overige bewaren uw voorkeur in afwachting van hun vertaalbestand — wij melden liever wat ontbreekt dan een niet-nagelezen automatische vertaling te tonen.",
   },
 
@@ -94,6 +97,16 @@ const nl: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? 'Curve wordt nog opgebouwd: geen enkele gratis bron publiceert de historiek van de wereldwijde marktkapitalisatie, dus leggen we onze eigen metingen vast.'
+        : `Curve wordt opgebouwd — ${count} metingen tot nu toe.`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `ZENKUU-metingen over ${Math.round(minutes / 60)} u`
+        : `ZENKUU-metingen over ${minutes} min`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `Verloop van de totale marktkapitalisatie over de laatste ${minutes} minuten`,
     trendingTitle: 'Trending',
     gainersTitle: 'Grootste stijgers',
     losersTitle: 'Grootste dalers',
@@ -110,7 +123,7 @@ const nl: Translation = {
     sentimentTitle: 'Marktsentiment',
     coverageTitle: 'Dekking per activaklasse',
     seeAll: 'Alles bekijken',
-  
+
     topMarketCapTitle: "Grootste marktkapitalisaties",
     marketCapCardTitle: "Marktkapitalisatie",
     volumeCardTitle: "Verhandeld volume 24 u",
@@ -148,7 +161,7 @@ const nl: Translation = {
   auth: {
     signIn: 'Inloggen',
     signUp: 'Registreren',
-  
+
     unavailableTitle: "Accounts binnenkort beschikbaar",
     unavailableBody: "Authenticatie is op deze instantie nog niet ingesteld. Met een account blijft uw volglijst bewaard en krijgt u toegang tot koersmeldingen en weergavevoorkeuren.",
     signInTitle: "Inloggen bij ZENKUU",
@@ -181,6 +194,7 @@ const nl: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `Pagina ${page}`,
     columns: {
       rank: "#",
       name: "Actief",
@@ -234,6 +248,10 @@ const nl: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `Bedragen omgerekend van ${from} naar ${to} tegen de ECB-referentiekoers van ${date}. De bron noteert dit actief in ${from}.`,
+    aboutTitle: (name: string) => `Over ${name}`,
+    priceLabel: (name: string) => `Koers van ${name}`,
     statsTitle: "Marktstatistieken",
     similarTitle: "Vergelijkbare activa",
     rangeTitle: "Periode",
@@ -276,6 +294,25 @@ const nl: Translation = {
     lowest: "Laagste",
     highest: "Hoogste",
     faq: {
+      buyQ: (name: string) => `Kan ik ${name} kopen op ZENKUU?`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `Het maximale aanbod is ${max} ${symbol}, waarvan er nu ${circulating} ${symbol} in omloop zijn.`
+          : `Het maximale aanbod is ${max} ${symbol}.`,
+      supplyQ: (name: string) => `Hoeveel eenheden van ${name} zullen er maximaal bestaan?`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `De recordkoers is ${price}, bereikt op ${date}.`
+          : `De recordkoers is ${price}.`,
+      athQ: (name: string) => `Wat is de recordkoers van ${name}?`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `De marktkapitalisatie bedraagt ${cap}, goed voor plaats ${rank} binnen zijn activaklasse.`
+          : `De marktkapitalisatie bedraagt ${cap}.`,
+      capQ: (name: string) => `Wat is de marktkapitalisatie van ${name}?`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} noteert op ${price}. Laatste waarde die onze bron publiceerde op ${updated}.`,
+      priceQ: (name: string) => `Wat is de koers van ${name} vandaag?`,
       buyA: "Nee. ZENKUU is een informatieplatform: wij voeren geen orders uit, houden geen gelden aan en zijn noch makelaar noch handelsplatform.",
     },
     stats: {
@@ -316,6 +353,7 @@ const nl: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `Lezen op ${source}`,
     title: "Marktnieuws",
     subtitle: "Samengebracht uit de openbare feeds van de belangrijkste uitgevers.",
     unavailable: "Nieuwsstroom momenteel niet beschikbaar.",
@@ -335,6 +373,7 @@ const nl: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "Informatieplatform, zonder uitvoering van orders of bewaring van gelden.",
     community: "Gemeenschap",
     locale: "Nederlands · EUR",

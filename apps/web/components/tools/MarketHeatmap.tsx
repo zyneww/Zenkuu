@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import type { MarketAsset, MarketCategory } from '@zenkuu/data'
 
 import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
 import { HEATMAP_CLAMP } from '@/components/tools/treemap'
@@ -117,6 +118,7 @@ export function MarketHeatmap({
 }) {
   /* Les pièces d'abord : c'est la lecture qu'un lecteur cherche en arrivant sur
      « où le marché bouge-t-il ». */
+  const t = usePhrase()
   const [mode, setMode] = useState<ModeId>(assets.length > 0 ? 'coins' : 'sectors')
   const [period, setPeriod] = useState<PeriodId>('change24h')
   const [count, setCount] = useState<number>(50)
@@ -175,7 +177,7 @@ export function MarketHeatmap({
                 key={entry.id}
                 active={mode === entry.id}
                 onClick={() => setMode(entry.id)}
-                label={entry.label}
+                label={t(entry.label)}
               />
             ))}
           </ChipGroup>
@@ -190,7 +192,7 @@ export function MarketHeatmap({
                   key={entry.id}
                   active={period === entry.id}
                   onClick={() => setPeriod(entry.id)}
-                  label={entry.label}
+                  label={t(entry.label)}
                 />
               ))}
             </ChipGroup>
@@ -206,7 +208,7 @@ export function MarketHeatmap({
                   key={entry.id}
                   active={sizeBy === entry.id}
                   onClick={() => setSizeBy(entry.id)}
-                  label={entry.label}
+                  label={t(entry.label)}
                 />
               ))}
             </ChipGroup>
@@ -245,18 +247,25 @@ export function MarketHeatmap({
         {/* La phrase SUIT le sélecteur de taille. Elle disait « capitalisation » en dur,
             ce qui devenait faux dès qu'on basculait sur les volumes — une légende qui
             décrit une autre figure que celle affichée est pire qu'une légende absente. */}
-        Surface :{' '}
-        {mode === 'sectors' || sizeBy === 'marketCap'
-          ? 'capitalisation'
-          : 'volume sur 24 heures'}
-        . Couleur : variation sur {periodWord}, par paliers et saturée au-delà de ±
-        {HEATMAP_CLAMP} % pour qu’une tuile minuscule et très volatile n’écrase pas
-        l’échelle.{' '}
+        {t('Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.')
+          .replace(
+            '{size}',
+            mode === 'sectors' || sizeBy === 'marketCap'
+              ? t('capitalisation')
+              : t('volume sur 24 heures'),
+          )
+          .replace('{period}', periodWord)
+          .replace('{clamp}', String(HEATMAP_CLAMP))}{' '}
         {mode === 'coins'
-          ? `Les surfaces se partagent un tout : ce sont les ${count} premières capitalisations, chacune comptée une seule fois.`
-          : 'Les surfaces NE se partagent PAS un tout : un actif appartient à plusieurs narratifs, si bien que la somme des rectangles dépasse la capitalisation mondiale. Cette carte compare les secteurs entre eux, elle ne les additionne pas.'}{' '}
-        Une tuile grise signale une fenêtre que la source ne publie pas pour cet actif.
-        Montants en dollars, tels que publiés.
+          ? t(
+              'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.',
+            ).replace('{n}', String(count))
+          : t(
+              'Les surfaces NE se partagent PAS un tout : un actif appartient à plusieurs narratifs, si bien que la somme des rectangles dépasse la capitalisation mondiale. Cette carte compare les secteurs entre eux, elle ne les additionne pas.',
+            )}{' '}
+        {t(
+          'Une tuile grise signale une fenêtre que la source ne publie pas pour cet actif. Montants en dollars, tels que publiés.',
+        )}
       </p>
     </div>
   )

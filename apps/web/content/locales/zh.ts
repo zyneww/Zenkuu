@@ -43,12 +43,15 @@ const zh: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `按 ${date} 的欧洲央行汇率自 ${from} 换算`,
+    currencyHint: (date: string) =>
+      `按 ${date} 的欧洲央行参考汇率换算。数据源以欧元计价；所选货币适用于全站。`,
     open: '语言与货币',
     language: '语言',
     currency: '显示货币',
     search: '搜索',
     noMatch: '没有匹配的货币。',
-  
+
     languageHint: "标注为已翻译的语言会切换界面。其余语言只会记住你的选择，等待各自的翻译文件——我们宁可如实说明缺什么，也不愿提供未经校对的机器翻译。",
   },
 
@@ -92,6 +95,16 @@ const zh: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? '曲线仍在积累：没有免费数据源公布全球市值的历史，因此由我们自行记录读数。'
+        : `曲线积累中 — 目前已有 ${count} 次读数。`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `ZENKUU ${Math.round(minutes / 60)} 小时记录`
+        : `ZENKUU ${minutes} 分钟记录`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `最近 ${minutes} 分钟总市值走势`,
     trendingTitle: '热门',
     gainersTitle: '涨幅榜',
     losersTitle: '跌幅榜',
@@ -108,7 +121,7 @@ const zh: Translation = {
     sentimentTitle: '市场情绪',
     coverageTitle: '各资产类别覆盖情况',
     seeAll: '查看全部',
-  
+
     topMarketCapTitle: "市值前列",
     marketCapCardTitle: "市场总市值",
     volumeCardTitle: "24 小时成交额",
@@ -146,7 +159,7 @@ const zh: Translation = {
   auth: {
     signIn: '登录',
     signUp: '注册',
-  
+
     unavailableTitle: "账户即将开放",
     unavailableBody: "本实例尚未配置身份验证。有了账户，自选列表会长期保存，并可使用价格提醒和显示偏好。",
     signInTitle: "登录 ZENKUU",
@@ -179,6 +192,7 @@ const zh: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `第 ${page} 页`,
     columns: {
       rank: "#",
       name: "资产",
@@ -232,6 +246,10 @@ const zh: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `金额按 ${date} 的欧洲央行参考汇率自 ${from} 换算为 ${to}。数据源以 ${from} 为该资产计价。`,
+    aboutTitle: (name: string) => `关于 ${name}`,
+    priceLabel: (name: string) => `${name} 价格`,
     statsTitle: "市场统计",
     similarTitle: "可比资产",
     rangeTitle: "周期",
@@ -274,6 +292,25 @@ const zh: Translation = {
     lowest: "最低",
     highest: "最高",
     faq: {
+      buyQ: (name: string) => `可以在 ZENKUU 上购买 ${name} 吗？`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `最大供应量为 ${max} ${symbol}，其中 ${circulating} ${symbol} 已在流通。`
+          : `最大供应量为 ${max} ${symbol}。`,
+      supplyQ: (name: string) => `${name} 最多会有多少枚？`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `历史最高价为 ${price}，于 ${date} 触及。`
+          : `历史最高价为 ${price}。`,
+      athQ: (name: string) => `${name} 的历史最高价是多少？`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `其市值为 ${cap}，在同类资产中排名第 ${rank}。`
+          : `其市值为 ${cap}。`,
+      capQ: (name: string) => `${name} 的市值是多少？`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} 现报 ${price}。这是我们的数据源于 ${updated} 公布的最新数值。`,
+      priceQ: (name: string) => `${name} 今天的价格是多少？`,
       buyA: "不能。ZENKUU 是信息平台：我们不执行任何委托，不托管资金，既非经纪商也非交易所。",
     },
     stats: {
@@ -314,6 +351,7 @@ const zh: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `在 ${source} 阅读`,
     title: "市场资讯",
     subtitle: "汇集自各大媒体的公开信息流。",
     unavailable: "资讯流暂时不可用。",
@@ -333,6 +371,7 @@ const zh: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "信息平台，不执行委托，也不托管资金。",
     community: "社区",
     locale: "简体中文 · EUR",

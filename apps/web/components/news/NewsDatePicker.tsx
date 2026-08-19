@@ -124,7 +124,7 @@ export function NewsDatePicker({ selected, oldestAvailable, unavailableReason }:
           }`}
         >
           <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-          {selectedDate ? formatLong(selectedDate) : 'Choisir une date'}
+          {selectedDate ? formatLong(selectedDate) : t('Choisir une date')}
         </button>
 
         {/* Retour au direct — bouton SÉPARÉ et non un « ✕ » dans le précédent : ce

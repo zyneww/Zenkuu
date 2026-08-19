@@ -69,7 +69,7 @@ export async function SettingsSources() {
               >{t('Site de la source')}</a>
             </div>
             <p className="mt-1 text-xs text-ink-muted">{source.scope}</p>
-            <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">{source.note}</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">{t(source.note)}</p>
           </li>
         ))}
       </ul>

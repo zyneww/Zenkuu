@@ -14,6 +14,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { MacroExplorer } from '@/components/market/MacroExplorer'
 import { MacroIndicatorSearch } from '@/components/market/MacroIndicatorSearch'
 import { MacroMap, type MacroTone } from '@/components/market/MacroMap'
+import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /** Les cinq séries gardées en accès direct — voir la note sur la rangée de raccourcis. */
@@ -74,6 +75,7 @@ export default async function MacroPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const params = await searchParams
   const raw = params['indicateur']
   const requested = Array.isArray(raw) ? raw[0] : raw
@@ -109,16 +111,13 @@ export default async function MacroPage({
   return (
     <div className="space-y-6 py-6">
       <header className="space-y-3">
-        <h1 className="display-xl text-ink">Carte macroéconomique</h1>
+        <h1 className="display-xl text-ink">{t('Carte macroéconomique')}</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
-          L’état des économies, pays par pays. Ces chiffres ne sont pas des cours : ce
-          sont des séries <strong className="text-ink">annuelles</strong>, publiées avec
-          plusieurs mois de retard et à des dates différentes selon les pays. Chaque
-          valeur porte donc son année, et deux pays côte à côte peuvent décrire deux
-          moments distincts. L’historique remonte à{' '}
-          <strong className="text-ink">{MACRO_FIRST_YEAR}</strong>, là où la source
-          commence — mais tous les pays ne sont pas renseignés si loin, et le décompte
-          sous le curseur dit combien le sont pour l’année affichée.
+          {emphasise(
+            t(
+              'L’état des économies, pays par pays. Ces chiffres ne sont pas des cours : ce sont des séries **annuelles**, publiées avec plusieurs mois de retard et à des dates différentes selon les pays. Chaque valeur porte donc son année, et deux pays côte à côte peuvent décrire deux moments distincts. L’historique remonte à **{year}**, là où la source commence — mais tous les pays ne sont pas renseignés si loin, et le décompte sous le curseur dit combien le sont pour l’année affichée.',
+            ).replace('{year}', String(MACRO_FIRST_YEAR)),
+          )}
         </p>
       </header>
 
@@ -173,7 +172,9 @@ export default async function MacroPage({
         <MacroIndicatorSearch current={indicator.id} />
       </div>
 
-      <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">{indicator.hint}</p>
+      <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
+        {t(indicator.hint)}
+      </p>
 
       {!result.ok ? (
         /*

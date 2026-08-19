@@ -132,6 +132,7 @@ const es: Translation = {
   },
 
   home: {
+    classMoversHint: (size: number) => `Entre los ${size} activos seguidos de esta clase`,
     trendingTitle: 'Tendencias',
     gainersTitle: 'Mayores subidas',
     losersTitle: 'Mayores bajadas',
@@ -167,7 +168,7 @@ const es: Translation = {
       losers: 'Bajadas',
       categories: 'Categorías',
     },
-  
+
     summaryTitle: "Resumen de los mercados",
     topIndicesTitle: "Índices principales",
     volumeLeadersTitle: "Mayores volúmenes",

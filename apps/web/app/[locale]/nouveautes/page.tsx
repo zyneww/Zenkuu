@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { getContent, getSeo } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -80,14 +81,16 @@ const RELEASES: Release[] = [
   },
 ]
 
-export default function NouveautesPage() {
+export default async function NouveautesPage() {
+  const t = await getPhrase()
   return (
     <div className="mx-auto max-w-3xl space-y-8 py-6">
       <header className="space-y-3">
-        <h1 className="display-lg text-ink">Nouveautés</h1>
+        <h1 className="display-lg text-ink">{t('Nouveautés')}</h1>
         <p className="text-base leading-relaxed text-ink-muted">
-          Ce qui a été livré, dans l’ordre. Les limites connues sont signalées au même
-          titre que les ajouts — une fonctionnalité partielle est annoncée comme telle.
+          {t(
+            'Ce qui a été livré, dans l’ordre. Les limites connues sont signalées au même titre que les ajouts — une fonctionnalité partielle est annoncée comme telle.',
+          )}
         </p>
       </header>
 
@@ -100,9 +103,9 @@ export default function NouveautesPage() {
             />
             <div className="space-y-1">
               <time dateTime={release.date} className="text-xs font-medium text-ink-muted">
-                {release.label}
+                {t(release.label)}
               </time>
-              <h2 className="text-base font-semibold text-ink">{release.title}</h2>
+              <h2 className="text-base font-semibold text-ink">{t(release.title)}</h2>
             </div>
             <ul className="space-y-1.5 text-sm leading-relaxed text-ink-muted">
               {release.items.map((item, itemIndex) => (
@@ -110,7 +113,7 @@ export default function NouveautesPage() {
                   <span aria-hidden="true" className="text-brand-strong">
                     ·
                   </span>
-                  <span>{item}</span>
+                  <span>{t(item)}</span>
                 </li>
               ))}
             </ul>

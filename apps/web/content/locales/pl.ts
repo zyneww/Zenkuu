@@ -45,12 +45,15 @@ const pl: Translation = {
   },
 
   locale: {
+    convertedFrom: (from: string, date: string) => `przeliczone z ${from} po kursie EBC z ${date}`,
+    currencyHint: (date: string) =>
+      `Przeliczono po kursie referencyjnym EBC z ${date}. Źródła notują w euro; wybrana waluta obowiązuje w całym serwisie.`,
     open: 'Język i waluta',
     language: 'Język',
     currency: 'Waluta lokalna',
     search: 'Szukaj',
     noMatch: 'Żadna waluta nie odpowiada.',
-  
+
     languageHint: "Języki oznaczone jako przetłumaczone zmieniają interfejs. Pozostałe zapisują Twoje ustawienie w oczekiwaniu na plik tłumaczenia — wolimy powiedzieć, czego brakuje, niż podać nieskorygowane tłumaczenie maszynowe.",
   },
 
@@ -94,6 +97,16 @@ const pl: Translation = {
   },
 
   home: {
+    marketCapSeriesBuilding: (count: number) =>
+      count === 0
+        ? 'Krzywa dopiero powstaje: żadne darmowe źródło nie publikuje historii światowej kapitalizacji, więc zapisujemy własne odczyty.'
+        : `Krzywa powstaje — jak dotąd ${count} odczytów.`,
+    marketCapSeriesHint: (minutes: number) =>
+      minutes >= 120
+        ? `Odczyty ZENKUU z ${Math.round(minutes / 60)} h`
+        : `Odczyty ZENKUU z ${minutes} min`,
+    marketCapSeriesLabel: (minutes: number) =>
+      `Zmiana łącznej kapitalizacji w ciągu ostatnich ${minutes} minut`,
     trendingTitle: 'Trendy',
     gainersTitle: 'Największe wzrosty',
     losersTitle: 'Największe spadki',
@@ -110,7 +123,7 @@ const pl: Translation = {
     sentimentTitle: 'Nastroje rynkowe',
     coverageTitle: 'Zasięg według klasy aktywów',
     seeAll: 'Zobacz wszystko',
-  
+
     topMarketCapTitle: "Największe kapitalizacje",
     marketCapCardTitle: "Kapitalizacja rynku",
     volumeCardTitle: "Obrót 24 h",
@@ -148,7 +161,7 @@ const pl: Translation = {
   auth: {
     signIn: 'Zaloguj się',
     signUp: 'Zarejestruj się',
-  
+
     unavailableTitle: "Konta wkrótce dostępne",
     unavailableBody: "Uwierzytelnianie nie jest jeszcze skonfigurowane w tej instancji. Konta sprawią, że lista obserwowanych będzie trwała, i dadzą dostęp do alertów cenowych oraz ustawień wyświetlania.",
     signInTitle: "Zaloguj się do ZENKUU",
@@ -181,6 +194,7 @@ const pl: Translation = {
 
 
   market: {
+    pageLabel: (page: number) => `Strona ${page}`,
     columns: {
       rank: "#",
       name: "Aktywo",
@@ -234,6 +248,10 @@ const pl: Translation = {
   },
 
   asset: {
+    convertedNotice: (from: string, to: string, date: string) =>
+      `Kwoty przeliczone z ${from} na ${to} po kursie referencyjnym EBC z ${date}. Źródło notuje to aktywo w ${from}.`,
+    aboutTitle: (name: string) => `O ${name}`,
+    priceLabel: (name: string) => `Kurs ${name}`,
     statsTitle: "Statystyki rynkowe",
     similarTitle: "Porównywalne aktywa",
     rangeTitle: "Okres",
@@ -276,6 +294,25 @@ const pl: Translation = {
     lowest: "Minimum",
     highest: "Maksimum",
     faq: {
+      buyQ: (name: string) => `Czy można kupić ${name} w ZENKUU?`,
+      supplyA: (max: string, symbol: string, circulating: string | null) =>
+        circulating
+          ? `Maksymalna podaż to ${max} ${symbol}, z czego ${circulating} ${symbol} jest obecnie w obiegu.`
+          : `Maksymalna podaż to ${max} ${symbol}.`,
+      supplyQ: (name: string) => `Ile jednostek ${name} powstanie maksymalnie?`,
+      athA: (price: string, date: string | null) =>
+        date
+          ? `Historyczny szczyt to ${price}, osiągnięty ${date}.`
+          : `Historyczny szczyt to ${price}.`,
+      athQ: (name: string) => `Jaki jest historyczny szczyt ${name}?`,
+      capA: (cap: string, rank?: number) =>
+        rank
+          ? `Kapitalizacja wynosi ${cap}, co daje ${rank}. miejsce w swojej klasie aktywów.`
+          : `Kapitalizacja wynosi ${cap}.`,
+      capQ: (name: string) => `Jaka jest kapitalizacja ${name}?`,
+      priceA: (name: string, price: string, updated: string) =>
+        `${name} notowane jest po ${price}. Ostatnia wartość opublikowana przez nasze źródło ${updated}.`,
+      priceQ: (name: string) => `Ile dziś kosztuje ${name}?`,
       buyA: "Nie. ZENKUU jest serwisem informacyjnym: nie realizujemy żadnych zleceń, nie przechowujemy środków i nie jesteśmy ani brokerem, ani giełdą.",
     },
     stats: {
@@ -316,6 +353,7 @@ const pl: Translation = {
   },
 
   news: {
+    readOn: (source: string) => `Czytaj w ${source}`,
     title: "Wiadomości rynkowe",
     subtitle: "Zebrane z publicznych kanałów najważniejszych wydawców.",
     unavailable: "Kanał wiadomości chwilowo niedostępny.",
@@ -335,6 +373,7 @@ const pl: Translation = {
   },
 
   footer: {
+    rights: (year: number) => `© ${year} ZENKUU`,
     positioning: "Serwis informacyjny, bez realizacji zleceń i bez przechowywania środków.",
     community: "Społeczność",
     locale: "Polski · EUR",

@@ -20,6 +20,7 @@ import type {
 import { Pagination } from '@/components/ui/Pagination'
 import type { ScreenCriteria } from '@/lib/screen-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { emphasise } from '@/components/locale/emphasise'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -318,14 +319,14 @@ export function ScreenerView({
             type="button"
             onClick={() => applyPreset(entry.id)}
             aria-pressed={preset === entry.id}
-            title={entry.hint}
+            title={t(entry.hint)}
             className={`rounded-control border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
               preset === entry.id
                 ? 'border-brand bg-brand text-on-brand'
                 : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
             }`}
           >
-            {entry.label}
+            {t(entry.label)}
           </button>
         ))}
       </div>
@@ -368,8 +369,15 @@ export function ScreenerView({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="tabular text-sm text-ink-muted" aria-live="polite">
-          <strong className="text-ink">{rows.length}</strong> sur {total} {market.unit}{' '}
-          {market.feminine ? 'retenues' : 'retenus'}
+          {/* Une PHRASE par unité, et non « {n} sur {total} » suivi d'un nom : le
+              français y accorde son participe (« retenues » contre « retenus »), le
+              japonais n'a rien à accorder, et le russe décline le nom après le
+              nombre. Aucun assemblage de morceaux ne satisfait les trois. */}
+          {emphasise(
+            t(`**{n}** sur {total} ${market.unit} retenus`)
+              .replace('{n}', String(rows.length))
+              .replace('{total}', String(total)),
+          )}
         </p>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -434,14 +442,14 @@ export function ScreenerView({
                 type="button"
                 onClick={() => setColumnSetId(entry.id)}
                 aria-pressed={entry.id === columnSet.id}
-                title={entry.hint}
+                title={t(entry.hint)}
                 className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-xs font-medium transition-colors duration-150 ${
                   entry.id === columnSet.id
                     ? 'border-brand text-brand-strong'
                     : 'border-transparent text-ink-muted hover:text-ink'
                 }`}
               >
-                {entry.label}
+                {t(entry.label)}
               </button>
             ))
           : null}
@@ -462,7 +470,7 @@ export function ScreenerView({
         <div className="overflow-x-auto rounded-card">
           <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
             <caption className="sr-only">
-              Résultats du filtre — colonnes « {columnSet.label} »
+              Résultats du filtre — colonnes « {t(columnSet.label)} »
             </caption>
             <thead>
               <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
@@ -493,12 +501,12 @@ export function ScreenerView({
                       <button
                         type="button"
                         onClick={() => toggleSort(column.key)}
-                        title={column.hint ?? `Trier par ${column.label}`}
+                        title={column.hint ?? `Trier par ${t(column.label)}`}
                         className={`inline-flex w-full items-center justify-end gap-1 transition-colors duration-150 hover:text-ink ${
                           active ? 'text-brand-strong' : ''
                         }`}
                       >
-                        {column.label}
+                        {t(column.label)}
                         {active ? (
                           sort.direction === 'asc' ? (
                             <ArrowUp className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -721,13 +729,14 @@ function FilterSlider({
   value: number
   onChange: (value: number) => void
 }) {
+  const t = usePhrase()
   const steps = filter.steps
   const index = steps ? Math.max(0, steps.indexOf(value)) : 0
 
   return (
     <label className="block">
       <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
-        {filter.label}
+        {t(filter.label)}
         <span className="tabular text-ink">{displayThreshold(filter, value, currency)}</span>
       </span>
       <input

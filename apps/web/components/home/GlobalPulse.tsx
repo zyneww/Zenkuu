@@ -3,6 +3,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 
 import { MetricCard } from '@/components/charts/MetricCard'
 import { Money } from '@/components/locale/Money'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Les deux agrégats qui situent le marché : sa taille et son activité.
@@ -20,7 +21,7 @@ import { Money } from '@/components/locale/Money'
  * chiffre plutôt que laissée à deviner — une courbe muette sur son étendue laisse
  * croire à un historique long.
  */
-export function GlobalPulse({
+export async function GlobalPulse({
   stats,
   series,
   sparkHeight,
@@ -30,6 +31,7 @@ export function GlobalPulse({
   /** Transmis tel quel aux deux cartes — voir `MetricCard`. */
   sparkHeight?: number
 }) {
+  const t = await getPhrase()
   const capPoints = series.points.map((point) => ({ x: point.timestamp, y: point.value }))
 
   // Les points antérieurs au relevé du volume n'en portent pas : les écarter plutôt
@@ -50,7 +52,11 @@ export function GlobalPulse({
         hint={
           <span className="flex items-center gap-2">
             <ChangeBadge value={stats.marketCapChange24h} size="sm" />
-            {depth ? <span className="text-ink-muted">relevés sur {depth}</span> : null}
+            {depth ? (
+              <span className="text-ink-muted">
+                {t('relevés sur {depth}').replace('{depth}', depth)}
+              </span>
+            ) : null}
           </span>
         }
         {...(series.ready && capPoints.length > 1 ? { series: capPoints } : {})}
@@ -59,16 +65,19 @@ export function GlobalPulse({
       />
 
       <MetricCard
-        label="Volume échangé sur 24 h"
+        label={t('Volume échangé sur 24 h')}
         color="var(--color-data-4)"
         value={<Money value={stats.totalVolume24h} from={stats.currency} compact />}
         hint={
           <span className="text-ink-muted">
             {stats.totalMarketCap > 0
-              ? `${((stats.totalVolume24h / stats.totalMarketCap) * 100)
-                  .toFixed(1)
-                  .replace('.', ',')} % de la capitalisation`
-              : 'Rapporté à la capitalisation mondiale'}
+              ? t('{share} % de la capitalisation').replace(
+                  '{share}',
+                  ((stats.totalVolume24h / stats.totalMarketCap) * 100)
+                    .toFixed(1)
+                    .replace('.', ','),
+                )
+              : t('Rapporté à la capitalisation mondiale')}
           </span>
         }
         {...(volumePoints.length > 1 ? { series: volumePoints } : {})}

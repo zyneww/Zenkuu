@@ -46,3 +46,46 @@ export function emphasise(text: string, className = 'text-ink'): ReactNode[] {
     ),
   )
 }
+
+/**
+ * Même principe que `emphasise`, étendu aux liens.
+ *
+ * Un paragraphe de note se termine presque toujours par un renvoi — « voir tous les
+ * secteurs », « filtrer avec le screener ». Le lien coupe la phrase exactement comme
+ * le faisait `<strong>`, avec la même conséquence : trois fragments dont l'ordre est
+ * celui du français. La phrase reste donc entière et porte ses liens en notation
+ * Markdown :
+ *
+ *     t('Le détail de chaque narratif est sur sa page — voir [tous les secteurs](/categories).')
+ *
+ * ── POURQUOI LES CIBLES NE SONT PAS TRADUISIBLES ─────────────────────────────
+ *
+ * Le chemin vit DANS la phrase, et un traducteur pourrait le changer. C'est voulu :
+ * les routes du site sont en français (`/categories`, `/marches`) et identiques dans
+ * les treize langues — le préfixe de locale est ajouté par `Link`. Un chemin modifié
+ * par erreur donne un lien mort, visible au premier clic ; l'alternative, une liste
+ * de cibles numérotées à côté de la phrase, redonnerait au traducteur un texte à
+ * trous. On préfère la faute visible à la faute invisible.
+ */
+export function weave(
+  text: string,
+  link: (href: string, label: string, key: number) => ReactNode,
+  className = 'text-ink',
+): ReactNode[] {
+  const nodes: ReactNode[] = []
+  const pattern = /\[([^\]]+)\]\(([^)]+)\)/g
+  let last = 0
+  let match: RegExpExecArray | null
+  let key = 0
+
+  while ((match = pattern.exec(text))) {
+    if (match.index > last) nodes.push(...emphasise(text.slice(last, match.index), className))
+    /* Les deux groupes sont obligatoires dans le motif ; `noUncheckedIndexedAccess`
+       l'ignore, d'où le repli sur la chaîne vide plutôt qu'une assertion. */
+    nodes.push(link(match[2] ?? '', match[1] ?? '', key++))
+    last = match.index + match[0].length
+  }
+  if (last < text.length) nodes.push(...emphasise(text.slice(last), className))
+
+  return nodes
+}

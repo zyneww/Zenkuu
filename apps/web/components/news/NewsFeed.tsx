@@ -313,7 +313,7 @@ export function NewsFeed({
           >
             {SORTS.map((entry) => (
               <option key={entry.id} value={entry.id}>
-                {entry.label}
+                {t(entry.label)}
               </option>
             ))}
           </select>
