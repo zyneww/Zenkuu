@@ -194,7 +194,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint: stri
   return (
     <div className="rounded-card border border-border-subtle bg-panel p-4">
       <p className="text-xs text-ink-muted">{label}</p>
-      <p className="tabular mt-1 text-xl font-semibold leading-tight text-ink">{value}</p>
+      <p className="figure mt-1 text-xl font-semibold leading-tight text-ink">{value}</p>
       <p className="mt-1 text-micro leading-snug text-ink-muted">{hint}</p>
     </div>
   )

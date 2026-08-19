@@ -300,7 +300,7 @@ export function HeroChart({
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-ink-muted">{label}</h3>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="tabular text-2xl font-bold text-ink">
+            <span className="figure text-2xl font-bold text-ink">
               {typeof last === 'number'
                 ? /* `compact` seulement pour la capitalisation : un agrégat se lit
                      « 2 273 Md », un cours d'indice se lit en entier. Abréger

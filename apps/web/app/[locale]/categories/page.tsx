@@ -167,7 +167,7 @@ async function CategoriesHero({
                 {t('Capitalisation mondiale')}
               </dt>
               <dd className="mt-1 flex items-baseline gap-2">
-                <span className="tabular text-3xl font-semibold text-ink">
+                <span className="figure text-3xl font-semibold text-ink">
                   <Money
                     value={globalStats.totalMarketCap}
                     from={globalStats.currency}
@@ -198,7 +198,7 @@ async function HeroStat({
   return (
     <div>
       <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">{label}</dt>
-      <dd className={`tabular mt-1 text-3xl font-semibold ${color}`}>{value}</dd>
+      <dd className={`figure mt-1 text-3xl font-semibold ${color}`}>{value}</dd>
     </div>
   )
 }

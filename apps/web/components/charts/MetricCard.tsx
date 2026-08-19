@@ -49,7 +49,9 @@ export function MetricCard({
   action?: ReactNode
 }) {
   return (
-    <article className="flex flex-col overflow-hidden rounded-card border border-border-subtle bg-surface transition-colors duration-150 hover:border-ink-muted/40">
+    /* `graduated` : la carte de mesure est LE module de chiffres du site, et donc
+       l'endroit où la signature se justifie. Voir `.graduated` dans globals.css. */
+    <article className="graduated flex flex-col overflow-hidden rounded-card border border-border-subtle bg-surface transition-colors duration-150 hover:border-ink-muted/40">
       <div className="flex flex-1 flex-col gap-1 p-4">
         <div className="flex items-center justify-between gap-2">
           <h3 className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
@@ -63,12 +65,20 @@ export function MetricCard({
           {action}
         </div>
 
-        {/* Le nombre porte la couleur de la métrique. Il est en chasse fixe pour que
-            deux cartes voisines alignent leurs chiffres malgré des valeurs de
-            largeurs différentes. */}
-        <p className="tabular text-2xl font-semibold leading-tight" style={{ color }}>
-          {value}
-        </p>
+        {/* ── LE NOMBRE EST EN ENCRE, ET LA COULEUR RESTE À L'ICÔNE ───────────
+            Il portait la couleur de la métrique. Cette couleur vient de la palette
+            de DONNÉES, celle des séries de graphiques : posée sur une capitalisation
+            ou un volume, elle disait « série » là où il n'y a qu'une valeur, et
+            elle entrait en concurrence avec la seule couleur qui signifie quelque
+            chose ici — celle de la hausse et de la baisse.
+
+            La couleur reste sur l'ICÔNE et sur la courbe, où elle identifie la
+            métrique sans rien prétendre du marché. Voir la doctrine de l'accent
+            dans `globals.css`.
+
+            `.figure` et non `.tabular` : à vingt-quatre pixels, l'espace des
+            milliers d'une chasse fixe coupe le nombre en deux. */}
+        <p className="figure text-2xl font-semibold leading-tight text-ink">{value}</p>
 
         {hint ? <p className="text-xs text-ink-muted">{hint}</p> : null}
       </div>

@@ -61,7 +61,7 @@ export function CategorySpotlight({
               <ChangeBadge value={category.marketCapChange24h} size="sm" />
             </div>
 
-            <p className="tabular text-xl font-semibold text-ink">
+            <p className="figure text-xl font-semibold text-ink">
               {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
             </p>
 

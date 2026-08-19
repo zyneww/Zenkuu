@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ZENKUU — deux directions visuelles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,300..700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'Switzer';
+  src: url('./Switzer-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   L'IDENTITÉ EN UNE PHRASE
+
+   ZENKUU n'est pas une place de marché : c'est un INSTRUMENT DE LECTURE. Aucun
+   bouton d'achat, six classes d'actifs sous une seule grille, et une règle qui
+   dit qu'une donnée manquante se voit au lieu de se déguiser en zéro.
+
+   Un instrument ne se colore pas lui-même. Il réserve la couleur à ce qu'il
+   mesure. C'est de là que sortent les deux directions ci-dessous, et c'est aussi
+   ce qui a été MESURÉ : les huit teintes de données du site occupent déjà tout
+   le cercle chromatique, et le seul intervalle libre (263°) est celui du bleu
+   qu'emploient Coinbase, TradingView et CoinMarketCap. Il n'y a pas de place
+   pour un accent de couleur qui soit à la fois lisible et distinctif.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── LE FOND ──────────────────────────────────────────────────────────────
+     Le thème sombre actuel est #141414, un gris rigoureusement neutre relevé
+     chez Token Terminal. Neutre veut dire anonyme : c'est le fond de la moitié
+     du secteur.
+
+     Celui-ci a une origine. C'est le ciel au zénith une heure avant l'aube,
+     quand il est le plus sombre — bleu, jamais gris. Le nom du site dit 空,
+     kuu : le ciel, le vide.
+     ───────────────────────────────────────────────────────────────────────── */
+  --void: #070a0f;
+  --panel: #0d1219;
+  --raised: #141b25;
+  --rule: #1e2836;
+  --rule-strong: #2c3a4d;
+
+  --ink: #e8eff7;
+  --dim: #8a9bb0;
+  --faint: #5a6a7d;
+
+  /* Marché — inchangés, ce sont eux qui portent la couleur. */
+  --up: #34d399;
+  --down: #f87171;
+}
+
+/* ── DIRECTION A ── L'INSTRUMENT ────────────────────────────────────────────
+   L'interface est achromatique. Le point le plus lumineux de la page est un
+   élément ACTIF, jamais une décoration — et il porte une lueur, comme le
+   phosphore d'un oscilloscope. « Électrique » y est une propriété de la
+   lumière, pas une teinte.
+
+   Ce qui en découle : la couleur ne veut dire qu'une chose sur ce site, et
+   c'est le marché. Un lien ne peut plus se confondre avec une hausse.
+   ─────────────────────────────────────────────────────────────────────────── */
+.dir-a {
+  --accent: #eafaff;
+  --accent-dim: #a8c8d8;
+  --accent-glow: rgba(140, 220, 255, 0.4);
+  --on-accent: #070a0f;
+}
+
+/* ── DIRECTION B ── L'INDIGO ────────────────────────────────────────────────
+   Un accent chromatique unique, placé dans le seul intervalle libre du cercle
+   (263°), poussé en saturation et en clarté jusqu'à sortir du bleu corporate.
+   Plus immédiatement « coloré » ; en contrepartie il rejoint le territoire du
+   secteur, et il vit à 30° de deux séries de graphiques.
+   ─────────────────────────────────────────────────────────────────────────── */
+.dir-b {
+  --accent: #7c6cff;
+  --accent-dim: #9b8fff;
+  --accent-glow: rgba(124, 108, 255, 0.35);
+  --on-accent: #ffffff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--void);
+  color: var(--ink);
+  font-family: 'Switzer', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LES CHIFFRES SONT LA VOIX DE LA MARQUE ────────────────────────────────
+   Sur ce site, la majorité du texte affiché est numérique. La police des
+   chiffres est donc vue plus souvent que celle des titres : c'est elle qui doit
+   porter l'identité, et non l'inverse.
+
+   Martian Mono remplace DM Mono, empruntée à Tokenomist et bornée à la graisse
+   500. Elle est variable sur DEUX axes — graisse et largeur — ce qui permet de
+   resserrer une colonne dense et d'élargir un chiffre héros sans changer de
+   fonte. Son zéro barré distingue O de 0 sans qu'on ait à y penser.
+   ─────────────────────────────────────────────────────────────────────────── */
+.num {
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  /* L'axe de largeur, poussé bas : c'est ce qu'aucune police non variable ne sait
+     faire — resserrer une colonne sans amaigrir le trait ni déformer le dessin. */
+  font-variation-settings: 'wdth' 80;
+  letter-spacing: -0.02em;
+}
+
+/* ── LA SIGNATURE ── LA GRADUATION ─────────────────────────────────────────
+   Chaque module de données porte en tête une bande de graduations, comme la
+   règle d'un instrument. Elle n'est pas décorative : elle remplace le filet
+   ordinaire et dit ce que le produit est. Un sismographe, un télescope et une
+   règle à calcul portent tous cette bande ; une place de marché, jamais.
+
+   Le pas est de 8 px, avec un trait long tous les cinq — la même convention
+   qu'un réglet millimétré.
+   ─────────────────────────────────────────────────────────────────────────── */
+.tick {
+  height: 9px;
+  background-image:
+    repeating-linear-gradient(to right, var(--rule-strong) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 8px);
+  background-size: 100% 9px, 100% 5px;
+  background-position: top left, top left;
+  background-repeat: repeat-x;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+
+.masthead {
+  display: flex; align-items: baseline; gap: 16px;
+  padding-bottom: 12px; margin-bottom: 32px;
+  border-bottom: 1px solid var(--rule);
+}
+.mark {
+  font-weight: 800; font-size: 18px; letter-spacing: -0.05em;
+}
+.masthead p { color: var(--faint); font-size: 12px; }
+
+.compare { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .compare { grid-template-columns: 1fr 1fr; } }
+
+.col > h2 {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--faint);
+  margin-bottom: 4px;
+}
+.col > p.lede { color: var(--dim); font-size: 12.5px; margin-bottom: 18px; max-width: 46ch; }
+
+/* ── LE MODULE ────────────────────────────────────────────────────────────── */
+.module {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  margin-bottom: 14px;
+}
+.module > .body { padding: 14px 16px 16px; }
+
+/* Un titre de module : petit, espacé, en retrait. Il nomme, il ne crie pas. */
+.mtitle {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 12px;
+}
+
+/* ── LE CHIFFRE HÉROS N'EST PAS EN CHASSE FIXE ─────────────────────────────
+   Rien ne s'aligne sous lui : la chasse fixe n'y apporte que son défaut, un
+   espace des milliers large comme un chiffre. Il est donc posé dans la police de
+   texte, avec ses chiffres tabulaires — mesuré sur `/design/typo.html`.
+   ─────────────────────────────────────────────────────────────────────────── */
+.hero-price {
+  font-family: 'Switzer', system-ui, sans-serif;
+  font-size: 42px; font-weight: 600; line-height: 1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+.hero-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.delta { font-size: 15px; font-weight: 600; }
+.delta.up { color: var(--up); }
+.delta.down { color: var(--down); }
+
+.asset-name {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.1;
+}
+.asset-sym { color: var(--faint); font-size: 12px; font-weight: 500; letter-spacing: 0.08em; }
+
+/* ── DENSITÉ FORTE ─────────────────────────────────────────────────────────
+   Quatre mesures sur une ligne, séparées par un filet vertical plutôt que par
+   de l'espace. C'est ce qui distingue un instrument d'un tableau de bord : la
+   place perdue entre deux chiffres est de la place que le lecteur doit
+   parcourir des yeux.
+   ─────────────────────────────────────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 16px; }
+.stat { padding: 0 12px; border-left: 1px solid var(--rule); }
+.stat:first-child { padding-left: 0; border-left: 0; }
+.stat dt {
+  font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 3px;
+}
+.stat dd { font-size: 14px; font-weight: 500; }
+
+/* ── LE TABLEAU ───────────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--faint); text-align: right; padding: 0 8px 7px; white-space: nowrap;
+}
+th:first-child, td:first-child { text-align: left; padding-left: 0; }
+th:last-child, td:last-child { padding-right: 0; }
+td { padding: 6px 8px; text-align: right; border-top: 1px solid var(--rule); font-size: 13px; }
+tbody tr:hover { background: var(--raised); }
+.rank { color: var(--faint); font-size: 11px; }
+.tname { font-weight: 600; letter-spacing: -0.01em; }
+
+/* ── L'ÉTAT ACTIF ── là où l'accent vit ────────────────────────────────────
+   Un seul emploi : ce que le lecteur a choisi, ou ce qu'il s'apprête à
+   atteindre. La lueur est fine et courte — un phosphore, pas un néon.
+   ─────────────────────────────────────────────────────────────────────────── */
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip {
+  font-size: 11.5px; font-weight: 500; padding: 4px 11px;
+  border: 1px solid var(--rule); background: transparent; color: var(--dim);
+  cursor: pointer; font-family: inherit;
+  transition: color .12s, border-color .12s, box-shadow .12s;
+}
+.chip:hover { color: var(--ink); border-color: var(--rule-strong); }
+.chip[aria-pressed='true'] {
+  color: var(--on-accent); background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 14px var(--accent-glow);
+}
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+a.link { color: var(--accent-dim); text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+a.link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── LA COURBE ────────────────────────────────────────────────────────────── */
+.spark { display: block; width: 100%; height: 72px; margin-top: 14px; }
+
+/* ── LA DONNÉE ABSENTE ─────────────────────────────────────────────────────
+   Règle du produit : une donnée que la source ne publie pas se VOIT. Elle a
+   donc sa forme propre — une hachure, pas un tiret perdu au milieu des
+   chiffres.
+   ─────────────────────────────────────────────────────────────────────────── */
+.absent {
+  display: inline-block; width: 42px; height: 11px; vertical-align: -1px;
+  background-image: repeating-linear-gradient(
+    -45deg, var(--rule) 0 1px, transparent 1px 4px
+  );
+  border: 1px solid var(--rule);
+}
+
+footer.note {
+  margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--rule);
+  color: var(--faint); font-size: 11.5px; max-width: 74ch;
+}
+footer.note strong { color: var(--dim); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="mark">ZENKUU</span>
+    <p>Deux directions, mêmes composants, mêmes chiffres. Fond, densité, typographie et graduation sont communs — seul l'accent change.</p>
+  </div>
+
+  <div class="compare">
+
+    <!-- ═══ DIRECTION A ═══════════════════════════════════════════════════ -->
+    <section class="col dir-a">
+      <h2>Direction A — l'instrument</h2>
+      <p class="lede">L'interface est achromatique et l'accent est de la lumière. La couleur ne signifie qu'une chose : le marché.</p>
+
+      <div class="module">
+        <div class="tick"></div>
+        <div class="body">
+          <div class="hero-row" style="margin-bottom:10px">
+            <div>
+              <div class="asset-name">Bitcoin</div>
+              <div class="asset-sym num">BTC</div>
+            </div>
+          </div>
+          <div class="hero-row">
+            <span class="hero-price num">58 773,00 €</span>
+            <span class="delta up num">▲ 5,80 %</span>
+          </div>
+
+          <svg class="spark" viewBox="0 0 300 72" preserveAspectRatio="none" aria-hidden="true">
+            <polyline fill="none" stroke="var(--up)" stroke-width="1.5"
+              points="0,58 20,54 40,60 60,47 80,50 100,38 120,42 140,30 160,34 180,22 200,26 220,16 240,20 260,11 280,14 300,6"/>
+          </svg>
+
+          <dl class="stats">
+            <div class="stat"><dt>Capitalisation</dt><dd class="num">1,16 T€</dd></div>
+            <div class="stat"><dt>Volume 24 h</dt><dd class="num">42,3 Md€</dd></div>
+            <div class="stat"><dt>Dominance</dt><dd class="num">54,2 %</dd></div>
+            <div class="stat"><dt>Offre max</dt><dd><span class="absent" title="Non publiée"></span></dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="tick"></div>
+        <div class="body">
+          <div class="mtitle">Période</div>
+          <div class="chips">
+            <button class="chip">24 H</button>
+            <button class="chip" aria-pressed="true">7 J</button>
+            <button class="chip">30 J</button>
+            <button class="chip">1 AN</button>
+            <button class="chip">MAX</button>
+          </div>
+
+          <table>
+            <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>Volume</th></tr></thead>
+            <tbody>
+              <tr><td><span class="rank num">1</span> <span class="tname">Bitcoin</span></td><td class="num">58 773,00</td><td class="num" style="color:var(--up)">+5,80 %</td><td class="num">42,3 Md</td></tr>
+              <tr><td><span class="rank num">2</span> <span class="tname">Ethereum</span></td><td class="num">1 787,97</td><td class="num" style="color:var(--up)">+9,00 %</td><td class="num">18,9 Md</td></tr>
+              <tr><td><span class="rank num">3</span> <span class="tname">Solana</span></td><td class="num">104,52</td><td class="num" style="color:var(--down)">−2,41 %</td><td class="num">3,42 Md</td></tr>
+              <tr><td><span class="rank num">4</span> <span class="tname">Tether</span></td><td class="num">0,8569</td><td class="num" style="color:var(--dim)">0,00 %</td><td class="num">61,0 Md</td></tr>
+            </tbody>
+          </table>
+
+          <p style="margin-top:12px;font-size:11.5px;color:var(--faint)">
+            Source · <a class="link" href="#">CoinGecko</a> — données du 19 août.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ DIRECTION B ═══════════════════════════════════════════════════ -->
+    <section class="col dir-b">
+      <h2>Direction B — l'indigo</h2>
+      <p class="lede">Un accent chromatique unique, dans le seul intervalle libre du cercle. Plus coloré, mais à 30° de deux séries de graphiques.</p>
+
+      <div class="module">
+        <div class="tick"></div>
+        <div class="body">
+          <div class="hero-row" style="margin-bottom:10px">
+            <div>
+              <div class="asset-name">Bitcoin</div>
+              <div class="asset-sym num">BTC</div>
+            </div>
+          </div>
+          <div class="hero-row">
+            <span class="hero-price num">58 773,00 €</span>
+            <span class="delta up num">▲ 5,80 %</span>
+          </div>
+
+          <svg class="spark" viewBox="0 0 300 72" preserveAspectRatio="none" aria-hidden="true">
+            <polyline fill="none" stroke="var(--up)" stroke-width="1.5"
+              points="0,58 20,54 40,60 60,47 80,50 100,38 120,42 140,30 160,34 180,22 200,26 220,16 240,20 260,11 280,14 300,6"/>
+          </svg>
+
+          <dl class="stats">
+            <div class="stat"><dt>Capitalisation</dt><dd class="num">1,16 T€</dd></div>
+            <div class="stat"><dt>Volume 24 h</dt><dd class="num">42,3 Md€</dd></div>
+            <div class="stat"><dt>Dominance</dt><dd class="num">54,2 %</dd></div>
+            <div class="stat"><dt>Offre max</dt><dd><span class="absent" title="Non publiée"></span></dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="tick"></div>
+        <div class="body">
+          <div class="mtitle">Période</div>
+          <div class="chips">
+            <button class="chip">24 H</button>
+            <button class="chip" aria-pressed="true">7 J</button>
+            <button class="chip">30 J</button>
+            <button class="chip">1 AN</button>
+            <button class="chip">MAX</button>
+          </div>
+
+          <table>
+            <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>Volume</th></tr></thead>
+            <tbody>
+              <tr><td><span class="rank num">1</span> <span class="tname">Bitcoin</span></td><td class="num">58 773,00</td><td class="num" style="color:var(--up)">+5,80 %</td><td class="num">42,3 Md</td></tr>
+              <tr><td><span class="rank num">2</span> <span class="tname">Ethereum</span></td><td class="num">1 787,97</td><td class="num" style="color:var(--up)">+9,00 %</td><td class="num">18,9 Md</td></tr>
+              <tr><td><span class="rank num">3</span> <span class="tname">Solana</span></td><td class="num">104,52</td><td class="num" style="color:var(--down)">−2,41 %</td><td class="num">3,42 Md</td></tr>
+              <tr><td><span class="rank num">4</span> <span class="tname">Tether</span></td><td class="num">0,8569</td><td class="num" style="color:var(--dim)">0,00 %</td><td class="num">61,0 Md</td></tr>
+            </tbody>
+          </table>
+
+          <p style="margin-top:12px;font-size:11.5px;color:var(--faint)">
+            Source · <a class="link" href="#">CoinGecko</a> — données du 19 août.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="note">
+    <p><strong>Ce qui est commun aux deux, et ne se discute pas :</strong> le fond est bleu-noir et non gris neutre — il a une origine, le ciel au zénith, quand celui d'aujourd'hui est relevé chez Token Terminal. La police des chiffres passe à Martian Mono, variable en graisse ET en largeur, là où DM Mono était empruntée et bornée à 500. La graduation en tête de chaque module dit ce que le produit est : un instrument de lecture, pas une place de marché. La donnée absente a sa forme propre.</p>
+    <p style="margin-top:10px"><strong>Ce qui se décide :</strong> A tient que la couleur n'a qu'un sens sur ce site, le marché — un lien ne peut alors jamais se confondre avec une hausse. B donne une couleur immédiatement identifiable, au prix d'un voisinage à 30° de deux séries de graphiques et d'un territoire partagé avec le bleu du secteur.</p>
+  </footer>
+
+</div>
+</body>
+</html>

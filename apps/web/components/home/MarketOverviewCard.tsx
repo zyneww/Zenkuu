@@ -68,7 +68,7 @@ export async function MarketOverviewCard({
     <div className="flex flex-col rounded-card border border-border-subtle bg-surface p-4">
       <div>
         <p className="text-xs text-ink-muted">{fr.home.marketCapCardTitle}</p>
-        <p className="tabular mt-1 text-2xl font-bold text-ink">
+        <p className="figure mt-1 text-2xl font-bold text-ink">
           <Money value={stats.totalMarketCap} from={stats.currency} compact />
         </p>
         <div className="mt-1">

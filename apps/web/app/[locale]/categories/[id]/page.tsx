@@ -177,7 +177,7 @@ async function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted">{label}</dt>
-      <dd className="tabular mt-1 text-2xl font-semibold text-ink">{value}</dd>
+      <dd className="figure mt-1 text-2xl font-semibold text-ink">{value}</dd>
     </div>
   )
 }

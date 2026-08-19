@@ -139,7 +139,7 @@ export async function AssetRailIdentity({
           pour qu'il n'écrase pas ses voisins ; seul en tête d'une colonne, il n'écrase
           plus rien et redevient ce qu'il est — la porte d'entrée de la page. */}
       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <p className="tabular text-3xl font-bold leading-none text-ink">
+        <p className="figure text-3xl font-bold leading-none text-ink">
           <span className="sr-only">{t('price.label')} : </span>
           {price}
         </p>

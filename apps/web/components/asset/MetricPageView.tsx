@@ -187,7 +187,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
           <p className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">
             {tp('currentValue')}
           </p>
-          <p className="tabular text-3xl font-bold text-ink">
+          <p className="figure text-3xl font-bold text-ink">
             <MetricValue metric={metric} value={value} asset={data} isForex={isForex} />
           </p>
           {metric.readChange?.(data) !== undefined ? (

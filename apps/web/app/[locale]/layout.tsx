@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Mono } from 'next/font/google'
+import { Martian_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
@@ -73,26 +73,49 @@ const sans = localFont({
 })
 
 /**
- * Police des NOMBRES — DM Mono.
+ * Police des NOMBRES — Martian Mono, et c'est elle qui porte l'identité.
  *
  * DESIGN.md prescrit une police dédiée pour toute donnée tabulaire, et la raison
  * est fonctionnelle plutôt qu'esthétique : en chasse proportionnelle, un « 1 » est
  * plus étroit qu'un « 8 », si bien qu'une colonne de cotation se décale
  * visuellement à chaque rafraîchissement. La chasse fixe supprime ce ballet.
  *
- * C'est la mono de Tokenomist, relevée au navigateur sur sa page de tarifs (`DM Mono`
- * en 400 et 500). Elle accompagne Inter chez eux comme ici.
+ * ── POURQUOI CETTE POLICE-LÀ EST LA VOIX DE LA MARQUE ───────────────────────
  *
- * LES GRAISSES SONT DÉCLARÉES, contrairement à Inter ci-dessus, parce que DM Mono
- * n'est PAS variable : elle n'existe qu'en 300, 400 et 500. On ne prend que les deux
- * dernières, seules utilisées — 400 pour les colonnes, 500 pour un chiffre mis en
- * avant. Sa graisse maximale étant 500, un `font-semibold` posé sur un nombre serait
- * SYNTHÉTISÉ par le navigateur, c'est-à-dire épaissi artificiellement ; les styles
- * `.tabular` et `.numeric` de globals.css bornent la graisse pour cette raison.
+ * Sur ce site, la majorité du texte affiché est NUMÉRIQUE. La police des chiffres
+ * est donc vue plus souvent que celle des titres : c'est elle qui porte l'identité,
+ * et non l'inverse. Un site de données dont la mono est anonyme n'a pas de voix.
+ *
+ * Elle remplace DM Mono, qui était relevée au navigateur sur la page de tarifs de
+ * Tokenomist — donc empruntée — et bornée à la graisse 500 : un chiffre mis en avant
+ * y était épaissi artificiellement par le navigateur, et `globals.css` devait borner
+ * la graisse pour l'éviter.
+ *
+ * ── L'AXE DE LARGEUR EST CE QUI LA REND UTILISABLE ICI ──────────────────────
+ *
+ * Martian Mono est large de nature, et ce site affiche jusqu'à onze colonnes. Elle
+ * est variable sur DEUX axes — graisse ET largeur (75 à 112,5) —, ce qu'aucune mono
+ * non variable ne sait faire : les colonnes se resserrent à `wdth 80` sans que le
+ * trait maigrisse ni que le dessin se déforme. Comparé au navigateur contre IBM Plex
+ * Mono, Azeret Mono, Spline Sans Mono et DM Mono, c'est la seule qui garde du
+ * caractère à cette densité ; les quatre autres deviennent interchangeables.
+ *
+ * Son zéro barré distingue O de 0 sans qu'on ait à y penser — sur une colonne de
+ * cotation, c'est la seule ambiguïté qui compte.
+ *
+ * ── CE QU'ELLE NE FAIT PAS ──────────────────────────────────────────────────
+ *
+ * Elle ne porte PAS le chiffre héros d'une fiche d'actif. À quarante pixels,
+ * l'espace des milliers d'une chasse fixe vaut la largeur d'un chiffre entier et
+ * coupe le cours en deux — mesuré sur `/design/typo.html`. Rien ne s'alignant sous
+ * un cours, la chasse fixe n'y apporte que son défaut : ce chiffre-là est posé dans
+ * la police de texte, avec ses chiffres tabulaires.
  */
-const mono = DM_Mono({
+const mono = Martian_Mono({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  /* `variable` et non une liste de graisses : next/font émet alors le fichier
+     variable, seul à porter l'axe de largeur dont dépend la densité des colonnes. */
+  weight: 'variable',
   display: 'swap',
   variable: '--font-mono-numeric',
 })
@@ -213,7 +236,17 @@ export default async function RootLayout({
          arrivent, le sens de lecture est déjà juste — miroir de la mise en page,
          ponctuation et nombres du bon côté. */
       dir={isRtl(locale) ? 'rtl' : 'ltr'}
-      className={`${sans.variable} ${mono.variable}`}
+      /* `dark` POSÉE DÈS LE SERVEUR, et non seulement par `ThemeScript`.
+
+         Le script s'exécute avant la première peinture et suffirait donc à éviter
+         le flash. Mais il ne s'exécute pas du tout sans JavaScript, et le HTML
+         servi doit déjà porter le thème du site : sans cette classe, un lecteur
+         qui bloque les scripts verrait un site clair là où l'identité est sombre.
+
+         `ThemeScript` la RETIRE ensuite si le visiteur a explicitement choisi le
+         clair — l'ordre est donc : le défaut arrive avec le document, le choix le
+         corrige avant la peinture. */
+      className={`dark ${sans.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
       <head>

@@ -255,7 +255,7 @@ export async function AssetPageHeader({
 
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <p className="tabular text-4xl font-bold leading-none text-ink">
+            <p className="figure text-4xl font-bold leading-none text-ink">
               <span className="sr-only">{t('price.label')} : </span>
               {price}
             </p>

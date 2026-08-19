@@ -93,7 +93,7 @@ async function GlobalCapCard({ stats }: { stats: GlobalMarketStats }) {
   return (
     <CardShell title={t('Capitalisation boursière mondiale')} badge="24 h">
       <div className="flex items-end justify-between gap-3">
-        <p className="tabular text-2xl font-semibold text-ink">
+        <p className="figure text-2xl font-semibold text-ink">
           <Money value={stats.totalMarketCap} from={stats.currency} compact />
         </p>
         <ChangeBadge value={stats.marketCapChange24h} size="sm" />

@@ -65,41 +65,104 @@
      effet de bord. Un composant réclame le second plan en le nommant.
      ─────────────────────────────────────────────────────────────────────────── */
   /* ───────────────────────────────────────────────────────────────────────────
-     THÈME CLAIR — celui de CoinGecko, relevé au navigateur.
+     THÈME CLAIR — le même site, à l'autre bout de la rampe.
 
-     Les valeurs ci-dessous ne sont pas inspirées, elles sont MESURÉES sur
-     coingecko.com/en/coins/solana en mode clair, par recensement des couleurs
-     réellement calculées sur la page. Elles remplacent une gamme de blancs
-     légèrement chauds (#faf8f9 et suivants) qui accompagnait le magenta sakura de
-     l'ancien logo — teinte qui n'existe plus.
+     Ce n'est plus la palette de CoinGecko relevée au navigateur. Un thème clair
+     copié sur un concurrent et un thème sombre copié sur un autre donnaient au
+     site DEUX identités selon l'heure de la journée, et aucune en propre.
 
-     Le blanc redevient donc PUR. La justification du blanc chaud tenait à une
-     symétrie avec un noir chaud en thème sombre ; le thème sombre passe au noir
-     neutre de Token Terminal, et l'argument tombe avec lui.
+     Le blanc pur est donc remplacé par un blanc BLEUTÉ, de la même famille que le
+     bleu-noir du thème sombre : les deux thèmes sont désormais les deux extrémités
+     d'une seule rampe, et non deux emprunts. L'écart est ténu — #f7f9fc monte de
+     247 à 252 du rouge au bleu — mais il suffit à ce que le blanc ne soit pas
+     n'importe quel blanc.
+
+     ── LE SECOND PLAN S'INVERSE ──────────────────────────────────────────────
+
+     En thème sombre, un panneau est plus CLAIR que le canvas. En clair, il doit
+     donc être plus lumineux que lui aussi, faute de quoi la hiérarchie se
+     retournerait d'un thème à l'autre. Le canvas descend à #f7f9fc et le panneau
+     prend le blanc pur : l'élévation reste dans le même sens, et le principe de
+     surface unique documenté plus haut tient toujours — `canvas` et `surface`
+     restent égaux, seul `panel` s'en écarte.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-canvas: #ffffff;
-  --color-surface: #ffffff;
+  --color-canvas: #f7f9fc;
+  --color-surface: #f7f9fc;
   --color-panel: #ffffff;
   /* Le gris de CoinGecko — de loin son aplat le plus fréquent : en-têtes de
      tableau, survols de ligne, bandes de contraste. */
-  --color-surface-muted: #eff2f5;
+  --color-surface-muted: #eef2f7;
   /* Filet à 1,24:1 sur le blanc. CoinGecko trace ses séparateurs de tableau en
      #eff2f5, soit 1,09:1 — presque rien. Ce serait tenable chez eux, où les blocs
      sont posés sur des fonds gris ; ici les cartes n'existent QUE par leur filet
      (voir la note sur la surface unique ci-dessus), et un filet à 1,09:1 les
      ferait disparaître. On retient donc l'autre valeur mesurée sur leur page,
      celle de leur en-tête. */
-  --color-border-subtle: #e5e7eb;
+  --color-border-subtle: #dde3ec;
 
   /* Texte — les deux teintes les plus employées de leur page, dans leurs rôles :
      #0f172a pour le titre et les chiffres, #64748b pour tout le secondaire.
      Contrastes sur le blanc : ink 17,85:1 · ink-muted 4,76:1. Le second est juste
      au-dessus du seuil AA de 4,5:1 (§9) — c'est serré, et c'est le prix de la
      ressemblance ; il ne porte que du texte secondaire, jamais une valeur. */
-  --color-ink: #0f172a;
-  --color-ink-muted: #64748b;
+  --color-ink: #0d1420;
+  --color-ink-muted: #4f6076;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     L'ACCENT N'EST PAS UNE COULEUR — et c'est la décision qui fait l'identité.
+
+     ── CE QUI A ÉTÉ MESURÉ AVANT DE DÉCIDER ──────────────────────────────────
+
+     Le site emploie déjà huit teintes porteuses de sens : hausse, baisse, et six
+     séries de graphiques. Relevées en OKLCH, dont l'axe de teinte est
+     perceptuellement régulier, elles se répartissent ainsi sur le cercle :
+
+         22°  baisse      129°  data-6      182°  data-4      294°  data-3
+         84°  data-2      163°  hausse      233°  data-1      350°  data-5
+
+     Le plus large intervalle libre mesure 62°, entre la baisse et l'ambre : un
+     orange, donc, à 31° du rouge de baisse — inutilisable. Le suivant fait 61° et
+     son centre tombe à 263°, c'est-à-dire exactement le bleu de Coinbase, de
+     TradingView et de CoinMarketCap.
+
+     Il n'y a PAS DE PLACE pour un accent chromatique qui soit à la fois lisible,
+     distinct des données, et pas déjà celui du secteur. Ce n'est pas une opinion
+     de goût : c'est ce que donne la mesure.
+
+     ── D'OÙ LA DÉCISION ──────────────────────────────────────────────────────
+
+     Un instrument de mesure ne se colore pas lui-même : il réserve la couleur à ce
+     qu'il mesure. Le cadran d'un sismographe est noir et blanc, c'est le tracé qui
+     porte l'encre. ZENKUU n'exécute rien et ne détient rien — c'est un instrument
+     de lecture, pas une place de marché, et son interface n'a rien à vendre.
+
+     L'accent est donc l'EXTRÊME DE LA RAMPE, du côté opposé au fond :
+
+         sombre   #eafaff   un blanc à peine glacé, 18,52:1 sur le canvas
+         clair    #2a3f5a   le point le plus dense, 10,17:1 sur le canvas
+
+     « Électrique » y devient une propriété de la LUMIÈRE et non une teinte : les
+     états actifs portent une lueur courte, celle du phosphore d'un oscilloscope,
+     déclarée en `--glow` plus bas.
+
+     ── CE QUE CELA GAGNE, CONCRÈTEMENT ───────────────────────────────────────
+
+     Sur ce site, la couleur ne veut plus dire qu'une chose : le marché. Un lien ne
+     peut plus se confondre avec une hausse, une pastille d'état avec une baisse.
+     C'est le §3.1 — une couleur qui porte un SENS ne peut pas en porter deux —
+     appliqué non plus à une palette, mais à l'interface entière.
+
+     ── CE QUE CELA COÛTE, ET QU'IL FAUT SURVEILLER ───────────────────────────
+
+     En thème clair, l'accent vit à 1,72:1 de l'encre. Un lien ne s'y distingue
+     donc pas par sa couleur seule : il lui faut son SOULIGNEMENT ou sa graisse.
+     Tout lien posé sans l'un des deux disparaîtra dans le texte — c'est la
+     contrepartie assumée, et le seul endroit où ce système demande de la
+     vigilance.
+
+     Ce qui suit documente le bleu REMPLACÉ, gardé pour la méthode qu'il expose —
+     mesurer une teinte plutôt que la choisir à l'œil :
+     ───────────────────────────────────────────────────────────────────────────
      BLEU DE MARQUE — la teinte du logo, ramenée aux seuils de contraste.
 
      Le magenta qui occupait cette place avait été mesuré sur le logo PRÉCÉDENT, un
@@ -131,9 +194,9 @@
      d'ailleurs proche de la marque : c'est un voisinage à surveiller, pas un
      conflit, les deux ne se rencontrant jamais sur le même objet.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-brand: #3d63c2;
-  --color-brand-strong: #3353a3;
-  --color-brand-soft: #ebeffa;
+  --color-brand: #2a3f5a;
+  --color-brand-strong: #16233a;
+  --color-brand-soft: #e6ebf3;
 
   /* Couleur du TEXTE posé SUR un aplat de marque. Ce jeton existe parce qu'un
      `text-white` écrit en dur dans un bouton ne peut pas être correct dans les deux
@@ -144,6 +207,16 @@
      blanc sur un #fdba74 très clair ; il passait inaperçu faute de boutons pleins
      fréquents. */
   --color-on-brand: #ffffff;
+
+  /* ── LA LUEUR DES ÉTATS ACTIFS ────────────────────────────────────────────
+     Une ombre portée SANS décalage ni flou étendu : c'est la diffusion d'un
+     phosphore, pas une ombre de carte. Elle sert d'accent visuel là où l'accent
+     n'est plus une couleur, et elle ne doit apparaître que sur ce que le lecteur
+     a choisi ou survole — jamais en décoration.
+
+     Deux valeurs parce que la lumière ne se comporte pas pareil des deux côtés :
+     sur fond sombre elle rayonne, sur fond clair elle ne peut que densifier. */
+  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(42 63 90 / 0.22);
 
   /* Or solaire — DÉCOR UNIQUEMENT. À 2.05:1 sur le canvas (mesuré dans le
      navigateur), il tombe sous le seuil de 3:1 exigé même pour un composant
@@ -1046,14 +1119,86 @@
     line-height: 1.2;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     LA GRADUATION — la signature du site.
+
+     Une bande de traits fins, au pas de 8 px, avec un repère long tous les cinq :
+     la convention d'un réglet millimétré. Elle se pose en tête d'un module de
+     données, où elle REMPLACE le filet ordinaire.
+
+     ── CE QU'ELLE ENCODE ──────────────────────────────────────────────────
+
+     Elle n'est pas un ornement. ZENKUU n'exécute rien et ne détient rien : c'est
+     un instrument de LECTURE, et les instruments de mesure portent tous cette
+     bande — un sismographe, un réglet, l'échelle d'un télescope. Une place de
+     marché, jamais. Elle dit donc en une ligne ce que le produit est, et c'est
+     précisément ce qui manquait à un site dont le fond et la palette étaient
+     empruntés à ses concurrents.
+
+     ── OÙ ELLE VA, ET SURTOUT OÙ ELLE NE VA PAS ───────────────────────────
+
+     Sur les modules qui portent des CHIFFRES. Pas sur les cartes éditoriales, pas
+     sur les blocs de texte, pas en fond de page : répétée partout, elle
+     cesserait d'être une signature pour devenir une texture, et le premier reproche
+     fait à ce site — qu'il ressemble à tout le monde — serait remplacé par un
+     second, qu'il se répète.
+
+     Deux dégradés superposés plutôt qu'une image : aucun octet réseau, et la
+     couleur suit les jetons, donc le thème.
+     ═══════════════════════════════════════════════════════════════════════ */
+  .graduated {
+    position: relative;
+  }
+  .graduated::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 9px;
+    background-image:
+      repeating-linear-gradient(to right, var(--color-ink-muted) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(to right, var(--color-border-subtle) 0 1px, transparent 1px 8px);
+    background-size:
+      100% 9px,
+      100% 5px;
+    background-repeat: repeat-x;
+    background-position: top left;
+    /* Le repère long est à demi-teinte : à pleine encre, quarante traits par carte
+       tireraient l'œil avant les chiffres qu'ils encadrent. */
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  /* ── LES GRANDS CHIFFRES NE SONT PAS EN CHASSE FIXE ──────────────────────
+   *
+   * `.figure` est le pendant de `.tabular` pour les nombres qu'on lit SEULS : le
+   * cours en tête de fiche, une capitalisation en gros corps, un chiffre de carte
+   * de mesure. Ils partagent l'alignement des chiffres — même largeur d'un « 1 »
+   * et d'un « 8 », donc pas de ballet au rafraîchissement — et rien d'autre.
+   *
+   * La chasse fixe leur est RETIRÉE, et c'est mesurable : à vingt-quatre pixels et
+   * au-delà, l'espace des milliers d'une mono vaut la largeur d'un chiffre entier
+   * et coupe le nombre en deux. « 2 069 Md € » s'y lit comme trois blocs séparés.
+   * Comparé côte à côte sur `/design/typo.html`.
+   *
+   * La règle de partage est simple : `.tabular` dès que des chiffres s'empilent en
+   * COLONNE, `.figure` dès qu'un chiffre est seul et grand. Sous une valeur isolée,
+   * rien ne s'aligne — la chasse fixe n'y apporte que son défaut.
+   */
+  .figure {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+    letter-spacing: -0.025em;
+  }
+
   /* Nombres : police tabulaire et chasse fixe. Complète `.tabular` existant.
-     La graisse 500 est la MAXIMALE de DM Mono — voir la note de `.tabular`. */
+     La graisse n'est plus bornée — voir la note de `.tabular`. */
   .numeric {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: 500;
     letter-spacing: -0.01em;
-    font-synthesis-weight: none;
+    font-variation-settings: 'wdth' 80;
   }
 }
 
@@ -1089,7 +1234,38 @@
    ───────────────────────────────────────────────────────────────────────────── */
 .dark {
   /* ───────────────────────────────────────────────────────────────────────────
-     THÈME SOMBRE — celui de Token Terminal, relevé au navigateur.
+     THÈME SOMBRE — LE THÈME PAR DÉFAUT, et l'identité du site.
+
+     ── CE QU'IL REMPLACE, ET POURQUOI ────────────────────────────────────────
+
+     La rampe précédente était #141414 et ses voisins : un gris rigoureusement
+     NEUTRE, relevé au navigateur sur tokenterminal.com. Elle était juste — chaque
+     écart de contraste avait été mesuré — mais elle était ANONYME. Un noir neutre
+     est le fond de la moitié du secteur, et le site n'y était reconnaissable par
+     rien.
+
+     Celle-ci a une origine, et l'origine est le nom. ZENKUU porte 空, kuu : le
+     ciel, le vide. Le fond est donc la couleur du ciel au zénith une heure avant
+     l'aube, quand il est le plus sombre — un bleu-noir, jamais un gris. Rouge,
+     vert et bleu n'y sont plus égaux : #070a0f monte de 7 à 15 sur le bleu.
+
+     ── L'OBJECTION QUE CETTE DOMINANTE SOULÈVE, ET LA RÉPONSE ────────────────
+
+     L'argument qui avait imposé le neutre tenait ainsi : la palette de données
+     compte quatre teintes froides sur six, et un fond froid les tire à lui. Il
+     reste vrai dans son principe, et il est ici sans portée : à 15/255 de bleu, la
+     dominante ne dispute son quadrant à aucune courbe — elle est en dessous du
+     seuil auquel l'œil la nomme. Ce qu'elle change est autre chose, et c'est ce
+     qu'on cherchait : le fond cesse d'être un non-choix.
+
+     ── L'ACCENT N'EST PAS UNE COULEUR ────────────────────────────────────────
+
+     Voir `--color-brand` plus bas. Le point le plus lumineux de la page est un
+     élément ACTIF, et la couleur reste au marché seul.
+     ───────────────────────────────────────────────────────────────────────────
+
+     Ce qui suit documente la rampe REMPLACÉE, conservé parce que les rapports de
+     contraste qu'il établit valent toujours — seules les valeurs ont bougé :
 
      Valeurs mesurées sur tokenterminal.com/explorer, par recensement des couleurs
      réellement calculées sur la page. Elles remplacent un quasi-noir CHAUD
@@ -1123,36 +1299,36 @@
      Ce qui NE change pas : la neutralité. Rouge, vert et bleu restent rigoureusement
      égaux à chaque niveau, et tout le raisonnement ci-dessus tient mot pour mot.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-canvas: #141414;
-  --color-surface: #141414;
+  --color-canvas: #070a0f;
+  --color-surface: #070a0f;
   /* SECOND PLAN — le ton des panneaux, mesuré chez eux. À 1,10:1 du canvas, il
      élève BEAUCOUP moins que le #1c1719 précédent (1,35:1), et c'est le parti de
      la référence : leurs cartes se distinguent d'abord par leur filet, la nuance de
      fond ne faisant que confirmer. */
-  --color-panel: #1e1e1e;
+  --color-panel: #0d1219;
   /* Seul ton qui marque une différence SANS élever : survols de ligne, bandes de
      contraste. Il reste AU-DESSUS de `panel`, sans quoi le survol d'une ligne à
      l'intérieur d'un panneau serait plus sombre que le panneau qui la contient.
      Correspond à leur `rgba(245,245,245,.1)` aplati sur le canvas. */
-  --color-surface-muted: #242424;
+  --color-surface-muted: #141b25;
   /* Filet à 1,34:1 sur le fond — sensiblement le rapport retenu jusqu'ici (1,6:1),
      et #262626 est une valeur mesurée chez eux. Leur filet le plus courant,
      `rgba(163,163,163,.1)`, tombe à 1,12:1 une fois aplati : tenable sur une page
      dont les blocs portent aussi un fond, trop faible ici où le filet dessine seul
      l'essentiel des délimitations (voir la note sur la surface unique). */
-  --color-border-subtle: #2d2d2d;
+  --color-border-subtle: #1e2836;
 
   /* Blanc PUR, comme chez eux : sur un noir neutre, rien ne justifie de teinter
      l'encre. Le blanc rosé précédent corrigeait la dominante chaude du fond, qui
      n'existe plus. Contraste 18,4:1 sur le canvas — le fond ayant remonté, l'écart
      se resserre légèrement sans jamais s'approcher d'une limite. */
-  --color-ink: #ffffff;
+  --color-ink: #e8eff7;
   /* Leur gris secondaire, de loin le plus employé de leur page. Contraste 7,30:1
      sur le canvas remonté — toujours au-dessus du seuil AAA de 7:1, tout en restant
      nettement en retrait de l'encre, ce qui est exactement ce qu'on demande à une
      seconde voix. C'est cette marge de trois dixièmes qui a fixé la hauteur du
      nouveau fond : plus clair, ce gris serait passé sous le seuil. */
-  --color-ink-muted: #a3a3a3;
+  --color-ink-muted: #8fa0b5;
 
   /* Même teinte qu'en clair (223°, celle du logo), même méthode : on part de la
      clarté du dessin et l'on s'en écarte du minimum nécessaire — vers le HAUT
@@ -1167,9 +1343,13 @@
      le fond. Ce n'est pas de la cosmétique : conservé tel quel sur #141414 il tombait
      à 6,50:1, sous le seuil AAA que la ligne ci-dessus annonce. Une valeur documentée
      qui cesse d'être vraie est pire qu'une valeur non documentée. */
-  --color-brand: #86a0e2;
-  --color-brand-strong: #9ab1ea;
-  --color-brand-soft: #1b2745;
+  --color-brand: #eafaff;
+  --color-brand-strong: #ffffff;
+  --color-brand-soft: #14202c;
+  /* Sur fond sombre la lueur RAYONNE : portée plus large, teinte franchement
+     bleutée. C'est le seul endroit du site où une couleur d'interface apparaît, et
+     elle n'est jamais un aplat — seulement une diffusion. */
+  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(140 220 255 / 0.35);
 
   /* Encre TRÈS sombre sur bleu lumineux : 7,14:1. Le canvas lui-même, et non un
      noir arbitraire — un bouton plein doit rendre la couleur du fond, pas une
@@ -1215,7 +1395,7 @@
      Il passe SOUS `--color-border-subtle` (#262626) et non au-dessus : c'est ce qui
      laisse le filet dessiner le contour du panneau flottant plutôt que de s'y
      dissoudre. */
-  --color-overlay: #2a2a2a;
+  --color-overlay: #131b26;
   /* Ombre RENFORCÉE — sur un fond aussi sombre, une ombre à 0,6 n'a pas assez de noir
      sous elle pour se voir. Elle le reste après la remontée du canvas : celui-ci a
      gagné huit points de clarté, ce qui ne change pas l'ordre de grandeur. */
@@ -1424,22 +1604,26 @@
     letter-spacing: -0.01em;
 
     /*
-     * PAS DE GRAS SYNTHÉTIQUE. DM Mono n'existe qu'en 300, 400 et 500 ; le site en
-     * charge 400 et 500. Or cette classe est posée sur des éléments qui portent
-     * souvent `font-semibold` (600) ou `font-bold` (700) — le prix en tête de fiche,
-     * les totaux de tableau.
+     * ── L'AXE DE LARGEUR, ET CE QU'IL REMPLACE ────────────────────────────
      *
-     * Sans cette déclaration, le navigateur ÉPAISSIT LUI-MÊME le tracé de la 500
-     * pour simuler la graisse manquante. Le résultat est un gras baveux, aux
-     * contre-formes bouchées, et surtout PLUS LARGE que la fonte d'origine : une
-     * chasse fixe qui cesse d'être fixe, c'est-à-dire l'exact contraire de ce
-     * qu'on est venu chercher ici.
+     * `wdth 80` resserre la chasse de vingt pour cent. Martian Mono est large de
+     * nature et ce site affiche jusqu'à onze colonnes : sans ce réglage, six
+     * suffisent à déborder. Le trait ne maigrit pas et le dessin ne se déforme
+     * pas — c'est un axe dessiné par le fondeur, non une transformation.
      *
-     * `none` fait retomber toute demande supérieure sur la 500 réelle. Un prix en
-     * 600 sera donc rendu en 500 : un cran de graisse en moins, des colonnes qui
-     * restent alignées.
+     * Ce réglage REMPLACE une contrainte qui n'a plus lieu d'être. DM Mono
+     * n'existait qu'en 300, 400 et 500 : toute demande supérieure — le prix en
+     * tête de fiche, les totaux de tableau, qui portent `font-semibold` —
+     * produisait un gras SYNTHÉTIQUE, épaissi par le navigateur et surtout plus
+     * large que la fonte d'origine. Une chasse fixe qui cesse d'être fixe est
+     * l'exact contraire de ce qu'on vient chercher ici, d'où le
+     * `font-synthesis-weight: none` qui bornait tout à la 500.
+     *
+     * Martian Mono étant variable de 300 à 700, la graisse demandée existe
+     * réellement : rien n'est plus synthétisé, et la borne peut tomber. Un prix en
+     * 600 est désormais rendu en 600.
      */
-    font-synthesis-weight: none;
+    font-variation-settings: 'wdth' 80;
   }
 
   /*

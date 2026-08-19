@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ZENKUU — la police des chiffres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,300..700&family=IBM+Plex+Mono:wght@400;500;600&family=Azeret+Mono:wght@300..700&family=Spline+Sans+Mono:wght@300..700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'Switzer';
+  src: url('./Switzer-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA QUESTION QUE CETTE PAGE TRANCHE
+
+   Sur ZENKUU, la majorité du texte affiché est numérique. La police des chiffres
+   est donc vue plus souvent que celle des titres : c'est elle qui porte
+   l'identité, et non l'inverse.
+
+   Deux contraintes s'opposent, et la page les met face à face :
+
+     LES COLONNES veulent une chasse FIXE. En proportionnel, un « 1 » est plus
+     étroit qu'un « 8 » : une colonne de cotation se décale visuellement à chaque
+     rafraîchissement. La chasse fixe supprime ce ballet.
+
+     LE CHIFFRE HÉROS ne la veut PAS. À quarante pixels, l'espace des milliers
+     occupe la largeur d'un chiffre entier et creuse un trou au milieu du cours.
+     C'est visible sur la première ligne ci-dessous.
+
+   La réponse est donc probablement mixte, et c'est ce qu'il faut regarder.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --void: #070a0f;
+  --panel: #0d1219;
+  --rule: #1e2836;
+  --rule-strong: #2c3a4d;
+  --ink: #e8eff7;
+  --dim: #8a9bb0;
+  --faint: #5a6a7d;
+  --up: #34d399;
+  --down: #f87171;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--void); color: var(--ink);
+  font-family: 'Switzer', system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 80px; }
+
+h1 { font-size: 17px; font-weight: 800; letter-spacing: -0.045em; margin-bottom: 3px; }
+.sub { color: var(--faint); font-size: 12px; margin-bottom: 28px; }
+
+.case { border: 1px solid var(--rule); background: var(--panel); margin-bottom: 12px; }
+.case > header {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 8px 14px; border-bottom: 1px solid var(--rule); background: #0a0f16;
+}
+.case h2 { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.case header span { font-size: 11px; color: var(--faint); }
+.case > .body { padding: 14px; }
+
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+
+/* Les quatre candidates, à réglage égal. */
+.f-martian { font-family: 'Martian Mono', monospace; }
+.f-plex    { font-family: 'IBM Plex Mono', monospace; }
+.f-azeret  { font-family: 'Azeret Mono', monospace; }
+.f-spline  { font-family: 'Spline Sans Mono', monospace; }
+.f-switzer { font-family: 'Switzer', sans-serif; }
+
+/* Martian resserrée à sa largeur minimale — l'axe wdth va de 75 à 112,5. */
+.narrow { font-variation-settings: 'wdth' 75; }
+
+.hero { font-size: 38px; font-weight: 500; line-height: 1.05; letter-spacing: -0.05em; }
+.hero .name { font-size: 13px; color: var(--faint); letter-spacing: 0.08em; display: block; margin-bottom: 2px; font-family: 'Switzer', sans-serif; font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); text-align: right; padding: 0 10px 6px; }
+th:first-child, td:first-child { text-align: left; padding-left: 0; }
+th:last-child, td:last-child { padding-right: 0; }
+td { padding: 5px 10px; text-align: right; border-top: 1px solid var(--rule); font-size: 13px; }
+.tname { font-family: 'Switzer', sans-serif; font-weight: 600; }
+.w { color: var(--faint); font-size: 10.5px; font-family: 'Switzer', sans-serif; }
+
+.gloss { color: var(--dim); font-size: 12px; margin-top: 10px; max-width: 68ch; }
+.gloss b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>La police des chiffres</h1>
+  <p class="sub">Quatre candidates, mêmes valeurs, même corps. Ce qu'il faut regarder : la largeur des colonnes, le trou de l'espace des milliers, et si les chiffres se distinguent les uns des autres.</p>
+
+  <!-- ── LE PROBLÈME, MONTRÉ ────────────────────────────────────────────── -->
+  <div class="case">
+    <header><h2>Le trou</h2><span>même cours, chasse fixe puis proportionnelle</span></header>
+    <div class="body">
+      <div class="hero f-martian tnum" style="margin-bottom:14px">
+        <span class="name">MARTIAN MONO — chasse fixe</span>58 773,00 €
+      </div>
+      <div class="hero f-switzer tnum">
+        <span class="name">SWITZER — proportionnelle, chiffres tabulaires</span>58 773,00 €
+      </div>
+      <p class="gloss">L'espace des milliers vaut un chiffre entier en chasse fixe. Sur un cours à quarante pixels, il coupe le nombre en deux. <b>Le chiffre héros n'a pas besoin de chasse fixe</b> — rien ne s'aligne sous lui.</p>
+    </div>
+  </div>
+
+  <!-- ── LES QUATRE CANDIDATES EN COLONNE ───────────────────────────────── -->
+  <div class="case">
+    <header><h2>Martian Mono</h2><span>variable · axes largeur et graisse · zéro barré</span></header>
+    <div class="body">
+      <table class="f-martian tnum">
+        <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>7 j</th><th>Volume</th><th>Capitalisation</th></tr></thead>
+        <tbody>
+          <tr><td class="tname">Bitcoin</td><td>58 773,00</td><td style="color:var(--up)">+5,80 %</td><td style="color:var(--up)">+11,04 %</td><td>42,3 Md</td><td>1 164,8 Md</td></tr>
+          <tr><td class="tname">Ethereum</td><td>1 787,97</td><td style="color:var(--up)">+9,00 %</td><td style="color:var(--down)">−3,12 %</td><td>18,9 Md</td><td>215,4 Md</td></tr>
+          <tr><td class="tname">Solana</td><td>104,52</td><td style="color:var(--down)">−2,41 %</td><td style="color:var(--up)">+18,66 %</td><td>3,42 Md</td><td>48,1 Md</td></tr>
+        </tbody>
+      </table>
+      <p class="gloss">Très large. Le zéro barré est excellent, mais six colonnes ne tiennent qu'à l'étroit — <b>et ce site en affiche jusqu'à onze</b>.</p>
+    </div>
+  </div>
+
+  <div class="case">
+    <header><h2>Martian Mono, resserrée</h2><span>axe de largeur poussé à son minimum (75)</span></header>
+    <div class="body">
+      <table class="f-martian narrow tnum">
+        <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>7 j</th><th>Volume</th><th>Capitalisation</th></tr></thead>
+        <tbody>
+          <tr><td class="tname">Bitcoin</td><td>58 773,00</td><td style="color:var(--up)">+5,80 %</td><td style="color:var(--up)">+11,04 %</td><td>42,3 Md</td><td>1 164,8 Md</td></tr>
+          <tr><td class="tname">Ethereum</td><td>1 787,97</td><td style="color:var(--up)">+9,00 %</td><td style="color:var(--down)">−3,12 %</td><td>18,9 Md</td><td>215,4 Md</td></tr>
+          <tr><td class="tname">Solana</td><td>104,52</td><td style="color:var(--down)">−2,41 %</td><td style="color:var(--up)">+18,66 %</td><td>3,42 Md</td><td>48,1 Md</td></tr>
+        </tbody>
+      </table>
+      <p class="gloss">Le même dessin, tenu par son axe de largeur. <b>C'est ce qu'aucune police non variable ne sait faire</b> : resserrer sans amaigrir ni déformer.</p>
+    </div>
+  </div>
+
+  <div class="case">
+    <header><h2>IBM Plex Mono</h2><span>institutionnelle · lisible en petit corps</span></header>
+    <div class="body">
+      <table class="f-plex tnum">
+        <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>7 j</th><th>Volume</th><th>Capitalisation</th></tr></thead>
+        <tbody>
+          <tr><td class="tname">Bitcoin</td><td>58 773,00</td><td style="color:var(--up)">+5,80 %</td><td style="color:var(--up)">+11,04 %</td><td>42,3 Md</td><td>1 164,8 Md</td></tr>
+          <tr><td class="tname">Ethereum</td><td>1 787,97</td><td style="color:var(--up)">+9,00 %</td><td style="color:var(--down)">−3,12 %</td><td>18,9 Md</td><td>215,4 Md</td></tr>
+          <tr><td class="tname">Solana</td><td>104,52</td><td style="color:var(--down)">−2,41 %</td><td style="color:var(--up)">+18,66 %</td><td>3,42 Md</td><td>48,1 Md</td></tr>
+        </tbody>
+      </table>
+      <p class="gloss">Plus étroite et très sûre, mais <b>non variable</b> : trois fichiers au lieu d'un, et aucune souplesse de largeur.</p>
+    </div>
+  </div>
+
+  <div class="case">
+    <header><h2>Azeret Mono</h2><span>variable · dessin marqué, un peu géométrique</span></header>
+    <div class="body">
+      <table class="f-azeret tnum">
+        <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>7 j</th><th>Volume</th><th>Capitalisation</th></tr></thead>
+        <tbody>
+          <tr><td class="tname">Bitcoin</td><td>58 773,00</td><td style="color:var(--up)">+5,80 %</td><td style="color:var(--up)">+11,04 %</td><td>42,3 Md</td><td>1 164,8 Md</td></tr>
+          <tr><td class="tname">Ethereum</td><td>1 787,97</td><td style="color:var(--up)">+9,00 %</td><td style="color:var(--down)">−3,12 %</td><td>18,9 Md</td><td>215,4 Md</td></tr>
+          <tr><td class="tname">Solana</td><td>104,52</td><td style="color:var(--down)">−2,41 %</td><td style="color:var(--up)">+18,66 %</td><td>3,42 Md</td><td>48,1 Md</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="case">
+    <header><h2>Spline Sans Mono</h2><span>variable · étroite, humaniste</span></header>
+    <div class="body">
+      <table class="f-spline tnum">
+        <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>7 j</th><th>Volume</th><th>Capitalisation</th></tr></thead>
+        <tbody>
+          <tr><td class="tname">Bitcoin</td><td>58 773,00</td><td style="color:var(--up)">+5,80 %</td><td style="color:var(--up)">+11,04 %</td><td>42,3 Md</td><td>1 164,8 Md</td></tr>
+          <tr><td class="tname">Ethereum</td><td>1 787,97</td><td style="color:var(--up)">+9,00 %</td><td style="color:var(--down)">−3,12 %</td><td>18,9 Md</td><td>215,4 Md</td></tr>
+          <tr><td class="tname">Solana</td><td>104,52</td><td style="color:var(--down)">−2,41 %</td><td style="color:var(--up)">+18,66 %</td><td>3,42 Md</td><td>48,1 Md</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="case">
+    <header><h2>DM Mono</h2><span>celle du site aujourd'hui, empruntée à Tokenomist</span></header>
+    <div class="body">
+      <table style="font-family:'DM Mono',monospace" class="tnum">
+        <thead><tr><th>Actif</th><th>Cours</th><th>24 h</th><th>7 j</th><th>Volume</th><th>Capitalisation</th></tr></thead>
+        <tbody>
+          <tr><td class="tname">Bitcoin</td><td>58 773,00</td><td style="color:var(--up)">+5,80 %</td><td style="color:var(--up)">+11,04 %</td><td>42,3 Md</td><td>1 164,8 Md</td></tr>
+          <tr><td class="tname">Ethereum</td><td>1 787,97</td><td style="color:var(--up)">+9,00 %</td><td style="color:var(--down)">−3,12 %</td><td>18,9 Md</td><td>215,4 Md</td></tr>
+          <tr><td class="tname">Solana</td><td>104,52</td><td style="color:var(--down)">−2,41 %</td><td style="color:var(--up)">+18,66 %</td><td>3,42 Md</td><td>48,1 Md</td></tr>
+        </tbody>
+      </table>
+      <p class="gloss">Le repère. <b>Bornée à la graisse 500</b> : un chiffre mis en avant y est épaissi artificiellement par le navigateur.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

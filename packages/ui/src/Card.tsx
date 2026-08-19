@@ -5,13 +5,27 @@ interface CardProps {
   className?: string
   /** Retire le rembourrage interne — pour les tableaux qui gèrent le leur. */
   flush?: boolean
+  /**
+   * Pose la GRADUATION en tête de la carte — la signature du site.
+   *
+   * Réservée aux modules qui portent des CHIFFRES. Une carte éditoriale ou un bloc
+   * de texte ne la prend pas : répétée partout, la bande cesserait d'être une
+   * signature pour devenir une texture de fond. Voir `.graduated` dans
+   * `globals.css` pour ce qu'elle encode.
+   */
+  graduated?: boolean
 }
 
 /** Surface de base du produit : rayon 12px, bordure discrète (§3.1). */
-export function Card({ children, className = '', flush = false }: CardProps) {
+export function Card({
+  children,
+  className = '',
+  flush = false,
+  graduated = false,
+}: CardProps) {
   return (
     <section
-      className={`rounded-card border border-border-subtle bg-surface ${flush ? '' : 'p-4'} ${className}`}
+      className={`rounded-card border border-border-subtle bg-surface ${graduated ? 'graduated' : ''} ${flush ? '' : 'p-4'} ${className}`}
     >
       {children}
     </section>

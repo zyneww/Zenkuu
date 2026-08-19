@@ -808,7 +808,7 @@ function CountryPanel({
 
       <div>
         <p className="text-[0.6875rem] text-ink-muted">{indicatorLabel}</p>
-        <p className="tabular text-2xl font-bold text-ink">
+        <p className="figure text-2xl font-bold text-ink">
           {formatMacroValue(shown.value, scale)}{' '}
           <span className="text-sm font-medium text-ink-muted">{unit}</span>
         </p>

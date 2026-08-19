@@ -122,7 +122,7 @@ export default async function Page({ params }: RouteParams) {
         </div>
 
         <div className="flex flex-wrap items-baseline gap-3">
-          <span className="tabular text-3xl font-semibold text-ink">
+          <span className="figure text-3xl font-semibold text-ink">
             {data.priceUsd !== undefined
               ? new Intl.NumberFormat('fr-FR', {
                   style: 'currency',

@@ -20,9 +20,22 @@ const LEGACY_GLASS_KEY = 'zenkuu-glass'
  * injecté dans le document, exécuté de façon synchrone — un `useEffect` s'exécute
  * après la peinture, trop tard par construction.
  *
- * Logique : un choix explicite mémorisé l'emporte ; à défaut, on suit la préférence
- * système. La classe est toujours posée explicitement, ce qui permet à la variante
- * Tailwind `dark` de se baser uniquement sur cette classe.
+ * ── LE SOMBRE EST LE DÉFAUT, ET NON LA PRÉFÉRENCE SYSTÈME ───────────────────
+ *
+ * Le script suivait `prefers-color-scheme`. Il ne le suit plus : seul un choix
+ * explicite « clair » écarte le thème sombre.
+ *
+ * La raison n'est pas une préférence de goût. Le thème sombre PORTE l'identité du
+ * site — le fond y a une origine, l'accent y rayonne, et c'est là que la palette
+ * de données a été réglée. Servir le thème clair à la moitié des visiteurs parce
+ * que leur système est en clair reviendrait à ce que le site n'ait pas de première
+ * impression : elle dépendrait d'un réglage qu'il ne contrôle pas.
+ *
+ * Le thème clair reste entier et accessible d'un clic. Ce qui change est
+ * seulement ce qu'on montre d'abord.
+ *
+ * La classe est toujours posée explicitement, ce qui permet à la variante Tailwind
+ * `dark` de se baser uniquement sur elle.
  *
  * Il efface AUSSI la clé du mode Liquid Glass, retiré du produit. C'est le seul
  * endroit du site qui s'exécute chez tout visiteur avant tout le reste : y placer le
@@ -33,12 +46,13 @@ const script = `
 (function () {
   try {
     var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
-    var dark = stored === 'dark' || (stored !== 'light' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var dark = stored !== 'light';
     document.documentElement.classList.toggle('dark', dark);
     localStorage.removeItem('${LEGACY_GLASS_KEY}');
   } catch (e) {
-    /* localStorage indisponible (navigation privée stricte) : on reste en clair. */
+    /* localStorage indisponible (navigation privée stricte) : on reste en sombre,
+       comme le défaut ci-dessus — l'attribut n'ayant pas pu être lu, pas retiré. */
+    document.documentElement.classList.add('dark');
   }
 })();
 `

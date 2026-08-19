@@ -194,7 +194,7 @@ export async function SentimentPanel({ result }: { result: DataResult<SentimentI
           <circle cx="60" cy="62" r="4" fill="currentColor" className="text-ink" />
         </svg>
 
-        <p className="tabular -mt-2 text-2xl font-bold text-ink">{value}</p>
+        <p className="figure -mt-2 text-2xl font-bold text-ink">{value}</p>
         <p className={`text-sm font-medium ${tone}`}>{label}</p>
 
         {previousValue !== undefined ? (
