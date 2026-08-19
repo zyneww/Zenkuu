@@ -136,8 +136,19 @@ function Gauge({
       </div>
 
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-muted">
+        {/* ── DEUX JAUGES, DEUX NIVEAUX DE LA MÊME RAMPE ───────────────────
+            La seconde était dorée. L'or ne signifie rien ici — ce n'est ni un
+            avertissement, ni un métal précieux, ni une note publiée par la
+            source : il ne distinguait les deux jauges que par sa présence, ce qui
+            en faisait une décoration. La doctrine de l'accent réserve la couleur à
+            ce que le site mesure, et une progression d'émission n'est pas une
+            variation de marché.
+
+            Les deux se distinguent donc par leur PLACE DANS LA RAMPE — l'accent
+            pour celle qu'on lit d'abord, l'encre en retrait pour l'autre. La
+            hiérarchie est la même, elle ne coûte plus une couleur. */}
         <div
-          className={`h-full rounded-pill ${tone === 'brand' ? 'bg-brand' : 'bg-accent'}`}
+          className={`h-full rounded-pill ${tone === 'brand' ? 'bg-brand' : 'bg-ink-muted'}`}
           style={{ width: `${share}%` }}
           role="img"
           aria-label={`${label} : ${Math.round(share)} %`}
