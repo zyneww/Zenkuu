@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { GRID_STROKE } from '@/components/charts/chart-theme'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Tracé de séries temporelles en SVG — SANS bibliothèque de graphiques.
@@ -72,6 +73,15 @@ export interface AreaPlotProps {
   formatTooltipX?: (x: number) => string
   formatTooltipY?: (y: number, series: PlotSeries) => string
   ariaLabel?: string
+  /**
+   * Disparaître SANS RIEN DIRE quand la courbe ne peut pas être tracée.
+   *
+   * C'est le comportement voulu d'une courbe d'ambiance — une étincelle de tableau,
+   * qui vit dans une cellule et n'a pas la place d'une phrase. Partout ailleurs, se
+   * taire produit un trou que rien n'explique : le défaut est donc l'inverse, et ce
+   * drapeau doit être DEMANDÉ.
+   */
+  quiet?: boolean
 }
 
 /** Marges internes. Le bas et la gauche ne sont réservés que s'il y a des axes. */
@@ -93,7 +103,9 @@ export function AreaPlot({
   formatTooltipX,
   formatTooltipY,
   ariaLabel,
+  quiet = false,
 }: AreaPlotProps) {
+  const t = usePhrase()
   const gradientId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
@@ -252,7 +264,33 @@ export function AreaPlot({
 
   const interactive = formatTooltipY !== undefined
 
-  if (series.length === 0 || reference.length < 2) return null
+  /*
+   * ── DEUX POINTS, SINON RIEN À TRACER ──────────────────────────────────────
+   *
+   * Une courbe relie des relevés : un seul point ne décrit aucune évolution, et le
+   * domaine horizontal se réduirait à une largeur nulle.
+   *
+   * Ce retour était `null`, et c'est ce qui a coûté cher. Le seuil vit ICI, mais
+   * chaque appelant devait le deviner : `HeroChart` gardait sur `points.length > 0`,
+   * si bien qu'un unique relevé — l'état normal d'une série que le site vient de
+   * commencer à enregistrer — passait son garde puis s'effaçait ici. La page montrait
+   * une zone vide, sans courbe NI message, et aucune erreur nulle part.
+   *
+   * Le composant explique donc lui-même son abstention. Un appelant qui oublie le
+   * garde obtient une phrase, pas un trou ; `quiet` reste pour les courbes trop
+   * petites pour porter du texte.
+   */
+  if (series.length === 0 || reference.length < 2) {
+    if (quiet) return null
+    return (
+      <div
+        className="flex h-full w-full items-center justify-center px-4 text-center text-xs text-ink-muted"
+        style={{ height }}
+      >
+        {t('Pas encore assez de relevés pour tracer une courbe.')}
+      </div>
+    )
+  }
 
   return (
     <div ref={containerRef} className="relative" style={{ height, width: '100%' }}>

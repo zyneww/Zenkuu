@@ -1134,4 +1134,6 @@ export const ruPhrases: Phrases = {
   'Hors Bitcoin': 'Без биткоина',
   'sources publiques': 'открытые источники',
   'Banque mondiale': 'Всемирный банк',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Пока недостаточно замеров для построения графика.',
 }

@@ -1134,4 +1134,6 @@ export const plPhrases: Phrases = {
   'Hors Bitcoin': 'Bez Bitcoina',
   'sources publiques': 'źródła publiczne',
   'Banque mondiale': 'Bank Światowy',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Za mało odczytów, aby narysować wykres.',
 }

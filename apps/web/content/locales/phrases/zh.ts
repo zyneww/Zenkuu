@@ -1127,4 +1127,6 @@ export const zhPhrases: Phrases = {
   'Hors Bitcoin': '剔除比特币',
   'sources publiques': '公开数据源',
   'Banque mondiale': '世界银行',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    '记录尚不足以绘制曲线。',
 }

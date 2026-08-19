@@ -1146,4 +1146,6 @@ export const enPhrases: Phrases = {
   'Hors Bitcoin': 'Excluding Bitcoin',
   'sources publiques': 'public sources',
   'Banque mondiale': 'World Bank',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Not enough readings yet to draw a curve.',
 }

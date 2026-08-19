@@ -1134,4 +1134,6 @@ export const nlPhrases: Phrases = {
   'Hors Bitcoin': 'Zonder Bitcoin',
   'sources publiques': 'openbare bronnen',
   'Banque mondiale': 'Wereldbank',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Nog niet genoeg metingen om een grafiek te tekenen.',
 }

@@ -1141,4 +1141,6 @@ export const esPhrases: Phrases = {
   'Hors Bitcoin': 'Sin Bitcoin',
   'sources publiques': 'fuentes públicas',
   'Banque mondiale': 'Banco Mundial',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Aún no hay suficientes registros para trazar una curva.',
 }

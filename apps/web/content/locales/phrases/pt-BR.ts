@@ -1134,4 +1134,6 @@ export const ptBRPhrases: Phrases = {
   'Hors Bitcoin': 'Sem Bitcoin',
   'sources publiques': 'fontes públicas',
   'Banque mondiale': 'Banco Mundial',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Ainda não há registros suficientes para traçar uma curva.',
 }

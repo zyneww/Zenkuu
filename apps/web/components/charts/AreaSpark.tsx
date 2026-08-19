@@ -84,6 +84,9 @@ export function AreaSpark({
       series={series}
       height={height}
       fill
+      /* Une étincelle vit dans une cellule de tableau : elle n'a pas la place d'une
+         phrase, et le garde ci-dessus l'a déjà écartée quand il n'y a rien à tracer. */
+      quiet
       {...(format ? { formatTooltipY: (value: number) => formatValue(value, format) } : {})}
     />
   )

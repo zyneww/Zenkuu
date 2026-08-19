@@ -1134,4 +1134,6 @@ export const jaPhrases: Phrases = {
   'Hors Bitcoin': 'ビットコインを除く',
   'sources publiques': '公的な情報源',
   'Banque mondiale': '世界銀行',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'グラフを描くための記録がまだ足りません。',
 }

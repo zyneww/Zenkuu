@@ -1134,4 +1134,6 @@ export const viPhrases: Phrases = {
   'Hors Bitcoin': 'Không tính Bitcoin',
   'sources publiques': 'nguồn công khai',
   'Banque mondiale': 'Ngân hàng Thế giới',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Chưa đủ dữ liệu ghi nhận để vẽ biểu đồ.',
 }

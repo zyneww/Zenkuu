@@ -1142,4 +1142,6 @@ export const dePhrases: Phrases = {
   'Hors Bitcoin': 'Ohne Bitcoin',
   'sources publiques': 'öffentliche Quellen',
   'Banque mondiale': 'Weltbank',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Noch nicht genug Messwerte, um eine Kurve zu zeichnen.',
 }

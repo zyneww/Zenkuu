@@ -1134,4 +1134,6 @@ export const itPhrases: Phrases = {
   'Hors Bitcoin': 'Senza Bitcoin',
   'sources publiques': 'fonti pubbliche',
   'Banque mondiale': 'Banca Mondiale',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Non ci sono ancora abbastanza rilevazioni per tracciare una curva.',
 }

@@ -1,28 +1,55 @@
 # Trouvé pendant la refonte visuelle — à traiter dans la passe d'optimisation
 
-## 1. L'accueil fige le moteur de rendu
+## 1. RÉSOLU — « l'accueil fige le navigateur » était un artefact de mesure
 
-Constaté au navigateur : sur `/fr`, `Runtime.evaluate` expire au bout de 45 s et
-`Page.captureScreenshot` au bout de 30 s. Deux onglets successifs ont gelé.
-`/methodologie`, elle, répond normalement — le défaut est donc propre à l'accueil,
-non au site.
+Le constat était faux, et il a coûté cher : ni gel, ni défaut d'hydratation.
 
-React s'hydrate pourtant sans erreur : aucune exception en console, et le crochet
-d'instrumentation ne signale que 97 ms.
+Le serveur de développement s'annonce sur `localhost:3000`. En l'ouvrant par
+`127.0.0.1:3000`, Next.js considère la page comme une AUTRE ORIGINE et refuse de
+lui servir ses propres morceaux de code :
 
-Suspects, dans l'ordre : le bandeau de cotations animé (`TickerWidget`, animation
-CSS en boucle sur une bande dupliquée), la carte thermique (`HomeHeatmap`), les
-graphiques (`AreaPlot` en instancie plusieurs).
+    ⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/…
 
-## 2. Conséquence visible : les courbes des cartes de mesure ne se dessinent pas
+Sans ces morceaux, `hydrateRoot` n'est jamais atteint. La page reste alors du HTML
+mort : aucun menu ne s'ouvre, aucune courbe ne se dessine, et `window.next` existe
+pourtant — d'où l'illusion d'un React chargé mais bloqué.
 
-`AreaPlot` rend son conteneur — mesuré à 318 × 128 dans le DOM — mais jamais le
-`<svg>`. Le tracé est conditionné à `width > 0 && scales`, et `width` vient d'un
-`ResizeObserver` posé dans un `useEffect`. Le conteneur ayant bien sa largeur dans
-le DOM, l'effet ne s'exécute pas : cohérent avec un moteur figé avant qu'il ne
-tourne.
+Ce qui a fait perdre le plus de temps : **rien ne le signale côté navigateur**.
+Console vide, `readyState: complete`, aucune erreur. Le diagnostic n'est visible
+que dans les JOURNAUX DU SERVEUR, qui l'écrivent en clair avec le remède
+(`allowedDevOrigins`).
 
-À vérifier une fois le point 1 réglé — les deux ne font peut-être qu'un.
+Les timeouts CDP, eux, venaient d'onglets abîmés par des captures répétées sur un
+document d'un mégaoctet — pas de la page.
+
+À retenir : **toujours ouvrir le site par la même origine que celle annoncée au
+démarrage**, et lire les journaux du serveur AVANT d'instrumenter le code.
+
+## 2. RÉSOLU — une courbe impossible à tracer disparaissait sans rien dire
+
+Défaut réel, celui-là, trouvé une fois le point 1 écarté.
+
+`AreaPlot` retourne `null` en dessous de deux points — un seul relevé ne décrit
+aucune évolution. Mais ce seuil vivait uniquement dans le composant, et chaque
+appelant devait le deviner. `HeroChart` gardait sur `points.length > 0` : avec
+exactement un relevé — l'état NORMAL d'une série que le site vient de commencer à
+enregistrer — il rendait le graphique, qui s'effaçait aussitôt.
+
+Mesuré sur l'accueil : une zone de trois cents pixels à zéro enfant. Ni courbe, ni
+message, ni erreur. Deux autres appelants étaient exposés (`BasketCharts` avec une
+série à zéro point, `ComparatorView` sans garde).
+
+Corrigé À LA SOURCE : le silence est devenu explicite (`quiet`, réservé aux
+étincelles de tableau) et le défaut est désormais une phrase traduite dans les
+treize langues. Un appelant qui oublie le garde obtient une explication, pas un
+trou.
+
+## 2 bis. Reste à voir — « Capitalisation mondiale » annonce 3 relevés sans tracer
+
+La carte affiche « Courbe en cours de constitution — 3 relevés enregistrés » alors
+que `MetricCard` trace dès deux points. Le compte affiché et la série transmise ne
+viennent donc pas de la même source. Sans gravité — la carte n'est plus muette —
+mais l'incohérence mérite un coup d'œil.
 
 ## 3. Les cartes de mesure réservent la place d'une courbe absente
 

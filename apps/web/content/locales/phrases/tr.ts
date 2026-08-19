@@ -1134,4 +1134,6 @@ export const trPhrases: Phrases = {
   'Hors Bitcoin': 'Bitcoin hariç',
   'sources publiques': 'kamuya açık kaynaklar',
   'Banque mondiale': 'Dünya Bankası',
+  'Pas encore assez de relevés pour tracer une courbe.':
+    'Bir eğri çizmek için henüz yeterli kayıt yok.',
 }
