@@ -103,7 +103,7 @@ export default async function CategoriesPage() {
       />
 
       <CategorySpotlight
-        title="Secteurs en forte hausse"
+        title={t('Secteurs en forte hausse')}
         hint={t('Les quatre plus fortes progressions sur 24 heures, parmi les secteurs pesant au moins 10 M$.')}
         categories={gainers}
       />
@@ -117,6 +117,7 @@ export default async function CategoriesPage() {
       {/* La source ne publie ces agrégats qu'en dollars : on l'écrit plutôt que
           de convertir nous-mêmes vers l'euro (§5). */}
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={`${categories.source.label} · montants en USD`}
         href={categories.source.attributionUrl}
       />
@@ -156,14 +157,14 @@ async function CategoriesHero({
 
       {categories && rated.length > 0 ? (
         <dl className="mt-8 flex flex-wrap gap-x-12 gap-y-5">
-          <HeroStat label="Secteurs suivis" value={String(categories.length)} />
+          <HeroStat label={t('Secteurs suivis')} value={String(categories.length)} />
           <HeroStat label={t('En hausse sur 24 h')} value={String(rising)} tone="up" />
           <HeroStat label={t('En repli sur 24 h')} value={String(rated.length - rising)} tone="down" />
 
           {globalStats ? (
             <div>
               <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
-                Capitalisation mondiale
+                {t('Capitalisation mondiale')}
               </dt>
               <dd className="mt-1 flex items-baseline gap-2">
                 <span className="tabular text-3xl font-semibold text-ink">

@@ -151,7 +151,7 @@ export default async function MacroPage({
                     : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
                 }`}
               >
-                {entry.label}
+                {t(entry.label)}
               </Link>
             )
           })}
@@ -164,7 +164,7 @@ export default async function MacroPage({
               aria-current="page"
               className="rounded-control border border-brand bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
             >
-              {indicator.label}
+              {t(indicator.label)}
             </span>
           )}
         </nav>
@@ -186,8 +186,13 @@ export default async function MacroPage({
           l'invitation à en essayer un.
         */
         <EmptyState
-          title={`« ${indicator.label} » indisponible pour le moment`}
-          description={`${result.reason} Ce service public répond par à-coups : l’indicateur revient de lui-même, souvent en quelques minutes. Les autres indicateurs de la rangée ci-dessus restent accessibles.`}
+          title={t('« {indicator} » indisponible pour le moment').replace(
+            '{indicator}',
+            t(indicator.label),
+          )}
+          description={`${result.reason} ${t(
+            'Ce service public répond par à-coups : l’indicateur revient de lui-même, souvent en quelques minutes. Les autres indicateurs de la rangée ci-dessus restent accessibles.',
+          )}`}
           source={result.source?.label ?? null}
           tone="warning"
         />
@@ -217,7 +222,7 @@ export default async function MacroPage({
             tone={indicator.tone as MacroTone}
             scale={indicator.scale}
             indicatorId={indicator.id}
-            indicatorLabel={indicator.label}
+            indicatorLabel={t(indicator.label)}
             initialYear={initialYear}
           />
 
@@ -234,7 +239,7 @@ export default async function MacroPage({
           />
 
           {result.source ? (
-            <SourceNote label={result.source.label} href={result.source.attributionUrl} />
+            <SourceNote label={t(result.source.label)} href={result.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
           ) : null}
         </>
       )}

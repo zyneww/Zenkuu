@@ -247,7 +247,7 @@ export function NewListingsTable({
               {COLUMNS.map((column) => (
                 <SortableHeader
                   key={column.key}
-                  label={column.label}
+                  label={t(column.label)}
                   sortKey={column.key}
                   sort={sort}
                   onToggle={toggle}

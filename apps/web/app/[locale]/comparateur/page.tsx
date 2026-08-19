@@ -163,6 +163,7 @@ export default async function ComparatorPage() {
  * comparateur amputé de ses matières premières reste utile, un comparateur vide non.
  */
 async function ComparatorBody() {
+  const t = await getPhrase()
   const results = await Promise.all(
     CLASSES.map(({ assetClass, perPage }) =>
       getRanking({ assetClass, perPage, currency: 'eur' }).then((result) => ({
@@ -208,6 +209,7 @@ async function ComparatorBody() {
       ) : null}
 
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={
           crypto?.ok
             ? `${crypto.source.label}, Yahoo Finance et Banque centrale européenne`

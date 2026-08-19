@@ -87,7 +87,7 @@ export default async function AProposPage() {
 
       <KeyFigures />
 
-      <Section title="Pourquoi ce site existe">
+      <Section title={t('Pourquoi ce site existe')}>
         <p>{t('La plupart des sites de suivi de marché sont mono-actif : l’un couvre la crypto, l’autre la bourse, un troisième les devises. Suivre un patrimoine diversifié impose donc d’ouvrir trois onglets et de jongler entre trois conventions d’affichage. ZENKUU part de l’intuition inverse — une seule grille de lecture, appliquée à toutes les classes d’actifs.')}</p>
       </Section>
 
@@ -125,7 +125,7 @@ export default async function AProposPage() {
         <p>{t('Le site est gratuit à l’usage. Il pourra à terme être financé par de la publicité display, un abonnement optionnel sans publicité, et des liens d’affiliation vers des plateformes tierces clairement identifiés comme tels. Aucun de ces leviers ne modifiera les chiffres affichés ni l’ordre des classements.')}</p>
       </Section>
 
-      <Section title="Langue et devise">
+      <Section title={t('Langue et devise')}>
         <p>{t('ZENKUU est publié en français, avec l’euro comme devise de référence. Quand une conversion est appliquée, la devise d’origine et la date du taux utilisé sont affichées à côté du montant, afin qu’un chiffre converti ne puisse jamais être confondu avec un cours réellement coté.')}</p>
       </Section>
 

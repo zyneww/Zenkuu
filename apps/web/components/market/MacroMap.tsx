@@ -10,6 +10,7 @@ import {
 } from '@zenkuu/data'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { emphasise } from '@/components/locale/emphasise'
 
 /**
  * CARTE MACROÉCONOMIQUE — l'écart entre pays, indicateur par indicateur.
@@ -230,7 +231,7 @@ export function MacroMap({
         ))}
 
         <p className="tabular ml-auto text-xs text-ink-muted">
-          <strong className="text-ink">{rows.length}</strong> pays publiés
+          {emphasise(t('**{n}** pays publiés').replace('{n}', String(rows.length)))}
         </p>
       </div>
 

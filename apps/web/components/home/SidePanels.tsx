@@ -15,6 +15,7 @@ import { getContent, getPhrase } from '@/lib/content'
  * à +300 %, ce qui ne renseigne en rien sur l'état du marché.
  */
 export async function NarrativesPanel({ result }: { result: DataResult<MarketCategory[]> }) {
+  const t = await getPhrase()
   const fr = await getContent()
   return (
     <Card>
@@ -40,6 +41,7 @@ export async function NarrativesPanel({ result }: { result: DataResult<MarketCat
           {/* La capitalisation des catégories n'est publiée qu'en dollars par la
               source : on l'affiche donc en dollars plutôt que de convertir. */}
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={`${result.source.label} · en USD`}
             href={result.source.attributionUrl}
           />
@@ -137,6 +139,7 @@ export async function NewsPanel({
  * bien pour une valeur sans unité.
  */
 export async function SentimentPanel({ result }: { result: DataResult<SentimentIndex> }) {
+  const t = await getPhrase()
   const fr = await getContent()
   if (!result.ok) {
     return (
@@ -206,6 +209,7 @@ export async function SentimentPanel({ result }: { result: DataResult<SentimentI
         {fr.sentiment.disclaimer}
       </p>
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={result.source.label}
         href={result.source.attributionUrl}
         updatedAt={updatedAt}

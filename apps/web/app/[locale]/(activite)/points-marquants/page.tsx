@@ -167,6 +167,7 @@ export default async function HighlightsPage() {
           </div>
 
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={universe.source.label}
             href={universe.source.attributionUrl}
             updatedAt={assets[0]?.lastUpdated}
@@ -203,6 +204,7 @@ export default async function HighlightsPage() {
               ))}
             </ul>
             <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
               label={`${listings.source.label} · montants en USD`}
               href={listings.source.attributionUrl}
             />
@@ -245,6 +247,7 @@ export default async function HighlightsPage() {
               ))}
             </ul>
             <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
               label={`${narratives.source.label} · en USD`}
               href={narratives.source.attributionUrl}
             />

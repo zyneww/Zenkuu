@@ -205,7 +205,9 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
       <div className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold text-ink">
-            Actifs comparés ({chosen.length}/{max})
+            {t('Actifs comparés ({n}/{max})')
+              .replace('{n}', String(chosen.length))
+              .replace('{max}', String(max))}
           </h2>
 
           {/*
@@ -329,7 +331,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           </thead>
 
           <tbody className="divide-y divide-border-subtle">
-            <Row label="Cours" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Cours')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.price} from={asset.currency} />
@@ -345,7 +347,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               ))}
             </Row>
 
-            <Row label="Capitalisation" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Capitalisation')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.marketCap} from={asset.currency} compact />
@@ -356,7 +358,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             {/* Volume : titres échangés en bourse, montant en monnaie chez les
                 agrégateurs crypto. Deux grandeurs, un seul mot — la ligne disparaît
                 dès que la comparaison mêle les classes. */}
-            <Row label="Volume 24 h" scope="sameClass" homogeneous={homogeneous}>
+            <Row label={t('Volume 24 h')} scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <Money value={asset.volume24h} from={asset.currency} compact />
@@ -365,7 +367,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             </Row>
 
             <Row
-              label="Rotation (volume / capitalisation)"
+              label={t('Rotation (volume / capitalisation)')}
               scope="sameClass"
               homogeneous={homogeneous}
             >
@@ -381,21 +383,21 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             {/* Les variations en pourcentage se comparent SANS RÉSERVE : ce sont des
                 rapports sans unité, et le sens de « +3 % sur 24 h » est le même pour
                 une action et pour un jeton. C'est le socle du tableau multi-classes. */}
-            <Row label="Variation 24 h" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Variation 24 h')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <ChangeBadge value={asset.change24h} size="sm" />
                 </Cell>
               ))}
             </Row>
-            <Row label="Variation 7 j" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Variation 7 j')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <ChangeBadge value={asset.change7d} size="sm" />
                 </Cell>
               ))}
             </Row>
-            <Row label="Variation 30 j" scope="always" homogeneous={homogeneous}>
+            <Row label={t('Variation 30 j')} scope="always" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   <ChangeBadge value={asset.change30d} size="sm" />
@@ -418,7 +420,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               ))}
             </Row>
 
-            <Row label="Offre en circulation" scope="sameClass" homogeneous={homogeneous}>
+            <Row label={t('Offre en circulation')} scope="sameClass" homogeneous={homogeneous}>
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {asset.circulatingSupply !== undefined

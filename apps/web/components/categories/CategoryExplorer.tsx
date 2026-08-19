@@ -161,7 +161,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
               active={sort === entry.key}
               direction={sort === entry.key ? direction : undefined}
               onClick={() => applySort(entry.key)}
-              label={entry.label}
+              label={t(entry.label)}
             />
           ))}
         </div>
@@ -310,10 +310,10 @@ function CategoryTable({
                 dessus reviendrait à classer sur le nom du premier de la liste, ce qui
                 n'est le critère de personne. */}
             <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
-              Principaux actifs
+              {t('Principaux actifs')}
             </th>
             <SortableHeader
-              label="Variation 24 h"
+              label={t('Variation 24 h')}
               sortKey="change"
               sort={sortState}
               onToggle={onSort}
@@ -326,7 +326,7 @@ function CategoryTable({
               onToggle={onSort}
             />
             <SortableHeader
-              label="Capitalisation"
+              label={t('Capitalisation')}
               sortKey="marketCap"
               sort={sortState}
               onToggle={onSort}

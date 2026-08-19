@@ -66,6 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * une cryptomonnaie, une devise.
  */
 export default async function ConverterPage() {
+  const t = await getPhrase()
   const [crypto, rates] = await Promise.all([getMoversUniverse(250, 'eur'), getExchangeRates()])
 
   const assets: MarketAsset[] = crypto.ok ? crypto.data.filter((asset) => asset.price > 0) : []
@@ -90,6 +91,7 @@ export default async function ConverterPage() {
           />
 
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={crypto.ok ? crypto.source.label : ''}
             href={crypto.ok ? crypto.source.attributionUrl : '#'}
             updatedAt={assets[0]?.lastUpdated}

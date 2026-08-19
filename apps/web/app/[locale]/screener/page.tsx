@@ -140,7 +140,7 @@ async function LoadingNote({ market }: { market: ScreenerMarket }) {
   const t = await getPhrase()
   return (
     <p className="rounded-card border border-border-subtle bg-surface px-4 py-6 text-sm text-ink-muted">
-      Lecture de la population « {t(market.label)} »…
+      {t('Lecture de la population « {market} »…').replace('{market}', t(market.label))}
       <span className="block pt-1 text-xs">{t('Ces sources se demandent par tranches et limitent les appels gratuits : le premier chargement peut prendre quelques secondes. Les suivants sont servis depuis le cache.')}</span>
     </p>
   )
@@ -182,6 +182,7 @@ async function MarketSection({ market }: { market: ScreenerMarket }) {
     <div className="space-y-4">
       <ScreenerView rows={loaded.rows} market={market} total={loaded.rows.length} />
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={loaded.result.source?.label ?? 'Source'}
         href={loaded.result.source?.attributionUrl ?? '#'}
       />

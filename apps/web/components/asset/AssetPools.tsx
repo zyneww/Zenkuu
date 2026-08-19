@@ -167,7 +167,7 @@ export function AssetPools({
       ) : pools && pools.length > 0 ? (
         <>
           <DexPoolTable pools={pools} />
-          <SourceNote label="GeckoTerminal · montants en USD" href="https://www.geckoterminal.com" />
+          <SourceNote label="GeckoTerminal · montants en USD" href="https://www.geckoterminal.com" strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </>
       ) : (
         <EmptyState

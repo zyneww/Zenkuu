@@ -132,7 +132,12 @@ export function SpotExchangesTable({
                 sort={sort}
                 onToggle={onToggleSort}
               />
-              <HeadCell label="Volume 24 h (BTC)" sortKey="volume" sort={sort} onToggle={onToggleSort} />
+              <HeadCell
+                label={t('Volume 24 h (BTC)')}
+                sortKey="volume"
+                sort={sort}
+                onToggle={onToggleSort}
+              />
               <HeadCell
                 label={t('Part du volume affiché')}
                 sortKey="share"

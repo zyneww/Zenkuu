@@ -77,7 +77,7 @@ export default async function PlacesPage() {
       {exchanges.ok && exchanges.data.length > 0 ? (
         <>
           <SpotExchangesExplorer exchanges={exchanges.data} />
-          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} />
+          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </>
       ) : (
         <EmptyState

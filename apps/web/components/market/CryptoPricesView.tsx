@@ -23,6 +23,7 @@ import {
 import { MarketBrowser } from '@/components/market/MarketBrowser'
 import { getContent } from '@/lib/content'
 import { getWatchlistIds } from '@/lib/watchlist-actions'
+import { getPhrase } from '@/lib/content'
 
 const PER_PAGE = 50
 const MAX_PAGE = 100
@@ -47,6 +48,7 @@ export async function CryptoPricesView({
 }: {
   searchParams: Record<string, string | string[] | undefined>
 }) {
+  const t = await getPhrase()
   const fr = await getContent()
   const view = readView(searchParams['vue'])
   const period = readPeriod(searchParams['periode'])
@@ -121,6 +123,7 @@ export async function CryptoPricesView({
 
       {listing.result.ok && listing.result.data.length > 0 ? (
         <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
           label={listing.result.source.label}
           href={listing.result.source.attributionUrl}
           updatedAt={listing.result.data[0]?.lastUpdated}

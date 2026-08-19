@@ -141,6 +141,7 @@ export default async function CategoryPage({
               chartPosition="end"
             />
             <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
               label={assets.source.label}
               href={assets.source.attributionUrl}
               updatedAt={assets.data[0]?.lastUpdated}

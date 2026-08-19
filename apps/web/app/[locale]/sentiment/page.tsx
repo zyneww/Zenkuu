@@ -7,6 +7,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { classify, SentimentPanel } from '@/components/home/SidePanels'
 import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
 import { getContent } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 export const revalidate = 1800
 
@@ -42,6 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * largeur, l'échelle et la méthode ferment la page.
  */
 export default async function SentimentPage() {
+  const t = await getPhrase()
   const fr = await getContent()
   // 366 et non 365 : le repère « il y a un an » lit l'index `longueur − 1 − 365`,
   // qui n'existe pas dans une série de 365 points. Un jour de plus le rend atteignable.
@@ -84,7 +86,7 @@ export default async function SentimentPage() {
       <MethodSection />
 
       {history.ok ? (
-        <SourceNote label={history.source.label} href={history.source.attributionUrl} />
+        <SourceNote label={history.source.label} href={history.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
       ) : null}
     </div>
   )

@@ -4,6 +4,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { HighlightPanel } from '@/components/home/HighlightPanel'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Nombre de lignes ramenées pour construire les trois palmarès d'une classe.
@@ -53,6 +54,7 @@ export async function ClassMoversGrid({
   assetClass: AssetClass
   currency?: string
 }) {
+  const t = await getPhrase()
   const fr = await getContent()
   const ranking = await getRanking({ assetClass, currency, perPage: RANKING_SIZE })
 
@@ -105,6 +107,7 @@ export async function ClassMoversGrid({
       </div>
 
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={ranking.source.label}
         href={ranking.source.attributionUrl}
         updatedAt={assets[0]?.lastUpdated}

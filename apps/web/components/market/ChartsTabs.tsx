@@ -1,4 +1,5 @@
 import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Onglets des graphiques globaux.
@@ -45,15 +46,16 @@ export function readChartView(raw: string | string[] | undefined): ChartView {
  * mouvement dit « d'ici vers là » là où deux allumages ne disaient que « plus ici,
  * maintenant là ».
  */
-export function ChartsTabs({ current }: { current: ChartView }) {
+export async function ChartsTabs({ current }: { current: ChartView }) {
+  const t = await getPhrase()
   const tabs: LinkTab[] = CHART_VIEWS.map((view) => ({
     id: view.id,
     href: view.id === 'global' ? '/graphiques' : `/graphiques?vue=${view.id}`,
-    label: view.label,
+    label: t(view.label),
   }))
 
   return (
-    <TabsBar ariaLabel="Vues du marché">
+    <TabsBar ariaLabel={t('Vues du marché')}>
       <LinkTabs tabs={tabs} active={current} />
     </TabsBar>
   )

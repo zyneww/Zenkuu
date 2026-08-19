@@ -64,19 +64,28 @@ describe('table de phrases', () => {
   const PROSE = 8
 
   /**
-   * Un emplacement nommé n'est pas du texte : `{count} articles` ne compte qu'un
-   * mot, et « articles » s'écrit pareil en anglais. Les retirer avant de mesurer
-   * évite de prendre l'espace qui les sépare du mot pour celle d'une phrase.
+   * Ce qui fait une phrase, ce sont ses MOTS PLEINS — quatre lettres ou plus.
+   *
+   * Deux formes coïncident légitimement d'une langue à l'autre sans être des
+   * oublis, et toutes deux tenaient de l'espace sans tenir du texte :
+   *
+   *   `{count} articles`   un emplacement nommé, puis un mot ;
+   *   `Volume 24 h ₿`      un mot, une durée, une unité.
+   *
+   * « articles » s'écrit pareil en anglais, « Volume 24 h » en italien et en
+   * portugais. On ne compte donc ni les emplacements, ni les nombres, ni les
+   * symboles, ni les mots trop courts pour porter du sens — et il faut deux mots
+   * pleins pour qu'une entrée identique au français devienne suspecte.
    */
-  const words = (text: string) => text.replace(/\{\w+\}/g, '').trim()
+  const fullWords = (text: string) =>
+    text
+      .replace(/\{\w+\}/g, ' ')
+      .split(/[^\p{L}]+/u)
+      .filter((word) => word.length >= 4)
 
   it.each(locales)('%s ne recopie aucune phrase française', (locale) => {
     const copied = Object.entries(TABLES[locale])
-      .filter(([key, text]) => {
-        if (key !== text) return false
-        const prose = words(key)
-        return prose.includes(' ') && prose.length >= PROSE
-      })
+      .filter(([key, text]) => key === text && key.length >= PROSE && fullWords(key).length >= 2)
       .map(([key]) => key)
 
     expect(copied).toEqual([])

@@ -212,6 +212,7 @@ async function GlobalView() {
         <>
           <MacroBand stats={globalStats.data} />
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={globalStats.source.label}
             href={globalStats.source.attributionUrl}
             updatedAt={globalStats.data.lastUpdated}
@@ -245,6 +246,7 @@ async function GlobalView() {
         <>
           <GlobalChartsView histories={histories} />
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={(btc.ok ? btc.source : eth.ok ? eth.source : { label: '' }).label}
             href={
               (btc.ok ? btc.source : eth.ok ? eth.source : { attributionUrl: '#' }).attributionUrl
@@ -274,7 +276,7 @@ async function GlobalView() {
               ),
             )}
           </p>
-          <SourceNote label={sentiment.source.label} href={sentiment.source.attributionUrl} />
+          <SourceNote label={sentiment.source.label} href={sentiment.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </div>
       ) : null}
     </div>
@@ -296,6 +298,7 @@ async function GlobalView() {
  * L'ordre de la page ne change pas, seulement l'ordre d'ARRIVÉE.
  */
 async function BasketSection() {
+  const t = await getPhrase()
   const basket = await getMarketCapBasket('eur', 365)
 
   // Un encadré d'échec de plus n'apprendrait rien que la carte d'aperçu, juste
@@ -305,7 +308,7 @@ async function BasketSection() {
   return (
     <div className="space-y-4">
       <BasketCharts basket={basket.data} />
-      <SourceNote label={basket.source.label} href={basket.source.attributionUrl} />
+      <SourceNote label={basket.source.label} href={basket.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
     </div>
   )
 }
@@ -340,6 +343,7 @@ async function DominanceSection() {
         />
         {globalStats.ok ? (
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={globalStats.source.label}
             href={globalStats.source.attributionUrl}
             updatedAt={globalStats.data.lastUpdated}
@@ -364,6 +368,7 @@ async function DominanceSection() {
 /* ── SECTEURS ───────────────────────────────────────────────────────────────── */
 
 async function HeatmapSection() {
+  const t = await getPhrase()
   /*
    * Les deux découpages — par pièce et par secteur — sont servis ensemble, et ni l'un
    * ni l'autre ne coûte d'appel : `getCategories` alimente déjà `/categories` et la vue
@@ -393,6 +398,7 @@ async function HeatmapSection() {
         categories={categories.ok ? categories.data : []}
       />
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={(categories.ok ? categories.source : assets.source)?.label ?? 'CoinGecko'}
         href={
           (categories.ok ? categories.source : assets.source)?.attributionUrl ??
@@ -430,7 +436,7 @@ async function CategoriesSection() {
 
       <div className="space-y-4">
         <CategoryExplorer categories={categories.data} />
-        <SourceNote label={categories.source.label} href={categories.source.attributionUrl} />
+        <SourceNote label={categories.source.label} href={categories.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
       </div>
     </div>
   )
@@ -517,6 +523,7 @@ async function TreasuriesSection() {
       ) : null}
 
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={`${(bitcoin.ok ? bitcoin.source : ethereum.source)?.label ?? ''} · montants en USD`}
         href={(bitcoin.ok ? bitcoin.source : ethereum.source)?.attributionUrl ?? '#'}
       />
@@ -563,6 +570,7 @@ async function NftSection() {
         <strong className="text-ink">{t('Sélection, et non classement.')}</strong>{t('La source réserve son classement des collections à son offre payante ; seule la fiche d’une collection nommée est gratuite. Cette liste est donc arrêtée à la main sur des collections de référence, et l’ordre d’affichage n’est qu’un tri par capitalisation — d’autres collections plus grandes peuvent exister sans figurer ici.')}</p>
 
       <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={`${collections.source.label} · montants en USD`}
         href={collections.source.attributionUrl}
       />

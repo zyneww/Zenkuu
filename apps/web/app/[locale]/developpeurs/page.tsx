@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { weave } from '@/components/locale/emphasise'
+import { emphasise, weave } from '@/components/locale/emphasise'
 import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -73,11 +73,16 @@ export default async function DeveloppeursPage() {
       <header className="space-y-3">
         <h1 className="display-lg text-ink">{t('API & développeurs')}</h1>
         <p className="text-base leading-relaxed text-ink-muted">
-          ZENKUU n’expose <strong className="text-ink">aucune API publique</strong>{t('à ce jour. Les routes ci-dessous sont internes : elles servent les pages du site, ne sont pas versionnées et peuvent changer sans préavis. Elles sont documentées par transparence, pas comme un contrat.')}</p>
+          {emphasise(
+            t(
+              'ZENKUU n’expose **aucune API publique** à ce jour. Les routes ci-dessous sont internes : elles servent les pages du site, ne sont pas versionnées et peuvent changer sans préavis. Elles sont documentées par transparence, pas comme un contrat.',
+            ),
+          )}
+        </p>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-ink">Routes internes</h2>
+        <h2 className="text-lg font-semibold text-ink">{t('Routes internes')}</h2>
         <div className="overflow-x-auto">
           {/* Trois colonnes de PROSE : rien à masquer, tout à laisser revenir à la
               ligne. Le plancher de 576 pixels tombe sous `sm` et les chemins passent en
@@ -98,7 +103,7 @@ export default async function DeveloppeursPage() {
                       {route.path}
                     </code>
                   </td>
-                  <td className="py-2.5 pr-3 text-xs text-ink-muted">{route.params}</td>
+                  <td className="py-2.5 pr-3 text-xs text-ink-muted">{t(route.params)}</td>
                   <td className="py-2.5 text-xs leading-relaxed text-ink-muted">
                     {t(route.description)}
                   </td>
@@ -119,14 +124,14 @@ export default async function DeveloppeursPage() {
               className="flex flex-wrap items-baseline justify-between gap-2 rounded-card border border-border-subtle bg-surface px-3 py-2.5"
             >
               <span className="text-sm font-medium text-ink">{source.name}</span>
-              <span className="text-xs text-ink-muted">{source.usage}</span>
+              <span className="text-xs text-ink-muted">{t(source.usage)}</span>
               <a
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-brand-strong underline underline-offset-2"
               >
-                Documentation
+                {t('Documentation')}
               </a>
             </li>
           ))}

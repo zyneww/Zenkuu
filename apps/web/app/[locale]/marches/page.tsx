@@ -165,6 +165,7 @@ async function DerivativesView() {
         <>
           <DerivativesPanel markets={derivatives.data} />
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={`${derivatives.source.label} · montants en USD`}
             href={derivatives.source.attributionUrl}
           />

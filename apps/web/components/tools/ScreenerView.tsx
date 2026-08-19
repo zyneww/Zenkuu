@@ -356,7 +356,7 @@ export function ScreenerView({
         ))}
 
         <label className="block">
-          <span className="mb-1 block text-xs text-ink-muted">Nom ou symbole</span>
+          <span className="mb-1 block text-xs text-ink-muted">{t('Nom ou symbole')}</span>
           <input
             type="search"
             value={query}
@@ -399,7 +399,7 @@ export function ScreenerView({
               { header: 'Symbole', value: (row) => row.symbol },
               { header: 'Devise', value: (row) => row.currency ?? '' },
               ...columnSet.columns.map((column) => ({
-                header: column.label,
+                header: t(column.label),
                 value: (row: ScreenerRow) => row.values[column.key] ?? '',
               })),
             ]}
@@ -470,7 +470,10 @@ export function ScreenerView({
         <div className="overflow-x-auto rounded-card">
           <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
             <caption className="sr-only">
-              Résultats du filtre — colonnes « {t(columnSet.label)} »
+              {t('Résultats du filtre — colonnes « {set} »').replace(
+                '{set}',
+                t(columnSet.label),
+              )}
             </caption>
             <thead>
               <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
@@ -501,7 +504,11 @@ export function ScreenerView({
                       <button
                         type="button"
                         onClick={() => toggleSort(column.key)}
-                        title={column.hint ?? `Trier par ${t(column.label)}`}
+                        title={
+                          column.hint
+                            ? t(column.hint)
+                            : t('Trier par {column}').replace('{column}', t(column.label))
+                        }
                         className={`inline-flex w-full items-center justify-end gap-1 transition-colors duration-150 hover:text-ink ${
                           active ? 'text-brand-strong' : ''
                         }`}

@@ -249,13 +249,13 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
         >
           {groups.length === 0 ? (
             <p className="px-3 py-6 text-center text-xs text-ink-muted">
-              Aucun indicateur ne correspond à « {query} ».
+              {t('Aucun indicateur ne correspond à « {query} ».').replace('{query}', query)}
             </p>
           ) : (
             groups.map((group) => (
               <div key={group.id} className="pb-1">
                 <p className="px-3 pb-1 pt-2 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
-                  {group.label}
+                  {t(group.label)}
                 </p>
 
                 {group.entries.map((entry) => {
@@ -283,7 +283,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
                       <span
                         className={`truncate text-xs ${selected ? 'font-semibold text-ink' : 'text-ink'}`}
                       >
-                        {entry.label}
+                        {t(entry.label)}
                       </span>
 
                       <span className="flex shrink-0 items-center gap-1.5">
@@ -308,7 +308,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
       {/* Le libellé courant est annoncé aux lecteurs d'écran sans occuper de place :
           le champ affiche un appel à la recherche, pas la sélection. */}
       <span className="sr-only" aria-live="polite">
-        Indicateur affiché : {currentLabel}
+        {t('Indicateur affiché : {indicator}').replace('{indicator}', t(currentLabel))}
       </span>
     </div>
   )

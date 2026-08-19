@@ -224,6 +224,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
                 />
                 {history.ok ? (
                   <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
                     label={history.source.label}
                     href={history.source.attributionUrl}
                     updatedAt={data.lastUpdated}

@@ -192,12 +192,14 @@ export default async function PourquoiZenkuuPage() {
             <caption className="sr-only">{t('Comparaison entre ZENKUU, un site de suivi mono-actif et une plateforme d’échange')}</caption>
             <thead>
               <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
-                <th scope="col" className="px-3 py-2.5 font-medium">Fonctionnement</th>
+                <th scope="col" className="px-3 py-2.5 font-medium">
+                  {t('Fonctionnement')}
+                </th>
                 <th scope="col" className="px-3 py-2.5 text-center font-medium text-ink">
                   ZENKUU
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-center font-medium">
-                  Site mono-actif
+                  {t('Site mono-actif')}
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-center font-medium">{t('Plateforme d’échange')}</th>
               </tr>
@@ -224,7 +226,12 @@ export default async function PourquoiZenkuuPage() {
           <li>
             <strong className="text-ink">{t('Ni plateforme d’échange, ni courtier.')}</strong>{t('Aucune fonction d’ordre, de dépôt ou de retrait n’existe sur ce site.')}</li>
           <li>
-            <strong className="text-ink">Ni conseiller en investissement.</strong>{t('Les indicateurs affichés décrivent des données passées. Aucun n’est assorti d’un signal d’achat ou de vente.')}</li>
+            {emphasise(
+              t(
+                '**Ni conseiller en investissement.** Les indicateurs affichés décrivent des données passées. Aucun n’est assorti d’un signal d’achat ou de vente.',
+              ),
+            )}
+          </li>
           <li>
             <strong className="text-ink">{t('Ni fournisseur de données.')}</strong>{t('ZENKUU relaie des sources tierces, qu’il nomme. Il ne produit aucune cotation.')}</li>
         </ul>

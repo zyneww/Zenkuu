@@ -200,6 +200,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
 
           {result.ok ? (
             <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
               label={result.source.label}
               href={result.source.attributionUrl}
               updatedAt={rows[0]?.lastUpdated}

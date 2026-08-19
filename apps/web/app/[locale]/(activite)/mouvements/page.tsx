@@ -122,7 +122,7 @@ export default async function MoversPage({
       {exchanges.ok && exchanges.data.length > 0 ? (
         <>
           <SpotExchangesPanel exchanges={exchanges.data} />
-          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} />
+          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </>
       ) : null}
 
@@ -182,6 +182,7 @@ export default async function MoversPage({
           </div>
 
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={result.source.label}
             href={result.source.attributionUrl}
             updatedAt={ranked.gainers[0]?.lastUpdated}
@@ -205,6 +206,7 @@ export default async function MoversPage({
 
       {derivatives.ok ? (
         <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
           label={`${derivatives.source.label} · dérivés en USD`}
           href={derivatives.source.attributionUrl}
         />

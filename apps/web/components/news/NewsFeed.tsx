@@ -6,6 +6,8 @@ import { createContext, useContext, useMemo, useState } from 'react'
 import { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS, type NewsItem } from '@zenkuu/data'
 import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
+import { useLocale } from 'next-intl'
+
 import { formatAbsolute, useRelativeTime } from '@/components/locale/useRelativeTime'
 import { availableMentions, citedAssets, mentions } from '@/components/news/mentions'
 import { Pagination } from '@/components/ui/Pagination'
@@ -453,13 +455,15 @@ function ArticleCard({ article }: { article: NewsItem }) {
  * que ça date ? » quand on la parcourt triée par titre ou à l'envers.
  */
 function ArticleByline({ article }: { article: NewsItem }) {
+  const locale = useLocale()
+
   return (
     <p className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
       <SourceDot source={article.source} />
       <span className="truncate font-medium text-ink">{article.author ?? article.source}</span>
       <span aria-hidden="true">·</span>
       <time dateTime={article.publishedAt} className="shrink-0">
-        {formatAbsolute(article.publishedAt)}
+        {formatAbsolute(article.publishedAt, locale)}
       </time>
     </p>
   )
@@ -673,6 +677,7 @@ function CitedAssetChips({ article }: { article: NewsItem }) {
 }
 
 function ArticleMeta({ article }: { article: NewsItem }) {
+  const locale = useLocale()
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.6875rem] text-ink-muted">
       {article.category ? (
@@ -702,7 +707,7 @@ function ArticleMeta({ article }: { article: NewsItem }) {
         d'hydratation que Sentry a relevé sur les places de cotation guettait donc
         ici. Voir l'en-tête du crochet.
       */}
-      <time dateTime={article.publishedAt} title={formatAbsolute(article.publishedAt)}>
+      <time dateTime={article.publishedAt} title={formatAbsolute(article.publishedAt, locale)}>
         <RelativeTime iso={article.publishedAt} />
       </time>
     </p>

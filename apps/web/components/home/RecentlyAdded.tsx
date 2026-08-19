@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { getContent } from '@/lib/content'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Panneau « Récemment cotés » du bandeau de tête.
@@ -26,11 +27,12 @@ import { getContent } from '@/lib/content'
  */
 export async function RecentlyAdded({ result }: { result: DataResult<NewListing[]> }) {
   const fr = await getContent()
+  const t = await getPhrase()
 
   return (
     <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
       <div className="mb-2 flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-semibold text-ink">Récemment cotés</h2>
+        <h2 className="text-sm font-semibold text-ink">{t('Récemment cotés')}</h2>
         <Link
           href="/nouvelles-cotations"
           className="shrink-0 text-xs font-medium text-brand transition-colors hover:text-brand-strong"

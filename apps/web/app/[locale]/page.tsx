@@ -298,6 +298,7 @@ export default async function HomePage() {
               moreHref={marketHref('crypto')}
             />
             <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
               label={overview.ok ? overview.source.label : ''}
               href={overview.ok ? overview.source.attributionUrl : '#'}
               updatedAt={cryptoTop[0]?.lastUpdated}
@@ -392,6 +393,7 @@ export default async function HomePage() {
             <>
               <AssetList assets={forex.data.slice(0, 8)} />
               <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
                 label={forex.source.label}
                 href={forex.source.attributionUrl}
                 updatedAt={forex.data[0]?.lastUpdated}

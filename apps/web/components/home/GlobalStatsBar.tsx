@@ -5,7 +5,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
 import { Money } from '@/components/locale/Money'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * Barre de statistiques globales, en tête de l'accueil.
@@ -30,6 +30,7 @@ export async function GlobalStatsBar({
   sentiment: SentimentIndex | null
 }) {
   const fr = await getContent()
+  const t = await getPhrase()
   if (!stats && !sentiment) return null
 
   const btc = stats?.dominance?.['btc']
@@ -52,13 +53,13 @@ export async function GlobalStatsBar({
           </Stat>
 
           {typeof btc === 'number' ? (
-            <Stat label="Dominance BTC">
+            <Stat label={t('Dominance BTC')}>
               <span className="tabular">{btc.toFixed(1)} %</span>
             </Stat>
           ) : null}
 
           {typeof eth === 'number' ? (
-            <Stat label="Dominance ETH">
+            <Stat label={t('Dominance ETH')}>
               <span className="tabular">{eth.toFixed(1)} %</span>
             </Stat>
           ) : null}

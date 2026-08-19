@@ -30,7 +30,7 @@ import { Money } from '@/components/locale/Money'
  * bougent — volume, dominance, sentiment — vivent dans `GlobalStatsBar` juste en
  * dessous ; les mélanger ferait une bande de huit nombres dont aucun ne ressort.
  */
-export function HomeMasthead({
+export async function HomeMasthead({
   stats,
   trackedAssets,
   locale,
@@ -40,6 +40,7 @@ export function HomeMasthead({
   trackedAssets: number
   locale: string
 }) {
+  const t = await getPhrase()
   /*
    * Formatage EXPLICITEMENT en UTC.
    *
@@ -66,12 +67,12 @@ export function HomeMasthead({
         </h2>
 
         <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
-          <Counter Icon={Coins} label="Actifs suivis">
+          <Counter Icon={Coins} label={t('Actifs suivis')}>
             <span className="tabular">{formatNumber(trackedAssets)}</span>
           </Counter>
 
           {stats ? (
-            <Counter Icon={Wallet} label="Capitalisation suivie">
+            <Counter Icon={Wallet} label={t('Capitalisation suivie')}>
               <Money value={stats.totalMarketCap} from={stats.currency} compact />
             </Counter>
           ) : null}

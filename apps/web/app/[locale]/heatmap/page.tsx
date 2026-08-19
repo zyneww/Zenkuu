@@ -83,6 +83,7 @@ export default async function HeatmapPage() {
             categories={categories.ok ? categories.data : []}
           />
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={`${(categories.ok ? categories.source : assets.source)?.label ?? 'CoinGecko'} · montants en USD`}
             href={
               (categories.ok ? categories.source : assets.source)?.attributionUrl ??

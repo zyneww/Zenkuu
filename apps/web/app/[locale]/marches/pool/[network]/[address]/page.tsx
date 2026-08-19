@@ -198,7 +198,7 @@ export default async function Page({ params }: RouteParams) {
         </section>
       ) : null}
 
-      <SourceNote label={pool.source.label} href={pool.source.attributionUrl} />
+      <SourceNote label={pool.source.label} href={pool.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
     </div>
   )
 }

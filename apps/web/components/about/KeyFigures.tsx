@@ -68,7 +68,7 @@ export async function KeyFigures() {
   return (
     <section className="space-y-3" aria-labelledby="chiffres-cles">
       <h2 id="chiffres-cles" className="text-lg font-semibold text-ink">
-        ZENKUU en quelques chiffres
+        {t('ZENKUU en quelques chiffres')}
       </h2>
 
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

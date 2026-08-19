@@ -96,6 +96,7 @@ export default async function RankingsPage() {
           </section>
 
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={result.source.label}
             href={result.source.attributionUrl}
             updatedAt={result.data[0]?.lastUpdated}

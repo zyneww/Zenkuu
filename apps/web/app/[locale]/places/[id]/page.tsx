@@ -284,7 +284,7 @@ export default async function ExchangePage({ params }: RouteProps) {
       ) : null}
 
       {result.source ? (
-        <SourceNote label={result.source.label} href={result.source.attributionUrl} />
+        <SourceNote label={t(result.source.label)} href={result.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
       ) : null}
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">{t('ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction. Cette fiche situe une place d’échange ; elle n’y donne pas accès, et la note de confiance affichée est un jugement publié par la source, ni une mesure ni un avis de ZENKUU.')}</p>

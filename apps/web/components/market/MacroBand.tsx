@@ -2,6 +2,7 @@ import type { GlobalMarketStats } from '@zenkuu/data'
 import { ChangeBadge, formatPercent } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Bande macro : capitalisation, volume, dominance.
@@ -17,7 +18,8 @@ import { Money } from '@/components/locale/Money'
  * des parts d'un même tout, et une barre se compare à l'œil bien mieux que des
  * secteurs angulaires.
  */
-export function MacroBand({ stats }: { stats: GlobalMarketStats }) {
+export async function MacroBand({ stats }: { stats: GlobalMarketStats }) {
+  const t = await getPhrase()
   const dominance = Object.entries(stats.dominance)
     .map(([symbol, share]) => ({ symbol: symbol.toUpperCase(), share }))
     .filter((entry) => Number.isFinite(entry.share) && entry.share > 0)
@@ -37,7 +39,7 @@ export function MacroBand({ stats }: { stats: GlobalMarketStats }) {
 
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-4">
         <Cell
-          label="Capitalisation mondiale"
+          label={t('Capitalisation mondiale')}
           value={<Money value={stats.totalMarketCap} from={stats.currency} compact />}
           badge={<ChangeBadge value={stats.marketCapChange24h} size="sm" />}
         />
@@ -46,11 +48,11 @@ export function MacroBand({ stats }: { stats: GlobalMarketStats }) {
           value={<Money value={stats.totalVolume24h} from={stats.currency} compact />}
         />
         <Cell
-          label="Actifs suivis"
+          label={t('Actifs suivis')}
           value={new Intl.NumberFormat('fr-FR').format(stats.activeAssets)}
         />
         <Cell
-          label="Volume / capitalisation"
+          label={t('Volume / capitalisation')}
           value={
             // Rapport de rotation : quelle part de la capitalisation change de mains
             // en une journée. Deux nombres déjà affichés, mais leur RAPPORT dit

@@ -43,6 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * pas. Les nôtres partagent le cache et les limiteurs de débit du reste du site.
  */
 export default async function WidgetsPage() {
+  const t = await getPhrase()
   const fr = await getContent()
   /*
    * 50 puis découpe locale, plutôt que 12 demandés à la source.
@@ -97,7 +98,7 @@ export default async function WidgetsPage() {
             </section>
           </div>
 
-          <SourceNote label={ranking.source.label} href={ranking.source.attributionUrl} />
+          <SourceNote label={ranking.source.label} href={ranking.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </>
       )}
     </div>

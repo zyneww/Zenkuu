@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import { useLocale } from 'next-intl'
+
 /**
  * Ancienneté relative — « il y a 2 h » — SANS écart d'hydratation.
  *
@@ -36,6 +38,7 @@ import { useEffect, useState } from 'react'
  * silence, et mentirait au bout d'une heure de cache.
  */
 export function useRelativeTime(iso: string | undefined): string {
+  const locale = useLocale()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -45,26 +48,38 @@ export function useRelativeTime(iso: string | undefined): string {
   }, [])
 
   if (!iso) return '—'
-  return mounted ? formatRelative(iso) : formatAbsolute(iso)
+  return mounted ? formatRelative(iso, locale) : formatAbsolute(iso, locale)
 }
 
-/** « il y a 23 min ». Exporté pour les rares appels hors composant. */
-export function formatRelative(iso: string): string {
+/**
+ * « il y a 23 min », « 23 min ago », « vor 23 Min. ».
+ *
+ * Le texte n'est écrit nulle part : `Intl.RelativeTimeFormat` le compose dans la
+ * langue demandée, avec ses propres règles d'accord et d'abréviation. Trois
+ * paliers écrits à la main auraient demandé trente-neuf traductions, et se
+ * seraient trompés sur le pluriel russe.
+ *
+ * `numeric: 'auto'` est ce qui rend « à l'instant » plutôt que « il y a 0 minute ».
+ *
+ * Exporté pour les rares appels hors composant, d'où la locale en paramètre.
+ */
+export function formatRelative(iso: string, locale: string): string {
   const parsed = Date.parse(iso)
   if (!Number.isFinite(parsed)) return '—'
 
   const minutes = Math.round((Date.now() - parsed) / 60_000)
   if (minutes < 0) return '—'
-  if (minutes < 2) return 'à l’instant'
-  if (minutes < 60) return `il y a ${minutes} min`
+
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
+  if (minutes < 60) return relative.format(-minutes, 'minute')
 
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `il y a ${hours} h`
+  if (hours < 24) return relative.format(-hours, 'hour')
 
   const days = Math.round(hours / 24)
-  if (days < 7) return `il y a ${days} j`
+  if (days < 7) return relative.format(-days, 'day')
 
-  return formatAbsolute(iso)
+  return formatAbsolute(iso, locale)
 }
 
 /**
@@ -75,11 +90,11 @@ export function formatRelative(iso: string): string {
  * lecteur à Bruxelles produiraient deux heures différentes — on aurait déplacé
  * l'écart d'hydratation au lieu de le supprimer.
  */
-export function formatAbsolute(iso: string): string {
+export function formatAbsolute(iso: string, locale: string): string {
   const parsed = Date.parse(iso)
   if (!Number.isFinite(parsed)) return '—'
 
-  return new Intl.DateTimeFormat('fr-FR', {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',

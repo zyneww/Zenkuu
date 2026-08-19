@@ -137,7 +137,7 @@ export default async function NewsPage({
           </p>
 
           {news?.source ? (
-            <SourceNote label={news.source.label} href={news.source.attributionUrl} />
+            <SourceNote label={news.source.label} href={news.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
           ) : null}
         </>
       ) : (

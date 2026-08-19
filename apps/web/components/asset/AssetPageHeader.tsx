@@ -1,5 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 
+import { getPhrase } from '@/lib/content'
+
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { getCategories } from '@zenkuu/data'
 import { ChangeBadge, formatDateTime } from '@zenkuu/ui'
@@ -7,6 +9,7 @@ import { ChangeBadge, formatDateTime } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { AssetBenchmarkRatio } from '@/components/asset/AssetBenchmarkRatio'
 import { AssetLogo } from '@/components/asset/AssetLogo'
+import { assetName } from '@/components/locale/assetName'
 import { AssetMarketStatus } from '@/components/asset/AssetMarketStatus'
 import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
 
@@ -92,6 +95,7 @@ export async function AssetPageHeader({
   sourceLabel: string | null
 }) {
   const t = await getTranslations('metric')
+  const phrase = await getPhrase()
   const isForex = assetClass === 'forex'
   const updated = formatDateTime(asset.lastUpdated)
 
@@ -174,7 +178,9 @@ export async function AssetPageHeader({
               pastille — exactement la ligne de titre de la référence.
             */}
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-              <h1 className="display-lg leading-none text-ink">{asset.name}</h1>
+              <h1 className="display-lg leading-none text-ink">
+                {assetName(asset.name, assetClass, phrase)}
+              </h1>
               <span className="text-lg font-semibold uppercase leading-none tracking-wide text-ink-muted">
                 {asset.symbol}
               </span>

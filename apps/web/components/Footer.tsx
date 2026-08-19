@@ -3,7 +3,7 @@ import { ZenkuuWordmark } from '@/components/BrandMark'
 import { LocaleBadge } from '@/components/settings/LocaleBadge'
 
 import { DATA_SOURCES, FOOTER_COLUMNS, SOCIAL_LINKS } from '@/content/footer'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * Pied de page.
@@ -15,6 +15,7 @@ import { getContent } from '@/lib/content'
  */
 export async function Footer() {
   const fr = await getContent()
+  const t = await getPhrase()
   const year = new Date().getFullYear()
 
   return (
@@ -50,8 +51,8 @@ export async function Footer() {
           </div>
 
           {FOOTER_COLUMNS.map((column) => (
-            <nav key={column.title} aria-label={column.title}>
-              <h2 className="mb-2.5 text-xs font-semibold text-ink">{column.title}</h2>
+            <nav key={column.title} aria-label={t(column.title)}>
+              <h2 className="mb-2.5 text-xs font-semibold text-ink">{t(column.title)}</h2>
               <ul className="space-y-1.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
@@ -59,7 +60,7 @@ export async function Footer() {
                       href={link.href}
                       className="text-xs text-ink-muted transition-colors hover:text-brand-strong"
                     >
-                      {link.label}
+                      {t(link.label)}
                     </Link>
                   </li>
                 ))}
@@ -86,7 +87,7 @@ export async function Footer() {
                          le seuil en dessous duquel une cible se rate au doigt. Deux
                          pixels de plus, et rien d'autre ne bouge. */
                       className="inline-flex min-h-9 items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
-                      aria-label={`${link.label} — ${link.handle}`}
+                      aria-label={`${t(link.label)} — ${link.handle}`}
                     >
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                       {link.handle}

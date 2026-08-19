@@ -300,7 +300,7 @@ export function MacroExplorer({
               qu'un tiers du monde. Sans ce chiffre, une carte à moitié grise
               passerait pour une panne.
             */}
-            <span>{data.length} pays publiés</span>
+            <span>{t('{n} pays publiés').replace('{n}', String(data.length))}</span>
             <span>{years[years.length - 1]}</span>
           </div>
         </div>

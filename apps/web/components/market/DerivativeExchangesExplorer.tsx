@@ -241,7 +241,7 @@ export function DerivativeExchangesExplorer({
                   />
                   {prefs.isVisible('volume') ? (
                     <SortableHeader
-                      label="Volume 24 h ₿"
+                      label={t('Volume 24 h ₿')}
                       sortKey="volume"
                       className="hidden sm:table-cell"
                       sort={sort}

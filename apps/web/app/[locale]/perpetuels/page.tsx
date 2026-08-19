@@ -76,7 +76,7 @@ export default async function PerpetuelsPage() {
       {exchanges.ok && exchanges.data.length > 0 ? (
         <>
           <DerivativeExchangesExplorer exchanges={exchanges.data} />
-          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} />
+          <SourceNote label={exchanges.source.label} href={exchanges.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </>
       ) : (
         <EmptyState

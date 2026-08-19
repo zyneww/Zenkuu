@@ -2,6 +2,7 @@ import { MACRO_INDICATORS, getMacroIndicator, type MacroObservation } from '@zen
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Pays mis en avant dans l'aperçu.
@@ -40,6 +41,7 @@ const FEATURED = ['FRA', 'DEU', 'GBR', 'USA', 'JPN', 'CHN', 'IND', 'BRA'] as con
  * à-coups, pour un bloc de fin de page.
  */
 export async function EconomyPreview() {
+  const t = await getPhrase()
   const indicator = MACRO_INDICATORS[0]!
   const result = await getMacroIndicator(indicator.code)
 
@@ -80,7 +82,7 @@ export async function EconomyPreview() {
             href="/macro"
             className="shrink-0 text-xs font-medium text-brand transition-colors hover:text-brand-strong"
           >
-            Carte complète
+            {t('Carte complète')}
           </Link>
         </div>
 
@@ -108,7 +110,7 @@ export async function EconomyPreview() {
       </div>
 
       {result.source ? (
-        <SourceNote label={result.source.label} href={result.source.attributionUrl} />
+        <SourceNote label={t(result.source.label)} href={result.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
       ) : null}
     </div>
   )

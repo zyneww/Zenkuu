@@ -44,15 +44,15 @@ export async function SectorHighlights({ categories }: { categories: MarketCateg
     // le lecteur ne sait plus si elle prolonge la précédente ou en ouvre une autre.
     <section className="space-y-5" aria-labelledby="secteurs-en-vue">
       <h2 id="secteurs-en-vue" className="display-md text-ink">
-        Secteurs en vue
+        {t('Secteurs en vue')}
       </h2>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {leaders.length > 0 ? (
-          <HighlightGroup title="Secteurs en tête" tone="up" categories={leaders} />
+          <HighlightGroup title={t('Secteurs en tête')} tone="up" categories={leaders} />
         ) : null}
         {laggards.length > 0 ? (
-          <HighlightGroup title="Secteurs en repli" tone="down" categories={laggards} />
+          <HighlightGroup title={t('Secteurs en repli')} tone="down" categories={laggards} />
         ) : null}
       </div>
 

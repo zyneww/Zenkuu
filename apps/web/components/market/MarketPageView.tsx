@@ -180,6 +180,7 @@ export async function MarketPageView({
           />
 
           <SourceNote
+            strings={{ source: t('Source :'), dated: t('données du {date}') }}
             label={ranking.source.label}
             href={ranking.source.attributionUrl}
             updatedAt={ranking.data[0]?.lastUpdated}

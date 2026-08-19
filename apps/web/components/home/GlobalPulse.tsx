@@ -46,7 +46,7 @@ export async function GlobalPulse({
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <MetricCard
-        label="Capitalisation mondiale"
+        label={t('Capitalisation mondiale')}
         color="var(--color-data-1)"
         value={<Money value={stats.totalMarketCap} from={stats.currency} compact />}
         hint={
