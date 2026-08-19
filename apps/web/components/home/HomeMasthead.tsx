@@ -59,7 +59,12 @@ export async function HomeMasthead({
   })
 
   return (
-    <section aria-label="Repères de couverture" className="space-y-4">
+    <section
+      aria-label="Repères de couverture"
+      /* La séquence d'ouverture commence ici — voir « mise sous tension »
+         dans globals.css. La date se pose, puis les repères. */
+      className="sous-tension space-y-4"
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <h2 className="display-sm first-letter:uppercase">
           {today}

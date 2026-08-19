@@ -1186,6 +1186,136 @@
     inset: auto 0 0 0;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     LA MISE SOUS TENSION — le seul moment spectaculaire du site.
+
+     ── POURQUOI UNE SÉQUENCE, ET NON UN EFFET DE PLUS ────────────────────────
+
+     Les courbes s'animaient déjà (`.plot-reveal`), les cartes aussi. Trois gestes
+     simultanés mais indépendants ne font pas une entrée en matière : ils font du
+     bruit, et le regard ne sait pas où se poser. Ce qu'il manquait n'était pas un
+     effet supplémentaire mais un ORDRE entre ceux qui existent.
+
+     ── CE QUE LA SÉQUENCE RACONTE ────────────────────────────────────────────
+
+     Un instrument de mesure qu'on met sous tension : le cadran s'éclaire, un
+     faisceau parcourt la graduation, et les valeurs se posent dans son sillage.
+     C'est la même image que celle qui gouverne toute l'identité — l'accent n'est
+     pas une teinte mais de la LUMIÈRE, et cette lumière-ci a une direction.
+
+     Le faisceau va de gauche à droite parce que c'est le sens de lecture des
+     graduations qu'il traverse, et parce que le temps, sur ce site, va dans ce
+     sens-là sur chaque axe horizontal.
+
+     ── POURQUOI ZÉRO JAVASCRIPT ──────────────────────────────────────────────
+
+     Ces blocs sont rendus par le serveur. Une séquence pilotée en JavaScript
+     attendrait l'hydratation pour commencer — c'est-à-dire précisément le moment
+     où la page cesse d'avoir besoin d'être mise en scène. En CSS pur, elle démarre
+     au premier rendu, ne coûte pas un octet de script, et ne peut pas échouer.
+
+     Le décompte est calé sur ce qui existe déjà : le faisceau ouvre, les repères
+     suivent dans son sillage, et `.plot-reveal` (800 ms) prend le relais sur les
+     courbes plus bas dans la page. Total sous la seconde et demie, une seule fois,
+     au chargement.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* L'en-tête : la date et les repères se posent, de haut en bas. */
+  .sous-tension > * {
+    animation: sous-tension-pose 520ms var(--ease-standard) both;
+  }
+  .sous-tension > *:nth-child(1) {
+    animation-delay: 60ms;
+  }
+  .sous-tension > *:nth-child(2) {
+    animation-delay: 140ms;
+  }
+  .sous-tension > *:nth-child(3) {
+    animation-delay: 200ms;
+  }
+
+  @keyframes sous-tension-pose {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /*
+   * LE FAISCEAU.
+   *
+   * `overflow: hidden` est indispensable : la bande lumineuse sort de la boîte des
+   * deux côtés pendant sa course. Elle est posée en `::after` parce que `::before`
+   * porte déjà la graduation — les deux cohabitent sur le même élément, l'une
+   * dessinant l'échelle et l'autre la parcourant.
+   */
+  .balayage {
+    position: relative;
+    overflow: hidden;
+  }
+  .balayage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    left: -35%;
+    width: 35%;
+    pointer-events: none;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-brand) 30%, transparent),
+      transparent
+    );
+    animation: balayage-course 1150ms var(--ease-standard) 120ms both;
+  }
+
+  @keyframes balayage-course {
+    from {
+      transform: translateX(0);
+      opacity: 0;
+    }
+    18% {
+      opacity: 1;
+    }
+    82% {
+      opacity: 1;
+    }
+    to {
+      /* La course couvre la largeur du bloc PLUS la sienne propre, faute de quoi le
+         faisceau s'éteindrait avant d'avoir quitté le cadre. */
+      transform: translateX(calc(100vw + 100%));
+      opacity: 0;
+    }
+  }
+
+  /* Les repères se révèlent DANS LE SILLAGE du faisceau, non avec lui : le retard
+     initial le laisse prendre de l'avance, et le pas de 70 ms suit sa course. */
+  .balayage > * {
+    animation: sous-tension-pose 460ms var(--ease-standard) both;
+  }
+  .balayage > *:nth-child(1) {
+    animation-delay: 260ms;
+  }
+  .balayage > *:nth-child(2) {
+    animation-delay: 330ms;
+  }
+  .balayage > *:nth-child(3) {
+    animation-delay: 400ms;
+  }
+  .balayage > *:nth-child(4) {
+    animation-delay: 470ms;
+  }
+  .balayage > *:nth-child(5) {
+    animation-delay: 540ms;
+  }
+  .balayage > *:nth-child(6) {
+    animation-delay: 610ms;
+  }
+
   /* ── LES GRANDS CHIFFRES NE SONT PAS EN CHASSE FIXE ──────────────────────
    *
    * `.figure` est le pendant de `.tabular` pour les nombres qu'on lit SEULS : le

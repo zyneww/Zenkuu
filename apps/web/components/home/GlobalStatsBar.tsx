@@ -41,7 +41,7 @@ export async function GlobalStatsBar({
       aria-label={t('Repères du marché')}
       /* `graduated` remplace le `border-b` : la bande de graduations EST le filet,
          et deux traits superposés feraient une soudure. Voir globals.css. */
-      className="graduated graduated-b flex flex-wrap items-center gap-x-6 gap-y-3 border-border-subtle pb-4 text-sm"
+      className="graduated graduated-b balayage flex flex-wrap items-center gap-x-6 gap-y-3 border-border-subtle pb-4 text-sm"
     >
       {stats ? (
         <>
