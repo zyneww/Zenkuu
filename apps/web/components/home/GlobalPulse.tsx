@@ -3,7 +3,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 
 import { MetricCard } from '@/components/charts/MetricCard'
 import { Money } from '@/components/locale/Money'
-import { getPhrase } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * Les deux agrégats qui situent le marché : sa taille et son activité.
@@ -32,6 +32,7 @@ export async function GlobalPulse({
   sparkHeight?: number
 }) {
   const t = await getPhrase()
+  const fr = await getContent()
   const capPoints = series.points.map((point) => ({ x: point.timestamp, y: point.value }))
 
   // Les points antérieurs au relevé du volume n'en portent pas : les écarter plutôt
@@ -59,7 +60,13 @@ export async function GlobalPulse({
             ) : null}
           </span>
         }
-        {...(series.ready && capPoints.length > 1 ? { series: capPoints } : {})}
+        {...(series.ready && capPoints.length > 1
+          ? { series: capPoints }
+          : /* Aucune source gratuite ne publie l'historique de la capitalisation
+               mondiale : le site enregistre ses propres relevés, et la courbe
+               n'existe donc pas au premier démarrage. La carte le dit plutôt que
+               de laisser la place du tracé vide. */
+            { pending: fr.home.marketCapSeriesBuilding(series.points.length) })}
         {...(sparkHeight ? { sparkHeight } : {})}
         format="compact"
       />
@@ -80,7 +87,9 @@ export async function GlobalPulse({
               : t('Rapporté à la capitalisation mondiale')}
           </span>
         }
-        {...(volumePoints.length > 1 ? { series: volumePoints } : {})}
+        {...(volumePoints.length > 1
+          ? { series: volumePoints }
+          : { pending: fr.home.marketCapSeriesBuilding(volumePoints.length) })}
         {...(sparkHeight ? { sparkHeight } : {})}
         format="compact"
       />

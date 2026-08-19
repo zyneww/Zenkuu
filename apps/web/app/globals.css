@@ -218,6 +218,16 @@
      sur fond sombre elle rayonne, sur fond clair elle ne peut que densifier. */
   --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(42 63 90 / 0.22);
 
+  /* ── L'OR RESTE, PARCE QU'IL SIGNIFIE ─────────────────────────────────────
+     La doctrine de l'accent réserve la couleur à ce que le site mesure. L'or n'y
+     contrevient pas : ses six emplois portent tous un SENS que rien d'autre ne
+     dirait — l'avertissement d'un seuil déjà franchi, le métal précieux d'une
+     classe d'actif, la pastille jaune que la source publie sur une paire.
+
+     Ce qu'il ne peut pas redevenir, c'est un ornement. Un filet doré posé pour
+     l'allure ferait de la couleur une décoration, et la couleur cesserait alors
+     de vouloir dire quelque chose — ce que tout le reste de ce fichier s'emploie
+     à éviter. */
   /* Or solaire — DÉCOR UNIQUEMENT. À 2.05:1 sur le canvas (mesuré dans le
      navigateur), il tombe sous le seuil de 3:1 exigé même pour un composant
      d'interface : il ne peut porter ni texte, ni bordure signifiante, ni icône
@@ -1166,6 +1176,14 @@
        tireraient l'œil avant les chiffres qu'ils encadrent. */
     opacity: 0.55;
     pointer-events: none;
+  }
+
+  /* La même bande, posée EN BAS. Pour les rangées de chiffres qui se terminent par
+     un filet plutôt que d'en être coiffées — la barre de repères de l'accueil est
+     la seule à ce jour. Elle remplace alors `border-b`, qu'il faut retirer : deux
+     traits superposés feraient une soudure, pas une graduation. */
+  .graduated-b::before {
+    inset: auto 0 0 0;
   }
 
   /* ── LES GRANDS CHIFFRES NE SONT PAS EN CHASSE FIXE ──────────────────────

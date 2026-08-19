@@ -26,6 +26,7 @@ export function MetricCard({
   series,
   sparkHeight = 56,
   format,
+  pending,
   action,
 }: {
   label: string
@@ -46,6 +47,14 @@ export function MetricCard({
   sparkHeight?: number
   /** Format de l'infobulle de la courbe — un mot-clé, non une fonction (voir `AreaSpark`). */
   format?: SparkFormat
+  /**
+   * Ce qu'on affiche À LA PLACE de la courbe tant qu'elle n'existe pas.
+   *
+   * Absent, la carte ne montre rien : c'est le cas d'une mesure qui n'a pas de
+   * série par nature. Fourni, la raison de l'absence remplit la place que le tracé
+   * occuperait — voir le rendu plus bas.
+   */
+  pending?: string
   action?: ReactNode
 }) {
   return (
@@ -85,6 +94,33 @@ export function MetricCard({
 
       {series && series.length > 1 ? (
         <AreaSpark data={series} color={color} height={sparkHeight} {...(format ? { format } : {})} />
+      ) : pending ? (
+        /* ── LA COURBE QUI N'EXISTE PAS ENCORE LE DIT ────────────────────────
+           Cette carte est étirée à la hauteur de sa voisine, et son tracé — calé
+           en bas — occupe le vide comme un fond. Sans série, la hauteur restait
+           et le contenu disparaissait : un trou de cent vingt pixels sous le
+           chiffre, que rien n'expliquait.
+
+           Un trou muet contredit la règle du produit — une donnée manquante se
+           voit. La bande porte donc la même hachure que les valeurs absentes,
+           avec la raison écrite dessus. Elle n'apparaît QUE si l'appelant fournit
+           `pending` : une carte sans courbe par nature n'a rien à annoncer. */
+        <div
+          className="mt-auto flex items-end px-4 pb-3"
+          style={{ height: sparkHeight ?? 56 }}
+        >
+          <p
+            className="w-full border-t border-border-subtle pt-2 text-[0.6875rem] leading-relaxed text-ink-muted"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(-45deg, var(--color-border-subtle) 0 1px, transparent 1px 5px)',
+              backgroundSize: '100% 100%',
+              backgroundClip: 'content-box',
+            }}
+          >
+            <span className="bg-surface pr-1">{pending}</span>
+          </p>
+        </div>
       ) : null}
     </article>
   )
