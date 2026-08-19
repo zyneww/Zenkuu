@@ -61,11 +61,11 @@ export default async function WidgetsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-8 py-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Widgets de marché</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{t('Widgets de marché')}</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Des composants autonomes alimentés par les mêmes sources que le reste du
-          site. Ils suivent le thème, ne chargent aucun script tiers, et peuvent être
-          intégrés dans une page externe.
+          {t(
+            'Des composants autonomes alimentés par les mêmes sources que le reste du site. Ils suivent le thème, ne chargent aucun script tiers, et peuvent être intégrés dans une page externe.',
+          )}
         </p>
       </header>
 
@@ -78,21 +78,21 @@ export default async function WidgetsPage() {
       ) : (
         <>
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-ink">Bandeau de cotations</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('Bandeau de cotations')}</h2>
             <TickerWidget assets={assets} />
             <EmbedHint path="/embed/ticker" />
           </section>
 
           <div className="grid gap-6 md:grid-cols-2">
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold text-ink">Convertisseur</h2>
+              <h2 className="text-sm font-semibold text-ink">{t('Convertisseur')}</h2>
               <ConverterWidget assets={assets} />
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold text-ink">Classement compact</h2>
+              <h2 className="text-sm font-semibold text-ink">{t('Classement compact')}</h2>
               <Card>
-                <CardHeader title="Top capitalisations" />
+                <CardHeader title={t('Top capitalisations')} />
                 <AssetList assets={assets.slice(0, 8)} showRank />
               </Card>
             </section>
@@ -105,18 +105,20 @@ export default async function WidgetsPage() {
   )
 }
 
-function EmbedHint({ path }: { path: string }) {
+async function EmbedHint({ path }: { path: string }) {
+  const t = await getPhrase()
   return (
     <details className="rounded-card border border-border-subtle bg-surface-muted p-3">
       <summary className="cursor-pointer text-xs font-medium text-ink">
-        Intégrer ce widget
+        {t('Intégrer ce widget')}
       </summary>
       <pre className="mt-2 overflow-x-auto rounded bg-surface p-2 text-[0.6875rem] text-ink-muted">
         {`<iframe src="https://votre-domaine${path}" width="100%" height="56" style="border:0" title="Cotations ZENKUU"></iframe>`}
       </pre>
       <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">
-        Remplacez le domaine par celui de votre instance. L’attribution CoinGecko
-        exigée par ses conditions d’utilisation est incluse dans le widget.
+        {t(
+          'Remplacez le domaine par celui de votre instance. L’attribution CoinGecko exigée par ses conditions d’utilisation est incluse dans le widget.',
+        )}
       </p>
     </details>
   )

@@ -11,6 +11,7 @@ import { MAILER_ENABLED } from '@/lib/mailer'
 import { currentAccount, ownerId } from '@/lib/session'
 import type { AssetClass } from '@zenkuu/data'
 import { getPhrase } from '@/lib/content'
+import { emphasise } from '@/components/locale/emphasise'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -102,7 +103,7 @@ export default async function AlertesPage() {
     return (
       <Shell quota={{ armed, limit: ALERT_LIMIT }} signedIn={account !== null}>
         <EmptyState
-          title="Aucune alerte"
+          title={t('Aucune alerte')}
           description={t('Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil. Aucun compte n’est nécessaire.')}
           action={
             <Link
@@ -183,18 +184,20 @@ async function Shell({
       {quota ? (
         <div className="space-y-2">
           <p className="rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
-            <span className="tabular text-ink">
-              {quota.armed} / {quota.limit}
-            </span>{' '}
-            alertes armées.
+            {emphasise(
+              t('**{armed} / {limit}** alertes armées.')
+                .replace('{armed}', String(quota.armed))
+                .replace('{limit}', String(quota.limit)),
+            )}
           </p>
 
           {!signedIn ? (
             <p className="rounded-card border border-border-subtle bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-muted">
-              Ces alertes sont rattachées à <strong className="font-medium text-ink">ce
-              navigateur</strong>, pas à un compte. Elles ne suivront pas sur un autre appareil et
-              disparaîtront si vous effacez vos données de navigation. Se connecter les rattache à
-              une adresse, et les récupère telles quelles.
+              {emphasise(
+                t(
+                  'Ces alertes sont rattachées à **ce navigateur**, pas à un compte. Elles ne suivront pas sur un autre appareil et disparaîtront si vous effacez vos données de navigation. Se connecter les rattache à une adresse, et les récupère telles quelles.',
+                ),
+              )}
             </p>
           ) : null}
         </div>

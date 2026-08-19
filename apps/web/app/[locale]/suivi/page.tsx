@@ -14,6 +14,7 @@ import { WATCHLIST_ASSET_LIMIT, WATCHLIST_COUNT_LIMIT } from '@/lib/limits'
 import { currentAccount, ownerId } from '@/lib/session'
 import type { AssetClass } from '@zenkuu/data'
 import { getPhrase } from '@/lib/content'
+import { emphasise } from '@/components/locale/emphasise'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -92,7 +93,7 @@ export default async function SuiviPage() {
     return (
       <Shell signedIn={signedIn}>
         <EmptyState
-          title="Aucun actif suivi"
+          title={t('Aucun actif suivi')}
           description={t('Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici. Aucun compte n’est nécessaire.')}
           action={
             <Link
@@ -185,10 +186,11 @@ async function Shell({
 
       {!signedIn ? (
         <p className="rounded-card border border-border-subtle bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-muted">
-          Cette liste est rattachée à{' '}
-          <strong className="font-medium text-ink">ce navigateur</strong>, pas à un compte. Elle ne
-          suivra pas sur un autre appareil et disparaîtra si vous effacez vos données de navigation.
-          Se connecter la rattache à une adresse, et la récupère telle quelle.
+          {emphasise(
+            t(
+              'Cette liste est rattachée à **ce navigateur**, pas à un compte. Elle ne suivra pas sur un autre appareil et disparaîtra si vous effacez vos données de navigation. Se connecter la rattache à une adresse, et la récupère telle quelle.',
+            ),
+          )}
         </p>
       ) : null}
 
