@@ -1,6 +1,6 @@
 import { getRanking, type AssetClass } from '@zenkuu/data'
 
-import { ClassBoard, type ClassBoardEntry } from '@/components/home/ClassBoard'
+import { MarketWorkspace, type ClassBoardEntry } from '@/components/home/MarketWorkspace'
 import { TrendingBoard } from '@/components/home/TrendingBoard'
 import { marketHref } from '@/lib/asset-routes'
 import { getContent } from '@/lib/content'
@@ -29,20 +29,23 @@ const ORDER: readonly AssetClass[] = [
  *
  * Quinze et non cinquante : ces sept classements voyagent ENSEMBLE dans le paquet de
  * la page, puisque changer de pastille ne déclenche aucune requête (voir l'en-tête de
- * `ClassBoard`). À cinquante lignes chacun, l'accueil transporterait trois cent
+ * `MarketWorkspace`). À cinquante lignes chacun, l'accueil transporterait trois cent
  * cinquante actifs pour n'en montrer que quinze. « Tout voir » mène au classement
  * complet, qui est fait pour ça.
+ *
+ * C'est aussi la profondeur des trois analyses qui suivent la pastille : elles se
+ * déduisent de ces mêmes lignes. Quinze suffisent à une figure de huit barres et à un
+ * tableau de cinq.
  */
 const PER_CLASS = 15
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * LE BLOC LOURD DE L'ACCUEIL — SEPT CLASSEMENTS, DEUX LECTURES
+ * LE BLOC LOURD DE L'ACCUEIL — SEPT CLASSEMENTS, TROIS LECTURES
  * ══════════════════════════════════════════════════════════════════════════════
  *
  * Rendu sous `<Suspense>` par `page.tsx` : la date, les trois cartes de tête et les
- * actualités s'affichent sans l'attendre. C'est le même découpage que la page portait
- * déjà, appliqué à un contenu différent.
+ * actualités s'affichent sans l'attendre.
  *
  * ── SEPT APPELS, ET POURQUOI CE N'EST PAS SEPT FOIS LE PRIX ─────────────────
  *
@@ -53,11 +56,12 @@ const PER_CLASS = 15
  * coûte rien du tout : sans fournisseur déclaré, `getRanking` rend son état vide sans
  * sortir du processus.
  *
- * ── UNE SEULE SOURCE POUR DEUX BLOCS ────────────────────────────────────────
+ * ── UNE SEULE SOURCE POUR TROIS BLOCS ───────────────────────────────────────
  *
- * Le tableau et les cartes « en tendance » lisent les MÊMES listes. Demander des
- * tendances à part aurait doublé le coût de la page pour dire la même chose sous un
- * autre tri — voir `topMovers` dans `TrendingBoard`.
+ * Le tableau, les trois analyses de classe et les cartes « en tendance » lisent les
+ * MÊMES listes. La page les demande une fois et s'en sert trois fois — demander des
+ * tendances ou des agrégats à part aurait payé plusieurs fois ce que la page
+ * transporte déjà.
  */
 export async function ClassSection() {
   const fr = await getContent()
@@ -84,7 +88,8 @@ export async function ClassSection() {
 
   return (
     <>
-      <ClassBoard boards={boards} />
+      <MarketWorkspace boards={boards} />
+
       <TrendingBoard
         classes={boards.map(({ assetClass, label, href, assets }) => ({
           assetClass,

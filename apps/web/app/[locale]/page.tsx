@@ -4,21 +4,21 @@ import { Suspense } from 'react'
 import {
   CACHE_TTL_SECONDS,
   getCryptoGlobalStats,
-  getCryptoOverview,
   getMarketCapSeriesState,
   getNewListings,
   getNews,
 } from '@zenkuu/data'
 
+import { GlobalAnalyses } from '@/components/home/analyses/GlobalAnalyses'
 import { ClassSection } from '@/components/home/ClassSection'
-import { FavoritesPanel, type FavoriteSuggestion } from '@/components/home/FavoritesPanel'
+import { EditorialBand } from '@/components/home/EditorialBand'
+import { EventFeed } from '@/components/home/EventFeed'
+import { MarketCapCard } from '@/components/home/MarketCapCard'
 import { MarketDate } from '@/components/home/MarketDate'
-import { MarketOverviewCard } from '@/components/home/MarketOverviewCard'
 import { NewsBoard } from '@/components/home/NewsBoard'
 import { RecentlyAdded } from '@/components/home/RecentlyAdded'
 import { SectionLabel } from '@/components/home/SectionLabel'
 import { Link } from '@/i18n/navigation'
-import { assetHref } from '@/lib/asset-routes'
 import { getContent, getPhrase } from '@/lib/content'
 
 // Régénération alignée sur le TTL du cache applicatif : les deux durées de vie doivent
@@ -30,9 +30,6 @@ import { getContent, getPhrase } from '@/lib/content'
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
-
-/** Nombre d'actifs proposés au suivi dans la carte des favoris. */
-const SUGGESTION_COUNT = 5
 
 /**
  * Titre écrit en entier, contrairement aux autres pages.
@@ -63,9 +60,32 @@ export async function generateMetadata() {
  *
  *     1. LIGNE DE DATE      centrée, seule, avec l'heure de fraîcheur
  *     2. RANG DE TÊTE       trois cartes LÉGÈRES, rendues sans attendre
- *     3. CLASSES + TABLEAU  sept pastilles au-dessus d'un tableau dense
- *     4. EN TENDANCE        une carte par classe, pleine largeur
- *     5. ACTUALITÉS         quatre cartes, pleine largeur
+ *     3. CLASSES + TABLEAU  sept pastilles, un interrupteur, un tableau dense,
+ *                           et les TROIS analyses qui suivent la pastille
+ *     4. ANALYSES GLOBALES  cinq familles qui ne dépendent d'aucune classe
+ *     5. EN TENDANCE        une carte par classe, pleine largeur
+ *     6. ACTUALITÉS         quatre cartes, pleine largeur
+ *     7. ÉDITORIAL          blog et fiches pédagogiques, deux colonnes
+ *
+ * ── LES HUIT FAMILLES D'ANALYSE, ET CE QU'ELLES REMPLACENT ──────────────────
+ *
+ * Les six familles de la référence — émission, rachat, destruction, déblocages,
+ * réclamations, allocations — reposent toutes sur des données de TOKENOMICS que nous
+ * n'avons pas et n'inventerons pas. Chacune est remplacée par la question la plus
+ * voisine que nos sources savent réellement répondre :
+ *
+ *     leur émission     → l'offre : part déjà émise, reste à venir
+ *     leur rachat       → les volumes et la liquidité : volume, rotation
+ *     leur destruction  → la dominance : répartition de la capitalisation
+ *     leurs allocations → la comparaison : deux actifs sur quatre mesures
+ *
+ * Quatre autres s'y ajoutent, sans équivalent chez eux mais alimentées ici : le
+ * sentiment, la macroéconomie, les secteurs et les flux de trading.
+ *
+ * ⚠️ TROIS SUIVENT LA PASTILLE, CINQ NON. Offre, volumes et comparaison se déduisent
+ * des lignes du tableau et se recalculent au changement de classe. Les cinq autres
+ * n'existent que pour la crypto ou pour aucune classe — chacune ANNONCE sa portée
+ * dans son sous-titre plutôt que de la laisser deviner. Voir `GlobalAnalyses`.
  *
  * ── CE QUI DISPARAÎT, ET POURQUOI ───────────────────────────────────────────
  *
@@ -77,39 +97,36 @@ export async function generateMetadata() {
  *     recherche vivant dans l'en-tête. C'est le point à surveiller de cette refonte —
  *     le champ de l'en-tête est REPLIÉ par défaut, et la recherche perd donc en
  *     visibilité ce que la page gagne en densité ;
- *   · la CARTE DES SECTEURS et les TROIS PALMARÈS : remplacés par le tableau de
- *     cotations, qui répond à la même question — « qu'est-ce qui cote quoi » — sans
- *     demander au lecteur de choisir entre trois classements avant de voir un prix.
- *     Ils vivent toujours sur `/heatmap` et `/classements`.
+ *   · la CARTE « FAVORIS » du rang de tête : elle occupait un tiers du premier écran
+ *     pour dire à un visiteur sans compte « commencez votre liste ». Les favoris
+ *     n'ont pas disparu — l'étoile de chaque ligne les alimente, `/suivi` les
+ *     rassemble ;
+ *   · la CARTE DES SECTEURS et les TROIS PALMARÈS de l'ancien explorateur : la
+ *     première revient en carte d'analyse sectorielle, les seconds sont remplacés par
+ *     le tableau de cotations, qui répond à la même question sans demander au lecteur
+ *     de choisir entre trois classements avant de voir un prix.
  *
- * ── LE DÉCOUPAGE SOUS `<Suspense>` NE CHANGE PAS DE PRINCIPE ────────────────
+ * ── DEUX GRAPPES SOUS `<Suspense>`, ET NON UNE ──────────────────────────────
  *
- * Les quatre requêtes de tête sont légères : deux listes courtes, un agrégat, un fil
- * d'actualités. Les SEPT classements, eux, touchent trois fournisseurs distants — ils
- * vivent donc dans `ClassSection`, sous `<Suspense>`, et le haut de la page se peint
- * sans les attendre.
+ * Les trois requêtes de tête sont légères : une liste courte, un agrégat, un fil
+ * d'actualités. Les sept CLASSEMENTS et les cinq ANALYSES GLOBALES sont deux grappes
+ * lourdes qui touchent des sources différentes, et rien n'oblige la plus rapide à
+ * attendre la plus lente : chacune a son propre substitut.
  *
  * ── AUCUNE ENTRÉE PROPRE AU VISITEUR ────────────────────────────────────────
  *
  * Ni `searchParams`, ni cookie : ce que rend cette page est le même pour tout le
  * monde, et `revalidate = 180` gouverne donc réellement la fraîcheur de ses données.
  * C'est aussi la raison pour laquelle les pastilles de classe changent le tableau par
- * un ÉTAT LOCAL et non par l'URL — voir l'en-tête de `ClassBoard`.
- *
- * Le seul bloc qui dépend du visiteur — les favoris — va chercher son état depuis le
- * navigateur, par l'action serveur qui existe déjà. Ce n'est pas gratuit en lignes,
- * et ça vaut la peine : une lecture de cookie dans l'arbre serveur marquerait le
- * rendu comme non partageable, ce qui retirerait au reste de la page le bénéfice du
- * cache pour cinq étoiles. Voir l'en-tête de `FavoritesPanel`.
+ * un ÉTAT LOCAL et non par l'URL — voir l'en-tête de `MarketWorkspace`.
  */
 export default async function HomePage() {
   const fr = await getContent()
   const t = await getPhrase()
   const locale = await getLocale()
 
-  const [overview, news, newListings, globals] = await Promise.all([
-    getCryptoOverview('eur', SUGGESTION_COUNT),
-    getNews(6),
+  const [news, newListings, globals] = await Promise.all([
+    getNews(8),
     getNewListings(8),
     getCryptoGlobalStats('eur'),
   ])
@@ -117,17 +134,6 @@ export default async function HomePage() {
   /* Série locale et non requête : `getMarketCapSeriesState` lit les relevés que le
      site enregistre lui-même. Synchrone, donc hors du `Promise.all`. */
   const series = getMarketCapSeriesState('EUR')
-
-  const suggestions: FavoriteSuggestion[] = (overview.ok ? overview.data.topByMarketCap : [])
-    .slice(0, SUGGESTION_COUNT)
-    .map((asset) => ({
-      assetClass: asset.assetClass,
-      id: asset.id,
-      name: asset.name,
-      symbol: asset.symbol,
-      href: assetHref(asset.assetClass, asset.id),
-      ...(asset.image ? { image: asset.image } : {}),
-    }))
 
   return (
     <div className="flex flex-col gap-5">
@@ -153,7 +159,7 @@ export default async function HomePage() {
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <section className="flex flex-col gap-2">
           <SectionLabel>{t('Suivi du marché')}</SectionLabel>
-          <MarketOverviewCard result={globals} series={series} />
+          <MarketCapCard result={globals} series={series} />
         </section>
 
         <section className="flex flex-col gap-2">
@@ -173,8 +179,8 @@ export default async function HomePage() {
         </section>
 
         <section className="flex flex-col gap-2">
-          <SectionLabel>{t('Favoris')}</SectionLabel>
-          <FavoritesPanel suggestions={suggestions} />
+          <SectionLabel>{t('À la une')}</SectionLabel>
+          <EventFeed result={news} />
         </section>
       </div>
 
@@ -182,7 +188,44 @@ export default async function HomePage() {
         <ClassSection />
       </Suspense>
 
+      {/* ── LES CINQ ANALYSES GLOBALES ───────────────────────────────────────
+          Sous leur PROPRE `<Suspense>`, et non celui du bloc de classements. Les deux
+          grappes touchent des sources différentes — sept classements d'un côté, cinq
+          analyses de l'autre — et rien n'oblige la plus rapide à attendre la plus
+          lente. Un substitut partagé les aurait synchronisées pour rien.
+
+          Deux colonnes à partir de 1280 px : c'est la grille de la référence, et c'est
+          aussi la largeur en dessous de laquelle deux figures côte à côte rendent les
+          libellés d'abscisse illisibles. */}
+      <Suspense fallback={<AnalysisSkeleton />}>
+        <div className="grid items-start gap-4 xl:grid-cols-2">
+          <GlobalAnalyses globals={globals.ok ? globals.data : null} />
+        </div>
+      </Suspense>
+
       <NewsBoard result={news} />
+
+      <EditorialBand />
+    </div>
+  )
+}
+
+/**
+ * Substitut des analyses globales.
+ *
+ * Six cadres et non huit : c'est le nombre de cartes que `GlobalAnalyses` rend, et un
+ * substitut qui n'a pas la hauteur de ce qu'il remplace fait sauter le bas de la page
+ * à l'arrivée des données.
+ */
+function AnalysisSkeleton() {
+  return (
+    <div className="grid items-start gap-4 xl:grid-cols-2" aria-hidden="true">
+      {[0, 1, 2, 3, 4, 5].map((index) => (
+        <div
+          key={index}
+          className="h-[320px] animate-pulse rounded-panel border border-border-subtle bg-surface-muted"
+        />
+      ))}
     </div>
   )
 }
