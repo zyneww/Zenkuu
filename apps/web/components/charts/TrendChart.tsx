@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 
 import { AreaPlot } from '@/components/charts/AreaPlot'
+import { axisDigits } from '@/components/charts/chart-theme'
 
 /**
  * Grande courbe datée — la version « plein format » d'`AreaSpark`.
@@ -128,6 +129,8 @@ export function TrendChart({
   const last = points[points.length - 1] as TrendPoint
   const spanDays = Math.max(1, (last.timestamp - first.timestamp) / 86_400_000)
 
+  const yDigits = axisDigits(points.map((point) => point.value))
+
   return (
     <AreaPlot
       series={series}
@@ -138,9 +141,11 @@ export function TrendChart({
       {...(spanDays > 120 ? { xTicks: monthlyTicks(first.timestamp, last.timestamp) } : {})}
       formatX={(value) => tickFormatter(value, spanDays)}
       formatY={(value) =>
-        new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(
-          value,
-        )
+        new Intl.NumberFormat('fr-FR', {
+          notation: 'compact',
+          maximumFractionDigits: yDigits,
+          minimumFractionDigits: yDigits,
+        }).format(value)
       }
       formatTooltipX={(value) =>
         new Date(value).toLocaleString('fr-FR', {

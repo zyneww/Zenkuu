@@ -99,6 +99,52 @@ describe('cached', () => {
     expect(calls).toBe(1)
     expect([a, b, c]).toEqual([1, 1, 1])
   })
+
+  /**
+   * Le gain de performance le plus important du cache, et le plus facile à défaire.
+   *
+   * Une entrée EXPIRÉE doit repartir IMMÉDIATEMENT vers l'appelant, le rafraîchissement
+   * courant derrière. Mesuré avant ce comportement, en LCP sur build de production :
+   * 196 ms à chaud contre 19 652 ms à froid sur `/marches`, et 84 secondes sur
+   * `/actualites`. Le TTL valant 180 secondes, chaque page redevenait froide toutes
+   * les trois minutes et son premier visiteur encaissait tout.
+   *
+   * Le test ne mesure pas un temps — il vérifie la seule chose qui compte et qui ne
+   * dépend pas de la machine : que le second appel N'ATTEND PAS le fetcher lent.
+   */
+  it('sert la valeur périmée sans attendre, et rafraîchit derrière', async () => {
+    const key = `test:swr:${process.hrtime.bigint()}`
+    let calls = 0
+
+    const slowFetcher = async () => {
+      calls += 1
+      await new Promise((resolve) => setTimeout(resolve, 60))
+      return calls
+    }
+
+    // TTL d'un dixième de seconde : premier appel bloquant, valeur 1 mise en cache.
+    expect(await cached(key, slowFetcher, 0.1)).toBe(1)
+    expect(calls).toBe(1)
+
+    // On laisse l'entrée expirer.
+    await new Promise((resolve) => setTimeout(resolve, 150))
+
+    // Second appel : l'entrée est périmée. Il doit rendre la MÊME valeur, tout de
+    // suite, sans attendre les 60 ms du fetcher.
+    const started = Date.now()
+    const served = await cached(key, slowFetcher, 0.1)
+    const waited = Date.now() - started
+
+    expect(served).toBe(1)
+    // Le seuil est large exprès : ce qui est vérifié est l'ABSENCE d'attente sur le
+    // fetcher (60 ms), pas une performance absolue.
+    expect(waited).toBeLessThan(40)
+
+    // Le rafraîchissement a bien été lancé, lui, en arrière-plan.
+    await new Promise((resolve) => setTimeout(resolve, 120))
+    expect(calls).toBe(2)
+    expect(await cached(key, slowFetcher, 60)).toBe(2)
+  })
 })
 
 describe('createMemoryCache', () => {

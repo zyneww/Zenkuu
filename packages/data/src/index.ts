@@ -57,6 +57,7 @@ export {
   /* Le fil d'UN actif, demandé à Yahoo par son symbole — le complément que
      l'agrégation ne peut pas donner. Voir `fetchSymbolNews`. */
   getAssetNews,
+  getLessonVideos,
   getNewListings,
   getNftCollections,
   getTreasuries,
@@ -152,6 +153,8 @@ export type { TreasuryCoin } from './providers/coingecko-extras'
 
 export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
 export type { NewsCategory, NewsLang } from './providers/news'
+
+export type { LessonVideo } from './providers/youtube'
 
 export { ASSET_CLASSES, ProviderError } from './types'
 export type {

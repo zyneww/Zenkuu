@@ -30,15 +30,44 @@ export async function generateMetadata(): Promise<Metadata> {
  * Hub pédagogique.
  *
  * Refonte : la page ouvrait directement sur une liste filtrable, sans point
- * d'entrée. Elle propose désormais un parcours conseillé en tête — trois fiches
- * pour démarrer — puis la bibliothèque complète, recherchable et filtrable par
- * niveau.
+ * d'entrée. Elle propose désormais un parcours conseillé en tête, puis la
+ * bibliothèque complète, recherchable et filtrable par niveau.
  *
- * Le parcours de départ est une SÉLECTION ÉDITORIALE, pas un classement de
- * popularité : ZENKUU ne mesure pas l'audience de ses pages, et présenter un ordre
- * comme « le plus lu » serait une donnée inventée (§5).
+ * Le parcours est une SÉLECTION ÉDITORIALE, pas un classement de popularité :
+ * ZENKUU ne mesure pas l'audience de ses pages, et présenter un ordre comme « le
+ * plus lu » serait une donnée inventée (§5).
+ *
+ * ── IL TRAVERSE LES TROIS NIVEAUX, ET C'EST TOUT L'INTÉRÊT ──────────────────
+ *
+ * Il s'arrêtait à trois fiches, toutes DÉBUTANTES. C'était un point d'entrée, pas un
+ * parcours : arrivé au bout, le lecteur retombait sur une bibliothèque de quatorze
+ * fiches sans savoir laquelle prendre ensuite — exactement le problème que ce bloc
+ * était censé résoudre, repoussé de trois écrans.
+ *
+ * Les six étapes montent maintenant en difficulté, et chaque vignette affiche son
+ * niveau : trois débutantes, deux intermédiaires, une avancée. La progression se voit
+ * donc sans être écrite.
+ *
+ * L'ORDRE N'EST PAS ARBITRAIRE, chaque étape s'appuie sur la précédente :
+ *   1. ce qu'un grand nombre mesure (capitalisation) ;
+ *   2. pourquoi il ne se lit pas seul (volume et liquidité) ;
+ *   3. ce qu'un graphique ne dit pas (signaux imaginaires) ;
+ *   4. comment le lire quand même (chandeliers) ;
+ *   5. ce qui se cache derrière la quantité (offre en circulation) ;
+ *   6. comment situer un actif dans son marché (dominance).
+ *
+ * ⚠️ CHAQUE ENTRÉE DOIT EXISTER DANS `LESSONS`. Un slug erroné est filtré en silence
+ * par le `.filter(Boolean)` juste en dessous : le parcours perdrait une étape sans
+ * qu'aucune erreur ne le signale, et la numérotation se refermerait dessus.
  */
-const STARTING_PATH = ['capitalisation', 'volume-et-liquidite', 'sans-signaux-imaginaires']
+const STARTING_PATH = [
+  'capitalisation',
+  'volume-et-liquidite',
+  'sans-signaux-imaginaires',
+  'lire-des-chandeliers',
+  'offre-en-circulation',
+  'dominance',
+]
 
 export default function ApprendrePage() {
   const starters = STARTING_PATH.map((slug) =>
@@ -66,9 +95,19 @@ export default function ApprendrePage() {
       </header>
 
       <section className="space-y-3" aria-labelledby="par-ou-commencer">
-        <h2 id="par-ou-commencer" className="text-sm font-semibold text-ink">
-          Par où commencer
-        </h2>
+        {/* « Parcours conseillé » et non plus « Par où commencer » : le bloc ne donne
+            plus un point de départ mais une progression complète, du premier grand
+            nombre à la lecture d'une part de marché. Le sous-titre nomme les trois
+            niveaux traversés, ce que les vignettes montrent déjà une par une —
+            l'annoncer d'abord évite d'avoir à les compter pour s'en rendre compte. */}
+        <div>
+          <h2 id="par-ou-commencer" className="text-sm font-semibold text-ink">
+            Parcours conseillé
+          </h2>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            Six fiches dans l’ordre, du débutant à l’avancé.
+          </p>
+        </div>
         <ol className="grid gap-5 sm:grid-cols-3">
           {starters.map((lesson, index) => (
             <li key={lesson.slug}>

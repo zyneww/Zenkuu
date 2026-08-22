@@ -196,10 +196,50 @@ async function MethodSection() {
       </h2>
 
       <p className="text-base leading-relaxed text-ink-muted">
-        L’indice est une composition publiée par Alternative.me. Il agrège la volatilité
-        récente, le volume et l’élan du marché, l’activité sur les réseaux sociaux, la
-        dominance du bitcoin et les tendances de recherche. ZENKUU le relaie tel quel,
-        sans le recalculer.
+        L’indice est une composition publiée par Alternative.me. ZENKUU le relaie tel
+        quel, sans le recalculer. Cinq familles de mesures l’alimentent :
+      </p>
+
+      {/*
+        LES FACTEURS EN LISTE, ET TOUJOURS SANS POURCENTAGES.
+
+        Ils étaient énoncés dans une phrase. La liste ne dit rien de plus — c'est
+        exactement le même contenu — mais elle se PARCOURT, là où la phrase se lisait :
+        un lecteur qui veut savoir de quoi ce 72 est fait y trouve cinq entrées
+        distinctes au lieu d'une énumération à décomposer lui-même. C'est la forme que
+        réclame la question « qu'y a-t-il dans ce nombre ? ».
+
+        ⚠️ AUCUN POIDS N'EST AFFICHÉ, ET C'EST DÉLIBÉRÉ — voir l'en-tête de ce
+        composant. La référence détaille une pondération, mais elle n'est pas publiée
+        de façon stable, et la source ne diffuse PAS la contribution quotidienne de
+        chaque facteur : seule la valeur composite sort de son API. Mettre des
+        pourcentages ici reviendrait à les recopier d'une documentation sans pouvoir
+        vérifier qu'ils valent pour le chiffre du jour — de la donnée inventée (§5).
+
+        La dernière ligne dit cette limite plutôt que de la laisser deviner : sans
+        elle, une liste de facteurs laisse croire qu'on pourrait les voir bouger un
+        par un.
+      */}
+      <ul className="space-y-1.5 text-base leading-relaxed text-ink-muted">
+        {[
+          'la volatilité récente du marché',
+          'le volume et l’élan des échanges',
+          'l’activité sur les réseaux sociaux',
+          'la dominance du bitcoin',
+          'les tendances de recherche',
+        ].map((factor) => (
+          <li key={factor} className="flex gap-2">
+            <span aria-hidden="true" className="select-none text-ink-muted">
+              ·
+            </span>
+            <span>{factor}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="text-base leading-relaxed text-ink-muted">
+        La source ne publie que le nombre final : la part exacte de chaque facteur dans
+        la valeur du jour n’est pas diffusée, et n’est donc affichée nulle part ici.
       </p>
 
       <p className="text-base leading-relaxed text-ink-muted">

@@ -180,7 +180,7 @@ const en: Translation = {
     },
 
     summaryTitle: "Market summary",
-    topIndicesTitle: "Leading indices",
+    crossAssetTitle: "Key markets",
     volumeLeadersTitle: "Highest volumes",
     economyTitle: "Economy",
     heroMarketCap: "Crypto market cap",

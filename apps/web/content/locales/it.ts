@@ -120,7 +120,7 @@ const it: Translation = {
     moversHint: (size: number) => `Tra le ${size} maggiori capitalizzazioni`,
     classMoversHint: (size: number) => `Tra i ${size} asset seguiti di questa classe`,
     summaryTitle: 'Riepilogo dei mercati',
-    topIndicesTitle: 'Indici principali',
+    crossAssetTitle: 'Mercati principali',
     volumeLeadersTitle: 'Volumi più alti',
     economyTitle: 'Economia',
     heroMarketCap: 'Capitalizzazione cripto',

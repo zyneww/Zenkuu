@@ -36,15 +36,23 @@ export function MetricCard({
   icon?: ReactNode
   series?: { x: string | number; y: number }[]
   /**
-   * Hauteur de la courbe, en pixels.
+   * Hauteur de la courbe : pixels, ou `'fill'` pour occuper toute la place restante.
    *
-   * Réglable parce que cette carte sert dans deux contextes de hauteurs très
-   * différentes. Dans une colonne étroite, 56 px suffisent à donner la forme de la
-   * série. Dans une bande étirée à la hauteur d'un voisin plus haut, la même valeur
-   * laisse cent pixels de vide entre le chiffre et la courbe — le tracé étant calé
-   * en bas, c'est le blanc du milieu qui absorbe tout l'étirement.
+   * Réglable parce que cette carte sert dans deux contextes très différents. Dans une
+   * colonne étroite, 56 px suffisent à donner la forme de la série.
+   *
+   * Dans une BANDE DE CARTES ALIGNÉES, une hauteur fixe ne convient pas, et le
+   * contournement précédent — passer 128 au lieu de 56 — ne faisait que déplacer le
+   * problème. La carte est étirée à la hauteur de sa voisine la plus haute ; comme
+   * c'est le bloc de texte qui porte le `flex-1`, c'est LUI qui grandit, et tout
+   * l'étirement devient du blanc entre le chiffre et le tracé calé en bas. Sur
+   * l'accueil, le panneau d'actualités imposait 455 px : 128 en laissait encore 250
+   * de vide, et aucune valeur en dur n'aurait tenu, puisqu'elle dépend du contenu
+   * d'un composant voisin.
+   *
+   * `'fill'` règle la question à la source — c'est la courbe qui absorbe l'étirement.
    */
-  sparkHeight?: number
+  sparkHeight?: number | 'fill'
   /** Format de l'infobulle de la courbe — un mot-clé, non une fonction (voir `AreaSpark`). */
   format?: SparkFormat
   /**
@@ -57,11 +65,24 @@ export function MetricCard({
   pending?: string
   action?: ReactNode
 }) {
+  /*
+   * En mode `'fill'`, le `flex-1` CHANGE DE MAIN.
+   *
+   * C'est tout le correctif : par défaut il porte sur le bloc de texte, qui absorbe
+   * donc l'étirement en blanc. Ici il passe à la courbe, qui l'absorbe en tracé. Le
+   * `min-h-0` est indispensable — sans lui, un enfant flex refuse de descendre sous
+   * sa hauteur de contenu et l'étirement repartirait dans le texte.
+   *
+   * `min-h-[56px]` garde le plancher du mode pixels : dans une carte courte, une
+   * courbe de douze pixels ne dit plus rien de la série.
+   */
+  const fills = sparkHeight === 'fill'
+
   return (
     /* `graduated` : la carte de mesure est LE module de chiffres du site, et donc
        l'endroit où la signature se justifie. Voir `.graduated` dans globals.css. */
     <article className="graduated flex flex-col overflow-hidden rounded-card border border-border-subtle bg-surface transition-colors duration-150 hover:border-ink-muted/40">
-      <div className="flex flex-1 flex-col gap-1 p-4">
+      <div className={`flex flex-col gap-1 p-4 ${fills ? 'shrink-0' : 'flex-1'}`}>
         <div className="flex items-center justify-between gap-2">
           <h3 className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
             {icon ? (
@@ -93,7 +114,9 @@ export function MetricCard({
       </div>
 
       {series && series.length > 1 ? (
-        <AreaSpark data={series} color={color} height={sparkHeight} {...(format ? { format } : {})} />
+        <div className={fills ? 'min-h-[56px] min-w-0 flex-1' : ''}>
+          <AreaSpark data={series} color={color} height={sparkHeight} {...(format ? { format } : {})} />
+        </div>
       ) : pending ? (
         /* ── LA COURBE QUI N'EXISTE PAS ENCORE LE DIT ────────────────────────
            Cette carte est étirée à la hauteur de sa voisine, et son tracé — calé
@@ -104,13 +127,23 @@ export function MetricCard({
            Un trou muet contredit la règle du produit — une donnée manquante se
            voit. La bande porte donc la même hachure que les valeurs absentes,
            avec la raison écrite dessus. Elle n'apparaît QUE si l'appelant fournit
-           `pending` : une carte sans courbe par nature n'a rien à annoncer. */
+           `pending` : une carte sans courbe par nature n'a rien à annoncer.
+
+           EN MODE `'fill'`, LA HACHURE S'ÉTIRE au lieu de rester une bande basse.
+           C'est la cohérence du motif : la hachure occupe la place que le tracé
+           occuperait, donc toute la place quand le tracé la prendrait toute. Calée
+           en bas dans une carte étirée, elle laissait au-dessus d'elle le trou
+           qu'elle est justement chargée d'expliquer. */
         <div
-          className="mt-auto flex items-end px-4 pb-3"
-          style={{ height: sparkHeight ?? 56 }}
+          className={`mt-auto flex px-4 pb-3 ${
+            fills ? 'min-h-[56px] flex-1 items-stretch' : 'items-end'
+          }`}
+          {...(fills ? {} : { style: { height: sparkHeight ?? 56 } })}
         >
           <p
-            className="w-full border-t border-border-subtle pt-2 text-[0.6875rem] leading-relaxed text-ink-muted"
+            className={`w-full border-t border-border-subtle pt-2 text-[0.6875rem] leading-relaxed text-ink-muted ${
+              fills ? 'flex-1' : ''
+            }`}
             style={{
               backgroundImage:
                 'repeating-linear-gradient(-45deg, var(--color-border-subtle) 0 1px, transparent 1px 5px)',

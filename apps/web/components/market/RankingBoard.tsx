@@ -37,7 +37,31 @@ const PERIODS: { key: Period; label: string; field: keyof MarketAsset; long: str
 
 const ROWS = 10
 
-export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
+export function RankingBoard({
+  assets,
+  scopeLabel,
+}: {
+  assets: MarketAsset[]
+  /**
+   * Phrase de périmètre. Absente, le défaut parle de CAPITALISATIONS.
+   *
+   * ── POURQUOI CE DÉFAUT NE PEUT PLUS ÊTRE LE SEUL TEXTE POSSIBLE ────────────
+   *
+   * Il était écrit en dur : « Classements calculés sur les N plus grandes
+   * capitalisations ». Vrai tant que ce tableau ne servait que la crypto, faux dès
+   * qu'il en sert d'autres — et faux d'une manière qui ne se voit pas, puisque la
+   * phrase reste grammaticalement impeccable.
+   *
+   * Relevé sur `/classements?classe=devises` : « Classements calculés sur les 8 plus
+   * grandes capitalisations », alors qu'une paire de change n'a AUCUNE
+   * capitalisation. Même défaut sur les matières premières. La page affirmait un
+   * critère de tri qui n'existe pas pour ces classes.
+   *
+   * L'appelant, lui, sait de quelle classe il parle : c'est donc à lui de fournir la
+   * phrase juste quand le défaut ne l'est pas.
+   */
+  scopeLabel?: string
+}) {
   const t = usePhrase()
   const [period, setPeriod] = useState<Period>('24h')
 
@@ -85,7 +109,7 @@ export function RankingBoard({ assets }: { assets: MarketAsset[] }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
-          Classements calculés sur les {assets.length} plus grandes capitalisations.
+          {scopeLabel ?? `Classements calculés sur les ${assets.length} plus grandes capitalisations.`}
         </p>
 
         <div
@@ -189,6 +213,10 @@ function Board({
             <li key={asset.id}>
               <Link
                 href={assetHref(asset.assetClass, asset.id)}
+                /* `prefetch={false}` — liste dense : chaque ligne mène à un rendu serveur qui
+                   interroge la source, sur le limiteur de la page en cours. Un clic au plus
+                   sera fait. Voir OPTIMISATION.md, section « Réseau ». */
+                prefetch={false}
                 className="group flex items-center gap-2.5 rounded-sm px-3 py-2.5 transition-colors hover:bg-surface-muted/60"
               >
                 <span className="tabular w-4 shrink-0 text-xs text-ink-muted">{index + 1}</span>
@@ -208,7 +236,25 @@ function Board({
                   {showVolume ? (
                     <Money value={asset.volume24h} from={asset.currency} compact />
                   ) : (
-                    <Money value={asset.price} from={asset.currency} />
+                    /*
+                      `asRate` SUR LES DEVISES, sinon la colonne entière affiche « 1,00 € ».
+
+                      Le « prix » d'une paire de change est un TAUX — combien d'unités de
+                      la contrepartie pour une unité de base — et non un montant dans une
+                      devise. Formaté comme un montant, EUR/CHF vaut donc un euro, EUR/USD
+                      aussi, et les huit lignes du classement affichent le même nombre.
+
+                      Le défaut ne pouvait pas se voir tant que ce tableau ne servait que
+                      la crypto. Il est apparu au premier classement de devises, et de la
+                      pire manière : une colonne parfaitement formatée, parfaitement
+                      alignée, et vide de sens. `AssetRow` fait déjà ce test — c'est le
+                      même, écrit au même endroit du rendu.
+                    */
+                    <Money
+                      value={asset.price}
+                      from={asset.currency}
+                      asRate={asset.assetClass === 'forex'}
+                    />
                   )}
                 </span>
 

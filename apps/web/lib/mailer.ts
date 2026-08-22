@@ -116,13 +116,13 @@ export function alertEmail(input: {
 <tr><td style="padding:24px;">
 <p style="margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">ZENKUU — alerte de prix</p>
 <h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;font-weight:700;">${escapeHtml(headline)}</h1>
-${input.note ? `<p style="margin:0 0 16px;padding:12px 14px;background:#f4f4f5;border-left:3px solid #3d63c2;font-size:14px;line-height:1.5;">${escapeHtml(input.note)}</p>` : ''}
+${input.note ? `<p style="margin:0 0 16px;padding:12px 14px;background:#f4f4f5;border-left:3px solid #0d7a72;font-size:14px;line-height:1.5;">${escapeHtml(input.note)}</p>` : ''}
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;font-size:14px;">
 <tr><td style="padding:8px 0;border-bottom:1px solid #e4e4e7;color:#71717a;">Actif</td><td style="padding:8px 0;border-bottom:1px solid #e4e4e7;text-align:right;">${escapeHtml(input.label)}${input.symbol ? ` <span style="color:#71717a;">${escapeHtml(input.symbol.toUpperCase())}</span>` : ''}</td></tr>
 <tr><td style="padding:8px 0;border-bottom:1px solid #e4e4e7;color:#71717a;">Cours relevé</td><td style="padding:8px 0;border-bottom:1px solid #e4e4e7;text-align:right;font-weight:600;">${escapeHtml(input.price)}</td></tr>
 <tr><td style="padding:8px 0;color:#71717a;">Seuil ${escapeHtml(sense === 'dépassé' ? 'haut' : 'bas')}</td><td style="padding:8px 0;text-align:right;">${escapeHtml(input.threshold)}</td></tr>
 </table>
-<p style="margin:24px 0 0;"><a href="${escapeHtml(input.url)}" style="display:inline-block;background:#3d63c2;color:#ffffff;text-decoration:none;padding:10px 20px;font-size:14px;font-weight:500;">Voir la fiche</a></p>
+<p style="margin:24px 0 0;"><a href="${escapeHtml(input.url)}" style="display:inline-block;background:#0d7a72;color:#ffffff;text-decoration:none;padding:10px 20px;font-size:14px;font-weight:500;">Voir la fiche</a></p>
 <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#71717a;">Cette alerte est maintenant désarmée. Réarmez-la depuis vos alertes si vous voulez être prévenu au prochain franchissement.</p>
 <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#a1a1aa;">ZENKUU publie de l’information de marché. Ce message n’est pas un conseil en investissement.</p>
 </td></tr></table></body></html>`

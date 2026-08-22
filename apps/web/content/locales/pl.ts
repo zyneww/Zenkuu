@@ -113,7 +113,7 @@ const pl: Translation = {
     moversHint: (size: number) => `Wśród ${size} największych kapitalizacji`,
     classMoversHint: (size: number) => `Wśród ${size} śledzonych aktywów tej klasy`,
     summaryTitle: 'Podsumowanie rynków',
-    topIndicesTitle: 'Główne indeksy',
+    crossAssetTitle: 'Główne rynki',
     volumeLeadersTitle: 'Największe wolumeny',
     economyTitle: 'Gospodarka',
     heroMarketCap: 'Kapitalizacja krypto',

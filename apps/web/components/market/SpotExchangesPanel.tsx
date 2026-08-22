@@ -211,6 +211,26 @@ export function SpotExchangesTable({
                       */}
                       <Link
                         href={`/places/${exchange.id}`}
+                        /*
+                          PRÉCHARGEMENT COUPÉ, ET C'EST MESURÉ.
+
+                          Next précharge tout `<Link>` qui ENTRE DANS LE CHAMP DE VISION,
+                          en production uniquement — d'où un défaut invisible en
+                          développement. Chaque ligne de ce tableau mène à `/places/[id]`,
+                          une route dynamique dont le rendu interroge la source.
+
+                          Relevé sur `/mouvements` en build de production : 23 requêtes de
+                          préchargement, dont HUIT rendus complets de fiches de place, pour
+                          un clic au plus. Elles passent par le même limiteur de débit que
+                          la page qu'on est en train de lire — le préchargement affamait
+                          donc le rendu courant, qui dépassait 120 secondes.
+
+                          `false` coupe le viewport ET le survol. C'est le bon arbitrage
+                          ici : une navigation légèrement moins instantanée, contre huit
+                          rendus serveur épargnés à chaque affichage du tableau. Voir
+                          OPTIMISATION.md, section « Réseau ».
+                        */
+                        prefetch={false}
                         className="truncate font-medium text-ink transition-colors duration-150 hover:text-brand-strong"
                       >
                         {exchange.name}

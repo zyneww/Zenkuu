@@ -199,7 +199,13 @@ export function NavBar({
           c'est cette séparation qui permet le centrage sans rouvrir le défaut que
           l'ancienne disposition redoutait, un trait qui s'arrête à mi-écran.
         */}
-        <div ref={navRef} className="shell flex h-16 items-center gap-2 lg:gap-4">
+        <div
+          ref={navRef}
+          /* `h-[var(--header-height)]` et non `h-16` : la même valeur sert de décalage
+             aux en-têtes collants de `MarketTable`, qui se glisseraient derrière celui-ci
+             si les deux divergeaient. Voir `--header-height` dans globals.css. */
+          className="shell flex h-[var(--header-height)] items-center gap-2 lg:gap-4"
+        >
           {/*
             LE TIROIR EST LE PREMIER ÉLÉMENT DE LA BARRE, avant le logo.
 
@@ -212,25 +218,23 @@ export function NavBar({
           <MobileNav />
 
           {/*
-            ── TROIS ZONES, ET LES DEUX LATÉRALES ONT LA MÊME LARGEUR ──────────
+            ── DEUX ZONES, ET LA NAVIGATION APPARTIENT À CELLE DE GAUCHE ───────
 
-            `flex-1 basis-0` de part et d'autre de la navigation : les deux groupes se
-            partagent également l'espace restant, ce qui pose la rangée de menus sur
-            l'axe EXACT de la barre. C'est la seule façon d'y parvenir — un simple
-            `justify-center` centrerait les trois groupes ensemble, donc la navigation
-            serait décalée de la moitié de l'écart entre le logo et les actions.
+            La barre a longtemps porté sa navigation sur l'AXE de l'écran, tenue là par
+            deux `flex-1 basis-0` de part et d'autre. Ce centrage a été retiré : la
+            référence de la refonte — tokenomist.ai, et avec lui CoinGecko, Binance,
+            TradingView — colle logo et navigation ensemble à gauche, et rejette la
+            recherche et le compte à droite.
 
-            Ces deux `flex-1 basis-0` avaient existé, puis avaient été retirés quand la
-            barre est passée à un alignement à gauche. Ils reviennent avec l'objectif
-            qui les justifiait.
+            Ce n'est pas qu'une préférence de composition. Une navigation centrée n'a
+            pas de bord auquel se raccrocher : elle FLOTTE, et sa position dépend de la
+            largeur des deux groupes qui l'entourent. Ajouter une entrée de menu la
+            déplaçait donc toute entière, et l'œil qui revenait à la barre devait la
+            chercher. Accrochée au logo, elle commence toujours au même endroit.
 
-            `min-w-0` sur les deux : sans lui, la largeur minimale d'un conteneur
-            flexible est celle de son contenu, et le groupe d'actions — recherche,
-            session, réglages — refuserait de se contracter. Il pousserait alors la
-            navigation hors de l'axe au lieu de rétrécir, ce qui annulerait le centrage
-            précisément sur les largeurs où il compte.
+            D'où un seul groupe à gauche — marque puis menus, sans conteneur
+            intermédiaire — et le groupe d'actions poussé à droite par `ml-auto`.
           */}
-          <div className="flex min-w-0 flex-1 basis-0 items-center">
           <Link
             href="/"
             /* `min-h-11` sans changer la taille du dessin : la marque mesure 28 pixels
@@ -257,7 +261,6 @@ export function NavBar({
             */}
             <ZenkuuWordmark className="h-7 w-auto shrink-0" />
           </Link>
-          </div>
 
           {/*
             ── LE SEUIL EST À 1280 ET NON À 1024 ───────────────────────────────
@@ -273,8 +276,8 @@ export function NavBar({
             le coin supérieur gauche, et un tiroir s'y manipule mieux qu'une rangée de
             menus au survol — il n'y a pas de survol sur un écran tactile.
           */}
-          {/* `shrink-0` : la navigation est le repère du centrage, elle ne se contracte
-              pas. Ce sont les deux groupes latéraux qui cèdent — voir leur `min-w-0`. */}
+          {/* `shrink-0` : la navigation ne se contracte pas. C'est le groupe d'actions,
+              à droite, qui cède — voir son `min-w-0`. */}
           <nav
             aria-label="Navigation principale"
             className="hidden shrink-0 items-center gap-0.5 xl:flex"
@@ -365,11 +368,14 @@ export function NavBar({
             fournisseur d'identité tiers. Il n'y a plus de page de tarifs à atteindre,
             et plus aucune fonction réservée : voir `lib/limits.ts`.
 
-            `justify-end` remplace `ml-auto` : le groupe est désormais une zone de
-            largeur imposée par la grille à trois colonnes, pas un bloc poussé à droite
-            par une marge automatique. C'est cette différence qui tient le centrage.
+            `ml-auto` revient à la place de `flex-1 basis-0` : la navigation n'étant
+            plus centrée, ce groupe n'a plus à réserver une zone symétrique de celle du
+            logo — il lui suffit d'être poussé au bord droit. `min-w-0` reste, sans quoi
+            la largeur minimale du groupe est celle de son contenu : le champ de
+            recherche refuserait de se contracter et pousserait la navigation hors de
+            l'écran au lieu de rétrécir.
           */}
-          <div className="relative flex min-w-0 flex-1 basis-0 items-center justify-end gap-1 sm:gap-2">
+          <div className="relative ml-auto flex min-w-0 items-center justify-end gap-1 sm:gap-2">
             <HeaderSearch onOpenOverlay={openSearch} />
 
             {/*

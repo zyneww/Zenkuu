@@ -37,12 +37,40 @@ export type NewsCategory = 'crypto' | 'marches' | 'economie' | 'regulation'
 
 export type NewsLang = 'fr' | 'en'
 
-/** Libellés affichés — définis ici pour rester alignés sur les flux eux-mêmes. */
+/**
+ * Libellés affichés — définis ici pour rester alignés sur les flux eux-mêmes.
+ *
+ * ── ILS NOMMENT LA PROVENANCE, PAS LE SUJET, ET C'EST UNE CORRECTION ─────────
+ *
+ * Ils disaient « Cryptomonnaies », « Marchés & entreprises », « Économie & macro »,
+ * « Régulation & banques centrales » — quatre intitulés de SUJET. Or la valeur qu'ils
+ * habillent est `source.category` : la rubrique du FLUX, jamais celle de l'article.
+ * Ce fichier pose d'ailleurs le principe et le tient — déduire la rubrique du texte
+ * « produirait des étiquettes fausses, donc de la donnée inventée » (§5).
+ *
+ * Le modèle de données était donc juste et le libellé mentait. Relevé en page :
+ * « Ukrainian Nord Stream blast suspect detained in Croatia » et « US Trade
+ * Representative says 25 years of efforts to change China's economy only made things
+ * worse » portaient tous deux la pastille « Cryptomonnaies », parce qu'un média crypto
+ * avait repris ces dépêches. La pastille affirmait un sujet que rien ne soutenait, sur
+ * un site dont la règle est de n'afficher que ce qu'il peut justifier.
+ *
+ * « Presse crypto » dit exactement ce qui est vrai : l'article vient d'un média
+ * spécialisé en crypto. Le lecteur peut le vérifier — le nom de l'éditeur est à côté
+ * — et il comprend de lui-même qu'une dépêche générale reprise par un tel média reste
+ * une dépêche générale.
+ *
+ * ⚠️ NE PAS « AMÉLIORER » EN DÉDUISANT LA RUBRIQUE DU TITRE. C'est la solution qui
+ * vient à l'esprit et elle est explicitement écartée : voir l'en-tête de
+ * `apps/web/components/news/mentions.ts`, qui distingue CHERCHER un mot dans un titre
+ * (vrai par construction, vérifiable d'un coup d'œil) de CLASSER un article
+ * (interprétation, invérifiable, souvent fausse).
+ */
 export const NEWS_CATEGORY_LABELS: Record<NewsCategory, string> = {
-  crypto: 'Cryptomonnaies',
-  marches: 'Marchés & entreprises',
-  economie: 'Économie & macro',
-  regulation: 'Régulation & banques centrales',
+  crypto: 'Presse crypto',
+  marches: 'Presse marchés',
+  economie: 'Presse économie',
+  regulation: 'Presse régulation',
 }
 
 export const NEWS_LANG_LABELS: Record<NewsLang, string> = {
@@ -149,7 +177,33 @@ const FEEDS: FeedSource[] = [
   { id: 'investing-indices', label: 'Investing.com Indices', url: 'https://www.investing.com/rss/stock_Indices.rss', category: 'marches', lang: 'en' },
   { id: 'investing-commodities', label: 'Investing.com Matières premières', url: 'https://www.investing.com/rss/news_11.rss', category: 'marches', lang: 'en' },
   { id: 'investing-forex', label: 'Investing.com Devises', url: 'https://www.investing.com/rss/news_1.rss', category: 'marches', lang: 'en' },
-  { id: 'tradingview', label: 'TradingView', url: 'https://www.tradingview.com/feed/', category: 'marches', lang: 'en' },
+  /*
+   * ⚠️ TRADINGVIEW A ÉTÉ RETIRÉ. NE PAS LE RÉINSCRIRE.
+   *
+   * Il figurait ici au motif, écrit juste au-dessus, que « TradingView commente les
+   * niveaux » des indices. L'intention était juste, l'adresse ne la servait pas :
+   * `tradingview.com/feed/` ne publie pas d'articles de rédaction mais les IDÉES
+   * PUBLIÉES PAR SES UTILISATEURS — c'est-à-dire des appels au trade.
+   *
+   * Ce qu'il a réellement servi, relevé en page et mis EN UNE de `/actualites` :
+   *
+   *     DASH USDT LONG SIGNAL
+   *     Position Type: LONG · Timeframe: 1H · Entry Zone: 32.64 31.10
+   *     Stop-Loss: 30.24 · Take-Profit: TP1 34.12 • TP2 36.33 • TP3 38.95
+   *
+   * Douze occurrences de ce vocabulaire — « long signal », « entry zone »,
+   * « stop-loss », « take-profit » — dans le seul HTML servi ce jour-là.
+   *
+   * C'est frontalement contraire au §7, que la navigation applique déjà à la lettre :
+   * « aucune entrée ne mène ni ne fait référence à un achat, une vente ou un ordre ».
+   * Un site de consultation qui interdit un lien vers un ordre dans son menu ne peut
+   * pas mettre un ordre chiffré en une de ses actualités. Le fil ne présentait par
+   * ailleurs aucun moyen de distinguer ces idées d'un article de presse : même
+   * vignette, même pastille, même mise en forme.
+   *
+   * Le besoin d'origine reste couvert : `investing-indices` publie un flux dédié aux
+   * indices, de rédaction, et c'est lui qui comblait le trou mesuré.
+   */
   { id: 'etfdb', label: 'ETF Database', url: 'https://etfdb.com/feed/', category: 'marches', lang: 'en' },
   { id: 'businessinsider', label: 'Business Insider Markets', url: 'https://markets.businessinsider.com/rss/news', category: 'marches', lang: 'en' },
 

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { Martian_Mono } from 'next/font/google'
-import localFont from 'next/font/local'
+import { DM_Mono, Geist } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
@@ -28,94 +27,81 @@ import { SITE_URL, languageAlternates } from '@/lib/site'
 import '@/app/globals.css'
 
 /**
- * Police d'INTERFACE ET D'AFFICHAGE — Switzer.
+ * Police d'INTERFACE ET D'AFFICHAGE — Geist.
  *
- * ── POURQUOI PAS CELLE D'OKX ─────────────────────────────────────────────────
+ * ── POURQUOI ELLE REMPLACE INTER ─────────────────────────────────────────────
  *
- * La demande était « la même police qu'OKX ». Relevé au navigateur sur
- * okx.com/fr-fr/markets/prices : ils composent en `OKXSans`, servie depuis
- * `/cdn/assets/okfe/libs/fonts/OKX_Sans/*.woff2`. C'est une fonte PROPRIÉTAIRE,
- * dessinée pour eux et distribuée sous leur seul nom de domaine. On ne peut ni
- * l'héberger — ce serait une contrefaçon — ni la charger depuis chez eux : un lien
- * direct vers le CDN d'un tiers casse le jour où ils changent d'empreinte, et fait
- * dépendre le rendu de notre site de l'infrastructure d'un concurrent.
+ * L'ÉCHELLE typographique du site reste celle relevée sur tokenomist.ai — 13 px de
+ * corps, 16 px d'interligne, graisse 500, interlettrage −0,12 px, et ces quatre
+ * valeurs ne bougent pas (voir `--text-sm` dans globals.css). Ce qui change est la
+ * fonte qui la porte.
  *
- * Switzer est le substitut LIBRE le plus proche : grotesque géométrique de l'Indian
- * Type Foundry, sous ITF Free Font License (usage commercial autorisé), même
- * hauteur d'x généreuse et mêmes terminaisons droites qu'OKX Sans. Elle remplace
- * Inter, qui était le choix de CoinGecko et de Tokenomist — un site de marché qui
- * compose comme tous les autres n'a pas de voix propre.
+ * Inter est la fonte de CoinGecko, de Tokenomist et de la moitié du secteur : la
+ * reprendre revenait à composer comme tout le monde. Geist en est assez proche pour
+ * que l'échelle se transpose sans réglage — hauteur d'x et chasses comparables, donc
+ * la même densité à 13 px — et assez différente pour s'entendre : son œil est plus
+ * étroit, ses terminaisons plus franches, et ses chiffres, dessinés pour les tableaux
+ * de bord, tranchent nettement à 11 px là où ceux d'Inter s'arrondissent.
+ *
+ * ── CE QU'IL FAUT SURVEILLER ─────────────────────────────────────────────────
+ *
+ * Geist est LÉGÈREMENT plus étroite qu'Inter à corps égal. Les colonnes de tableau
+ * dimensionnées au caractère près gagnent donc quelques pixels de marge — jamais
+ * l'inverse, ce qui rend le remplacement sûr dans ce sens-là. Un libellé qui
+ * débordait déjà débordera encore ; aucun ne se met à déborder du fait du changement.
  *
  * ── UN SEUL FICHIER POUR TOUTE L'ÉCHELLE ─────────────────────────────────────
  *
- * `Switzer-Variable.woff2` porte l'axe `wght` de 100 à 900 en 42 ko. Les cinq
- * graisses utilisées par le site viennent donc d'une ressource unique, là où les
- * fichiers statiques équivalents en auraient demandé cinq. D'où `weight: '100 900'`
- * — la plage, et non une valeur : c'est ce qui indique au navigateur qu'il peut
- * interpoler plutôt que de synthétiser un gras artificiel.
+ * `next/font/google` sert la version VARIABLE de Geist : les cinq graisses utilisées
+ * par le site viennent d'une ressource unique, et le navigateur interpole au lieu de
+ * synthétiser un gras artificiel. `display: 'swap'` évite le texte invisible pendant
+ * le chargement, qui pénalise le LCP mesuré (§9).
  *
- * ── POURQUOI `app/fonts/` ET NON `public/` ───────────────────────────────────
- *
- * `next/font/local` traite le fichier à la compilation : il l'émet sous
- * `/_next/static/media/` avec une empreinte de contenu, donc en cache immuable, et
- * génère la règle `@font-face` avec les métriques de repli qui suppriment le
- * décalage de mise en page au chargement. Déposé dans `public/`, il serait servi tel
- * quel, sans empreinte et sans ces métriques.
- *
- * `display: 'swap'` évite le texte invisible pendant le chargement, qui pénalise le
- * LCP mesuré (§9).
+ * Le fichier `app/fonts/Switzer-Variable.woff2` n'est plus référencé. Il reste dans
+ * l'arbre : le supprimer est une décision de nettoyage, pas de typographie.
  */
-const sans = localFont({
-  src: '../fonts/Switzer-Variable.woff2',
-  weight: '100 900',
+const sans = Geist({
+  subsets: ['latin'],
   display: 'swap',
-  variable: '--font-switzer',
+  variable: '--font-geist',
 })
 
 /**
- * Police des NOMBRES — Martian Mono, et c'est elle qui porte l'identité.
+ * Police des NOMBRES — DM Mono.
  *
- * DESIGN.md prescrit une police dédiée pour toute donnée tabulaire, et la raison
- * est fonctionnelle plutôt qu'esthétique : en chasse proportionnelle, un « 1 » est
- * plus étroit qu'un « 8 », si bien qu'une colonne de cotation se décale
- * visuellement à chaque rafraîchissement. La chasse fixe supprime ce ballet.
+ * DESIGN.md prescrit une police dédiée pour toute donnée tabulaire, et la raison est
+ * fonctionnelle plutôt qu'esthétique : en chasse proportionnelle, un « 1 » est plus
+ * étroit qu'un « 8 », si bien qu'une colonne de cotation se décale visuellement à
+ * chaque rafraîchissement. La chasse fixe supprime ce ballet.
  *
- * ── POURQUOI CETTE POLICE-LÀ EST LA VOIX DE LA MARQUE ───────────────────────
+ * ── POURQUOI ELLE REVIENT À LA PLACE DE MARTIAN MONO ────────────────────────
  *
- * Sur ce site, la majorité du texte affiché est NUMÉRIQUE. La police des chiffres
- * est donc vue plus souvent que celle des titres : c'est elle qui porte l'identité,
- * et non l'inverse. Un site de données dont la mono est anonyme n'a pas de voix.
+ * Martian Mono avait été choisie pour porter l'identité de la marque, DM Mono ayant
+ * été écartée comme « empruntée à Tokenomist ». La refonte assume désormais cet
+ * emprunt : `dm_mono` est la seconde fonte relevée sur leur page, et les colonnes de
+ * chiffres sont l'endroit où l'écart entre les deux se voit le plus. Martian Mono est
+ * large de nature — c'est ce que son axe `wdth` sert à corriger ; DM Mono est étroite
+ * de dessin, ce qui est le bon défaut sur onze colonnes.
  *
- * Elle remplace DM Mono, qui était relevée au navigateur sur la page de tarifs de
- * Tokenomist — donc empruntée — et bornée à la graisse 500 : un chiffre mis en avant
- * y était épaissi artificiellement par le navigateur, et `globals.css` devait borner
- * la graisse pour l'éviter.
+ * ── LA GRAISSE EST BORNÉE, ET IL FAUT QU'ELLE LE RESTE ──────────────────────
  *
- * ── L'AXE DE LARGEUR EST CE QUI LA REND UTILISABLE ICI ──────────────────────
- *
- * Martian Mono est large de nature, et ce site affiche jusqu'à onze colonnes. Elle
- * est variable sur DEUX axes — graisse ET largeur (75 à 112,5) —, ce qu'aucune mono
- * non variable ne sait faire : les colonnes se resserrent à `wdth 80` sans que le
- * trait maigrisse ni que le dessin se déforme. Comparé au navigateur contre IBM Plex
- * Mono, Azeret Mono, Spline Sans Mono et DM Mono, c'est la seule qui garde du
- * caractère à cette densité ; les quatre autres deviennent interchangeables.
- *
- * Son zéro barré distingue O de 0 sans qu'on ait à y penser — sur une colonne de
- * cotation, c'est la seule ambiguïté qui compte.
+ * DM Mono ne connaît que 300, 400 et 500. Un `font-bold` posé sur un nombre demande
+ * 700 : le navigateur l'obtient alors en ÉPAISSISSANT le tracé lui-même, ce qui bave
+ * à 11 px. `globals.css` borne donc la graisse de la classe `.tabular` à 500 — voir
+ * la règle en fin de fichier. Ne pas retirer ce garde-fou en croyant débloquer un
+ * gras manquant.
  *
  * ── CE QU'ELLE NE FAIT PAS ──────────────────────────────────────────────────
  *
- * Elle ne porte PAS le chiffre héros d'une fiche d'actif. À quarante pixels,
- * l'espace des milliers d'une chasse fixe vaut la largeur d'un chiffre entier et
- * coupe le cours en deux — mesuré sur `/design/typo.html`. Rien ne s'alignant sous
- * un cours, la chasse fixe n'y apporte que son défaut : ce chiffre-là est posé dans
- * la police de texte, avec ses chiffres tabulaires.
+ * Elle ne porte PAS le chiffre héros d'une fiche d'actif. À quarante pixels, l'espace
+ * des milliers d'une chasse fixe vaut la largeur d'un chiffre entier et coupe le cours
+ * en deux. Rien ne s'alignant sous un cours, la chasse fixe n'y apporte que son
+ * défaut : ce chiffre-là est posé dans la police de texte, avec ses chiffres
+ * tabulaires.
  */
-const mono = Martian_Mono({
+const mono = DM_Mono({
   subsets: ['latin'],
-  /* `variable` et non une liste de graisses : next/font émet alors le fichier
-     variable, seul à porter l'axe de largeur dont dépend la densité des colonnes. */
-  weight: 'variable',
+  weight: ['300', '400', '500'],
   display: 'swap',
   variable: '--font-mono-numeric',
 })

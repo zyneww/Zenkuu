@@ -44,57 +44,85 @@ Objectif business : devenir une référence d'analyse de marché généraliste, 
 
 ### 3.1 Design system (tranché, en place)
 
-- Police d'interface : **Inter** · police d'affichage : **IBM Plex Sans** · nombres : **JetBrains Mono**
-- Rayon de bordure : **12 px** (plafond des boutons)
+- Police d'interface et d'affichage : **Geist** · nombres : **DM Mono**
+- Rayon : **4 px** pour les contrôles, **12/16 px** pour les cartes — deux familles, jamais d'entre-deux
 - Échelle d'espacement : **4 px**
-- Palette : **« ciel au zénith » — azur et or, sur blanc froid**
-- **Header horizontalement centré** (écart volontaire par rapport à CoinGecko, aligné à gauche)
+- Palette : **« nuit chaude » — noir chaud + cyan, l'ambre en éclat ponctuel**
+- **Thème sombre par défaut**, thème clair complet et accessible d'un clic
+- **Header aligné à gauche** : marque puis menus déroulants collés ensemble, recherche et compte rejetés à droite
+
+⚠️ **Ce qui suit décrit le système EN PLACE.** Plusieurs versions se sont succédé — azur
+et or sur blanc froid, puis un accent achromatique sur bleu-noir — et les paragraphes qui
+les décrivaient ont été réécrits plutôt que doublés. Ce qui subsiste d'une version passée
+est annoncé comme tel, et seulement quand la MÉTHODE qu'il expose vaut encore.
 
 Les jetons sont définis dans `apps/web/app/globals.css` (bloc `@theme`) et nulle part ailleurs.
 
-#### Grammaire d'instrument — surface unique et angles vifs
+#### Grammaire d'instrument — trois plans et deux familles de rayon
 
 Deux règles gouvernent tout le reste. Elles s'appliquent aux **deux thèmes**, et les
 défaire l'une sans l'autre casse l'ensemble.
 
-**1. Surface unique.** `--color-canvas` et `--color-surface` sont **égaux**. Une carte
-ne se distingue plus par un fond plus clair mais par son seul **filet**. C'est
-l'inverse de la convention habituelle, et c'est ce qui donne l'allure d'instrument :
-tout vit sur un même plan, la structure est tracée et non empilée. Une pile de
-surfaces surélevées évoque le document — registre juste pour un article, faux pour un
-poste de lecture.
+**1. Trois plans.** Le fond, la carte, le second plan — chacun un cran au-dessus du
+précédent, **dans le même sens dans les deux thèmes**. Une carte est un objet posé,
+pas une zone délimitée.
 
-Conséquence à ne pas oublier : **`bg-surface` ne fait plus ressortir un bloc.** Un
-composant qui doit être délimité porte `border`. `--color-surface-muted` reste le seul
-ton qui marque une différence : survols de ligne et bandes de contraste.
+> ⚠️ **Renversement.** Ce document a longtemps porté la règle inverse — « surface
+> unique », `canvas` et `surface` **égaux**, une carte n'existant que par son filet.
+> L'argument était qu'un plan unique évoque l'instrument quand une pile de surfaces
+> évoque le document. Il est abandonné : sur une page qui porte quinze blocs, quinze
+> filets font une grille de tableur. Et la référence de la refonte, tokenomist.ai,
+> élève ses cartes de onze points de clarté au-dessus de son fond. Conséquence
+> pratique : **`bg-surface` fait de nouveau ressortir un bloc**, et les 124 blocs du
+> site qui le portent sont devenus des cartes d'un seul changement de jeton.
 
-**2. Rayon zéro.** `--radius-card` vaut `0px`, ainsi que toute l'échelle. Les noms
-survivent pour ne pas réécrire les centaines de `rounded-card` du projet — c'est le
-bénéfice d'avoir centralisé la mise en forme dans des jetons. **Seule exception :**
-`--radius-pill`, réservé aux pastilles de filtre et d'état, dont la forme dit « je suis
-un jeton cliquable ». C'est le contraste avec les angles vifs alentour qui le signale.
+`--color-surface-muted` n'est ni un plan ni une carte : c'est le ton des survols de
+ligne, des en-têtes de colonne et des bandes de contraste. Il reste **au-dessus** de
+`panel`, sans quoi le survol d'une ligne serait plus sombre que le panneau qui la
+contient.
 
-**Exception à la surface unique : les couches flottantes.** Menus, recherche, boîtes de
-dialogue survolent réellement la page ; avec `canvas` égal à `surface`, elles s'y
-confondraient. D'où `--color-overlay` et `--shadow-overlay`, réservés à ces couches et
-jamais appliqués à une carte.
+**2. Deux familles de rayon, séparées par un vide.** **4 px** pour ce qu'on vise et
+qu'on active (boutons, champs, pastilles carrées), **12 à 16 px** pour ce qu'on prend
+en entier (cartes, panneaux). Rien entre les deux : une échelle continue de 4 à 16 par
+pas de deux se lit comme du flou. **Deux exceptions** — `--radius-pill` pour les formes
+closes dont l'arrondi complet EST la lecture (étiquette de catégorie, jauge
+d'amplitude), et `--radius-dense` à `0px` pour les surfaces qu'on **parcourt** (tableau,
+carnet d'ordres, menu déroulant), où chaque arrondi creuse une encoche dans la colonne.
+
+> ⚠️ Une version précédente posait **toute** l'échelle à `0px`, au motif qu'un angle à
+> 90° distingue l'instrument de lecture de l'application de bureau. La conviction
+> n'était pas fausse, elle décrivait une page à surface unique — où rien ne se détache,
+> donc où aucun coin n'a rien à adoucir.
+
+**Quatrième ton : les couches flottantes.** Menus, recherche, boîtes de dialogue
+survolent réellement la page ; un menu qui prendrait `bg-panel` se confondrait avec le
+panneau qu'il recouvre. D'où `--color-overlay` et `--shadow-overlay`, réservés à ces
+couches et **jamais appliqués à une carte** — les cartes sont élevées par leur ton.
 
 | Jeton | Clair | Sombre |
 |---|---|---|
-| canvas = surface | `#ffffff` | `#0a0a0a` |
-| surface-muted | `#f4f4f5` | `#161616` (monte, au lieu de descendre) |
-| border-subtle | `#e4e4e7` | `#2e2e2e` |
-| overlay | `#ffffff` (l'ombre fait le travail) | `#212124` |
+| canvas | `#f4f1f3` | `#100c0e` |
+| surface (cartes) | `#fbf9fa` | `#1b1618` |
+| panel (second plan) | `#ffffff` | `#221d1f` |
+| surface-muted | `#eae4e7` | `#282324` |
+| border-subtle | `#e0d8dc` | `#2e2829` |
+| overlay | `#ffffff` | `#221d1f` |
 
-Le thème sombre est un gris **neutre**, pas bleuté : une dominante froide fait prendre
-un voile violet aux couleurs de données, et rend les filets sales.
+Le thème sombre est un noir **chaud** : quatre points de rouge au-dessus du bleu. C'est
+sous le seuil auquel l'œil nomme une dominante — donc sans effet sur les six teintes de
+données — et cela suffit à ce que le fond ne soit pas le gris neutre par défaut de la
+moitié du secteur.
 
 #### Palette de données — distincte de la palette d'interface
 
 Six teintes (`--color-data-1` à `-6`) servent **exclusivement** à distinguer des séries
 de graphique ou à identifier une carte de métrique. L'interface — liens, boutons,
-focus — reste **azur**, et c'est ce qui garde l'identité lisible : un lecteur doit
+focus — reste **cyan**, et c'est ce qui garde l'identité lisible : un lecteur doit
 pouvoir nommer « la couleur du site ».
+
+Le cyan de marque et `--color-data-4` partagent leur teinte (182°). Ce n'est pas un
+conflit : l'un est un aplat de **contrôle**, l'autre un trait de **graphique**, et les
+deux ne se rencontrent sur aucun objet.
 
 Elles sont ordonnées par **distance perceptuelle** : deux séries voisines prennent les
 deux premières, les plus dissemblables.
@@ -129,60 +157,70 @@ infobulle, animation d'entrée de 800 ms.
 compte jusqu'à 50 par page, et 50 instances Recharts y coûteraient bien plus que le
 gain visuel.
 
-#### Palette « ciel au zénith »
-
-Lecture littérale du nom du site : le zénith est le point du ciel à la verticale de
-l'observateur, celui que le soleil atteint à midi. D'où deux couleurs, et une hiérarchie
-stricte entre elles.
+#### Palette « nuit chaude »
 
 | Rôle | Clair | Sombre | Emploi |
 |---|---|---|---|
-| `--color-brand` | `#0369a1` | `#0ea5e9` | Liens, boutons, focus — **porte l'interface** |
-| `--color-brand-strong` | `#075985` | `#7dd3fc` | Survol et emphase |
-| `--color-on-brand` | `#ffffff` | `#0b1622` | Texte **sur** aplat de marque |
-| `--color-accent` | `#f59e0b` | `#fbbf24` | Or solaire — **décor seul en thème clair** |
-| `--color-accent-strong` | `#b45309` | `#fcd34d` | Or porteur de sens |
+| `--color-brand` | `#0d7a72` | `#35e0d0` | Liens, boutons, onglet actif, focus — **porte l'interface** |
+| `--color-brand-strong` | `#075a54` | `#6cf0e4` | Survol et emphase |
+| `--color-brand-soft` | `#dff3f1` | `#0c2b29` | Aplat teinté (pastille active) — ne porte jamais de texte seul |
+| `--color-on-brand` | `#ffffff` | `#06211f` | Texte **sur** aplat de marque |
+| `--color-accent` | `#a8540a` | `#ffb347` | Ambre — **éclat ponctuel** : badges, seuils, métaux |
+| `--color-accent-strong` | `#7f3e07` | `#ffcb80` | Ambre porteur de sens |
+
+> ⚠️ **Renversement.** Ce document a porté successivement deux autres identités : un
+> **azur** de marque (« ciel au zénith », lecture littérale de 空, *kuu*, le ciel), puis
+> un accent **achromatique** — l'extrême de la rampe, sous l'argument qu'un instrument
+> de mesure ne se colore pas lui-même et réserve la couleur à ce qu'il mesure.
+>
+> Cet argument s'appuyait sur une mesure juste et une conclusion trop stricte : il
+> raisonnait sur la **teinte** seule, en oubliant que deux couleurs de même teinte se
+> distinguent aussi par leur saturation, leur clarté et le TYPE d'objet qui les porte.
+> Et son coût était écrit dans le document lui-même : en thème clair, l'accent vivait à
+> **1,72:1** de l'encre, et un lien ne s'y distinguait que par son soulignement. Une
+> interface entière ne peut pas reposer sur une vigilance.
 
 Trois points qu'une évolution ne doit pas défaire :
 
-- **L'azur porte, l'or ponctue.** Inverser les rôles donnerait un site jaune, illisible et
-  criard. En thème clair l'or plafonne à **2,05:1** — sous le seuil de 3:1 exigé même d'un
-  composant d'interface : il ne peut porter ni texte, ni bordure signifiante, ni icône seule.
-- **`--color-on-brand` existe parce que `text-white` en dur ne peut pas être correct dans les
-  deux thèmes.** L'azur est sombre en clair (blanc dessus : 5,93:1) et lumineux en sombre
-  (blanc dessus : 2,77:1, sous le seuil AA). La couleur du texte doit basculer avec le fond.
+- **Le cyan porte, l'ambre ponctue.** Inverser les rôles donnerait un site orange. En
+  thème clair l'ambre est assombri à `#a8540a` pour franchir AA (5,04:1) : c'est ce qui
+  lui permet, contrairement à la version précédente, de porter du texte.
+- **`--color-brand` tient DEUX contraintes, pas une.** Texte de lien **sur** le canvas,
+  et fond plein **sous** `--color-on-brand`. Une teinte qui passe l'une et rate l'autre
+  rend les boutons pleins illisibles sans que rien ne le signale à l'écran. Les deux
+  sont vérifiées séparément par `apps/web/app/palette.test.ts`.
 - **Un jeton déclaré n'existe pas forcément à l'exécution.** Tailwind 4 élague de `:root` tout
   jeton de thème qu'aucune classe utilitaire ne consomme, alors que le bloc `.dark` sort
   toujours en entier. Toute lecture de ces variables en JavaScript doit prévoir la valeur vide.
 
-**Neutres du thème sombre — d'après `companiesmarketcap.com`.** Les deux tons sont
-relevés au navigateur sur ce site (mesurés, pas estimés) : `#2b2d3e` pour ses tableaux
-et sa barre haute, `#343e59` pour son fond de page. Une ardoise bleutée nettement plus
-claire que le bleu-nuit précédent — moins « terminal de nuit », plus « application de
-bureau ». Les accents azur sont inchangés.
+#### Les contrastes sont MESURÉS, et la mesure est rejouée
+
+`apps/web/app/palette.test.ts` relit `globals.css`, en extrait les deux jeux de jetons
+de part et d'autre de `.dark {`, et refait le calcul WCAG de chaque paire — texte à
+4,5:1, série de graphique à 3:1. Quarante vérifications.
+
+C'est la seule forme de documentation de contraste qui ne puisse pas mentir : un ratio
+noté en commentaire ne casse pas quand la valeur qu'il décrit change, et ce dépot en a
+porté pendant deux refontes qui décrivaient une palette abandonnée. **Une teinte
+nouvelle s'ajoute au tableau du test, pas seulement au fichier CSS.**
+
+**Neutres du thème sombre — relevés sur `tokenomist.ai`.** Les valeurs sont mesurées au
+navigateur, pas estimées : leur fond de page vaut `rgb(17, 13, 15)` et leurs cartes
+`rgb(28, 23, 25)`, soit un écart de **1,32:1** — c'est cet écart qui est repris, pas les
+teintes, qui sont décalées des leurs.
 
 Deux choses à ne pas défaire :
 
-- **Leur hiérarchie de surfaces est inversée ; la nôtre ne l'est pas.** Chez eux le
-  fond de page est plus CLAIR que le tableau. Copier cette inversion casserait le
-  contrat de `bg-surface` (« surface surélevée, donc plus claire ») dans une trentaine
-  de composants, et ferait tomber le rouge de baisse à 3,83:1 — sous le seuil AA. Leurs
-  deux tons sont donc repris à l'identique mais **dans l'ordre inverse** : leur ton de
-  tableau devient le canvas, leur ton de page devient la surface des cartes.
-- **C'est l'ÉCART entre les deux qui compte, pas leur valeur absolue** : 1,28:1 chez eux
-  comme ici. Une première tentative avait glissé un troisième ton sous les deux leurs ;
-  elle gardait leurs couleurs mais écrasait la séparation à 1,07:1, et les cartes
-  cessaient de se détacher du fond. `surface-muted` part donc **en retrait** (`#232532`)
-  plutôt qu'en surélévation.
-
-Contrastes vérifiés au navigateur sur les trois surfaces, texte par texte. La plus
-exigeante en sombre est `surface` (#343e59) : ink 9,0 · ink-muted 5,1 · brand-strong 6,4
-· hausse 5,5 · baisse 4,8. En clair : ink 17,1 · ink-muted 7,2 · brand 5,7 · hausse 5,2
-· baisse 6,2. Aucun couple sous 4,5:1.
-
-⚠️ `--color-brand` n'est qu'à **3,8:1** sur la surface des cartes en thème sombre :
-suffisant pour un composant d'interface (seuil 3:1), **insuffisant pour du texte**. Tout
-texte de marque posé sur une carte passe par `--color-brand-strong`.
+- **L'élévation va dans le MÊME SENS dans les deux thèmes.** Une carte est plus claire
+  que le fond en sombre ; elle doit l'être aussi en clair, faute de quoi un lecteur qui
+  bascule perd ses repères. C'est ce qui a imposé de descendre le canvas clair à
+  `#f4f1f3` : avec un canvas à `#faf8f9`, la carte prenait le blanc pur et le second
+  plan n'avait plus où aller — le thème clair perdait un plan que le sombre avait.
+- **C'est l'ÉCART entre deux plans qui compte, pas leur valeur absolue.** Une version
+  antérieure était descendue à `#060606`, six points au-dessus du noir absolu : sur un
+  écran OLED, le canvas devenait du noir éteint, les panneaux flottaient sans support et
+  le bord de la fenêtre se confondait avec la page. `#100c0e` garde seize points de
+  marge — assez pour que la page reste une SURFACE et non un trou.
 
 **Système de mise en forme — `kraken/DESIGN.md`.** Installé via
 `npx getdesign@latest add kraken`, il sert de référence de GRAMMAIRE visuelle : échelle de
@@ -207,13 +245,16 @@ aucune superposition n'était possible :
 - **Titres d'affichage en graisse 700**, interlettrage négatif, plafonnés à 48 px (`.display-*`).
   Les tailles plafonnent plus bas qu'avant parce que graisse et taille se compensent : un titre
   de 80 px en graisse 400 reste aéré, le même en 700 devient un mur.
-- **Système à deux polices** : IBM Plex Sans pour les titres, Inter pour l'interface. C'est ce
-  dédoublement qui donne à une page sa voix, davantage que le choix de l'une ou l'autre fonte
-  prise isolément. La fonte de marque de Kraken étant propriétaire, on retient le repli que le
-  template désigne lui-même.
-- **Police à chasse fixe sur tous les nombres** (JetBrains Mono, branchée sur la classe
+- **Une seule famille d'interface, le contraste porté par la GRAISSE** : Geist, variable,
+  de 100 à 900 depuis une ressource unique. Le système à deux polices (IBM Plex Sans pour
+  les titres, Inter pour l'interface) a été abandonné : une fonte variable rend le
+  dédoublement coûteux sans le rendre plus expressif. `--font-display` survit et pointe
+  sur la même famille, pour que les classes `.display-*` n'aient pas à être retouchées.
+- **Police à chasse fixe sur tous les nombres** (DM Mono, branchée sur la classe
   `.tabular` déjà présente partout). En chasse proportionnelle, un « 1 » est plus étroit
   qu'un « 8 » : une colonne de cotation se décale visuellement à chaque rafraîchissement.
+  ⚠️ DM Mono ne connaît que 300/400/500 : `globals.css` borne la graisse de `.tabular`
+  à 500, sans quoi un `font-bold` fait épaissir le tracé par le navigateur et bave à 11 px.
 - **Boutons à 12 px.** La pilule survit, mais son domaine se réduit aux pastilles et puces de
   filtre — la distinction sépare visuellement ce qui déclenche une action de ce qui bascule
   un état.
@@ -614,8 +655,8 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 - **Plateforme 100 % lecture seule** : aucune fonction d'ordre, de dépôt, de retrait ou de connexion à un wallet/broker, sur aucune page.
 - **Zéro donnée mock/test/placeholder**, à aucun stade du développement.
 - **Toutes les API et outils utilisés doivent être 100 % gratuits**.
-- **Header horizontalement centré**.
-- Le design system (Inter + IBM Plex Sans, rayon 12 px, échelle 4 px, palette azur/or « ciel au zénith ») est la base par défaut ; tout changement de thème doit être explicitement demandé.
+- **Header aligné à gauche** — marque et menus collés ensemble, recherche et compte à droite. (A remplacé le header centré : une navigation centrée n'a pas de bord auquel se raccrocher, sa position dépend de la largeur des deux groupes qui l'entourent, et ajouter une entrée de menu la déplaçait toute entière.)
+- Le design system (Geist + DM Mono, rayons 4/12-16 px, échelle 4 px, palette « nuit chaude » cyan/ambre, sombre par défaut) est la base par défaut ; tout changement de thème doit être explicitement demandé.
 
 ---
 
@@ -701,14 +742,14 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Yahoo Finance** — actions, ETF, matières premières, indices, **OHLC + volume** | `providers/yahoo.ts` |
 | **RSS** — actualités (Cointelegraph, CoinDesk) | `providers/news.ts` |
 | **Alternative.me** — indice Fear & Greed | `providers/sentiment.ts` |
-| Design system clair azur/or **+ thème sombre** | `apps/web/app/globals.css` |
+| Design system « nuit chaude » — sombre par défaut **+ thème clair complet**, contrastes vérifiés par test | `apps/web/app/globals.css` · `apps/web/app/palette.test.ts` |
 | Bascule de thème, suivi système, sans flash au chargement | `components/ThemeScript.tsx`, `ThemeToggle.tsx` |
-| Header centré avec 4 menus déroulants accessibles | `components/NavBar.tsx`, `content/navigation.ts` |
+| Header aligné à gauche, 5 menus déroulants accessibles, recherche et compte à droite | `components/NavBar.tsx`, `content/navigation.ts` |
 | Sélecteur langue/devise (globe), 2 colonnes + recherche | `components/locale/LocalePanel.tsx` |
 | Logo et mascotte en masque CSS (suivent le thème) | `public/brand/`, `.brand-mark` |
 | Favicon simplifié, lisible à 16 px | `app/icon.svg` |
 | Recherche universelle toutes classes d'actifs | `app/api/recherche/`, overlay du header |
-| Accueil : synthèse, tendances, hausses/baisses, narratifs, actus, sentiment | `app/page.tsx`, `components/home/` |
+| Accueil : date centrée → 3 cartes de tête → 7 pastilles de classe + tableau dense → en tendance par classe → actualités | `app/[locale]/page.tsx`, `components/home/{MarketDate,ClassSection,ClassBoard,TrendingBoard,NewsBoard}.tsx` |
 | Six classements + six fiches d'actif | `app/{crypto,devises,actions,etf,matieres-premieres,indices}/` |
 | Catégories, actualités, sentiment, mouvements | `app/{categories,actualites,sentiment}/` |
 | **Comptes utilisateurs maison** — code par courriel, session en base, reprise des données anonymes à la connexion | `packages/db/src/accounts.ts`, `lib/session.ts`, `lib/auth-actions.ts`, `components/account/` |

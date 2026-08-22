@@ -114,7 +114,7 @@ const ru: Translation = {
     moversHint: (size: number) => `Среди ${size} крупнейших капитализаций`,
     classMoversHint: (size: number) => `Среди ${size} отслеживаемых активов этого класса`,
     summaryTitle: 'Обзор рынков',
-    topIndicesTitle: 'Основные индексы',
+    crossAssetTitle: 'Основные рынки',
     volumeLeadersTitle: 'Наибольшие объёмы',
     economyTitle: 'Экономика',
     heroMarketCap: 'Капитализация крипто',

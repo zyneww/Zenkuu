@@ -118,6 +118,14 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
            mais rendait carrés le monogramme de repli et la tuile des matières
            premières — deux formes closes que rien ne justifiait d'anguler. */
         className="shrink-0 rounded-pill"
+        /* LES DEUX DIMENSIONS VERROUILLÉES, comme dans les branches 3, 4 et 6.
+           `width`/`height` ne sont que les dimensions INTRINSÈQUES déclarées à Next ;
+           le rendu, lui, reste soumis au conteneur. Dans une rangée flex — la moitié
+           des appelants — `align-items: stretch` étirait la hauteur sans toucher la
+           largeur, et Next avertissait sur chaque ligne des tableaux de /marches et
+           /classements : « has either width or height modified, but not the other ».
+           `shrink-0` ne couvre que l'axe principal et ne pouvait pas l'empêcher. */
+        style={{ width: size, height: size }}
         onError={() => setFailed(true)}
       />
     )

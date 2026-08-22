@@ -13,6 +13,8 @@ import {
   Globe2,
   Grid3x3,
   Info,
+  Layers,
+  LayoutGrid,
   LifeBuoy,
   LineChart,
   Newspaper,
@@ -135,6 +137,26 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Le classement complet, page par page',
             icon: Trophy,
             href: '/classements',
+            ready: true,
+          },
+          /*
+           * CATÉGORIES — la page existait, le menu l'ignorait.
+           *
+           * `/categories` est en service, indexée au sitemap, et reçoit DIX liens
+           * depuis d'autres pages (fiches d'actif, points marquants). Elle n'était
+           * simplement joignable par aucun menu : on ne pouvait y arriver qu'en
+           * passant d'abord par une page qui y renvoie. Un classement sectoriel est
+           * pourtant une porte d'entrée, pas une destination de second rebond.
+           *
+           * Rangée dans « Palmarès » et non dans « Suivi du marché », parce que c'en
+           * est un : la page classe les secteurs par variation, exactement comme
+           * « Classements » classe les actifs. Le voisinage est le bon.
+           */
+          {
+            label: 'Catégories',
+            description: 'Les secteurs classés par leur variation du jour',
+            icon: Layers,
+            href: '/categories',
             ready: true,
           },
           /*
@@ -374,6 +396,27 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Accéder aux données par programme',
             icon: Code2,
             href: '/developpeurs',
+            ready: true,
+          },
+          /*
+           * WIDGETS — page ORPHELINE, au sens strict.
+           *
+           * `/widgets` était en service et traduite dans les onze fichiers SEO, mais
+           * relevé sur l'ensemble du dépôt : ZÉRO lien entrant. Aucun menu, aucune
+           * page, aucun pied de page n'y menait. Elle n'était atteignable qu'en
+           * tapant son adresse, ou depuis un moteur de recherche.
+           *
+           * Sa place est ici et non dans « Données » : un bandeau de cotations à
+           * coller sur un autre site n'est pas une mesure du marché, c'est un moyen
+           * de le republier — le même registre que la méthodologie et l'API, qui
+           * s'adressent aussi à quelqu'un qui construit quelque chose avec nos
+           * chiffres plutôt qu'à quelqu'un qui les consulte.
+           */
+          {
+            label: 'Widgets de marché',
+            description: 'Bandeau, convertisseur ou classement à intégrer',
+            icon: LayoutGrid,
+            href: '/widgets',
             ready: true,
           },
           {

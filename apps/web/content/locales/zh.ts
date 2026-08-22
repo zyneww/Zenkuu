@@ -111,7 +111,7 @@ const zh: Translation = {
     moversHint: (size: number) => `在市值前 ${size} 名之中`,
     classMoversHint: (size: number) => `在该类别追踪的 ${size} 项资产中`,
     summaryTitle: '市场概览',
-    topIndicesTitle: '主要指数',
+    crossAssetTitle: '主要市场',
     volumeLeadersTitle: '成交量榜',
     economyTitle: '经济',
     heroMarketCap: '加密货币市值',

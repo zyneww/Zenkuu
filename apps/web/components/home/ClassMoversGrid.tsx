@@ -23,7 +23,7 @@ import { getPhrase } from '@/lib/content'
  * chez Yahoo un classement se construit symbole par symbole : ce serait vingt appels
  * sortants de plus, à chaque régénération, pour un contenu déjà en cache.
  */
-const RANKING_SIZE = 20
+export const RANKING_SIZE = 20
 
 /**
  * Les trois palmarès d'une classe d'actif — hausses, baisses, volumes.

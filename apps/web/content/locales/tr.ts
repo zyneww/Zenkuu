@@ -113,7 +113,7 @@ const tr: Translation = {
     moversHint: (size: number) => `En büyük ${size} piyasa değeri arasında`,
     classMoversHint: (size: number) => `Bu sınıfta takip edilen ${size} varlık arasında`,
     summaryTitle: 'Piyasa özeti',
-    topIndicesTitle: 'Başlıca endeksler',
+    crossAssetTitle: 'Başlıca piyasalar',
     volumeLeadersTitle: 'En yüksek hacimler',
     economyTitle: 'Ekonomi',
     heroMarketCap: 'Kripto piyasa değeri',

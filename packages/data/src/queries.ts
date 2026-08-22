@@ -46,6 +46,12 @@ import {
   fetchSentimentHistory,
 } from './providers/sentiment'
 import {
+  YOUTUBE_SOURCE,
+  fetchLessonVideos,
+  hasYoutubeKey,
+  type LessonVideo,
+} from './providers/youtube'
+import {
   getDeclaredProvider,
   getFallbackProviders,
   getProvider,
@@ -618,7 +624,25 @@ export function getCryptoOverview(
         .filter((asset) => (asset.change24h as number) < 0)
         .slice(-limit)
         .reverse(),
-      topByMarketCap: universe.slice(0, 10),
+      /*
+       * CINQUANTE, ET ILS NE COÛTENT RIEN DE PLUS.
+       *
+       * `universe` compte déjà `MOVERS_UNIVERSE_SIZE` actifs (100), courbes 7 jours
+       * comprises : ils sont en mémoire, payés par l'appel juste au-dessus. En rendre
+       * dix revenait à jeter quatre-vingt-dix lignes déjà téléchargées.
+       *
+       * Le tableau de l'accueil, seul consommateur réel de ce champ, PAGINE — 15, 30
+       * ou 50 lignes par page, avec tri et recherche. Avec dix actifs, sa pagination
+       * n'avait jamais qu'une seule page à montrer et le pied de tableau annonçait
+       * « 10 actifs » sous un explorateur qui en promettait davantage.
+       *
+       * Pourquoi pas les cent : ce tableau est un composant CLIENT, et chaque actif
+       * traverse la frontière serveur avec sa courbe. C'est le poids de la charge
+       * utile qui borne ici, pas le réseau amont — et cinquante suffisent à un
+       * explorateur de page d'accueil. Les cent restent servis par /marches, qui
+       * pagine côté serveur.
+       */
+      topByMarketCap: universe.slice(0, 50),
       universeSize: universe.length,
     }
   })
@@ -1394,6 +1418,42 @@ export function getExchangeRates(): Promise<DataResult<ExchangeRates>> {
 
 export function getSentiment(): Promise<DataResult<SentimentIndex>> {
   return runStandalone('sentiment:fng', SENTIMENT_SOURCE, fetchSentiment, SENTIMENT_TTL_SECONDS)
+}
+
+/**
+ * Vidéos illustrant une fiche pédagogique.
+ *
+ * TTL de 24 HEURES, et c'est le plus long du fichier. Ce n'est pas de la donnée de
+ * marché : le corpus YouTube sur « lire un graphique en chandeliers » ne change pas
+ * d'une heure à l'autre, et le quota gratuit se compte en unités par jour — chaque
+ * recherche en coûte cent (voir l'en-tête de `providers/youtube.ts`). Rafraîchir plus
+ * vite dépenserait le quota pour rendre le même résultat.
+ *
+ * `unconfigured` sans clé, et non `error` : rien n'est en panne, la source n'est
+ * simplement pas branchée. La page omet alors la section entière plutôt que d'afficher
+ * un cadre vide — c'est la règle du §5, la même que pour les alertes sans Resend.
+ */
+const LESSON_VIDEO_TTL_SECONDS = 24 * 3_600
+
+export function getLessonVideos(
+  query: string,
+  limit = 3,
+): Promise<DataResult<LessonVideo[]>> {
+  if (!hasYoutubeKey()) {
+    return Promise.resolve({
+      ok: false,
+      kind: 'unconfigured',
+      reason: 'Aucune clé YouTube configurée — les vidéos ne sont pas proposées.',
+      source: YOUTUBE_SOURCE,
+    })
+  }
+
+  return runStandalone(
+    `youtube:lesson:${query}:${limit}`,
+    YOUTUBE_SOURCE,
+    () => fetchLessonVideos(query, limit),
+    LESSON_VIDEO_TTL_SECONDS,
+  )
 }
 
 /**

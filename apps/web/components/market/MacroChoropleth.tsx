@@ -119,7 +119,37 @@ export function MacroChoropleth({
 
   /* Le glissement vit dans une ref et non dans un état : il change à chaque image du
      mouvement, et un état déclencherait un rendu des 177 chemins par pixel parcouru. */
-  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null)
+  /**
+   * `iso` RETIENT LE PAYS VISÉ AU MOMENT D'APPUYER, et c'est ce qui répare la
+   * sélection.
+   *
+   * ── LE DÉFAUT : LE `onClick` DES PAYS NE S'EXÉCUTAIT JAMAIS ─────────────────
+   *
+   * Le `<svg>` appelle `setPointerCapture` au `pointerdown`, pour que le déplacement
+   * de la carte survive au curseur qui sort du cadre. Effet de bord non voulu : la
+   * capture REDIRIGE les événements pointeur vers l'élément capturant, si bien que
+   * `pointerup` vise le `<svg>` et non le pays. Le navigateur dispatche alors `click`
+   * sur l'ancêtre commun des deux — le `<svg>` lui aussi.
+   *
+   * Le `onClick` posé sur chaque `<path>` était donc du code mort, et seul restait le
+   * `onPointerUp` du `<svg>`, qui DÉSÉLECTIONNE. Cliquer un pays ne pouvait rien
+   * ouvrir. Tracé sur le Canada, dans cet ordre :
+   *
+   *     pointerdown → cible = path (Canada)
+   *     pointerup   → cible = svg          ← redirigé par la capture
+   *     click       → cible = svg          ← jamais le path
+   *
+   * Le pays restait au contour de SURVOL (`--color-ink`) au lieu de passer à celui de
+   * sélection (`--color-brand`), et le panneau latéral — pourtant complet — était
+   * inatteignable à la souris. Aucune erreur nulle part.
+   *
+   * ── LE CORRECTIF ───────────────────────────────────────────────────────────
+   *
+   * `pointerdown` est le SEUL des trois qui atteigne encore le pays : on y note donc
+   * ce qui est visé, et `pointerup` tranche — même geste, une seule décision, plus
+   * d'ordonnancement à deviner entre deux gestionnaires concurrents.
+   */
+  const drag = useRef<{ x: number; y: number; moved: boolean; iso: string | null } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -225,7 +255,10 @@ export function MacroChoropleth({
           /* Bouton principal uniquement : un clic droit ouvre le menu contextuel du
              navigateur, et le capturer empêcherait d'enregistrer l'image. */
           if (event.button !== 0) return
-          drag.current = { x: event.clientX, y: event.clientY, moved: false }
+          /* `data-iso` est lu sur la CIBLE, avant que la capture ne redirige la suite
+             du geste vers ce `<svg>`. C'est le dernier instant où le pays est connu. */
+          const iso = (event.target as Element | null)?.getAttribute?.('data-iso') ?? null
+          drag.current = { x: event.clientX, y: event.clientY, moved: false, iso }
           event.currentTarget.setPointerCapture(event.pointerId)
         }}
         onPointerMove={(event) => {
@@ -250,13 +283,23 @@ export function MacroChoropleth({
         }}
         onPointerUp={(event) => {
           const moved = drag.current?.moved ?? false
+          const iso = drag.current?.iso ?? null
           drag.current = null
           event.currentTarget.releasePointerCapture(event.pointerId)
 
-          /* Un clic sur le fond DÉSÉLECTIONNE — mais seulement si c'était un clic.
-             Sans cette distinction, tout déplacement de la carte refermerait la barre
-             latérale du pays qu'on est en train d'examiner. */
-          if (!moved) onSelect(null)
+          /* Un GLISSEMENT ne décide de rien. Sans cette distinction, tout déplacement
+             de la carte refermerait la barre latérale du pays qu'on examine. */
+          if (moved) return
+
+          /* Un clic sur le FOND désélectionne, un clic sur un PAYS le choisit, et
+             recliquer le pays déjà choisi referme. Les trois cas sortent d'ici et
+             d'ici seulement : c'est ce qui remplace le `onClick` des `<path>`, que la
+             capture de pointeur rendait inatteignable (voir la ref `drag`).
+
+             La carte reste donc interactive panneau ouvert — cliquer un autre pays le
+             rafraîchit sans le refermer, puisque `onSelect` reçoit directement le
+             nouvel identifiant. */
+          onSelect(iso === null || iso === selected ? null : iso)
         }}
         onPointerCancel={() => {
           drag.current = null
@@ -290,15 +333,13 @@ export function MacroChoropleth({
                 strokeWidth={(isSelected ? 1.6 : isHovered ? 1.1 : 0.5) / view.k}
                 strokeLinejoin="round"
                 className="transition-[stroke-width] duration-100"
+                /* LU AU `pointerdown` par le `<svg>`, qui décide seul de la sélection.
+                   Un `onClick` posé ici serait du code mort : la capture de pointeur
+                   fait dispatcher le clic sur le `<svg>`, jamais sur ce `<path>`. Voir
+                   la ref `drag` pour la trace complète du défaut. */
+                data-iso={country.iso}
                 onMouseEnter={() => setHovered(country.iso)}
                 onMouseLeave={() => setHovered(null)}
-                onClick={(event) => {
-                  // Sans cela, le clic remonterait au `<svg>` et désélectionnerait
-                  // aussitôt le pays qu'on vient de choisir.
-                  event.stopPropagation()
-                  if (drag.current?.moved) return
-                  onSelect(isSelected ? null : country.iso)
-                }}
               >
                 {/*
                   `<title>` PLUTÔT QU'UNE INFOBULLE MAISON.

@@ -90,15 +90,27 @@ export interface CoverArtProps {
   label?: string
   /** Image réelle, si elle existe. Elle court-circuite toute la génération. */
   imageUrl?: string
-  /** Rapport de cadrage. La grille du blog impose 16/9, le héros 16/10. */
-  ratio?: '16/9' | '16/10' | '4/3'
+  /**
+   * Rapport de cadrage. La grille du blog impose 16/9, le héros de liste 16/10.
+   *
+   * `21/9` existe pour le bandeau EN TÊTE D'ARTICLE, et la raison est arithmétique :
+   * la colonne d'article fait 56 rem, où un 16/10 mesure 560 px de haut — il occupait
+   * plus de la moitié du premier écran, pour une image qui n'informe de rien. Au même
+   * endroit, un 21/9 en fait 384, comparable à la référence du secteur.
+   */
+  ratio?: '21/9' | '16/9' | '16/10' | '4/3'
   className?: string
 }
 
+const RATIOS = {
+  '21/9': 'aspect-[21/9]',
+  '16/9': 'aspect-[16/9]',
+  '16/10': 'aspect-[16/10]',
+  '4/3': 'aspect-[4/3]',
+} as const
+
 export function CoverArt({ seed, label, imageUrl, ratio = '16/9', className = '' }: CoverArtProps) {
-  const shape = `block w-full overflow-hidden ${
-    ratio === '16/10' ? 'aspect-[16/10]' : ratio === '4/3' ? 'aspect-[4/3]' : 'aspect-[16/9]'
-  } ${className}`
+  const shape = `block w-full overflow-hidden ${RATIOS[ratio]} ${className}`
 
   if (imageUrl) {
     return (
@@ -138,18 +150,48 @@ export function CoverArt({ seed, label, imageUrl, ratio = '16/9', className = ''
     <span className={shape} aria-hidden="true">
       <svg
         viewBox="0 0 320 180"
-        preserveAspectRatio="xMidYMid slice"
+        /*
+         * ANCRÉ EN BAS (`YMax`) et non centré, à cause de l'étiquette.
+         *
+         * Le dessin est en 16/9. Dans un cadre PLUS LARGE que cela — le 21/9 du
+         * bandeau d'article — `slice` déborde en hauteur et rogne : centré, il
+         * retirait 21 unités en haut et 21 en bas, ce qui coupait net le bandeau
+         * sombre et son étiquette, tracés entre y=130 et y=180. Ancré en bas, la
+         * rognure part entièrement du haut, où il n'y a qu'un dégradé.
+         *
+         * Sans effet sur les cadres plus HAUTS que 16/9 (16/10, 4/3), où le
+         * débordement est horizontal et `xMid` continue de centrer.
+         */
+        preserveAspectRatio="xMidYMax slice"
         className="h-full w-full"
         role="presentation"
       >
         <defs>
           <linearGradient id={`${uid}-g`} gradientTransform={`rotate(${angle})`}>
-            <stop offset="0%" stopColor={pair[0]} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={pair[1]} stopOpacity="0.55" />
+            <stop offset="0%" stopColor={pair[0]} stopOpacity="0.78" />
+            <stop offset="100%" stopColor={pair[1]} stopOpacity="0.34" />
           </linearGradient>
           <Pattern id={`${uid}-p`} motif={motif} />
         </defs>
 
+        {/* ── LA COUVERTURE EST POSÉE SUR UN PLATEAU SOMBRE, DANS LES DEUX THÈMES ──
+
+            Le dégradé était peint sur le VIDE : il se composait donc sur le fond de la
+            carte qui le porte, blanc en thème clair et presque noir en thème sombre.
+            La même graine rendait ainsi deux couvertures d'allure opposée — pastel
+            d'un côté, saturée de l'autre — alors que rien dans l'article ne change.
+
+            `--color-tile-ground` existe précisément pour ça, et il est le seul jeton
+            de la palette à NE PAS basculer avec le thème (voir globals.css, où les
+            tuiles de la carte thermique s'en servent pour la même raison). Le duo de
+            teintes se compose désormais toujours sur le même plateau : la couverture
+            d'un article est la même partout, et le texte blanc de l'étiquette garde
+            son contraste sans dépendre du thème.
+
+            Les opacités descendent avec lui. À 0,9/0,55 sur un plateau sombre, le
+            dégradé redevenait le point le plus lumineux de la page — quatre aplats
+            saturés en bas d'un tableau de bord qui n'en porte aucun ailleurs. */}
+        <rect width="320" height="180" fill="var(--color-tile-ground)" />
         <rect width="320" height="180" fill={`url(#${uid}-g)`} />
         <rect width="320" height="180" fill={`url(#${uid}-p)`} />
 

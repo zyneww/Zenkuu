@@ -302,6 +302,11 @@ export function DerivativeExchangesExplorer({
                             accès (§1). Le lien sortant, lui, vit sur la fiche. */}
                         <Link
                           href={`/places/${row.id}`}
+                          /* `prefetch={false}` — liste dense : chaque ligne mène à un rendu
+                             serveur qui interroge la source, sur le limiteur de la page en
+                             cours. Un clic au plus sera fait. Voir OPTIMISATION.md,
+                             section « Réseau ». */
+                          prefetch={false}
                           className="group flex min-w-0 items-center gap-2.5"
                         >
                           <ExchangeLogo name={row.name} src={row.image} size={22} />

@@ -119,7 +119,7 @@ const ja: Translation = {
     moversHint: (size: number) => `時価総額上位 ${size} 銘柄のうち`,
     classMoversHint: (size: number) => `このクラスで追跡中の ${size} 銘柄のうち`,
     summaryTitle: '市場サマリー',
-    topIndicesTitle: '主要指数',
+    crossAssetTitle: '主要市場',
     volumeLeadersTitle: '出来高上位',
     economyTitle: '経済',
     heroMarketCap: '暗号資産の時価総額',

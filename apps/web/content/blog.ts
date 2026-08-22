@@ -77,8 +77,14 @@ export const ARTICLES: Article[] = []
  * et personne ne pense à le corriger. Le dériver du contenu le rend toujours juste.
  *
  * Arrondi au minimum à 1 : « 0 min de lecture » n'a pas de sens.
+ *
+ * Le paramètre est typé sur la SEULE propriété lue, et non sur `Article` : les fiches
+ * d'Apprendre portent la même forme de sections et calculent leur temps de lecture
+ * avec cette fonction-ci. Une seconde copie divergerait — deux cadences de lecture
+ * différentes sur un même site est exactement le genre d'incohérence qu'on ne
+ * remarque jamais soi-même.
  */
-export function readingMinutes(article: Article): number {
+export function readingMinutes(article: { sections: ArticleSection[] }): number {
   const words = article.sections
     .flatMap((section) => section.paragraphs)
     .join(' ')

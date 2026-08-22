@@ -1,6 +1,7 @@
 import type { DataResult, GlobalMarketStats, MarketCapSeriesState } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, Sparkline, formatCompact, formatNumber } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState, formatCompact, formatNumber } from '@zenkuu/ui'
 
+import { TrendChart } from '@/components/charts/TrendChart'
 import { Money } from '@/components/locale/Money'
 
 import { getContent } from '@/lib/content'
@@ -65,7 +66,7 @@ export async function MarketOverviewCard({
       La grille de l'accueil pose désormais `items-start`, ce qui supprime l'étirement
       à la source ; cette carte prend sa hauteur naturelle, comme toutes ses voisines.
     */
-    <div className="flex flex-col rounded-card border border-border-subtle bg-surface p-4">
+    <div className="@container/card flex flex-col rounded-card border border-border-subtle bg-surface p-4">
       <div>
         <p className="text-xs text-ink-muted">{fr.home.marketCapCardTitle}</p>
         <p className="figure mt-1 text-2xl font-bold text-ink">
@@ -75,13 +76,34 @@ export async function MarketOverviewCard({
           <ChangeBadge value={stats.marketCapChange24h} size="sm" />
         </div>
 
+        {/* ── UN GRAPHIQUE, ET PLUS UNE ÉTINCELLE ───────────────────────────────
+            `Sparkline` traçait ici une polyligne nue de 260 × 44, sans axe, sans
+            grille et sans infobulle. C'est la bonne réponse dans une CELLULE de
+            tableau, où il n'y a la place de rien d'autre ; c'en est une mauvaise
+            dans la carte de tête d'une page, où le lecteur veut savoir DE COMBIEN
+            la courbe monte — et où une ligne sans graduation ne le dit pas.
+
+            `TrendChart` est déjà ce composant-là : il enveloppe `AreaPlot` avec
+            axes, grille tiretée, dégradé et infobulle, et ses points sont exactement
+            la forme que `getMarketCapSeriesState` publie — `{ timestamp, value }`.
+            Il ne restait rien à écrire.
+
+            192 pixels de haut : la référence donne environ ce cadre à la courbe de
+            sa carte de tête, et c'est la hauteur en dessous de laquelle deux relevés
+            éloignés de trois pour cent se confondent une fois les axes déduits des
+            marges. */}
         <div className="mt-3">
           {series.ready ? (
             <>
-              <Sparkline
-                values={series.points.map((point) => point.value)}
-                width={260}
-                height={44}
+              <TrendChart
+                points={series.points.map((point) => ({
+                  timestamp: point.timestamp,
+                  value: point.value,
+                }))}
+                color={stats.marketCapChange24h >= 0 ? 'var(--color-up)' : 'var(--color-down)'}
+                height={192}
+                format="compact"
+                currency={stats.currency.toUpperCase()}
                 label={fr.home.marketCapSeriesLabel(series.spanMinutes)}
               />
               <p className="mt-1 text-micro text-ink-muted">
@@ -98,7 +120,13 @@ export async function MarketOverviewCard({
         </div>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border-subtle pt-3 text-xs">
+      {/* Quatre colonnes dès que la carte est large : sur le rang de tête de
+          l'accueil elle en fait 600, et quatre agrégats sur deux rangées de deux y
+          laissent deux tiers de la ligne vides. Deux colonnes en dessous, où quatre
+          couperaient chaque valeur en deux. Le seuil est celui du conteneur et non
+          celui de la fenêtre — cette carte sert aussi la page `/graphiques`, où elle
+          est étroite sur un écran large. */}
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border-subtle pt-3 text-xs @[30rem]/card:grid-cols-4">
         <div>
           <dt className="text-ink-muted">{fr.globalStats.volume}</dt>
           <dd className="tabular font-semibold text-ink">

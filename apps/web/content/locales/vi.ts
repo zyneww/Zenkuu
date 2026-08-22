@@ -113,7 +113,7 @@ const vi: Translation = {
     moversHint: (size: number) => `Trong ${size} vốn hoá lớn nhất`,
     classMoversHint: (size: number) => `Trong ${size} tài sản được theo dõi của lớp này`,
     summaryTitle: 'Tổng quan thị trường',
-    topIndicesTitle: 'Các chỉ số chính',
+    crossAssetTitle: 'Các thị trường chính',
     volumeLeadersTitle: 'Khối lượng lớn nhất',
     economyTitle: 'Kinh tế',
     heroMarketCap: 'Vốn hoá tiền mã hoá',

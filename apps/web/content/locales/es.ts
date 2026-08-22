@@ -170,7 +170,7 @@ const es: Translation = {
     },
 
     summaryTitle: "Resumen de los mercados",
-    topIndicesTitle: "Índices principales",
+    crossAssetTitle: "Mercados principales",
     volumeLeadersTitle: "Mayores volúmenes",
     economyTitle: "Economía",
     heroMarketCap: "Capitalización cripto",

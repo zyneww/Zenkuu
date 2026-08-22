@@ -23,7 +23,7 @@ import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
-import { periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
+import { CHANGE_PERIODS, periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
 import { Pagination } from '@/components/ui/Pagination'
 import {
   ColumnHeader,
@@ -167,6 +167,41 @@ export function MarketTable({
   const selected = period ? periodMeta(period) : null
   const show7d = !selected && has('change7d')
 
+  /**
+   * FENÊTRES SECONDAIRES — 1 h, 7 j et 30 j À CÔTÉ de la variation principale.
+   *
+   * ── CE QUI MANQUAIT ────────────────────────────────────────────────────────
+   *
+   * Le tableau ne montrait qu'UNE variation à la fois, celle du sélecteur de période.
+   * Comparer l'heure écoulée au mois écoulé — la lecture qui distingue un sursaut
+   * d'une tendance — imposait deux allers-retours et de retenir les chiffres entre
+   * les deux. C'est précisément ce qu'une colonne évite.
+   *
+   * ── DÉRIVÉES DE `CHANGE_PERIODS`, PAS REDÉCLARÉES ─────────────────────────
+   *
+   * Cette table porte déjà la clé, le libellé, le libellé long et le CHAMP de chaque
+   * fenêtre. En réécrire trois ici aurait créé un second endroit où la période « 30 j »
+   * est nommée, et les deux auraient divergé au premier renommage. Les intitulés de
+   * colonnes sont donc EXACTEMENT ceux des puces du sélecteur, ce qui est aussi ce
+   * qu'on veut à l'écran : le lecteur reconnaît « 1 H » d'un endroit à l'autre.
+   *
+   * ── LA PÉRIODE ACTIVE EST RETIRÉE, ET C'EST LE POINT DÉLICAT ──────────────
+   *
+   * La colonne principale porte déjà la fenêtre choisie. Sans ce retrait, choisir
+   * « 7 J » afficherait « Variation (7 J) » suivie d'une colonne « 7 J » identique,
+   * chiffre pour chiffre. Le doublon n'apparaîtrait que sur deux des cinq crans — le
+   * genre de défaut qu'une relecture rapide ne voit pas.
+   *
+   * `1y` n'est pas proposée : à côté de trois fenêtres courtes, une variation annuelle
+   * change d'ordre de grandeur et écrase la lecture des autres. Elle reste accessible
+   * par le sélecteur, où elle est seule.
+   */
+  const extraPeriods = selected
+    ? CHANGE_PERIODS.filter(
+        (entry) => entry.key !== selected.key && entry.key !== '1y' && has(entry.field),
+      )
+    : []
+
   // La colonne graphique se place à un seul des deux endroits, jamais aux deux.
   const chartInline = showChart && chartPosition === 'inline'
   const chartAtEnd = showChart && chartPosition === 'end'
@@ -208,6 +243,10 @@ export function MarketTable({
         : fr.market.columns.change24h,
     },
     ...(show7d ? [{ id: 'change7d', label: fr.market.columns.change7d }] : []),
+    /* `period:` en préfixe d'identifiant : la clé de préférence est partagée avec les
+       autres colonnes, et un `id` nu valant « 7d » pourrait un jour heurter celui d'une
+       colonne sans rapport. Le préfixe rend la famille reconnaissable au débogage. */
+    ...extraPeriods.map((entry) => ({ id: `period:${entry.key}`, label: entry.label })),
     ...(showChart ? [{ id: 'chart', label: fr.market.columns.chart }] : []),
     ...(showVolume ? [{ id: 'volume', label: fr.market.columns.volume }] : []),
     ...(showMarketCap ? [{ id: 'marketCap', label: fr.market.columns.marketCap }] : []),
@@ -242,6 +281,11 @@ export function MarketTable({
     dayRange: showDayRange && prefs.isVisible('dayRange'),
     change24h: prefs.isVisible('change24h'),
   }
+
+  /* Filtré ICI plutôt qu'au rendu : l'en-tête et le corps doivent parcourir
+     EXACTEMENT la même liste, sinon les cellules se décalent d'une colonne sur les
+     lignes où l'une des deux diverge. Une seule source, deux lectures. */
+  const visibleExtras = extraPeriods.filter((entry) => prefs.isVisible(`period:${entry.key}`))
 
   return (
     <div className="space-y-3">
@@ -308,11 +352,54 @@ export function MarketTable({
         c'est le rôle d'un tableau de la faire. Le fond `surface` suffit à détacher le
         bloc de la page.
       */}
-      <div className="overflow-x-auto rounded-card bg-surface">
+      {/*
+        `overflow-x-clip` ET NON `overflow-x-auto` — c'est ce qui rend l'en-tête
+        collant possible, et le détail mérite d'être écrit parce qu'il se défait tout
+        seul à la première relecture distraite.
+
+        `overflow-x: auto` fait de ce bloc un CONTENEUR DE DÉFILEMENT, et sur les DEUX
+        axes : la spécification impose que `overflow-y: visible` calcule en `auto` dès
+        que l'autre axe ne l'est pas. Or un élément `sticky` se cale sur son plus
+        proche ancêtre défilant. L'en-tête se serait donc collé au haut de CE bloc —
+        qui ne défile jamais verticalement, sa hauteur épousant son contenu — et
+        n'aurait bougé sur aucun défilement de page. Le réglage aurait été inerte, sans
+        rien signaler.
+
+        `clip` coupe le débordement horizontal sans créer de conteneur de défilement :
+        l'ancêtre défilant redevient la PAGE, et `sticky top-0` fonctionne.
+
+        Ce qui est perdu au passage — le défilement horizontal de secours — n'était
+        pas utilisé : sous `sm`, le tableau retire ses colonnes secondaires
+        (`hidden sm:table-cell`) au lieu de déborder, et `min-w` n'est posé qu'à partir
+        de `sm`. Mesuré sur les six formats de `audit-responsive` : zéro débordement.
+      */}
+      <div className="overflow-x-clip rounded-card bg-surface">
         <table className="w-full border-collapse text-sm sm:min-w-[640px]">
           <caption className="sr-only">{fr.assetClass[assetClass]}</caption>
 
-          <thead>
+          {/*
+            EN-TÊTE COLLANT — sur cinquante lignes, la question « quelle colonne est-ce
+            déjà ? » se pose dès le vingtième actif, et y répondre imposait de remonter
+            en haut puis de redescendre en cherchant sa ligne.
+
+            LE DÉCALAGE N'EST PAS `top-0`, ET C'EST L'ERREUR À NE PAS REFAIRE.
+            L'en-tête du site est lui-même `sticky top-0`, avec un `z-index` de 50 :
+            posé à `top-0`, celui du tableau se collait EXACTEMENT DESSOUS, donc
+            derrière, et restait invisible à tout défilement. Il fonctionnait, on ne le
+            voyait jamais, et rien ne le disait.
+
+            `--header-height` vient de globals.css et sert AUSSI de hauteur à `NavBar` :
+            les deux ne peuvent pas diverger. Le `+ 1px` est le filet du bas de
+            l'en-tête, hors de sa hauteur de boîte — sans lui, une lisière de ligne
+            défilante affleure au-dessus des intitulés.
+
+            `z-10` reste sous le 50 de l'en-tête du site : la hiérarchie de recouvrement
+            suit celle des décalages.
+
+            Le fond est OBLIGATOIRE et non décoratif : sans lui, les lignes défileraient
+            visiblement sous un en-tête transparent.
+          */}
+          <thead className="sticky top-[calc(var(--header-height)+1px)] z-10 bg-surface">
             <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
               {/* Le rang coûte quarante pixels pour redire ce que l'ORDRE des lignes
                   dit déjà. Il part le premier. */}
@@ -361,6 +448,18 @@ export function MarketTable({
                   className="hidden sm:table-cell"
                 />
               ) : null}
+              {/* Masquées sous `md` et non sous `sm` : elles arrivent APRÈS la variation
+                  principale, qui tient déjà la place disponible sur un téléphone. Ce
+                  sont des colonnes de comparaison, les premières à céder. */}
+              {visibleExtras.map((entry) => (
+                <ColumnHeader
+                  key={entry.key}
+                  label={entry.label}
+                  columnId={`period:${entry.key}`}
+                  columnPrefs={prefs}
+                  className="hidden md:table-cell"
+                />
+              ))}
               {shows.chartInline ? (
                 <ColumnHeader
                   label={fr.market.columns.chart}
@@ -479,7 +578,22 @@ export function MarketTable({
                       sans largeur écrite à la main qui se périmerait au premier nom
                       plus long.
                     */}
-                    <Link href={href} className="flex min-w-0 items-center gap-3">
+                    {/*
+                      `prefetch={false}` — CINQUANTE LIGNES, CINQUANTE RENDUS SERVEUR.
+
+                      Next précharge tout lien entrant dans le champ de vision (en
+                      production seulement, d'où l'invisibilité en développement). Chaque
+                      ligne mène ici à une fiche d'actif, route dynamique dont le rendu
+                      interroge la source — et par le MÊME limiteur de débit que la page
+                      en cours de lecture. Sur une page de cinquante lignes, le
+                      préchargement affame donc le tableau qu'il est censé accélérer.
+
+                      Le calcul est net : au plus un de ces cinquante liens sera cliqué.
+                      On échange une navigation un peu moins instantanée contre quarante-
+                      neuf rendus serveur épargnés. Voir OPTIMISATION.md, section
+                      « Réseau ».
+                    */}
+                    <Link href={href} prefetch={false} className="flex min-w-0 items-center gap-3">
                       <AssetLogo asset={asset} size={24} />
                       <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
                         {asset.name}
@@ -512,6 +626,19 @@ export function MarketTable({
                       <ChangeBadge value={asset.change7d} periodLabel="sur 7 jours" size="sm" />
                     </td>
                   ) : null}
+
+                  {visibleExtras.map((entry) => (
+                    <td key={entry.key} className="hidden px-3 py-2.5 text-right md:table-cell">
+                      {/* `periodLabel` vient de la table, pas d'une chaîne recopiée : c'est
+                          lui que lisent les lecteurs d'écran (« en hausse de 3 % sur 30
+                          jours »), et une fenêtre mal nommée y serait invisible à l'œil. */}
+                      <ChangeBadge
+                        value={asset[entry.field]}
+                        periodLabel={entry.longLabel}
+                        size="sm"
+                      />
+                    </td>
+                  ))}
 
                   {shows.chartInline ? (
                     <td className="hidden px-3 py-2.5 lg:table-cell">

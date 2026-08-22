@@ -119,7 +119,7 @@ const ptBR: Translation = {
     moversHint: (size: number) => `Entre as ${size} maiores capitalizações`,
     classMoversHint: (size: number) => `Entre os ${size} ativos acompanhados desta classe`,
     summaryTitle: 'Resumo dos mercados',
-    topIndicesTitle: 'Principais índices',
+    crossAssetTitle: 'Principais mercados',
     volumeLeadersTitle: 'Maiores volumes',
     economyTitle: 'Economia',
     heroMarketCap: 'Capitalização cripto',

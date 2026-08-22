@@ -55,7 +55,8 @@ export function AreaSpark({
 }: {
   data: { x: string | number; y: number }[]
   color: string
-  height?: number
+  /** Pixels, ou `'fill'` pour épouser la hauteur du conteneur — voir `AreaPlot`. */
+  height?: number | 'fill'
   /** Format de l'infobulle. Absent, aucune infobulle n'est affichée. */
   format?: SparkFormat
 }) {

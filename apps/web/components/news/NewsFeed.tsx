@@ -187,8 +187,22 @@ export function NewsFeed({
     <QuotesContext.Provider value={quotes ?? {}}>
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
+        {/*
+          « Familles de presse » et non « Rubriques ».
+
+          Ces puces filtrent sur `source.category`, c'est-à-dire la spécialité de
+          l'ÉDITEUR — jamais le sujet de l'article, que rien ici ne déduit (§5, et voir
+          `NEWS_CATEGORY_LABELS`). « Rubriques » promettait un classement par sujet, et
+          le lecteur en tirait la conclusion naturelle : qu'un article estampillé
+          « Presse crypto » parlait de crypto. Un média spécialisé qui reprend une
+          dépêche générale suffit à démentir.
+        */}
         {categories.length > 1 ? (
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Rubriques">
+          <div
+            className="flex flex-wrap items-center gap-2"
+            role="group"
+            aria-label={t('Familles de presse')}
+          >
             <FilterChip active={category === 'all'} onClick={() => setCategory('all')} label="Tout" />
             {categories.map((entry) => (
               <FilterChip
@@ -270,6 +284,24 @@ export function NewsFeed({
           ) : null}
 
         </div>
+
+        {/*
+          LA PHRASE QUI DÉSAMORCE LA MÉPRISE, une fois pour toute la page.
+
+          Les puces sont lues comme un classement par sujet — c'est ce qu'annonce
+          n'importe quelle barre de filtres d'un site d'actualité. Ici elles portent
+          sur la spécialité de l'éditeur, et l'écart entre les deux ne se devine pas :
+          il se constate seulement en tombant sur une dépêche générale estampillée
+          « Presse crypto », c'est-à-dire trop tard, et au prix de la confiance.
+
+          Elle est écrite ICI plutôt que dans une infobulle : ce qui corrige une
+          lecture par défaut doit être lu AVANT elle, pas trouvé après.
+        */}
+        <p className="w-full text-xs text-ink-muted">
+          {t(
+            'Ces rubriques désignent la spécialité de l’éditeur, non le sujet de l’article : nous ne déduisons jamais un thème d’un titre.',
+          )}
+        </p>
       </div>
 
       {/*

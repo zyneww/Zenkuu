@@ -10,6 +10,33 @@ import * as Sentry from '@sentry/nextjs'
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    /*
+     * PLAFOND D'ÉCOUTEURS RELEVÉ, sinon Node avertit à chaque requête.
+     *
+     * Le SDK Sentry pose un écouteur `close` sur la `ServerResponse` par span
+     * ouvert, pour savoir quand refermer la trace. Node limite par défaut un
+     * émetteur à DIX écouteurs et crie au-delà :
+     *
+     *   MaxListenersExceededWarning: Possible EventEmitter memory leak detected.
+     *   11 close listeners added to [ServerResponse].
+     *
+     * Ce n'est pas une fuite, et le diagnostic tient à `sentry.server.config.ts` :
+     * `tracesSampleRate` y vaut 1 EN DÉVELOPPEMENT — volontairement, pour voir ce
+     * qu'on vient d'écrire. Tout est donc tracé, le onzième écouteur arrive, et
+     * l'avertissement sort sur toutes les pages un peu composées. En production le
+     * taux retombe à 10 % et le seuil n'est jamais approché : c'est un artefact du
+     * mode développement, pas un défaut applicatif.
+     *
+     * Baisser l'échantillonnage en développement ferait taire le message, mais au
+     * prix de ce que ce réglage sert à obtenir. On relève donc le plafond.
+     *
+     * 32 est choisi pour rester un GARDE-FOU UTILE : une vraie fuite d'écouteurs
+     * se compte en centaines, elle franchira toujours ce seuil et avertira. Un
+     * plafond à `Infinity` supprimerait le message au lieu du problème.
+     */
+    const { EventEmitter } = await import('node:events')
+    EventEmitter.defaultMaxListeners = 32
+
     await import('./sentry.server.config')
   }
 

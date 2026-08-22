@@ -171,7 +171,7 @@ const de: Translation = {
     },
 
     summaryTitle: "Marktüberblick",
-    topIndicesTitle: "Wichtigste Indizes",
+    crossAssetTitle: "Wichtigste Märkte",
     volumeLeadersTitle: "Höchste Volumen",
     economyTitle: "Wirtschaft",
     heroMarketCap: "Krypto-Marktkapitalisierung",

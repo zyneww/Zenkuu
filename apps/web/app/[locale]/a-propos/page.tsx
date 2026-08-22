@@ -3,6 +3,8 @@ import { Link } from '@/i18n/navigation'
 
 import { KeyFigures } from '@/components/about/KeyFigures'
 import { emphasise, weave } from '@/components/locale/emphasise'
+import { setRequestLocale } from 'next-intl/server'
+
 import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -12,7 +14,14 @@ import { getContent, getPhrase, getSeo } from '@/lib/content'
  * peut pas connaître la locale de la requête, et servait donc un titre français sur
  * les pages anglaises.
  */
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
+
   const fr = await getContent()
   const seo = await getSeo()
   return {
@@ -64,7 +73,27 @@ const PRINCIPLES = [
   },
 ]
 
-export default async function AProposPage() {
+export default async function AProposPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  /*
+   * ── CE QUI REND CETTE PAGE STATIQUE ─────────────────────────────────────────
+   *
+   * `getPhrase()` passe par `getLocale()` de next-intl, qui LIT LES EN-TÊTES de la
+   * requête faute de savoir d'où vient la locale. Une page qui lit les en-têtes ne
+   * peut pas être pré-rendue : elle bascule en rendu à la demande, et le site entier
+   * y est passé sans que rien ne le signale — cinquante-trois pages, y compris
+   * celle-ci qui n'affiche que du texte.
+   *
+   * `setRequestLocale` coupe cette lecture : la locale vient du SEGMENT D'URL, que
+   * `generateStaticParams` du layout énumère à la construction. L'appel doit précéder
+   * toute lecture de contenu, sinon `getLocale()` a déjà consulté les en-têtes.
+   */
+  const { locale } = await params
+  setRequestLocale(locale)
+
   const t = await getPhrase()
   return (
     <div className="mx-auto max-w-4xl space-y-12 py-6">

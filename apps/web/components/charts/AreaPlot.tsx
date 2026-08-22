@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
-import { GRID_STROKE } from '@/components/charts/chart-theme'
+import { GRID_DASH, GRID_STROKE } from '@/components/charts/chart-theme'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -57,7 +57,27 @@ export interface PlotSeries {
 
 export interface AreaPlotProps {
   series: PlotSeries[]
-  height?: number
+  /**
+   * Hauteur en pixels, ou `'fill'` pour occuper celle du conteneur.
+   *
+   * ── POURQUOI `'fill'` EXISTE ────────────────────────────────────────────────
+   *
+   * Une carte de mesure étirée à la hauteur d'une voisine plus haute — le cas de
+   * toute bande de cartes alignées — grandit par son BLOC DE TEXTE, puisque c'est
+   * lui qui porte le `flex-1`. La courbe, calée en bas à hauteur fixe, ne bouge
+   * pas : tout l'étirement se transforme en blanc entre le chiffre et le tracé.
+   *
+   * Le contournement était de passer une hauteur plus grande à la main (56 → 128
+   * sur l'accueil). Un nombre magique ne peut pas suivre : il faut le retoucher dès
+   * qu'un voisin change de contenu, et il était déjà en retard de 200 pixels sur le
+   * panneau d'actualités qui fixe la hauteur de la bande.
+   *
+   * `'fill'` renverse la responsabilité — c'est la COURBE qui absorbe l'étirement,
+   * et plus le vide. La hauteur est alors mesurée au même endroit que la largeur,
+   * qui l'était déjà : le `ResizeObserver` était déjà là, il ne lisait qu'une des
+   * deux dimensions.
+   */
+  height?: number | 'fill'
   /** Dégradé sous la courbe. Réservé au tracé unique : superposés, ils se salissent. */
   fill?: boolean
   /** Bornes imposées. Absentes, elles sont déduites des données avec une marge. */
@@ -109,19 +129,35 @@ export function AreaPlot({
   const gradientId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
+  /* Mesurée UNIQUEMENT pour `height: 'fill'`. Une hauteur en pixels est connue sans
+     mesure, et l'état resterait à 0 sans jamais servir. */
+  const [measuredHeight, setMeasuredHeight] = useState(0)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const node = containerRef.current
     if (!node) return
 
-    const measure = () => setWidth(node.clientWidth)
+    const measure = () => {
+      setWidth(node.clientWidth)
+      setMeasuredHeight(node.clientHeight)
+    }
     measure()
 
     const observer = new ResizeObserver(measure)
     observer.observe(node)
     return () => observer.disconnect()
   }, [])
+
+  /*
+   * La hauteur EFFECTIVE, celle dont toute la géométrie dépend.
+   *
+   * En mode `'fill'`, elle vaut 0 au premier rendu — la mesure n'a pas encore eu
+   * lieu — exactement comme la largeur. Le garde `width > 0` plus bas couvrait déjà
+   * ce cas ; il couvre les deux dimensions à présent, sans quoi le premier rendu
+   * dessinerait un SVG de hauteur nulle avant de se corriger, ce qui se voit.
+   */
+  const plotHeight = height === 'fill' ? measuredHeight : height
 
   /*
    * ── LE DOMAINE VERTICAL EST CALCULÉ AVANT LE REMBOURRAGE, ET C'EST L'ORDRE QUI
@@ -207,7 +243,7 @@ export function AreaPlot({
 
   const pad = axes ? { ...PAD_WITH_AXES, left: gutter } : PAD_BARE
   const innerWidth = Math.max(0, width - pad.left - pad.right)
-  const innerHeight = Math.max(0, height - pad.top - pad.bottom)
+  const innerHeight = Math.max(0, plotHeight - pad.top - pad.bottom)
 
   const scales = useMemo(() => {
     if (!bounds) return null
@@ -285,7 +321,7 @@ export function AreaPlot({
     return (
       <div
         className="flex h-full w-full items-center justify-center px-4 text-center text-xs text-ink-muted"
-        style={{ height }}
+        style={{ height: height === 'fill' ? '100%' : height }}
       >
         {t('Pas encore assez de relevés pour tracer une courbe.')}
       </div>
@@ -293,11 +329,15 @@ export function AreaPlot({
   }
 
   return (
-    <div ref={containerRef} className="relative" style={{ height, width: '100%' }}>
-      {width > 0 && scales ? (
+    <div
+      ref={containerRef}
+      className="relative"
+      style={{ height: height === 'fill' ? '100%' : height, width: '100%' }}
+    >
+      {width > 0 && plotHeight > 0 && scales ? (
         <svg
           width={width}
-          height={height}
+          height={plotHeight}
           role={ariaLabel ? 'img' : 'presentation'}
           {...(ariaLabel ? { 'aria-label': ariaLabel } : { 'aria-hidden': true })}
           {...(interactive
@@ -324,6 +364,7 @@ export function AreaPlot({
                   y1={scales.toY(tick)}
                   y2={scales.toY(tick)}
                   stroke={GRID_STROKE}
+                  strokeDasharray={GRID_DASH}
                   strokeWidth={1}
                 />
               ))
@@ -397,7 +438,7 @@ export function AreaPlot({
                 <text
                   key={`xtick-${tick}`}
                   x={scales.toX(tick)}
-                  y={height - 6}
+                  y={plotHeight - 6}
                   /* Les graduations extrêmes sont ancrées par le bord et non par leur
                      centre : centrées, elles dépasseraient du cadre de la moitié de
                      leur largeur, et la première serait tronquée par l'axe vertical. */
@@ -485,19 +526,35 @@ function Tooltip({
 
   return (
     <div
-      className="pointer-events-none absolute top-2 z-10 min-w-[7rem] rounded-card border border-border-subtle bg-overlay px-2.5 py-2 text-xs shadow-overlay"
+      className="pointer-events-none absolute top-2 z-10 min-w-[8.5rem] rounded-card border border-border-subtle bg-overlay px-3 py-2.5 text-sm shadow-overlay"
       style={flip ? { right: width - x + 10 } : { left: x + 10 }}
     >
-      {title ? <p className="mb-1 text-[0.6875rem] text-ink-muted">{title}</p> : null}
+      {/* ── LE TITRE EST EN PLEINE ENCRE, LES LIBELLÉS SONT ATTÉNUÉS ────────────
+          L'inverse de ce qu'il était. Un titre atténué au-dessus de valeurs pleines
+          se lit comme une légende de bas de bloc plutôt que comme l'en-tête de ce
+          qu'on survole — et sur une infobulle à trois séries, plus rien ne disait
+          quelle date on lisait. La référence pose la même hiérarchie : date en
+          blanc, noms de série en gris, valeurs en blanc. */}
+      {title ? <p className="mb-1.5 font-semibold text-ink">{title}</p> : null}
+
       {rows.map((row) => (
-        <p key={row.entry.id} className="flex items-center gap-1.5 whitespace-nowrap text-ink">
-          <span
-            aria-hidden="true"
-            className="h-1.5 w-1.5 shrink-0 rounded-full"
-            style={{ background: row.entry.color }}
-          />
-          {rows.length > 1 ? <span className="text-ink-muted">{row.entry.label}</span> : null}
-          <span className="tabular font-medium">{row.text}</span>
+        /* `justify-between` et non un simple espacement : sur plusieurs séries, les
+           valeurs s'alignent alors sur le bord droit de l'infobulle et se comparent
+           d'un coup d'œil. Collées à leur libellé, elles démarrent chacune à une
+           abscisse différente et il faut les lire une à une. */
+        <p
+          key={row.entry.id}
+          className="flex items-center gap-3 whitespace-nowrap text-ink last:mb-0"
+        >
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-1.5 shrink-0 rounded-full"
+              style={{ background: row.entry.color }}
+            />
+            {rows.length > 1 ? <span className="text-ink-muted">{row.entry.label}</span> : null}
+          </span>
+          <span className="tabular ml-auto font-semibold">{row.text}</span>
         </p>
       ))}
     </div>

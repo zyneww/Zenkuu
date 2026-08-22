@@ -113,7 +113,7 @@ const nl: Translation = {
     moversHint: (size: number) => `Onder de ${size} grootste marktkapitalisaties`,
     classMoversHint: (size: number) => `Onder de ${size} gevolgde assets van deze klasse`,
     summaryTitle: 'Marktoverzicht',
-    topIndicesTitle: 'Belangrijkste indices',
+    crossAssetTitle: 'Belangrijkste markten',
     volumeLeadersTitle: 'Hoogste volumes',
     economyTitle: 'Economie',
     heroMarketCap: 'Cryptokapitalisatie',

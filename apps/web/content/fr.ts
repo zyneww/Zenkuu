@@ -194,7 +194,7 @@ export const fr = {
      * « Actions françaises » à un autre pour la même chose.
      */
     summaryTitle: 'Résumé des marchés',
-    topIndicesTitle: 'Principaux indices',
+    crossAssetTitle: 'Principaux marchés',
     volumeLeadersTitle: 'Plus forts volumes',
     economyTitle: 'Économie',
     /*

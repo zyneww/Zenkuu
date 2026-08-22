@@ -1,11 +1,9 @@
 import type { DataResult, NewListing } from '@zenkuu/data'
 import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
-import { Link } from '@/i18n/navigation'
 import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { getContent } from '@/lib/content'
-import { getPhrase } from '@/lib/content'
 
 /**
  * Panneau « Récemment cotés » du bandeau de tête.
@@ -24,44 +22,57 @@ import { getPhrase } from '@/lib/content'
  * La source ne publie pas de logo pour ces actifs — ils viennent d'être cotés. Un
  * emplacement d'image vide sur chaque ligne se lirait comme un chargement bloqué ;
  * deux lettres sur un aplat de marque disent au contraire « il n'y a rien à charger ».
+ *
+ * ── LE NOMBRE DE LIGNES APPARTIENT À L'APPELANT ──────────────────────────────
+ *
+ * Ce composant affiche TOUT ce qu'on lui donne, et ne tronque pas. Il tronquait à
+ * quatre en dur, exactement comme `HighlightPanel` tronquait à cinq, avec le même
+ * défaut : le plafond vivait ici, la taille de la requête vivait dans la page, et les
+ * deux ne pouvaient que diverger. Ils avaient d'ailleurs divergé — le panneau était
+ * étiré à 455 pixels par le bloc d'actualités voisin, et quatre lignes y laissaient
+ * 250 pixels de blanc que ce fichier ne pouvait pas voir.
+ *
+ * Une seule valeur décide donc, et c'est l'argument de `getNewListings` dans la page :
+ * ce qui est demandé à la source est ce qui s'affiche, aucune ligne n'est chargée pour
+ * être jetée.
  */
 export async function RecentlyAdded({ result }: { result: DataResult<NewListing[]> }) {
   const fr = await getContent()
-  const t = await getPhrase()
 
   return (
-    <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-semibold text-ink">{t('Récemment cotés')}</h2>
-        <Link
-          href="/nouvelles-cotations"
-          className="shrink-0 text-xs font-medium text-brand transition-colors hover:text-brand-strong"
-        >
-          Tout voir
-        </Link>
-      </div>
-
+    /* SANS TITRE PROPRE, et ce n'est pas un oubli : l'explorateur pose les intitulés
+       de sa colonne de droite HORS des cartes, comme il le fait pour « Aperçu du
+       marché » et « Classements ». Un titre ici en ferait deux, l'un sous l'autre.
+       Voir le point d'appel dans `app/[locale]/page.tsx`. */
+    <section className="flex h-full flex-col rounded-panel border border-border-subtle bg-panel p-4">
+      {/* ── LA LIGNE EST EN DEUX COLONNES, ET LA DROITE EST EMPILÉE ────────────
+          Le cours et sa variation sont l'un SOUS l'autre, alignés à droite, et non
+          côte à côte sur une seule ligne. C'est la disposition de la référence, et elle
+          règle un vrai défaut de l'ancienne : côte à côte, la variation devait réserver
+          une largeur fixe pour que la colonne des cours ne danse pas d'une ligne à
+          l'autre — d'où un `w-16` arbitraire, trop large pour « +1,1 % » et trop étroit
+          pour « −100,00 % ». Empilée, chacune s'aligne sur le bord droit et aucune ne
+          contraint l'autre. */}
       {result.ok && result.data.length > 0 ? (
         <ul className="flex-1 divide-y divide-border-subtle">
-          {result.data.slice(0, 4).map((listing) => (
-            <li key={listing.id} className="flex items-center gap-2 py-1.5">
+          {result.data.map((listing) => (
+            <li key={listing.id} className="flex items-center gap-2.5 py-2">
               <span
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5rem] font-bold text-brand-strong"
+                className="flex size-6 shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5rem] font-bold text-brand-strong"
                 aria-hidden="true"
               >
                 {monogram(listing.name, listing.symbol)}
               </span>
 
-              <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink">
+              <span className="min-w-0 flex-1 truncate text-sm text-ink">
                 {listing.symbol.toUpperCase()}
                 <span className="ml-1.5 font-normal text-ink-muted">{listing.name}</span>
               </span>
 
-              <span className="tabular shrink-0 text-xs text-ink">
-                <Money value={listing.price} from={listing.currency} />
-              </span>
-
-              <span className="w-16 shrink-0 text-right">
+              <span className="flex shrink-0 flex-col items-end gap-0.5">
+                <span className="tabular text-sm text-ink">
+                  <Money value={listing.price} from={listing.currency} />
+                </span>
                 <ChangeBadge value={listing.change24h} size="sm" />
               </span>
             </li>

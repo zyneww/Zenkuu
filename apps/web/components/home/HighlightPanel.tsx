@@ -1,12 +1,10 @@
 import { Link } from '@/i18n/navigation'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, EmptyState } from '@zenkuu/ui'
+import { EmptyState } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/asset/AssetLogo'
-import { Money } from '@/components/locale/Money'
+import { AssetRow } from '@/components/home/AssetRow'
 import { getContent } from '@/lib/content'
-import { assetHref } from '@/lib/asset-routes'
 
 interface HighlightPanelProps {
   title: string
@@ -22,6 +20,15 @@ interface HighlightPanelProps {
   hint?: string
   href?: string
   unavailableReason?: string
+  /**
+   * Nombre de lignes affichées.
+   *
+   * Il était FIGÉ À CINQ dans le corps du composant, et l'appelant l'ignorait :
+   * `MarketSummaryHero` demandait déjà six indices à la source, dont le sixième était
+   * chargé puis jeté à l'affichage. Le plafond appartient à l'appelant — c'est lui qui
+   * connaît la hauteur dont il dispose.
+   */
+  limit?: number
 }
 
 /**
@@ -42,6 +49,7 @@ export async function HighlightPanel({
   hint,
   href,
   unavailableReason,
+  limit = 5,
 }: HighlightPanelProps) {
   const fr = await getContent()
   return (
@@ -63,30 +71,9 @@ export async function HighlightPanel({
 
       {assets && assets.length > 0 ? (
         <ol className="flex-1 divide-y divide-border-subtle">
-          {assets.slice(0, 5).map((asset, index) => (
+          {assets.slice(0, limit).map((asset, index) => (
             <li key={asset.id}>
-              <Link
-                href={assetHref(asset.assetClass, asset.id)}
-                className="flex items-center gap-2 py-1.5 transition-opacity hover:opacity-75"
-              >
-                <span className="tabular w-3 shrink-0 text-[0.6875rem] text-ink-muted">
-                  {index + 1}
-                </span>
-                <AssetLogo asset={asset} size={20} />
-                <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink">
-                  {asset.name}
-                </span>
-                <span className="tabular shrink-0 text-xs text-ink">
-                  <Money
-                    value={asset.price}
-                    from={asset.currency}
-                    asRate={asset.assetClass === 'forex'}
-                  />
-                </span>
-                <span className="w-16 shrink-0 text-right">
-                  <ChangeBadge value={asset.change24h} size="sm" />
-                </span>
-              </Link>
+              <AssetRow asset={asset} rank={index + 1} />
             </li>
           ))}
         </ol>
