@@ -70,7 +70,7 @@ export async function NewsBoard({ result }: { result: DataResult<NewsItem[]> }) 
               rel="noopener noreferrer nofollow"
               className="group flex flex-col overflow-hidden rounded-panel border border-border-subtle bg-panel transition-colors duration-150 hover:border-brand/50"
             >
-              <CoverArt seed={item.id} label={item.source} ratio="16/9" />
+              <CoverArt seed={item.id} label={item.source} ratio="21/9" />
 
               <span className="flex flex-1 flex-col gap-1.5 p-3">
                 <span className="line-clamp-3 text-sm font-medium leading-snug text-ink group-hover:text-brand-strong">

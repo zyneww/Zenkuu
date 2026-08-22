@@ -168,8 +168,8 @@ export function CoverArt({ seed, label, imageUrl, ratio = '16/9', className = ''
       >
         <defs>
           <linearGradient id={`${uid}-g`} gradientTransform={`rotate(${angle})`}>
-            <stop offset="0%" stopColor={pair[0]} stopOpacity="0.78" />
-            <stop offset="100%" stopColor={pair[1]} stopOpacity="0.34" />
+            <stop offset="0%" stopColor={pair[0]} stopOpacity="0.42" />
+            <stop offset="100%" stopColor={pair[1]} stopOpacity="0.14" />
           </linearGradient>
           <Pattern id={`${uid}-p`} motif={motif} />
         </defs>

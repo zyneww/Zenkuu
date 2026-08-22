@@ -130,7 +130,7 @@ export default async function HomePage() {
     }))
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-5">
       <h1 className="sr-only">
         {t('{site} — explorer les marchés').replace('{site}', fr.site.name)}
       </h1>
@@ -196,7 +196,7 @@ export default async function HomePage() {
  */
 function BoardSkeleton() {
   return (
-    <div className="flex flex-col gap-7" aria-hidden="true">
+    <div className="flex flex-col gap-5" aria-hidden="true">
       <div className="flex flex-col gap-4">
         <div className="flex gap-1.5">
           {[0, 1, 2, 3, 4, 5, 6].map((index) => (
