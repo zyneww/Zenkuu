@@ -233,6 +233,16 @@ export interface AssetDetail extends MarketAsset {
   pricesByCurrency?: Record<string, number>
 
   /**
+   * Variation du cours sur 24 h dans chacune de ces devises, en pourcentage.
+   *
+   * Le pendant de `pricesByCurrency`, et aussi peu déductible d'elle : la variation en
+   * bitcoin d'un jeton n'est pas sa variation en euro. Un jeton qui gagne 3 % en euro le
+   * jour où le bitcoin en gagne 5 % a PERDU 2 % en bitcoin — il a sous-performé son
+   * marché, ce que le pourcentage en euro ne dit pas.
+   */
+  changesByCurrency?: Record<string, number>
+
+  /**
    * SÉANCE DE COTATION — l'équivalent boursier de « où se négocie cet actif ».
    *
    * ── POURQUOI CE CHAMP EXISTE ────────────────────────────────────────────────

@@ -1,3 +1,10 @@
+'use client'
+
+import { ArrowUp } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+
+import { IconButton } from '@/components/ui/IconButton'
+
 /**
  * Cadre à deux colonnes de la fiche : les chiffres à gauche, le contenu à droite.
  *
@@ -47,16 +54,48 @@
  * les sections de la fiche entière, et la reléguer à droite la faisait lire comme un
  * réglage du graphique, au même rang que « Prix ▾ » ou « Comparer ▾ ».
  *
- * ── LA DIRECTIVE `'use client'` TOMBE, SANS QUE LE FICHIER CHANGE DE CAMP ─────
+ * ── LA DIRECTIVE `'use client'` EST REVENUE, ET POUR UNE SEULE RAISON ────────
  *
- * Elle était là pour ses deux boutons, son stockage local et ses trois effets. Rien
- * de tout cela ne subsiste : le composant ne fait plus que placer deux colonnes, sans
- * un seul crochet.
+ * Elle avait disparu quand le fichier a perdu ses deux boutons : il ne faisait plus
+ * que placer des colonnes, sans un seul crochet. Elle revient avec la FUSION DES DEUX
+ * BANDES COLLANTES (voir plus bas) — ce composant possède désormais la rangée de
+ * sommaire, et doit savoir si elle est collée ou non.
  *
- * Il reste néanmoins DANS le paquet client, parce que son unique appelant —
- * `AssetTabs` — en est un : un module importé par un composant client le devient. Ce
- * qu'on gagne n'est donc pas du poids mais de la clarté, et la liberté de l'appeler
- * un jour depuis un composant serveur sans avoir à le démonter d'abord.
+ * Le coût est nul : son unique appelant, `AssetTabs`, est lui-même un composant
+ * client, et un module importé par un composant client en devient un.
+ *
+ * ══════════════════════════════════════════════════════════════════════════════
+ * TROIS BANDES COLLANTES SONT DEVENUES DEUX
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La fiche empilait, du haut vers le bas : l'en-tête du site (64 px), une bande
+ * d'identité `fixed` qui apparaissait au défilement (48 px), puis cette rangée de
+ * sommaire (44 px). Soit 156 pixels de chrome permanent au-dessus d'une page dont le
+ * contenu est un graphique — et, au milieu de la bande d'identité, un vide de
+ * plusieurs centaines de pixels que rien n'occupait.
+ *
+ * Les deux dernières n'en font plus qu'une. Cette rangée porte les onglets en
+ * permanence et RÉVÈLE l'identité de l'actif — logo, nom, code, cours, variation —
+ * dès qu'elle se colle, c'est-à-dire au moment précis où l'en-tête de la fiche quitte
+ * l'écran. C'est ce que fait la référence, et la page y gagne 44 pixels de hauteur
+ * utile à chaque écran.
+ *
+ * ── COMMENT ON SAIT QU'ELLE EST COLLÉE ───────────────────────────────────────
+ *
+ * `position: sticky` ne prévient de rien : il n'existe ni événement ni pseudo-classe
+ * pour l'état « collé » (`:stuck` a été proposé, jamais implémenté). Le motif retenu
+ * est celui que tout le monde emploie — une SENTINELLE d'un pixel posée juste
+ * au-dessus de la rangée. Tant qu'elle est visible, la rangée est dans le flux ; dès
+ * qu'elle passe sous l'en-tête du site, la rangée est collée.
+ *
+ * ⚠️ Cette sentinelle-ci n'a rien à voir avec celle que portait `AssetStickyBar` : la
+ * sienne vivait dans le rail de chiffres et son emplacement était un piège documenté.
+ * Celle-ci est le frère immédiat de la rangée qu'elle surveille — elle ne peut pas
+ * être déplacée par erreur sans que le rapport saute aux yeux.
+ *
+ * La marge haute de l'observateur vaut la hauteur de l'en-tête, MESURÉE et non écrite
+ * en dur : la coder à 64 marcherait aujourd'hui et se décalerait au premier changement
+ * de son rembourrage, sans que rien ne le signale.
  *
  * ── CE QUE LA MESURE AVAIT APPRIS, ET QUI RESTE VRAI ──────────────────────────
  *
@@ -70,6 +109,7 @@
 export function AssetLayoutFrame({
   rail,
   tabsBar,
+  identity,
   aside,
   children,
 }: {
@@ -77,22 +117,31 @@ export function AssetLayoutFrame({
   /**
    * Barre de sommaire, rendue PLEINE LARGEUR au-dessus de la grille.
    *
-   * ── ELLE EST COLLANTE, ET C'EST NOUVEAU ───────────────────────────────────
+   * ── ELLE EST COLLANTE ─────────────────────────────────────────────────────
    *
    * Tant qu'elle commandait des panneaux exclusifs, elle n'avait pas à suivre : on la
    * quittait des yeux dès le clic, et le panneau demandé occupait l'écran. Sur une
    * page unique, elle est le seul repère qui dise OÙ L'ON EST dans une fiche de
    * plusieurs milliers de pixels. Elle doit donc rester à l'écran.
    *
-   * `top-28`, soit 112 pixels, et la valeur n'est pas choisie au jugé : l'en-tête du
-   * site occupe les 64 premiers pixels et la barre d'identité de la fiche les 48
-   * suivants. S'arrêter plus haut la ferait glisser sous l'une des deux.
+   * Elle s'arrête à `--header-height` et non plus à 112 pixels : la bande d'identité
+   * qui occupait les 48 pixels intermédiaires a fusionné avec elle (voir l'en-tête).
+   * La valeur est LUE dans le jeton plutôt que recopiée — les deux ne peuvent donc
+   * plus diverger.
    *
    * Le fond est OPAQUE (`bg-canvas`) et non translucide : le contenu qui passe
    * derrière une bande de 44 pixels au milieu d'un graphique se lit comme une
    * salissure, là où le même effet sur un en-tête de 64 pixels passe pour une matière.
    */
   tabsBar?: React.ReactNode
+  /**
+   * Identité compacte de l'actif — révélée quand la rangée se colle.
+   *
+   * Elle arrive en nœud déjà rendu plutôt qu'en données : c'est `AssetStickyBar`, un
+   * composant client branché sur le flux de cours, et ce cadre n'a aucune raison de
+   * connaître la notion d'actif. Il place des colonnes et tient une rangée.
+   */
+  identity?: React.ReactNode
   /**
    * Colonne d'actualités, à droite du contenu.
    *
@@ -110,19 +159,91 @@ export function AssetLayoutFrame({
   aside?: React.ReactNode
   children: React.ReactNode
 }) {
+  /* Déstructuré ICI, et non lu par `stuck.xxx` au fil du rendu : le compilateur React
+     traite tout accès de membre sur un objet qui PORTE une référence comme un accès à
+     cette référence pendant le rendu, et le refuse. La déstructuration sort le booléen
+     de l'objet une fois pour toutes. */
+  const { sentinelRef, stuck } = useStuck()
+
   return (
     <>
-      {/* ── UNE SEULE RANGÉE POUR LE SOMMAIRE ─────────────────────────────────
+      {/* La SENTINELLE de la rangée collante — voir l'en-tête. Un pixel de haut, dans
+          le flux, juste avant elle : c'est sa sortie de l'écran qui dit que la rangée
+          s'est collée. `col-span-full` n'est pas nécessaire ici (ce conteneur n'est pas
+          une grille), et son absence est délibérée : la sentinelle ne doit pas être
+          confondue avec celle, plus délicate, que portait `AssetStickyBar`. */}
+      <div ref={sentinelRef} aria-hidden="true" className="h-px" />
 
-          Elle en portait deux : le sommaire à gauche, les réglages de page à droite.
-          Trente pixels de vide séparaient les deux groupes, pour deux contrôles qui
-          tenaient largement sur une ligne — puis les deux contrôles ont été retirés
-          (voir l'en-tête), et il ne reste que le sommaire.
+      {/* ── LA RANGÉE PORTE LE SOMMAIRE, ET L'IDENTITÉ QUAND ELLE EST COLLÉE ──
 
-          `items-end` était là pour aligner deux groupes de hauteurs différentes au-
-          dessus du même filet. Il n'a plus rien à aligner et disparaît avec eux. */}
-      <div className="sticky top-28 z-30 flex border-b border-border-subtle bg-canvas">
+          Elle a porté deux groupes (sommaire à gauche, réglages de page à droite), puis
+          le sommaire seul. Elle porte aujourd'hui le sommaire et, dès qu'elle se colle,
+          l'identité de l'actif que la bande `fixed` d'autrefois affichait sur sa propre
+          ligne. Voir l'en-tête pour ce que cette fusion a rendu à la page.
+
+          `gap-3` et `items-center` : trois groupes de hauteurs différentes — une ligne
+          d'identité de 20 pixels, des onglets de 44, un bouton de 28 — qui doivent
+          partager une ligne de base optique. `items-end`, qui alignait autrefois deux
+          groupes au-dessus du même filet, les aurait tous collés au trait de
+          sélection. */}
+      <div className="sticky top-[var(--header-height)] z-30 flex items-center gap-3 border-b border-border-subtle bg-canvas">
+        {/*
+          ── L'IDENTITÉ APPARAÎT, ELLE NE POUSSE PAS ────────────────────────────
+
+          Elle est rendue EN PERMANENCE et seulement masquée : la monter au moment où
+          la rangée se colle ferait sauter les onglets de deux cents pixels vers la
+          droite au premier défilement, et le trait de sélection — mesuré en pixels sur
+          le bouton actif — se retrouverait à côté de sa cible le temps d'une image.
+
+          `w-0 overflow-hidden` plutôt que `hidden` : le groupe garde sa place dans
+          l'arbre et ses mesures restent valides, mais il ne prélève aucune largeur tant
+          qu'il est replié. La transition porte donc sur une largeur qui s'ouvre, ce qui
+          se lit comme un glissement et non comme une apparition.
+
+          `inert` retire l'ensemble du parcours clavier quand il est replié — un contenu
+          de largeur nulle reste focalisable sans cet attribut, et la tabulation s'y
+          perdrait.
+        */}
+        {identity !== undefined ? (
+          <div
+            aria-hidden={!stuck}
+            inert={!stuck}
+            className={`flex shrink-0 items-center gap-2 overflow-hidden transition-[width,opacity] duration-200 ${
+              stuck ? 'w-auto opacity-100' : 'w-0 opacity-0'
+            }`}
+          >
+            {identity}
+          </div>
+        ) : null}
+
         {tabsBar !== undefined ? <div className="min-w-0 flex-1">{tabsBar}</div> : null}
+
+        {/*
+          ── LE RETOUR EN HAUT SUIT L'IDENTITÉ ──────────────────────────────────
+
+          Il appartenait à la bande `fixed` et la fermait à droite. Il reste attaché au
+          même état : il n'a de sens qu'une fois la page défilée, et une flèche « haut
+          de page » affichée en haut de page ne commande rien.
+
+          Le libellé subsiste en `aria-label` — voir `IconButton`. C'est la convention
+          de CoinGecko et de TradingView : à vingt-huit pixels, l'icône tient partout, y
+          compris sur téléphone où la fiche fait le plus d'écrans.
+        */}
+        <div
+          aria-hidden={!stuck}
+          inert={!stuck}
+          className={`shrink-0 transition-opacity duration-200 ${
+            stuck ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        >
+          <IconButton
+            size="icon-xs"
+            variant="outline"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            label="Remonter en haut de la page"
+            icon={ArrowUp}
+          />
+        </div>
       </div>
 
       {/*
@@ -234,4 +355,58 @@ export function AssetLayoutFrame({
       </div>
     </>
   )
+}
+
+/**
+ * « La rangée de sommaire est-elle collée ? »
+ *
+ * ── UN OBSERVATEUR, PAS UN ÉCOUTEUR DE DÉFILEMENT ────────────────────────────
+ *
+ * Un `scroll` réveillerait le fil principal à chaque image pendant toute la descente
+ * de la page — plusieurs milliers de pixels sur une fiche — pour ne changer d'avis que
+ * deux fois. `IntersectionObserver` ne le réveille qu'au franchissement.
+ *
+ * ── LA HAUTEUR DE L'EN-TÊTE EST MESURÉE ──────────────────────────────────────
+ *
+ * Elle sert de marge haute à l'observateur : la sentinelle doit être déclarée « sortie »
+ * quand elle passe DERRIÈRE l'en-tête collant, pas quand elle quitte la fenêtre — ce
+ * qui arriverait 64 pixels trop tard. Écrire 64 en dur marcherait aujourd'hui et se
+ * décalerait au premier changement de son rembourrage ; on lit donc le nœud, par
+ * `data-site-header`, comme le faisait déjà l'ancienne bande.
+ *
+ * ── LE PREMIER RENDU DIT « NON COLLÉE », ET C'EST LE BON DÉFAUT ──────────────
+ *
+ * C'est l'état d'une page au chargement, et c'est aussi ce que le serveur rend : aucun
+ * écart d'hydratation, et l'identité ne clignote pas avant de se replier.
+ */
+function useStuck(): { sentinelRef: React.RefObject<HTMLDivElement | null>; stuck: boolean } {
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+  const [offset, setOffset] = useState(64)
+
+  useEffect(() => {
+    const measure = () => {
+      const header = document.querySelector<HTMLElement>('[data-site-header]')
+      setOffset(header?.getBoundingClientRect().height ?? 64)
+    }
+
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setStuck(!entry?.isIntersecting),
+      { rootMargin: `-${offset}px 0px 0px 0px`, threshold: 0 },
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [offset])
+
+  return { sentinelRef, stuck }
 }

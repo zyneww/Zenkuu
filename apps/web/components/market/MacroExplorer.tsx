@@ -19,6 +19,8 @@ import {
   type PackedMacroSeries,
 } from '@zenkuu/data'
 
+import { IconButton } from '@/components/ui/IconButton'
+import { Slider } from '@/components/ui/slider'
 import { MacroChoropleth } from '@/components/market/MacroChoropleth'
 import {
   copyBlobToClipboard,
@@ -280,15 +282,31 @@ export function MacroExplorer({
             <span className="tabular text-sm font-semibold text-ink">{activeYear}</span>
           </div>
 
-          <input
-            id="macro-annee"
-            type="range"
+          {/* `Slider` de shadcn/ui à la place du `type="range"` natif. Le natif ne
+             s'habille qu'à coups de pseudo-éléments propres à chaque moteur, et c'est
+             pourquoi il ne portait ici qu'un `accent-color` — sa piste et sa poignée
+             restaient celles du système, seul contrôle du site dans ce cas. Celui-ci
+             s'appuie sur Radix : même clavier, même sémantique, et le dessin passe par
+             nos jetons.
+
+             ⚠️ `value` EST UN TABLEAU, et `onValueChange` en reçoit un. Radix modélise
+             tout curseur comme une plage à N poignées ; un curseur simple est le cas à
+             une poignée, pas un cas différent. Passer un nombre nu ne lève pas — le
+             composant bascule silencieusement en mode non contrôlé, et le curseur
+             cesse de suivre l'année choisie ailleurs dans la page.
+
+             AUCUNE SORTIE CHIFFRÉE : l'année est déjà écrite au-dessus, en gras, à
+             droite de l'intitulé, et la répéter donnerait deux nombres pour une valeur.
+             Le composant n'en affiche pas de lui-même — ce qui supprime au passage le
+             `formatOptions` qu'il fallait donner à react-aria pour l'empêcher
+             d'annoncer « 202 400 % » au lecteur d'écran. */}
+          <Slider
+            aria-label={t('Année observée')}
             min={years[0]}
             max={years[years.length - 1]}
             step={1}
-            value={activeYear}
-            onChange={(event) => setYear(Number(event.target.value))}
-            className="w-full accent-[var(--color-brand)]"
+            value={[activeYear]}
+            onValueChange={([next]) => setYear(Number(next))}
           />
 
           <div className="tabular flex justify-between text-[0.6875rem] text-ink-muted">
@@ -796,14 +814,15 @@ function CountryPanel({
           <h2 className="truncate text-base font-semibold text-ink">{shown.country}</h2>
           <p className="text-[0.6875rem] text-ink-muted">{shown.region}</p>
         </div>
-        <button
-          type="button"
+        <IconButton
+          size="icon-xs"
+          variant="ghost"
+          icon={X}
+          label="Fermer"
+          tooltip={false}
           onClick={onClose}
-          aria-label="Fermer"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-        >
-          <X className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
+          className="shrink-0"
+          />
       </div>
 
       <div>

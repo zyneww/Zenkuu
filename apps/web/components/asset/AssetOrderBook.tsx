@@ -343,7 +343,7 @@ export function AssetOrderBook({ symbol }: { symbol: string }) {
           </thead>
           <tbody>
             {trades.map((trade) => (
-              <tr key={trade.id} className="border-b border-border-subtle/60 last:border-0">
+              <tr key={trade.id} className="border-b border-border-subtle last:border-0">
                 <td className="tabular py-1 text-left text-ink-muted">{clock(trade.time)}</td>
                 {/*
                   `isBuyerMaker` vrai signifie que l'ACHETEUR attendait dans le

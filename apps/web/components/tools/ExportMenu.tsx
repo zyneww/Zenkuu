@@ -1,9 +1,17 @@
 'use client'
 
 import { Check, Download } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
-import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   EXPORT_FORMATS,
   serialize,
@@ -27,6 +35,17 @@ import {
  * l'être puisqu'il ne donne accès à rien que le lecteur n'ait déjà reçu. Ce qui se
  * vend ici est la mise en forme, pas la donnée. Toute fonction future qui livrerait
  * une donnée SUPPLÉMENTAIRE devra passer par `hasFeature()`, côté serveur.
+ *
+ * ── L'OUVERTURE ET LA FERMETURE NE SONT PLUS ÉCRITES ICI ──────────────────────
+ *
+ * `DropdownMenu` de shadcn/ui — c'est-à-dire celui de Radix — apporte le clic
+ * extérieur, la touche Échap, le retour du focus sur le déclencheur à la fermeture,
+ * les flèches haut/bas, Origine/Fin et la frappe au vol : quarante lignes de
+ * gestionnaires d'événements en moins, et un comportement clavier qu'on n'avait pas.
+ *
+ * ⚠️ `asChild` SUR LE DÉCLENCHEUR, sans quoi Radix rendrait son propre `<button>`
+ * autour du nôtre. Deux boutons imbriqués sont un HTML invalide : le navigateur les
+ * remonte en frères, la mise en page casse, et aucune erreur n'est levée pour le dire.
  */
 export function ExportMenu<T>({
   filename,
@@ -41,33 +60,7 @@ export function ExportMenu<T>({
   /** Nom de l'onglet du classeur Excel. */
   sheetName?: string
 }) {
-  const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-  const container = useRef<HTMLDivElement>(null)
-
-  /* Le curseur qui s'éloigne referme le menu, au même titre que le clic extérieur et
-     la touche Échap ci-dessous. Voir components/nav/useHoverDismiss.ts. */
-  const hoverDismiss = useHoverDismiss(() => setOpen(false), open)
-
-  // Fermeture au clic extérieur et à Échap. Les deux, et pas l'un des deux : un menu
-  // qui ne se ferme qu'à la souris piège la navigation au clavier.
-  useEffect(() => {
-    if (!open) return
-
-    const onPointerDown = (event: MouseEvent) => {
-      if (!container.current?.contains(event.target as Node)) setOpen(false)
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
 
   async function run(format: ExportFormat, extension: string) {
     const payload = serialize(format, columns, rows, sheetName)
@@ -78,7 +71,6 @@ export function ExportMenu<T>({
       // Le retour visuel s'efface seul : une coche permanente ne dirait plus si la
       // copie date de maintenant ou d'il y a cinq minutes.
       window.setTimeout(() => setCopied(false), 2000)
-      setOpen(false)
       return
     }
 
@@ -92,54 +84,39 @@ export function ExportMenu<T>({
     // déchargement de la page — sur un outil dont on se sert plusieurs fois de suite,
     // cela s'accumule.
     URL.revokeObjectURL(url)
-    setOpen(false)
   }
 
-  const disabled = rows.length === 0
-
   return (
-    <div ref={container} className="relative" {...hoverDismiss}>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        disabled={disabled}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:opacity-50"
-      >
-        {copied ? (
-          <Check className="h-3.5 w-3.5 text-up" aria-hidden="true" />
-        ) : (
-          <Download className="h-3.5 w-3.5" aria-hidden="true" />
-        )}
-        {copied ? 'Copié' : 'Exporter'}
-      </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline" disabled={rows.length === 0}>
+          {copied ? <Check /> : <Download />}
+          {copied ? 'Copié' : 'Exporter'}
+        </Button>
+      </DropdownMenuTrigger>
 
-      {open ? (
-        <div
-          role="menu"
-          // `overlay` et non `surface` : le menu survole réellement la page, et avec
-          // `canvas` égal à `surface` il s'y confondrait (cf. §3.1).
-          className="absolute right-0 z-30 mt-1 w-64 rounded-card border border-border-subtle bg-overlay p-1 shadow-overlay"
-        >
-          <p className="px-3 py-2 text-[0.6875rem] uppercase tracking-wide text-ink-muted">
-            {rows.length} ligne{rows.length > 1 ? 's' : ''} à exporter
-          </p>
+      <DropdownMenuContent align="end" className="w-72">
+        {/* Le décompte est un `DropdownMenuLabel` et non un paragraphe libre : Radix
+            le sort de l'ordre de tabulation et le marque comme intitulé du groupe, ce
+            qui le fait annoncer AVANT les formats plutôt qu'entre deux d'entre eux. */}
+        <DropdownMenuLabel className="text-[0.6875rem] font-normal uppercase tracking-wide text-ink-muted">
+          {rows.length} ligne{rows.length > 1 ? 's' : ''} à exporter
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
 
-          {EXPORT_FORMATS.map((format) => (
-            <button
-              key={format.id}
-              type="button"
-              role="menuitem"
-              onClick={() => void run(format.id, format.extension)}
-              className="block w-full rounded-sm px-3 py-2 text-left transition-colors duration-150 hover:bg-surface-muted"
-            >
-              <span className="block text-sm font-medium text-ink">{format.label}</span>
-              <span className="block text-xs text-ink-muted">{format.hint}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+        {EXPORT_FORMATS.map((format) => (
+          <DropdownMenuItem
+            key={format.id}
+            onSelect={() => {
+              void run(format.id, format.extension)
+            }}
+            className="flex-col items-start gap-0.5"
+          >
+            <span className="font-medium">{format.label}</span>
+            <span className="text-[0.6875rem] text-ink-muted">{format.hint}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

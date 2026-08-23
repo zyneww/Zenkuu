@@ -1,11 +1,10 @@
 'use client'
 
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
@@ -51,6 +50,14 @@ export interface LineFigureProps {
   series: LineSeries[]
   height?: number
   format?: 'compact' | 'share' | 'percent'
+  /**
+   * La figure prend la hauteur disponible, `height` devenant un MINIMUM.
+   *
+   * Même motif que `BarFigure` : les cartes d'analyse sont égalisées par leur grille,
+   * et une figure à hauteur fixe y laisse un vide sous elle. Voir la note de `grow`
+   * là-bas pour la raison du `minHeight`.
+   */
+  grow?: boolean
   ariaLabel: string
 }
 
@@ -71,14 +78,23 @@ export function LineFigure({
   series,
   height = 260,
   format = 'compact',
+  grow = false,
   ariaLabel,
 }: LineFigureProps) {
   const reduced = useReducedMotion()
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      <div role="img" aria-label={ariaLabel} className="w-full">
-        <ResponsiveContainer width="100%" height={height}>
+    <div className={`flex w-full flex-col gap-2 ${grow ? 'min-h-0 flex-1' : ''}`}>
+      {/* `ChartContainer` : voir la note de `BarFigure`, qui explique ce qu'il
+          neutralise dans les styles écrits en dur par Recharts et pourquoi
+          `aspect-auto` doit écraser son rapport par défaut. */}
+      <ChartContainer
+        config={{}}
+        role="img"
+        aria-label={ariaLabel}
+        className={`aspect-auto ${grow ? 'min-h-0 w-full flex-1' : 'w-full'}`}
+        style={grow ? { minHeight: height } : { height }}
+      >
           <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
 
@@ -104,18 +120,33 @@ export function LineFigure({
               tickFormatter={(value: number) => render(value, format)}
             />
 
-            <Tooltip
+            {/* `ChartTooltipContent` — voir la note de `BarFigure` : une seule
+                définition d'infobulle pour toutes les figures, et une pastille de
+                couleur qui rattache chaque nombre à sa courbe. Indispensable ici, où
+                sept séries peuvent se superposer. */}
+            <ChartTooltip
               cursor={{ stroke: 'var(--color-border-subtle)', strokeWidth: 1 }}
-              contentStyle={{
-                background: 'var(--color-overlay)',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: 'var(--radius-control)',
-                fontSize: 12,
-                boxShadow: 'var(--shadow-overlay)',
-              }}
-              labelStyle={{ color: 'var(--color-ink)', fontWeight: 600 }}
-              itemStyle={{ color: 'var(--color-ink-muted)' }}
-              formatter={(value, name) => [render(Number(value), format), name]}
+              content={
+                <ChartTooltipContent
+                  className="border-border-subtle bg-overlay shadow-overlay"
+                  formatter={(value, name) => {
+                    const entry = series.find((candidate) => candidate.label === name)
+                    return (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          className="size-2.5 shrink-0 rounded-pill"
+                          style={{ background: entry?.color }}
+                        />
+                        <span className="flex-1 text-ink-muted">{name}</span>
+                        <span className="tabular font-medium text-ink">
+                          {render(Number(value), format)}
+                        </span>
+                      </>
+                    )
+                  }}
+                />
+              }
             />
 
             {series.map((entry) => (
@@ -125,7 +156,9 @@ export function LineFigure({
                 dataKey={entry.key}
                 name={entry.label}
                 stroke={entry.color}
-                strokeWidth={1.5}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 /* Points masqués au repos, révélés au survol : à sept séries, une
                    pastille par relevé transforme la figure en semis. */
                 dot={false}
@@ -134,8 +167,7 @@ export function LineFigure({
               />
             ))}
           </LineChart>
-        </ResponsiveContainer>
-      </div>
+      </ChartContainer>
 
       {/* LÉGENDE ÉCRITE À LA MAIN plutôt que `<Legend>` de Recharts. La sienne se
           place dans la boîte du graphique et lui prend de la hauteur ; celle-ci vit

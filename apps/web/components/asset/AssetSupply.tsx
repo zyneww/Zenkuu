@@ -1,4 +1,5 @@
 import type { AssetDetail } from '@zenkuu/data'
+import { Progress } from '@/components/ui/progress'
 import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
@@ -135,25 +136,32 @@ function Gauge({
         <span className="tabular text-xs font-semibold text-ink">{formatShare(share)}</span>
       </div>
 
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-muted">
-        {/* ── DEUX JAUGES, DEUX NIVEAUX DE LA MÊME RAMPE ───────────────────
-            La seconde était dorée. L'or ne signifie rien ici — ce n'est ni un
-            avertissement, ni un métal précieux, ni une note publiée par la
-            source : il ne distinguait les deux jauges que par sa présence, ce qui
-            en faisait une décoration. La doctrine de l'accent réserve la couleur à
-            ce que le site mesure, et une progression d'émission n'est pas une
-            variation de marché.
+      {/* ── DEUX JAUGES, DEUX NIVEAUX DE LA MÊME RAMPE ───────────────────
+          La seconde était dorée. L'or ne signifie rien ici — ce n'est ni un
+          avertissement, ni un métal précieux, ni une note publiée par la source : il
+          ne distinguait les deux jauges que par sa présence, ce qui en faisait une
+          décoration. La doctrine de l'accent réserve la couleur à ce que le site
+          mesure, et une progression d'émission n'est pas une variation de marché.
 
-            Les deux se distinguent donc par leur PLACE DANS LA RAMPE — l'accent
-            pour celle qu'on lit d'abord, l'encre en retrait pour l'autre. La
-            hiérarchie est la même, elle ne coûte plus une couleur. */}
-        <div
-          className={`h-full rounded-pill ${tone === 'brand' ? 'bg-brand' : 'bg-ink-muted'}`}
-          style={{ width: `${share}%` }}
-          role="img"
-          aria-label={`${label} : ${Math.round(share)} %`}
-        />
-      </div>
+          Les deux se distinguent donc par leur PLACE DANS LA RAMPE — la menthe pour
+          celle qu'on lit d'abord, l'encre en retrait pour l'autre. La hiérarchie est
+          la même, elle ne coûte plus une couleur.
+
+          ── CE QUE `Progress` APPORTE À UN `<div>` DONT ON POUSSE LA LARGEUR ──
+
+          Le remplissage était un `<div role="img" aria-label="… : 62 %">`. Il se
+          voyait, mais il ne se MESURAIT pas : « img » annonce une image, pas une
+          valeur sur une échelle. Radix rend un `role="progressbar"` avec
+          `aria-valuenow`, `aria-valuemin` et `aria-valuemax` — une synthèse vocale
+          peut alors dire « 62 %, barre de progression » et un lecteur braille
+          l'afficher comme une jauge. L'`aria-label` reste, il nomme CE qui progresse.
+      */}
+      <Progress
+        value={share}
+        aria-label={`${label} : ${Math.round(share)} %`}
+        className="mt-1.5 h-1.5 rounded-pill bg-surface-muted"
+        indicatorClassName={tone === 'brand' ? 'bg-brand' : 'bg-ink-muted'}
+      />
 
       <p className="tabular mt-1.5 text-[0.6875rem] text-ink-muted">{detail}</p>
     </div>

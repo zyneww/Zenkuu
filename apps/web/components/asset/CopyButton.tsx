@@ -3,6 +3,8 @@
 import { Check, Copy } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { IconButton } from '@/components/ui/IconButton'
+
 /**
  * Bouton de copie d'une valeur technique — typiquement une adresse de contrat.
  *
@@ -12,6 +14,16 @@ import { useEffect, useState } from 'react'
  *
  * Le minuteur est nettoyé au démontage : sans cela, un composant retiré pendant les
  * deux secondes déclencherait un `setState` sur un composant démonté.
+ *
+
+ * ── LE BOUTON EST `IconButton` ───────────────────────────────────────────────
+ *
+ * Le bouton-icône du site, bâti sur le `Button` et le `Tooltip` de shadcn/ui : il
+ * porte le carré de survol, l'anneau de focus, le plancher tactile — et surtout
+ * l'INFOBULLE. Le `title=""` d'avant n'apparaissait qu'après la temporisation du
+ * navigateur et n'existait ni au clavier ni au doigt ; la bulle s'ouvre au survol ET
+ * au focus. L'`aria-label` vient de la même chaîne, que le type rend obligatoire —
+ * voir `components/ui/IconButton.tsx`.
  */
 export function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false)
@@ -35,19 +47,14 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
 
   return (
     <>
-      <button
-        type="button"
+      <IconButton
+        size="icon-xs"
+        variant="ghost"
         onClick={onClick}
-        title={label}
-        aria-label={label}
-        className="shrink-0 rounded-card p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-      >
-        {copied ? (
-          <Check className="h-3.5 w-3.5 text-up" aria-hidden="true" />
-        ) : (
-          <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-        )}
-      </button>
+        label={label}
+        icon={copied ? Check : Copy}
+        className="shrink-0"
+      />
       <span role="status" className="sr-only">
         {copied ? 'Adresse copiée dans le presse-papiers' : ''}
       </span>

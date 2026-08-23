@@ -52,10 +52,27 @@ export function AnalysisCard({
   children: ReactNode
 }) {
   return (
-    <section className="flex flex-col gap-2">
+    /*
+      ── LA CARTE OCCUPE TOUTE LA HAUTEUR DE SA RANGÉE ────────────────────────
+
+      Elle se dimensionnait sur son contenu. Deux cartes voisines n'ayant jamais la
+      même hauteur — une figure de 200 px à gauche, une figure PLUS un tableau de cinq
+      lignes à droite — la rangée se refermait sur deux cadres décalés de cent-vingt
+      pixels, et l'œil lisait ce décalage comme un bloc qui n'a pas fini de charger.
+
+      `h-full` sur la section + `flex-1` sur le cadre laissent la grille égaliser les
+      deux : c'est elle qui connaît la hauteur de la rangée, pas la carte. Le contenu,
+      lui, reçoit `flex-1` à son tour, ce qui permet aux figures qui le demandent
+      (`grow`) de prendre le surplus au lieu de laisser un vide sous elles.
+
+      L'ANIMATION DE SURVOL est un liseré, pas une élévation : le design system ne
+      compte qu'une surface, et soulever une carte introduirait un second plan que
+      rien d'autre sur la page n'emploie.
+    */
+    <section className="flex h-full flex-col gap-2">
       {family ? <h2 className="text-sm font-normal text-ink-muted">{family}</h2> : null}
 
-      <div className="flex flex-col gap-3 rounded-panel border border-border-subtle bg-panel p-4">
+      <div className="flex flex-1 flex-col gap-3 rounded-panel border border-border-subtle bg-panel p-4 transition-colors duration-200 hover:border-ink-muted/35">
         <header className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-0.5">
             <h3 className="truncate text-base font-semibold text-ink">
@@ -76,14 +93,20 @@ export function AnalysisCard({
           {href && action ? (
             <Link
               href={href}
-              className="shrink-0 whitespace-nowrap text-xs text-brand transition-colors hover:text-brand-strong"
+              className="group shrink-0 whitespace-nowrap text-xs text-brand transition-colors hover:text-brand-strong"
             >
-              {action} <span aria-hidden="true">→</span>
+              {action}{' '}
+              <span
+                aria-hidden="true"
+                className="inline-block transition-transform duration-200 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
             </Link>
           ) : null}
         </header>
 
-        {children}
+        <div className="flex flex-1 flex-col gap-3">{children}</div>
       </div>
     </section>
   )
@@ -108,8 +131,12 @@ export function RankTable({
   rows: { key: string; cells: ReactNode[] }[]
 }) {
   return (
-    <div className="-mx-1 overflow-x-auto px-1">
-      <table className="w-full min-w-[22rem] border-collapse">
+    /* `flex-1` + `h-full` : deux cartes voisines dont l'une porte cinq lignes et
+       l'autre cinq lignes PLUS une figure ne se refermaient pas au même endroit. La
+       grille égalise les cadres ; ici, ce sont les lignes qui prennent le surplus,
+       ce qui les aère au lieu de laisser un vide sous la dernière. */
+    <div className="-mx-1 flex-1 overflow-x-auto px-1">
+      <table className="h-full w-full min-w-[22rem] border-collapse">
         <thead>
           <tr>
             {columns.map((column, index) => (
@@ -127,7 +154,15 @@ export function RankTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.key} className="border-t border-border-subtle">
+            /* Le survol souligne la LIGNE ENTIÈRE, comme dans les tableaux de
+               cotations : sur quatre colonnes alignées à droite, suivre une ligne des
+               yeux jusqu'à sa dernière valeur est exactement ce qui échoue sans
+               repère, et c'est ce que font les deux références. Le fond est translucide
+               pour ne pas masquer le filet du dessus. */
+            <tr
+              key={row.key}
+              className="border-t border-border-subtle transition-colors duration-150 hover:bg-surface-muted/50"
+            >
               {row.cells.map((cell, index) => (
                 <td
                   key={index}

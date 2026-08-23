@@ -3,6 +3,7 @@
 import { Star } from 'lucide-react'
 import { useState, useTransition } from 'react'
 
+import { IconButton } from '@/components/ui/IconButton'
 import { WATCHLIST_ASSET_LIMIT } from '@/lib/limits'
 import { toggleWatchlist } from '@/lib/watchlist-actions'
 
@@ -49,13 +50,13 @@ export function WatchlistStar({
      ne changerait rien. */
   if (!available) {
     return (
-      <span
-        title="Le suivi n’est pas disponible sur cette instance"
-        aria-hidden="true"
-        className="inline-flex rounded-card p-1.5 text-ink-muted/40"
-      >
-        <Star className="h-4 w-4" />
-      </span>
+      <IconButton
+        size="icon-sm"
+        variant="ghost"
+        disabled
+        label="Le suivi n’est pas disponible sur cette instance"
+        icon={Star}
+      />
     )
   }
 
@@ -96,21 +97,33 @@ export function WatchlistStar({
 
   return (
     <>
-      <button
-        type="button"
+      {/* `IconButton` — le bouton-icône de shadcn/ui, en `tertiary` : pas de
+          bordure, juste un carré de survol. Ce qu'il apporte par rapport au `<button>`
+          d'avant tient en un mot : l'INFOBULLE. Le `title=""` n'apparaissait qu'après
+          la temporisation du navigateur, restait invisible au clavier et au doigt, et
+          ne pouvait pas être mis en forme — trois défauts qui comptent double ici,
+          puisque c'est cette bulle qui explique le refus du plafond.
+
+          La teinte de l'étoile suivie ne peut pas venir de `color` : leurs deux
+          variantes sont neutres. Elle est donc posée en `className`, qui remplace la
+          couleur d'encre par cascade et laisse tout le reste (focus, plancher tactile,
+          état désactivé) au composant. */}
+      <IconButton
+        size="icon-sm"
+        variant="ghost"
         onClick={onClick}
         disabled={pending}
         aria-pressed={following}
-        title={capped ? cappedLabel : action}
-        aria-label={capped ? cappedLabel : action}
-        className={`inline-flex rounded-card p-1.5 transition-colors disabled:opacity-60 ${
-          following
-            ? 'text-brand hover:bg-brand-soft'
-            : 'text-ink-muted/60 hover:bg-surface-muted hover:text-ink'
-        }`}
-      >
-        <Star className={`h-4 w-4 ${following ? 'fill-current' : ''}`} aria-hidden="true" />
-      </button>
+        label={capped ? cappedLabel : action}
+        icon={
+          <Star
+            data-icon
+            className={`size-4 ${following ? 'fill-current' : ''}`}
+            aria-hidden="true"
+          />
+        }
+        className={following ? 'text-brand hover:text-brand' : ''}
+      />
 
       {capped ? (
         <span role="status" className="sr-only">

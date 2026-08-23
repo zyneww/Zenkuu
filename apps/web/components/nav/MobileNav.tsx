@@ -1,13 +1,26 @@
 'use client'
 
-import { ChevronDown, Menu, X } from 'lucide-react'
-import { useEffect, useId, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { Menu, X } from 'lucide-react'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { useId, useState } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { IconButton } from '@/components/ui/IconButton'
 import { Link, usePathname } from '@/i18n/navigation'
 import { NAV_MENUS } from '@/content/navigation'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
-import { usePresence } from '@/components/nav/usePresence'
 
 /**
  * Navigation mobile — le tiroir qui remplace une barre de menus impossible.
@@ -45,7 +58,6 @@ export function MobileNav() {
   const panelId = useId()
 
   const [open, setOpen] = useState(false)
-  const { state, mounted, onTransitionEnd } = usePresence(open)
 
   /*
    * SECTIONS DÉPLIÉES, amorcées sur la page courante.
@@ -80,139 +92,144 @@ export function MobileNav() {
     setOpen(false)
   }
 
-  /*
-   * ── LA PAGE DERRIÈRE NE DOIT PAS DÉFILER ─────────────────────────────────
-   *
-   * Sans ce verrou, faire glisser le tiroir fait défiler la page en dessous : on
-   * referme et l'on se retrouve ailleurs qu'on ne l'avait laissée. C'est le défaut le
-   * plus courant des tiroirs mobiles.
-   *
-   * `overflow: hidden` sur le document plutôt que `position: fixed` sur le corps :
-   * la seconde méthode fonctionne aussi sur iOS mais REMET LA PAGE EN HAUT à la
-   * fermeture, puisque le corps sort du flux. Il faudrait alors mémoriser puis
-   * restaurer la position — trois lignes de plus pour un défaut qu'on introduit
-   * soi-même.
-   */
-  useEffect(() => {
-    if (!open) return
-    const previous = document.documentElement.style.overflow
-    document.documentElement.style.overflow = 'hidden'
-    return () => {
-      document.documentElement.style.overflow = previous
-    }
-  }, [open])
-
-  /* Échap referme — l'échappatoire attendue de toute couche qui couvre l'écran. */
-  useEffect(() => {
-    if (!open) return
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open])
-
-  function toggleSection(label: string) {
-    setExpanded((current) =>
-      current.includes(label) ? current.filter((entry) => entry !== label) : [...current, label],
-    )
-  }
-
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-label={open ? 'Fermer la navigation' : 'Ouvrir la navigation'}
-        /* 40×40 : au-dessus du seuil de 32 px sous lequel une cible se rate au doigt,
-           et `-ml-2` ramène le GLYPHE à l'alignement du logo — c'est le dessin qu'on
-           aligne, pas la zone tactile qui l'entoure. */
-        className="-ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-control text-ink transition-colors duration-150 hover:bg-surface-muted xl:hidden"
+    /*
+      ══════════════════════════════════════════════════════════════════════════
+      LE TIROIR EST UN `Drawer`, ET IL S'OUVRE PAR LE BAS
+      ══════════════════════════════════════════════════════════════════════════
+
+      ── CE QUE CE FICHIER FAISAIT LUI-MÊME, ET QUI PART ────────────────────────
+
+      Un `createPortal` vers `document.body`, un état de présence pour animer
+      l'entrée et la sortie, un verrou de défilement sur `<html>`, un écouteur d'Échap,
+      un voile cliquable. Cinq mécaniques, toutes correctes, toutes fournies par
+      `vaul` — sur quoi `Drawer` est bâti.
+
+      ⚠️ LA RAISON DU PORTAIL RESTE VRAIE, et il faut la connaître avant de retirer
+      quoi que ce soit : rendu à sa place dans l'arbre, ce panneau tombait à une
+      hauteur de ZÉRO pixel — mesuré au navigateur, pas supposé. L'en-tête porte
+      `backdrop-blur`, et une propriété de filtre d'arrière-plan crée un BLOC
+      CONTENEUR pour tous ses descendants en position fixe : `top-16 bottom-0` se
+      résolvait à l'intérieur des soixante-quatre pixels de la barre. Le même piège
+      attend `transform`, `filter`, `perspective` et `contain`. `DrawerPortal` porte
+      le panneau vers `body` exactement pour cette raison — la contrainte n'a pas
+      disparu, elle a changé de propriétaire.
+
+      ── CE QUE `vaul` APPORTE EN PLUS ─────────────────────────────────────────
+
+      LE GLISSER POUR FERMER. C'est le geste que tout tiroir mobile propose, et le
+      seul que celui-ci n'avait pas : on ne pouvait le refermer qu'en visant la croix
+      ou le voile, deux cibles précises sur un écran qu'on tient d'une main. Le
+      panneau suit maintenant le doigt et se referme s'il descend assez bas.
+
+      Le VOILE COUVRE TOUT, en-tête compris. Il ne le pouvait pas tant que la croix
+      était la seule sortie évidente ; elle ne l'est plus, entre le glisser, le voile
+      lui-même et Échap.
+
+      ── IL ENTRE PAR LA GAUCHE, ET C'EST UNE CORRECTION ───────────────────────
+
+      Il entrait par le BAS, au motif qu'un pouce atteint plus facilement la moitié
+      basse d'un téléphone. L'argument vaut sur un téléphone, et ce panneau n'y est pas
+      seul : il apparaît sous `xl`, c'est-à-dire aussi sur une fenêtre de bureau qu'on a
+      simplement rétrécie — un écran large et court.
+
+      Là, un tiroir venant du bas est franchement mauvais. Il occupe toute la largeur
+      pour une liste de cinq entrées, il pousse le contenu hors de vue sur une hauteur
+      déjà réduite, et sa poignée de glissement promet un geste tactile à quelqu'un qui
+      tient une souris. Le panneau montait à mi-écran, vide aux trois quarts.
+
+      Un tiroir LATÉRAL n'a aucun de ces défauts : il prend une largeur fixe, garde sa
+      hauteur quelle que soit celle de la fenêtre, et part du côté où se trouve le
+      bouton qui l'ouvre — en haut à gauche. C'est le tiroir de navigation classique,
+      et c'est ce que le geste attend des deux côtés, doigt comme souris. Le glisser
+      pour fermer reste : `vaul` le fait horizontalement aussi bien que verticalement.
+    */
+    <Drawer open={open} onOpenChange={setOpen} direction="left">
+      <DrawerTrigger asChild>
+        {/* `IconButton` en `ghost` — pas de bordure, juste le carré de survol.
+            `tooltip={false}` : la cible est tactile, et une bulle au survol n'existe
+            pas au doigt ; l'étiquette porte donc seule le libellé, qui change avec
+            l'état. */}
+        <IconButton
+          variant="ghost"
+          label={open ? 'Fermer la navigation' : 'Ouvrir la navigation'}
+          tooltip={false}
+          icon={open ? X : Menu}
+          /* `p-2.5` : le composant dessine un carré de 32 px, sous le seuil des 40 que
+             cette cible-ci visait — c'est le premier contrôle de la barre sur
+             téléphone, et le manquer ouvre une page au hasard. `-ml-2` ramène le
+             GLYPHE à l'alignement du logo : c'est le dessin qu'on aligne, pas la zone
+             tactile. */
+          className="-ml-2 shrink-0 p-2.5 text-ink xl:hidden"
+        />
+      </DrawerTrigger>
+
+      {/* `w-[20rem] max-w-[85vw]` : une largeur FIXE, parce qu'une liste de navigation
+          a une largeur de lecture — et un plafond en pourcentage pour qu'il reste un
+          bout de page visible derrière sur les écrans les plus étroits, ce qui est ce
+          qui rend le voile compréhensible. */}
+      <DrawerContent
+        id={panelId}
+        className="h-full w-[20rem] max-w-[85vw] bg-canvas xl:hidden"
       >
-        {open ? (
-          <X className="h-5 w-5" aria-hidden="true" />
-        ) : (
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        )}
-      </button>
+        {/* Radix exige un titre : sans lui, la fenêtre reste anonyme à l'oreille et
+            l'avertissement tombe en console. Il est masqué à l'œil — le contenu
+            s'annonce déjà de lui-même, et un titre « Navigation » au-dessus d'une
+            navigation est du bruit. */}
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Navigation principale</DrawerTitle>
+        </DrawerHeader>
 
-      {/*
-        ── LE PANNEAU EST PORTÉ PAR LE CORPS, ET C'EST UNE NÉCESSITÉ ─────────────
-
-        Rendu à sa place dans l'arbre, il tombait à une hauteur de ZÉRO pixel — mesuré
-        au navigateur, pas supposé. La cause n'a rien à voir avec lui : l'en-tête porte
-        `backdrop-blur`, et une propriété de filtre d'arrière-plan crée un BLOC
-        CONTENEUR pour tous ses descendants en position fixe. `top-16 bottom-0` se
-        résolvait donc à l'intérieur des soixante-quatre pixels de la barre, et non dans
-        l'écran : 64 − 64 − 0 = 0.
-
-        Le même piège attend `transform`, `filter`, `perspective` et `contain`. Les
-        autres couches du site (recherche, session, préférences) y échappent parce
-        qu'elles sont rendues à côté de l'en-tête, pas dedans — celle-ci ne le peut pas,
-        son bouton vit dans la barre.
-
-        Le portail est SANS RISQUE pour le rendu serveur : `mounted` ne devient vrai
-        qu'après un clic, donc après l'hydratation. `document` n'est jamais lu sur le
-        serveur.
-      */}
-      {mounted
-        ? createPortal(
-        <>
-          {/* Le voile commence SOUS l'en-tête (`top-16`) : le recouvrir masquerait le
-              bouton de fermeture, seul moyen évident de revenir en arrière. */}
-          <div
-            data-state={state}
-            onClick={() => setOpen(false)}
-            aria-hidden="true"
-            className="drawer-scrim fixed inset-x-0 bottom-0 top-16 z-40 bg-black/40 xl:hidden"
-          />
-
-          <div
-            id={panelId}
-            data-state={state}
-            onTransitionEnd={onTransitionEnd}
-            className="drawer-sheet fixed inset-x-0 bottom-0 top-16 z-40 flex flex-col overflow-y-auto overscroll-contain bg-canvas xl:hidden"
-          >
+        <div className="flex min-h-0 flex-col overflow-y-auto overscroll-contain">
             <nav aria-label="Navigation principale" className="safe-x flex-1 py-2">
-              <ul className="divide-y divide-border-subtle">
+              {/*
+                ── LES SECTIONS REPLIABLES PASSENT SUR `Accordion` ─────────────
+
+                C'étaient des `<button aria-expanded>` suivis d'une liste rendue ou
+                non. Correct, et incomplet sur trois points que Radix apporte :
+
+                  · L'OUVERTURE EST ANIMÉE. Une section apparaissait d'un coup, ce qui
+                    fait sauter la position de tout ce qui la suit — sur un tiroir
+                    qu'on parcourt au pouce, le lien qu'on visait a bougé avant qu'on
+                    l'atteigne. `AccordionContent` mesure sa hauteur et la déroule.
+                  · LE PANNEAU EST RELIÉ À SON DÉCLENCHEUR par `aria-controls` et un
+                    `region` nommé : une synthèse vocale annonce « développé, groupe
+                    Données » au lieu d'un bouton et d'une liste sans rapport.
+                  · LES FLÈCHES HAUT/BAS naviguent d'un en-tête de section à l'autre.
+
+                `type="multiple"` : plusieurs sections ouvertes à la fois, ce que le
+                tableau `expanded` permettait déjà. La forme contrôlée est conservée
+                pour garder l'amorce sur la page courante (voir `useState` plus haut).
+              */}
+              <Accordion
+                type="multiple"
+                value={expanded}
+                onValueChange={setExpanded}
+                className="divide-y divide-border-subtle"
+              >
                 {NAV_MENUS.map((menu) => {
                   /* Un menu sans panneau est un LIEN, ici comme sur le bureau : lui
                      donner un chevron qui ne déplie rien serait une promesse vide. */
                   if (menu.href && menu.sections.length === 0) {
                     return (
-                      <li key={menu.label}>
+                      <div key={menu.label}>
                         <Link
                           href={menu.href}
                           className="flex min-h-[3.25rem] items-center text-base font-semibold text-ink"
                         >
                           {t(menu.label)}
                         </Link>
-                      </li>
+                      </div>
                     )
                   }
 
-                  const isExpanded = expanded.includes(menu.label)
-
                   return (
-                    <li key={menu.label}>
-                      <button
-                        type="button"
-                        onClick={() => toggleSection(menu.label)}
-                        aria-expanded={isExpanded}
-                        className="flex min-h-[3.25rem] w-full items-center justify-between gap-3 text-left text-base font-semibold text-ink"
-                      >
+                    <AccordionItem key={menu.label} value={menu.label} className="border-b-0">
+                      <AccordionTrigger className="min-h-[3.25rem] py-0 text-base font-semibold text-ink hover:no-underline">
                         {t(menu.label)}
-                        <ChevronDown
-                          className={`h-4 w-4 shrink-0 text-ink-muted transition-transform duration-150 ${
-                            isExpanded ? 'rotate-180' : ''
-                          }`}
-                          aria-hidden="true"
-                        />
-                      </button>
+                      </AccordionTrigger>
 
-                      {isExpanded ? (
+                      <AccordionContent className="pb-0">
                         <ul className="pb-2">
                           {menu.sections.flatMap((section, sectionIndex) => [
                             section.label ? (
@@ -258,9 +275,9 @@ export function MobileNav() {
                                           <span className="text-sm font-medium text-ink">
                                             {t(item.label)}
                                           </span>
-                                          <span className="rounded bg-surface-muted px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
+                                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-[0.625rem] font-medium">
                                             {fr.nav.soonShort}
-                                          </span>
+                                          </Badge>
                                         </span>
                                         <span className="block truncate text-xs text-ink-muted">
                                           {t(item.description)}
@@ -273,17 +290,14 @@ export function MobileNav() {
                             }),
                           ])}
                         </ul>
-                      ) : null}
-                    </li>
+                      </AccordionContent>
+                    </AccordionItem>
                   )
                 })}
-              </ul>
+              </Accordion>
             </nav>
-          </div>
-        </>,
-            document.body,
-          )
-        : null}
-    </>
+        </div>
+      </DrawerContent>
+    </Drawer>
   )
 }

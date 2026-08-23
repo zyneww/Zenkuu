@@ -1,22 +1,32 @@
 'use client'
 
+import { Separator } from '@/components/ui/separator'
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarLabel,
+  MenubarMenu,
+  MenubarTrigger,
+} from '@/components/ui/menubar'
+import { Toggle } from '@/components/ui/toggle'
 import {
   CalendarDays,
   Check,
   ChevronDown,
   Download,
   Link2,
-  LineChart,
-  MoreVertical,
   Plus,
-  Search,
   X,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
-import { Calendar } from '@/components/ui/Calendar'
+import { DateRangeCalendar } from '@/components/ui/DateRangeCalendar'
+import { Search } from 'lucide-react'
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -41,6 +51,32 @@ import { usePhrase } from '@/components/locale/ContentProvider'
  * Les PALIERS DE PÉRIODE sont la commande la plus utilisée d'un graphique de cours :
  * les replier dans un menu ajouterait un clic à chaque consultation. Tout le reste
  * s'ouvre à la demande.
+ *
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES DEUX SEULS ÉCARTS À LA RÉFÉRENCE, ET POURQUOI ILS SONT DÉLIBÉRÉS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La rangée reprend CoinGecko poste pour poste — grandeur, comparaison, type de
+ * tracé, TradingView, puis la pastille de cadrage temporel avec son calendrier, son
+ * lien et son menu. Deux postes seulement s'en écartent, et les deux le font sciemment.
+ * On les liste ICI pour qu'une relecture qui compare les deux barres n'y voie pas un
+ * alignement inachevé, et n'entreprenne pas de « corriger » ce qui a été tranché :
+ *
+ *   1. LA GRANDEUR EST UN INTERRUPTEUR À DEUX POSITIONS, pas un menu « Prix ▾ ».
+ *      Le menu cache l'existence de la capitalisation : rien dans le mot « Prix »
+ *      n'annonce qu'une autre grandeur se trouve derrière, et la bascule — qui répond
+ *      à « cet actif a-t-il monté, ou seulement émis des jetons ? » — coûtait deux
+ *      clics à qui savait déjà. Le segment montre les deux termes côte à côte et la
+ *      forme porte le sens : l'un ou l'autre, jamais les deux. Voir la note posée sur
+ *      `metricOptions` plus bas.
+ *
+ *   2. « DEPUIS JANV. » N'EST PAS ABRÉGÉ EN « YTD ». Le sigle est anglais ; le
+ *      franciser en abrégé donnerait un code illisible, et le laisser tel quel
+ *      mettrait un mot anglais au milieu de six libellés français. Voir la note de
+ *      `RANGE_PRESETS`, qui porte aussi la règle typographique des six autres.
+ *
+ * Tout le reste — y compris l'interrupteur TV, ajouté pour retrouver la PAIRE
+ * d'icônes de la référence — est aligné.
  */
 
 export interface RangePreset {
@@ -285,15 +321,12 @@ interface ChartToolbarProps {
   customRange: { from: string; to: string } | null
   onCustomRange: (range: { from: string; to: string } | null) => void
 
-  logScale: boolean
-  onToggleLog: () => void
-  showVolume: boolean
-  volumeAvailable: boolean
-  onToggleVolume: () => void
-  showMovingAverage: boolean
-  onToggleMovingAverage: () => void
-  showPriceLines: boolean
-  onTogglePriceLines: () => void
+  /*
+   * Les huit propriétés d'AFFICHAGE ont disparu avec leur menu — voir la note qui
+   * l'explique, plus bas dans le rendu. La barre ne règle plus que la GRANDEUR, la
+   * PÉRIODE, le TYPE de tracé et la COMPARAISON : ce qui change ce qu'on regarde, et
+   * non comment c'est peint.
+   */
 
   onCopyLink: () => void
   onExport: (format: ExportFormat) => void
@@ -488,38 +521,68 @@ export function ChartToolbar(props: ChartToolbarProps) {
         Il disparaît quand l'appelant n'a qu'un rendu à proposer : un sélecteur à un
         choix n'est pas un sélecteur.
       */}
-      {props.renderOptions.length > 1 ? (
-        <Dropdown
-          label=""
-          icon={<LineChart className="h-3.5 w-3.5" aria-hidden="true" />}
-          title={t('Type de tracé')}
-        >
-          {(close) =>
-            props.renderOptions.map((entry) => {
-              /* Une entrée sans `kind` — TradingView, profondeur — n'est active que
-                 sur sa vue. Une entrée AVEC `kind` exige les deux : sans cette
-                 seconde condition, « Courbe » et « Chandeliers » se cocheraient
-                 ensemble, tous deux étant la vue `original`. */
-              const active =
-                entry.view === props.view &&
-                (entry.kind === undefined || entry.kind === props.kind)
+      {/*
+        ⚠️ CE MENU N'EXISTE PLUS, et le paragraphe ci-dessus raconte son histoire
+        jusqu'à sa suppression.
 
-              return (
-                <MenuItem
-                  key={entry.id}
-                  selected={active}
-                  onClick={() => {
-                    if (entry.kind !== undefined) props.onKindChange(entry.kind)
-                    props.onViewChange(entry.view)
-                    close()
-                  }}
-                >
-                  {entry.label}
-                </MenuItem>
-              )
-            })
-          }
-        </Dropdown>
+        Il proposait « Courbe / Chandeliers / Profondeur du carnet » derrière un
+        pictogramme de courbe. Il est retiré sur demande, et la barre s'en tient à ce
+        que la référence y met : la grandeur, la comparaison, l'interrupteur
+        TradingView, la période, et les commandes de sortie.
+
+        CE QUE CELA RETIRE, dit clairement : les chandeliers et la vue « profondeur du
+        carnet » ne sont plus atteignables. Le tracé reste une courbe, qui est le rendu
+        par défaut et celui de la référence. `renderOptions` continue d'être passé — il
+        alimente encore l'interrupteur TradingView juste en dessous — et le graphique
+        sait toujours dessiner des chandeliers, mais plus rien ne les demande.
+      */}
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        TRADINGVIEW A SON PROPRE INTERRUPTEUR, À CÔTÉ DU TYPE DE TRACÉ
+        ══════════════════════════════════════════════════════════════════════
+
+        Il était une entrée du menu des types de tracé, ce qui est une place fausse
+        pour deux raisons.
+
+        DE FORME : la référence pose ici DEUX pictogrammes côte à côte — une courbe et
+        un « TV » — et c'est le seul endroit de sa barre où l'on voit d'un coup d'œil
+        quel moteur dessine. Replié dans un menu, le nôtre ne s'annonçait pas : rien
+        dans une icône de courbe ne laisse deviner qu'un second graphique existe.
+
+        DE FOND : les autres entrées du menu règlent NOTRE tracé — la même donnée,
+        dessinée autrement. TradingView le REMPLACE par un outil tiers qui n'obéit à
+        aucune de nos commandes (voir la note de `ChartView`). Un interrupteur à deux
+        positions dit exactement cela ; une entrée de menu le range parmi des réglages
+        qu'il n'est pas.
+
+        Le retour se fait par le MÊME bouton — c'est un interrupteur, pas un
+        aller-simple : sans cela, quitter TradingView demanderait de rouvrir le menu
+        qu'on vient de contourner.
+      */}
+      {props.renderOptions.some((entry) => entry.view === 'tradingview') ? (
+        /*
+          ── `Toggle` PLUTÔT QU'UN `<button aria-pressed>` ────────────────────
+
+          C'est le seul VRAI interrupteur de la barre — les autres contrôles
+          choisissent parmi plusieurs valeurs, celui-ci en bascule une seule. `Toggle`
+          est le composant fait pour ça : il pose `aria-pressed`, `data-state` et
+          l'anneau de focus, et ses variantes tiennent l'état pressé.
+
+          `pressed`/`onPressedChange` plutôt que `onClick` : le composant devient
+          CONTRÔLÉ par la vue courante, ce qui garantit qu'il ne peut pas afficher
+          « TradingView » alors que le graphique est revenu au tracé maison — un
+          `onClick` qui bascule sans lire l'état le permet.
+        */
+        <Toggle
+          size="sm"
+          pressed={props.view === 'tradingview'}
+          onPressedChange={(next) => props.onViewChange(next ? 'tradingview' : 'original')}
+          aria-label={t('Graphique TradingView')}
+          className="h-7 rounded-control bg-surface-muted px-2 text-[0.625rem] font-bold tracking-wide text-ink-muted data-[state=on]:bg-brand data-[state=on]:text-on-brand"
+        >
+          TV
+        </Toggle>
       ) : null}
       </div>
 
@@ -601,7 +664,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
             </button>
           ))}
 
-          <span aria-hidden="true" className="mx-1.5 h-4 w-px bg-border-subtle" />
+          <Separator orientation="vertical" className="mx-1.5 h-4 bg-border-subtle" />
         </div>
       ) : null}
 
@@ -657,7 +720,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
 
       {/* Un filet sépare le CADRAGE de ce qu'on fait du résultat — deux familles qui
           se suivent sur la même ligne et qu'aucun blanc ne distinguerait. */}
-      <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-border-subtle" />
+      <Separator orientation="vertical" className="mx-0.5 h-4 bg-border-subtle" />
 
         <IconButton
           label={t('Copier le lien de cette vue')}
@@ -694,167 +757,66 @@ export function ChartToolbar(props: ChartToolbarProps) {
 
           ── ET LE PLEIN ÉCRAN ? ─────────────────────────────────────────────
 
-          Il ne revient pas : la référence n'en a pas à cet endroit. Le cadre garde
-          `chart-frame` et son comportement, appelé par un double-clic sur la courbe —
-          geste que les deux références acceptent aussi.
+          Il n'existe plus du tout. Le bouton avait déjà disparu de cette rangée, et
+          le double-clic sur la courbe qui en tenait lieu a été retiré à son tour :
+          geste invisible, déclenché par accident en inspectant le tracé au curseur.
+          Voir la note dans `AssetWorkspace`.
         */}
-        <Dropdown
-          label=""
-          icon={<MoreVertical className="h-3.5 w-3.5" aria-hidden="true" />}
-          align="right"
-          active={props.logScale || props.showMovingAverage || props.showPriceLines}
-          title={t('Options d’affichage et export')}
-        >
-          {(close) => (
-            <>
-              {/* Les options d'affichage NE FERMENT PAS le menu : on en active
-                  volontiers deux ou trois d'affilée — l'échelle logarithmique et la
-                  moyenne mobile vont ensemble — et refermer après chacune imposerait
-                  de rouvrir autant de fois. Les exports, eux, ferment : ils produisent
-                  un fichier, l'action est terminée. */}
-              <MenuItem selected={props.logScale} onClick={props.onToggleLog}>{t('Échelle logarithmique')}</MenuItem>
-              <MenuItem
-                selected={props.showVolume}
-                disabled={!props.volumeAvailable}
-                onClick={props.onToggleVolume}
-              >
-                Volume en sous-panneau
-              </MenuItem>
-              <MenuItem selected={props.showMovingAverage} onClick={props.onToggleMovingAverage}>
-                Moyenne mobile
-              </MenuItem>
-              <MenuItem selected={props.showPriceLines} onClick={props.onTogglePriceLines}>{t('Extrêmes historiques')}</MenuItem>
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          LE MENU D'OPTIONS D'AFFICHAGE EST RETIRÉ — IL N'EN RESTE QUE L'EXPORT
+          ══════════════════════════════════════════════════════════════════════
 
-              <Separator />
+          La barre portait un second menu, sous un pictogramme de curseurs : échelle
+          logarithmique, volume en sous-panneau, moyenne mobile, extrêmes historiques.
+          Il a été retiré sur demande, et la référence n'en a pas non plus.
+
+          CE QUE CELA CHANGE, dit clairement : l'échelle logarithmique, la moyenne
+          mobile et les repères de plus haut / plus bas historiques ne sont plus
+          atteignables depuis la barre. Le graphique sait toujours les tracer — ce sont
+          des propriétés de `PriceChartInteractive`, conservées — mais plus rien ne les
+          allume. La bande de VOLUME, elle, ne dépend plus d'une case à cocher : elle est
+          affichée dès que la source publie des volumes, comme chez la référence.
+
+          `Menubar` reste, avec un seul menu. Le composant n'est pas de trop pour
+          autant : c'est lui qui porte la navigation au clavier et les rôles ARIA du
+          menu d'export, et l'y remplacer par un `DropdownMenu` ne ferait qu'échanger
+          une importation contre une autre.
+        */}
+        <Menubar className="h-auto border-0 bg-transparent p-0 shadow-none">
+          <MenubarMenu>
+            <MenubarTrigger
+              title={t('Exporter le graphique')}
+              className="flex h-7 items-center gap-1 rounded-control border border-border-subtle px-2 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-[state=open]:bg-surface-muted"
+            >
+              <Download className="h-3.5 w-3.5" aria-hidden="true" />
+            </MenubarTrigger>
+
+            <MenubarContent align="end" className="min-w-[14rem] border-border-subtle bg-overlay">
+              {/* QUATRE FORMATS, ET AUCUN N'EST DE TROP : PNG et JPEG sont des grilles
+                  de pixels, bonnes pour un message ou une diapositive ; SVG est
+                  vectoriel, donc net à l'impression et retouchable ; PDF est ce qu'on
+                  joint à une note. Choisir à la place du lecteur reviendrait à décider
+                  de l'usage qu'il fera du fichier. */}
+              <MenubarLabel className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
+                {t('Exporter')}
+              </MenubarLabel>
 
               {(['png', 'jpeg', 'svg', 'pdf'] as const).map((format) => (
-                <MenuItem
-                  key={format}
-                  icon={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
-                  onClick={() => {
-                    props.onExport(format)
-                    close()
-                  }}
-                >
+                <MenubarItem key={format} onSelect={() => props.onExport(format)}>
+                  <Download className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
                   Télécharger en {format.toUpperCase()}
-                </MenuItem>
+                </MenubarItem>
               ))}
-            </>
-          )}
-        </Dropdown>
+            </MenubarContent>
+          </MenubarMenu>
+        </Menubar>
       </div>
     </div>
   )
 }
 
 /* ── Pièces communes ───────────────────────────────────────────────────────── */
-
-/**
- * Menu déroulant, réutilisant les mécanismes de l'en-tête.
- *
- * `usePresence` pour l'animation d'apparition et `useHoverDismiss` pour la fermeture
- * au départ du curseur : ces deux comportements ont été mis au point pour la barre
- * de navigation, et les réécrire ici les ferait diverger à la première retouche.
- */
-function Dropdown({
-  label,
-  icon,
-  active = false,
-  align = 'left',
-  title,
-  children,
-}: {
-  label: string
-  icon?: React.ReactNode
-  active?: boolean
-  align?: 'left' | 'right'
-  /** Infobulle et nom accessible — indispensable quand le bouton n'a qu'une icône. */
-  title?: string
-  children: (close: () => void) => React.ReactNode
-}) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const { state, mounted, onTransitionEnd } = usePresence(open)
-  const close = useCallback(() => setOpen(false), [])
-  const hoverDismiss = useHoverDismiss(close, open)
-
-  useEffect(() => {
-    if (!open) return
-
-    function onPointerDown(event: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false)
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
-
-  return (
-    <div ref={rootRef} className="relative" {...hoverDismiss}>
-      {/*
-        UN MENU EST ENCADRÉ ; UNE ACTION NE L'EST PAS.
-
-        Toutes les commandes de la barre ont été des pastilles bordées, puis aucune ne
-        l'a été — alignées à huit, ces bordures pesaient plus lourd que les libellés
-        qu'elles encadraient, et la rangée se lisait comme une collection d'objets
-        plutôt que comme un instrument.
-
-        L'encadrement revient ICI SEULEMENT, sur ce qui replie un choix. C'est la forme
-        qui dit « il y a autre chose derrière », et un chevron seul ne le dit pas assez :
-        sans bordure, « Prix ▾ » se lisait comme un titre de colonne. La référence
-        encadre exactement ces deux-là — « Price » et « Compare » — et rien d'autre à
-        gauche de sa barre.
-
-        Trois états, trois traitements : au repos une bordure discrète ; à l'ouverture un
-        fond ; ACTIF — c'est-à-dire portant un réglage qui n'est plus au défaut — la
-        teinte de marque, bordure comprise.
-      */}
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        {...(title ? { title, 'aria-label': title } : {})}
-        className={`flex h-7 items-center gap-1 rounded-control border px-2 text-xs font-medium transition-colors duration-150 ${
-          open
-            ? 'border-border-subtle bg-surface-muted text-ink'
-            : active
-              ? 'border-brand bg-brand-soft text-brand-strong'
-              : 'border-border-subtle text-ink-muted hover:bg-surface-muted hover:text-ink'
-        }`}
-      >
-        {icon}
-        {label ? <span className="max-w-[9rem] truncate">{label}</span> : null}
-        {label ? (
-          <ChevronDown
-            className={`h-3 w-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />
-        ) : null}
-      </button>
-
-      {mounted ? (
-        <div
-          role="menu"
-          data-state={state}
-          onTransitionEnd={onTransitionEnd}
-          className={`menu-panel absolute top-full z-50 mt-1 min-w-[12rem] rounded-dense border border-border-subtle bg-overlay p-1 shadow-overlay ${
-            align === 'right' ? 'right-0' : 'left-0'
-          }`}
-        >
-          {children(close)}
-        </div>
-      ) : null}
-    </div>
-  )
-}
 
 function MenuItem({
   children,
@@ -903,9 +865,6 @@ function MenuItem({
   )
 }
 
-function Separator() {
-  return <hr className="my-1 border-0 border-t border-border-subtle" />
-}
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -1156,19 +1115,19 @@ function ComparePanel({
                   liste entière tient sans défilement et un champ de filtre y ajoute
                   une étape pour rien. */}
               {options.length > 8 ? (
-                <div className="relative mb-1.5">
-                  <Search
-                    className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-ink-muted"
-                    aria-hidden="true"
-                  />
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder={t('Rechercher un actif')}
-                    aria-label={t('Rechercher un actif à comparer')}
-                    className="h-7 w-full rounded-control border border-border-subtle bg-surface pl-7 pr-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-                  />
+                <div className="mb-1.5">
+                  <InputGroup size="sm">
+                    <InputGroupInput
+                      type="search"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder={t('Rechercher un actif')}
+                      aria-label={t('Rechercher un actif à comparer')}
+                    />
+                    <InputGroupAddon>
+                      <Search />
+                    </InputGroupAddon>
+                  </InputGroup>
                 </div>
               ) : null}
 
@@ -1297,7 +1256,7 @@ function IconButton({
  * tracé, et n'obéit à aucun de nos jetons de thème — c'était le seul contrôle de la
  * page rendu par le navigateur, et cela se voyait.
  *
- * La grille vit dans `components/ui/Calendar.tsx`, avec ses pièges de fuseau traités
+ * La grille vit dans `components/ui/DateRangeCalendar.tsx`, avec ses pièges de fuseau traités
  * à la source.
  */
 function DateRangePicker({
@@ -1355,7 +1314,7 @@ function DateRangePicker({
 
       {open ? (
         <div className="absolute left-0 top-full z-50 mt-1 rounded-dense border border-border-subtle bg-overlay p-3 shadow-overlay">
-          <Calendar
+          <DateRangeCalendar
             value={value}
             onChange={(range) => {
               onChange(range)

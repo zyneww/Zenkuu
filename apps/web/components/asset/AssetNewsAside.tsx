@@ -2,6 +2,14 @@
 
 import { PanelRight, Sparkles } from 'lucide-react'
 import { useSyncExternalStore } from 'react'
+import { IconButton } from '@/components/ui/IconButton'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -35,11 +43,21 @@ import { usePhrase } from '@/components/locale/ContentProvider'
  * L'instantané SERVEUR répond « ouvert », ce qui est le seul état que le serveur puisse
  * honnêtement rendre, et l'hydratation reste cohérente.
  *
- * ── ELLE DISPARAÎT SOUS 1280 PIXELS, SANS BOUTON POUR LA RAPPELER ───────────
+ * ── SOUS 1280 PIXELS, ELLE DEVIENT UN TIROIR ────────────────────────────────
  *
  * En dessous, la page tient déjà deux colonnes — le rail de chiffres et le contenu —
- * et une troisième les réduirait toutes les trois. Le fil reste atteignable :
- * `/actualites` porte le même flux, filtrable par actif.
+ * et une troisième les réduirait toutes les trois. La colonne cède donc sa place.
+ *
+ * ⚠️ ELLE NE DISPARAISSAIT PAS SEULEMENT : ELLE DEVENAIT INTROUVABLE. Aucun bouton ne
+ * la rappelait, et l'argument d'alors — « le fil reste atteignable, `/actualites`
+ * porte le même flux » — passait à côté de ce que la colonne sert à faire. On ne vient
+ * pas y lire les actualités du jour ; on vient rattacher un décrochage de la courbe à
+ * une date. Renvoyer vers une autre page, c'est retirer exactement la simultanéité qui
+ * justifie la colonne.
+ *
+ * Elle se replie donc en LANGUETTE FIXE au bord droit de l'écran, qui ouvre le même fil
+ * dans un tiroir latéral. Le contenu est le même, la position est la même — à droite —
+ * et le geste est celui qu'on attend d'un panneau qu'on a vu se refermer.
  */
 
 const STORAGE_KEY = 'zenkuu-fiche-actualites'
@@ -83,7 +101,7 @@ function readCollapsed(): string {
  * rattachement au remontage du panneau a déjà coûté une correction de bogue.
  *
  * Tout cela devient inutile dès lors que le fil défile CHEZ LUI : la colonne garde une
- * hauteur bornée à la fenêtre, `sticky top-40` la fixe, et il n'y a plus rien à
+ * hauteur bornée à la fenêtre, `sticky top-32` la fixe, et il n'y a plus rien à
  * mesurer. Voir le commentaire du panneau pour le raisonnement complet, et
  * `overscroll-contain` pour ce qui rend l'ascenseur imbriqué acceptable.
  *
@@ -114,7 +132,74 @@ export function AssetNewsAside({
     window.dispatchEvent(new Event(LOCAL_EVENT))
   }
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * SOUS `xl` : UNE LANGUETTE FIXE, ET LE MÊME FIL DANS UN TIROIR
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `fixed` et non `sticky` : sous cette largeur, la colonne n'a plus de place dans la
+   * rangée — lui en rendre une repousserait le contenu. Une languette hors flux ne
+   * prend aucune largeur et reste au bord quoi qu'on fasse défiler.
+   *
+   * `top-1/2` plutôt qu'un bord haut ou bas : c'est la hauteur où le regard est quand
+   * il lit la courbe, et le seul endroit qui ne se dispute ni avec l'en-tête collant en
+   * haut ni avec les commandes de période en bas.
+   *
+   * Le fil n'est monté qu'à l'OUVERTURE — `DrawerContent` vit dans un portail que
+   * `vaul` ne peuple que si le tiroir est ouvert. Il n'y a donc pas deux copies de la
+   * liste dans le document, seulement deux emplacements possibles.
+   */
+  const drawer = (
+    <Drawer direction="right">
+      <DrawerTrigger asChild>
+        <button
+          type="button"
+          title={t('Afficher les actualités')}
+          className="fixed right-0 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-card border border-r-0 border-border-subtle bg-surface px-2 py-3 text-ink-muted shadow-overlay transition-colors duration-150 hover:text-ink xl:hidden"
+        >
+          <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
+          <span className="text-[0.6875rem] font-medium [writing-mode:vertical-rl]">
+            Actualités
+            {count > 0 ? ` · ${count}` : ''}
+          </span>
+        </button>
+      </DrawerTrigger>
+
+      <DrawerContent className="h-full w-[22rem] max-w-[90vw] bg-canvas xl:hidden">
+        <DrawerHeader className="shrink-0 border-b border-border-subtle">
+          <DrawerTitle className="flex items-center gap-1.5 text-sm">
+            <Sparkles className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+            {t('Ce qui s’est passé')}
+          </DrawerTitle>
+        </DrawerHeader>
+
+        <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
+          {children}
+        </div>
+      </DrawerContent>
+    </Drawer>
+  )
+
   if (collapsed) {
+    return (
+      <>
+        {drawer}
+        {collapsedTab(t, toggle, count)}
+      </>
+    )
+  }
+
+  return (
+    <>
+      {drawer}
+      {expandedColumn(t, toggle, children)}
+    </>
+  )
+}
+
+/** La colonne repliée, réduite à sa languette — au-dessus de `xl` seulement. */
+function collapsedTab(t: (text: string) => string, toggle: () => void, count: number) {
+  {
     return (
       /* Repliée, la colonne devient une LANGUETTE VERTICALE de 40 pixels. Elle ne
          disparaît pas entièrement : un panneau qu'on a fermé et dont plus rien ne
@@ -128,7 +213,7 @@ export function AssetNewsAside({
           type="button"
           onClick={toggle}
           title={t('Afficher les actualités')}
-          className="sticky top-40 flex flex-col items-center gap-2 rounded-card border border-border-subtle bg-surface px-2 py-3 text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+          className="sticky top-32 flex flex-col items-center gap-2 rounded-card border border-border-subtle bg-surface px-2 py-3 text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
         >
           <PanelRight className="h-4 w-4" aria-hidden="true" />
           {/* Le texte tourne d'un quart de tour : dans 40 pixels de large, c'est la
@@ -141,9 +226,32 @@ export function AssetNewsAside({
       </aside>
     )
   }
+}
 
+/** La colonne dépliée — au-dessus de `xl` seulement. */
+function expandedColumn(
+  t: (text: string) => string,
+  toggle: () => void,
+  children: React.ReactNode,
+) {
   return (
-    <aside className="hidden w-[20rem] shrink-0 xl:block" aria-label={t('Actualités de l’actif')}>
+    <aside
+      /* ── LE FILET QUI SÉPARE LA COLONNE DU CONTENU ────────────────────────
+         Le pendant droit de celui que `.asset-rail` pose à gauche des sections
+         (voir `globals.css`) : la fiche porte les deux délimitations verticales de
+         la référence, une de chaque côté du graphique.
+
+         `border-l` + `pl-6`, et non un `gap` plus large : une gouttière laisserait
+         le filet flotter au milieu du vide. Attaché à la colonne, il en marque le
+         bord — et la rangée étant en `items-stretch` (voir `AssetLayoutFrame`), il
+         court sur toute la hauteur de la fiche au lieu de s'arrêter au dernier
+         article. C'est exactement le montage de `NewsSidebar`, sur l'accueil.
+
+         La largeur passe de 20 à 22 rem pour absorber le rembourrage : sans cela,
+         la colonne perdrait 24 pixels de texte au profit du filet. */
+      className="hidden w-[22rem] shrink-0 border-l border-border-subtle pl-6 xl:block"
+      aria-label={t('Actualités de l’actif')}
+    >
       {/*
         ══════════════════════════════════════════════════════════════════════
         LA COLONNE A SON PROPRE ASCENSEUR, ET RESTE VISIBLE JUSQU'EN BAS
@@ -177,18 +285,25 @@ export function AssetNewsAside({
 
         Le montage devient alors le plus simple des trois :
 
-            sticky top-40  +  hauteur bornée à la fenêtre  +  overflow-y-auto
+            sticky top-32  +  hauteur bornée à la fenêtre  +  overflow-y-auto
 
-        `top-40` (160 px) laisse passer l'en-tête du site, la barre d'identité et la
-        barre de sommaire — les trois éléments collants qui la précèdent. La hauteur est
-        bornée à ce qui reste sous elles, à quoi s'ajoute une marge basse.
+        `top-32` (128 px) laisse passer les DEUX éléments collants qui la précèdent :
+        l'en-tête du site (64 px) et la rangée de sommaire (48 px), plus une gouttière
+        de 16. C'était `top-40` du temps où la fiche portait une TROISIÈME bande — la
+        barre d'identité, qui a depuis fusionné avec le sommaire (voir
+        `AssetLayoutFrame`). La colonne se collait donc 32 pixels trop bas, et son
+        premier article s'alignait sur rien.
+
+        La hauteur est bornée à ce qui reste sous elles, à quoi s'ajoute une marge
+        basse : `100vh − 128 − 32`, soit les 10 rem ci-dessous. Les deux valeurs ne
+        peuvent pas diverger sans que le panneau dépasse la fenêtre.
 
         C'est exactement la forme de CoinGecko, et le crochet de mesure
         `useTailStickyTop` disparaît avec ce changement : plus rien à mesurer, le CSS
         suffit — et avec lui s'en va le `ResizeObserver` dont le rattachement au
         remontage du panneau avait déjà coûté une correction.
       */}
-      <div className="sticky top-40 flex max-h-[calc(100vh-11rem)] flex-col">
+      <div className="sticky top-32 flex max-h-[calc(100vh-10rem)] flex-col">
         {/*
           ── LE BOUTON DE REPLI PASSE À GAUCHE DU TITRE ──────────────────────
 
@@ -207,15 +322,14 @@ export function AssetNewsAside({
             lui, un conteneur flexible réduit d'abord ses enfants avant de faire défiler
             — le titre s'écraserait et le bouton perdrait sa zone de clic. */}
         <div className="flex shrink-0 items-center gap-2 pb-2">
-          <button
-            type="button"
+          <IconButton
+            size="icon-xs"
+            variant="ghost"
             onClick={toggle}
-            title={t('Masquer les actualités')}
-            aria-label={t('Masquer les actualités')}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-          >
-            <PanelRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
+            label={t('Masquer les actualités')}
+            icon={PanelRight}
+            className="shrink-0"
+          />
 
           <h2 className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-ink">
             <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />{t('Ce qui s’est passé')}</h2>
@@ -236,7 +350,10 @@ export function AssetNewsAside({
           `pr-1 -mr-1` : la barre de défilement occupe sa place sans rogner le texte ni
           décaler la colonne quand elle apparaît.
         */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 -mr-1">
+        {/* `scrollbar-none` : même retrait que sur la colonne de l'accueil, et pour la
+            même raison — voir `NewsSidebar`. La compensation `pr-1 -mr-1` part avec la
+            barre qu'elle servait à loger. */}
+        <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {children}
         </div>
       </div>

@@ -61,7 +61,7 @@ import { monogram } from '@/components/asset/monogram'
  * état, et la palette d'interface doit rester réservée à ce qui se clique.
  */
 const FAMILY_TINT: Record<CommodityFamily, string> = {
-  precious: 'bg-accent-soft',
+  precious: 'bg-gold-soft',
   industrial: 'bg-surface-muted',
   energy: 'bg-brand-soft',
   agricultural: 'bg-up-soft',

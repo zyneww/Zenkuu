@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Link } from '@/i18n/navigation'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import {
   CACHE_TTL_SECONDS,
@@ -224,14 +224,14 @@ async function MethodologyBand() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <Link
+        <ButtonLink
           href="/methodologie"
-          className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-        >{t('Méthodologie & sources')}</Link>
-        <Link
+        >{t('Méthodologie & sources')}</ButtonLink>
+        <ButtonLink
           href="/apprendre"
-          className="rounded-control border border-border-subtle bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-        >{t('Apprendre à lire ces chiffres')}</Link>
+          variant="outline"
+          size="lg"
+        >{t('Apprendre à lire ces chiffres')}</ButtonLink>
       </div>
     </section>
   )

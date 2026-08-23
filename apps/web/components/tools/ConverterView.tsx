@@ -1,11 +1,15 @@
 'use client'
 
 import { ArrowDownUp, ChevronDown } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 import { useMemo, useState } from 'react'
 
 import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenkuu/data'
 
+import { IconButton } from '@/components/ui/IconButton'
 import { AssetLogo } from '@/components/asset/AssetLogo'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { AssetPicker } from '@/components/tools/AssetPicker'
 
 /**
@@ -139,12 +143,14 @@ export function ConverterView({
             Montant en {fromLabel}
           </span>
           <div className="flex items-stretch gap-2">
-            <input
+            <Input
+              size="lg"
               type="text"
               inputMode="decimal"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="tabular min-w-0 flex-1 rounded-control border border-border-subtle bg-canvas px-3 py-2.5 text-lg text-ink focus:border-brand focus:outline-none"
+              aria-label={`Montant en ${fromLabel}`}
+              className="tabular min-w-0 flex-1"
             />
 
             {/* Le sélecteur est COLLÉ au champ qu'il qualifie, pas posé en dessous :
@@ -177,16 +183,16 @@ export function ConverterView({
             l'autre. L'horizontale de la version précédente décrivait une disposition
             qui n'existe plus. */}
         <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
-          <button
-            type="button"
+          <Separator className="flex-1 bg-border-subtle" />
+          {/* `IconButton` — le bouton-icône bordé du système. `tooltip` pose à
+              la fois l'`aria-label` et une bulle qui, elle, existe au clavier. */}
+          <IconButton
+            variant="outline"
             onClick={() => setReversed((value) => !value)}
-            aria-label="Inverser le sens de conversion"
-            className="flex h-8 w-8 items-center justify-center rounded-control border border-border-subtle bg-canvas text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand-strong"
-          >
-            <ArrowDownUp className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <span className="h-px flex-1 bg-border-subtle" aria-hidden="true" />
+            label="Inverser le sens de conversion"
+            icon={ArrowDownUp}
+          />
+          <Separator className="flex-1 bg-border-subtle" />
         </div>
 
         {/* ── CE QU'ON REÇOIT ───────────────────────────────────────────────── */}
@@ -342,23 +348,25 @@ function CurrencySelect({
   rates: ExchangeRates | null
 }) {
   return (
-    <label className="block h-full">
-      <span className="sr-only">Devise</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-full w-full rounded-control border border-border-subtle bg-canvas px-3 text-sm text-ink focus:border-brand focus:outline-none"
-      >
-        {currencies.map((code) => {
-          const missing = code !== 'EUR' && rates?.rates[code] === undefined
-          return (
-            <option key={code} value={code} disabled={missing}>
-              {code}
-              {missing ? ' — taux indisponible' : ''}
-            </option>
-          )
-        })}
-      </select>
-    </label>
+    /* ⚠️ `disabled` SUR L'OPTION, ET C'EST LA SEULE CHOSE À NE PAS PERDRE ICI.
+       Une devise sans taux publié doit rester VISIBLE et INSÉLECTIONNABLE : la
+       retirer ferait chercher une devise qu'on sait exister, la laisser choisissable
+       viderait le résultat sans explication. `NativeSelectOption` n'est qu'un
+       `<option>` habillé — l'attribut le traverse. */
+    <NativeSelect
+      aria-label="Devise"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-full"
+    >
+      {currencies.map((code) => {
+        const missing = code !== 'EUR' && rates?.rates[code] === undefined
+        return (
+          <NativeSelectOption key={code} value={code} disabled={missing}>
+            {missing ? `${code} — taux indisponible` : code}
+          </NativeSelectOption>
+        )
+      })}
+    </NativeSelect>
   )
 }

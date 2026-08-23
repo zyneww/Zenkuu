@@ -47,7 +47,7 @@ Objectif business : devenir une référence d'analyse de marché généraliste, 
 - Police d'interface et d'affichage : **Geist** · nombres : **DM Mono**
 - Rayon : **4 px** pour les contrôles, **12/16 px** pour les cartes — deux familles, jamais d'entre-deux
 - Échelle d'espacement : **4 px**
-- Palette : **« nuit chaude » — noir chaud + cyan, l'ambre en éclat ponctuel**
+- Palette : **« bleu-nuit et menthe » — encre bleu-nuit + menthe, l'ambre en éclat ponctuel**
 - **Thème sombre par défaut**, thème clair complet et accessible d'un clic
 - **Header aligné à gauche** : marque puis menus déroulants collés ensemble, recherche et compte rejetés à droite
 
@@ -157,21 +157,34 @@ infobulle, animation d'entrée de 800 ms.
 compte jusqu'à 50 par page, et 50 instances Recharts y coûteraient bien plus que le
 gain visuel.
 
-#### Palette « nuit chaude »
+#### Palette « bleu-nuit et menthe »
 
 | Rôle | Clair | Sombre | Emploi |
 |---|---|---|---|
-| `--color-brand` | `#0d7a72` | `#35e0d0` | Liens, boutons, onglet actif, focus — **porte l'interface** |
-| `--color-brand-strong` | `#075a54` | `#6cf0e4` | Survol et emphase |
-| `--color-brand-soft` | `#dff3f1` | `#0c2b29` | Aplat teinté (pastille active) — ne porte jamais de texte seul |
-| `--color-on-brand` | `#ffffff` | `#06211f` | Texte **sur** aplat de marque |
-| `--color-accent` | `#a8540a` | `#ffb347` | Ambre — **éclat ponctuel** : badges, seuils, métaux |
-| `--color-accent-strong` | `#7f3e07` | `#ffcb80` | Ambre porteur de sens |
+| `--color-canvas` | `#eef2f7` | `#080b12` | Le fond de page — froid des deux côtés |
+| `--color-surface` | `#f8fafc` | `#121b2c` | La carte, un cran au-dessus du canvas |
+| `--color-panel` | `#ffffff` | `#1a2436` | Ce qui se pose SUR une carte |
+| `--color-ink` | `#0b1220` | `#f1f5f9` | Encre principale |
+| `--color-ink-muted` | `#55637a` | `#93a3b8` | Seconde voix |
+| `--color-brand` | `#0f766e` | `#5eead4` | Liens, boutons, onglet actif, focus — **porte l'interface** |
+| `--color-brand-strong` | `#115e59` | `#99f6e4` | Survol et emphase |
+| `--color-brand-soft` | `#ccfbf1` | `#0d3b38` | Aplat teinté (pastille active) — ne porte jamais de texte seul |
+| `--color-on-brand` | `#ffffff` | `#04211f` | Texte **sur** aplat de marque |
+| `--color-accent` | `#a04d08` | `#fbbf24` | Ambre — **éclat ponctuel** : badges, seuils, métaux |
+| `--color-accent-strong` | `#7c3a06` | `#fcd34d` | Ambre porteur de sens |
+| `--color-up` / `--color-down` | `#047a45` / `#c62828` | `#34d399` / `#fb7185` | Sémantique de marché |
 
-> ⚠️ **Renversement.** Ce document a porté successivement deux autres identités : un
-> **azur** de marque (« ciel au zénith », lecture littérale de 空, *kuu*, le ciel), puis
-> un accent **achromatique** — l'extrême de la rampe, sous l'argument qu'un instrument
-> de mesure ne se colore pas lui-même et réserve la couleur à ce qu'il mesure.
+> ⚠️ **Renversement.** Ce document a porté successivement trois autres identités : un
+> **azur** de marque (« ciel au zénith », lecture littérale de 空, *kuu*, le ciel), un
+> accent **achromatique** — l'extrême de la rampe, sous l'argument qu'un instrument
+> de mesure ne se colore pas lui-même — puis une **nuit chaude** (noir chaud + cyan).
+>
+> La rampe actuelle garde le cyan de la troisième, poussé vers la **menthe**, et rend
+> au fond la froideur de la première. Le motif est mesuré et non esthétique : sept des
+> neuf teintes porteuses de sens du thème sombre — menthe de marque, vert d'eau de
+> hausse, rose de baisse, quatre des six séries de données — vivent entre 160° et 260°.
+> Un fond chaud les mettait toutes en opposition simultanée, ce qui les détache mais
+> les fait vibrer sur une page de trois cents lignes de cotation.
 >
 > Cet argument s'appuyait sur une mesure juste et une conclusion trop stricte : il
 > raisonnait sur la **teinte** seule, en oubliant que deux couleurs de même teinte se
@@ -182,8 +195,8 @@ gain visuel.
 
 Trois points qu'une évolution ne doit pas défaire :
 
-- **Le cyan porte, l'ambre ponctue.** Inverser les rôles donnerait un site orange. En
-  thème clair l'ambre est assombri à `#a8540a` pour franchir AA (5,04:1) : c'est ce qui
+- **La menthe porte, l'ambre ponctue.** Inverser les rôles donnerait un site orange. En
+  thème clair l'ambre est assombri à `#a04d08` pour franchir AA (5,25:1) : c'est ce qui
   lui permet, contrairement à la version précédente, de porter du texte.
 - **`--color-brand` tient DEUX contraintes, pas une.** Texte de lien **sur** le canvas,
   et fond plein **sous** `--color-on-brand`. Une teinte qui passe l'une et rate l'autre
@@ -656,7 +669,7 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 - **Zéro donnée mock/test/placeholder**, à aucun stade du développement.
 - **Toutes les API et outils utilisés doivent être 100 % gratuits**.
 - **Header aligné à gauche** — marque et menus collés ensemble, recherche et compte à droite. (A remplacé le header centré : une navigation centrée n'a pas de bord auquel se raccrocher, sa position dépend de la largeur des deux groupes qui l'entourent, et ajouter une entrée de menu la déplaçait toute entière.)
-- Le design system (Geist + DM Mono, rayons 4/12-16 px, échelle 4 px, palette « nuit chaude » cyan/ambre, sombre par défaut) est la base par défaut ; tout changement de thème doit être explicitement demandé.
+- Le design system (Geist + DM Mono, rayons 4/12-16 px, échelle 4 px, palette « bleu-nuit et menthe », sombre par défaut) est la base par défaut ; tout changement de thème doit être explicitement demandé.
 
 ---
 
@@ -742,7 +755,7 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Yahoo Finance** — actions, ETF, matières premières, indices, **OHLC + volume** | `providers/yahoo.ts` |
 | **RSS** — actualités (Cointelegraph, CoinDesk) | `providers/news.ts` |
 | **Alternative.me** — indice Fear & Greed | `providers/sentiment.ts` |
-| Design system « nuit chaude » — sombre par défaut **+ thème clair complet**, contrastes vérifiés par test | `apps/web/app/globals.css` · `apps/web/app/palette.test.ts` |
+| Design system « bleu-nuit et menthe » — sombre par défaut **+ thème clair complet**, contrastes vérifiés par test | `apps/web/app/globals.css` · `apps/web/app/palette.test.ts` |
 | Bascule de thème, suivi système, sans flash au chargement | `components/ThemeScript.tsx`, `ThemeToggle.tsx` |
 | Header aligné à gauche, 5 menus déroulants accessibles, recherche et compte à droite | `components/NavBar.tsx`, `content/navigation.ts` |
 | Sélecteur langue/devise (globe), 2 colonnes + recherche | `components/locale/LocalePanel.tsx` |

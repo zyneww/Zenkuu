@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Button } from '@/components/ui/button'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import {
   PreferenceOverlay,
@@ -20,10 +22,10 @@ import { usePhrase } from '@/components/locale/ContentProvider'
  * de la pédagogie : elle empêche une lecture fausse.
  */
 
-const THEMES: { value: ThemeMode; label: string; hint: string }[] = [
-  { value: 'light', label: 'Clair', hint: 'Toujours clair' },
-  { value: 'dark', label: 'Sombre', hint: 'Toujours sombre' },
-  { value: 'system', label: 'Système', hint: 'Suit votre appareil' },
+const THEMES: { value: ThemeMode; label: string }[] = [
+  { value: 'light', label: 'Clair' },
+  { value: 'dark', label: 'Sombre' },
+  { value: 'system', label: 'Système' },
 ]
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -60,54 +62,61 @@ export function SettingsPreferences() {
              Cette règle-là, elle, ne bougera pas. */
           description={t('Les langues traduites changent l’interface ; les autres enregistrent votre préférence en attendant leur traduction. Le sélecteur signale lesquelles le sont.')}
         >
-          <button
-            type="button"
-            onClick={() => setTab('language')}
-            className="rounded-control border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
-          >
+          {/* `Button` de shadcn/ui en `outline` : le même bouton bordé, mais avec
+              l'anneau de focus et l'état de survol du système plutôt qu'une chaîne de
+              classes recopiée trois fois sur cette page. */}
+          <Button size="sm" variant="outline" onClick={() => setTab('language')}>
             {LANGUAGE_LABELS[language] ?? 'Français'}
-          </button>
+          </Button>
         </Row>
 
         <Row
           label={t('Devise d’affichage')}
           description={t('Les cours sont convertis depuis leur devise de cotation au taux de référence BCE, dont la date est rappelée sous chaque montant. Une conversion n’est pas un cours coté.')}
         >
-          <button
-            type="button"
-            onClick={() => setTab('currency')}
-            className="rounded-control border border-border-subtle px-3 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
-          >
+          <Button size="sm" variant="outline" onClick={() => setTab('currency')}>
             {currency}
-          </button>
+          </Button>
         </Row>
 
         <Row
           label={t('Thème')}
           description={t('« Système » suit le réglage de votre appareil, y compris sa bascule automatique le soir.')}
         >
-          <div
-            className="flex items-center gap-0.5 rounded-card border border-border-subtle p-0.5"
-            role="group"
+          {/* `ToggleGroup` — le contrôle segmenté de shadcn/ui, monté sur celui de
+              Radix. Il apporte ce que trois `<button
+              aria-pressed>` indépendants ne donnaient pas : les flèches
+              directionnelles, Origine/Fin, et un groupe que la synthèse vocale annonce
+              comme un seul choix à trois options.
+
+              Le thème n'a pas d'état « aucun » — recliquer l'option active la
+              désélectionnait, laissant le contrôle muet sur un réglage qui, lui,
+              n'avait pas bougé. Voir le garde posé dans `onValueChange`. */}
+          <ToggleGroup
+            type="single"
+            size="sm"
+            variant="outline"
             aria-label={t('Thème')}
+            value={String(theme)}
+            onValueChange={(next) => {
+              /* Radix n'a pas de `disallowEmptySelection` : recliquer l'option
+                 active rappelle avec la CHAÎNE VIDE. Ce réglage n'a pas d'état
+                 « aucun » — on ignore donc ce cas plutôt que de laisser le
+                 contrôle devenir muet sur une valeur qui, elle, n'a pas bougé. */
+              if (next) setTheme(next as ThemeMode)
+            }}
           >
+            {/* ⚠️ L'INDICE DE SURVOL A DISPARU, et ce n'est pas une perte. Un
+                `title=""` n'existe ni au clavier ni au doigt, et les trois indices
+                (« Toujours clair », « Suit votre appareil ») ne disaient de toute
+                façon rien que la phrase de la ligne ne dise déjà, elle, à tout le
+                monde. */}
             {THEMES.map((entry) => (
-              <button
-                key={entry.value}
-                type="button"
-                onClick={() => setTheme(entry.value)}
-                aria-pressed={theme === entry.value}
-                title={entry.hint}
-                className={`rounded-sm px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
-                  theme === entry.value
-                    ? 'bg-brand text-on-brand'
-                    : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                }`}
-              >
+              <ToggleGroupItem key={entry.value} value={String(entry.value)}>
                 {entry.label}
-              </button>
+              </ToggleGroupItem>
             ))}
-          </div>
+          </ToggleGroup>
         </Row>
       </div>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { Bell, BellOff, CalendarClock, Repeat, RotateCcw, Trash2 } from 'lucide-react'
+import { IconButton } from '@/components/ui/IconButton'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
@@ -169,28 +170,29 @@ export function AlertList({ alerts }: { alerts: AlertRow[] }) {
               {/* Le réarmement n'est proposé QUE sur une alerte consommée : sur une
                   alerte armée, le bouton n'aurait aucun effet observable. */}
               {alert.active ? null : (
-                <button
-                  type="button"
+                <IconButton
+                  size="icon-sm"
+                  variant="ghost"
                   onClick={() => act('rearm', alert.id)}
                   disabled={pending}
-                  title={t('Réarmer cette alerte')}
-                  aria-label={`Réarmer l’alerte sur ${alert.label}`}
-                  className="rounded-sm p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink disabled:opacity-50"
-                >
-                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                </button>
+                  label={`Réarmer l’alerte sur ${alert.label}`}
+                  icon={RotateCcw}
+                />
               )}
 
-              <button
-                type="button"
+              {/* La teinte rouge du survol n'existe pas dans les deux variantes de
+                  `IconButton`, qui sont neutres. Elle est donc posée en `className`,
+                  qui se contente de remplacer la couleur d'encre au survol et laisse le
+                  focus, la taille et l'état désactivé au composant. */}
+              <IconButton
+                size="icon-sm"
+                variant="ghost"
                 onClick={() => act('remove', alert.id)}
                 disabled={pending}
-                title="Supprimer cette alerte"
-                aria-label={`Supprimer l’alerte sur ${alert.label}`}
-                className="rounded-sm p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-down disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-              </button>
+                label={`Supprimer l’alerte sur ${alert.label}`}
+                icon={Trash2}
+                className="hover:text-down"
+              />
             </div>
           </li>
         ))}

@@ -5,6 +5,7 @@ export { PriceChart } from './PriceChart'
 export { Sparkline } from './Sparkline'
 export { SourceNote } from './SourceNote'
 export {
+  formatAxisMoney,
   formatCompact,
   formatCompactAxis,
   formatCurrency,

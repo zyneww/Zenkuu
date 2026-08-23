@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 
 import type { MarketAsset, MarketCategory } from '@zenkuu/data'
 
+import { formatCurrency } from '@zenkuu/ui'
+
 import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
@@ -154,6 +156,11 @@ export function MarketHeatmap({
         // et « Bitcoin » se tronque. Le nom complet part dans l'infobulle.
         label: asset.symbol.toUpperCase(),
         title: asset.name,
+        /* Le TICKER et le COURS, que la figure ne dessine pas : la surface porte la
+           capitalisation, la teinte porte la variation, et le prix n'apparaît nulle
+           part. C'est pourtant la première chose qu'on cherche en survolant une tuile.
+           Écrit ici, où la devise est connue — la figure, elle, ne compte rien. */
+        detail: `${asset.symbol.toUpperCase()} à ${formatCurrency(asset.price, asset.currency) ?? '—'}`,
         value: asset[sizeBy] as number,
         // Une fenêtre non publiée pour cet actif laisse la tuile GRISE plutôt que la
         // colorer avec la variation d'une autre période — voir `heatTone`.
@@ -163,6 +170,25 @@ export function MarketHeatmap({
       }))
   }, [mode, assets, categories, count, period, sizeBy])
 
+  /**
+   * Symbole écrit après les montants de la figure.
+   *
+   * ⚠️ IL ÉTAIT « $ » DANS LES DEUX MODES, ET UN SEUL DES DEUX EST EN DOLLARS.
+   *
+   * Les SECTEURS le sont : `coins/categories` ne cote qu'en dollars, et le provider
+   * l'écrit noir sur blanc plutôt que de convertir lui-même. Les PIÈCES, elles, sont
+   * demandées en euros par tous les appelants — c'est la devise de cotation du site.
+   * La figure annonçait donc « 1 331 Md $ » pour Bitcoin là où le tableau de la même
+   * page écrit « 1 327 Md € » sur la même ligne : le nombre était juste, l'unité
+   * fausse, et un lecteur qui compare les deux blocs y lit deux marchés différents.
+   *
+   * Le symbole suit donc le MODE. Pour les pièces il vient de la devise que la source
+   * a réellement servie, et non d'une constante : c'est l'appelant qui choisit sa
+   * devise, et rien n'oblige le prochain à demander des euros.
+   */
+  const valueUnit =
+    mode === 'sectors' ? ' $' : (assets[0]?.currency ?? 'eur').toLowerCase() === 'usd' ? ' $' : ' €'
+
   if (tiles.length === 0) return null
 
   const periodWord = mode === 'sectors' ? '24 heures' : PERIOD_WORDS[period]
@@ -171,14 +197,9 @@ export function MarketHeatmap({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <ChipGroup label="Découpage">
+          <ChipGroup label="Découpage" value={mode} onChange={setMode}>
             {MODES.map((entry) => (
-              <Chip
-                key={entry.id}
-                active={mode === entry.id}
-                onClick={() => setMode(entry.id)}
-                label={t(entry.label)}
-              />
+              <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
             ))}
           </ChipGroup>
 
@@ -186,14 +207,9 @@ export function MarketHeatmap({
               par catégorie. Un contrôle inopérant est pire qu'un contrôle absent — il
               fait douter de la donnée plutôt que de l'interface. */}
           {mode === 'coins' ? (
-            <ChipGroup label="Variation">
+            <ChipGroup label="Variation" value={period} onChange={setPeriod}>
               {PERIODS.map((entry) => (
-                <Chip
-                  key={entry.id}
-                  active={period === entry.id}
-                  onClick={() => setPeriod(entry.id)}
-                  label={t(entry.label)}
-                />
+                <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
               ))}
             </ChipGroup>
           ) : null}
@@ -202,26 +218,16 @@ export function MarketHeatmap({
              et un sélecteur dont la seconde option ne rendrait rien vaut moins que son
              absence — même raisonnement que pour les périodes ci-dessus. */}
           {mode === 'coins' ? (
-            <ChipGroup label="Taille">
+            <ChipGroup label="Taille" value={sizeBy} onChange={setSizeBy}>
               {SIZE_MODES.map((entry) => (
-                <Chip
-                  key={entry.id}
-                  active={sizeBy === entry.id}
-                  onClick={() => setSizeBy(entry.id)}
-                  label={t(entry.label)}
-                />
+                <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
               ))}
             </ChipGroup>
           ) : null}
 
-          <ChipGroup label="Tuiles">
+          <ChipGroup label="Tuiles" value={count} onChange={setCount}>
             {COUNTS.map((size) => (
-              <Chip
-                key={size}
-                active={count === size}
-                onClick={() => setCount(size)}
-                label={String(size)}
-              />
+              <Chip key={size} id={size} label={String(size)} />
             ))}
           </ChipGroup>
         </div>
@@ -239,7 +245,7 @@ export function MarketHeatmap({
              trois figures sont désormais le même objet, et une hauteur qui varierait de
              l'une à l'autre se verrait en passant de page en page. */
           height="min(62vh, 520px)"
-          valueUnit=" $"
+          valueUnit={valueUnit}
         />
       </HeatmapFrame>
 
@@ -263,9 +269,17 @@ export function MarketHeatmap({
           : t(
               'Les surfaces NE se partagent PAS un tout : un actif appartient à plusieurs narratifs, si bien que la somme des rectangles dépasse la capitalisation mondiale. Cette carte compare les secteurs entre eux, elle ne les additionne pas.',
             )}{' '}
-        {t(
-          'Une tuile grise signale une fenêtre que la source ne publie pas pour cet actif. Montants en dollars, tels que publiés.',
-        )}
+        {/* La mention de devise SUIT le mode, comme le symbole des tuiles : elle
+            annonçait « en dollars » dans les deux, ce qui était faux pour les pièces —
+            cotées en euros — et vrai pour les seuls secteurs. Une légende qui nomme une
+            autre devise que la figure est pire qu'une légende absente. */}
+        {mode === 'coins'
+          ? t(
+              'Une tuile grise signale une fenêtre que la source ne publie pas pour cet actif. Montants dans la devise de cotation du site.',
+            )
+          : t(
+              'Une tuile grise signale une fenêtre que la source ne publie pas pour ce secteur. Montants en dollars : la source ne publie les capitalisations sectorielles que dans cette devise.',
+            )}
       </p>
     </div>
   )

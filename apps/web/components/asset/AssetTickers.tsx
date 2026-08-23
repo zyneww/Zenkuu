@@ -1,6 +1,7 @@
 'use client'
 
 import { ExternalLink } from 'lucide-react'
+import { Table, TableBody, TableHeader } from '@/components/ui/table'
 import { useMemo, useState } from 'react'
 
 import type { AssetTicker } from '@zenkuu/data'
@@ -9,7 +10,7 @@ import { formatCurrency, formatPercent } from '@zenkuu/ui'
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Money } from '@/components/locale/Money'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 
 /**
  * Places de cotation d'un actif.
@@ -77,7 +78,7 @@ const TRUST_LABEL: Record<'green' | 'yellow' | 'red', string> = {
 
 const TRUST_CLASS: Record<'green' | 'yellow' | 'red', string> = {
   green: 'bg-up',
-  yellow: 'bg-accent',
+  yellow: 'bg-gold',
   red: 'bg-down',
 }
 
@@ -173,14 +174,14 @@ export function AssetTickers({
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-card bg-panel">
+      <div className="rounded-card">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Sur un
             téléphone il reste la place, la paire et le prix : c'est ce qu'on vient
             vérifier ici, « combien coûte-t-il où ». Le volume, qui sert à juger si la
             cotation est sérieuse, revient dès la première largeur supplémentaire. */}
-        <table className="w-full border-collapse text-sm sm:min-w-[720px]">
+        <Table className="border-collapse sm:min-w-[720px]">
           <caption className="sr-only">Places de cotation de {assetName}</caption>
-          <thead>
+          <TableHeader className="[&_tr]:border-b-0">
             <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
               <th scope="col" className="px-3 py-2.5 font-medium">Place</th>
               <th scope="col" className="px-3 py-2.5 font-medium">Paire</th>
@@ -205,9 +206,9 @@ export function AssetTickers({
                 Cotée
               </th>
             </tr>
-          </thead>
+          </TableHeader>
 
-          <tbody className="divide-y divide-border-subtle">
+          <TableBody className="divide-y divide-border-subtle">
             {rows.map((ticker, index) => (
               <tr
                 /*
@@ -317,11 +318,11 @@ export function AssetTickers({
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
-      <Pagination
+      <TablePagination
         page={currentPage}
         perPage={pageSize}
         total={filtered.length}

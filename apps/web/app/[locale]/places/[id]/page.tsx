@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getExchangeProfile } from '@zenkuu/data'
 import { EmptyState, SourceNote, formatCompact } from '@zenkuu/ui'
 
+import { Button } from '@/components/ui/button'
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { ExchangeTickersTable } from '@/components/market/ExchangeTickersTable'
 import { Link } from '@/i18n/navigation'
@@ -159,17 +160,18 @@ export default async function ExchangePage({ params }: RouteProps) {
           </div>
         </div>
 
-        {/* Le lien vers l'opérateur, en `nofollow` — voir l'en-tête. */}
+        {/* Le lien vers l'opérateur, en `nofollow` — voir l'en-tête.
+
+            `Button asChild` et non `ButtonLink` : la destination est EXTERNE, donc
+            sans préfixe de locale à poser. `asChild` prête les classes du bouton à
+            un `<a>` ordinaire, qui reste la bonne balise pour sortir du site. */}
         {place.url ? (
-          <a
-            href={place.url}
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            className="rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
-          >
-            Site de la place
-            <span className="sr-only"> (nouvelle fenêtre)</span>
-          </a>
+          <Button asChild size="sm" variant="outline">
+            <a href={place.url} target="_blank" rel="nofollow noopener noreferrer">
+              Site de la place
+              <span className="sr-only"> (nouvelle fenêtre)</span>
+            </a>
+          </Button>
         ) : null}
       </header>
 
@@ -267,15 +269,12 @@ export default async function ExchangePage({ params }: RouteProps) {
                   valeurs sont des chaînes. */}
               {(Object.entries(place.social) as [string, string][]).map(([network, url]) => (
                 <li key={network}>
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="nofollow noopener noreferrer"
-                    className="inline-flex items-center rounded-control border border-border-subtle px-2.5 py-1 text-xs capitalize text-ink-muted transition-colors hover:border-brand hover:text-ink"
-                  >
-                    {network}
-                    <span className="sr-only"> (nouvelle fenêtre)</span>
-                  </a>
+                  <Button asChild size="xs" variant="outline" className="capitalize">
+                    <a href={url} target="_blank" rel="nofollow noopener noreferrer">
+                      {network}
+                      <span className="sr-only"> (nouvelle fenêtre)</span>
+                    </a>
+                  </Button>
                 </li>
               ))}
             </ul>

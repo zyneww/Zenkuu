@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import type { DexPool } from '@zenkuu/data'
-import { EmptyState, SourceNote } from '@zenkuu/ui'
+import { SourceNote } from '@zenkuu/ui'
 
 import { usePanelVisible } from '@/components/asset/panel-visibility'
 import { DexPoolTable } from '@/components/market/DexPoolTable'
@@ -135,6 +136,21 @@ export function AssetPools({
   // question ne se pose simplement pas pour un actif sans contrat.
   if (!chosen || !address) return null
 
+  /*
+   * ── PAS DE POOL ⇒ PAS DE SECTION ──────────────────────────────────────────
+   *
+   * L'encadré « Aucun pool référencé sur X » a été retiré. Il occupait un titre, un
+   * paragraphe d'explication et une boîte de cent pixels pour annoncer qu'il n'y
+   * avait rien — et c'est le cas le plus FRÉQUENT, puisque la majorité des jetons ne
+   * s'échangent que sur des places centralisées.
+   *
+   * La règle est celle du reste de la fiche : une donnée absente retire sa section
+   * (`AssetHoldings`, `AssetOwnership`). Elle ne s'applique qu'une fois la réponse
+   * ARRIVÉE — tant que `settled` est faux, les squelettes restent, sans quoi la
+   * section apparaîtrait après coup en poussant la page.
+   */
+  if (settled && (!pools || pools.length === 0)) return null
+
   const chainLabel = CHAIN_LABELS[chosen] ?? chosen
 
   return (
@@ -160,22 +176,16 @@ export function AssetPools({
 
       {!settled ? (
         <div className="space-y-2" aria-live="polite">
-          <div className="h-9 animate-pulse rounded bg-surface" />
-          <div className="h-9 animate-pulse rounded bg-surface" />
-          <div className="h-9 animate-pulse rounded bg-surface" />
+          <Skeleton className="h-9 rounded bg-surface" />
+          <Skeleton className="h-9 rounded bg-surface" />
+          <Skeleton className="h-9 rounded bg-surface" />
         </div>
       ) : pools && pools.length > 0 ? (
         <>
           <DexPoolTable pools={pools} />
           <SourceNote label="GeckoTerminal · montants en USD" href="https://www.geckoterminal.com" strings={{ source: t('Source :'), dated: t('données du {date}') }} />
         </>
-      ) : (
-        <EmptyState
-          title={`Aucun pool référencé sur ${chainLabel}`}
-          description={`Notre source on-chain ne publie pas de pool pour cette adresse. Cela signifie que ${assetName} s’échange essentiellement sur des places centralisées — voir l’onglet « Places » — ou sur une chaîne que nous ne savons pas encore interroger.`}
-          compact
-        />
-      )}
+      ) : null}
     </section>
   )
 }

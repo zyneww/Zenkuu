@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation'
+import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 
 import type { MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
@@ -41,27 +42,45 @@ export function AssetTrendingRail({
         En tendance
       </h2>
 
+      {/*
+        ── CHAQUE VIGNETTE EST UN `Item`, ET C'EST UNE SÉMANTIQUE GAGNÉE ────────
+
+        C'étaient des `<li>` portant un `<Link>` habillé, avec deux `<div>` anonymes
+        pour l'en-tête et le corps. `Item` nomme ces parties — `ItemMedia` pour le
+        logo, `ItemContent` pour ce qui se lit, `ItemTitle` et `ItemDescription` — et
+        les relie : un lecteur d'écran annonce alors « Bitcoin, 77 443 $, +0,57 % »
+        comme UNE entrée, au lieu d'égrener trois textes sans rapport déclaré.
+
+        `asChild` sur le lien : la vignette entière reste cliquable, et reste un vrai
+        `<a href>` localisé — clic milieu, menu contextuel, indexation.
+
+        `Item` remplace aussi l'habillage : bordure, rayon, fond, marge interne et
+        transition de survol viennent de sa variante `outline`. Les seules classes qui
+        restent sont celles que la RANGÉE impose — la largeur fixe des vignettes.
+      */}
       <ul className="flex gap-2 overflow-x-auto pb-1">
         {items.map((asset) => (
           <li key={asset.id} className="shrink-0">
-            <Link
-              href={assetHref(asset.assetClass, asset.id)}
-              className="flex w-40 flex-col gap-2 rounded-card border border-border-subtle bg-panel p-3 transition-colors duration-150 hover:border-brand"
-            >
-              <div className="flex items-center gap-2">
-                <AssetLogo asset={asset} size={20} />
-                <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink">
-                  {asset.name}
-                </span>
-              </div>
+            <Item asChild variant="outline" size="sm" className="w-40 items-start gap-2 rounded-card border-border-subtle bg-panel p-3 hover:border-brand">
+              <Link href={assetHref(asset.assetClass, asset.id)}>
+                <ItemMedia>
+                  <AssetLogo asset={asset} size={20} />
+                </ItemMedia>
 
-              <div>
-                <p className="tabular text-sm font-semibold text-ink">
-                  {formatCurrency(asset.price, asset.currency)}
-                </p>
-                <ChangeBadge value={asset.change24h} size="sm" />
-              </div>
-            </Link>
+                <ItemContent className="gap-2">
+                  <ItemTitle className="min-w-0 truncate text-xs font-medium text-ink">
+                    {asset.name}
+                  </ItemTitle>
+
+                  <div>
+                    <p className="tabular text-sm font-semibold text-ink">
+                      {formatCurrency(asset.price, asset.currency)}
+                    </p>
+                    <ChangeBadge value={asset.change24h} size="sm" />
+                  </div>
+                </ItemContent>
+              </Link>
+            </Item>
           </li>
         ))}
       </ul>

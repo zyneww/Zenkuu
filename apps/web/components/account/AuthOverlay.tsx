@@ -1,8 +1,15 @@
 'use client'
 
-import { X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
+import { FieldSeparator } from '@/components/ui/field'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { LoginForm } from '@/components/account/LoginForm'
 import { SocialButtons } from '@/components/account/SocialButtons'
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -108,64 +115,34 @@ export function AuthOverlay({
     setLastRequested(null)
   }
 
-  useEffect(() => {
-    if (!open) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
-
-  /*
-   * DÉFILEMENT DE LA PAGE BLOQUÉ tant que la fenêtre est ouverte.
-   *
-   * Sans cela, la molette continue de faire défiler le contenu DERRIÈRE le voile :
-   * on referme la fenêtre et l'on se retrouve à un endroit de la page où l'on n'a
-   * jamais demandé d'aller. Le défaut est particulièrement net sur cet accueil, qui
-   * est long.
-   */
-  useEffect(() => {
-    if (!open) return
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previous
-    }
-  }, [open])
-
-  if (!open) return null
-
   const copy = COPY[mode]
 
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto px-4 py-[8vh]"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t(copy.title)}
-    >
-      <button
-        type="button"
-        className="fixed inset-0 cursor-default bg-canvas/80 backdrop-blur-sm"
-        aria-label="Fermer"
-        onClick={onClose}
-      />
+    /*
+      ── LA COQUE EST UN `Dialog` DE SHADCN/UI, ET CE N'EST PAS QU'UN RANGEMENT ──
 
-      <div className="relative w-full max-w-[26rem] rounded-card border border-border-subtle bg-overlay p-6 shadow-overlay">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer"
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-sm text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+      Ce fichier écrivait à la main le voile, le cadre, la croix, l'écoute d'Échap, le
+      blocage du défilement du fond, et un `<button>` plein écran qui servait de zone
+      de clic extérieure. Radix fait tout cela — et trois choses de plus, qui
+      manquaient et qu'on ne remarque qu'à l'usage :
 
-        <div className="space-y-1.5 pr-8">
-          <h2 className="display-sm text-ink">{t(copy.title)}</h2>
-          <p className="text-xs leading-relaxed text-ink-muted">{t(copy.lead)}</p>
-        </div>
+        · LE PIÈGE À FOCUS. La tabulation sortait de la fenêtre et parcourait la page
+          dessous, invisible, jusqu'à revenir. Ici elle reste dedans, et le focus
+          retourne au déclencheur à la fermeture.
+        · `aria-hidden` SUR LE RESTE DU DOCUMENT. Un lecteur d'écran pouvait lire la
+          page masquée par le voile comme si elle était encore là.
+        · LE VOILE N'EST PLUS UN BOUTON. Un `<button aria-label="Fermer">` couvrant
+          tout l'écran était annoncé comme une cible par la synthèse vocale ; Radix
+          écoute le pointeur sans créer d'élément interactif.
+    */
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-[26rem] border-border-subtle bg-overlay p-6 shadow-overlay sm:max-w-[26rem]">
+        <DialogHeader className="space-y-1.5 pr-8 text-left">
+          <DialogTitle className="display-sm text-ink">{t(copy.title)}</DialogTitle>
+          <DialogDescription className="text-xs leading-relaxed text-ink-muted">
+            {t(copy.lead)}
+          </DialogDescription>
+        </DialogHeader>
 
         {/*
           LES FOURNISSEURS D'ABORD, L'ADRESSE ENSUITE — l'ordre de CoinGecko.
@@ -179,12 +156,14 @@ export function AuthOverlay({
         </div>
 
         {/* Séparateur à filets. Il dit que les deux blocs mènent au MÊME endroit —
-            sans lui, on lit deux formulaires empilés sans savoir lequel choisir. */}
-        <div className="my-5 flex items-center gap-3" aria-hidden="true">
-          <span className="h-px flex-1 bg-border-subtle" />
-          <span className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">ou</span>
-          <span className="h-px flex-1 bg-border-subtle" />
-        </div>
+            sans lui, on lit deux formulaires empilés sans savoir lequel choisir.
+
+            `FieldSeparator` plutôt que deux `<span className="h-px">` : il porte le
+            mot AU MILIEU du trait, ce que le montage manuel obtenait par trois
+            éléments et un `flex`, et il le marque `aria-hidden` de lui-même — un
+            lecteur d'écran n'a rien à faire d'un « ou » décoratif entre deux
+            groupes qu'il annonce déjà séparément. */}
+        <FieldSeparator className="my-5">ou</FieldSeparator>
 
         {/* `key` sur le mode : basculer entre connexion et inscription REMONTE le
             formulaire, ce qui le ramène à son étape « adresse ». Sans cela, quelqu'un
@@ -202,7 +181,7 @@ export function AuthOverlay({
             {copy.switchCta}
           </button>
         </p>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

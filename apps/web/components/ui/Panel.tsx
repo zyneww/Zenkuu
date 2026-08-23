@@ -1,3 +1,7 @@
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+
 /**
  * PANNEAU — la carte du second plan.
  *
@@ -13,6 +17,20 @@
  * accidentel plutôt que comme une hiérarchie. Une valeur dupliquée à dix endroits
  * ne tient pas cette promesse : il suffit d'un `bg-surface` oublié pour qu'une
  * carte s'enfonce dans la page au milieu de neuf autres qui flottent.
+ *
+ * ── CE QU'IL RESTE À CE FICHIER DEPUIS QU'IL S'APPUIE SUR `Card` ─────────────
+ *
+ * La structure vient maintenant de shadcn/ui : `Card`, `CardHeader`, `CardTitle`,
+ * `CardDescription`, `CardAction`, `CardContent`. Ce qui reste ici est ce que la
+ * bibliothèque ne peut pas savoir — la DENSITÉ, et le soulignement du titre.
+ *
+ * ⚠️ LA DENSITÉ EST RÉÉCRITE, ET IL FAUT DIRE POURQUOI. `Card` respire à `py-6`,
+ * `px-6`, `gap-6` : vingt-quatre pixels partout. C'est le bon réglage pour une page
+ * de contenu ; c'en est un mauvais pour un tableau de bord qui aligne huit panneaux
+ * de chiffres dans une hauteur d'écran. Le projet tient sa grille de 4 px (§3.1) et
+ * ses panneaux à `p-4`. Les classes de densité posées ici ÉCRASENT donc celles de
+ * `Card` — `cn` fait gagner la dernière — et c'est le seul endroit du site où cet
+ * écrasement a lieu, pour que la valeur reste modifiable en un point.
  *
  * ── LE TITRE EST SOULIGNÉ, ET C'EST UNE DÉCISION ──────────────────────────────
  *
@@ -60,40 +78,53 @@ export function Panel({
   const hasHeader = title !== undefined || tools !== undefined
 
   return (
-    <section
-      className={`rounded-card border border-border-subtle bg-panel ${padded ? 'p-4' : 'p-0'} ${className}`}
+    <Card
+      asChild
+      className={cn(
+        'gap-0 rounded-card border-border-subtle bg-panel py-0 shadow-none',
+        padded ? 'p-4' : 'p-0',
+        className,
+      )}
     >
-      {hasHeader ? (
-        <div
-          className={`flex flex-wrap items-start justify-between gap-x-3 gap-y-2 ${
-            padded ? 'mb-3' : 'px-4 pb-3 pt-4'
-          }`}
-        >
-          <div className="min-w-0">
-            {title !== undefined ? (
-              <Heading
-                className={`text-sm font-semibold text-ink ${
-                  // `decoration-2` et un décalage franc : à 1px, un soulignement
-                  // sous du texte de 14px se confond avec le jambage des lettres.
-                  rule ? 'underline decoration-border-subtle decoration-2 underline-offset-8' : ''
-                }`}
-              >
-                {title}
-              </Heading>
-            ) : null}
-            {subtitle !== undefined ? (
-              <p className={`text-xs text-ink-muted ${rule ? 'mt-3' : 'mt-1'}`}>{subtitle}</p>
-            ) : null}
-          </div>
+      <section>
+        {hasHeader ? (
+          <CardHeader
+            className={cn(
+              'flex flex-wrap items-start justify-between gap-x-3 gap-y-2 px-0',
+              padded ? 'mb-3' : 'px-4 pb-3 pt-4',
+            )}
+          >
+            <div className="min-w-0">
+              {title !== undefined ? (
+                <CardTitle asChild>
+                  <Heading
+                    className={cn(
+                      'text-sm font-semibold text-ink',
+                      // `decoration-2` et un décalage franc : à 1px, un soulignement
+                      // sous du texte de 14px se confond avec le jambage des lettres.
+                      rule && 'underline decoration-border-subtle decoration-2 underline-offset-8',
+                    )}
+                  >
+                    {title}
+                  </Heading>
+                </CardTitle>
+              ) : null}
+              {subtitle !== undefined ? (
+                <CardDescription className={cn('text-xs text-ink-muted', rule ? 'mt-3' : 'mt-1')}>
+                  {subtitle}
+                </CardDescription>
+              ) : null}
+            </div>
 
-          {tools !== undefined ? (
-            <div className="flex shrink-0 flex-wrap items-center gap-1.5">{tools}</div>
-          ) : null}
-        </div>
-      ) : null}
+            {tools !== undefined ? (
+              <CardAction className="flex shrink-0 flex-wrap items-center gap-1.5">{tools}</CardAction>
+            ) : null}
+          </CardHeader>
+        ) : null}
 
-      {children}
-    </section>
+        <CardContent className="px-0">{children}</CardContent>
+      </section>
+    </Card>
   )
 }
 
@@ -104,18 +135,24 @@ export function Panel({
  * disputer l'attention. La référence les dessine ainsi, et pour une raison qui tient
  * au-delà du goût — un panneau en porte parfois quatre, et quatre aplats colorés
  * alignés feraient de l'en-tête la zone la plus vive de la carte.
+ *
+ * ── CE N'EST PLUS UN BOUTON ÉCRIT ICI ─────────────────────────────────────────
+ *
+ * C'est le `Button` de shadcn/ui en `outline`, taille `xs` — exactement la définition
+ * ci-dessus : bordé, sur fond de surface, jamais plein. Le composant garde son nom et
+ * sa signature (`onClick`, `disabled`, `children`) parce que quinze appelants s'en
+ * servent ; ce qui change est ce qu'il rend. Il gagne au passage l'anneau de focus
+ * visible, le survol et l'état désactivé du système, qu'une chaîne de classes recopiée
+ * ne suivait pas quand la palette bougeait.
  */
 export function PanelTool({
   children,
+  className,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: Omit<React.ComponentProps<typeof Button>, 'size' | 'variant'>) {
   return (
-    <button
-      type="button"
-      {...props}
-      className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-2 py-1 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
-    >
+    <Button {...props} size="xs" variant="outline" className={className}>
       {children}
-    </button>
+    </Button>
   )
 }

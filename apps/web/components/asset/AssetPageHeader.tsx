@@ -4,7 +4,7 @@ import { getPhrase } from '@/lib/content'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { getCategories } from '@zenkuu/data'
-import { ChangeBadge, formatDateTime } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { AssetBenchmarkRatio } from '@/components/asset/AssetBenchmarkRatio'
@@ -73,7 +73,6 @@ export async function AssetPageHeader({
   alertAction,
   rankLabel,
   breadcrumb,
-  sourceLabel,
 }: {
   asset: AssetDetail
   assetClass: AssetClass
@@ -92,12 +91,10 @@ export async function AssetPageHeader({
   alertAction: React.ReactNode
   rankLabel: string
   breadcrumb: React.ReactNode
-  sourceLabel: string | null
 }) {
   const t = await getTranslations('metric')
   const phrase = await getPhrase()
   const isForex = assetClass === 'forex'
-  const updated = formatDateTime(asset.lastUpdated)
 
   /*
    * ── LES PASTILLES DE CATÉGORIE DEVIENNENT CLIQUABLES ────────────────────
@@ -125,40 +122,42 @@ export async function AssetPageHeader({
   }
 
   return (
-    <header className="space-y-4">
-      {/* ── Fil d'Ariane et fraîcheur, aux deux bouts d'une même ligne ─────────
-          Une seule rangée pour deux informations de même nature : où je suis, et de
-          quand date ce que je vois. Les empiler ferait deux lignes de 11 pixels pour
-          ce qui tient sur une. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        {breadcrumb}
 
-        {sourceLabel ? (
-          <p className="flex items-center gap-1.5 text-micro text-ink-muted">
-            {/*
-              La pastille est un ÉTAT, pas un ornement : elle reprend le vert de
-              disponibilité du système, distinct du vert de hausse (voir globals.css).
-              Confondre les deux ferait lire « le cours monte » là où on dit « la
-              donnée est fraîche ».
-            */}
-            <span
-              aria-hidden="true"
-              className="h-1.5 w-1.5 shrink-0 rounded-pill bg-[var(--color-status)]"
-            />
-            <span>
-              {sourceLabel}
-              {updated ? ` · ${updated}` : ''}
-            </span>
-          </p>
-        ) : null}
-      </div>
+    /*
+      ── LE BAS DES DEUX COLONNES EST ALIGNÉ, ET C'EST CE QUI COMBLE LE VIDE ──
+
+      La rangée était en `items-start`. Ses deux colonnes n'ont pas la même hauteur —
+      à gauche le nom et ses pastilles, à droite le cours, le ratio de référence,
+      l'amplitude et le bouton d'alerte — et l'écart tombait donc SOUS LES PASTILLES,
+      en un rectangle vide de trente-huit pixels que rien n'expliquait. Mesuré au
+      navigateur sur la fiche du bitcoin.
+
+      `items-end` renvoie cet écart EN HAUT de la colonne gauche, entre le fil
+      d'Ariane et le nom. Il y devient de l'air autour d'un titre — ce que l'œil lit
+      comme une respiration — au lieu d'un trou sous une rangée d'étiquettes.
+
+      Le fil d'Ariane, lui, garde sa ligne propre au-dessus : il n'entre pas dans
+      cette rangée et n'est donc pas déplacé.
+    */
+    <header className="space-y-3">
+      {/*
+        ── LA PASTILLE DE FRAÎCHEUR EST RETIRÉE DE L'EN-TÊTE ──────────────────
+
+        Elle annonçait « CoinGecko · 23/08/2026 20:48 » au bout du fil d'Ariane, en
+        haut à droite de chaque fiche. C'est la même information que la ligne de source
+        sous le graphique, qui la donne au même endroit que la donnée qu'elle qualifie —
+        et une provenance annoncée deux fois sur une page se lit comme un doute.
+
+        Le fil d'Ariane reprend donc sa ligne, seul.
+      */}
+      {breadcrumb}
 
       {/* ── Identité et cours, sur deux colonnes à partir de `md` ──────────────
           Le nom à gauche, le cours à droite : c'est la disposition de la référence, et
           elle tient parce que les deux blocs se lisent indépendamment. En dessous de
           `md` ils s'empilent, le nom d'abord — sur 375 pixels, un cours posé à côté
           d'un nom long réduirait les deux à des fragments. */}
-      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="flex min-w-0 items-start gap-3">
           {/* Le logo dans un disque bordé, et non posé à nu sur le fond : les sources
               livrent des marques aux formes et aux fonds très inégaux — carrées,
@@ -261,7 +260,14 @@ export async function AssetPageHeader({
             </p>
             {asset.change24h !== undefined ? (
               <span className="tabular text-base font-semibold leading-none">
-                <ChangeBadge value={asset.change24h} periodLabel={asset.changePeriodLabel} />
+                {/* `showPeriod` : sur une fiche, le pourcentage est seul à côté du cours
+                    et rien ne dit sur quelle durée il porte. Voir la note de la
+                    propriété. */}
+                <ChangeBadge
+                  value={asset.change24h}
+                  periodLabel={asset.changePeriodLabel}
+                  showPeriod
+                />
               </span>
             ) : null}
           </div>

@@ -1,35 +1,61 @@
 'use client'
 
-import Image from 'next/image'
-import { useState } from 'react'
+import { ArrowUpRight, Newspaper } from 'lucide-react'
 
 import type { NewsItem } from '@zenkuu/data'
 
+import { IconTile } from '@/components/reui/icon-tile'
+import { SourceDot, Thumbnail } from '@/components/news/NewsFeed'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
-import { isOptimizableNewsImage } from '@/lib/news-image-hosts'
 
 /**
- * Rail d'actualités de la fiche — la CHRONOLOGIE, pas le fil.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * FIL D'ACTUALITÉS DE LA FICHE — UNE UNE EN GRAND, PUIS LA CHRONOLOGIE
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * ── DEUX PRÉSENTATIONS POUR LE MÊME CONTENU, ET C'EST VOULU ───────────────────
+ * ── CE QUE CE RAIL ÉTAIT, ET POURQUOI IL CHANGE ──────────────────────────────
  *
- * `AssetNewsPanel` existe déjà et rend les mêmes articles avec le gabarit de
- * `/actualites` : vignette, chapeau, rubrique, filtres. C'est ce qu'il faut dans un
- * ONGLET, où l'on vient pour lire.
+ * Il empilait des lignes de taille égale, groupées par journée (« AUJOURD'HUI »,
+ * « HIER », « 21 AOÛT »), chacune avec une vignette carrée de 48 pixels et le nom de
+ * l'éditeur en pastille bordée. C'était la forme du panneau « Recently Happened to »
+ * de la référence, et elle était défendable : elle sacrifie le confort de lecture à la
+ * DENSITÉ TEMPORELLE, ce qu'on veut quand on cherche à rattacher un décrochage de la
+ * courbe à un événement daté.
  *
- * Ce rail-ci répond à une autre question — « qu'est-il arrivé à cet actif, et
- * quand ? » — qu'on se pose EN REGARDANT LE GRAPHIQUE, pour rattacher un décrochage
- * à un événement. D'où une colonne étroite, sans image, ordonnée du plus récent au
- * plus ancien et coupée par jour. C'est la forme du panneau « Recently Happened
- * to » de CoinGecko, et elle est adaptée à cet usage précisément parce qu'elle
- * sacrifie le confort de lecture à la densité temporelle.
+ * Elle avait un défaut que la densité n'excuse pas : RIEN N'Y ÉTAIT PLUS IMPORTANT QUE
+ * LE RESTE. Douze lignes identiques, dont la première — l'article le plus récent et le
+ * plus lu — se distinguait uniquement par sa position. La colonne de la page d'accueil
+ * a résolu cela depuis longtemps, et l'a résolu mieux : un article de tête qui prend
+ * tout ce qu'il porte (couverture, source, date, titre, chapeau), puis le fil.
  *
- * ── LA COUPURE PAR JOUR EST CALCULÉE CÔTÉ CLIENT ─────────────────────────────
+ * Les deux panneaux d'actualités du site partagent donc désormais la même forme. Ce
+ * n'est pas de l'uniformité pour l'uniformité : deux colonnes du même site qui
+ * présentent les mêmes objets de deux façons différentes obligent le lecteur à
+ * réapprendre à les lire d'une page à l'autre.
  *
- * « Aujourd'hui » et « Hier » dépendent du fuseau du LECTEUR, pas du serveur. Rendus
- * côté serveur, ils seraient faux pour la moitié de la planète et provoqueraient en
- * prime un écart d'hydratation. Le composant est donc client, et le regroupement se
- * fait au rendu — comme `useRelativeTime`, qui existe pour la même raison.
+ * ── LES LOGOS DES MÉDIAS ─────────────────────────────────────────────────────
+ *
+ * Le nom de l'éditeur était écrit dans une pastille bordée — « CoinDesk », « The
+ * Block », « Yahoo Finance ». Il est désormais précédé de sa MARQUE, par `SourceDot`,
+ * exactement comme sur l'accueil. Un logo se reconnaît sans être lu : dans une colonne
+ * qu'on parcourt du regard, c'est ce qui dit le plus vite d'où vient un article.
+ *
+ * `SourceDot` retombe sur une tuile teintée portant l'initiale quand la favicon manque
+ * ou échoue — il n'y a donc jamais de trou dans la ligne.
+ *
+ * ── CE QUI DISPARAÎT : LE GROUPEMENT PAR JOURNÉE ─────────────────────────────
+ *
+ * Il coûtait un titre collant tous les deux ou trois articles, dans une colonne de
+ * 320 pixels. L'heure relative de chaque ligne (« il y a 11 h », « avant-hier ») porte
+ * la même information au même endroit, sans occuper de rangée à elle seule — et c'est
+ * ce que fait la colonne de l'accueil.
+ *
+ * ── LES LIENS SORTENT DU SITE, ET LE DISENT ──────────────────────────────────
+ *
+ * Ce fil agrège des éditeurs tiers : chaque titre mène chez eux, en nouvelle fenêtre,
+ * avec `rel="noopener noreferrer nofollow"`. C'est aussi pourquoi la source est écrite
+ * sur chaque ligne plutôt qu'une fois en tête de colonne — un lecteur doit savoir chez
+ * qui il part AVANT de cliquer, pas après.
  */
 export function AssetNewsRail({
   news,
@@ -41,212 +67,170 @@ export function AssetNewsRail({
 }) {
   if (news.length === 0) {
     return (
-      <p className="rounded-card border border-border-subtle bg-surface px-3 py-4 text-xs leading-relaxed text-ink-muted">
-        Aucun de nos flux n’a écrit « {name} » récemment. Ce n’est pas la preuve qu’il ne
-        s’est rien passé — seulement qu’aucune de nos sources ne l’a nommé.
-      </p>
+      /*
+        ── L'ÉTAT VIDE PORTE UNE TUILE D'ICÔNE (ReUI `icon-tile`) ──────────────
+
+        Le paragraphe nu qui tenait cette place se lisait comme une phrase perdue dans
+        une boîte. Une tuile lui donne un point d'ancrage visuel sans rien promettre :
+        elle dit « il n'y a rien ici », pas « quelque chose a échoué ».
+
+        `variant="soft"` et non `solid` : c'est une ABSENCE, pas un avertissement. Une
+        pastille pleine et colorée à cet endroit ferait lire comme une panne ce qui
+        n'est qu'un silence des sources.
+      */
+      <div className="flex flex-col items-center gap-2 rounded-card border border-border-subtle bg-surface px-3 py-5 text-center">
+        <IconTile variant="soft" size="sm" className="text-ink-muted" aria-hidden="true">
+          <Newspaper />
+        </IconTile>
+        <p className="text-xs leading-relaxed text-ink-muted">
+          Aucun de nos flux n’a écrit « {name} » récemment. Ce n’est pas la preuve qu’il ne
+          s’est rien passé — seulement qu’aucune de nos sources ne l’a nommé.
+        </p>
+      </div>
     )
   }
 
   /*
-   * Tri décroissant AVANT le regroupement.
+   * Tri décroissant AVANT tout le reste.
    *
    * Les flux arrivent agrégés source par source, donc dans un ordre qui n'a rien de
-   * chronologique. Grouper d'abord donnerait des journées correctes mais désordonnées
-   * à l'intérieur — et un rail dont la première ligne n'est pas la plus récente ne
-   * sert plus à rattacher un décrochage à un événement.
+   * chronologique. Sans ce tri, « la une » serait le premier article du premier flux —
+   * c'est-à-dire un article au hasard — et non le plus récent.
    */
   const sorted = [...news].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   )
 
-  const groups = groupByDay(sorted)
+  const [lead, ...rest] = sorted as [NewsItem, ...NewsItem[]]
 
   return (
-    <div className="space-y-4">
-      {groups.map((group) => (
-        <section key={group.key}>
-          {/*
-            LE TITRE DE JOURNÉE REDEVIENT COLLANT.
-
-            Il l'avait été, puis ne l'avait plus été, et les deux décisions étaient
-            justes en leur temps — c'est le CONTENANT qui a changé deux fois :
-
-              · fil dans un cadre défilant  → collant, il se fixe en haut du cadre ;
-              · fil défilant avec la page   → NON collant, sinon il se fixerait au bord
-                de la fenêtre, c'est-à-dire derrière l'en-tête du site : invisible tout
-                en réservant sa place, le pire des deux mondes ;
-              · fil dans un cadre défilant  → collant de nouveau (état actuel).
-
-            Le cadre est revenu avec `overscroll-contain` — voir `AssetNewsAside`. Le
-            titre se fixe donc en haut de la surface défilante, et l'on sait toujours
-            quelle journée on lit, même après vingt articles.
-
-            `bg-canvas` est indispensable : sans fond, les articles défileraient VISIBLES
-            derrière le titre. Le `-mx-0.5 px-0.5` étend ce fond d'un demi-cran de chaque
-            côté pour couvrir les descendants qui affleurent.
-          */}
-          <h3 className="sticky top-0 z-10 -mx-0.5 bg-canvas/95 px-0.5 pb-1.5 pt-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted backdrop-blur">
-            {group.label}
-          </h3>
-
-          <ol className="space-y-3">
-            {group.items.map((item) => (
-              <li key={item.id}>
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="group flex gap-2.5"
-                >
-                  {/*
-                    ── LA VIGNETTE, ET POURQUOI ELLE EST PETITE ────────────────
-
-                    Le rail n'en portait aucune, au motif — écrit en tête de fichier —
-                    qu'il sacrifie le confort de lecture à la densité temporelle. Le
-                    principe reste juste ; c'est la conclusion qui allait trop loin.
-
-                    Une vignette de 48 pixels ne coûte pas de hauteur : elle tient dans
-                    celle que le titre occupe déjà, sur deux lignes. Et elle gagne ce
-                    qu'aucun texte ne donne aussi vite — la reconnaissance de l'article
-                    déjà vu ailleurs, et l'identification du sujet (un graphique, un
-                    portrait, un logo de plateforme) avant même d'avoir lu.
-
-                    Elle est DÉCORATIVE : `alt=""` et le lien porte déjà le titre. Une
-                    description de vignette d'article ne serait de toute façon qu'une
-                    répétition du titre pour un lecteur d'écran.
-                  */}
-                  <NewsThumbnail item={item} />
-
-                  <span className="min-w-0 flex-1">
-                    {/* La puce et l'heure AVANT le titre, comme chez CoinGecko : dans une
-                        colonne qu'on parcourt du regard pour situer un événement, c'est
-                        le QUAND qu'on cherche en premier, pas le quoi. */}
-                    <span className="mb-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
-                      <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-pill bg-border-subtle"
-                        aria-hidden="true"
-                      />
-                      <RelativeTime iso={item.publishedAt} />
-                    </span>
-
-                    <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand-strong">
-                      {item.title}
-                    </span>
-
-                    <span className="mt-1.5 inline-flex items-center rounded-pill border border-border-subtle px-2 py-0.5 text-micro text-ink-muted">
-                      {item.source}
-                    </span>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ))}
+    <div className="flex flex-col gap-3">
+      <Spotlight article={lead} />
+      {rest.length > 0 ? <Feed articles={rest} /> : null}
     </div>
   )
 }
 
-/** Isolé dans son composant : `useRelativeTime` est un crochet, il ne peut pas être
-    appelé dans la boucle de rendu du parent. */
-function RelativeTime({ iso }: { iso: string }) {
-  return <>{useRelativeTime(iso)}</>
-}
-
 /**
- * Vignette d'un article — ou rien du tout.
+ * L'ARTICLE DE TÊTE, avec tout ce qu'il porte.
  *
- * ── TROIS ISSUES, ET AUCUNE N'EST UNE IMAGE BRISÉE ──────────────────────────
+ * ── SANS CADRE, ET C'EST LA RÈGLE DE TOUTE LA COLONNE ────────────────────────
  *
- * 1. L'article n'a pas de vignette. Sept des vingt-neuf flux n'en publient aucune, et
- *    `fetchOgImage` ne complète qu'un lot borné. On rend `null` : la ligne redevient
- *    ce qu'elle était, du texte pleine largeur.
- *
- * 2. L'hôte n'est pas déclaré dans `next.config.ts`. On rend `null` AVANT d'essayer.
- *    C'est le point qui compte : l'optimiseur de Next lève sur un hôte inconnu, et
- *    comme la vérification a lieu au rendu, une seule vignette d'un éditeur qui a
- *    changé de CDN mettrait la fiche entière en erreur 500. Voir `news-image-hosts`.
- *
- * 3. L'hôte est déclaré mais le fichier a disparu. `onError` retire alors la vignette,
- *    ce que le point 2 ne peut pas prévoir — un 404 ne s'anticipe pas.
- *
- * ── `sizes` EST OBLIGATOIRE ET NON DÉCORATIF ────────────────────────────────
- *
- * Sans lui, Next demande la plus grande variante possible, soit plusieurs centaines de
- * kilo-octets par vignette de 48 pixels. Déclaré, il fait servir la variante de 96 px
- * — le double, pour les écrans à densité élevée.
+ * Ni bordure, ni fond, ni rayon — mesuré à `0px` sur les trois chez la référence. Ce
+ * qui délimite cette colonne est le filet vertical qui la sépare du contenu, et rien
+ * d'autre. Un cadre autour de chaque bloc d'une colonne déjà encadrée empile deux
+ * délimitations pour une seule séparation.
  */
-function NewsThumbnail({ item }: { item: NewsItem }) {
-  const [failed, setFailed] = useState(false)
-
-  if (failed || !isOptimizableNewsImage(item.imageUrl)) return null
-
+function Spotlight({ article }: { article: NewsItem }) {
   return (
-    <span className="block h-12 w-12 shrink-0 overflow-hidden rounded-control bg-surface-muted">
-      <Image
-        src={item.imageUrl}
-        alt=""
-        width={48}
-        height={48}
-        sizes="48px"
-        /* `no-referrer` : la vignette est hébergée par l'ÉDITEUR, l'afficher fait donc
-           appeler son serveur depuis le navigateur du lecteur. Sans cet attribut, il
-           saurait depuis quelle fiche de ZENKUU l'image a été chargée — voir la note du
-           champ dans `types.ts`. */
-        referrerPolicy="no-referrer"
-        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-        onError={() => setFailed(true)}
-      />
-    </span>
+    <section>
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        className="group flex flex-col gap-2.5"
+      >
+        {/* La couverture n'est PAS conditionnée à `imageUrl` : `Thumbnail` retombe
+            elle-même sur une tuile portant le nom de l'éditeur quand l'image manque ou
+            qu'elle échoue à charger. Un trou en tête de colonne se remarquerait plus
+            qu'une tuile de couleur. */}
+        <span className="block overflow-hidden rounded-card">
+          <Thumbnail url={article.imageUrl ?? ''} source={article.source} tall />
+        </span>
+
+        <div className="flex flex-col gap-1.5">
+          <p className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
+            <SourceDot source={article.source} url={article.url} />
+            <span className="truncate font-medium text-ink">{article.source}</span>
+            <span aria-hidden="true">·</span>
+            <RelativeTime iso={article.publishedAt} />
+          </p>
+
+          <h3 className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+            {article.title}
+          </h3>
+
+          {/* `line-clamp-3` : le chapeau donne le sujet, il ne remplace pas l'article.
+              Sans borne, un flux qui publie ses trois premiers paragraphes pousserait le
+              fil du dessous hors de l'écran. */}
+          {article.excerpt ? (
+            <p className="line-clamp-3 text-xs leading-relaxed text-ink-muted">
+              {article.excerpt}
+            </p>
+          ) : null}
+
+          <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-brand">
+            Lire l’article
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="sr-only">(nouvelle fenêtre)</span>
+          </span>
+        </div>
+      </a>
+    </section>
   )
 }
 
-interface DayGroup {
-  key: string
-  label: string
-  items: NewsItem[]
+/**
+ * LE RESTE DU FIL, du plus récent au plus ancien.
+ *
+ * ── AUCUN ASCENSEUR ICI ──────────────────────────────────────────────────────
+ *
+ * La colonne entière en a un (voir `AssetNewsAside`). Une liste défilante imbriquée
+ * dedans donnerait deux surfaces emboîtées, dont la molette ne saurait laquelle servir.
+ * La liste s'allonge donc librement, et c'est la colonne qui la fait défiler.
+ *
+ * ── LA VIGNETTE RESTE, EN PETIT ──────────────────────────────────────────────
+ *
+ * Quarante-huit pixels, dans la hauteur que le titre occupe déjà sur deux lignes : elle
+ * ne coûte rien en hauteur et gagne ce qu'aucun texte ne donne aussi vite — la
+ * reconnaissance de l'article déjà vu ailleurs. Elle est DÉCORATIVE (`Thumbnail` pose
+ * `aria-hidden`), le lien portant déjà le titre.
+ */
+function Feed({ articles }: { articles: NewsItem[] }) {
+  return (
+    /* Le filet au-dessus du titre remplace le contour d'une carte : une ligne pour une
+       séparation, au lieu de deux contours pour la même. */
+    <section className="border-t border-border-subtle pt-3">
+      <ol className="divide-y divide-border-subtle">
+        {articles.map((article) => (
+          <li key={article.id}>
+            <a
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="group flex gap-2.5 py-2.5"
+            >
+              <span className="block w-12 shrink-0">
+                <Thumbnail url={article.imageUrl ?? ''} source={article.source} />
+              </span>
+
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand-strong">
+                  {article.title}
+                </span>
+                <span className="mt-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
+                  <SourceDot source={article.source} url={article.url} />
+                  <span className="truncate">{article.source}</span>
+                  <span aria-hidden="true">·</span>
+                  <RelativeTime iso={article.publishedAt} />
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
 }
 
 /**
- * Regroupe par journée LOCALE, en conservant l'ordre reçu.
+ * Isolé dans son composant : `useRelativeTime` est un crochet, il ne peut pas être
+ * appelé dans la boucle de rendu du parent.
  *
- * La clé est la date au format ISO court plutôt que le libellé : deux jours
- * différents peuvent porter le même libellé traduit une fois le mois écoulé, et un
- * regroupement par libellé les fusionnerait silencieusement.
+ * Il est CLIENT pour une raison de fond, pas de commodité : « il y a 11 h » dépend de
+ * l'horloge du LECTEUR. Rendu par le serveur, le libellé serait faux pour la moitié de
+ * la planète et provoquerait en prime un écart d'hydratation.
  */
-function groupByDay(items: NewsItem[]): DayGroup[] {
-  const today = startOfDay(new Date())
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-
-  const groups = new Map<string, DayGroup>()
-
-  for (const item of items) {
-    const date = new Date(item.publishedAt)
-    if (Number.isNaN(date.getTime())) continue
-
-    const day = startOfDay(date)
-    const key = day.toISOString().slice(0, 10)
-
-    if (!groups.has(key)) {
-      const label =
-        day.getTime() === today.getTime()
-          ? "Aujourd'hui"
-          : day.getTime() === yesterday.getTime()
-            ? 'Hier'
-            : day.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
-      groups.set(key, { key, label, items: [] })
-    }
-
-    groups.get(key)!.items.push(item)
-  }
-
-  return [...groups.values()]
-}
-
-function startOfDay(date: Date): Date {
-  const copy = new Date(date)
-  copy.setHours(0, 0, 0, 0)
-  return copy
+function RelativeTime({ iso }: { iso: string }) {
+  return <>{useRelativeTime(iso)}</>
 }

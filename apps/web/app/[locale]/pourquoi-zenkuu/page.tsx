@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 import { Check, Minus } from 'lucide-react'
 import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
@@ -119,14 +120,14 @@ export default async function PourquoiZenkuuPage() {
         <p className="text-lg leading-relaxed text-ink-muted">{t('La plupart des plateformes de suivi de marché sont adossées à un service qu’elles cherchent à vous vendre. ZENKUU n’a rien à vous vendre : c’est un site d’information, et cela change ce qu’il peut se permettre d’afficher.')}</p>
 
         <div className="flex flex-wrap justify-center gap-3 pt-1">
-          <Link
+          <ButtonLink
             href="/marches"
-            className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-          >{t('Explorer les marchés')}</Link>
-          <Link
+          >{t('Explorer les marchés')}</ButtonLink>
+          <ButtonLink
             href="/methodologie"
-            className="rounded-control border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-          >{t('Méthodologie & sources')}</Link>
+            variant="outline"
+            size="lg"
+          >{t('Méthodologie & sources')}</ButtonLink>
         </div>
       </header>
 
@@ -247,10 +248,9 @@ export default async function PourquoiZenkuuPage() {
         besoin de la marche suivante.
       */}
       <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
-        <Link
+        <ButtonLink
           href="/bien-demarrer"
-          className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-        >{t('Bien démarrer')}</Link>
+        >{t('Bien démarrer')}</ButtonLink>
         <Link href="/apprendre" className="text-sm text-brand hover:underline">{t('Apprendre à lire les chiffres')}</Link>
       </section>
     </div>

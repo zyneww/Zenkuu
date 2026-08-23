@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenkuu/data'
-import { EmptyState, PriceChart, formatCompactAxis, formatNumber } from '@zenkuu/ui'
+import { EmptyState, PriceChart, formatAxisMoney } from '@zenkuu/ui'
 
 import {
   ASSET_CHART_HEIGHT,
@@ -56,7 +56,7 @@ import {
 import { useContent } from '@/components/locale/ContentProvider'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { useLiveTicker } from '@/components/asset/useLiveTicker'
-import { appendLivePoint, mergeCandle } from '@/components/asset/live-series'
+import { appendLivePoint, clipToRange, mergeCandle } from '@/components/asset/live-series'
 import { AssetDepthChart } from '@/components/asset/AssetDepthChart'
 import { TradingViewChart } from '@/components/asset/TradingViewChart'
 import {
@@ -206,7 +206,6 @@ export function AssetWorkspace({
   rates,
   compareOptions = [],
 }: AssetWorkspaceProps) {
-  const fr = useContent()
   const [days, setDays] = useState(initialDays)
   /**
    * ═════════════════════════════════════════════════════════════════════════════
@@ -246,11 +245,28 @@ export function AssetWorkspace({
    */
   const [candlesUnavailable, setCandlesUnavailable] = useState(false)
 
-  const [showVolume, setShowVolume] = useState(false)
-  const [showMovingAverage, setShowMovingAverage] = useState(false)
-  const [showPriceLines, setShowPriceLines] = useState(false)
   const [metric, setMetric] = useState<ChartMetric>('price')
-  const [logScale, setLogScale] = useState(false)
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LES QUATRE RÉGLAGES D'AFFICHAGE NE SONT PLUS DES ÉTATS
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Ils vivaient dans quatre `useState`, pilotés par un menu de la barre d'outils qui
+   * a été retiré — voir la note de `ChartToolbar`. Sans commande pour les changer, un
+   * état ne serait qu'une valeur constante déguisée : ils deviennent donc des
+   * constantes, ce qui rend leur valeur lisible ici plutôt que dans un initialiseur.
+   *
+   * Le VOLUME passe de « masqué par défaut » à « affiché dès que la source en
+   * publie ». C'est le seul des quatre à changer de valeur, et c'est le comportement de
+   * la référence : la bande de volume y est toujours là, elle n'a jamais été une option.
+   *
+   * Les trois autres restent éteints. Le graphique sait toujours les tracer — ce sont
+   * des propriétés conservées de `PriceChartInteractive` — mais plus rien ne les allume.
+   */
+  const showMovingAverage = false
+  const showPriceLines = false
+  const logScale = false
   /**
    * Actifs superposés, et grandeurs superposées — deux listes, une seule limite.
    *
@@ -294,8 +310,6 @@ export function AssetWorkspace({
 
   /** Poignée de capture, fournie par le graphique une fois monté. */
   const chartHandle = useRef<ChartHandle | null>(null)
-  /** Cadre mis en plein écran — il englobe la barre d'outils, pas seulement la toile. */
-  const chartFrame = useRef<HTMLDivElement>(null)
 
   /* L'accusé de copie s'efface seul au bout de deux secondes. Le laisser à l'écran
      ferait croire, au réglage suivant, que le lien copié correspond à la nouvelle
@@ -614,7 +628,6 @@ export function AssetWorkspace({
      `AssetYearPerformance`, qui les calcule : la série n'est demandée qu'à l'ouverture
      de l'onglet Analyse, comme elle ne l'était qu'à l'ouverture du sous-onglet. */
 
-  const converted = currency !== asset.currency
 
   /**
    * Série réellement tracée, selon la grandeur choisie.
@@ -655,6 +668,25 @@ export function AssetWorkspace({
     }
   }, [intervalId, intervalCandles, asset.currency])
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LES BORNES LIBRES SONT VRAIMENT APPLIQUÉES — ELLES NE L'ÉTAIENT PAS
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `applyCustomRange` convertit un intervalle en PROFONDEUR : `/api/historique` ne
+   * comprend qu'un nombre de jours depuis aujourd'hui, jamais deux dates. Sa note
+   * annonçait que « le graphique se charge ensuite de ne montrer que la fenêtre
+   * demandée » — et rien ne le faisait. Choisir « du 3 au 10 mars » chargeait la
+   * profondeur qui CONTIENT le 3 mars, puis affichait tout, du 3 mars à aujourd'hui.
+   *
+   * Le défaut ne se voyait guère tant que le calendrier était la seule façon de poser
+   * des bornes ; la frise de navigation en fait un geste courant, et il devient
+   * flagrant — on tire une fenêtre de sept jours sur 2024 et l'on obtient deux ans.
+   *
+   * Le découpage se fait donc ICI, après le chargement : c'est le dernier endroit
+   * traversé par TOUTES les séries — prix, capitalisation, volume, bougies — et donc
+   * le seul où l'écrire une fois suffit.
+   */
   const chartHistory = useMemo<PriceHistory | null>(() => {
     /*
      * LE PAS NE COMMANDE QUE POUR LE PRIX.
@@ -668,13 +700,13 @@ export function AssetWorkspace({
      * Le pas est d'ailleurs remis à zéro au changement de grandeur (voir la barre
      * d'outils) : ce garde-fou est la seconde barrière, pas la première.
      */
-    if (metric === 'price' && intervalHistory) return intervalHistory
+    if (metric === 'price' && intervalHistory) return clipToRange(intervalHistory, customRange)
 
     if (!history) return null
     // Le point du ticker n'est ajouté qu'en l'absence de pas : la série des bougies
     // est déjà tenue à jour par son propre flux, et l'y ajouter dupliquerait la
     // dernière bougie sous forme de point.
-    if (metric === 'price') return appendLivePoint(history, livePrice)
+    if (metric === 'price') return clipToRange(appendLivePoint(history, livePrice), customRange)
 
     const points = history.points
       .map((point) => ({
@@ -683,8 +715,8 @@ export function AssetWorkspace({
       }))
       .filter((point): point is { timestamp: number; price: number } => point.price !== undefined)
 
-    return points.length > 1 ? { ...history, points } : null
-  }, [history, metric, livePrice, intervalHistory])
+    return points.length > 1 ? clipToRange({ ...history, points }, customRange) : null
+  }, [history, metric, livePrice, intervalHistory, customRange])
 
   /** Une grandeur qui ne produit aucune courbe est retirée du sélecteur. */
   const metricAvailable = useMemo<Record<ChartMetric, boolean>>(
@@ -836,14 +868,24 @@ export function AssetWorkspace({
         ? 'area'
         : kind
 
-  /** Extrêmes historiques — seulement sur la courbe de prix, où ils ont un sens. */
+  /**
+   * Extrêmes historiques — seulement sur la courbe de prix, où ils ont un sens, et
+   * seulement si `showPriceLines` les demande.
+   *
+   * Ce second garde est nouveau et il répare une incohérence : le menu d'affichage
+   * portait une case « Extrêmes historiques », et ces lignes-ci s'affichaient sans la
+   * consulter. Cocher la case n'ajoutait donc pas les repères — ils étaient déjà là —
+   * elle ajoutait les lignes plus haut / moyenne / plus bas de la FENÊTRE, qui ne
+   * portent pas ce nom. Le menu est retiré depuis, la constante vaut `false`, et le
+   * graphique s'affiche nu comme celui de la référence.
+   */
   const referenceLines = useMemo<ChartReferenceLine[]>(() => {
-    if (metric !== 'price') return []
+    if (metric !== 'price' || !showPriceLines) return []
     const lines: ChartReferenceLine[] = []
     if (asset.ath !== undefined) lines.push({ value: asset.ath, label: 'record', tone: 'up' })
     if (asset.atl !== undefined) lines.push({ value: asset.atl, label: 'plancher', tone: 'down' })
     return lines
-  }, [metric, asset.ath, asset.atl])
+  }, [metric, showPriceLines, asset.ath, asset.atl])
 
   /*
    * Série de comparaison, rechargée quand l'actif OU la période change.
@@ -984,23 +1026,113 @@ export function AssetWorkspace({
   }
 
   /**
-   * Plein écran — appelé au DOUBLE-CLIC sur le cadre, plus par un bouton de la barre.
+   * ══════════════════════════════════════════════════════════════════════════
+   * L'HISTORIQUE COMPLET, POUR LA BANDE DE NAVIGATION
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * Le bouton a disparu quand la rangée de droite s'est alignée sur CoinGecko, qui ne
-   * porte que le calendrier, le lien et le téléchargement. Le geste, lui, reste : il
-   * est même plus direct que le bouton qu'il remplace, puisqu'il se fait là où l'œil
-   * est déjà — sur la courbe trop petite pour être lue.
+   * La bande sous la courbe portait la période CHARGÉE : elle découpait dedans, et
+   * changer de période restait l'affaire des paliers. La référence, elle, y met toute
+   * l'histoire de l'actif — « 2021 → 2026 » sous un graphique de 24 h — ce qui en fait
+   * une frise autant qu'une commande : on voit d'un coup où se situe la fenêtre qu'on
+   * regarde dans la vie de l'actif.
    *
-   * Le double-clic est posé sur le CADRE et non sur le graphique : la bibliothèque de
-   * tracé pose son propre canevas et absorbe une partie des événements, mais le
-   * double-clic remonte jusqu'au conteneur.
+   * ── CE QUE ÇA COÛTE, ET COMMENT ON LE PAIE ────────────────────────────────
+   *
+   * Un second appel, en plus de la série affichée. C'est exactement l'argument qui
+   * l'avait fait écarter, et il tient toujours — d'où les trois précautions :
+   *
+   * 1. IL EST DIFFÉRÉ. `requestIdleCallback` attend que le navigateur n'ait plus rien
+   *    d'urgent : la courbe, les actualités et le rendu de la fiche passent devant.
+   *    L'appel ne pèse donc sur aucune mesure de chargement.
+   *
+   * 2. IL EST UNIQUE PAR ACTIF. Une seule fois au montage, jamais rejoué quand la
+   *    période change — c'est justement la période qui bouge, pas l'histoire.
+   *
+   * 3. IL ÉCHOUE EN SILENCE. Sans réponse, la bande retombe sur son premier régime,
+   *    celui qu'elle a toujours eu. Rien ne casse, rien ne s'affiche à moitié.
    */
-  function toggleFullscreen() {
-    const frame = chartFrame.current
-    if (!frame) return
-    if (document.fullscreenElement) void document.exitFullscreen()
-    else void frame.requestFullscreen().catch(() => undefined)
-  }
+  /*
+   * La frise porte l'IDENTIFIANT de l'actif qu'elle décrit.
+   *
+   * Sans lui, il faudrait la remettre à `null` en tête de l'effet, au changement
+   * d'actif — un `setState` synchrone dans un effet, qui déclenche un second rendu
+   * immédiat. Avec lui, la frise d'un actif qu'on vient de quitter est simplement
+   * ignorée à la lecture, sans rendu de plus.
+   */
+  const [loadedOverview, setLoadedOverview] = useState<
+    { id: string; values: number[]; timestamps: number[] } | null
+  >(null)
+
+  const overview = loadedOverview?.id === asset.id ? loadedOverview : null
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = () => {
+      void fetch(
+        `/api/historique?classe=${assetClass}&id=${encodeURIComponent(asset.id)}&jours=3650`,
+      )
+        .then((response) => response.json())
+        .then((payload: PriceHistory & { ok?: boolean }) => {
+          if (cancelled || !payload.ok) return
+          const points = payload.points ?? []
+          /* Moins de deux points ne fait pas une frise, et une frise d'un seul jour
+             n'apprend rien de plus que le graphique lui-même. */
+          if (points.length < 2) return
+          setLoadedOverview({
+            id: asset.id,
+            values: points.map((point) => point.price),
+            timestamps: points.map((point) => point.timestamp),
+          })
+        })
+        .catch(() => undefined)
+    }
+
+    /* `requestIdleCallback` n'existe pas partout — Safari l'a longtemps ignoré. Le
+       repli sur un `setTimeout` de deux secondes vise la même chose : passer APRÈS le
+       chargement de la page. */
+    const idle = typeof window.requestIdleCallback === 'function'
+    const handle = idle
+      ? window.requestIdleCallback(load, { timeout: 6000 })
+      : window.setTimeout(load, 2000)
+
+    return () => {
+      cancelled = true
+      if (idle) window.cancelIdleCallback(handle)
+      else window.clearTimeout(handle)
+    }
+  }, [assetClass, asset.id])
+
+  /**
+   * Fin de glissement sur la frise : la fenêtre choisie devient la période affichée.
+   *
+   * Les bornes arrivent en horodatages et repartent en ISO court, format qu'attend
+   * `applyCustomRange` — le même chemin que le sélecteur de dates du calendrier, ce qui
+   * évite deux façons de demander la même chose.
+   */
+  const selectOverviewRange = useCallback((from: number, to: number) => {
+    applyCustomRange({
+      from: new Date(from).toISOString().slice(0, 10),
+      to: new Date(to).toISOString().slice(0, 10),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `applyCustomRange` est une déclaration de fonction, stable pour la durée du composant
+  }, [])
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE PLEIN ÉCRAN AU DOUBLE-CLIC A ÉTÉ RETIRÉ
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * C'était un geste INVISIBLE — rien à l'écran ne l'annonçait hors d'une infobulle
+   * de survol — et surtout INVOLONTAIRE : deux clics rapprochés sur une courbe qu'on
+   * inspecte au curseur sont un geste courant, et il faisait basculer la page entière
+   * dans un mode dont on ne sort qu'avec Échap.
+   *
+   * Ce qui part avec lui : la fonction de bascule, la référence sur le cadre, et les
+   * trois règles `:fullscreen` de `globals.css`. Aucune commande ne le remplace — la
+   * référence n'en a pas non plus, et le graphique occupe déjà toute la largeur utile
+   * de la colonne.
+   */
 
   /**
    * Export dans l'un des quatre formats.
@@ -1010,7 +1142,7 @@ export function AssetWorkspace({
    * fiche, dont l'immense majorité n'exportera jamais rien.
    */
   async function handleExport(format: ExportFormat) {
-    const canvas = chartHandle.current?.screenshot()
+    const canvas = await chartHandle.current?.screenshot()
     if (!canvas) return
 
     const { exportChart } = await import('@/components/asset/export-chart')
@@ -1057,9 +1189,8 @@ export function AssetWorkspace({
       pas un de ses encadrés. Il prend aussi, au passage, les trente-quatre pixels de
       largeur que le rembourrage lui prélevait.
 
-      La classe `chart-frame` reste sur l'élément mis en plein écran : c'est elle qui
-      lui rend un fond et une hauteur quand il est extrait du document — voir
-      `globals.css`, où vivent les deux seules règles concernées.
+      La classe `chart-frame` a disparu avec le plein écran au double-clic : elle ne
+      portait QUE ce comportement, et ne déclarait rien au repos.
     */
     <div>
       <div>
@@ -1076,28 +1207,23 @@ export function AssetWorkspace({
           `currencySlot`. La fiche gagne une trentaine de pixels de hauteur avant que
           la courbe ne commence, ce qui était précisément l'objet de l'opération.
         */}
-        {converted && rates ? (
-          <p className="mb-3 rounded-lg bg-surface-muted px-3 py-2 text-[0.6875rem] leading-relaxed text-ink-muted">
-            {fr.asset.convertedNotice(asset.currency, currency, formatDay(rates.date))}
-          </p>
-        ) : null}
+        {/*
+          ── LA MENTION DE CONVERSION EST RETIRÉE ──────────────────────────────
+
+          Elle occupait un bandeau pleine largeur au-dessus du graphique, sur chaque
+          fiche dont la source cote dans une autre devise que celle du lecteur —
+          c'est-à-dire presque toutes. Trente pixels de hauteur avant la courbe, pour
+          une phrase lue une fois.
+
+          L'information n'est pas perdue : le taux et sa date restent au pied du cadre,
+          dans la ligne de source (`SourceNote`), qui est l'endroit où l'on va chercher
+          la provenance d'un chiffre. Ce qui disparaît est la répétition en tête.
+        */}
 
         {/* Le graphique est RENDU SANS CONDITION : il est désormais le seul contenu
             de ce panneau, la barre de sous-onglets qui le mettait en concurrence avec
-            deux autres vues ayant été supprimée (voir l'en-tête du fichier).
-
-            `chart-frame` porte TOUT le comportement de plein écran, et rien d'autre :
-            hors plein écran, la classe ne déclare aucune propriété. C'est délibéré —
-            un élément extrait du document par `requestFullscreen` est peint sur un
-            fond noir par défaut, sans hériter d'aucun style de son ancien parent, et
-            il n'y a que là que ce bloc a besoin d'un fond, d'un rembourrage et d'une
-            hauteur à distribuer. Voir `globals.css`. */}
-        <div
-          ref={chartFrame}
-          className="chart-frame"
-          onDoubleClick={toggleFullscreen}
-          title="Double-cliquez pour afficher le graphique en plein écran"
-        >
+            deux autres vues ayant été supprimée (voir l'en-tête du fichier). */}
+        <div>
             {/*
               UNE SEULE BARRE, là où trois rangées s'empilaient. Voir l'en-tête de
               `ChartToolbar` : le quart de la hauteur du cadre servait à choisir quoi
@@ -1127,15 +1253,6 @@ export function AssetWorkspace({
               onRangeChange={selectPreset}
               customRange={customRange}
               onCustomRange={applyCustomRange}
-              logScale={logScale}
-              onToggleLog={() => setLogScale((value) => !value)}
-              showVolume={showVolume}
-              volumeAvailable={volumeAvailable && metric === 'price'}
-              onToggleVolume={() => setShowVolume((value) => !value)}
-              showMovingAverage={showMovingAverage}
-              onToggleMovingAverage={() => setShowMovingAverage((value) => !value)}
-              showPriceLines={showPriceLines}
-              onTogglePriceLines={() => setShowPriceLines((value) => !value)}
               onCopyLink={copyLink}
               onExport={(format) => void handleExport(format)}
             />
@@ -1174,12 +1291,14 @@ export function AssetWorkspace({
                 currency={currency}
                 days={days}
                 assetName={asset.name}
-                showVolume={showVolume && volumeAvailable && metric === 'price'}
+                showVolume={volumeAvailable && metric === 'price'}
                 showMovingAverage={showMovingAverage}
                 showPriceLines={showPriceLines}
                 logScale={logScale}
                 referenceLines={referenceLines}
                 handleRef={chartHandle}
+                overview={overview}
+                onOverviewRange={selectOverviewRange}
                 compare={compare}
                 /* La capitalisation et le volume se comptent en milliards ; le cours,
                    non. C'est ici que la distinction existe — le graphique, lui, ne
@@ -1247,6 +1366,8 @@ function OverviewTab({
   logScale,
   referenceLines,
   handleRef,
+  overview,
+  onOverviewRange,
   compare,
   compactValues,
 }: {
@@ -1264,6 +1385,9 @@ function OverviewTab({
   logScale: boolean
   referenceLines: ChartReferenceLine[]
   handleRef: React.MutableRefObject<ChartHandle | null>
+  /** Historique complet pour la frise de navigation — voir sa note plus haut. */
+  overview: { values: number[]; timestamps: number[] } | null
+  onOverviewRange: (from: number, to: number) => void
   /** Courbes superposées — zéro à quatre. Vide = aucune comparaison. */
   compare: { id: string; label: string; points: { timestamp: number; price: number }[] }[]
   /** La grandeur tracée se compte-t-elle en milliards ? Voir `formatCompactPrice`. */
@@ -1333,6 +1457,8 @@ function OverviewTab({
           logScale={logScale}
           referenceLines={referenceLines}
           handleRef={handleRef}
+          overview={overview ?? undefined}
+          onOverviewRange={onOverviewRange}
           compare={compare}
           compactValues={compactValues}
         />
@@ -1349,9 +1475,11 @@ function OverviewTab({
              même : ce tracé SVG est celui qu'on voit avant l'hydratation, et deux
              échelles différentes feraient sauter les étiquettes de l'axe au moment de
              la bascule. */
-          formatPrice={(value) =>
-            compactValues ? formatCompactAxis(value) : formatNumber(value, value >= 100 ? 0 : 2)
-          }
+          /* `formatAxisMoney` et non plus `formatCompactAxis` / `formatNumber` : le
+             graphique interactif écrit désormais « $55.00 » sur son échelle, et ce
+             tracé-ci est celui qu'on voit AVANT lui. Deux formats feraient sauter les
+             étiquettes au moment de la bascule — c'est tout l'objet de la note. */
+          formatPrice={(value) => formatAxisMoney(value, currency, compactValues)}
           formatDate={(timestamp) =>
             new Intl.DateTimeFormat('fr-FR',
               days <= 1
@@ -1401,8 +1529,3 @@ function OverviewTab({
  * Voir la déclaration de `currency` en tête de `AssetWorkspace`.
  */
 
-function formatDay(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso
-  return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(date)
-}

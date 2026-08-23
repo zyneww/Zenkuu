@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import { EmptyState } from '@zenkuu/ui'
 
 import { BlogBrowser } from '@/components/blog/BlogBrowser'
-import { NewsletterSignup } from '@/components/blog/NewsletterSignup'
 import { CoverArt } from '@/components/editorial/CoverArt'
 import {
   ARTICLES,
@@ -180,16 +180,13 @@ export default async function BlogPage() {
           description={t('Plutôt que de remplir cette page de billets de circonstance, elle reste vide jusqu’au premier vrai article. Les contenus explicatifs du site sont, eux, bien réels.')}
           action={
             <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                href="/apprendre"
-                className="rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-              >
-                Fiches Apprendre
-              </Link>
-              <Link
-                href="/methodologie"
-                className="rounded-control border border-border-subtle px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-brand"
-              >{t('Méthodologie & sources')}</Link>
+              <ButtonLink href="/apprendre">Fiches Apprendre</ButtonLink>
+              {/* Le second est `secondary` : deux boutons pleins côte à côte ne disent
+                  plus lequel est l'action principale. C'est la paire de shadcn/ui, et
+                  elle remplace ici un filet écrit à la main. */}
+              <ButtonLink variant="outline" href="/methodologie">
+                {t('Méthodologie & sources')}
+              </ButtonLink>
             </div>
           }
         />
@@ -230,7 +227,6 @@ export default async function BlogPage() {
         </section>
       )}
 
-      <NewsletterSignup />
     </div>
   )
 }

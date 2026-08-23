@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 /**
  * Mini-carte de navigation — la bande de sélection sous la courbe de CoinGecko.
@@ -17,18 +18,23 @@ import { useCallback, useEffect, useRef, useState } from 'react'
  * la fenêtre visible s'y dessine en clair, et on la déplace ou on l'étire
  * directement. C'est un contrôle qui EST son propre repère.
  *
- * ── ELLE PORTE LA PÉRIODE CHARGÉE, PAS TOUTE L'HISTOIRE ───────────────────────
+ * ── ELLE A DEUX RÉGIMES, ET C'EST LE PARENT QUI CHOISIT ───────────────────────
  *
- * Différence assumée avec la référence, dont la bande couvre l'historique complet
- * (« Jan '25 → May '26 » sous un graphique de 24 h). Pour y parvenir il faudrait
- * charger la série maximale EN PLUS de celle affichée — un second appel sur chaque
- * fiche, sur un quota qui en tolère cinq par minute, et pour une commande que la
- * plupart des lecteurs n'utiliseront pas.
+ * 1. SANS `timestamps` : elle porte la période CHARGÉE, et sa fenêtre découpe dedans.
+ *    C'était son seul régime. Elle sert alors à se déplacer DANS la période choisie,
+ *    les paliers servant à en changer.
  *
- * Elle opère donc sur les points déjà en mémoire : elle sert à se déplacer DANS la
- * période choisie, les paliers servant à changer de période. Les deux commandes se
- * complètent au lieu de se doubler, ce qui est défendable en soi — et le jour où
- * l'historique complet sera de toute façon chargé, l'étendre ne coûtera rien.
+ * 2. AVEC `timestamps` : elle porte TOUT L'HISTORIQUE de l'actif, comme celle de la
+ *    référence — « 2021 → 2026 » sous un graphique de 24 h. Sa fenêtre ne découpe plus
+ *    rien : elle MONTRE où se situe la période affichée dans l'histoire complète, et la
+ *    déplacer CHANGE cette période. `onCommit` est ce qui les distingue — il n'est
+ *    appelé qu'au relâchement, avec deux horodatages, parce que recharger la série à
+ *    chaque pixel parcouru serait intenable.
+ *
+ * Le second régime coûte un appel de plus par fiche — la série maximale, en plus de
+ * celle affichée. C'est pour cette raison qu'il a longtemps été écarté, et pour cette
+ * raison qu'il est demandé au parent plutôt que pris ici : c'est lui qui sait s'il peut
+ * payer cet appel, et quand.
  */
 
 /** Bornes de la fenêtre, en fraction de la série (0 = premier point, 1 = dernier). */
@@ -52,13 +58,31 @@ type DragMode = 'move' | 'from' | 'to'
 export function ChartNavigator({
   /** Valeurs de la série, dans l'ordre chronologique. Une par point. */
   values,
+  /**
+   * Horodatages des mêmes points, quand la bande porte l'historique complet.
+   *
+   * Leur présence bascule le composant dans son second régime — voir l'en-tête. Ils
+   * servent à deux choses : dater les graduations sous la silhouette, et convertir la
+   * fenêtre en un intervalle réel pour `onCommit`.
+   */
+  timestamps,
   window: win,
   onChange,
-  height = 44,
+  /**
+   * Fin de geste, avec l'intervalle choisi en horodatages.
+   *
+   * Appelé au RELÂCHEMENT seulement. `onChange` continue de suivre le curseur — c'est
+   * ce qui rend le glissement fluide — mais recharger une série à chaque pixel
+   * parcouru lancerait des dizaines de requêtes pour un seul geste.
+   */
+  onCommit,
+  height = 55,
 }: {
   values: number[]
+  timestamps?: number[]
   window: NavigatorWindow
   onChange: (next: NavigatorWindow) => void
+  onCommit?: (from: number, to: number) => void
   height?: number
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -74,6 +98,17 @@ export function ChartNavigator({
    * par une fenêtre qui saute à sa position initiale au moindre mouvement.
    */
   const gesture = useRef<{ mode: DragMode; startX: number; from: number; to: number } | null>(null)
+
+  /* La fenêtre COURANTE, tenue en `ref` pour la même raison que le geste : la fonction
+     de fin de glissement est créée au début du geste et lirait sinon une valeur périmée.
+
+     L'écriture est faite APRÈS le rendu et non pendant : muter une référence dans le
+     corps du composant casse le rendu concurrent, où React peut abandonner un rendu en
+     cours — la référence garderait alors une valeur qui n'a jamais été affichée. */
+  const winRef = useRef(win)
+  useEffect(() => {
+    winRef.current = win
+  })
 
   const beginDrag = useCallback(
     (mode: DragMode, event: React.PointerEvent) => {
@@ -119,6 +154,16 @@ export function ChartNavigator({
     function onUp() {
       gesture.current = null
       setDragging(null)
+      /* L'intervalle est relu sur `winRef` et non sur la fermeture : `win` y serait figé
+         à sa valeur d'avant le geste, et l'on rechargerait la période qu'on vient de
+         quitter. */
+      if (onCommit && timestamps && timestamps.length > 1) {
+        const first = timestamps[0] as number
+        const last = timestamps[timestamps.length - 1] as number
+        const span = last - first
+        const current = winRef.current
+        onCommit(first + current.from * span, first + current.to * span)
+      }
     }
 
     // Les écouteurs vivent sur le DOCUMENT et non sur la bande : un glissement
@@ -132,7 +177,7 @@ export function ChartNavigator({
       document.removeEventListener('pointerup', onUp)
       document.removeEventListener('pointercancel', onUp)
     }
-  }, [dragging, onChange])
+  }, [dragging, onChange, onCommit, timestamps])
 
   if (values.length < 2) return null
 
@@ -149,7 +194,7 @@ export function ChartNavigator({
         style={{ height }}
       >
         {/* Silhouette de la série. `preserveAspectRatio="none"` : la bande fait la
-            largeur du cadre et 44 pixels de haut quel que soit le nombre de points —
+            largeur du cadre et 55 pixels de haut quel que soit le nombre de points —
             on veut un étirement, pas un cadrage. */}
         <svg
           viewBox={`0 0 100 ${height}`}
@@ -160,6 +205,39 @@ export function ChartNavigator({
           <path d={path.area} className="fill-ink-muted/15" />
           <path d={path.line} className="stroke-ink-muted/50" fill="none" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         </svg>
+
+        {/* ── LES REPÈRES DE DATE, QUAND LA BANDE PORTE TOUTE L'HISTOIRE ──────
+            Une silhouette de dix ans sans une seule date ne dit pas de quoi elle est
+            l'histoire : on voit une forme, on ne sait pas si elle couvre un mois ou une
+            décennie. La référence pose des années à intervalles réguliers, et c'est ce
+            qui transforme la bande en frise.
+
+            Elles ne sont posées QUE dans le second régime : sur la période chargée, la
+            même information est déjà sous le graphique, à la graduation près. */}
+        {timestamps && timestamps.length > 1
+          ? navigatorTicks(timestamps).map((tick) => (
+              <span
+                key={tick.at}
+                aria-hidden="true"
+                /* ── ELLES ÉTAIENT ILLISIBLES ────────────────────────────────
+                   9 px en gris atténué sur une silhouette grise : on devinait qu'il y
+                   avait du texte, on ne le lisait pas. Une frise dont on ne peut pas
+                   lire les années ne date rien — c'est-à-dire qu'elle ne sert plus.
+
+                   Trois choses la remontent : le corps passe à 11 px, le poids à
+                   `medium`, et l'encre à `ink` au lieu de `ink-muted`. Le trait vertical
+                   ancre l'étiquette à SA position — sans lui, un texte centré sur un
+                   fond continu ne désigne rien de précis. */
+                className="pointer-events-none absolute inset-y-0 flex flex-col items-center justify-end gap-0.5"
+                style={{ left: `${tick.at * 100}%` }}
+              >
+                <span className="w-px flex-1 bg-border-subtle" />
+                <span className="-translate-x-0 whitespace-nowrap px-1 text-[0.6875rem] font-medium leading-none text-ink">
+                  {tick.label}
+                </span>
+              </span>
+            ))
+          : null}
 
         {/* Voiles latéraux : ce qui n'est PAS visible est assombri, plutôt que de
             surligner la fenêtre. Une fenêtre surlignée sur fond clair se lit comme un
@@ -234,18 +312,86 @@ export function ChartNavigator({
 
       {/* Le retour à la vue complète n'apparaît QUE s'il y a quelque chose à
           annuler : un bouton toujours présent mais inerte neuf fois sur dix apprend
-          au lecteur à ne plus le regarder. */}
+          au lecteur à ne plus le regarder.
+
+          `variant="link"` : le bouton de shadcn/ui dans sa variante lien — sans fond ni
+          bordure, souligné au survol. C'est ce que ce contrôle était déjà, en classes ;
+          il gagne l'anneau de focus. */}
       {!full ? (
-        <button
-          type="button"
-          onClick={() => onChange({ from: 0, to: 1 })}
-          className="mt-1 text-[0.6875rem] text-ink-muted transition-colors duration-150 hover:text-ink"
+        <Button
+          size="xs"
+          variant="link"
+          data-muted
+          className="mt-1"
+          onClick={() => {
+            onChange({ from: 0, to: 1 })
+            /* En régime « historique complet », changer la fenêtre ne suffit pas : elle
+               DÉCRIT la période chargée au lieu de la découper, et sans validation le
+               bouton remettrait juste la poignée à sa place avant qu'un rendu ne la
+               ramène où elle était. Il demande donc l'histoire entière, comme le palier
+               « MAX » — ce qui est bien ce que son libellé promet. */
+            if (onCommit && timestamps && timestamps.length > 1) {
+              onCommit(timestamps[0] as number, timestamps[timestamps.length - 1] as number)
+            }
+          }}
         >
           Revoir toute la période
-        </button>
+        </Button>
       ) : null}
     </div>
   )
+}
+
+/**
+ * Repères datés à poser le long de la bande.
+ *
+ * ── LE PAS EST CHOISI SUR LA DURÉE, PAS SUR LE NOMBRE DE POINTS ───────────────
+ *
+ * Une bande peut couvrir six semaines comme douze ans, et le même pas ne convient pas
+ * aux deux : douze étiquettes annuelles sur six semaines n'en afficheraient qu'une,
+ * douze étiquettes mensuelles sur douze ans en poseraient cent quarante-quatre. On
+ * choisit donc l'unité — année, trimestre, mois — d'après l'étendue réelle, puis on
+ * pose un repère à chaque frontière de cette unité.
+ *
+ * Les frontières sont des DATES RONDES (1ᵉʳ janvier, 1ᵉʳ du mois) et non des divisions
+ * régulières de l'intervalle : « 2023 » posé au 1ᵉʳ janvier 2023 est un repère, « 2023 »
+ * posé au 7 avril ment sur ce qu'il désigne.
+ */
+function navigatorTicks(timestamps: number[]): { at: number; label: string }[] {
+  const first = timestamps[0]
+  const last = timestamps[timestamps.length - 1]
+  if (first === undefined || last === undefined || last <= first) return []
+
+  const span = last - first
+  const days = span / 86_400_000
+  const out: { at: number; label: string }[] = []
+
+  const push = (time: number, label: string) => {
+    if (time <= first || time >= last) return
+    out.push({ at: (time - first) / span, label })
+  }
+
+  if (days > 900) {
+    for (let year = new Date(first).getFullYear() + 1; year <= new Date(last).getFullYear(); year += 1) {
+      push(Date.UTC(year, 0, 1), String(year))
+    }
+  } else if (days > 200) {
+    const start = new Date(first)
+    for (let step = 1; step <= 12; step += 1) {
+      const date = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + step * 3, 1))
+      push(date.getTime(), date.toLocaleString('fr-FR', { month: 'short', year: '2-digit' }))
+    }
+  } else {
+    const start = new Date(first)
+    for (let step = 1; step <= 12; step += 1) {
+      const date = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + step, 1))
+      push(date.getTime(), date.toLocaleString('fr-FR', { month: 'short' }))
+    }
+  }
+
+  /* Au-delà de huit repères, ils se touchent sur une bande de six cents pixels : on en
+     garde un sur deux plutôt que d'écrire par-dessus. */
+  return out.length > 8 ? out.filter((_, index) => index % 2 === 0) : out
 }
 
 function clamp(value: number, min: number, max: number): number {

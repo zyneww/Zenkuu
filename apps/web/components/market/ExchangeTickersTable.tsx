@@ -8,7 +8,7 @@ import { EmptyState, formatCompact, formatPercent } from '@zenkuu/ui'
 
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Link } from '@/i18n/navigation'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { ExpandingSearch } from '@/components/ui/ExpandingSearch'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
@@ -121,7 +121,7 @@ export function ExchangeTickersTable({
         />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-card bg-surface">
+          <div className="overflow-x-auto rounded-card">
             {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Ne
                 restent que la paire et son cours : c'est ce qu'on vient vérifier. */}
             <table className="w-full border-collapse text-sm sm:min-w-[44rem]">
@@ -335,7 +335,7 @@ export function ExchangeTickersTable({
             </table>
           </div>
 
-          <Pagination
+          <TablePagination
             page={page}
             perPage={perPage}
             total={rows.length}

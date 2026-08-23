@@ -1,6 +1,7 @@
 'use client'
 
 import { Play } from 'lucide-react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { useState } from 'react'
 
 import type { LessonVideo } from '@zenkuu/data'
@@ -46,7 +47,21 @@ export function LessonVideos({ videos }: { videos: LessonVideo[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-card bg-surface-muted">
+      {/*
+        ── `AspectRatio` PLUTÔT QUE `aspect-video` SUR CHAQUE ENFANT ────────────
+
+        Le rapport était posé DEUX FOIS — sur l'`<iframe>` et sur le bouton d'aperçu —
+        et les deux devaient rester d'accord : le passage de l'un à l'autre se fait au
+        clic, et un pixel d'écart y ferait sauter toute la page sous le curseur.
+
+        `AspectRatio` le pose UNE fois, sur le cadre. Il le tient par la technique du
+        remplissage relatif (`padding-bottom` proportionnel), qui fonctionne AVANT que
+        le contenu soit chargé : le cadre réserve donc sa place dès le premier rendu,
+        là où `aspect-video` sur une `<iframe>` distante laisse un vide qui se comble
+        après coup — un décalage de mise en page que les mesures de performance
+        pénalisent (§9).
+      */}
+      <AspectRatio ratio={16 / 9} className="overflow-hidden rounded-card bg-surface-muted">
         {playing ? (
           <iframe
             key={active.id}
@@ -54,14 +69,14 @@ export function LessonVideos({ videos }: { videos: LessonVideo[] }) {
             title={active.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="aspect-video w-full border-0"
+            className="size-full border-0"
           />
         ) : (
           <button
             type="button"
             onClick={() => setPlaying(true)}
             aria-label={`Lire la vidéo « ${active.title} » sur YouTube`}
-            className="group relative block aspect-video w-full"
+            className="group relative block size-full"
           >
             <Thumbnail video={active} />
             <span className="absolute inset-0 flex items-center justify-center">
@@ -71,7 +86,7 @@ export function LessonVideos({ videos }: { videos: LessonVideo[] }) {
             </span>
           </button>
         )}
-      </div>
+      </AspectRatio>
 
       <div className="space-y-1">
         <p className="text-sm font-medium leading-snug text-ink">{active.title}</p>

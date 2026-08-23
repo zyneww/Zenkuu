@@ -5,6 +5,7 @@ import {
   Check,
   Copy,
   LayoutGrid,
+  Loader2,
   ListFilter,
   LogOut,
   Settings,
@@ -17,6 +18,10 @@ import {
 import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Link } from '@/i18n/navigation'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { IconButton } from '@/components/ui/IconButton'
+import { Input } from '@/components/ui/input'
 import { initialOf, readIdentityCookie } from '@/lib/identity-cookie'
 import type { AuthMode } from '@/components/account/AuthOverlay'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
@@ -158,53 +163,67 @@ export function AccountControl({
    * Le BOUTON, dans ses trois formes. Il commande toujours le même panneau, ce qui
    * est la raison d'être de cette refonte : une seule entrée de réglages dans la barre.
    */
+  /*
+   * ── LES TROIS DÉCLENCHEURS PASSENT SUR LE SYSTÈME ───────────────────────────
+   *
+   * Ils portaient trois chaînes de classes voisines, chacune avec sa propre bascule
+   * ouvert/fermé. La variante de shadcn/ui porte cette bascule à leur place :
+   * `default` quand le panneau est ouvert — l'état actif a le droit d'être plein —,
+   * `outline` sinon. Une valeur au lieu de six lignes de ternaire, et un anneau de
+   * focus qu'aucune des trois n'avait.
+   *
+   * L'AVATAR reste une pastille RONDE : c'est ce qui le distingue au premier coup
+   * d'œil des deux autres formes, et `rounded-full` est le seul écart de dessin que
+   * la variante ne couvre pas.
+   */
+  const triggerVariant = menuOpen ? 'default' : 'outline'
+
   const trigger = account ? (
-    <button
-      type="button"
+    <Button
+      size="sm"
+      variant={triggerVariant}
       onClick={toggle}
       aria-expanded={menuOpen}
       aria-haspopup="menu"
       aria-label={`Compte de ${account.handle}`}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-pill border text-xs font-semibold uppercase transition-colors duration-150 ${
-        menuOpen
-          ? 'border-brand bg-brand text-on-brand'
-          : 'border-border-subtle bg-surface-muted text-ink hover:border-brand'
-      }`}
+      className="size-9 shrink-0 rounded-full p-0 text-xs uppercase"
     >
       {initialOf(account.handle)}
-    </button>
+    </Button>
   ) : available ? (
-    <button
-      type="button"
+    <Button
+      size="sm"
+      variant={triggerVariant}
       onClick={toggle}
       aria-expanded={menuOpen}
       aria-haspopup="menu"
-      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-control border px-2.5 text-xs font-medium transition-colors duration-150 ${
-        menuOpen
-          ? 'border-brand text-brand-strong'
-          : 'border-border-subtle text-ink hover:border-brand hover:text-brand-strong'
-      }`}
+      className="h-9 shrink-0"
     >
-      <User className="h-4 w-4" aria-hidden="true" />
+      <User />
       {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre porte
           déjà le logo et la recherche. */}
-      <span className="hidden sm:inline">{t("Se connecter")}</span>
-    </button>
+      <span className="hidden sm:inline">{t('Se connecter')}</span>
+    </Button>
   ) : (
-    <button
-      type="button"
+    /* `Button` et non `IconButton` malgré l'absence de libellé : les deux autres
+       formes de ce déclencheur basculent en `default` à l'ouverture du panneau, et
+       il faut que les trois le fassent ensemble. `IconButton` fige sa variante à
+       `ghost` par défaut et ne porte pas cet état « ouvert ».
+
+       ⚠️ `size="icon-sm"` et non `size="sm"` : shadcn/ui sépare les deux échelles,
+       et un bouton sans libellé posé en `sm` prendrait la largeur d'un bouton à
+       texte — un rectangle de 9 pixels de haut sur trente de large. */
+    <Button
+      size="icon-sm"
+      variant={triggerVariant}
       onClick={toggle}
       aria-label={t('Réglages d’affichage')}
       aria-expanded={menuOpen}
       aria-haspopup="menu"
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-control border transition-colors duration-150 ${
-        menuOpen
-          ? 'border-brand bg-brand-soft text-brand-strong'
-          : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
-      }`}
+      className="size-9 shrink-0"
     >
-      <Settings className="h-4 w-4" aria-hidden="true" />
-    </button>
+      <Settings />
+    </Button>
   )
 
   return (
@@ -257,27 +276,28 @@ export function AccountControl({
               vers le formulaire.
             */
             <div className="space-y-2 p-3">
-              <button
-                type="button"
+              <Button
+                size="sm"
                 onClick={() => {
                   close()
                   onOpenAuth('signin')
                 }}
-                className="flex h-9 w-full items-center justify-center rounded-control bg-brand text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
+                className="w-full"
               >
                 Connexion
-              </button>
+              </Button>
 
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   close()
                   onOpenAuth('signup')
                 }}
-                className="flex h-9 w-full items-center justify-center rounded-control border border-border-subtle text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+                className="w-full"
               >
                 Inscription
-              </button>
+              </Button>
 
               {/* Ce que la connexion apporte — et il faut le dire ICI, à l'endroit où
                   la question se pose. Sans cette phrase, le visiteur suppose qu'on lui
@@ -348,29 +368,48 @@ function AccountHeader({ account }: { account: AccountSummary }) {
 
   return (
     <div className="flex items-start gap-3 p-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill border border-border-subtle bg-surface-muted text-sm font-semibold uppercase text-ink">
-        {initialOf(account.handle)}
-      </span>
+      {/* `Avatar` de shadcn/ui, RÉDUIT À SON REPLI — le site ne demande pas de photo
+          et n'en affichera donc jamais, d'où l'absence d'`AvatarImage`. Le composant
+          garde tout de même son intérêt ici : c'est LUI qui définit le disque et son
+          recadrage, que trois autres endroits reprenaient à la main avec des
+          diamètres différents.
+
+          ⚠️ La taille se pose en classe et non en prop : shadcn/ui n'a pas d'échelle
+          de tailles pour l'avatar, il a `size-8` par défaut et se laisse écraser. */}
+      <Avatar className="size-10 shrink-0">
+        <AvatarFallback className="bg-brand-soft text-xs font-semibold uppercase text-brand-strong">
+          {initialOf(account.handle)}
+        </AvatarFallback>
+      </Avatar>
 
       <div className="min-w-0 flex-1">
         {editing ? (
           <form onSubmit={save} className="flex items-center gap-1">
-            <input
+            {/* `Input` de shadcn/ui — même champ que partout ailleurs. Ce n'est qu'un
+                `<input>` habillé : `autoFocus` et les autres attributs natifs le
+                traversent sans que le composant ait à les connaître. */}
+            <Input
+              size="sm"
               autoFocus
               value={handle}
               maxLength={32}
               onChange={(event) => setHandle(event.target.value)}
               onBlur={save}
-              className="h-7 w-full min-w-0 rounded-control border border-brand bg-surface px-1.5 text-sm text-ink outline-none"
+              aria-label={t('Pseudonyme')}
+              className="w-full min-w-0"
             />
-            <button
+            {/* `IconButton` : le bouton-icône de shadcn/ui. Il porte l'infobulle,
+                le plancher tactile et l'état désactivé, là où ce carré de 22 pixels
+                n'avait qu'un `aria-label` et un survol. */}
+            <IconButton
               type="submit"
+              size="icon-xs"
+              variant="ghost"
               disabled={pending}
-              aria-label={t('Enregistrer le pseudonyme')}
-              className="shrink-0 rounded-control p-1 text-brand-strong hover:bg-surface-muted"
-            >
-              <Check className="h-3.5 w-3.5" aria-hidden="true" />
-            </button>
+              label={t('Enregistrer le pseudonyme')}
+              icon={Check}
+              className="shrink-0"
+            />
           </form>
         ) : (
           <button
@@ -387,22 +426,18 @@ function AccountHeader({ account }: { account: AccountSummary }) {
           <span className="min-w-0 flex-1 truncate text-[0.6875rem] text-ink-muted">
             {account.email}
           </span>
-          <button
-            type="button"
-            aria-label={t('Copier l’adresse')}
+          <IconButton
+            size="icon-xs"
+            variant="ghost"
+            label={t('Copier l’adresse')}
+            icon={copied ? Check : Copy}
             onClick={() => {
               void navigator.clipboard?.writeText(account.email)
               setCopied(true)
               window.setTimeout(() => setCopied(false), 1500)
             }}
-            className="shrink-0 rounded-control p-0.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-          >
-            {copied ? (
-              <Check className="h-3 w-3" aria-hidden="true" />
-            ) : (
-              <Copy className="h-3 w-3" aria-hidden="true" />
-            )}
-          </button>
+            className="shrink-0"
+          />
         </div>
 
         {/*
@@ -440,10 +475,16 @@ function SecurityRow({ onDone }: { onDone: () => void }) {
   return (
     <div className="rounded-card bg-surface-muted p-2">
       <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Fermer toutes les sessions, y compris celle-ci ?')}</p>
+      {/* Les deux paires « confirmer / annuler » de ce panneau — celle-ci et celle de
+          la suppression — sont désormais le `Button` de shadcn/ui en taille `xs`, la
+          plus petite de son échelle. Elles portaient chacune deux chaînes de classes
+          distinctes pour un même dessin, et l'une des quatre avait déjà divergé sur
+          l'état désactivé. */}
       <div className="mt-2 flex gap-1">
-        <button
-          type="button"
+        <Button
+          size="xs"
           disabled={pending}
+          className="flex-1"
           onClick={() =>
             startTransition(async () => {
               await signOutEverywhere()
@@ -451,17 +492,18 @@ function SecurityRow({ onDone }: { onDone: () => void }) {
               window.location.reload()
             })
           }
-          className="flex-1 rounded-control bg-brand px-2 py-1 text-[0.6875rem] font-medium text-on-brand hover:bg-brand-strong disabled:opacity-60"
         >
+          {/* Le libellé RESTE pendant l'attente, et la roue s'ajoute à sa gauche.
+              L'ancien composant savait masquer le texte ; ne pas le faire est un
+              gain — un bouton qui perd son mot pendant deux secondes ne dit plus ce
+              qu'on vient de lui demander, et l'on doute d'avoir cliqué au bon
+              endroit. `disabled` suffit à empêcher le second clic. */}
+          {pending ? <Loader2 className="animate-spin" /> : null}
           Tout fermer
-        </button>
-        <button
-          type="button"
-          onClick={() => setArmed(false)}
-          className="flex-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted hover:text-ink"
-        >
+        </Button>
+        <Button size="xs" variant="outline" className="flex-1" onClick={() => setArmed(false)}>
           Annuler
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -508,9 +550,11 @@ function DangerRow() {
     <div className="rounded-card border border-down/40 bg-down-soft p-2">
       <p className="text-[0.6875rem] leading-relaxed text-ink">{t('Supprime définitivement le compte, la liste de suivi, les alertes et les écrans enregistrés.')}</p>
       <div className="mt-2 flex gap-1">
-        <button
-          type="button"
+        <Button
+          size="xs"
+          variant="destructive"
           disabled={pending}
+          className="flex-1"
           onClick={() =>
             startTransition(async () => {
               await deleteCurrentAccount()
@@ -522,17 +566,13 @@ function DangerRow() {
               window.location.href = '/'
             })
           }
-          className="flex-1 rounded-control bg-down px-2 py-1 text-[0.6875rem] font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
+          {pending ? <Loader2 className="animate-spin" /> : null}
           Supprimer
-        </button>
-        <button
-          type="button"
-          onClick={() => setArmed(false)}
-          className="flex-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted hover:text-ink"
-        >
+        </Button>
+        <Button size="xs" variant="outline" className="flex-1" onClick={() => setArmed(false)}>
           Annuler
-        </button>
+        </Button>
       </div>
     </div>
   )

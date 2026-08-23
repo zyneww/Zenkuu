@@ -278,7 +278,26 @@ export const yahooProvider: MarketDataProvider = {
     }
 
     const universe = YAHOO_UNIVERSE[assetClass as keyof typeof YAHOO_UNIVERSE] ?? []
-    const wanted = universe.slice(0, params.perPage ?? universe.length)
+
+    /*
+     * ── LA PAGE DEMANDÉE EST ENFIN HONORÉE ────────────────────────────────
+     *
+     * `params.page` était REÇU et IGNORÉ : la tranche partait toujours de zéro, si
+     * bien que la page 2 d'un classement d'actions renvoyait exactement la page 1.
+     * Le défaut ne se voyait pas tant que l'univers tenait dans une seule page — dix-huit
+     * actions pour vingt lignes affichées. Il est devenu visible à l'instant où
+     * l'univers est passé à quatre-vingt-dix-neuf valeurs.
+     *
+     * Ce n'est pas qu'une correction d'affichage : c'est ce qui rend la liste
+     * EXTENSIBLE. Yahoo n'a pas d'appel groupé — un symbole, une requête — et le
+     * limiteur du fournisseur plafonne à soixante requêtes par fenêtre. Sans découpe,
+     * un classement froid de quatre-vingt-dix-neuf actions dépasserait ce plafond et
+     * attendrait la fenêtre suivante, c'est-à-dire une minute. Découpé, il en
+     * interroge vingt-cinq.
+     */
+    const perPage = params.perPage ?? universe.length
+    const from = Math.max(0, ((params.page ?? 1) - 1) * perPage)
+    const wanted = universe.slice(from, from + perPage)
 
     // Un symbole en échec ne doit pas emporter toute la page : on écarte la ligne
     // concernée et on affiche les autres, plutôt que de basculer le tableau entier
@@ -305,7 +324,10 @@ export const yahooProvider: MarketDataProvider = {
       assets.sort((a, b) => direction * ((a.volume24h ?? 0) - (b.volume24h ?? 0)))
     }
 
-    return assets.map((asset, index) => ({ ...asset, rank: index + 1 }))
+    /* Le rang est CELUI DE L'UNIVERS, pas celui de la tranche : sans `from`, la
+       première ligne de la page 2 s'annoncerait « 1 » à côté d'un pied qui écrit
+       « 26 à 50 ». */
+    return assets.map((asset, index) => ({ ...asset, rank: from + index + 1 }))
   },
 
   async getAsset(id: string, assetClass: AssetClass): Promise<MarketAsset> {

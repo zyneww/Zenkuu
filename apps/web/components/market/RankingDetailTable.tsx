@@ -8,7 +8,7 @@ import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { Link } from '@/i18n/navigation'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { ColumnHeader, ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { assetHref } from '@/lib/asset-routes'
 
@@ -217,7 +217,7 @@ export function RankingDetailTable({
         </table>
       </div>
 
-      <Pagination
+      <TablePagination
         page={page}
         perPage={perPage}
         total={assets.length}

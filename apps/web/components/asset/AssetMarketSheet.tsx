@@ -128,7 +128,7 @@ export function AssetMarketSheet({
     <RailSection title={title}>
       <dl>
         {rows.map((row) => (
-          <div key={row.label} className="border-b border-border-subtle/60 py-1.5 last:border-0">
+          <div key={row.label} className="border-b border-border-subtle py-1.5 last:border-0">
             <div className="flex items-baseline justify-between gap-2">
               <dt className="shrink-0 text-xs text-ink-muted">{row.label}</dt>
               {/* La valeur peut être longue — « Consumer Electronics », « SPDR State

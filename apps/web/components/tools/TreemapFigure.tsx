@@ -52,6 +52,16 @@ export interface TreemapTile {
   /** Nom complet, pour l'infobulle et les lecteurs d'écran. */
   title?: string
   /**
+   * Complément d'infobulle, ajouté après la valeur et la variation.
+   *
+   * La légende de base dit ce que la figure PORTE — le nom, la surface, la teinte.
+   * Elle ne dit pas ce qui n'est pas dessiné, et qu'on veut pourtant en survolant une
+   * tuile : le cours du moment. C'est ce que ce champ transporte, sous forme déjà
+   * rédigée par l'appelant — lui seul sait dans quelle devise il compte, et cette
+   * figure n'a pas à apprendre à formater une monnaie pour l'occasion.
+   */
+  detail?: string
+  /**
    * Logo de l'actif, affiché dans les tuiles ASSEZ GRANDES pour l'accueillir.
    *
    * Il ne remplace pas l'étiquette, il la précède : un logo seul n'identifie que ce
@@ -147,7 +157,7 @@ export function TreemapFigure({
           tile.change !== undefined
             ? `, ${formatPercent(tile.change)} sur ${periodLabel}`
             : ''
-        }`
+        }${tile.detail ? `, ${tile.detail}` : ''}`
 
         const style = {
           left: `${box.x}%`,

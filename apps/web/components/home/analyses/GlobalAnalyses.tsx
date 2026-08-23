@@ -5,7 +5,7 @@ import {
   getSentiment,
   getSentimentHistory,
   getTrendingPools,
-  type GlobalMarketStats,
+  type MacroObservation,
 } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, formatCompact, formatShare } from '@zenkuu/ui'
 
@@ -18,32 +18,37 @@ import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * LES CINQ ANALYSES QUI NE SUIVENT PAS LA PASTILLE DE CLASSE
+ * LES QUATRE ANALYSES QUI NE SUIVENT PAS LA PASTILLE DE CLASSE
  * ══════════════════════════════════════════════════════════════════════════════
  *
  * ── POURQUOI ELLES SONT SÉPARÉES DES TROIS AUTRES ───────────────────────────
  *
  * Les trois analyses de `ClassAnalyses` se recalculent au changement de pastille,
- * parce qu'elles se déduisent des lignes du tableau. Ces cinq-ci ne le peuvent pas, et
- * pour deux raisons distinctes qu'il vaut mieux ne pas confondre :
- *
- *   · la DOMINANCE, le SENTIMENT, les SECTEURS et les FLUX n'existent que pour la
- *     crypto. Il n'y a pas de dominance des ETF, ni d'indice de peur des matières
- *     premières — les faire suivre la pastille afficherait quatre états vides sur
- *     sept classes ;
- *   · la MACRO ne relève d'aucune classe. L'inflation d'un pays explique en partie ce
- *     que font ses indices et sa devise, mais elle n'appartient ni aux uns ni à
- *     l'autre.
+ * parce qu'elles se déduisent des lignes du tableau. Ces quatre-ci ne le peuvent pas :
+ * le SENTIMENT, les SECTEURS et les FLUX n'existent que pour la crypto — il n'y a pas
+ * d'indice de peur des matières premières, et les faire suivre la pastille afficherait
+ * des états vides sur six classes sur sept.
  *
  * Chacune ANNONCE sa portée dans son sous-titre plutôt que de la laisser deviner. Une
  * carte qui ignore le filtre au-dessus d'elle sans le dire est un piège.
  *
- * ── CINQ APPELS, EN PARALLÈLE, SOUS `<Suspense>` ────────────────────────────
+ * ── ELLES SONT CINQ, ET LA CINQUIÈME EST REVENUE DE PLUS HAUT ──────────────
  *
- * Ils touchent cinq sources distinctes — CoinGecko, Alternative.me, GeckoTerminal, la
+ * La MACRO a fait l'aller-retour : elle vivait ici, elle est montée dans le résumé de
+ * marché quand celui-ci tenait le premier écran, et elle redescend avec la suppression
+ * de ce résumé. La DOMINANCE, elle, ne revient pas — le bandeau de synthèse la porte
+ * en barre segmentée, avant le premier défilement, ce qui est mieux que ce que cette
+ * grille pouvait en faire.
+ *
+ * La macro n'a d'ailleurs jamais relevé d'une classe : l'inflation d'un pays explique
+ * en partie ce que font ses indices et sa devise, sans appartenir ni aux uns ni à
+ * l'autre. Elle est donc à sa place parmi les analyses qui ne suivent aucune pastille.
+ *
+ * ── SEPT APPELS, EN PARALLÈLE, SOUS `<Suspense>` ───────────────────────────
+ *
+ * Ils touchent quatre sources distinctes — CoinGecko, Alternative.me, GeckoTerminal,
  * Banque mondiale — et partent ensemble. Le temps de la grappe est celui du plus lent,
- * pas la somme. La dominance ne coûte rien : elle réutilise l'agrégat que la page
- * demande déjà pour sa carte de tête.
+ * pas la somme.
  */
 
 /** Lignes retenues par tableau et par figure. */
@@ -59,49 +64,40 @@ const BARS = 8
  */
 const SENTIMENT_DAYS = 30
 
-/**
- * Économies retenues pour la carte macro.
- *
- * Une liste ÉCRITE plutôt qu'un tri sur les valeurs, et c'est délibéré. Trier par
- * inflation décroissante remonterait les économies en crise hyperinflationniste —
- * exact, spectaculaire, et sans rapport avec ce qui meut les indices et les devises
- * que le site cote. Ces huit-là sont les zones dont nos classes d'actifs dépendent
- * réellement.
- *
- * L'ordre est celui de la lecture, pas celui des valeurs : la zone euro d'abord,
- * puisque le site cote en euros par défaut.
- */
-const ECONOMIES = ['EUU', 'FRA', 'DEU', 'USA', 'GBR', 'JPN', 'CHN', 'CAN'] as const
-
-/** Code Banque mondiale de l'inflation des prix à la consommation, en rythme annuel. */
+/* ── LES TROIS INDICATEURS MACRO, ET CE QU'ILS NE SONT PAS ──────────────────
+   Reprisés tels quels de `MarketSummary`, supprimé. Ce ne sont PAS des taux : la
+   Banque mondiale n'en publie aucun qui soit la politique monétaire, et ceux qu'elle
+   publie s'arrêtent à 2021 pour les États-Unis. Afficher un chiffre périmé de cinq ans
+   à hauteur d'un cours est exactement ce que le §5 proscrit. Croissance et chômage,
+   eux, vont jusqu'à l'année en cours. */
 const INFLATION = 'FP.CPI.TOTL.ZG'
+const GROWTH = 'NY.GDP.MKTP.KD.ZG'
+const UNEMPLOYMENT = 'SL.UEM.TOTL.ZS'
 
-export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats | null }) {
+/* Économies DANS L'ORDRE DE PRÉFÉRENCE, et sans agrégat : notre adaptateur écarte les
+   agrégats à la source (ils portent une région `NA`), donc demander « zone euro » ici
+   rendrait une carte vide. La France d'abord — première économie de la zone pour un
+   lectorat francophone — puis l'Allemagne, puis les États-Unis si une série manque. */
+const ECONOMIES = ['FRA', 'DEU', 'USA'] as const
+
+/** Années d'inflation tracées. Huit barres, comme les autres figures de cette grille. */
+const INFLATION_YEARS = 8
+
+export async function GlobalAnalyses() {
   const t = await getPhrase()
   const fr = await getContent()
 
-  const [sentiment, history, categories, macro, pools, derivatives] = await Promise.all([
-    getSentiment(),
-    getSentimentHistory(SENTIMENT_DAYS),
-    getCategories(BARS),
-    getMacroIndicator(INFLATION, 1),
-    getTrendingPools(),
-    getDerivativeExchanges(ROWS),
-  ])
-
-  /* ── DOMINANCE ────────────────────────────────────────────────────────────
-     `dominance` est une table symbole → part. Elle ne totalise PAS cent : la source
-     ne publie que les premières places. On ajoute donc explicitement le reste plutôt
-     que de laisser croire que la figure couvre tout le marché — une figure de parts
-     dont la somme est muette se lit comme si elle était complète. */
-  const shares = Object.entries(globals?.dominance ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 6)
-  const listed = shares.reduce((total, [, value]) => total + value, 0)
-  const dominance = [
-    ...shares.map(([symbol, value]) => ({ label: symbol.toUpperCase(), share: value })),
-    ...(listed < 99 ? [{ label: t('Autres'), share: Math.max(0, 100 - listed) }] : []),
-  ]
+  const [sentiment, history, categories, pools, derivatives, inflation, growth, unemployment] =
+    await Promise.all([
+      getSentiment(),
+      getSentimentHistory(SENTIMENT_DAYS),
+      getCategories(BARS),
+      getTrendingPools(),
+      getDerivativeExchanges(ROWS),
+      getMacroIndicator(INFLATION, INFLATION_YEARS),
+      getMacroIndicator(GROWTH, 1),
+      getMacroIndicator(UNEMPLOYMENT, 1),
+    ])
 
   const sentimentSeries = (history.ok ? history.data : [])
     .slice()
@@ -118,15 +114,6 @@ export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats |
     .filter((entry) => (entry.marketCap ?? 0) > 0)
     .slice(0, BARS)
 
-  /* La Banque mondiale publie la dernière année DISPONIBLE par pays, et elle diffère
-     d'un pays à l'autre. On garde donc l'observation la plus récente de chacun plutôt
-     que de filtrer sur une année commune, qui exclurait les pays en retard de
-     publication. L'année réelle est écrite à côté de la valeur. */
-  const inflation = ECONOMIES.map((iso3) => {
-    const observations = (macro.ok ? macro.data : []).filter((row) => row.iso3 === iso3)
-    return observations.sort((a, b) => b.year - a.year)[0]
-  }).filter((row): row is NonNullable<typeof row> => row !== undefined)
-
   const topPools = (pools.ok ? pools.data : [])
     .filter((pool) => (pool.volume24hUsd ?? 0) > 0)
     .sort((a, b) => (b.volume24hUsd ?? 0) - (a.volume24hUsd ?? 0))
@@ -134,27 +121,17 @@ export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats |
 
   const venues = derivatives.ok ? derivatives.data.slice(0, ROWS) : []
 
+  /* Les barres suivent l'ordre du TEMPS et non celui des valeurs : une série annuelle
+     triée par valeur ne se lit plus comme une série. */
+  const inflationRows = pickSeries(inflation.ok ? inflation.data : [])
+    .sort((a, b) => a.year - b.year)
+    .slice(-INFLATION_YEARS)
+
+  const growthRow = pickSeries(growth.ok ? growth.data : [])[0]
+  const unemploymentRow = pickSeries(unemployment.ok ? unemployment.data : [])[0]
+
   return (
     <>
-      {/* ── DOMINANCE ────────────────────────────────────────────────────── */}
-      <AnalysisCard
-        family={t('Analyse de la dominance')}
-        title={t('Répartition de la capitalisation')}
-        hint={t('Part de chaque actif dans la capitalisation crypto totale')}
-        href="/graphiques"
-        action={t('Voir')}
-      >
-        {dominance.length > 0 ? (
-          <BarFigure
-            data={dominance}
-            series={[{ key: 'share', label: t('Part'), color: dataColor(2), format: 'share' }]}
-            ariaLabel={t('Répartition de la capitalisation crypto par actif')}
-          />
-        ) : (
-          <Absent reason={t('Agrégat de marché indisponible')} />
-        )}
-      </AnalysisCard>
-
       {/* ── SENTIMENT ────────────────────────────────────────────────────── */}
       <AnalysisCard
         family={t('Analyse du sentiment')}
@@ -184,6 +161,10 @@ export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats |
             series={[{ key: 'value', label: t('Indice'), color: dataColor(4) }]}
             format="compact"
             height={200}
+            /* La carte voisine — secteurs — porte une figure ET un tableau : la rangée
+               fait donc près de cent-vingt pixels de plus que cette figure. `grow` les
+               lui donne au lieu de les laisser en vide sous la courbe. */
+            grow
             ariaLabel={t('Indice de peur et d’avidité sur trente jours')}
           />
         ) : (
@@ -202,10 +183,15 @@ export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats |
         {sectors.length > 0 ? (
           <>
             <BarFigure
+              /* Le nom ENTIER part dans la donnée ; c'est `tickMaxChars` qui raccourcit
+                 la graduation. Tronquer ici faisait afficher « Smart Contr… » jusque
+                 DANS l'infobulle, c'est-à-dire à l'endroit même où l'on venait chercher
+                 le nom complet. */
               data={sectors.map((entry) => ({
-                label: entry.name.length > 12 ? `${entry.name.slice(0, 11)}…` : entry.name,
+                label: entry.name,
                 cap: entry.marketCap,
               }))}
+              tickMaxChars={11}
               series={[
                 {
                   key: 'cap',
@@ -233,47 +219,6 @@ export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats |
           </>
         ) : (
           <Absent reason={categories.ok ? null : categories.reason} />
-        )}
-      </AnalysisCard>
-
-      {/* ── MACRO ────────────────────────────────────────────────────────── */}
-      <AnalysisCard
-        family={t('Analyse macroéconomique')}
-        title={t('Inflation des prix à la consommation')}
-        hint={t('Dernière année publiée par économie — ce qui meut les indices et les devises')}
-        href="/macro"
-        action={t('Voir')}
-      >
-        {inflation.length > 0 ? (
-          <>
-            <BarFigure
-              data={inflation.map((row) => ({
-                label: row.iso3,
-                rate: row.value,
-              }))}
-              series={[
-                { key: 'rate', label: t('Inflation'), color: dataColor(1), format: 'percent' },
-              ]}
-              signed
-              ariaLabel={t('Inflation annuelle par économie')}
-            />
-
-            <RankTable
-              columns={[t('Économie'), t('Année'), t('Inflation')]}
-              rows={inflation.slice(0, ROWS).map((row) => ({
-                key: row.iso3,
-                cells: [
-                  <span key="n" className="truncate">
-                    {row.country}
-                  </span>,
-                  String(row.year),
-                  formatShare(row.value) ?? '—',
-                ],
-              }))}
-            />
-          </>
-        ) : (
-          <Absent reason={macro.ok ? null : macro.reason} />
         )}
       </AnalysisCard>
 
@@ -340,7 +285,78 @@ export async function GlobalAnalyses({ globals }: { globals: GlobalMarketStats |
           <Absent reason={derivatives.ok ? null : derivatives.reason} />
         )}
       </AnalysisCard>
+
+      {/* ── MACRO ────────────────────────────────────────────────────────── */}
+      <AnalysisCard
+        family={t('Analyse macroéconomique')}
+        title={t('Inflation annuelle')}
+        hint={t('Hausse des prix à la consommation, et l’état de l’économie qui porte ces marchés')}
+        href="/macro"
+        action={t('Voir')}
+      >
+        {inflationRows.length > 0 ? (
+          <BarFigure
+            data={inflationRows.map((row) => ({
+              label: String(row.year),
+              rate: row.value,
+            }))}
+            series={[
+              {
+                key: 'rate',
+                label: t('Inflation'),
+                color: dataColor(1),
+                format: 'percent',
+              },
+            ]}
+            /* PAS de `signed`. Le drapeau peint la barre en VERT quand la valeur est
+               positive, et une inflation à 8 % ainsi coloriée se lit comme une bonne
+               nouvelle. La hausse et la baisse sont la sémantique des VARIATIONS d'un
+               cours ; une inflation est un niveau, et prend donc la teinte de sa série.
+               Une déflation reste distinguable : sa barre passe sous l'axe. */
+            height={200}
+            grow
+            ariaLabel={t('Inflation annuelle des prix à la consommation')}
+          />
+        ) : (
+          <Absent reason={inflation.ok ? null : inflation.reason} />
+        )}
+
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border-subtle pt-3">
+          <MacroStat label={t('Croissance du PIB')} row={growthRow} />
+          <MacroStat label={t('Chômage')} row={unemploymentRow} />
+        </dl>
+      </AnalysisCard>
     </>
+  )
+}
+
+/**
+ * Toutes les observations de la première économie de `ECONOMIES` qui en a.
+ *
+ * Rendues de la PLUS RÉCENTE à la plus ancienne, ce qui donne le dernier point en tête
+ * pour un appelant qui n'en veut qu'un, et une série complète pour celui qui la trace.
+ * Les observations sont ENTIÈRES et non réduites à leur valeur : l'appelant a besoin du
+ * pays et de l'année pour les écrire à côté du chiffre — un taux nu se lirait comme un
+ * taux du jour là où c'est celui d'une année déjà close.
+ */
+function pickSeries(rows: MacroObservation[]): MacroObservation[] {
+  for (const iso3 of ECONOMIES) {
+    const match = rows.filter((row) => row.iso3 === iso3).sort((a, b) => b.year - a.year)
+    if (match.length > 0) return match
+  }
+  return []
+}
+
+/** Un chiffre macro et sa provenance — le pays et l'année sont ce qui le rend lisible. */
+function MacroStat({ label, row }: { label: string; row: MacroObservation | undefined }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <dt className="text-micro text-ink-muted">{label}</dt>
+      <dd className="tabular text-sm font-medium text-ink">
+        {row ? `${formatCompact(row.value) ?? '—'} %` : '—'}
+      </dd>
+      <dd className="text-micro text-ink-muted">{row ? `${row.country} · ${row.year}` : '—'}</dd>
+    </div>
   )
 }
 

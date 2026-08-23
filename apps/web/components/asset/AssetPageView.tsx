@@ -1,5 +1,13 @@
 import { Activity, LayoutGrid, Shapes, Store } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
+import {
+  Breadcrumb as UiBreadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { notFound } from 'next/navigation'
 
 import type { AssetClass, AssetTicker } from '@zenkuu/data'
@@ -43,6 +51,7 @@ import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
 import { AssetPageHeader } from '@/components/asset/AssetPageHeader'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
 import { AssetSimilarRail } from '@/components/asset/AssetSimilarRail'
+import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
 import { AssetTrendingRail } from '@/components/asset/AssetTrendingRail'
@@ -623,19 +632,16 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         déclarée trimestriellement, et elle voyage dans la MÊME requête que les ratios
         déjà chargés : nous ne l'avions simplement jamais demandée. `AssetOwnership`
         la rend, et l'aveu d'ignorance ne subsiste que là où il dit vrai.
+
+        ── L'AVEU D'IGNORANCE A ÉTÉ RETIRÉ ──────────────────────────────────
+
+        Il occupait un titre de section et un encadré de cent pixels sur TOUTES les
+        fiches crypto, pour dire qu'il n'y avait rien à dire. Un lecteur y voyait une
+        section vide, jamais une position éditoriale. Quand la donnée manque, la
+        section n'existe pas — c'est la règle du reste de la page (`AssetHoldings`,
+        `AssetPools`, `AssetOwnership` se retirent tous de la même façon).
       */}
-      {profile?.ownership ? (
-        <AssetOwnership profile={profile} assetName={data.name} />
-      ) : (
-        <section className="space-y-3">
-          <h2 className="display-sm text-ink">{t('Détentions institutionnelles')}</h2>
-          <EmptyState
-            title={t('Non publiées par nos sources')}
-            description={`Aucune de nos sources ne publie les trésoreries d’entreprise exposées à ${data.name}. Nous préférons le dire plutôt que d’estimer : une détention déduite de la répartition de l’offre serait un chiffre inventé, pas un relevé.`}
-            compact
-          />
-        </section>
-      )}
+      {profile?.ownership ? <AssetOwnership profile={profile} assetName={data.name} /> : null}
 
       {/* Le bouche-trou ne subsiste que si la grille des comparables est vide elle
           aussi — c'est-à-dire quand l'onglet entier n'aurait rien à montrer. */}
@@ -904,6 +910,21 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
        la dire deux fois ; douze suffisent, et la courbe commence d'autant plus haut. */
     <div className="space-y-3">
       {/*
+        ── LA FICHE SE RAFRAÎCHIT SEULE ───────────────────────────────────────
+
+        Le cours de l'en-tête et la fin de la courbe vivaient déjà en direct, poussés
+        par le WebSocket de Binance. Tout le reste — capitalisation, volume 24 h,
+        amplitude, rang, places de cotation — était figé à l'instant du rendu, et le
+        restait tant qu'on ne rechargeait pas. Un onglet ouvert une heure affichait
+        donc un « Volume 24 h » d'il y a une heure, avec la même autorité qu'un chiffre
+        juste.
+
+        Il ne rend rien : c'est un minuteur, posé en tête pour qu'on le voie. Voir son
+        fichier pour la cadence et pourquoi un onglet caché ne déclenche rien.
+      */}
+      <AssetLiveRefresh />
+
+      {/*
         Données structurées : posées ici plutôt que dans chaque page de classe
         d'actif, puisque ce composant sert les six. `Dataset` et non `Product` —
         décrire un cours comme un produit assorti d'une offre ferait apparaître
@@ -953,7 +974,6 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         assetClass={assetClass}
         rankLabel={fr.asset.stats.rank}
         breadcrumb={<Breadcrumb assetClass={assetClass} name={data.name} />}
-        sourceLabel={asset.source?.label ?? null}
         price={
           <>
             {/*
@@ -1108,6 +1128,17 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       <AssetTabs
         tabs={tabs}
         aside={newsAside}
+        /* L'IDENTITÉ COMPACTE A QUITTÉ LE RAIL POUR LA RANGÉE DE SOMMAIRE.
+
+           Elle y vivait pour une raison précise — sa sentinelle était son premier
+           enfant, et la position de celle-ci DANS LE FLUX définissait le seuil auquel
+           la bande apparaissait. Cette sentinelle n'existe plus : la rangée de sommaire
+           a la sienne, posée juste au-dessus d'elle, et c'est l'état « collée » de cette
+           rangée qui révèle l'identité. Voir `AssetLayoutFrame`.
+
+           Ce qui disparaît au passage : une bande `fixed` de 48 pixels dont le milieu
+           était vide, et 44 pixels de chrome collant sur chaque écran de la fiche. */
+        identity={<AssetStickyBar asset={data} assetClass={assetClass} isRate={isForex} />}
         rail={
           /* Le rail passe EN PREMIER dans le document, et à gauche à l'écran. Sur
              téléphone, la grille s'effondre en une colonne et les chiffres arrivent
@@ -1133,25 +1164,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              commentaires de ce bloc. */
           <aside className="space-y-6">
 
-          {/*
-            LA BARRE COLLANTE SE PLACE ICI, ET NULLE PART AILLEURS.
-
-            Sa sentinelle est son PREMIER ENFANT : un `div` d'un pixel qu'un
-            `IntersectionObserver` surveille, la barre s'affichant dès que ce point
-            sort du champ. Sa position dans le flux N'EST DONC PAS un détail de mise
-            en page — c'est elle qui définit le seuil de déclenchement.
-
-            Posée sous la grille des deux colonnes, la sentinelle se retrouvait à mille
-            cinq cents pixels du haut, donc hors champ DÈS LE CHARGEMENT : la barre
-            s'affichait avant tout défilement, en double du cours qu'elle est censée
-            remplacer. Constaté à l'écran après le passage au rail.
-
-            Juste sous le bloc d'identité, elle retrouve son seuil exact : la barre
-            prend le relais au moment précis où le cours quitte l'écran.
-          */}
-          <AssetStickyBar asset={data} assetClass={assetClass} isRate={isForex} />
-
-          {/* La colonne empile ensuite QUATRE sources de nature différente : le
+          {/* La colonne empile QUATRE sources de nature différente : le
               registre de métriques, les jauges d'offre, le sondage communautaire et
               l'activité du dépôt. Chacune disparaît seule quand sa donnée manque, ce
               qui fait de cette colonne un accordéon : longue sur une grande
@@ -1387,28 +1400,50 @@ function frenchOf(name: string): string {
  * le texte affiché, et un lien sur cinq tomberait sur une page inexistante.
  */
 
+/**
+ * Le fil d'Ariane de la fiche.
+ *
+ * ── CE QUE `Breadcrumb` DE SHADCN/UI APPORTE À TROIS `<li>` ─────────────────
+ *
+ * La structure était déjà correcte — un `<nav aria-label>`, une `<ol>`, un
+ * `aria-current="page"` sur le dernier maillon. Ce que la version maison n'avait pas,
+ * et qui se remarque à l'oreille plus qu'à l'œil :
+ *
+ *   · LE SÉPARATEUR N'EST PLUS UN CARACTÈRE. C'était un `<li aria-hidden>/</li>` :
+ *     une barre oblique dans le flux du texte, que certaines synthèses vocales lisent
+ *     malgré `aria-hidden` lorsqu'elles parcourent caractère par caractère.
+ *     `BreadcrumbSeparator` rend un chevron SVG, marqué `presentation`.
+ *   · LE DERNIER MAILLON EST UN `BreadcrumbPage`, c'est-à-dire un `<span
+ *     role="link" aria-disabled>` : il est annoncé comme un lien COURANT et non
+ *     comme du texte ordinaire, ce qui situe la page dans la hiérarchie.
+ *
+ * ⚠️ `asChild` SUR CHAQUE MAILLON. `BreadcrumbLink` rend un `<a>` en dur ; le site
+ * sert treize langues et ses chemins sont préfixés par la locale, que seul le `Link`
+ * de next-intl pose. Sans `asChild`, chaque maillon renverrait le lecteur anglophone
+ * vers la version française de la page.
+ */
 async function Breadcrumb({ assetClass, name }: { assetClass: AssetClass; name: string }) {
   const t = await getPhrase()
   const fr = await getContent()
   return (
-    <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
-      <ol className="flex flex-wrap items-center gap-1.5">
-        <li>
-          <Link href="/" className="hover:text-brand-strong">
-            {fr.nav.home}
-          </Link>
-        </li>
-        <li aria-hidden="true">/</li>
-        <li>
-          <Link href={marketHref(assetClass)} className="hover:text-brand-strong">
-            {fr.assetClass[assetClass]}
-          </Link>
-        </li>
-        <li aria-hidden="true">/</li>
-        <li className="font-medium text-ink" aria-current="page">
-          {name}
-        </li>
-      </ol>
-    </nav>
+    <UiBreadcrumb aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
+      <BreadcrumbList className="gap-1.5 text-xs sm:gap-1.5">
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild className="hover:text-brand-strong">
+            <Link href="/">{fr.nav.home}</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild className="hover:text-brand-strong">
+            <Link href={marketHref(assetClass)}>{fr.assetClass[assetClass]}</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage className="font-medium text-ink">{name}</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </UiBreadcrumb>
   )
 }

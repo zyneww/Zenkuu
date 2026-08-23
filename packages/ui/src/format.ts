@@ -232,6 +232,70 @@ export function formatNumber(
   return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(value)
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * L'ÉCHELLE D'UN GRAPHIQUE DE COURS — « $55.00 », ET NON « 55 $US »
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── LA SEULE FONCTION DE CE FICHIER QUI IGNORE LA LOCALE, ET C'EST VOULU ─────
+ *
+ * Toutes les autres suivent la langue du lecteur, parce qu'elles écrivent des
+ * chiffres DANS DU TEXTE. L'axe d'un graphique de cotation n'est pas du texte : c'est
+ * une convention de marché, la même chez CoinGecko, TradingView et Bloomberg —
+ * symbole devant, point décimal, deux décimales. « 55 $US » se lit comme une phrase
+ * française ; « $55.00 » se lit comme un cours.
+ *
+ * ── POURQUOI ELLE VIT ICI PLUTÔT QUE DANS LE COMPOSANT DE TRACÉ ──────────────
+ *
+ * Parce que DEUX tracés écrivent ces étiquettes : le SVG rendu par le serveur, visible
+ * avant l'hydratation, et le graphique amCharts qui le remplace ensuite. Deux
+ * formateurs différents feraient sauter l'axe au moment de la bascule — c'est déjà la
+ * raison d'être de `formatCompactAxis`, juste au-dessus.
+ *
+ * `compact` est réservé aux grandeurs qui se comptent en milliards (capitalisation,
+ * volume) : « $1.7B ». Un cours n'y passe jamais, on vient le lire au chiffre près.
+ */
+export function formatAxisMoney(
+  value: number | undefined,
+  currency: string,
+  compact = false,
+): string | null {
+  if (value === undefined || !Number.isFinite(value)) return null
+
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      ...(compact
+        ? { notation: 'compact' as const, maximumFractionDigits: 2 }
+        : {
+            minimumFractionDigits: axisDigits(value),
+            maximumFractionDigits: axisDigits(value),
+          }),
+    }).format(value)
+  } catch {
+    /* Code non monétaire — une crypto en unité de compte : le nombre seul plutôt
+       qu'une exception qui mettrait la fiche entière en erreur. */
+    return compact
+      ? formatCompactAxis(value, 'en-US')
+      : new Intl.NumberFormat('en-US', { maximumFractionDigits: axisDigits(value) }).format(value)
+  }
+}
+
+/**
+ * Décimales de l'échelle, choisies sur l'ordre de grandeur.
+ *
+ * Deux, comme la référence, tant que le cours est lisible ainsi. En dessous de
+ * l'unité — une mème-monnaie à 0,000012 — deux décimales écriraient six graduations
+ * identiques à « $0.00 », c'est-à-dire une échelle sans information.
+ */
+function axisDigits(value: number): number {
+  const size = Math.abs(value)
+  if (size >= 1 || size === 0) return 2
+  if (size >= 0.01) return 4
+  return 8
+}
+
 /** Variation en pourcentage, signe explicite compris : « +2,34 % », « −1,10 % ». */
 export function formatPercent(
   value: number | undefined,

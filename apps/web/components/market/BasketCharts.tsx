@@ -207,28 +207,18 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
           </p>
         </div>
 
-        <ChipGroup label={t('Période')}>
+        <ChipGroup label={t('Période')} value={days} onChange={setDays}>
           {RANGES.map((range) => (
-            <Chip
-              key={range.days}
-              active={days === range.days}
-              onClick={() => setDays(range.days)}
-              label={t(range.label)}
-            />
+            <Chip key={range.days} id={range.days} label={t(range.label)} />
           ))}
         </ChipGroup>
       </div>
 
       <div className="rounded-card border border-border-subtle bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle p-3">
-          <ChipGroup label="Vue">
+          <ChipGroup label="Vue" value={view} onChange={setView}>
             {VIEWS.map((entry) => (
-              <Chip
-                key={entry.id}
-                active={view === entry.id}
-                onClick={() => setView(entry.id)}
-                label={t(entry.label)}
-              />
+              <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
             ))}
           </ChipGroup>
 

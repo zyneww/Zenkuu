@@ -69,6 +69,19 @@ interface MarketBrowserProps {
   sortable: boolean
   paginated: boolean
   basePath: string
+  /**
+   * Nombre total d'actifs du classement, quand il est CONNU.
+   *
+   * Traverse sans être lu ici — il finit dans `tableProps`, donc dans le pied de
+   * `MarketTable`. Il n'est déclaré que pour être typé : sans entrée dans cette
+   * interface, TypeScript refuserait la prop chez l'appelant.
+   *
+   * Il ne l'est pas toujours : CoinGecko pagine lui-même et ne publie jamais combien
+   * d'actifs il détient. Les univers Yahoo, eux, sont des listes écrites au dépôt —
+   * leur longueur est un fait local, et la taire obligerait le pied à écrire
+   * « Actifs 1 à 25 » là où il peut écrire « sur 99 ».
+   */
+  total?: number
   period?: ChangePeriod
   watchlist?: WatchlistContext
   chartPosition?: 'inline' | 'end'
@@ -81,6 +94,28 @@ interface MarketBrowserProps {
    * deux offrirait au lecteur deux réponses différentes à la même question.
    */
   quickViews?: boolean
+
+  /**
+   * Ce qui précède « Personnaliser » au bord droit de la rangée du tableau.
+   *
+   * Traverse jusqu'à `MarketTable` sans être lu ici. Les pages qui portent leur période
+   * dans l'URL — `/crypto` — y posent leurs liens de période ; celles qui la gardent en
+   * état local laissent `quickViews` fabriquer le groupe lui-même, plus bas.
+   */
+  trailingSlot?: React.ReactNode
+
+  /**
+   * Fournie, le tableau PAGINE LOCALEMENT les lignes reçues.
+   *
+   * Valeur de départ du sélecteur de lignes ; le lecteur la change ensuite. Absente,
+   * le tableau garde son comportement d'origine : tout est rendu d'un coup, et la
+   * pagination — s'il y en a une — passe par l'URL.
+   *
+   * La pagination locale porte sur les lignes DÉJÀ FILTRÉES, pas sur celles reçues :
+   * chercher « sol » puis passer page 2 doit parcourir les résultats de la recherche,
+   * pas reprendre le classement complet.
+   */
+  clientPerPage?: number
 }
 
 /**
@@ -107,12 +142,15 @@ export function MarketBrowser({
   quickViews = true,
   period,
   watchlist,
+  clientPerPage,
   ...tableProps
 }: MarketBrowserProps) {
   const t = usePhrase()
   const [query, setQuery] = useState('')
   const [view, setView] = useState<QuickView>('all')
   const [scope, setScope] = useState<Scope>('all')
+  const [rows, setRows] = useState(clientPerPage ?? 0)
+  const [wantedPage, setWantedPage] = useState(1)
 
   /* Les identifiants suivis, en `Set` : le filtre les interroge une fois par ligne, et
      un `includes` sur un tableau ferait de ce filtre un parcours quadratique. */
@@ -185,6 +223,23 @@ export function MarketBrowser({
   }, [assets, query, view, scope, changeField, followed])
 
   const filtering = query.trim().length > 0 || view !== 'all' || scope !== 'all'
+
+  /*
+   * ── LA PAGE COURANTE EST BORNÉE AU RENDU, ET NON REMISE À ZÉRO PAR UN EFFET ──
+   *
+   * Filtrer depuis la page 4 peut ne laisser que deux pages. `wantedPage` garde alors
+   * une valeur devenue impossible, et le tableau se vide : le lecteur voit un écran
+   * blanc en réponse à une recherche qui, elle, a trouvé des lignes.
+   *
+   * La borne est calculée ICI plutôt que corrigée par un `useEffect` sur les filtres.
+   * Un effet rendrait d'abord la page vide, puis la remplacerait au rendu suivant —
+   * un clignotement pour un état qui n'aurait jamais dû exister. Dérivée, la page
+   * affichée est toujours valide au premier rendu, et `wantedPage` retrouve sa valeur
+   * si le lecteur efface son filtre.
+   */
+  const pageCount = rows > 0 ? Math.max(1, Math.ceil(visible.length / rows)) : 1
+  const currentPage = Math.min(wantedPage, pageCount)
+  const paged = rows > 0 ? visible.slice((currentPage - 1) * rows, currentPage * rows) : visible
 
   /*
    * ── LES PORTÉES SERONT-ELLES RENDUES ? LA QUESTION EST POSÉE ICI ───────────
@@ -275,62 +330,69 @@ export function MarketBrowser({
     </div>
   ) : null
 
+  /*
+   * ── LE SÉLECTEUR DE PÉRIODE DESCEND À CÔTÉ DE « PERSONNALISER » ────────────
+   *
+   * Il tenait le bord droit de la rangée du haut, à côté de la recherche. C'était la
+   * mauvaise voisine : la recherche RETIRE DES LIGNES, la période change ce qu'une
+   * COLONNE affiche. Le lecteur qui veut « la variation sur 1 mois avec la
+   * capitalisation » doit alors régler deux choses de même nature à deux endroits
+   * séparés par toute la largeur du tableau.
+   *
+   * Les deux réglages d'affichage se regroupent donc au même bord : période puis
+   * colonnes. La rangée du haut n'a plus qu'à porter les vues rapides et la loupe.
+   */
+  const periodGroup = quickViews ? (
+    <div
+      /* ── FOND PLEIN, PLUS DE TRAIT ──────────────────────────────────
+         Ce groupe portait un contour. Relevé sur la référence : AUCUN de ses
+         contrôles de barre d'outils n'a de bordure — `border-width` vaut `0px`
+         sur tous, et ce qui les détache du fond est une teinte, pas un filet. */
+      className="flex items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
+      role="group"
+      aria-label={t('Période de variation')}
+    >
+      {CHANGE_PERIODS.map((entry) => (
+        <button
+          key={entry.key}
+          type="button"
+          onClick={() => setLocalPeriod(entry.key)}
+          aria-pressed={localPeriod === entry.key}
+          title={t(`Variation ${entry.longLabel}`)}
+          className={`rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-150 ${
+            localPeriod === entry.key
+              ? 'bg-brand text-on-brand'
+              : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+          }`}
+        >
+          {t(entry.label)}
+        </button>
+      ))}
+    </div>
+  ) : null
+
   return (
     <div className="space-y-3">
       {/*
-        ── UNE SEULE RANGÉE D'OUTILS, ET LE RESTE DESCEND AVEC « COLONNES » ──────
+        ── LA RANGÉE DU HAUT NE PORTE PLUS QUE LES VUES ET LA LOUPE ─────────────
 
-        Elle en comptait deux. La première portait les vues et un champ de recherche
-        pleine largeur ; la seconde, à elle seule, les deux portées à gauche et les cinq
-        périodes à droite. Quatre-vingts pixels de hauteur pour des réglages qu'on
-        change une fois par visite, au-dessus d'un tableau qu'on vient lire.
-
-        Les périodes REMONTENT ici — elles qualifient la colonne « Variation », donc le
-        tableau, et non le sous-ensemble d'actifs. La recherche se replie en loupe (voir
-        `ExpandingSearch`), ce qui libère la largeur qu'elle prenait. Les portées, elles,
-        descendent à la hauteur de « Colonnes » : ce sont des réglages du même ordre —
-        ce qu'on compte, ce qu'on affiche.
+        Elle portait aussi les cinq périodes, qui sont descendues rejoindre
+        « Personnaliser » — voir `periodGroup`. Ce qui reste ici filtre la LISTE : les
+        vues rapides à gauche, la recherche repliée en loupe à droite.
       */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Les vues rapides ne tiennent cette rangée QUE si les portées occupent celle
             du dessous. Sinon elles y descendent, et cette rangée n'a plus qu'un côté —
             voir la note de `quickViewGroup`. Le `<span />` garde alors la gauche, sans
-            quoi `justify-between` sur un enfant unique collerait la période à gauche. */}
+            quoi `justify-between` sur un enfant unique collerait la loupe à gauche. */}
         {hasScopeButtons ? quickViewGroup : <span />}
 
-        <div className="flex flex-wrap items-center gap-2">
-          {quickViews ? (
-            <div
-              className="flex items-center gap-0.5 rounded-control border border-border-subtle p-0.5"
-              role="group"
-              aria-label={t('Période de variation')}
-            >
-              {CHANGE_PERIODS.map((entry) => (
-                <button
-                  key={entry.key}
-                  type="button"
-                  onClick={() => setLocalPeriod(entry.key)}
-                  aria-pressed={localPeriod === entry.key}
-                  title={t(`Variation ${entry.longLabel}`)}
-                  className={`rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-150 ${
-                    localPeriod === entry.key
-                      ? 'bg-brand text-on-brand'
-                      : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                  }`}
-                >
-                  {t(entry.label)}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <ExpandingSearch
-            value={query}
-            onChange={setQuery}
-            placeholder={t('Filtrer cette page…')}
-            label={t('Filtrer les actifs affichés sur cette page')}
-          />
-        </div>
+        <ExpandingSearch
+          value={query}
+          onChange={setQuery}
+          placeholder={t('Filtrer cette page…')}
+          label={t('Filtrer les actifs affichés sur cette page')}
+        />
       </div>
 
       {filtering ? (
@@ -348,10 +410,28 @@ export function MarketBrowser({
         />
       ) : (
         <MarketTable
-          assets={visible}
+          assets={paged}
           {...tableProps}
+          {...(/* Après `tableProps`, donc gagnant : la page et le nombre de lignes
+                  servis sont ceux de l'état local, et non ceux que l'appelant a écrits
+                  pour le premier rendu. */
+          rows > 0
+            ? {
+                page: currentPage,
+                perPage: rows,
+                total: visible.length,
+                onPageChange: setWantedPage,
+                onPerPageChange: (next: number) => {
+                  setRows(next)
+                  setWantedPage(1)
+                },
+              }
+            : {})}
           {...(watchlist ? { watchlist } : {})}
           {...(activePeriod ? { period: activePeriod } : {})}
+          {...(/* Le groupe local gagne sur celui de l'appelant : quand `quickViews` est
+                  vrai, c'est ce composant qui tient l'état de la période. */
+          periodGroup ? { trailingSlot: periodGroup } : {})}
           /*
             ── LES PORTÉES DESCENDENT DANS LE TABLEAU, ET SEULEMENT OÙ ELLES SERVENT
 

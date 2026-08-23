@@ -1,9 +1,10 @@
 'use client'
 
-import { Star } from 'lucide-react'
+import { Loader2, Star } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { WATCHLIST_ASSET_LIMIT } from '@/lib/limits'
 import { toggleWatchlist, type WatchlistActionResult } from '@/lib/watchlist-actions'
 
@@ -48,13 +49,24 @@ export function WatchlistButton({
    */
   if (!signedIn) {
     return (
-      <span
-        title="Le suivi n’est pas disponible : aucune base de données n’est configurée sur cette instance."
-        className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted/60"
-      >
-        <Star className="h-3.5 w-3.5" aria-hidden="true" />
-        Suivi indisponible
-      </span>
+      /* `disabled` plutôt qu'un `<span>` grisé à la main : le bouton reste un
+         bouton pour la synthèse vocale, qui l'annonce alors comme indisponible au
+         lieu de le lire comme du texte ordinaire.
+
+         ⚠️ LA RAISON N'EST PAS DANS UN `title` NI DANS UNE INFOBULLE. Un bouton
+         DÉSACTIVÉ ne reçoit ni survol ni focus : sa bulle ne s'ouvrirait jamais.
+         C'était déjà le cas avant, sur le `<span>` — le texte existait dans le DOM et
+         personne ne pouvait le lire. Il est donc affiché, sous le bouton, comme l'est
+         déjà le message d'échec quelques lignes plus bas. */
+      <div className="flex flex-col items-end gap-1">
+        <Button size="sm" variant="outline" disabled>
+          <Star />
+          Suivi indisponible
+        </Button>
+        <p className="max-w-[16rem] text-right text-[0.6875rem] leading-snug text-ink-muted">
+          Aucune base de données n’est configurée sur cette instance.
+        </p>
+      </div>
     )
   }
 
@@ -83,23 +95,31 @@ export function WatchlistButton({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <button
-        type="button"
+      {/* `Button` de shadcn/ui. La bascule change de VARIANTE et non de classes
+          recopiées : `default` quand l'actif est suivi — l'état est alors un fait
+          acquis, qui a le droit d'être plein —, `outline` sinon.
+
+          LA ROUE S'AJOUTE, ELLE NE REMPLACE PAS. Le libellé reste à l'écran pendant
+          l'aller-retour : le faire disparaître rétrécirait le bouton à la largeur de
+          son tourniquet, ce qui décale la rangée d'en-tête de la fiche — et surtout
+          on ne saurait plus ce qu'on vient de demander. `disabled` empêche le second
+          clic, ce que l'ancien `disabled:opacity-60` écrit à la main ne faisait pas.
+
+          L'ÉTOILE SE REMPLIT quand l'actif est suivi. `fill-current` plutôt qu'une
+          seconde icône : c'est le même glyphe dans les deux états, seule sa surface
+          change, et l'œil lit le remplissage comme un basculement plutôt que comme un
+          changement de pictogramme. */}
+      <Button
+        size="sm"
+        variant={following ? 'default' : 'outline'}
         onClick={onClick}
         disabled={pending}
         aria-pressed={following}
-        className={`inline-flex items-center gap-1.5 rounded-control border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${
-          following
-            ? 'border-brand bg-brand-soft text-brand-strong'
-            : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
-        }`}
       >
-        <Star
-          className={`h-3.5 w-3.5 ${following ? 'fill-current' : ''}`}
-          aria-hidden="true"
-        />
+        {pending ? <Loader2 className="animate-spin" /> : null}
+        <Star className={following ? 'fill-current' : undefined} aria-hidden="true" />
         {following ? 'Suivi' : 'Suivre'}
-      </button>
+      </Button>
 
       {failure ? (
         <p role="status" className="max-w-[16rem] text-right text-[0.6875rem] leading-snug text-ink-muted">

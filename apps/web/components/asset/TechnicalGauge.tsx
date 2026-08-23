@@ -1,7 +1,15 @@
+'use client'
+
+import { Cell, Customized, Pie, PieChart } from 'recharts'
+
+import { ChartContainer } from '@/components/ui/chart'
+
 import type { Tally, Verdict } from '@/lib/indicators'
 
 /**
- * Jauge de synthèse technique.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * JAUGE DE SYNTHÈSE TECHNIQUE — CINQ SECTEURS ET UNE AIGUILLE
+ * ══════════════════════════════════════════════════════════════════════════════
  *
  * ── UNE AIGUILLE, ET LES TROIS COMPTES À CÔTÉ ─────────────────────────────────
  *
@@ -13,11 +21,29 @@ import type { Tally, Verdict } from '@/lib/indicators'
  *
  * ── POURQUOI L'ARC N'EST PAS CONTINU ──────────────────────────────────────────
  *
- * Cinq segments distincts plutôt qu'un dégradé du rouge au vert. Un dégradé
+ * Cinq secteurs distincts plutôt qu'un dégradé du rouge au vert. Un dégradé
  * suggérerait une mesure continue et donc une précision que ce calcul n'a pas : le
  * score est un décompte de signaux discrets, et deux positions séparées de trois
- * degrés ne veulent rien dire de différent. Les segments avouent la granularité
+ * degrés ne veulent rien dire de différent. Les secteurs avouent la granularité
  * réelle.
+ *
+ * ── CE QUI A CHANGÉ : LE CADRAN EST UN `Pie`, L'AIGUILLE RESTE À LA MAIN ──────
+ *
+ * Les cinq secteurs étaient tracés par un constructeur de chemin maison — vingt-cinq
+ * lignes de `M`/`A`/`L` et deux fonctions de projection polaire — écrit pour éviter
+ * qu'un arc épaissi au `stroke-width` ne fasse déborder ses extrémités et chevaucher
+ * les jonctions rouge/gris. C'est exactement ce qu'un secteur de `recharts` fait
+ * nativement : un chemin fermé, sans trait, sans débordement.
+ *
+ * L'AIGUILLE, ELLE, N'A PAS D'ÉQUIVALENT dans la bibliothèque — aucune figure de
+ * `recharts` ne pointe une position. Elle est donc dessinée par `<Customized>`, le
+ * point d'extension prévu pour cela : le tracé vit DANS le `<svg>` du graphique, au
+ * même repère et sous les mêmes transformations que les secteurs, au lieu d'être un
+ * calque superposé qu'il faudrait recaler à chaque changement de taille.
+ *
+ * La supprimer aurait été plus simple, et faux : sans elle, seule la teinte du texte
+ * dirait le verdict, et un cadran à cinq secteurs tous allumés n'indiquerait plus
+ * rien du tout.
  */
 
 const VERDICT_LABELS: Record<Verdict, string> = {
@@ -36,7 +62,7 @@ const VERDICT_TONE: Record<Verdict, string> = {
   strongBuy: 'text-up',
 }
 
-/** Les cinq segments, du plus baissier au plus haussier. */
+/** Les cinq secteurs, du plus baissier au plus haussier. Parts égales par construction. */
 const SEGMENTS: { verdict: Verdict; fill: string }[] = [
   { verdict: 'strongSell', fill: 'var(--color-down)' },
   { verdict: 'sell', fill: 'color-mix(in srgb, var(--color-down) 55%, transparent)' },
@@ -45,10 +71,23 @@ const SEGMENTS: { verdict: Verdict; fill: string }[] = [
   { verdict: 'strongBuy', fill: 'var(--color-up)' },
 ]
 
+/*
+ * Géométrie du cadran, en pixels.
+ *
+ * Elle est FIXE et non relative : `recharts` place ses secteurs à partir d'un centre
+ * et de deux rayons, et l'aiguille doit partir du même centre. Deux expressions en
+ * pourcentage — une pour le `Pie`, une pour l'aiguille — divergeraient au premier
+ * changement de boîte, et l'aiguille sortirait de son moyeu sans que rien ne le dise.
+ */
+const WIDTH = 160
+const HEIGHT = 92
+const CENTER_X = WIDTH / 2
+const CENTER_Y = 78
 const RADIUS = 68
 const THICKNESS = 12
-const CENTER_X = 80
-const CENTER_Y = 78
+
+/** Une part par secteur, toutes égales : c'est le cadran, pas une donnée. */
+const DIAL = SEGMENTS.map((segment) => ({ ...segment, weight: 1 }))
 
 export function TechnicalGauge({ tally, title }: { tally: Tally; title: string }) {
   const total = tally.buy + tally.neutral + tally.sell
@@ -63,40 +102,49 @@ export function TechnicalGauge({ tally, title }: { tally: Tally; title: string }
    * tendance franche.
    */
   const angle = Math.min(Math.max(score, -0.9), 0.9) * 90
-  const radians = ((angle - 90) * Math.PI) / 180
-  const needleLength = RADIUS - THICKNESS - 6
 
   return (
     <div className="flex flex-col items-center">
       <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-ink-muted">{title}</p>
 
-      <svg
-        viewBox="0 0 160 92"
-        className="mt-2 w-full max-w-[160px]"
+      <ChartContainer
+        config={{}}
         role="img"
         aria-label={`${title} : ${VERDICT_LABELS[tally.verdict]}. ${tally.buy} signaux d’achat, ${tally.neutral} neutres, ${tally.sell} de vente.`}
+        /* `aspect-auto` écrase le 16/9 par défaut de `ChartContainer` : un demi-cadran
+           est deux fois plus large que haut, et la géométrie ci-dessus est exprimée
+           dans cette boîte-là. */
+        className="mt-2 aspect-auto"
+        style={{ width: WIDTH, height: HEIGHT }}
       >
-        {SEGMENTS.map((segment, index) => (
-          <path
-            key={segment.verdict}
-            // Cinq secteurs de 36° couvrant le demi-cercle, du bord gauche (180°) au
-            // bord droit (360°).
-            d={arc(180 + index * 36, 180 + (index + 1) * 36 - 2)}
-            fill={segment.fill}
-          />
-        ))}
+        <PieChart>
+          <Pie
+            data={DIAL}
+            dataKey="weight"
+            nameKey="verdict"
+            cx={CENTER_X}
+            cy={CENTER_Y}
+            innerRadius={RADIUS - THICKNESS}
+            outerRadius={RADIUS}
+            /* Demi-cercle, du bord gauche au bord droit. */
+            startAngle={180}
+            endAngle={0}
+            /* Deux degrés de respiration entre secteurs : c'est ce que le retrait de
+               `- 2` sur chaque angle de fin produisait dans le tracé manuel. Sans eux,
+               les cinq teintes se touchent et le cadran redevient un dégradé — ce que
+               la note ci-dessus explique qu'il ne doit pas être. */
+            paddingAngle={2}
+            stroke="none"
+            isAnimationActive={false}
+          >
+            {DIAL.map((segment) => (
+              <Cell key={segment.verdict} fill={segment.fill} />
+            ))}
+          </Pie>
 
-        <line
-          x1={CENTER_X}
-          y1={CENTER_Y}
-          x2={CENTER_X + Math.cos(radians) * needleLength}
-          y2={CENTER_Y + Math.sin(radians) * needleLength}
-          stroke="var(--color-ink)"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-        />
-        <circle cx={CENTER_X} cy={CENTER_Y} r={4} fill="var(--color-ink)" />
-      </svg>
+          <Customized component={<Needle angle={angle} />} />
+        </PieChart>
+      </ChartContainer>
 
       <p className={`mt-1 text-sm font-semibold ${VERDICT_TONE[tally.verdict]}`}>
         {VERDICT_LABELS[tally.verdict]}
@@ -111,6 +159,32 @@ export function TechnicalGauge({ tally, title }: { tally: Tally; title: string }
   )
 }
 
+/**
+ * L'aiguille et son moyeu.
+ *
+ * `angle` est en degrés, 0 pointant vers le haut du cadran ; le décalage de 90°
+ * convertit vers le repère trigonométrique du SVG, où 0 pointe vers la droite.
+ */
+function Needle({ angle }: { angle: number }) {
+  const radians = ((angle - 90) * Math.PI) / 180
+  const length = RADIUS - THICKNESS - 6
+
+  return (
+    <g>
+      <line
+        x1={CENTER_X}
+        y1={CENTER_Y}
+        x2={CENTER_X + Math.cos(radians) * length}
+        y2={CENTER_Y + Math.sin(radians) * length}
+        stroke="var(--color-ink)"
+        strokeWidth={2.5}
+        strokeLinecap="round"
+      />
+      <circle cx={CENTER_X} cy={CENTER_Y} r={4} fill="var(--color-ink)" />
+    </g>
+  )
+}
+
 function Count({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
     <span className="flex flex-col items-center">
@@ -118,31 +192,4 @@ function Count({ label, value, tone }: { label: string; value: number; tone?: st
       <span>{label}</span>
     </span>
   )
-}
-
-/**
- * Secteur d'anneau entre deux angles, en degrés SVG (0° à droite, sens horaire).
- *
- * Tracé en un seul chemin fermé plutôt qu'en arc épaissi par `stroke-width` : un
- * trait épais déborde de ses extrémités selon le `stroke-linecap`, et les segments
- * voisins se chevauchent alors de quelques pixels — visible sur les jonctions
- * rouge/gris.
- */
-function arc(startDegrees: number, endDegrees: number): string {
-  const outer = RADIUS
-  const inner = RADIUS - THICKNESS
-
-  const start = (startDegrees * Math.PI) / 180
-  const end = (endDegrees * Math.PI) / 180
-
-  const x = (radius: number, angle: number) => CENTER_X + Math.cos(angle) * radius
-  const y = (radius: number, angle: number) => CENTER_Y + Math.sin(angle) * radius
-
-  return [
-    `M ${x(outer, start)} ${y(outer, start)}`,
-    `A ${outer} ${outer} 0 0 1 ${x(outer, end)} ${y(outer, end)}`,
-    `L ${x(inner, end)} ${y(inner, end)}`,
-    `A ${inner} ${inner} 0 0 0 ${x(inner, start)} ${y(inner, start)}`,
-    'Z',
-  ].join(' ')
 }

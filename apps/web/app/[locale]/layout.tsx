@@ -16,6 +16,8 @@ import { Footer } from '@/components/Footer'
 import { NavBar } from '@/components/NavBar'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { getContent } from '@/lib/content'
 import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
@@ -251,6 +253,22 @@ export default async function RootLayout({
               Voir `content/locales/index.ts`. */}
           <ContentProvider content={stripFunctions(content)}>
             <CurrencyProvider rates={rates.ok ? rates.data : null}>
+              {/*
+                ── UN SEUL FOURNISSEUR D'INFOBULLES POUR TOUT LE SITE ──────────
+
+                Le `Tooltip` de shadcn/ui n'en pose pas un implicitement : sans
+                fournisseur au-dessus, Radix lève à la première bulle rendue. Il vit
+                donc ici, au plus haut, plutôt qu'auprès de chaque déclencheur.
+
+                Ce n'est pas qu'une commodité d'écriture. Le fournisseur porte
+                `skipDelayDuration` : une fois qu'une bulle s'est ouverte, les
+                suivantes s'ouvrent SANS temporisation tant que le pointeur reste
+                dans la zone. C'est ce qui fait qu'un survol le long d'une rangée de
+                dix métriques se lit d'un trait au lieu d'attendre 120 ms à chaque
+                icône. Un fournisseur par bulle perdrait exactement cette continuité,
+                puisque chacun compterait son délai pour lui seul.
+              */}
+              <TooltipProvider delayDuration={120} skipDelayDuration={300}>
               <a
                 href="#contenu"
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-card focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:shadow"
@@ -288,6 +306,13 @@ export default async function RootLayout({
               </main>
 
               <Footer />
+
+              {/* La pile de notifications passagères — enregistrement d'une alerte,
+                  copie d'une adresse, export lancé. Une seule pour tout le site :
+                  `toast()` s'appelle de n'importe où sans qu'un composant ait à
+                  porter son propre conteneur. */}
+              <Toaster position="bottom-right" closeButton richColors />
+              </TooltipProvider>
             </CurrencyProvider>
           </ContentProvider>
         </NextIntlClientProvider>

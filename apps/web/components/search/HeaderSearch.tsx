@@ -4,10 +4,14 @@ import { Search, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
+import { IconButton } from '@/components/ui/IconButton'
+import { Command, CommandInput, CommandList } from '@/components/ui/command'
+import { Kbd } from '@/components/ui/kbd'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useContent } from '@/components/locale/ContentProvider'
-import { usePresence } from '@/components/nav/usePresence'
 import { SearchResults } from '@/components/search/SearchResults'
 import { useAssetSearch } from '@/components/search/useAssetSearch'
+import { cn } from '@/lib/utils'
 
 /**
  * Recherche de l'en-tête — un VRAI champ, et un tiroir de résultats sous lui.
@@ -19,6 +23,27 @@ import { useAssetSearch } from '@/components/search/useAssetSearch'
  * tant que la logique de recherche vivait dans cette fenêtre et nulle part ailleurs.
  * Extraite dans `useAssetSearch`, elle s'installe ici sans être recopiée — et la
  * raison de garder un faux champ disparaît avec elle.
+ *
+ * ── LE TIROIR EST UN `Popover`, LA LISTE UN `Command` ────────────────────────
+ *
+ * Trois mécaniques écrites à la main ont quitté ce fichier, et chacune était un
+ * défaut potentiel :
+ *
+ *   · LA FERMETURE AU CLIC EXTÉRIEUR. Un `mousedown` sur le document, borné à
+ *     l'extérieur d'une racine — avec la note expliquant pourquoi ce n'était pas un
+ *     `onBlur` (cliquer un résultat retire d'abord le focus au champ, ce qui
+ *     démonterait le tiroir AVANT que le clic n'atteigne le lien). Radix connaît ce
+ *     piège et l'évite de lui-même.
+ *   · LE POSITIONNEMENT. `absolute right-0 top-full` suppose que la place existe en
+ *     dessous et à droite. Radix mesure la fenêtre et retourne le panneau quand elle
+ *     manque.
+ *   · LA NAVIGATION AU CLAVIER. Trente lignes qui relisaient les `a[href]` du tiroir
+ *     par `querySelectorAll` à chaque frappe. cmdk fait mieux — voir `SearchResults`.
+ *
+ * ⚠️ `onOpenAutoFocus` EST NEUTRALISÉ, et il le faut. Un `PopoverContent` prend le
+ * focus à l'ouverture ; ici le tiroir s'ouvre PARCE QU'ON EST EN TRAIN DE TAPER dans
+ * le champ, et le laisser faire arracherait le curseur au premier caractère. Le champ
+ * garde le focus, cmdk pilote la sélection à distance.
  *
  * ── LE CHAMP N'EXISTE PAS PARTOUT, ET C'EST VOULU ─────────────────────────────
  *
@@ -40,39 +65,14 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
   const fr = useContent()
 
   const [focused, setFocused] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
 
   const search = useAssetSearch({ active: focused })
-  const { state, mounted, onTransitionEnd } = usePresence(focused)
 
   const close = useCallback(() => {
     setFocused(false)
     search.reset()
   }, [search])
-
-  /*
-   * FERMETURE AU CLIC EXTÉRIEUR — et non au `blur` du champ.
-   *
-   * Le réflexe serait d'écouter `onBlur` sur l'`<input>`. Il est faux ici : cliquer
-   * un résultat du tiroir retire d'abord le focus au champ, ce qui démonterait le
-   * tiroir AVANT que le clic n'atteigne le lien. On ne navigue nulle part, et le
-   * défaut ne se manifeste qu'à la souris — au clavier, `Entrée` suit le lien sans
-   * jamais passer par là.
-   *
-   * `mousedown` sur le document, borné à l'extérieur de la racine, ferme quand il
-   * faut et seulement quand il faut.
-   */
-  useEffect(() => {
-    if (!focused) return
-
-    function onPointerDown(event: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) close()
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    return () => document.removeEventListener('mousedown', onPointerDown)
-  }, [focused, close])
 
   /*
    * RACCOURCIS GLOBAUX.
@@ -120,128 +120,111 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [onOpenOverlay])
 
-  /**
-   * Navigation au clavier DANS le tiroir.
-   *
-   * Les résultats sont des liens ordinaires ; les parcourir revient donc à déplacer le
-   * focus de l'un à l'autre, et `Entrée` suit alors le lien sans qu'aucun code ne s'en
-   * mêle. On lit les liens dans le DOM au moment de la frappe plutôt que de tenir un
-   * index en état : la liste change à chaque réponse réseau, et un index conservé
-   * pointerait régulièrement sur une ligne qui n'existe plus.
-   */
-  function onFieldKeyDown(event: React.KeyboardEvent) {
-    if (event.key === 'Escape') {
-      close()
-      inputRef.current?.blur()
-      return
-    }
-
-    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
-
-    const links = panelRef.current?.querySelectorAll<HTMLAnchorElement>('a[href]')
-    if (!links || links.length === 0) return
-
-    event.preventDefault()
-    const current = document.activeElement
-    const index = [...links].indexOf(current as HTMLAnchorElement)
-
-    // Depuis le champ (index -1), Bas va au premier et Haut au dernier — le
-    // bouclage attendu de toute liste de suggestions.
-    const next =
-      event.key === 'ArrowDown'
-        ? (index + 1) % links.length
-        : (index <= 0 ? links.length : index) - 1
-
-    links[next]?.focus()
-  }
-
   return (
-    <div ref={rootRef} className="relative shrink-0">
+    <div className="relative shrink-0">
       {/* ── ÉCRAN ÉTROIT : une icône, qui ouvre la fenêtre ─────────────────── */}
-      <button
-        type="button"
+      {/* `IconButton` : le bouton-icône bordé du système, bâti sur le `Button` de
+          shadcn/ui. `tooltip={false}` ici — la cible est tactile, et une infobulle sur
+          mobile n'a pas de survol pour s'ouvrir ; l'étiquette porte seule le libellé. */}
+      <IconButton
+        variant="outline"
         onClick={onOpenOverlay}
-        aria-label={t('open')}
-        className="flex h-9 w-9 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink md:hidden"
-      >
-        <Search className="h-4 w-4" aria-hidden="true" />
-      </button>
+        label={t('open')}
+        tooltip={false}
+        icon={Search}
+        className="md:hidden"
+      />
 
-      {/* ── ÉCRAN LARGE : le champ ─────────────────────────────────────────── */}
-      <div
-        className={`hidden h-9 items-center gap-2 rounded-control border bg-surface-muted pl-2.5 pr-1.5 transition-colors duration-150 md:flex ${
-          focused ? 'border-brand' : 'border-border-subtle hover:border-brand/60'
-        }`}
-      >
-        <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
+      {/* ── ÉCRAN LARGE : le champ et son tiroir ───────────────────────────── */}
+      {/*
+        `Command` ENVELOPPE LE CHAMP ET LA LISTE, et il le faut : cmdk relie les deux
+        par un contexte React, pas par le DOM. La liste vit dans un portail — Radix
+        l'y met — donc à l'autre bout du document ; c'est ce contexte, et lui seul, qui
+        fait que les flèches tapées dans le champ déplacent la sélection dans le
+        panneau.
 
-        <input
-          ref={inputRef}
-          type="text"
-          role="combobox"
-          aria-expanded={focused}
-          aria-controls="header-search-panel"
-          aria-autocomplete="list"
-          aria-label={fr.search.title}
-          value={search.query}
-          onChange={(event) => search.setQuery(event.target.value)}
-          onFocus={() => setFocused(true)}
-          onKeyDown={onFieldKeyDown}
-          placeholder={t('placeholder')}
-          /* `type="text"` et non `type="search"` : le second ajoute une croix de
-             remise à zéro dessinée par le navigateur, différente sur chacun, et qui
-             double celle que l'on pose nous-mêmes ci-dessous.
-
-             144px puis 176px au-delà de `lg`, contre 160 et 208 auparavant. Le champ
-             ne sert pas à LIRE la requête mais à la TAPER : les résultats s'affichent
-             dans un tiroir de 26rem juste en dessous, et l'essentiel des recherches
-             tient en trois à huit caractères — un symbole, un début de nom. La largeur
-             gagnée revient aux menus de navigation, qui sont, eux, incompressibles. */
-          className="w-36 bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted lg:w-44"
-          autoComplete="off"
-          spellCheck={false}
-        />
-
-        {search.query ? (
-          <button
-            type="button"
-            onClick={() => {
-              search.reset()
-              inputRef.current?.focus()
-            }}
-            aria-label={fr.search.close}
-            className="shrink-0 rounded-control p-0.5 text-ink-muted transition-colors hover:bg-surface hover:text-ink"
-          >
-            <X className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        ) : (
-          <kbd
-            className="hidden shrink-0 rounded-xs border border-border-subtle px-1.5 py-0.5 font-sans text-micro text-ink-muted lg:block"
-            aria-hidden="true"
-          >
-            {t('shortcut')}
-          </kbd>
-        )}
-      </div>
-
-      {/* ── TIROIR DE RÉSULTATS ────────────────────────────────────────────── */}
-      {mounted ? (
-        <div
-          id="header-search-panel"
-          ref={panelRef}
-          data-state={state}
-          onTransitionEnd={onTransitionEnd}
-          onKeyDown={onFieldKeyDown}
-          /* `left-auto right-0` : ancré au bord DROIT du champ. La recherche est le
-             premier élément d'un groupe collé à droite de la barre ; centré, le tiroir
-             déborderait de la fenêtre sur les largeurs intermédiaires. */
-          className="menu-panel absolute right-0 top-full z-50 hidden w-[26rem] pt-2 md:block"
+        `shouldFilter={false}` : la recherche est faite par le serveur. Voir la note
+        de `SearchResults`, qui vaut pour les deux surfaces.
+      */}
+      <Command shouldFilter={false} className="hidden bg-transparent md:block">
+        <Popover
+          open={focused}
+          onOpenChange={(next) => {
+            if (!next) close()
+          }}
         >
-          <div className="max-h-[70vh] overflow-y-auto overscroll-contain rounded-card border border-border-subtle bg-overlay p-1.5 shadow-overlay">
-            <SearchResults search={search} onNavigate={close} />
-          </div>
-        </div>
-      ) : null}
+          <PopoverAnchor asChild>
+            <div
+              className={cn(
+                'flex h-9 items-center gap-2 rounded-control border bg-surface-muted pl-2.5 pr-1.5 transition-colors duration-150',
+                focused ? 'border-brand' : 'border-border-subtle hover:border-brand/60',
+              )}
+            >
+              <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
+
+              <CommandInput
+                ref={inputRef}
+                value={search.query}
+                onValueChange={search.setQuery}
+                onFocus={() => setFocused(true)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Escape') return
+                  close()
+                  inputRef.current?.blur()
+                }}
+                placeholder={t('placeholder')}
+                aria-label={fr.search.title}
+                autoComplete="off"
+                spellCheck={false}
+                /* La coque dessine déjà sa bordure et sa loupe : le conteneur de
+                   `CommandInput` ne doit poser ni l'une ni l'autre, sans quoi le champ
+                   porte un filet en travers et deux loupes. Voir l'écart documenté en
+                   tête de `components/ui/command.tsx`.
+
+                   144px puis 176px au-delà de `lg`. Le champ ne sert pas à LIRE la
+                   requête mais à la TAPER : les résultats s'affichent dans un tiroir
+                   de 26rem juste en dessous, et l'essentiel des recherches tient en
+                   trois à huit caractères — un symbole, un début de nom. La largeur
+                   gagnée revient aux menus de navigation, qui sont incompressibles. */
+                hideIcon
+                wrapperClassName="h-auto flex-1 border-0 p-0"
+                className="h-auto w-36 py-0 text-xs text-ink placeholder:text-ink-muted lg:w-44"
+              />
+
+              {search.query ? (
+                <IconButton
+                  size="icon-xs"
+                  variant="ghost"
+                  label={fr.search.close}
+                  tooltip={false}
+                  icon={X}
+                  onClick={() => {
+                    search.reset()
+                    inputRef.current?.focus()
+                  }}
+                />
+              ) : (
+                <Kbd className="hidden shrink-0 bg-transparent text-micro lg:inline-flex" aria-hidden="true">
+                  {t('shortcut')}
+                </Kbd>
+              )}
+            </div>
+          </PopoverAnchor>
+
+          <PopoverContent
+            align="end"
+            sideOffset={8}
+            /* Voir l'en-tête : le tiroir s'ouvre pendant qu'on tape, lui donner le
+               focus arracherait le curseur au premier caractère. */
+            onOpenAutoFocus={(event) => event.preventDefault()}
+            className="w-[26rem] border-border-subtle bg-overlay p-1.5 shadow-overlay"
+          >
+            <CommandList className="max-h-[70vh] overscroll-contain">
+              <SearchResults search={search} onNavigate={close} />
+            </CommandList>
+          </PopoverContent>
+        </Popover>
+      </Command>
     </div>
   )
 }

@@ -91,7 +91,7 @@ function StatList({ rows }: { rows: { label: string; value: number; hint?: strin
       {rows.map((row) => (
         <div
           key={row.label}
-          className="flex items-baseline justify-between gap-1.5 border-b border-border-subtle/60 py-1.5 last:border-0"
+          className="flex items-baseline justify-between gap-1.5 border-b border-border-subtle py-1.5 last:border-0"
         >
           <dt className="min-w-0 flex-1 truncate text-xs text-ink-muted">
             {row.label}

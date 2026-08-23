@@ -1,7 +1,24 @@
 'use client'
 
-import { BookmarkPlus, Trash2 } from 'lucide-react'
+import { BookmarkPlus, Loader2, Trash2 } from 'lucide-react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { ButtonGroup } from '@/components/ui/button-group'
 import { useEffect, useState, useTransition } from 'react'
+
+import { IconButton } from '@/components/ui/IconButton'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 import {
   listSavedScreens,
@@ -11,6 +28,23 @@ import {
   type SavedScreenRow,
 } from '@/lib/screen-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
+
+/**
+ * Règle de nommage d'un écran.
+ *
+ * Elle vivait dans un `if (name === '') return` qui ne disait rien. Les deux cas sont
+ * désormais nommés — un nom vide n'identifie rien, un nom de plus de quarante
+ * caractères déborde de la pastille qui le portera — et chacun a son message.
+ */
+const screenSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Donnez un nom à cet écran pour le retrouver.')
+    .max(40, 'Quarante caractères au plus — la pastille ne peut pas en afficher davantage.'),
+})
+
+type ScreenName = z.infer<typeof screenSchema>
 
 /**
  * Barre des écrans de screener enregistrés.
@@ -48,7 +82,6 @@ export function SavedScreens({
    */
   const screens = all.filter((screen) => screen.criteria.market === criteria.market)
   const [naming, setNaming] = useState(false)
-  const [draft, setDraft] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -58,10 +91,20 @@ export function SavedScreens({
     void listSavedScreens().then(setScreens)
   }, [])
 
-  function save() {
-    const name = draft.trim()
-    if (name === '') return
+  /*
+   * Le formulaire de nommage — voir le schéma en tête de fichier.
+   *
+   * La règle ne s'applique qu'à la VALIDATION, pas à la frappe — c'est le défaut de
+   * react-hook-form, et c'est le bon ici : reprocher un champ vide à quelqu'un qui
+   * vient de l'ouvrir et n'a pas encore tapé une lettre serait absurde. L'erreur
+   * s'efface ensuite dès la première correction.
+   */
+  const form = useForm<ScreenName>({
+    resolver: zodResolver(screenSchema),
+    defaultValues: { name: '' },
+  })
 
+  function save({ name }: ScreenName) {
     startTransition(async () => {
       const result = await storeScreen(name, criteria)
 
@@ -76,7 +119,7 @@ export function SavedScreens({
 
       setMessage(null)
       setNaming(false)
-      setDraft('')
+      form.reset()
       setScreens(await listSavedScreens())
     })
   }
@@ -92,63 +135,107 @@ export function SavedScreens({
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {screens.map((screen) => (
-          <span
+          /*
+            ── `ButtonGroup` PLUTÔT QU'UN `<span>` QUI ENCADRE DEUX BOUTONS ───────
+
+            Le montage manuel accolait les boutons en annulant leurs rayons
+            (`rounded-r-none`, `rounded-l-none`) et en posant la bordure sur
+            l'enveloppe. Il marchait, et il ne disait rien : deux boutons voisins
+            restaient deux boutons indépendants pour une synthèse vocale, alors qu'ils
+            portent ici sur le MÊME objet — appliquer cet écran, supprimer cet écran.
+
+            `ButtonGroup` rend un `role="group"` étiqueté, et gère les rayons et les
+            bordures internes par des sélecteurs de position. Les `rounded-*-none`
+            posés à la main disparaissent avec lui, et un troisième bouton s'y
+            insérerait sans qu'on ait à redistribuer les coins.
+          */
+          <ButtonGroup
             key={screen.id}
-            className="inline-flex items-center rounded-card border border-border-subtle bg-surface"
+            aria-label={`Écran « ${screen.name} »`}
+            className="rounded-card border border-border-subtle bg-surface"
           >
-            <button
-              type="button"
-              onClick={() => onApply(screen.criteria)}
-              title={screen.name}
-              className="px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-brand-strong"
-            >
+            {/* `ghost` sur les deux : la bordure et le fond appartiennent au groupe,
+                qui fait de la paire un seul objet. Deux boutons `outline` y poseraient
+                une seconde bordure à l'intérieur de la première. */}
+            <Button size="xs" variant="ghost" onClick={() => onApply(screen.criteria)}>
               {screen.name}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <IconButton
+              size="icon-xs"
+              variant="ghost"
               onClick={() => drop(screen.id)}
               disabled={pending}
-              title={`Supprimer l’écran ${screen.name}`}
-              aria-label={`Supprimer l’écran ${screen.name}`}
-              className="border-l border-border-subtle px-1.5 py-1.5 text-ink-muted transition-colors hover:text-down disabled:opacity-50"
-            >
-              <Trash2 className="h-3 w-3" aria-hidden="true" />
-            </button>
-          </span>
+              label={`Supprimer l’écran ${screen.name}`}
+              icon={Trash2}
+              className="border-l border-border-subtle hover:text-down"
+            />
+          </ButtonGroup>
         ))}
 
         {naming ? (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault()
-              save()
-            }}
-            className="inline-flex items-center gap-1"
-          >
-            <input
-              autoFocus
-              value={draft}
-              maxLength={40}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder={t('Nom de l’écran')}
-              aria-label={t('Nom de l’écran à enregistrer')}
-              className="w-40 rounded-card border border-border-subtle bg-surface px-2 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={pending}
-              className="bg-brand px-3 py-1.5 text-xs font-medium text-on-brand transition-colors hover:bg-brand-strong disabled:opacity-60"
+          /*
+            ── LE NOM EST VALIDÉ, ET LE REFUS SE VOIT ────────────────────────────
+
+            Le formulaire disait `if (name === '') return` : un nom vide ne
+            produisait RIEN. Le bouton était cliquable, le clic partait, il ne se
+            passait rien, et le lecteur n'avait aucun moyen de savoir si le champ
+            était en cause ou si l'enregistrement avait échoué en silence.
+
+            `Form` — c'est-à-dire `react-hook-form` habillé par shadcn/ui — remplace ce
+            retour muet par un message SOUS le champ, relié par `aria-describedby`, et
+            marque le champ `aria-invalid`. La règle vit dans un schéma `zod` plutôt
+            que dans un `if` : elle nomme les deux cas — vide et trop long — que le
+            `maxLength` du champ traitait par troncature silencieuse.
+
+            ⚠️ `zod` ET `react-hook-form` ÉTAIENT DÉJÀ INSTALLÉS : ce sont les
+            dépendances que `shadcn add form` a tirées. On ne paie donc rien de plus
+            que l'usage.
+          */
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(save)}
+              className="inline-flex items-start gap-1"
             >
-              Enregistrer
-            </button>
-          </form>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="gap-1">
+                    <FormLabel className="sr-only">{t('Nom de l’écran à enregistrer')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        size="sm"
+                        autoFocus
+                        maxLength={40}
+                        placeholder={t('Nom de l’écran')}
+                        className="w-40"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[0.625rem]" />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" size="sm" disabled={pending}>
+                {pending ? <Loader2 className="animate-spin" /> : null}
+                Enregistrer
+              </Button>
+            </form>
+          </Form>
         ) : (
-          <button
-            type="button"
+          /* La bordure TIRETÉE est conservée par-dessus la variante `outline` : elle
+             distingue « créer » de « appliquer » dans une rangée où les deux gestes se
+             suivent, et aucune variante de shadcn/ui ne porte ce trait. */
+          <Button
+            size="xs"
+            variant="outline"
             onClick={() => setNaming(true)}
-            className="inline-flex items-center gap-1.5 rounded-control border border-dashed border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
+            className="border-dashed ring-0 shadow-none border border-border-subtle"
           >
-            <BookmarkPlus className="h-3.5 w-3.5" aria-hidden="true" />{t('Enregistrer cet écran')}</button>
+            <BookmarkPlus />
+            {t('Enregistrer cet écran')}
+          </Button>
         )}
       </div>
 

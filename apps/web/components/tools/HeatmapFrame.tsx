@@ -2,6 +2,7 @@
 
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { IconButton } from '@/components/ui/IconButton'
 
 /**
  * CADRE PLEIN ÉCRAN D'UNE CARTE THERMIQUE.
@@ -61,22 +62,16 @@ export function HeatmapFrame({
       <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
         {tools}
 
-        <button
-          type="button"
+        <IconButton
+          size="icon-xs"
+          variant="outline"
           onClick={() => {
             if (document.fullscreenElement) void document.exitFullscreen()
             else void ref.current?.requestFullscreen()
           }}
-          aria-label={fullscreen ? 'Quitter le plein écran' : 'Afficher en plein écran'}
-          title={fullscreen ? 'Quitter le plein écran' : 'Plein écran'}
-          className="flex h-7 w-7 items-center justify-center rounded-sm border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-        >
-          {fullscreen ? (
-            <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
-          ) : (
-            <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
-          )}
-        </button>
+          label={fullscreen ? 'Quitter le plein écran' : 'Afficher en plein écran'}
+          icon={fullscreen ? Minimize2 : Maximize2}
+        />
       </div>
 
       {children}

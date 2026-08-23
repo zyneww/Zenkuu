@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { PriceHistory } from '@zenkuu/data'
 
 import type { ChartCandle } from './PriceChartInteractive'
-import { appendLivePoint, mergeCandle } from './live-series'
+import { appendLivePoint, clipToRange, mergeCandle } from './live-series'
 
 const MINUTE = 60_000
 const DAY = 86_400_000
@@ -136,5 +136,35 @@ describe('mergeCandle', () => {
 
   it('accepte la première bougie d’une série vide', () => {
     expect(mergeCandle([], candle(start, 100), 10)).toHaveLength(1)
+  })
+})
+
+describe('clipToRange', () => {
+  /** Dix jours consécutifs, du 1ᵉʳ au 10 mars 2026 inclus. */
+  const history: PriceHistory = {
+    points: Array.from({ length: 10 }, (_, index) => ({
+      timestamp: Date.parse(`2026-03-0${index + 1}`.replace('010', '10')),
+      price: 100 + index,
+    })),
+    currency: 'EUR',
+    days: 10,
+  }
+
+  it('rend la série intacte sans bornes', () => {
+    expect(clipToRange(history, null)).toBe(history)
+  })
+
+  it('garde les deux bornes, jour de fin COMPRIS', () => {
+    const clipped = clipToRange(history, { from: '2026-03-03', to: '2026-03-05' })
+    expect(clipped.points.map((point) => point.price)).toEqual([102, 103, 104])
+  })
+
+  it('rend la série entière plutôt qu’un cadre vide quand l’intervalle ne contient rien', () => {
+    expect(clipToRange(history, { from: '2027-01-01', to: '2027-01-02' })).toBe(history)
+  })
+
+  it('ignore des bornes inversées ou illisibles', () => {
+    expect(clipToRange(history, { from: '2026-03-05', to: '2026-03-01' })).toBe(history)
+    expect(clipToRange(history, { from: 'hier', to: 'demain' })).toBe(history)
   })
 })

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+
 import { formatCurrency } from '@zenkuu/ui'
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
@@ -56,6 +58,39 @@ import { useLiveTicker } from '@/components/asset/useLiveTicker'
  * même écran — l'un dans le titre, l'autre au bout de la courbe.
  */
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE COURS S'ALLUME AU TIC — VERT S'IL MONTE, ROUGE S'IL BAISSE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE CELA RÉSOUT ────────────────────────────────────────────────────────
+ *
+ * Un cours en direct qui change de valeur SANS RIEN SIGNALER passe inaperçu : le
+ * nombre se substitue à lui-même entre deux images, et rien ne dit qu'il vient de
+ * bouger — ni dans quel sens. Le point vert à côté annonce « ceci est en direct »,
+ * jamais « ceci vient de changer ». C'est une différence réelle : sur un actif calme,
+ * les deux se ressemblent pendant des minutes.
+ *
+ * La teinte brève est la convention de tous les carnets d'ordres et de toutes les
+ * plateformes — Binance, CoinGecko, TradingView. Elle porte l'information la plus
+ * volatile de la page à l'endroit exact où l'œil est déjà posé.
+ *
+ * ── POURQUOI 600 ms, ET PAS PLUS ──────────────────────────────────────────────
+ *
+ * Le flux pousse jusqu'à un message par seconde. Une teinte qui dure plus longtemps
+ * que l'intervalle entre deux tics resterait allumée en permanence, et cesserait donc
+ * de signaler quoi que ce soit. Six cents millisecondes laissent toujours un temps
+ * mort entre deux impulsions, même sur l'actif le plus agité.
+ *
+ * ── LE SENS EST COMPARÉ AU TIC PRÉCÉDENT, PAS À L'OUVERTURE ───────────────────
+ *
+ * C'est ce que le geste veut dire — « il vient de monter », pas « il est au-dessus de
+ * son ouverture », qui est le travail de la pastille de variation juste à côté. Un tic
+ * de valeur IDENTIQUE (le cas le plus fréquent sur un carnet peu animé) n'allume rien :
+ * il n'y a pas de mouvement à signaler.
+ */
+const FLASH_MS = 600
+
 export function LiveBinancePrice({
   symbol,
   fallbackValue,
@@ -68,6 +103,7 @@ export function LiveBinancePrice({
 }) {
   const { currency, convert } = useCurrency()
   const tick = useLiveTicker(symbol)
+  const direction = usePriceFlash(tick?.price ?? null)
 
   if (tick === null) {
     return <Money value={fallbackValue} from={fallbackCurrency} />
@@ -82,7 +118,29 @@ export function LiveBinancePrice({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="whitespace-nowrap">{formatted}</span>
+      {/*
+        ── LA TEINTE PORTE SUR LE TEXTE *ET* SUR UN FOND ────────────────────────
+
+        Le fond seul serait un rectangle coloré qui apparaît et disparaît — du bruit.
+        Le texte seul serait invisible sur un cours de quarante pixels dont la moitié
+        des lecteurs regardent la courbe. Les deux ensemble donnent l'impulsion sans
+        déplacer un pixel : `-mx-1 px-1` reprend exactement ce que le rembourrage
+        ajoute, la mise en page ne bouge donc pas quand la teinte s'allume.
+
+        Le retour au repos est ADOUCI (`transition-colors`), l'allumage non : une
+        impulsion qui monte progressivement se lit comme un fondu, pas comme un tic.
+      */}
+      <span
+        className={`-mx-1 whitespace-nowrap rounded-control px-1 transition-colors duration-500 ${
+          direction === 'up'
+            ? 'bg-up/15 text-up'
+            : direction === 'down'
+              ? 'bg-down/15 text-down'
+              : ''
+        }`}
+      >
+        {formatted}
+      </span>
       <span
         className="h-1.5 w-1.5 shrink-0 rounded-pill bg-up"
         aria-hidden="true"
@@ -90,4 +148,41 @@ export function LiveBinancePrice({
       <span className="sr-only">Cours en direct (Binance)</span>
     </span>
   )
+}
+
+/**
+ * Sens du dernier mouvement, éteint de lui-même au bout de `FLASH_MS`.
+ *
+ * ── POURQUOI UNE RÉFÉRENCE ET NON UN ÉTAT POUR LA VALEUR PRÉCÉDENTE ───────────
+ *
+ * Elle ne doit RIEN redessiner : seule la direction est affichée. La ranger dans un
+ * état provoquerait un second rendu à chaque message du flux — un par seconde, pour
+ * une valeur que personne ne lit.
+ *
+ * Le minuteur est REPOSÉ à chaque tic plutôt que laissé courir : deux hausses
+ * rapprochées doivent donner deux impulsions distinctes, pas une seule allongée.
+ */
+function usePriceFlash(price: number | null): 'up' | 'down' | null {
+  const [direction, setDirection] = useState<'up' | 'down' | null>(null)
+  const previous = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (price === null) {
+      previous.current = null
+      return
+    }
+
+    const before = previous.current
+    previous.current = price
+
+    /* Premier relevé : il n'y a pas de « précédent » avec quoi le comparer, et un tic
+       de valeur identique n'est pas un mouvement. */
+    if (before === null || before === price) return
+
+    setDirection(before < price ? 'up' : 'down')
+    const timer = setTimeout(() => setDirection(null), FLASH_MS)
+    return () => clearTimeout(timer)
+  }, [price])
+
+  return direction
 }

@@ -1,7 +1,28 @@
 'use client'
 
-import { ArrowDown, ArrowUp, Columns3, EyeOff, RotateCcw } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { ArrowDown, ArrowUp, EyeOff, SlidersHorizontal, X } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Search } from 'lucide-react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -185,26 +206,6 @@ export function ColumnHeader({
   hint?: string
 }) {
   const t = usePhrase()
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    function onPointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
 
   const isActive = sortKey !== undefined && sort?.key === sortKey
   const canHide = columnPrefs !== undefined && !columnPrefs.columns.find((c) => c.id === columnId)?.locked
@@ -217,17 +218,23 @@ export function ColumnHeader({
         isActive ? (sort?.direction === 'desc' ? 'descending' : 'ascending') : 'none'
       }
     >
-      <div
-        ref={rootRef}
-        className={`relative inline-flex ${align === 'right' ? 'justify-end' : 'justify-start'}`}
-      >
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-haspopup="menu"
+      {/*
+        ── LE MENU D'EN-TÊTE PASSE SUR `DropdownMenu` ───────────────────────
+
+        Il portait son propre état d'ouverture et deux écouteurs de document —
+        `pointerdown` pour le clic extérieur, `keydown` pour Échap. Radix les fournit,
+        et il ajoute ce qu'un `<div role="menu">` posé à la main n'avait pas : les
+        flèches haut/bas entre les entrées, le retour du focus sur l'en-tête à la
+        fermeture, et un panneau qui se retourne quand il touche le bas de la fenêtre
+        — ce qui arrive sur la dernière ligne visible d'un long tableau.
+
+        `aria-sort` reste sur le `<th>` ci-dessus : c'est là que la spécification ARIA
+        l'attend, et Radix ne s'en occupe pas.
+      */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
           title={`Options de la colonne ${label.toLowerCase()}`}
-          className={`inline-flex items-center gap-1 rounded-sm transition-colors duration-150 hover:text-brand-strong ${
+          className={`inline-flex items-center gap-1 rounded-sm outline-none transition-colors duration-150 hover:text-brand-strong focus-visible:ring-1 focus-visible:ring-ring ${
             isActive ? 'text-ink' : ''
           } ${align === 'right' ? 'flex-row-reverse' : ''}`}
         >
@@ -250,59 +257,46 @@ export function ColumnHeader({
               {isActive && sort?.direction === 'asc' ? '▲' : '▼'}
             </span>
           ) : null}
-        </button>
+        </DropdownMenuTrigger>
 
-        {open ? (
-          <div
-            role="menu"
-            /* `whitespace-normal` : le `<th>` du tableau impose souvent `nowrap`, et un
-               menu qui en hérite s'étire sur toute la largeur de la page. */
-            className={`absolute top-full z-30 mt-1 w-56 whitespace-normal rounded-card border border-border-subtle bg-surface py-1 text-left shadow-lg ${
-              align === 'right' ? 'right-0' : 'left-0'
-            }`}
-          >
-            {sortKey !== undefined && onSort ? (
-              <>
-                <MenuRow
-                  icon={<ArrowDown className="h-3.5 w-3.5" />}
-                  active={isActive && sort?.direction === 'desc'}
-                  onClick={() => {
-                    onSort(sortKey, 'desc')
-                    setOpen(false)
-                  }}
-                >{t('Du plus grand au plus petit')}</MenuRow>
-                <MenuRow
-                  icon={<ArrowUp className="h-3.5 w-3.5" />}
-                  active={isActive && sort?.direction === 'asc'}
-                  onClick={() => {
-                    onSort(sortKey, 'asc')
-                    setOpen(false)
-                  }}
-                >{t('Du plus petit au plus grand')}</MenuRow>
-              </>
-            ) : null}
-
-            {canHide ? (
+        {/* `whitespace-normal` : le `<th>` du tableau impose souvent `nowrap`, et un
+            menu qui en hérite s'étire sur toute la largeur de la page. */}
+        <DropdownMenuContent
+          align={align === 'right' ? 'end' : 'start'}
+          className="w-56 whitespace-normal border-border-subtle bg-surface text-left"
+        >
+          {sortKey !== undefined && onSort ? (
+            <>
               <MenuRow
-                icon={<EyeOff className="h-3.5 w-3.5" />}
-                onClick={() => {
-                  columnPrefs?.toggle(columnId)
-                  setOpen(false)
-                }}
-                separated={sortKey !== undefined}
-              >
-                Masquer cette colonne
-              </MenuRow>
-            ) : null}
+                icon={<ArrowDown className="h-3.5 w-3.5" />}
+                active={isActive && sort?.direction === 'desc'}
+                onClick={() => onSort(sortKey, 'desc')}
+              >{t('Du plus grand au plus petit')}</MenuRow>
+              <MenuRow
+                icon={<ArrowUp className="h-3.5 w-3.5" />}
+                active={isActive && sort?.direction === 'asc'}
+                onClick={() => onSort(sortKey, 'asc')}
+              >{t('Du plus petit au plus grand')}</MenuRow>
+            </>
+          ) : null}
 
-            {hint ? (
-              <p className="border-t border-border-subtle px-3 pb-1 pt-1.5 text-[0.625rem] leading-snug text-ink-muted">
-                {hint}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+          {canHide ? (
+            <MenuRow
+              icon={<EyeOff className="h-3.5 w-3.5" />}
+              onClick={() => columnPrefs?.toggle(columnId)}
+              separated={sortKey !== undefined}
+            >
+              Masquer cette colonne
+            </MenuRow>
+          ) : null}
+
+          {hint ? (
+            <p className="border-t border-border-subtle px-3 pb-1 pt-1.5 text-[0.625rem] leading-snug text-ink-muted">
+              {hint}
+            </p>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </th>
   )
 }
@@ -321,83 +315,90 @@ function MenuRow({
   children: React.ReactNode
 }) {
   return (
-    <button
-      type="button"
-      role="menuitem"
-      onClick={onClick}
-      className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs font-normal transition-colors duration-100 hover:bg-surface-muted ${
-        active ? 'text-brand' : 'text-ink'
-      } ${separated ? 'mt-1 border-t border-border-subtle pt-2' : ''}`}
-    >
-      <span className="shrink-0 text-ink-muted" aria-hidden="true">
-        {icon}
-      </span>
-      {children}
-    </button>
+    <>
+      {/* Le séparateur est un `DropdownMenuSeparator` et non une bordure posée sur la
+          première entrée du groupe : Radix le marque `role="separator"`, ce qu'une
+          bordure CSS ne dit à personne. */}
+      {separated ? <DropdownMenuSeparator /> : null}
+      <DropdownMenuItem
+        onSelect={onClick}
+        className={`gap-2.5 px-3 py-1.5 text-xs font-normal ${active ? 'text-brand' : 'text-ink'}`}
+      >
+        <span className="shrink-0 text-ink-muted" aria-hidden="true">
+          {icon}
+        </span>
+        {children}
+      </DropdownMenuItem>
+    </>
   )
 }
 
 /* ── Sélecteur global ─────────────────────────────────────────────────────── */
 
 /**
- * BOUTON « COLONNES » — la vue d'ensemble que le menu d'en-tête ne donne pas.
+ * BOUTON « PERSONNALISER » — la vue d'ensemble que le menu d'en-tête ne donne pas.
  *
  * Masquer se fait colonne par colonne depuis l'en-tête ; RÉAFFICHER ne le peut pas,
  * puisque l'en-tête de la colonne masquée n'est plus là pour porter son menu. Sans
  * ce bouton, tout masquage serait définitif — un piège classique des tableaux
  * configurables, et la raison pour laquelle il compte plus que le menu d'en-tête.
+ *
+ * ── POURQUOI UNE MODALE À DEUX VOLETS, ET NON PLUS UN MENU DE CASES ─────────
+ *
+ * Le menu déroulant listait les colonnes à cocher, sans jamais montrer LE RÉSULTAT :
+ * on lisait ce qui existe, pas ce que le tableau va afficher ni dans quel ordre. Sur
+ * onze colonnes, la seule façon de savoir ce qu'on a retenu était de refermer le menu
+ * et de regarder le tableau.
+ *
+ * Les deux volets répondent chacun à une question distincte — « qu'est-ce qui
+ * existe ? » à gauche, « qu'ai-je retenu ? » à droite — et c'est la composition de
+ * Token Terminal, reprise pour cette raison. Elle apporte en prime la RECHERCHE, qui
+ * devient nécessaire dès qu'un tableau dépasse la dizaine de colonnes.
+ *
+ * ── BROUILLON, PUIS APPLICATION ────────────────────────────────────────────
+ *
+ * Le menu écrivait dans `localStorage` à chaque case cochée : le tableau se
+ * recomposait sous le curseur pendant qu'on réfléchissait. La modale travaille sur une
+ * COPIE et ne la publie qu'à « Appliquer » ; « Annuler » la jette. C'est ce qui rend
+ * l'essai réversible.
  */
 export function ColumnPicker({
   prefs,
   label,
+  /** Sous-titre de la modale — le nom du tableau qu'on personnalise. */
+  scopeLabel,
 }: {
   prefs: ColumnPreferences
   /**
    * Libellé du bouton.
    *
    * Sans valeur par défaut ECRITE dans la signature : le defaut est desormais
-   * « Colonnes » TRADUIT, ce qui suppose le traducteur — et un parametre par defaut
-   * ne peut pas appeler un crochet. Il est donc resolu dans le corps.
+   * « Personnaliser » TRADUIT, ce qui suppose le traducteur — et un parametre par
+   * defaut ne peut pas appeler un crochet. Il est donc resolu dans le corps.
    */
   label?: string
+  scopeLabel?: string
 }) {
   const t = usePhrase()
-  const shown = label ?? t('Colonnes')
+  const shown = label ?? t('Personnaliser')
   const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    function onPointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
 
   return (
-    <div ref={rootRef} className="relative">
+    <>
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         aria-expanded={open}
-        aria-haspopup="menu"
-        className={`inline-flex items-center gap-1.5 rounded-control border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
-          prefs.hiddenCount > 0
-            ? 'border-brand text-ink'
-            : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
+        /* Fond plein et non contour, comme les deux groupes de la même rangée — voir
+           `MarketBrowser`. L'état « des colonnes sont masquées » se disait par une
+           bordure de marque ; il se dit maintenant par le TEXTE en teinte de marque,
+           qui reste lisible sans réintroduire le seul trait de la barre. */
+        className={`inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
+          prefs.hiddenCount > 0 ? 'text-brand-strong' : 'text-ink-muted hover:text-ink'
         }`}
       >
-        <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
+        <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
         {shown}
         {/* Le décompte des colonnes masquées est AFFICHÉ : sans lui, un tableau
             amputé la semaine dernière se lit aujourd'hui comme un tableau incomplet,
@@ -410,49 +411,251 @@ export function ColumnPicker({
       </button>
 
       {open ? (
-        <div
-          role="menu"
-          className="absolute right-0 z-30 mt-1 w-56 rounded-card border border-border-subtle bg-surface py-1 shadow-lg"
-        >
-          <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Colonnes affichées')}</p>
-
-          {prefs.columns.map((column) => {
-            const checked = prefs.isVisible(column.id)
-
-            return (
-              <label
-                key={column.id}
-                className={`flex items-center gap-2.5 px-3 py-1.5 text-xs transition-colors duration-100 ${
-                  column.locked
-                    ? 'cursor-not-allowed text-ink-muted'
-                    : 'cursor-pointer text-ink hover:bg-surface-muted'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  disabled={column.locked}
-                  onChange={() => prefs.toggle(column.id)}
-                  className="h-3.5 w-3.5 shrink-0 accent-[var(--color-brand)]"
-                />
-                <span className="truncate">{column.label}</span>
-                {column.locked ? (
-                  <span className="ml-auto shrink-0 text-[0.625rem]">toujours</span>
-                ) : null}
-              </label>
-            )
-          })}
-
-          {prefs.hiddenCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => prefs.reset()}
-              className="mt-1 flex w-full items-center gap-2.5 border-t border-border-subtle px-3 pb-1 pt-2 text-left text-xs text-ink transition-colors duration-100 hover:bg-surface-muted"
-            >
-              <RotateCcw className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />{t('Tout réafficher')}</button>
-          ) : null}
-        </div>
+        <ColumnDialog
+          prefs={prefs}
+          {...(scopeLabel ? { scopeLabel } : {})}
+          onClose={() => setOpen(false)}
+        />
       ) : null}
-    </div>
+    </>
+  )
+}
+
+/**
+ * La modale elle-même, montée UNIQUEMENT quand elle est ouverte.
+ *
+ * Le brouillon vit dans son état : le démontage à la fermeture le jette, ce qui évite
+ * d'avoir à le réinitialiser à la main à chaque ouverture — la faute classique de ce
+ * genre de panneau, où l'on retrouve la sélection abandonnée la fois d'avant.
+ */
+function ColumnDialog({
+  prefs,
+  scopeLabel,
+  onClose,
+}: {
+  prefs: ColumnPreferences
+  scopeLabel?: string
+  onClose: () => void
+}) {
+  const t = usePhrase()
+  const [query, setQuery] = useState('')
+  const [draft, setDraft] = useState<Set<string>>(
+    () => new Set(prefs.columns.filter((column) => prefs.isVisible(column.id)).map((c) => c.id)),
+  )
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    /* Le corps ne défile plus derrière la modale : sans cela, la molette traverse le
+       voile et fait glisser la page qu'on est censé avoir mise de côté. */
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = previous
+    }
+  }, [onClose])
+
+  const needle = query.trim().toLowerCase()
+  const listed = needle
+    ? prefs.columns.filter((column) => column.label.toLowerCase().includes(needle))
+    : prefs.columns
+
+  /* L'ordre du volet droit est celui du TABLEAU, et non celui des clics : une liste
+     qui se réordonne à chaque ajout ne dit plus où la colonne apparaîtra. */
+  const selected = prefs.columns.filter((column) => draft.has(column.id))
+
+  function toggle(id: string) {
+    const column = prefs.columns.find((entry) => entry.id === id)
+    if (column?.locked) return
+
+    setDraft((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function apply() {
+    for (const column of prefs.columns) {
+      const wanted = draft.has(column.id)
+      if (wanted !== prefs.isVisible(column.id)) prefs.toggle(column.id)
+    }
+    onClose()
+  }
+
+
+  return (
+    /*
+      ── LA COQUE EST UN `Dialog`, ET LE VOILE CESSE D'ÊTRE UN BOUTON ──────────
+
+      Le voile était un `<button aria-label="Fermer">` couvrant tout l'écran : annoncé
+      comme une cible par la synthèse vocale, et atteignable à la tabulation avant le
+      contenu de la fenêtre. Radix écoute le pointeur sans créer d'élément interactif,
+      et ajoute ce que ce montage n'avait pas — le piège à focus, l'`aria-hidden` sur
+      le reste du document, le blocage du défilement du fond, et la croix de fermeture
+      dans le coin.
+
+      `p-0` et `gap-0` : les trois bandes de la fenêtre (en-tête, corps, pied) portent
+      leurs propres marges et leurs filets doivent courir d'un bord à l'autre.
+    */
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="flex max-h-[80vh] max-w-3xl flex-col gap-0 overflow-hidden border-border-subtle bg-surface p-0 sm:max-w-3xl">
+        <DialogHeader className="space-y-0 border-b border-border-subtle px-5 py-4 pr-12 text-left">
+          <DialogTitle className="text-base font-semibold text-ink">
+            {t('Personnaliser les colonnes')}
+          </DialogTitle>
+          {scopeLabel ? (
+            <DialogDescription className="text-xs text-ink-muted">{scopeLabel}</DialogDescription>
+          ) : null}
+        </DialogHeader>
+
+        <div className="grid min-h-0 flex-1 gap-5 p-5 sm:grid-cols-2">
+          {/* ── VOLET GAUCHE : tout ce qui existe ─────────────────────────── */}
+          <section className="flex min-h-0 flex-col gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+              {t('Toutes les colonnes')}
+            </h3>
+
+            <InputGroup size="sm">
+              <InputGroupInput
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t('Rechercher une colonne')}
+                aria-label={t('Rechercher une colonne')}
+              />
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+            </InputGroup>
+
+            <ScrollArea className="min-h-0 flex-1 rounded-control border border-border-subtle">
+              <ul>
+              {listed.length === 0 ? (
+                <li className="px-3 py-3 text-xs text-ink-muted">{t('Aucune colonne')}</li>
+              ) : (
+                listed.map((column) => {
+                  const added = draft.has(column.id)
+
+                  return (
+                    /*
+                      ── LA LIGNE DEVIENT UNE CASE À COCHER, ET C'EN ÉTAIT UNE ────
+
+                      C'était un `<button>` qui basculait un état et affichait
+                      « Ajoutée ✓ » quand il était actif. Fonctionnellement : une case
+                      à cocher. Sémantiquement : un bouton, c'est-à-dire quelque chose
+                      qu'une synthèse vocale annonce SANS son état — « Ajoutée » se
+                      lisait comme faisant partie du libellé, et rien ne disait qu'un
+                      second appui la retirerait.
+
+                      `Checkbox` porte `role="checkbox"` et `aria-checked`, donc
+                      « coché » / « non coché » à l'oreille, et la barre d'espace pour
+                      basculer. Une colonne verrouillée devient `disabled` avec sa
+                      mention à côté : elle reste lisible, elle n'est plus cliquable.
+
+                      ⚠️ `htmlFor`/`id` plutôt qu'un `<label>` enveloppant : Radix rend
+                      un `<button>` doublé d'un `<input>` masqué, et une étiquette
+                      posée autour des deux capterait le clic deux fois — la case
+                      basculerait puis se rebasculerait, donc ne changerait jamais.
+                    */
+                    <li
+                      key={column.id}
+                      className="flex items-center gap-2.5 border-b border-border-subtle px-3 py-2 text-xs last:border-b-0 has-[button:not(:disabled)]:hover:bg-surface-muted"
+                    >
+                      <Checkbox
+                        id={`col-${column.id}`}
+                        checked={added}
+                        disabled={column.locked}
+                        onCheckedChange={() => toggle(column.id)}
+                        className="size-3.5 shrink-0"
+                      />
+                      <label
+                        htmlFor={`col-${column.id}`}
+                        className={`min-w-0 flex-1 truncate ${
+                          column.locked ? 'text-ink-muted' : 'cursor-pointer text-ink'
+                        }`}
+                      >
+                        {column.label}
+                      </label>
+                      {column.locked ? (
+                        <span className="shrink-0 text-[0.625rem] text-ink-muted">
+                          {t('toujours')}
+                        </span>
+                      ) : null}
+                    </li>
+                  )
+                })
+              )}
+              </ul>
+            </ScrollArea>
+          </section>
+
+          {/* ── VOLET DROIT : ce que le tableau affichera ─────────────────── */}
+          <section className="flex min-h-0 flex-col gap-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                {t('Colonnes affichées')} ({selected.length})
+              </h3>
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft(
+                    new Set(prefs.columns.filter((column) => column.locked).map((c) => c.id)),
+                  )
+                }
+                className="text-xs text-ink-muted transition-colors hover:text-brand-strong"
+              >
+                {t('Tout retirer')}
+              </button>
+            </div>
+
+            <ScrollArea className="min-h-0 flex-1 rounded-control border border-border-subtle">
+              <ul>
+              {selected.map((column) => (
+                <li
+                  key={column.id}
+                  className="flex items-center justify-between gap-3 border-b border-border-subtle px-3 py-2 text-xs text-ink last:border-b-0"
+                >
+                  <span className="truncate">{column.label}</span>
+                  {column.locked ? (
+                    <span className="shrink-0 text-[0.625rem] text-ink-muted">{t('toujours')}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => toggle(column.id)}
+                      aria-label={`${t('Retirer')} ${column.label}`}
+                      className="shrink-0 rounded-control p-0.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+                    >
+                      <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  )}
+                </li>
+              ))}
+              </ul>
+            </ScrollArea>
+          </section>
+        </div>
+
+
+        {/* `DialogFooter` aligne la paire à droite sur écran large et l'empile sur
+            téléphone, ce que le `flex justify-end` d'avant ne faisait pas — à 360
+            pixels, « Annuler » et « Appliquer » se serraient sur une ligne trop
+            étroite. La hiérarchie reste celle d'un dialogue : `ghost` pour
+            l'annulation, qui ne doit pas peser autant que l'action, `default` pour la
+            validation. */}
+        <DialogFooter className="flex-row items-center justify-end gap-2 border-t border-border-subtle px-5 py-3">
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            {t('Annuler')}
+          </Button>
+          <Button variant="default" size="sm" onClick={apply}>
+            {t('Appliquer')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

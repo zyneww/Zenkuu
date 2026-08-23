@@ -1,8 +1,12 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
 
@@ -46,101 +50,67 @@ export interface RailEntry {
  * ne vaut pas 1, et qu'une comparaison stricte laisserait la flèche de droite
  * allumée en fin de course. Voir la note sur `EDGE_SLACK`.
  */
-/** Marge de tolérance, en pixels, sur la détection de fin de course. */
-const EDGE_SLACK = 1
-
-/** Fraction de la largeur visible parcourue par un appui sur une flèche. */
-const STEP_RATIO = 0.8
-
 export function CategoryRail({ entries, label }: { entries: RailEntry[]; label: string }) {
   const t = usePhrase()
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [edges, setEdges] = useState({ start: false, end: false })
-
-  const measure = useCallback(() => {
-    const track = trackRef.current
-    if (!track) return
-    const max = track.scrollWidth - track.clientWidth
-    setEdges({
-      start: track.scrollLeft > EDGE_SLACK,
-      end: track.scrollLeft < max - EDGE_SLACK,
-    })
-  }, [])
-
-  useEffect(() => {
-    measure()
-
-    /* `ResizeObserver` et non `window.resize` : le rail rétrécit aussi quand la
-       colonne qui le porte change de largeur sans que la fenêtre bouge — au
-       repliement d'un panneau voisin, par exemple. L'événement de fenêtre ne le
-       verrait pas, et la flèche resterait allumée sur un rail qui ne déborde plus. */
-    const track = trackRef.current
-    if (!track) return
-    const observer = new ResizeObserver(measure)
-    observer.observe(track)
-    return () => observer.disconnect()
-  }, [measure, entries.length])
-
-  const nudge = (direction: -1 | 1) => {
-    const track = trackRef.current
-    if (!track) return
-    track.scrollBy({ left: direction * track.clientWidth * STEP_RATIO, behavior: 'smooth' })
-  }
 
   if (entries.length === 0) return null
 
   return (
-    <nav aria-label={label} className="relative flex min-w-0 items-center gap-2">
-      {edges.start ? (
-        <Arrow direction="start" label={t('Secteurs précédents')} onClick={() => nudge(-1)} />
-      ) : null}
+    /*
+      ── LE RAIL PASSE SUR `Carousel` ──────────────────────────────────────────
 
-      <div
-        ref={trackRef}
-        onScroll={measure}
-        className="scrollbar-none flex min-w-0 flex-1 items-center gap-2 overflow-x-auto"
-      >
-        {entries.map((entry) => (
-          <Link
-            key={entry.href}
-            href={entry.href}
-            aria-current={entry.current ? 'page' : undefined}
-            className={`inline-flex h-[26px] shrink-0 items-center rounded-[16px] border px-3 text-sm transition-colors duration-150 ${
-              entry.current
-                ? 'border-brand bg-brand-soft text-brand-strong'
-                : 'border-border-subtle text-ink hover:border-brand hover:text-brand'
-            }`}
-          >
-            {entry.label}
-          </Link>
-        ))}
-      </div>
+      Il portait sa propre mécanique : un `ResizeObserver`, un `onScroll`, un calcul
+      de fin de course à un pixel près, et deux flèches qui appelaient `scrollBy`.
+      Une soixantaine de lignes, correctes, pour ce qu'`embla` — sur quoi `Carousel`
+      est bâti — fait de lui-même. Ce qu'il apporte en plus :
 
-      {edges.end ? (
-        <Arrow direction="end" label={t('Secteurs suivants')} onClick={() => nudge(1)} />
-      ) : null}
-    </nav>
-  )
-}
+        · LE GLISSER À LA SOURIS. Un `overflow-x-auto` ne se saisit pas au curseur :
+          sans barre visible (`scrollbar-none`), la souris seule ne pouvait PAS
+          parcourir le rail, et c'est exactement ce que les flèches compensaient.
+        · LE CLAVIER. Les flèches gauche/droite déplacent le rail quand il a le focus.
+        · LES BORNES. Les boutons se DÉSACTIVENT en fin de course au lieu de
+          disparaître — la rangée ne se décale plus latéralement quand on atteint un
+          bord, ce que le masquage provoquait à chaque extrémité.
 
-function Arrow({
-  direction,
-  label,
-  onClick,
-}: {
-  direction: 'start' | 'end'
-  label: string
-  onClick: () => void
-}) {
-  const Icon = direction === 'start' ? ChevronLeft : ChevronRight
-  return (
-    <button
-      type="button"
-      onClick={onClick}
+      ⚠️ `containScroll: 'trimSnaps'` ET `basis-auto` : embla suppose par défaut des
+      diapositives de largeur égale qui remplissent le cadre. Ces pastilles ont chacune
+      la largeur de son libellé — sans ces deux réglages, embla les étire toutes à la
+      largeur du rail et n'en montre qu'une.
+    */
+    <Carousel
+      opts={{ align: 'start', containScroll: 'trimSnaps', dragFree: true }}
       aria-label={label}
-      className="flex size-[26px] shrink-0 items-center justify-center rounded-[16px] border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
+      className="relative flex min-w-0 items-center gap-2"
     >
-      <Icon aria-hidden="true" className="size-3.5" />
-    </button>
+      <CarouselPrevious
+        variant="outline"
+        className="static size-6 shrink-0 translate-y-0"
+        aria-label={t('Secteurs précédents')}
+      />
+
+      <CarouselContent className="-ml-2 min-w-0 flex-1 items-center">
+        {entries.map((entry) => (
+          <CarouselItem key={entry.href} className="basis-auto pl-2">
+            <Link
+              href={entry.href}
+              aria-current={entry.current ? 'page' : undefined}
+              className={`inline-flex h-[26px] shrink-0 items-center rounded-[16px] border px-3 text-sm transition-colors duration-150 ${
+                entry.current
+                  ? 'border-brand bg-brand-soft text-brand-strong'
+                  : 'border-border-subtle text-ink hover:border-brand hover:text-brand'
+              }`}
+            >
+              {entry.label}
+            </Link>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+
+      <CarouselNext
+        variant="outline"
+        className="static size-6 shrink-0 translate-y-0"
+        aria-label={t('Secteurs suivants')}
+      />
+    </Carousel>
   )
 }

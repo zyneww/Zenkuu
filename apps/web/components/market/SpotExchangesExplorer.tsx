@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { SpotExchange } from '@zenkuu/data'
 
 import { SpotExchangesTable } from '@/components/market/SpotExchangesPanel'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 
 const PAGE_SIZES = [25, 50, 100] as const
@@ -93,7 +93,7 @@ export function SpotExchangesExplorer({ exchanges }: { exchanges: SpotExchange[]
         onToggleSort={toggle}
       />
 
-      <Pagination
+      <TablePagination
         page={page}
         perPage={perPage}
         total={exchanges.length}

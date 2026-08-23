@@ -3,12 +3,14 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+
 import type { DerivativeExchange } from '@zenkuu/data'
 import { EmptyState, formatCompact } from '@zenkuu/ui'
 
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Link } from '@/i18n/navigation'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -172,23 +174,23 @@ export function DerivativeExchangesExplorer({
           ))}
         </div>
 
-        <div className="relative min-w-[10rem] flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
-            aria-hidden="true"
-          />
-          <input
+        <InputGroup size="sm" className="min-w-[10rem] flex-1">
+          <InputGroupInput
             type="search"
             value={query}
             onChange={(event) => {
-              setQuery(event.target.value)
-              setPage(1)
-            }}
+              const next = event.target.value
+
+                    setQuery(next)
+                    setPage(1)
+                  }}
             placeholder={t('Rechercher une place…')}
             aria-label={t('Rechercher une place de dérivés')}
-            className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
-        </div>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+        </InputGroup>
 
         <ColumnPicker prefs={prefs} />
       </div>
@@ -201,7 +203,7 @@ export function DerivativeExchangesExplorer({
         />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-card bg-surface">
+          <div className="overflow-x-auto rounded-card">
             {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Ne
                 restent que la place et son intérêt ouvert : c'est la question de la
                 page, et elle tient dans 320 pixels. */}
@@ -371,7 +373,7 @@ export function DerivativeExchangesExplorer({
             </table>
           </div>
 
-          <Pagination
+          <TablePagination
             page={page}
             perPage={perPage}
             total={rows.length}

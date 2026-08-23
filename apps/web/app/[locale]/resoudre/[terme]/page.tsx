@@ -197,7 +197,7 @@ export default async function Page({ params }: { params: Promise<{ terme: string
             émetteurs publient des jetons de même nom. À vous de reconnaître le bon.
           </p>
 
-          <ul className="divide-y divide-border-subtle overflow-hidden rounded-card bg-surface">
+          <ul className="divide-y divide-border-subtle overflow-hidden rounded-card">
             {candidates.map((candidate) => (
               <li key={candidate.id}>
                 <Link

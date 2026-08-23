@@ -1,5 +1,5 @@
 import type { AssetClass } from '@zenkuu/data'
-import { getRanking } from '@zenkuu/data'
+import { getRanking, YAHOO_UNIVERSE } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { AssetClassTabs } from '@/components/market/AssetClassTabs'
@@ -29,16 +29,46 @@ import { getPhrase } from '@/lib/content'
  * donc déjà complets — mais ils n'ont ni capitalisation ni pagination, ce qui rend
  * les en-têtes de tri sans objet.
  */
+/**
+ * ── `clientPerPage` : LE PIED DE TABLEAU RETROUVE SES TROIS BLOCS ─────────────
+ *
+ * Fournie, elle fait paginer le tableau DANS LE NAVIGATEUR sur les lignes déjà
+ * reçues. Le pied porte alors les trois choses qu'on attend de lui — le décompte, les
+ * numéros de page au centre, et le sélecteur de lignes — au lieu du compteur seul
+ * poussé à gauche par `justify-between`.
+ *
+ * Elle n'est PAS fournie pour les classes dont la source pagine elle-même : les
+ * deux mécanismes s'excluent (voir `MarketTable`), et sur ces classes le nombre de
+ * lignes servies est décidé en amont.
+ *
+ * ── POURQUOI LA CRYPTO PASSE DE 50 À 250 LIGNES ──────────────────────────────
+ *
+ * Ce n'est pas une envie de tableaux plus longs. Les boutons « Échangeables » et
+ * « Tous les actifs » comptent ce que le composant A REÇU : à cinquante lignes par
+ * page servies par le serveur, ils annonçaient « 46 · 50 » — c'est-à-dire le partage
+ * d'une PAGE, présenté comme celui du marché. Deux cent cinquante est le maximum
+ * qu'une seule réponse CoinGecko porte ; au-delà, il faudrait une requête par
+ * tranche, et la page cesserait d'être servie depuis le cache partagé.
+ *
+ * Le décompte reste donc borné, et la ligne sous le tableau le DIT : « sur les 250
+ * plus grandes capitalisations ». C'est une portée annoncée, pas un total inventé —
+ * le catalogue en compte plus de dix-huit mille, et aucune source gratuite ne donne
+ * le partage échangeables/référencés sur cet ensemble.
+ */
 const CONFIG: Record<
   AssetClass,
-  { perPage: number; sortable: boolean; paginated: boolean }
+  { perPage: number; sortable: boolean; paginated: boolean; clientPerPage?: number }
 > = {
-  crypto: { perPage: 50, sortable: true, paginated: true },
-  forex: { perPage: 20, sortable: false, paginated: false },
-  stock: { perPage: 20, sortable: false, paginated: false },
-  etf: { perPage: 20, sortable: false, paginated: false },
-  commodity: { perPage: 20, sortable: false, paginated: false },
-  index: { perPage: 20, sortable: false, paginated: false },
+  crypto: { perPage: 250, sortable: true, paginated: false, clientPerPage: 25 },
+  forex: { perPage: 40, sortable: false, paginated: false, clientPerPage: 25 },
+  /* Vingt-cinq par page, et c'est une contrainte de la SOURCE : Yahoo n'a pas
+     d'appel groupé — un symbole, une requête — et son limiteur plafonne à soixante
+     par fenêtre. Les quatre-vingt-dix-neuf actions de l'univers sont donc servies par
+     tranches, ce que `listAssets` honore désormais réellement. */
+  stock: { perPage: 25, sortable: false, paginated: true },
+  etf: { perPage: 25, sortable: false, paginated: true },
+  commodity: { perPage: 20, sortable: false, paginated: false, clientPerPage: 25 },
+  index: { perPage: 30, sortable: false, paginated: false, clientPerPage: 25 },
   nft: { perPage: 20, sortable: false, paginated: false },
 }
 
@@ -103,6 +133,22 @@ export async function MarketPageView({
   const base = CONFIG[assetClass]
   const config = { ...base, perPage: perPage ?? base.perPage }
   const listPath = basePath ?? marketHref(assetClass)
+
+  /*
+   * ── LE TOTAL EST UN FAIT LOCAL POUR LES CLASSES SERVIES PAR YAHOO ─────────
+   *
+   * `YAHOO_UNIVERSE` est une liste écrite au dépôt : sa longueur est connue sans
+   * requête. La lire ici évite au pied de tableau d'écrire « Actifs 1 à 25 » avec deux
+   * numéros de page, là où il peut écrire « Affichage de 1 à 25 sur 99 actifs » et
+   * numéroter jusqu'au bout.
+   *
+   * `undefined` pour les autres : CoinGecko pagine lui-même et ne publie jamais son
+   * total, et l'inventer serait le seul mensonge qu'une barre de pagination sache
+   * produire. Le pied retombe alors sur ce qu'il peut prouver — voir `MarketTable`.
+   */
+  const universeTotal = config.paginated
+    ? YAHOO_UNIVERSE[assetClass as keyof typeof YAHOO_UNIVERSE]?.length
+    : undefined
   const page = readPage(searchParams['page'])
   const sortBy: MarketSort = searchParams['tri'] === 'volume' ? 'volume24h' : 'marketCap'
   const direction: SortDirection = searchParams['sens'] === 'asc' ? 'asc' : 'desc'
@@ -160,9 +206,16 @@ export async function MarketPageView({
             /* LA PORTÉE EST UNE PHRASE, pas un fragment concaténé : le nombre y
                occupe un emplacement nommé, ce qui laisse chaque langue le placer où
                sa grammaire l'exige. */
+            /* Trois portées et non deux, depuis que la crypto reçoit tout son lot
+               d'un coup : elle n'est ni « cette page » (le tableau en découpe 250 en
+               dix) ni « tous les actifs suivis » (le catalogue en compte des
+               milliers). `assetClass` tranche, parce que la portée dépend de ce que
+               la SOURCE sait servir, pas du mode de pagination du tableau. */
             scopeLabel={(config.paginated
               ? t('les {n} actifs de cette page')
-              : t('les {n} actifs suivis dans cette classe')
+              : assetClass === 'crypto'
+                ? t('les {n} plus grandes capitalisations')
+                : t('les {n} actifs suivis dans cette classe')
             ).replace('{n}', String(ranking.data.length))}
           />
 
@@ -177,6 +230,8 @@ export async function MarketPageView({
             paginated={config.paginated}
             basePath={listPath}
             watchlist={watchlist}
+            {...(config.clientPerPage ? { clientPerPage: config.clientPerPage } : {})}
+            {...(universeTotal !== undefined ? { total: universeTotal } : {})}
           />
 
           <SourceNote

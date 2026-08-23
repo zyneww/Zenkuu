@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Link } from '@/i18n/navigation'
 
 import { CACHE_TTL_SECONDS, getMoversUniverse, getNewListings } from '@zenkuu/data'
@@ -83,7 +84,27 @@ export default async function NewListingsPage() {
         <p className="text-lg leading-relaxed text-ink-muted">{t("Les trois cents actifs dont la source a relevé un cours pour la première fois le plus récemment, du plus récent au plus ancien. Ceux que nous suivons par ailleurs portent leur logo et mènent à leur fiche.")}</p>
       </header>
 
-      <aside className="border-l-2 border-accent bg-surface-muted p-4 text-sm leading-relaxed text-ink-muted">
+      {/*
+        ── L'ENCART D'AVERTISSEMENT DEVIENT UN `Alert` ────────────────────────
+
+        Il était un `<aside>` habillé : un filet doré à gauche, un fond, du texte. Ce
+        qu'il ne portait pas, et que Radix donne gratuitement, c'est le RÔLE — un
+        `role="alert"` qui fait annoncer le bloc comme un avertissement plutôt que
+        comme un paragraphe parmi d'autres. Sur une page dont ce bloc corrige un
+        contresens probable (« suivi depuis » n'est pas « créé le »), ce n'est pas
+        décoratif.
+
+        Le filet doré est conservé par-dessus la variante : l'or SIGNIFIE ici — il
+        marque la mise en garde — et c'est précisément l'emploi que la doctrine de
+        l'accent lui réserve (voir globals.css). Aucune variante de shadcn/ui ne le
+        porte, `destructive` étant réservé à ce qui a échoué.
+      */}
+      <Alert
+        role="note"
+        className="rounded-none border-0 border-l-2 border-gold bg-surface-muted p-4 text-sm leading-relaxed text-ink-muted"
+      >
+        <AlertTitle className="sr-only">{t('À savoir')}</AlertTitle>
+        <AlertDescription className="text-sm leading-relaxed text-ink-muted">
         <p>
           {emphasise(
             t(
@@ -96,7 +117,8 @@ export default async function NewListingsPage() {
             'Un actif récemment référencé a, par définition, peu d’historique, souvent peu de liquidité, et une capitalisation qui peut se réordonner en quelques heures. ZENKUU publie ces chiffres, ne les recommande pas, et ne propose aucune fonction d’achat ou de vente.',
           )}
         </p>
-      </aside>
+        </AlertDescription>
+      </Alert>
 
       {listings.ok && listings.data.length > 0 ? (
         <>

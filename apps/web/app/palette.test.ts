@@ -39,13 +39,18 @@ const CSS = readFileSync(
 )
 
 /**
- * Les deux jeux de jetons, lus de part et d'autre de `.dark {`.
+ * Les deux jeux de jetons, lus de part et d'autre de la règle du thème sombre.
  *
  * Le bloc `@theme` porte le thème CLAIR (c'est la convention de Tailwind 4 : les
  * valeurs par défaut y vivent), et la règle `.dark` réassigne les mêmes noms. Couper
- * le fichier au premier `.dark {` suffit donc à séparer les deux — et une déclaration
- * ajoutée d'un côté sans son pendant de l'autre fait échouer ce test, ce qui est
- * exactement le rappel qu'on veut.
+ * le fichier à cette règle suffit donc à séparer les deux — et une déclaration ajoutée
+ * d'un côté sans son pendant de l'autre fait échouer ce test, ce qui est exactement le
+ * rappel qu'on veut.
+ *
+ * La coupe est cherchée sur `\n.dark` et non sur `\n.dark {` : ce sélecteur est PARTAGÉ
+ * avec `.nuit`, l'îlot sombre du pied de page, et s'écrit donc sur deux lignes. Le test
+ * cherchait l'accolade, ne trouvait plus rien, coupait à l'index -1 et déclarait le
+ * thème sombre vide — vingt assertions rouges pour une virgule.
  */
 function tokensOf(source: string): Record<string, string> {
   const table: Record<string, string> = {}
@@ -55,7 +60,7 @@ function tokensOf(source: string): Record<string, string> {
   return table
 }
 
-const split = CSS.indexOf('\n.dark {')
+const split = CSS.indexOf('\n.dark')
 const LIGHT = tokensOf(CSS.slice(0, split))
 const DARK = tokensOf(CSS.slice(split))
 
@@ -85,7 +90,7 @@ const PAIRS: readonly [foreground: string, background: string, minimum: number][
   ['--color-brand', '--color-canvas', 4.5],
   ['--color-brand', '--color-surface', 4.5],
   ['--color-on-brand', '--color-brand', 4.5],
-  ['--color-accent', '--color-canvas', 4.5],
+  ['--color-gold', '--color-canvas', 4.5],
   ['--color-up', '--color-canvas', 4.5],
   ['--color-down', '--color-canvas', 4.5],
   ['--color-status', '--color-canvas', 4.5],

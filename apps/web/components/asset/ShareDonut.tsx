@@ -2,10 +2,12 @@
 
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { useState } from 'react'
+import { Cell, Pie, PieChart } from 'recharts'
 
 import { formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
+import { ChartContainer } from '@/components/ui/chart'
 
 /**
  * Anneau de répartition, sa légende chiffrée et son infobulle au survol.
@@ -131,29 +133,12 @@ export function ShareDonut({
     })
   }
 
-  // Géométrie de l'anneau. Le rayon est choisi pour que les longueurs de tirets
-  // s'expriment directement en pourcentage de la circonférence, sans facteur de
-  // conversion à relire plus tard.
+  // Géométrie de l'anneau. `stroke` est devenu l'ÉPAISSEUR de la couronne, c'est-à-dire
+  // l'écart entre les deux rayons — mêmes valeurs qu'avant, où c'était la largeur du
+  // trait d'un cercle.
   const size = expanded ? 240 : 168
   const stroke = expanded ? 34 : 26
-  const radius = (size - stroke) / 2
-  const circumference = 2 * Math.PI * radius
 
-  // Décalages cumulés calculés À L'AVANCE plutôt que mutés pendant le rendu de
-  // chaque segment (react-hooks/immutability) : muter une variable extérieure dans
-  // le corps d'un `.map()` de rendu suppose que React exécute chaque itération
-  // dans l'ordre et une seule fois — vrai aujourd'hui, mais précisément ce que le
-  // compilateur React (mémoïsation par item) n'est pas tenu de garantir.
-  const arcs = segments.reduce<{ segment: Segment; length: number; offset: number }[]>(
-    (acc, segment) => {
-      const length = (segment.percent / 100) * circumference
-      const previous = acc[acc.length - 1]
-      const offset = previous ? previous.offset + previous.length : 0
-      acc.push({ segment, length, offset })
-      return acc
-    },
-    [],
-  )
   const hovered = segments.find((segment) => segment.label === active)
 
   return (
@@ -201,42 +186,84 @@ export function ShareDonut({
       */}
       <div className="flex flex-col items-center gap-4">
         <div className="relative shrink-0">
-          <svg
-            width={size}
-            height={size}
-            viewBox={`0 0 ${size} ${size}`}
+          {/*
+            ══════════════════════════════════════════════════════════════════
+            L'ANNEAU EST UN `Pie` DE shadcn/ui, PLUS UN CERCLE À TIRETS
+            ══════════════════════════════════════════════════════════════════
+
+            Il était dessiné par un `<circle>` par segment, chacun avec son
+            `strokeDasharray` et son `strokeDashoffset` cumulé — la technique du
+            « donut en pointillés ». Elle marche, et elle a deux défauts que ce
+            remplacement supprime :
+
+            1. LES DÉCALAGES CUMULÉS ÉTAIENT CALCULÉS À LA MAIN, dans un `reduce` qui
+               existait uniquement pour ne PAS muter un accumulateur pendant le rendu
+               — une précaution nécessaire (le compilateur React ne garantit pas que
+               chaque itération d'un `.map()` de rendu s'exécute une fois et dans
+               l'ordre) mais qui n'aurait jamais dû avoir à être prise.
+
+            2. LA GÉOMÉTRIE ÉTAIT ACCROCHÉE À UNE ROTATION CSS. `-rotate-90` amenait
+               le départ à midi ; toute reprise du composant devait comprendre que le
+               `viewBox` et le rendu ne partageaient pas la même orientation.
+
+            `startAngle={90} endAngle={-270}` dit la même chose en deux nombres, dans
+            le vocabulaire du graphique et non dans celui de la feuille de style.
+
+            ⚠️ PAS DE `<ChartTooltip>` ICI, ET C'EST DÉLIBÉRÉ. L'infobulle de ce
+            composant est le CENTRE de l'anneau (voir juste en dessous) : elle est
+            posée là où l'œil est déjà, au lieu d'un calque flottant qui masque
+            justement les segments qu'on compare. Le survol pilote donc `active`, pas
+            une infobulle.
+          */}
+          <ChartContainer
+            config={{}}
             /* L'anneau est une REDITE de la légende, qui porte les mêmes chiffres en
                texte. L'annoncer aux lecteurs d'écran les obligerait à écouter deux
                fois la même information. */
             aria-hidden="true"
-            className="-rotate-90"
+            className="aspect-square"
+            style={{ width: size, height: size }}
           >
-            {arcs.map(({ segment, length, offset }) => {
-              const dash = `${length} ${circumference - length}`
-              const dimmed = active !== null && active !== segment.label
-              return (
-                <circle
-                  key={segment.label}
-                  cx={size / 2}
-                  cy={size / 2}
-                  r={radius}
-                  fill="none"
-                  stroke={segment.color}
-                  strokeWidth={stroke}
-                  strokeDasharray={dash}
-                  strokeDashoffset={-offset}
-                  // Atténuer les AUTRES plutôt que souligner le survolé : sur des
-                  // parts très inégales — 98 % contre 1,5 % — épaissir le segment
-                  // actif ne se voit pas, alors qu'éteindre le reste le fait
-                  // ressortir aussitôt.
-                  opacity={dimmed ? 0.25 : 1}
-                  onMouseEnter={() => setActive(segment.label)}
-                  onMouseLeave={() => setActive(null)}
-                  className="cursor-pointer transition-opacity duration-150"
-                />
-              )
-            })}
-          </svg>
+            <PieChart>
+              <Pie
+                data={segments}
+                dataKey="value"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                outerRadius={size / 2}
+                innerRadius={size / 2 - stroke}
+                /* Départ à midi, sens horaire — l'orientation qu'on lit sur une
+                   horloge, et celle que la rotation CSS produisait avant. */
+                startAngle={90}
+                endAngle={-270}
+                /* Aucun écart entre les parts : un anneau de répartition doit se lire
+                   comme un tout continu, et une gouttière blanche entre segments
+                   suggère qu'il manque quelque chose entre eux. */
+                paddingAngle={0}
+                stroke="none"
+                isAnimationActive={false}
+                onMouseEnter={(_, index) => setActive(segments[index]?.label ?? null)}
+                onMouseLeave={() => setActive(null)}
+              >
+                {segments.map((segment) => {
+                  const dimmed = active !== null && active !== segment.label
+                  return (
+                    <Cell
+                      key={segment.label}
+                      fill={segment.color}
+                      // Atténuer les AUTRES plutôt que souligner le survolé : sur des
+                      // parts très inégales — 98 % contre 1,5 % — épaissir le segment
+                      // actif ne se voit pas, alors qu'éteindre le reste le fait
+                      // ressortir aussitôt.
+                      opacity={dimmed ? 0.25 : 1}
+                      className="cursor-pointer transition-opacity duration-150"
+                    />
+                  )
+                })}
+              </Pie>
+            </PieChart>
+          </ChartContainer>
 
           {/* Le centre porte le décompte au repos, et les chiffres du segment
               survolé sinon — c'est l'infobulle de la référence, placée là où l'œil

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react'
 
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+
 import type { SentimentPoint } from '@zenkuu/data'
 
 import { SentimentChart } from '@/components/sentiment/SentimentChart'
@@ -48,27 +50,30 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="historique-titre" className="display-sm text-ink">{t('Évolution de l’indice')}</h2>
 
-        <div
-          className="flex items-center gap-1 rounded-card border border-border-subtle bg-surface p-1"
-          role="group"
+        {/* `ToggleGroup` de shadcn/ui, comme sur les classements : un vrai groupe à
+            sélection unique, avec les flèches directionnelles et l'annonce du rang par
+            la synthèse vocale. ⚠️ Les clés sont des NOMBRES de jours, et Radix ne parle
+            que chaînes : d'où le `String()` à l'aller et le `Number()` au retour. */}
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
           aria-label={t('Période affichée')}
+          value={String(days)}
+          onValueChange={(next) => {
+            /* Radix n'a pas de `disallowEmptySelection` : recliquer l'option
+               active rappelle avec la CHAÎNE VIDE. Ce réglage n'a pas d'état
+               « aucun » — on ignore donc ce cas plutôt que de laisser le
+               contrôle devenir muet sur une valeur qui, elle, n'a pas bougé. */
+            if (next) setDays(Number(next))
+          }}
         >
           {available.map((range) => (
-            <button
-              key={range.days}
-              type="button"
-              onClick={() => setDays(range.days)}
-              aria-pressed={days === range.days}
-              className={`tabular rounded-none px-2.5 py-1 text-xs font-medium transition-colors ${
-                days === range.days
-                  ? 'bg-brand text-on-brand'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-              }`}
-            >
+            <ToggleGroupItem key={range.days} value={String(range.days)} className="tabular">
               {range.label}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </div>
 
       <SentimentChart points={visible} />

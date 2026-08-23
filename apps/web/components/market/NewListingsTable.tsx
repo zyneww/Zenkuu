@@ -1,6 +1,9 @@
 'use client'
 
 import { CalendarDays } from 'lucide-react'
+import { Search } from 'lucide-react'
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { useMemo, useState } from 'react'
 
@@ -9,8 +12,8 @@ import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
-import { Calendar } from '@/components/ui/Calendar'
-import { Pagination } from '@/components/ui/Pagination'
+import { DateRangeCalendar } from '@/components/ui/DateRangeCalendar'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { matchListing, type ListingMatch } from '@/lib/listing-match'
 
@@ -193,16 +196,18 @@ export function NewListingsTable({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 text-xs text-ink-muted">
-            <span className="sr-only">{t('Filtrer par nom ou symbole')}</span>
-            <input
+          <InputGroup size="sm" className="w-56">
+            <InputGroupInput
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t('Filtrer par nom ou symbole')}
-              className="w-56 rounded-control border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+              aria-label={t('Filtrer par nom ou symbole')}
             />
-          </label>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
 
           {/*
             ── LE CALENDRIER EST REPLIÉ ────────────────────────────────────────
@@ -228,7 +233,7 @@ export function NewListingsTable({
             </summary>
 
             <div className="absolute left-0 top-full z-30 mt-1 rounded-card border border-border-subtle bg-overlay p-3 shadow-overlay">
-              <Calendar value={range} onChange={setRange} />
+              <DateRangeCalendar value={range} onChange={setRange} />
             </div>
           </details>
         </div>
@@ -293,7 +298,7 @@ export function NewListingsTable({
           Aucun actif ne correspond à « {query} ».
         </p>
       ) : (
-        <Pagination
+        <TablePagination
           page={page}
           perPage={perPage}
           total={rows.length}

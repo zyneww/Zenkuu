@@ -1,5 +1,7 @@
 import { Link } from '@/i18n/navigation'
 
+import { SentimentGauge } from '@/components/home/SentimentGauge'
+
 import type { DataResult, MarketCategory, NewsItem, SentimentIndex } from '@zenkuu/data'
 import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
@@ -152,47 +154,35 @@ export async function SentimentPanel({ result }: { result: DataResult<SentimentI
 
   const { value, previousValue, updatedAt } = result.data
   const label = classify(value, fr.sentiment.scale)
-  const tone = value < 45 ? 'text-down' : value > 55 ? 'text-up' : 'text-ink-muted'
-
-  // Demi-cercle de 180°, orienté de la peur (gauche) à l'avidité (droite).
-  const radius = 52
-  const angle = Math.PI * (1 - value / 100)
-  const pointerX = 60 + radius * Math.cos(angle)
-  const pointerY = 62 - radius * Math.sin(angle)
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA TEINTE DE ZONE, EN DEUX FORMES — ET LES DEUX SONT ÉCRITES EN TOUTES LETTRES
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Le texte sous la jauge est habillé par une CLASSE utilitaire ; la barre de la jauge
+   * est peinte par un ATTRIBUT SVG, qui ne comprend pas les classes. Il faut donc les
+   * deux, et elles doivent dire la même chose — d'où les seuils écrits une fois.
+   *
+   * ⚠️ LA CLASSE NE PEUT PAS ÊTRE CONSTRUITE (`text-${zone}`). Tailwind ne lit pas le
+   * code à l'exécution : il cherche des noms de classe LITTÉRAUX dans les sources, et
+   * une classe assemblée par interpolation n'est jamais générée — la couleur
+   * disparaîtrait en production sans la moindre erreur au build. Les trois variantes
+   * sont donc écrites entières.
+   */
+  const zone =
+    value < 45
+      ? { text: 'text-down', token: 'var(--color-down)' }
+      : value > 55
+        ? { text: 'text-up', token: 'var(--color-up)' }
+        : { text: 'text-ink-muted', token: 'var(--color-ink-muted)' }
+  const tone = zone.text
 
   return (
     <Card>
       <CardHeader title={fr.home.sentimentTitle} />
 
       <div className="flex flex-col items-center">
-        <svg viewBox="0 0 120 72" width="160" height="96" role="img" aria-label={`${value} sur 100, ${label}`}>
-          <defs>
-            <linearGradient id="zenkuu-fng" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="var(--color-down)" />
-              <stop offset="50%" stopColor="var(--color-brand)" />
-              <stop offset="100%" stopColor="var(--color-up)" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M8 62 A52 52 0 0 1 112 62"
-            fill="none"
-            stroke="url(#zenkuu-fng)"
-            strokeWidth="8"
-            strokeLinecap="round"
-            opacity="0.35"
-          />
-          <line
-            x1="60"
-            y1="62"
-            x2={pointerX.toFixed(1)}
-            y2={pointerY.toFixed(1)}
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            className="text-ink"
-          />
-          <circle cx="60" cy="62" r="4" fill="currentColor" className="text-ink" />
-        </svg>
+        <SentimentGauge value={value} label={label} toneColor={zone.token} />
 
         <p className="figure -mt-2 text-2xl font-bold text-ink">{value}</p>
         <p className={`text-sm font-medium ${tone}`}>{label}</p>

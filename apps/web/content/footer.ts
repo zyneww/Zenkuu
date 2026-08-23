@@ -28,73 +28,154 @@ export interface SocialLink extends FooterLink {
   handle: string
 }
 
-export interface FooterColumn {
+/** Un intertitre et les liens qu'il coiffe. */
+export interface FooterGroup {
   title: string
   links: FooterLink[]
 }
 
+export interface FooterColumn {
+  /**
+   * Étiquette de la colonne, JAMAIS rendue à l'écran.
+   *
+   * Elle nomme le `<nav>` pour les technologies d'assistance : sans elle, un lecteur
+   * d'écran annoncerait quatre régions « navigation » indiscernables en pied de page.
+   * Ce qui se voit, ce sont les intertitres des groupes — la colonne elle-même n'a
+   * pas de titre visible dans cette composition.
+   */
+  label: string
+  groups: FooterGroup[]
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * QUATRE COLONNES DE GROUPES, ET NON CINQ LISTES À PLAT
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI LE NIVEAU DE GROUPE APPARAÎT ───────────────────────────────────
+ *
+ * La composition demandée (TradingView) n'empile pas des colonnes titrées : elle
+ * empile des GROUPES titrés à l'intérieur de colonnes muettes. La différence n'est pas
+ * cosmétique — elle change ce qu'on peut ranger.
+ *
+ * À plat, chaque famille devait tenir dans exactement une colonne, ce qui forçait des
+ * regroupements par défaut : « Actualités » et « Nouvelles cryptomonnaies » vivaient
+ * sous « Ressources » faute d'une sixième colonne pour les publications, et les huit
+ * entrées de « Marchés » mélangeaient six classes d'actifs avec deux annuaires de
+ * places — des objets qui ne répondent pas à la même question.
+ *
+ * Avec un niveau de groupe, une colonne porte plusieurs familles courtes. Les classes
+ * d'actifs se séparent des places, les lectures de marché des indicateurs, les outils
+ * de l'espace personnel. Onze intertitres au lieu de cinq, et aucune liste de plus de
+ * six lignes : c'est ce qui rend une grille de trente liens lisible.
+ *
+ * ── LES LIENS EUX-MÊMES N'ONT PAS BOUGÉ ─────────────────────────────────────
+ *
+ * Aucune adresse n'est ajoutée ni retirée ici : seul le rangement change. Les liens de
+ * marché continuent de viser les onglets de `/marches` plutôt que les anciennes pages
+ * `/crypto`, `/actions`… supprimées et redirigées — le pied de page est le plus gros
+ * émetteur de liens internes du site, et c'est donc l'endroit où une redirection se
+ * paie le plus cher, à chaque clic et pour chaque robot.
+ */
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
-    /*
-     * ── LES SIX LIENS VISENT MAINTENANT LES ONGLETS DE `/marches` ────────────
-     *
-     * Ils pointaient vers `/crypto`, `/actions`, `/etf`… — pages supprimées depuis, et
-     * désormais redirigées. Un pied de page qui n'émet que des redirections coûte un
-     * aller-retour à chaque clic et dilue le signal pour les moteurs, qui suivent ces
-     * liens sur CHAQUE page du site : le pied de page est le plus gros émetteur de
-     * liens internes d'un site, et donc l'endroit où une redirection se paie le plus.
-     *
-     * Les deux places s'ajoutent à la colonne : ce sont des marchés au même titre que
-     * les six classes, et elles n'apparaissaient nulle part en pied de page.
-     */
-    title: 'Marchés',
-    links: [
-      { label: 'Cryptomonnaies', href: '/marches' },
-      { label: 'Actions', href: '/marches?classe=actions' },
-      { label: 'ETF', href: '/marches?classe=etf' },
-      { label: 'Indices', href: '/marches?classe=indices' },
-      { label: 'Devises', href: '/marches?classe=devises' },
-      { label: 'Matières premières', href: '/marches?classe=matieres-premieres' },
-      { label: 'Places de cotation', href: '/places' },
-      { label: 'Places de dérivés', href: '/perpetuels' },
+    label: 'Marchés',
+    groups: [
+      {
+        title: 'Classes d’actifs',
+        links: [
+          { label: 'Cryptomonnaies', href: '/marches' },
+          { label: 'Actions', href: '/marches?classe=actions' },
+          { label: 'ETF', href: '/marches?classe=etf' },
+          { label: 'Indices', href: '/marches?classe=indices' },
+          { label: 'Devises', href: '/marches?classe=devises' },
+          { label: 'Matières premières', href: '/marches?classe=matieres-premieres' },
+        ],
+      },
+      {
+        title: 'Places',
+        links: [
+          { label: 'Places de cotation', href: '/places' },
+          { label: 'Places de dérivés', href: '/perpetuels' },
+        ],
+      },
     ],
   },
   {
-    title: 'Données & analyse',
-    links: [
-      { label: 'Catégories & secteurs', href: '/categories' },
-      { label: 'Données de trading', href: '/mouvements' },
-      { label: 'Points marquants', href: '/points-marquants' },
-      { label: 'Graphiques globaux', href: '/graphiques' },
-      { label: 'Nouvelles cryptomonnaies', href: '/nouvelles-cotations' },
-      { label: 'Heatmap sectorielle', href: '/heatmap' },
-      { label: 'Screener', href: '/screener' },
-      { label: 'Comparateur', href: '/comparateur' },
-      { label: 'Convertisseur', href: '/convertisseur' },
-      { label: 'Indice de sentiment', href: '/sentiment' },
-      { label: 'Actualités', href: '/actualites' },
+    label: 'Analyse',
+    groups: [
+      {
+        title: 'Lectures de marché',
+        links: [
+          { label: 'Graphiques globaux', href: '/graphiques' },
+          { label: 'Catégories & secteurs', href: '/categories' },
+          { label: 'Heatmap sectorielle', href: '/heatmap' },
+          { label: 'Points marquants', href: '/points-marquants' },
+        ],
+      },
+      {
+        title: 'Indicateurs',
+        links: [
+          { label: 'Données de trading', href: '/mouvements' },
+          { label: 'Indice de sentiment', href: '/sentiment' },
+          { label: 'Macroéconomie', href: '/macro' },
+        ],
+      },
     ],
   },
   {
-    title: 'Ressources',
-    links: [
-      { label: 'Méthodologie & sources', href: '/methodologie' },
-      { label: 'Apprendre', href: '/apprendre' },
-      { label: 'Bien démarrer', href: '/bien-demarrer' },
-      { label: 'API & développeurs', href: '/developpeurs' },
+    label: 'Outils',
+    groups: [
+      {
+        title: 'Outils',
+        links: [
+          { label: 'Screener', href: '/screener' },
+          { label: 'Comparateur', href: '/comparateur' },
+          { label: 'Convertisseur', href: '/convertisseur' },
+          { label: 'Widgets à intégrer', href: '/widgets' },
+        ],
+      },
+      {
+        // Placé haut dans la colonne : `/alertes` est la seule page du pied qui engage
+        // une dépense, et une entrée commerciale enterrée en dernière ligne se lit
+        // comme une gêne à la dissimuler.
+        title: 'Mon espace',
+        links: [
+          { label: 'Mes alertes', href: '/alertes' },
+          { label: 'Ma sélection', href: '/suivi' },
+        ],
+      },
     ],
   },
   {
-    title: 'ZENKUU',
-    links: [
-      { label: 'À propos', href: '/a-propos' },
-      // Placée haut dans la colonne : c'est la seule page du pied qui engage une
-      // dépense, et une entrée commerciale enterrée en dernière ligne se lit comme
-      // une gêne à la dissimuler.
-      { label: 'Mes alertes', href: '/alertes' },
-      { label: 'Nouveautés', href: '/nouveautes' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Centre d’aide', href: '/aide' },
+    label: 'Zenkuu',
+    groups: [
+      {
+        title: 'Ressources',
+        links: [
+          { label: 'Méthodologie & sources', href: '/methodologie' },
+          { label: 'Apprendre', href: '/apprendre' },
+          { label: 'Bien démarrer', href: '/bien-demarrer' },
+          { label: 'API & développeurs', href: '/developpeurs' },
+        ],
+      },
+      {
+        title: 'Publications',
+        links: [
+          { label: 'Actualités', href: '/actualites' },
+          { label: 'Nouvelles cryptomonnaies', href: '/nouvelles-cotations' },
+          { label: 'Blog', href: '/blog' },
+        ],
+      },
+      {
+        title: 'La société',
+        links: [
+          { label: 'À propos', href: '/a-propos' },
+          { label: 'Pourquoi Zenkuu', href: '/pourquoi-zenkuu' },
+          { label: 'Nouveautés', href: '/nouveautes' },
+          { label: 'Centre d’aide', href: '/aide' },
+        ],
+      },
     ],
   },
 ]

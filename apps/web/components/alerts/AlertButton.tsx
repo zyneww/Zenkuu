@@ -1,9 +1,33 @@
 'use client'
 
-import { Bell, Loader2, X } from 'lucide-react'
+import { Bell, Loader2 } from 'lucide-react'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Switch } from '@/components/ui/switch'
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 
-import { Link } from '@/i18n/navigation'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group'
+import { Textarea } from '@/components/ui/textarea'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { createPriceAlert, type AlertActionResult } from '@/lib/alert-actions'
 import { readIdentityCookie } from '@/lib/identity-cookie'
@@ -108,29 +132,26 @@ export function AlertButton({
 
   if (!available) {
     return (
-      <Link
-        href="/alertes"
-        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
-      >
-        <Bell className="h-3.5 w-3.5" aria-hidden="true" />{t('Créer une alerte')}</Link>
+      /* `ButtonLink` et non `Button href` : l'adresse doit garder son préfixe de
+         locale, que seul le `Link` de next-intl pose. Voir l'en-tête de `ButtonLink`. */
+      <ButtonLink href="/alertes" variant="outline" size="sm">
+        <Bell className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
+        {t('Créer une alerte')}
+      </ButtonLink>
     )
   }
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        size="sm"
+        variant={done ? 'default' : 'outline'}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        className={`inline-flex items-center gap-1.5 rounded-control border px-3 py-1.5 text-xs font-medium transition-colors ${
-          done
-            ? 'border-brand bg-brand-soft text-brand-strong'
-            : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
-        }`}
       >
-        <Bell className="h-3.5 w-3.5" aria-hidden="true" />
+        <Bell />
         {done ? 'Alerte créée' : 'Créer une alerte'}
-      </button>
+      </Button>
 
       {open ? (
         <AlertDialog
@@ -223,14 +244,6 @@ function AlertDialog({
     }
   }, [])
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
-
   /*
    * Distance du seuil au cours, en pourcentage.
    *
@@ -297,41 +310,35 @@ function AlertDialog({
     })
   }
 
-  return (
-    <div
-      className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto px-4 py-[6vh]"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Créer une alerte sur ${label}`}
-    >
-      <button
-        type="button"
-        className="fixed inset-0 cursor-default bg-canvas/80 backdrop-blur-sm"
-        aria-label="Fermer"
-        onClick={onClose}
-      />
 
-      <div
+  return (
+    /*
+      ── LA COQUE EST UN `Dialog` DE SHADCN/UI ─────────────────────────────────
+
+      Le voile, le cadre, la croix, l'écoute d'Échap et le `<button>` plein écran qui
+      servait de zone de clic extérieure vivaient tous ici. Radix les fournit, et il
+      apporte en plus le piège à focus, l'`aria-hidden` sur le reste du document et le
+      blocage du défilement du fond — trois manques que ce formulaire à sept champs
+      payait cher : la tabulation en sortait par le bas et se perdait dans la page.
+
+      `p-0` et `gap-0` : le contenu porte ses propres marges par bloc (l'en-tête à
+      `px-4 py-3`, le formulaire à `p-4`), et le filet de séparation doit courir d'un
+      bord à l'autre — une marge sur le conteneur l'aurait rentré de six pixels.
+    */
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogContent
         ref={panelRef}
-        className="relative w-full max-w-md rounded-card border border-border-subtle bg-overlay shadow-overlay"
+        className="max-w-md gap-0 border-border-subtle bg-overlay p-0 shadow-overlay sm:max-w-md"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
-          <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-ink">{t('Créer une alerte')}</h2>
-            <p className="truncate text-xs text-ink-muted">
-              {label}
-              {symbol ? <span className="uppercase"> · {symbol}</span> : null}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-            className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+        <DialogHeader className="min-w-0 space-y-0 border-b border-border-subtle px-4 py-3 pr-10 text-left">
+          <DialogTitle className="truncate text-sm font-semibold text-ink">
+            {t('Créer une alerte')}
+          </DialogTitle>
+          <DialogDescription className="truncate text-xs text-ink-muted">
+            {label}
+            {symbol ? <span className="uppercase"> · {symbol}</span> : null}
+          </DialogDescription>
+        </DialogHeader>
 
         <form onSubmit={submit} className="space-y-5 p-4">
           {/* ── 1. CONDITION ────────────────────────────────────────────────── */}
@@ -360,37 +367,46 @@ function AlertDialog({
               ))}
             </div>
 
-            <div className="flex items-center gap-2 rounded-control border border-border-subtle bg-surface px-2.5 focus-within:border-brand">
-              <input
-                type="text"
+            {/* `InputGroup` de shadcn/ui : le montant et sa devise forment UNE saisie,
+                et c'est exactement ce que le groupe modélise — un champ, un complément
+                accolé, un seul anneau de focus autour des deux. Ce montage était ici
+                écrit à la main avec un `focus-within` sur la boîte.
+
+                `align="inline-end"` place la devise APRÈS le nombre, comme on l'écrit.
+                Le complément est un `InputGroupText` et non un `<span>` : il hérite du
+                `cursor-text` du groupe, ce qui fait que cliquer sur « EUR » donne le
+                focus au champ plutôt que de ne rien faire. */}
+            <InputGroup size="sm">
+              <InputGroupInput
                 inputMode="decimal"
                 value={threshold}
                 onChange={(event) => setThreshold(event.target.value)}
                 aria-label={`Seuil en ${entryCurrency.toUpperCase()}`}
-                className="tabular h-9 w-full bg-transparent text-sm text-ink outline-none"
+                className="tabular"
               />
-              <span className="shrink-0 text-xs font-medium uppercase text-ink-muted">
-                {entryCurrency}
-              </span>
-            </div>
+              <InputGroupAddon align="inline-end">
+                <InputGroupText className="uppercase">{entryCurrency}</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
 
             {/* Raccourcis d'écart. Ils remplacent le calcul mental « combien font
                 cinq pour cent de 118 342 ? », qui est le vrai obstacle à poser un
                 seuil sensé sur un actif à cinq chiffres. */}
             <div className="flex flex-wrap gap-1">
               {QUICK_OFFSETS.map((offset) => (
-                <button
+                <Button
                   key={offset}
-                  type="button"
+                  size="xs"
+                  variant="outline"
+                  className="tabular"
                   onClick={() => {
                     setThreshold(suggest(shownPrice, offset))
                     setDirection(offset > 0 ? 'above' : 'below')
                   }}
-                  className="tabular rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink"
                 >
                   {offset > 0 ? '+' : ''}
                   {offset} %
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -408,74 +424,155 @@ function AlertDialog({
             </p>
 
             {immediate ? (
-              <p className="rounded-control border border-accent/40 bg-accent-soft px-2.5 py-1.5 text-[0.6875rem] leading-relaxed text-ink">{t('Ce seuil est déjà franchi : l’alerte partira au prochain relevé, dans quelques minutes.')}</p>
+              <p className="rounded-control border border-gold/40 bg-gold-soft px-2.5 py-1.5 text-[0.6875rem] leading-relaxed text-ink">{t('Ce seuil est déjà franchi : l’alerte partira au prochain relevé, dans quelques minutes.')}</p>
             ) : null}
           </Section>
 
           {/* ── 2. DÉCLENCHEMENT ────────────────────────────────────────────── */}
           <Section title={t('Déclenchement')}>
-            <div className="flex gap-1" role="group" aria-label={t('Fréquence')}>
+            {/*
+              ── LA FRÉQUENCE DEVIENT UN `RadioGroup`, ET L'INDICE DEVIENT VISIBLE ──
+
+              C'étaient deux `<button aria-pressed>`. Le motif est faux : `aria-pressed`
+              décrit un interrupteur INDÉPENDANT — deux boutons pressés à la fois sont
+              légitimes pour un lecteur d'écran — alors que ces deux options s'excluent.
+              Un `RadioGroup` annonce « option 1 sur 2 », ce qui dit à la fois le choix
+              et son étendue, et les flèches y naviguent.
+
+              ⚠️ L'INDICE SORT DU `title`. « L'alerte se désarme après l'envoi » y était
+              invisible au clavier comme au doigt — c'est-à-dire pour tout le monde sauf
+              une souris patiente. Il devient une ligne de description sous chaque
+              option, reliée par `aria-describedby` : lue à voix haute avec l'option, et
+              lisible par tous. C'est la place qu'aurait dû avoir cette phrase.
+            */}
+            <RadioGroup
+              value={trigger}
+              onValueChange={(next) => setTrigger(next as Trigger)}
+              aria-label={t('Fréquence')}
+              className="gap-1"
+            >
               {(
                 [
                   { value: 'once', label: 'Une seule fois', hint: 'L’alerte se désarme après l’envoi' },
                   { value: 'recurring', label: 'À chaque fois', hint: 'Au plus un envoi par jour' },
                 ] as const
               ).map((option) => (
-                <button
+                <div
                   key={option.value}
-                  type="button"
-                  onClick={() => setTrigger(option.value)}
-                  aria-pressed={trigger === option.value}
-                  title={option.hint}
-                  className={`flex-1 rounded-control border px-2 py-1.5 text-xs font-medium transition-colors ${
+                  className={`flex items-start gap-2.5 rounded-control border px-2.5 py-2 transition-colors ${
                     trigger === option.value
-                      ? 'border-brand bg-brand-soft text-brand-strong'
-                      : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
+                      ? 'border-brand bg-brand-soft'
+                      : 'border-border-subtle hover:border-brand'
                   }`}
                 >
-                  {option.label}
-                </button>
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`frequence-${option.value}`}
+                    aria-describedby={`frequence-${option.value}-indice`}
+                    className="mt-0.5 size-3.5 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <Label
+                      htmlFor={`frequence-${option.value}`}
+                      className={`cursor-pointer text-xs font-medium ${
+                        trigger === option.value ? 'text-brand-strong' : 'text-ink'
+                      }`}
+                    >
+                      {option.label}
+                    </Label>
+                    <p
+                      id={`frequence-${option.value}-indice`}
+                      className="text-[0.625rem] leading-snug text-ink-muted"
+                    >
+                      {option.hint}
+                    </p>
+                  </div>
+                </div>
               ))}
-            </div>
+            </RadioGroup>
 
-            <label className="block">
-              <span className="mb-1 block text-[0.6875rem] text-ink-muted">{t('Échéance — vide pour une surveillance sans fin')}</span>
-              <input
-                type="date"
-                value={expires}
-                min={isoDay(1)}
-                max={isoDay(365)}
-                onChange={(event) => setExpires(event.target.value)}
-                className="h-9 w-full rounded-control border border-border-subtle bg-surface px-2.5 text-sm text-ink outline-none focus:border-brand"
-              />
-            </label>
+            {/*
+              ── L'ÉCHÉANCE DEVIENT UN INTERRUPTEUR, ET C'EST UNE CORRECTION ─────
+
+              Le champ de date était toujours visible, sous l'étiquette « Échéance —
+              vide pour une surveillance sans fin ». Autrement dit : la valeur par
+              défaut — surveiller indéfiniment — s'obtenait en NE REMPLISSANT PAS un
+              champ affiché comme s'il attendait quelque chose. C'est le genre de
+              formulation qu'on relit deux fois avant de comprendre qu'on n'a rien à
+              faire.
+
+              `Switch` nomme le choix (« Fixer une échéance ») et `Collapsible` ne
+              montre le champ qu'une fois qu'on l'a demandé. L'état par défaut ne
+              demande plus rien, et il se lit.
+
+              ⚠️ ÉTEINDRE L'INTERRUPTEUR VIDE LA DATE. Sans cela, une date saisie puis
+              masquée continuerait d'être envoyée à l'enregistrement : l'alerte
+              expirerait à une échéance que le formulaire n'affiche plus.
+            */}
+            <Collapsible
+              open={expires !== ''}
+              onOpenChange={(next) => setExpires(next ? isoDay(30) : '')}
+              className="space-y-2"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="alerte-echeance" className="text-[0.6875rem] text-ink-muted">{t('Fixer une échéance')}</Label>
+                <CollapsibleTrigger asChild>
+                  <Switch id="alerte-echeance" checked={expires !== ''} />
+                </CollapsibleTrigger>
+              </div>
+
+              <CollapsibleContent>
+                {/* `type="date"` NATIF conservé : c'est le seul contrôle qui ouvre le
+                    sélecteur du système en mobilité, et la grille de `DateRangeCalendar`
+                    sert des PLAGES, pas une date isolée. Seul l'habillage vient d'ici. */}
+                <Input
+                  type="date"
+                  value={expires}
+                  min={isoDay(1)}
+                  max={isoDay(365)}
+                  onChange={(event) => setExpires(event.target.value)}
+                  aria-label={t('Date d’échéance de l’alerte')}
+                />
+              </CollapsibleContent>
+            </Collapsible>
           </Section>
 
           {/* ── 3. IDENTITÉ DE L'ALERTE ─────────────────────────────────────── */}
           <Section title="Nom et message">
-            <input
+            <Input
+              size="sm"
               type="text"
               value={title}
               maxLength={80}
               onChange={(event) => setTitle(event.target.value)}
               aria-label={t('Nom de l’alerte')}
               placeholder={t('Nom de l’alerte')}
-              className="h-9 w-full rounded-control border border-border-subtle bg-surface px-2.5 text-sm text-ink outline-none focus:border-brand placeholder:text-ink-muted"
             />
-            <textarea
+            {/* `Textarea` de shadcn/ui — le SEUL `<textarea>` du site. Il portait
+                autrefois sa propre bordure, son propre focus et son propre
+                `placeholder`, à côté d'un `Input` du système posé six lignes plus
+                haut : les deux champs du même bloc ne se ressemblaient pas au pixel.
+                Ils partagent maintenant les mêmes jetons et le même anneau de focus.
+
+                `resize-none` : la fenêtre est déjà dimensionnée, et une poignée de
+                redimensionnement en bas à droite déborderait du cadre dès le premier
+                tirage. Deux lignes suffisent — le message est repris tel quel dans un
+                courriel, il n'a pas vocation à en faire dix. */}
+            <Textarea
               value={note}
               maxLength={280}
               rows={2}
               onChange={(event) => setNote(event.target.value)}
               aria-label="Message"
               placeholder={t('Message repris dans le courriel — « sortir la moitié », « vérifier le volume »…')}
-              className="w-full resize-none rounded-control border border-border-subtle bg-surface px-2.5 py-2 text-sm text-ink outline-none focus:border-brand placeholder:text-ink-muted"
+              className="resize-none text-sm"
             />
           </Section>
 
           {/* ── 4. NOTIFICATION ─────────────────────────────────────────────── */}
           <Section title="Notification">
-            <input
+            <Input
+              size="sm"
               type="email"
               required
               autoComplete="email"
@@ -483,7 +580,6 @@ function AlertDialog({
               onChange={(event) => setEmail(event.target.value)}
               aria-label={t('Adresse de notification')}
               placeholder="vous@exemple.fr"
-              className="h-9 w-full rounded-control border border-border-subtle bg-surface px-2.5 text-sm text-ink outline-none focus:border-brand placeholder:text-ink-muted"
             />
             <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Le courriel est notre seul canal. Aucun compte n’est nécessaire : l’alerte est rattachée à ce navigateur, et à votre compte si vous en ouvrez un.')}</p>
           </Section>
@@ -498,25 +594,25 @@ function AlertDialog({
           ) : null}
 
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-9 flex-1 rounded-control border border-border-subtle text-sm font-medium text-ink-muted transition-colors hover:text-ink"
-            >
+            <Button variant="outline" className="flex-1" onClick={onClose}>
               Annuler
-            </button>
-            <button
+            </Button>
+            {/* `type="submit"` traverse : le `Button` de shadcn/ui n'est qu'un `<button>`
+                habillé, il transmet donc l'attribut natif — et c'est lui qui déclenche
+                le `onSubmit` du formulaire, sans quoi la touche Entrée dans un champ
+                n'enverrait plus rien. */}
+            <Button
               type="submit"
+              className="flex-1"
               disabled={pending}
-              className="flex h-9 flex-1 items-center justify-center gap-2 rounded-control bg-brand text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong disabled:opacity-60"
             >
-              {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
+              {pending ? <Loader2 className="animate-spin" /> : null}
               {pending ? 'Enregistrement…' : 'Créer l’alerte'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

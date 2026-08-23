@@ -6,7 +6,13 @@ import { ChangeBadge, EmptyState, formatCompact, formatCurrency, formatNumber } 
 
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
+import { Search } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Slider } from '@/components/ui/slider'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { Money } from '@/components/locale/Money'
 import { ExportMenu } from '@/components/tools/ExportMenu'
@@ -17,7 +23,7 @@ import type {
   ScreenerMarket,
   ScreenerRow,
 } from '@/components/tools/screener-markets'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import type { ScreenCriteria } from '@/lib/screen-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { emphasise } from '@/components/locale/emphasise'
@@ -355,16 +361,25 @@ export function ScreenerView({
           />
         ))}
 
-        <label className="block">
-          <span className="mb-1 block text-xs text-ink-muted">{t('Nom ou symbole')}</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filtrer…"
-            className="w-full rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-          />
-        </label>
+        {/* `Field` porte l'intitulé, `FieldLabel` le lie au champ par `htmlFor`. Un
+            `<label>` écrit autour d'un `<input>` nu tient tant que la balise ne bouge
+            pas ; celui-ci désigne le contrôle par son identifiant, et survit donc au
+            groupe qui s'intercale entre les deux pour poser la loupe. */}
+        <Field>
+          <FieldLabel htmlFor="screener-nom">{t('Nom ou symbole')}</FieldLabel>
+          <InputGroup size="sm">
+            <InputGroupInput
+              id="screener-nom"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Filtrer…"
+            />
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
+        </Field>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -406,11 +421,9 @@ export function ScreenerView({
           />
 
           {filtering ? (
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
-            >{t('Réinitialiser les filtres')}</button>
+            <Button size="xs" variant="outline" onClick={reset}>
+              {t('Réinitialiser les filtres')}
+            </Button>
           ) : null}
         </div>
       </div>
@@ -569,7 +582,7 @@ export function ScreenerView({
       )}
 
       {sortedRows.length > 0 ? (
-        <Pagination
+        <TablePagination
           page={currentPage}
           perPage={perPage}
           total={sortedRows.length}
@@ -746,17 +759,20 @@ function FilterSlider({
         {t(filter.label)}
         <span className="tabular text-ink">{displayThreshold(filter, value, currency)}</span>
       </span>
-      <input
-        type="range"
+      {/* `Slider` de shadcn/ui — même substitution que sur la carte macro, voir la note
+          qui y est posée, notamment sur le tableau attendu par `value`. La valeur
+          lisible reste celle de l'intitulé au-dessus, déjà mise en forme par
+          `displayThreshold` : le curseur n'a rien à afficher de son côté. */}
+      <Slider
+        aria-label={t(filter.label)}
         min={steps ? 0 : (filter.min ?? 0)}
         max={steps ? steps.length - 1 : (filter.max ?? 100)}
         step={steps ? 1 : (filter.step ?? 1)}
-        value={steps ? index : value}
-        onChange={(event) => {
-          const next = Number(event.target.value)
-          onChange(steps ? (steps[clampIndex(next, steps.length - 1)] ?? 0) : next)
+        value={[steps ? index : value]}
+        onValueChange={([next]) => {
+          const raw = Number(next)
+          onChange(steps ? (steps[clampIndex(raw, steps.length - 1)] ?? 0) : raw)
         }}
-        className="w-full accent-[var(--color-brand)]"
       />
     </label>
   )

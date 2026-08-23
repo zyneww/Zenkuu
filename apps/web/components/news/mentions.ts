@@ -23,6 +23,8 @@
  *     d'une recherche — ce qui n'affirme rien.
  */
 
+import type { AssetClass } from '@zenkuu/data'
+
 export interface AssetMention {
   /** Identifiant du filtre, stable. */
   id: string
@@ -43,13 +45,23 @@ export interface AssetMention {
    * identifiant pour uniformiser le type produirait une pastille qui promet une
    * cotation derrière un mot qui n'en a pas.
    *
-   * Les identifiants sont ceux de CoinGecko pour la crypto (`bitcoin`) et les
-   * symboles de notre univers Yahoo pour le reste (`NVDA`), parce que ce sont eux
-   * qui résolvent sur `/crypto/{id}` et `/actions/{id}`.
+   * ⚠️ CE SONT DES IDENTIFIANTS DE ROUTE, PAS DES SYMBOLES.
+   *
+   * Pour la crypto, l'identifiant CoinGecko (`bitcoin`). Pour tout ce que sert Yahoo,
+   * le symbole passé par `toSlug` — c'est-à-dire EN MINUSCULES, sans `^` ni `=` ni
+   * point : `nvda`, `gc-f`, `gspc`.
+   *
+   * Les trois entrées d'actions portaient ici `NVDA`, `AAPL`, `TSLA` en capitales, en
+   * s'appuyant sur un commentaire qui affirmait que « ce sont eux qui résolvent sur
+   * /actions/{id} ». C'était faux : `resolveEntry` compare à `toSlug(symbol)`, et
+   * `/actions/NVDA` répondait donc 404. Le défaut ne se voyait pas parce que la
+   * pastille ne s'affiche QUE si une cotation est connue pour l'identifiant, et que la
+   * page d'actualités ne fournissait alors que des cotations crypto — aucune pastille
+   * d'action n'était jamais rendue, donc aucun lien n'était jamais suivi.
    */
   assetId?: string
   /** Classe de l'actif, nécessaire pour construire l'URL de sa fiche. */
-  assetClass?: 'crypto' | 'stock'
+  assetClass?: AssetClass
 }
 
 /**
@@ -61,17 +73,40 @@ export interface AssetMention {
  * qu'un filtre ait un sens ; la recherche libre couvre tout le reste.
  */
 export const ASSET_MENTIONS: AssetMention[] = [
+  // ── Cryptoactifs ──────────────────────────────────────────────────────────
   { id: 'btc', label: 'Bitcoin', patterns: ['bitcoin', 'btc'], assetId: 'bitcoin', assetClass: 'crypto' },
   { id: 'eth', label: 'Ethereum', patterns: ['ethereum', 'ether ', 'eth '], assetId: 'ethereum', assetClass: 'crypto' },
   { id: 'sol', label: 'Solana', patterns: ['solana', 'sol '], assetId: 'solana', assetClass: 'crypto' },
   { id: 'xrp', label: 'XRP', patterns: ['xrp', 'ripple'], assetId: 'ripple', assetClass: 'crypto' },
+  { id: 'bnb', label: 'BNB', patterns: ['bnb', 'binance coin'], assetId: 'binancecoin', assetClass: 'crypto' },
+  { id: 'ada', label: 'Cardano', patterns: ['cardano', 'ada '], assetId: 'cardano', assetClass: 'crypto' },
+  { id: 'doge', label: 'Dogecoin', patterns: ['dogecoin', 'doge'], assetId: 'dogecoin', assetClass: 'crypto' },
   { id: 'stablecoins', label: 'Stablecoins', patterns: ['stablecoin', 'usdt', 'usdc', 'tether'] },
+  // ── ETF au comptant ───────────────────────────────────────────────────────
+  /* `ibit` et non « ETF » tout court : le mot seul désigne aussi bien un fonds
+     obligataire qu'un fonds bitcoin. Les formes cherchées nomment le PRODUIT, ce qui
+     garde la pastille vraie — voir l'en-tête de ce fichier sur la différence entre
+     chercher un mot et classer un article. */
+  { id: 'etf-btc', label: 'ETF Bitcoin', patterns: ['ibit', 'spot bitcoin etf', 'etf bitcoin'], assetId: 'ibit', assetClass: 'etf' },
+  { id: 'etf-eth', label: 'ETF Ether', patterns: ['etha', 'spot ether etf', 'etf ether'], assetId: 'etha', assetClass: 'etf' },
   { id: 'etf-crypto', label: 'ETF crypto', patterns: ['etf'] },
-  { id: 'nvidia', label: 'NVIDIA', patterns: ['nvidia', 'nvda'], assetId: 'NVDA', assetClass: 'stock' },
-  { id: 'apple', label: 'Apple', patterns: ['apple', 'aapl'], assetId: 'AAPL', assetClass: 'stock' },
-  { id: 'tesla', label: 'Tesla', patterns: ['tesla', 'tsla'], assetId: 'TSLA', assetClass: 'stock' },
-  { id: 'or', label: 'Or', patterns: [" l'or ", ' or ', 'gold'] },
-  { id: 'petrole', label: 'Pétrole', patterns: ['pétrole', 'petrole', 'oil', 'brent', 'wti'] },
+  // ── Actions ───────────────────────────────────────────────────────────────
+  { id: 'nvidia', label: 'NVIDIA', patterns: ['nvidia', 'nvda'], assetId: 'nvda', assetClass: 'stock' },
+  { id: 'apple', label: 'Apple', patterns: ['apple', 'aapl'], assetId: 'aapl', assetClass: 'stock' },
+  { id: 'tesla', label: 'Tesla', patterns: ['tesla', 'tsla'], assetId: 'tsla', assetClass: 'stock' },
+  { id: 'microsoft', label: 'Microsoft', patterns: ['microsoft', 'msft'], assetId: 'msft', assetClass: 'stock' },
+  { id: 'amazon', label: 'Amazon', patterns: ['amazon', 'amzn'], assetId: 'amzn', assetClass: 'stock' },
+  { id: 'coinbase', label: 'Coinbase', patterns: ['coinbase', 'coin '], assetId: 'coin', assetClass: 'stock' },
+  { id: 'strategy', label: 'Strategy', patterns: ['microstrategy', 'mstr'], assetId: 'mstr', assetClass: 'stock' },
+  // ── Indices ───────────────────────────────────────────────────────────────
+  { id: 'sp500', label: 'S&P 500', patterns: ['s&p 500', 's&p500', 'sp500'], assetId: 'gspc', assetClass: 'index' },
+  { id: 'nasdaq', label: 'Nasdaq', patterns: ['nasdaq'], assetId: 'ixic', assetClass: 'index' },
+  { id: 'cac40', label: 'CAC 40', patterns: ['cac 40', 'cac40'], assetId: 'fchi', assetClass: 'index' },
+  { id: 'dax', label: 'DAX', patterns: ['dax '], assetId: 'gdaxi', assetClass: 'index' },
+  // ── Matières premières ────────────────────────────────────────────────────
+  { id: 'or', label: 'Or', patterns: [" l'or ", ' or ', 'gold'], assetId: 'gc-f', assetClass: 'commodity' },
+  { id: 'petrole', label: 'Pétrole', patterns: ['pétrole', 'petrole', 'oil', 'brent', 'wti'], assetId: 'bz-f', assetClass: 'commodity' },
+  // ── Sujets sans cotation — proposés au FILTRE, jamais en pastille ─────────
   { id: 'fed', label: 'Réserve fédérale', patterns: ['fed ', 'federal reserve', 'réserve fédérale'] },
   { id: 'bce', label: 'BCE', patterns: ['bce ', 'ecb ', 'banque centrale européenne'] },
   { id: 'inflation', label: 'Inflation', patterns: ['inflation', 'cpi ', 'ipc '] },

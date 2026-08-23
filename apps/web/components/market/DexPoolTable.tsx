@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { DexPool } from '@zenkuu/data'
 import { ChangeBadge, formatCompact } from '@zenkuu/ui'
@@ -78,7 +79,7 @@ export function DexPoolTable({
     /* `rounded-card` sur l'enveloppe, angles VIFS à l'intérieur : le tableau est un
        instrument qu'on parcourt, ses cellules doivent s'abouter. Voir la doctrine des
        deux familles de rayons dans globals.css. */
-    <div className="overflow-x-auto rounded-card">
+    <div className="rounded-card">
       {/* COLONNES PRIORITAIRES SOUS `sm`.
 
           Sept colonnes ne tiennent pas dans 320 pixels, et un tableau qui défile
@@ -87,8 +88,8 @@ export function DexPoolTable({
           prix, dans quel sens, sur quelle profondeur — et l'on rend les trois autres
           dès que la largeur revient. Le volume et le compte d'adresses répondent à une
           question d'analyse, pas de repérage : ils peuvent attendre l'écran large. */}
-      <table className="w-full border-collapse text-sm sm:min-w-[52rem]">
-        <thead>
+      <Table className="border-collapse sm:min-w-[52rem]">
+        <TableHeader className="[&_tr]:border-b-0">
           <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
             <SortableHeader label="Paire" sortKey="name" align="left" sort={sort} onToggle={toggle} />
             {showNetwork ? (
@@ -119,9 +120,9 @@ export function DexPoolTable({
               onToggle={toggle}
             />
           </tr>
-        </thead>
+        </TableHeader>
 
-        <tbody className="divide-y divide-border-subtle">
+        <TableBody className="divide-y divide-border-subtle">
           {rows.map((pool) => (
             <tr key={pool.id} className="transition-colors hover:bg-surface-muted">
               <td className="px-3 py-2">
@@ -180,8 +181,8 @@ export function DexPoolTable({
               </td>
             </tr>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

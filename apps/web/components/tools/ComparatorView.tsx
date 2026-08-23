@@ -1,6 +1,7 @@
 'use client'
 
 import { Plus, X } from 'lucide-react'
+import { IconButton } from '@/components/ui/IconButton'
 import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
@@ -13,6 +14,7 @@ import { AreaPlot } from '@/components/charts/AreaPlot'
 import { dataColor } from '@/components/charts/chart-theme'
 import { emphasise } from '@/components/locale/emphasise'
 import { Money } from '@/components/locale/Money'
+import { ComparatorRadar } from '@/components/tools/ComparatorRadar'
 import { AssetPicker } from '@/components/tools/AssetPicker'
 import {
   alignSeries,
@@ -297,6 +299,12 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
         <p className="rounded-card border border-border-subtle bg-surface px-4 py-10 text-center text-sm text-ink-muted">{t('La source ne publie pas de série récente pour les actifs sélectionnés.')}</p>
       )}
 
+      {/* La toile des horizons de variation. Elle ne dépend PAS de `alignment` : les
+          variations sont publiées avec la cotation, alors que la courbe demande des
+          séries historiques que la source ne fournit pas toujours. La comparaison garde
+          donc une figure même quand le tracé est impossible. */}
+      <ComparatorRadar assets={chosen} colorOf={colorOf} />
+
       <div className="overflow-x-auto rounded-card">
         {/* PAS DE COLONNES PRIORITAIRES ICI — et c'est le seul tableau du site dans ce
             cas. Les colonnes SONT les actifs que le lecteur a lui-même choisis :
@@ -493,14 +501,15 @@ function SlotCard({
         </div>
 
         {onRemove ? (
-          <button
-            type="button"
+          <IconButton
+            size="icon-xs"
+            variant="ghost"
+            icon={X}
+            label={`Retirer ${asset.name} de la comparaison`}
+            tooltip={false}
             onClick={onRemove}
-            aria-label={`Retirer ${asset.name} de la comparaison`}
-            className="shrink-0 rounded-control p-1 text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-          >
-            <X className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
+            className="shrink-0"
+            />
         ) : null}
       </div>
     </div>

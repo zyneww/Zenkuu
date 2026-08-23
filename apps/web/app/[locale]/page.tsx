@@ -1,24 +1,14 @@
-import { getLocale } from 'next-intl/server'
 import { Suspense } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
-import {
-  CACHE_TTL_SECONDS,
-  getCryptoGlobalStats,
-  getMarketCapSeriesState,
-  getNewListings,
-  getNews,
-} from '@zenkuu/data'
+import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 
+import { CryptoBoard } from '@/components/home/CryptoBoard'
 import { GlobalAnalyses } from '@/components/home/analyses/GlobalAnalyses'
-import { ClassSection } from '@/components/home/ClassSection'
-import { EditorialBand } from '@/components/home/EditorialBand'
-import { EventFeed } from '@/components/home/EventFeed'
-import { MarketCapCard } from '@/components/home/MarketCapCard'
-import { MarketDate } from '@/components/home/MarketDate'
-import { NewsBoard } from '@/components/home/NewsBoard'
-import { RecentlyAdded } from '@/components/home/RecentlyAdded'
-import { SectionLabel } from '@/components/home/SectionLabel'
-import { Link } from '@/i18n/navigation'
+import { MarketPanorama } from '@/components/home/MarketPanorama'
+import { MoversRow } from '@/components/home/MoversRow'
+import { NewsSidebar } from '@/components/home/NewsSidebar'
+import { PriceHeader } from '@/components/home/PriceHeader'
 import { getContent, getPhrase } from '@/lib/content'
 
 // Régénération alignée sur le TTL du cache applicatif : les deux durées de vie doivent
@@ -48,182 +38,176 @@ export async function generateMetadata() {
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * ACCUEIL — UN TABLEAU DE BORD DE MARCHÉ, REPRIS DE ZÉRO
+ * ACCUEIL — UNE PAGE DE COTATIONS, DANS L'ORDRE DE LA RÉFÉRENCE
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * ── L'ORDRE DES BLOCS, ET CE QU'IL REMPLACE ─────────────────────────────────
+ * ── L'ORDRE DES BLOCS ───────────────────────────────────────────────────────
  *
- * La page était un EXPLORATEUR : en-tête daté flanqué de compteurs, rail de
- * raccourcis, recherche pleine largeur, trois cartes, puis une grille d'analyse
- * (carte des secteurs, trois palmarès, panneau éditorial). Elle est refaite sur le
- * modèle de tokenomist.ai/overview, dont l'ordre a été relevé écran par écran :
+ * La page est une GRILLE À DEUX COLONNES sur toute sa hauteur, et non une pile de
+ * blocs dont l'un se trouve être à deux colonnes.
  *
- *     1. LIGNE DE DATE      centrée, seule, avec l'heure de fraîcheur
- *     2. RANG DE TÊTE       trois cartes LÉGÈRES, rendues sans attendre
- *     3. CLASSES + TABLEAU  sept pastilles, un interrupteur, un tableau dense,
- *                           et les TROIS analyses qui suivent la pastille
- *     4. ANALYSES GLOBALES  cinq familles qui ne dépendent d'aucune classe
- *     5. EN TENDANCE        une carte par classe, pleine largeur
- *     6. ACTUALITÉS         quatre cartes, pleine largeur
- *     7. ÉDITORIAL          blog et fiches pédagogiques, deux colonnes
+ *     COLONNE DE GAUCHE                          COLONNE DE DROITE
+ *     1. EN-TÊTE       titre, sous-titre,        LE FIL D'ACTUALITÉS
+ *                      cinq chiffres              — du haut de la page
+ *     2. TROIS CARTES  tendances, hausses,          jusqu'en bas, sans
+ *                      baisses                      jamais bouger
+ *     3. TABLEAU       cent cryptomonnaies
+ *     4. PANORAMA      indices, crypto, devises,
+ *                      matières premières
+ *     5. ANALYSES      sentiment, secteurs, flux, macro
  *
- * ── LES HUIT FAMILLES D'ANALYSE, ET CE QU'ELLES REMPLACENT ──────────────────
+ * ── POURQUOI LA COLONNE D'ACTUALITÉS REMONTE AU HAUT DE LA PAGE ────────────
  *
- * Les six familles de la référence — émission, rachat, destruction, déblocages,
- * réclamations, allocations — reposent toutes sur des données de TOKENOMICS que nous
- * n'avons pas et n'inventerons pas. Chacune est remplacée par la question la plus
- * voisine que nos sources savent réellement répondre :
+ * Elle commençait À CÔTÉ DU TABLEAU, c'est-à-dire après le titre, le sous-titre, le
+ * bandeau de chiffres et les trois cartes — quelque huit cents pixels plus bas. Deux
+ * conséquences, et la seconde est la plus coûteuse :
  *
- *     leur émission     → l'offre : part déjà émise, reste à venir
- *     leur rachat       → les volumes et la liquidité : volume, rotation
- *     leur destruction  → la dominance : répartition de la capitalisation
- *     leurs allocations → la comparaison : deux actifs sur quatre mesures
+ *   · le premier écran ne portait aucune actualité, alors que c'est la moitié de ce
+ *     qu'on vient chercher sur une page d'accueil de marché ;
+ *   · surtout, la colonne ne pouvait pas tenir : sa hauteur était bornée par CELLE DU
+ *     TABLEAU. Passé le tableau, la grille se refermait et le fil s'en allait vers le
+ *     haut, laissant le convertisseur et la carte thermique occuper la pleine largeur.
+ *     Le lecteur qui descendait perdait le fil en route.
  *
- * Quatre autres s'y ajoutent, sans équivalent chez eux mais alimentées ici : le
- * sentiment, la macroéconomie, les secteurs et les flux de trading.
+ * C'est la disposition de CoinGecko, et le déplacement de la grille d'un cran vers le
+ * haut suffit à obtenir les deux : la colonne part au niveau du titre, et sa piste de
+ * grille court jusqu'au dernier bloc de la page. Le collage (`sticky`) qu'elle portait
+ * déjà a enfin de la place pour agir — voir `NewsSidebar`, où les trois propriétés qui
+ * le rendent tenable sont expliquées.
  *
- * ⚠️ TROIS SUIVENT LA PASTILLE, CINQ NON. Offre, volumes et comparaison se déduisent
- * des lignes du tableau et se recalculent au changement de classe. Les cinq autres
- * n'existent que pour la crypto ou pour aucune classe — chacune ANNONCE sa portée
- * dans son sous-titre plutôt que de la laisser deviner. Voir `GlobalAnalyses`.
+ * ── CE QUI A QUITTÉ CETTE PAGE, ET OÙ LE RETROUVER ─────────────────────────
  *
- * ── CE QUI DISPARAÎT, ET POURQUOI ───────────────────────────────────────────
+ *     `MarketPulse`      → les mêmes chiffres, tenus par l'en-tête
+ *     `HighlightGrid`    → tendances/hausses/baisses tenues par `MoversRow`
+ *     `EditorialBand`    → /blog et /apprendre
+ *     `MarketDate`       → la fraîcheur est dans le sous-titre de l'en-tête
+ *     `HomeConverter`    → /convertisseur
+ *     `HomeHeatmap`      → /heatmap
  *
- *   · les COMPTEURS DE COUVERTURE (« actifs suivis », « capitalisation suivie ») :
- *     un argument de vente posé à hauteur de la date, qui pesait autant qu'elle ;
- *   · le RAIL DE RACCOURCIS : il doublait la navigation de l'en-tête entrée pour
- *     entrée ;
- *   · la RECHERCHE PLEINE LARGEUR : la référence n'en porte pas sur cette page, la
- *     recherche vivant dans l'en-tête. C'est le point à surveiller de cette refonte —
- *     le champ de l'en-tête est REPLIÉ par défaut, et la recherche perd donc en
- *     visibilité ce que la page gagne en densité ;
- *   · la CARTE « FAVORIS » du rang de tête : elle occupait un tiers du premier écran
- *     pour dire à un visiteur sans compte « commencez votre liste ». Les favoris
- *     n'ont pas disparu — l'étoile de chaque ligne les alimente, `/suivi` les
- *     rassemble ;
- *   · la CARTE DES SECTEURS et les TROIS PALMARÈS de l'ancien explorateur : la
- *     première revient en carte d'analyse sectorielle, les seconds sont remplacés par
- *     le tableau de cotations, qui répond à la même question sans demander au lecteur
- *     de choisir entre trois classements avant de voir un prix.
+ * Les deux derniers sont les plus récents à partir, et le motif est écrit en entier
+ * dans l'en-tête de `MarketPanorama` : ce sont des OUTILS, c'est-à-dire des surfaces
+ * qu'on ouvre avec une question en tête. Le bas de la page la plus visitée du site
+ * revient à un RELEVÉ — où en sont les indices, le dollar, le pétrole, les taux — puis
+ * aux analyses, qui sont ce que la référence ne sait pas faire.
  *
- * ── DEUX GRAPPES SOUS `<Suspense>`, ET NON UNE ──────────────────────────────
+ * ⚠️ Contrairement aux quatre premiers, ces deux-là sont SUPPRIMÉS DU DÉPÔT et pas
+ * seulement de la page : c'étaient des enveloppes propres à l'accueil autour de
+ * `Converter` et de `MarketHeatmap`, que `/convertisseur` et `/heatmap` rendent
+ * directement. Les garder aurait laissé deux modules que rien n'importe, et dont le
+ * prochain lecteur aurait dû établir lui-même qu'ils ne servent plus.
  *
- * Les trois requêtes de tête sont légères : une liste courte, un agrégat, un fil
- * d'actualités. Les sept CLASSEMENTS et les cinq ANALYSES GLOBALES sont deux grappes
- * lourdes qui touchent des sources différentes, et rien n'oblige la plus rapide à
- * attendre la plus lente : chacune a son propre substitut.
+ * ── QUATRE GRAPPES SOUS `<Suspense>` ───────────────────────────────────────
  *
- * ── AUCUNE ENTRÉE PROPRE AU VISITEUR ────────────────────────────────────────
+ * La page n'attend elle-même que deux appels légers — un agrégat et un fil
+ * d'actualités — dont dépendent l'en-tête et la colonne de droite. Les cartes, le
+ * tableau, le panorama et les analyses touchent des points de terminaison différents,
+ * et rien n'oblige la plus rapide à attendre la plus lente : chacune a son propre
+ * substitut, à sa hauteur.
+ *
+ * ── AUCUNE ENTRÉE PROPRE AU VISITEUR ───────────────────────────────────────
  *
  * Ni `searchParams`, ni cookie : ce que rend cette page est le même pour tout le
  * monde, et `revalidate = 180` gouverne donc réellement la fraîcheur de ses données.
- * C'est aussi la raison pour laquelle les pastilles de classe changent le tableau par
- * un ÉTAT LOCAL et non par l'URL — voir l'en-tête de `MarketWorkspace`.
+ * C'est aussi la raison pour laquelle le tableau pagine CÔTÉ CLIENT — voir `CryptoBoard`.
  */
 export default async function HomePage() {
-  const fr = await getContent()
   const t = await getPhrase()
-  const locale = await getLocale()
-
-  const [news, newListings, globals] = await Promise.all([
-    getNews(8),
-    getNewListings(8),
-    getCryptoGlobalStats('eur'),
-  ])
-
-  /* Série locale et non requête : `getMarketCapSeriesState` lit les relevés que le
-     site enregistre lui-même. Synchrone, donc hors du `Promise.all`. */
-  const series = getMarketCapSeriesState('EUR')
+  const [news, globals] = await Promise.all([getNews(14), getCryptoGlobalStats('eur')])
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="sr-only">
-        {t('{site} — explorer les marchés').replace('{site}', fr.site.name)}
-      </h1>
+    /*
+      ── LA GRILLE TIENT LA PAGE ENTIÈRE ──────────────────────────────────────
 
-      <MarketDate locale={locale} />
+      COLONNE DE DROITE À LARGEUR FIXE, et non à un tiers de la page. Un tiers paraît
+      le choix naturel, et c'est le mauvais : les deux colonnes n'ont pas le même
+      appétit. Le fil porte des titres sur deux lignes — au-delà de 340 px il gagne du
+      blanc, pas de la lisibilité. Le tableau, lui, a onze colonnes dont la plus étroite
+      ne se comprime plus : chaque pixel qu'on lui prend en retire une (voir les seuils
+      de `MarketTable`). Tout le surplus des grands écrans va donc au tableau.
 
-      {/* ── LE RANG DE TÊTE ──────────────────────────────────────────────────
-          DEUX PARTS POUR LA PREMIÈRE CARTE, UNE POUR CHACUNE DES DEUX AUTRES.
-          Mesuré sur la capture de la référence : leur carte de gauche fait 474 px
-          quand les deux suivantes en font 238 et 231. Ce n'est pas une préférence
-          de composition — c'est ce que le CONTENU impose. Les deux cartes de droite
-          sont des listes de lignes courtes, qui n'ont rien à faire d'une largeur
-          supplémentaire ; celle de gauche porte une courbe, dont la lisibilité est
-          proportionnelle à sa largeur. Partager en trois parts égales prend au seul
-          bloc qui en a besoin pour donner aux deux qui n'en ont que faire.
+      `minmax(0,1fr)` et non `1fr` : une piste de grille en `1fr` refuse de passer sous
+      la taille minimale de son contenu, et un tableau large la ferait déborder au lieu
+      de rétrécir.
 
-          `items-start` : les trois cartes ont des hauteurs indépendantes. Sans lui,
-          la grille les étire toutes à la hauteur de la plus haute, et deux d'entre
-          elles se terminent par un aplat vide de plusieurs centaines de pixels. */}
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="flex flex-col gap-2">
-          <SectionLabel>{t('Suivi du marché')}</SectionLabel>
-          <MarketCapCard result={globals} series={series} />
-        </section>
+      `items-start` : la colonne de droite ne s'étire pas d'elle-même — c'est elle qui
+      demande `self-stretch`, parce que son filet vertical doit courir sur toute la
+      hauteur. Voir `NewsSidebar`.
+    */
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      {/* `min-w-0` sur la colonne de gauche est OBLIGATOIRE et son absence ne se voit
+          pas tout de suite : sans lui, la largeur minimale de cette piste est celle de
+          son contenu le plus large — le tableau — et la page défilerait
+          horizontalement au lieu de laisser le tableau rétrécir. */}
+      <div className="flex min-w-0 flex-col gap-8">
+        <PriceHeader globals={globals} />
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel
-            action={
-              <Link
-                href="/nouvelles-cotations"
-                className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
-              >
-                {t('Tout voir')}
-              </Link>
-            }
+        <Suspense fallback={<CardsSkeleton />}>
+          <MoversRow />
+        </Suspense>
+
+        {/* Le filet de section sépare le bloc de tête du classement. Il est posé sur le
+            bloc et non sur la grille : la grille traverse désormais toute la page, et
+            un filet en travers de ses deux colonnes couperait la colonne d'actualités
+            en son milieu. */}
+        <Suspense fallback={<BoardSkeleton />}>
+          <div className="border-t border-border-subtle pt-8">
+            <CryptoBoard />
+          </div>
+        </Suspense>
+
+        <Suspense fallback={<BlockSkeleton height="h-[320px]" />}>
+          <MarketPanorama />
+        </Suspense>
+
+        {/* ── LES ANALYSES ────────────────────────────────────────────────────
+            `GlobalAnalyses` était parti sur `/graphiques` quand l'accueil s'est
+            resserré sur les cotations. Il revient, et pas au même endroit : en BAS de
+            page, après le relevé, là où le lecteur qui est descendu jusque-là cherche
+            une lecture plutôt qu'un cours.
+
+            Le composant rend un fragment de cartes, sans grille : c'est l'appelant qui
+            décide de leur disposition, et il le faut — la même série de cartes tient
+            sur deux colonnes ici, à côté d'une colonne d'actualités, et sur trois sur
+            `/graphiques` où elle occupe la pleine largeur. */}
+        <Suspense fallback={<BlockSkeleton height="h-[560px]" />}>
+          <section
+            className="flex flex-col gap-3 border-t border-border-subtle pt-8"
+            aria-label={t('Analyses')}
           >
-            {t('Récemment cotés')}
-          </SectionLabel>
-          <RecentlyAdded result={newListings} />
-        </section>
+            <h2 className="text-sm font-normal text-ink-muted">{t('Analyses')}</h2>
+            {/*
+              ── LA DERNIÈRE CARTE PREND TOUTE LA RANGÉE QUAND ELLE Y EST SEULE ──
 
-        <section className="flex flex-col gap-2">
-          <SectionLabel>{t('À la une')}</SectionLabel>
-          <EventFeed result={news} />
-        </section>
+              `GlobalAnalyses` rend CINQ cartes dans une grille à deux colonnes : la
+              cinquième — l'inflation annuelle — se retrouvait seule à gauche, avec six
+              cent quarante pixels de vide à sa droite. Une carte isolée à mi-largeur
+              se lit comme une carte qui n'a pas chargé, et son histogramme de huit
+              années y était comprimé sans raison.
+
+              Le sélecteur porte les DEUX conditions : dernière ET de rang impair. Une
+              sixième carte formerait une rangée complète, où l'étalement serait faux —
+              la règle se désactive alors d'elle-même, sans qu'on ait à y revenir.
+            */}
+            <div className="grid gap-3 xl:grid-cols-2 xl:[&>section:last-child:nth-child(odd)]:col-span-2">
+              <GlobalAnalyses />
+            </div>
+          </section>
+        </Suspense>
       </div>
 
-      <Suspense fallback={<BoardSkeleton />}>
-        <ClassSection />
-      </Suspense>
-
-      {/* ── LES CINQ ANALYSES GLOBALES ───────────────────────────────────────
-          Sous leur PROPRE `<Suspense>`, et non celui du bloc de classements. Les deux
-          grappes touchent des sources différentes — sept classements d'un côté, cinq
-          analyses de l'autre — et rien n'oblige la plus rapide à attendre la plus
-          lente. Un substitut partagé les aurait synchronisées pour rien.
-
-          Deux colonnes à partir de 1280 px : c'est la grille de la référence, et c'est
-          aussi la largeur en dessous de laquelle deux figures côte à côte rendent les
-          libellés d'abscisse illisibles. */}
-      <Suspense fallback={<AnalysisSkeleton />}>
-        <div className="grid items-start gap-4 xl:grid-cols-2">
-          <GlobalAnalyses globals={globals.ok ? globals.data : null} />
-        </div>
-      </Suspense>
-
-      <NewsBoard result={news} />
-
-      <EditorialBand />
+      <NewsSidebar news={news} />
     </div>
   )
 }
 
-/**
- * Substitut des analyses globales.
- *
- * Six cadres et non huit : c'est le nombre de cartes que `GlobalAnalyses` rend, et un
- * substitut qui n'a pas la hauteur de ce qu'il remplace fait sauter le bas de la page
- * à l'arrivée des données.
- */
-function AnalysisSkeleton() {
+/** Substitut des trois cartes — même grille, même hauteur que cinq lignes. */
+function CardsSkeleton() {
   return (
-    <div className="grid items-start gap-4 xl:grid-cols-2" aria-hidden="true">
-      {[0, 1, 2, 3, 4, 5].map((index) => (
-        <div
+    <div className="grid gap-3 md:grid-cols-3" aria-hidden="true">
+      {[0, 1, 2].map((index) => (
+        <Skeleton
           key={index}
-          className="h-[320px] animate-pulse rounded-panel border border-border-subtle bg-surface-muted"
+          className="h-[228px] rounded-card border border-border-subtle bg-surface-muted"
         />
       ))}
     </div>
@@ -231,32 +215,30 @@ function AnalysisSkeleton() {
 }
 
 /**
- * Substitut du bloc de classements.
+ * Substitut du tableau.
  *
- * HAUTEUR PROCHE DU CONTENU RÉEL, délibérément. Un substitut plus court que ce qu'il
- * remplace fait sauter tout le bas de la page à l'arrivée des données — le décalage de
- * mise en page que mesure Core Web Vitals.
+ * HAUTEUR FIXE plutôt qu'un nombre de lignes : le tableau réel mesure sa hauteur sur
+ * ses en-têtes, sa barre d'outils et son pied de pagination, qu'un empilement de
+ * rectangles n'approcherait qu'au hasard. Une hauteur ronde ne prétend rien.
  */
 function BoardSkeleton() {
-  return (
-    <div className="flex flex-col gap-5" aria-hidden="true">
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-1.5">
-          {[0, 1, 2, 3, 4, 5, 6].map((index) => (
-            <div key={index} className="h-[30px] w-24 animate-pulse rounded-pill bg-surface-muted" />
-          ))}
-        </div>
-        <div className="h-[620px] animate-pulse rounded-panel border border-border-subtle bg-surface-muted" />
-      </div>
+  return <BlockSkeleton height="h-[720px]" />
+}
 
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-        {[0, 1, 2, 3].map((index) => (
-          <div
-            key={index}
-            className="h-[260px] animate-pulse rounded-panel border border-border-subtle bg-surface-muted"
-          />
-        ))}
-      </div>
+/**
+ * Substitut générique : une ligne de titre, puis un cadre à la hauteur annoncée.
+ *
+ * La hauteur est passée par l'appelant plutôt que devinée, et c'est ce qui empêche la
+ * page de sauter sous les yeux quand un bloc arrive : un substitut plus court que ce
+ * qu'il remplace décale tout ce qui le suit au moment précis où le lecteur y arrive.
+ */
+function BlockSkeleton({ height }: { height: string }) {
+  return (
+    <div className="flex flex-col gap-3" aria-hidden="true">
+      <Skeleton className="h-5 w-48 rounded-control bg-surface-muted" />
+      <Skeleton
+        className={`${height} rounded-panel border border-border-subtle bg-surface-muted`}
+      />
     </div>
   )
 }

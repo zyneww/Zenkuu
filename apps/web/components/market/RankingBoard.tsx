@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react'
 
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+
 import { Link } from '@/i18n/navigation'
 import { RankingDetailLink } from '@/components/market/RankingDetailLink'
 
@@ -112,27 +114,30 @@ export function RankingBoard({
           {scopeLabel ?? `Classements calculés sur les ${assets.length} plus grandes capitalisations.`}
         </p>
 
-        <div
-          className="flex items-center gap-1 rounded-card border border-border-subtle bg-surface p-1"
-          role="group"
+        {/* `ToggleGroup` de shadcn/ui — le contrôle segmenté du système, monté sur celui
+            `ToggleGroup` de Radix. Il remplace quatre `<button aria-pressed>` que rien
+            ne reliait entre eux : le groupe apporte les flèches directionnelles et
+            l'annonce « option 2 sur 4 » à la synthèse vocale. */}
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
           aria-label={t('Période des classements')}
+          value={String(period)}
+          onValueChange={(next) => {
+            /* Radix n'a pas de `disallowEmptySelection` : recliquer l'option
+               active rappelle avec la CHAÎNE VIDE. Ce réglage n'a pas d'état
+               « aucun » — on ignore donc ce cas plutôt que de laisser le
+               contrôle devenir muet sur une valeur qui, elle, n'a pas bougé. */
+            if (next) setPeriod(next as Period)
+          }}
         >
           {PERIODS.map((entry) => (
-            <button
-              key={entry.key}
-              type="button"
-              onClick={() => setPeriod(entry.key)}
-              aria-pressed={period === entry.key}
-              className={`tabular rounded-none px-2.5 py-1 text-xs font-medium transition-colors ${
-                period === entry.key
-                  ? 'bg-brand text-on-brand'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-              }`}
-            >
+            <ToggleGroupItem key={entry.key} value={String(entry.key)} className="tabular">
               {entry.label}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

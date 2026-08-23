@@ -47,8 +47,28 @@ const http = createHttpClient({
   retryOnTimeout: false,
 })
 
-/** Paires majeures cotées contre l'euro, dans l'ordre d'affichage. */
+/**
+ * Paires cotées contre l'euro, dans l'ordre d'affichage.
+ *
+ * ── HUIT PAIRES SONT DEVENUES TRENTE, ET ÇA NE COÛTE RIEN ────────────────────
+ *
+ * La liste s'arrêtait aux huit majeures. Ce n'était pas une limite de la source :
+ * `listAssets` demande la SÉRIE ENTIÈRE en une requête — `symbols` est une liste
+ * séparée par des virgules, et la BCE renvoie les trente et un taux du jour pour le
+ * même prix qu'elle en renvoyait huit. Le plafond était donc écrit ici, et nulle
+ * part ailleurs.
+ *
+ * Ce sont EXACTEMENT les devises que publie la Banque centrale européenne dans son
+ * relevé quotidien, ni plus ni moins. Aucune n'est ajoutée à l'estime : une paire
+ * absente du relevé sortirait sans taux, et `listAssets` la sauterait en silence —
+ * ce qui laisserait une ligne fantôme dans les sélecteurs sans jamais rien afficher.
+ *
+ * L'ordre reste celui de l'usage : les huit majeures d'abord, puis le reste par
+ * zone géographique. C'est aussi l'ordre du classement, qui n'est pas trié par
+ * valeur — un taux de change n'a pas de « premier ».
+ */
 const MAJOR_PAIRS = [
+  // ── Les majeures ───────────────────────────────────────────────────────────
   { code: 'USD', name: 'Dollar américain' },
   { code: 'GBP', name: 'Livre sterling' },
   { code: 'JPY', name: 'Yen japonais' },
@@ -56,7 +76,32 @@ const MAJOR_PAIRS = [
   { code: 'CAD', name: 'Dollar canadien' },
   { code: 'AUD', name: 'Dollar australien' },
   { code: 'CNY', name: 'Yuan chinois' },
+  { code: 'NZD', name: 'Dollar néo-zélandais' },
+  // ── Europe hors zone euro ──────────────────────────────────────────────────
   { code: 'SEK', name: 'Couronne suédoise' },
+  { code: 'NOK', name: 'Couronne norvégienne' },
+  { code: 'DKK', name: 'Couronne danoise' },
+  { code: 'PLN', name: 'Zloty polonais' },
+  { code: 'CZK', name: 'Couronne tchèque' },
+  { code: 'HUF', name: 'Forint hongrois' },
+  { code: 'RON', name: 'Leu roumain' },
+  { code: 'BGN', name: 'Lev bulgare' },
+  { code: 'ISK', name: 'Couronne islandaise' },
+  { code: 'TRY', name: 'Livre turque' },
+  // ── Asie-Pacifique ─────────────────────────────────────────────────────────
+  { code: 'HKD', name: 'Dollar de Hong Kong' },
+  { code: 'SGD', name: 'Dollar de Singapour' },
+  { code: 'KRW', name: 'Won sud-coréen' },
+  { code: 'INR', name: 'Roupie indienne' },
+  { code: 'IDR', name: 'Roupie indonésienne' },
+  { code: 'MYR', name: 'Ringgit malaisien' },
+  { code: 'PHP', name: 'Peso philippin' },
+  { code: 'THB', name: 'Baht thaïlandais' },
+  // ── Amériques, Afrique, Proche-Orient ──────────────────────────────────────
+  { code: 'BRL', name: 'Réal brésilien' },
+  { code: 'MXN', name: 'Peso mexicain' },
+  { code: 'ZAR', name: 'Rand sud-africain' },
+  { code: 'ILS', name: 'Shekel israélien' },
 ] as const
 
 interface FrankfurterTimeSeries {

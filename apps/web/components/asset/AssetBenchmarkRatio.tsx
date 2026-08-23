@@ -1,4 +1,5 @@
 import type { AssetDetail } from '@zenkuu/data'
+import { ChangeBadge } from '@zenkuu/ui'
 
 /**
  * COURS EXPRIMÉ DANS UN ACTIF DE RÉFÉRENCE — « 0,00014951 BTC ».
@@ -55,9 +56,26 @@ export function AssetBenchmarkRatio({ asset }: { asset: AssetDetail }) {
   const value = prices[benchmark.code] as number
   if (!Number.isFinite(value) || value <= 0) return null
 
+  /*
+   * ── LA VARIATION DANS CETTE MÊME UNITÉ, ET C'EST TOUT L'INTÉRÊT ────────────
+   *
+   * Le rapport seul dit « ce jeton vaut 0,0000041 BTC », un nombre qu'on ne sait pas
+   * lire sans point de comparaison. La variation en bitcoin, elle, répond à la question
+   * que le rapport pose : l'actif a-t-il fait mieux ou moins bien que son marché ?
+   *
+   * Elle n'est PAS déduite de la variation en euro — voir `changesByCurrency`. Absente,
+   * la ligne se rend sans elle plutôt que d'afficher un chiffre calculé.
+   */
+  const change = asset.changesByCurrency?.[benchmark.code]
+
   return (
-    <p className="tabular text-xs text-ink-muted">
-      <span className="font-medium text-ink">{formatRatio(value)}</span> {benchmark.label}
+    <p className="tabular flex items-baseline gap-2 text-xs text-ink-muted">
+      <span>
+        <span className="font-medium text-ink">{formatRatio(value)}</span> {benchmark.label}
+      </span>
+      {typeof change === 'number' && Number.isFinite(change) ? (
+        <ChangeBadge value={change} size="sm" periodLabel={`sur 24 heures en ${benchmark.label}`} />
+      ) : null}
     </p>
   )
 }

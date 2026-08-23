@@ -39,7 +39,7 @@ export function AssetSimilarRail({ peers }: { peers: MarketAsset[] }) {
     <RailSection title="Projets similaires">
       <ul>
         {shown.map((peer) => (
-          <li key={peer.id} className="border-b border-border-subtle/60 last:border-0">
+          <li key={peer.id} className="border-b border-border-subtle last:border-0">
             <Link
               href={assetHref(peer.assetClass, peer.id)}
               /* La ligne entière est la cible, comme dans le registre de métriques

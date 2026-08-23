@@ -1,6 +1,19 @@
 'use client'
 
-import { Check, Search, X } from 'lucide-react'
+import { Check } from 'lucide-react'
+import { Search } from 'lucide-react'
+
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { useEffect, useMemo, useState } from 'react'
 
 import { CURRENCIES, currencyName, type CurrencyGroup } from '@zenkuu/data/currencies'
@@ -100,7 +113,6 @@ export function PreferenceOverlay({
   const { language, setLanguage } = useSettings()
   const { currency, setCurrency, available } = useCurrency()
 
-  const open = tab !== null
 
   // Le filtre repart à zéro à chaque changement d'onglet ET à chaque ouverture :
   // retrouver « eur » saisi dans l'onglet des devises en passant aux langues donne
@@ -109,24 +121,6 @@ export function PreferenceOverlay({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- voir commentaire ci-dessus
     setQuery('')
   }, [tab])
-
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
-
-  useEffect(() => {
-    if (!open) return
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previous
-    }
-  }, [open])
 
   const groups = useMemo<Array<{ title: string; items: Item[] }>>(() => {
     if (tab === 'currency') {
@@ -216,82 +210,98 @@ export function PreferenceOverlay({
     !isCurrency && visible.some((group) => group.items.some((item) => item.note))
 
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto px-4 py-[6vh]"
-      role="dialog"
-      aria-modal="true"
-      aria-label={isCurrency ? 'Devise' : 'Langue'}
-    >
-      <button
-        type="button"
-        className="fixed inset-0 cursor-default bg-canvas/80 backdrop-blur-sm"
-        aria-label="Fermer"
-        onClick={onClose}
-      />
-
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
       {/* Plus large que les 2xl d'origine : la grille de quatre colonnes de la
           référence a besoin de place, et une liste de soixante devises sur deux
           colonnes obligerait à défiler trois fois plus. */}
-      <div className="relative w-full max-w-4xl rounded-card border border-border-subtle bg-overlay shadow-overlay">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer"
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-sm text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+      <DialogContent className="max-w-4xl gap-0 border-border-subtle bg-overlay p-0 shadow-overlay sm:max-w-4xl">
+        {/*
+          ── LES ONGLETS SONT CEUX DE RADIX, ET LE `role="tablist"` MANUEL PART ──
 
-        {/* Onglets, et non deux fenêtres séparées : langue et devise sont les deux
-            réglages d'affichage que l'on ajuste souvent l'un après l'autre. */}
-        <div className="flex items-center justify-center gap-6 pt-6" role="tablist">
-          {(['language', 'currency'] as const).map((entry) => (
-            <button
-              key={entry}
-              type="button"
-              role="tab"
-              aria-selected={tab === entry}
-              onClick={() => onTabChange(entry)}
-              className={`border-b-2 pb-2 text-base font-semibold transition-colors duration-150 ${
-                tab === entry
-                  ? 'border-brand text-ink'
-                  : 'border-transparent text-ink-muted hover:text-ink'
-              }`}
-            >
-              {entry === 'language' ? 'Langue' : 'Devise'}
-            </button>
-          ))}
-        </div>
+          Trois `<button role="tab" aria-selected>` ne font pas un jeu d'onglets : le
+          motif ARIA demande aussi `aria-controls`, un `tabpanel` associé, et surtout
+          la navigation par FLÈCHES entre les onglets — que trois boutons ordinaires
+          n'ont pas, chacun se prenant une tabulation à lui.
+
+          ⚠️ LE PANNEAU EST UNIQUE ET PARTAGÉ. `Tabs` attend normalement un
+          `TabsContent` par onglet ; ici les deux affichent la même chose — un champ
+          de recherche, une grille, une note — avec des données différentes, déjà
+          dérivées de `tab` plus haut. Deux `TabsContent` jumeaux feraient remonter le
+          champ de recherche à chaque bascule. On garde donc un seul panneau, rendu
+          sous les onglets plutôt qu'à l'intérieur.
+        */}
+        <Tabs
+          value={tab}
+          onValueChange={(next) => onTabChange(next as PreferenceTab)}
+          className="gap-0"
+        >
+          <DialogTitle className="sr-only">{isCurrency ? 'Devise' : 'Langue'}</DialogTitle>
+
+          {/* Onglets, et non deux fenêtres séparées : langue et devise sont les deux
+              réglages d'affichage que l'on ajuste souvent l'un après l'autre. */}
+          <TabsList className="mx-auto mt-6 bg-transparent p-0">
+            {(['language', 'currency'] as const).map((entry) => (
+              <TabsTrigger
+                key={entry}
+                value={entry}
+                className="rounded-none border-0 border-b-2 border-transparent bg-transparent pb-2 text-base font-semibold text-ink-muted shadow-none data-[state=active]:border-brand data-[state=active]:bg-transparent data-[state=active]:text-ink data-[state=active]:shadow-none"
+              >
+                {entry === 'language' ? 'Langue' : 'Devise'}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         <div className="space-y-5 p-6">
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
-              aria-hidden="true"
-            />
-            <input
+          <InputGroup size="default">
+            <InputGroupInput
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Rechercher…"
               aria-label={isCurrency ? 'Rechercher une devise' : 'Rechercher une langue'}
-              className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
-          </div>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
 
           {visible.length === 0 ? (
-            <p className="py-8 text-center text-sm text-ink-muted">Aucun résultat.</p>
+            /* `Empty` plutôt qu'un paragraphe centré : il pose l'icône, le titre et
+               la phrase dans la même grammaire que les autres vides du site, et il
+               annonce le bloc comme une région à la synthèse vocale au lieu de la
+               laisser lire une phrase orpheline entre un champ et une note. */
+            <Empty className="py-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Search />
+                </EmptyMedia>
+                <EmptyTitle className="text-sm">Aucun résultat</EmptyTitle>
+                <EmptyDescription>
+                  {isCurrency
+                    ? 'Aucune devise ne correspond à cette recherche.'
+                    : 'Aucune langue ne correspond à cette recherche.'}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
-            <div className="max-h-[56vh] space-y-6 overflow-y-auto pr-1">
-              {visible.map((group) => (
-                <Group
-                  key={group.title}
-                  title={group.title}
-                  items={group.items}
-                  onSelect={onSelect}
-                />
-              ))}
-            </div>
+            /* `ScrollArea` et non `overflow-y-auto` : la barre de défilement native
+               s'affiche selon le système — large et permanente sous Windows, absente
+               puis surgissante sous macOS — et sa largeur décale la grille de quatre
+               colonnes d'un système à l'autre. Celle de Radix est dessinée par le
+               site, donc de largeur constante. */
+            <ScrollArea className="max-h-[56vh] pr-1">
+              <div className="space-y-6">
+                {visible.map((group) => (
+                  <Group
+                    key={group.title}
+                    title={group.title}
+                    items={group.items}
+                    onSelect={onSelect}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
           )}
 
           <p className="border-t border-border-subtle pt-4 text-xs leading-relaxed text-ink-muted">
@@ -302,8 +312,8 @@ export function PreferenceOverlay({
                 : 'Votre choix est enregistré sur cet appareil.'}
           </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

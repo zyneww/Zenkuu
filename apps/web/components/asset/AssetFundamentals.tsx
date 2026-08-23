@@ -218,7 +218,7 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
                     : undefined
 
                 return (
-                  <tr key={quarter.period} className="border-t border-border-subtle/60">
+                  <tr key={quarter.period} className="border-t border-border-subtle">
                     <td className="py-1.5 text-ink">{frenchQuarter(quarter.period)}</td>
                     <td className="tabular py-1.5 text-right text-ink-muted">
                       {formatNumber(quarter.estimate, 2) ?? '—'}
@@ -251,7 +251,7 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
               {years.map((year) => (
                 <div
                   key={year.year}
-                  className="flex items-baseline justify-between gap-3 border-b border-border-subtle/60 py-1.5 last:border-0"
+                  className="flex items-baseline justify-between gap-3 border-b border-border-subtle py-1.5 last:border-0"
                 >
                   <dt className="tabular text-xs text-ink-muted">{year.year}</dt>
                   <dd className="tabular text-xs text-ink">
@@ -344,7 +344,7 @@ function keepFilled(rows: Row[]): Row[] {
 
 function RowLine({ row }: { row: Row }) {
   return (
-    <div className="border-b border-border-subtle/60 py-1.5 last:border-0">
+    <div className="border-b border-border-subtle py-1.5 last:border-0">
       <div className="flex items-baseline justify-between gap-2">
         <dt className="min-w-0 flex-1 text-xs text-ink-muted">{row.label}</dt>
         <dd className="tabular shrink-0 text-xs font-medium text-ink">{row.value}</dd>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Link } from '@/i18n/navigation'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import { DB_ENABLED, listAlerts } from '@zenkuu/db'
 import { EmptyState } from '@zenkuu/ui'
@@ -106,10 +106,7 @@ export default async function AlertesPage() {
           title={t('Aucune alerte')}
           description={t('Ouvrez la fiche d’un actif et utilisez « Créer une alerte » pour être prévenu par courriel au franchissement d’un seuil. Aucun compte n’est nécessaire.')}
           action={
-            <Link
-              href="/marches"
-              className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-            >{t('Parcourir les cryptomonnaies')}</Link>
+            <ButtonLink href="/marches">{t('Parcourir les cryptomonnaies')}</ButtonLink>
           }
         />
       </Shell>
@@ -211,9 +208,6 @@ async function Shell({
 async function HomeLink() {
   const t = await getPhrase()
   return (
-    <Link
-      href="/"
-      className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-    >{t('Retour à l’accueil')}</Link>
+    <ButtonLink href="/">{t('Retour à l’accueil')}</ButtonLink>
   )
 }

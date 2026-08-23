@@ -53,7 +53,12 @@ export async function HighlightPanel({
 }: HighlightPanelProps) {
   const fr = await getContent()
   return (
-    <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
+    /* `bg-panel` et `rounded-panel`, comme les cartes d'analyse du bas de page : le
+       fond `surface` faisait de ces trois cartes le seul bloc plus clair que la page,
+       maintenant que les tableaux de cotations n'en portent plus. Le liseré de survol
+       est le même partout — une carte cliquable le dit, une carte inerte ne le dit
+       pas, et c'est la seule chose que ce liseré doit signifier. */
+    <section className="flex h-full flex-col rounded-panel border border-border-subtle bg-panel p-4 transition-colors duration-200 hover:border-ink-muted/35">
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-ink">{title}</h2>

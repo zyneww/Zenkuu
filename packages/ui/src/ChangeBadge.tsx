@@ -7,6 +7,20 @@ interface ChangeBadgeProps {
   size?: 'sm' | 'md'
   /** Fond coloré, pour les mises en avant. */
   filled?: boolean
+  /**
+   * Écrire la période À CÔTÉ du chiffre — « ▲ +1,1 % (24 h) ».
+   *
+   * ── POURQUOI CE N'EST PAS LE DÉFAUT ─────────────────────────────────────────
+   *
+   * Ce badge vit surtout dans des TABLEAUX, sous un en-tête de colonne qui nomme déjà
+   * la période. L'y répéter cinquante fois par page ajouterait cinquante fois la même
+   * information, dans la colonne la plus étroite du tableau.
+   *
+   * Sur une FICHE, il n'y a pas d'en-tête de colonne : le chiffre est seul à côté du
+   * cours, et rien ne dit sur quelle durée il porte. La référence de marché l'écrit
+   * pour cette raison, et c'est le seul endroit où ça vaut la place.
+   */
+  showPeriod?: boolean
 }
 
 /**
@@ -22,6 +36,7 @@ export function ChangeBadge({
   periodLabel,
   size = 'md',
   filled = false,
+  showPeriod = false,
 }: ChangeBadgeProps) {
   const formatted = formatPercent(value)
 
@@ -68,6 +83,14 @@ export function ChangeBadge({
         {chevron}
       </span>
       {formatted}
+      {showPeriod ? (
+        /* `aria-hidden` : la période est DÉJÀ dans l'`aria-label` du badge, qui la lit
+           en toutes lettres (« sur 24 heures »). L'annoncer deux fois ferait entendre
+           « en hausse de 1,1 % sur 24 heures, 24 h ». */
+        <span aria-hidden="true" className="font-normal text-ink-muted">
+          ({periodLabel ?? '24 h'})
+        </span>
+      ) : null}
     </span>
   )
 }

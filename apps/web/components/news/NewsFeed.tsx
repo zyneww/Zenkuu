@@ -1,7 +1,12 @@
 'use client'
 
-import { ArrowUpRight, Search } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { createContext, useContext, useMemo, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 
 import { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS, type NewsItem } from '@zenkuu/data'
 import { ChangeBadge, EmptyState } from '@zenkuu/ui'
@@ -10,8 +15,9 @@ import { useLocale } from 'next-intl'
 
 import { formatAbsolute, useRelativeTime } from '@/components/locale/useRelativeTime'
 import { availableMentions, citedAssets, mentions } from '@/components/news/mentions'
-import { Pagination } from '@/components/ui/Pagination'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { Link } from '@/i18n/navigation'
+import { assetHref } from '@/lib/asset-routes'
 
 /**
  * Fil d'actualités : rubriques, sources, recherche, vignettes.
@@ -60,8 +66,22 @@ type SortId = (typeof SORTS)[number]['id']
 export function NewsFeed({
   articles,
   quotes,
+  sidebar,
 }: {
   articles: NewsItem[]
+  /**
+   * Colonne de droite de la rangée de tête, à côté de l'article mis en avant.
+   *
+   * Optionnelle, et son absence n'est pas un cas dégradé : la rangée reprend alors
+   * toute la largeur. C'est ce qui permet au même composant de servir `/actualites`,
+   * où la colonne porte les actifs les plus cités du jour, et la fiche d'actif, où
+   * elle n'aurait rien à porter — on est déjà sur l'actif dont parlent les articles.
+   *
+   * Un nœud déjà rendu plutôt qu'un drapeau : ce composant est client, la colonne est
+   * calculée sur le serveur, et lui faire traverser des données brutes obligerait à
+   * expédier dans le paquet ce qui tient en quelques lignes de HTML.
+   */
+  sidebar?: React.ReactNode
   /**
    * Variation sur 24 h des actifs cités, par identifiant de fiche.
    *
@@ -79,10 +99,24 @@ export function NewsFeed({
   const [sort, setSort] = useState<SortId>('recent')
   const [query, setQuery] = useState('')
 
-  /* Vingt-quatre : huit rangées de la grille à trois colonnes. Un multiple du nombre
-     de colonnes évite la dernière rangée boiteuse à une ou deux cartes. */
-  const [perPage, setPerPage] = useState<number>(24)
-  const [page, setPage] = useState(1)
+  /*
+   * ── « VOIR PLUS » REMPLACE LA BARRE DE PAGINATION ──────────────────────
+   *
+   * Le pied portait « Affichage de 1 à 24 sur 72 », trois numéros de page et un
+   * sélecteur de lignes — le vocabulaire d'un TABLEAU, appliqué à un fil. Les deux ne
+   * se lisent pas pareil : on parcourt un tableau en sautant à une page, on parcourt
+   * un fil en descendant. Passer à la page 2 d'un fil trillé par date fait en outre
+   * PERDRE le fil : on ne sait plus à quel article on s'était arrêté.
+   *
+   * Un seul bouton qui ALLONGE la liste conserve tout ce qui est déjà lu, garde le
+   * coût borné (les vignettes distantes n'arrivent que par lots) et supprime deux
+   * réglages qui n'avaient pas de question derrière eux.
+   *
+   * Vingt-quatre par lot : huit rangées de la grille à trois colonnes. Un multiple du
+   * nombre de colonnes évite la dernière rangée boiteuse à une ou deux cartes.
+   */
+  const STEP = 24
+  const [shown, setShown] = useState(STEP)
 
   // Seules les rubriques et sources réellement présentes dans le lot sont
   // proposées : un filtre qui ne renverrait jamais rien vaut moins qu'un filtre absent.
@@ -164,28 +198,59 @@ export function NewsFeed({
   const [lastSignature, setLastSignature] = useState(signature)
   if (signature !== lastSignature) {
     setLastSignature(signature)
-    setPage(1)
+    setShown(STEP)
   }
 
-  const pageCount = Math.max(1, Math.ceil(ordered.length / perPage))
-  const currentPage = Math.min(page, pageCount)
-  const start = (currentPage - 1) * perPage
-  const slice = ordered.slice(start, start + perPage)
+  const slice = ordered.slice(0, shown)
+  const remaining = ordered.length - slice.length
 
   /*
-   * L'ÉGARD DE LA MISE EN AVANT NE VAUT QU'EN PAGE 1.
+   * L'ÉGARD DE LA MISE EN AVANT REPOSE SUR UNE PROPRIÉTÉ RÉELLE.
    *
-   * Il repose sur une propriété réelle — cet article EST le plus récent du fil filtré.
-   * Le vingt-cinquième ne l'est pas, et lui donner la même place inventerait un
-   * classement éditorial que nous ne mesurons pas. Reconduire le MÊME article en tête
-   * de chaque page serait l'autre travers : une répétition qui n'apprend rien.
+   * Cet article EST le plus récent du fil filtré. Le vingt-cinquième ne l'est pas, et
+   * lui donner la même place inventerait un classement éditorial que nous ne mesurons
+   * pas.
+   *
+   * La liste ne se REDÉCOUPANT plus en pages, l'article de tête ne change jamais en
+   * cours de lecture : la garde « seulement en page 1 » qui tenait ici est devenue
+   * sans objet le jour où « Voir plus » a remplacé la barre de pagination.
    */
-  const featured = currentPage === 1 ? slice[0] : undefined
-  const rest = currentPage === 1 ? slice.slice(1) : slice
+  const featured = slice[0]
+  const rest = slice.slice(1)
 
   return (
     <QuotesContext.Provider value={quotes ?? {}}>
     <div className="space-y-6">
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        LA RANGÉE DE TÊTE — L'ARTICLE EN GRAND, PUIS LA COLONNE
+        ══════════════════════════════════════════════════════════════════════
+
+        Composition relevée sur blog.kraken.com : l'article mis en avant occupe les
+        deux tiers gauches, une colonne étroite tient le tiers droit, et un FILET
+        VERTICAL les sépare — pas une gouttière, pas deux cartes. La rangée se referme
+        sur un filet horizontal qui court sur toute la largeur, et c'est ce trait qui
+        marque le passage de la une à la grille.
+
+        La rangée est AVANT la barre d'outils, alors qu'elle contient le premier
+        article. Ce n'est pas un accident de rangement : la barre — compteur, tri,
+        recherche — porte sur la GRILLE. La poser au-dessus de l'article en tête
+        laisserait croire qu'un tri ou une recherche le change, alors qu'il reste par
+        construction le premier résultat.
+
+        Sans `sidebar` et sans article en tête (page 2 et suivantes), toute cette
+        rangée disparaît plutôt que de laisser un filet horizontal seul en haut de la
+        page — un trait qui ne sépare rien se lit comme un défaut de rendu.
+      */}
+      {featured || sidebar ? (
+        <div className="grid gap-8 border-b border-border-subtle pb-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          {featured ? <FeaturedArticle article={featured} /> : <div />}
+          {sidebar ? (
+            <div className="lg:border-l lg:border-border-subtle lg:pl-8">{sidebar}</div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/*
           « Familles de presse » et non « Rubriques ».
@@ -226,61 +291,81 @@ export function NewsFeed({
             Bitcoin, ce que la présence d'un mot ne prouve pas — et ce serait de la
             donnée inventée au sens du §5. Voir l'en-tête de `mentions.ts`.
           */}
+          {/*
+            ── LES TROIS FILTRES PASSENT À `NativeSelect` DE SHADCN/UI ─────────
+
+            C'étaient trois `<select>` nus portant chacun la même ligne de classes
+            recopiée — bordure, fond, padding, focus. Trois copies d'un même contrôle
+            divergent au premier ajustement, et c'est déjà arrivé : leur focus
+            répondait `focus:border-brand` quand tout le reste de la page répond par un
+            anneau.
+
+            `NativeSelect` garde le `<select>` NATIF — donc le sélecteur du système en
+            mobilité, la navigation au clavier et la recherche par frappe — et n'ajoute
+            que l'habillage et le chevron. C'est le bon échange : rien de ce que le
+            natif faisait bien n'est réimplementé.
+          */}
           {assetOptions.length > 0 ? (
-            <>
-              <label htmlFor="filtre-actif" className="sr-only">{t('Filtrer par actif mentionné')}</label>
-              <select
-                id="filtre-actif"
-                value={mention}
-                onChange={(event) => setMention(event.target.value)}
-                className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
-              >
-                <option value="all">{t('Tous les sujets')}</option>
-                {assetOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    Mentionnant {option.label}
-                  </option>
-                ))}
-              </select>
-            </>
+            <NativeSelect
+              size="sm"
+              className="w-max"
+              aria-label={t('Filtrer par actif mentionné')}
+              value={mention}
+              onChange={(event) => setMention(event.target.value)}
+            >
+              {([
+                { label: t('Tous les sujets'), value: 'all' },
+                ...assetOptions.map((option) => ({
+                  label: `Mentionnant ${option.label}`,
+                  value: option.id,
+                })),
+              ]).map((option) => (
+                <NativeSelectOption key={option.value} value={option.value}>
+                  {option.label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           ) : null}
 
           {langs.length > 1 ? (
-            <>
-              <label htmlFor="filtre-langue" className="sr-only">{t('Filtrer par langue')}</label>
-              <select
-                id="filtre-langue"
-                value={lang}
-                onChange={(event) => setLang(event.target.value)}
-                className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
-              >
-                <option value="all">{t('Toutes les langues')}</option>
-                {langs.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {NEWS_LANG_LABELS[entry as keyof typeof NEWS_LANG_LABELS] ?? entry}
-                  </option>
-                ))}
-              </select>
-            </>
+            <NativeSelect
+              size="sm"
+              className="w-max"
+              aria-label={t('Filtrer par langue')}
+              value={lang}
+              onChange={(event) => setLang(event.target.value)}
+            >
+              {([
+                { label: t('Toutes les langues'), value: 'all' },
+                ...langs.map((entry) => ({
+                  label: NEWS_LANG_LABELS[entry as keyof typeof NEWS_LANG_LABELS] ?? entry,
+                  value: entry,
+                })),
+              ]).map((option) => (
+                <NativeSelectOption key={option.value} value={option.value}>
+                  {option.label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           ) : null}
 
           {sources.length > 1 ? (
-            <>
-              <label htmlFor="filtre-source" className="sr-only">{t('Filtrer par source')}</label>
-              <select
-                id="filtre-source"
-                value={source}
-                onChange={(event) => setSource(event.target.value)}
-                className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
-              >
-                <option value="all">{t('Toutes les sources')}</option>
-                {sources.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {entry}
-                  </option>
-                ))}
-              </select>
-            </>
+            <NativeSelect
+              size="sm"
+              className="w-max"
+              aria-label={t('Filtrer par source')}
+              value={source}
+              onChange={(event) => setSource(event.target.value)}
+            >
+              {([
+                { label: t('Toutes les sources'), value: 'all' },
+                ...sources.map((entry) => ({ label: entry, value: entry })),
+              ]).map((option) => (
+                <NativeSelectOption key={option.value} value={option.value}>
+                  {option.label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           ) : null}
 
         </div>
@@ -304,17 +389,9 @@ export function NewsFeed({
         </p>
       </div>
 
-      {/*
-        L'ARTICLE EN TÊTE EST HORS DE LA BARRE D'OUTILS, et au-dessus d'elle.
-
-        C'est la disposition de la référence, et elle se justifie : la barre —
-        compteur, tri, recherche — porte sur la GRILLE. La placer avant l'article
-        mis en avant laisserait croire qu'un tri ou une recherche le change, alors
-        qu'il reste par construction le premier résultat.
-      */}
-      {featured ? <FeaturedArticle article={featured} /> : null}
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle pt-5">
+      {/* La rangée de tête est rendue PLUS HAUT, avec sa colonne — voir son en-tête.
+          Cette barre-ci ne porte plus que ce qui gouverne la grille. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Le compteur passe en titre de section : c'est l'information qui répond à
             « combien y en a-t-il ? », et la reléguer en petite ligne grise sous les
             filtres la faisait manquer. */}
@@ -323,34 +400,36 @@ export function NewsFeed({
         </p>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative w-full sm:w-56">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted"
-              aria-hidden="true"
-            />
-            <input
+          {/* `InputGroup` de shadcn/ui plutôt qu'un `<input>` habillé à la main : il
+              porte la loupe, l'anneau de focus et les états invalide/désactivé de
+              tous les champs du site — et il fait du champ et de son icône UNE seule
+              saisie, avec un seul anneau autour des deux. */}
+          <InputGroup size="sm" className="w-full sm:w-56">
+            <InputGroupInput
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Rechercher…"
+              placeholder={t('Rechercher…')}
               aria-label={t('Rechercher dans les actualités')}
-              className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-8 pr-3 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
-          </div>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
 
-          <label htmlFor="tri-actualites" className="sr-only">{t('Trier les actualités')}</label>
-          <select
-            id="tri-actualites"
+          <NativeSelect
+            size="sm"
+            className="w-max"
+            aria-label={t('Trier les actualités')}
             value={sort}
             onChange={(event) => setSort(event.target.value as SortId)}
-            className="rounded-card border border-border-subtle bg-surface px-3 py-2 text-xs text-ink focus:border-brand focus:outline-none"
           >
-            {SORTS.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {t(entry.label)}
-              </option>
+            {(SORTS.map((entry) => ({ label: t(entry.label), value: entry.id }))).map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                {option.label}
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 
@@ -363,31 +442,79 @@ export function NewsFeed({
       ) : (
         <>
           {rest.length > 0 ? (
-            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            /*
+              ══════════════════════════════════════════════════════════════════
+              LA GRILLE EST RÉGLÉE PAR DES FILETS, ET NON ESPACÉE PAR UNE GOUTTIÈRE
+              ══════════════════════════════════════════════════════════════════
+
+              C'est la seconde chose qu'on relève sur blog.kraken.com : les cartes ne
+              flottent pas dans du blanc, elles occupent les cases d'une TRAME. Un
+              trait horizontal sous chaque rangée, un trait vertical entre chaque
+              colonne, et du remplissage à l'intérieur des cases plutôt qu'entre elles.
+
+              Ce n'est pas qu'une affaire de goût. Des cartes sans cadre séparées par
+              une gouttière laissent l'œil hésiter sur ce qui va avec quoi — le titre
+              du dessus ou l'image du dessous — dès que les hauteurs diffèrent, ce qui
+              est la règle avec des titres de une à trois lignes. La trame répond une
+              fois pour toutes.
+
+              ── LE MONTAGE, ET POURQUOI PAS `gap-px` SUR UN FOND TEINTÉ ────────
+
+              L'autre technique courante — conteneur en `gap-px bg-border`, cases en
+              `bg-canvas` — donne le même dessin mais impose aux cases un fond OPAQUE.
+              La grille cesserait alors d'être transparente, et sa couleur de fond
+              devrait suivre à la main celle de chaque page qui l'accueille.
+
+              Ici chaque case porte simplement son filet bas et son filet droit. Le
+              `-mr-px` du conteneur, doublé de son `overflow-hidden`, avale le filet
+              droit de la dernière colonne — celui qui, sinon, longerait le bord de la
+              page sans rien séparer. Le filet du haut est porté par le conteneur, et
+              non par la première rangée, sans quoi il manquerait quand la rangée de
+              tête est absente.
+            */
+            <ul className="-mr-px grid overflow-hidden border-t border-border-subtle sm:grid-cols-2 lg:grid-cols-3">
               {rest.map((article) => (
-                <li key={article.id}>
+                <li
+                  key={article.id}
+                  className="border-b border-border-subtle p-5 sm:border-r sm:pr-6"
+                >
                   <ArticleCard article={article} />
                 </li>
               ))}
             </ul>
           ) : null}
 
-          {/* Le fil rendait ses deux cent cinquante articles d'un bloc : autant de
-              vignettes distantes chargées pour une page qu'on parcourt rarement en
-              entier. La barre borne ce coût et rend la profondeur atteignable — sans
-              elle, « remonter plus loin » voulait dire faire défiler. */}
-          <Pagination
-            page={currentPage}
-            perPage={perPage}
-            total={ordered.length}
-            unit="article"
-            perPageChoices={[12, 24, 48]}
-            onPageChange={setPage}
-            onPerPageChange={(size) => {
-              setPerPage(size)
-              setPage(1)
-            }}
-          />
+          {/*
+            ── UN SEUL BOUTON, ET IL DIT COMBIEN IL RESTE ────────────────────
+
+            Le fil rendait ses articles d'un bloc : autant de vignettes distantes
+            chargées pour une page qu'on parcourt rarement en entier. Le lot borne ce
+            coût, et « Voir plus » rend la profondeur atteignable sans redécouper la
+            lecture en pages.
+
+            Le RESTE est écrit dans le bouton — « Voir plus (48 restants) » — parce
+            qu'un « Voir plus » nu ne dit pas s'il ouvre trois articles ou trois cents,
+            et que c'est précisément ce qu'on veut savoir avant de cliquer. Quand il
+            n'en reste plus, le bouton disparaît : rien d'autre n'a à l'annoncer, la
+            grille s'arrête et le compteur du haut donne déjà le total.
+          */}
+          {remaining > 0 ? (
+            <div className="flex justify-center pt-2">
+              {/* `Button` de shadcn/ui, variante `outline` : le même bouton que partout
+                  ailleurs sur le site, avec son relief, son anneau de focus et son état
+                  pressé. Le décompte reste dans l'étiquette — voir la note du dessus. */}
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => setShown((current) => current + STEP)}
+              >
+                {t('Voir plus')}
+                <span className="tabular ml-1.5 text-ink-muted">
+                  ({remaining} {remaining > 1 ? t('restants') : t('restant')})
+                </span>
+              </Button>
+            </div>
+          ) : null}
         </>
       )}
     </div>
@@ -395,27 +522,70 @@ export function NewsFeed({
   )
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA CARTE N'EST PLUS UN `<a>` — ELLE EN CONTIENT UN QUI S'ÉTEND
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Toute la carte était enveloppée dans un lien vers l'éditeur. C'est ce qui
+ * interdisait aux pastilles d'actif d'être cliquables : un lien dans un lien est un
+ * HTML invalide, que le navigateur défait à sa façon — lien mort, lien qui capture le
+ * clic de l'autre, ou deux liens frères là où le balisage en décrivait un imbriqué.
+ *
+ * Le montage est inversé. La carte devient un `<article class="relative">`, et c'est
+ * le TITRE qui porte le lien sortant, avec un pseudo-élément étendu à toute la carte
+ * (`after:absolute after:inset-0`). Le résultat est identique au clic — la carte
+ * entière reste une cible — et il est meilleur au clavier comme au lecteur d'écran :
+ * le lien s'annonce par son titre, au lieu de lire d'un trait la vignette, la source,
+ * la date, le titre, l'extrait et les pastilles.
+ *
+ * Les pastilles se posent alors AU-DESSUS de ce pseudo-élément (`relative z-10`) : ce
+ * sont de vrais liens vers nos fiches, frères du lien sortant et non ses enfants.
+ */
 function FeaturedArticle({ article }: { article: NewsItem }) {
   return (
-    <a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-      className="group grid gap-6 sm:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] sm:items-center"
-    >
-      {/* L'article en tête garde toujours un visuel : sur deux colonnes, une case
-          vide déséquilibrerait la carte entière. */}
+    /*
+      ── LA COUVERTURE PASSE AU-DESSUS, ET NON À CÔTÉ ─────────────────────────
+
+      L'article de tête était sur deux colonnes — image à gauche sur 26 rem, texte à
+      droite — et centré verticalement. Deux défauts, visibles dès que la rangée de
+      tête a gagné sa colonne d'actualités :
+
+        · la vignette plafonnait à 26 rem quelle que soit la largeur disponible, si
+          bien que sur un grand écran l'article « mis en avant » avait une image plus
+          petite que celles de la grille juste en dessous ;
+        · centré verticalement dans une rangée dont la hauteur est désormais fixée par
+          la colonne voisine, il flottait au milieu de deux cents pixels de vide.
+
+      Empilé — couverture pleine largeur de sa colonne, puis le texte — il occupe la
+      hauteur de la rangée au lieu de s'y perdre, et sa vignette redevient la plus
+      grande de la page. C'est la composition de blog.kraken.com, et c'est aussi la
+      seule qui tienne quand la largeur de la colonne varie.
+    */
+    <article className="group relative flex flex-col gap-5">
+      {/* L'article en tête garde toujours un visuel : une case vide au sommet de la
+          page se lit comme une image cassée. `Thumbnail` retombe elle-même sur une
+          tuile portant le nom de l'éditeur. */}
       <span className="block overflow-hidden rounded-card">
         {article.imageUrl ? (
-          <Thumbnail url={article.imageUrl} source={article.source} tall />
+          <Thumbnail url={article.imageUrl} source={article.source} wide />
         ) : (
-          <BrandTile source={article.source} className="block aspect-[16/10]" />
+          <BrandTile source={article.source} className="block aspect-[2/1]" />
         )}
       </span>
 
       <div className="min-w-0 space-y-2.5">
         <ArticleMeta article={article} />
-        <h2 className="display-sm text-ink group-hover:text-brand-strong">{article.title}</h2>
+        <h2 className="display-sm text-ink">
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="after:absolute after:inset-0 after:content-[''] group-hover:text-brand-strong"
+          >
+            {article.title}
+          </a>
+        </h2>
         {article.excerpt ? (
           <p className="text-sm leading-relaxed text-ink-muted">{article.excerpt}</p>
         ) : null}
@@ -428,24 +598,19 @@ function FeaturedArticle({ article }: { article: NewsItem }) {
           <span className="sr-only">(nouvelle fenêtre)</span>
         </span>
       </div>
-    </a>
+    </article>
   )
 }
 
 function ArticleCard({ article }: { article: NewsItem }) {
   return (
-    <a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-      className="group flex h-full flex-col gap-3"
-    >
-      {/*
-        La carte n'a PLUS DE CADRE ni de fond : la vignette délimite déjà le bloc, et
-        l'entourer d'un filet revenait à tracer deux contours l'un dans l'autre. C'est
-        ce que fait la référence, et c'est aussi la règle de surface unique du design
-        system : une carte se distingue par sa structure, pas en se soulevant.
-      */}
+    /*
+      La carte n'a PAS DE CADRE ni de fond : la vignette délimite déjà le bloc, et
+      l'entourer d'un filet revenait à tracer deux contours l'un dans l'autre. C'est
+      aussi la règle de surface unique du design system : une carte se distingue par sa
+      structure, pas en se soulevant.
+    */
+    <article className="group relative flex h-full flex-col gap-3">
       <span className="block overflow-hidden rounded-card">
         {article.imageUrl ? (
           <Thumbnail url={article.imageUrl} source={article.source} />
@@ -456,8 +621,15 @@ function ArticleCard({ article }: { article: NewsItem }) {
 
       <div className="flex flex-1 flex-col gap-1.5">
         <ArticleByline article={article} />
-        <h3 className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
-          {article.title}
+        <h3 className="text-sm font-semibold leading-snug text-ink">
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="after:absolute after:inset-0 after:content-[''] group-hover:text-brand-strong"
+          >
+            {article.title}
+          </a>
         </h3>
         <CitedAssetChips article={article} />
 
@@ -468,7 +640,7 @@ function ArticleCard({ article }: { article: NewsItem }) {
           </span>
         ) : null}
       </div>
-    </a>
+    </article>
   )
 }
 
@@ -491,7 +663,7 @@ function ArticleByline({ article }: { article: NewsItem }) {
 
   return (
     <p className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
-      <SourceDot source={article.source} />
+      <SourceDot source={article.source} url={article.url} />
       <span className="truncate font-medium text-ink">{article.author ?? article.source}</span>
       <span aria-hidden="true">·</span>
       <time dateTime={article.publishedAt} className="shrink-0">
@@ -501,7 +673,39 @@ function ArticleByline({ article }: { article: NewsItem }) {
   )
 }
 
-function SourceDot({ source }: { source: string }) {
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA PASTILLE DE SOURCE — LE LOGO DU MÉDIA, ET L'INITIALE DESSOUS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Elle ne portait qu'une lettre sur un fond teinté. La lettre distingue mal — « C »
+ * désigne CoinDesk, Cointelegraph, CryptoSlate, CryptoPotato, Crypto Briefing,
+ * Challenges et Cointribune, soit sept des quarante-deux flux — et surtout, un lecteur
+ * reconnaît un logo de presse bien plus vite qu'il ne déchiffre une initiale.
+ *
+ * ── LE DOMAINE VIENT DE L'ARTICLE, PAS D'UNE TABLE ─────────────────────────
+ *
+ * `article.url` pointe chez l'éditeur : son nom d'hôte EST son domaine. Aucune table
+ * de correspondance à tenir, donc aucune ligne à oublier quand un flux s'ajoute — et
+ * la règle vaut aussi pour les articles rejoués depuis l'archive, dont la source n'est
+ * plus dans la liste des flux actifs.
+ *
+ * ── L'INITIALE EST DESSOUS, ET C'EST CE QUI REND LE MONTAGE SÛR ────────────
+ *
+ * Le logo est superposé À une pastille déjà complète, et non affiché à sa place. Ce
+ * détail répond à un défaut mesuré ailleurs dans ce dépôt (voir `AssetLogo`) : quand
+ * une vingtaine de vignettes distantes partent en même temps, celles qui restent EN
+ * ATTENTE ne déclenchent jamais `onError` — un repli conditionnel laisse donc des
+ * cases vides, pas des lettres. Empilé, le repli est déjà peint : l'image le recouvre
+ * si elle arrive, et rien ne manque si elle n'arrive pas.
+ *
+ * `loading="lazy"` borne le nombre de requêtes réellement émises au premier écran, et
+ * `referrerPolicy="no-referrer"` évite d'annoncer au service quelle page est consultée.
+ */
+export function SourceDot({ source, url }: { source: string; url?: string }) {
+  const [failed, setFailed] = useState(false)
+  const domain = url ? publisherDomain(url) : null
+
   let sum = 0
   for (let index = 0; index < source.length; index += 1) sum += source.charCodeAt(index)
   const tint = TILE_TINTS[sum % TILE_TINTS.length]
@@ -510,11 +714,41 @@ function SourceDot({ source }: { source: string }) {
     <span
       aria-hidden="true"
       title={source}
-      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[0.5rem] font-bold ${tint}`}
+      className={`relative flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-full text-[0.5rem] font-bold ${tint}`}
     >
       {source.slice(0, 1).toUpperCase()}
+
+      {domain && !failed ? (
+        /* eslint-disable-next-line @next/next/no-img-element -- favicon distante, domaine variable */
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          /* `bg-surface` sous l'image : la plupart des favicons sont dessinées pour un
+             fond blanc et beaucoup sont transparentes. Sans plaque, la lettre teintée
+             transparaîtrait à travers et les deux repères se superposeraient. */
+          className="absolute inset-0 h-full w-full rounded-full bg-surface object-contain"
+        />
+      ) : null}
     </span>
   )
+}
+
+/**
+ * Nom d'hôte de l'éditeur, sans `www.`.
+ *
+ * `try` obligatoire : `article.url` vient d'un flux RSS, donc d'une source qu'on ne
+ * contrôle pas. Une URL relative ou tronquée ferait lever `new URL` au milieu du
+ * rendu d'une liste, ce qui emporterait la page entière pour une favicon.
+ */
+function publisherDomain(url: string): string | null {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -556,19 +790,34 @@ function SourceDot({ source }: { source: string }) {
  *    concernés servent la même ressource en TLS, c'est leur balise RSS qui n'a pas
  *    suivi.
  */
-function Thumbnail({
+export function Thumbnail({
   url,
   source,
   tall = false,
+  wide = false,
 }: {
   url: string
   source: string
+  /** Format de la colonne latérale — un peu plus haut que large de rapport. */
   tall?: boolean
+  /**
+   * Format de l'article de tête, DEUX FOIS plus large que haut.
+   *
+   * Il ne s'agit pas d'un goût de cadrage. Le rapport 16/10 de `tall` est juste dans
+   * une colonne de 320 px, où il produit une vignette de 200 px. Appliqué à l'article
+   * de tête — qui occupe désormais toute la largeur de sa colonne, soit près de mille
+   * pixels — il donnait une image de six cents pixels de haut : le titre passait sous
+   * la ligne de flottaison, et la page s'ouvrait sur une photographie sans texte.
+   *
+   * Deux pour un est le rapport relevé sur la référence, et c'est celui qui laisse le
+   * titre et le chapeau tenir dans le premier écran.
+   */
+  wide?: boolean
 }) {
   const [failed, setFailed] = useState(false)
 
   const shape = `block shrink-0 overflow-hidden ${
-    tall ? 'aspect-[16/10] rounded-card' : 'aspect-[16/9]'
+    wide ? 'aspect-[2/1] rounded-card' : tall ? 'aspect-[16/10] rounded-card' : 'aspect-[16/9]'
   }`
 
   const safeUrl = upgradeToHttps(url)
@@ -675,28 +924,33 @@ function CitedAssetChips({ article }: { article: NewsItem }) {
   if (shown.length === 0) return null
 
   return (
-    <p className="flex flex-wrap items-center gap-1.5">
+    <p className="relative z-10 flex flex-wrap items-center gap-1.5">
       {/*
-        DES `<span>`, ET SURTOUT PAS DES LIENS.
+        DES LIENS VERS NOS FICHES, ENFIN.
 
-        La référence en fait des liens vers ses fiches. Nous ne pouvons pas : la carte
-        d'article EST DÉJÀ un `<a>` qui part chez l'éditeur, et un lien dans un lien
-        est un HTML invalide — le navigateur défait l'imbrication à sa façon, ce qui
-        produit selon les cas un lien mort, un lien qui capture le clic de l'autre, ou
-        deux liens frères là où le balisage en décrivait un imbriqué.
+        Ils étaient des `<span>`, et l'ancienne note ici l'expliquait par une
+        contrainte réelle : la carte entière était un `<a>` vers l'éditeur, et un lien
+        dans un lien est un HTML invalide. La contrainte a été LEVÉE plutôt que
+        contournée — la carte n'enveloppe plus rien, c'est son titre qui porte le lien
+        sortant et l'étend par un pseudo-élément (voir `ArticleCard`). Les pastilles
+        sont donc des FRÈRES de ce lien, posés au-dessus de lui par `z-10`.
 
-        La pastille garde l'essentiel de ce qu'elle apporte, qui est le CHIFFRE : « de
-        quoi parle cet article, et comment cet actif se comporte pendant qu'on le
-        lit ». Naviguer vers la fiche se fait par la recherche, à un raccourci d'ici.
+        Ce que la pastille dit ne change pas : de quoi parle cet article, et comment
+        cet actif se comporte pendant qu'on le lit. Ce qui change est qu'on peut
+        désormais y aller — et c'est le geste qu'on a en lisant le chiffre.
+
+        `stopPropagation` est INUTILE ici et n'y est pas : les deux liens sont frères,
+        un clic sur la pastille ne traverse jamais celui du titre.
       */}
       {shown.slice(0, 3).map((mention) => (
-        <span
+        <Link
           key={mention.id}
-          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro"
+          href={assetHref(mention.assetClass ?? 'crypto', mention.assetId as string)}
+          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro transition-colors duration-150 hover:bg-brand-soft"
         >
           <span className="font-medium text-ink">{mention.label}</span>
           <ChangeBadge value={quotes[mention.assetId!]} size="sm" />
-        </span>
+        </Link>
       ))}
 
       {/* Le compte des cités NON MONTRÉS, et non le compte total : trois pastilles plus
@@ -718,6 +972,10 @@ function ArticleMeta({ article }: { article: NewsItem }) {
             article.category}
         </span>
       ) : null}
+      {/* Le logo accompagne le nom ICI AUSSI : l'article en tête est le seul de la
+          page à ne pas passer par `ArticleByline`, et il aurait été le seul sans
+          repère visuel de provenance. */}
+      <SourceDot source={article.source} url={article.url} />
       <span>{article.source}</span>
       {article.author ? (
         <>
@@ -751,6 +1009,18 @@ function RelativeTime({ iso }: { iso: string }) {
   return <>{useRelativeTime(iso)}</>
 }
 
+/**
+ * Puce de filtre — `Button` de shadcn/ui, en pastille.
+ *
+ * La teinte porte l'état : `primary` pour la rubrique active, `secondary` pour les
+ * autres. C'est la même paire que sur tous les groupes de choix du site, et elle
+ * remplace deux jeux de classes écrits à la main qui ne se ressemblaient qu'à peu
+ * près d'un composant à l'autre.
+ *
+ * `rounded-full` en surcharge : le bouton arrive en `rounded-lg`, et la forme
+ * pastille est ce qui distingue un FILTRE d'une action — on peut en cocher un
+ * parmi plusieurs, là où un bouton déclenche.
+ */
 function FilterChip({
   active,
   onClick,
@@ -761,17 +1031,14 @@ function FilterChip({
   label: string
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      size="sm"
+      color={active ? 'primary' : 'secondary'}
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-pill border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-        active
-          ? 'border-brand bg-brand text-on-brand'
-          : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
-      }`}
+      className="rounded-full before:rounded-full"
     >
       {label}
-    </button>
+    </Button>
   )
 }

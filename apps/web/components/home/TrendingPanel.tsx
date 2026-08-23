@@ -25,11 +25,22 @@ interface TrendingPanelProps {
 export async function TrendingPanel({ assets, unavailableReason }: TrendingPanelProps) {
   const fr = await getContent()
   return (
-    <section className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-4">
+    <section className="flex h-full flex-col rounded-panel border border-border-subtle bg-panel p-4 transition-colors duration-200 hover:border-ink-muted/35">
       {/* Ni emoji ni sous-titre : « Tendances » se suffit, et le sous-titre qui
           l'accompagnait — « Les actifs les plus consultés ces dernières 24 heures » —
           ne faisait que paraphraser le mot au-dessus. */}
-      <h2 className="mb-2 text-sm font-semibold text-ink">{fr.home.trendingTitle}</h2>
+      {/* La rangée porte « Tout voir » sur ses deux autres cartes ; l'absence ici se
+          lisait comme un panneau qui ne mène nulle part, alors que `/crypto?vue=tendance`
+          en est le développement exact. */}
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <h2 className="text-sm font-semibold text-ink">{fr.home.trendingTitle}</h2>
+        <Link
+          href="/crypto?vue=tendance"
+          className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+        >
+          {fr.home.seeAll}
+        </Link>
+      </div>
 
       {assets && assets.length > 0 ? (
         <ol className="flex-1 divide-y divide-border-subtle">
@@ -37,7 +48,10 @@ export async function TrendingPanel({ assets, unavailableReason }: TrendingPanel
             <li key={asset.id}>
               <Link
                 href={assetHref(asset.assetClass, asset.id)}
-                className="group flex items-center gap-2 py-1.5 transition-opacity hover:opacity-75"
+                /* Même plaque de survol que `AssetRow`, dont ce panneau est le voisin
+                   immédiat : deux traitements de survol dans une même rangée de cartes
+                   se lisent comme deux composants étrangers l'un à l'autre. */
+                className="group -mx-2 flex items-center gap-2 rounded-control px-2 py-2 transition-colors duration-150 hover:bg-surface-muted/60"
               >
                 <span className="tabular w-3 shrink-0 text-[0.6875rem] text-ink-muted">
                   {index + 1}

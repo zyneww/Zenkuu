@@ -1,0 +1,32 @@
+# Fins de ligne — normalisation imposée après la reprise du projet sous Linux.
+#
+# Le dépôt a été commencé sous Windows sans ce fichier : 80 fichiers suivis ont
+# donc été enregistrés en CRLF, et le reste en LF. Ce n'est pas cosmétique.
+#   · un `.mjs` exécutable dont la ligne shebang finit par CR n'est pas lançable
+#     sous Linux — le noyau cherche un interpréteur nommé « node\r » et rend
+#     « bad interpreter ». `packages/db/scripts/migrate.mjs` était dans ce cas ;
+#   · les diffs sont illisibles dès qu'un éditeur réécrit un fichier dans l'autre
+#     convention : le fichier entier apparaît modifié.
+#
+# `text=auto eol=lf` : git détecte les fichiers texte et les stocke ET les extrait
+# en LF, quelle que soit la plateforme. Une reprise ultérieure sous Windows reste
+# donc possible sans réintroduire le problème.
+* text=auto eol=lf
+
+# Binaires — jamais convertis, sinon ils sont corrompus.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.db binary
+
+# Verrous de dépendances — normalisés comme du texte, mais jamais fusionnés à la
+# main : un conflit se résout en réinstallant, pas en éditant.
+bun.lock -diff

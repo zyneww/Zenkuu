@@ -107,39 +107,24 @@ export function GlobalChartsView({
           </p>
         </div>
 
-        <Group label="Période">
+        <Group label="Période" value={days} onChange={setDays}>
           {RANGES.map((range) => (
-            <Chip
-              key={range.days}
-              active={days === range.days}
-              onClick={() => setDays(range.days)}
-              label={range.label}
-            />
+            <Chip key={range.days} id={range.days} label={range.label} />
           ))}
         </Group>
       </div>
 
       <div className="rounded-card border border-border-subtle bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle p-3">
-          <Group label="Actif">
+          <Group label="Actif" value={seriesId} onChange={setSeriesId}>
             {available.map((entry) => (
-              <Chip
-                key={entry.id}
-                active={seriesId === entry.id}
-                onClick={() => setSeriesId(entry.id)}
-                label={entry.label}
-              />
+              <Chip key={entry.id} id={entry.id} label={entry.label} />
             ))}
           </Group>
 
-          <Group label="Grandeur">
+          <Group label="Grandeur" value={metric} onChange={setMetric}>
             {METRICS.map((entry) => (
-              <Chip
-                key={entry.id}
-                active={metric === entry.id}
-                onClick={() => setMetric(entry.id)}
-                label={entry.label}
-              />
+              <Chip key={entry.id} id={entry.id} label={entry.label} />
             ))}
           </Group>
         </div>

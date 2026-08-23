@@ -1,7 +1,16 @@
 'use client'
 
-import { ArrowLeft, Loader2, Mail, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react'
+import { Mail } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState, useTransition } from 'react'
+
+import { REGEXP_ONLY_DIGITS } from 'input-otp'
+
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 
 import { requestLoginCode, verifyLoginCode, type AuthResult } from '@/lib/auth-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -82,6 +91,9 @@ export function LoginForm({
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
+  /* Défaut DU CHAMP, distinct de `error` qui porte l'échec du service. Voir la note
+     posée sur le `Field` plus bas. */
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   const emailRef = useRef<HTMLInputElement>(null)
@@ -114,6 +126,16 @@ export function LoginForm({
   function send(event: React.FormEvent) {
     event.preventDefault()
     setError(null)
+
+    /* Une adresse est valide ici si elle porte un arobase entouré de texte et un point
+       dans son domaine. C'est volontairement PLUS LARGE que la norme — les adresses
+       licites sont bien plus étranges que ce qu'on imagine, et un filtre strict rejette
+       de vraies adresses. Le serveur tranche ; ceci n'attrape que la faute de frappe. */
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setEmailError('Cette adresse semble incomplète — il manque un « @ » ou un domaine.')
+      emailRef.current?.focus()
+      return
+    }
     startTransition(async () => {
       const result = await requestLoginCode(email)
       if (!result.ok) {
@@ -161,33 +183,65 @@ export function LoginForm({
           </div>
         )}
 
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-ink">{t('Adresse électronique')}</span>
-          <div className="flex items-center gap-2 rounded-control border border-border-subtle bg-surface-muted px-2.5 focus-within:border-brand">
-            <Mail className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
-            <input
+        {/*
+          ── LE CHAMP EST VALIDÉ AVANT L'ALLER-RETOUR ──────────────────────────
+
+          `Field` porte l'étiquette et, désormais, l'ERREUR DU CHAMP. La distinction
+          compte : le message d'échec du serveur reste global — « service d'envoi
+          indisponible » ne désigne aucune saisie —, tandis qu'une adresse mal formée
+          est un défaut DE CE CHAMP et s'affiche sous lui, relié par
+          `aria-describedby`.
+
+          Le format est éprouvé ici plutôt qu'au serveur : « vous@exemple » partait,
+          revenait en erreur une seconde plus tard, et le lecteur devait relire son
+          adresse pour comprendre laquelle des deux moitiés manquait. `type="email"` ne
+          suffit pas — le navigateur ne l'annonce qu'au moment de l'envoi, dans une
+          bulle native que la synthèse vocale ne lit pas toujours.
+
+          Le serveur revalide, évidemment : cette vérification est un confort, jamais
+          une garantie. Voir `requestLoginCode`.
+        */}
+        <Field data-invalid={emailError !== null}>
+          <FieldLabel htmlFor="courriel-connexion" className="text-xs font-medium text-ink">{t('Adresse électronique')}</FieldLabel>
+          <InputGroup size="sm">
+            <InputGroupInput
+              id="courriel-connexion"
               ref={emailRef}
               type="email"
               required
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                // L'erreur s'efface à la frappe : la maintenir pendant qu'on corrige
+                // reprocherait au lecteur une saisie qu'il est en train de réparer.
+                if (emailError) setEmailError(null)
+              }}
               placeholder="vous@exemple.fr"
-              className="h-9 w-full min-w-0 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
+              aria-label={t('Adresse électronique')}
+              aria-invalid={emailError !== null}
+              aria-describedby={emailError ? 'courriel-connexion-erreur' : undefined}
             />
-          </div>
-        </label>
+            <InputGroupAddon>
+              <Mail />
+            </InputGroupAddon>
+          </InputGroup>
+          {emailError ? (
+            <FieldError id="courriel-connexion-erreur">{emailError}</FieldError>
+          ) : null}
+        </Field>
 
         {error ? <Feedback>{error}</Feedback> : null}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="flex h-9 w-full items-center justify-center gap-2 rounded-control bg-brand text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong disabled:opacity-60"
-        >
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
+        {/* La roue s'ajoute À GAUCHE du libellé au lieu de le remplacer, et `w-full`
+            fige la largeur. Les deux précautions répondent au même défaut observé :
+            l'étiquette passe de « Recevoir un code » à « Envoi… », et sans elles le
+            bouton rétrécissait sous le doigt au moment précis où l'on vient
+            d'appuyer dessus. `disabled` empêche le second envoi. */}
+        <Button type="submit" size="sm" disabled={pending} className="w-full">
+          {pending ? <Loader2 className="animate-spin" /> : null}
           {pending ? 'Envoi…' : 'Recevoir un code'}
-        </button>
+        </Button>
 
         {/*
           CE QUE LA CONNEXION APPORTE — et il faut le dire ici.
@@ -240,34 +294,51 @@ export function LoginForm({
         </p>
       </div>
 
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-medium text-ink">{t('Code à six chiffres')}</span>
-        <input
+      <Field>
+        <FieldLabel htmlFor="code-connexion">{t('Code à six chiffres')}</FieldLabel>
+        {/*
+          ── SIX CASES, ET NON UN CHAMP UNIQUE ──────────────────────────────────
+
+          Le champ unique a longtemps été le bon choix ici, pour deux raisons que six
+          `<input maxlength="1">` écrits à la main perdent : le COLLAGE d'un code en
+          une fois depuis la boîte de réception, et le remplissage automatique par
+          `one-time-code` d'iOS — qui vise un champ, pas une série.
+
+          `InputOTP` ne les perd pas. Il rend UN SEUL `<input>`, invisible, superposé
+          aux six cases : le collage, l'autocomplétion du système et la saisie clavier
+          continuent donc de travailler sur un champ, pendant que l'œil lit six cases.
+          C'est ce qui rend la substitution gagnante plutôt que neutre — s'y ajoutent
+          la touche Retour arrière qui recule d'une case et la longueur garantie par
+          `maxLength`, que le champ unique laissait à un `maxLength={7}` approximatif.
+
+          ⚠️ `onChange` REÇOIT LA VALEUR, pas l'événement : c'est la convention de
+          `input-otp`, et elle diffère de tous les autres champs du site.
+        */}
+        <InputOTP
+          id="code-connexion"
           ref={codeRef}
-          type="text"
-          inputMode="numeric"
-          /* `one-time-code` : c'est lui qui permet à iOS et à Chrome de proposer le
-             code lu dans le message, ce qui supprime le va-et-vient entre la boîte de
-             réception et cet écran. */
-          autoComplete="one-time-code"
-          maxLength={7}
+          maxLength={6}
           value={code}
-          onChange={(event) => setCode(event.target.value)}
-          placeholder="000000"
-          className="tabular h-11 w-full rounded-control border border-border-subtle bg-surface-muted text-center text-lg tracking-[0.4em] text-ink outline-none focus:border-brand placeholder:text-ink-muted"
-        />
-      </label>
+          onChange={setCode}
+          pattern={REGEXP_ONLY_DIGITS}
+          autoComplete="one-time-code"
+          containerClassName="justify-center"
+          aria-label={t('Code à six chiffres')}
+        >
+          <InputOTPGroup>
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <InputOTPSlot key={index} index={index} className="tabular size-11 text-base" />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
+      </Field>
 
       {error ? <Feedback>{error}</Feedback> : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="flex h-9 w-full items-center justify-center gap-2 rounded-control bg-brand text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong disabled:opacity-60"
-      >
-        {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
-        {pending ? t("Vérification…") : t("Se connecter")}
-      </button>
+      <Button type="submit" size="sm" disabled={pending} className="w-full">
+        {pending ? <Loader2 className="animate-spin" /> : null}
+        {pending ? t('Vérification…') : t('Se connecter')}
+      </Button>
 
       <p className="flex items-start gap-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">
         <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />{t('Ce que vous avez déjà suivi ou surveillé depuis ce navigateur rejoindra votre compte.')}</p>

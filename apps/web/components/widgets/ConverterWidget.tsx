@@ -5,6 +5,11 @@ import { useMemo, useState } from 'react'
 
 import type { MarketAsset } from '@zenkuu/data'
 
+import { IconButton } from '@/components/ui/IconButton'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+
 /**
  * Convertisseur actif ↔ devise.
  *
@@ -49,43 +54,48 @@ export function ConverterWidget({ assets }: { assets: MarketAsset[] }) {
     <div className="space-y-3 rounded-card border border-border-subtle bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-ink">Convertisseur</h3>
-        <button
-          type="button"
+        <IconButton
+          size="icon-sm"
+          variant="ghost"
           onClick={() => setReversed((value) => !value)}
-          aria-label="Inverser le sens de conversion"
-          className="rounded-card p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
-        >
-          <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+          label="Inverser le sens de conversion"
+          icon={ArrowLeftRight}
+        />
       </div>
 
-      <div className="space-y-2">
-        <label className="block">
-          <span className="mb-1 block text-[0.6875rem] text-ink-muted">Montant en {fromLabel}</span>
-          <input
+      {/* `FieldGroup` empile les deux champs et leur donne le même intervalle ;
+          `FieldLabel` lie chaque intitulé à son contrôle par `htmlFor`, là où les
+          `<label>` écrits autour d'un `<input>` nu ne survivent pas au premier
+          déplacement de balise. */}
+      <FieldGroup className="gap-2">
+        <Field>
+          <FieldLabel htmlFor="convertisseur-montant">{`Montant en ${fromLabel}`}</FieldLabel>
+          <Input
+            id="convertisseur-montant"
+            size="sm"
             type="text"
             inputMode="decimal"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
-            className="w-full rounded-card border border-border-subtle bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
-        </label>
+        </Field>
 
-        <label className="block">
-          <span className="mb-1 block text-[0.6875rem] text-ink-muted">Actif</span>
-          <select
+        <Field>
+          <FieldLabel htmlFor="convertisseur-actif">Actif</FieldLabel>
+          <NativeSelect
+            id="convertisseur-actif"
+            size="sm"
             value={asset.id}
             onChange={(event) => setAssetId(event.target.value)}
-            className="w-full rounded-card border border-border-subtle bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           >
             {assets.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.name} ({entry.symbol.toUpperCase()})
-              </option>
+              <NativeSelectOption key={entry.id} value={entry.id}>
+                {`${entry.name} (${entry.symbol.toUpperCase()})`}
+              </NativeSelectOption>
             ))}
-          </select>
-        </label>
-      </div>
+          </NativeSelect>
+        </Field>
+      </FieldGroup>
 
       <div className="rounded-card bg-surface-muted px-3 py-2.5" aria-live="polite">
         <p className="text-[0.6875rem] text-ink-muted">Résultat en {toLabel}</p>

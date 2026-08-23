@@ -5,6 +5,9 @@ import { TrendingUp } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
 import { useContent } from '@/components/locale/ContentProvider'
+import { Badge } from '@/components/ui/badge'
+import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
+import { Spinner } from '@/components/ui/spinner'
 import { assetHref } from '@/lib/asset-routes'
 import type { useAssetSearch } from '@/components/search/useAssetSearch'
 
@@ -15,6 +18,29 @@ import type { useAssetSearch } from '@/components/search/useAssetSearch'
  * l'état renvoyé par `useAssetSearch` et le met en forme. C'est ce qui permet aux deux
  * surfaces d'afficher exactement la même chose — y compris les cas que l'on oublie
  * toujours dans une copie : recherche en cours, aucun résultat, source crypto saturée.
+ *
+ * ── IL DOIT ÊTRE RENDU DANS UN `<CommandList>` ───────────────────────────────
+ *
+ * Ce composant ne rend que le CONTENU d'une liste `cmdk` : des groupes et des lignes.
+ * Ses deux appelants l'enveloppent chacun dans le `Command`/`CommandList` qui convient
+ * à sa forme — une fenêtre modale pour l'un, un tiroir sous le champ pour l'autre.
+ * Rendu hors de ce contexte, cmdk lève.
+ *
+ * ⚠️ LES DEUX APPELANTS DOIVENT POSER `shouldFilter={false}`. Par défaut, cmdk filtre
+ * lui-même les lignes sur la saisie du champ. Ici la recherche est faite PAR LE
+ * SERVEUR : ce que ce composant reçoit est déjà le résultat, et laisser cmdk le
+ * refiltrer ferait disparaître les bonnes réponses — « btc » ne contient pas
+ * « Bitcoin » au sens de sa comparaison de chaînes, et la ligne serait masquée.
+ *
+ * ── CE QUE cmdk APPORTE, ET QUI ÉTAIT ÉCRIT À LA MAIN ────────────────────────
+ *
+ * `HeaderSearch` portait une fonction de trente lignes qui lisait les `a[href]` du
+ * tiroir par `querySelectorAll` à chaque frappe pour déplacer le focus à la flèche.
+ * cmdk fait mieux, et sans code : les flèches déplacent une SÉLECTION (l'élément
+ * reste dans l'ordre du DOM, `aria-activedescendant` l'annonce), `Entrée` déclenche
+ * la ligne sélectionnée, et la sélection se replace toute seule quand la liste change
+ * sous elle — ce que l'index maison ne savait pas faire, il pointait régulièrement une
+ * ligne disparue depuis la dernière réponse réseau.
  *
  * ── LES QUATRE ÉTATS, DANS L'ORDRE OÙ ILS SE PRÉSENTENT ───────────────────────
  *
@@ -38,11 +64,7 @@ export function SearchResults({
 
   if (showTrending) {
     return (
-      <Section
-        title={fr.search.trendingTitle}
-        hint={fr.search.trendingHint}
-        icon={<TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />}
-      >
+      <CommandGroup heading={<GroupHeading title={fr.search.trendingTitle} hint={fr.search.trendingHint} icon={<TrendingUp className="size-3.5" aria-hidden="true" />} />}>
         {trending.length > 0 ? (
           trending.map((asset) => (
             <ResultRow
@@ -58,19 +80,27 @@ export function SearchResults({
         ) : (
           <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
         )}
-      </Section>
+      </CommandGroup>
     )
   }
 
   if (loading && !results) {
-    return <p className="px-3 py-6 text-center text-xs text-ink-muted">{fr.search.loading}</p>
+    return (
+      /* `CommandEmpty` et non un `<p>` : cmdk le marque `role="presentation"` et le
+         retire du décompte des lignes sélectionnables. Un paragraphe ordinaire posé
+         dans la liste resterait annoncé comme une option par la synthèse vocale. */
+      <CommandEmpty className="flex items-center justify-center gap-2 py-6 text-xs text-ink-muted">
+        <Spinner className="size-3.5" />
+        {fr.search.loading}
+      </CommandEmpty>
+    )
   }
 
   if (found.length > 0 && results) {
     return (
       <>
         {results.crypto.length > 0 ? (
-          <Section title={fr.assetClass.crypto}>
+          <CommandGroup heading={<GroupHeading title={fr.assetClass.crypto} />}>
             {results.crypto.map((item) => (
               <ResultRow
                 key={`c-${item.id}`}
@@ -82,11 +112,11 @@ export function SearchResults({
                 onNavigate={onNavigate}
               />
             ))}
-          </Section>
+          </CommandGroup>
         ) : null}
 
         {results.autres.length > 0 ? (
-          <Section title={fr.search.otherAssets}>
+          <CommandGroup heading={<GroupHeading title={fr.search.otherAssets} />}>
             {results.autres.map((item) => (
               <ResultRow
                 key={`a-${item.id}`}
@@ -97,7 +127,7 @@ export function SearchResults({
                 onNavigate={onNavigate}
               />
             ))}
-          </Section>
+          </CommandGroup>
         ) : null}
 
         {/* Panne de la source crypto : on le dit au lieu de laisser croire qu'aucune
@@ -110,32 +140,34 @@ export function SearchResults({
   }
 
   return (
-    <p className="px-3 py-6 text-center text-xs text-ink-muted">
+    <CommandEmpty className="px-3 py-6 text-center text-xs text-ink-muted">
       {results?.cryptoIndisponible ? fr.search.cryptoUnavailable : fr.search.noResult(query)}
-    </p>
+    </CommandEmpty>
   )
 }
 
-function Section({
+/**
+ * Intitulé d'un groupe.
+ *
+ * `CommandGroup` accepte un `heading` en `ReactNode`, ce qui permet d'y loger l'icône
+ * et l'indice sans quitter la sémantique de cmdk — l'intitulé reste relié au groupe
+ * par `aria-labelledby`, ce qu'un `<h2>` posé à côté ne ferait pas.
+ */
+function GroupHeading({
   title,
   hint,
   icon,
-  children,
 }: {
   title: string
   hint?: string
   icon?: React.ReactNode
-  children: React.ReactNode
 }) {
   return (
-    <section className="mb-1 last:mb-0">
-      <h2 className="flex items-center gap-1.5 px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted">
-        {icon}
-        {title}
-        {hint ? <span className="font-normal normal-case tracking-normal">· {hint}</span> : null}
-      </h2>
-      <ul>{children}</ul>
-    </section>
+    <span className="flex items-center gap-1.5">
+      {icon}
+      {title}
+      {hint ? <span className="font-normal normal-case tracking-normal">· {hint}</span> : null}
+    </span>
   )
 }
 
@@ -157,15 +189,34 @@ function ResultRow({
   onNavigate: () => void
 }) {
   return (
-    <li>
-      <Link
-        href={href}
-        onClick={onNavigate}
-        /* `rounded-control` et non `rounded-card` : ces lignes s'aboutent et se
-           parcourent, elles ne se prennent pas une par une. Voir la doctrine des deux
-           familles de rayons dans globals.css. */
-        className="flex items-center gap-3 rounded-control px-3 py-2 transition-colors hover:bg-surface-muted"
-      >
+    /*
+      ── `asChild` : LA LIGNE RESTE UN VRAI LIEN ────────────────────────────────
+
+      Le réflexe avec cmdk est `onSelect` + `router.push`. Il est faux ici : un
+      résultat de recherche doit s'ouvrir dans un onglet au clic milieu, se copier par
+      le menu contextuel et exister pour les robots d'indexation — trois choses qu'un
+      `<div>` qui navigue en JavaScript ne fait pas.
+
+      `asChild` donne le comportement de cmdk (sélection à la flèche, `Entrée` qui
+      déclenche) à un `<a href>` produit par le `Link` localisé de next-intl. La
+      sélection clavier active alors le lien lui-même.
+
+      ⚠️ `value` EST OBLIGATOIRE et doit être STABLE. cmdk s'en sert comme identité de
+      ligne ; sans lui il retombe sur le texte rendu, et deux actifs homonymes sur deux
+      classes différentes se confondraient. On y met le nom ET le symbole, ce qui rend
+      aussi la ligne trouvable par les deux si le filtrage de cmdk était un jour
+      réactivé.
+
+      `rounded-control` et non `rounded-card` : ces lignes s'aboutent et se
+      parcourent, elles ne se prennent pas une par une. Voir la doctrine des deux
+      familles de rayons dans globals.css.
+    */
+    <CommandItem
+      asChild
+      value={`${name} ${symbol}`}
+      className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+    >
+      <Link href={href} onClick={onNavigate}>
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
           <img
@@ -191,11 +242,11 @@ function ResultRow({
         {rank !== undefined ? (
           <span className="tabular shrink-0 text-[0.6875rem] text-ink-muted">#{rank}</span>
         ) : badge ? (
-          <span className="shrink-0 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro text-ink-muted">
+          <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-micro font-normal">
             {badge}
-          </span>
+          </Badge>
         ) : null}
       </Link>
-    </li>
+    </CommandItem>
   )
 }

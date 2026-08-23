@@ -1,9 +1,25 @@
 'use client'
 
-import { Loader2, LogOut, Mail, ShieldCheck, Trash2, UserRound } from 'lucide-react'
+import { Loader2, Mail, ShieldCheck, Trash2, UserRound } from 'lucide-react'
+import { Field } from '@/components/ui/field'
+import { Label } from '@/components/ui/label'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect, useState, useTransition } from 'react'
 
 import { LoginOverlay } from '@/components/account/LoginOverlay'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   deleteCurrentAccount,
   signOut,
@@ -51,7 +67,7 @@ export function SettingsAccount() {
     /* Place réservée le temps de lire le cookie — voir `AccountControl`, qui applique
        la même règle pour la même raison : le HTML initial est mis en cache et partagé
        par tous les visiteurs, il ne peut donc pas connaître la session. */
-    return <div className="h-40 animate-pulse rounded-card bg-surface-muted" aria-hidden="true" />
+    return <Skeleton className="h-40 rounded-card bg-surface-muted" aria-hidden="true" />
   }
 
   if (!identity) {
@@ -70,14 +86,16 @@ export function SettingsAccount() {
             fonction supplémentaire n’en dépend.
           </p>
 
-          <button
-            type="button"
-            onClick={() => setLoginOpen(true)}
-            className="mt-4 inline-flex h-9 items-center gap-2 rounded-control bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-          >
-            <UserRound className="h-4 w-4" aria-hidden="true" />
+          {/* Les sept boutons de cette page sont désormais le `Button` de shadcn/ui.
+              Ils portaient sept chaînes de classes voisines mais jamais identiques —
+              trois hauteurs, deux traitements du `disabled`, et un `hover` qui avait
+              divergé sur deux d'entre eux. La variante nomme maintenant l'intention :
+              `default` pour l'action de la carte, `outline` pour les gestes neutres,
+              `destructive` pour ce qui efface. */}
+          <Button className="mt-4" onClick={() => setLoginOpen(true)}>
+            <UserRound />
             Se connecter
-          </button>
+          </Button>
         </div>
 
         <LoginOverlay open={loginOpen} onClose={() => setLoginOpen(false)} />
@@ -122,14 +140,21 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
 
+  /* Le bouton reste inerte tant que rien n'a changé : réenregistrer un pseudonyme
+     identique consomme un aller-retour serveur pour afficher « Enregistré » sur une
+     valeur qui ne l'a jamais cessé. */
   const dirty = draft.trim() !== handle && draft.trim() !== ''
 
   return (
     <div className="space-y-4 rounded-card border border-border-subtle bg-surface p-4">
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-medium text-ink">Pseudonyme</span>
+      <Field>
+        <Label htmlFor="pseudonyme" className="text-xs font-medium text-ink">
+          Pseudonyme
+        </Label>
         <div className="flex gap-2">
-          <input
+          <Input
+            id="pseudonyme"
+            size="sm"
             type="text"
             value={draft}
             maxLength={32}
@@ -137,31 +162,40 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
               setDraft(event.target.value)
               setSaved(false)
             }}
-            className="h-9 w-full max-w-xs rounded-control border border-border-subtle bg-canvas px-2.5 text-sm text-ink outline-none focus:border-brand"
+            aria-label="Pseudonyme"
+            className="w-full max-w-xs"
           />
-          <button
-            type="button"
-            disabled={!dirty || pending}
+          {/* La roue s'AJOUTE au libellé au lieu de le remplacer, et `shrink-0` fige
+              la largeur : un bouton qui perd son mot pendant l'attente ne dit plus ce
+              qu'on vient de lui demander, et il rétrécirait en décalant le champ
+              voisin. `disabled` empêche le second envoi, ce que l'ancien
+              `disabled:opacity-60` écrit à la main ne faisait pas. */}
+          <Button
+            className="shrink-0"
+            disabled={pending || !dirty}
             onClick={() =>
               startTransition(async () => {
                 const result = await updateHandle(draft.trim())
                 if (result.ok) setSaved(true)
               })
             }
-            className="flex h-9 shrink-0 items-center gap-2 rounded-control bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong disabled:opacity-50"
           >
-            {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
+            {pending ? <Loader2 className="animate-spin" /> : null}
             Enregistrer
-          </button>
+          </Button>
         </div>
         <span className="mt-1.5 block text-[0.6875rem] text-ink-muted">
           {saved
             ? 'Enregistré. L’initiale de l’en-tête suit.'
             : 'Sert à l’affichage et à l’initiale de l’avatar. Il n’est ni unique ni public.'}
         </span>
-      </label>
+      </Field>
 
       <div>
+        {/* Un `<span>` et NON un `Label` : l'adresse n'est pas un champ, c'est du
+            texte en lecture seule. Une étiquette qui n'étiquette aucun contrôle est
+            annoncée comme telle par une synthèse vocale, qui cherche alors le champ
+            associé et n'en trouve pas — c'est pire que pas d'étiquette du tout. */}
         <span className="mb-1.5 block text-xs font-medium text-ink">{t('Adresse électronique')}</span>
         <p className="flex items-center gap-2 text-sm text-ink">
           <Mail className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
@@ -189,8 +223,8 @@ function SessionsCard() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
+        <Button
+          variant="outline"
           disabled={pendingOne}
           onClick={() =>
             startOne(async () => {
@@ -198,12 +232,12 @@ function SessionsCard() {
               window.location.reload()
             })
           }
-          className="inline-flex h-9 items-center gap-2 rounded-control border border-border-subtle px-3 text-sm font-medium text-ink transition-colors hover:border-brand disabled:opacity-50"
         >
-          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />{t('Se déconnecter')}</button>
+          {t('Se déconnecter')}
+        </Button>
 
-        <button
-          type="button"
+        <Button
+          variant="outline"
           disabled={pendingAll}
           onClick={() =>
             startAll(async () => {
@@ -211,10 +245,9 @@ function SessionsCard() {
               window.location.reload()
             })
           }
-          className="inline-flex h-9 items-center gap-2 rounded-control border border-border-subtle px-3 text-sm font-medium text-ink-muted transition-colors hover:border-brand hover:text-ink disabled:opacity-50"
         >
           Tout fermer
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -229,7 +262,6 @@ function SessionsCard() {
  */
 function DangerCard() {
   const t = usePhrase()
-  const [armed, setArmed] = useState(false)
   const [pending, startTransition] = useTransition()
 
   return (
@@ -240,45 +272,81 @@ function DangerCard() {
         <p className="text-xs leading-relaxed text-ink-muted">{t('Efface le compte, la liste de suivi, les alertes et les écrans enregistrés. Immédiat et sans période de grâce : conserver trente jours des données que personne ne réclame serait moins protecteur, pas plus.')}</p>
       </div>
 
-      {armed ? (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                await deleteCurrentAccount()
-                /* Navigation DURE et non `router.push` : le compte vient d'être
-                   effacé, ses deux cookies avec lui, et plusieurs arbres rendus
-                   côté serveur portent encore son état. Un rechargement complet
-                   est la seule façon de garantir qu'il n'en subsiste rien à
-                   l'écran. */
-                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-                window.location.href = '/'
-              })
-            }
-            className="inline-flex h-9 items-center gap-2 rounded-control bg-down px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
-            Confirmer la suppression
-          </button>
-          <button
-            type="button"
-            onClick={() => setArmed(false)}
-            className="inline-flex h-9 items-center rounded-control border border-border-subtle px-3 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
-          >
-            Annuler
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setArmed(true)}
-          className="inline-flex h-9 items-center gap-2 rounded-control border border-down/40 px-3 text-sm font-medium text-down transition-colors hover:bg-down-soft"
-        >
-          Supprimer mon compte
-        </button>
-      )}
+      {/*
+        ── LE SECOND CLIC PASSE DANS UN `AlertDialog` ─────────────────────────
+
+        Le geste restait un « deux clics », et il le reste. Ce qui change est CE QUI
+        SÉPARE les deux : la paire de boutons apparaissait EN PLACE, sous la carte,
+        et pouvait donc être ratée — on cliquait « Supprimer mon compte », la page ne
+        bougeait pas visiblement, et un second clic au même endroit tombait sur
+        « Confirmer ».
+
+        `AlertDialog` est le composant fait pour ce cas précis, et il diffère de
+        `Dialog` sur trois points qui comptent tous ici :
+
+          · IL NE SE FERME PAS AU CLIC EXTÉRIEUR ni à un `Échap` distrait. Une
+            destruction irréversible ne doit pas se refermer par accident — mais elle
+            ne doit pas non plus s'exécuter par accident, et c'est le sens de ce
+            verrouillage : on sort par « Annuler », explicitement.
+          · IL PREND LE FOCUS SUR L'ANNULATION, pas sur l'action. Le geste réflexe —
+            Entrée sur une fenêtre qui vient de s'ouvrir — annule au lieu de détruire.
+          · IL S'ANNONCE `role="alertdialog"`, ce qui fait lire titre ET description
+            d'un bloc par une synthèse vocale, là où un `dialog` ordinaire ne garantit
+            que le titre.
+
+        L'état `armed` disparaît avec lui : c'est Radix qui tient l'ouverture.
+      */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          {/* Bordé et rouge, pas plein. L'aplat est réservé au bouton qui EXÉCUTE,
+              dans la fenêtre : c'est la seule différence visuelle entre « j'ouvre la
+              confirmation » et « je supprime », et elle doit se voir. */}
+          <Button variant="outline" data-destructive>
+            Supprimer mon compte
+          </Button>
+        </AlertDialogTrigger>
+
+        <AlertDialogContent className="border-border-subtle bg-overlay">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Supprimer définitivement ce compte ?')}</AlertDialogTitle>
+            <AlertDialogDescription className="leading-relaxed">{t('Le compte, la liste de suivi, les alertes et les écrans enregistrés seront effacés immédiatement. Cette action est irréversible.')}</AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Annuler</AlertDialogCancel>
+            {/*
+              `asChild` sur l'action : `AlertDialogAction` ferme la fenêtre de
+              lui-même au clic, et son bouton par défaut n'a ni la variante
+              destructrice ni l'état d'attente. On lui prête donc le nôtre.
+
+              ⚠️ `onClick` et non `onSelect` : Radix ferme APRÈS avoir laissé passer
+              l'événement, et la navigation dure ci-dessous emporte de toute façon la
+              page — l'ordre des deux n'a pas d'incidence observable.
+            */}
+            <AlertDialogAction asChild>
+              <Button
+                variant="destructive"
+                disabled={pending}
+                onClick={() =>
+                  startTransition(async () => {
+                    await deleteCurrentAccount()
+                    /* Navigation DURE et non `router.push` : le compte vient d'être
+                       effacé, ses deux cookies avec lui, et plusieurs arbres rendus
+                       côté serveur portent encore son état. Un rechargement complet
+                       est la seule façon de garantir qu'il n'en subsiste rien à
+                       l'écran. */
+                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                    window.location.href = '/'
+                  })
+                }
+              >
+                {pending ? <Loader2 className="animate-spin" /> : null}
+                Confirmer la suppression
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

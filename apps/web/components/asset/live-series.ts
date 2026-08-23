@@ -75,6 +75,46 @@ export function appendLivePoint(history: PriceHistory, live: LivePoint | null): 
 }
 
 /**
+ * Restreint une série à un intervalle de dates.
+ *
+ * ── POURQUOI CE DÉCOUPAGE EXISTE ─────────────────────────────────────────────
+ *
+ * `/api/historique` ne comprend qu'une PROFONDEUR — un nombre de jours depuis
+ * aujourd'hui — jamais deux dates. Demander « du 3 au 10 mars » revient donc à charger
+ * tout depuis le 3 mars, et sans ce découpage la fiche affichait tout jusqu'à
+ * aujourd'hui : une fenêtre de sept jours devenait deux ans.
+ *
+ * ── LES BORNES SONT DES JOURS, PAS DES INSTANTS ──────────────────────────────
+ *
+ * Elles arrivent en ISO court (`2026-03-10`), qui désigne minuit. Prise telle quelle,
+ * la borne de fin exclurait la journée qu'elle nomme — on demanderait « jusqu'au 10 »
+ * et l'on obtiendrait « jusqu'au 9 au soir ». On l'étend donc à la fin de ce jour-là.
+ *
+ * ── ET UN DÉCOUPAGE VIDE EST IGNORÉ ──────────────────────────────────────────
+ *
+ * Moins de deux points ne fait pas une courbe. Plutôt qu'un cadre vide, on rend la
+ * série entière : c'est le cas d'un intervalle tombé entre deux relevés, et montrer
+ * trop vaut mieux que ne rien montrer sans rien dire.
+ */
+export function clipToRange(
+  history: PriceHistory,
+  range: { from: string; to: string } | null,
+): PriceHistory {
+  if (!range) return history
+
+  const from = Date.parse(range.from)
+  const to = Date.parse(range.to)
+  if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) return history
+
+  const end = to + 86_399_999
+  const points = history.points.filter(
+    (point) => point.timestamp >= from && point.timestamp <= end,
+  )
+
+  return points.length > 1 ? { ...history, points } : history
+}
+
+/**
  * Insère une bougie poussée par un flux — remplacement OU ajout, jamais les deux.
  *
  * Une place réécrit la bougie courante tant que son intervalle n'est pas clos, puis

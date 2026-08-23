@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { TreasuryHolder, TreasuryReport } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
@@ -90,12 +91,12 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
         <ColumnPicker prefs={prefs} />
       </div>
 
-      <div className="overflow-x-auto rounded-card">
+      <div className="rounded-card">
         {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. Le rang
             disparaît avec les autres : le registre arrive TRIÉ par avoirs décroissants,
             l'ordre des lignes le dit déjà. */}
-        <table className="w-full border-collapse text-sm sm:min-w-[46rem]">
-          <thead>
+        <Table className="border-collapse sm:min-w-[46rem]">
+          <TableHeader className="[&_tr]:border-b-0">
             <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
               {prefs.isVisible('rank') ? (
                 <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
@@ -158,9 +159,9 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                 />
               ) : null}
             </tr>
-          </thead>
+          </TableHeader>
 
-          <tbody className="divide-y divide-border-subtle">
+          <TableBody className="divide-y divide-border-subtle">
             {rows.map((holder, index) => {
               const gain =
                 holder.entryValueUsd !== undefined && holder.currentValueUsd !== undefined
@@ -225,8 +226,8 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                 </tr>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">

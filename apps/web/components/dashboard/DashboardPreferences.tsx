@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Button } from '@/components/ui/button'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import {
   PreferenceOverlay,
@@ -53,48 +55,46 @@ export function DashboardPreferences() {
       </h2>
 
       <dl className="divide-y divide-border-subtle rounded-card border border-border-subtle">
+        {/* `variant="link"` : le bouton de shadcn/ui dans sa variante lien —
+            sans fond ni bordure, souligné au survol. C'est exactement ce que ces deux
+            valeurs étaient, écrit à la main. */}
         <Row label="Langue">
-          <button
-            type="button"
-            onClick={() => setTab('language')}
-            className="text-sm font-medium text-brand hover:underline"
-          >
+          <Button size="sm" variant="link" onClick={() => setTab('language')}>
             {LANGUAGE_LABELS[language] ?? 'Français'}
-          </button>
+          </Button>
         </Row>
 
         <Row label="Devise d’affichage">
-          <button
-            type="button"
-            onClick={() => setTab('currency')}
-            className="text-sm font-medium text-brand hover:underline"
-          >
+          <Button size="sm" variant="link" onClick={() => setTab('currency')}>
             {currency}
-          </button>
+          </Button>
         </Row>
 
         <Row label="Thème">
-          <div
-            className="flex items-center gap-0.5 rounded-card border border-border-subtle p-0.5"
-            role="group"
+          {/* Même contrôle segmenté qu'à la page de réglages — voir
+              `SettingsPreferences` pour ce que `ButtonGroup` apporte au clavier. Le
+              doublon de RENDU disparaît ici : les deux pages partagent désormais le
+              même composant, non deux copies d'une même chaîne de classes. */}
+          <ToggleGroup
+            type="single"
+            size="sm"
+            variant="outline"
             aria-label="Thème"
+            value={String(theme)}
+            onValueChange={(next) => {
+              /* Radix n'a pas de `disallowEmptySelection` : recliquer l'option
+                 active rappelle avec la CHAÎNE VIDE. Ce réglage n'a pas d'état
+                 « aucun » — on ignore donc ce cas plutôt que de laisser le
+                 contrôle devenir muet sur une valeur qui, elle, n'a pas bougé. */
+              if (next) setTheme(next as ThemeMode)
+            }}
           >
             {THEMES.map((entry) => (
-              <button
-                key={entry.value}
-                type="button"
-                onClick={() => setTheme(entry.value)}
-                aria-pressed={theme === entry.value}
-                className={`rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
-                  theme === entry.value
-                    ? 'bg-brand text-on-brand'
-                    : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                }`}
-              >
+              <ToggleGroupItem key={entry.value} value={String(entry.value)}>
                 {entry.label}
-              </button>
+              </ToggleGroupItem>
             ))}
-          </div>
+          </ToggleGroup>
         </Row>
       </dl>
 

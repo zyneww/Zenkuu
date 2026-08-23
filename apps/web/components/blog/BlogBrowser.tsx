@@ -3,6 +3,8 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+
 import { EmptyState } from '@zenkuu/ui'
 
 import { BlogCard } from '@/components/blog/BlogCard'
@@ -73,20 +75,22 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
           ))}
         </div>
 
-        <div className="relative w-full sm:w-64">
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
-            aria-hidden="true"
-          />
-          <input
+        {/* `Input` de shadcn/ui : l'icône, l'anneau de focus et les états du champ
+            viennent du composant. Le montage précédent — une loupe posée en absolu
+            sur un `<input>` habillé à la main — était recopié à l'identique dans huit
+            fichiers, avec huit décalages de loupe légèrement différents. */}
+        <InputGroup size="default" className="w-full sm:w-64">
+          <InputGroupInput
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('Rechercher un article…')}
             aria-label={t('Rechercher parmi les articles du blog')}
-            className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
-        </div>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+        </InputGroup>
       </div>
 
       {visible.length === 0 ? (

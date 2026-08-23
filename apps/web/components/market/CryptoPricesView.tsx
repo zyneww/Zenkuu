@@ -13,7 +13,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { Money } from '@/components/locale/Money'
 import { CryptoSummaryCards } from '@/components/market/CryptoSummaryCards'
-import { CryptoViewControls } from '@/components/market/CryptoViewControls'
+import { CryptoPeriodLinks, CryptoViewControls } from '@/components/market/CryptoViewControls'
 import {
   periodMeta,
   readPeriod,
@@ -107,6 +107,11 @@ export async function CryptoPricesView({
               watchlist={watchlist}
               chartPosition="inline"
               quickViews={false}
+              /* La période descend à côté de « Personnaliser », comme sur les pages à
+                 état local — voir `CryptoPeriodLinks`. */
+              trailingSlot={
+                <CryptoPeriodLinks basePath={BASE_PATH} view={view} period={period} />
+              }
             />
 
             <p className="text-xs text-ink-muted">{listing.scopeNote}</p>

@@ -154,7 +154,7 @@ function Line({
   if (value === null) return null
 
   return (
-    <div className="border-b border-border-subtle/60 py-1.5 last:border-0">
+    <div className="border-b border-border-subtle py-1.5 last:border-0">
       <div className="flex items-baseline justify-between gap-2">
         <dt className="min-w-0 flex-1 text-xs text-ink-muted">{label}</dt>
         <dd className="tabular shrink-0 text-xs font-medium text-ink">{value}</dd>

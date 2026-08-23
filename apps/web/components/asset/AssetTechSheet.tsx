@@ -81,7 +81,7 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
           </h3>
           {/* Plus de carte ni de fond : la liste se pose au ras de la colonne, comme le
              reste du rail. Les filets de séparation suffisent à la tenir. */}
-          <ul className="divide-y divide-border-subtle/60">
+          <ul className="divide-y divide-border-subtle">
             {contracts.map(([chain, address]) => (
               <li key={chain} className="flex items-center gap-2 py-1.5">
                 <span className="w-20 shrink-0 text-xs font-medium text-ink">
@@ -123,7 +123,7 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
         norme prévoit pour cela. Un lecteur d'écran annonce alors « Explorateurs,
         etherscan.io » plutôt que deux listes sans rapport.
       */}
-      <dl className="divide-y divide-border-subtle/60">
+      <dl className="divide-y divide-border-subtle">
         {asset.homepageUrl ? (
           <SheetRow label="Site" links={[{ label: hostLabel(asset.homepageUrl), url: asset.homepageUrl }]} />
         ) : null}

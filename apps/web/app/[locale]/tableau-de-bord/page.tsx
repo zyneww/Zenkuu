@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import { getRanking, type AssetClass, type MarketAsset } from '@zenkuu/data'
 import { DB_ENABLED, listWatchlist } from '@zenkuu/db'
@@ -109,10 +110,7 @@ export default async function DashboardPage() {
             title="Aucun actif suivi"
             description={t('Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici.')}
             action={
-              <Link
-                href="/marches"
-                className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
-              >{t('Parcourir les cryptomonnaies')}</Link>
+              <ButtonLink href="/marches">{t('Parcourir les cryptomonnaies')}</ButtonLink>
             }
           />
         ) : (
@@ -192,9 +190,6 @@ async function Shell({ children }: { children: React.ReactNode }) {
 async function HomeLink() {
   const t = await getPhrase()
   return (
-    <Link
-      href="/"
-      className="inline-block bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors duration-150 hover:bg-brand-strong"
-    >{t('Retour à l’accueil')}</Link>
+    <ButtonLink href="/">{t('Retour à l’accueil')}</ButtonLink>
   )
 }

@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -74,10 +75,17 @@ export async function SettingsSources() {
         ))}
       </ul>
 
-      <div className="border-l-2 border-accent bg-surface-muted p-4">
-        <p className="text-xs leading-relaxed text-ink-muted">
-          <strong className="text-ink">{t('Ce que ZENKUU ne fait pas.')}</strong>{t('Aucun ordre n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et aucune donnée personnelle n’est revendue. Les liens vers des plateformes tierces sont cités sans recommandation.')}</p>
-      </div>
+      {/* `Alert` en `role="note"` : le bloc est annoncé comme une remarque et non
+          comme un paragraphe perdu entre une liste et un lien. Le filet doré reste —
+          l'or SIGNIFIE ici, il marque la mise en garde, ce qui est l'emploi que la
+          doctrine de l'accent lui réserve (globals.css). */}
+      <Alert
+        role="note"
+        className="rounded-none border-0 border-l-2 border-gold bg-surface-muted p-4"
+      >
+        <AlertTitle className="text-xs text-ink">{t('Ce que ZENKUU ne fait pas.')}</AlertTitle>
+        <AlertDescription className="text-xs leading-relaxed text-ink-muted">{t('Aucun ordre n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et aucune donnée personnelle n’est revendue. Les liens vers des plateformes tierces sont cités sans recommandation.')}</AlertDescription>
+      </Alert>
 
       <p className="text-sm text-ink-muted">
         Le détail des méthodes de calcul et des limites connues est sur la page{' '}

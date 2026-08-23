@@ -1,7 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Search } from 'lucide-react'
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import { ChangeBadge, formatCompact, formatPercent, formatShare } from '@zenkuu/ui'
 
@@ -225,20 +228,18 @@ export function AssetMetricGrid({
           </div>
 
           <label className="relative mt-3 block">
-            <span className="sr-only">{t('Rechercher une métrique')}</span>
-            <Search
-              size={13}
-              strokeWidth={1.5}
-              aria-hidden="true"
-              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted"
-            />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Rechercher…"
-              className="w-full rounded-control border border-border-subtle bg-surface py-1.5 pl-7 pr-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-            />
+            <InputGroup size="sm">
+              <InputGroupInput
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Rechercher…"
+                aria-label={t('Rechercher une métrique')}
+              />
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+            </InputGroup>
           </label>
         </aside>
 
@@ -388,7 +389,7 @@ function Card({
             <span className="mt-1 text-micro text-ink-muted">{t('Sans historique publié')}</span>
           </div>
         ) : loading ? (
-          <div className="h-8 animate-pulse rounded bg-surface" />
+          <Skeleton className="h-8 rounded bg-surface" />
         ) : points && points.length > 1 ? (
           <CardChart
             points={points}

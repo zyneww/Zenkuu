@@ -2,6 +2,8 @@
 
 import { Globe } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import {
@@ -40,18 +42,32 @@ export function LocaleBadge({ hint }: { hint: string }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setTab('language')}
-        title={hint}
-        /* `min-h-9` : 30 pixels de haut passaient sous le seuil des 32 sous lequel une
-           cible se rate au doigt, et celle-ci ouvre les préférences — la manquer envoie
-           le lecteur au hasard dans le pied de page. */
-        className="mt-4 inline-flex min-h-9 items-center gap-1.5 rounded-card border border-border-subtle bg-surface px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
-      >
-        <Globe className="h-3.5 w-3.5" aria-hidden="true" />
-        {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}
-      </button>
+      {/* `Button` de shadcn/ui en `outline`, taille `sm` — 32 pixels de haut, le seuil
+          sous lequel une cible se rate au doigt, ce que le `min-h-9` d'avant devait
+          forcer à la main sur un bouton qui n'en faisait que 30. Celui-ci ouvre les
+          préférences : le manquer envoie le lecteur au hasard dans le pied de page.
+
+          AUCUNE MARGE ICI. Le badge en portait une (`mt-4`), héritée du temps où il se
+          posait sous le bloc de marque ; il vit désormais dans la barre du bas du pied,
+          alignée sur une ligne, où quatre pixels de retrait le décalaient seul vers le
+          bas. L'espacement appartient au parent, qui sait ce qu'il y a autour — pas au
+          bouton, qui ne le sait pas.
+
+          `hint` passait par un `title`, qui n'existe ni au clavier ni au doigt. Il
+          passe maintenant par le `Tooltip` de shadcn/ui, qui s'ouvre au survol ET au
+          focus — l'explication devient réellement atteignable.
+
+          ⚠️ `asChild` sur le déclencheur : sans lui, Radix rendrait son propre
+          `<button>` autour du nôtre, ce que le HTML interdit. */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button size="sm" variant="outline" onClick={() => setTab('language')}>
+            <Globe />
+            {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">{hint}</TooltipContent>
+      </Tooltip>
 
       <PreferenceOverlay tab={tab} onTabChange={setTab} onClose={() => setTab(null)} />
     </>

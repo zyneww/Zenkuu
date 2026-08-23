@@ -4,6 +4,8 @@ import { FolderInput, Pencil, Trash2 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
 
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { ExportMenu } from '@/components/tools/ExportMenu'
 import { moveToList, removeList, renameList } from '@/lib/watchlist-actions'
 
@@ -112,14 +114,14 @@ export function WatchlistBoard({
                 }}
                 className="flex items-center gap-2"
               >
-                <input
+                <Input
+                  size="sm"
                   autoFocus
                   value={draft}
                   maxLength={40}
                   onChange={(event) => setDraft(event.target.value)}
                   onBlur={() => submitRename(list.name)}
                   aria-label={`Nouveau nom pour ${list.name}`}
-                  className="rounded-card border border-border-subtle bg-surface px-2 py-1 text-sm text-ink focus:border-brand focus:outline-none"
                 />
                 <button type="submit" className="text-xs font-medium text-brand hover:text-brand-strong">
                   Renommer
@@ -196,23 +198,32 @@ export function WatchlistBoard({
                 {/* Le sélecteur n'apparaît qu'avec une destination possible : proposer
                     de déplacer vers la seule liste existante n'offrirait aucun choix. */}
                 {names.length > 1 || canCreateList ? (
-                  <label className="flex items-center gap-1.5 text-xs text-ink-muted">
-                    <FolderInput className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span className="sr-only">Déplacer {item.label} vers</span>
-                    <select
+                  <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+                    <FolderInput className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {/* `NativeSelect` de shadcn/ui — même contrôle que partout ailleurs.
+                        L'intitulé reste NOMINATIF (« Déplacer Bitcoin vers ») et non
+                        générique : la page en aligne un par ligne suivie, et un lecteur
+                        d'écran qui les parcourt doit savoir lequel il tient. */}
+                    <NativeSelect
+                      size="sm"
+                      className="w-max"
+                      aria-label={`Déplacer ${item.label} vers`}
                       value={list.name}
                       disabled={pending}
                       onChange={(event) => move(item, list.name, event.target.value)}
-                      className="rounded-card border border-border-subtle bg-surface px-1.5 py-1 text-xs text-ink focus:border-brand focus:outline-none"
                     >
-                      {names.map((name) => (
-                        <option key={name} value={name}>
-                          {name}
-                        </option>
+                      {([
+                        ...names.map((name) => ({ label: name, value: name })),
+                        ...(canCreateList
+                          ? [{ label: 'Nouvelle liste…', value: NEW_LIST }]
+                          : []),
+                      ]).map((option) => (
+                        <NativeSelectOption key={option.value} value={option.value}>
+                          {option.label}
+                        </NativeSelectOption>
                       ))}
-                      {canCreateList ? <option value={NEW_LIST}>Nouvelle liste…</option> : null}
-                    </select>
-                  </label>
+                    </NativeSelect>
+                  </div>
                 ) : null}
               </li>
             ))}

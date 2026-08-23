@@ -118,8 +118,11 @@ export function PriceChart({
           tout texte serait déformé horizontalement. */}
       <figcaption className="mt-1 flex justify-between text-[0.6875rem] text-ink-muted">
         <span>{formatDate(first.timestamp)}</span>
+        {/* Le code de devise a été retiré de cette ligne : `formatPrice` porte
+            désormais le symbole (« $55.00 — $80.00 »), et le répéter écrivait
+            « $55.00 — $80.00 USD ». Voir `formatAxisMoney`. */}
         <span className="tabular">
-          {formatPrice(min)} — {formatPrice(max)} {currency}
+          {formatPrice(min)} — {formatPrice(max)}
         </span>
         <span>{formatDate(last.timestamp)}</span>
       </figcaption>

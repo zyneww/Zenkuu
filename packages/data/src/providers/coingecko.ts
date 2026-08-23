@@ -172,6 +172,19 @@ interface CoinGeckoCoin {
     price_change_percentage_7d?: number | null
     /* Fenêtres longues : déjà dans la réponse, simplement jamais lues jusqu'ici. */
     price_change_percentage_1h_in_currency?: Record<string, number>
+    /*
+     * Variation du COURS sur 24 h, DEVISE PAR DEVISE.
+     *
+     * Ce n'est pas une redite de `price_change_percentage_24h`, et l'écart est le fond
+     * du sujet : la variation en bitcoin d'un jeton n'est pas sa variation en euro. Un
+     * jeton qui gagne 3 % en euro le jour où le bitcoin en gagne 5 % a PERDU 2 % en
+     * bitcoin — c'est-à-dire qu'il a sous-performé son marché.
+     *
+     * La déduire par différence serait faux : les deux pourcentages sont calculés sur
+     * des cours arrondis à des instants qui ne coïncident pas exactement, et l'écart de
+     * deux approximations porte l'erreur des deux. La source publie la valeur, on la lit.
+     */
+    price_change_percentage_24h_in_currency?: Record<string, number>
     price_change_percentage_14d?: number | null
     price_change_percentage_30d?: number | null
     price_change_percentage_1y?: number | null
@@ -1162,6 +1175,16 @@ export const coinGeckoProvider: MarketDataProvider = {
         if (typeof value === 'number' && Number.isFinite(value)) prices[code] = value
       }
       if (Object.keys(prices).length > 0) detail.pricesByCurrency = prices
+    }
+
+    // Variations sur 24 h par devise — voir la note du champ source. Elles arrivent dans
+    // la même réponse que les cours : ce badge ne coûte aucun appel de plus.
+    if (market?.price_change_percentage_24h_in_currency) {
+      const changes: Record<string, number> = {}
+      for (const [code, value] of Object.entries(market.price_change_percentage_24h_in_currency)) {
+        if (typeof value === 'number' && Number.isFinite(value)) changes[code] = value
+      }
+      if (Object.keys(changes).length > 0) detail.changesByCurrency = changes
     }
 
     // Champs numériques optionnels : ils partagent tous le type `number | undefined`,

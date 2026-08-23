@@ -1,8 +1,11 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
-import { BookOpen, Database, Scale, Search, User, type LucideIcon } from 'lucide-react'
+import { BookOpen, Database, Scale, User, type LucideIcon } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import { HELP_ARTICLES, HELP_CATEGORIES, type HelpCategory } from '@/content/aide'
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -50,20 +53,20 @@ export function HelpSearch() {
 
   return (
     <div className="space-y-6">
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-muted"
-          aria-hidden="true"
-        />
-        <input
+      {/* Cran `lg` : c'est le champ de recherche PRINCIPAL de la page d'aide, la
+          première chose qu'on y fait. Les autres champs du site sont en `sm` ou `md`. */}
+      <InputGroup size="lg">
+        <InputGroupInput
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t('Décrivez votre question en quelques mots…')}
           aria-label={t('Rechercher dans le centre d’aide')}
-          className="w-full rounded-card border border-border-subtle bg-surface py-3.5 pl-11 pr-4 text-base text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
         />
-      </div>
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+      </InputGroup>
 
       {results ? (
         <section aria-live="polite" className="space-y-3">

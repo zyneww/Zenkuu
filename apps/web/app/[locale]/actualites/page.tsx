@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 
-import { getMoversUniverse, getNews, type NewsItem } from '@zenkuu/data'
-import { DB_ENABLED, listNewsBetween, newsArchiveReady, oldestNewsDate } from '@zenkuu/db'
-import { EmptyState, SourceNote } from '@zenkuu/ui'
+import { getMoversUniverse, getNews, getRanking, type AssetClass, type MarketAsset, type NewsItem } from '@zenkuu/data'
+import { listNewsBetween } from '@zenkuu/db'
+import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
-import { NewsDatePicker } from '@/components/news/NewsDatePicker'
+import { AssetLogo } from '@/components/asset/AssetLogo'
 import { NewsFeed } from '@/components/news/NewsFeed'
+import { citedAssets } from '@/components/news/mentions'
+import { Link } from '@/i18n/navigation'
+import { assetHref } from '@/lib/asset-routes'
 import { getContent, getPhrase } from '@/lib/content'
 
 // Les actualités se renouvellent plus vite que les cours : régénération à 3 minutes,
@@ -92,43 +95,95 @@ export default async function NewsPage({
    * l'accueil, le convertisseur, les mouvements et les cotations récentes. Il est ici
    * la cinquième lecture de la même entrée de cache.
    */
-  const [news, universe] = await Promise.all([
+  /*
+   * ── LES QUATRE CLASSES NON CRYPTO REJOIGNENT LES COTATIONS ────────────────
+   *
+   * Elles manquaient, et cela rendait INERTE la moitié de la table des mentions :
+   * « NVIDIA », « S&P 500 » ou « Or » sont détectés dans les titres depuis toujours,
+   * mais la pastille ne s'affiche QUE si une variation est connue pour l'identifiant.
+   * Aucune ne l'était hors crypto — les entrées correspondantes n'ont donc jamais
+   * produit une seule pastille, et le défaut d'identifiant qu'elles portaient (voir
+   * `mentions.ts`) n'avait jamais eu l'occasion de se voir.
+   *
+   * Le coût est faible et partagé : ce sont les MÊMES clés de cache que les onglets
+   * de `/marches`, et les quatre lectures partent en parallèle du fil d'actualités.
+   */
+  const QUOTED_CLASSES: AssetClass[] = ['stock', 'etf', 'index', 'commodity']
+
+  const [news, universe, ...others] = await Promise.all([
     requestedDate ? Promise.resolve(null) : getNews(72),
     getMoversUniverse(250, 'eur'),
+    ...QUOTED_CLASSES.map((assetClass) =>
+      getRanking({ assetClass, page: 1, perPage: 25, currency: 'eur' }),
+    ),
   ])
 
   /*
    * Table `identifiant → variation 24 h`, réduite aux actifs que les pastilles savent
    * nommer. La construire ici plutôt que de passer l'univers entier au composant
    * client évite d'expédier 250 objets complets dans le paquet de la page pour en lire
-   * neuf nombres.
+   * une poignée de nombres.
    */
   const quotes: Record<string, number> = {}
-  if (universe.ok) {
-    for (const asset of universe.data) {
-      if (asset.change24h !== undefined) quotes[asset.id] = asset.change24h
+  /*
+   * ── L'IDENTITÉ VISUELLE VOYAGE AVEC LA VARIATION ────────────────────────
+   *
+   * La colonne des plus cités alignait des noms nus. Or ces lignes mélangent quatre
+   * classes d'actifs — Bitcoin, l'Or, Microsoft, le Nasdaq — et rien ne disait
+   * laquelle : « Or » et « XRP » se lisent pareil en texte, alors qu'une pastille et
+   * un pictogramme les séparent d'un coup d'œil.
+   *
+   * `AssetLogo` sait dessiner les six classes à partir de quatre champs. On ne retient
+   * donc QUE ces quatre-là, comme pour `quotes` : expédier 250 actifs complets dans
+   * le paquet de la page pour en lire un symbole serait le prix d'une commodité.
+   */
+  const icons: Record<string, IconSeed> = {}
+
+  const remember = (asset: MarketAsset) => {
+    if (asset.change24h !== undefined) quotes[asset.id] = asset.change24h
+    icons[asset.id] = {
+      symbol: asset.symbol,
+      ...(asset.image ? { image: asset.image } : {}),
+      name: asset.name,
+      assetClass: asset.assetClass,
     }
   }
 
+  if (universe.ok) for (const asset of universe.data) remember(asset)
+  for (const result of others) {
+    if (!result.ok) continue
+    for (const asset of result.data) remember(asset)
+  }
+
   const articles = archive ? archive.articles : (news?.ok ? news.data : [])
-  const oldest = await archiveStart()
 
   return (
     <div className="space-y-8">
-      <header className="max-w-2xl space-y-3">
-        <h1 className="display-xl text-ink">{fr.news.title}</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">{fr.news.subtitle}</p>
+      {/* ── L'EN-TÊTE SE RESSERRE ────────────────────────────────────────────
+          Le titre passait en `display-xl` au-dessus d'un sous-titre en `text-lg`, soit
+          près de deux cents pixels avant le premier article. Sur blog.kraken.com, le
+          titre de section tient sur une ligne et la une commence immédiatement : c'est
+          une page qu'on vient LIRE, et le premier écran doit porter un article, pas
+          une présentation de la rubrique.
+
+          Le sous-titre n'est pas supprimé pour autant — il dit d'où viennent les
+          articles, ce qu'aucun titre n'énonce — mais il descend d'un cran et passe à
+          droite du titre, sur la même ligne quand la place le permet. */}
+      <header className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-subtle pb-5">
+        <h1 className="display-sm text-ink">{fr.news.title}</h1>
+        <p className="max-w-xl text-sm leading-relaxed text-ink-muted">{fr.news.subtitle}</p>
       </header>
 
-      <NewsDatePicker
-        {...(requestedDate ? { selected: requestedDate } : {})}
-        {...(oldest.iso ? { oldestAvailable: oldest.iso } : {})}
-        {...(oldest.reason ? { unavailableReason: oldest.reason } : {})}
-      />
-
+      {/* Le sélecteur de date a été RETIRÉ de la page. Le paramètre `?date=` reste lu
+          et servi depuis l'archive — un lien déjà partagé continue de fonctionner —
+          mais il n'occupe plus le haut d'une page qu'on vient lire au présent. */}
       {articles.length > 0 ? (
         <>
-          <NewsFeed articles={articles} quotes={quotes} />
+          <NewsFeed
+            articles={articles}
+            quotes={quotes}
+            sidebar={<MostCited articles={articles} quotes={quotes} icons={icons} label={t('Les plus cités aujourd’hui')} />}
+          />
 
           <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
             {t(
@@ -136,9 +191,11 @@ export default async function NewsPage({
             )}
           </p>
 
-          {news?.source ? (
-            <SourceNote label={news.source.label} href={news.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
-          ) : null}
+          {/* La liste complète des quarante-deux éditeurs tenait ici sur six lignes de
+              liens gris. Chaque carte porte déjà le nom et le logo de sa source, et le
+              lien sortant y mène : répéter la liste en pied de page ajoutait un pavé
+              que personne ne lit sous la seule chose qu'on veut y trouver — la suite
+              des articles. */}
         </>
       ) : (
         <EmptyState
@@ -163,6 +220,135 @@ export default async function NewsPage({
         />
       )}
     </div>
+  )
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA COLONNE DE TÊTE — LES ACTIFS QUE LE FIL DU JOUR NOMME LE PLUS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * blog.kraken.com pose ici un encadré « New listings now available for trading » :
+ * une grille dense de jetons, à côté de l'article de une. La place est juste — c'est
+ * le seul endroit de la page où un bloc court peut tenir sans couper le fil — mais le
+ * contenu ne nous convient pas : nous ne référençons pas de cotations à ouvrir, et un
+ * bloc de nouveautés ferait doublon avec `/nouvelles-cotations`.
+ *
+ * Ce qui va à cette place est ce qui manque au lecteur d'un fil : de quoi PARLE
+ * l'actualité d'aujourd'hui, et comment ces actifs se comportent pendant qu'on la lit.
+ *
+ * ── C'EST UN DÉCOMPTE, PAS UN CLASSEMENT ÉDITORIAL ─────────────────────────
+ *
+ * Le nombre affiché est celui des articles du lot dont le TITRE ou l'extrait contient
+ * l'une des formes cherchées. C'est vrai par construction, et le lecteur le vérifie
+ * d'un coup d'œil en parcourant la page — la même garantie que celle qui autorise le
+ * filtre par mention (voir l'en-tête de `mentions.ts`). Ce n'est PAS « les sujets les
+ * plus importants du jour », qui serait une appréciation, ni une mesure d'audience,
+ * que nous n'avons pas.
+ *
+ * Aucun appel réseau : le décompte se fait sur les articles déjà chargés, et les
+ * variations sur la table déjà construite pour les pastilles.
+ */
+/** Les quatre champs dont `AssetLogo` a besoin pour dessiner n'importe quelle classe. */
+interface IconSeed {
+  symbol: string
+  image?: string
+  name: string
+  assetClass: AssetClass
+}
+
+function MostCited({
+  articles,
+  quotes,
+  icons,
+  label,
+}: {
+  articles: NewsItem[]
+  quotes: Record<string, number>
+  icons: Record<string, IconSeed>
+  label: string
+}) {
+  const counts = new Map<string, { label: string; assetId: string; assetClass: AssetClass; count: number }>()
+
+  for (const article of articles) {
+    for (const mention of citedAssets(`${article.title} ${article.excerpt ?? ''}`)) {
+      /* Seuls les actifs dont on connaît la variation entrent : une ligne sans chiffre
+         au milieu de lignes chiffrées ferait chercher un nombre qui n'arrivera pas —
+         c'est la règle des pastilles, et elle vaut ici pour la même raison. */
+      if (quotes[mention.assetId as string] === undefined) continue
+
+      const existing = counts.get(mention.id)
+      if (existing) existing.count += 1
+      else
+        counts.set(mention.id, {
+          label: mention.label,
+          assetId: mention.assetId as string,
+          assetClass: mention.assetClass ?? 'crypto',
+          count: 1,
+        })
+    }
+  }
+
+  /*
+   * VINGT ET NON DOUZE.
+   *
+   * La colonne est haute comme l'article de une — près de six cents pixels — et douze
+   * lignes s'arrêtaient bien avant son pied : la rangée se refermait sur un rectangle
+   * vide bordé d'un filet, ce qui se lit comme un bloc qui n'a pas chargé. Vingt
+   * remplissent la hauteur sans jamais la dépasser, la liste étant bornée par le
+   * nombre d'actifs QUE LE LOT CITE RÉELLEMENT — rarement plus d'une quinzaine.
+   */
+  const top = [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 20)
+  if (top.length === 0) return null
+
+  return (
+    /*
+      ── LA COLONNE VA JUSQU'EN BAS ────────────────────────────────────────────
+      La liste s'arrêtait où ses lignes s'arrêtaient, et la rangée — dont la hauteur
+      est fixée par l'article de une, près de six cents pixels — se refermait sur un
+      rectangle vide bordé d'un filet. Un cadre vide se lit comme un bloc qui n'a pas
+      chargé, pas comme une liste finie.
+
+      `flex-1` sur la liste ET sur chaque ligne répartit la hauteur disponible entre
+      les entrées réellement citées. Rien n'est inventé pour combler : ce sont les
+      mêmes lignes, elles respirent simplement jusqu'au pied de la colonne. Et si le
+      lot en citait vingt, `flex-1` ne grandit plus — la liste reprend sa densité.
+    */
+    <section className="flex h-full flex-col">
+      <h2 className="mb-4 text-base font-semibold text-ink">{label}</h2>
+
+      <ul className="flex flex-1 flex-col divide-y divide-border-subtle">
+        {top.map((entry) => (
+          <li key={entry.assetId} className="flex-1">
+            <Link
+              href={assetHref(entry.assetClass, entry.assetId)}
+              className="group flex h-full items-center justify-between gap-3 py-2.5"
+            >
+              {/* L'ICÔNE OUVRE LA LIGNE. Ces vingt lignes mélangent cryptoactifs, ETF,
+                  actions, indices et matières premières, et le nom seul ne dit pas
+                  laquelle : « Or », « XRP » et « DAX » ont la même allure en texte.
+                  `AssetLogo` distingue les six classes — pastille de jeton, drapeau,
+                  pictogramme, logo d'émetteur — et retombe sur un monogramme quand la
+                  source n'a pas d'image, ce qui ne laisse jamais de case vide. */}
+              {icons[entry.assetId] ? (
+                <AssetLogo asset={icons[entry.assetId] as IconSeed} size={22} />
+              ) : null}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-ink group-hover:text-brand-strong">
+                  {entry.label}
+                </span>
+                {/* « cité dans N articles » et non « N mentions » : la première forme
+                    dit ce qui a été compté, la seconde laisse imaginer un poids. */}
+                <span className="block text-[0.6875rem] text-ink-muted">
+                  cité dans {entry.count} article{entry.count > 1 ? 's' : ''}
+                </span>
+              </span>
+              <ChangeBadge value={quotes[entry.assetId] as number} size="sm" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -198,44 +384,11 @@ async function readArchivedDay(iso: string) {
   }
 }
 
-/**
- * Bornes de l'archive, pour que le calendrier sache ce qu'il peut proposer.
+/*
+ * `archiveStart` VIVAIT ICI et a disparu avec le calendrier.
  *
- * Trois états distincts, et chacun mérite son message : base absente, base présente
- * mais vide, base alimentée. Les confondre ferait dire « aucune actualité archivée »
- * là où la cause est « la base n'est pas configurée » — un lecteur ne peut rien faire
- * de la première information, un administrateur beaucoup de la seconde.
+ * Elle ne servait qu'à lui : elle distinguait « base absente », « schéma non appliqué »
+ * et « archive vide » pour que le sélecteur de date sache quoi annoncer. Sans
+ * sélecteur, ces trois états n'ont plus de destinataire — et le paramètre `?date=`,
+ * lui, reste servi par `readArchivedDay` ci-dessus.
  */
-async function archiveStart(): Promise<{ iso?: string; reason?: string }> {
-  if (!DB_ENABLED) {
-    return {
-      reason:
-        'Le calendrier demande une base de données, non configurée sur cette instance. Le fil du jour reste disponible.',
-    }
-  }
-
-  /*
-   * Base configurée ne veut pas dire schéma appliqué : ajouter une table au schéma
-   * ne la crée pas, `bun run db:push` le fait. Distinguer les deux cas est ce qui
-   * permet d'indiquer la commande à lancer, là où un message générique laisserait
-   * chercher.
-   */
-  if (!(await newsArchiveReady())) {
-    return {
-      reason:
-        'La table d’archive n’existe pas encore dans la base. Appliquez le schéma avec « bun run db:push » depuis packages/db. Le fil du jour reste disponible.',
-    }
-  }
-
-  const oldest = await oldestNewsDate()
-  if (!oldest) {
-    return {
-      reason:
-        'L’archive est encore vide : elle se remplit à chaque passage de la collecte. Le fil du jour reste disponible.',
-    }
-  }
-
-  const month = String(oldest.getMonth() + 1).padStart(2, '0')
-  const day = String(oldest.getDate()).padStart(2, '0')
-  return { iso: `${oldest.getFullYear()}-${month}-${day}` }
-}

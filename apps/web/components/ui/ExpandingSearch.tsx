@@ -107,13 +107,16 @@ export function ExpandingSearch({
           native de `type="search"`, qui viderait le champ sans prévenir le composant
           et laisserait le panneau ouvert sur un filtre déjà annulé.
 
-          La bordure n'apparaît QU'UNE FOIS DÉPLOYÉ : un cadre de 28 pixels autour
-          d'une loupe se lirait comme un bouton, alors que ce n'en est pas un.
+          LE FOND N'APPARAÎT QU'UNE FOIS DÉPLOYÉ : une pastille de 28 pixels autour
+          d'une loupe se lirait comme un bouton, alors que ce n'en est pas un. Replié,
+          le champ est donc transparent, et seule la loupe se voit.
+
+          C'était une BORDURE et c'est devenu un fond : la barre d'outils de ce tableau
+          n'emploie plus le trait, réservé désormais à la délimitation des régions de
+          la page. Voir la note du groupe de périodes dans `MarketBrowser`.
         */
-        className={`h-8 appearance-none rounded-control bg-surface pl-8 text-sm text-ink outline-none transition-[width,border-color,padding] duration-200 ease-out placeholder:text-ink-muted focus:border-brand focus:ring-2 focus:ring-brand-soft [&::-webkit-search-cancel-button]:hidden ${
-          expanded
-            ? 'w-56 border border-border-subtle pr-8'
-            : 'w-8 cursor-pointer border border-transparent pr-0'
+        className={`h-8 appearance-none rounded-control pl-8 text-sm text-ink outline-none transition-[width,background-color,padding] duration-200 ease-out placeholder:text-ink-muted focus:ring-2 focus:ring-brand-soft [&::-webkit-search-cancel-button]:hidden ${
+          expanded ? 'w-56 bg-surface-muted pr-8' : 'w-8 cursor-pointer bg-transparent pr-0'
         }`}
       />
 

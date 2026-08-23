@@ -1,6 +1,10 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV", "COINGECKO_API_KEY", "ZENKUU_DIST_DIR"],
+  // `YOUTUBE_API_KEY` y figure pour la même raison que `COINGECKO_API_KEY` : elle est
+  // lue PENDANT LE BUILD — les fiches d'Apprendre sont pré-rendues, vidéos comprises.
+  // Absente de cette liste, turbo servirait le cache d'un build fait sans elle et les
+  // sections vidéo resteraient vides sans que rien ne l'explique.
+  "globalEnv": ["NODE_ENV", "COINGECKO_API_KEY", "YOUTUBE_API_KEY", "ZENKUU_DIST_DIR"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

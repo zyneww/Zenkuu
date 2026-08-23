@@ -5,6 +5,13 @@ import { useMemo, useState } from 'react'
 
 import { SUPPORTED_CURRENCIES } from '@zenkuu/data'
 import { formatCurrency } from '@zenkuu/ui'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -52,17 +59,22 @@ export function AssetConverter({
       </h2>
 
       <div className="flex items-stretch gap-2">
-        <div className="flex flex-1 items-center gap-2 rounded-card border border-border-subtle bg-surface px-3 py-2 focus-within:border-brand">
-          <input
-            type="text"
+        {/* `InputGroup` de shadcn/ui : une quantité et son unité forment UNE saisie,
+            et c'est ce que le groupe modélise — un champ, un complément accolé, un
+            seul anneau de focus autour des deux, là où le `focus-within` était écrit à
+            la main sur la boîte. `align="inline-end"` pose l'unité après le nombre. */}
+        <InputGroup size="sm" className="flex-1">
+          <InputGroupInput
             inputMode="decimal"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
             aria-label={`Quantité de ${symbol} à convertir`}
-            className="tabular w-full min-w-0 bg-transparent text-sm text-ink outline-none"
+            className="tabular"
           />
-          <span className="shrink-0 text-xs font-medium uppercase text-ink-muted">{symbol}</span>
-        </div>
+          <InputGroupAddon align="inline-end">
+            <InputGroupText className="uppercase">{symbol}</InputGroupText>
+          </InputGroupAddon>
+        </InputGroup>
 
         <span
           className="flex shrink-0 items-center px-1 text-ink-muted"
@@ -75,19 +87,30 @@ export function AssetConverter({
           <output className="tabular w-full min-w-0 truncate text-sm text-ink">
             {converted !== undefined ? formatCurrency(converted, currency) : '—'}
           </output>
-          <label className="sr-only" htmlFor="convertisseur-devise">{t('Devise de conversion')}</label>
-          <select
-            id="convertisseur-devise"
+          {/* ── UN `NativeSelect` DÉPOUILLÉ DE SON PROPRE CADRE ──────────────
+
+              Ce sélecteur vit À L'INTÉRIEUR d'une boîte déjà bordée — celle qui porte le
+              résultat. Laissé avec son fond, son anneau et son ombre, il dessinerait un
+              second cadre dans le premier, ce que la règle de surface unique du design
+              system interdit.
+
+              `className` atteint directement le `<select>` chez shadcn/ui, et les `!`
+              restent nécessaires : ce sont des utilitaires de MÊME spécificité que ceux
+              posés par le composant, et sans eux c'est l'ordre d'émission de la feuille
+              de style qui déciderait à notre place. */}
+          <NativeSelect
+            size="sm"
+            aria-label={t('Devise de conversion')}
             value={currency}
             onChange={(event) => setCurrency(event.target.value as typeof currency)}
-            className="shrink-0 bg-transparent text-xs font-medium text-ink-muted outline-none"
+            className="w-max !border-0 !bg-transparent !py-0 !pl-0 !pr-6 !text-xs !font-medium !text-ink-muted !shadow-none"
           >
             {currencies.map((code) => (
-              <option key={code} value={code}>
+              <NativeSelectOption key={code} value={code}>
                 {code}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 

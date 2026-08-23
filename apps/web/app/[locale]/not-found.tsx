@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Link } from '@/i18n/navigation'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import { EmptyState } from '@zenkuu/ui'
 
@@ -30,12 +30,7 @@ export default async function NotFound() {
         title={fr.notFound.title}
         description={fr.notFound.body}
         action={
-          <Link
-            href="/"
-            className="inline-block rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-strong"
-          >
-            {fr.notFound.cta}
-          </Link>
+          <ButtonLink href="/">{fr.notFound.cta}</ButtonLink>
         }
       />
     </div>

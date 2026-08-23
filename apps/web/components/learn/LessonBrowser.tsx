@@ -4,6 +4,8 @@ import { Link } from '@/i18n/navigation'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+
 import { EmptyState } from '@zenkuu/ui'
 
 import { CoverArt } from '@/components/editorial/CoverArt'
@@ -60,20 +62,18 @@ export function LessonBrowser() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[12rem] flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
-            aria-hidden="true"
-          />
-          <input
+        <InputGroup size="sm" className="min-w-[12rem] flex-1">
+          <InputGroupInput
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('Rechercher une notion…')}
             aria-label={t('Rechercher une fiche')}
-            className="w-full rounded-card border border-border-subtle bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
-        </div>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+        </InputGroup>
 
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Filtrer par niveau')}>
           <FilterButton active={level === 'tous'} onClick={() => setLevel('tous')} label="Tous niveaux" />

@@ -625,24 +625,23 @@ export function getCryptoOverview(
         .slice(-limit)
         .reverse(),
       /*
-       * CINQUANTE, ET ILS NE COÛTENT RIEN DE PLUS.
+       * L'UNIVERS ENTIER, ET IL NE COÛTE RIEN DE PLUS EN RÉSEAU.
        *
-       * `universe` compte déjà `MOVERS_UNIVERSE_SIZE` actifs (100), courbes 7 jours
+       * `universe` compte `MOVERS_UNIVERSE_SIZE` actifs (100), courbes 7 jours
        * comprises : ils sont en mémoire, payés par l'appel juste au-dessus. En rendre
-       * dix revenait à jeter quatre-vingt-dix lignes déjà téléchargées.
+       * une partie revient à jeter des lignes déjà téléchargées.
        *
-       * Le tableau de l'accueil, seul consommateur réel de ce champ, PAGINE — 15, 30
-       * ou 50 lignes par page, avec tri et recherche. Avec dix actifs, sa pagination
-       * n'avait jamais qu'une seule page à montrer et le pied de tableau annonçait
-       * « 10 actifs » sous un explorateur qui en promettait davantage.
+       * IL EN RENDAIT CINQUANTE, et la borne était le poids de la charge utile — ce
+       * tableau est un composant CLIENT, chaque actif traverse la frontière serveur
+       * avec sa courbe. Elle tombe parce que l'accueil affiche désormais le TOP 100
+       * annoncé par son titre, paginé côté client : sans les cent lignes ici, sa
+       * page 3 n'aurait rien à montrer.
        *
-       * Pourquoi pas les cent : ce tableau est un composant CLIENT, et chaque actif
-       * traverse la frontière serveur avec sa courbe. C'est le poids de la charge
-       * utile qui borne ici, pas le réseau amont — et cinquante suffisent à un
-       * explorateur de page d'accueil. Les cent restent servis par /marches, qui
-       * pagine côté serveur.
+       * Ce qui est payé en plus est donc la sérialisation de cinquante lignes, une
+       * fois toutes les trois minutes pour tout le monde — la page est statique. Le
+       * réseau amont, lui, est identique au précédent : le même appel, le même quota.
        */
-      topByMarketCap: universe.slice(0, 50),
+      topByMarketCap: universe,
       universeSize: universe.length,
     }
   })

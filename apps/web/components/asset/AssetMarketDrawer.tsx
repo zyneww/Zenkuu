@@ -1,7 +1,17 @@
 'use client'
 
-import { ChevronRight, Search, TrendingUp, X } from 'lucide-react'
+import { ChevronRight, TrendingUp, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import type { AssetClass, SearchResult, TrendingAsset } from '@zenkuu/data'
 import { ChangeBadge } from '@zenkuu/ui'
@@ -107,24 +117,6 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
     if (open) inputRef.current?.focus()
   }, [open])
 
-  useEffect(() => {
-    if (!open) return
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    function onPointerDown(event: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) setOpen(false)
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    document.addEventListener('mousedown', onPointerDown)
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.removeEventListener('mousedown', onPointerDown)
-    }
-  }, [open])
-
   /* Recherche — mêmes garde-fous que l'overlay global : seuil de deux caractères,
      temporisation, et abandon de la requête précédente. Sans le dernier, une réponse
      lente pour « bit » écrase celle déjà arrivée pour « bitcoin ». */
@@ -177,7 +169,26 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
   const searching = query.trim().length >= 2
 
   return (
-    <>
+    /*
+      ── LE TIROIR EST UN `Sheet`, ET IL EST `modal={false}` ────────────────────
+
+      `Sheet` est le `Dialog` de Radix qui entre par un bord. Il apporte la poignée
+      comme déclencheur relié (`aria-expanded`, `aria-controls`), la touche Échap, le
+      clic extérieur, le retour du focus à la fermeture et l'animation d'entrée —
+      cinq choses écrites à la main ici, dont deux dans un `useEffect` à quatre
+      écouteurs de document.
+
+      ⚠️ `modal={false}` N'EST PAS UN DÉTAIL. Par défaut un `Sheet` bloque le
+      défilement de la page, masque le reste du document aux lecteurs d'écran et
+      piège le focus. C'est exactement ce qu'on NE veut pas ici : un tiroir est un
+      accessoire de la fiche qu'on est en train de lire, pas un état qui la suspend —
+      on garde le graphique sous les yeux pendant qu'on cherche l'actif à comparer.
+      Le repasser à `true` rendrait la page inerte derrière lui.
+
+      Corollaire : Radix ne pose alors PAS de voile, et celui qui suit reste donc
+      écrit à la main.
+    */
+    <Sheet open={open} onOpenChange={setOpen} modal={false}>
       {/*
         ── LA POIGNÉE ────────────────────────────────────────────────────────────
 
@@ -190,10 +201,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
         Masquée sous `lg` : sur un téléphone, un tiroir de 320 pixels recouvrirait la
         fiche entière, et la recherche de l'en-tête y répond déjà.
       */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
+      <SheetTrigger
         aria-label={t('Ouvrir la liste des marchés')}
         className={`fixed left-0 top-1/2 z-40 hidden -translate-y-1/2 items-center gap-1.5 border border-l-0 border-border-subtle bg-panel py-4 pl-1 pr-1.5 text-ink-muted shadow-overlay transition-colors duration-150 hover:bg-surface-muted hover:text-ink lg:flex ${
           open ? 'pointer-events-none opacity-0' : 'opacity-100'
@@ -205,7 +213,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
           className="text-micro font-semibold uppercase tracking-widest"
           style={{ writingMode: 'vertical-rl' }}
         >{t('Marchés')}</span>
-      </button>
+      </SheetTrigger>
 
       {/* Voile : il ne bloque pas le défilement, à la différence de la recherche
           modale. Un tiroir est un accessoire de la page, pas un état qui la
@@ -217,41 +225,32 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
         }`}
       />
 
-      <div
+      <SheetContent
         ref={panelRef}
-        role="dialog"
-        aria-label={t('Marchés')}
-        aria-modal="false"
-        className={`fixed inset-y-0 left-0 z-50 flex w-80 flex-col border-r border-border-subtle bg-panel shadow-overlay transition-transform duration-200 ease-out ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        side="left"
+        className="z-50 w-80 gap-0 border-r border-border-subtle bg-panel p-0 shadow-overlay sm:max-w-80"
       >
         {/* ── En-tête ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-3 py-2.5">
-          <h2 className="text-sm font-semibold text-ink">{t('Marchés')}</h2>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label={t('Fermer la liste des marchés')}
-            className="flex h-7 w-7 items-center justify-center text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+        <SheetHeader className="flex-row items-center justify-between gap-2 space-y-0 border-b border-border-subtle px-3 py-2.5 pr-10">
+          <SheetTitle className="text-sm font-semibold text-ink">{t('Marchés')}</SheetTitle>
+        </SheetHeader>
 
         {/* ── Champ ────────────────────────────────────────────────────────── */}
         <div className="border-b border-border-subtle p-3">
-          <div className="flex items-center gap-2 rounded-dense border border-border-subtle bg-surface px-2 focus-within:border-brand">
-            <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
-            <input
-              ref={inputRef}
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t('Rechercher une crypto, une action…')}
-              aria-label={t('Rechercher un actif')}
-              className="h-8 min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted"
-            />
+          <div className="flex items-center gap-2">
+            <InputGroup size="sm">
+              <InputGroupInput
+                ref={inputRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t('Rechercher une crypto, une action…')}
+                aria-label={t('Rechercher un actif')}
+              />
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+            </InputGroup>
             {query ? (
               <button
                 type="button"
@@ -336,8 +335,8 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
             <Empty>Aucun actif ne correspond à « {query.trim()} ».</Empty>
           )}
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   )
 }
 

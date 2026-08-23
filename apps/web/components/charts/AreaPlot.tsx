@@ -1,46 +1,81 @@
 'use client'
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useId, useMemo } from 'react'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
 import { GRID_DASH, GRID_STROKE } from '@/components/charts/chart-theme'
+import { useReducedMotion } from '@/components/charts/useReducedMotion'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 /**
- * Tracé de séries temporelles en SVG — SANS bibliothèque de graphiques.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * TRACÉ DE SÉRIES TEMPORELLES — L'AIRE DE shadcn/ui
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * ── POURQUOI RÉÉCRIRE PLUTÔT QUE PORTER ───────────────────────────────────────
+ * ── CE COMPOSANT A ÉTÉ ÉCRIT DEUX FOIS, ET LA SECONDE ANNULE LA PREMIÈRE ────
  *
- * Le site embarquait DEUX bibliothèques : `recharts` pour ces courbes-ci, et
- * `lightweight-charts` pour le graphique interactif des fiches d'actif. Mesuré sur
- * la version de production : 536 Ko non compressés répartis sur sept morceaux pour
- * la première, 240 Ko pour la seconde.
+ * Il dessinait tout à la main : cinq cents lignes de SVG, un `ResizeObserver` pour
+ * mesurer sa largeur, ses propres échelles, ses propres graduations, sa propre
+ * infobulle, et une recherche de point le plus proche sur `pointermove`. L'argument
+ * tenait en un chiffre — `recharts` pesait 536 Ko non compressés, pour une courbe, un
+ * dégradé, deux axes et une grille.
  *
- * Ramener ces courbes sur `lightweight-charts` aurait supprimé la première mais
- * AJOUTÉ la seconde à des pages qui ne la chargent pas — tableaux de bord, indice de
- * sentiment, comparateur. On aurait échangé 536 Ko contre 240 Ko sur quelques routes
- * et payé 240 Ko sur d'autres qui ne payaient rien.
+ * Cet argument est CADUC, et pas parce qu'on a changé d'avis : `recharts` est de
+ * nouveau dans le graphe de dépendances, tiré par `shadcn add chart` pour les figures
+ * à barres et à courbes de l'accueil. Le coût n'est plus à payer, il est déjà payé.
+ * Maintenir en parallèle une seconde implémentation maison ne fait plus économiser un
+ * octet ; elle ne fait plus que diverger — deux infobulles à styler, deux calculs de
+ * domaine à corriger, deux façons de rater le même cas limite.
  *
- * Or ce qu'il faut ici tient en peu de choses : une courbe, un dégradé, deux axes,
- * une grille horizontale et une infobulle. Aucune de ces cinq choses ne justifie une
- * dépendance ; toutes se dessinent en SVG, que le navigateur sait déjà faire.
- * `lightweight-charts` reste la bonne réponse là où il gagne son poids — chandeliers,
- * volume en sous-panneau, navigation à poignées sur des dizaines de milliers de
- * points — c'est-à-dire sur les fiches d'actif, et nulle part ailleurs.
+ * ── CE QUI EST CONSERVÉ, ET QUI N'ÉTAIT PAS GRATUIT ────────────────────────
  *
- * ── SEGMENTS DROITS ET NON COURBES ────────────────────────────────────────────
+ * La surface d'API ne bouge pas d'un caractère : sept appelants la consomment, du
+ * comparateur à l'indice de sentiment, et aucun n'est touché. Quatre comportements
+ * étaient de VRAIES corrections, gagnées sur des défauts observés, et sont reportés
+ * tels quels sur la nouvelle mécanique :
  *
- * `recharts` interpolait en `monotone`, ce qui arrondit le trajet ENTRE deux
- * relevés. C'est joli et c'est faux : la courbe invente des valeurs que la source
- * n'a jamais fournies, et sur une série peu dense elle peut dessiner un creux là où
- * il n'y en a pas. Les séries d'ici comptent de dizaines à centaines de points, où
- * la différence visuelle est nulle — mais l'honnêteté du tracé, elle, est acquise.
+ * 1. LA GOUTTIÈRE DE GAUCHE EST CALCULÉE, jamais fixe. Elle valait 46 pixels en dur,
+ *    ce qui suffit à « 3,2 Bn » et pas à « 172,5 Md » — le panier de capitalisations
+ *    affichait « 72,5 Md ». Un axe rogné est PIRE qu'un axe absent : il ne se signale
+ *    pas, et le lecteur n'a aucune raison de mettre le nombre en doute.
  *
- * ── LA MESURE EST INÉVITABLE ──────────────────────────────────────────────────
+ * 2. LES GRADUATIONS EXTRÊMES SONT ANCRÉES PAR LE BORD. Centrées — ce que fait
+ *    `recharts` par défaut — elles dépassent du cadre de la moitié de leur largeur, et
+ *    le `<svg>` les rogne. D'où `EdgeTick`, plus bas.
  *
- * Un graphique a besoin de sa largeur en pixels pour placer quoi que ce soit, et
- * cette largeur n'existe pas sur le serveur. On mesure donc après le montage, comme
- * le faisait la bibliothèque remplacée. Le repli `viewBox` étirable a été écarté :
- * il déforme les libellés d'axes, qui ne sont pas étirables, eux.
+ * 3. LE DOMAINE VERTICAL DÉBORDE LES DONNÉES DE 8 %. Sans cette marge, le point le
+ *    plus haut touche le bord et le plus bas s'assoit sur l'axe : la courbe paraît
+ *    rognée alors qu'elle est entière. Le cas d'une série plate est traité à part —
+ *    un domaine de largeur nulle réduirait le tracé à une ligne de pixels.
+ *
+ * 4. DEUX POINTS, SINON UNE PHRASE. Le retour était `null`, et c'est ce qui a coûté
+ *    cher : `HeroChart` gardait sur `points.length > 0`, si bien qu'un unique relevé —
+ *    l'état normal d'une série qu'on vient de commencer à enregistrer — passait son
+ *    garde puis s'effaçait ici. La page montrait une zone vide, sans courbe ni
+ *    message, et aucune erreur nulle part. `quiet` reste pour les courbes trop petites
+ *    pour porter du texte.
+ *
+ * ── SEGMENTS DROITS, ET C'EST NON NÉGOCIABLE ───────────────────────────────
+ *
+ * `type="linear"`. Une interpolation courbe arrondit le trajet ENTRE deux relevés :
+ * elle invente des valeurs que la source n'a jamais publiées, et sur une série peu
+ * dense elle dessine un creux là où il n'y en a pas. C'est le réglage que portait le
+ * tracé maison, et c'est la seule raison pour laquelle il valait la peine d'être écrit.
+ *
+ * ── CE QUI EST PERDU ───────────────────────────────────────────────────────
+ *
+ * La mesure explicite par `ResizeObserver` disparaît au profit du `ResponsiveContainer`
+ * de `recharts`, qui fait la même chose. Le repli sur `viewBox` étirable reste écarté
+ * pour la même raison qu'avant : il déforme les libellés d'axes, qui ne sont pas
+ * étirables, eux.
  */
 
 export interface PlotPoint {
@@ -73,9 +108,7 @@ export interface AreaPlotProps {
    * panneau d'actualités qui fixe la hauteur de la bande.
    *
    * `'fill'` renverse la responsabilité — c'est la COURBE qui absorbe l'étirement,
-   * et plus le vide. La hauteur est alors mesurée au même endroit que la largeur,
-   * qui l'était déjà : le `ResizeObserver` était déjà là, il ne lisait qu'une des
-   * deux dimensions.
+   * et plus le vide.
    */
   height?: number | 'fill'
   /** Dégradé sous la courbe. Réservé au tracé unique : superposés, ils se salissent. */
@@ -104,9 +137,52 @@ export interface AreaPlotProps {
   quiet?: boolean
 }
 
-/** Marges internes. Le bas et la gauche ne sont réservés que s'il y a des axes. */
-const PAD_WITH_AXES = { top: 8, right: 8, bottom: 20, left: 46 }
-const PAD_BARE = { top: 2, right: 0, bottom: 0, left: 0 }
+/**
+ * Marges internes.
+ *
+ * Sans axes, elles tombent presque à zéro : une étincelle doit toucher les bords de sa
+ * cellule, et `recharts` ne réserve rien de lui-même dès lors que les axes sont
+ * masqués. Le `top: 2` garde l'épaisseur du trait à l'intérieur du cadre quand la
+ * courbe culmine au maximum du domaine.
+ */
+const MARGIN_WITH_AXES = { top: 8, right: 8, bottom: 0, left: 0 }
+const MARGIN_BARE = { top: 2, right: 0, bottom: 0, left: 0 }
+
+/** Graduation d'axe horizontal ancrée par le bord aux extrémités — voir §2 de l'en-tête. */
+function EdgeTick({
+  x,
+  y,
+  payload,
+  index,
+  count,
+  format,
+}: {
+  x?: number
+  y?: number
+  payload?: { value: number }
+  index?: number
+  count: number
+  format?: ((value: number) => string) | undefined
+}) {
+  const value = payload?.value ?? 0
+  return (
+    <text
+      x={x}
+      y={y}
+      dy={10}
+      textAnchor={index === 0 ? 'start' : index === count - 1 ? 'end' : 'middle'}
+      fill="var(--color-ink-muted)"
+      /* La taille vient de la FEUILLE DE STYLE et non de l'attribut : c'est le seul
+         moyen qu'elle suive le plancher de lisibilité mobile, qui remonte la plus
+         petite taille du site à onze pixels sous `sm`. Une graduation d'axe est le
+         premier texte qu'on n'arrive plus à lire sur un téléphone, et le dernier qu'on
+         pense à vérifier. */
+      className="text-micro"
+    >
+      {format ? format(value) : Math.round(value)}
+    </text>
+  )
+}
 
 export function AreaPlot({
   series,
@@ -126,197 +202,87 @@ export function AreaPlot({
   quiet = false,
 }: AreaPlotProps) {
   const t = usePhrase()
-  const gradientId = useId()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [width, setWidth] = useState(0)
-  /* Mesurée UNIQUEMENT pour `height: 'fill'`. Une hauteur en pixels est connue sans
-     mesure, et l'état resterait à 0 sans jamais servir. */
-  const [measuredHeight, setMeasuredHeight] = useState(0)
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
-
-  useEffect(() => {
-    const node = containerRef.current
-    if (!node) return
-
-    const measure = () => {
-      setWidth(node.clientWidth)
-      setMeasuredHeight(node.clientHeight)
-    }
-    measure()
-
-    const observer = new ResizeObserver(measure)
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [])
+  const gradientId = useId().replace(/:/g, '')
+  const reduced = useReducedMotion()
 
   /*
-   * La hauteur EFFECTIVE, celle dont toute la géométrie dépend.
+   * ── LES SÉRIES SONT LUES AU MÊME RANG, PAS À LA MÊME ABSCISSE ─────────────
    *
-   * En mode `'fill'`, elle vaut 0 au premier rendu — la mesure n'a pas encore eu
-   * lieu — exactement comme la largeur. Le garde `width > 0` plus bas couvrait déjà
-   * ce cas ; il couvre les deux dimensions à présent, sans quoi le premier rendu
-   * dessinerait un SVG de hauteur nulle avant de se corriger, ce qui se voit.
+   * `recharts` veut UNE table de lignes, une colonne par série. La première série sert
+   * de grille de référence et les autres sont lues à l'index correspondant.
+   *
+   * C'est le comportement du tracé précédent, et il est correct ici : toutes les
+   * séries d'un même graphique partagent leur grille d'abscisses — le comparateur les
+   * aligne avant de les passer. Interroger chaque série par sa propre valeur de `x`
+   * donnerait des relevés pris à des instants différents sous un seul titre de date.
    */
-  const plotHeight = height === 'fill' ? measuredHeight : height
+  const reference = useMemo(() => series[0]?.points ?? [], [series])
 
-  /*
-   * ── LE DOMAINE VERTICAL EST CALCULÉ AVANT LE REMBOURRAGE, ET C'EST L'ORDRE QUI
-   *    COMPTE ────────────────────────────────────────────────────────────────
-   *
-   * La gouttière de gauche dépend de la LARGEUR DES ÉTIQUETTES, les étiquettes
-   * dépendent des graduations, et les graduations dépendent du domaine. Si le domaine
-   * dépendait à son tour du rembourrage, la chaîne se refermerait sur elle-même.
-   *
-   * Elle ne s'y referme pas, parce que le domaine ne dépend que des DONNÉES : seules
-   * les fonctions de projection `toX` / `toY` ont besoin du rembourrage. Le calcul est
-   * donc scindé en deux — bornes d'abord, projections ensuite —, ce qui permet de
-   * mesurer les étiquettes entre les deux.
-   *
-   * Le domaine DÉBORDE les données de 8 %. Sans cette marge, le point le plus haut
-   * touche le bord supérieur du cadre et le plus bas s'assoit sur l'axe : la courbe
-   * paraît rognée alors qu'elle est entière. Le cas d'une série plate est traité à
-   * part — un domaine de largeur nulle réduirait le tracé à une ligne de pixels, ou
-   * provoquerait une division par zéro.
-   */
-  const bounds = useMemo(() => {
-    const all = series.flatMap((entry) => entry.points)
-    if (all.length === 0) return null
+  const rows = useMemo(
+    () =>
+      reference.map((point, index) => {
+        const row: Record<string, number> = { x: point.x }
+        for (const entry of series) {
+          const value = entry.points[index]?.y
+          if (value !== undefined) row[entry.id] = value
+        }
+        return row
+      }),
+    [reference, series],
+  )
 
-    const xs = all.map((point) => point.x)
-    const ys = all.map((point) => point.y)
+  /* Le domaine vertical — voir §3 de l'en-tête pour la marge de 8 % et le cas plat. */
+  const domain = useMemo<[number, number] | null>(() => {
+    if (yDomain) return yDomain
 
-    let yMin: number
-    let yMax: number
-    if (yDomain) {
-      ;[yMin, yMax] = yDomain
-    } else {
-      const low = Math.min(...ys)
-      const high = Math.max(...ys)
-      const margin = high === low ? Math.abs(high || 1) * 0.1 : (high - low) * 0.08
-      yMin = low - margin
-      yMax = high + margin
-    }
+    const ys = series.flatMap((entry) => entry.points.map((point) => point.y))
+    if (ys.length === 0) return null
 
-    return { xMin: Math.min(...xs), xMax: Math.max(...xs), yMin, yMax }
+    const low = Math.min(...ys)
+    const high = Math.max(...ys)
+    const margin = high === low ? Math.abs(high || 1) * 0.1 : (high - low) * 0.08
+    return [low - margin, high + margin]
   }, [series, yDomain])
 
-  /* Graduations verticales par défaut : cinq niveaux, bornes comprises. Au-delà, les
-     libellés se touchent sur les hauteurs courantes (260 à 320 pixels). */
+  /* Cinq niveaux, bornes comprises. Au-delà, les libellés se touchent sur les hauteurs
+     courantes (260 à 320 pixels). */
   const resolvedYTicks = useMemo(() => {
     if (yTicks) return yTicks
-    if (!bounds || !axes) return []
-    return Array.from({ length: 5 }, (_, index) => bounds.yMin + ((bounds.yMax - bounds.yMin) * index) / 4)
-  }, [yTicks, bounds, axes])
+    if (!domain || !axes) return undefined
+    return Array.from({ length: 5 }, (_, index) => domain[0] + ((domain[1] - domain[0]) * index) / 4)
+  }, [yTicks, domain, axes])
 
-  /**
-   * Largeur réservée aux étiquettes de l'axe vertical.
+  const resolvedXTicks = useMemo(() => {
+    if (xTicks) return xTicks
+    if (!axes || reference.length === 0) return undefined
+    const xMin = reference[0]?.x ?? 0
+    const xMax = reference[reference.length - 1]?.x ?? 0
+    return Array.from({ length: 5 }, (_, index) => xMin + ((xMax - xMin) * index) / 4)
+  }, [xTicks, axes, reference])
+
+  /*
+   * La gouttière de gauche — voir §1 de l'en-tête pour ce que son absence a coûté.
    *
-   * ── POURQUOI ELLE N'EST PLUS FIXE ─────────────────────────────────────────
-   *
-   * Elle valait 46 pixels en dur, ce qui suffit à « 3,2 Bn » ou « 100 % » et pas à
-   * « 172,5 Md ». Le défaut ne se voyait pas tant que les seules courbes tracées
-   * étaient des cours et des capitalisations en billions ; le panier de
-   * capitalisations, qui affiche des stablecoins en dizaines de milliards, a rogné le
-   * premier chiffre de chaque étiquette — « 172,5 Md » se lisait « 72,5 Md ».
-   *
-   * Un axe rogné est PIRE qu'un axe absent : il ne se signale pas. Le lecteur voit un
-   * nombre plausible et n'a aucune raison de le mettre en doute.
-   *
-   * La largeur est ESTIMÉE plutôt que mesurée : mesurer un texte SVG demande de le
-   * rendre d'abord, donc un second passage de rendu à chaque changement de données.
-   * Les étiquettes sont en chiffres tabulaires, dont l'avance est constante par
-   * construction — l'estimation y est exacte à un pixel près, là où elle serait
-   * hasardeuse sur du texte proportionnel.
-   *
-   * Le plancher de 46 conserve le rendu existant de toutes les courbes dont les
-   * étiquettes sont courtes ; le plafond de 96 empêche qu'une étiquette aberrante ne
-   * mange la moitié du cadre.
+   * Elle est ESTIMÉE plutôt que mesurée : mesurer un texte SVG demande de le rendre
+   * d'abord, donc un second passage à chaque changement de données. Les étiquettes sont
+   * en chiffres tabulaires, dont l'avance est constante par construction — l'estimation
+   * y est exacte à un pixel près, là où elle serait hasardeuse sur du texte
+   * proportionnel. Le plancher de 46 conserve le rendu de toutes les courbes aux
+   * étiquettes courtes ; le plafond de 96 empêche qu'une étiquette aberrante ne mange
+   * la moitié du cadre.
    */
   const gutter = useMemo(() => {
-    if (!axes) return PAD_BARE.left
+    if (!axes || !resolvedYTicks) return 0
     const longest = resolvedYTicks.reduce((max, tick) => {
       const text = formatY ? formatY(tick) : String(Math.round(tick))
       return Math.max(max, text.length)
     }, 0)
-    return Math.min(96, Math.max(PAD_WITH_AXES.left, Math.round(longest * 6.4) + 14))
+    return Math.min(96, Math.max(46, Math.round(longest * 6.4) + 14))
   }, [axes, resolvedYTicks, formatY])
 
-  const pad = axes ? { ...PAD_WITH_AXES, left: gutter } : PAD_BARE
-  const innerWidth = Math.max(0, width - pad.left - pad.right)
-  const innerHeight = Math.max(0, plotHeight - pad.top - pad.bottom)
-
-  const scales = useMemo(() => {
-    if (!bounds) return null
-
-    const xSpan = bounds.xMax - bounds.xMin || 1
-    const ySpan = bounds.yMax - bounds.yMin || 1
-
-    return {
-      ...bounds,
-      toX: (value: number) => pad.left + ((value - bounds.xMin) / xSpan) * innerWidth,
-      toY: (value: number) => pad.top + (1 - (value - bounds.yMin) / ySpan) * innerHeight,
-    }
-  }, [bounds, pad.left, pad.top, innerWidth, innerHeight])
-
-  const resolvedXTicks = useMemo(() => {
-    if (xTicks) return xTicks
-    if (!scales || !axes) return []
-    return Array.from({ length: 5 }, (_, index) => scales.xMin + ((scales.xMax - scales.xMin) * index) / 4)
-  }, [xTicks, scales, axes])
-
-  /*
-   * L'infobulle se cale sur la PREMIÈRE série, et les autres sont lues au même rang.
-   *
-   * Toutes les séries d'un même graphique partagent ici leur grille d'abscisses —
-   * c'est vrai du comparateur, qui aligne ses séries avant de les passer, comme des
-   * courbes uniques. Chercher indépendamment dans chacune donnerait des valeurs
-   * relevées à des instants différents sous un seul et même titre de date.
-   */
-  const reference = useMemo(() => series[0]?.points ?? [], [series])
-
-  const onPointerMove = useCallback(
-    (event: React.PointerEvent<SVGSVGElement>) => {
-      if (!scales || reference.length === 0 || innerWidth <= 0) return
-
-      const bounds = event.currentTarget.getBoundingClientRect()
-      const ratio = (event.clientX - bounds.left - pad.left) / innerWidth
-      const target = scales.xMin + ratio * (scales.xMax - scales.xMin)
-
-      let best = 0
-      let bestGap = Infinity
-      for (let index = 0; index < reference.length; index += 1) {
-        const gap = Math.abs((reference[index] as PlotPoint).x - target)
-        if (gap < bestGap) {
-          bestGap = gap
-          best = index
-        }
-      }
-      setHoverIndex(best)
-    },
-    [scales, reference, innerWidth, pad.left],
-  )
-
-  const clearHover = useCallback(() => setHoverIndex(null), [])
-
-  const interactive = formatTooltipY !== undefined
-
-  /*
-   * ── DEUX POINTS, SINON RIEN À TRACER ──────────────────────────────────────
-   *
-   * Une courbe relie des relevés : un seul point ne décrit aucune évolution, et le
-   * domaine horizontal se réduirait à une largeur nulle.
-   *
-   * Ce retour était `null`, et c'est ce qui a coûté cher. Le seuil vit ICI, mais
-   * chaque appelant devait le deviner : `HeroChart` gardait sur `points.length > 0`,
-   * si bien qu'un unique relevé — l'état normal d'une série que le site vient de
-   * commencer à enregistrer — passait son garde puis s'effaçait ici. La page montrait
-   * une zone vide, sans courbe NI message, et aucune erreur nulle part.
-   *
-   * Le composant explique donc lui-même son abstention. Un appelant qui oublie le
-   * garde obtient une phrase, pas un trou ; `quiet` reste pour les courbes trop
-   * petites pour porter du texte.
-   */
-  if (series.length === 0 || reference.length < 2) {
+  /* Une courbe relie des relevés : un seul point ne décrit aucune évolution, et le
+     domaine horizontal se réduirait à une largeur nulle. Voir §4 de l'en-tête. */
+  if (series.length === 0 || reference.length < 2 || !domain) {
     if (quiet) return null
     return (
       <div
@@ -329,234 +295,136 @@ export function AreaPlot({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative"
-      style={{ height: height === 'fill' ? '100%' : height, width: '100%' }}
+    <ChartContainer
+      config={{}}
+      {...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': true })}
+      /* `aspect-auto` écrase le rapport 16/9 que `ChartContainer` impose par défaut :
+         ici la hauteur est dictée par l'appelant, ou par le conteneur en mode `fill`. */
+      className="aspect-auto w-full"
+      style={{ height: height === 'fill' ? '100%' : height }}
     >
-      {width > 0 && plotHeight > 0 && scales ? (
-        <svg
-          width={width}
-          height={plotHeight}
-          role={ariaLabel ? 'img' : 'presentation'}
-          {...(ariaLabel ? { 'aria-label': ariaLabel } : { 'aria-hidden': true })}
-          {...(interactive
-            ? { onPointerMove, onPointerLeave: clearHover, className: 'touch-pan-y' }
-            : {})}
-        >
-          {fill ? (
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={series[0]?.color} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={series[0]?.color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-          ) : null}
+      <AreaChart data={rows} margin={axes ? MARGIN_WITH_AXES : MARGIN_BARE}>
+        {fill ? (
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={series[0]?.color} stopOpacity={0.3} />
+              <stop offset="100%" stopColor={series[0]?.color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+        ) : null}
 
-          {/* Grille HORIZONTALE seule. Les verticales découpent une série temporelle
-              qui est justement continue, sans rien apprendre de plus que l'axe. */}
-          {grid
-            ? resolvedYTicks.map((tick) => (
-                <line
-                  key={`grid-${tick}`}
-                  x1={pad.left}
-                  x2={width - pad.right}
-                  y1={scales.toY(tick)}
-                  y2={scales.toY(tick)}
-                  stroke={GRID_STROKE}
-                  strokeDasharray={GRID_DASH}
-                  strokeWidth={1}
-                />
-              ))
-            : null}
+        {/* Grille HORIZONTALE seule. Les verticales découpent une série temporelle qui
+            est justement continue, sans rien apprendre de plus que l'axe. */}
+        {grid ? (
+          <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+        ) : null}
 
-          {referenceLines?.map((value) => (
-            <line
-              key={`ref-${value}`}
-              x1={pad.left}
-              x2={width - pad.right}
-              y1={scales.toY(value)}
-              y2={scales.toY(value)}
-              stroke={GRID_STROKE}
-              strokeDasharray="3 3"
-              strokeWidth={1}
-            />
-          ))}
-
-          <g className="plot-reveal">
-            {series.map((entry, index) => {
-              const line = entry.points
-                .map((point, position) =>
-                  `${position === 0 ? 'M' : 'L'}${scales.toX(point.x).toFixed(2)},${scales.toY(point.y).toFixed(2)}`,
-                )
-                .join(' ')
-
-              return (
-                <g key={entry.id}>
-                  {fill && index === 0 ? (
-                    <path
-                      d={`${line} L${scales.toX((entry.points[entry.points.length - 1] as PlotPoint).x).toFixed(2)},${(pad.top + innerHeight).toFixed(2)} L${scales.toX((entry.points[0] as PlotPoint).x).toFixed(2)},${(pad.top + innerHeight).toFixed(2)} Z`}
-                      fill={`url(#${gradientId})`}
-                      stroke="none"
-                    />
-                  ) : null}
-                  <path
-                    d={line}
-                    fill="none"
-                    stroke={entry.color}
-                    strokeWidth={1.75}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                  />
-                </g>
-              )
-            })}
-          </g>
-
-          {axes ? (
-            <g>
-              {resolvedYTicks.map((tick) => (
-                <text
-                  key={`ytick-${tick}`}
-                  x={pad.left - 8}
-                  y={scales.toY(tick)}
-                  textAnchor="end"
-                  dominantBaseline="middle"
-                  fill="var(--color-ink-muted)"
-                  /* La taille vient de la FEUILLE DE STYLE et non de l'attribut : c'est
-                     le seul moyen qu'elle suive le plancher de lisibilité mobile, qui
-                     remonte la plus petite taille du site à onze pixels sous `sm`. Une
-                     graduation d'axe est le premier texte qu'on n'arrive plus à lire sur
-                     un téléphone, et le dernier qu'on pense à vérifier. */
-                  className="text-micro"
-                >
-                  {formatY ? formatY(tick) : Math.round(tick)}
-                </text>
-              ))}
-
-              {resolvedXTicks.map((tick, index) => (
-                <text
-                  key={`xtick-${tick}`}
-                  x={scales.toX(tick)}
-                  y={plotHeight - 6}
-                  /* Les graduations extrêmes sont ancrées par le bord et non par leur
-                     centre : centrées, elles dépasseraient du cadre de la moitié de
-                     leur largeur, et la première serait tronquée par l'axe vertical. */
-                  textAnchor={
-                    index === 0 ? 'start' : index === resolvedXTicks.length - 1 ? 'end' : 'middle'
-                  }
-                  fill="var(--color-ink-muted)"
-                  className="text-micro"
-                >
-                  {formatX ? formatX(tick) : Math.round(tick)}
-                </text>
-              ))}
-            </g>
-          ) : null}
-
-          {hoverIndex !== null && reference[hoverIndex] ? (
-            <g pointerEvents="none">
-              <line
-                x1={scales.toX((reference[hoverIndex] as PlotPoint).x)}
-                x2={scales.toX((reference[hoverIndex] as PlotPoint).x)}
-                y1={pad.top}
-                y2={pad.top + innerHeight}
-                stroke="var(--color-border-subtle)"
-                strokeWidth={1}
-              />
-              {series.map((entry) => {
-                const point = entry.points[hoverIndex]
-                if (!point) return null
-                return (
-                  <circle
-                    key={`dot-${entry.id}`}
-                    cx={scales.toX(point.x)}
-                    cy={scales.toY(point.y)}
-                    r={3.5}
-                    fill={entry.color}
-                  />
-                )
-              })}
-            </g>
-          ) : null}
-        </svg>
-      ) : null}
-
-      {hoverIndex !== null && scales && reference[hoverIndex] && formatTooltipY ? (
-        <Tooltip
-          x={scales.toX((reference[hoverIndex] as PlotPoint).x)}
-          width={width}
-          title={formatTooltipX?.((reference[hoverIndex] as PlotPoint).x)}
-          rows={series
-            .map((entry) => {
-              const point = entry.points[hoverIndex]
-              return point ? { entry, text: formatTooltipY(point.y, entry) } : null
-            })
-            .filter((row): row is { entry: PlotSeries; text: string } => row !== null)}
+        {/*
+          `type="number"` et non l'axe catégoriel par défaut : les abscisses sont des
+          horodatages, et les espacer régulièrement mentirait sur le rythme des relevés
+          dès qu'une série a un trou — ce qui arrive à toute série tenue en continu.
+        */}
+        <XAxis
+          dataKey="x"
+          type="number"
+          domain={['dataMin', 'dataMax']}
+          hide={!axes}
+          {...(resolvedXTicks ? { ticks: resolvedXTicks } : {})}
+          tickLine={false}
+          axisLine={false}
+          height={20}
+          tick={
+            <EdgeTick count={resolvedXTicks?.length ?? 0} format={formatX} />
+          }
         />
-      ) : null}
-    </div>
-  )
-}
 
-/**
- * Infobulle en HTML et non en SVG.
- *
- * Un `<text>` SVG ne se replie pas, ne se met pas en gras à moitié et ne prend pas
- * de fond arrondi sans qu'on dessine soi-même le rectangle derrière, à la largeur
- * qu'on aurait mesurée à la main. Le HTML fait tout cela gratuitement, et hérite au
- * passage des jetons de couche flottante déjà définis pour les menus.
- *
- * Le basculement de côté n'est pas cosmétique : ancrée toujours à gauche, l'infobulle
- * sort du cadre dès que le curseur approche du bord droit — c'est-à-dire justement
- * sur la valeur la plus récente, celle qu'on consulte le plus.
- */
-function Tooltip({
-  x,
-  width,
-  title,
-  rows,
-}: {
-  x: number
-  width: number
-  title?: string | undefined
-  rows: { entry: PlotSeries; text: string }[]
-}) {
-  const flip = x > width * 0.6
+        <YAxis
+          type="number"
+          domain={domain}
+          hide={!axes}
+          {...(resolvedYTicks ? { ticks: resolvedYTicks } : {})}
+          tickLine={false}
+          axisLine={false}
+          width={gutter}
+          tick={{ fill: 'var(--color-ink-muted)' }}
+          className="text-micro"
+          tickFormatter={(value: number) => (formatY ? formatY(value) : String(Math.round(value)))}
+        />
 
-  return (
-    <div
-      className="pointer-events-none absolute top-2 z-10 min-w-[8.5rem] rounded-card border border-border-subtle bg-overlay px-3 py-2.5 text-sm shadow-overlay"
-      style={flip ? { right: width - x + 10 } : { left: x + 10 }}
-    >
-      {/* ── LE TITRE EST EN PLEINE ENCRE, LES LIBELLÉS SONT ATTÉNUÉS ────────────
-          L'inverse de ce qu'il était. Un titre atténué au-dessus de valeurs pleines
-          se lit comme une légende de bas de bloc plutôt que comme l'en-tête de ce
-          qu'on survole — et sur une infobulle à trois séries, plus rien ne disait
-          quelle date on lisait. La référence pose la même hiérarchie : date en
-          blanc, noms de série en gris, valeurs en blanc. */}
-      {title ? <p className="mb-1.5 font-semibold text-ink">{title}</p> : null}
+        {referenceLines?.map((value) => (
+          <ReferenceLine
+            key={`ref-${value}`}
+            y={value}
+            stroke={GRID_STROKE}
+            strokeDasharray="3 3"
+          />
+        ))}
 
-      {rows.map((row) => (
-        /* `justify-between` et non un simple espacement : sur plusieurs séries, les
-           valeurs s'alignent alors sur le bord droit de l'infobulle et se comparent
-           d'un coup d'œil. Collées à leur libellé, elles démarrent chacune à une
-           abscisse différente et il faut les lire une à une. */
-        <p
-          key={row.entry.id}
-          className="flex items-center gap-3 whitespace-nowrap text-ink last:mb-0"
-        >
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="size-1.5 shrink-0 rounded-full"
-              style={{ background: row.entry.color }}
-            />
-            {rows.length > 1 ? <span className="text-ink-muted">{row.entry.label}</span> : null}
-          </span>
-          <span className="tabular ml-auto font-semibold">{row.text}</span>
-        </p>
-      ))}
-    </div>
+        {/* L'infobulle n'est montée que si l'appelant sait formater une valeur : sans
+            `formatTooltipY`, la courbe est décorative et un survol qui affiche un
+            nombre brut vaut moins que pas de survol du tout. */}
+        {formatTooltipY ? (
+          <ChartTooltip
+            cursor={{ stroke: 'var(--color-border-subtle)', strokeWidth: 1 }}
+            content={
+              <ChartTooltipContent
+                className="min-w-[8.5rem] border-border-subtle bg-overlay shadow-overlay"
+                /* ── LE TITRE EST EN PLEINE ENCRE, LES LIBELLÉS SONT ATTÉNUÉS ────
+                   Un titre atténué au-dessus de valeurs pleines se lit comme une
+                   légende de bas de bloc plutôt que comme l'en-tête de ce qu'on
+                   survole — et sur une infobulle à trois séries, plus rien ne disait
+                   quelle date on lisait. */
+                labelFormatter={(_label, payload) => {
+                  const x = payload?.[0]?.payload?.x as number | undefined
+                  return x !== undefined && formatTooltipX ? formatTooltipX(x) : ''
+                }}
+                formatter={(value, name) => {
+                  const entry = series.find((candidate) => candidate.id === name)
+                  if (!entry) return null
+                  return (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="size-1.5 shrink-0 rounded-full"
+                        style={{ background: entry.color }}
+                      />
+                      {/* Le nom de série est tu quand il n'y en a qu'une : il répète
+                          alors le titre de la carte qui porte le graphique. */}
+                      {series.length > 1 ? (
+                        <span className="flex-1 text-ink-muted">{entry.label}</span>
+                      ) : null}
+                      <span className="tabular ml-auto font-semibold text-ink">
+                        {formatTooltipY(Number(value), entry)}
+                      </span>
+                    </>
+                  )
+                }}
+              />
+            }
+          />
+        ) : null}
+
+        {series.map((entry, index) => (
+          <Area
+            key={entry.id}
+            type="linear"
+            dataKey={entry.id}
+            name={entry.id}
+            stroke={entry.color}
+            strokeWidth={1.75}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            /* Le dégradé n'habille QUE la première série : superposés, deux remplissages
+               se salissent l'un l'autre et aucune des deux courbes n'est plus lisible. */
+            fill={fill && index === 0 ? `url(#${gradientId})` : 'none'}
+            fillOpacity={1}
+            dot={false}
+            activeDot={{ r: 3.5, strokeWidth: 0, fill: entry.color }}
+            isAnimationActive={!reduced}
+            connectNulls
+          />
+        ))}
+      </AreaChart>
+    </ChartContainer>
   )
 }

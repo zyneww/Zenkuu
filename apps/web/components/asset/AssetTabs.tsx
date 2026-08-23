@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
+import { useReducedMotion } from '@/components/charts/useReducedMotion'
 
 /**
  * Sommaire de la fiche — Aperçu · Places · Analyse · Actualités · Écosystème.
@@ -98,103 +99,160 @@ export interface AssetTab {
 /**
  * Hauteur réservée au-dessus d'une section quand on défile jusqu'à elle.
  *
- * Elle additionne trois bandes collantes : l'en-tête du site (64 px), la barre
- * d'identité de la fiche (48 px) et la barre de sommaire elle-même (44 px). Sans
- * cette réserve, le titre de la section atterrit DERRIÈRE elles — le défaut le plus
- * courant des ancres sur une page à en-tête collant.
+ * Elle additionne les DEUX bandes collantes qui restent : l'en-tête du site (64 px) et
+ * la rangée de sommaire (48 px). Sans cette réserve, le titre de la section atterrit
+ * DERRIÈRE elles — le défaut le plus courant des ancres sur une page à en-tête
+ * collant.
+ *
+ * ⚠️ ELLE VALAIT 156, ET C'EST LA FUSION QUI L'A RAMENÉE À 112. La fiche portait une
+ * troisième bande — l'identité `fixed` de l'actif — qui a rejoint la rangée de sommaire
+ * (voir `AssetLayoutFrame`). Laisser 156 réserverait 44 pixels au-dessus de chaque
+ * section pour une bande qui n'existe plus : chaque clic du sommaire s'arrêterait un
+ * demi-titre trop haut.
  *
  * La valeur est utilisée à deux endroits qui doivent s'accorder : le `scroll-margin`
  * des sections, et la marge haute de l'observateur qui décide quelle section est
  * « celle qu'on lit ». La déclarer une fois interdit qu'elles divergent.
  */
-const SCROLL_OFFSET = 156
+const SCROLL_OFFSET = 112
+
+/** Durée du défilement du sommaire. Voir `scrollToSection`. */
+const SCROLL_DURATION_MS = 520
 
 /**
- * Défile jusqu'à une section — et VÉRIFIE qu'on y est arrivé.
+ * Gestes par lesquels le lecteur REPREND LA MAIN pendant l'animation.
  *
- * ── POURQUOI CETTE FONCTION EXISTE, ALORS QU'UNE LIGNE SUFFIRAIT ──────────────
+ * Pas `'scroll'` : nos propres appels à `scrollTo` en émettent un à chaque image, et
+ * l'animation s'annulerait donc elle-même dès la première. Ce sont les gestes
+ * d'ENTRÉE qu'il faut écouter — molette, doigt, clavier — parce qu'eux seuls
+ * expriment une intention.
+ */
+const SCROLL_INTERRUPTS = ['wheel', 'touchstart', 'keydown'] as const
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * DÉFILEMENT DOUX JUSQU'À UNE SECTION — ÉCRIT À LA MAIN, ET IL LE FAUT
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * `node.scrollIntoView({ behavior: 'smooth' })` est la réponse évidente, et elle a été
- * essayée d'abord. Elle ne tient pas sur cette page, et la mesure est sans appel.
+ * ── CE QUI A ÉTÉ ESSAYÉ AVANT, ET POURQUOI ÇA NE TENAIT PAS ──────────────────
  *
- * Relevé au navigateur sur la fiche du bitcoin, position lue toutes les 150 ms après
- * un clic sur « Analyse » (cible à 2 910 pixels) :
+ * `scrollIntoView({ behavior: 'smooth' })` est la réponse évidente. Relevé au
+ * navigateur sur la fiche du bitcoin, position lue toutes les 150 ms après un clic sur
+ * « Analyse » (cible à 2 910 pixels) :
  *
  *   0 · 0 · 0 · 0 · 0 · 0 · 0 · 0 · 0 · 0 · 471 · 2045 · 2841 · 2908 · 2910
  *
- * Une seconde et demie d'immobilité, puis un rattrapage en trois images. Le même
- * défilement demandé en `'instant'` atteignait la cible dans l'image suivante.
+ * Une seconde et demie d'immobilité, puis un rattrapage en trois images. La cause
+ * n'est pas un bogue : le clic marque des sections comme atteintes, celles-ci lancent
+ * leurs requêtes, s'hydratent et se redimensionnent — et l'animation NATIVE vit sur le
+ * fil principal. Pire, un changement de mise en page sous elle l'ANNULE purement et
+ * simplement.
  *
- * La cause n'est pas un bogue du navigateur : c'est ce que la page fait à cet instant.
- * Le clic marque des sections comme atteintes, celles-ci lancent leurs requêtes,
- * s'hydratent et se redimensionnent — et une animation de défilement vit sur le fil
- * principal, qu'elle ne récupère qu'après. Pire, un changement de mise en page sous
- * l'animation l'ANNULE : au clic, contrairement au même appel lancé depuis la console
- * sur une page au repos, elle ne démarrait jamais.
+ * Le saut sec (`behavior: 'instant'`) a donc régné un temps. Il était honnête et il
+ * était laid : quatre sections d'écart se franchissaient sans qu'on voie qu'on avait
+ * bougé, et l'on perdait le fil de la page.
  *
- * ── POURQUOI ON NE CHERCHE PAS À LA RATTRAPER ─────────────────────────────────
+ * ── CE QUE FAIT CELLE-CI, ET POURQUOI ELLE SURVIT LÀ OÙ L'AUTRE ÉCHOUE ───────
  *
- * Une surveillance a été écrite pour cela — demander le mouvement doux, puis poser la
- * position sèchement s'il ne démarre pas. Elle ne pouvait pas fonctionner : ses images
- * de contrôle s'exécutent sur le fil principal, celui-là même qui est saturé. Elle ne
- * reprenait la main qu'une fois le problème passé.
+ * Trois différences, et ce sont exactement les trois causes de la panne :
  *
- * Deux pièges méritent d'être nommés au passage, parce qu'ils coûtent une demi-heure
- * à chaque fois :
+ *   1. LA CIBLE EST RECALCULÉE À CHAQUE IMAGE. Une section qui s'étoffe au-dessus de
+ *      nous déplace la cible ; l'animation native, elle, fige sa destination au départ
+ *      et arrive à côté. Ici, grandir sous l'animation la corrige au lieu de la casser.
+ *
+ *   2. ELLE EST PILOTÉE PAR LE TEMPS, PAS PAR LES IMAGES. Une image perdue dans un
+ *      remous de mise en page ne « saute » pas le mouvement : la suivante lit l'horloge
+ *      et se place où elle devrait être. L'animation native, elle, s'annule.
+ *
+ *   3. ELLE N'EST INTERROMPUE QUE PAR UN GESTE. Rien n'est plus désagréable qu'une page
+ *      qui vous ramène où vous n'êtes plus — molette, doigt ou touche rendent donc la
+ *      main immédiatement. Voir `SCROLL_INTERRUPTS` pour ce qui n'est PAS écouté.
+ *
+ * ── DEUX PIÈGES, NOMMÉS PARCE QU'ILS COÛTENT UNE DEMI-HEURE À CHAQUE FOIS ────
  *
  *   · `behavior: 'auto'` ne veut PAS dire « immédiatement ». Il veut dire « suis le
- *     CSS » — et la feuille de style du site déclare `scroll-behavior: smooth`. Un
- *     repli écrit en `'auto'` est donc un second défilement doux, pas un secours.
- *     Seul `'instant'` court-circuite la règle CSS.
+ *     CSS » — et la feuille de style du site déclare `scroll-behavior: smooth`. Chaque
+ *     image de cette animation DOIT donc être posée en `'instant'`, sans quoi on
+ *     empilerait 30 défilements doux natifs par seconde.
  *
- *   · relancer `scrollTo` pendant qu'une animation court la REDÉMARRE depuis la
- *     position courante. Une vérification périodique naïve empêche ainsi d'aboutir le
- *     mouvement qu'elle surveille.
- *
- * Le saut sec est donc retenu, et ce n'est pas un pis-aller : c'est ce que fait la
- * référence, et le bouton réagit dans l'image qui suit le clic au lieu d'une seconde
- * et demie plus tard.
- *
- * ── LE RECALAGE, LUI, RESTE NÉCESSAIRE ────────────────────────────────────────
- *
- * Les sections traversées chargent leurs données et grandissent APRÈS le saut. Une
- * cible calculée avant qu'elles ne s'étoffent est donc périmée d'autant de pixels
- * qu'elles en ont gagné. On repose la position une fois passé ce remous, en
- * recalculant — jamais en réutilisant la valeur de départ.
+ *   · un `setTimeout` de recalage n'est plus nécessaire : la boucle recalcule déjà. Le
+ *     seul recalage qui subsiste vise ce qui arrive APRÈS l'animation — les réponses
+ *     réseau des sections traversées, qui les font grandir une fois qu'on est arrêté.
  */
-function scrollToSection(node: HTMLElement): void {
+function scrollToSection(node: HTMLElement, reduced: boolean): void {
   const targetOf = () =>
     Math.max(0, node.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET)
 
-  window.scrollTo({ top: targetOf(), behavior: 'instant' })
-
-  /* Deux recalages, à deux échéances : le premier absorbe l'hydratation, le second les
-     réponses réseau qui arrivent après. Chacun est sans effet quand rien n'a bougé —
-     l'écart est alors nul et rien n'est écrit.
-
-     Ils sont abandonnés si le lecteur a repris la main entre-temps : rien n'est plus
-     désagréable qu'une page qui vous ramène où vous n'êtes plus. C'est ce que teste
-     `settledAt` — on ne recale que depuis la position qu'on a soi-même posée. */
-  let settledAt = window.scrollY
-
-  const recalibrate = () => {
-    if (Math.abs(window.scrollY - settledAt) > 4) return
-    const target = targetOf()
-    if (Math.abs(window.scrollY - target) <= 2) return
-    window.scrollTo({ top: target, behavior: 'instant' })
-    settledAt = window.scrollY
+  const settle = () => {
+    /* Recalage tardif : les sections traversées répondent au réseau et grandissent
+       après l'arrêt. Abandonné si le lecteur a bougé entre-temps — on ne recale que
+       depuis la position qu'on a soi-même posée. */
+    const placed = window.scrollY
+    window.setTimeout(() => {
+      if (Math.abs(window.scrollY - placed) > 4) return
+      const target = targetOf()
+      if (Math.abs(window.scrollY - target) <= 2) return
+      window.scrollTo({ top: target, behavior: 'instant' })
+    }, 700)
   }
 
-  window.setTimeout(recalibrate, 250)
-  window.setTimeout(recalibrate, 900)
+  /* Mouvement réduit demandé : on pose la position, sans animation. La règle CSS
+     `prefers-reduced-motion` du site ne peut rien contre un défilement piloté en
+     JavaScript — c'est la même raison qui fait exister `useReducedMotion`. */
+  if (reduced) {
+    window.scrollTo({ top: targetOf(), behavior: 'instant' })
+    settle()
+    return
+  }
+
+  const from = window.scrollY
+  const startedAt = performance.now()
+  let frame = 0
+
+  const stop = () => {
+    cancelAnimationFrame(frame)
+    for (const name of SCROLL_INTERRUPTS) window.removeEventListener(name, stop)
+  }
+
+  for (const name of SCROLL_INTERRUPTS) {
+    window.addEventListener(name, stop, { passive: true })
+  }
+
+  const step = (now: number) => {
+    const progress = Math.min(1, (now - startedAt) / SCROLL_DURATION_MS)
+    /* Décélération cubique : rapide au départ, posée à l'arrivée. C'est la courbe des
+       défilements natifs, et celle qui donne le sentiment d'avoir été emmené quelque
+       part plutôt que téléporté. */
+    const eased = 1 - (1 - progress) ** 3
+
+    window.scrollTo({ top: from + (targetOf() - from) * eased, behavior: 'instant' })
+
+    if (progress < 1) frame = requestAnimationFrame(step)
+    else {
+      stop()
+      settle()
+    }
+  }
+
+  frame = requestAnimationFrame(step)
 }
 
 export function AssetTabs({
   tabs,
   rail,
+  identity,
   aside,
 }: {
   tabs: AssetTab[]
+  /**
+   * Identité compacte de l'actif, révélée dans la rangée de sommaire au défilement.
+   *
+   * Elle transite par ici pour la même raison que le rail et la colonne d'actualités :
+   * c'est ce composant qui monte le cadre, et le cadre est le seul à connaître la
+   * géométrie de sa rangée collante. Ce composant ne fait que la passer — elle ne
+   * partage aucun état avec le sommaire.
+   */
+  identity?: React.ReactNode
   /**
    * Colonne de chiffres, passée au cadre.
    *
@@ -226,6 +284,7 @@ export function AssetTabs({
 }) {
   const [active, setActive] = useState(tabs[0]?.id ?? '')
   const base = useId()
+  const reduced = useReducedMotion()
 
   const listRef = useRef<HTMLDivElement>(null)
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>())
@@ -383,6 +442,10 @@ export function AssetTabs({
     const node = sectionRefs.current.get(id)
     if (!node) return
 
+    /* `reduced` est lu ICI plutôt que passé à `scrollToSection` en dépendance : le
+       crochet ne peut être appelé que dans le corps du composant, et cette valeur est
+       stable pour la durée d'une visite. */
+
     /* On allume l'onglet TOUT DE SUITE, sans attendre que l'observateur le confirme :
        le défilement doux met plusieurs centaines de millisecondes, pendant lesquelles
        un bouton cliqué qui ne réagit pas se lit comme un bouton mort. L'observateur
@@ -396,8 +459,8 @@ export function AssetTabs({
       return next
     })
 
-    scrollToSection(node)
-  }, [])
+    scrollToSection(node, reduced)
+  }, [reduced])
 
   if (tabs.length === 0) return null
 
@@ -512,7 +575,7 @@ export function AssetTabs({
   ))
 
   return (
-    <AssetLayoutFrame tabsBar={bar} rail={rail} aside={aside}>
+    <AssetLayoutFrame tabsBar={bar} identity={identity} rail={rail} aside={aside}>
       {/* `space-y-12` : les sections ne sont plus séparées par un changement d'écran,
           c'est donc le blanc qui doit dire où l'une finit et où l'autre commence. En
           dessous, les titres de premier niveau de deux sections voisines se lisent

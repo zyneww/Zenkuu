@@ -1,14 +1,17 @@
 'use client'
 
-import { LayoutGrid, List, Search } from 'lucide-react'
+import { LayoutGrid, List } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
 
 import { CategoryCard } from '@/components/categories/CategoryCard'
-import { Pagination } from '@/components/ui/Pagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader } from '@/components/ui/SortableTable'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
@@ -130,23 +133,23 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
-            aria-hidden="true"
-          />
-          <input
+        <InputGroup size="default" className="w-full sm:w-72">
+          <InputGroupInput
             type="search"
             value={query}
             onChange={(event) => {
-              setQuery(event.target.value)
-              setPage(1)
-            }}
+              const next = event.target.value
+
+                    setQuery(next)
+                    setPage(1)
+                  }}
             placeholder={t('Filtrer les secteurs…')}
             aria-label={t('Filtrer les secteurs par nom ou par définition')}
-            className="w-full rounded-card border border-border-subtle bg-surface py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
-        </div>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+        </InputGroup>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -218,7 +221,7 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
       )}
 
       {visible.length > 0 ? (
-        <Pagination
+        <TablePagination
           page={currentPage}
           perPage={perPage}
           total={visible.length}
@@ -290,8 +293,9 @@ function CategoryTable({
      sa logique de tri gère des cas que le mécanisme générique ne connaît pas, comme le
      nom qui repart en croissant quand tous les autres repartent en décroissant. */
   const sortState = { key: sort, direction }
+  /* Pas de plaque sous la liste : les filets font la grille — voir `MarketTable`. */
   return (
-    <div className="overflow-x-auto rounded-card bg-surface">
+    <div className="overflow-x-auto rounded-card">
       {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
       <table className="w-full border-collapse text-sm sm:min-w-[680px]">
         <caption className="sr-only">{t('Secteurs de marché')}</caption>

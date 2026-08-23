@@ -274,7 +274,7 @@ function ReadingTable({ title, readings }: { title: string; readings: IndicatorR
         {readings.map((reading) => (
           <div
             key={reading.key}
-            className="flex items-baseline justify-between gap-3 border-b border-border-subtle/60 py-1.5 last:border-0"
+            className="flex items-baseline justify-between gap-3 border-b border-border-subtle py-1.5 last:border-0"
           >
             <dt className="min-w-0 flex-1 truncate text-xs text-ink-muted">{reading.label}</dt>
             <dd className="tabular shrink-0 text-xs font-medium text-ink">
@@ -398,7 +398,7 @@ function Row({
   tone?: string
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-border-subtle/60 py-2 last:border-0">
+    <div className="flex items-baseline justify-between gap-3 border-b border-border-subtle py-2 last:border-0">
       <dt className="min-w-0 flex-1">
         <span className="text-xs text-ink-muted">{label}</span>
         {hint ? <span className="block text-micro text-ink-muted opacity-70">{hint}</span> : null}

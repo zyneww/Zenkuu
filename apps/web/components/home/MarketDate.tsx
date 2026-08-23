@@ -51,7 +51,19 @@ export async function MarketDate({ locale }: { locale: string }) {
   })
 
   return (
-    <section aria-label={t('Date de couverture')} className="flex flex-col items-center gap-1 text-center">
+    /* `sous-tension` : la date puis l'heure se posent, à 60 et 140 ms. La règle
+       existait dans `globals.css` — elle y est décrite comme « l'en-tête : la date et
+       les repères se posent, de haut en bas » — et n'était portée par aucun élément
+       depuis que le bandeau de repères a quitté cette ligne. Elle retrouve ici
+       exactement l'usage pour lequel elle a été écrite : ouvrir la page par un geste,
+       avant que `plot-reveal` ne prenne le relais sur la courbe du résumé.
+
+       Zéro JavaScript, une seule fois au chargement, et neutralisée par la règle
+       `prefers-reduced-motion` en fin de feuille. */
+    <section
+      aria-label={t('Date de couverture')}
+      className="sous-tension flex flex-col items-center gap-1 text-center"
+    >
       {/* `first-letter:uppercase` : `toLocaleDateString` rend « samedi 22 août » en
           minuscule dans les langues qui ne capitalisent pas les jours. Le forcer dans
           le CSS plutôt que dans le JavaScript laisse chaque langue décider — une

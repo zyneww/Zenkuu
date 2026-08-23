@@ -1,12 +1,15 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-
 import type { MoversPeriod, MoversUniverse } from '@zenkuu/data'
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useRouter } from '@/i18n/navigation'
-import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 
 /**
  * Barre de filtres des « mouvements » : période et univers, en boutons-pilules.
@@ -62,14 +65,12 @@ export function MoversFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <PillDropdown
-        label={PERIOD_LABELS[period]}
         ariaLabel="Période de variation"
         options={periods.map((value) => ({ value, label: PERIOD_LABELS[value] }))}
         selected={period}
         onSelect={(value) => onChange({ period: value as MoversPeriod })}
       />
       <PillDropdown
-        label={UNIVERSE_LABELS[universe]}
         ariaLabel="Univers de calcul"
         options={universes.map((value) => ({ value, label: UNIVERSE_LABELS[value] }))}
         selected={universe}
@@ -79,87 +80,52 @@ export function MoversFilters({
   )
 }
 
+/**
+ * ── CE QUI A REMPLACÉ LE MENU ÉCRIT À LA MAIN ────────────────────────────────
+ *
+ * `PillDropdown` était un `<button aria-haspopup="listbox">` suivi d'un `<ul
+ * role="listbox">`, avec ses propres écouteurs de clic extérieur et d'Échap, et une
+ * annonce d'accessibilité incomplète : le `role="option"` était posé sur le `<li>`
+ * mais le bouton cliquable vivait DEDANS, ce qui casse le lien que les lecteurs
+ * d'écran attendent entre la liste et son option active.
+ *
+ * `Select` de shadcn/ui est celui de Radix. Il apporte le clavier complet (flèches,
+ * Origine/Fin, frappe au vol, Échap), le retour du focus au déclencheur, le
+ * positionnement du panneau qui se retourne quand il touche le bas de la fenêtre, et
+ * la coche sur l'option retenue — pour zéro ligne de gestionnaire ici.
+ *
+ * ⚠️ LES VALEURS SONT DES CHAÎNES, ET RADIX N'EN ACCEPTE PAS D'AUTRES. L'univers
+ * (100, 250, 500) est un nombre partout ailleurs dans le code ; on le sérialise une
+ * fois, ici, et l'appelant reconvertit — ce qu'il faisait déjà, puisque l'URL d'où
+ * vient la valeur est elle aussi du texte.
+ *
+ * ⚠️ ET LA CHAÎNE VIDE EST INTERDITE comme valeur d'option : Radix s'en sert en
+ * interne pour « rien de choisi ». Aucune période ni aucun univers n'est vide, mais
+ * c'est le piège à connaître avant d'ajouter une option « toutes ».
+ */
 function PillDropdown({
-  label,
   ariaLabel,
   options,
   selected,
   onSelect,
 }: {
-  label: string
   ariaLabel: string
   options: { value: string | number; label: string }[]
   selected: string | number
-  onSelect: (value: string | number) => void
+  onSelect: (value: string) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  /* Le curseur qui s'éloigne referme la liste, au même titre que le clic extérieur et
-     la touche Échap ci-dessous. Voir components/nav/useHoverDismiss.ts. */
-  const hoverDismiss = useHoverDismiss(() => setOpen(false), open)
-
-  useEffect(() => {
-    if (!open) return
-
-    function onPointerDown(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
-
   return (
-    <div ref={containerRef} className="relative" {...hoverDismiss}>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={ariaLabel}
-        className="inline-flex items-center gap-1.5 rounded-control border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand"
-      >
-        {label}
-        <ChevronDown
-          className={`h-3.5 w-3.5 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden="true"
-        />
-      </button>
-
-      {open ? (
-        <ul
-          role="listbox"
-          aria-label={ariaLabel}
-          className="absolute left-0 top-full z-40 mt-1 min-w-[10rem] overflow-hidden rounded-card border border-border-subtle bg-overlay py-1 shadow-overlay"
-        >
-          {options.map((option) => (
-            <li key={option.value} role="option" aria-selected={option.value === selected}>
-              <button
-                type="button"
-                onClick={() => {
-                  onSelect(option.value)
-                  setOpen(false)
-                }}
-                className={`block w-full px-3 py-2 text-left text-xs transition-colors ${
-                  option.value === selected
-                    ? 'bg-brand-soft font-medium text-brand-strong'
-                    : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                }`}
-              >
-                {option.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
+    <Select value={String(selected)} onValueChange={onSelect}>
+      <SelectTrigger size="sm" aria-label={ariaLabel} className="w-max">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={String(option.value)}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

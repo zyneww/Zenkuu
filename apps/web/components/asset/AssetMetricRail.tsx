@@ -131,7 +131,7 @@ export async function AssetMetricRail({
               return (
                 <div
                   key={metric.slug}
-                  className="group flex items-baseline justify-between gap-1.5 border-b border-border-subtle/60 py-1.5 last:border-0"
+                  className="group flex items-baseline justify-between gap-1.5 border-b border-border-subtle py-1.5 last:border-0"
                 >
                   <dt className="flex min-w-0 flex-1 items-center gap-1">
                     {/*

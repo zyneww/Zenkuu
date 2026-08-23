@@ -133,7 +133,7 @@ export function AssetAnalystView({
             {LEVELS.map((level) => (
               <div
                 key={level.key}
-                className="flex items-baseline justify-between gap-2 border-b border-border-subtle/60 py-1 last:border-0"
+                className="flex items-baseline justify-between gap-2 border-b border-border-subtle py-1 last:border-0"
               >
                 <dt className="flex items-center gap-1.5 text-xs text-ink-muted">
                   <span
