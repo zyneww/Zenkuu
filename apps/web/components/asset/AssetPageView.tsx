@@ -39,7 +39,12 @@ import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetYearPerformance } from '@/components/asset/AssetYearPerformance'
 import { AssetNewsAside } from '@/components/asset/AssetNewsAside'
 import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
-import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
+import dynamic from 'next/dynamic'
+
+const AssetOrderBook = dynamic(
+  () => import('@/components/asset/AssetOrderBook').then((m) => m.AssetOrderBook),
+  { ssr: false },
+)
 import { AssetFundamentals } from '@/components/asset/AssetFundamentals'
 import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
 import { AssetOwnership } from '@/components/asset/AssetOwnership'
