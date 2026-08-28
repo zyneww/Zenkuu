@@ -235,6 +235,57 @@ export function heatTone(change: number | undefined): string {
   return `color-mix(in srgb, ${base} ${weight}%, ${dim})`
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA VOLATILITÉ A SA PROPRE RAMPE, ET ELLE NE PEUT PAS AVOIR CELLE D'À CÔTÉ
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI PAS `heatTone` ─────────────────────────────────────────────────
+ *
+ * Parce que l'échelle vert/rouge est SIGNÉE : elle dit « ça monte » ou « ça
+ * descend ». Une volatilité n'a pas de signe — elle mesure de combien un cours bouge,
+ * pas dans quel sens. Passée telle quelle dans `heatTone`, elle sort toujours
+ * positive, donc toujours verte : relevé à l'écran, la carte entière était d'un vert
+ * uniforme, ce qui se lisait comme « tout le marché monte » alors que la figure
+ * disait « tout le marché est plus ou moins agité ».
+ *
+ * Et la teinter en rouge par convention serait pire : une forte volatilité n'est pas
+ * une baisse.
+ *
+ * ── CE QUE FAIT CETTE RAMPE ─────────────────────────────────────────────────
+ *
+ * Une seule teinte — l'or du site, qui ne porte ni hausse ni baisse — du plus pâle
+ * au plus soutenu. La lecture devient une INTENSITÉ : calme en bas, agité en haut,
+ * sans direction. C'est ce que fait TradingView de sa carte de volatilité.
+ *
+ * ── L'ÉCHELLE EST RELATIVE AU LOT AFFICHÉ ───────────────────────────────────
+ *
+ * ⚠️ ET C'EST NÉCESSAIRE. Une volatilité absolue vaut ici entre 0,1 % et 3 % d'un
+ * relevé à l'autre : sur une échelle fixe de dix points, les cent tuiles tomberaient
+ * dans le premier palier et la carte serait unie. Le maximum du lot fixe donc le haut
+ * de la rampe, et les cinq paliers se répartissent dessous.
+ *
+ * Conséquence à assumer, et écrite dans la légende de la page : les couleurs de cette
+ * vue ne se comparent pas d'un jour à l'autre. Elles classent le lot du jour.
+ */
+export function volatilityTone(value: number | undefined, max: number): string {
+  if (value === undefined) return 'var(--color-surface-muted)'
+  if (!(max > 0)) return 'var(--color-surface-muted)'
+
+  /* Cinq paliers, comme l'échelle signée : deux figures du même site qui compteraient
+     leurs crans différemment se liraient comme deux précisions différentes. */
+  const ratio = Math.min(1, Math.max(0, value / max))
+  const level = Math.min(4, Math.floor(ratio * 5))
+
+  const weight = 45 + level * 13.75
+  return `color-mix(in srgb, var(--color-gold) ${weight}%, var(--color-gold-strong))`
+}
+
+/** Les cinq teintes de la rampe de volatilité, du plus calme au plus agité. */
+export function volatilityScaleSwatches(): string[] {
+  return [0, 1, 2, 3, 4].map((level) => volatilityTone(level / 5 + 0.01, 1))
+}
+
 /** Les neuf teintes de l'échelle, du plus baissier au plus haussier — pour la légende. */
 export function heatScaleSwatches(): string[] {
   const negatives = [...HEAT_STEPS].reverse().map((threshold) => heatTone(-threshold))

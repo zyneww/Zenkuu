@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Prix",
+      "asOf": "Au {stamp}",
       "help": "Dernier cours publié par la source, converti dans la devise que vous avez choisie. Ce n’est pas un prix d’exécution : selon la place et le moment, un ordre réel se traiterait à un cours voisin mais différent."
     },
     "marketCap": {
@@ -93,7 +94,6 @@
       "help": "Variation du cours sur l’année écoulée. Une période absente signifie que la source ne la publie pas — jamais qu’elle vaut zéro."
     }
   },
-
   "metricPage": {
     "breadcrumb": "Métriques",
     "definitionTitle": "Définition",
@@ -104,7 +104,6 @@
     "backToAsset": "Retour à la fiche",
     "currentValue": "Valeur actuelle"
   },
-
   "chartCard": {
     "expand": "Agrandir",
     "collapse": "Réduire",
@@ -115,7 +114,6 @@
     "other": "Autres",
     "noData": "Série non publiée par la source pour cette période."
   },
-
   "search": {
     "placeholder": "Rechercher",
     "shortcut": "Ctrl + K",

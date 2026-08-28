@@ -172,6 +172,8 @@ const KLINE_OPEN = 1
 const KLINE_HIGH = 2
 const KLINE_LOW = 3
 const KLINE_CLOSE = 4
+/** Volume en devise de COTATION (dollars), et non en jetons — voir le champ 5. */
+const KLINE_QUOTE_VOLUME = 7
 
 /**
  * Nombre lu depuis une chaîne, ou `undefined`.
@@ -253,16 +255,29 @@ function intervalFor(days: number): { interval: string; limit: number; minutes: 
   if (days <= 1) return { interval: '5m', limit: 288, minutes: 5 }
   if (days <= 7) return { interval: '1h', limit: days * 24, minutes: 60 }
   if (days <= 90) return { interval: '4h', limit: days * 6, minutes: 240 }
-  return { interval: '1d', limit: Math.min(days, 1000), minutes: 1440 }
+  /*
+   * ⚠️ AU-DELÀ DE 1 000 JOURS, LE PAS QUOTIDIEN TRONQUE SANS LE DIRE.
+   *
+   * Binance rend au plus 1 000 bougies par appel : demander « MAX » (3 650 jours)
+   * en pas quotidien renverrait les 1 000 DERNIÈRES, soit une courbe qui commence
+   * il y a deux ans et huit mois en se présentant comme l'histoire complète.
+   *
+   * Le pas hebdomadaire couvre dix-neuf ans dans le même millier de bougies — plus
+   * que l'âge de n'importe quelle paire cotée ici. Binance renvoie simplement ce
+   * qui existe depuis la première cotation, ce qui est exactement ce que « MAX »
+   * demande.
+   */
+  if (days <= 1000) return { interval: '1d', limit: days, minutes: 1440 }
+  return { interval: '1w', limit: Math.min(Math.ceil(days / 7), 1000), minutes: 10_080 }
 }
 
 async function fetchKlines(
-  id: string,
+  symbol: string,
   days: number,
 ): Promise<{ rows: BinanceKline[]; minutes: number }> {
   const { interval, limit, minutes } = intervalFor(days)
   const rows = await http.getJson<BinanceKline[]>('klines', {
-    symbol: requireSymbol(id),
+    symbol,
     interval,
     limit,
   })
@@ -272,6 +287,89 @@ async function fetchKlines(
   }
 
   return { rows, minutes }
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * HISTORIQUE PROFOND, PAR SYMBOLE EXPLICITE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI CE CHEMIN EXISTE ───────────────────────────────────────────────
+ *
+ * CoinGecko, sur son palier public, REFUSE toute fenêtre de plus de 365 jours
+ * (erreur 10012, vérifiée sur l'API). Le palier « MAX » de la fiche demandait
+ * 3 650 jours et n'obtenait donc jamais rien : le graphique affichait
+ * « Historique de cours indisponible pour cet actif » sur toutes les cryptos, y
+ * compris Bitcoin. Binance, lui, sert ses bougies depuis la première cotation de la
+ * paire, gratuitement et sans clé.
+ *
+ * ── LE SYMBOLE EST FOURNI, JAMAIS DEVINÉ ────────────────────────────────────
+ *
+ * L'en-tête de ce fichier explique pourquoi la table `COVERAGE` est écrite à la
+ * main : deviner « HYPE » depuis un symbole d'actif afficherait un jour le cours
+ * d'une contrefaçon sous le nom d'un actif connu. Cette fonction ne devine rien
+ * non plus — elle prend le symbole que l'APPELANT a résolu, et `queries.ts` le
+ * résout auprès des cotations CoinGecko, c'est-à-dire auprès de la source qui fait
+ * autorité sur l'identité des actifs (voir `resolveBinancePair`).
+ *
+ * Le volume vient du champ 7 de la bougie — le volume en devise de COTATION, donc
+ * en dollars, comparable à celui que publie CoinGecko. Le champ 5, lui, compte des
+ * jetons.
+ */
+export async function getBinanceHistoryBySymbol(
+  symbol: string,
+  days: number,
+): Promise<PriceHistory> {
+  const { rows } = await fetchKlines(symbol, days)
+
+  const points = rows
+    .map((row) => {
+      const point: PriceHistory['points'][number] = {
+        timestamp: Number(row[KLINE_OPEN_TIME]),
+        price: Number(row[KLINE_CLOSE]),
+      }
+      const volume = numeric(row[KLINE_QUOTE_VOLUME] as string | undefined)
+      if (volume !== undefined) point.volume = volume
+      return point
+    })
+    .filter((point) => Number.isFinite(point.timestamp) && Number.isFinite(point.price))
+
+  if (points.length < 2) {
+    throw new ProviderError(PROVIDER_ID, `Historique insuffisant pour « ${symbol} »`)
+  }
+
+  return { points, currency: QUOTE_CURRENCY.toUpperCase(), days }
+}
+
+/** Bougies OHLC d'un symbole explicite — même raison d'être que ci-dessus. */
+export async function getBinanceOhlcBySymbol(
+  symbol: string,
+  days: number,
+): Promise<OhlcHistory> {
+  const { rows, minutes } = await fetchKlines(symbol, days)
+
+  const candles = rows
+    .map((row) => ({
+      timestamp: Number(row[KLINE_OPEN_TIME]),
+      open: Number(row[KLINE_OPEN]),
+      high: Number(row[KLINE_HIGH]),
+      low: Number(row[KLINE_LOW]),
+      close: Number(row[KLINE_CLOSE]),
+    }))
+    .filter(
+      (candle) =>
+        Number.isFinite(candle.timestamp) &&
+        Number.isFinite(candle.open) &&
+        Number.isFinite(candle.high) &&
+        Number.isFinite(candle.low) &&
+        Number.isFinite(candle.close),
+    )
+
+  if (candles.length < 2) {
+    throw new ProviderError(PROVIDER_ID, `Bougies insuffisantes pour « ${symbol} »`)
+  }
+
+  return { candles, currency: QUOTE_CURRENCY.toUpperCase(), days, intervalMinutes: minutes }
 }
 
 export const binanceProvider: MarketDataProvider = {
@@ -350,7 +448,7 @@ export const binanceProvider: MarketDataProvider = {
   },
 
   async getHistory(id: string, days: number): Promise<PriceHistory> {
-    const { rows } = await fetchKlines(id, days)
+    const { rows } = await fetchKlines(requireSymbol(id), days)
 
     const points = rows
       .map((row) => ({
@@ -363,7 +461,7 @@ export const binanceProvider: MarketDataProvider = {
   },
 
   async getOhlc(id: string, days: number): Promise<OhlcHistory> {
-    const { rows, minutes } = await fetchKlines(id, days)
+    const { rows, minutes } = await fetchKlines(requireSymbol(id), days)
 
     const candles = rows
       .map((row) => ({

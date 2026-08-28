@@ -78,7 +78,7 @@ export async function NftOverview({ collections }: { collections: NftCollection[
           hint={`${ranked.length} collections suivies`}
         />
         <Stat
-          label="Volume 24 h"
+          label={t('Volume 24 h')}
           value={`${formatCompact(volume)} $`}
           hint={t('ventes sur les mêmes collections')}
         />

@@ -138,17 +138,17 @@ export async function TreasuryOverview({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t('Entités recensées')} value={String(entities.size)} hint={t('sociétés et fonds distincts')} />
         <Stat
-          label="Pays"
+          label={t('Pays')}
           value={countries.size > 0 ? String(countries.size) : '—'}
           hint={t('tels que déclarés à la source')}
         />
         <Stat
-          label="Actifs suivis"
+          label={t('Actifs suivis')}
           value={String(reports.length)}
           hint={reports.map((entry) => entry.unit).join(' · ')}
         />
         <Stat
-          label="Valeur totale"
+          label={t('Valeur totale')}
           value={`${formatCompact(totalValueUsd)} $`}
           hint={t('au cours du jour')}
         />

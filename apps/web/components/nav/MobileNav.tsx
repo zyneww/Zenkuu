@@ -9,12 +9,10 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer'
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
 } from '@/components/ui/accordion'
 import { useId, useState } from 'react'
+
+import { Disclosure, DisclosureGroup } from '@heroui/react'
 
 import { Badge } from '@/components/ui/badge'
 import { IconButton } from '@/components/ui/IconButton'
@@ -201,10 +199,19 @@ export function MobileNav() {
                 tableau `expanded` permettait déjà. La forme contrôlée est conservée
                 pour garder l'amorce sur la page courante (voir `useState` plus haut).
               */}
-              <Accordion
-                type="multiple"
-                value={expanded}
-                onValueChange={setExpanded}
+              {/*
+                ⚠️ `DisclosureGroup` DE HEROUI, ET LE VOCABULAIRE A CHANGÉ.
+
+                Radix parlait de `type="multiple"` et d'un TABLEAU de valeurs ouvertes ;
+                HeroUI parle de `allowsMultipleExpanded` et d'un `Set` de clés. La
+                conversion se fait ici plutôt que dans l'état du composant : celui-ci
+                reste un tableau, forme plus simple à lire et à comparer, et c'est la
+                frontière du composant qui traduit.
+              */}
+              <DisclosureGroup
+                allowsMultipleExpanded
+                expandedKeys={new Set(expanded)}
+                onExpandedChange={(keys) => setExpanded([...keys].map(String))}
                 className="divide-y divide-border-subtle"
               >
                 {NAV_MENUS.map((menu) => {
@@ -224,12 +231,18 @@ export function MobileNav() {
                   }
 
                   return (
-                    <AccordionItem key={menu.label} value={menu.label} className="border-b-0">
-                      <AccordionTrigger className="min-h-[3.25rem] py-0 text-base font-semibold text-ink hover:no-underline">
-                        {t(menu.label)}
-                      </AccordionTrigger>
+                    <Disclosure key={menu.label} id={menu.label} className="border-b-0">
+                      {/* `Disclosure.Heading` porte le niveau de titre, `Trigger` le
+                          bouton, `Indicator` le chevron qui pivote. Les trois étaient
+                          fondus dans `AccordionTrigger` chez Radix. */}
+                      <Disclosure.Heading>
+                        <Disclosure.Trigger className="flex min-h-[3.25rem] w-full items-center justify-between py-0 text-base font-semibold text-ink hover:no-underline">
+                          {t(menu.label)}
+                          <Disclosure.Indicator />
+                        </Disclosure.Trigger>
+                      </Disclosure.Heading>
 
-                      <AccordionContent className="pb-0">
+                      <Disclosure.Content className="pb-0">
                         <ul className="pb-2">
                           {menu.sections.flatMap((section, sectionIndex) => [
                             section.label ? (
@@ -290,11 +303,11 @@ export function MobileNav() {
                             }),
                           ])}
                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </Disclosure.Content>
+                    </Disclosure>
                   )
                 })}
-              </Accordion>
+              </DisclosureGroup>
             </nav>
         </div>
       </DrawerContent>

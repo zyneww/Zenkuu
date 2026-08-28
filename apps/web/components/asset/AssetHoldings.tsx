@@ -155,7 +155,8 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
  * champs qu'une seule classe renseigne le transformerait en union de tous les cas
  * particuliers — exactement ce que le type commun existe pour éviter.
  */
-export function AssetProfileRail({ profile }: { profile: AssetProfile }) {
+export async function AssetProfileRail({ profile }: { profile: AssetProfile }) {
+  const t = await getPhrase()
   const rows: { label: string; value: string; hint?: string }[] = []
 
   /* `formatShare` rend `null` sur une entrée non finie — le cas est déjà écarté par
@@ -165,38 +166,38 @@ export function AssetProfileRail({ profile }: { profile: AssetProfile }) {
 
   if (profile.expenseRatio !== undefined) {
     rows.push({
-      label: 'Frais de gestion',
+      label: t('Frais de gestion'),
       value: `${share(profile.expenseRatio)} / an`,
-      hint: 'prélevés sur l’actif, déjà déduits du cours',
+      hint: t('prélevés sur l’actif, déjà déduits du cours'),
     })
   }
   if (profile.totalAssets !== undefined) {
-    rows.push({ label: 'Encours', value: formatCompact(profile.totalAssets) ?? '—' })
+    rows.push({ label: t('Encours'), value: formatCompact(profile.totalAssets) ?? '—' })
   }
   if (profile.yieldPercent !== undefined) {
-    rows.push({ label: 'Rendement distribué', value: share(profile.yieldPercent) })
+    rows.push({ label: t('Rendement distribué'), value: share(profile.yieldPercent) })
   }
   if (profile.trailingPE !== undefined) {
-    rows.push({ label: 'Cours / bénéfice', value: profile.trailingPE.toFixed(1).replace('.', ',') })
+    rows.push({ label: t('Cours / bénéfice'), value: profile.trailingPE.toFixed(1).replace('.', ',') })
   }
   if (profile.forwardPE !== undefined) {
     rows.push({
-      label: 'C / B prévisionnel',
+      label: t('C / B prévisionnel'),
       value: profile.forwardPE.toFixed(1).replace('.', ','),
-      hint: 'sur les bénéfices attendus, donc estimé par le marché',
+      hint: t('sur les bénéfices attendus, donc estimé par le marché'),
     })
   }
   if (profile.priceToBook !== undefined) {
-    rows.push({ label: 'Cours / actif net', value: profile.priceToBook.toFixed(1).replace('.', ',') })
+    rows.push({ label: t('Cours / actif net'), value: profile.priceToBook.toFixed(1).replace('.', ',') })
   }
   if (profile.eps !== undefined) {
-    rows.push({ label: 'Bénéfice par action', value: profile.eps.toFixed(2).replace('.', ',') })
+    rows.push({ label: t('Bénéfice par action'), value: profile.eps.toFixed(2).replace('.', ',') })
   }
   if (profile.beta !== undefined) {
     rows.push({
-      label: 'Bêta',
+      label: t('Bêta'),
       value: profile.beta.toFixed(2).replace('.', ','),
-      hint: '1 = bouge comme son marché',
+      hint: t('1 = bouge comme son marché'),
     })
   }
 
@@ -210,7 +211,7 @@ export function AssetProfileRail({ profile }: { profile: AssetProfile }) {
       Le titre décrit d'ailleurs mieux ce qu'il coiffe — un ratio cours/bénéfice n'est
       pas un fondamental, c'est ce que le marché paie pour un fondamental.
     */
-    <RailSection title={profile.expenseRatio !== undefined ? 'Le fonds' : 'Valorisation'}>
+    <RailSection title={t(profile.expenseRatio !== undefined ? 'Le fonds' : 'Valorisation')}>
       <dl>
         {rows.map((row) => (
           <div

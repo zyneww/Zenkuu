@@ -1,7 +1,7 @@
 import { and, eq, gt, lt, sql } from 'drizzle-orm'
 
 import { getDb } from './client'
-import { accounts, loginCodes, priceAlerts, savedScreens, sessions, watchlistItems } from './schema'
+import { accounts, loginCodes, savedScreens, sessions, watchlistItems } from './schema'
 import type { Account } from './schema'
 import type { WatchlistResult } from './watchlist'
 
@@ -144,7 +144,6 @@ export async function deleteAccount(id: string): Promise<WatchlistResult<{ remov
   if (!db) return { ok: false, reason: UNAVAILABLE }
 
   await db.delete(watchlistItems).where(eq(watchlistItems.userId, id))
-  await db.delete(priceAlerts).where(eq(priceAlerts.userId, id))
   await db.delete(savedScreens).where(eq(savedScreens.userId, id))
   await db.delete(sessions).where(eq(sessions.accountId, id))
 
@@ -158,14 +157,19 @@ export async function deleteAccount(id: string): Promise<WatchlistResult<{ remov
  *
  * ── POURQUOI CETTE FONCTION EXISTE ────────────────────────────────────────────
  *
- * Le site laisse suivre des actifs et armer des alertes SANS compte : un cookie
+ * Le site laisse suivre des actifs et enregistrer des écrans SANS compte : un cookie
  * anonyme suffit (`apps/web/lib/visitor.ts`). Se connecter ensuite ferait
  * disparaître tout ce travail sous les yeux du visiteur, puisque la clé de rangement
  * change. C'est le défaut classique des sites qui ajoutent un compte après coup, et
  * il est vécu comme une perte de données — ce qu'il est.
  *
- * On réécrit donc la colonne. Les alertes et les écrans sont repris tels quels ; la
- * liste de suivi demande une précaution particulière, décrite plus bas.
+ * On réécrit donc la colonne. Les écrans sont repris tels quels ; la liste de suivi
+ * demande une précaution particulière, décrite plus bas.
+ *
+ * ⚠️ CETTE FONCTION A TRANSFÉRÉ DES ALERTES DE PRIX, ET C'EST CE QU'ELLE COMPTAIT.
+ * Le compteur `moved` valait le nombre d'alertes reprises ; les alertes ayant été
+ * supprimées du produit, il compte désormais les LIGNES DE SUIVI transférées — la seule
+ * donnée anonyme dont la reprise soit visible pour le visiteur.
  */
 export async function claimAnonymousData(
   visitorId: string,
@@ -185,23 +189,24 @@ export async function claimAnonymousData(
    * suivi côté compte, la ligne anonyme n'apporte rien. Les orphelines sont
    * supprimées juste après.
    */
+  /* Comptées AVANT le transfert : une fois la colonne réécrite, plus rien ne
+     distingue ces lignes de celles que le compte possédait déjà. */
+  const claimed = await db
+    .select({ id: watchlistItems.id })
+    .from(watchlistItems)
+    .where(eq(watchlistItems.userId, visitorId))
+
   await db.run(
     sql`UPDATE OR IGNORE ${watchlistItems} SET ${sql.raw('user_id')} = ${accountId} WHERE ${sql.raw('user_id')} = ${visitorId}`,
   )
   await db.delete(watchlistItems).where(eq(watchlistItems.userId, visitorId))
-
-  const alerts = await db
-    .update(priceAlerts)
-    .set({ userId: accountId })
-    .where(eq(priceAlerts.userId, visitorId))
-    .returning({ id: priceAlerts.id })
 
   await db.run(
     sql`UPDATE OR IGNORE ${savedScreens} SET ${sql.raw('user_id')} = ${accountId} WHERE ${sql.raw('user_id')} = ${visitorId}`,
   )
   await db.delete(savedScreens).where(eq(savedScreens.userId, visitorId))
 
-  return { ok: true, data: { moved: alerts.length } }
+  return { ok: true, data: { moved: claimed.length } }
 }
 
 /* ── Codes de connexion ───────────────────────────────────────────────────── */

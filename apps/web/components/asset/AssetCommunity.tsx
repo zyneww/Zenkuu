@@ -2,6 +2,7 @@ import type { AssetDetail } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
 import { RailSection } from '@/components/ui/RailSection'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Audience et activité de développement.
@@ -29,53 +30,54 @@ import { RailSection } from '@/components/ui/RailSection'
  * l'adaptateur CoinGecko) : un « 0 abonné » ferait lire un échec là où il n'y a
  * qu'un projet sans ce réseau.
  */
-export function AssetCommunity({ asset }: { asset: AssetDetail }) {
+export async function AssetCommunity({ asset }: { asset: AssetDetail }) {
+  const t = await getPhrase()
   const community = asset.community
   const developer = asset.developer
 
   const rows: { label: string; value: number; hint?: string }[] = []
 
   if (community?.twitterFollowers !== undefined) {
-    rows.push({ label: 'Abonnés X', value: community.twitterFollowers })
+    rows.push({ label: t('Abonnés X'), value: community.twitterFollowers })
   }
   if (community?.redditSubscribers !== undefined) {
-    rows.push({ label: 'Membres Reddit', value: community.redditSubscribers })
+    rows.push({ label: t('Membres Reddit'), value: community.redditSubscribers })
   }
   if (community?.telegramUsers !== undefined) {
-    rows.push({ label: 'Membres Telegram', value: community.telegramUsers })
+    rows.push({ label: t('Membres Telegram'), value: community.telegramUsers })
   }
 
   const devRows: { label: string; value: number; hint?: string }[] = []
 
-  if (developer?.stars !== undefined) devRows.push({ label: 'Étoiles', value: developer.stars })
-  if (developer?.forks !== undefined) devRows.push({ label: 'Bifurcations', value: developer.forks })
+  if (developer?.stars !== undefined) devRows.push({ label: t('Étoiles'), value: developer.stars })
+  if (developer?.forks !== undefined) devRows.push({ label: t('Bifurcations'), value: developer.forks })
   if (developer?.contributors !== undefined) {
-    devRows.push({ label: 'Contributeurs', value: developer.contributors })
+    devRows.push({ label: t('Contributeurs'), value: developer.contributors })
   }
   if (developer?.commits4Weeks !== undefined) {
     devRows.push({
-      label: 'Commits',
+      label: t('Commits'),
       value: developer.commits4Weeks,
       // La seule ligne du lot qui mesure un RYTHME et non un cumul. Sans cette
       // précision, « 312 » se lirait comme un total depuis l'origine du projet.
-      hint: '4 sem.',
+      hint: t('4 sem.'),
     })
   }
   if (developer?.issuesOpen !== undefined) {
-    devRows.push({ label: 'Tickets ouverts', value: developer.issuesOpen })
+    devRows.push({ label: t('Tickets ouverts'), value: developer.issuesOpen })
   }
 
   if (rows.length === 0 && devRows.length === 0) return null
 
   return (
-    <RailSection title="Communauté et code">
+    <RailSection title={t('Communauté et code')}>
       {rows.length > 0 ? <StatList rows={rows} /> : null}
 
       {devRows.length > 0 ? (
         <>
           {rows.length > 0 ? (
             <p className="mb-1.5 mt-4 text-micro font-semibold uppercase tracking-wide text-ink-muted">
-              Dépôt public
+              {t('Dépôt public')}
             </p>
           ) : null}
           <StatList rows={devRows} />

@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { CACHE_TTL_SECONDS, getCategories, getMoversUniverse } from '@zenkuu/data'
+import { CACHE_TTL_SECONDS, getCategories, getRanking, type MarketAsset } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
 import { emphasise, weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
+import { volatility7d } from '@/lib/heatmap-metrics'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -64,10 +65,48 @@ export default async function HeatmapPage() {
    * Leurs clés de cache ne dépendent d'aucun actif — un seul téléchargement de chaque
    * alimente tout le site.
    */
-  const [categories, assets] = await Promise.all([getCategories(), getMoversUniverse(100, 'eur')])
+  /*
+   * ⚠️ `getRanking` ET NON `getMoversUniverse`, ET LA RAISON TIENT EN UN CHAMP.
+   *
+   * Les deux rendent les cent premières capitalisations crypto. Une seule des deux
+   * demande à la source la COURBE DE SEPT JOURS (`withSparkline: true`) — et sans
+   * elle, la coloration par volatilité n'a rien à mesurer : la carte entière restait
+   * grise dans ce mode, ce qui se lit comme une panne.
+   *
+   * Le coût réseau est NUL : `getRanking` est la requête la plus visitée du site
+   * (`/crypto`), et sa clé de cache ne dépend d'aucun actif. Cette page en est un
+   * lecteur de plus, pas un appelant de plus.
+   */
+  const [categories, assets] = await Promise.all([
+    getCategories(),
+    getRanking({ assetClass: 'crypto', page: 1, perPage: 100, currency: 'eur' }),
+  ])
 
   const hasSectors = categories.ok && categories.data.length > 0
   const hasAssets = assets.ok && assets.data.length > 0
+
+  /*
+   * ── LA VOLATILITÉ EST CALCULÉE ICI, ET LES SÉRIES NE TRAVERSENT PAS ────────
+   *
+   * `sparkline7d` porte cent soixante-huit points par actif. Les transmettre au
+   * composant client reviendrait à sérialiser environ cent trente kilo-octets de
+   * nombres dans la charge utile de la page pour en tirer cent écarts-types.
+   *
+   * On calcule donc les cent nombres, et l'on RETIRE la série de chaque actif avant
+   * de le passer. Le reste de `MarketAsset` — capitalisation, volume, offres,
+   * variations — est ce que la carte dessine réellement.
+   */
+  const volatility: Record<string, number> = {}
+  const tiles = (assets.ok ? assets.data : []).map((asset) => {
+    const value = volatility7d(asset)
+    if (value !== undefined) volatility[asset.id] = value
+
+    /* Une COPIE sans la série, et non une mutation de l'objet reçu : celui-ci vient
+       du cache applicatif, partagé avec `/crypto`, où la série est utile. */
+    const rest: MarketAsset = { ...asset }
+    delete rest.sparkline7d
+    return rest
+  })
 
   return (
     <div className="space-y-8">
@@ -79,8 +118,9 @@ export default async function HeatmapPage() {
       {hasSectors || hasAssets ? (
         <>
           <MarketHeatmap
-            assets={assets.ok ? assets.data : []}
+            assets={tiles}
             categories={categories.ok ? categories.data : []}
+            volatility={volatility}
           />
           <SourceNote
             strings={{ source: t('Source :'), dated: t('données du {date}') }}

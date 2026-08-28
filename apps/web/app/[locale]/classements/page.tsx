@@ -209,16 +209,16 @@ export default async function RankingsPage({
 
             <p className="text-sm text-ink-muted">
               Pour le détail des cours :{' '}
-              <Link href="/marches" className="text-brand hover:underline">
+              <Link href="/crypto" className="text-brand hover:underline">
                 cotations
               </Link>{' '}
               ·{' '}
-              <Link href="/mouvements" className="text-brand hover:underline">
-                données de trading
-              </Link>{' '}
-              ·{' '}
-              <Link href="/points-marquants" className="text-brand hover:underline">
-                points marquants
+              {/* Les renvois vers « données de trading » et « points marquants » ont
+                  disparu avec les deux pages qu'ils visaient (demande explicite). La
+                  heatmap prend leur place : c'est la lecture d'ensemble la plus proche
+                  de ce qu'ils apportaient — les extrêmes du jour, d'un coup d'œil. */}
+              <Link href="/heatmap" className="text-brand hover:underline">
+                heatmap sectorielle
               </Link>
             </p>
           </section>

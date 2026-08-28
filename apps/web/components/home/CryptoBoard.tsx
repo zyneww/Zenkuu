@@ -1,13 +1,12 @@
-import { getCryptoOverview } from '@zenkuu/data'
+import { getCryptoGlobalStats, getCryptoOverview } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
-import { ROWS } from '@/components/home/MoversRow'
+import { ROWS } from '@/components/home/overview-rows'
 import { MarketBrowser } from '@/components/market/MarketBrowser'
-import { Link } from '@/i18n/navigation'
-import { getContent, getPhrase } from '@/lib/content'
+import { getContent } from '@/lib/content'
 import { getWatchlistIds } from '@/lib/watchlist-actions'
 
-/** Destination de « Tout voir » — et base des liens de tri du tableau. */
+/** Base des liens du tableau — fiches d'actif et tri par URL. */
 const BASE_PATH = '/crypto'
 
 /** Lignes par page, valeur de départ du sélecteur du pied de tableau. */
@@ -22,9 +21,13 @@ const PER_PAGE = 25
  *
  * `MarketBrowser` existait déjà pour `/crypto` et rend exactement les colonnes de la
  * référence : rang, étoile de suivi, actif avec logo et ticker, cours, 1 h, 24 h, 7 j,
- * 30 j, volume, capitalisation, courbe 7 jours. Il y ajoute ce qu'elle a ailleurs sur
- * la page — la recherche, les vues rapides (tous / tendance / gagnants / perdants /
- * suivis), le partage « échangeables seulement », le sélecteur de colonnes.
+ * 30 j, volume, capitalisation, courbe 7 jours. Il y ajoute les vues rapides (tous /
+ * tendance / gagnants / perdants / suivis) et le sélecteur de lignes.
+ *
+ * ⚠️ Ce qu'il ne porte PLUS, et volontairement : la recherche de page, le partage
+ * « échangeables seulement », le sélecteur de période et « Personnaliser ». Quatre
+ * groupes de contrôles au-dessus d'un tableau qu'on vient lire, dont trois ne
+ * portaient que sur les lignes affichées.
  *
  * L'accueil ne lui passe qu'un univers et une liste de suivi : c'est le composant, et
  * non la page, qui décide de la forme d'un tableau de cotations — sans quoi l'accueil
@@ -45,74 +48,91 @@ const PER_PAGE = 25
  * minutes pour tout le monde, puisque la page est statique.
  *
  * Au-delà de cent, `/crypto` prend le relais et pagine, lui, côté serveur : c'est là
- * que mène « Tout voir », et c'est le lecteur qui veut la page 2 qui s'y adresse.
+ * que mène le lien « Cryptomonnaies » du menu, pour le lecteur qui veut la page 2.
  *
  * ── LE MÊME `ROWS` QUE LES CARTES, ET CE N'EST PAS UN DÉTAIL ───────────────
  *
  * La clé de cache de `getCryptoOverview` contient la devise ET la limite. Écrire un
- * nombre différent de celui de `MoversRow` ferait un SECOND appel réseau pour un
+ * nombre différent de celui de `HomeWidgets` ferait un SECOND appel réseau pour un
  * univers identique. `ROWS` est donc importé plutôt que redéclaré.
  */
 export async function CryptoBoard() {
   const fr = await getContent()
-  const t = await getPhrase()
 
-  const [overview, watchlist] = await Promise.all([
+  /*
+    Le troisième appel ne coûte RIEN de plus : `getCryptoGlobalStats('eur')` est déjà
+    lu par `PriceHeader`, en haut de la même page, et le cache applicatif est partagé.
+    On y prend le nombre d'actifs du catalogue — celui-là même que le sous-titre de la
+    page annonce — pour que le pied de tableau puisse écrire « sur 19 340 » plutôt que
+    de s'arrêter aux lignes reçues.
+  */
+  const [overview, watchlist, globals] = await Promise.all([
     getCryptoOverview('eur', ROWS),
     getWatchlistIds('crypto'),
+    getCryptoGlobalStats('eur'),
   ])
 
   const assets = overview.ok ? overview.data.topByMarketCap : []
 
+  /*
+    ── LE TOTAL VIENT DE LA SOURCE, ET N'EST PAS DEVINÉ ──────────────────────
+
+    `activeAssets` est le décompte que CoinGecko publie lui-même, et c'est déjà le
+    nombre écrit dans le sous-titre de la page. Le réutiliser garantit que les deux
+    ne peuvent pas se contredire à l'écran.
+
+    Absent — source en panne — le tableau retombe sur ses lignes reçues : il pagine
+    les 250 qu'il détient et le compteur le dit. Inventer un total serait le seul
+    mensonge qu'une barre de pagination sache produire (§5).
+  */
+  const catalogue = globals.ok ? globals.data.activeAssets : undefined
+
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-normal text-ink-muted">{t('Cotations — cryptomonnaies')}</h2>
-        <Link
-          href={BASE_PATH}
-          className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
-        >
-          {fr.home.seeAll} <span aria-hidden="true">→</span>
-        </Link>
-      </div>
-
+      {/* Le titre « Cotations — cryptomonnaies » a été RETIRÉ (demande explicite).
+          Il redisait, en petit et en gris, ce que le titre de la page annonce déjà en
+          grand deux blocs plus haut — « Cours et prix des cryptomonnaies en temps
+          réel » — et la rangée d'onglets qui ouvre désormais le tableau tient seule le
+          rôle de repère visuel qu'il occupait. */}
       {assets.length > 0 ? (
-        <>
-          <MarketBrowser
-            assets={assets}
-            assetClass="crypto"
-            page={1}
-            perPage={PER_PAGE}
-            sortBy="marketCap"
-            direction="desc"
-            /* Le tri par en-tête écrit dans l'URL et recharge la page : il n'a pas de
-               sens ici, où la page ne lit aucun paramètre. Le lecteur qui veut trier
-               l'univers entier suit « Tout voir ». */
-            sortable={false}
-            /* `paginated` gouverne la pagination PAR LIENS, celle qui navigue. Elle
-               reste fausse : c'est `clientPerPage` qui donne ses crans à ce tableau,
-               et les deux modes s'excluent — voir `MarketTable`. */
-            paginated={false}
-            clientPerPage={PER_PAGE}
-            basePath={BASE_PATH}
-            /* Fournie, donc la colonne principale devient « Variation (24 h) » et
-               `MarketTable` ajoute 1 H, 7 J et 30 J à côté — les quatre fenêtres du
-               tableau de la référence, dans le même ordre. */
-            period="24h"
-            watchlist={watchlist}
-            /* La courbe entre le cours et le volume plutôt qu'en fin de ligne : elle
-               illustre alors la variation qu'elle jouxte, ce qui est la lecture de la
-               référence. En fin de ligne elle se lit comme une vignette de complément,
-               ce qui convient aux classes sans capitalisation, pas à celle-ci. */
-            chartPosition="inline"
-          />
-
-          <p className="text-xs text-ink-muted">
-            {t(
-              'Les {n} plus grandes capitalisations. Recherche, vues et filtres portent sur ces lignes ; la recherche de l’en-tête interroge tout le catalogue.',
-            ).replace('{n}', String(assets.length))}
-          </p>
-        </>
+        <MarketBrowser
+          assets={assets}
+          assetClass="crypto"
+          page={1}
+          perPage={PER_PAGE}
+          sortBy="marketCap"
+          direction="desc"
+          /* `sortable` gouverne le tri PAR URL, celui qui recharge la page : il n'a
+             pas de sens ici, où la page ne lit aucun paramètre. Le tri des en-têtes
+             se fait EN MÉMOIRE, activé par `clientPerPage` — les 250 lignes sont
+             déjà là, les réordonner n'attend aucun aller-retour. */
+          sortable={false}
+          /* `paginated` gouverne la pagination PAR LIENS, celle qui navigue. Elle
+             reste fausse : c'est `clientPerPage` qui donne ses crans à ce tableau,
+             et les deux modes s'excluent — voir `MarketTable`. */
+          paginated={false}
+          clientPerPage={PER_PAGE}
+          basePath={BASE_PATH}
+          /* Fournie, donc la colonne principale devient « Variation (24 h) » et
+             `MarketTable` ajoute 1 H, 7 J et 30 J à côté — les quatre fenêtres du
+             tableau de la référence, dans le même ordre. */
+          period="24h"
+          watchlist={watchlist}
+          /* La courbe entre le cours et le volume plutôt qu'en fin de ligne : elle
+             illustre alors la variation qu'elle jouxte, ce qui est la lecture de la
+             référence. En fin de ligne elle se lit comme une vignette de complément,
+             ce qui convient aux classes sans capitalisation, pas à celle-ci. */
+          chartPosition="inline"
+          /* ── LES QUATRE AJOUTS DE LA REFONTE ────────────────────────────────
+             Onglets à la place des vues rapides, champ de filtre, bascule de devise,
+             et le nombre total d'actifs du catalogue — c'est lui qui autorise le
+             tableau à dépasser les lignes reçues, en allant chercher les suivantes
+             sur `/api/cotations`. Voir `MarketBrowser`. */
+          boardTabs
+          searchable
+          currencyPicker
+          {...(catalogue !== undefined ? { remoteTotal: catalogue } : {})}
+        />
       ) : (
         <EmptyState
           title={fr.states.unavailableTitle}

@@ -105,8 +105,25 @@ function NavigationMenuViewport({
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Viewport>) {
   return (
     <div
+      /*
+        ── LE PANNEAU EST CENTRÉ SUR LA BARRE, ET NON COLLÉ À SON BORD GAUCHE ──
+
+        `left-0` l'ancrait au bord gauche de la barre de menus : « Parcourir » ouvrait
+        donc son panneau tout à gauche de l'écran, et « Plus » — dernier menu de la
+        rangée — l'ouvrait au même endroit, à plusieurs centaines de pixels de son
+        propre bouton. Le panneau paraissait sans rapport avec ce qu'on avait survolé.
+
+        Centrer sur la BARRE (`left-1/2`) ne réglait qu'à moitié : le panneau s'ouvrait
+        au même endroit pour tous les menus, donc sous le troisième bouton quel que soit
+        celui qu'on survolait.
+
+        Le point d'ancrage vient maintenant de `NavMenus`, qui publie le centre du
+        bouton OUVERT dans `--nav-viewport-center` — déjà borné à la fenêtre là-bas.
+        `50%` reste le repli tant qu'aucun menu n'a été ouvert, et `-translate-x-1/2`
+        continue de faire grandir le panneau symétriquement quand il change de largeur.
+      */
       className={cn(
-        "absolute top-full left-0 isolate z-50 flex justify-center"
+        "absolute top-full left-[var(--nav-viewport-center,50%)] isolate z-50 flex -translate-x-1/2 justify-center"
       )}
     >
       <NavigationMenuPrimitive.Viewport

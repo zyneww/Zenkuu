@@ -100,7 +100,109 @@ const config: NextConfig = {
     return [
       {
         source: '/:path*',
-        headers: [{ key: 'Document-Policy', value: 'js-profiling' }],
+        headers: [
+          { key: 'Document-Policy', value: 'js-profiling' },
+
+          /*
+           * ══════════════════════════════════════════════════════════════════
+           * EN-TÊTES DE SÉCURITÉ — CE QU'UN SITE PUBLIC DOIT POSER
+           * ══════════════════════════════════════════════════════════════════
+           *
+           * Aucun n'était présent : le site répondait avec les seuls en-têtes que
+           * Next pose de lui-même. Les six ci-dessous sont ceux qu'un audit relève
+           * en premier, et aucun ne coûte de latence — ce sont des lignes de texte
+           * dans une réponse déjà envoyée.
+           *
+           * ── `Strict-Transport-Security` ──────────────────────────────────
+           * Deux ans, sous-domaines compris, préchargement demandé. Il ferme la
+           * fenêtre du tout premier accès en clair, celle où une interception peut
+           * rediriger vers un site jumeau. Sans effet en développement, où le
+           * navigateur ignore l'en-tête sur `http://localhost`.
+           *
+           * ── `X-Content-Type-Options: nosniff` ────────────────────────────
+           * Interdit au navigateur de DEVINER le type d'une réponse. Ce site sert du
+           * JSON d'API et des fichiers téléversés par personne ; le risque est faible,
+           * mais la ligne est gratuite et supprime toute une famille d'attaques par
+           * confusion de type.
+           *
+           * ── `Referrer-Policy` ────────────────────────────────────────────
+           * `strict-origin-when-cross-origin` : les liens sortants — sources,
+           * places de cotation, articles — emportent le domaine, jamais le CHEMIN.
+           * Une fiche `/crypto/hyperliquid` ne dit donc pas à un tiers ce que le
+           * lecteur regardait.
+           *
+           * ── `Permissions-Policy` ─────────────────────────────────────────
+           * Caméra, micro et géolocalisation refusés pour la page ET pour tout ce
+           * qu'elle embarque. Le site n'en a aucun usage ; le déclarer empêche un
+           * script tiers — une iframe TradingView, un lecteur de vidéo — de les
+           * demander en notre nom.
+           *
+           * ── `X-Frame-Options` N'EST PAS POSÉ, ET C'EST DÉLIBÉRÉ ──────────
+           * Il vaut pour tout le site ou pour rien, et `/embed/*` existe POUR être
+           * mis en iframe (voir `app/[locale]/embed/layout.tsx`). Le cadrage se fait
+           * donc par `frame-ancestors` ci-dessous, qui accepte, lui, d'être posé
+           * route par route.
+           *
+           * ── `Content-Security-Policy`, VOLONTAIREMENT PARTIELLE ──────────
+           * ⚠️ NI `script-src` NI `style-src`. Next injecte ses propres scripts et
+           * styles en ligne ; les restreindre exige des nonces par requête, donc de
+           * rendre chaque page dynamique — c'est-à-dire d'abandonner le cache de
+           * pages, qui est ce qui tient ce site sous des quotas d'API serrés. Le
+           * compromis est explicite plutôt que subi.
+           *
+           * Les quatre directives posées, elles, ne coûtent rien et ferment des
+           * failles réelles : `object-src` (greffons Flash/Java), `base-uri` (une
+           * balise `<base>` injectée détournerait toutes les URL relatives de la
+           * page), `form-action` (l'envoi d'un formulaire vers un domaine tiers) et
+           * `frame-ancestors` (le clickjacking).
+           */
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+            ].join('; '),
+          },
+        ],
+      },
+
+      /*
+        LES WIDGETS SONT FAITS POUR ÊTRE EMBARQUÉS — la règle ci-dessus les en
+        empêcherait. `frame-ancestors *` ne s'applique qu'à `/embed/*`, dont c'est la
+        raison d'être ; le reste du site garde `'self'`.
+
+        ⚠️ CETTE ENTRÉE DOIT RESTER APRÈS L'AUTRE. Next applique les règles dans
+        l'ordre et la dernière qui correspond l'emporte pour un même en-tête.
+      */
+      {
+        source: '/embed/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: ["object-src 'none'", "base-uri 'self'", 'frame-ancestors *'].join('; '),
+          },
+        ],
+      },
+      {
+        source: '/:locale/embed/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: ["object-src 'none'", "base-uri 'self'", 'frame-ancestors *'].join('; '),
+          },
+        ],
       },
     ]
   },
@@ -110,11 +212,15 @@ const config: NextConfig = {
    *
    * ── DEUX MOUVEMENTS, UN SEUL MÉCANISME ───────────────────────────────────
    *
-   * D'abord les SEPT PAGES DE CLASSE (`/crypto`, `/actions`, `/etf`, `/indices`,
-   * `/devises`, `/matieres-premieres`), qui doublaient exactement les onglets de
-   * `/marches`. Ensuite les SIX SOUS-PAGES CRYPTO, sorties d'un préfixe qui ne les
-   * décrivait plus : `/graphiques` ou `/classements` ne parlent pas que de crypto —
-   * ils portent aussi les ETF, les actions et les indices.
+   * D'abord les SIX SOUS-PAGES CRYPTO, sorties d'un préfixe qui ne les décrivait
+   * plus : `/graphiques` ou `/classements` ne parlent pas que de crypto — ils portent
+   * aussi les ETF, les actions et les indices. Ensuite les deux adresses laissées par
+   * la suppression de `/marches`.
+   *
+   * ⚠️ IL N'Y A PLUS DE RÈGLE SUR `/crypto`, `/actions`, `/etf`, `/indices`,
+   * `/devises` NI `/matieres-premieres`. Ces six-là ont été redirigées vers les
+   * onglets de `/marches` pendant un temps ; elles sont redevenues des pages. En
+   * ajouter une ici les rendrait inaccessibles.
    *
    * ── POURQUOI PERMANENT (308) ET NON TEMPORAIRE ───────────────────────────
    *
@@ -125,7 +231,9 @@ const config: NextConfig = {
    *
    * ── L'ORDRE COMPTE, ET LES SOUS-PAGES PASSENT EN PREMIER ─────────────────
    *
-   * Next applique la PREMIÈRE règle qui correspond. `/crypto/:path*` placé avant
+   * Next applique la PREMIÈRE règle qui correspond. `/marches/pool/…` passe donc
+   * avant `/marches`, sans quoi une fiche de pool partirait sur `/crypto`.
+   * De même, `/crypto/:path*` placé avant
    * `/crypto/graphiques` avalerait la sous-page et l'enverrait sur la fiche d'actif
    * « graphiques », qui n'existe pas. Les règles les plus spécifiques sont donc en
    * tête — et c'est aussi pourquoi il n'y a AUCUNE règle attrape-tout sur
@@ -151,19 +259,25 @@ const config: NextConfig = {
       ['/crypto/resoudre/:terme', '/resoudre/:terme'],
     ]
 
-    /* Les pages de classe, vers l'onglet correspondant de `/marches`. La crypto vise
-       `/marches` nu : c'est son onglet par défaut, et `?classe=crypto` décrirait la
-       même page sous une seconde adresse. */
-    const classes: [string, string][] = [
-      ['/crypto', '/marches'],
-      ['/etf', '/marches?classe=etf'],
-      ['/actions', '/marches?classe=actions'],
-      ['/indices', '/marches?classe=indices'],
-      ['/devises', '/marches?classe=devises'],
-      ['/matieres-premieres', '/marches?classe=matieres-premieres'],
+    /* `/marches` A ÉTÉ SUPPRIMÉE, et ce bloc redirigeait vers elle.
+
+       Les six pages de classe qu'il envoyait sur ses onglets sont redevenues des
+       routes à part entière (voir `components/market/ClassMarketPage.tsx`) : elles
+       n'ont plus rien à rediriger. Restent les deux adresses que la suppression
+       laisse orphelines et qui, elles, sont indexées :
+
+         · `/marches` elle-même, dont le contenu se répartit entre les six classes.
+           La crypto est la destination honnête : c'était son onglet par défaut, et
+           c'est la classe que 90 % des visites y cherchaient ;
+         · `/marches/pool/:network/:address`, les fiches de pool on-chain. Elles ne
+           disparaissent pas — elles remontent d'un cran, le préfixe `/marches` ne
+           décrivant plus rien. */
+    const removed: [string, string][] = [
+      ['/marches/pool/:network/:address', '/pool/:network/:address'],
+      ['/marches', '/crypto'],
     ]
 
-    return [...moved, ...classes].flatMap(([source, destination]) => [
+    return [...moved, ...removed].flatMap(([source, destination]) => [
       { source, destination, permanent: true },
       {
         source: `/:locale(\\w{2}|pt-BR)${source}`,

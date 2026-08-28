@@ -73,9 +73,20 @@ export default async function ConverterPage() {
 
   return (
     <div className="space-y-8">
-      <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Convertisseur et calculateur de cryptos</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">
+      {/* ── L'EN-TÊTE SE RESSERRE ────────────────────────────────────────────
+
+          Il portait un titre en `display-xl` au-dessus d'un paragraphe en `text-lg` :
+          près de cent soixante pixels avant le premier champ, sur une page dont tout
+          l'objet tient dans une carte de trois cases.
+
+          La référence (CoinGecko) tient sur deux lignes — un titre de la taille d'un
+          titre de section, une phrase de la taille du texte courant — et le
+          convertisseur commence immédiatement. C'est ce que « reproduire la
+          simplicité » veut dire ici : ce n'est pas la carte qui était compliquée,
+          c'est ce qu'on empilait autour. */}
+      <header className="max-w-3xl space-y-2">
+        <h1 className="display-sm text-ink">Convertisseur et calculateur de cryptos</h1>
+        <p className="text-sm leading-relaxed text-ink-muted">
           Convertir un montant entre {assets.length} cryptomonnaies et {SUPPORTED_CURRENCIES.length}{' '}
           devises, au dernier cours reçu. Aucun compte n’est nécessaire, et rien ne
           s’exécute : c’est un calcul, pas une offre.
@@ -166,12 +177,8 @@ export default async function ConverterPage() {
         </p>
         <p className="text-sm text-ink-muted">
           Voir aussi les{' '}
-          <Link href="/marches?classe=devises" className="text-brand hover:underline">
+          <Link href="/devises" className="text-brand hover:underline">
             taux de référence BCE
-          </Link>{' '}
-          et la{' '}
-          <Link href="/methodologie" className="text-brand hover:underline">
-            méthodologie
           </Link>
           .
         </p>

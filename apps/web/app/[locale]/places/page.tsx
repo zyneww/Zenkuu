@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { getSpotExchanges } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
-import { BrowseTabs, EXCHANGES_TAB, browseHref } from '@/components/market/BrowseTabs'
+import { InstrumentTabs } from '@/components/market/InstrumentTabs'
 import { SpotExchangesExplorer } from '@/components/market/SpotExchangesExplorer'
 import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
@@ -67,7 +67,7 @@ export default async function PlacesPage() {
   return (
     <div className="space-y-8 py-6">
       {/* Même barre que `/marches` et `/perpetuels` — voir la note de cette dernière. */}
-      <BrowseTabs current={EXCHANGES_TAB} hrefFor={browseHref} />
+      <InstrumentTabs current="places" />
 
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">{t("Où s’échange le marché au comptant")}</h1>

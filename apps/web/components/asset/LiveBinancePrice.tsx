@@ -7,6 +7,8 @@ import { formatCurrency } from '@zenkuu/ui'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { Money } from '@/components/locale/Money'
 import { useLiveTicker } from '@/components/asset/useLiveTicker'
+import { flashDirection, type PriceReading } from '@/components/asset/price-flash'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Cours qui TIQUE — complément de `Money`, pas un remplacement.
@@ -101,16 +103,19 @@ export function LiveBinancePrice({
   fallbackValue: number | undefined
   fallbackCurrency: string
 }) {
+  const t = usePhrase()
   const { currency, convert } = useCurrency()
   const tick = useLiveTicker(symbol)
-  const direction = usePriceFlash(tick?.price ?? null)
+
+  /* Formaté AVANT le crochet de teinte, et non après : c'est le texte affiché qui décide
+     s'il y a mouvement à signaler, pas le cours brut. Voir `usePriceFlash`. */
+  const converted = tick === null ? null : convert(tick.price, 'USD')
+  const formatted = converted === null ? null : formatCurrency(converted, currency)
+  const direction = usePriceFlash(tick?.price ?? null, formatted)
 
   if (tick === null) {
     return <Money value={fallbackValue} from={fallbackCurrency} />
   }
-
-  const converted = convert(tick.price, 'USD')
-  const formatted = formatCurrency(converted, currency)
 
   if (formatted === null) {
     return <Money value={fallbackValue} from={fallbackCurrency} />
@@ -145,7 +150,7 @@ export function LiveBinancePrice({
         className="h-1.5 w-1.5 shrink-0 rounded-pill bg-up"
         aria-hidden="true"
       />
-      <span className="sr-only">Cours en direct (Binance)</span>
+      <span className="sr-only">{t('Cours en direct (Binance)')}</span>
     </span>
   )
 }
@@ -161,28 +166,34 @@ export function LiveBinancePrice({
  *
  * Le minuteur est REPOSÉ à chaque tic plutôt que laissé courir : deux hausses
  * rapprochées doivent donner deux impulsions distinctes, pas une seule allongée.
+ *
+ * ⚠️ LA DÉCISION N'EST PAS ICI : elle vit dans `price-flash.ts`, avec le récit du défaut
+ * qu'elle corrige — la teinte clignotait sur des tics invisibles à l'écran. Ce crochet ne
+ * garde que le TEMPS (le relevé précédent, le minuteur), qui est ce que React apporte.
  */
-function usePriceFlash(price: number | null): 'up' | 'down' | null {
+function usePriceFlash(price: number | null, label: string | null): 'up' | 'down' | null {
   const [direction, setDirection] = useState<'up' | 'down' | null>(null)
-  const previous = useRef<number | null>(null)
+  const previous = useRef<PriceReading | null>(null)
 
   useEffect(() => {
-    if (price === null) {
+    if (price === null || label === null) {
       previous.current = null
       return
     }
 
     const before = previous.current
-    previous.current = price
+    /* Mis à jour MÊME quand rien ne s'allume : un tic sous la précision affichée doit
+       quand même servir de référence au prochain, sinon le sens serait comparé à un
+       cours vieux de plusieurs secondes. */
+    previous.current = { price, label }
 
-    /* Premier relevé : il n'y a pas de « précédent » avec quoi le comparer, et un tic
-       de valeur identique n'est pas un mouvement. */
-    if (before === null || before === price) return
+    const next = flashDirection(before, { price, label })
+    if (next === null) return
 
-    setDirection(before < price ? 'up' : 'down')
+    setDirection(next)
     const timer = setTimeout(() => setDirection(null), FLASH_MS)
     return () => clearTimeout(timer)
-  }, [price])
+  }, [price, label])
 
   return direction
 }

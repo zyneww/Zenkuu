@@ -75,7 +75,7 @@ export function SettingsAccount() {
       <section className="space-y-4">
         <Heading
           title="Compte"
-          description={t('Vous n’êtes pas connecté. Ce n’est pas un obstacle : la liste de suivi, les alertes et les écrans enregistrés fonctionnent sans compte, rangés dans ce navigateur.')}
+          description={t('Vous n’êtes pas connecté. Ce n’est pas un obstacle : la liste de suivi et les écrans enregistrés fonctionnent sans compte, rangés dans ce navigateur.')}
         />
 
         <div className="rounded-card border border-border-subtle bg-surface p-4">
@@ -269,7 +269,7 @@ function DangerCard() {
       <div className="space-y-1">
         <h3 className="flex items-center gap-2 text-sm font-medium text-ink">
           <Trash2 className="h-4 w-4 text-down" aria-hidden="true" />{t('Supprimer le compte')}</h3>
-        <p className="text-xs leading-relaxed text-ink-muted">{t('Efface le compte, la liste de suivi, les alertes et les écrans enregistrés. Immédiat et sans période de grâce : conserver trente jours des données que personne ne réclame serait moins protecteur, pas plus.')}</p>
+        <p className="text-xs leading-relaxed text-ink-muted">{t('Efface le compte, la liste de suivi et les écrans enregistrés. Immédiat et sans période de grâce : conserver trente jours des données que personne ne réclame serait moins protecteur, pas plus.')}</p>
       </div>
 
       {/*
@@ -309,7 +309,7 @@ function DangerCard() {
         <AlertDialogContent className="border-border-subtle bg-overlay">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('Supprimer définitivement ce compte ?')}</AlertDialogTitle>
-            <AlertDialogDescription className="leading-relaxed">{t('Le compte, la liste de suivi, les alertes et les écrans enregistrés seront effacés immédiatement. Cette action est irréversible.')}</AlertDialogDescription>
+            <AlertDialogDescription className="leading-relaxed">{t('Le compte, la liste de suivi et les écrans enregistrés seront effacés immédiatement. Cette action est irréversible.')}</AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>

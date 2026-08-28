@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { getDerivativeExchanges } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
-import { BrowseTabs, PERPETUALS_TAB, browseHref } from '@/components/market/BrowseTabs'
+import { InstrumentTabs } from '@/components/market/InstrumentTabs'
 import { DerivativeExchangesExplorer } from '@/components/market/DerivativeExchangesExplorer'
 import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
@@ -66,7 +66,7 @@ export default async function PerpetuelsPage() {
       {/* La barre des marchés SUIT le lecteur jusqu'ici. Sans elle, cliquer sur
           « Perpétuels » depuis `/marches` déposerait sur une page sans retour visible
           vers les autres onglets — le seul chemin serait le bouton précédent. */}
-      <BrowseTabs current={PERPETUALS_TAB} hrefFor={browseHref} />
+      <InstrumentTabs current="perpetuels" />
 
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">{t("Où se portent les positions à effet de levier")}</h1>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert } from '@heroui/react'
 import { Link } from '@/i18n/navigation'
 
 import { CACHE_TTL_SECONDS, getMoversUniverse, getNewListings } from '@zenkuu/data'
@@ -103,8 +103,9 @@ export default async function NewListingsPage() {
         role="note"
         className="rounded-none border-0 border-l-2 border-gold bg-surface-muted p-4 text-sm leading-relaxed text-ink-muted"
       >
-        <AlertTitle className="sr-only">{t('À savoir')}</AlertTitle>
-        <AlertDescription className="text-sm leading-relaxed text-ink-muted">
+        <Alert.Content>
+        <Alert.Title className="sr-only">{t('À savoir')}</Alert.Title>
+        <Alert.Description className="text-sm leading-relaxed text-ink-muted">
         <p>
           {emphasise(
             t(
@@ -117,7 +118,8 @@ export default async function NewListingsPage() {
             'Un actif récemment référencé a, par définition, peu d’historique, souvent peu de liquidité, et une capitalisation qui peut se réordonner en quelques heures. ZENKUU publie ces chiffres, ne les recommande pas, et ne propose aucune fonction d’achat ou de vente.',
           )}
         </p>
-        </AlertDescription>
+        </Alert.Description>
+        </Alert.Content>
       </Alert>
 
       {listings.ok && listings.data.length > 0 ? (
@@ -142,7 +144,7 @@ export default async function NewListingsPage() {
       <p className="text-sm text-ink-muted">
         {weave(
           t(
-            'Pour le marché établi, voir les [classements complets](/classements) ou les [points marquants du jour](/points-marquants).',
+            'Pour le marché établi, voir les [classements complets](/classements) ou la [heatmap sectorielle](/heatmap).',
           ),
           (href, label, key) => (
             <Link key={key} href={href} className="text-brand hover:underline">

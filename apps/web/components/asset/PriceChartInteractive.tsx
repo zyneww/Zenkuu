@@ -8,6 +8,7 @@ import { ZenkuuMark } from '@/components/BrandMark'
 import { ChartNavigator } from '@/components/asset/ChartNavigator'
 import { PriceChartAm, type AmCompare, type AmPoint } from '@/components/asset/PriceChartAm'
 import { useReducedMotion } from '@/components/charts/useReducedMotion'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import {
   ASSET_CHART_HEIGHT,
   OHLC_KINDS,
@@ -181,6 +182,32 @@ interface PriceChartInteractiveProps {
    * vide n'aiderait personne.
    */
   showNavigator?: boolean
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * CE QUE L'INFOBULLE PORTE EN PLUS DU COURS
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Deux lignes facultatives, commandées par la roue dentée de la barre d'outils —
+   * c'est la section « Tooltip Settings » du modèle (CoinMarketCap), qui sépare ce
+   * que le GRAPHIQUE montre de ce que la BULLE dit. La distinction est juste : une
+   * bande de volume occupe un quart du cadre, une ligne de bulle ne coûte rien tant
+   * qu'on ne survole pas.
+   *
+   * Les deux sont ÉTEINTES par défaut. La bulle porte déjà la date, le cours et le
+   * volume ; en ajouter deux d'office ferait un pavé de cinq lignes à chaque
+   * mouvement de souris.
+   */
+  /** Capitalisation à l'instant survolé. Sans effet si la source ne la publie pas. */
+  showTooltipMarketCap?: boolean
+  /**
+   * Variation depuis le PREMIER point de la fenêtre affichée.
+   *
+   * « Depuis le début de ce qui est tracé », donc — et non depuis la veille. C'est la
+   * seule origine que le lecteur a sous les yeux : elle se vérifie en regardant le
+   * bord gauche de la courbe, là où une variation sur 24 h serait un chiffre venu
+   * d'ailleurs posé sur un graphique qui montre autre chose.
+   */
+  showTooltipChange?: boolean
 }
 
 /**
@@ -218,6 +245,8 @@ interface Row {
   price: number
   volume?: number
   ma?: number
+  /** Capitalisation du point — n'existe que si la source la publie. */
+  cap?: number
   [compareKey: string]: number | undefined
 }
 
@@ -257,7 +286,10 @@ export function PriceChartInteractive({
   compare,
   compactValues = false,
   showNavigator = true,
+  showTooltipMarketCap = false,
+  showTooltipChange = false,
 }: PriceChartInteractiveProps) {
+  const t = usePhrase()
   const reduced = useReducedMotion()
 
   /**
@@ -300,16 +332,40 @@ export function PriceChartInteractive({
       t: point.timestamp,
       price: point.price * rate,
       ...(point.volume !== undefined ? { volume: point.volume * rate } : {}),
+      /* La capitalisation subit le MÊME taux que le prix : c'est un montant dans la
+         devise d'origine, pas un rapport. L'omettre laisserait une bulle qui annonce
+         des euros et affiche des dollars. */
+      ...(point.marketCap !== undefined ? { cap: point.marketCap * rate } : {}),
     }))
 
     if (base.length === 0) return base
 
-    /* Base 100 : la conversion de devise devient sans objet — un rapport de deux prix
-       ne dépend pas de l'unité dans laquelle on les exprime. */
+    /*
+      ══════════════════════════════════════════════════════════════════════════
+      LA COMPARAISON S'EXPRIME EN VARIATION, PLUS EN INDICE BASE 100
+      ══════════════════════════════════════════════════════════════════════════
+
+      Les courbes étaient ramenées à 100 sur leur premier point : l'axe portait
+      « 100 », « 118 », « 96 ». C'est juste, et c'est illisible pour qui n'a pas
+      l'habitude — il faut soustraire cent de tête à chaque graduation pour obtenir la
+      seule chose qu'on cherche, la performance.
+
+      La référence trace la même donnée en POURCENTAGE : l'origine est à 0 %, et
+      +18 % se lit sans conversion. Le changement est une simple soustraction — un
+      indice de 118 devient +18 % — et il ne coûte donc aucune précision.
+
+      Ce qui compte davantage : l'axe passe par ZÉRO, et zéro est une ligne qui a un
+      sens. « Au-dessus, l'actif a monté sur la fenêtre ; en dessous, il a baissé. »
+      La base 100 n'offrait aucun repère de ce genre — cent n'est pas plus remarquable
+      que quatre-vingt-dix-neuf sur un axe qui ne le dit pas.
+
+      La conversion de devise reste sans objet dans les deux cas : un rapport de deux
+      prix ne dépend pas de l'unité dans laquelle on les exprime.
+    */
     if (indexed) {
       const anchor = base.find((row) => Number.isFinite(row.price) && row.price > 0)?.price
       if (anchor !== undefined) {
-        for (const row of base) row.price = (row.price / anchor) * 100
+        for (const row of base) row.price = (row.price / anchor - 1) * 100
       }
 
       overlays.forEach((entry, index) => {
@@ -393,25 +449,119 @@ export function PriceChartInteractive({
     [indexed, compactValues, currency],
   )
 
-  /* Les points passés à amCharts, infobulle comprise — voir `AmPoint`. */
+  /*
+    ══════════════════════════════════════════════════════════════════════════════
+    L'INFOBULLE LISTE TOUTES LES COURBES, ET NON LA SEULE QU'ON SURVOLE
+    ══════════════════════════════════════════════════════════════════════════════
+
+    Elle ne portait que la série principale : date, prix, volume. En comparaison, cela
+    revenait à masquer l'objet même de la vue — on superpose cinq courbes pour LES
+    METTRE EN REGARD à un instant donné, et l'infobulle n'en donnait qu'une, celle
+    dont le curseur passait le plus près.
+
+    Elle porte désormais une LIGNE PAR SÉRIE, chacune précédée de sa pastille de
+    couleur, dans l'ordre du graphique : l'actif d'abord, puis les comparés. C'est la
+    forme de la référence, et c'est ce qui permet de lire « HYPE +1,04 %, BTC −0,07 %,
+    SOL −0,75 % » d'un seul coup d'œil au lieu de promener le curseur trois fois.
+
+    ⚠️ LA PASTILLE EST DESSINÉE EN HTML, PAS EMPRUNTÉE À AMCHARTS. Le moteur sait
+    poser un marqueur par série dans ses propres infobulles, mais une par série veut
+    dire cinq infobulles superposées ; ici il n'y en a qu'UNE, ancrée à la série
+    principale, qui décrit tout l'instant. Les couleurs viennent donc de la même table
+    que les tracés — `COMPARE_COLORS` — et c'est cette table unique qui garantit que la
+    pastille et la courbe s'accordent.
+
+    Une série SANS valeur à cet instant est omise plutôt que rendue à zéro : les séries
+    comparées n'ont pas toutes la même profondeur, et une ligne « BTC : 0 % » sur une
+    date où l'on ne sait rien serait de la donnée inventée (§5).
+  */
+  /*
+   * Origine de la variation d'infobulle : le premier point NON NUL de la fenêtre
+   * VISIBLE (`rows`), et non de la table complète.
+   *
+   * `rows` est déjà la tranche que la frise de navigation laisse voir — voir plus
+   * haut. Prendre l'origine dans `allRows` donnerait donc une variation calculée
+   * depuis un point hors du cadre, c'est-à-dire invérifiable à l'œil.
+   *
+   * Le zéro est écarté plutôt que gardé : diviser par lui rendrait `Infinity`, et un
+   * cours nul en tête de série est un trou de source, pas une valeur.
+   */
+  const anchorPrice = useMemo(() => {
+    const first = rows.find((row) => Number.isFinite(row.price) && row.price !== 0)
+    return first?.price
+  }, [rows])
+
   const amData = useMemo<AmPoint[]>(
     () =>
       rows.map((row) => {
-        const price = `${(indexed ? formatIndex(row.price) : formatPrice(row.price))} ${
-          indexed ? '' : currencySign(currency)
-        }`.trim()
+        const money = (value: number) =>
+          `${(indexed ? formatIndex(value) : formatPrice(value))} ${
+            indexed ? '' : currencySign(currency)
+          }`.trim()
 
+        const dot = (color: string) =>
+          `<span style="display:inline-block;width:7px;height:7px;border-radius:9999px;background:${color};margin-right:6px;vertical-align:middle"></span>`
+
+        const lines = [
+          `<div>${dot(trendColor)}<span style="font-weight:600">${label}</span> : <span style="font-weight:600">${money(row.price)}</span></div>`,
+        ]
+
+        overlays.forEach((entry, index) => {
+          const value = row[`${COMPARE_PREFIX}${index}`]
+          if (typeof value !== 'number' || !Number.isFinite(value)) return
+          const color = COMPARE_COLORS[index % COMPARE_COLORS.length] as string
+          lines.push(
+            `<div>${dot(color)}<span style="font-weight:600">${entry.label}</span> : <span style="font-weight:600">${money(value)}</span></div>`,
+          )
+        })
+
+        /* Le volume ferme l'infobulle, et seulement hors comparaison : il décrit la
+           série principale seule, et l'afficher sous cinq lignes de comparaison
+           laisserait croire qu'il les concerne toutes. */
         const volume =
-          typeof row.volume === 'number' && Number.isFinite(row.volume)
-            ? `<div>Vol : <span style="font-weight:600">${formatCompact(row.volume)}</span></div>`
+          !indexed && typeof row.volume === 'number' && Number.isFinite(row.volume)
+            ? `<div style="opacity:.65;margin-top:2px">${t('Vol :')} ${formatCompact(row.volume)}</div>`
+            : ''
+
+        /*
+          ── LES DEUX LIGNES FACULTATIVES DE LA BULLE ─────────────────────────
+
+          Elles sortent des « Tooltip Settings » de la barre d'outils. Comme le
+          volume, elles se taisent EN COMPARAISON (`indexed`) : la courbe n'y montre
+          plus des montants mais des variations relatives, et une capitalisation en
+          euros posée sous une échelle en pourcents se rapporterait à une donnée qui
+          n'est plus tracée.
+
+          ⚠️ AUCUNE DES DEUX N'EST CALCULÉE À PARTIR D'AUJOURD'HUI. La capitalisation
+          est celle que la source a publiée CE JOUR-LÀ (voir `ChartPoint.marketCap`) ;
+          la variation se rapporte au premier point de la fenêtre visible, que le
+          lecteur a sous les yeux. Reconstituer l'une par `prix × offre actuelle` ou
+          l'autre depuis une clôture hors cadre donnerait un chiffre juste en
+          apparence et faux en fait (§5).
+        */
+        const cap =
+          showTooltipMarketCap && !indexed && typeof row.cap === 'number' && Number.isFinite(row.cap)
+            ? `<div style="opacity:.65">${t('Cap. :')} ${formatCompact(row.cap)} ${currencySign(currency)}</div>`
+            : ''
+
+        const change =
+          showTooltipChange && anchorPrice !== undefined && Number.isFinite(row.price)
+            ? (() => {
+                const pct = (row.price / anchorPrice - 1) * 100
+                const sign = pct >= 0 ? '+' : '−'
+                const tint = pct >= 0 ? 'var(--color-up)' : 'var(--color-down)'
+                return `<div style="color:${tint}">${sign}${Math.abs(pct).toFixed(2).replace('.', ',')} %<span style="opacity:.65"> ${t('sur la fenêtre')}</span></div>`
+              })()
             : ''
 
         const point: AmPoint = {
           t: row.t,
           price: row.price,
-          tip: `<div style="font-size:11px;line-height:1.55">
-              <div style="opacity:.65">${formatStamp(row.t, spanDays)}</div>
-              <div>${indexed ? 'Indice' : 'Prix'} : <span style="font-weight:600">${price}</span></div>
+          tip: `<div style="font-size:11px;line-height:1.65">
+              <div style="opacity:.65;margin-bottom:3px">${formatStamp(row.t, spanDays)}</div>
+              ${lines.join('')}
+              ${change}
+              ${cap}
               ${volume}
             </div>`,
         }
@@ -425,7 +575,18 @@ export function PriceChartInteractive({
 
         return point
       }),
-    [rows, indexed, currency, spanDays, overlays.length],
+    [
+      rows,
+      indexed,
+      currency,
+      spanDays,
+      overlays,
+      trendColor,
+      label,
+      showTooltipMarketCap,
+      showTooltipChange,
+      anchorPrice,
+    ],
   )
 
   const amCompare = useMemo<AmCompare[]>(
@@ -448,9 +609,9 @@ export function PriceChartInteractive({
       const min = Math.min(...values)
       const mean = values.reduce((sum, value) => sum + value, 0) / values.length
       lines.push(
-        { value: max, label: 'plus haut', color: 'var(--color-up)' },
+        { value: max, label: t('plus haut'), color: 'var(--color-up)' },
         { value: mean, label: 'moyenne', color: 'var(--color-ink-muted)' },
-        { value: min, label: 'plus bas', color: 'var(--color-ink-muted)' },
+        { value: min, label: t('plus bas'), color: 'var(--color-ink-muted)' },
       )
     }
 
@@ -573,7 +734,7 @@ export function PriceChartInteractive({
         className="flex w-full items-center justify-center px-4 text-center text-xs text-ink-muted"
         style={{ height }}
       >
-        Pas encore assez de relevés pour tracer une courbe.
+        {t('Pas encore assez de relevés pour tracer une courbe.')}
       </div>
     )
   }
@@ -635,6 +796,57 @@ export function PriceChartInteractive({
           <span className="text-[0.625rem] font-semibold lowercase tracking-wide">zenkuu</span>
         </span>
       </div>
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        LA LÉGENDE — ELLE N'APPARAÎT QU'EN COMPARAISON, ET C'EST LA RÈGLE
+        ══════════════════════════════════════════════════════════════════════════
+
+        Une seule courbe n'a pas besoin de légende : le titre de la page dit déjà de
+        quel actif il s'agit, et une pastille de couleur unique sous le graphique ne
+        ferait que répéter ce que la courbe elle-même montre.
+
+        À partir de deux, elle devient nécessaire. Les couleurs sont le SEUL lien entre
+        une courbe et son nom : sans légende, il faut survoler pour savoir laquelle est
+        laquelle, ce qui est exactement le travail que la comparaison doit épargner.
+
+        ⚠️ ELLE EST SOUS LA BANDE DE NAVIGATION, ET NON ENTRE LE GRAPHIQUE ET ELLE.
+        Posée au-dessus, elle sépare le tracé de sa propre frise temporelle, deux
+        pièces qui se lisent ensemble. La référence la met tout en bas, après la
+        navigation, où elle ferme le bloc.
+
+        Les couleurs viennent de `COMPARE_COLORS` et de `trendColor`, c'est-à-dire des
+        mêmes valeurs que les tracés et que l'infobulle. Une table unique pour trois
+        consommateurs : c'est ce qui garantit qu'aucun des trois ne dérive.
+      */}
+      {overlays.length > 0 ? (
+        <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+          {/* Le SYMBOLE et non le libellé complet : `label` vaut « Cours de
+              Hyperliquid — 7 jours », ce qui décrit le graphique et non la courbe. Dans
+              une légende, chaque entrée doit tenir sur deux ou trois mots pour que la
+              rangée reste lisible — la référence n'y met que « HYPE ». On coupe donc au
+              premier tiret, qui sépare le nom de la période. */}
+          <li className="flex items-center gap-1.5 text-xs text-ink-muted">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-pill"
+              style={{ background: trendColor }}
+            />
+            {label.split('—')[0]?.trim() ?? label}
+          </li>
+
+          {overlays.map((entry, index) => (
+            <li key={entry.id} className="flex items-center gap-1.5 text-xs text-ink-muted">
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 shrink-0 rounded-pill"
+                style={{ background: COMPARE_COLORS[index % COMPARE_COLORS.length] }}
+              />
+              {entry.label}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {/*
         ── LA BANDE, DANS L'UN OU L'AUTRE DE SES DEUX RÉGIMES ────────────────
@@ -725,7 +937,17 @@ function currencySign(currency: string): string {
 function ReadoutStrip({ shown }: { shown: LegendState }) {
   return (
     <div
-      className="mb-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-[0.6875rem] leading-5"
+      /* ⚠️ IL VALAIT 0,6875rem (11 px), ET C'ÉTAIT TROP PETIT.
+
+         C'est la ligne qu'on lit EN DÉPLAÇANT LE CURSEUR sur la courbe — la date, les
+         quatre valeurs de la bougie, la variation, le volume. Autrement dit la seule
+         du cadre dont la lecture est active et répétée, et elle était rendue dans le
+         plus petit corps du site, réservé ailleurs aux mentions de source.
+
+         13 px (`text-xs`) la remet au corps des libellés ordinaires. La hauteur de
+         ligne passe à 6 pour garder les 20 pixels du bandeau : sans cela, la rangée
+         grandirait de deux pixels et pousserait la courbe d'autant. */
+      className="mb-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs leading-6"
       aria-hidden="true"
     >
       {shown.time ? <span className="tabular text-ink-muted">{shown.time}</span> : null}
@@ -849,7 +1071,10 @@ function smaPeriod(count: number): number {
 }
 
 /**
- * Série ramenée à 100 sur son premier point exploitable.
+ * Série exprimée en VARIATION depuis son premier point exploitable, en pourcentage.
+ *
+ * Le premier point vaut donc 0 %, et non 100 : voir la note de l'indexation, plus
+ * haut, pour la raison du changement.
  *
  * Les points dont le prix est nul ou négatif sont écartés AVANT de choisir la base :
  * diviser par zéro produirait un `Infinity` qui, tracé, détruirait l'échelle des deux
@@ -859,14 +1084,24 @@ function indexSeries(points: ChartPoint[]): number[] {
   const usable = points.filter((point) => Number.isFinite(point.price) && point.price > 0)
   const base = usable[0]?.price
   if (base === undefined) return []
-  return usable.map((point) => (point.price / base) * 100)
+  return usable.map((point) => (point.price / base - 1) * 100)
 }
 
 /* ── Formatage ─────────────────────────────────────────────────────────────── */
 
-/** Indice sans symbole monétaire — 100 = niveau au début de la fenêtre. */
+/**
+ * Variation depuis le début de la fenêtre — 0 % = niveau de départ.
+ *
+ * Le SIGNE est explicite au-dessus de zéro : « +18,0 % » et non « 18,0 % ». Sur un axe
+ * qui descend sous zéro, l'absence de signe fait hésiter une fraction de seconde sur
+ * chaque graduation positive, et c'est exactement ce qu'un axe doit éviter.
+ */
 function formatIndex(value: number): string {
-  return value.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  const formatted = value.toLocaleString('fr-FR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })
+  return `${value > 0 ? '+' : ''}${formatted} %`
 }
 
 

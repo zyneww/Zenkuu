@@ -131,9 +131,9 @@ export async function toggleWatchlist(input: {
 
     if (!result.ok) return { ok: false, reason: 'db-disabled' }
 
-    // La page de suivi et la fiche affichent toutes deux l'état : les revalider
+    // Le tableau de bord et la fiche affichent tous deux l'état : les revalider
     // évite qu'un retour arrière montre un bouton dans l'état précédent.
-    revalidatePath('/suivi')
+    revalidatePath('/tableau-de-bord')
     revalidatePath(input.path)
 
     return { ok: true, following: !already }
@@ -232,7 +232,7 @@ export async function moveToList(input: {
     // laisse dans les deux listes — visible, et corrigeable d'un clic.
     await removeFromWatchlist(userId, input.assetClass, input.assetId, input.from)
 
-    revalidatePath('/suivi')
+    revalidatePath('/tableau-de-bord')
     return { ok: true }
   } catch {
     return { ok: false, reason: 'error' }
@@ -253,7 +253,7 @@ export async function renameList(from: string, to: string): Promise<ListActionRe
     const renamed = await renameWatchlist(userId, from, target)
     if (!renamed.ok) return { ok: false, reason: 'db-disabled' }
 
-    revalidatePath('/suivi')
+    revalidatePath('/tableau-de-bord')
     return { ok: true }
   } catch {
     return { ok: false, reason: 'error' }
@@ -269,7 +269,7 @@ export async function removeList(listName: string): Promise<ListActionResult> {
     const removed = await deleteWatchlist(userId, listName)
     if (!removed.ok) return { ok: false, reason: 'db-disabled' }
 
-    revalidatePath('/suivi')
+    revalidatePath('/tableau-de-bord')
     return { ok: true }
   } catch {
     return { ok: false, reason: 'error' }

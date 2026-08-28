@@ -22,5 +22,9 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "eslint-config-next": "^16.3.3",
+    "next": "^16.3.3"
   }
 }

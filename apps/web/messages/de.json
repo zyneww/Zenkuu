@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Preis",
+      "asOf": "Stand {stamp}",
       "help": "Zuletzt von der Quelle veröffentlichter Kurs, umgerechnet in die von Ihnen gewählte Währung. Kein Ausführungskurs: je nach Handelsplatz und Zeitpunkt würde eine reale Order zu einem ähnlichen, aber anderen Kurs ausgeführt."
     },
     "marketCap": {
@@ -76,15 +77,23 @@
       "label": "24 Stunden",
       "help": "Kursveränderung der letzten 24 Stunden, wie von der Quelle veröffentlicht. Das Referenzfenster der Ranglisten."
     },
-    "change7d": { "label": "7 Tage", "help": "Kursveränderung der vergangenen Woche." },
-    "change14d": { "label": "14 Tage", "help": "Kursveränderung der letzten zwei Wochen." },
-    "change30d": { "label": "30 Tage", "help": "Kursveränderung des vergangenen Monats." },
+    "change7d": {
+      "label": "7 Tage",
+      "help": "Kursveränderung der vergangenen Woche."
+    },
+    "change14d": {
+      "label": "14 Tage",
+      "help": "Kursveränderung der letzten zwei Wochen."
+    },
+    "change30d": {
+      "label": "30 Tage",
+      "help": "Kursveränderung des vergangenen Monats."
+    },
     "change1y": {
       "label": "1 Jahr",
       "help": "Kursveränderung des vergangenen Jahres. Ein fehlendes Zeitfenster bedeutet, dass die Quelle es nicht veröffentlicht — nie, dass es null ist."
     }
   },
-
   "metricPage": {
     "breadcrumb": "Kennzahlen",
     "definitionTitle": "Definition",
@@ -95,7 +104,6 @@
     "backToAsset": "Zurück zur Detailseite",
     "currentValue": "Aktueller Wert"
   },
-
   "chartCard": {
     "expand": "Vergrößern",
     "collapse": "Verkleinern",
@@ -106,7 +114,6 @@
     "other": "Sonstige",
     "noData": "Zeitreihe für diesen Zeitraum nicht von der Quelle veröffentlicht."
   },
-
   "search": {
     "placeholder": "Suchen",
     "shortcut": "Strg + K",

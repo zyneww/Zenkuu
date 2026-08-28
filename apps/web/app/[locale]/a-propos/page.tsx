@@ -135,7 +135,11 @@ export default async function AProposPage({
           </li>
           <li>
             {weave(
-              t('**Aucune donnée inventée.** Le détail se trouve dans la [page Méthodologie](/methodologie).'),
+              /* Le renvoi vers `/methodologie` est tombé avec la page (demande
+                 explicite). La promesse, elle, reste écrite ici — c'est désormais
+                 cette page qui la porte, et les sources sont nommées dans la barre
+                 légale du pied. */
+              t('**Aucune donnée inventée.** Une valeur que nos sources ne publient pas est affichée comme absente, jamais complétée ni estimée.'),
               (href, label, key) => (
                 <Link
                   key={key}
@@ -163,7 +167,7 @@ export default async function AProposPage({
           promotionnel : ici, ce sont deux liens vers deux pages, rien de plus. */}
       <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
         <Link href="/pourquoi-zenkuu" className="text-sm text-brand hover:underline">{t('Les partis pris, en détail')}</Link>
-        <Link href="/methodologie" className="text-sm text-brand hover:underline">{t('Les sources et leurs limites')}</Link>
+        <Link href="/aide" className="text-sm text-brand hover:underline">{t('Questions fréquentes')}</Link>
       </section>
     </div>
   )

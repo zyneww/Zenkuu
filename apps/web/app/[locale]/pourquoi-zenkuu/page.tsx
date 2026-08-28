@@ -121,13 +121,13 @@ export default async function PourquoiZenkuuPage() {
 
         <div className="flex flex-wrap justify-center gap-3 pt-1">
           <ButtonLink
-            href="/marches"
+            href="/crypto"
           >{t('Explorer les marchés')}</ButtonLink>
           <ButtonLink
-            href="/methodologie"
+            href="/a-propos"
             variant="outline"
             size="lg"
-          >{t('Méthodologie & sources')}</ButtonLink>
+          >{t('À propos de ZENKUU')}</ButtonLink>
         </div>
       </header>
 

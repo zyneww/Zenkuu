@@ -3,7 +3,7 @@
 import { isValidElement, type ComponentProps, type ComponentType, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 /**
@@ -50,7 +50,7 @@ export function IconButton({
   label: string
   /** Texte de la bulle. Par défaut `label` ; `false` pour n'en afficher aucune. */
   tooltip?: string | false
-  side?: ComponentProps<typeof TooltipContent>['side']
+  side?: ComponentProps<typeof Tooltip.Content>['placement']
   size?: 'icon-xs' | 'icon-sm' | 'icon' | 'icon-lg'
 }) {
   /*
@@ -90,11 +90,13 @@ export function IconButton({
 
   return (
     <Tooltip>
-      {/* `asChild` : sans lui, Radix rendrait son propre `<button>` AUTOUR du nôtre.
-          Deux boutons imbriqués sont un HTML invalide, et le navigateur les remonte
-          en frères — la mise en page casse sans qu'aucune erreur ne soit levée. */}
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={side}>{tooltip ?? label}</TooltipContent>
+      {/* ⚠️ PLUS DE `asChild`, ET LE PIÈGE QU'IL DÉSAMORÇAIT A DISPARU AVEC LUI.
+          Radix rendait son PROPRE `<button>` autour du nôtre sans cet attribut : deux
+          boutons imbriqués, HTML invalide, que le navigateur remonte en frères — la
+          mise en page cassait sans qu'aucune erreur ne soit levée.
+          `Tooltip.Trigger` de HeroUI accroche directement son enfant. */}
+      <Tooltip.Trigger>{button}</Tooltip.Trigger>
+      <Tooltip.Content placement={side}>{tooltip ?? label}</Tooltip.Content>
     </Tooltip>
   )
 }

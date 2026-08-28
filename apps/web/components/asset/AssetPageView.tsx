@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { notFound } from 'next/navigation'
 
-import type { AssetClass, AssetTicker } from '@zenkuu/data'
+import type { AssetClass } from '@zenkuu/data'
 import {
   getAsset,
   getAssetHistory,
@@ -28,50 +28,40 @@ import {
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
-import { AssetConverter } from '@/components/asset/AssetConverter'
-import { AssetGlobalPrices } from '@/components/asset/AssetGlobalPrices'
 import { LiveBinancePrice } from '@/components/asset/LiveBinancePrice'
 import { AssetMetricRail } from '@/components/asset/AssetMetricRail'
-import { AssetAnalysis } from '@/components/asset/AssetAnalysis'
 import { AssetChangeGrid } from '@/components/asset/AssetChangeGrid'
 import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
-import { AssetYearPerformance } from '@/components/asset/AssetYearPerformance'
 import { AssetNewsAside } from '@/components/asset/AssetNewsAside'
 import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
-import { AssetOrderBook } from '@/components/asset/AssetOrderBook'
-import { AssetFundamentals } from '@/components/asset/AssetFundamentals'
 import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
 import { AssetOwnership } from '@/components/asset/AssetOwnership'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
-import { AssetPools } from '@/components/asset/AssetPools'
 import { AssetSectors } from '@/components/asset/AssetSectors'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
-import { AssetPageHeader } from '@/components/asset/AssetPageHeader'
+import { AssetHeadline, AssetPriceCard } from '@/components/asset/AssetPageHeader'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
-import { AssetSimilarRail } from '@/components/asset/AssetSimilarRail'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
-import { AssetTrendingRail } from '@/components/asset/AssetTrendingRail'
-import { AssetTabs, type AssetTab } from '@/components/asset/AssetTabs'
+import { AssetSections, type AssetTab } from '@/components/asset/AssetSections'
 import { AssetIdentity } from '@/components/asset/AssetIdentity'
-import { AssetTechSheet } from '@/components/asset/AssetTechSheet'
+import { AssetContractTable } from '@/components/asset/AssetContractTable'
 import { AssetTickers } from '@/components/asset/AssetTickers'
+import { AssetTokenizedStocks } from '@/components/asset/AssetTokenizedStocks'
+import { AssetTreasuries } from '@/components/asset/AssetTreasuries'
 import { AssetTradingVenue } from '@/components/asset/AssetTradingVenue'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
-import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
+import { tradingViewSymbol } from '@/components/asset/tradingview-symbol'
 import { AssetTabFiller } from '@/components/asset/AssetTabFiller'
-import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { getContent } from '@/lib/content'
 import { mentioning } from '@/lib/mentions'
 import { assetHref, marketHref } from '@/lib/asset-routes'
 import type { MetricGroup } from '@/lib/asset-metrics'
-import { AlertButton } from '@/components/alerts/AlertButton'
-import { MAILER_ENABLED } from '@/lib/mailer'
 import { getWatchlistState } from '@/lib/watchlist-actions'
 import { getPhrase } from '@/lib/content'
 
@@ -161,6 +151,16 @@ const SERVER_RANGE_DAYS = 7
 const RAIL_GROUPS = ['market', 'range', 'change'] as const satisfies readonly MetricGroup[]
 
 /**
+ * Classes pour lesquelles `AssetTradingVenue` rend quelque chose.
+ *
+ * ⚠️ DOUBLON ASSUMÉ de sa table `HEADINGS`, et il n'y a pas d'alternative : un parent
+ * ne peut pas savoir si son enfant a rendu. La copie sert UNIQUEMENT à décider si
+ * l'onglet « Places » se retrouverait vide — voir son repli. La divergence est bornée :
+ * elle ferait apparaître un repli en trop, jamais un onglet vide.
+ */
+const VENUE_CLASSES: readonly AssetClass[] = ['stock', 'etf', 'index', 'commodity']
+
+/**
  * Références proposées en tête de liste de comparaison.
  *
  * Ces deux-là et pas d'autres : sur le marché crypto, « fait-il mieux que le
@@ -199,7 +199,27 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     // comparables ne coûtent aucun appel réseau supplémentaire — ce qui compte,
     // puisque le palier gratuit de CoinGecko ne tolère qu'une poignée de requêtes
     // par minute (mesuré).
-    getPeers(assetClass, id, 6),
+    /*
+     * ⚠️ 24 ET NON 6, ET CE N'EST PAS UN CONFORT : LE PANNEAU « COMPARER » ÉTAIT MUET.
+     *
+     * `ChartToolbar` réserve à sa liste une hauteur FIXE de six rangées, avec un
+     * ascenseur censé dire qu'il en reste. Avec six comparables — dont Bitcoin et
+     * Ethereum, déjà comptés dans les six — la liste faisait exactement la hauteur du
+     * cadre : aucun ascenseur, aucun défilement, et le lecteur voyait un panneau qui
+     * paraissait tronqué sans qu'on puisse en sortir. Relevé au navigateur sur
+     * `/crypto/hyperliquid` : `scrollHeight` et `clientHeight` tous deux à 192.
+     *
+     * LA BORNE NE PROTÉGEAIT DE RIEN. `getPeers` découpe dans un tableau DÉJÀ EN
+     * MÉMOIRE — les cent premières capitalisations pour la crypto, le classement de
+     * vingt lignes pour les autres classes — et ne déclenche aucun appel réseau. Passer
+     * de six à vingt-quatre ne coûte donc que la sérialisation de dix-huit lignes vers
+     * le client.
+     *
+     * Les affichages qui veulent SIX vignettes les redécoupent à leur point d'appel
+     * (`AssetPeerGrid`, `AssetSimilarRail`) : c'est une contrainte de grille, pas une
+     * contrainte de donnée, et elle n'a rien à faire dans la requête.
+     */
+    getPeers(assetClass, id, 24),
     getExchangeRates(),
     // SEUL appel supplémentaire de la fiche, et il est mis en cache 30 minutes :
     // la liste des places et leur poids relatif bougent à l'échelle de la journée.
@@ -299,7 +319,28 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   const isForex = assetClass === 'forex'
 
   const comparables = peers.ok ? peers.data : []
+
+  /*
+   * ⚠️ DEUX CLASSEMENTS DE PLUS ONT ÉTÉ RETIRÉS DU RENDU DE CHAQUE FICHE.
+   *
+   * Matières premières et actions étaient demandés ici pour alimenter la table « face à
+   * la finance traditionnelle » de l'onglet Analyse. Cette table a été remplacée (voir
+   * `analysis`), et les deux appels ne servaient plus rien : ils continuaient pourtant
+   * de s'exécuter à CHAQUE rendu de fiche, sur un quota mesuré à huit requêtes par
+   * minute — dont ils prenaient deux, y compris sur les fiches crypto que ces
+   * classements ne concernent en rien.
+   *
+   * Le cache les rendait souvent gratuits, jamais toujours : sur cache froid, ils
+   * s'ajoutaient au chemin critique de la page.
+   */
   const tickerRows = tickers.ok ? tickers.data : []
+
+  /* Ce que l'onglet « Places » peut rendre, testé ICI parce qu'un parent ne peut pas
+     savoir si son enfant a rendu quelque chose. Les deux valeurs recopient le contrat
+     des composants concernés — voir la note du repli, plus bas. */
+  const contractCount = Object.entries(data.contracts ?? {}).filter(
+    ([chain, address]) => chain && address,
+  ).length
 
   /* Un profil manquant n'est PAS une panne de la fiche : le cours, le graphique et
      l'historique viennent d'un autre endpoint. Les sections qu'il alimente disparaissent
@@ -367,18 +408,25 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    * écartées est affiché sous l'anneau : retirer une donnée en silence serait la même
    * faute que l'inventer.
    */
-  const untrusted = tickerRows.filter((ticker) => ticker.trust === 'red').length
-  const trustedTickers = tickerRows.filter((ticker) => ticker.trust !== 'red')
-
-  const byExchange = shareBy(trustedTickers, (ticker) => ticker.exchange)
-  const byPair = shareBy(trustedTickers, (ticker) => ticker.target.toUpperCase())
-
-  /* La mention n'apparaît que s'il y a réellement eu un retrait — sinon elle
-     inquiéterait sur une page où rien n'a été écarté. */
-  const trustNote =
-    untrusted > 0
-      ? ` ${untrusted} paire${untrusted > 1 ? 's' : ''} au volume jugé non fiable par la source ${untrusted > 1 ? 'sont écartées' : 'est écartée'} du calcul.`
-      : ''
+  /*
+   * ⚠️ LE FILTRAGE PAR CONFIANCE A DISPARU AVEC LES ANNEAUX DE VOLUME, ET C'EST JUSTE.
+   *
+   * `byExchange`, `byPair`, `trustNote`, `untrusted` et `trustedTickers` ne servaient
+   * qu'eux. Le long commentaire ci-dessus explique pourquoi une PART calculée sur des
+   * volumes jugés non fiables est trompeuse — un pourcentage à deux chiffres tiré
+   * d'échanges que personne ne considère réels — et l'argument reste entièrement vrai
+   * pour un anneau.
+   *
+   * Il ne l'est PAS pour la table qui l'a remplacé. Un anneau agrège : la ligne
+   * douteuse disparaît dans un total, et rien ne signale qu'elle l'a faussé. Une table
+   * énumère, et celle-ci porte une PASTILLE DE CONFIANCE sur chaque ligne — la note de
+   * la source, reprise telle quelle. Le lecteur voit donc la place, son volume annoncé,
+   * et le jugement porté dessus, ce qui est strictement plus d'information que de la
+   * retirer en silence.
+   *
+   * Autrement dit : on écarte d'un CALCUL, jamais d'une LISTE. Voir `AssetTickers`,
+   * qui rend la pastille.
+   */
 
   // 18rem et non 16 : les groupes du rail sont devenus des panneaux, et un panneau
   // prélève 32px de marge interne sur la largeur utile. À 16rem, il ne restait que
@@ -387,10 +435,53 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   // marge.
   const overview = (
     <div className="space-y-5">
+        {/* ══════════════════════════════════════════════════════════════════
+            LA CARTE DE COURS OUVRE LA COLONNE, JUSTE AU-DESSUS DE LA COURBE
+
+            Le cours vivait dans l'en-tête, en haut à DROITE de la page — à huit
+            cents pixels de la courbe qu'il chiffre, sur un grand écran. La
+            référence (dropstab.com) le pose ici, dans un encadré collé au
+            graphique : on lit le nombre et la forme d'un même regard, sans
+            traverser la page.
+
+            C'est aussi ce qui rend l'amplitude 24 h lisible : la barre Bas/Haut
+            désigne les mêmes bornes que les extrêmes de la courbe, et les deux se
+            répondent quand elles se touchent.
+            ══════════════════════════════════════════════════════════════════ */}
+        <AssetPriceCard
+          asset={data}
+          assetClass={assetClass}
+          price={
+            <>
+              {/* Binance en complément côté client — voir l'en-tête de
+                  `LiveBinancePrice` : ce n'est PAS une seconde source de vérité, juste
+                  un cours qui tique sans jamais toucher notre quota CoinGecko. Réservé
+                  au marché crypto (§5 — Binance ne cote ni forex, ni actions, ni ETF). */}
+              {assetClass === 'crypto' ? (
+                <LiveBinancePrice
+                  symbol={data.symbol}
+                  fallbackValue={data.price}
+                  fallbackCurrency={data.currency}
+                />
+              ) : (
+                <Money value={data.price} from={data.currency} asRate={isForex} />
+              )}
+              {isForex ? (
+                <span className="ml-1 text-base font-medium text-ink-muted">{data.currency}</span>
+              ) : null}
+            </>
+          }
+        />
+
         <section className="space-y-3">
           <AssetWorkspace
             asset={data}
             assetClass={assetClass}
+            /* La traduction TradingView se fait ICI parce qu'elle a besoin des PLACES
+               de cotation, qui ne traversent pas jusqu'au widget. Une seule décision
+               pour deux usages — l'interrupteur de la barre et le cadre lui-même. Voir
+               `tradingview-symbol.ts` pour ce que ce changement corrige. */
+            tradingViewSymbol={tradingViewSymbol(assetClass, data.symbol, tickerRows)}
             initialHistory={history.ok ? history.data : null}
             initialDays={SERVER_RANGE_DAYS}
             rates={rates.ok ? rates.data : null}
@@ -412,25 +503,57 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              * affiche, et la recherche cherche AUSSI dans le symbole : on tape « sol »
              * plus volontiers que « Solana ».
              */
-            compareOptions={
-              assetClass === 'crypto'
-                ? [
-                    ...BENCHMARK_OPTIONS.filter((entry) => entry.id !== data.id),
-                    ...comparables
-                      .filter(
-                        (peer) =>
-                          peer.id !== data.id &&
-                          !BENCHMARK_OPTIONS.some((entry) => entry.id === peer.id),
-                      )
-                      .map((peer) => ({
-                        id: peer.id,
-                        label: peer.name,
-                        ...(peer.symbol ? { symbol: peer.symbol } : {}),
-                        ...(peer.image ? { image: peer.image } : {}),
-                      })),
-                  ]
-                : []
-            }
+            /*
+             * ⚠️ LA COMPARAISON N'EST PLUS RÉSERVÉE À LA CRYPTO.
+             *
+             * Ce champ valait `[]` pour cinq classes d'actifs sur six, ce qui retirait
+             * le bouton « Comparer » de leur barre — relevé au navigateur sur
+             * `/actions/nvda`, dont la barre n'avait plus AUCUNE commande à gauche.
+             *
+             * Rien ne justifiait la borne : `comparables` est peuplé pour toutes les
+             * classes (c'est lui qui alimente « Projets similaires », visible sur la
+             * même page), et les courbes sont indexées en base 100 avant superposition
+             * — une action et un ETF se comparent donc exactement comme deux jetons.
+             *
+             * Les deux REPÈRES restent propres à la crypto : « fait-il mieux que le
+             * bitcoin ? » est la question de ce marché-là. Les proposer sur une action
+             * mettrait en tête de liste deux actifs sans rapport avec elle.
+             */
+            compareOptions={[
+              /*
+                ⚠️ LES DEUX REPÈRES EMPRUNTENT LEUR VIGNETTE AUX COMPARABLES.
+
+                `BENCHMARK_OPTIONS` ne porte qu'un identifiant, un nom et un symbole :
+                la liste est écrite au dépôt, et y coder une URL d'image reviendrait à
+                figer une adresse de CDN que la source peut changer. Résultat visible
+                au navigateur : Bitcoin et Ethereum s'affichaient en pastille grise au
+                milieu d'une liste de logos.
+
+                `comparables` vient du classement et porte les vraies vignettes. Quand
+                le repère s'y trouve — c'est le cas dès que l'actif consulté partage une
+                catégorie avec lui, donc souvent — on lui prend son image. Sinon la
+                pastille de repli reste, et elle est le comportement correct : mieux
+                vaut un disque neutre qu'une URL devinée.
+              */
+              ...(assetClass === 'crypto'
+                ? BENCHMARK_OPTIONS.filter((entry) => entry.id !== data.id).map((entry) => {
+                    const known = comparables.find((peer) => peer.id === entry.id)
+                    return known?.image ? { ...entry, image: known.image } : entry
+                  })
+                : []),
+              ...comparables
+                .filter(
+                  (peer) =>
+                    peer.id !== data.id &&
+                    !BENCHMARK_OPTIONS.some((entry) => entry.id === peer.id),
+                )
+                .map((peer) => ({
+                  id: peer.id,
+                  label: peer.name,
+                  ...(peer.symbol ? { symbol: peer.symbol } : {}),
+                  ...(peer.image ? { image: peer.image } : {}),
+                })),
+            ]}
           />
 
           {/*
@@ -460,41 +583,88 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           ) : null}
         </section>
 
-        {/* Répartitions. Elles ne s'affichent que si la source a livré des places de
-            cotation — donc jamais pour une paire de devises ou un indice, dont le
-            concept même n'a pas de sens. `ShareDonut` se retire aussi de lui-même
-            en dessous de deux parts. */}
-        {byExchange.length > 0 || byPair.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {/*
-              `valueCurrency` fait apparaître le volume à côté de la part, comme la
-              colonne « Latest » de la référence. Sans elle, l'anneau dit qu'une place
-              pèse 17 % sans dire 17 % de quoi : deux actifs aux répartitions
-              identiques mais aux volumes cent fois différents auraient exactement la
-              même légende.
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          LA QUEUE DU RAIL, EN GRILLE DE DEUX COLONNES
+          ══════════════════════════════════════════════════════════════════════
 
-              On passe une DEVISE et non une fonction de rendu : une fonction ne
-              traverse pas la frontière serveur → client. L'anneau formate lui-même,
-              et suit donc la devise choisie par le lecteur.
-            */}
-            <ShareDonut
-              title={t('Volume par place de cotation')}
-              subtitle={`Volume 24 h de ${data.name}, réparti entre les places qui le cotent.${trustNote}`}
-              parts={byExchange}
-              restNoun="places"
-              valueHeader="Volume 24 h"
-              valueCurrency="EUR"
-            />
-            <ShareDonut
-              title={t('Volume par devise de cotation')}
-              subtitle={`Contre quoi cet actif se négocie réellement.${trustNote}`}
-              parts={byPair}
-              restNoun="paires"
-              valueHeader="Volume 24 h"
-              valueCurrency="EUR"
-            />
-          </div>
-        ) : null}
+          Ces quatre blocs vivaient dans le rail de gauche, empilés sur 288 pixels de
+          large. Chacun y était à l'étroit pour une raison différente : le sondage de
+          sentiment est une barre à deux parts, le consensus d'analystes une grille de
+          notes, la communauté une rangée de liens, les projets similaires quatre lignes
+          à logo.
+
+          QUATRE et non six : les deux fiches sont restées au rail, où leur forme en
+          couples « libellé → valeur » tient mieux. C'est aussi ce qui rend ce compte
+          PAIR, donc la grille pleine — à six, la dernière rangée laissait une moitié
+          vide.
+
+          Ils prennent la largeur laissée par les anneaux de volume, en deux colonnes.
+          Chacun se retire toujours de lui-même quand sa donnée manque — une paire de
+          devises n'a ni sondage, ni communauté, ni contrat — et la grille se referme
+          alors sur ce qui reste, sans trou.
+        */}
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 [&>*]:min-w-0">
+          {/*
+            DEUX BLOCS SYMÉTRIQUES, UN PAR MONDE.
+
+            `AssetSentiment` rend le sondage d'audience d'une cryptomonnaie ;
+            `AssetAnalystView` rend le consensus d'analystes d'une action. Les deux
+            répondent à « qu'en pensent les autres ? » avec la donnée que chaque marché
+            publie réellement, et chacun se retire de lui-même quand la sienne manque —
+            il n'y a donc aucune condition de classe à écrire ici.
+
+            Le second ne coûte AUCUN appel supplémentaire : ses deux modules voyagent
+            dans la même requête que les ratios déjà chargés au-dessus.
+          */}
+          <AssetSentiment asset={data} />
+          <AssetAnalystView profile={profile} currency={data.currency} price={data.price} />
+
+          <AssetCommunity asset={data} />
+
+          {/*
+            ⚠️ « PROJETS SIMILAIRES » A ÉTÉ RETIRÉ D'ICI (demande explicite).
+
+            La liste des pairs reste servie par `comparables`, qui alimente toujours le
+            panneau « Comparer » de la barre du graphique et la grille de l'onglet
+            « Écosystème ». Ce n'est donc pas la donnée qui part, mais le bloc qui la
+            répétait au pied des chiffres.
+          */}
+
+          {/* Site officiel, explorateurs, portefeuilles et contrats ferment le rail,
+              exactement comme le bloc « Info » de la référence. Ce sont des questions
+              courtes, et ce rail est fait pour elles ; la liste de références est
+              d'ailleurs étroite par nature — en bas de page, sur neuf cents pixels,
+              chaque ligne traînait un vide entre son libellé et sa valeur.
+
+              LES DEUX FICHES SONT EXCLUSIVES par construction : celle de gauche ne
+              rend quelque chose que pour une cryptomonnaie (contrats, chaînes,
+              explorateurs), celle de droite que pour une valeur boursière (place,
+              secteur, siège, émetteur). Aucune fiche n'en affiche deux, et aucune n'en
+              affiche zéro — ce qui était le cas des actions, des ETF et des indices
+              jusqu'ici. */}
+        </div>
+
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          LES DEUX ANNEAUX DE VOLUME SONT PARTIS, ET LA PLACE EST RENDUE AU RAIL
+          ══════════════════════════════════════════════════════════════════════
+
+          « Volume par place de cotation » et « Volume par devise de cotation » tenaient
+          ici deux colonnes pleine largeur. Ils disaient une chose vraie et étroite —
+          comment le volume du jour se répartit — pour un encombrement que rien ne
+          justifiait au milieu de l'aperçu : deux camemberts de trois cents pixels de
+          haut entre le graphique et le bas de page.
+
+          Ce que cela retire est nommé : la répartition du volume n'est plus dessinée
+          sur l'aperçu. Elle n'est pas perdue pour autant, l'onglet « Places » porte la
+          table complète des places avec la part de volume de chacune — c'est la MÊME
+          information, chiffrée plutôt qu'en anneau, et à l'endroit où on la cherche.
+
+          La hauteur libérée revient au RAIL de gauche : sa moitié basse (du sondage de
+          sentiment à la fiche technique) s'y installe en grille, plutôt que de
+          poursuivre une colonne de 288 pixels sur deux écrans de haut. Voir plus bas.
+        */}
     </div>
   )
 
@@ -508,11 +678,17 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    */
   const venues = (
     <div className="space-y-8">
-      {/* Le carnet EN PREMIER : il décrit l'instant, là où la table des places décrit
-          les vingt-quatre dernières heures. Crypto seulement — Binance ne tient de
-          carnet ni pour une action, ni pour une paire de devises — et le composant se
-          retire de lui-même si la paire n'y est pas cotée. */}
-      {assetClass === 'crypto' ? <AssetOrderBook symbol={data.symbol} /> : null}
+      {/*
+        ⚠️ LE CARNET D'ORDRES A ÉTÉ RETIRÉ, ET AVEC LUI LE FLUX DES TRANSACTIONS.
+
+        Il ouvrait cette section : les offres et demandes Binance à gauche, les dernières
+        transactions à droite. Retiré sur demande. Ce que cela retire vraiment, dit
+        clairement : la fiche ne montre plus l'instant d'une place unique — elle décrit
+        l'actif sur la durée, ce que fait déjà la table ci-dessous. Ce qu'elle y gagne :
+        le carnet tenait seul un sondage permanent vers Binance derrière un contenu situé
+        à plusieurs écrans de défilement, et une section atteinte n'est jamais relâchée
+        (voir `AssetTabs`) — il sondait donc jusqu'à la fermeture de l'onglet.
+      */}
 
       {/*
         L'ONGLET N'EST PLUS VIDE POUR UNE VALEUR BOURSIÈRE.
@@ -528,23 +704,59 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       */}
       <AssetTradingVenue asset={data} assetClass={assetClass} />
 
-      {tickerRows.length > 0 ? (
-        <AssetTickers
-          tickers={tickerRows}
-          assetName={data.name}
-          exchangeImages={exchangeImages}
-        />
-      ) : assetClass === 'crypto' || assetClass === 'forex' ? (
-        <>
-          <EmptyState
-            title={t('Aucune place de cotation publiée')}
-            description={t('La source ne renseigne pas les places qui cotent cet actif.')}
-            compact
-          />
-          {/* Le carnet d'ordres, lui, peut très bien être présent au-dessus : ce repli
-              ne comble que le cas où la table des places manque AUSSI. */}
-          <AssetTabFiller asset={data} />
-        </>
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        ⚠️ LA TABLE DES PLACES A DÉMÉNAGÉ DANS L'ONGLET « ANALYSE »
+        ══════════════════════════════════════════════════════════════════════════
+
+        Elle occupait le cœur de cet onglet. Elle ouvre désormais « Analyse », où elle
+        forme la première des trois tables de la référence — Marchés, Jetons,
+        Trésoreries — qui se lisent ensemble.
+
+        Ce qui reste ici répond toujours à « où cet actif existe-t-il » : la place de
+        cotation officielle pour une valeur boursière, et les CONTRATS par chaîne pour un
+        jeton. Ce sont deux faits d'identité, pas des cours ; ils n'ont rien à faire au
+        milieu d'une analyse de liquidité.
+
+        Ce que cela coûte, et il faut le dire : l'onglet est plus court qu'avant, et sur
+        une cryptomonnaie sans contrat publié il ne porte plus rien — d'où le bouche-trou
+        ci-dessous, qui couvrait déjà ce cas.
+      */}
+
+      {/* Sur quelles CHAÎNES ce jeton existe, et à quelle adresse. Se retire d'elle-même
+          sous deux contrats — voir son en-tête, où le seuil est motivé. */}
+      <AssetContractTable asset={data} />
+
+      {/*
+        ⚠️ CETTE CONDITION TESTE CE QUI EST RÉELLEMENT RENDU, ET C'EST TOUT L'ENJEU.
+
+        Elle portait sur `tickerRows.length`, ce qui n'a plus de sens depuis que la
+        table des places a rejoint « Analyse » : sur une cryptomonnaie à soixante-dix
+        places et UN SEUL contrat — Hyperliquid, mesuré au navigateur — les deux
+        composants ci-dessus se retiraient d'eux-mêmes, le test passait à faux, et
+        l'onglet rendait une section de HAUTEUR NULLE. Un onglet cliquable qui ne mène
+        à rien est pire qu'un onglet absent.
+
+        Les deux conditions sont donc recopiées depuis les composants qu'elles décrivent
+        — la classe pour la place de cotation, le seuil de deux chaînes pour la table de
+        contrats. C'est un doublon assumé : un parent ne peut pas savoir si son enfant a
+        rendu quelque chose, et le seul moyen de l'éviter serait de faire remonter les
+        deux tests, ce qui déplacerait la logique sans la supprimer.
+      */}
+      {!VENUE_CLASSES.includes(assetClass) && contractCount < 2 ? (
+        tickerRows.length > 0 ? /* ⚠️ LE RENVOI « N PLACES COTENT … » A ÉTÉ RETIRÉ (demande explicite).
+             Il annonçait que la table des places vit dans « Analyse ». La barre de
+             sommaire porte déjà ce renvoi, et la table est à un onglet de là. */
+        null : (
+          <>
+            <EmptyState
+              title={t('Aucune place de cotation publiée')}
+              description={t('La source ne renseigne pas les places qui cotent cet actif.')}
+              compact
+            />
+            <AssetTabFiller asset={data} />
+          </>
+        )
       ) : null}
     </div>
   )
@@ -604,17 +816,35 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         </div>
 
         {comparables.length > 0 ? (
-          <AssetPeerGrid peers={comparables} />
+          <AssetPeerGrid peers={comparables.slice(0, 6)} />
         ) : (
           <EmptyState title={fr.states.unavailableTitle} compact />
         )}
       </section>
 
-      {/* Réservé aux jetons portant une adresse de contrat : un actif natif — bitcoin,
-          ether — n'a pas de pool, et le composant se retire de lui-même. */}
-      {assetClass === 'crypto' && data.contracts ? (
-        <AssetPools contracts={data.contracts} assetName={data.name} />
-      ) : null}
+      {/*
+        ⚠️ « TENDANCES DU MOMENT » A QUITTÉ CET ONGLET POUR LE PIED DE PAGE.
+
+        Elle s'y trouvait comme SECONDE rangée, sous les comparables : ceux-ci disent
+        « qui d'autre occupe ce terrain », elle disait « que regarde-t-on en ce moment ».
+        Deux lectures voisines, et c'est justement ce qui la rendait déplacée ici —
+        l'onglet décrit l'ÉCOSYSTÈME DE CET ACTIF, et elle est le seul bloc de la fiche
+        qui ne parle pas de lui.
+
+        Elle vit désormais après « À propos » et la FAQ, à la place qui lui revient :
+        celle du « et ensuite ? ». Voir la fin de ce composant.
+      */}
+      {/*
+        ⚠️ LES POOLS DE LIQUIDITÉ ONT ÉTÉ RETIRÉS.
+
+        Ils listaient les réserves on-chain du jeton — paire, prix, réserve, volume,
+        acheteurs/vendeurs — chargées à l'approche de la section. Retirés sur demande.
+
+        Ce que cela retire : la seule vue on-chain de la fiche. Ce qui la remplace : rien
+        ici. La table des places de cotation, deux sections plus haut, répond déjà à
+        « où cet actif change-t-il de mains », et `/marches/pool` garde la vue complète
+        pour qui la cherche. La section perd aussi son appel réseau propre.
+      */}
 
       {/*
         ── QUI DÉTIENT L'ACTIF ─────────────────────────────────────────────────
@@ -729,46 +959,13 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   )
 
   /*
-   * ── L'HISTORIQUE, DEVENU UNE SECTION DE L'ANALYSE ─────────────────────────
+   * ⚠️ `historySection` A ÉTÉ SUPPRIMÉ AVEC LE CONTENU DE L'ONGLET ANALYSE.
    *
-   * Il occupait un onglet à lui seul. Or un tableau de cours jour par jour n'est pas
-   * une matière qu'on vient consulter : c'est une PIÈCE JUSTIFICATIVE, celle qu'on
-   * ouvre après avoir lu un indicateur pour vérifier d'où il sort. Le ranger derrière
-   * son propre onglet obligeait à quitter l'analyse pour aller chercher la série qui
-   * la fonde, puis à revenir.
-   *
-   * Il ferme donc l'onglet Analyse, sous les mesures qu'il justifie. Le convertisseur
-   * et les cours mondiaux le suivent : ils vivent de la même série.
+   * Il rendait la série jour par jour en table paginée, flanquée du convertisseur et
+   * des cours par devise. Le convertisseur a survécu — il vit maintenant dans la
+   * colonne de droite du nouvel onglet ; les deux autres sont partis. Voir la note du
+   * bloc `analysis`, qui nomme chaque retrait et son motif.
    */
-  const historySection = (
-    <section className="space-y-4">
-      <h2 className="display-sm text-ink">{t('Historique des cours')}</h2>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          {history.ok ? (
-            <PriceHistoryTable
-              history={history.data}
-              currency={data.currency}
-              assetName={data.name}
-              isRate={isForex}
-            />
-          ) : (
-            <EmptyState title={fr.states.unavailableTitle} compact />
-          )}
-        </div>
-
-        <aside className="space-y-8">
-          {data.pricesByCurrency ? (
-            <>
-              <AssetConverter symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
-              <AssetGlobalPrices symbol={data.symbol} pricesByCurrency={data.pricesByCurrency} />
-            </>
-          ) : null}
-        </aside>
-      </div>
-    </section>
-  )
 
   // Icônes à 14px et trait de 1,5 : à 16px avec un trait de 2, un pictogramme posé
   // à côté d'un libellé de 14px paraît plus gras que le mot qu'il accompagne.
@@ -778,72 +975,113 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    * à l'écran. Le faire côté serveur coûterait deux appels externes de plus à CHAQUE
    * rendu de fiche, pour un onglet que la plupart des visiteurs n'ouvriront jamais.
    */
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * ANALYSE — L'ONGLET A ÉTÉ ENTIÈREMENT REMPLACÉ
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * ── CE QUI EN SORT, ET POURQUOI CHACUN SORT ─────────────────────────────────
+   *
+   *   `AssetYearPerformance`  — six pastilles de variation sur un an, plus les deux
+   *     extrêmes de la période. Redisait le rail de gauche, qui porte déjà les six
+   *     mêmes fenêtres, et la carte d'historique qui arrive porte les deux extrêmes.
+   *
+   *   `AssetFundamentals`     — marges, dette, calendrier de publication d'une société
+   *     cotée. Vraie donnée, mais elle décrit l'ENTREPRISE quand cet onglet compare
+   *     des TAILLES et des PERFORMANCES. Elle n'a pas d'équivalent chez la référence.
+   *
+   *   `AssetAnalysis`         — synthèse « technique » à trois cadrans, gradués de
+   *     « vente forte » à « achat fort ». C'était le seul endroit du site qui émettait
+   *     une RECOMMANDATION, ce que le §5 interdit — et son départ règle une
+   *     contradiction qui traînait entre ce bloc et le reste de la fiche.
+   *
+   *   `PriceHistoryTable`     — la série jour par jour, en table paginée. C'est une
+   *     pièce justificative, pas une analyse ; elle reste servie par l'export du
+   *     graphique.
+   *
+   *   `AssetGlobalPrices`     — le cours dans une vingtaine de devises. Le sélecteur de
+   *     devise du site fait déjà cela pour la devise qu'on a choisie.
+   *
+   * ── CE QUI ENTRE, ET DANS QUEL ORDRE ────────────────────────────────────────
+   *
+   * La disposition de la référence : deux colonnes, le raisonnement à gauche, les
+   * outils à droite.
+   *
+   *   GAUCHE   « face à la finance traditionnelle » donne l'ÉCHELLE — cet actif est-il
+   *            gros ou petit, et par rapport à quoi. Puis la matrice de performance
+   *            par paire donne la LECTURE RELATIVE — a-t-il fait mieux que le marché.
+   *            L'ordre compte : on situe avant de juger.
+   *
+   *   DROITE   le convertisseur et l'historique des extrêmes. Deux outils qu'on
+   *            consulte ponctuellement, sans lesquels le raisonnement de gauche tient
+   *            debout — d'où la colonne étroite.
+   */
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * ⚠️ L'ONGLET ANALYSE A ÉTÉ REMPLACÉ UNE SECONDE FOIS — TROIS TABLES DE MARCHÉ
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * ── CE QUI EN SORT, ET IL FAUT LE NOMMER ────────────────────────────────────
+   *
+   * Quatre blocs, retirés sur demande au profit des trois tables de la référence :
+   *
+   *   `AssetVsTradFi`          — l'actif comparé aux repères de la finance classique.
+   *   `AssetPerformanceMatrix` — sa performance face à trois comparables.
+   *   `AssetConverter`         — le convertisseur multi-devises.
+   *   `AssetPriceHistoryCard`  — les extrêmes historiques en carte.
+   *
+   * Les quatre composants restent au dépôt et n'ont plus d'appelant sur la fiche. Ce
+   * que la page perd est réel : la mise à l'échelle contre l'or et le S&P, et la
+   * lecture relative face aux pairs. Ce qu'elle gagne est ce qui manquait — où l'actif
+   * s'échange réellement, et qui le détient.
+   *
+   * ── LES TROIS TABLES, ET CE QUI DÉCIDE LAQUELLE S'AFFICHE ───────────────────
+   *
+   *   MARCHÉS      les places qui cotent l'actif. Servies par la donnée déjà chargée
+   *                pour la fiche, donc SANS appel de plus. Elles ouvraient l'onglet
+   *                « Places » ; elles ouvrent celui-ci.
+   *
+   *   JETONS       les versions tokenisées d'une action ou d'un ETF, avec leur écart au
+   *                cours du titre. Chargées à l'approche de la section.
+   *
+   *   TRÉSORERIES  les sociétés cotées qui détiennent la cryptomonnaie à leur bilan.
+   *                Chargées à l'approche de la section.
+   *
+   * Chacune se retire d'elle-même quand sa source ne publie rien — une devise n'a ni
+   * jetons ni trésoreries, et son onglet se réduit alors à ses places de cotation.
+   */
   const analysis = (
-    <div className="space-y-8">
-      {/*
-        LES PERFORMANCES SUR UN AN REJOIGNENT L'ANALYSE.
-
-        Elles vivaient dans un sous-onglet du panneau de graphique, sous une rangée
-        « Graphique / Performances / FAQ » qui a été supprimée : c'était la dernière
-        chose qui séparait la fiche de la disposition de la référence, chez qui la
-        courbe démarre immédiatement sous les onglets principaux.
-
-        Elles atterrissent ICI et pas ailleurs parce que c'est leur nature : des
-        mesures dérivées d'une série, comme les indicateurs techniques et les mesures
-        de risque qui suivent. Les deux blocs chargent d'ailleurs la même année de
-        données, et à la même condition — à l'ouverture de l'onglet, jamais avant.
-      */}
-      <AssetYearPerformance asset={data} assetClass={assetClass} />
-
-      {/*
-        LES FONDAMENTAUX OUVRENT L'ANALYSE, JUSTE APRÈS LES PERFORMANCES.
-
-        Ils décrivent l'ENTREPRISE — ce qu'elle encaisse, ce qu'elle en garde, ce
-        qu'elle doit, quand elle publie — là où tout le reste de la fiche décrit le
-        TITRE. C'est la moitié qui manquait : un cours/bénéfice de 55 se lit comme cher
-        jusqu'à ce qu'on voie 74 % de marge brute à côté.
-
-        Leur place est ici et non dans l'Aperçu : l'Aperçu répond à « combien »,
-        l'Analyse à « pourquoi ». Le composant se retire de lui-même pour tout ce qui
-        n'est pas une valeur boursière, et pour les titres dont Yahoo ne publie pas ces
-        modules.
-      */}
-      {profile ? (
-        <AssetFundamentals profile={profile} currency={data.currency} assetName={data.name} />
+    <div className="space-y-10">
+      {tickerRows.length > 0 ? (
+        <AssetTickers
+          tickers={tickerRows}
+          assetName={data.name}
+          exchangeImages={exchangeImages}
+          title={`${t('Marchés')} ${data.name}`}
+        />
       ) : null}
 
-      <AssetAnalysis
-        assetClass={assetClass}
-        assetId={data.id}
-        currency={data.currency}
-        {...(data.ath !== undefined ? { ath: data.ath } : {})}
-        {...(data.athDate ? { athDate: data.athDate } : {})}
-        {...(data.atl !== undefined ? { atl: data.atl } : {})}
-        {...(data.atlDate ? { atlDate: data.atlDate } : {})}
-      />
+      {/* Les deux tables tokenisées ne concernent que les titres : une cryptomonnaie
+          n'a pas de version tokenisée d'elle-même, et un indice ne s'émet pas. */}
+      {assetClass === 'stock' || assetClass === 'etf' ? (
+        <AssetTokenizedStocks
+          symbol={data.symbol}
+          assetName={data.name}
+          {...(data.price !== undefined ? { referencePrice: data.price } : {})}
+          referenceCurrency={data.currency}
+        />
+      ) : null}
 
-      {/*
-        ── LE CATALOGUE DE MÉTRIQUES A ÉTÉ RETIRÉ ───────────────────────────────
+      {assetClass === 'crypto' ? (
+        <AssetTreasuries assetId={data.id} assetName={data.name} symbol={data.symbol} />
+      ) : null}
 
-        `AssetMetricCatalogue` rendait ici les dix-sept mesures en grille, chacune avec
-        sa courbe. C'était l'écran le plus dense de la page, et c'est précisément ce qui
-        le condamne : il REDISAIT le rail de gauche.
-
-        Les deux affichaient les mêmes mesures, tirées du même registre
-        (`lib/asset-metrics.ts`), à deux endroits de la même page — en lignes serrées à
-        gauche, en cartes de deux cents pixels au milieu. Un lecteur qui cherchait la
-        capitalisation la trouvait deux fois, et devait comprendre pourquoi elle
-        méritait deux traitements. Elle n'en méritait qu'un.
-
-        Ce qui disparaît en propre, ce sont les COURBES de douze mois que le rail ne
-        porte pas. Six mesures en avaient une ; les onze autres affichaient « Sans
-        historique publié », c'est-à-dire onze cartes occupant la place d'un graphique
-        pour dire qu'il n'y en a pas. Les pages de métrique, elles, subsistent sous
-        `/{classe}/{id}/metriques/{slug}` et portent ces courbes.
-      */}
-
-      {/* La série qui fonde tout ce qui précède ferme l'onglet — voir sa note. */}
-      {historySection}
+      {/* Le bouche-trou ne subsiste que si AUCUNE des trois tables ne peut se rendre :
+          c'est le cas d'une devise ou d'un indice, dont aucune source ne publie ni
+          places, ni jetons, ni détenteurs. */}
+      {tickerRows.length === 0 && assetClass !== 'crypto' && assetClass !== 'stock' && assetClass !== 'etf' ? (
+        <AssetTabFiller asset={data} />
+      ) : null}
     </div>
   )
 
@@ -879,9 +1117,9 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    * côté d'un libellé de 14px paraît plus gras que le mot qu'il accompagne.
    */
   const tabs: AssetTab[] = [
-    { id: 'apercu', label: 'Aperçu', icon: <LayoutGrid size={14} strokeWidth={1.5} />, panel: overview },
-    { id: 'places', label: 'Places', icon: <Store size={14} strokeWidth={1.5} />, panel: venues },
-    { id: 'analyse', label: 'Analyse', icon: <Activity size={14} strokeWidth={1.5} />, panel: analysis },
+    { id: 'apercu', label: t('Aperçu'), icon: <LayoutGrid size={14} strokeWidth={1.5} />, panel: overview },
+    { id: 'places', label: t('Places'), icon: <Store size={14} strokeWidth={1.5} />, panel: venues },
+    { id: 'analyse', label: t('Analyse'), icon: <Activity size={14} strokeWidth={1.5} />, panel: analysis },
     /*
      * ── L'ONGLET « ACTUALITÉS » A ÉTÉ RETIRÉ ──────────────────────────
      *
@@ -897,7 +1135,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
      */
     {
       id: 'ecosysteme',
-      label: 'Écosystème',
+      label: t('Écosystème'),
       icon: <Shapes size={14} strokeWidth={1.5} />,
       panel: ecosystem,
     },
@@ -908,7 +1146,10 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
        d'identité et la barre de sommaire — et cette dernière porte déjà son propre
        filet. Vingt pixels de blanc PLUS un trait pour dire la même séparation, c'est
        la dire deux fois ; douze suffisent, et la courbe commence d'autant plus haut. */
-    <div className="space-y-3">
+    /* `data-asset-page` : marqueur lu par la feuille de style pour le réglage
+       « Affichage : Étirée », qui retire le plafond de largeur des FICHES et d'elles
+       seules — voir `.shell:has([data-asset-page])` dans `globals.css`. */
+    <div className="space-y-3" data-asset-page="">
       {/*
         ── LA FICHE SE RAFRAÎCHIT SEULE ───────────────────────────────────────
 
@@ -952,104 +1193,39 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       />
 
       {/* ══════════════════════════════════════════════════════════════════════
-          L'EN-TÊTE REPASSE EN PLEINE LARGEUR.
+          ⚠️ L'EN-TÊTE N'EST PLUS UNE RANGÉE — IL A REJOINT CELLE DES ONGLETS.
 
-          Il avait été enfoui dans le rail, au motif que la référence tient identité et
-          chiffres dans une même colonne étroite. C'était une lecture erronée d'elle :
-          elle pose son titre PLEINE LARGEUR au-dessus de tout, et ne met dans la
-          colonne que les chiffres.
+          Il occupait ici une rangée pleine largeur : identité à gauche, cours à droite.
+          La rangée de sommaire venait dessous, avec quatre onglets centrés laissant
+          plusieurs centaines de pixels de vide de chaque côté.
 
-          L'erreur avait une conséquence mesurable. Dans 288 pixels, le `<h1>` tenait
-          en 18 pixels — si bien que « Toutes les métriques », titre d'une sous-section
-          d'onglet, s'affichait plus gros que le nom de l'actif sur sa propre fiche. La
-          hiérarchie visuelle disait l'inverse de la hiérarchie réelle.
+          Les deux ont fusionné. Ses deux moitiés — `AssetHeadline` et `AssetQuote` —
+          sont passées à `AssetTabs` plus bas, qui les place aux deux bouts de sa rangée
+          collante. Le vide latéral du sommaire est comblé, et la fiche gagne toute la
+          hauteur de la rangée supprimée.
 
-          Le gain de hauteur qui justifiait le rail est préservé : ce bloc ne reprend
-          PAS la rangée de six chiffres ni les répartitions de l'ancien bandeau, qui
-          restent dans la colonne et dans les onglets. Il porte une ligne d'identité,
-          le cours, et les deux actions.
+          Ne subsiste ICI que le FIL D'ARIANE : il ne défile pas avec la rangée collante
+          et n'a donc rien à y faire. Il garde sa ligne propre, au-dessus de tout.
           ══════════════════════════════════════════════════════════════════════ */}
-      <AssetPageHeader
-        asset={data}
-        assetClass={assetClass}
-        rankLabel={fr.asset.stats.rank}
-        breadcrumb={<Breadcrumb assetClass={assetClass} name={data.name} />}
-        price={
-          <>
-            {/*
-              `Money` et non un montant formaté côté serveur.
+      {/*
+        ── LE FIL D'ARIANE RESPIRE PLUS EN HAUT QU'EN BAS, ET C'EST VOULU ─────────
 
-              Ce cours était le DERNIER chiffre de la page à ignorer la devise choisie :
-              il restait en euros pendant que le rail, les anneaux et les tableaux
-              affichaient des dollars.
+        Il était collé au filet de l'en-tête du site : douze pixels sous lui, aucun
+        au-dessus. Un fil d'Ariane n'appartient ni à la barre de navigation ni au titre
+        qui le suit — c'est une ligne de situation, et elle a besoin d'un blanc de
+        chaque côté pour se lire comme telle.
 
-              Le coût est connu et assumé : ce montant n'est pas dans le HTML initial
-              avec sa devise finale, il s'affiche en euros puis se convertit à
-              l'hydratation. C'est déjà le comportement de toutes les autres cellules
-              de montant du site (cf. `Money`), et l'euro affiché entre-temps est la
-              devise dans laquelle la source cote réellement — jamais un chiffre faux.
+        `pt-5` contre `pb-3` : le blanc du haut est plus large parce qu'il sépare deux
+        CHOSES DIFFÉRENTES — la barre du site et la page — quand celui du bas sépare
+        deux parties d'un même en-tête. Un interligne symétrique rattacherait
+        visuellement le fil à la barre.
 
-              Binance en complément côté client — voir l'en-tête de `LiveBinancePrice` :
-              ce n'est PAS une seconde source de vérité, juste un cours qui tique sans
-              jamais toucher notre quota CoinGecko. Réservé au marché crypto (§5 —
-              Binance ne cote ni forex, ni actions, ni ETF).
-            */}
-            {assetClass === 'crypto' ? (
-              <LiveBinancePrice
-                symbol={data.symbol}
-                fallbackValue={data.price}
-                fallbackCurrency={data.currency}
-              />
-            ) : (
-              <Money value={data.price} from={data.currency} asRate={isForex} />
-            )}
-            {isForex ? (
-              <span className="ml-1 text-base font-medium text-ink-muted">{data.currency}</span>
-            ) : null}
-          </>
-        }
-        /*
-         * LE SUIVI EST DÉSORMAIS `WatchlistStar` ET NON `WatchlistButton`.
-         *
-         * Le second porte un libellé, un état d'attente et un message d'échec — tout
-         * ce qu'un bouton de pleine rangée peut se permettre. Contre le rang, dans une
-         * ligne où le nom fait trente pixels, il ferait le double de large que la
-         * pastille qu'il suit.
-         *
-         * L'étoile compacte est celle des tableaux du site : c'est le MÊME geste au
-         * même dessin, et un lecteur qui a suivi un actif depuis un classement
-         * retrouve exactement la même commande sur sa fiche. `WatchlistButton` reste
-         * dans le dépôt pour `/suivi`, où la place ne manque pas.
-         */
-        watchAction={
-          <WatchlistStar
-            assetClass={assetClass}
-            assetId={data.id}
-            label={data.name}
-            {...(data.symbol ? { symbol: data.symbol } : {})}
-            path={assetHref(assetClass, data.id)}
-            initialFollowing={watchlist.following}
-            available={watchlist.available}
-          />
-        }
-        /* `available` ne teste PAS la session. Le retrait des comptes obligatoires a
-           supprimé la seule raison qui la faisait entrer dans ce calcul : une alerte
-           s'arme sans compte, rangée sous le cookie anonyme du navigateur. Ne restent
-           que les deux briques d'exploitation — la base et le service d'envoi —, dont
-           l'absence est une panne à annoncer et non un geste à demander. */
-        alertAction={
-          <AlertButton
-            assetClass={assetClass}
-            assetId={data.id}
-            label={data.name}
-            {...(data.symbol ? { symbol: data.symbol } : {})}
-            currency={data.currency}
-            price={data.price}
-            path={assetHref(assetClass, data.id)}
-            available={watchlist.available && MAILER_ENABLED}
-          />
-        }
-      />
+        Mesuré : le texte tombe à 109 px du haut de la fenêtre, soit 44 px sous le
+        filet de l'en-tête.
+      */}
+      <div className="pb-3 pt-5">
+        <Breadcrumb assetClass={assetClass} name={data.name} />
+      </div>
 
       {/*
         LE TIROIR DES MARCHÉS A ÉTÉ RETIRÉ.
@@ -1125,19 +1301,70 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         Le rail reste une arborescence SERVEUR, passée en nœud déjà rendu : un composant
         client ne peut pas la construire, il peut seulement la placer.
       */}
-      <AssetTabs
+      {/* ══════════════════════════════════════════════════════════════════════
+          L'EN-TÊTE REDEVIENT UNE RANGÉE ORDINAIRE, AU-DESSUS DU CADRE
+
+          Il vivait DANS la rangée collante, à côté de la barre de sommaire et du
+          bloc de cours. Les trois y étaient tenus par une hauteur mesurée au pixel
+          et par un jeu de superpositions en fondu.
+
+          La barre de sommaire et le bloc de cours ont été retirés de cette rangée
+          (demande explicite) ; il ne restait qu'un en-tête seul dans un mécanisme
+          construit pour trois. Il reprend donc sa place naturelle : une ligne dans
+          le flux, sous le fil d'Ariane, comme sur la référence.
+
+          Ce qu'il gagne au passage — et c'est le vrai apport de la refonte — la
+          rangée de liens officiels et l'étoile de suivi contre le logo. Voir
+          `AssetHeadline`.
+          ══════════════════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          LE FILET SOUS L'EN-TÊTE — DEMANDE EXPLICITE, ET IL MANQUAIT VRAIMENT
+
+          L'en-tête et la zone de travail ne se séparaient que par du BLANC : vingt
+          pixels entre la rangée de liens officiels et la carte de cours. C'est assez
+          pour deux blocs de même nature, pas pour deux blocs de natures opposées —
+          au-dessus, l'identité de l'actif, qui ne bouge pas ; en dessous, des chiffres
+          qui tiquent et un graphique qu'on manipule.
+
+          Le filet dit lequel des deux on regarde. Il traverse toute la largeur, avant
+          la grille à deux colonnes : posé DANS l'une des colonnes il s'arrêterait à
+          son bord, et la page porterait deux traits de longueurs différentes — le
+          défaut exact que la barre de sommaire a déjà connu (voir `AssetLayoutFrame`).
+
+          `mb-5` remplace la moitié basse de l'ancien `pb-5` : un trait a besoin d'air
+          des deux côtés, sans quoi il se lit comme le soulignement de la ligne de
+          liens plutôt que comme une frontière.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mb-5 border-b border-border-subtle pb-5">
+        <AssetHeadline
+          asset={data}
+          assetClass={assetClass}
+          rankLabel={fr.asset.stats.rank}
+          watchAction={
+            <WatchlistStar
+              assetClass={assetClass}
+              assetId={data.id}
+              label={data.name}
+              {...(data.symbol ? { symbol: data.symbol } : {})}
+              path={assetHref(assetClass, data.id)}
+              initialFollowing={watchlist.following}
+              available={watchlist.available}
+            />
+          }
+        />
+      </div>
+
+      <AssetSections
         tabs={tabs}
         aside={newsAside}
-        /* L'IDENTITÉ COMPACTE A QUITTÉ LE RAIL POUR LA RANGÉE DE SOMMAIRE.
+        /* L'IDENTITÉ COMPACTE EST LE SEUL CONTENU DE LA BANDE D'ACCOMPAGNEMENT.
 
-           Elle y vivait pour une raison précise — sa sentinelle était son premier
-           enfant, et la position de celle-ci DANS LE FLUX définissait le seuil auquel
-           la bande apparaissait. Cette sentinelle n'existe plus : la rangée de sommaire
-           a la sienne, posée juste au-dessus d'elle, et c'est l'état « collée » de cette
-           rangée qui révèle l'identité. Voir `AssetLayoutFrame`.
+           Elle vivait dans le rail, où sa sentinelle — son premier enfant — définissait
+           le seuil d'apparition. Cette sentinelle n'existe plus : le cadre a la sienne,
+           et c'est l'état « défilé » qu'elle mesure qui révèle la bande.
 
-           Ce qui disparaît au passage : une bande `fixed` de 48 pixels dont le milieu
-           était vide, et 44 pixels de chrome collant sur chaque écran de la fiche. */
+           C'est ce qui reste du cours en haut de page une fois qu'on a descendu la
+           fiche : la bande le porte en direct, à côté du nom. */
         identity={<AssetStickyBar asset={data} assetClass={assetClass} isRate={isForex} />}
         rail={
           /* Le rail passe EN PREMIER dans le document, et à gauche à l'écran. Sur
@@ -1182,84 +1409,54 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <AssetSupply asset={data} />
 
           {/*
-            DEUX BLOCS SYMÉTRIQUES, UN PAR MONDE.
+            ⚠️ LA MOITIÉ BASSE DU RAIL A DÉMÉNAGÉ, MAIS PAS LES DEUX FICHES.
 
-            `AssetSentiment` rend le sondage d'audience d'une cryptomonnaie ;
-            `AssetAnalystView` rend le consensus d'analystes d'une action. Les deux
-            répondent à « qu'en pensent les autres ? » avec la donnée que chaque marché
-            publie réellement, et chacun se retire de lui-même quand la sienne manque —
-            il n'y a donc aucune condition de classe à écrire ici.
+            Sondage de sentiment, consensus d'analystes, communauté et projets
+            similaires ont rejoint l'aperçu, dans la largeur libérée par les anneaux de
+            volume : ce sont des BLOCS — barres, grilles, listes à logos — que 288
+            pixels étiraient sur toute la hauteur de la page.
 
-            Le second ne coûte AUCUN appel supplémentaire : ses deux modules voyagent
-            dans la même requête que les ratios déjà chargés au-dessus.
+            Les DEUX FICHES restent ici, et c'est le mouvement inverse pour la raison
+            inverse. Une fiche est une suite de couples « libellé → valeur » : place de
+            cotation, secteur, contrats par chaîne, explorateurs, liens officiels. Cette
+            forme-là VEUT une colonne étroite — c'est en pleine largeur qu'elle se casse,
+            chaque ligne traînant un vide de six cents pixels entre son libellé et sa
+            valeur.
+
+            Et elles comblent un trou réel : le rail s'arrêtait à « Reste à émettre »,
+            laissant sous lui une colonne vide de plusieurs centaines de pixels pendant
+            que la grille du bas, en nombre impair de blocs, en laissait un second à
+            droite. Les deux fiches ferment le premier, et leur départ rend la grille
+            paire — voir la note de `railTail`.
+
+            LES DEUX SONT EXCLUSIVES par construction : celle du haut ne rend quelque
+            chose que pour une cryptomonnaie (contrats, chaînes, explorateurs), celle du
+            bas que pour une valeur boursière (place, secteur, siège, émetteur).
           */}
-          <AssetSentiment asset={data} />
-          <AssetAnalystView profile={profile} currency={data.currency} price={data.price} />
+          {/* ⚠️ `AssetTechSheet` A ÉTÉ RETIRÉ DE LA FICHE (demande explicite).
 
-          <AssetCommunity asset={data} />
+              Il rendait la « fiche technique » d'une cryptomonnaie : la liste de ses
+              contrats par chaîne, avec l'adresse à copier et le lien vers
+              l'explorateur de chacune. Deux à cinq lignes d'adresses hexadécimales
+              tronquées, en tête de la moitié basse du rail.
 
-          {/*
-            ── « PROJETS SIMILAIRES », AU PIED DES CHIFFRES ──────────────────────
+              Ce qu'elle apportait vraiment — atteindre l'explorateur du jeton — n'est
+              pas perdu : la rangée de liens de l'en-tête le porte, à côté du site
+              officiel et des comptes sociaux (voir `AssetHeadline`). C'est la forme de
+              la référence, et elle tient en une icône là où la fiche prenait cent
+              cinquante pixels de hauteur.
 
-            Comme chez la référence, et pour une raison qui n'est pas de style : un rang,
-            une capitalisation, une variation ne veulent rien dire seuls — ils veulent
-            dire quelque chose COMPARÉS. Les ranger derrière un onglet obligeait à
-            quitter les chiffres pour aller chercher de quoi les juger.
-
-            L'onglet « Écosystème » les garde en grille complète : quatre noms ici pour
-            situer, la grille là-bas pour comparer.
-          */}
-          <AssetSimilarRail peers={comparables} />
-
-          {/* Site officiel, explorateurs, portefeuilles et contrats ferment le rail,
-              exactement comme le bloc « Info » de la référence. Ce sont des questions
-              courtes, et ce rail est fait pour elles ; la liste de références est
-              d'ailleurs étroite par nature — en bas de page, sur neuf cents pixels,
-              chaque ligne traînait un vide entre son libellé et sa valeur.
-
-              LES DEUX FICHES SONT EXCLUSIVES par construction : celle de gauche ne
-              rend quelque chose que pour une cryptomonnaie (contrats, chaînes,
-              explorateurs), celle de droite que pour une valeur boursière (place,
-              secteur, siège, émetteur). Aucune fiche n'en affiche deux, et aucune n'en
-              affiche zéro — ce qui était le cas des actions, des ETF et des indices
-              jusqu'ici. */}
-          <AssetTechSheet asset={data} />
+              Le composant reste dans le dépôt : c'est sa présence sur la fiche qui a
+              été retirée, pas son code. */}
           <AssetMarketSheet asset={data} assetClass={assetClass} profile={profile} />
           </aside>
         }
       />
 
-      {/* ── Bandeau d'information ──────────────────────────────────────────────
-
-          Le rappel « page d'information uniquement » DESCEND sous la grille.
-
-          Il était placé juste sous l'en-tête, au motif qu'un lecteur venu d'un moteur
-          de recherche se demande dans les deux premières secondes s'il peut acheter
-          ici. L'intention reste juste ; le placement ne l'est plus. Entre l'en-tête et
-          les onglets, il s'intercalait sur toute la largeur et repoussait le graphique
-          d'une centaine de pixels supplémentaires — au moment précis où l'on vient de
-          gagner de la hauteur en passant au rail.
-
-          Teinté de marque plutôt que gris : la bande doit se distinguer des panneaux
-          de données sans crier. `brand-soft` est le seul aplat du système qui porte
-          une couleur sans porter d'alerte — un fond rouge ou orange ferait lire un
-          avertissement là où il n'y a qu'un cadrage. À 55 % et non à plein : à pleine
-          opacité, posé sur toute la largeur, il devenait le bloc le plus lumineux de
-          l'écran, plus que le prix et plus que le graphique. */}
-      <aside className="rounded-card border border-brand/25 bg-brand-soft/55 px-4 py-3">
-        <h2 className="text-xs font-semibold text-ink">Information</h2>
-        <p className="mt-1 max-w-4xl text-xs leading-relaxed text-ink-muted">
-          {fr.asset.readOnly}
-          {asset.source ? (
-            <>
-              {' '}
-              Les chiffres de cette page proviennent de {asset.source.label} et sont
-              rafraîchis périodiquement : ils décrivent l’état publié par la source, pas le
-              carnet d’ordres à l’instant où vous lisez.
-            </>
-          ) : null}
-        </p>
-      </aside>
+      {/* ⚠️ LE BANDEAU « INFORMATION » A ÉTÉ RETIRÉ DE LA FICHE (demande explicite).
+          La clause « aucun ordre ici » reste écrite dans le pied de page, où elle vaut
+          pour tout le site, et la provenance des chiffres reste sous chaque bloc via
+          `SourceNote`. Rien de ce que ce bandeau disait n'a disparu du site. */}
 
       {/* ── Hors onglets : identité de l'actif ───────────────────────────────
           Description et fiche technique restent SOUS les onglets, toujours
@@ -1270,7 +1467,12 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           occupait la troisième et vit maintenant dans le rail de l'aperçu. Une
           grille dont une colonne sur trois est vide n'est plus une grille : c'est
           un texte artificiellement rétréci aux deux tiers de la page. */}
-      <div className="space-y-8 border-t border-border-subtle pt-8">
+      {/* Deux colonnes : « À propos » (+ fiche d'identité) à gauche, la FAQ à
+          droite. Le texte de présentation et les questions se lisent en parallèle
+          au lieu de s'empiler sur deux écrans de haut. Une seule colonne sous `lg`,
+          où deux colonnes de texte courant deviennent illisibles. */}
+      <div className="grid gap-8 border-t border-border-subtle pt-8 lg:grid-cols-2 lg:items-start">
+        <div className="space-y-8">
         {/*
           ── « À PROPOS » NE MANQUE PLUS AUX VALEURS BOURSIÈRES ──────────────────
 
@@ -1322,6 +1524,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         {/* Identité d'une valeur boursière — secteur, pays, place. Absente pour
             une cryptomonnaie, qui a sa fiche technique dans le rail de l'aperçu. */}
         <AssetIdentity asset={data} assetClass={assetClass} />
+        </div>
 
         {/*
           LA FAQ FERME LA PAGE, comme chez la référence.
@@ -1339,39 +1542,54 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         <AssetFaq asset={data} />
       </div>
 
-      {trending?.ok ? (
-        <AssetTrendingRail assets={trending.data} currentId={data.id} />
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        « TENDANCES DU MOMENT » FERME LA PAGE, APRÈS « À PROPOS » ET LA FAQ
+        ══════════════════════════════════════════════════════════════════════════
+
+        C'est le seul bloc de la fiche qui ne parle PAS de l'actif consulté : ce sont
+        les actifs les plus regardés du site, quels qu'ils soient. Sa place est donc
+        après tout ce qui décrit celui-ci — le « et ensuite ? ».
+
+        ⚠️ `AssetTrendingRail` A ÉTÉ RETIRÉ D'ICI, ET C'EST UNE SUPPRESSION DE DOUBLON.
+        Il rendait EXACTEMENT cette donnée, au même endroit, sous une autre forme —
+        une rangée de huit vignettes intitulée « En tendance ». Deux blocs de tendances
+        à quatre-vingts pixels d'écart n'apprennent rien de plus que l'un des deux ; on
+        garde celui que le lecteur a demandé, avec son titre, son renvoi vers les
+        classements et la phrase qui dit ce que « tendance » mesure. Le composant reste
+        au dépôt, il n'a simplement plus d'appelant sur la fiche.
+
+        AUCUN APPEL SUPPLÉMENTAIRE : `trending` est déjà chargé par le `Promise.all` en
+        tête de ce composant.
+
+        L'actif consulté est retiré de la liste — se voir soi-même dans « les tendances
+        du moment » n'est pas faux, mais n'apprend rien : on est déjà sur sa page.
+      */}
+      {trending?.ok && trending.data.some((entry) => entry.id !== data.id) ? (
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="display-sm text-ink">{t('Tendances du moment')}</h2>
+            <Link
+              href="/classements"
+              className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+            >
+              {fr.home.seeAll}
+            </Link>
+          </div>
+
+          <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
+            {t(
+              'Les actifs les plus consultés du moment, tous secteurs confondus. Une mesure d’ATTENTION, pas de performance : un actif peut être très regardé parce qu’il chute.',
+            )}
+          </p>
+
+          <AssetPeerGrid peers={trending.data.filter((entry) => entry.id !== data.id).slice(0, 6)} />
+        </section>
       ) : null}
     </div>
   )
 }
 
-/**
- * Agrège les volumes des places de cotation selon une clé.
- *
- * Sert les deux anneaux : par place, et par devise de cotation.
- *
- * Les lignes sans volume publié sont ÉCARTÉES et non comptées pour zéro. Une place
- * dont la source ignore le volume n'a pas un volume nul — elle a un volume inconnu,
- * et l'inclure à zéro fausserait toutes les parts des autres (§5).
- *
- * ⚠️ Le filtrage par SCORE DE CONFIANCE n'a pas lieu ici mais chez l'appelant, et
- * c'est délibéré : cette fonction agrège ce qu'on lui donne, et le choix de ce qu'on
- * lui donne est une décision de méthodologie qui doit se lire à l'endroit où elle se
- * prend — avec le compte des lignes retirées, que l'interface affiche.
- */
-function shareBy(tickers: AssetTicker[], key: (ticker: AssetTicker) => string): SharePart[] {
-  const totals = new Map<string, number>()
-
-  for (const ticker of tickers) {
-    if (ticker.volume24h === undefined || !Number.isFinite(ticker.volume24h)) continue
-    const label = key(ticker)
-    if (!label) continue
-    totals.set(label, (totals.get(label) ?? 0) + ticker.volume24h)
-  }
-
-  return [...totals].map(([label, value]) => ({ label, value }))
-}
 
 /**
  * Élision de « de » devant un nom d'actif.

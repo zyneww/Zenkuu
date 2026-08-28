@@ -1,6 +1,5 @@
 'use client'
 
-import { LayoutGrid, List } from 'lucide-react'
 import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
@@ -10,58 +9,79 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
 
-import { CategoryCard } from '@/components/categories/CategoryCard'
-import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader } from '@/components/ui/SortableTable'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 type SortKey = 'marketCap' | 'volume' | 'change' | 'name'
 type Direction = 'asc' | 'desc'
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'marketCap', label: 'Capitalisation' },
-  { key: 'volume', label: 'Volume 24 h' },
-  { key: 'change', label: 'Variation 24 h' },
-  { key: 'name', label: 'Nom' },
-]
-
 /**
- * Pagination EN MÉMOIRE, et c'est ce qui la distingue de celle des classements.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * L'ANNUAIRE DES SECTEURS — UN TITRE, UN CHAMP, UN TABLEAU
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * La source publie près de 750 secteurs, et les envoie TOUS en une fois. Changer de
- * page ne coûte donc aucun appel réseau, et surtout : le tri et la recherche portent
- * sur les 750 lignes, pas sur la cinquantaine affichée. C'était l'objection classique
- * à la pagination — « elle casse la recherche » — et elle ne tient pas ici.
+ * ── CE QUI A ÉTÉ RETIRÉ, ET POURQUOI ────────────────────────────────────────
  *
- * Les classements d'actifs, eux, sont paginés PAR LA SOURCE : chaque page y est un
- * appel, et leur barre ne connaît pas le total. Deux mécaniques, une seule barre.
+ * La page portait, au-dessus de ce tableau : quatre repères chiffrés, une bande de
+ * « secteurs en forte hausse », une bande de faits saillants, une rangée de pastilles
+ * de tri, une bascule grille/tableau, une pagination, et une bande méthodologique.
+ * Sept blocs pour une page dont la question est « quels secteurs, dans quel ordre ».
  *
- * ⚠️ Ce nombre n'est plus qu'un DÉFAUT. Le lecteur le change dans la barre, et la
- * valeur choisie doit rester l'une de celles qu'elle propose — sinon le sélecteur
- * s'ouvrirait sur un choix vide.
+ * La référence retenue (DropsTab) n'en garde que trois — un titre, un champ de
+ * recherche, un tableau — et c'est la forme demandée. Chacun des blocs supprimés
+ * répondait à une question que le tableau répond DÉJÀ, et mieux : les plus fortes
+ * hausses sont un tri sur la colonne de variation, les repères chiffrés sont un
+ * décompte de lignes.
+ *
+ * ── PAS DE PAGINATION : LA RÉFÉRENCE N'EN A PAS ─────────────────────────────
+ *
+ * Elle affiche ses cent vingt-cinq secteurs d'un seul tenant. Le nôtre en tient
+ * autant que la source en valorise, dans une seule page : la source les livre TOUS
+ * dans un appel unique, la pagination ne faisait donc économiser aucun octet réseau —
+ * seulement des lignes de HTML, au prix d'un clic entre chaque cinquantaine.
+ *
+ * ⚠️ LES SECTEURS SANS CAPITALISATION SONT ÉCARTÉS. La source publie environ sept
+ * cent cinquante entrées, dont la moitié sont des rubriques de taxonomie ne portant
+ * aucun actif valorisé — ni capitalisation, ni volume, ni composant (vérifié sur la
+ * réponse brute). Les afficher alignerait des centaines de lignes de tirets. Le
+ * filtrage se fait dans la page, qui l'annonce sous le titre.
  */
-const PAGE_SIZE = 50
-
-export function CategoryExplorer({ categories }: { categories: MarketCategory[] }) {
+export function CategoryExplorer({
+  categories,
+  /**
+   * Capitalisation MONDIALE en dollars, pour la colonne de dominance.
+   *
+   * ⚠️ Elle ne vient PAS de la somme de ce tableau et ne pourrait pas en venir : un
+   * actif appartient à plusieurs secteurs à la fois — Bitcoin relève de « Layer 1 »
+   * comme de « Proof of Work » — et additionner les colonnes le compterait deux fois.
+   * C'est l'agrégat global publié par la source, dédupliqué par construction.
+   *
+   * `null` quand cet agrégat manque : la colonne affiche alors des tirets plutôt
+   * qu'un rapport calculé sur un dénominateur inventé (§5).
+   */
+  totalMarketCap,
+  /**
+   * Filtre PRÉ-REMPLI à l'ouverture, et modifiable ensuite.
+   *
+   * Il sert à `/categories/ecosystemes`, qui n'est pas une autre page mais la même
+   * ouverte sur « Ecosystem ». Une valeur INITIALE et non contrôlée : le lecteur doit
+   * pouvoir l'effacer et retrouver la liste entière sans changer d'adresse — sans quoi
+   * la page pré-filtrée serait une impasse.
+   *
+   * ⚠️ Passer par une prop plutôt que par `?filtre=` dans l'URL est ce qui garde les
+   * deux pages STATIQUES : lire un paramètre de requête ferait basculer la route en
+   * rendu dynamique, et lui coûterait son cache de trois minutes.
+   */
+  defaultQuery = '',
+}: {
+  categories: MarketCategory[]
+  totalMarketCap: number | null
+  defaultQuery?: string
+}) {
   const t = usePhrase()
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(defaultQuery)
   const [sort, setSort] = useState<SortKey>('marketCap')
   const [direction, setDirection] = useState<Direction>('desc')
-  const [view, setView] = useState<'grid' | 'table'>('table')
-
-  /*
-   * PAGINÉ PLUTÔT QU'ACCUMULÉ.
-   *
-   * Un bouton « Afficher 50 secteurs de plus » ne sait qu'AVANCER : arrivé au
-   * quatrième clic, on a deux cents lignes à l'écran, aucun moyen de revenir aux
-   * cinquante précédentes, et le numéro de rang n'a plus de repère. Il ne dit pas non
-   * plus où l'on en est — seulement combien il reste.
-   *
-   * Une page, elle, est un lieu : on y revient, on la quitte, et le compteur de la
-   * barre répond à « où suis-je » avant qu'on se le demande.
-   */
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState<number>(PAGE_SIZE)
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -96,13 +116,6 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
     return direction === 'desc' ? sorted : reverseKeepingMissingLast(sorted, sort)
   }, [categories, query, sort, direction])
 
-  /* Le filtre peut rendre la page courante inexistante : on la borne au rendu plutôt
-     qu'en effet de bord, ce qui évite un rendu intermédiaire vide. */
-  const pageCount = Math.max(1, Math.ceil(visible.length / perPage))
-  const currentPage = Math.min(page, pageCount)
-  const start = (currentPage - 1) * perPage
-  const rendered = visible.slice(start, start + perPage)
-
   function applySort(key: SortKey) {
     if (key === sort) {
       setDirection((current) => (current === 'desc' ? 'asc' : 'desc'))
@@ -112,82 +125,30 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
       // sauf le nom, qui se lit naturellement de A à Z.
       setDirection(key === 'name' ? 'asc' : 'desc')
     }
-    setPage(1)
   }
 
   return (
-    <section className="space-y-5" aria-labelledby="explorer-secteurs">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 id="explorer-secteurs" className="display-md text-ink">{t('Tous les secteurs')}</h2>
-          {/* Le décompte est explicité : la source publie environ 750 entrées, mais
-              la moitié sont des rubriques de taxonomie sans aucun actif valorisé —
-              ni capitalisation, ni volume, ni composant (vérifié sur la réponse
-              brute). Les afficher alignerait des centaines de lignes de tirets. Dire
-              pourquoi le nombre est ce qu'il est évite de le prendre pour un
-              plafond arbitraire. */}
-          <p className="mt-1 text-sm text-ink-muted">
-            {t(
-              '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
-            ).replace('{n}', String(categories.length))}
-          </p>
-        </div>
+    <section className="space-y-4" aria-labelledby="explorer-secteurs">
+      <h2 id="explorer-secteurs" className="sr-only">
+        {t('Tous les secteurs')}
+      </h2>
 
-        <InputGroup size="default" className="w-full sm:w-72">
-          <InputGroupInput
-            type="search"
-            value={query}
-            onChange={(event) => {
-              const next = event.target.value
+      {/* Champ COURT et à gauche, comme chez la référence : c'est un filtre, pas la
+          commande principale de la page. Étalé sur toute la largeur, il passerait
+          pour une recherche de site. */}
+      <InputGroup size="sm" className="w-full max-w-[16rem]">
+        <InputGroupInput
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t('Rechercher')}
+          aria-label={t('Filtrer les secteurs par nom ou par définition')}
+        />
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+      </InputGroup>
 
-                    setQuery(next)
-                    setPage(1)
-                  }}
-            placeholder={t('Filtrer les secteurs…')}
-            aria-label={t('Filtrer les secteurs par nom ou par définition')}
-          />
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-        </InputGroup>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div
-          className="flex flex-wrap items-center gap-2"
-          role="group"
-          aria-label={t('Trier les secteurs')}
-        >
-          {SORTS.map((entry) => (
-            <SortChip
-              key={entry.key}
-              active={sort === entry.key}
-              direction={sort === entry.key ? direction : undefined}
-              onClick={() => applySort(entry.key)}
-              label={t(entry.label)}
-            />
-          ))}
-        </div>
-
-        <div className="ml-auto flex items-center gap-1" role="group" aria-label={t('Mode d’affichage')}>
-          <ViewButton
-            active={view === 'table'}
-            onClick={() => setView('table')}
-            label="Affichage en tableau"
-            icon={List}
-          />
-          <ViewButton
-            active={view === 'grid'}
-            onClick={() => setView('grid')}
-            label="Affichage en grille"
-            icon={LayoutGrid}
-          />
-        </div>
-      </div>
-
-      {/* Ne subsiste que pour NOMMER le filtre : le décompte nu vit désormais dans le
-          compteur de la barre de pagination, et l'écrire deux fois ferait douter qu'il
-          s'agisse du même nombre. */}
       {query.trim() ? (
         <p className="text-xs text-ink-muted" aria-live="polite">
           {visible.length} secteur{visible.length > 1 ? 's' : ''} correspondant à «{' '}
@@ -201,38 +162,15 @@ export function CategoryExplorer({ categories }: { categories: MarketCategory[] 
           description={t('Essayez un autre terme, ou effacez le filtre.')}
           compact
         />
-      ) : view === 'grid' ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rendered.map((category) => (
-            <CategoryCard key={category.id} category={category} />
-          ))}
-        </div>
       ) : (
-        /* Le rang REPART DU BON NUMÉRO à chaque page : en page 3 sur cinquante lignes,
-           la première ligne est la 101ᵉ du classement, pas la première. Une numérotation
-           qui recommence à 1 sur chaque page annulerait tout l'intérêt du rang. */
         <CategoryTable
-          categories={rendered}
-          startRank={start + 1}
+          categories={visible}
+          totalMarketCap={totalMarketCap}
           sort={sort}
           direction={direction}
           onSort={applySort}
         />
       )}
-
-      {visible.length > 0 ? (
-        <TablePagination
-          page={currentPage}
-          perPage={perPage}
-          total={visible.length}
-          unit="secteur"
-          onPageChange={setPage}
-          onPerPageChange={(size) => {
-            setPerPage(size)
-            setPage(1)
-          }}
-        />
-      ) : null}
     </section>
   )
 }
@@ -264,25 +202,20 @@ function reverseKeepingMissingLast(sorted: MarketCategory[], sort: SortKey): Mar
 
 function CategoryTable({
   categories,
-  startRank,
+  totalMarketCap,
   /*
-   * LES EN-TÊTES COMMANDENT LE MÊME TRI QUE LA RANGÉE DE BOUTONS.
+   * LES EN-TÊTES SONT LA SEULE COMMANDE DE TRI.
    *
-   * Le tri existait déjà, complet et bidirectionnel, mais il se pilotait UNIQUEMENT
-   * depuis une rangée de pastilles posée au-dessus du tableau. Or c'est sur l'en-tête
-   * de colonne qu'on clique d'instinct — c'est le geste de tous les tableaux, et la
-   * demande le disait explicitement.
-   *
-   * Les deux commandes partagent `applySort` et lisent le même état : elles ne peuvent
-   * donc pas se contredire, et la pastille se met à jour quand on trie par l'en-tête.
-   * C'était la seule façon d'ajouter la seconde entrée sans créer deux vérités.
+   * La rangée de pastilles qui doublait ce tri a disparu avec le reste de l'habillage :
+   * c'est sur l'en-tête de colonne qu'on clique d'instinct, et deux commandes pour un
+   * même état sont deux occasions de les voir se contredire.
    */
   sort,
   direction,
   onSort,
 }: {
   categories: MarketCategory[]
-  startRank: number
+  totalMarketCap: number | null
   sort: SortKey
   direction: Direction
   onSort: (key: SortKey) => void
@@ -293,29 +226,22 @@ function CategoryTable({
      sa logique de tri gère des cas que le mécanisme générique ne connaît pas, comme le
      nom qui repart en croissant quand tous les autres repartent en décroissant. */
   const sortState = { key: sort, direction }
-  /* Pas de plaque sous la liste : les filets font la grille — voir `MarketTable`. */
+
   return (
-    <div className="overflow-x-auto rounded-card">
+    <div className="overflow-x-auto rounded-card border border-border-subtle">
       {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
-      <table className="w-full border-collapse text-sm sm:min-w-[680px]">
+      <table className="w-full border-collapse text-sm sm:min-w-[720px]">
         <caption className="sr-only">{t('Secteurs de marché')}</caption>
         <thead>
           <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
             <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>
             <SortableHeader
-              label="Secteur"
+              label={t('Secteur')}
               sortKey="name"
               align="left"
               sort={sortState}
               onToggle={onSort}
             />
-            {/* « Principaux actifs » n'est PAS triable, et ne peut pas l'être : la
-                cellule liste plusieurs jetons, dont l'ordre vient de la source. Trier
-                dessus reviendrait à classer sur le nom du premier de la liste, ce qui
-                n'est le critère de personne. */}
-            <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
-              {t('Principaux actifs')}
-            </th>
             <SortableHeader
               label={t('Variation 24 h')}
               sortKey="change"
@@ -323,7 +249,7 @@ function CategoryTable({
               onToggle={onSort}
             />
             <SortableHeader
-              label="Volume 24 h"
+              label={t('Volume 24 h')}
               sortKey="volume"
               className="hidden md:table-cell"
               sort={sortState}
@@ -335,34 +261,40 @@ function CategoryTable({
               sort={sortState}
               onToggle={onSort}
             />
+            {/* « Dominance » n'est PAS triable : elle est la capitalisation divisée
+                par une constante, donc le même ordre que la colonne voisine. Deux
+                en-têtes qui produisent le même classement laisseraient croire à deux
+                critères. */}
+            <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
+              {t('Dominance')}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border-subtle">
           {categories.map((category, index) => (
             <tr key={category.id} className="transition-colors hover:bg-surface-muted/60">
               <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                {startRank + index}
+                {index + 1}
               </td>
               <th scope="row" className="px-3 py-2.5 text-left font-medium">
-                {/* Le nom porte le lien, pas la ligne entière : la ligne contient déjà
-                    les logos des actifs, eux-mêmes cliquables. Deux zones cliquables
+                {/* Logos AVANT le nom, comme chez la référence : ils disent en un coup
+                    d'œil de quel secteur il s'agit, souvent avant que le nom soit lu.
+                    Le nom porte le lien, pas la ligne entière — la cellule contient
+                    déjà les logos, eux-mêmes cliquables, et deux zones cliquables
                     imbriquées produisent un HTML invalide et un piège au clavier. */}
-                <Link
-                  href={`/categories/${category.id}`}
-                  /* `inline-flex items-center` et non le `inline` par défaut : le
-                     plancher tactile de globals.css repose sur `min-height`, qui n'a
-                     AUCUN effet sur une boîte en ligne. Ce lien restait donc à 18 pixels
-                     dans une ligne qui en fait quarante — la moitié de la ligne visible
-                     ne déclenchait rien. Les autres tableaux y échappaient déjà, leurs
-                     liens portant `flex` pour aligner un logo. */
-                  className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
-                >
-                  {category.name}
-                </Link>
+                <span className="flex items-center gap-2">
+                  <TopAssets category={category} />
+                  <Link
+                    href={`/categories/${category.id}`}
+                    /* `inline-flex items-center` et non le `inline` par défaut : le
+                       plancher tactile de globals.css repose sur `min-height`, qui n'a
+                       AUCUN effet sur une boîte en ligne. */
+                    className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
+                  >
+                    {category.name}
+                  </Link>
+                </span>
               </th>
-              <td className="hidden px-3 py-2.5 sm:table-cell">
-                <TopAssets category={category} />
-              </td>
               <td className="px-3 py-2.5 text-right">
                 <ChangeBadge value={category.marketCapChange24h} size="sm" />
               </td>
@@ -372,12 +304,21 @@ function CategoryTable({
               <td className="tabular px-3 py-2.5 text-right text-ink">
                 {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
               </td>
+              <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
+                {dominance(category.marketCap, totalMarketCap)}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   )
+}
+
+/** Part du secteur dans la capitalisation mondiale — voir la note de `totalMarketCap`. */
+function dominance(marketCap: number | undefined, total: number | null): string {
+  if (marketCap === undefined || !total) return '—'
+  return `${((marketCap / total) * 100).toFixed(2)} %`
 }
 
 /**
@@ -427,74 +368,5 @@ export function TopAssets({ category }: { category: MarketCategory }) {
         )
       })}
     </span>
-  )
-}
-
-function SortChip({
-  active,
-  direction,
-  onClick,
-  label,
-}: {
-  active: boolean
-  direction?: Direction
-  onClick: () => void
-  label: string
-}) {
-  const t = usePhrase()
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`rounded-pill border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-        active
-          ? 'border-brand bg-brand text-on-brand'
-          : 'border-border-subtle bg-surface text-ink-muted hover:border-brand hover:text-ink'
-      }`}
-    >
-      {label}
-      {active ? (
-        <span aria-hidden="true" className="ml-1 text-[0.7em]">
-          {direction === 'desc' ? '▼' : '▲'}
-        </span>
-      ) : null}
-      {active ? (
-        <span className="sr-only">
-          {direction === 'desc'
-            ? t(', trié du plus grand au plus petit')
-            : t(', trié du plus petit au plus grand')}
-        </span>
-      ) : null}
-    </button>
-  )
-}
-
-function ViewButton({
-  active,
-  onClick,
-  label,
-  icon: Icon,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-  icon: typeof LayoutGrid
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      aria-label={label}
-      title={label}
-      className={`rounded-card border p-2 transition-colors ${
-        active
-          ? 'border-brand bg-brand-soft text-brand-strong'
-          : 'border-border-subtle text-ink-muted hover:border-brand hover:text-ink'
-      }`}
-    >
-      <Icon className="h-4 w-4" aria-hidden="true" />
-    </button>
   )
 }

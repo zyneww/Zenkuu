@@ -17,31 +17,17 @@
  */
 
 import { Link, useRouter } from '@/i18n/navigation'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuSeparator,
-  ContextMenuShortcut,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu'
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, Sparkline } from '@zenkuu/ui'
+import { ChangeBadge, Sparkline, formatCompact } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
+import type { BoardColumnSet } from '@/components/market/BoardTabs'
 import { CHANGE_PERIODS, periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
-import { TablePagination } from '@/components/ui/TablePagination'
-import {
-  ColumnHeader,
-  ColumnPicker,
-  useColumnPreferences,
-  type ColumnDef,
-} from '@/components/ui/table-columns'
+import { RowsPerPage, TablePagination } from '@/components/ui/TablePagination'
+import { ColumnHeader } from '@/components/ui/table-columns'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
@@ -90,19 +76,15 @@ interface MarketTableProps {
    */
   chartPosition?: 'inline' | 'end'
 
-  /* ── PORTÉE « Échangeables / Tous les actifs » ───────────────────────
-
-     Les quatre champs voyagent ENSEMBLE ou pas du tout : l'appelant ne les fournit
-     que là où le partage distingue réellement des lignes (voir `MarketBrowser`). Ils
-     sont donc tous optionnels, et le groupe ne se rend que si `onScopeChange` est là.
-
-     L'ÉTAT RESTE CHEZ L'APPELANT : c'est lui qui filtre la liste, ce tableau ne fait
-     que rendre les deux boutons à côté du sélecteur de colonnes — l'endroit où les
-     réglages d'affichage se regroupent. */
-  scope?: 'tradable' | 'all'
-  onScopeChange?: (scope: 'tradable' | 'all') => void
-  tradableCount?: number
-  totalCount?: number
+  /*
+   * ── LA PORTÉE « Échangeables / Tous les actifs » A ÉTÉ RETIRÉE ──────────
+   *
+   * Deux boutons qui partageaient la page entre les actifs dont la source publie un
+   * volume et les autres. Retirés sur demande : sur la moitié des classes d'actifs ils
+   * ne séparaient rien (les deux décomptes étaient égaux), et sur les autres ils
+   * occupaient à eux seuls le bord gauche d'une rangée qu'ils étaient les seuls à
+   * remplir.
+   */
 
   /**
    * Ce qui tient la GAUCHE de la rangée d'affichage, à défaut des portées.
@@ -146,6 +128,73 @@ interface MarketTableProps {
   total?: number
   onPageChange?: (page: number) => void
   onPerPageChange?: (perPage: number) => void
+
+  /* ── TRI EN MÉMOIRE ──────────────────────────────────────────────────
+   *
+   * Le tri de ce tableau passait UNIQUEMENT par l'URL : cliquer un en-tête naviguait,
+   * le serveur retriait l'univers entier, la page revenait. C'est le bon mode pour un
+   * classement paginé par la source — et le seul possible, puisque la page n'a qu'une
+   * tranche des lignes sous la main.
+   *
+   * L'ACCUEIL est dans l'autre cas : ses cent lignes sont TOUTES là, et sa page ne lit
+   * aucun paramètre d'adresse (voir `CryptoBoard` — c'est ce qui lui garde son cache
+   * partagé). Les en-têtes y étaient donc muets, faute d'un tri qui ne recharge rien.
+   *
+   * Fournir `onSortChange` bascule le tableau dans ce mode : TOUTE colonne devient
+   * triable, l'appelant garde l'état et réordonne la liste qu'il passe. `activeSort`
+   * est ce qu'il a retenu — il colore le bon double chevron.
+   */
+  activeSort?: { key: string; direction: SortDirection } | null
+  onSortChange?: (key: string, direction: SortDirection) => void
+
+  /**
+   * JEU DE COLONNES demandé par l'onglet actif — voir `BoardTabs`.
+   *
+   * ── CE QUE CHACUN MONTRE, ET CE QU'IL CACHE ────────────────────────────
+   *
+   *   `apercu`       le tableau d'origine : cours, variation, courbe, volume,
+   *                  capitalisation. C'est le défaut, et les appelants qui n'ont pas
+   *                  d'onglets n'ont rien à passer.
+   *   `cotations`    la grille de SÉANCE : cours, variation, haut et bas du jour,
+   *                  volume, et un lien vers la fiche. Le rang, la capitalisation, la
+   *                  courbe et les fenêtres de comparaison s'effacent — ce jeu répond
+   *                  à « où en est la journée ? » et non à « où se situe cet actif ? ».
+   *   `performance`  les CINQ fenêtres de variation côte à côte — 1 h, 24 h, 7 j,
+   *                  30 j, 1 an. Le volume s'efface pour leur faire de la place :
+   *                  onze colonnes sur un écran de portable n'en affichent que six,
+   *                  et ce sont les variations qu'on vient lire sur cet onglet.
+   *   `ath`          le plus haut de tous les temps, sa date, et l'ÉCART qui l'en
+   *                  sépare aujourd'hui. La variation 24 h et la courbe s'effacent :
+   *                  cet onglet parle d'une échelle de plusieurs années, où une
+   *                  vignette de sept jours n'apprend rien.
+   *
+   * ⚠️ L'écart au sommet est CALCULÉ, et c'est la seule valeur de ce tableau qui le
+   * soit. Il l'est à partir de deux valeurs publiées par la source et exprimées dans
+   * la même devise — c'est donc un rapport exact, du même ordre que la dominance de
+   * la page des secteurs, et non une estimation.
+   */
+  /* Le type vient de `BoardTabs`, où les onglets le produisent, plutôt que d'être
+     recopié ici : deux unions à tenir d'accord divergent au premier jeu ajouté, et la
+     divergence se voit à la compilation d'un seul des deux côtés. */
+  columnSet?: BoardColumnSet
+
+  /**
+   * Lignes sur lesquelles DÉDUIRE les colonnes, quand ce ne sont pas celles rendues.
+   *
+   * Les colonnes de ce tableau se déduisent de la donnée réellement présente : une
+   * paire de devises n'a pas de capitalisation, on ne lui affiche pas la colonne.
+   * Tant qu'un tableau rendait tout ce qu'il possédait, `assets` répondait.
+   *
+   * Il ne répond plus dès que l'appelant en pagine une TRANCHE. Deux défauts, et le
+   * second est le plus visible : une page dont aucun actif ne publie de volume perd
+   * la colonne pour cette page seulement — l'alignement change d'une page à l'autre ;
+   * et une page distante encore vide n'a AUCUNE colonne, si bien que le tableau se
+   * réduit à trois colonnes puis reprend sa largeur sous les yeux du lecteur.
+   *
+   * L'appelant passe donc l'univers entier, qui est ce dont il dispose. Absent, on
+   * retombe sur les lignes rendues — le comportement d'origine.
+   */
+  columnSource?: MarketAsset[]
 }
 
 function buildHref(
@@ -174,18 +223,51 @@ export function MarketTable({
   period,
   watchlist,
   chartPosition = 'end',
-  scope,
-  onScopeChange,
-  tradableCount,
-  totalCount,
   leadingSlot,
   trailingSlot,
   total,
   onPageChange,
   onPerPageChange,
+  activeSort,
+  onSortChange,
+  columnSet = 'apercu',
+  columnSource,
 }: MarketTableProps) {
   const fr = useContent()
   const t = usePhrase()
+
+  const performance = columnSet === 'performance'
+  const athView = columnSet === 'ath'
+  /**
+   * Grille de SÉANCE — cours, variation, haut et bas du jour, volume.
+   *
+   * Relevée sur MEXC, dont c'est l'écran de place de marché. Ce qu'elle apporte et
+   * qu'aucun autre jeu ne portait : les deux BORNES de la journée. Un cours seul ne
+   * dit pas s'il est au sommet ou au creux de sa séance, et c'est pourtant la première
+   * chose qu'on lit sur un tableau de cotations.
+   *
+   * Ce qu'elle retire, et pourquoi ce n'est pas une perte :
+   *   · le RANG — la référence n'en affiche pas, et l'ordre des lignes le dit déjà ;
+   *   · la CAPITALISATION — c'est le critère de tri par défaut, donc encore l'ordre ;
+   *   · la COURBE et les fenêtres 1 h / 7 j / 1 M — quatre colonnes de comparaison là
+   *     où cette grille répond à une question de séance. `/crypto` les garde toutes.
+   */
+  const quotes = columnSet === 'cotations'
+  /**
+   * Grille de CATALOGUE — la page d'une classe d'actif entière.
+   *
+   * Relevée sur Cryptorank : rang, actif, cours, variation 24 h, capitalisation,
+   * volume, offre en circulation, courbe 7 jours. Elle diffère de l'aperçu par deux
+   * choses seulement, et les deux sont demandées par la référence :
+   *
+   *   · l'ORDRE de la capitalisation et du volume, inversé — voir `BoardColumnSet` ;
+   *   · l'OFFRE EN CIRCULATION, colonne que ce tableau n'avait pas.
+   *
+   * Les fenêtres secondaires (1 h, 7 j, 1 M) et l'amplitude s'effacent : huit colonnes
+   * est déjà ce que la référence aligne, et les y ajouter reviendrait à reprendre sa
+   * grille en la contredisant.
+   */
+  const catalogue = columnSet === 'catalogue'
   /**
    * Colonnes déduites de la donnée réellement présente.
    *
@@ -194,7 +276,8 @@ export function MarketTable({
    * l'affiche pas du tout : c'est la traduction en tableau de la règle §5, et cela
    * évite d'écrire une exception par classe d'actif.
    */
-  const has = (field: keyof MarketAsset) => assets.some((asset) => asset[field] !== undefined)
+  const detectOn = columnSource ?? assets
+  const has = (field: keyof MarketAsset) => detectOn.some((asset) => asset[field] !== undefined)
   const showMarketCap = has('marketCap')
   const showVolume = has('volume24h')
   const showChart = has('sparkline7d')
@@ -239,7 +322,15 @@ export function MarketTable({
    */
   const extraPeriods = selected
     ? CHANGE_PERIODS.filter(
-        (entry) => entry.key !== selected.key && entry.key !== '1y' && has(entry.field),
+        (entry) =>
+          entry.key !== selected.key &&
+          /* `1y` REVIENT SUR L'ONGLET « PERFORMANCE », et nulle part ailleurs.
+             L'argument d'origine tient toujours pour l'aperçu : à côté de trois
+             fenêtres courtes, une variation annuelle change d'ordre de grandeur et
+             écrase la lecture des autres. Sur un onglet dont c'est le SUJET, la
+             comparaison des échelles est justement ce qu'on vient chercher. */
+          (performance || entry.key !== '1y') &&
+          has(entry.field),
       )
     : []
 
@@ -262,120 +353,231 @@ export function MarketTable({
    */
   const showDayRange = !showMarketCap && has('high24h') && has('low24h')
 
-  /**
-   * ── LES COLONNES DÉCLARÉES, ET CE QUE LA LISTE CONTIENT VRAIMENT ──────────
+  /*
+   * ── LE SÉLECTEUR DE COLONNES A QUITTÉ CE TABLEAU ──────────────────────────
    *
-   * Elle ne liste QUE les colonnes que cette classe d'actifs possède réellement :
-   * une paire de devises n'a pas de capitalisation, et proposer de l'afficher
-   * offrirait de cocher une case qui ne changerait rien. Le sélecteur décrit donc ce
-   * tableau-ci, pas un tableau générique.
+   * « Personnaliser » ouvrait une modale à deux volets où l'on cochait les colonnes à
+   * garder, et le choix survivait dans `localStorage`. Le bouton cède sa place au
+   * SÉLECTEUR DE LIGNES, remonté du pied de tableau (demande explicite) — deux
+   * réglages d'affichage ne pouvaient pas tenir le même bord.
    *
-   * `locked` sur le nom et le cours : ce sont les deux colonnes sans lesquelles une
-   * ligne cesse d'identifier quoi que ce soit. On peut tout retirer autour.
+   * Ce qui décide des colonnes reste donc ce qui décidait déjà en pratique : la
+   * largeur disponible, par les seuils `@min-[…]` plus bas. Le mécanisme lui-même
+   * survit dans `table-columns.tsx` pour les tableaux qui l'emploient encore
+   * (palmarès, trésoreries, places de dérivés).
    */
-  const columns: ColumnDef[] = [
-    ...(showRank ? [{ id: 'rank', label: fr.market.columns.rank }] : []),
-    { id: 'name', label: fr.market.columns.name, locked: true },
-    { id: 'price', label: fr.market.columns.price, locked: true },
-    {
-      id: 'change24h',
-      label: selected
-        ? `${fr.market.columns.variation} (${selected.label})`
-        : fr.market.columns.change24h,
-    },
-    ...(show7d ? [{ id: 'change7d', label: fr.market.columns.change7d }] : []),
-    /* `period:` en préfixe d'identifiant : la clé de préférence est partagée avec les
-       autres colonnes, et un `id` nu valant « 7d » pourrait un jour heurter celui d'une
-       colonne sans rapport. Le préfixe rend la famille reconnaissable au débogage. */
-    ...extraPeriods.map((entry) => ({ id: `period:${entry.key}`, label: entry.label })),
-    ...(showChart ? [{ id: 'chart', label: fr.market.columns.chart }] : []),
-    ...(showVolume ? [{ id: 'volume', label: fr.market.columns.volume }] : []),
-    ...(showMarketCap ? [{ id: 'marketCap', label: fr.market.columns.marketCap }] : []),
-    ...(showDayRange ? [{ id: 'dayRange', label: fr.market.columns.dayRange }] : []),
-  ]
 
-  /* La clé porte la CLASSE D'ACTIF : quelqu'un qui masque la capitalisation sur les
-     cryptomonnaies ne demande pas la même chose sur les devises, et une clé commune
-     ferait voyager un choix d'un tableau à un autre sans qu'il l'ait dit. */
-  const prefs = useColumnPreferences(`marches:${assetClass}`, columns)
-
-  /* Le tri de ce tableau vit dans l'URL — la pagination est servie par le serveur,
-     qui doit connaître le critère. Le menu d'en-tête NAVIGUE donc au lieu de trier en
-     mémoire, ce qui préserve le partage par lien que les autres tableaux n'ont pas. */
+  /* Le tri de ce tableau vit dans l'URL quand la source pagine — elle doit connaître
+     le critère pour trier l'univers entier et non la page affichée. L'en-tête NAVIGUE
+     donc, ce qui garde les vues triées partageables et indexables. */
   const router = useRouter()
 
-  function onSort(key: string, nextDirection: 'asc' | 'desc') {
+  function onSortViaUrl(key: string, nextDirection: 'asc' | 'desc') {
     router.push(
       buildHref(basePath, { page: 1, sortBy: key as MarketSort, direction: nextDirection }),
     )
   }
 
-  const sortState = { key: sortBy as string, direction }
+  const urlSortState = { key: sortBy as string, direction }
 
-  const shows = {
-    rank: showRank && prefs.isVisible('rank'),
-    change7d: show7d && prefs.isVisible('change7d'),
-    chartInline: chartInline && prefs.isVisible('chart'),
-    chartAtEnd: chartAtEnd && prefs.isVisible('chart'),
-    volume: showVolume && prefs.isVisible('volume'),
-    marketCap: showMarketCap && prefs.isVisible('marketCap'),
-    dayRange: showDayRange && prefs.isVisible('dayRange'),
-    change24h: prefs.isVisible('change24h'),
+  /**
+   * Ce qu'une colonne reçoit pour devenir triable — ou rien.
+   *
+   * ── TROIS RÉGIMES, ET UN SEUL ENDROIT QUI EN DÉCIDE ────────────────────────
+   *
+   * 1. `onSortChange` fourni : TOUTES les colonnes sont triables, en mémoire, chez
+   *    l'appelant. C'est le régime de l'accueil, où les cent lignes sont déjà là.
+   * 2. `sortable` : seules la capitalisation et le volume le sont, par l'URL — ce sont
+   *    les deux seuls critères que la source sait appliquer à l'univers entier.
+   * 3. Ni l'un ni l'autre : aucun en-tête ne bouge. Offrir un tri qui ne réordonnerait
+   *    que la page affichée ferait passer « la plus forte hausse de cette page » pour
+   *    « la plus forte hausse du classement ».
+   *
+   * ⚠️ Rendre l'objet plutôt qu'étaler trois props à chaque appel : quinze en-têtes
+   * répéteraient la même condition, et la première oubliée deviendrait une colonne
+   * silencieusement inerte.
+   */
+  function sortFor(key: string | undefined) {
+    if (key === undefined) return {}
+    if (onSortChange) return { sortKey: key, sort: activeSort ?? null, onSort: onSortChange }
+    if (sortable && (key === 'marketCap' || key === 'volume24h')) {
+      return { sortKey: key, sort: urlSortState, onSort: onSortViaUrl }
+    }
+    return {}
   }
 
-  /* Filtré ICI plutôt qu'au rendu : l'en-tête et le corps doivent parcourir
-     EXACTEMENT la même liste, sinon les cellules se décalent d'une colonne sur les
-     lignes où l'une des deux diverge. Une seule source, deux lectures. */
-  const visibleExtras = extraPeriods.filter((entry) => prefs.isVisible(`period:${entry.key}`))
+  /** Champ de la variation principale — celui que trie la colonne du même nom. */
+  const mainChangeField = selected ? selected.field : 'change24h'
+
+  /*
+   * ── LES TROIS JEUX DE COLONNES, DÉCIDÉS EN UN SEUL ENDROIT ────────────────
+   *
+   * Chaque ligne combine « la donnée existe-t-elle ? » et « cet onglet la veut-il ? ».
+   * Les deux questions sont distinctes et doivent le rester : une colonne absente
+   * faute de donnée et une colonne écartée par l'onglet se ressemblent à l'écran, mais
+   * la première est une propriété de la source et la seconde un choix d'affichage.
+   * Les mélanger plus haut ferait disparaître des colonnes pour la mauvaise raison.
+   */
+  const shows = {
+    rank: showRank && !quotes,
+    change7d: show7d && !athView && !quotes && !catalogue,
+    chartInline: chartInline && !athView && !quotes,
+    chartAtEnd: chartAtEnd && !athView && !quotes,
+    volume: showVolume && !performance && !athView,
+    marketCap: showMarketCap && !performance && !quotes,
+    dayRange: showDayRange && !performance && !athView && !quotes && !catalogue,
+    /*
+      L'OFFRE EN CIRCULATION N'EST PAS UN MONTANT, et c'est pourquoi elle ne passe pas
+      par `Money`. C'est un NOMBRE DE JETONS — « 20,07 M » de bitcoins, pas vingt
+      millions d'euros. Lui coller un symbole de devise en ferait la troisième colonne
+      d'argent de la ligne, à côté de deux qui le sont vraiment, et un lecteur pressé
+      lirait une capitalisation bis.
+
+      Elle n'existe que pour la crypto : Yahoo ne publie pas d'offre pour les actions,
+      les indices ou les devises. `has()` la retire donc d'elle-même sur les cinq
+      autres classes, sans qu'une exception par classe soit écrite ici.
+    */
+    supply: catalogue && has('circulatingSupply'),
+    change24h: !athView,
+    ath: athView && has('ath'),
+    athDate: athView && has('athDate'),
+    /*
+      Les deux bornes de séance sont des colonnes SÉPARÉES ici, là où `dayRange` les
+      réunit en « bas – haut » sur une seule. Ce n'est pas un doublon : `dayRange`
+      existe pour les classes SANS capitalisation, où elle occupe la colonne libérée
+      et où une fourchette compacte suffit. La grille de séance, elle, les aligne en
+      deux colonnes triables — c'est ce que fait la référence, et c'est ce qui permet
+      de classer par plus haut du jour.
+
+      Les deux ne coexistent jamais : `dayRange` est éteinte ci-dessus quand `quotes`
+      est vrai.
+    */
+    high24h: quotes && has('high24h'),
+    low24h: quotes && has('low24h'),
+    /*
+      ── LA COLONNE « ACTION » N'EST PAS UN BOUTON D'ACHAT ────────────────────
+
+      La référence y pose « Trade », qui ouvre son carnet d'ordres. ZENKUU ne
+      passe aucun ordre et n'en passera pas : reprendre le mot serait promettre une
+      fonction qui n'existe pas, et c'est exactement le genre d'emprunt qu'une
+      reprise de mise en page ne doit pas faire.
+
+      L'action que cette ligne permet réellement est d'ouvrir la fiche de l'actif.
+      Le bouton le dit — « Fiche » — et c'est un LIEN, pas un bouton : il mène
+      ailleurs.
+    */
+    action: quotes,
+  }
+
+  const visibleExtras = athView || quotes || catalogue ? [] : extraPeriods
+
+  /*
+   * ── L'ORDRE DES DEUX COLONNES D'AGRÉGAT, DÉCIDÉ ICI ET NULLE PART AILLEURS ──
+   *
+   * Cryptorank pose la capitalisation avant le volume, CoinGecko l'inverse, et les
+   * deux jeux de colonnes de ce tableau suivent chacun sa référence. Écrire les deux
+   * ordres à la main donnerait quatre blocs de JSX — deux en-têtes et deux cellules,
+   * en double — dont la paire du bas se désaccorderait de celle du haut à la première
+   * retouche. C'est exactement la faute que la note des seuils, plus bas, décrit.
+   *
+   * Un tableau de deux clés parcouru aux deux endroits rend la divergence impossible :
+   * l'en-tête et la cellule lisent la MÊME liste, dans le même ordre.
+   */
+  const aggregates = (catalogue ? ['marketCap', 'volume'] : ['volume', 'marketCap']).filter(
+    (key) => (key === 'volume' ? shows.volume : shows.marketCap),
+  ) as ('volume' | 'marketCap')[]
+
+  /* Le seuil de chaque colonne reste celui qu'elle avait — 870 px pour le volume,
+     790 px pour la capitalisation — et il suit la colonne quand l'ordre s'inverse.
+     C'est voulu : le seuil dit ce qu'une colonne COÛTE en largeur, pas où elle est
+     posée. L'encre atténuée du volume aussi : la capitalisation ordonne la page, le
+     volume la commente. */
+  const aggregateMeta = {
+    volume: {
+      field: 'volume24h' as const,
+      label: fr.market.columns.volume,
+      hint: fr.market.sortByVolume,
+      className: 'hidden @min-[870px]:table-cell',
+      tone: 'text-ink-muted',
+    },
+    marketCap: {
+      field: 'marketCap' as const,
+      label: fr.market.columns.marketCap,
+      hint: fr.market.sortByMarketCap,
+      className: 'hidden @min-[790px]:table-cell',
+      tone: 'text-ink',
+    },
+  }
+
+  /*
+   * Seuil d'apparition des fenêtres secondaires.
+   *
+   * Elles cèdent à 1 100 px sur l'aperçu, où elles sont un COMPLÉMENT posé à côté du
+   * volume et de la capitalisation. Sur l'onglet « Performance » elles sont le
+   * contenu : les masquer jusqu'à 1 100 px y afficherait un tableau à trois colonnes,
+   * c'est-à-dire un onglet vide de ce qu'il annonce. Le volume et la capitalisation
+   * ayant cédé leur place, la largeur est là.
+   */
+  const extraClass = performance
+    ? 'hidden @min-[790px]:table-cell'
+    : 'hidden @min-[1100px]:table-cell'
+
+  /*
+   * ── LES SEUILS DE LA GRILLE DE SÉANCE, ÉCRITS UNE FOIS ────────────────────
+   *
+   * ⚠️ L'en-tête et le corps DOIVENT porter la même chaîne, colonne par colonne :
+   * ils vivent à cinq cents lignes d'écart et rien ne les lie. Les désaccorder décale
+   * les cellules d'une colonne sans erreur ni avertissement — le tableau afficherait
+   * alors un plus bas dans la colonne « volume ». D'où ces constantes plutôt que la
+   * classe recopiée aux deux endroits, qui est la façon dont la faute arrive.
+   *
+   * L'ordre de cession suit la valeur d'usage. Le volume garde son seuil de 870 px,
+   * partagé avec l'aperçu. Les deux bornes de séance cèdent plus tôt qu'elles ne le
+   * pourraient — ce sont DEUX colonnes, et les faire apparaître une par une donnerait
+   * une fourchette amputée, qui se lit plus mal qu'une fourchette absente.
+   *
+   * « Fiche » tient jusqu'à 790 px puis se retire : sous ce seuil la ligne entière est
+   * déjà un lien par son nom, et la colonne ne ferait que reprendre 90 px à un cours.
+   */
+  const rangeClass = 'hidden @min-[1000px]:table-cell'
+  const actionClass = 'hidden @min-[790px]:table-cell'
+  /* L'offre cède avant la courbe (1 240 px) et après le volume (870) : c'est la
+     colonne la moins consultée des huit, et la seule dont l'absence ne change pas la
+     lecture des autres. */
+  const supplyClass = 'hidden @min-[1100px]:table-cell'
 
   return (
     <div className="space-y-3">
-      {/* Les réglages d'affichage sur UNE rangée, au-dessus du tableau : la portée à
-          gauche, les colonnes à droite. Tous deux disent ce qu'on montre — l'un en
-          lignes, l'autre en colonnes — et se cherchent donc au même endroit. */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {onScopeChange ? (
-          <div
-            /* Fond plein et non contour — même raison que le groupe de périodes, voir
-               `MarketBrowser`. */
-            className="flex items-center gap-1 rounded-control bg-surface-muted p-0.5"
-            role="group"
-            aria-label="Portée"
-          >
-            <ScopeButton
-              active={scope === 'tradable'}
-              onClick={() => onScopeChange('tradable')}
-              count={tradableCount ?? 0}
-              title="Seuls les actifs dont la source publie un volume sur 24 heures"
-            >
-              {t("Échangeables")}
-            </ScopeButton>
-            <ScopeButton
-              active={scope !== 'tradable'}
-              onClick={() => onScopeChange('all')}
-              count={totalCount ?? assets.length}
-              title={t("Tous les actifs de cette page, volume publié ou non")}
-            >
-              {t("Tous les actifs")}
-            </ScopeButton>
-          </div>
-        ) : (
-          /* Sans portée, la gauche revient à ce que l'appelant y pose — en pratique
-             les vues rapides, descendues d'une rangée (voir `leadingSlot`). Le
-             `<span />` de repli n'est pas décoratif : `justify-between` sur un enfant
-             unique collerait le sélecteur de colonnes à gauche, alors qu'on le cherche
-             au bord droit. */
-          (leadingSlot ?? <span />)
-        )}
+      {/*
+        ── LA RANGÉE D'OUTILS ────────────────────────────────────────────────
 
-        {/* La période et le choix des colonnes forment un seul bloc à droite : ce sont
-            les deux réglages qui décrivent CE QUE LE TABLEAU MONTRE, l'un en fenêtre
-            de variation, l'autre en colonnes. */}
-        <div className="flex flex-wrap items-center gap-2">
-          {trailingSlot}
-          <ColumnPicker prefs={prefs} scopeLabel={fr.assetClass[assetClass]} />
+        Ce que l'appelant y pose à gauche — en pratique les vues rapides — et le
+        SÉLECTEUR DE LIGNES à droite, remonté du pied de tableau à la place qu'y tenait
+        « Personnaliser ».
+
+        C'est un déplacement, pas un ajout : le pied ne porte plus que le compteur et
+        les crans de page, c'est-à-dire les deux seules choses qui disent OÙ L'ON EN
+        EST. Combien de lignes afficher est un réglage, et les réglages sont en haut.
+
+        La rangée disparaît ENTIÈREMENT quand elle n'a rien à porter — ni vue rapide,
+        ni période, ni sélecteur de lignes. Une bande vide au-dessus d'un tableau se
+        lit comme un bloc qui n'a pas chargé.
+      */}
+      {leadingSlot || trailingSlot || onPerPageChange ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* Le `<span />` de repli n'est pas décoratif : `justify-between` sur un
+              enfant unique collerait le sélecteur de lignes à gauche, alors qu'on le
+              cherche au bord droit. */}
+          {leadingSlot ?? <span />}
+
+          <div className="flex flex-wrap items-center gap-2">
+            {trailingSlot}
+            {onPerPageChange ? (
+              <RowsPerPage perPage={perPage} onPerPageChange={onPerPageChange} />
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
       {/*
         ── COLONNES PRIORITAIRES PLUTÔT QUE DÉFILEMENT HORIZONTAL ──────────────
 
@@ -536,7 +738,13 @@ export function MarketTable({
             visiblement sous un en-tête transparent.
           */}
           <TableHeader className="sticky top-[calc(var(--header-height)+1px)] z-10 bg-canvas [&_tr]:border-b-0">
-            <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
+            {/* LA BANDE D'EN-TÊTE SE DÉTACHE DES LIGNES, et c'est ce que la référence
+                fait : un aplat léger sous les intitulés, des filets verticaux entre
+                eux (posés par `ColumnHeader`). Sans l'aplat, les filets flottent au-
+                dessus de rien et se lisent comme des traits perdus. L'opacité et non
+                un jeton plein : la bande doit rester en dessous des lignes qu'elle
+                surplombe quand le tableau défile, pas les concurrencer. */}
+            <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-xs text-ink-muted">
               {/* Le rang coûte quarante pixels pour redire ce que l'ORDRE des lignes
                   dit déjà. Il part le premier. */}
               {/* L'étoile a sa propre colonne, sans en-tête : un intitulé « Suivi »
@@ -552,19 +760,13 @@ export function MarketTable({
               {shows.rank ? (
                 <ColumnHeader
                   label={fr.market.columns.rank}
-                  columnId="rank"
-                  columnPrefs={prefs}
+                  {...sortFor('rank')}
                   align="left"
                   className="hidden @min-[790px]:table-cell"
                 />
               ) : null}
-              <ColumnHeader
-                label={fr.market.columns.name}
-                columnId="name"
-                columnPrefs={prefs}
-                align="left"
-              />
-              <ColumnHeader label={fr.market.columns.price} columnId="price" columnPrefs={prefs} />
+              <ColumnHeader label={fr.market.columns.name} {...sortFor('name')} align="left" />
+              <ColumnHeader label={fr.market.columns.price} {...sortFor('price')} />
               {shows.change24h ? (
                 <ColumnHeader
                   label={
@@ -572,15 +774,13 @@ export function MarketTable({
                       ? `${fr.market.columns.variation} (${selected.label})`
                       : fr.market.columns.change24h
                   }
-                  columnId="change24h"
-                  columnPrefs={prefs}
+                  {...sortFor(mainChangeField)}
                 />
               ) : null}
               {shows.change7d ? (
                 <ColumnHeader
                   label={fr.market.columns.change7d}
-                  columnId="change7d"
-                  columnPrefs={prefs}
+                  {...sortFor('change7d')}
                   className="hidden @min-[790px]:table-cell"
                 />
               ) : null}
@@ -591,62 +791,101 @@ export function MarketTable({
                 <ColumnHeader
                   key={entry.key}
                   label={entry.label}
-                  columnId={`period:${entry.key}`}
-                  columnPrefs={prefs}
-                  className="hidden @min-[1100px]:table-cell"
+                  {...sortFor(entry.field)}
+                  className={extraClass}
                 />
               ))}
+
+              {/* ── LES TROIS COLONNES DE L'ONGLET « SOMMET HISTORIQUE » ──────────
+                  Le sommet, l'écart qui l'en sépare, sa date. L'ordre n'est pas
+                  indifférent : l'écart est la RÉPONSE — « à combien du plus haut
+                  sommes-nous ? » — et se lit donc contre le sommet qu'il commente,
+                  pas après une date qui l'en éloigne. */}
+              {shows.ath ? (
+                <ColumnHeader label={t('Sommet')} {...sortFor('ath')} />
+              ) : null}
+              {shows.ath ? (
+                <ColumnHeader
+                  label={t('Écart au sommet')}
+                  hint={t('Écart entre le cours actuel et le plus haut de tous les temps')}
+                />
+              ) : null}
+              {shows.athDate ? (
+                <ColumnHeader
+                  label={t('Date du sommet')}
+                  {...sortFor('athDate')}
+                  className="hidden @min-[1100px]:table-cell"
+                />
+              ) : null}
+              {/* ── LES DEUX BORNES DE LA SÉANCE ─────────────────────────────────
+                  Le haut AVANT le bas, comme sur la référence : on lit une fourchette
+                  du plafond vers le plancher, et c'est aussi l'ordre dans lequel le
+                  cours de la colonne précédente se situe naturellement. */}
+              {shows.high24h ? (
+                <ColumnHeader
+                  label={t('Haut 24 h')}
+                  hint={t('Cours le plus élevé des vingt-quatre dernières heures')}
+                  {...sortFor('high24h')}
+                  className={rangeClass}
+                />
+              ) : null}
+              {shows.low24h ? (
+                <ColumnHeader
+                  label={t('Bas 24 h')}
+                  hint={t('Cours le plus bas des vingt-quatre dernières heures')}
+                  {...sortFor('low24h')}
+                  className={rangeClass}
+                />
+              ) : null}
+
+              {/* La courbe n'est PAS triable : « ordonner par graphique » ne veut rien
+                  dire, et la variation qu'elle jouxte porte déjà ce classement. */}
               {shows.chartInline ? (
                 <ColumnHeader
                   label={fr.market.columns.chart}
-                  columnId="chart"
-                  columnPrefs={prefs}
                   align="left"
                   className="hidden @min-[1240px]:table-cell"
                 />
               ) : null}
-              {shows.volume ? (
+              {aggregates.map((key) => (
                 <ColumnHeader
-                  label={fr.market.columns.volume}
-                  columnId="volume"
-                  columnPrefs={prefs}
-                  /* `sortKey` n'est fourni que si le fournisseur sait trier sur
-                     l'ENSEMBLE du classement. Sinon le menu n'offre pas le tri plutôt
-                     que d'en offrir un qui ne réordonnerait que la page courante. */
-                  sortKey={sortable ? 'volume24h' : undefined}
-                  sort={sortable ? sortState : null}
-                  onSort={onSort}
-                  hint={fr.market.sortByVolume}
-                  className="hidden @min-[870px]:table-cell"
+                  key={key}
+                  label={aggregateMeta[key].label}
+                  {...sortFor(aggregateMeta[key].field)}
+                  hint={aggregateMeta[key].hint}
+                  className={aggregateMeta[key].className}
                 />
-              ) : null}
-              {shows.marketCap ? (
+              ))}
+
+              {/* L'offre se range APRÈS les deux agrégats et AVANT la courbe, comme
+                  sur la référence : elle est le troisième terme de la capitalisation
+                  (cours × offre), et se lit donc contre elle. */}
+              {shows.supply ? (
                 <ColumnHeader
-                  label={fr.market.columns.marketCap}
-                  columnId="marketCap"
-                  columnPrefs={prefs}
-                  sortKey={sortable ? 'marketCap' : undefined}
-                  sort={sortable ? sortState : null}
-                  onSort={onSort}
-                  hint={fr.market.sortByMarketCap}
-                  className="hidden @min-[790px]:table-cell"
+                  label={t('Offre en circulation')}
+                  hint={t('Nombre de jetons effectivement en circulation, hors réserves verrouillées')}
+                  {...sortFor('circulatingSupply')}
+                  className={supplyClass}
                 />
               ) : null}
               {shows.dayRange ? (
                 <ColumnHeader
                   label={fr.market.columns.dayRange}
-                  columnId="dayRange"
-                  columnPrefs={prefs}
                   className="hidden @min-[1100px]:table-cell"
                 />
               ) : null}
               {shows.chartAtEnd ? (
                 <ColumnHeader
                   label={fr.market.columns.chart}
-                  columnId="chart"
-                  columnPrefs={prefs}
                   className="hidden @min-[1240px]:table-cell"
                 />
+              ) : null}
+
+              {/* Colonne d'action : pas de tri — il n'y a rien à ordonner — et un
+                  intitulé quand même, sans quoi la dernière colonne du tableau
+                  s'ouvrirait sur un vide que l'œil lit comme une colonne manquante. */}
+              {shows.action ? (
+                <ColumnHeader label={t('Action')} className={actionClass} />
               ) : null}
             </tr>
           </TableHeader>
@@ -656,28 +895,7 @@ export function MarketTable({
               const href = assetHref(asset.assetClass, asset.id)
 
               return (
-                /*
-                  ── LE CLIC DROIT OUVRE LES ACTIONS DE LA LIGNE ────────────────
-
-                  Le geste existe dans tous les tableurs et dans la plupart des
-                  plateformes de marché, et il ne coûte rien à qui l'ignore : le menu
-                  contextuel du navigateur reste accessible partout ailleurs sur la
-                  page, et aucune commande n'existe ICI SEULEMENT.
-
-                  C'est la règle qui rend l'ajout légitime plutôt que piégeux : les
-                  trois entrées — ouvrir, ouvrir dans un onglet, copier le symbole —
-                  ont toutes un équivalent atteignable au clavier et au doigt. Le menu
-                  raccourcit un chemin, il n'en crée pas d'exclusif.
-
-                  ⚠️ `asChild` SUR UN `<tr>` : Radix pose ses gestionnaires sur la
-                  ligne elle-même. Sans lui, il rendrait un `<div>` entre le `<tbody>`
-                  et le `<tr>`, ce que le modèle de tableau HTML interdit — le
-                  navigateur le remonterait hors du tableau et la ligne perdrait son
-                  alignement de colonnes.
-                */
-                <ContextMenu key={asset.id}>
-                  <ContextMenuTrigger asChild>
-                <tr className="group transition-colors hover:bg-surface-muted/60">
+                <tr key={asset.id} className="group transition-colors hover:bg-surface-muted/60">
                   {/*
                     L'ÉTOILE OUVRE LA LIGNE, DEVANT LE RANG.
 
@@ -750,72 +968,15 @@ export function MarketTable({
                       neuf rendus serveur épargnés. Voir OPTIMISATION.md, section
                       « Réseau ».
                     */}
-                    {/*
-                      ── L'APERÇU AU SURVOL RÉPARE LA TRONCATURE ────────────────
-
-                      Le nom se coupe à la colonne — c'est nécessaire, sans quoi
-                      « Wrapped liquid staked Ether » pousserait le tableau hors de
-                      l'écran. Mais un nom coupé est une information PERDUE, et rien
-                      ne permettait de la retrouver sans ouvrir la fiche.
-
-                      `HoverCard` la rend au survol comme au focus clavier, avec les
-                      deux chiffres qui n'ont pas de colonne à cette largeur. Ce n'est
-                      pas une infobulle : elle s'ouvre après un délai, se laisse
-                      survoler, et peut contenir une mise en page — trois choses qu'un
-                      `title=""` ne fait pas.
-
-                      ⚠️ IL NE PORTE AUCUNE ACTION. Radix ne le rend pas atteignable au
-                      clavier autrement que par le lien qu'il enveloppe : tout ce qu'il
-                      contient doit donc exister ailleurs. C'est le cas — la fiche
-                      porte ces chiffres, l'aperçu ne fait que les avancer.
-                    */}
-                    <HoverCard openDelay={400} closeDelay={100}>
-                      <HoverCardTrigger asChild>
-                        <Link href={href} prefetch={false} className="flex min-w-0 items-center gap-3">
-                          <AssetLogo asset={asset} size={24} />
-                          <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
-                            {asset.name}
-                          </span>
-                          <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
-                            {asset.symbol}
-                          </span>
-                        </Link>
-                      </HoverCardTrigger>
-
-                      <HoverCardContent
-                        align="start"
-                        className="w-64 border-border-subtle bg-overlay p-3 shadow-overlay"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <AssetLogo asset={asset} size={28} />
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-ink">{asset.name}</p>
-                            <p className="text-xs uppercase text-ink-muted">{asset.symbol}</p>
-                          </div>
-                        </div>
-
-                        <dl className="mt-3 space-y-1.5 text-xs">
-                          <div className="flex items-baseline justify-between gap-3">
-                            <dt className="text-ink-muted">{fr.market.columns.price}</dt>
-                            <dd className="tabular font-medium text-ink">
-                              <Money value={asset.price} from={asset.currency} />
-                            </dd>
-                          </div>
-                          <div className="flex items-baseline justify-between gap-3">
-                            <dt className="text-ink-muted">{fr.market.columns.marketCap}</dt>
-                            <dd className="tabular font-medium text-ink">
-                              <Money value={asset.marketCap} from={asset.currency} compact />
-                            </dd>
-                          </div>
-                          <div className="flex items-baseline justify-between gap-3">
-                            <dt className="text-ink-muted">{fr.market.columns.volume}</dt>
-                            <dd className="tabular font-medium text-ink">
-                              <Money value={asset.volume24h} from={asset.currency} compact />
-                            </dd>
-                          </div>
-                        </dl>
-                      </HoverCardContent>
-                    </HoverCard>
+                    <Link href={href} prefetch={false} className="flex min-w-0 items-center gap-3">
+                      <AssetLogo asset={asset} size={24} />
+                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
+                        {asset.name}
+                      </span>
+                      <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
+                        {asset.symbol}
+                      </span>
+                    </Link>
                   </th>
 
                   <td className="tabular px-2 py-2.5 @min-[790px]:px-3 text-right font-medium text-ink">
@@ -842,7 +1003,7 @@ export function MarketTable({
                   ) : null}
 
                   {visibleExtras.map((entry) => (
-                    <td key={entry.key} className="hidden px-2 py-2.5 @min-[790px]:px-3 text-right @min-[1100px]:table-cell">
+                    <td key={entry.key} className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${extraClass}`}>
                       {/* `periodLabel` vient de la table, pas d'une chaîne recopiée : c'est
                           lui que lisent les lecteurs d'écran (« en hausse de 3 % sur 30
                           jours »), et une fenêtre mal nommée y serait invisible à l'œil. */}
@@ -854,21 +1015,97 @@ export function MarketTable({
                     </td>
                   ))}
 
+                  {shows.ath ? (
+                    <td className="tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink">
+                      <Money value={asset.ath} from={asset.currency} asRate={isForex} />
+                    </td>
+                  ) : null}
+
+                  {shows.ath ? (
+                    <td className="px-2 py-2.5 @min-[790px]:px-3 text-right">
+                      {/*
+                        `ChangeBadge` et non un pourcentage nu : l'écart au sommet est
+                        une variation — négative dans l'immense majorité des cas — et
+                        elle doit porter le même chevron, le même signe et la même
+                        couleur que les autres. Un habillage propre à cette colonne
+                        obligerait à réapprendre la lecture d'un chiffre déjà connu.
+
+                        `periodLabel` nomme la fenêtre pour les lecteurs d'écran :
+                        « en baisse de 62 % depuis son sommet » et non « sur 24 heures ».
+                      */}
+                      <ChangeBadge
+                        value={athGap(asset)}
+                        periodLabel="depuis son plus haut historique"
+                        size="sm"
+                      />
+                    </td>
+                  ) : null}
+
+                  {shows.athDate ? (
+                    <td className="tabular hidden px-2 py-2.5 @min-[790px]:px-3 text-right text-xs text-ink-muted @min-[1100px]:table-cell">
+                      {asset.athDate ? (
+                        <time dateTime={asset.athDate}>{monthYear(asset.athDate)}</time>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  ) : null}
+
+                  {/* Les bornes s'écrivent en encre pleine et non atténuée : ce sont
+                      des COURS, au même titre que celui de la colonne du cours, et les
+                      grisier les ferait passer pour des métadonnées. La référence les
+                      pose dans la même encre que le prix. */}
+                  {shows.high24h ? (
+                    <td className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink ${rangeClass}`}>
+                      {asset.high24h !== undefined ? (
+                        <Money value={asset.high24h} from={asset.currency} asRate={isForex} />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  ) : null}
+
+                  {shows.low24h ? (
+                    <td className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink ${rangeClass}`}>
+                      {asset.low24h !== undefined ? (
+                        <Money value={asset.low24h} from={asset.currency} asRate={isForex} />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  ) : null}
+
                   {shows.chartInline ? (
                     <td className="hidden px-2 py-2.5 @min-[790px]:px-3 @min-[1240px]:table-cell">
                       <Sparkline values={asset.sparkline7d} label={`Évolution de ${asset.name}`} />
                     </td>
                   ) : null}
 
-                  {shows.volume ? (
-                    <td className="tabular hidden px-2 py-2.5 @min-[790px]:px-3 text-right text-ink-muted @min-[870px]:table-cell">
-                      <Money value={asset.volume24h} from={asset.currency} compact />
+                  {aggregates.map((key) => (
+                    <td
+                      key={key}
+                      className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right ${aggregateMeta[key].tone} ${aggregateMeta[key].className}`}
+                    >
+                      <Money value={asset[aggregateMeta[key].field]} from={asset.currency} compact />
                     </td>
-                  ) : null}
+                  ))}
 
-                  {shows.marketCap ? (
-                    <td className="tabular hidden px-2 py-2.5 @min-[790px]:px-3 text-right text-ink @min-[790px]:table-cell">
-                      <Money value={asset.marketCap} from={asset.currency} compact />
+                  {/* `formatCompact` et non `Money` : voir `shows.supply`. Le SYMBOLE
+                      suit le nombre — « 20,07 M BTC » — parce qu'un nombre abrégé nu
+                      dans une ligne qui en porte deux autres ne dit pas de quoi il
+                      compte les unités. */}
+                  {shows.supply ? (
+                    <td
+                      className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
+                    >
+                      {asset.circulatingSupply !== undefined ? (
+                        <>
+                          {formatCompact(asset.circulatingSupply)}
+                          <span className="ml-1 text-xs uppercase">{asset.symbol}</span>
+                        </>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                   ) : null}
 
@@ -897,42 +1134,40 @@ export function MarketTable({
                     </td>
                   ) : null}
 
+                  {/*
+                    ── LA PASTILLE D'ACTION ──────────────────────────────────────
+
+                    Géométrie relevée sur la référence : 32 px de haut, coins
+                    entièrement arrondis, contour d'un pixel et demi, 16 px de
+                    gouttière, intitulé de 14 px. Le fond reste transparent — c'est un
+                    contour, pas un aplat, et un aplat de marque sur cinquante lignes
+                    ferait de la dernière colonne la plus bruyante du tableau.
+
+                    `prefetch={false}` pour la même raison que le lien du nom : cinquante
+                    lignes mènent à cinquante fiches, et les précharger affamerait le
+                    limiteur de débit de la page en cours de lecture.
+
+                    Le libellé est REDIT aux lecteurs d'écran avec le nom de l'actif :
+                    cinquante boutons « Fiche » identiques dans la liste des liens ne
+                    permettraient pas de choisir. Le texte visible reste court parce que
+                    la colonne l'est, `aria-label` porte la version complète.
+                  */}
+                  {shows.action ? (
+                    <td className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${actionClass}`}>
+                      <Link
+                        href={href}
+                        prefetch={false}
+                        aria-label={t('Ouvrir la fiche de {nom}').replace('{nom}', asset.name)}
+                        className="inline-flex h-8 items-center rounded-pill border border-border-subtle px-4 text-sm text-ink transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      >
+                        {t('Fiche')}
+                      </Link>
+                    </td>
+                  ) : null}
+
                   {/* L'étoile qui fermait la ligne a REJOINT SON DÉBUT — voir la note
                       à la première cellule. Elle n'existe plus ici. */}
                 </tr>
-                  </ContextMenuTrigger>
-
-                  <ContextMenuContent className="w-56 border-border-subtle bg-overlay">
-                    <ContextMenuLabel className="truncate text-xs text-ink-muted">
-                      {asset.name}
-                    </ContextMenuLabel>
-                    <ContextMenuSeparator />
-
-                    <ContextMenuItem onSelect={() => router.push(href)}>
-                      {t('Ouvrir la fiche')}
-                    </ContextMenuItem>
-
-                    {/* `window.open` et non un `<a target="_blank">` : l'entrée de menu
-                        n'est pas un lien, et Radix la ferme au choix. `noopener` évite
-                        que la page ouverte n'accède à `window.opener`. */}
-                    <ContextMenuItem
-                      onSelect={() => window.open(href, '_blank', 'noopener,noreferrer')}
-                    >
-                      {t('Ouvrir dans un nouvel onglet')}
-                    </ContextMenuItem>
-
-                    <ContextMenuSeparator />
-
-                    <ContextMenuItem
-                      onSelect={() => {
-                        void navigator.clipboard?.writeText(asset.symbol.toUpperCase())
-                      }}
-                    >
-                      {t('Copier le symbole')}
-                      <ContextMenuShortcut className="uppercase">{asset.symbol}</ContextMenuShortcut>
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
               )
             })}
           </TableBody>
@@ -979,13 +1214,15 @@ export function MarketTable({
            le compteur écrit « 1 à 25 sur 100 » sans conjecture. Les crans appellent
            l'appelant plutôt que de naviguer — aucune adresse ne change, aucun rendu
            serveur n'est demandé. */
+        /* Le SÉLECTEUR DE LIGNES n'est plus passé ici : il vit dans la rangée d'outils,
+           au-dessus du tableau. Le pied garde le compteur à gauche et les crans à
+           droite — voir `TablePagination`, qui repasse à deux pistes dans ce cas. */
         <TablePagination
           page={page}
           perPage={perPage}
           total={total ?? assets.length}
           unit="actif"
           onPageChange={onPageChange}
-          {...(onPerPageChange ? { onPerPageChange } : {})}
         />
       ) : paginated ? (
         /*
@@ -1027,43 +1264,53 @@ export function MarketTable({
 }
 
 /**
- * Bouton de portée — « Échangeables » / « Tous les actifs ».
+ * Écart entre le cours actuel et le plus haut de tous les temps, en pourcentage.
  *
- * Il vivait dans `MarketBrowser`, qui rendait les deux boutons dans sa propre rangée.
- * Il descend avec eux : c'est ce tableau qui les affiche désormais, à côté du sélecteur
- * de colonnes. L'ÉTAT, lui, reste chez l'appelant — c'est lui qui filtre la liste.
+ * ── C'EST LA SEULE VALEUR CALCULÉE DE CE TABLEAU ────────────────────────────
+ *
+ * Elle l'est à partir de DEUX valeurs publiées par la source et exprimées dans la même
+ * devise : c'est un rapport exact, pas une estimation. La conversion d'affichage
+ * n'entre pas en jeu — un rapport entre deux montants est invariant par changement
+ * d'unité, et le convertir avant de diviser donnerait le même nombre pour deux fois
+ * plus de travail.
+ *
+ * `undefined` plutôt que zéro quand le sommet manque ou vaut zéro : `ChangeBadge`
+ * affiche alors un tiret. Écrire « 0 % » dirait « le cours est à son sommet », ce qui
+ * est le contraire de « on ne sait pas » (§5).
  */
-function ScopeButton({
-  active,
-  onClick,
-  count,
-  title,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  count: number
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      title={title}
-      className={`flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
-        active ? 'bg-surface-muted text-ink' : 'text-ink-muted hover:text-ink'
-      }`}
-    >
-      {children}
-      {/* Le décompte est DANS le bouton, comme chez la référence : il transforme un
-          choix abstrait en information — on voit avant de cliquer combien de lignes
-          l'autre portée retirerait. */}
-      <span className="tabular text-[0.6875rem] text-ink-muted">{count}</span>
-    </button>
-  )
+function athGap(asset: MarketAsset): number | undefined {
+  const peak = asset.ath
+  if (peak === undefined || peak <= 0) return undefined
+  return ((asset.price - peak) / peak) * 100
 }
+
+/**
+ * Date de sommet, réduite au mois et à l'année.
+ *
+ * Le jour exact n'apprend rien dans une colonne qui parle d'une échelle de plusieurs
+ * années, et « 10 nov. 2021 » coûte moitié plus de largeur que « nov. 2021 » dans un
+ * tableau qui en manque. La date COMPLÈTE reste dans l'attribut `dateTime` du `<time>`
+ * qui l'enveloppe, où les machines la lisent sans que rien n'encombre l'œil.
+ *
+ * Locale figée et non celle du visiteur : ce composant est rendu des deux côtés de
+ * l'hydratation, et `Intl` ne donne pas le même résultat sur un serveur et dans un
+ * navigateur dont les données de localisation diffèrent — React signalerait l'écart.
+ * C'est le choix déjà fait par les autres tableaux du site.
+ */
+function monthYear(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+}
+
+/*
+ * `ScopeButton` VIVAIT ICI, et est parti avec les deux boutons de portée.
+ *
+ * Il habillait « Échangeables » et « Tous les actifs », qui partageaient la page selon
+ * qu'un volume 24 h soit publié ou non. Retirés sur demande : le partage ne distinguait
+ * rien sur la moitié des classes d'actifs, et le décompte qu'il portait se lit
+ * désormais dans le compteur du pied.
+ */
 
 /*
  * `SortableHeader` VIVAIT ICI, et a été remplacé par `ColumnHeader`.

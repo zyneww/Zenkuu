@@ -125,7 +125,15 @@ export function LineFigure({
                 couleur qui rattache chaque nombre à sa courbe. Indispensable ici, où
                 sept séries peuvent se superposer. */}
             <ChartTooltip
-              cursor={{ stroke: 'var(--color-border-subtle)', strokeWidth: 1 }}
+              /* Verticale tiretée dans l'encre atténuée — voir `AreaPlot`, où le motif
+                 « 4 4 » et le choix du ton sont expliqués. Les figures d'analyse
+                 désignent l'instant survolé exactement comme les courbes de cours. */
+              cursor={{
+                stroke: 'var(--color-ink-muted)',
+                strokeWidth: 1,
+                strokeDasharray: '4 4',
+                strokeOpacity: 0.8,
+              }}
               content={
                 <ChartTooltipContent
                   className="border-border-subtle bg-overlay shadow-overlay"
@@ -162,7 +170,15 @@ export function LineFigure({
                 /* Points masqués au repos, révélés au survol : à sept séries, une
                    pastille par relevé transforme la figure en semis. */
                 dot={false}
-                activeDot={{ r: 3, strokeWidth: 0 }}
+                /* Cerclée du fond : à sept séries superposées, c'est l'anneau — et non
+                   la teinte — qui dit laquelle des pastilles est devant. Voir
+                   `AreaPlot`. */
+                activeDot={{
+                  r: 4,
+                  fill: entry.color,
+                  stroke: 'var(--color-canvas)',
+                  strokeWidth: 2,
+                }}
                 isAnimationActive={!reduced}
               />
             ))}

@@ -1,5 +1,35 @@
 @import 'tailwindcss';
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   HEROUI v3 — IMPORTÉ ICI, ET LA POSITION EST LE RÉGLAGE.
+
+   ⚠️ CE `@import` DOIT RESTER LE PREMIER, JUSTE APRÈS TAILWIND. Le déplacer plus bas
+   repeindrait le site entier, et voici exactement pourquoi.
+
+   `@heroui/styles` ouvre par un bloc `@theme inline` qui déclare des noms que ce
+   fichier déclare DÉJÀ, et avec un autre sens :
+
+     --color-background   --color-foreground   --color-surface   --color-overlay
+     --color-muted        --color-accent       --color-border    --color-success…
+
+   Ce sont les rôles du pont shadcn/ui, plus bas dans ce fichier (cherchez « LE PONT
+   SHADCN/UI »). `bg-background`, `bg-surface`, `bg-overlay`, `bg-muted`, `bg-accent`
+   et `border-border` sont écrits dans des centaines de composants du site. La dernière
+   déclaration l'emporte : importer HeroUI APRÈS nos blocs `@theme` les repointerait
+   tous vers la palette de HeroUI — le fond, les cartes, les menus, les filets.
+
+   Importé ICI, l'ordre est l'inverse : les jetons Zenkuu sont déclarés après et
+   gagnent. Le site ne bouge pas d'un pixel, ce qui a été vérifié au navigateur en
+   comparant les valeurs calculées de dix-neuf jetons avant et après.
+
+   Et dans l'autre sens ? Les composants HeroUI ne lisent pas les `--color-*` : leurs
+   classes BEM lisent les variables NUES (`--background`, `--surface`, `--accent`,
+   `--radius`…). C'est le pont plus bas — « LE PONT HEROUI » — qui les alimente depuis
+   les jetons Zenkuu. Les deux bibliothèques finissent donc par lire la même palette :
+   celle du site.
+   ───────────────────────────────────────────────────────────────────────────── */
+@import '@heroui/styles';
+
 /* Tailwind 4 analyse le code source pour générer les utilitaires. Les composants
    partagés vivant hors de `apps/web`, il faut lui indiquer explicitement ce dossier. */
 @source '../../../packages/ui/src';
@@ -136,7 +166,7 @@
      THÈME CLAIR — le même site, à l'autre bout de la rampe.
 
      Le blanc n'est pas n'importe quel blanc : il est FROID, de la même famille que
-     le bleu-nuit du thème sombre. #eef2f7 monte de 238 à 247 du rouge au bleu —
+     le bleu-ardoise du thème sombre. #f4f6f9 monte de 244 à 249 du rouge au bleu —
      l'écart est mesurable sans être nommable, et il suffit à ce que les deux thèmes
      soient les deux extrémités d'une seule rampe plutôt que deux emprunts à deux
      sites différents.
@@ -145,7 +175,7 @@
 
      En sombre, une carte est plus CLAIRE que le fond. En clair, elle doit l'être
      aussi, faute de quoi la hiérarchie se retournerait d'un thème à l'autre et un
-     lecteur qui bascule perdrait ses repères. Le canvas descend donc à #eef2f7 et
+     lecteur qui bascule perdrait ses repères. Le canvas descend donc à #f4f6f9 et
      la carte prend le blanc pur. Le sens de l'élévation est le même partout ; seule
      son amplitude change, parce qu'il reste moins de place au-dessus du blanc qu'au-
      dessus du noir.
@@ -157,32 +187,32 @@
      thème sombre avait — exactement l'inversion de hiérarchie que la note ci-dessus
      s'emploie à éviter. Le canvas descend donc d'un cran, ce qui libère la place des
      deux plans au-dessus de lui. */
-  --color-canvas: #eef2f7;
+  --color-canvas: #ffffff;
   --color-surface: #f8fafc;
   --color-panel: #ffffff;
   /* Ni un plan ni une carte : le ton de survol de ligne, d'en-tête de colonne et de
      bande de contraste. Il doit se distinguer de la CARTE et non du canvas, puisque
      c'est sur une carte qu'il apparaît — d'où une valeur plus sombre que le canvas
      lui-même. */
-  --color-surface-muted: #e2e8f0;
+  --color-surface-muted: #f1f5f9;
   /* Filet à 1,30:1 sur la carte. CoinGecko trace ses séparateurs de tableau à
      1,09:1 — presque rien, et tenable chez eux, où les blocs sont posés sur des
      fonds gris. Ici le filet ne porte plus seul l'existence d'une carte (elle est
      élevée, voir la note sur les trois plans), mais il porte encore les
      SÉPARATEURS de rangée, où passer sous 1,15:1 fait disparaître la grille. */
-  --color-border-subtle: #dbe2ec;
+  --color-border-subtle: #e5e7eb;
 
   /* Texte — deux teintes seulement, et toutes deux tirées vers le FROID, pour rester
      de la même famille que le fond. C'est l'inverse exact de ce que faisait la palette
      « nuit chaude » qui précède, et pour la même raison qu'elle invoquait : un gris
      neutre posé sur un fond teinté se lit dans la teinte COMPLÉMENTAIRE par contraste
-     simultané. Sur un bleu-nuit, un gris neutre vire au brun ; #55637a porte assez de
+     simultané. Sur un bleu de nuit, un gris neutre vire au brun ; #475569 porte assez de
      bleu pour y échapper.
-     Contrastes sur le canvas clair : ink 16,65:1 · ink-muted 5,41:1. Le second garde
+     Contrastes sur le canvas clair : ink 16,49:1 · ink-muted 7,00:1. Le second garde
      de la marge sur le seuil AA de 4,5:1 (§9). Mesures rejouées par
      `app/palette.test.ts`. */
-  --color-ink: #0b1220;
-  --color-ink-muted: #55637a;
+  --color-ink: #111827;
+  --color-ink-muted: #4b5563;
 
   /* ───────────────────────────────────────────────────────────────────────────
      L'ACCENT EST UN CYAN — et ce paragraphe remplace celui qui disait l'inverse.
@@ -240,9 +270,13 @@
      d'interface, et les teindre toutes en cyan rendrait deux courbes voisines
      indiscernables.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-brand: #0f766e;
-  --color-brand-strong: #115e59;
-  --color-brand-soft: #ccfbf1;
+  /* ⚠️ MÊME TEINTE QUE L'AZURIN DU THÈME SOMBRE (196°), DESCENDUE EN CLARTÉ.
+     #a9eafe rendrait 1,32:1 sur du blanc — illisible. Ce sont les deux extrémités
+     d'une seule rampe, pas deux couleurs : `app/palette.test.ts` vérifie que celle-ci
+     reste au-dessus du seuil AA sur le canvas comme sur les cartes. */
+  --color-brand: #0e7490;
+  --color-brand-strong: #155e75;
+  --color-brand-soft: #cff3ff;
 
   /* Couleur du TEXTE posé SUR un aplat de marque. Ce jeton existe parce qu'un
      `text-white` écrit en dur dans un bouton ne peut pas être correct dans les deux
@@ -262,7 +296,7 @@
 
      Deux valeurs parce que la lumière ne se comporte pas pareil des deux côtés :
      sur fond sombre elle rayonne, sur fond clair elle ne peut que densifier. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(13 122 114 / 0.24);
+  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(14 116 144 / 0.24);
 
   /* ── L'OR RESTE, PARCE QU'IL SIGNIFIE ─────────────────────────────────────
      La doctrine de l'accent réserve la couleur à ce que le site mesure. L'or n'y
@@ -313,9 +347,9 @@
      Le fond teinté de hausse est mesuré chez eux aussi ; celui de baisse en est le
      pendant, leur page n'en exposant pas au moment du relevé.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-up: #047a45;
+  --color-up: #15803d;
   --color-up-soft: #d9f7e7;
-  --color-down: #c62828;
+  --color-down: #dc2626;
   --color-down-soft: #fdeaec;
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -492,9 +526,18 @@
   --radius-panel: 16px;
 
   /* CONTRÔLES — boutons, champs, puces de filtre, cases à cocher. Tout ce qu'on
-     vise et qu'on active. Le cran juste sous la famille des cartes : à 8px un
-     bouton commence à se lire comme une carte miniature. */
-  --radius-control: 4px;
+     vise et qu'on active.
+
+     ⚠️ 8px, ET C'EST UN RENVERSEMENT DE LA NOTE CI-DESSUS. Elle interdisait cette
+     valeur au motif qu'elle tombe « dans le vide » entre contrôles et cartes — vrai
+     de la grammaire OKX, où le vide était mesuré. La référence de cette passe est
+     CoinGecko, dont la grammaire pose justement contrôles à 8 et cartes à 12 : le
+     vide n'existe pas chez eux, la distinction se fait sur 4px et sur le fait qu'un
+     contrôle porte un aplat plein là où une carte porte un filet. Adopter l'un sans
+     l'autre redonnerait la page « où rien ne tranche » que la note redoutait — c'est
+     donc l'aplat plein des boutons, plus bas dans `button.tsx`, qui tient la
+     distinction ici, et non le rayon seul. */
+  --radius-control: 8px;
 
   /* Échelle par défaut de Tailwind, RÉALIGNÉE sur les deux familles ci-dessus pour
      qu'un `rounded`/`rounded-md` isolé dans le code tombe du bon côté du vide sans
@@ -635,9 +678,8 @@
      le bon interlettrage. Une échelle parallèle (`text-dense-sm`…) aurait demandé
      de repasser partout, et aurait laissé les deux coexister indéfiniment.
 
-     Le décalage est d'un cran vers le bas sur la moitié haute de l'échelle —
-     `text-lg` passe de 18 à 16px, `text-2xl` de 24 à… 24. C'est le glissement qui
-     aligne les titres de carte et les en-têtes de section du site sur les leurs.
+     Le décalage était d'un cran vers le BAS sur la moitié haute de l'échelle. Il ne
+     l'est plus : voir l'avertissement sur la marche, plus bas dans ce bloc.
 
      ── LE PIÈGE ÉVITÉ : DESCENDRE `text-base` À 13 ────────────────────────────
 
@@ -648,10 +690,16 @@
      annonce, et un article composé à la taille d'une cellule de tableau.
 
      L'échelle reste donc MONOTONE, et le partage se fait sur les noms que le code
-     emploie déjà : `text-sm` est le cran de densité (13px, celui des tableaux de
-     bord), `text-base` le cran de lecture (14px, celui des paragraphes). Les deux
-     sont des crans de la référence, et le mélange des deux sur une page donne
-     exactement la moyenne mesurée chez elle.
+     emploie déjà : `text-sm` est le cran de densité (14px, celui des tableaux de
+     bord), `text-base` le cran de lecture (16px, celui des paragraphes).
+
+     ⚠️ TOUTE LA RAMPE A MONTÉ D'UNE MARCHE (10·12·13·14·16·20·24·32·40 →
+     11·13·14·16·18·22·28·36·44). Le site composait un cran SOUS sa référence : les
+     colonnes secondaires d'un tableau y sont à 14px et non 12, le corps à 16 et non
+     14. La rampe garde ses intervalles — c'est un décalage, pas un étirement — donc
+     aucun rapport de hiérarchie ne bouge et aucun composant n'est à reprendre.
+     Ce qui bouge, en revanche, c'est la DENSITÉ des tableaux : les hauteurs de
+     rangée sont réglées sur l'interligne, qui monte avec le corps.
 
      ⚠️ LA GRAISSE EST ATTACHÉE AU CRAN DE DENSITÉ, et c'est un piège si on
      l'ignore. Chez eux, 13px se compose en 500 et non en 400 — c'est la moitié de
@@ -662,8 +710,8 @@
      paragraphe entier en 500 se lit comme du gras.
      ─────────────────────────────────────────────────────────────────────────── */
 
-  --text-2xs: 0.625rem; /* 10px — pastilles d'état */
-  --text-2xs--line-height: 0.75rem;
+  --text-2xs: 0.6875rem; /* 11px — pastilles d'état */
+  --text-2xs--line-height: 0.875rem;
   --text-2xs--letter-spacing: -0.1px;
   --text-2xs--font-weight: 600;
 
@@ -678,37 +726,37 @@
      Douze est le cran intermédiaire que la référence emploie elle aussi (11 fois sur
      sa page). Il laisse le 11 à `.text-micro`, qui porte exactement les rôles où elle
      le met — et le partage des deux crans reproduit alors le sien. */
-  --text-xs: 0.75rem; /* 12px */
-  --text-xs--line-height: 1rem;
+  --text-xs: 0.8125rem; /* 13px — colonnes secondaires de tableau */
+  --text-xs--line-height: 1.125rem;
   --text-xs--letter-spacing: -0.12px;
 
-  --text-sm: 0.8125rem; /* 13px — LE CRAN DE DENSITÉ, dominant sur la référence */
-  --text-sm--line-height: 1rem;
+  --text-sm: 0.875rem; /* 14px — LE CRAN DE DENSITÉ, dominant sur la référence */
+  --text-sm--line-height: 1.25rem;
   --text-sm--letter-spacing: -0.12px;
   --text-sm--font-weight: 500;
 
-  --text-base: 0.875rem; /* 14px — LE CRAN DE LECTURE : paragraphes, boutons */
-  --text-base--line-height: 1.25rem;
+  --text-base: 1rem; /* 16px — LE CRAN DE LECTURE : paragraphes, boutons */
+  --text-base--line-height: 1.5rem;
   --text-base--letter-spacing: -0.2px;
 
-  --text-lg: 1rem; /* 16px — titres de carte, intitulés de section */
-  --text-lg--line-height: 1.5rem;
+  --text-lg: 1.125rem; /* 18px — titres de carte, intitulés de section */
+  --text-lg--line-height: 1.75rem;
   --text-lg--letter-spacing: -0.2px;
 
-  --text-xl: 1.25rem; /* 20px — en-tête daté */
-  --text-xl--line-height: 1.5rem;
+  --text-xl: 1.375rem; /* 22px — en-tête daté */
+  --text-xl--line-height: 1.75rem;
   --text-xl--letter-spacing: -0.4px;
 
-  --text-2xl: 1.5rem; /* 24px — agrégat de carte */
-  --text-2xl--line-height: 1.875rem;
+  --text-2xl: 1.75rem; /* 28px — agrégat de carte */
+  --text-2xl--line-height: 2.125rem;
   --text-2xl--letter-spacing: -0.6px;
 
-  --text-3xl: 2rem; /* 32px — chiffre héros d'une carte */
-  --text-3xl--line-height: 2.5rem;
+  --text-3xl: 2.25rem; /* 36px — chiffre héros d'une carte */
+  --text-3xl--line-height: 2.75rem;
   --text-3xl--letter-spacing: -1px;
 
-  --text-4xl: 2.5rem; /* 40px — cours en tête de fiche d'actif */
-  --text-4xl--line-height: 3rem;
+  --text-4xl: 2.75rem; /* 44px — cours en tête de fiche d'actif */
+  --text-4xl--line-height: 3.25rem;
   --text-4xl--letter-spacing: -1.2px;
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -859,6 +907,149 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   LE PONT HEROUI — troisième vocabulaire, toujours une seule palette.
+
+   Même geste que le pont shadcn juste au-dessus, et pour la même raison : HeroUI v3
+   ne livre pas de couleurs, il livre des RÔLES que le projet peuple. La différence
+   tient à la FORME des noms, et elle commande l'endroit où ce bloc doit vivre.
+
+   ── POURQUOI `:root` ET NON `@theme` ─────────────────────────────────────────
+
+   Les composants HeroUI sont habillés par des classes BEM (`.button`, `.card`,
+   `.tabs__tab`…) livrées en CSS, et ce CSS lit des variables NUES — `var(--surface)`,
+   `var(--accent)`, `var(--radius)` — pas des jetons Tailwind. Un bloc `@theme` ne
+   produirait que des utilitaires `bg-*`, que rien dans HeroUI ne consulte. Il faut
+   donc poser les variables elles-mêmes, sur `:root`.
+
+   ── UN SEUL BLOC, ET LE THÈME SOMBRE SUIT TOUT SEUL ──────────────────────────
+
+   Aucune valeur littérale ici : chaque rôle vaut un `var()` vers un jeton Zenkuu. Le
+   bloc `.dark` réassigne ces jetons plus bas, et HeroUI suit sans qu'on écrive une
+   seule ligne de thème sombre — exactement ce qui rend le pont shadcn indolore.
+   ⚠️ Ne jamais remplacer ces `var()` par des valeurs : le mode sombre décrocherait,
+   et HeroUI resterait en clair sur un site en nuit.
+
+   LA TABLE DE CORRESPONDANCE, ET LES TROIS ENDROITS OÙ ELLE NE TOMBE PAS DROIT :
+
+     background    canvas          le fond de page
+     surface       panel           ce qui se pose SUR le canvas — la carte HeroUI
+     surface-sec.  surface         le cran intermédiaire
+     overlay       overlay         ce qui flotte : bulle, menu, fenêtre
+     accent        brand           la menthe : l'action principale
+     default       surface-muted   l'action de second rang, sans couleur propre
+     success/danger up / down      les deux teintes de marché servent aussi d'état :
+                                   deux emplois, une seule teinte à calibrer — c'est
+                                   déjà le choix du pont shadcn pour `destructive`
+     border        border-subtle   le filet d'un pixel
+     radius        4px             le rayon des CONTRÔLES de Zenkuu, pas celui des
+                                   cartes : HeroUI dérive son rayon de champ de
+                                   `--radius` par `calc(× 1.5)`, et partir de 12px
+                                   donnerait des champs à 18px, inconnus du site
+
+   ⚠️ `--muted` A CHANGÉ DE SENS EN ARRIVANT ICI, et c'est le piège de ce bloc. Chez
+   shadcn, `muted` est un FOND (un en-tête de tableau) ; chez HeroUI, c'est une
+   COULEUR DE TEXTE — celle d'un texte d'aide ou d'un caractère indicatif de champ. Il
+   vaut donc `ink-muted` et non `surface-muted`. Les confondre poserait un aplat gris
+   là où HeroUI attend un texte, c'est-à-dire des libellés d'aide illisibles.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --background: var(--color-canvas);
+  --foreground: var(--color-ink);
+
+  --surface: var(--color-panel);
+  --surface-foreground: var(--color-ink);
+  --surface-secondary: var(--color-surface);
+  --surface-secondary-foreground: var(--color-ink);
+  --surface-tertiary: var(--color-surface-muted);
+  --surface-tertiary-foreground: var(--color-ink);
+
+  --overlay: var(--color-overlay);
+  --overlay-foreground: var(--color-ink);
+
+  /* Texte, pas fond — voir l'avertissement ci-dessus. */
+  --muted: var(--color-ink-muted);
+
+  --accent: var(--color-brand);
+  --accent-foreground: var(--color-on-brand);
+
+  --default: var(--color-surface-muted);
+  --default-foreground: var(--color-ink);
+
+  /* Le segment de HeroUI (`ToggleButtonGroup`, `Tabs`) : un creux qui porte des
+     pastilles. C'est la forme exacte du sélecteur de grandeur et du sélecteur de
+     moteur de la barre de graphique, qui prennent déjà ce couple de tons. */
+  --segment: var(--color-surface-muted);
+  --segment-foreground: var(--color-ink);
+
+  --border: var(--color-border-subtle);
+  --separator: var(--color-border-subtle);
+  --focus: var(--color-brand);
+  --link: var(--color-brand-strong);
+
+  --success: var(--color-up);
+  --success-foreground: var(--color-on-brand);
+  --warning: var(--color-gold);
+  --warning-foreground: var(--color-on-brand);
+  --danger: var(--color-down);
+  --danger-foreground: var(--color-on-brand);
+
+  --radius: 0.25rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ⚠️ LE MOT « ACCENT » VEUT DIRE DEUX CHOSES, ET IL FALLAIT LES SÉPARER
+   ─────────────────────────────────────────────────────────────────────────────
+
+   Le pont HeroUI ci-dessus alimente les variables NUES (`--accent`, `--surface`…), et
+   cela suffit à la plupart des composants. Mais une partie de leurs feuilles n'écrit
+   pas `var(--accent)` : elle écrit l'UTILITAIRE Tailwind `bg-accent`, qui se résout par
+   `--color-accent`. Or ce jeton-là appartient au pont shadcn, où « accent » désigne le
+   GRIS DE SURVOL d'un menu — pas la couleur de marque.
+
+   Constaté au navigateur sur `/screener` : le remplissage du curseur HeroUI sortait en
+   `rgb(47,47,47)`, le gris de `--color-surface-muted`, au lieu de la menthe. Il ne
+   s'agit pas d'un cas isolé — 59 occurrences de `bg-accent`, `text-accent-*` et
+   `bg-accent-soft` sont réparties dans quinze feuilles de HeroUI (curseur, interrupteur,
+   case à cocher, onglets, tableau, calendrier, alerte, jeton, toast…).
+
+   ── POURQUOI CETTE RÈGLE PLUTÔT QUE DE CHANGER LE JETON ──────────────────────
+
+   Repointer `--color-accent` sur la menthe réglerait HeroUI et casserait shadcn : tous
+   les survols de menu, d'onglet et de date du site deviendraient verts. Les deux
+   vocabulaires ont besoin du MÊME nom avec DEUX sens ; ils ne peuvent donc pas cohabiter
+   dans une déclaration globale.
+
+   Les propriétés personnalisées, elles, s'HÉRITENT. Redéclarer `--color-accent` sur les
+   racines BEM de HeroUI le remplace pour ces sous-arbres et pour eux seuls : les
+   utilitaires `bg-accent` qui s'y trouvent lisent la menthe, ceux de shadcn ailleurs
+   dans la page continuent de lire le gris. Aucun composant n'est modifié, aucune classe
+   n'est réécrite.
+
+   ⚠️ AJOUTER LA RACINE À CETTE LISTE EN ADOPTANT UN COMPOSANT HEROUI. L'oubli ne casse
+   rien de visible à la compilation : le composant s'affiche simplement en gris là où il
+   devrait porter la couleur de marque, ce qui passe très bien inaperçu en relecture.
+   ───────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .accordion, .alert, .alert-dialog, .autocomplete, .avatar, .calendar,
+  .calendar-year-picker, .checkbox, .checkbox-group, .chip, .combo-box,
+  .date-input-group, .date-picker, .date-range-picker, .disclosure, .drawer,
+  .dropdown, .input-group, .input-otp, .list-box, .menu, .meter, .modal,
+  .pagination, .popover, .progress-bar, .radio, .radio-group, .range-calendar,
+  .select, .slider, .spinner, .switch, .table, .tabs, .tag, .tag-group, .textfield,
+  .toast, .toggle-button, .toggle-button-group, .toolbar, .tooltip {
+    --color-accent: var(--color-brand);
+    --color-accent-foreground: var(--color-on-brand);
+    --color-accent-hover: var(--color-brand-strong);
+    --color-accent-soft: var(--color-brand-soft);
+    --color-accent-soft-hover: var(--color-brand-soft);
+    /* Le texte POSÉ SUR l'aplat tendre — jamais l'aplat lui-même. En thème sombre,
+       `brand-soft` est un vert très foncé : y écrire `on-brand` (blanc) serait juste,
+       mais `brand-strong` porte mieux la nuance de marque tout en gardant le contraste. */
+    --color-accent-soft-foreground: var(--color-brand-strong);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    Échelle typographique d'affichage.
 
    Calée sur kraken/DESIGN.md, qui RENVERSE le parti pris précédent : graisse 700
@@ -909,6 +1100,49 @@
     max-inline-size: 1680px;
     margin-inline: auto;
     padding-inline: 24px;
+    /* ── LE PASSAGE COMPACT ↔ ÉTIRÉ S'ANIME ──────────────────────────────────
+       Sans transition, choisir « Étirée » faisait SAUTER toute la page d'un bloc :
+       la fiche s'élargissait de sept cents pixels en une image, et l'œil perdait
+       la ligne qu'il suivait. 260 ms en `ease-out` suffisent à rattacher l'avant à
+       l'après — c'est la durée des autres changements de taille du site.
+
+       `prefers-reduced-motion` la retire : un mouvement de cette amplitude est
+       exactement ce que ce réglage système existe pour supprimer. */
+    transition: max-inline-size 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shell {
+      transition: none;
+    }
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     AFFICHAGE « ÉTIRÉ » — le plafond de largeur tombe, sur les FICHES seulement.
+
+     Réglage du menu de l'en-tête (voir `DisplaySettings`), posé sur `<html>` par le
+     script d'amorçage pour que la largeur soit bonne dès la première peinture.
+
+     `:has([data-asset-page])` restreint l'effet aux fiches d'actif : c'est ce qui a
+     été demandé, et c'est aussi le seul endroit où l'étirement se justifie — une
+     fiche est faite de trois colonnes qui gagnent à respirer, là où un classement de
+     18 000 lignes étalé sur 3 000 px éloigne le nom du prix sans rien apporter.
+
+     Le `<header>` n'est pas concerné : il garde son alignement sur 1 680 px, comme
+     chez CoinMarketCap, dont la barre reste centrée au-dessus d'une fiche étalée.
+     ─────────────────────────────────────────────────────────────────────────── */
+  /* ⚠️ 4 000 px ET NON `none`, POUR QUE LA TRANSITION EXISTE.
+
+     `max-inline-size: none` n'est pas une longueur : le navigateur ne peut pas
+     l'interpoler, et le passage compact → étiré sautait d'une image à l'autre. Deux
+     longueurs s'interpolent, d'où cette valeur.
+
+     Elle ne borne rien en pratique : `.shell` porte déjà `width: 100%`, donc la
+     largeur réelle reste celle du parent. 4 000 px couvre tous les écrans courants,
+     5 K compris en fenêtre partagée ; au-delà, la fiche cesserait de s'étirer — c'est
+     la seule limite connue de ce réglage, et elle est assumée. */
+  :root[data-layout='wide'] .shell:has([data-asset-page]) {
+    max-inline-size: 4000px;
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -929,6 +1163,77 @@
   .shell-bleed {
     width: 100%;
     padding-inline: 24px;
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     SORTIR DE LA COLONNE — pour une bande de couleur au milieu d'une page.
+
+     `main` porte `.shell`, donc TOUT contenu de page est borné et centré. Une bande
+     teintée qui s'y conformerait aurait deux bords verticaux au milieu de l'écran, ce
+     qui la ferait lire comme un très grand encadré et non comme un étage de la page.
+     C'est la composition du centre d'aide — deux aplats traversants encadrant une
+     grille qui, elle, reste dans la colonne.
+
+     La mécanique tient en une ligne : l'élément prend la largeur du VIEWPORT, puis on
+     le recule de la moitié de l'écart entre cette largeur et la sienne. `50%` se
+     rapporte à la boîte de contenu du parent, donc à la colonne — la formule reste
+     juste quel que soit le plafond de `.shell`, et suit même sa transition.
+
+     ⚠️ ON REMET UN `.shell` À L'INTÉRIEUR. La bande porte le FOND, son enfant porte
+     le CONTENU : sans cela, le texte irait toucher les bords de l'écran, et il ne
+     serait plus aligné sur celui du reste de la page — le défaut exact que
+     `.shell-bleed` existe pour éviter dans l'en-tête.
+
+     ⚠️ `100vw` INCLUT LA BARRE DE DÉFILEMENT, contrairement à la largeur du corps.
+     Une bande de 100vw dépasse donc d'une quinzaine de pixels à droite et ferait
+     apparaître un défilement horizontal sur TOUTE la page. D'où le `overflow-x: clip`
+     posé sur `html` — et sur `html`, pas sur `body` : voir la note qui l'accompagne,
+     la règle de propagation de CSS rend la déclaration inopérante sur le corps.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .bleed {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     LE CONTENU DE LA BARRE DE NAVIGATION — CENTRÉ EN COMPACT, ÉTALÉ EN ÉTIRÉ.
+
+     C'est le même réglage que celui des fiches (`data-layout`), étendu à l'en-tête
+     parce qu'il a été demandé — et parce que la coupure est celle des deux
+     références du secteur, exactement :
+
+       · COMPACT, c'est CoinGecko : le contenu de la barre porte le MÊME plafond
+         de 1 680 px que le corps de page, donc le logo commence à la verticale de
+         la première colonne du tableau au lieu de flotter trois cents pixels plus
+         à gauche. Marque et menus à gauche, recherche / compte / réglages à droite,
+         le tout dans cette largeur.
+       · ÉTIRÉ, c'est CoinMarketCap : le contenu touche les deux bords de l'écran.
+
+     ⚠️ LE FILET INFÉRIEUR N'EST PAS CONCERNÉ. Il vit sur le `<header>` lui-même,
+     qui reste pleine largeur : un trait arrêté à 1 680 px laisse deux vides
+     latéraux et se lit comme un défaut de rendu, pas comme un choix.
+
+     Les 4 000 px du mode étiré, et non `none`, pour la même raison qu'ailleurs :
+     `none` n'est pas une longueur, le navigateur ne peut pas l'interpoler, et la
+     bascule sauterait d'une image à l'autre au lieu de glisser. `width: 100 %` fait
+     que cette borne ne borne rien en pratique.
+     ─────────────────────────────────────────────────────────────────────────── */
+  .shell-header {
+    width: 100%;
+    max-inline-size: 1680px;
+    margin-inline: auto;
+    padding-inline: 24px;
+    transition: max-inline-size 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :root[data-layout='wide'] .shell-header {
+    max-inline-size: 4000px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shell-header {
+      transition: none;
+    }
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -1694,7 +1999,7 @@
       marque, le vert d'eau de hausse et la rose de baisse : sept des neuf teintes
       porteuses de sens de ce thème vivent entre 160° et 260°.
 
-   Contrastes sur le canvas (#080b12) : ink 17,97:1 · ink-muted 7,66:1 · brand 13,31:1 ·
+   Contrastes sur le canvas (#0b1016) : ink 15,42:1 · ink-muted 7,63:1 · brand 12,55:1 ·
    hausse 10,24:1 · baisse 7,31:1. Tous très au-delà de 4,5:1 — c'est le confort que
    procure un fond aussi sombre.
 
@@ -1729,75 +2034,130 @@
 
      ── CE QU'IL REMPLACE, ET POURQUOI ────────────────────────────────────────
 
-     Trois rampes se sont succédé ici, et il faut les nommer toutes parce que la
-     dernière tranche un aller-retour :
+     Quatre rampes se sont succédé ici, et la dernière referme la boucle :
 
        · un noir NEUTRE (#141414 et ses voisins), relevé sur tokenterminal.com.
-         Juste — chaque écart avait été mesuré — mais anonyme : un noir neutre est
-         le fond de la moitié du secteur ;
-       · un noir CHAUD (#100c0e), relevé sur tokenomist.ai. Il retirait au noir sa
-         froideur clinique, au prix d'une dominante rouge que la palette de données
-         ne demandait pas ;
-       · un BLEU-NUIT (#080b12), l'actuel — quatorze points de bleu au-dessus du
-         rouge, soit l'amplitude symétrique de la précédente, dans l'autre sens.
+         Juste — chaque écart avait été mesuré — mais anonyme ;
+       · un noir CHAUD (#100c0e), relevé sur tokenomist.ai : il retirait au noir sa
+         froideur clinique, au prix d'une dominante rouge dont la palette de données
+         n'avait pas besoin ;
+       · un gris NEUTRE resserré (#0c0c0c), qui coupait la poire en deux et n'avait
+         donc plus d'avis ;
+       · un BLEU-ARDOISE (#0b1016), l'actuel — onze points de bleu au-dessus du
+         rouge, la structure relevée chez CoinGecko sans en reprendre les valeurs.
 
-     ── POURQUOI LE BLEU PLUTÔT QUE LE CHAUD ──────────────────────────────────
+     ── POURQUOI LE BLEU PLUTÔT QUE LE NEUTRE ─────────────────────────────────
 
      Deux raisons, et la première n'est pas esthétique. La palette de DONNÉES compte
      quatre teintes froides sur six ; l'accent est une MENTHE (#5eead4), le vert de
      hausse un vert d'eau, le rouge de baisse une rose. Sept des neuf teintes
-     porteuses de sens de ce thème vivent donc entre 160° et 260°. Un fond chaud les
-     mettait toutes en opposition simultanée — ce qui les détache, mais les fait
-     aussi vibrer, défaut visible sur une page de trois cents lignes de cotation. Un
-     fond de leur propre famille les laisse se poser.
+     porteuses de sens de ce thème vivent donc entre 160° et 260°. Un fond neutre les
+     laissait toutes flotter sans famille ; un fond de leur propre famille les pose.
 
-     La seconde tient au nom du site : 空, kuu, le ciel, le vide. Un bleu-nuit le dit
-     sans avoir à l'expliquer.
+     La seconde tient au nom du site : 空, kuu, le ciel, le vide. Un bleu de nuit le
+     dit sans avoir à l'expliquer.
 
      ── LA RAMPE NE DESCEND PAS AU NOIR ABSOLU, ET C'EST DÉLIBÉRÉ ─────────────
 
      Une version antérieure était descendue à #060606, six points de clarté au-dessus
      du noir absolu. Sur un écran OLED elle devenait littéralement du noir éteint :
      le canvas disparaissait, les panneaux flottaient sans support, et le bord de la
-     fenêtre se confondait avec la page. #080b12 garde dix-huit points de marge sur
+     fenêtre se confondait avec la page. #0b1016 garde vingt-deux points de marge sur
      son canal le plus clair — assez pour que la page reste une SURFACE et non un trou.
 
      ── L'ACCENT EST UNE MENTHE ───────────────────────────────────────────────
 
      Voir `--color-brand` plus bas, et la note qui lui répond dans le bloc `@theme`.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-canvas: #0c0c0c;
-  /* LA CARTE, un cran au-dessus du canvas. Écart de 1,14:1, et 1,26:1 du canvas au
-     PANNEAU — l'amplitude relevée chez la référence entre son fond et ses cartes.
-     C'est l'élévation qui remplace la « surface unique » précédente, où ce jeton
-     valait le canvas : voir la note sur les trois plans dans le bloc `@theme`. */
-  --color-surface: #1b1b1b;
-  /* SECOND PLAN — ce qui se pose SUR une carte. Un cran au-dessus d'elle, et le
-     dernier : au-delà, la nuance cesse d'être perceptible avant que le fond ne
-     devienne gris. */
-  --color-panel: #262626;
-  /* Ni un plan ni une carte : survols de ligne, en-têtes de colonne, bandes de
-     contraste. Il reste AU-DESSUS de `panel`, sans quoi le survol d'une ligne à
-     l'intérieur d'un panneau serait plus sombre que le panneau qui la contient. */
-  --color-surface-muted: #2f2f2f;
-  /* Filet à 1,33:1 sur la carte. Le filet le plus courant de la référence,
-     `rgba(163,163,163,.1)`, tombe à 1,12:1 une fois aplati : tenable pour délimiter
-     un bloc qui porte déjà son propre fond, trop faible pour les SÉPARATEURS de
-     rangée d'un tableau, où la grille disparaît sous 1,15:1. */
-  --color-border-subtle: #383838;
+  /* ══════════════════════════════════════════════════════════════════════════
+     ⚠️ LA RAMPE SOMBRE EST CELLE DE TRADINGVIEW (demande explicite).
 
-  /* L'ENCRE PERD SA TEINTE AVEC LE FOND, et c'est le même raisonnement retourné.
-     Elle portait un soupçon de bleu (#f1f5f9) pour une raison précise : un blanc pur
-     posé sur un bleu-nuit se lit jaunâtre par contraste simultané. Le fond étant
-     devenu neutre, l'induction disparaît — et la même teinte, qui corrigeait un
-     défaut, se mettrait à en créer un : du blanc légèrement bleu sur un gris neutre
-     se voit comme du bleu. #f4f4f4 reprend sa luminance exacte, sans teinte. */
-  --color-ink: #f4f4f4;
-  /* La seconde voix, de loin la teinte la plus employée de la page. Même conversion
-     à luminance égale : le contraste sur le canvas reste au-dessus du seuil AAA de
-     7:1, ce qui est la propriété à préserver — et c'est cette marge qui borne la
-     hauteur du fond, un canvas plus clair ferait passer ce gris en dessous. */
-  --color-ink-muted: #a1a1a1;
+     ⚠️ LE CANVAS EST LE NOIR ABSOLU (#000000), ET C'EST DEMANDÉ EXPLICITEMENT —
+     « deep black, vantablack, comme OKX ». C'est la rampe d'OKX : un fond éteint, des
+     cartes qui montent d'un cran (#0d0d0f), un second plan à #151518 et des survols à
+     #1c1c20.
+
+     CE QUE CE CHOIX COÛTE, ET IL FAUT LE SAVOIR AVANT DE LE DÉFAIRE : sur un écran
+     OLED, un canvas à #000 n'émet plus rien. Le bord de la fenêtre se confond avec la
+     page, et ce sont les CARTES qui portent seules l'existence d'une surface. Toute la
+     hiérarchie repose donc sur les treize points qui séparent le canvas de la carte —
+     c'est peu, c'est voulu, et c'est ce qui donne à cette rampe son côté tranchant.
+     Les filets remontent en conséquence (#2a2a2f) : sous cette valeur, la grille des
+     tableaux disparaît purement et simplement.
+
+     La rampe est NEUTRE et non bleutée : le bleu-nuit de TradingView tirait le noir
+     vers le gris dès qu'on l'entourait de blanc. L'accent azurin, lui, reste froid et
+     porte à lui seul la température du thème.
+
+     Ce que ce choix apporte au site, au-delà de la ressemblance : la rampe de
+     TradingView est FROIDE (dix-huit points de bleu au-dessus du rouge), et c'est la
+     famille de la palette de données comme du nouvel accent azur — les couleurs
+     porteuses de sens s'y posent au lieu d'y flotter.
+     ══════════════════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════════════════
+     ⚠️ LA RAMPE SOMBRE EST CELLE DE DROPSTAB (demande explicite), ET ELLE
+     REMPLACE LE NOIR ABSOLU
+     ══════════════════════════════════════════════════════════════════════════
+
+     ── CE QUI CHANGE, ET CE QUI NE CHANGE PAS ────────────────────────────────
+
+     Seuls les NEUTRES bougent : fonds, filets, encre. L'accent azurin, la palette
+     de données, les verts de hausse et les rouges de baisse restent tels quels —
+     c'est la portée qui a été demandée, et c'est aussi la plus sûre : les ratios
+     de contraste de ces neuf teintes sont mesurés et documentés plus haut.
+
+     ── LA RAMPE EST CELLE DE TAILWIND `zinc`, ET C'EST CE QUE DROPSTAB EMPLOIE ─
+
+     Relevé au navigateur sur dropstab.com, thème sombre :
+       · corps de page       `rgb(24, 24, 27)`  = zinc-900  #18181b
+       · en-tête et cartes   `rgb(39, 39, 42)`  = zinc-800  #27272a
+       · survols et filets   `rgb(63, 63, 70)`  = zinc-700  #3f3f46
+       · texte               `rgb(255, 255, 255)`
+       · texte secondaire    `rgb(161, 161, 170)` = zinc-400 #a1a1aa
+
+     ── CE QUE LE NOIR ABSOLU COÛTAIT, ET QUE CETTE RAMPE REND ────────────────
+
+     Le canvas valait #000000. Sur un écran OLED il n'émettait plus rien : le bord
+     de la fenêtre se confondait avec la page, et toute la hiérarchie reposait sur
+     les treize points qui séparaient le canvas de la carte. À #18181b, le canvas
+     redevient une SURFACE, et les trois plans se distinguent sans avoir à compter
+     sur les filets.
+
+     ⚠️ `--color-panel` EST LA SEULE VALEUR QUI N'EST PAS DE DROPSTAB. Ils n'ont que
+     trois plans (corps, carte, survol) ; ce site en a quatre, parce qu'il imbrique
+     des panneaux DANS des cartes — le rail d'une fiche d'actif, par exemple. Ce
+     jeton tient donc le cran intermédiaire entre zinc-800 et zinc-700.
+
+     Même raison pour `--color-surface-muted`, qui ne descend pas exactement sur
+     zinc-700 : ce dernier est la couleur des FILETS, et une bande de survol de la
+     même valeur ferait disparaître la grille des tableaux qui la traverse.
+     ══════════════════════════════════════════════════════════════════════════ */
+  --color-canvas: #18181b;
+  /* LA CARTE — zinc-800, la valeur exacte des cartes et de l'en-tête de Dropstab.
+     Écart de 1,32:1 sur le canvas : plus du double de l'amplitude que laissait le
+     noir absolu, et c'est ce qui rend les cartes lisibles sans filet. */
+  --color-surface: #27272a;
+  /* SECOND PLAN — ce qui se pose SUR une carte. Voir la note ci-dessus : ce cran
+     n'existe pas chez Dropstab, il existe ici parce que ce site imbrique. */
+  --color-panel: #2f2f33;
+  /* Survols de ligne, en-têtes de colonne, bandes de contraste. Un cran sous le
+     filet, sans quoi la grille d'un tableau disparaîtrait sur ses propres
+     en-têtes. */
+  --color-surface-muted: #35353a;
+  /* zinc-700 — le filet de Dropstab. Il monte à 1,86:1 sur le canvas et reste
+     visible sur les quatre plans, y compris sur la bande de survol juste au-dessus. */
+  --color-border-subtle: #3f3f46;
+
+  /* BLANC PUR, comme Dropstab. La raison qui faisait teinter l'encre — un blanc posé
+     sur un bleu de nuit vire au jaunâtre par contraste simultané — tombe avec le
+     fond bleuté : la rampe zinc est NEUTRE, et un blanc y reste blanc. 16,1:1 sur
+     le canvas. */
+  --color-ink: #ffffff;
+  /* zinc-400, la seconde voix de Dropstab. 6,6:1 sur le canvas : au-dessus du seuil
+     AA de 4,5:1, en dessous du AAA de 7:1 que tenait la valeur précédente. C'est le
+     seul recul de contraste de cette bascule, et il est assumé — c'est la teinte que
+     la référence emploie, et elle ne porte jamais de texte long. */
+  --color-ink-muted: #a1a1aa;
 
   /* Même teinte qu'en clair (172°), même méthode : on part de la clarté du dessin
      et l'on s'en écarte du minimum nécessaire — vers le HAUT ici, puisque le fond a
@@ -1807,19 +2167,31 @@
      Contrastes sur le canvas : brand 13,31:1 · brand-strong 15,61:1. Le premier passe
      à la fois le seuil des composants et celui du texte, avec une marge confortable —
      c'est la contrepartie d'un fond aussi sombre. */
-  --color-brand: #5eead4;
-  --color-brand-strong: #99f6e4;
-  --color-brand-soft: #0d3b38;
+  /* ══════════════════════════════════════════════════════════════════════════
+     AZURIN — #a9eafe, la couleur demandée, posée telle quelle.
+
+     Elle est CLAIRE (luminance 0,77) : sur le fond profond ci-dessus elle passe
+     16,4:1, soit très au-delà du seuil AAA. C'est ce qui permet de l'employer aussi
+     bien pour du texte de lien que pour un aplat de bouton — les deux usages qu'un
+     accent doit couvrir sans se dédoubler.
+
+     ⚠️ ELLE N'EXISTE QU'EN THÈME SOMBRE. Sur du blanc, #a9eafe tombe à 1,32:1 : ce
+     serait illisible. Le thème clair porte donc la même TEINTE (196°) descendue en
+     clarté — voir `--color-brand` dans le bloc `@theme`.
+     ══════════════════════════════════════════════════════════════════════════ */
+  --color-brand: #a9eafe;
+  --color-brand-strong: #cdf3ff;
+  --color-brand-soft: #10262e;
   /* Sur fond sombre la lueur RAYONNE : portée plus large, teinte franchement
      mentholée. C'est le seul endroit du site où une couleur d'interface se diffuse au
      lieu de se poser, et elle ne doit apparaître que sur ce que le lecteur a choisi ou
      survole — jamais en décoration. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(94 234 212 / 0.38);
+  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(169 234 254 / 0.38);
 
   /* Encre TRÈS sombre sur menthe lumineuse : 11,43:1. Une nuance du canvas et non un
      noir arbitraire — un bouton plein doit rendre la couleur du fond, pas une
      seconde nuance de noir à côté. */
-  --color-on-brand: #04211f;
+  --color-on-brand: #06121a;
 
   --color-gold: #fbbf24;
   --color-gold-strong: #fcd34d;
@@ -1841,9 +2213,9 @@
      leurs versions saturées habituelles — sur un bleu-nuit, un vert pur et un rouge
      pur vibrent, et trente lignes de cotation les mettent côte à côte. Ces deux-là
      partagent la fraîcheur du fond sans cesser d'être lisibles comme vert et rouge. */
-  --color-up: #34d399;
+  --color-up: #22c55e;
   --color-up-soft: #0c2e22;
-  --color-down: #fb7185;
+  --color-down: #ef4444;
   --color-down-soft: #3a1620;
 
   /* Teinte de statut — voir le thème clair. C'est un CYAN et non un vert : décalé
@@ -1860,10 +2232,12 @@
   /* Mesuré : un ton trop proche du canvas fait qu'un menu déroulant s'y confond
      avec la page, le filet seul le retenant. Celui-ci monte à 1,45:1 sur le canvas,
      ce qui suffit à dire « au-dessus » sans créer une seconde surface de contenu.
-     Il passe SOUS `--color-border-subtle` (#2c3852) et non au-dessus : c'est ce qui
+     Il passe SOUS `--color-border-subtle` (#3f3f46) et non au-dessus : c'est ce qui
      laisse le filet dessiner le contour du panneau flottant plutôt que de s'y
      dissoudre. */
-  --color-overlay: #2b2b2b;
+  /* zinc-800, comme les menus de Dropstab : un cran au-dessus du canvas, un cran
+     sous le filet. */
+  --color-overlay: #27272a;
   /* Ombre RENFORCÉE — sur un fond aussi sombre, une ombre à 0,6 n'a pas assez de noir
      sous elle pour se voir. Elle le reste sous le canvas bleu-nuit, dont le canal le
      plus clair vaut dix-huit : l'ordre de grandeur est inchangé. */
@@ -1875,6 +2249,26 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+
+    /* ── LE DÉBORDEMENT HORIZONTAL EST COUPÉ ICI, ET PAS SUR `body` ────────
+       Les bandes pleine largeur (`.bleed`) mesurent `100vw`, ce qui INCLUT la barre
+       de défilement là où la largeur du corps ne l'inclut pas : sans cette ligne,
+       chacune dépasse d'une quinzaine de pixels à droite et fait apparaître un
+       défilement horizontal sur toute la page.
+
+       ⚠️ POSÉE SUR `body`, ELLE NE FAISAIT RIEN — relevé au navigateur : le corps
+       affichait bien `overflow-x: clip` en style calculé, et débordait quand même de
+       dix pixels. C'est la règle de PROPAGATION de CSS : tant que la racine est en
+       `visible`, c'est le débordement du CORPS qui est reporté sur la fenêtre, et le
+       corps lui-même retombe alors en `visible`. La déclaration s'appliquait donc à
+       tout sauf à l'élément sur lequel elle était écrite. Sur la racine, elle atteint
+       directement la fenêtre.
+
+       `clip` ET NON `hidden` : `hidden` ferait de la fenêtre un conteneur de
+       défilement programmable, ce qui perturbe `scrollIntoView` et les ancres ;
+       `clip` coupe sans rien de tout cela, et laisse le défilement vertical — donc
+       tous les `position: sticky` du site — intact. */
+    overflow-x: clip;
   }
 
   body {
@@ -2012,6 +2406,41 @@
     border-radius: var(--radius-card);
   }
 
+  /* ───────────────────────────────────────────────────────────────────────────
+     LE FONDU DU CHANGEMENT DE THÈME.
+
+     Basculer clair/sombre réassigne une soixantaine de jetons d'un coup. Sans
+     fondu, toute la page change à la frame près : c'est net, mais violent, et l'œil
+     perd le point qu'il lisait. La référence (cryptorank.io) fond les deux états en
+     un peu moins d'une demi-seconde.
+
+     Ces deux pseudo-éléments sont les PHOTOGRAPHIES que le navigateur prend avant et
+     après le changement — voir `swapTheme` dans lib/stores/settings.ts, qui explique
+     pourquoi le fondu passe par là plutôt que par une transition posée sur tout le
+     document. Le fondu croisé est le comportement par défaut de l'API ; il ne reste
+     ici qu'à lui donner la durée et la courbe du site.
+
+     ⚠️ `*` NE LES ATTEINT PAS. Ces pseudo-éléments vivent dans une arborescence à
+     part, celle de la transition : la règle `prefers-reduced-motion` ci-dessous doit
+     donc les nommer explicitement pour que la bascule redevienne instantanée.
+     ─────────────────────────────────────────────────────────────────────────── */
+  /* ⚠️ SANS CETTE LIGNE, RIEN NE SE FOND — ET AUCUNE ERREUR N'EST LEVÉE.
+
+     La racine du document doit porter un NOM de transition pour que le navigateur
+     sache quoi photographier. Mesuré sur ce site : `view-transition-name` y valait
+     `none` — une des feuilles importées écrase la valeur du navigateur — et la
+     transition se terminait alors en 14 ms au lieu de 300, sans rien animer, ce qui
+     se lit exactement comme une bascule sèche. */
+  :root {
+    view-transition-name: root;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--duration-move);
+    animation-timing-function: var(--ease-standard);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -2023,6 +2452,14 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+
+    /* Nommés à part : `*` ne descend pas dans l'arborescence de transition de vue.
+       Sans cette règle, la bascule de thème resterait le seul mouvement du site à
+       ignorer la demande de mouvement réduit. */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.01ms !important;
     }
   }
 }
@@ -2136,4 +2573,51 @@
   to {
     transform: translateX(-50%);
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ASCENSEUR FIN — POUR LES LISTES QUI VIVENT DANS UN PANNEAU
+
+   ── POURQUOI UNE RÈGLE ET NON UN UTILITAIRE TAILWIND ────────────────────────
+
+   Tailwind ne génère rien pour `::-webkit-scrollbar` : le pseudo-élément n'est pas
+   standard, et le greffon qui le couvrait n'est pas installé ici. Deux déclarations
+   suffisent, et il en faut deux parce que les navigateurs ne s'accordent pas —
+   Firefox lit `scrollbar-width` / `scrollbar-color`, les moteurs WebKit et Blink
+   lisent les pseudo-éléments. Aucun des deux ne comprend l'autre.
+
+   ── POURQUOI CELA COMPTE ICI ────────────────────────────────────────────────
+
+   Un ascenseur natif fait quinze pixels de large. Dans un panneau de 256 px comme
+   celui de la comparaison, il mange le quart droit des libellés — le nom de l'actif
+   se tronque alors que la place existe. Six pixels le rendent lisible sans le rendre
+   invisible : il doit rester VU, c'est lui qui dit qu'il reste des entrées sous le
+   bord du cadre.
+
+   Le pouce reprend `--color-surface-muted` et la piste reste transparente : la règle
+   suit donc le thème sans avoir à être redéclarée en clair et en sombre.
+   ───────────────────────────────────────────────────────────────────────────── */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-muted) transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-surface-muted);
+  border-radius: 3px;
+}
+
+/* Le pouce s'éclaircit au survol de la LISTE, pas de lui-même : viser un ruban de
+   six pixels pour obtenir un retour visuel serait une cible inatteignable. */
+.thin-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: var(--color-ink-muted);
 }

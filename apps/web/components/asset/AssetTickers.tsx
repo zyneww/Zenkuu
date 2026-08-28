@@ -11,6 +11,7 @@ import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Money } from '@/components/locale/Money'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
 import { TablePagination } from '@/components/ui/TablePagination'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Places de cotation d'un actif.
@@ -55,6 +56,42 @@ function unsigned(formatted: string | null): string {
 }
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * UNE PLATEFORME DÉCENTRALISÉE NOMME SES PAIRES PAR ADRESSE DE CONTRAT
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Sur une place centralisée, `base` et `target` sont des codes — « BTC », « USDT ».
+ * Sur un pool, la source publie l'ADRESSE des deux jetons : quarante-deux caractères
+ * hexadécimaux sur les chaînes EVM, quarante-quatre en base58 sur Solana.
+ *
+ * Relevé au navigateur sur la table des marchés tokenisés de NVIDIA : une seule ligne
+ * de pool écrivait quatre-vingt-six caractères dans la colonne « Paire », ce qui
+ * étirait le tableau bien au-delà de sa colonne et lui donnait un ascenseur horizontal
+ * — et les mêmes adresses se retrouvaient en pastilles dans le filtre par devise, où
+ * elles occupaient trois lignes pour des valeurs illisibles.
+ *
+ * ── POURQUOI TRONQUER PLUTÔT QUE TRADUIRE ────────────────────────────────────
+ *
+ * Traduire une adresse en symbole demanderait d'interroger la chaîne, ou de tenir une
+ * table d'adresses — pour une colonne d'appoint. La forme « 0x02FC…7436 » est celle
+ * qu'emploient les explorateurs de blocs : elle reste RECONNAISSABLE et copiable
+ * (l'adresse complète vit dans le `title`), sans rien inventer.
+ */
+function shortenAddress(value: string): string {
+  const raw = value.trim()
+  if (raw.length <= 12) return raw.toUpperCase()
+  /* Une adresse n'a ni espace ni barre oblique : c'est ce qui la distingue d'un libellé
+     long qu'on aurait tort de tronquer. */
+  if (/[\s/]/.test(raw)) return raw
+  return `${raw.slice(0, 6)}…${raw.slice(-4)}`
+}
+
+/** Un `target` est-il un CODE de devise, ou une adresse de contrat ? */
+function isCurrencyCode(value: string): boolean {
+  return value.trim().length <= 12 && !/^0x/i.test(value.trim())
+}
+
+/**
  * Fraîcheur de la cotation, en clair.
  *
  * Déléguée à `useRelativeTime` à la suite d'un ÉCART D'HYDRATATION repéré par
@@ -86,9 +123,27 @@ export function AssetTickers({
   tickers,
   assetName,
   exchangeImages,
+  title,
+  description,
 }: {
   tickers: AssetTicker[]
   assetName: string
+  /**
+   * Titre et chapeau de la section, quand l'appelant en veut d'autres.
+   *
+   * ── POURQUOI DEUX PROPS PLUTÔT QU'UN SECOND COMPOSANT ────────────────────
+   *
+   * Cette table sert désormais deux sujets. Sur une cryptomonnaie, ce sont les places
+   * qui cotent l'actif lui-même ; sur une action, celles qui cotent ses versions
+   * TOKENISÉES — et le chapeau doit alors nommer les émissions interrogées, ainsi que
+   * celles qui ne l'ont pas été. Les colonnes, le filtre par devise, la pagination et
+   * la mention de source sont EXACTEMENT les mêmes : dupliquer le composant pour deux
+   * phrases produirait deux tableaux condamnés à diverger au premier ajustement.
+   *
+   * Absents, les libellés d'origine s'appliquent.
+   */
+  title?: string
+  description?: React.ReactNode
   /**
    * Logos des places, indexés par leur identifiant chez la source.
    *
@@ -101,6 +156,7 @@ export function AssetTickers({
    */
   exchangeImages?: Record<string, string>
 }) {
+  const t = usePhrase()
   const [target, setTarget] = useState<string>('toutes')
   const [pageSize, setPageSize] = useState<number>(10)
   const [page, setPage] = useState(1)
@@ -111,6 +167,10 @@ export function AssetTickers({
   const targets = useMemo(() => {
     const counts = new Map<string, number>()
     for (const ticker of tickers) {
+      /* Les ADRESSES DE CONTRAT sont écartées du filtre. Une pastille « devise de
+         cotation » portant quarante-deux caractères hexadécimaux ne désigne rien pour
+         le lecteur, et n'en filtre qu'une ligne — voir `isCurrencyCode`. */
+      if (!isCurrencyCode(ticker.target)) continue
       counts.set(ticker.target, (counts.get(ticker.target) ?? 0) + 1)
     }
     return [...counts.entries()]
@@ -140,12 +200,16 @@ export function AssetTickers({
     <section aria-labelledby="places-titre" className="space-y-3">
       <div className="space-y-1">
         <h2 id="places-titre" className="display-sm text-ink">
-          Où se négocie {assetName}
+          {title ?? `Où se négocie ${assetName}`}
         </h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les {tickers.length} places les plus actives, classées par volume. Les parts
-          affichées se rapportent à ces {tickers.length} places seulement, pas à
-          l’ensemble du marché.
+          {description ?? (
+            <>
+              Les {tickers.length} places les plus actives, classées par volume. Les parts
+              affichées se rapportent à ces {tickers.length} places seulement, pas à
+              l’ensemble du marché.
+            </>
+          )}
         </p>
       </div>
 
@@ -180,30 +244,40 @@ export function AssetTickers({
             vérifier ici, « combien coûte-t-il où ». Le volume, qui sert à juger si la
             cotation est sérieuse, revient dès la première largeur supplémentaire. */}
         <Table className="border-collapse sm:min-w-[720px]">
-          <caption className="sr-only">Places de cotation de {assetName}</caption>
+          <caption className="sr-only">{t('Places de cotation de {a}').replace('{a}', assetName)}</caption>
           <TableHeader className="[&_tr]:border-b-0">
-            <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
-              <th scope="col" className="px-3 py-2.5 font-medium">Place</th>
-              <th scope="col" className="px-3 py-2.5 font-medium">Paire</th>
-              <th scope="col" className="px-3 py-2.5 text-right font-medium">Prix</th>
+            <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-xs text-ink-muted">
+              {/*
+                LE RANG N'EST PAS DÉCORATIF ICI, contrairement à celui d'un classement.
+
+                Sur un tableau trié par capitalisation, le numéro redit ce que l'ORDRE
+                des lignes dit déjà, et il avait été retiré pour cela. Ici il répond à
+                une autre question : « à quelle place se situe celle-ci quand j'en suis
+                à la troisième page ? » — la numérotation traverse les pages et ne
+                repart pas à un, ce que l'ordre seul ne peut pas dire.
+              */}
+              <th scope="col" className="w-10 px-3 py-2.5 text-right font-semibold">#</th>
+              <th scope="col" className="px-3 py-2.5 font-semibold">{t('Place')}</th>
+              <th scope="col" className="px-3 py-2.5 font-semibold">{t('Paire')}</th>
+              <th scope="col" className="px-3 py-2.5 text-right font-semibold">{t('Prix')}</th>
               {hasSpread ? (
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
-                  Écart
+                <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold sm:table-cell">
+                  {t('Écart')}
                 </th>
               ) : null}
               {hasDepth ? (
-                <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
-                  Profondeur ±2 %
+                <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold lg:table-cell">
+                  {t('Profondeur ±2 %')}
                 </th>
               ) : null}
-              <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
-                Volume 24 h
+              <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold sm:table-cell">
+                {t('Volume 24 h')}
               </th>
-              <th scope="col" className="hidden px-3 py-2.5 text-right font-medium md:table-cell">
-                Part
+              <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold md:table-cell">
+                {t('Part')}
               </th>
-              <th scope="col" className="hidden px-3 py-2.5 text-right font-medium xl:table-cell">
-                Cotée
+              <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold xl:table-cell">
+                {t('Cotée')}
               </th>
             </tr>
           </TableHeader>
@@ -226,14 +300,21 @@ export function AssetTickers({
                 key={`${ticker.exchange}-${ticker.base}-${ticker.target}-${index}`}
                 className="transition-colors duration-150 hover:bg-surface-muted/60"
               >
+                {/* Le rang ABSOLU, pas l'index de page : `(page - 1) × taille + i + 1`.
+                    Sans le décalage, la page 3 recommencerait à 1 et l'on croirait
+                    avoir changé de tableau. */}
+                <td className="tabular px-3 py-2.5 text-right text-xs text-ink-muted/70">
+                  {(currentPage - 1) * pageSize + index + 1}
+                </td>
+
                 <th scope="row" className="px-3 py-2.5 text-left font-medium text-ink">
                   <span className="inline-flex items-center gap-1.5">
                     {hasTrust && ticker.trust ? (
                       <span
                         className={`h-1.5 w-1.5 shrink-0 rounded-pill ${TRUST_CLASS[ticker.trust]}`}
-                        title={TRUST_LABEL[ticker.trust]}
+                        title={t(TRUST_LABEL[ticker.trust])}
                         role="img"
-                        aria-label={TRUST_LABEL[ticker.trust]}
+                        aria-label={t(TRUST_LABEL[ticker.trust])}
                       />
                     ) : null}
 
@@ -264,7 +345,7 @@ export function AssetTickers({
                           className="h-3 w-3 shrink-0 text-ink-muted"
                           aria-hidden="true"
                         />
-                        <span className="sr-only">(nouvelle fenêtre)</span>
+                        <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
                       </a>
                     ) : (
                       ticker.exchange
@@ -272,10 +353,42 @@ export function AssetTickers({
                   </span>
                 </th>
 
-                <td className="px-3 py-2.5 text-xs text-ink-muted">
-                  <span className="whitespace-nowrap">
-                    {ticker.base}/{ticker.target}
-                  </span>
+                {/*
+                  ── LA PAIRE EST CLIQUABLE QUAND LA SOURCE DONNE UNE ADRESSE ──────
+
+                  Le nom de la place l'était déjà, mais c'est la PAIRE qu'on vise quand
+                  on veut aller voir : « BTC/USDT chez Binance » n'est pas la page
+                  d'accueil de Binance, c'est un carnet précis, et `tradeUrl` pointe
+                  justement dessus. Deux cibles pour la même adresse, oui — et c'est ce
+                  que fait la référence, parce que l'œil part tantôt du nom, tantôt de
+                  la paire.
+
+                  `nofollow` : ce sont des liens sortants vers des places de marché, en
+                  nombre, et rien ne justifie de leur transmettre du signal.
+                */}
+                {/* La paire COMPLÈTE vit dans le `title` : c'est là qu'on va chercher
+                    une adresse de contrat quand on en a besoin, et elle reste
+                    sélectionnable à la souris. Voir `shortenAddress`. */}
+                <td
+                  className="px-3 py-2.5 text-xs text-ink-muted"
+                  title={`${ticker.base}/${ticker.target}`}
+                >
+                  {ticker.tradeUrl ? (
+                    <a
+                      href={ticker.tradeUrl}
+                      target="_blank"
+                      rel="nofollow noopener noreferrer"
+                      className="inline-flex items-center gap-1 whitespace-nowrap hover:text-brand-strong"
+                    >
+                      {shortenAddress(ticker.base)}/{shortenAddress(ticker.target)}
+                      <ExternalLink className="h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />
+                      <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
+                    </a>
+                  ) : (
+                    <span className="whitespace-nowrap">
+                      {shortenAddress(ticker.base)}/{shortenAddress(ticker.target)}
+                    </span>
+                  )}
                 </td>
 
                 <td className="tabular px-3 py-2.5 text-right text-ink">
@@ -338,15 +451,11 @@ export function AssetTickers({
       />
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        La pastille de couleur reprend le jugement de la source sur la crédibilité du
-        volume annoncé — ce n’est pas un avis de ZENKUU. La profondeur ±2 % est le
-        montant qu’il faudrait exécuter pour déplacer le cours de deux pour cent, à
-        l’achat puis à la vente, en dollars.
+        {t('La pastille de couleur reprend le jugement de la source sur la crédibilité du volume annoncé — ce n’est pas un avis de ZENKUU. La profondeur ±2 % est le montant qu’il faudrait exécuter pour déplacer le cours de deux pour cent, à l’achat puis à la vente, en dollars.')}
       </p>
 
       <p className="text-xs text-ink-muted">
-        ZENKUU n’exécute aucun ordre et ne détient aucun fonds. Ces liens mènent à des
-        plateformes tierces, citées sans recommandation.
+        {t('ZENKUU n’exécute aucun ordre et ne détient aucun fonds. Ces liens mènent à des plateformes tierces, citées sans recommandation.')}
       </p>
     </section>
   )

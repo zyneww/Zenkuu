@@ -117,7 +117,14 @@ export function WatchlistButton({
         aria-pressed={following}
       >
         {pending ? <Loader2 className="animate-spin" /> : null}
-        <Star className={following ? 'fill-current' : undefined} aria-hidden="true" />
+        {/* `size-[1.125rem]` : l'étoile passe au-dessus du corps d'icône par défaut du
+            bouton (16 px). C'est le glyphe qui porte le sens du bouton — « suivre » se
+            lit à l'étoile avant de se lire au mot — et il était rendu plus petit que
+            son libellé. Le bouton, lui, ne change pas de taille. */}
+        <Star
+          className={`size-[1.125rem] ${following ? 'fill-current' : ''}`}
+          aria-hidden="true"
+        />
         {following ? 'Suivi' : 'Suivre'}
       </Button>
 
@@ -133,7 +140,7 @@ export function WatchlistButton({
             donc vers la liste, où l'on fait de la place.
           */}
           {failure === 'limit-reached' || failure === 'list-limit' ? (
-            <Link href="/suivi" className="text-brand hover:text-brand-strong">
+            <Link href="/tableau-de-bord" className="text-brand hover:text-brand-strong">
               Gérer mes listes
             </Link>
           ) : null}

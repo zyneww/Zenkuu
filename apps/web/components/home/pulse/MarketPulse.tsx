@@ -116,7 +116,7 @@ export async function MarketPulse({ globals }: { globals: DataResult<GlobalMarke
       </PulseTile>
 
       {/* ── VOLUME ───────────────────────────────────────────────────────── */}
-      <PulseTile label={t('Volume échangé sur 24 h')} href="/marches">
+      <PulseTile label={t('Volume échangé sur 24 h')} href="/crypto">
         {stats ? (
           <>
             <PulseValue>
@@ -220,7 +220,7 @@ export async function MarketPulse({ globals }: { globals: DataResult<GlobalMarke
       </PulseTile>
 
       {/* ── PROFONDEUR ───────────────────────────────────────────────────── */}
-      <PulseTile label={t('Actifs cotés')} href="/marches">
+      <PulseTile label={t('Actifs cotés')} href="/crypto">
         {stats ? (
           <>
             <PulseValue>

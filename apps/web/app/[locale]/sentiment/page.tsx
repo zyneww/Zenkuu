@@ -253,8 +253,10 @@ async function MethodSection() {
 
       <p className="text-sm text-ink-muted">
         Pour situer ces mouvements dans le marché :{' '}
-        <Link href="/mouvements" className="text-brand hover:underline">
-          données de marché
+        {/* `/mouvements` a été supprimée (demande explicite) ; `/classements` porte
+            les mêmes palmarès, filtrables, et existe depuis plus longtemps. */}
+        <Link href="/classements" className="text-brand hover:underline">
+          classements du marché
         </Link>{' '}
         ·{' '}
         <Link href="/apprendre" className="text-brand hover:underline">

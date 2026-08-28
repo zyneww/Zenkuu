@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { SearchResult, TrendingAsset } from '@zenkuu/data'
+import type { MarketAsset, SearchResult } from '@zenkuu/data'
 
 export interface SearchResponse {
   crypto: SearchResult[]
@@ -107,7 +107,7 @@ export function useAssetSearch({ active }: { active: boolean }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
-  const [trending, setTrending] = useState<TrendingAsset[]>([])
+  const [trending, setTrending] = useState<MarketAsset[]>([])
   const trendingLoaded = useRef(false)
 
   /* Une `Map` dans une référence, pas dans un état : y écrire ne doit RIEN redessiner.
@@ -129,7 +129,7 @@ export function useAssetSearch({ active }: { active: boolean }) {
     fetch('/api/tendances')
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
-        if (payload?.trending) setTrending(payload.trending as TrendingAsset[])
+        if (payload?.trending) setTrending(payload.trending as MarketAsset[])
       })
       .catch(() => {
         // Panne des tendances : la recherche reste pleinement utilisable. On

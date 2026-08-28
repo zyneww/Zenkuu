@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import type { AssetDetail } from '@zenkuu/data'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * « Marché fermé · à la clôture 22:00 · NASDAQ » — la ligne sous le cours.
@@ -63,6 +64,7 @@ export function AssetMarketStatus({
   asset: AssetDetail
   showPlace?: boolean
 }) {
+  const t = usePhrase()
   const session = asset.session
   const [now, setNow] = useState<number | null>(null)
 
@@ -78,7 +80,7 @@ export function AssetMarketStatus({
      métadonnées. Un « Marché ouvert » par défaut serait une affirmation gratuite. */
   if (!session || now === null) return null
 
-  const state = statusOf(session, now)
+  const state = statusOf(session, now, t)
   if (!state) return null
 
   const place = asset.exchange ?? null
@@ -150,6 +152,7 @@ export function AssetMarketStatus({
 function statusOf(
   session: NonNullable<AssetDetail['session']>,
   now: number,
+  t: (text: string) => string,
 ): { open: boolean; label: string } | null {
   const opens = session.opensAt ? Date.parse(session.opensAt) : NaN
   const closes = session.closesAt ? Date.parse(session.closesAt) : NaN
@@ -172,8 +175,8 @@ function statusOf(
 
   if (Number.isFinite(opens) && Number.isFinite(closes) && now >= opens && now <= closes) {
     return session.closesAt
-      ? { open: true, label: `Marché ouvert — clôture à ${time(session.closesAt)}` }
-      : { open: true, label: 'Marché ouvert' }
+      ? { open: true, label: t('Marché ouvert — clôture à {h}').replace('{h}', time(session.closesAt)) }
+      : { open: true, label: t('Marché ouvert') }
   }
 
   /* Ni ouverture ni clôture exploitables : on se tait. Une séance dont on ne connaît

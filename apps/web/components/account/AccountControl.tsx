@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Bell,
   Check,
   Copy,
   LayoutGrid,
@@ -18,16 +17,15 @@ import {
 import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Link } from '@/i18n/navigation'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import type { AuthMode } from '@/components/account/auth-mode'
+import { Avatar } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '@/components/ui/IconButton'
 import { Input } from '@/components/ui/input'
 import { initialOf, readIdentityCookie } from '@/lib/identity-cookie'
-import type { AuthMode } from '@/components/account/AuthOverlay'
 import { useHoverDismiss } from '@/components/nav/useHoverDismiss'
 import { usePresence } from '@/components/nav/usePresence'
 import { DisplaySettings } from '@/components/settings/DisplaySettings'
-import type { PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import {
   deleteCurrentAccount,
@@ -88,7 +86,6 @@ export interface AccountSummary {
 
 export function AccountControl({
   available,
-  onOpenPreference,
   onOpenAuth,
 }: {
   /**
@@ -100,8 +97,25 @@ export function AccountControl({
    * connecté garde son menu entier ; sa session, elle, existe.
    */
   available: boolean
-  onOpenPreference: (tab: PreferenceTab) => void
-  /** Ouvre la fenêtre d'authentification sur l'intention demandée. */
+  /*
+   * ⚠️ `onOpenPreference` A DISPARU DE CE COMPOSANT.
+   *
+   * Il ouvrait la fenêtre de préférences plein écran quand on cliquait « Langue » ou
+   * « Devise » dans le panneau. Ces deux choix se font désormais SUR PLACE, dans un
+   * écran qui glisse à l'intérieur du menu — voir `DisplaySettings`, où le changement
+   * est motivé.
+   *
+   * La fenêtre existe toujours et reste servie par `/parametres` : c'est le chemin
+   * long, celui de qui veut parcourir le catalogue. Ce bouton-ci est le chemin court.
+   */
+  /**
+   * Ouvre la fenêtre d'authentification sur l'intention demandée.
+   *
+   * ⚠️ LES DEUX COMMANDES SONT REDEVENUES DES DÉCLENCHEURS, APRÈS AVOIR ÉTÉ DES LIENS
+   * vers `/connexion` et `/inscription`. Ces pages ont été retirées : s'authentifier
+   * n'est presque jamais le but de la visite sur un site de cotations, et une page
+   * fait QUITTER ce qu'on regardait. Voir l'en-tête de `AuthDialog`.
+   */
   onOpenAuth: (mode: AuthMode) => void
 }) {
   const t = usePhrase()
@@ -191,19 +205,56 @@ export function AccountControl({
       {initialOf(account.handle)}
     </Button>
   ) : available ? (
-    <Button
-      size="sm"
-      variant={triggerVariant}
-      onClick={toggle}
-      aria-expanded={menuOpen}
-      aria-haspopup="menu"
-      className="h-9 shrink-0"
-    >
-      <User />
-      {/* Le mot disparaît sous `sm`, l'icône reste : sur 375 pixels, la barre porte
-          déjà le logo et la recherche. */}
-      <span className="hidden sm:inline">{t('Se connecter')}</span>
-    </Button>
+    /*
+      ── LE VISITEUR ANONYME VOIT TROIS COMMANDES, ET NON UNE ────────────────────
+
+      Ce déclencheur était un bouton unique — « Se connecter » — qui ouvrait un panneau
+      portant à la fois le formulaire de connexion ET les réglages d'affichage. Un seul
+      geste pour deux sujets, et le second n'était annoncé nulle part : personne ne
+      cherche la langue du site derrière un bouton qui dit « Se connecter ».
+
+      Les trois commandes de la référence sont donc rendues côte à côte, dans l'ordre où
+      elles se lisent : l'action principale en APLAT PLEIN, l'action secondaire en texte
+      nu, les réglages en icône. La hiérarchie est portée par la forme et non par la
+      place — un lecteur qui vient pour s'inscrire ne doit pas d'abord lire « connexion ».
+
+      « S'inscrire » disparaît sous `sm` et pas « Se connecter » : sur 375 pixels, la
+      barre porte déjà le logo et la recherche, et entre les deux c'est la connexion —
+      le geste des visiteurs qui reviennent — qui doit rester atteignable. L'inscription
+      reste offerte DANS le panneau de connexion, qui bascule d'un mode à l'autre.
+    */
+    <div className="flex shrink-0 items-center gap-1">
+      <Button
+        size="sm"
+        variant="default"
+        onClick={() => onOpenAuth('signin')}
+        className="h-9 shrink-0"
+      >
+        <User />
+        <span className="hidden sm:inline">{t('Se connecter')}</span>
+      </Button>
+
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => onOpenAuth('signup')}
+        className="hidden h-9 shrink-0 text-ink-muted hover:text-ink md:inline-flex"
+      >
+        {t('S’inscrire')}
+      </Button>
+
+      <Button
+        size="icon-sm"
+        variant={triggerVariant}
+        onClick={toggle}
+        aria-label={t('Réglages d’affichage')}
+        aria-expanded={menuOpen}
+        aria-haspopup="menu"
+        className="size-9 shrink-0"
+      >
+        <Settings />
+      </Button>
+    </div>
   ) : (
     /* `Button` et non `IconButton` malgré l'absence de libellé : les deux autres
        formes de ce déclencheur basculent en `default` à l'ouverture du panneau, et
@@ -254,68 +305,35 @@ export function AccountControl({
 
               <div className="border-t border-border-subtle p-1.5">
                 <MenuLink href="/tableau-de-bord" icon={<LayoutGrid className="h-4 w-4" />} onNavigate={close}>{t('Vue d’ensemble')}</MenuLink>
-                <MenuLink href="/suivi" icon={<Star className="h-4 w-4" />} onNavigate={close}>{t('Liste de suivi')}</MenuLink>
-                <MenuLink href="/alertes" icon={<Bell className="h-4 w-4" />} onNavigate={close}>{t('Alertes de prix')}</MenuLink>
+                {/* L'entrée « Liste de suivi » visait `/suivi`, supprimée sur demande
+                    explicite. « Vue d'ensemble », juste au-dessus, porte la même liste
+                    — avec les cours en plus. Deux entrées vers la même page auraient
+                    fait hésiter sur ce qui les distingue. */}
                 <MenuLink href="/screener" icon={<ListFilter className="h-4 w-4" />} onNavigate={close}>{t('Écrans enregistrés')}</MenuLink>
               </div>
             </>
-          ) : available ? (
-            /*
-              DEUX BOUTONS, ET NON UN CHAMP D'ADRESSE.
-
-              Le panneau ouvrait directement le formulaire. Le raccourci se défendait —
-              il n'existe qu'un seul chemin d'authentification — mais il posait au
-              visiteur une question qu'il n'avait pas envisagée : personne n'arrive en
-              pensant « je veux saisir une adresse », on arrive en pensant « je veux mon
-              compte » ou « je veux en créer un ». Les deux boutons nomment ces deux
-              intentions, et la fenêtre qu'ils ouvrent porte le formulaire.
-
-              Le panneau se referme À L'OUVERTURE de la fenêtre : le laisser derrière
-              une modale afficherait deux surfaces flottantes superposées, et il se
-              refermerait de toute façon dès que la souris s'en éloignerait pour aller
-              vers le formulaire.
-            */
-            <div className="space-y-2 p-3">
-              <Button
-                size="sm"
-                onClick={() => {
-                  close()
-                  onOpenAuth('signin')
-                }}
-                className="w-full"
-              >
-                Connexion
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  close()
-                  onOpenAuth('signup')
-                }}
-                className="w-full"
-              >
-                Inscription
-              </Button>
-
-              {/* Ce que la connexion apporte — et il faut le dire ICI, à l'endroit où
-                  la question se pose. Sans cette phrase, le visiteur suppose qu'on lui
-                  demande de s'inscrire pour utiliser le site, alors que la liste de
-                  suivi et les alertes fonctionnent déjà sans compte. */}
-              <p className="pt-0.5 text-[0.6875rem] leading-snug text-ink-muted">
-                Un compte n’est <strong className="font-medium text-ink">pas nécessaire</strong> pour
-                suivre un actif ou armer une alerte. Il sert à retrouver la même liste sur un autre
-                appareil.
-              </p>
-            </div>
           ) : null}
+
+          {/*
+            ⚠️ LE BLOC DE CONNEXION A ÉTÉ RETIRÉ DE CE PANNEAU.
+
+            Il portait deux boutons — « Connexion », « Inscription » — et un paragraphe
+            expliquant qu'un compte n'est pas nécessaire. Trois éléments qui répondaient
+            à une question que ce bouton ne pose plus : depuis que l'en-tête montre
+            « Se connecter » et « S'inscrire » côte à côte (voir le déclencheur, plus
+            haut), l'engrenage n'est QUE l'engrenage. Y remettre l'authentification
+            faisait deux chemins vers la même fenêtre, à trente pixels l'un de l'autre.
+
+            Ce panneau porte donc exactement trois lignes pour un visiteur anonyme :
+            devise, langue, apparence. Le menu de COMPTE — sécurité, déconnexion,
+            suppression — reste dessous pour un visiteur connecté, où il est le sujet.
+          */}
 
           {/* Les réglages d'affichage ferment TOUJOURS la rangée, dans les trois
               formes du panneau. C'est ce qui fait de ce bouton la seule entrée de
               réglages de la barre. */}
           <div className={account || available ? 'border-t border-border-subtle' : ''}>
-            <DisplaySettings onOpenPreference={onOpenPreference} onNavigate={close} />
+            <DisplaySettings onNavigate={close} />
           </div>
 
           {account ? (
@@ -368,8 +386,8 @@ function AccountHeader({ account }: { account: AccountSummary }) {
 
   return (
     <div className="flex items-start gap-3 p-3">
-      {/* `Avatar` de shadcn/ui, RÉDUIT À SON REPLI — le site ne demande pas de photo
-          et n'en affichera donc jamais, d'où l'absence d'`AvatarImage`. Le composant
+      {/* `Avatar` de HeroUI, RÉDUIT À SON REPLI — le site ne demande pas de photo
+          et n'en affichera donc jamais, d'où l'absence d'`Avatar.Image`. Le composant
           garde tout de même son intérêt ici : c'est LUI qui définit le disque et son
           recadrage, que trois autres endroits reprenaient à la main avec des
           diamètres différents.
@@ -377,9 +395,9 @@ function AccountHeader({ account }: { account: AccountSummary }) {
           ⚠️ La taille se pose en classe et non en prop : shadcn/ui n'a pas d'échelle
           de tailles pour l'avatar, il a `size-8` par défaut et se laisse écraser. */}
       <Avatar className="size-10 shrink-0">
-        <AvatarFallback className="bg-brand-soft text-xs font-semibold uppercase text-brand-strong">
+        <Avatar.Fallback className="bg-brand-soft text-xs font-semibold uppercase text-brand-strong">
           {initialOf(account.handle)}
-        </AvatarFallback>
+        </Avatar.Fallback>
       </Avatar>
 
       <div className="min-w-0 flex-1">
@@ -530,7 +548,7 @@ function SignOutRow() {
 /**
  * Suppression du compte — deux clics, et le second est explicite.
  *
- * L'action efface la liste de suivi, les alertes et les écrans enregistrés. Une
+ * L'action efface la liste de suivi et les écrans enregistrés. Une
  * confirmation par fenêtre native (`confirm()`) serait le réflexe : elle est écartée
  * parce qu'un dialogue de navigateur bloque tout le fil d'exécution et ne dit pas ce
  * qui va disparaître. Le second bouton, lui, le nomme.
@@ -548,7 +566,7 @@ function DangerRow() {
 
   return (
     <div className="rounded-card border border-down/40 bg-down-soft p-2">
-      <p className="text-[0.6875rem] leading-relaxed text-ink">{t('Supprime définitivement le compte, la liste de suivi, les alertes et les écrans enregistrés.')}</p>
+      <p className="text-[0.6875rem] leading-relaxed text-ink">{t('Supprime définitivement le compte, la liste de suivi et les écrans enregistrés.')}</p>
       <div className="mt-2 flex gap-1">
         <Button
           size="xs"

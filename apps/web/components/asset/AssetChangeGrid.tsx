@@ -1,5 +1,6 @@
 import type { MarketAsset } from '@zenkuu/data'
 import { ChangeBadge } from '@zenkuu/ui'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Variations sur toutes les fenêtres publiées.
@@ -20,14 +21,15 @@ const WINDOWS: { key: keyof MarketAsset; label: string; longLabel: string }[] = 
   { key: 'change1y', label: '1 an', longLabel: 'sur 1 an' },
 ]
 
-export function AssetChangeGrid({ asset }: { asset: MarketAsset }) {
+export async function AssetChangeGrid({ asset }: { asset: MarketAsset }) {
+  const t = await getPhrase()
   const available = WINDOWS.filter((entry) => typeof asset[entry.key] === 'number')
   if (available.length === 0) return null
 
   return (
     <section aria-labelledby="variations-titre" className="space-y-2">
       <h2 id="variations-titre" className="sr-only">
-        Variations par période
+        {t('Variations par période')}
       </h2>
 
       {/*
@@ -73,7 +75,7 @@ export function AssetChangeGrid({ asset }: { asset: MarketAsset }) {
             <dd className="text-sm">
               <ChangeBadge
                 value={asset[entry.key] as number}
-                periodLabel={entry.longLabel}
+                periodLabel={t(entry.longLabel)}
               />
             </dd>
           </div>

@@ -3,14 +3,14 @@
 import { Globe } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import {
   PreferenceOverlay,
   type PreferenceTab,
 } from '@/components/settings/PreferenceOverlay'
-import { useSettings } from '@/lib/stores/settings'
+import { useLanguageChoice } from '@/components/settings/useLanguageChoice'
 
 /**
  * Badge de langue et devise, en pied de page.
@@ -37,7 +37,10 @@ const LANGUAGE_LABELS: Record<string, string> = {
 
 export function LocaleBadge({ hint }: { hint: string }) {
   const [tab, setTab] = useState<PreferenceTab | null>(null)
-  const { language } = useSettings()
+  /* La langue RÉELLEMENT servie, pas la préférence enregistrée : les deux pouvaient
+     diverger, et ce badge existe précisément pour ne pas mentir. Voir
+     `useLanguageChoice`. */
+  const { language } = useLanguageChoice()
   const { currency } = useCurrency()
 
   return (
@@ -57,16 +60,16 @@ export function LocaleBadge({ hint }: { hint: string }) {
           passe maintenant par le `Tooltip` de shadcn/ui, qui s'ouvre au survol ET au
           focus — l'explication devient réellement atteignable.
 
-          ⚠️ `asChild` sur le déclencheur : sans lui, Radix rendrait son propre
-          `<button>` autour du nôtre, ce que le HTML interdit. */}
+          ⚠️ `asChild` A DISPARU avec Radix : `Tooltip.Trigger` de HeroUI accroche
+          directement son enfant, sans rendre de bouton autour. */}
       <Tooltip>
-        <TooltipTrigger asChild>
+        <Tooltip.Trigger>
           <Button size="sm" variant="outline" onClick={() => setTab('language')}>
             <Globe />
             {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}
           </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top">{hint}</TooltipContent>
+        </Tooltip.Trigger>
+        <Tooltip.Content placement="top">{hint}</Tooltip.Content>
       </Tooltip>
 
       <PreferenceOverlay tab={tab} onTabChange={setTab} onClose={() => setTab(null)} />

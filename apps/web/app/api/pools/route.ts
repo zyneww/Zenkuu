@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { guard } from '@/lib/rate-limit'
+
 import { getTokenPools, knownNetworks } from '@zenkuu/data'
 
 /**
@@ -39,6 +41,18 @@ const ALLOWED_PLATFORMS = new Set(knownNetworks().map((entry) => entry.platform)
 const ADDRESS_SHAPE = /^[a-zA-Z0-9:_-]{20,80}$/
 
 export async function GET(request: Request) {
+  /*
+    ── GARDE-FOU DE DÉBIT ────────────────────────────────────────────────────
+
+    Cette route sert un cache PARTAGÉ alimenté par une source gratuite : une boucle
+    qui fait varier ses paramètres ouvre autant d'entrées de cache que d'appels
+    sortants, et dégrade le site pour tout le monde. Le plafond borne l'entrée plutôt
+    que la sortie — voir `lib/rate-limit.ts`, qui dit aussi ce que cette approche ne
+    couvre pas.
+  */
+  const limited = guard(request, 'pools', 60)
+  if (limited) return limited
+
   const params = new URL(request.url).searchParams
   const platform = params.get('plateforme')?.trim() ?? ''
   const address = params.get('adresse')?.trim() ?? ''

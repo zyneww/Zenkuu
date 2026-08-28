@@ -9,7 +9,7 @@ import { SITE_URL } from '@/lib/site'
  * Elle ne l'est pas ici, pour une raison qui tient au code déjà écrit : ce site
  * possède DÉJÀ son modèle de sessions — `createSession`, `findSessionAccount`,
  * `deleteAccountSessions` — et surtout `claimAnonymousData`, qui rattache au compte
- * la liste de suivi et les alertes constituées avant toute connexion.
+ * la liste de suivi et les écrans constitués avant toute connexion.
  *
  * Auth.js apporte son propre modèle de sessions. L'installer imposait donc soit de
  * faire cohabiter deux systèmes — deux cookies, deux tables, deux notions de

@@ -53,7 +53,14 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
    * sous l'URL canonique de la page. Une seule entrée, à la priorité qu'avait la plus
    * haute des sept.
    */
-  { path: '/marches', changeFrequency: 'hourly', priority: 0.9 },
+  { path: '/crypto', changeFrequency: 'hourly', priority: 0.9 },
+  { path: '/actions', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/etf', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/indices', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/devises', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/matieres-premieres', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/derives', changeFrequency: 'hourly', priority: 0.7 },
+  { path: '/rachats', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/places', changeFrequency: 'daily', priority: 0.7 },
   { path: '/perpetuels', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/classements', changeFrequency: 'hourly', priority: 0.8 },
@@ -64,8 +71,6 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/classements/baisses', changeFrequency: 'hourly', priority: 0.6 },
   { path: '/classements/volumes', changeFrequency: 'hourly', priority: 0.6 },
   { path: '/classements/rotation', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/mouvements', changeFrequency: 'hourly', priority: 0.7 },
-  { path: '/points-marquants', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/graphiques', changeFrequency: 'daily', priority: 0.6 },
   { path: '/nouvelles-cotations', changeFrequency: 'daily', priority: 0.6 },
   { path: '/actualites', changeFrequency: 'hourly', priority: 0.7 },
@@ -82,8 +87,6 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   // requête d'un lecteur déjà décidé, et c'est la seule page du site dont la visite
   // se convertit directement.
   { path: '/bien-demarrer', changeFrequency: 'monthly', priority: 0.5 },
-  { path: '/methodologie', changeFrequency: 'monthly', priority: 0.5 },
-  { path: '/developpeurs', changeFrequency: 'monthly', priority: 0.4 },
   { path: '/a-propos', changeFrequency: 'yearly', priority: 0.4 },
   { path: '/nouveautes', changeFrequency: 'weekly', priority: 0.4 },
 ]

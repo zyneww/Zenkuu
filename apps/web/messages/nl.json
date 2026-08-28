@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Koers",
+      "asOf": "Per {stamp}",
       "help": "Laatste koers gepubliceerd door de bron, omgerekend naar de valuta die u hebt gekozen. Dit is geen uitvoeringskoers: afhankelijk van het platform en het moment zou een echte order op een nabij maar afwijkend niveau worden uitgevoerd."
     },
     "marketCap": {

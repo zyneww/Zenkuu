@@ -36,12 +36,13 @@ export interface FooterGroup {
 
 export interface FooterColumn {
   /**
-   * Étiquette de la colonne, JAMAIS rendue à l'écran.
+   * Titre visible de la colonne.
    *
-   * Elle nomme le `<nav>` pour les technologies d'assistance : sans elle, un lecteur
-   * d'écran annoncerait quatre régions « navigation » indiscernables en pied de page.
-   * Ce qui se voit, ce sont les intertitres des groupes — la colonne elle-même n'a
-   * pas de titre visible dans cette composition.
+   * ⚠️ IL NE L'ÉTAIT PAS. Cette étiquette ne servait qu'à nommer la colonne pour les
+   * technologies d'assistance, parce que la composition d'alors affichait les
+   * intertitres des GROUPES et non celui de la colonne. Le pied de page a été refait
+   * sur un modèle à un seul niveau (voir `components/Footer.tsx`) : les groupes sont
+   * fondus, et c'est ce libellé qui coiffe la liste.
    */
   label: string
   groups: FooterGroup[]
@@ -84,12 +85,12 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       {
         title: 'Classes d’actifs',
         links: [
-          { label: 'Cryptomonnaies', href: '/marches' },
-          { label: 'Actions', href: '/marches?classe=actions' },
-          { label: 'ETF', href: '/marches?classe=etf' },
-          { label: 'Indices', href: '/marches?classe=indices' },
-          { label: 'Devises', href: '/marches?classe=devises' },
-          { label: 'Matières premières', href: '/marches?classe=matieres-premieres' },
+          { label: 'Cryptomonnaies', href: '/crypto' },
+          { label: 'Actions', href: '/actions' },
+          { label: 'ETF', href: '/etf' },
+          { label: 'Indices', href: '/indices' },
+          { label: 'Devises', href: '/devises' },
+          { label: 'Matières premières', href: '/matieres-premieres' },
         ],
       },
       {
@@ -110,13 +111,15 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
           { label: 'Graphiques globaux', href: '/graphiques' },
           { label: 'Catégories & secteurs', href: '/categories' },
           { label: 'Heatmap sectorielle', href: '/heatmap' },
-          { label: 'Points marquants', href: '/points-marquants' },
         ],
       },
       {
         title: 'Indicateurs',
         links: [
-          { label: 'Données de trading', href: '/mouvements' },
+          /* « Points marquants » et « Données de trading » ont été retirés de ces
+             deux groupes avec les pages `/points-marquants` et `/mouvements`, supprimées
+             sur demande explicite. Aucun remplaçant : `/classements` et `/heatmap`
+             figurent déjà dans la colonne. */
           { label: 'Indice de sentiment', href: '/sentiment' },
           { label: 'Macroéconomie', href: '/macro' },
         ],
@@ -132,19 +135,20 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
           { label: 'Screener', href: '/screener' },
           { label: 'Comparateur', href: '/comparateur' },
           { label: 'Convertisseur', href: '/convertisseur' },
-          { label: 'Widgets à intégrer', href: '/widgets' },
+          /* « Widgets à intégrer » est parti avec la page `/widgets`, supprimée sur
+             demande explicite en même temps que `/methodologie` et `/developpeurs`. */
         ],
       },
-      {
-        // Placé haut dans la colonne : `/alertes` est la seule page du pied qui engage
-        // une dépense, et une entrée commerciale enterrée en dernière ligne se lit
-        // comme une gêne à la dissimuler.
-        title: 'Mon espace',
-        links: [
-          { label: 'Mes alertes', href: '/alertes' },
-          { label: 'Ma sélection', href: '/suivi' },
-        ],
-      },
+      /* ⚠️ LE GROUPE « MON ESPACE » A DISPARU EN ENTIER, ET SES DEUX LIENS AVEC LUI.
+
+         « Mes alertes » pointait déjà sur un 404 : la page `/alertes`, la tâche
+         planifiée et la table `price_alerts` avaient été supprimées avec la
+         fonctionnalité. « Ma sélection » visait `/suivi`, supprimée à son tour.
+
+         Rien ne les remplace ici : la liste des actifs suivis vit dans
+         `/tableau-de-bord`, qui figure déjà dans le menu de compte de l'en-tête. Un
+         groupe à un seul lien vers une page de compte n'a pas sa place dans un
+         annuaire public. */
     ],
   },
   {
@@ -153,10 +157,12 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       {
         title: 'Ressources',
         links: [
-          { label: 'Méthodologie & sources', href: '/methodologie' },
+          /* « Méthodologie & sources » et « API & développeurs » ont été retirés avec
+             leurs pages (demande explicite). Ce qui subsiste de la transparence sur
+             les sources est la ligne de la barre légale, qui les NOMME et renvoie
+             chez elles — voir `DATA_SOURCES` plus bas. */
           { label: 'Apprendre', href: '/apprendre' },
           { label: 'Bien démarrer', href: '/bien-demarrer' },
-          { label: 'API & développeurs', href: '/developpeurs' },
         ],
       },
       {
@@ -196,6 +202,33 @@ export const SOCIAL_LINKS: SocialLink[] = [
     icon: InstagramGlyph,
     external: true,
   },
+]
+
+/**
+ * Liens de la BARRE LÉGALE, à droite des sources.
+ *
+ * ⚠️ CE NE SONT PAS DES CONDITIONS D'UTILISATION NI UNE POLITIQUE DE
+ * CONFIDENTIALITÉ, et la place qu'ils occupent est pourtant celle-là dans le modèle
+ * repris. Ces deux pages n'existent pas : Zenkuu n'ouvre pas de compte payant, ne
+ * collecte pas de moyen de paiement et n'exécute aucun ordre. Écrire « Conditions
+ * d'utilisation » au-dessus d'un lien mort — ou d'une page inventée pour l'occasion —
+ * serait exactement la faute que le §5 interdit.
+ *
+ * Les deux entrées pointent donc vers les pages qui existent et qui répondent à la
+ * question que l'on se pose en regardant cet endroit du pied : d'où viennent les
+ * chiffres, et à qui parler. Le jour où de vraies mentions légales sont rédigées,
+ * elles se déclarent ici et rien d'autre ne bouge.
+ */
+export const LEGAL_LINKS: FooterLink[] = [
+  /* ⚠️ « Méthodologie & sources » A ÉTÉ RETIRÉ AVEC SA PAGE, et c'est la perte la
+     plus sérieuse de cette suppression : c'était le lien qui répondait à « d'où
+     viennent ces chiffres » depuis toutes les pages du site.
+
+     Ce qui répond encore, à côté de cette liste : les SOURCES elles-mêmes
+     (`DATA_SOURCES`), nommées et liées dans la même barre, et l'attribution CoinGecko
+     qui la suit. Le lecteur voit donc toujours qui publie les chiffres ; il ne lit
+     plus notre explication de la façon dont nous les traitons. */
+  { label: 'Centre d’aide', href: '/aide' },
 ]
 
 /**

@@ -163,11 +163,7 @@ export default async function CategoryPage({
 
       <p className="text-sm text-ink-muted">
         Les capitalisations sectorielles ne s’additionnent pas — un actif appartenant à
-        plusieurs secteurs y serait compté plusieurs fois. Voir la{' '}
-        <Link href="/methodologie" className="text-brand hover:underline">
-          méthodologie
-        </Link>
-        .
+        plusieurs secteurs y serait compté plusieurs fois.
       </p>
     </div>
   )

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { guard } from '@/lib/rate-limit'
+
 import {
   ASSET_CLASSES,
   SUPPORTED_CURRENCIES,
@@ -45,6 +47,18 @@ const ALLOWED_DAYS = [1, 7, 30, 90, 180, 365, 730, 1825, 3650]
 const ALLOWED_CURRENCIES = new Set(SUPPORTED_CURRENCIES.map((code) => code.toLowerCase()))
 
 export async function GET(request: Request) {
+  /*
+    ── GARDE-FOU DE DÉBIT ────────────────────────────────────────────────────
+
+    Cette route sert un cache PARTAGÉ alimenté par une source gratuite : une boucle
+    qui fait varier ses paramètres ouvre autant d'entrées de cache que d'appels
+    sortants, et dégrade le site pour tout le monde. Le plafond borne l'entrée plutôt
+    que la sortie — voir `lib/rate-limit.ts`, qui dit aussi ce que cette approche ne
+    couvre pas.
+  */
+  const limited = guard(request, 'historique', 120)
+  if (limited) return limited
+
   const params = new URL(request.url).searchParams
   const id = params.get('id')?.trim()
   const assetClass = params.get('classe')?.trim() as AssetClass | undefined

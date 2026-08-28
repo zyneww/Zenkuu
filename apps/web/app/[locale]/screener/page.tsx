@@ -247,7 +247,7 @@ async function Scope({ market }: { market: ScreenerMarket }) {
       <p className="text-sm text-ink-muted">
         {weave(
           t(
-            'Le filtrage est instantané parce qu’il porte sur des données déjà reçues avec la page — aucun aller-retour serveur n’est déclenché à chaque réglage. Voir la [méthodologie](/methodologie).',
+            'Le filtrage est instantané parce qu’il porte sur des données déjà reçues avec la page — aucun aller-retour serveur n’est déclenché à chaque réglage. Les sources sont nommées dans le [pied de page](/a-propos).',
           ),
           (href, label, key) => (
             <Link key={key} href={href} className="text-brand hover:underline">

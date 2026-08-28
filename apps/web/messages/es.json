@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Precio",
+      "asOf": "A las {stamp}",
       "help": "Último precio publicado por la fuente, convertido a la divisa que hayas elegido. No es un precio de ejecución: según el mercado y el momento, una orden real se cerraría a un nivel próximo pero distinto."
     },
     "marketCap": {
@@ -76,15 +77,23 @@
       "label": "24 horas",
       "help": "Variación del precio en las últimas 24 horas, según la publica la fuente. Es la ventana de referencia de las clasificaciones."
     },
-    "change7d": { "label": "7 días", "help": "Variación del precio en la semana transcurrida." },
-    "change14d": { "label": "14 días", "help": "Variación del precio en las dos últimas semanas." },
-    "change30d": { "label": "30 días", "help": "Variación del precio en el mes transcurrido." },
+    "change7d": {
+      "label": "7 días",
+      "help": "Variación del precio en la semana transcurrida."
+    },
+    "change14d": {
+      "label": "14 días",
+      "help": "Variación del precio en las dos últimas semanas."
+    },
+    "change30d": {
+      "label": "30 días",
+      "help": "Variación del precio en el mes transcurrido."
+    },
     "change1y": {
       "label": "1 año",
       "help": "Variación del precio en el año transcurrido. Una ventana ausente significa que la fuente no la publica, nunca que vale cero."
     }
   },
-
   "metricPage": {
     "breadcrumb": "Métricas",
     "definitionTitle": "Definición",
@@ -95,7 +104,6 @@
     "backToAsset": "Volver a la ficha",
     "currentValue": "Valor actual"
   },
-
   "chartCard": {
     "expand": "Ampliar",
     "collapse": "Reducir",
@@ -106,7 +114,6 @@
     "other": "Otros",
     "noData": "Serie no publicada por la fuente para este periodo."
   },
-
   "search": {
     "placeholder": "Buscar",
     "shortcut": "Ctrl + K",

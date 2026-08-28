@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server'
+import { getPhrase } from '@/lib/content'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { ChangeBadge, formatPercent } from '@zenkuu/ui'
@@ -86,6 +87,7 @@ export async function AssetMetricRail({
   groups?: readonly MetricGroup[]
 }) {
   const t = await getTranslations('metric')
+  const phrase = await getPhrase()
   const isForex = assetClass === 'forex'
 
   /**
@@ -119,9 +121,9 @@ export async function AssetMetricRail({
       `display: contents`, ce qui rend ses trois sections à la grille sans rien changer
       ailleurs. Voir `AssetLayoutFrame`.
     */
-    <aside data-rail-group className="space-y-6" aria-label="Repères chiffrés">
+    <aside data-rail-group className="space-y-6" aria-label={phrase('Repères chiffrés')}>
       {groups.map(({ group, rows }) => (
-        <RailSection key={group} title={GROUP_TITLES[group]}>
+        <RailSection key={group} title={phrase(GROUP_TITLES[group])}>
           <dl>
             {rows.map(({ metric, value }) => {
               const message = messageOf(metric)

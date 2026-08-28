@@ -1,14 +1,17 @@
 import type { Metadata } from 'next'
 
-import { getMoversUniverse, getNews, getRanking, type AssetClass, type MarketAsset, type NewsItem } from '@zenkuu/data'
+import {
+  NEWS_CATEGORY_LABELS,
+  getNews,
+  type NewsCategory,
+  type NewsItem,
+} from '@zenkuu/data'
 import { listNewsBetween } from '@zenkuu/db'
-import { ChangeBadge, EmptyState } from '@zenkuu/ui'
+import { EmptyState } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/asset/AssetLogo'
-import { NewsFeed } from '@/components/news/NewsFeed'
-import { citedAssets } from '@/components/news/mentions'
+import { RelativeTime } from '@/components/home/RelativeTime'
+import { Thumbnail } from '@/components/news/NewsFeed'
 import { Link } from '@/i18n/navigation'
-import { assetHref } from '@/lib/asset-routes'
 import { getContent, getPhrase } from '@/lib/content'
 
 // Les actualités se renouvellent plus vite que les cours : régénération à 3 minutes,
@@ -25,24 +28,46 @@ export const revalidate = 180
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
   return {
-  title: fr.pages.news,
-  description: fr.news.subtitle,
-  alternates: { canonical: '/actualites' },
+    title: fr.pages.news,
+    description: fr.news.subtitle,
+    alternates: { canonical: '/actualites' },
   }
 }
 
 /**
- * Fil d'actualités.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * FIL D'ACTUALITÉS — UNE, PUIS UNE SECTION PAR RUBRIQUE
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * Refonte : la page servait une liste plate de liens, tous de même poids, et ne
- * couvrait que la crypto alors que le site suit six classes d'actifs. Elle suit
- * désormais l'organisation d'un hub d'actualités — un article en tête, des filtres
- * de rubrique, puis une grille de cartes.
+ * ── LA COMPOSITION EST CELLE DE cryptoradar.com/guide ───────────────────────
  *
- * Les rubriques sont RÉELLES : elles proviennent du périmètre éditorial de chaque
- * flux, pas d'une devinette sur le titre de l'article. Deux flux non-crypto ont été
- * ajoutés pour que ces filtres aient un sens.
+ * Titre de page, un article de une flanqué de trois brèves, puis une bande par
+ * rubrique — en-tête à gauche, « Tout voir » à droite, rangée de cartes en dessous —
+ * et enfin la totalité du fil en grille.
+ *
+ * ── CE QUE CETTE REFONTE REMPLACE ───────────────────────────────────────────
+ *
+ * La page montait `NewsFeed`, un composant client à filtres (rubrique, langue, source,
+ * actif mentionné) doublé d'une colonne « les plus cités aujourd'hui ». Deux choses
+ * disparaissent donc ici, et il faut le dire clairement :
+ *
+ *   · LA COLONNE DES PLUS CITÉS. Elle exigeait cinq lectures d'univers de marché à
+ *     chaque rendu — l'univers crypto plus quatre classements — pour alimenter des
+ *     pastilles de variation. La maquette reprise n'a pas de colonne latérale.
+ *   · LES FILTRES EN BARRE. Ils sont remplacés par les rubriques elles-mêmes : chaque
+ *     bande porte son « Tout voir », qui ouvre `?rubrique=…` — la même sélection, mais
+ *     à une adresse partageable, indexable, et lisible sans JavaScript.
+ *
+ * `NewsFeed` n'est PAS supprimé : la fiche d'actif s'en sert toujours pour son propre
+ * fil (`AssetNewsPanel`), avec le filtre par mention qui n'a de sens que là-bas.
+ *
+ * ── LES RUBRIQUES SONT RÉELLES ──────────────────────────────────────────────
+ *
+ * Elles proviennent du périmètre éditorial de chaque FLUX, jamais d'une devinette sur
+ * le titre — voir `NEWS_CATEGORY_LABELS`, qui explique pourquoi elles s'appellent
+ * « Presse crypto » et non « Cryptomonnaies ».
  */
+
 /** Lecture défensive du paramètre de date : il est saisissable à la main dans l'URL. */
 function readDate(raw: string | string[] | undefined): string | null {
   const value = Array.isArray(raw) ? raw[0] : raw
@@ -56,6 +81,20 @@ function readDate(raw: string | string[] | undefined): string | null {
   return parsed > new Date() ? null : value
 }
 
+/**
+ * Lecture défensive du paramètre de rubrique.
+ *
+ * Il est saisissable à la main comme la date, et il sert à SÉLECTIONNER des articles :
+ * une valeur inconnue doit retomber sur le fil entier, jamais produire une page vide
+ * qui laisserait croire que la rubrique existe et n'a rien publié.
+ */
+function readCategory(raw: string | string[] | undefined): NewsCategory | null {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  if (!value) return null
+
+  return value in NEWS_CATEGORY_LABELS ? (value as NewsCategory) : null
+}
+
 export default async function NewsPage({
   searchParams,
 }: {
@@ -63,7 +102,10 @@ export default async function NewsPage({
 }) {
   const fr = await getContent()
   const t = await getPhrase()
-  const requestedDate = readDate((await searchParams)['date'])
+
+  const params = await searchParams
+  const requestedDate = readDate(params['date'])
+  const requestedCategory = readCategory(params['rubrique'])
 
   /*
    * DEUX SOURCES, selon la date demandée.
@@ -80,128 +122,20 @@ export default async function NewsPage({
    *
    * La fusion se fait tour à tour — un article de chaque flux, puis le deuxième de
    * chacun (voir `fetchNews`). À 36, le lot s'arrêtait donc au premier tour et demi :
-   * une bonne moitié des sources n'apparaissait jamais, et les filtres par source ne
+   * une bonne moitié des sources n'apparaissait jamais, et les rubriques ne
    * proposaient qu'elles. 72 garantit près de trois tours complets, donc toutes les
-   * sources représentées et des filtres qui portent sur un fil réel.
+   * sources représentées et des bandes qui portent sur un fil réel.
    */
-  /*
-   * L'UNIVERS EST CHARGÉ EN PARALLÈLE, POUR LES PASTILLES D'ACTIF.
-   *
-   * Chaque article porte la variation des actifs qu'il cite — c'est le meilleur trait
-   * de la référence : un titre dit ce qui s'est passé, la pastille dit si le marché y
-   * a réagi. Sans elle, la réponse est à deux clics et personne ne la cherche.
-   *
-   * ZÉRO APPEL SUPPLÉMENTAIRE : `getMoversUniverse(250)` est déjà chargé pour
-   * l'accueil, le convertisseur, les mouvements et les cotations récentes. Il est ici
-   * la cinquième lecture de la même entrée de cache.
-   */
-  /*
-   * ── LES QUATRE CLASSES NON CRYPTO REJOIGNENT LES COTATIONS ────────────────
-   *
-   * Elles manquaient, et cela rendait INERTE la moitié de la table des mentions :
-   * « NVIDIA », « S&P 500 » ou « Or » sont détectés dans les titres depuis toujours,
-   * mais la pastille ne s'affiche QUE si une variation est connue pour l'identifiant.
-   * Aucune ne l'était hors crypto — les entrées correspondantes n'ont donc jamais
-   * produit une seule pastille, et le défaut d'identifiant qu'elles portaient (voir
-   * `mentions.ts`) n'avait jamais eu l'occasion de se voir.
-   *
-   * Le coût est faible et partagé : ce sont les MÊMES clés de cache que les onglets
-   * de `/marches`, et les quatre lectures partent en parallèle du fil d'actualités.
-   */
-  const QUOTED_CLASSES: AssetClass[] = ['stock', 'etf', 'index', 'commodity']
+  const news = requestedDate ? null : await getNews(72)
+  const articles = archive ? archive.articles : news?.ok ? news.data : []
 
-  const [news, universe, ...others] = await Promise.all([
-    requestedDate ? Promise.resolve(null) : getNews(72),
-    getMoversUniverse(250, 'eur'),
-    ...QUOTED_CLASSES.map((assetClass) =>
-      getRanking({ assetClass, page: 1, perPage: 25, currency: 'eur' }),
-    ),
-  ])
+  if (articles.length === 0) {
+    return (
+      <div className="space-y-8">
+        <PageHeading title={fr.news.title} subtitle={fr.news.subtitle} />
 
-  /*
-   * Table `identifiant → variation 24 h`, réduite aux actifs que les pastilles savent
-   * nommer. La construire ici plutôt que de passer l'univers entier au composant
-   * client évite d'expédier 250 objets complets dans le paquet de la page pour en lire
-   * une poignée de nombres.
-   */
-  const quotes: Record<string, number> = {}
-  /*
-   * ── L'IDENTITÉ VISUELLE VOYAGE AVEC LA VARIATION ────────────────────────
-   *
-   * La colonne des plus cités alignait des noms nus. Or ces lignes mélangent quatre
-   * classes d'actifs — Bitcoin, l'Or, Microsoft, le Nasdaq — et rien ne disait
-   * laquelle : « Or » et « XRP » se lisent pareil en texte, alors qu'une pastille et
-   * un pictogramme les séparent d'un coup d'œil.
-   *
-   * `AssetLogo` sait dessiner les six classes à partir de quatre champs. On ne retient
-   * donc QUE ces quatre-là, comme pour `quotes` : expédier 250 actifs complets dans
-   * le paquet de la page pour en lire un symbole serait le prix d'une commodité.
-   */
-  const icons: Record<string, IconSeed> = {}
-
-  const remember = (asset: MarketAsset) => {
-    if (asset.change24h !== undefined) quotes[asset.id] = asset.change24h
-    icons[asset.id] = {
-      symbol: asset.symbol,
-      ...(asset.image ? { image: asset.image } : {}),
-      name: asset.name,
-      assetClass: asset.assetClass,
-    }
-  }
-
-  if (universe.ok) for (const asset of universe.data) remember(asset)
-  for (const result of others) {
-    if (!result.ok) continue
-    for (const asset of result.data) remember(asset)
-  }
-
-  const articles = archive ? archive.articles : (news?.ok ? news.data : [])
-
-  return (
-    <div className="space-y-8">
-      {/* ── L'EN-TÊTE SE RESSERRE ────────────────────────────────────────────
-          Le titre passait en `display-xl` au-dessus d'un sous-titre en `text-lg`, soit
-          près de deux cents pixels avant le premier article. Sur blog.kraken.com, le
-          titre de section tient sur une ligne et la une commence immédiatement : c'est
-          une page qu'on vient LIRE, et le premier écran doit porter un article, pas
-          une présentation de la rubrique.
-
-          Le sous-titre n'est pas supprimé pour autant — il dit d'où viennent les
-          articles, ce qu'aucun titre n'énonce — mais il descend d'un cran et passe à
-          droite du titre, sur la même ligne quand la place le permet. */}
-      <header className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-subtle pb-5">
-        <h1 className="display-sm text-ink">{fr.news.title}</h1>
-        <p className="max-w-xl text-sm leading-relaxed text-ink-muted">{fr.news.subtitle}</p>
-      </header>
-
-      {/* Le sélecteur de date a été RETIRÉ de la page. Le paramètre `?date=` reste lu
-          et servi depuis l'archive — un lien déjà partagé continue de fonctionner —
-          mais il n'occupe plus le haut d'une page qu'on vient lire au présent. */}
-      {articles.length > 0 ? (
-        <>
-          <NewsFeed
-            articles={articles}
-            quotes={quotes}
-            sidebar={<MostCited articles={articles} quotes={quotes} icons={icons} label={t('Les plus cités aujourd’hui')} />}
-          />
-
-          <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-            {t(
-              'ZENKUU agrège des titres publiés par des éditeurs tiers et renvoie vers leurs articles. Aucun texte intégral n’est republié, et ZENKUU n’est l’auteur d’aucun de ces contenus.',
-            )}
-          </p>
-
-          {/* La liste complète des quarante-deux éditeurs tenait ici sur six lignes de
-              liens gris. Chaque carte porte déjà le nom et le logo de sa source, et le
-              lien sortant y mène : répéter la liste en pied de page ajoutait un pavé
-              que personne ne lit sous la seule chose qu'on veut y trouver — la suite
-              des articles. */}
-        </>
-      ) : (
         <EmptyState
-          title={
-            requestedDate ? 'Aucune actualité ce jour-là' : fr.states.unavailableTitle
-          }
+          title={requestedDate ? 'Aucune actualité ce jour-là' : fr.states.unavailableTitle}
           /*
            * Un jour d'archive vide N'EST PAS UNE PANNE, et le dire importe : c'est la
            * différence entre « le site est cassé » et « rien n'a été conservé ce
@@ -218,137 +152,361 @@ export default async function NewsPage({
           source={news?.source?.label ?? null}
           tone={requestedDate ? 'neutral' : 'warning'}
         />
-      )}
+      </div>
+    )
+  }
+
+  /*
+   * ── UNE RUBRIQUE DEMANDÉE REND UNE PAGE, PAS UN FIL FILTRÉ ────────────────
+   *
+   * `?rubrique=crypto` sert la grille de cette seule rubrique, sous son propre titre.
+   * C'est la destination des « Tout voir » des bandes ci-dessous : une adresse, un
+   * titre, un contenu — donc partageable et indexable, ce qu'un filtre tenu en état
+   * React n'est jamais.
+   */
+  if (requestedCategory) {
+    const selection = articles.filter((article) => article.category === requestedCategory)
+
+    return (
+      <div className="space-y-8">
+        <PageHeading
+          title={NEWS_CATEGORY_LABELS[requestedCategory]}
+          subtitle={fr.news.subtitle}
+        />
+
+        <p>
+          <Link
+            href="/actualites"
+            className="text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong"
+          >
+            ← {t('Toutes les rubriques')}
+          </Link>
+        </p>
+
+        {selection.length > 0 ? (
+          <ArticleGrid articles={selection} />
+        ) : (
+          <EmptyState
+            title={t('Aucun article dans cette rubrique pour l’instant')}
+            description={t(
+              'Le fil est reconstitué toutes les trois minutes à partir des flux des éditeurs. Cette rubrique n’a rien publié dans le lot courant.',
+            )}
+            tone="neutral"
+          />
+        )}
+
+        <Attribution note={t(ATTRIBUTION)} />
+      </div>
+    )
+  }
+
+  const [lead, ...rest] = articles
+  const asides = rest.slice(0, 3)
+
+  /*
+   * Les bandes suivent l'ORDRE DES RUBRIQUES DÉCLARÉES, et non celui d'apparition
+   * dans le lot : sans cela, la page changerait de plan toutes les trois minutes au
+   * gré des publications, et le lecteur ne retrouverait pas la bande qu'il lisait.
+   *
+   * Une rubrique sans article dans le lot courant ne produit PAS de bande vide.
+   */
+  const sections = (Object.keys(NEWS_CATEGORY_LABELS) as NewsCategory[])
+    .map((category) => ({
+      category,
+      label: NEWS_CATEGORY_LABELS[category],
+      articles: articles.filter((article) => article.category === category),
+    }))
+    .filter((section) => section.articles.length > 0)
+
+  return (
+    <div className="space-y-12">
+      <PageHeading title={fr.news.title} subtitle={fr.news.subtitle} />
+
+      {/* ── LA UNE ────────────────────────────────────────────────────────
+          Un article large à gauche, trois brèves à droite. Le rapport de colonnes
+          (3/2) est celui de la référence : la couverture de la une doit rester
+          nettement plus grande que les vignettes qui l'accompagnent, sinon les
+          quatre articles se lisent comme quatre égaux et la hiérarchie disparaît. */}
+      {lead ? (
+        <section className="grid gap-8 lg:grid-cols-[3fr_2fr]">
+          <LeadArticle article={lead} />
+
+          <div className="flex flex-col divide-y divide-border-subtle">
+            {asides.map((article) => (
+              <AsideArticle key={article.id} article={article} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {sections.map((section) => (
+        <CategoryRow
+          key={section.category}
+          label={section.label}
+          href={`/actualites?rubrique=${section.category}`}
+          seeAll={t('Tout voir')}
+          articles={section.articles.slice(0, 8)}
+        />
+      ))}
+
+      <section className="space-y-5">
+        <SectionHeading label={t('Toutes les actualités')} />
+        <ArticleGrid articles={rest} />
+      </section>
+
+      <Attribution note={t(ATTRIBUTION)} />
     </div>
   )
 }
 
 /**
- * ══════════════════════════════════════════════════════════════════════════════
- * LA COLONNE DE TÊTE — LES ACTIFS QUE LE FIL DU JOUR NOMME LE PLUS
- * ══════════════════════════════════════════════════════════════════════════════
+ * Mention légale du fil, identique sur les deux vues.
  *
- * blog.kraken.com pose ici un encadré « New listings now available for trading » :
- * une grille dense de jetons, à côté de l'article de une. La place est juste — c'est
- * le seul endroit de la page où un bloc court peut tenir sans couper le fil — mais le
- * contenu ne nous convient pas : nous ne référençons pas de cotations à ouvrir, et un
- * bloc de nouveautés ferait doublon avec `/nouvelles-cotations`.
- *
- * Ce qui va à cette place est ce qui manque au lecteur d'un fil : de quoi PARLE
- * l'actualité d'aujourd'hui, et comment ces actifs se comportent pendant qu'on la lit.
- *
- * ── C'EST UN DÉCOMPTE, PAS UN CLASSEMENT ÉDITORIAL ─────────────────────────
- *
- * Le nombre affiché est celui des articles du lot dont le TITRE ou l'extrait contient
- * l'une des formes cherchées. C'est vrai par construction, et le lecteur le vérifie
- * d'un coup d'œil en parcourant la page — la même garantie que celle qui autorise le
- * filtre par mention (voir l'en-tête de `mentions.ts`). Ce n'est PAS « les sujets les
- * plus importants du jour », qui serait une appréciation, ni une mesure d'audience,
- * que nous n'avons pas.
- *
- * Aucun appel réseau : le décompte se fait sur les articles déjà chargés, et les
- * variations sur la table déjà construite pour les pastilles.
+ * Elle n'est pas décorative : ZENKUU republie des TITRES et renvoie vers les articles.
+ * L'écrire est ce qui distingue une revue de presse d'une reprise de contenu.
  */
-/** Les quatre champs dont `AssetLogo` a besoin pour dessiner n'importe quelle classe. */
-interface IconSeed {
-  symbol: string
-  image?: string
-  name: string
-  assetClass: AssetClass
+const ATTRIBUTION =
+  'ZENKUU agrège des titres publiés par des éditeurs tiers et renvoie vers leurs articles. Aucun texte intégral n’est republié, et ZENKUU n’est l’auteur d’aucun de ces contenus.'
+
+function Attribution({ note }: { note: string }) {
+  return <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{note}</p>
 }
 
-function MostCited({
-  articles,
-  quotes,
-  icons,
-  label,
-}: {
-  articles: NewsItem[]
-  quotes: Record<string, number>
-  icons: Record<string, IconSeed>
-  label: string
-}) {
-  const counts = new Map<string, { label: string; assetId: string; assetClass: AssetClass; count: number }>()
-
-  for (const article of articles) {
-    for (const mention of citedAssets(`${article.title} ${article.excerpt ?? ''}`)) {
-      /* Seuls les actifs dont on connaît la variation entrent : une ligne sans chiffre
-         au milieu de lignes chiffrées ferait chercher un nombre qui n'arrivera pas —
-         c'est la règle des pastilles, et elle vaut ici pour la même raison. */
-      if (quotes[mention.assetId as string] === undefined) continue
-
-      const existing = counts.get(mention.id)
-      if (existing) existing.count += 1
-      else
-        counts.set(mention.id, {
-          label: mention.label,
-          assetId: mention.assetId as string,
-          assetClass: mention.assetClass ?? 'crypto',
-          count: 1,
-        })
-    }
-  }
-
-  /*
-   * VINGT ET NON DOUZE.
-   *
-   * La colonne est haute comme l'article de une — près de six cents pixels — et douze
-   * lignes s'arrêtaient bien avant son pied : la rangée se refermait sur un rectangle
-   * vide bordé d'un filet, ce qui se lit comme un bloc qui n'a pas chargé. Vingt
-   * remplissent la hauteur sans jamais la dépasser, la liste étant bornée par le
-   * nombre d'actifs QUE LE LOT CITE RÉELLEMENT — rarement plus d'une quinzaine.
-   */
-  const top = [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 20)
-  if (top.length === 0) return null
-
+/**
+ * Titre de page, CENTRÉ comme sur la référence.
+ *
+ * Le centrage est le seul endroit où cette page s'écarte de la composition du reste
+ * du site, qui aligne ses titres à gauche. Il est repris tel quel : c'est ce qui
+ * annonce une page à LIRE plutôt qu'un tableau de bord à consulter, et la bascule est
+ * immédiate à l'œil.
+ */
+function PageHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    /*
-      ── LA COLONNE VA JUSQU'EN BAS ────────────────────────────────────────────
-      La liste s'arrêtait où ses lignes s'arrêtaient, et la rangée — dont la hauteur
-      est fixée par l'article de une, près de six cents pixels — se refermait sur un
-      rectangle vide bordé d'un filet. Un cadre vide se lit comme un bloc qui n'a pas
-      chargé, pas comme une liste finie.
+    <header className="space-y-3 text-center">
+      <h1 className="display-lg text-ink">{title}</h1>
+      <p className="mx-auto max-w-2xl text-sm leading-relaxed text-ink-muted">{subtitle}</p>
+    </header>
+  )
+}
 
-      `flex-1` sur la liste ET sur chaque ligne répartit la hauteur disponible entre
-      les entrées réellement citées. Rien n'est inventé pour combler : ce sont les
-      mêmes lignes, elles respirent simplement jusqu'au pied de la colonne. Et si le
-      lot en citait vingt, `flex-1` ne grandit plus — la liste reprend sa densité.
-    */
-    <section className="flex h-full flex-col">
-      <h2 className="mb-4 text-base font-semibold text-ink">{label}</h2>
+/** En-tête d'une bande : le nom à gauche, et rien d'autre quand il n'y a pas de suite. */
+function SectionHeading({
+  label,
+  href,
+  seeAll,
+}: {
+  label: string
+  href?: string
+  seeAll?: string
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <h2 className="text-2xl font-bold tracking-tight text-ink">{label}</h2>
 
-      <ul className="flex flex-1 flex-col divide-y divide-border-subtle">
-        {top.map((entry) => (
-          <li key={entry.assetId} className="flex-1">
-            <Link
-              href={assetHref(entry.assetClass, entry.assetId)}
-              className="group flex h-full items-center justify-between gap-3 py-2.5"
-            >
-              {/* L'ICÔNE OUVRE LA LIGNE. Ces vingt lignes mélangent cryptoactifs, ETF,
-                  actions, indices et matières premières, et le nom seul ne dit pas
-                  laquelle : « Or », « XRP » et « DAX » ont la même allure en texte.
-                  `AssetLogo` distingue les six classes — pastille de jeton, drapeau,
-                  pictogramme, logo d'émetteur — et retombe sur un monogramme quand la
-                  source n'a pas d'image, ce qui ne laisse jamais de case vide. */}
-              {icons[entry.assetId] ? (
-                <AssetLogo asset={icons[entry.assetId] as IconSeed} size={22} />
-              ) : null}
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-ink group-hover:text-brand-strong">
-                  {entry.label}
-                </span>
-                {/* « cité dans N articles » et non « N mentions » : la première forme
-                    dit ce qui a été compté, la seconde laisse imaginer un poids. */}
-                <span className="block text-[0.6875rem] text-ink-muted">
-                  cité dans {entry.count} article{entry.count > 1 ? 's' : ''}
-                </span>
-              </span>
-              <ChangeBadge value={quotes[entry.assetId] as number} size="sm" />
-            </Link>
+      {href && seeAll ? (
+        <Link
+          href={href}
+          className="shrink-0 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong"
+        >
+          {seeAll} →
+        </Link>
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * Une bande de rubrique : en-tête, puis une rangée de cartes qui DÉFILE.
+ *
+ * ── POURQUOI UN DÉFILEMENT HORIZONTAL ET NON UNE GRILLE QUI RETOURNE ────────
+ *
+ * C'est la référence, et le motif tient : une bande est un ÉCHANTILLON de sa
+ * rubrique, pas son inventaire. Une grille qui retourne à la ligne dit « voici
+ * tout », et pousse la bande suivante hors de l'écran ; une rangée qui déborde dit
+ * « il y en a d'autres », et la page garde son plan lisible d'un coup d'œil.
+ *
+ * L'inventaire, lui, est à un clic : c'est le « Tout voir » de l'en-tête.
+ *
+ * `snap-x` aligne l'arrêt du défilement sur le bord des cartes, pour qu'on ne
+ * s'arrête jamais au milieu d'une image.
+ */
+function CategoryRow({
+  label,
+  href,
+  seeAll,
+  articles,
+}: {
+  label: string
+  href: string
+  seeAll: string
+  articles: NewsItem[]
+}) {
+  return (
+    <section className="space-y-5">
+      <SectionHeading label={label} href={href} seeAll={seeAll} />
+
+      {/* `-mx-4 px-4` : la rangée déborde jusqu'aux bords de la coquille au lieu de
+          s'arrêter net sur sa marge, ce qui montre qu'elle continue. */}
+      <ul className="thin-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2">
+        {articles.map((article) => (
+          <li key={article.id} className="w-[280px] shrink-0 snap-start sm:w-[300px]">
+            <ArticleCard article={article} />
           </li>
         ))}
       </ul>
     </section>
+  )
+}
+
+/** La grille complète — quatre cartes par rangée au plus large, une sur téléphone. */
+function ArticleGrid({ articles }: { articles: NewsItem[] }) {
+  return (
+    <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {articles.map((article) => (
+        <li key={article.id}>
+          <ArticleCard article={article} />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/**
+ * Étiquettes d'un article : sa rubrique, puis son éditeur.
+ *
+ * Les deux, et dans cet ordre, parce qu'elles ne disent pas la même chose : la
+ * rubrique dit d'où vient le FLUX, l'éditeur dit qui a écrit. La référence n'affiche
+ * que des rubriques — elle publie ses propres articles et n'a personne d'autre à
+ * créditer. Ici, le nom de l'éditeur est ce qui rend l'étiquette de rubrique honnête.
+ */
+function Badges({ article }: { article: NewsItem }) {
+  const category = article.category as NewsCategory | undefined
+  const label = category && category in NEWS_CATEGORY_LABELS ? NEWS_CATEGORY_LABELS[category] : null
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {label ? (
+        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[0.6875rem] font-medium text-brand-strong">
+          {label}
+        </span>
+      ) : null}
+      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[0.6875rem] font-medium text-ink-muted">
+        {article.source}
+      </span>
+    </div>
+  )
+}
+
+/**
+ * La date d'un article, en ÂGE relatif.
+ *
+ * La référence affiche « May 11, 2026 » : ses articles sont des guides intemporels,
+ * publiés sur plusieurs années. Un fil d'actualités est l'inverse — la quasi-totalité
+ * du lot date du jour, et douze cartes portant la même date ne renseignent personne.
+ * `RelativeTime` répond à la question qu'on se pose ici, « est-ce récent », et garde
+ * la date exacte dans son attribut `dateTime`, au survol et pour la synthèse vocale.
+ */
+function PublishedAt({ iso }: { iso: string }) {
+  return (
+    <span className="text-xs text-ink-muted">
+      <RelativeTime iso={iso} />
+    </span>
+  )
+}
+
+/** L'article de une : grande couverture, titre en gros, extrait entier. */
+function LeadArticle({ article }: { article: NewsItem }) {
+  return (
+    <article>
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group block space-y-4"
+      >
+        <Thumbnail url={article.imageUrl ?? ''} source={article.source} wide />
+
+        <div className="space-y-3">
+          <Badges article={article} />
+
+          <h2 className="text-2xl font-bold leading-tight tracking-tight text-ink transition-colors duration-150 group-hover:text-brand-strong">
+            {article.title}
+          </h2>
+
+          {article.excerpt ? (
+            <p className="line-clamp-4 text-sm leading-relaxed text-ink-muted">{article.excerpt}</p>
+          ) : null}
+
+          <PublishedAt iso={article.publishedAt} />
+        </div>
+      </a>
+    </article>
+  )
+}
+
+/** Une brève de la colonne de droite : vignette à gauche, texte à droite. */
+function AsideArticle({ article }: { article: NewsItem }) {
+  return (
+    <article className="py-4 first:pt-0 last:pb-0">
+      <a href={article.url} target="_blank" rel="noopener noreferrer" className="group flex gap-4">
+        <span className="w-28 shrink-0">
+          <Thumbnail url={article.imageUrl ?? ''} source={article.source} />
+        </span>
+
+        <span className="min-w-0 flex-1 space-y-1.5">
+          <Badges article={article} />
+
+          <span className="block text-sm font-semibold leading-snug text-ink transition-colors duration-150 group-hover:text-brand-strong">
+            {article.title}
+          </span>
+
+          {article.excerpt ? (
+            <span className="line-clamp-2 block text-xs leading-relaxed text-ink-muted">
+              {article.excerpt}
+            </span>
+          ) : null}
+
+          <PublishedAt iso={article.publishedAt} />
+        </span>
+      </a>
+    </article>
+  )
+}
+
+/**
+ * La carte d'article — couverture, étiquette, titre, extrait, date.
+ *
+ * `h-full` et la colonne flexible : dans une grille, deux cartes voisines dont les
+ * titres n'ont pas le même nombre de lignes doivent quand même finir à la même
+ * hauteur, sinon les dates dansent d'une colonne à l'autre. La date est poussée en
+ * pied par `mt-auto`.
+ */
+function ArticleCard({ article }: { article: NewsItem }) {
+  return (
+    <article className="h-full">
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group flex h-full flex-col gap-3 rounded-card border border-border-subtle bg-panel p-3 transition-colors duration-150 hover:border-brand/40"
+      >
+        <Thumbnail url={article.imageUrl ?? ''} source={article.source} />
+
+        <Badges article={article} />
+
+        <h3 className="line-clamp-3 text-sm font-semibold leading-snug text-ink transition-colors duration-150 group-hover:text-brand-strong">
+          {article.title}
+        </h3>
+
+        {article.excerpt ? (
+          <p className="line-clamp-3 text-xs leading-relaxed text-ink-muted">{article.excerpt}</p>
+        ) : null}
+
+        <span className="mt-auto">
+          <PublishedAt iso={article.publishedAt} />
+        </span>
+      </a>
+    </article>
   )
 }
 
@@ -383,12 +541,3 @@ async function readArchivedDay(iso: string) {
     ),
   }
 }
-
-/*
- * `archiveStart` VIVAIT ICI et a disparu avec le calendrier.
- *
- * Elle ne servait qu'à lui : elle distinguait « base absente », « schéma non appliqué »
- * et « archive vide » pour que le sélecteur de date sache quoi annoncer. Sans
- * sélecteur, ces trois états n'ont plus de destinataire — et le paramètre `?date=`,
- * lui, reste servi par `readArchivedDay` ci-dessus.
- */

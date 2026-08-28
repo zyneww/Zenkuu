@@ -71,6 +71,18 @@ export interface ChartPoint {
   timestamp: number
   price: number
   volume?: number
+  /**
+   * Capitalisation À CET INSTANT, telle que la source la publie.
+   *
+   * Portée par le point et non recalculée en `prix × offre` : l'offre en circulation
+   * d'aujourd'hui appliquée à un cours d'il y a six mois donnerait une capitalisation
+   * qui n'a jamais existé. Elle n'alimente que l'infobulle, quand le réglage
+   * correspondant est allumé — voir `PriceChartInteractive`.
+   *
+   * Absente sur les classes servies par Yahoo, qui ne publient pas d'historique de
+   * capitalisation : le réglage se grise alors au lieu de disparaître.
+   */
+  marketCap?: number
 }
 
 /**

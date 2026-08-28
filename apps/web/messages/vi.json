@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Giá",
+      "asOf": "Tính đến {stamp}",
       "help": "Giá mới nhất do nguồn công bố, đã quy đổi sang đơn vị tiền tệ bạn chọn. Đây không phải giá khớp lệnh: tuỳ sàn và tuỳ thời điểm, một lệnh thật sẽ khớp ở mức gần nhưng khác."
     },
     "marketCap": {

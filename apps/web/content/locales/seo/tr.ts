@@ -2,10 +2,6 @@ import type { SeoDescriptions } from '@/content/seo'
 
 /** Sayfa açıklamaları — Türkçe. Bkz. `content/seo.ts`. */
 export const trSeo: SeoDescriptions = {
-  '/mouvements':
-    'Kripto piyasasının makro görünümü, spot borsalar, türevler ve değişim sıralamaları: piyasa değeri, hâkimiyet, platform bazında hacim, açık pozisyon, fonlama oranları, en çok yükselen ve düşenler.',
-  '/points-marquants':
-    'Bugün kripto piyasasında hareket edenler: trendler, en çok yükselen ve düşenler, en yüksek hacimler, öne çıkan sektörler ve yeni listelenenler.',
   '/a-propos':
     'ZENKUU, yalnızca okunabilir çok varlıklı bir piyasa analiz platformudur: aracı kurum değil, borsa değil, yatırım danışmanı değil.',
   '/aide':
@@ -22,16 +18,12 @@ export const trSeo: SeoDescriptions = {
     'Her sınıftan iki ila altı varlığı karşılaştırın — kripto paralar, hisseler, ETF’ler, endeksler, emtialar, dövizler: ortak bir tabana indirgenmiş seyirler, ardından onları ayıran sayılar.',
   '/convertisseur':
     'Bir tutarı kripto para, hisse, ETF, endeks veya emtia ile beş para birimi arasında, alınan son fiyattan çevirin.',
-  '/developpeurs':
-    'ZENKUU’nun iç rotaları, kullanılan açık veri kaynakları ve genel bir ZENKUU API’sinin gerçek durumu.',
   '/heatmap':
     'Kripto piyasası tek bir şekilde, coin ya da sektör bazında: alan piyasa değerini, renk değişimi taşır.',
   '/macro':
     'Enflasyon, işsizlik, büyüme, kamu borcu ve reel faiz oranları; ülke ülke, Dünya Bankası serilerine göre.',
-  '/marches':
+  '/crypto':
     'Zenkuu’nun izlediği yedi piyasa tek sayfada: kripto paralar, türevler, ETF’ler, hisseler, endeksler, dövizler ve emtialar.',
-  '/methodologie':
-    'ZENKUU’da gösterilen sayılar nereden geliyor, ne sıklıkla yenileniyor ve güvenilir kaynak olmadığı için neyi göstermemeyi seçiyoruz.',
   '/nouveautes':
     'ZENKUU değişiklik günlüğü: yayımlanan özellikler, eklenen veri kaynakları ve bilinen sınırlar.',
   '/nouvelles-cotations':
@@ -42,6 +34,4 @@ export const trSeo: SeoDescriptions = {
     'Güven notuna göre sıralanmış ilk yüz spot borsa: bildirilen 24 saatlik hacim, gösterilen hacmin payı, ülke. ZENKUU hiçbir emir defteri tutmaz ve hiçbir işleme izin vermez.',
   '/pourquoi-zenkuu':
     'Çok varlıklı, ücretsiz, yalnızca okunabilir ve uydurma veri içermeyen: ZENKUU’yu mevcut piyasa takip platformlarından ayıran tercihler.',
-  '/widgets':
-    'Fiyat şeridi, çevirici ve derli toplu sıralama — üçüncü taraf bir sayfaya gömülebilen yerel ZENKUU bileşenleri.',
 }

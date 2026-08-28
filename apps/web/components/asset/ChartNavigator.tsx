@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Mini-carte de navigation — la bande de sélection sous la courbe de CoinGecko.
@@ -85,6 +86,7 @@ export function ChartNavigator({
   onCommit?: (from: number, to: number) => void
   height?: number
 }) {
+  const t = usePhrase()
   const rootRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState<DragMode | null>(null)
 
@@ -258,7 +260,7 @@ export function ChartNavigator({
         <div
           role="slider"
           tabIndex={0}
-          aria-label="Fenêtre visible du graphique"
+          aria-label={t('Fenêtre visible du graphique')}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(((win.from + win.to) / 2) * 100)}
@@ -335,7 +337,7 @@ export function ChartNavigator({
             }
           }}
         >
-          Revoir toute la période
+          {t('Revoir toute la période')}
         </Button>
       ) : null}
     </div>

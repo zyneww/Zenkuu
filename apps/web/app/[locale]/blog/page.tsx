@@ -184,8 +184,8 @@ export default async function BlogPage() {
               {/* Le second est `secondary` : deux boutons pleins côte à côte ne disent
                   plus lequel est l'action principale. C'est la paire de shadcn/ui, et
                   elle remplace ici un filet écrit à la main. */}
-              <ButtonLink variant="outline" href="/methodologie">
-                {t('Méthodologie & sources')}
+              <ButtonLink variant="outline" href="/a-propos">
+                {t('À propos de ZENKUU')}
               </ButtonLink>
             </div>
           }

@@ -32,3 +32,34 @@ export function InstagramGlyph({ className }: IconProps) {
     </svg>
   )
 }
+
+/**
+ * Le X de X (anciennement Twitter).
+ *
+ * Il est tracé ici pour la même raison que le glyphe d'Instagram — `lucide` n'a plus
+ * d'icône de marque — et il en diffère par son usage : celui-ci désigne le compte
+ * D'UN TIERS, le projet dont on affiche la fiche, à partir du lien que la source de
+ * données publie (`communityUrls`). C'est un renvoi vers la page officielle du
+ * projet, ce que le droit des marques appelle un usage nominatif.
+ *
+ * Deux traits croisés plutôt que le logotype exact : la forme suffit à reconnaître
+ * la destination, et le rendu reste cohérent avec les icônes `lucide` qui
+ * l'entourent — même grille de 24, même épaisseur, même `currentColor`.
+ */
+export function XGlyph({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 3 L20 21" />
+      <path d="M20 3 L4 21" />
+    </svg>
+  )
+}

@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { IconButton } from '@/components/ui/IconButton'
 import { Command, CommandInput, CommandList } from '@/components/ui/command'
 import { Kbd } from '@/components/ui/kbd'
+import { SearchShortcuts } from '@/components/search/SearchShortcuts'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useContent } from '@/components/locale/ContentProvider'
 import { SearchResults } from '@/components/search/SearchResults'
@@ -204,7 +205,25 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
                   }}
                 />
               ) : (
-                <Kbd className="hidden shrink-0 bg-transparent text-micro lg:inline-flex" aria-hidden="true">
+                /*
+                  ⚠️ `bg-canvas` ET NON `bg-transparent` — LE RACCOURCI ÉTAIT
+                  ILLISIBLE DANS LES DEUX THÈMES.
+
+                  La coque du champ est en `bg-surface-muted`. Une touche
+                  transparente prenait donc exactement ce fond, et son filet
+                  `border-border-subtle` — réglé pour se voir SUR une carte —
+                  disparaissait dessus : il ne restait qu'un texte gris à 11 px sans
+                  contour, sur un aplat de la même famille. Relevé sur la capture, en
+                  clair comme en sombre.
+
+                  `bg-canvas` est le bon choix pour les DEUX thèmes à la fois, et
+                  c'est ce qui rend la correction symétrique : le canvas est
+                  l'extrémité de la rampe, donc plus CLAIR que `surface-muted` en
+                  thème clair (blanc sur #f1f5f9) et plus SOMBRE en thème sombre
+                  (#18181b sur #35353a). La touche s'enfonce dans le champ dans un
+                  cas, s'en détache dans l'autre — dans les deux, elle se voit.
+                */
+                <Kbd className="hidden shrink-0 bg-canvas text-micro lg:inline-flex" aria-hidden="true">
                   {t('shortcut')}
                 </Kbd>
               )}
@@ -222,6 +241,17 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
             <CommandList className="max-h-[70vh] overscroll-contain">
               <SearchResults search={search} onNavigate={close} />
             </CommandList>
+
+            {/* HORS de `CommandList`, et l'endroit compte : cmdk traite ses enfants
+                comme des éléments sélectionnables au clavier, et une rangée de légendes
+                y deviendrait une ligne qu'on peut « choisir ». */}
+            <SearchShortcuts
+              strings={{
+                navigate: fr.search.keyNavigate,
+                cancel: fr.search.keyCancel,
+                open: fr.search.keyOpen,
+              }}
+            />
           </PopoverContent>
         </Popover>
       </Command>

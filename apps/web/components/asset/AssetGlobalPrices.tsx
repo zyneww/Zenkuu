@@ -1,4 +1,5 @@
 import { formatCurrency } from '@zenkuu/ui'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Cours dans les autres devises.
@@ -21,13 +22,14 @@ const DISPLAY_CURRENCIES: { code: string; label: string }[] = [
   { code: 'cad', label: 'Dollar canadien' },
 ]
 
-export function AssetGlobalPrices({
+export async function AssetGlobalPrices({
   symbol,
   pricesByCurrency,
 }: {
   symbol: string
   pricesByCurrency: Record<string, number>
 }) {
+  const t = await getPhrase()
   const rows = DISPLAY_CURRENCIES.filter(
     (entry) => typeof pricesByCurrency[entry.code] === 'number',
   )
@@ -36,7 +38,7 @@ export function AssetGlobalPrices({
   return (
     <section aria-labelledby="prix-mondiaux" className="space-y-2">
       <h2 id="prix-mondiaux" className="text-sm font-semibold text-ink">
-        Cours dans d’autres devises
+        {t('Cours dans d’autres devises')}
       </h2>
 
       <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -49,7 +51,7 @@ export function AssetGlobalPrices({
               <span className="font-medium uppercase text-ink">
                 {symbol}/{entry.code.toUpperCase()}
               </span>{' '}
-              {entry.label}
+              {t(entry.label)}
             </dt>
             <dd className="tabular shrink-0 text-sm text-ink">
               {formatCurrency(pricesByCurrency[entry.code], entry.code.toUpperCase())}

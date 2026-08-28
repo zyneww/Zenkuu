@@ -23,7 +23,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/alertes', '/suivi', '/tableau-de-bord', '/parametres'],
+      /* `/suivi` a quitté cette liste avec la page elle-même : interdire une adresse
+         qui rend 404 n'ajoute rien, et laisse croire à un robot qu'il y a là quelque
+         chose à ne pas voir. */
+      disallow: ['/api/', '/tableau-de-bord', '/parametres'],
     },
     sitemap: absoluteUrl('/sitemap.xml'),
     host: SITE_URL,

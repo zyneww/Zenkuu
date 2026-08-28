@@ -7,6 +7,7 @@ import type { NewsItem } from '@zenkuu/data'
 import { IconTile } from '@/components/reui/icon-tile'
 import { SourceDot, Thumbnail } from '@/components/news/NewsFeed'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -65,6 +66,7 @@ export function AssetNewsRail({
   news: NewsItem[]
   name: string
 }) {
+  const t = usePhrase()
   if (news.length === 0) {
     return (
       /*
@@ -122,6 +124,7 @@ export function AssetNewsRail({
  * délimitations pour une seule séparation.
  */
 function Spotlight({ article }: { article: NewsItem }) {
+  const t = usePhrase()
   return (
     <section>
       <a
@@ -160,9 +163,9 @@ function Spotlight({ article }: { article: NewsItem }) {
           ) : null}
 
           <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-brand">
-            Lire l’article
+            {t('Lire l’article')}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="sr-only">(nouvelle fenêtre)</span>
+            <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
           </span>
         </div>
       </a>

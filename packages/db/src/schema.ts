@@ -83,117 +83,22 @@ export const watchlistItems = sqliteTable(
   ],
 )
 
-/**
- * Alertes de prix.
+/*
+ * ⚠️ LA TABLE `price_alerts` A ÉTÉ SUPPRIMÉE AVEC LA FONCTIONNALITÉ.
  *
- * ── CE QUE CETTE TABLE N'EST PAS ──────────────────────────────────────────────
+ * Elle rangeait les seuils de notification : actif, direction, seuil et sa devise,
+ * adresse de destination, récurrence, échéance. Le produit ne propose plus d'être
+ * prévenu au franchissement d'un cours — page `/alertes`, tâche planifiée, gabarit de
+ * courriel et module d'accès ont été retirés dans le même mouvement.
  *
- * Ce n'est ni un ordre, ni une position, ni un engagement — le §7 l'interdirait. Une
- * alerte est une NOTIFICATION : « prends-moi au courant si le prix franchit ce seuil ».
- * Rien n'est exécuté, rien n'est détenu, et le franchissement n'a d'autre effet qu'un
- * courriel.
+ * ⚠️ LA TABLE PEUT SUBSISTER EN BASE. Drizzle ne supprime rien de lui-même : une
+ * installation déjà déployée gardera `price_alerts` et ses lignes jusqu'à ce qu'une
+ * migration l'efface. Ce n'est pas gênant — plus aucun code ne la lit — mais il faut le
+ * savoir avant de s'étonner de la trouver.
  *
- * ── POURQUOI LE SEUIL EST STOCKÉ AVEC SA DEVISE ───────────────────────────────
- *
- * Un seuil sans devise est ininterprétable : « au-dessus de 50 000 » ne veut rien dire
- * si l'utilisateur a réglé son affichage en dollars et que la vérification lit des
- * euros. La comparaison serait fausse d'environ 8 % en permanence — une erreur qui ne
- * se voit pas à la lecture du code, seulement au déclenchement au mauvais moment.
+ * À ne pas confondre avec `watchlist_items` juste au-dessus, qui EXISTE TOUJOURS : elle
+ * répond à « garde un œil sur cet actif » et n'envoie rien.
  */
-export const priceAlerts = sqliteTable(
-  'price_alerts',
-  {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    userId: text('user_id').notNull(),
-    assetClass: text('asset_class').notNull(),
-    assetId: text('asset_id').notNull(),
-    /** Libellé figé, même raison que pour la liste de suivi : afficher sans appeler. */
-    label: text('label').notNull(),
-    symbol: text('symbol'),
-    /**
-     * Nom donné À L'ALERTE par son auteur — distinct de `label`, qui nomme l'ACTIF.
-     *
-     * Facultatif, et l'interface propose un nom par défaut plutôt que d'exiger une
-     * saisie. Il n'existe que pour la page `/alertes` : dix alertes sur le bitcoin y
-     * étaient dix lignes identiques à l'œil, et il fallait lire le seuil pour les
-     * distinguer.
-     */
-    title: text('title'),
-    /**
-     * Message libre, recopié tel quel dans le courriel de déclenchement.
-     *
-     * C'est une NOTE À SOI-MÊME — « sortir la moitié », « regarder le volume avant » —
-     * et pas un champ de mise en forme : il part en texte brut, sans balisage.
-     */
-    note: text('note'),
-    /** `above` : déclenche au franchissement à la hausse. `below` : à la baisse. */
-    direction: text('direction').notNull(),
-    /*
-     * `real` et non `integer` : un seuil est un prix, et un prix est fractionnaire.
-     * SQLite s'en tirerait par affinité de type (une valeur non convertible en entier
-     * reste stockée en REAL), mais la colonne mentirait sur son contenu — et le jour
-     * où quelqu'un lit le schéma pour écrire une requête, il se trompe.
-     */
-    threshold: real('threshold').notNull(),
-    /** Devise du seuil (ISO 4217, minuscules) — cf. l'avertissement ci-dessus. */
-    currency: text('currency').notNull(),
-    /**
-     * Adresse de notification, SAISIE PAR L'AUTEUR au moment où il crée l'alerte.
-     *
-     * Elle était auparavant recopiée depuis le compte du fournisseur
-     * d'authentification. Les comptes ont été retirés du site, et cette colonne est
-     * ce qui rend les alertes possibles sans eux : c'est la seule chose que le site
-     * ait jamais réellement eu besoin de savoir d'un visiteur.
-     *
-     * Elle reste STOCKÉE et non lue ailleurs à chaque passage : la tâche planifiée
-     * s'exécute hors de toute requête, et un aller-retour par ligne pour retrouver
-     * une adresse coûterait une requête réseau par alerte à chaque tour.
-     */
-    email: text('email').notNull(),
-    /**
-     * L'alerte se réarme-t-elle après un déclenchement ?
-     *
-     * Faux par défaut, et c'est l'ancien comportement unique : un prix qui oscille
-     * autour du seuil enverrait sinon un courriel à chaque passage de la tâche, soit
-     * quatre par heure. Le réarmement était donc un geste explicite de l'utilisateur.
-     *
-     * Vrai, c'est la case « à chaque fois » de la fenêtre de création. Elle a un sens
-     * pour une surveillance de long cours — « préviens-moi chaque fois que ça repasse
-     * sous 50 000 » — et la protection contre le martèlement passe alors par
-     * `triggeredAt` : la tâche ne renvoie rien dans les vingt-quatre heures qui
-     * suivent un envoi pour la même alerte.
-     */
-    recurring: integer('recurring', { mode: 'boolean' }).notNull().default(false),
-    /**
-     * Date au-delà de laquelle l'alerte est ignorée puis effacée.
-     *
-     * Nulle = sans échéance, ce qui reste le défaut. Une échéance sert aux
-     * surveillances liées à un événement daté — une publication de résultats, une
-     * échéance de contrat — après quoi l'alerte n'est plus qu'un courriel parasite
-     * que personne ne pensera à supprimer.
-     */
-    expiresAt: integer('expires_at', { mode: 'timestamp' }),
-    /**
-     * L'alerte est-elle armée ?
-     *
-     * Distinct de `recurring` : celui-ci décrit ce qui se passe APRÈS un
-     * déclenchement, celui-là dit si le seuil est actuellement surveillé.
-     */
-    active: integer('active', { mode: 'boolean' }).notNull().default(true),
-    triggeredAt: integer('triggered_at', { mode: 'timestamp' }),
-    /** Prix relevé au moment du déclenchement — conservé pour l'affichage a posteriori. */
-    triggeredPrice: real('triggered_price'),
-    createdAt: integer('created_at', { mode: 'timestamp' })
-      .notNull()
-      .$defaultFn(() => new Date()),
-  },
-  (table) => [
-    // La tâche planifiée ne lit QUE les alertes actives, groupées par actif : c'est
-    // l'index qui décide de son coût, pas celui par utilisateur.
-    index('alerts_active_idx').on(table.active, table.assetClass, table.assetId),
-    index('alerts_user_idx').on(table.userId, table.createdAt),
-  ],
-)
 
 /**
  * Écrans de screener sauvegardés.
@@ -436,7 +341,5 @@ export type NewWatchlistItem = typeof watchlistItems.$inferInsert
 export type NewsArticle = typeof newsArticles.$inferSelect
 export type NewNewsArticle = typeof newsArticles.$inferInsert
 export type UserPreferences = typeof userPreferences.$inferSelect
-export type PriceAlert = typeof priceAlerts.$inferSelect
-export type NewPriceAlert = typeof priceAlerts.$inferInsert
 export type SavedScreen = typeof savedScreens.$inferSelect
 export type NewSavedScreen = typeof savedScreens.$inferInsert

@@ -1,5 +1,7 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@heroui/react'
 import { cn } from '@/lib/utils'
 
 /**
@@ -77,18 +79,29 @@ export function Panel({
 }: PanelProps) {
   const hasHeader = title !== undefined || tools !== undefined
 
+  /*
+   * ⚠️ `asChild` A DISPARU AVEC SHADCN, ET LA SÉMANTIQUE EST PRÉSERVÉE AUTREMENT.
+   *
+   * La `Card` de shadcn acceptait `asChild` pour se rendre en `<section>` plutôt qu'en
+   * `<div>` — ce qui compte : un panneau titré est une section de document, et un
+   * lecteur d'écran le liste comme tel.
+   *
+   * `Card` de HeroUI ne connaît pas `asChild` mais accepte `render`, qui remplace son
+   * élément racine. Le `<section>` est donc conservé, avec toutes les classes et tous
+   * les attributs que HeroUI y pose.
+   */
   return (
     <Card
-      asChild
+      render={(props) => <section {...props} />}
       className={cn(
         'gap-0 rounded-card border-border-subtle bg-panel py-0 shadow-none',
         padded ? 'p-4' : 'p-0',
         className,
       )}
     >
-      <section>
+      <>
         {hasHeader ? (
-          <CardHeader
+          <Card.Header
             className={cn(
               'flex flex-wrap items-start justify-between gap-x-3 gap-y-2 px-0',
               padded ? 'mb-3' : 'px-4 pb-3 pt-4',
@@ -96,34 +109,41 @@ export function Panel({
           >
             <div className="min-w-0">
               {title !== undefined ? (
-                <CardTitle asChild>
-                  <Heading
-                    className={cn(
-                      'text-sm font-semibold text-ink',
-                      // `decoration-2` et un décalage franc : à 1px, un soulignement
-                      // sous du texte de 14px se confond avec le jambage des lettres.
-                      rule && 'underline decoration-border-subtle decoration-2 underline-offset-8',
-                    )}
-                  >
-                    {title}
-                  </Heading>
-                </CardTitle>
+                /* `render` remplace l'élément racine de `Card.Title` par le niveau de
+                   titre demandé (`h2` par défaut) : la carte garde ses classes, le
+                   document garde sa hiérarchie. C'est l'équivalent HeroUI du `asChild`
+                   de shadcn. */
+                <Card.Title
+                  render={(props) => <Heading {...props} />}
+                  className={cn(
+                    'text-sm font-semibold text-ink',
+                    // `decoration-2` et un décalage franc : à 1px, un soulignement
+                    // sous du texte de 14px se confond avec le jambage des lettres.
+                    rule && 'underline decoration-border-subtle decoration-2 underline-offset-8',
+                  )}
+                >
+                  {title}
+                </Card.Title>
               ) : null}
               {subtitle !== undefined ? (
-                <CardDescription className={cn('text-xs text-ink-muted', rule ? 'mt-3' : 'mt-1')}>
+                <Card.Description className={cn('text-xs text-ink-muted', rule ? 'mt-3' : 'mt-1')}>
                   {subtitle}
-                </CardDescription>
+                </Card.Description>
               ) : null}
             </div>
 
+            {/* ⚠️ `CardAction` N'A PAS D'ÉQUIVALENT CHEZ HEROUI, et il n'en faut pas :
+                c'était un `<div>` que shadcn plaçait par grille dans son en-tête. Ici
+                l'en-tête est déjà un `flex justify-between`, et les outils se tiennent
+                à droite d'eux-mêmes. */}
             {tools !== undefined ? (
-              <CardAction className="flex shrink-0 flex-wrap items-center gap-1.5">{tools}</CardAction>
+              <div className="flex shrink-0 flex-wrap items-center gap-1.5">{tools}</div>
             ) : null}
-          </CardHeader>
+          </Card.Header>
         ) : null}
 
-        <CardContent className="px-0">{children}</CardContent>
-      </section>
+        <Card.Content className="px-0">{children}</Card.Content>
+      </>
     </Card>
   )
 }

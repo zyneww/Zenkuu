@@ -1,13 +1,6 @@
 'use client'
 
-import { ArrowDown, ArrowUp, EyeOff, SlidersHorizontal, X } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Info, SlidersHorizontal, X } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Search } from 'lucide-react'
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
@@ -168,170 +161,162 @@ export function useColumnPreferences(
 export type SortDirection = 'asc' | 'desc'
 
 /**
- * EN-TÊTE DE COLONNE À MENU.
+ * EN-TÊTE DE COLONNE — UN INTITULÉ, ET SON DOUBLE CHEVRON DE TRI.
  *
- * ── UN MENU PLUTÔT QU'UN CLIC QUI TRIE ───────────────────────────────────────
+ * ── LE MENU DÉROULANT A ÉTÉ RETIRÉ ───────────────────────────────────────────
  *
- * Le clic direct restait plus rapide pour trier, et il ne laissait de place à rien
- * d'autre : masquer une colonne n'avait aucun geste, et l'inversion de sens exigeait
- * de deviner qu'un second clic la produisait.
+ * L'en-tête ouvrait un panneau à trois entrées : « du plus grand au plus petit »,
+ * « du plus petit au plus grand », « masquer cette colonne ». Deux clics pour un
+ * geste qui en demande un, et un panneau qui s'ouvrait sur CHAQUE colonne d'un
+ * tableau qui en porte onze — y compris sur celles qui n'offraient rien d'autre que
+ * « masquer ».
  *
- * Le menu rend ces trois actions VISIBLES et nomme le sens du tri au lieu de le
- * sous-entendre — « du plus grand au plus petit » se lit, « ▼ » se devine. Le coût
- * est un clic de plus pour trier ; il est repris par la flèche de l'en-tête, qui
- * reste cliquable pour inverser directement le tri en place.
+ * Le clic sur l'intitulé TRIE directement, et un second inverse le sens : c'est la
+ * convention de tous les tableaux de cotation, et le double chevron l'annonce déjà.
+ * Le masquage vit dans « Personnaliser », là où l'on peut aussi RÉAFFICHER — ce que
+ * le menu d'en-tête ne savait pas faire, une colonne masquée emportant son menu avec
+ * elle.
  */
 export function ColumnHeader({
   label,
-  columnId,
   sortKey,
   sort,
   onSort,
-  columnPrefs,
   align = 'right',
   className = '',
   hint,
 }: {
   label: string
-  /** Identifiant de la colonne dans les préférences d'affichage. */
-  columnId: string
-  /** Clé de tri. Absente, la colonne n'est pas triable et le menu ne l'offre pas. */
+  /**
+   * Identifiant de la colonne dans les préférences d'affichage.
+   *
+   * Accepté mais NON LU : il servait à savoir si la colonne pouvait être masquée
+   * depuis ce menu, qui n'existe plus. Les appelants le passent encore parce qu'il
+   * documente la colonne à la lecture, et le retirer d'une quinzaine d'en-têtes ne
+   * changerait rien à l'écran.
+   */
+  columnId?: string
+  /** Clé de tri. Absente, la colonne n'est pas triable et l'intitulé n'est pas cliquable. */
   sortKey?: string
   sort?: { key: string; direction: SortDirection } | null
   onSort?: (key: string, direction: SortDirection) => void
+  /** Accepté pour compatibilité d'appel — le masquage ne passe plus par l'en-tête. */
   columnPrefs?: ColumnPreferences
   align?: 'left' | 'right'
   className?: string
-  /** Précision affichée en bas du menu — d'où vient le chiffre, ce qu'il couvre. */
+  /** Précision affichée en infobulle — d'où vient le chiffre, ce qu'il couvre. */
   hint?: string
 }) {
-  const t = usePhrase()
-
   const isActive = sortKey !== undefined && sort?.key === sortKey
-  const canHide = columnPrefs !== undefined && !columnPrefs.columns.find((c) => c.id === columnId)?.locked
+  const sortable = sortKey !== undefined && onSort !== undefined
+
+  const inner = (
+    <>
+      {label}
+      {/* Une colonne qui porte une précision l'annonce dans son en-tête : sans ce
+          signe, rien n'invite à s'arrêter dessus pour lire l'infobulle. */}
+      {hint ? <Info className="h-3 w-3 shrink-0 opacity-45" aria-hidden="true" /> : null}
+      {sortKey !== undefined ? <SortGlyph sort={isActive ? sort?.direction : null} /> : null}
+    </>
+  )
+
+  const innerClass = `inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`
 
   return (
     <th
       scope="col"
-      className={`px-3 py-2.5 text-xs font-medium text-ink-muted ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
+      /*
+        ── LE FILET VERTICAL, ET POURQUOI IL EST À GAUCHE ────────────────────
+        `first:border-l-0` le retire de la première colonne : un filet posé au bord
+        gauche de la bande doublerait celui du cadre du tableau, et l'épaisseur double
+        se voit. Porté à GAUCHE plutôt qu'à droite, il ne dépend pas de savoir quelle
+        colonne est la dernière — laquelle change avec la largeur de la fenêtre, les
+        colonnes de comparaison cédant les premières.
+      */
+      className={`border-l border-border-subtle/60 px-3 py-2.5 text-xs font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
       aria-sort={
         isActive ? (sort?.direction === 'desc' ? 'descending' : 'ascending') : 'none'
       }
     >
-      {/*
-        ── LE MENU D'EN-TÊTE PASSE SUR `DropdownMenu` ───────────────────────
-
-        Il portait son propre état d'ouverture et deux écouteurs de document —
-        `pointerdown` pour le clic extérieur, `keydown` pour Échap. Radix les fournit,
-        et il ajoute ce qu'un `<div role="menu">` posé à la main n'avait pas : les
-        flèches haut/bas entre les entrées, le retour du focus sur l'en-tête à la
-        fermeture, et un panneau qui se retourne quand il touche le bas de la fenêtre
-        — ce qui arrive sur la dernière ligne visible d'un long tableau.
-
-        `aria-sort` reste sur le `<th>` ci-dessus : c'est là que la spécification ARIA
-        l'attend, et Radix ne s'en occupe pas.
-      */}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          title={`Options de la colonne ${label.toLowerCase()}`}
-          className={`inline-flex items-center gap-1 rounded-sm outline-none transition-colors duration-150 hover:text-brand-strong focus-visible:ring-1 focus-visible:ring-ring ${
+      {sortable ? (
+        /*
+          LE PREMIER CLIC TRIE EN DÉCROISSANT, et ce n'est pas arbitraire : sur un
+          tableau de cotations, « les plus grosses capitalisations » et « les plus
+          fortes hausses » sont ce qu'on cherche neuf fois sur dix. Le sens s'inverse
+          au clic suivant, tant que la colonne reste celle du tri actif ; revenir sur
+          une autre colonne repart donc du décroissant, ce qui est aussi ce qu'on
+          attend.
+        */
+        <button
+          type="button"
+          /* Pas d'infobulle « trier par… » à défaut de précision : elle traduirait en
+             mots ce que le double chevron dit déjà, au prix d'une phrase de plus dans
+             les treize tables de langue. `aria-sort` porte l'information là où elle
+             manque vraiment — à l'oreille. */
+          {...(hint ? { title: hint } : {})}
+          onClick={() => onSort(sortKey, isActive && sort?.direction === 'desc' ? 'asc' : 'desc')}
+          className={`${innerClass} rounded-sm outline-none transition-colors duration-150 hover:text-brand-strong focus-visible:ring-1 focus-visible:ring-ring ${
             isActive ? 'text-ink' : ''
-          } ${align === 'right' ? 'flex-row-reverse' : ''}`}
+          }`}
         >
-          {label}
-          {/*
-            La flèche est TOUJOURS présente, seulement estompée hors tri actif.
-
-            L'apparition au survol serait invisible au doigt, et l'apparition à
-            l'activation ferait sauter la largeur de l'en-tête d'un clic à l'autre —
-            décalant toute la colonne. Réservée en permanence, elle ne coûte que son
-            opacité.
-          */}
-          {sortKey !== undefined ? (
-            <span
-              aria-hidden="true"
-              className={`text-[0.65em] leading-none transition-opacity duration-150 ${
-                isActive ? 'opacity-100' : 'opacity-30'
-              }`}
-            >
-              {isActive && sort?.direction === 'asc' ? '▲' : '▼'}
-            </span>
-          ) : null}
-        </DropdownMenuTrigger>
-
-        {/* `whitespace-normal` : le `<th>` du tableau impose souvent `nowrap`, et un
-            menu qui en hérite s'étire sur toute la largeur de la page. */}
-        <DropdownMenuContent
-          align={align === 'right' ? 'end' : 'start'}
-          className="w-56 whitespace-normal border-border-subtle bg-surface text-left"
-        >
-          {sortKey !== undefined && onSort ? (
-            <>
-              <MenuRow
-                icon={<ArrowDown className="h-3.5 w-3.5" />}
-                active={isActive && sort?.direction === 'desc'}
-                onClick={() => onSort(sortKey, 'desc')}
-              >{t('Du plus grand au plus petit')}</MenuRow>
-              <MenuRow
-                icon={<ArrowUp className="h-3.5 w-3.5" />}
-                active={isActive && sort?.direction === 'asc'}
-                onClick={() => onSort(sortKey, 'asc')}
-              >{t('Du plus petit au plus grand')}</MenuRow>
-            </>
-          ) : null}
-
-          {canHide ? (
-            <MenuRow
-              icon={<EyeOff className="h-3.5 w-3.5" />}
-              onClick={() => columnPrefs?.toggle(columnId)}
-              separated={sortKey !== undefined}
-            >
-              Masquer cette colonne
-            </MenuRow>
-          ) : null}
-
-          {hint ? (
-            <p className="border-t border-border-subtle px-3 pb-1 pt-1.5 text-[0.625rem] leading-snug text-ink-muted">
-              {hint}
-            </p>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          {inner}
+        </button>
+      ) : (
+        <span {...(hint ? { title: hint } : {})} className={innerClass}>
+          {inner}
+        </span>
+      )}
     </th>
   )
 }
 
-function MenuRow({
-  icon,
-  onClick,
-  active,
-  separated,
-  children,
-}: {
-  icon: React.ReactNode
-  onClick: () => void
-  active?: boolean
-  separated?: boolean
-  children: React.ReactNode
-}) {
+/**
+ * LE DOUBLE CHEVRON DE TRI — deux états dans un seul signe.
+ *
+ * ── CE QU'IL REMPLACE ────────────────────────────────────────────────────────
+ *
+ * Une seule flèche, `▼` par défaut et `▲` quand le tri montait. Elle disait la
+ * direction ACTIVE, mais rien de plus : une colonne non triée portait un `▼` estompé
+ * qui se lisait « triée par ordre décroissant, faiblement ». Le doute était réel — sur
+ * une rangée de dix colonnes, une seule est triée et neuf portaient le même signe.
+ *
+ * ── CE QUE LE DOUBLE CHEVRON DIT DE PLUS ────────────────────────────────────
+ *
+ * Il montre les DEUX directions, et n'en éclaire qu'une. Hors tri, les deux sont
+ * estompés : le signe se lit « cette colonne peut être triée », ce qui est vrai et
+ * n'était dit nulle part. Trié, la moitié active passe à l'encre pleine et l'autre
+ * s'efface presque : la direction se lit sans la chercher.
+ *
+ * C'est la convention des tableaux de cotation — Tokenomist, CoinGecko et les autres
+ * la posent tous ainsi. Le glyphe est dessiné plutôt qu'emprunté à `lucide` : les deux
+ * moitiés doivent changer d'opacité INDÉPENDAMMENT, ce qu'une icône d'un seul tenant
+ * ne permet pas.
+ *
+ * La place est réservée en permanence. L'apparition au survol serait invisible au
+ * doigt, et l'apparition à l'activation ferait sauter la largeur de l'en-tête d'un
+ * clic à l'autre — décalant toute la colonne.
+ */
+function SortGlyph({ sort }: { sort?: SortDirection | null }) {
   return (
-    <>
-      {/* Le séparateur est un `DropdownMenuSeparator` et non une bordure posée sur la
-          première entrée du groupe : Radix le marque `role="separator"`, ce qu'une
-          bordure CSS ne dit à personne. */}
-      {separated ? <DropdownMenuSeparator /> : null}
-      <DropdownMenuItem
-        onSelect={onClick}
-        className={`gap-2.5 px-3 py-1.5 text-xs font-normal ${active ? 'text-brand' : 'text-ink'}`}
-      >
-        <span className="shrink-0 text-ink-muted" aria-hidden="true">
-          {icon}
-        </span>
-        {children}
-      </DropdownMenuItem>
-    </>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 8 12"
+      className="h-3 w-2 shrink-0"
+      fill="currentColor"
+    >
+      <path d="M4 0.5 7.2 4.4H0.8Z" className={sort === 'asc' ? 'opacity-100' : 'opacity-25'} />
+      <path d="M4 11.5 0.8 7.6h6.4Z" className={sort === 'desc' ? 'opacity-100' : 'opacity-25'} />
+    </svg>
   )
 }
+
+/*
+ * `MenuRow` VIVAIT ICI, et est parti avec le menu d'en-tête.
+ *
+ * Il habillait les trois entrées du panneau — les deux sens de tri, et « masquer
+ * cette colonne ». Le tri se fait désormais au clic sur l'intitulé, le masquage dans
+ * « Personnaliser » : aucune de ces entrées n'a plus de panneau où vivre.
+ */
 
 /* ── Sélecteur global ─────────────────────────────────────────────────────── */
 

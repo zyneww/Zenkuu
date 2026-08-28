@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
+import { BookOpen, FlaskConical, Newspaper } from 'lucide-react'
+
+import { InstagramGlyph } from '@/components/BrandIcons'
 import { Link } from '@/i18n/navigation'
-
-import { LifeBuoy } from 'lucide-react'
-
+import { HelpCategoryGrid } from '@/components/help/HelpCategoryGrid'
 import { HelpSearch } from '@/components/help/HelpSearch'
 import { HELP_ARTICLES, HELP_STARTING_POINTS } from '@/content/aide'
-import { getContent, getSeo } from '@/lib/content'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -18,122 +19,197 @@ export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
   const seo = await getSeo()
   return {
-  title: fr.pages.help,
-  description: seo(
-    '/aide',
-    'Questions fréquentes sur les données de ZENKUU, leur fraîcheur, les graphiques et les limites de ce que le site affiche.',
-  ),
-  alternates: { canonical: '/aide' },
+    title: fr.pages.help,
+    description: seo(
+      '/aide',
+      'Questions fréquentes sur les données de ZENKUU, leur fraîcheur, les graphiques et les limites de ce que le site affiche.',
+    ),
+    alternates: { canonical: '/aide' },
   }
 }
 
 /**
- * Centre d'aide.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CENTRE D'AIDE — LA STRUCTURE DE help.fiverr.com
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * Refonte : la page enchaînait recherche puis liste plate de tous les articles. Elle
- * suit désormais l'organisation d'un centre de support — bandeau de recherche mis en
- * avant, grille de rubriques, points d'entrée conseillés, puis recours si rien ne
- * répond.
+ * Quatre étages, dans cet ordre, et c'est celui du modèle :
  *
- * Les rubriques et les articles sont rendus CÔTÉ SERVEUR dans le composant client :
- * ils sont donc présents dans le HTML initial, indexables et lisibles sans
- * JavaScript. La recherche n'est qu'une commodité greffée par-dessus, jamais la
- * condition d'accès au contenu (§9).
+ *   1. un BANDEAU pleine largeur, teinté, portant une question en gros et un champ
+ *      de recherche large, avec quelques entrées suggérées dessous ;
+ *   2. la GRILLE DE RUBRIQUES sous des onglets de public — chaque colonne montre ses
+ *      titres d'articles en clair, pas un compteur ;
+ *   3. une SECONDE BANDE teintée, « À lire en premier », en deux colonnes de liens ;
+ *   4. une rangée de CARTES vers ce qui n'est pas de l'aide — blog, actualités,
+ *      méthodologie, compte social.
+ *
+ * ── LES DEUX BANDES SONT PLEINE LARGEUR, ET LA PAGE NE L'EST PAS ────────────
+ *
+ * C'est ce qui donne au modèle son rythme : deux aplats qui traversent l'écran
+ * encadrent un contenu qui, lui, reste dans la colonne. Le gabarit du site pose déjà
+ * `.shell` autour du contenu des pages ; les bandes en sortent par une marge négative
+ * calculée sur la gouttière, puis remettent un `.shell` à l'intérieur pour que leur
+ * TEXTE reste aligné sur le reste. Voir `.bleed` dans globals.css.
+ *
+ * ── CE QUI N'EST PAS REPRIS DU MODÈLE, ET POURQUOI ──────────────────────────
+ *
+ * Sa barre supérieure propre (« help. » + « Go to Fiverr » + « My support requests »).
+ * ZENKUU n'a pas de centre d'aide sur un sous-domaine séparé : cette page vit sous la
+ * navigation du site, et lui superposer une seconde barre ferait deux navigations
+ * concurrentes sur le même écran.
+ *
+ * De même, aucun bouton « Contacter le support » : il n'y a pas de guichet
+ * d'assistance derrière. La bande finale renvoie donc vers la Méthodologie, qui est
+ * la vraie réponse à « je n'ai pas trouvé » sur un site de données (§5).
  */
-export default function AidePage() {
+export default async function AidePage() {
+  const t = await getPhrase()
+
   const starters = HELP_STARTING_POINTS.map((slug) =>
     HELP_ARTICLES.find((article) => article.slug === slug),
   ).filter((article): article is (typeof HELP_ARTICLES)[number] => Boolean(article))
 
   return (
-    <div className="mx-auto max-w-4xl space-y-12 py-6">
-      {/*
-        ── HÉROS : LA RECHERCHE EST L'ÉLÉMENT CENTRAL ────────────────────────────
+    <div className="space-y-14 pb-4">
+      {/* ══ 1. LE BANDEAU DE RECHERCHE ══════════════════════════════════════ */}
+      <section className="bleed bg-surface-muted">
+        <div className="shell flex flex-col items-center gap-6 py-14 text-center">
+          <h1 className="display-lg max-w-2xl text-ink">
+            {t('Comment pouvons-nous vous aider ?')}
+          </h1>
 
-        Structure de support.kraken.com, et le déplacement compte. La recherche était
-        posée SOUS l'en-tête, au même rang que les sections suivantes. Elle remonte au
-        centre du héros parce que c'est ce qu'on vient faire ici : dans un centre
-        d'aide, on ne parcourt pas, on CHERCHE — le parcours est le repli de ceux qui
-        n'ont pas su formuler leur question.
-
-        Le pictogramme est une bouée et non un point d'interrogation : le second dit
-        « vous avez une question », ce que le lecteur sait déjà ; la première dit
-        « on va vous sortir de là », ce qu'il vient vérifier.
-      */}
-      <header className="space-y-5 text-center">
-        <span
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-pill bg-brand-soft text-brand-strong"
-          aria-hidden="true"
-        >
-          <LifeBuoy className="h-7 w-7" />
-        </span>
-
-        <div className="space-y-2">
-          <h1 className="display-lg text-ink">Centre d’aide</h1>
-          <p className="mx-auto max-w-xl text-base leading-relaxed text-ink-muted">
-            Comment lire les chiffres affichés sur ZENKUU, d’où ils viennent, à quelle
-            fréquence ils changent — et ce que le site ne fait délibérément pas.
-          </p>
+          {/* `max-w-2xl` : le champ du modèle est large mais pas pleine largeur — un
+              champ de deux mille pixels fait perdre le curseur de vue quand on tape à
+              gauche et que le bouton est à droite. */}
+          <div className="w-full max-w-2xl">
+            <HelpSearch
+              suggestions={['devise', 'graphique', 'liste de suivi', 'source', 'conseil']}
+            />
+          </div>
         </div>
-
-        <div className="mx-auto max-w-xl text-left">
-          <HelpSearch />
-        </div>
-      </header>
-
-      {/*
-        AUCUNE GRILLE DE RUBRIQUES ICI, ET C'EST DÉLIBÉRÉ.
-
-        La première version de cette refonte en ajoutait une, sur le modèle du
-        « Parcourir par produit » de la référence. Elle faisait DOUBLON : `HelpSearch`
-        en rend déjà une, et la sienne est meilleure — elle disparaît dès qu'on tape,
-        pour laisser la place aux résultats. Une seconde grille inerte sous la
-        première aurait montré quatre fois les mêmes rubriques, dont la moitié
-        continuerait de s'afficher pendant une recherche.
-
-        Ce que la référence apporte vraiment est donc pris ailleurs : la RECHERCHE au
-        centre du héros, et non reléguée sous l'en-tête au rang des sections.
-      */}
-
-      <section className="space-y-3" aria-labelledby="a-lire-en-premier">
-        <h2 id="a-lire-en-premier" className="text-sm font-semibold text-ink">
-          À lire en premier
-        </h2>
-        {/* Sélection ÉDITORIALE, et le titre le dit. « Les plus consultés »
-            supposerait une mesure d'audience que ZENKUU ne fait pas (§5). */}
-        <ul className="grid gap-2 sm:grid-cols-3">
-          {starters.map((article) => (
-            <li key={article.slug}>
-              <Link
-                href={`/aide/${article.slug}`}
-                className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-3 transition-colors hover:border-brand"
-              >
-                <span className="text-sm font-medium leading-snug text-ink">{article.title}</span>
-                <span className="mt-1 text-xs leading-relaxed text-ink-muted">
-                  {article.summary}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
       </section>
 
-      <section className="space-y-2 rounded-card border border-border-subtle bg-surface-muted p-5">
-        <h2 className="text-sm font-semibold text-ink">Vous n’avez pas trouvé ?</h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          Si votre question porte sur un chiffre affiché, commencez par suivre le lien
-          de source sous le module concerné : il mène à l’endroit exact où la valeur a
-          été publiée. Pour comprendre comment les données sont collectées et mises en
-          cache, la{' '}
-          <Link
-            href="/methodologie"
-            className="underline underline-offset-2 hover:text-brand-strong"
-          >
-            page Méthodologie
-          </Link>{' '}
-          détaille chaque source et ses limites connues.
-        </p>
+      {/* ══ 2. LES RUBRIQUES ════════════════════════════════════════════════ */}
+      <HelpCategoryGrid />
+
+      {/* ══ 3. À LIRE EN PREMIER ════════════════════════════════════════════
+          Sélection ÉDITORIALE, et le titre le dit. « Les plus consultés »
+          supposerait une mesure d'audience que ZENKUU ne fait pas (§5). */}
+      <section className="bleed bg-surface-muted" aria-labelledby="a-lire-en-premier">
+        <div className="shell py-12">
+          <h2 id="a-lire-en-premier" className="display-sm text-ink">
+            {t('À lire en premier')}
+          </h2>
+
+          <ul className="mt-6 grid gap-x-10 gap-y-3 sm:grid-cols-2">
+            {starters.map((article) => (
+              <li key={article.slug}>
+                <Link
+                  href={`/aide/${article.slug}`}
+                  className="text-sm text-ink transition-colors duration-150 hover:text-brand-strong"
+                >
+                  {t(article.title)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ══ 4. AILLEURS SUR LE SITE ═════════════════════════════════════════
+          La « Community » du modèle, et les quatre destinations existent réellement.
+          Aucune n'est un lien mort ni une page à venir. */}
+      <section aria-labelledby="ailleurs">
+        <h2 id="ailleurs" className="display-sm text-ink">
+          {t('Ailleurs sur le site')}
+        </h2>
+
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {ELSEWHERE.map((entry) => {
+            const Icon = entry.icon
+            const body = (
+              <>
+                {/* Pas de `strokeWidth` ici, contrairement à la grille de rubriques :
+                    le glyphe Instagram est un tracé PLEIN dessiné dans le dépôt, pas
+                    une icône lucide, et il n'a donc pas d'épaisseur de trait. */}
+                <Icon className="h-5 w-5 text-ink" aria-hidden="true" />
+                <span className="mt-3 block text-sm font-semibold text-ink">{t(entry.title)}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-ink-muted">
+                  {t(entry.description)}
+                </span>
+              </>
+            )
+
+            return (
+              <li key={entry.href}>
+                {entry.external ? (
+                  <a
+                    href={entry.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block h-full rounded-card border border-border-subtle bg-surface p-4 transition-colors duration-150 hover:border-brand"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <Link
+                    href={entry.href}
+                    className="block h-full rounded-card border border-border-subtle bg-surface p-4 transition-colors duration-150 hover:border-brand"
+                  >
+                    {body}
+                  </Link>
+                )}
+              </li>
+            )
+          })}
+        </ul>
       </section>
     </div>
   )
 }
+
+/**
+ * Les quatre destinations de la dernière rangée.
+ *
+ * Déclarées en table plutôt qu'écrites quatre fois dans le rendu : la seule chose qui
+ * change d'une carte à l'autre est le contenu, et une table rend impossible d'en
+ * déclarer une sans son pictogramme ou sans sa phrase.
+ */
+const ELSEWHERE: readonly {
+  href: string
+  /** Lien SORTANT : nouvelle fenêtre et `rel="noopener"`. Absent = route interne. */
+  external?: boolean
+  icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' }>
+  title: string
+  description: string
+}[] = [
+  {
+    /* La carte visait `/methodologie`, supprimée sur demande explicite. Elle pointe
+       désormais vers « À propos », qui porte ce que cette page disait de tenable sans
+       elle : le positionnement du site et ses limites déclarées. */
+    href: '/a-propos',
+    icon: FlaskConical,
+    title: 'À propos de ZENKUU',
+    description:
+      'Ce que le site fait, ce qu’il ne fait pas, et les limites que nous écrivons plutôt que de les dissimuler.',
+  },
+  {
+    href: '/apprendre',
+    icon: BookOpen,
+    title: 'Apprendre',
+    description: 'Les notions de marché expliquées, pour lire les pages sans dictionnaire.',
+  },
+  {
+    href: '/actualites',
+    icon: Newspaper,
+    title: 'Actualités',
+    description: 'Le fil des publications suivies par le site, par classe d’actif.',
+  },
+  {
+    href: 'https://www.instagram.com/getzenkuu/',
+    external: true,
+    icon: InstagramGlyph,
+    title: 'Instagram',
+    description: 'Le seul compte social ouvert à ce jour.',
+  },
+]

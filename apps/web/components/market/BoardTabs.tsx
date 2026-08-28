@@ -1,0 +1,657 @@
+'use client'
+
+import { Search, SlidersHorizontal, X } from 'lucide-react'
+
+import { usePhrase } from '@/components/locale/ContentProvider'
+import { useCurrency } from '@/components/locale/CurrencyProvider'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Link } from '@/i18n/navigation'
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA BARRE DU TABLEAU DE COTATIONS — ONGLETS, RECHERCHE, DEVISE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Trois contrôles réunis dans un module parce qu'ils occupent la même bande et
+ * qu'aucun n'a de sens seul : les onglets décident des colonnes, la recherche décide
+ * des lignes, la devise décide de l'unité. Les éparpiller dans trois fichiers
+ * obligerait `MarketBrowser` à en importer trois pour rendre une seule rangée.
+ *
+ * ── CE QUI EST REPRIS DE LA RÉFÉRENCE, ET CE QUI NE L'EST PAS ──────────────
+ *
+ * La GÉOMÉTRIE est relevée sur Cryptorank, au navigateur : onglets de 14 px avec un
+ * trait de 2 px sous l'onglet actif, champ de filtre à gauche de la rangée d'outils,
+ * sélecteur de devise à son bord droit. C'est la disposition que la capture demande.
+ *
+ * Les COULEURS restent celles du site. La référence code son bleu en dur (#1087F4) ;
+ * le reprendre donnerait un accent bleu au milieu d'une interface dont l'accent est
+ * `--color-brand`, et surtout casserait le thème sombre, où la marque s'éclaircit
+ * pour rester lisible. On copie la forme, pas la palette.
+ */
+
+/**
+ * Jeu de colonnes que l'onglet actif demande au tableau.
+ *
+ * ── `cotations` REMPLACE `apercu` SUR L'ACCUEIL, ET C'EST UN CHOIX DE LECTURE ──
+ *
+ * L'aperçu alignait onze colonnes : rang, actif, cours, quatre fenêtres de variation,
+ * courbe, volume, capitalisation. C'est la grille d'un CLASSEMENT — on y cherche où
+ * un actif se situe par rapport aux autres.
+ *
+ * `cotations` est la grille d'une PLACE DE MARCHÉ, relevée sur MEXC : cours, variation,
+ * plus haut et plus bas du jour, volume. On n'y cherche pas un rang mais une SÉANCE —
+ * dans quelle fourchette le cours s'est déplacé depuis hier, et à quel bout de cette
+ * fourchette il se trouve maintenant. Les deux questions sont distinctes, et le haut
+ * et le bas de séance ne répondaient à aucune des colonnes précédentes.
+ *
+ * La capitalisation et la courbe cèdent la place : la première est déjà l'ORDRE des
+ * lignes, la seconde redit la variation qu'elle jouxtait. Elles restent sur `/crypto`,
+ * dont c'est le sujet.
+ *
+ * ── `catalogue` EST LA GRILLE DES SIX PAGES DE CLASSE ────────────────────────
+ *
+ * Relevée sur Cryptorank : rang, actif, cours, variation 24 h, CAPITALISATION PUIS
+ * VOLUME — dans cet ordre, l'inverse de celui de l'aperçu — offre en circulation,
+ * courbe 7 jours en fin de ligne.
+ *
+ * L'ordre capitalisation/volume n'est pas un détail de goût. La capitalisation est le
+ * critère de TRI de la page : la poser juste après la variation met la colonne qui
+ * ordonne les lignes à côté de celle qui les fait bouger, et le volume — qui commente
+ * les deux — vient après. L'aperçu garde l'ordre inverse, hérité de CoinGecko, et
+ * c'est pourquoi les deux jeux coexistent au lieu que l'un remplace l'autre.
+ */
+export type BoardColumnSet = 'apercu' | 'cotations' | 'catalogue' | 'performance' | 'ath'
+
+/** Filtre de lignes que l'onglet actif demande à la liste. */
+export type BoardFilter = 'aucun' | 'gagnants' | 'perdants' | 'favoris'
+
+export interface BoardView {
+  key: string
+  label: string
+  columns: BoardColumnSet
+  filter: BoardFilter
+  hint: string
+}
+
+/**
+ * Les onglets, dans l'ordre de la référence.
+ *
+ * ── CE QUI EST REPRIS D'ELLE, ET CE QUI MANQUE ─────────────────────────────
+ *
+ * Cryptorank en aligne neuf : Overview, All Coins, Performance, All-Time High,
+ * Gainers, Losers, IDO/ICO ROI, All Categories, Ecosystems.
+ *
+ * Six sont ici. Les trois écarts sont des ABSENCES DE DONNÉE, pas des oublis :
+ *
+ *   · « All Coins » ne se distingue pas d'« Overview » sur ce site — notre aperçu
+ *     pagine déjà le catalogue entier, là où la référence réserve son premier onglet
+ *     à un extrait. Deux onglets pour la même liste ne diraient rien.
+ *   · « IDO/ICO ROI » suppose un prix d'émission par jeton, que notre source ne
+ *     publie pas. Le calculer depuis autre chose donnerait un rendement inventé (§5).
+ *
+ * ⚠️ « FAVORIS » A QUITTÉ CETTE LISTE POUR LA RANGÉE DU DESSUS — voir `ClassTabs`.
+ * Il y était le seul intrus : les cinq autres entrées choisissent COMMENT lire les
+ * mêmes lignes, lui choisissait LESQUELLES. C'est la question de l'univers, et c'est
+ * la rangée du haut qui la pose, comme sur la référence.
+ *
+ * « Catégories » et « Écosystèmes » sont des LIENS et non des onglets — voir
+ * `BOARD_LINKS`, plus bas.
+ */
+export const BOARD_VIEWS: BoardView[] = [
+  {
+    key: 'apercu',
+    label: 'Aperçu',
+    columns: 'cotations',
+    filter: 'aucun',
+    hint: 'Cours, variation, plus haut et plus bas du jour, volume',
+  },
+  {
+    key: 'performance',
+    label: 'Performance',
+    columns: 'performance',
+    filter: 'aucun',
+    hint: 'Les cinq fenêtres de variation côte à côte — 1 h, 24 h, 7 j, 30 j, 1 an',
+  },
+  {
+    key: 'ath',
+    label: 'Sommet historique',
+    columns: 'ath',
+    filter: 'aucun',
+    hint: 'Plus haut de tous les temps, sa date, et l’écart qui l’en sépare aujourd’hui',
+  },
+  {
+    key: 'gagnants',
+    label: 'Gagnants',
+    columns: 'cotations',
+    filter: 'gagnants',
+    hint: 'Variation positive sur 24 heures',
+  },
+  {
+    key: 'perdants',
+    label: 'Perdants',
+    columns: 'cotations',
+    filter: 'perdants',
+    hint: 'Variation négative sur 24 heures',
+  },
+]
+
+/**
+ * Les deux onglets qui QUITTENT la page.
+ *
+ * Ils rendent des liens et non des boutons, parce que ce qu'ils montrent n'est pas
+ * une autre vue de ce tableau mais une autre liste : des secteurs, pas des actifs.
+ * Un bouton qui navigue est un lien déguisé — il perd le clic milieu, le survol qui
+ * annonce la destination, et l'indexation.
+ */
+export const BOARD_LINKS: { href: string; label: string }[] = [
+  { href: '/categories', label: 'Catégories' },
+  { href: '/categories/ecosystemes', label: 'Écosystèmes' },
+]
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA RANGÉE DU HAUT — L'UNIVERS, ET NON LA VUE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * MEXC empile DEUX rangées d'onglets au-dessus de son tableau, et la distinction
+ * entre les deux est ce qui les rend lisibles :
+ *
+ *     RANGÉE 1 (20 px)   Favorites · Crypto · Stocks · Fiat      ← QUOI on regarde
+ *     RANGÉE 2 (14 px)   Spot · Futures                          ← COMMENT on le regarde
+ *
+ * La première choisit l'UNIVERS, la seconde la VUE de cet univers. Les fondre en une
+ * seule rangée — ce que faisait ce tableau — oblige le lecteur à trouver « Favoris »
+ * au milieu de « Performance » et « Sommet historique », qui ne répondent pas à la
+ * même question.
+ *
+ * ── DEUX BOUTONS, DEUX LIENS, ET LA DIFFÉRENCE EST RÉELLE ─────────────────
+ *
+ * Relevé sur la référence : `Favorites`, `Stocks` et `Fiat` y sont des ANCRES
+ * (`/markets/favorite`, `/markets/stocks`, `/markets/fiat`) — elles naviguent. Seuls
+ * `Spot` et `Futures` sont des `<span>`, donc de l'état de page.
+ *
+ * Ici la répartition suit ce que ce site sait faire sans second appel réseau :
+ *
+ *   · « Crypto » et « Favoris » filtrent les lignes DÉJÀ REÇUES — deux boutons ;
+ *   · « Actions » et « Devises » vivent sur d'autres classes d'actifs, servies par
+ *     d'autres sources : ce sont des LIENS vers `/actions` et `/devises`. Les rendre
+ *     en boutons obligerait l'accueil à charger trois univers Yahoo pour que le
+ *     lecteur en voie un — voir l'en-tête de `MarketRibbon` sur le coût réseau.
+ *
+ * Un bouton qui navigue est un lien déguisé : il perd le clic milieu, le survol qui
+ * annonce la destination, et l'indexation. C'est le même argument que `BOARD_LINKS`.
+ */
+export const BOARD_UNIVERSE_LINKS: { href: string; label: string }[] = [
+  { href: '/actions', label: 'Actions' },
+  { href: '/devises', label: 'Devises' },
+]
+
+/** Univers que la rangée du haut sait filtrer sans quitter la page. */
+export type BoardUniverse = 'crypto' | 'favoris'
+
+export function ClassTabs({
+  active,
+  onSelect,
+  favorisAvailable,
+  links = BOARD_UNIVERSE_LINKS,
+}: {
+  active: BoardUniverse
+  onSelect: (next: BoardUniverse) => void
+  favorisAvailable: boolean
+  links?: { href: string; label: string }[]
+}) {
+  const t = usePhrase()
+
+  /*
+    ── LA GÉOMÉTRIE EST RELEVÉE, PAS DEVINÉE ────────────────────────────────
+
+    Mesuré au navigateur sur la référence : intitulés de 20 px en graisse 500, actif
+    en encre pleine, inactif en encre atténuée, trait de 2 px sous l'actif seul.
+
+    LES COULEURS RESTENT CELLES DU SITE, comme pour `BoardTabs` : la référence code
+    son gris en dur (#87909F) et son actif en quasi-noir (#0D0E0F). Repris tels quels,
+    les deux deviendraient illisibles en thème sombre, où l'encre et le fond
+    s'inversent. `text-ink` et `text-ink-muted` portent exactement la même hiérarchie
+    dans les deux thèmes.
+
+    ⚠️ Le trait de l'actif est en `bg-ink` et non en `bg-brand`, contrairement à la
+    rangée du dessous. Ce n'est pas une incohérence : deux rangées d'onglets empilées
+    doivent se distinguer, sans quoi le lecteur ne voit qu'une grille de huit boutons.
+    La référence fait le même partage — trait sombre en haut, simple graisse en bas.
+  */
+  const style = (selected: boolean) =>
+    `relative whitespace-nowrap px-1 pb-2 pt-1 text-xl transition-colors duration-150 ${
+      selected
+        ? 'font-medium text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-ink'
+        : 'font-medium text-ink-muted hover:text-ink'
+    }`
+
+  return (
+    <div
+      role="tablist"
+      aria-label={t('Univers du tableau')}
+      className="scrollbar-none flex items-center gap-6 overflow-x-auto"
+    >
+      {favorisAvailable ? (
+        <button
+          type="button"
+          role="tab"
+          aria-selected={active === 'favoris'}
+          title={t('Seuls les actifs de votre liste de suivi')}
+          onClick={() => onSelect('favoris')}
+          className={style(active === 'favoris')}
+        >
+          {t('Favoris')}
+        </button>
+      ) : null}
+
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active === 'crypto'}
+        title={t('L’ensemble des cryptomonnaies du classement')}
+        onClick={() => onSelect('crypto')}
+        className={style(active === 'crypto')}
+      >
+        {t('Crypto')}
+      </button>
+
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className="whitespace-nowrap px-1 pb-2 pt-1 text-xl font-medium text-ink-muted transition-colors duration-150 hover:text-ink"
+        >
+          {t(link.label)}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+export function BoardTabs({
+  views,
+  active,
+  onSelect,
+  links = BOARD_LINKS,
+}: {
+  views: BoardView[]
+  active: string
+  onSelect: (key: string) => void
+  links?: { href: string; label: string }[]
+}) {
+  const t = usePhrase()
+
+  return (
+    /*
+      `overflow-x-auto` sur la rangée : huit onglets à 14 px ne tiennent pas sur un
+      téléphone, et les replier sur deux lignes ferait sauter la hauteur du bloc au
+      moment où le tableau se charge.
+
+      ⚠️ AUCUN DÉCALAGE NÉGATIF ICI. Descendre la bande d'un pixel pour que le trait
+      recouvre le filet ferait apparaître une barre de défilement VERTICALE sur toute
+      la rangée — `overflow-x: auto` force l'autre axe à `auto` lui aussi. Le trait se
+      pose donc SUR le filet plutôt que par-dessus ; à deux pixels contre un, l'œil ne
+      fait pas la différence. Relevé au navigateur, pas déduit : voir la même note
+      dans `LinkTabs`.
+    */
+    <div
+      role="tablist"
+      aria-label={t('Vue du tableau')}
+      className="scrollbar-none flex items-center gap-0.5 overflow-x-auto border-b border-border-subtle"
+    >
+      {views.map((view) => {
+        const selected = view.key === active
+        return (
+          <button
+            key={view.key}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            title={t(view.hint)}
+            onClick={() => onSelect(view.key)}
+            className={`relative whitespace-nowrap px-3 pb-2.5 pt-2 text-sm transition-colors duration-150 ${
+              selected
+                ? 'font-semibold text-brand after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
+                : 'font-normal text-ink hover:text-brand'
+            }`}
+          >
+            {t(view.label)}
+          </button>
+        )
+      })}
+
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className="whitespace-nowrap px-3 pb-2.5 pt-2 text-sm font-normal text-ink transition-colors duration-150 hover:text-brand"
+        >
+          {t(link.label)}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Champ de filtre du tableau.
+ *
+ * ── SA PORTÉE EST ÉCRITE DANS SON INTITULÉ, ET C'EST OBLIGATOIRE ───────────
+ *
+ * Il ne cherche QUE dans les lignes chargées, quand la loupe de l'en-tête interroge
+ * tout le catalogue. Deux champs d'apparence identique et de portée opposée sur le
+ * même écran est exactement ce qui avait fait retirer le précédent. La différence
+ * tient donc au libellé — « Filtrer » et non « Rechercher » — et à la ligne de
+ * décompte que `MarketBrowser` affiche dès qu'un filtre est actif.
+ *
+ * `type="search"` pour le clavier virtuel et la croix native ; la croix explicite
+ * reste, parce que Firefox n'en rend aucune et que le geste doit exister partout.
+ */
+export function BoardSearch({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (next: string) => void
+}) {
+  const t = usePhrase()
+
+  return (
+    <div className="relative w-full sm:w-64">
+      <Search
+        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
+        aria-hidden="true"
+      />
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={t('Filtrer les cryptomonnaies…')}
+        aria-label={t('Filtrer les cryptomonnaies affichées')}
+        className="h-9 w-full rounded-control border border-border-subtle bg-surface pl-9 pr-9 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-ring/50 [&::-webkit-search-cancel-button]:hidden"
+      />
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          aria-label={t('Effacer le filtre')}
+          className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+        >
+          <X className="size-3.5" aria-hidden="true" />
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES FOURCHETTES — LE BOUTON « FILTRES » DE LA RÉFÉRENCE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── TROIS FOURCHETTES, ET PAS LES DEUX AUTRES FILTRES DE CRYPTORANK ────────
+ *
+ * Sa fenêtre de filtres en propose cinq : catégorie, écosystème, capitalisation,
+ * volume, variation. Les trois dernières sont ici ; les deux premières manquent, et
+ * c'est une ABSENCE DE DONNÉE, pas un raccourci :
+ *
+ * `MarketAsset` ne porte ni catégorie ni écosystème. Notre fournisseur les publie sur
+ * un point de terminaison SÉPARÉ, un appel par catégorie, sans jointure vers les
+ * lignes du classement. Un filtre « DeFi » construit là-dessus demanderait une requête
+ * par case cochée, sur un quota qui en autorise cinq par minute — et rendrait une
+ * liste dont on ne pourrait pas dire si elle est complète. Les deux dimensions restent
+ * donc là où elles sont réellement servies : /categories et /categories/ecosystemes.
+ *
+ * ── LES MONTANTS SE SAISISSENT EN MILLIONS ─────────────────────────────────
+ *
+ * Une capitalisation s'écrit à dix ou onze chiffres. Demander « 1000000000 » pour un
+ * milliard fait compter les zéros à l'écran, et la première faute de frappe vide le
+ * tableau sans que rien ne dise pourquoi. Le champ prend donc des MILLIONS — « 1000 »
+ * pour un milliard — et l'unité est écrite dans l'intitulé, pas devinée.
+ *
+ * ⚠️ LA PORTÉE EST CELLE DES LIGNES CHARGÉES, comme le champ de filtre. C'est la même
+ * limite, et `MarketBrowser` l'annonce avec la même ligne de décompte.
+ */
+export interface BoardRanges {
+  capMin?: number
+  capMax?: number
+  volMin?: number
+  volMax?: number
+  chgMin?: number
+  chgMax?: number
+}
+
+/** Une fourchette vide ne filtre rien — c'est ce que teste le bandeau de décompte. */
+export function rangesActive(ranges: BoardRanges): boolean {
+  return Object.values(ranges).some((value) => value !== undefined)
+}
+
+/**
+ * Un actif passe-t-il les trois fourchettes ?
+ *
+ * ⚠️ UNE VALEUR ABSENTE ÉCHOUE AU FILTRE, elle ne le traverse pas. Un actif dont la
+ * source ne publie pas le volume n'est pas « de volume nul » : le ranger dans une
+ * fourchette « moins de 10 M » affirmerait quelque chose qu'on ne sait pas. Il sort
+ * donc de la liste dès qu'une borne de volume est posée, et y reste tant qu'aucune
+ * ne l'est.
+ */
+export function withinRanges(
+  asset: { marketCap?: number; volume24h?: number; change24h?: number },
+  ranges: BoardRanges,
+): boolean {
+  const check = (value: number | undefined, min?: number, max?: number, scale = 1) => {
+    if (min === undefined && max === undefined) return true
+    if (value === undefined) return false
+    if (min !== undefined && value < min * scale) return false
+    if (max !== undefined && value > max * scale) return false
+    return true
+  }
+
+  const MILLION = 1_000_000
+
+  return (
+    check(asset.marketCap, ranges.capMin, ranges.capMax, MILLION) &&
+    check(asset.volume24h, ranges.volMin, ranges.volMax, MILLION) &&
+    check(asset.change24h, ranges.chgMin, ranges.chgMax)
+  )
+}
+
+export function BoardFilters({
+  ranges,
+  onChange,
+}: {
+  ranges: BoardRanges
+  onChange: (next: BoardRanges) => void
+}) {
+  const t = usePhrase()
+  const active = Object.values(ranges).filter((value) => value !== undefined).length
+
+  /* Un champ vidé doit EFFACER la borne, pas la mettre à zéro : « minimum 0 » et
+     « pas de minimum » filtrent différemment dès qu'une variation est négative. */
+  const set = (key: keyof BoardRanges) => (raw: string) => {
+    const trimmed = raw.trim()
+    const next = { ...ranges }
+    if (trimmed === '') delete next[key]
+    else {
+      const value = Number(trimmed.replace(',', '.'))
+      if (!Number.isFinite(value)) return
+      next[key] = value
+    }
+    onChange(next)
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`flex h-9 items-center gap-2 rounded-control border px-3 text-sm transition-colors ${
+            active > 0
+              ? 'border-brand text-brand'
+              : 'border-border-subtle text-ink hover:border-ink-muted'
+          }`}
+        >
+          <SlidersHorizontal className="size-4" aria-hidden="true" />
+          {t('Filtres')}
+          {active > 0 ? <span className="tabular text-xs">{active}</span> : null}
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent align="end" className="w-80 border-border-subtle bg-overlay p-4">
+        <div className="space-y-3">
+          <RangeRow
+            label={t('Capitalisation (millions)')}
+            min={ranges.capMin}
+            max={ranges.capMax}
+            onMin={set('capMin')}
+            onMax={set('capMax')}
+          />
+          <RangeRow
+            label={t('Volume 24 h (millions)')}
+            min={ranges.volMin}
+            max={ranges.volMax}
+            onMin={set('volMin')}
+            onMax={set('volMax')}
+          />
+          <RangeRow
+            label={t('Variation 24 h (%)')}
+            min={ranges.chgMin}
+            max={ranges.chgMax}
+            onMin={set('chgMin')}
+            onMax={set('chgMax')}
+          />
+
+          <button
+            type="button"
+            onClick={() => onChange({})}
+            disabled={active === 0}
+            className="w-full rounded-control border border-border-subtle py-1.5 text-xs text-ink-muted transition-colors hover:text-ink disabled:opacity-40"
+          >
+            {t('Tout effacer')}
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+/**
+ * Une fourchette : un intitulé, deux champs.
+ *
+ * `type="number"` et non `type="text"` : il ouvre le clavier numérique sur mobile et
+ * fait rejeter les lettres par le navigateur, ce qui évite d'écrire ici la validation
+ * que la plateforme fait déjà. La conversion reste défensive côté appelant — un champ
+ * numérique accepte « 1e999 ».
+ */
+function RangeRow({
+  label,
+  min,
+  max,
+  onMin,
+  onMax,
+}: {
+  label: string
+  min: number | undefined
+  max: number | undefined
+  onMin: (value: string) => void
+  onMax: (value: string) => void
+}) {
+  const t = usePhrase()
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs text-ink-muted">{label}</p>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          value={min ?? ''}
+          onChange={(event) => onMin(event.target.value)}
+          placeholder={t('Min')}
+          aria-label={`${label} — ${t('Min')}`}
+          className="tabular h-8 w-full rounded-control border border-border-subtle bg-surface px-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus-visible:border-brand"
+        />
+        <span className="text-xs text-ink-muted" aria-hidden="true">
+          –
+        </span>
+        <input
+          type="number"
+          value={max ?? ''}
+          onChange={(event) => onMax(event.target.value)}
+          placeholder={t('Max')}
+          aria-label={`${label} — ${t('Max')}`}
+          className="tabular h-8 w-full rounded-control border border-border-subtle bg-surface px-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus-visible:border-brand"
+        />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Devises proposées au bord droit de la rangée, comme sur la référence.
+ *
+ * QUATRE ET NON SOIXANTE-DEUX : le catalogue complet vit dans la fenêtre de
+ * préférences, qui sait le grouper et le chercher. Ici, ce qu'on veut est une bascule
+ * — dollar, euro, et les deux unités crypto dans lesquelles le marché se cote
+ * réellement. Une liste de soixante-deux lignes au-dessus d'un tableau n'est pas une
+ * bascule, c'est un formulaire.
+ */
+const BOARD_CURRENCIES = ['USD', 'EUR', 'BTC', 'ETH'] as const
+
+/**
+ * Bascule de devise.
+ *
+ * ── ELLE PILOTE LA PRÉFÉRENCE DU SITE, PAS UN ÉTAT LOCAL ───────────────────
+ *
+ * `useCurrency` est déjà partagé par tout le site et mémorisé dans le navigateur :
+ * changer de devise ici change aussi les fiches d'actif, les palmarès et le
+ * convertisseur. C'est le comportement attendu — une devise choisie sur un tableau
+ * et oubliée à la page suivante serait un piège — et cela évite d'ajouter un second
+ * état qui divergerait du premier.
+ *
+ * ⚠️ LES CODES SONT FILTRÉS PAR `available`. Cette liste est dérivée des TAUX REÇUS :
+ * si la source de change est en panne pour le bitcoin, la ligne disparaît au lieu
+ * d'afficher des montants inchangés sans le signaler (§5). Le sélecteur ne se rend
+ * pas du tout s'il ne reste qu'un choix — un contrôle sans effet fait douter de ceux
+ * qui en ont un.
+ */
+export function BoardCurrency() {
+  const t = usePhrase()
+  const { currency, setCurrency, available } = useCurrency()
+
+  const offered = BOARD_CURRENCIES.filter((code) => available.includes(code))
+
+  /* La devise courante peut venir des préférences et sortir des quatre proposées :
+     on l'ajoute alors en tête plutôt que d'afficher un déclencheur vide. */
+  const choices = offered.includes(currency as (typeof BOARD_CURRENCIES)[number])
+    ? offered
+    : [currency, ...offered]
+
+  if (choices.length < 2) return null
+
+  return (
+    <Select value={currency} onValueChange={setCurrency}>
+      <SelectTrigger
+        size="sm"
+        aria-label={t('Devise d’affichage')}
+        className="tabular w-max font-medium"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {choices.map((code) => (
+          <SelectItem key={code} value={code} className="tabular">
+            {code}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}

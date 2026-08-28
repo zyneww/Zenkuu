@@ -137,7 +137,7 @@ export function AssetMetricGrid({
   const [group, setGroup] = useState<string | null>(null)
   const [query, setQuery] = useState('')
 
-  const derived = useMemo(() => deriveCards(series?.points ?? null, series?.currency ?? 'EUR'), [series])
+  const derived = useMemo(() => deriveCards(series?.points ?? null, series?.currency ?? 'EUR', t), [series, t])
 
   const all = useMemo(() => [...cards, ...derived], [cards, derived])
 
@@ -221,7 +221,7 @@ export function AssetMetricGrid({
                 key={key}
                 active={group === key}
                 onClick={() => setGroup(key)}
-                label={GROUP_TITLES[key] ?? key}
+                label={t(GROUP_TITLES[key] ?? key)}
                 count={counts.get(key) ?? 0}
               />
             ))}
@@ -257,7 +257,7 @@ export function AssetMetricGrid({
                   fois la même annonce. */}
               {group === null ? (
                 <h4 className="text-micro font-semibold uppercase tracking-wide text-ink-muted">
-                  {GROUP_TITLES[section.key] ?? section.key}
+                  {t(GROUP_TITLES[section.key] ?? section.key)}
                 </h4>
               ) : null}
 
@@ -538,7 +538,7 @@ function seriesFor(
  * chez la source. La distinction est celle que défend `lib/series-stats.ts`, et le
  * groupe « Calculées » la rend visible au lecteur.
  */
-function deriveCards(points: SeriesPoint[] | null, currency: string): MetricCard[] {
+function deriveCards(points: SeriesPoint[] | null, currency: string, t: (text: string) => string): MetricCard[] {
   if (!points || points.length < 2) return []
 
   const cards: MetricCard[] = []
@@ -558,8 +558,8 @@ function deriveCards(points: SeriesPoint[] | null, currency: string): MetricCard
   if (lastTurnover) {
     cards.push({
       slug: 'derive-rotation',
-      label: 'Rotation du volume',
-      help: 'Volume échangé sur 24 heures rapporté à la capitalisation, en pourcentage. Elle dit quelle part de l’actif change de mains chaque jour : deux actifs au même volume n’ont pas la même liquidité si l’un est dix fois plus gros. Calculée par nos soins à partir de deux nombres publiés par la source.',
+      label: t('Rotation du volume'),
+      help: t('Volume échangé sur 24 heures rapporté à la capitalisation, en pourcentage. Elle dit quelle part de l’actif change de mains chaque jour : deux actifs au même volume n’ont pas la même liquidité si l’un est dix fois plus gros. Calculée par nos soins à partir de deux nombres publiés par la source.'),
       group: 'derived',
       value: formatShare(lastTurnover.value),
       points: turnover,
@@ -580,8 +580,8 @@ function deriveCards(points: SeriesPoint[] | null, currency: string): MetricCard
   if (lastDrawdown) {
     cards.push({
       slug: 'derive-repli',
-      label: 'Repli depuis le plus haut 1 an',
-      help: 'Écart entre le cours actuel et le plus haut atteint sur les douze derniers mois. À la différence de l’écart au record absolu, qui peut remonter à plusieurs années, celui-ci situe le cours dans son amplitude récente. Calculé par nos soins sur la série publiée par la source.',
+      label: t('Repli depuis le plus haut 1 an'),
+      help: t('Écart entre le cours actuel et le plus haut atteint sur les douze derniers mois. À la différence de l’écart au record absolu, qui peut remonter à plusieurs années, celui-ci situe le cours dans son amplitude récente. Calculé par nos soins sur la série publiée par la source.'),
       group: 'derived',
       value: formatPercent(lastDrawdown.value),
       points: drawdown,
@@ -598,8 +598,8 @@ function deriveCards(points: SeriesPoint[] | null, currency: string): MetricCard
     const mean = window.reduce((total, value) => total + value, 0) / window.length
     cards.push({
       slug: 'derive-volume-moyen',
-      label: 'Volume moyen 30 j',
-      help: 'Moyenne des volumes quotidiens des trente derniers jours. C’est la référence à laquelle comparer le volume du jour : seul, celui-ci ne dit pas s’il est fort ou faible pour cet actif. Calculé par nos soins sur la série publiée par la source.',
+      label: t('Volume moyen 30 j'),
+      help: t('Moyenne des volumes quotidiens des trente derniers jours. C’est la référence à laquelle comparer le volume du jour : seul, celui-ci ne dit pas s’il est fort ou faible pour cet actif. Calculé par nos soins sur la série publiée par la source.'),
       group: 'derived',
       value: <Money value={mean} from={currency} compact />,
     })

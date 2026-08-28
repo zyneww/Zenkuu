@@ -211,19 +211,46 @@ export function TablePagination({
 
       Sous `sm`, retour à un empilement : trois pistes sur 393 px donneraient trois
       colonnes trop étroites pour un compteur d'une ligne.
+
+      ── SANS SÉLECTEUR DE LIGNES, LES CRANS PASSENT À DROITE ─────────────────
+
+      Les tableaux de cotations ont remonté ce sélecteur dans leur rangée d'outils
+      (voir `RowsPerPage`). La barre n'a donc plus que deux blocs, et centrer les crans
+      laisserait un vide à droite aussi large que le compteur à gauche. Deux pistes,
+      compteur à gauche et crans à droite : c'est la barre de la référence.
     */
-    <div className="flex flex-col items-center gap-3 border-t border-border-subtle pt-3 text-xs sm:grid sm:grid-cols-[1fr_auto_1fr] sm:gap-x-6">
-      <p className="tabular text-ink-muted sm:justify-self-start">
+    /*
+      ── LA BARRE EST À L'ÉCHELLE DU TABLEAU, PAS DE SA NOTE DE BAS DE PAGE ──
+
+      Elle était écrite en `text-xs` sur des cases de 24 px : à cette taille, un pied
+      de tableau se lit comme une mention légale, et les numéros de page — qui sont
+      les seules CIBLES de la bande — étaient les plus petits éléments de l'écran.
+
+      Les mesures viennent de la référence, relevées au navigateur : 14 px de texte,
+      des cases de 36 px, un rayon de 12 px. Le compteur passe en `text-ink` et non
+      plus en gris atténué — il répond à « où en suis-je ? », qui n'est pas une
+      question secondaire.
+    */
+    <div
+      className={`flex flex-col items-center gap-3 border-t border-border-subtle pt-4 text-sm sm:grid sm:gap-x-6 ${
+        rowsUseful ? 'sm:grid-cols-[1fr_auto_1fr]' : 'sm:grid-cols-[1fr_auto]'
+      }`}
+    >
+      <p className="tabular text-ink sm:justify-self-start">
         {counterText({ known, total, first, last, unit, singlePage: !navigable, t })}
       </p>
 
       {navigable ? (
         /* `w-auto` et `mx-0` : `Pagination` se centre lui-même sur toute la largeur
            disponible (`mx-auto w-full`), ce qui est le bon réglage pour une page de
-           contenu et le mauvais dans une grille à trois pistes — la piste du milieu
-           s'étirerait et emporterait les deux autres avec elle. */
-        <Pagination className="mx-0 w-auto sm:justify-self-center">
-          <PaginationContent className="gap-1">
+           contenu et le mauvais dans une grille à pistes — la piste du milieu
+           s'étirerait et emporterait les autres avec elle. */
+        <Pagination
+          className={`mx-0 w-auto ${
+            rowsUseful ? 'sm:justify-self-center' : 'sm:justify-self-end'
+          }`}
+        >
+          <PaginationContent className="gap-1.5">
             <PaginationItem>
               <Step
                 label={t('Page précédente')}
@@ -232,7 +259,7 @@ export function TablePagination({
                 onPageChange={onPageChange}
                 hrefFor={hrefFor}
               >
-                <ChevronLeft className="size-3.5" aria-hidden="true" />
+                <ChevronLeft className="size-4" aria-hidden="true" />
               </Step>
             </PaginationItem>
 
@@ -241,7 +268,7 @@ export function TablePagination({
                 // La clé porte l'INDEX parce qu'il peut y avoir deux ellipses, l'une à
                 // gauche et l'autre à droite : `key="…"` les ferait entrer en collision.
                 <PaginationItem key={`gap-${index}`}>
-                  <PaginationEllipsis className="size-7" />
+                  <PaginationEllipsis className="size-9" />
                 </PaginationItem>
               ) : entry === page ? (
                 /* La page courante n'est PAS une cible : y mener rechargerait ce qui
@@ -255,8 +282,8 @@ export function TablePagination({
                   <PaginationLink
                     asChild
                     isActive
-                    size="icon-xs"
-                    className="tabular min-w-7 bg-brand font-medium text-on-brand hover:bg-brand hover:text-on-brand"
+                    size="icon"
+                    className="tabular min-w-9 rounded-xl border-0 bg-brand text-sm font-semibold text-on-brand shadow-none hover:bg-brand hover:text-on-brand"
                   >
                     <span>{entry}</span>
                   </PaginationLink>
@@ -284,7 +311,7 @@ export function TablePagination({
                 onPageChange={onPageChange}
                 hrefFor={hrefFor}
               >
-                <ChevronRight className="size-3.5" aria-hidden="true" />
+                <ChevronRight className="size-4" aria-hidden="true" />
               </Step>
             </PaginationItem>
           </PaginationContent>
@@ -294,37 +321,69 @@ export function TablePagination({
       )}
 
       {rowsUseful && onPerPageChange ? (
-        <div className="flex items-center gap-2 text-ink-muted sm:justify-self-end">
-          {/* `Select` de shadcn/ui : c'est le même contrôle que les filtres du fil
-              d'actualités et que le reste des sélecteurs du site, alors qu'il portait
-              ici son propre habillage — fond plein, anneau `brand-soft` — qui ne se
-              retrouvait nulle part ailleurs.
-
-              `aria-label` sur le déclencheur plutôt qu'un `<label>` enveloppant :
-              Radix rend un `<button>` et une liste en portail, une étiquette posée
-              autour n'aurait plus rien à désigner. Le mot « Lignes » reste À CÔTÉ
-              parce qu'il est lu à l'œil comme l'unité du nombre, pas comme un intitulé
-              de champ. */}
-          <span aria-hidden="true">{t('Lignes')}</span>
-          <Select
-            value={String(perPage)}
-            onValueChange={(next) => onPerPageChange(Number(next))}
-          >
-            <SelectTrigger size="sm" aria-label={t('Lignes par page')} className="tabular w-max">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {perPageChoices.map((choice) => (
-                <SelectItem key={choice} value={String(choice)} className="tabular">
-                  {choice}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <RowsPerPage
+          perPage={perPage}
+          onPerPageChange={onPerPageChange}
+          perPageChoices={perPageChoices}
+          className="sm:justify-self-end"
+        />
       ) : (
         <span />
       )}
+    </div>
+  )
+}
+
+/**
+ * LE SÉLECTEUR DE LIGNES, EXTRAIT DE LA BARRE.
+ *
+ * Il en occupait le bord droit. Les tableaux de cotations le remontent désormais dans
+ * leur RANGÉE D'OUTILS, au-dessus des colonnes — là où vivent les autres réglages
+ * d'affichage — ce qui laisse la barre du bas aux deux seules choses qui parlent de la
+ * position dans la liste : le compteur et les crans de page.
+ *
+ * `TablePagination` continue de le rendre lui-même quand on lui passe
+ * `onPerPageChange` : les tableaux qui n'ont pas de rangée d'outils — places de
+ * cotation, palmarès, carnets — gardent leur pied inchangé.
+ */
+export function RowsPerPage({
+  perPage,
+  onPerPageChange,
+  perPageChoices = ROW_CHOICES,
+  className = '',
+}: {
+  perPage: number
+  onPerPageChange: (perPage: number) => void
+  perPageChoices?: readonly number[]
+  className?: string
+}) {
+  const t = usePhrase()
+
+  return (
+    <div className={`flex items-center gap-2 text-xs text-ink-muted ${className}`}>
+      {/* `Select` de shadcn/ui : c'est le même contrôle que les filtres du fil
+          d'actualités et que le reste des sélecteurs du site, alors qu'il portait
+          ici son propre habillage — fond plein, anneau `brand-soft` — qui ne se
+          retrouvait nulle part ailleurs.
+
+          `aria-label` sur le déclencheur plutôt qu'un `<label>` enveloppant :
+          Radix rend un `<button>` et une liste en portail, une étiquette posée
+          autour n'aurait plus rien à désigner. Le mot « Lignes » reste À CÔTÉ
+          parce qu'il est lu à l'œil comme l'unité du nombre, pas comme un intitulé
+          de champ. */}
+      <span aria-hidden="true">{t('Lignes')}</span>
+      <Select value={String(perPage)} onValueChange={(next) => onPerPageChange(Number(next))}>
+        <SelectTrigger size="sm" aria-label={t('Lignes par page')} className="tabular w-max">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="end">
+          {perPageChoices.map((choice) => (
+            <SelectItem key={choice} value={String(choice)} className="tabular">
+              {choice}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
@@ -428,16 +487,30 @@ function Step({
   hrefFor?: ((page: number) => string) | undefined
   children: React.ReactNode
 }) {
-  /* `min-w-7` et non une largeur fixe : « 12 » et « 120 » doivent tenir dans la même
-     rangée sans que l'un déborde ni que l'autre flotte. */
-  const shared = 'tabular min-w-7 font-medium text-ink-muted'
+  /*
+     `min-w-9` et non une largeur fixe : « 12 » et « 120 » doivent tenir dans la même
+     rangée sans que l'un déborde ni que l'autre flotte.
+
+     ── L'APLAT DISCRET N'EST PAS DÉCORATIF ────────────────────────────────
+
+     Les numéros étaient du texte gris posé sur le fond de la page : rien ne disait
+     qu'ils étaient CLIQUABLES avant qu'on ne les survole, et sur un pied de tableau
+     on ne survole pas ce qu'on ne prend pas pour un bouton. La référence pose sous
+     chacun un aplat à peine visible — relevé à 3 % d'opacité — qui suffit à les
+     lire comme une rangée de cases. C'est ce que fait `bg-surface-muted`.
+
+     Le texte passe en `text-ink` : un numéro de page atteignable ne doit pas être
+     plus pâle que le compteur qui le commente.
+  */
+  const shared =
+    'tabular min-w-9 rounded-xl border-0 bg-surface-muted/70 text-sm font-medium text-ink shadow-none hover:bg-surface-muted hover:text-brand-strong'
 
   if (disabled) {
     return (
       <PaginationLink
         asChild
-        size="icon-xs"
-        className={cn(shared, 'pointer-events-none opacity-30')}
+        size="icon"
+        className={cn(shared, 'pointer-events-none bg-transparent opacity-30')}
       >
         <span aria-hidden="true">{children}</span>
       </PaginationLink>
@@ -446,7 +519,7 @@ function Step({
 
   if (hrefFor) {
     return (
-      <PaginationLink asChild size="icon-xs" className={shared}>
+      <PaginationLink asChild size="icon" className={shared}>
         <Link href={hrefFor(target)} aria-label={label}>
           {children}
         </Link>
@@ -455,7 +528,7 @@ function Step({
   }
 
   return (
-    <PaginationLink asChild size="icon-xs" className={shared}>
+    <PaginationLink asChild size="icon" className={shared}>
       <button type="button" onClick={() => onPageChange?.(target)} aria-label={label}>
         {children}
       </button>

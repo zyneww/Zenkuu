@@ -6,6 +6,7 @@ import { Money } from '@/components/locale/Money'
 import { RailSection } from '@/components/ui/RailSection'
 import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Projets similaires, EN LISTE ÉTROITE DANS LE RAIL.
@@ -31,12 +32,13 @@ import { assetHref } from '@/lib/asset-routes'
  * un lecteur qui cherche un comparable pense d'abord aux plus gros de la catégorie.
  * Le reste est à un clic, dans l'onglet.
  */
-export function AssetSimilarRail({ peers }: { peers: MarketAsset[] }) {
+export async function AssetSimilarRail({ peers }: { peers: MarketAsset[] }) {
+  const t = await getPhrase()
   const shown = peers.slice(0, 4)
   if (shown.length === 0) return null
 
   return (
-    <RailSection title="Projets similaires">
+    <RailSection title={t('Projets similaires')}>
       <ul>
         {shown.map((peer) => (
           <li key={peer.id} className="border-b border-border-subtle last:border-0">

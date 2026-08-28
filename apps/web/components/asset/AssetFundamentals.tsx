@@ -106,33 +106,33 @@ async function ValuationPanel({
     value === undefined ? null : formatNumber(value, 1)
 
   const size: Row[] = [
-    { label: 'Valeur d’entreprise', value: money(valuation.enterpriseValue), hint: 'capitalisation + dette − trésorerie' },
-    { label: 'Chiffre d’affaires', value: money(valuation.revenue), hint: 'sur douze mois glissants' },
-    { label: 'VE / EBITDA', value: multiple(valuation.evToEbitda) },
-    { label: 'VE / chiffre d’affaires', value: multiple(valuation.evToRevenue) },
-    { label: 'Cours / chiffre d’affaires', value: multiple(valuation.priceToSales) },
-    { label: 'PEG', value: multiple(valuation.pegRatio), hint: 'C/B rapporté à la croissance attendue' },
+    { label: t('Valeur d’entreprise'), value: money(valuation.enterpriseValue), hint: t('capitalisation + dette − trésorerie') },
+    { label: t('Chiffre d’affaires'), value: money(valuation.revenue), hint: t('sur douze mois glissants') },
+    { label: t('VE / EBITDA'), value: multiple(valuation.evToEbitda) },
+    { label: t('VE / chiffre d’affaires'), value: multiple(valuation.evToRevenue) },
+    { label: t('Cours / chiffre d’affaires'), value: multiple(valuation.priceToSales) },
+    { label: t('PEG'), value: multiple(valuation.pegRatio), hint: t('C/B rapporté à la croissance attendue') },
   ]
 
   const margins: Row[] = [
-    { label: 'Marge brute', value: formatShare(valuation.grossMargin) },
-    { label: 'Marge d’exploitation', value: formatShare(valuation.operatingMargin) },
-    { label: 'Marge nette', value: formatShare(valuation.profitMargin) },
-    { label: 'Rentabilité des capitaux', value: formatShare(valuation.returnOnEquity), hint: 'ROE' },
-    { label: 'Rentabilité de l’actif', value: formatShare(valuation.returnOnAssets), hint: 'ROA' },
+    { label: t('Marge brute'), value: formatShare(valuation.grossMargin) },
+    { label: t('Marge d’exploitation'), value: formatShare(valuation.operatingMargin) },
+    { label: t('Marge nette'), value: formatShare(valuation.profitMargin) },
+    { label: t('Rentabilité des capitaux'), value: formatShare(valuation.returnOnEquity), hint: t('ROE') },
+    { label: t('Rentabilité de l’actif'), value: formatShare(valuation.returnOnAssets), hint: t('ROA') },
     /* Les croissances portent un SIGNE — d'où `formatPercent` et non `formatShare` :
        un chiffre d'affaires en recul de 12 % affiché « 12 % » dirait l'inverse. */
-    { label: 'Croissance du chiffre d’affaires', value: formatPercent(valuation.revenueGrowth), hint: 'sur un an' },
-    { label: 'Croissance du bénéfice', value: formatPercent(valuation.earningsGrowth), hint: 'sur un an' },
+    { label: t('Croissance du chiffre d’affaires'), value: formatPercent(valuation.revenueGrowth), hint: t('sur un an') },
+    { label: t('Croissance du bénéfice'), value: formatPercent(valuation.earningsGrowth), hint: t('sur un an') },
   ]
 
   const balance: Row[] = [
-    { label: 'Trésorerie', value: money(valuation.totalCash) },
-    { label: 'Dette totale', value: money(valuation.totalDebt) },
-    { label: 'Dette / capitaux propres', value: formatShare(valuation.debtToEquity) },
-    { label: 'Flux de trésorerie libre', value: money(valuation.freeCashflow) },
-    { label: 'Actions en circulation', value: formatCompact(valuation.sharesOutstanding) },
-    { label: 'Flottant', value: formatCompact(valuation.floatShares), hint: 'part réellement échangeable' },
+    { label: t('Trésorerie'), value: money(valuation.totalCash) },
+    { label: t('Dette totale'), value: money(valuation.totalDebt) },
+    { label: t('Dette / capitaux propres'), value: formatShare(valuation.debtToEquity) },
+    { label: t('Flux de trésorerie libre'), value: money(valuation.freeCashflow) },
+    { label: t('Actions en circulation'), value: formatCompact(valuation.sharesOutstanding) },
+    { label: t('Flottant'), value: formatCompact(valuation.floatShares), hint: t('part réellement échangeable') },
   ]
 
   const groups = [size, margins, balance].map(keepFilled).filter((rows) => rows.length > 0)
@@ -282,38 +282,39 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
  * qui verse plus qu'elle ne gagne, ce qui ne dure pas. Afficher le premier seul
  * reviendrait à mettre en avant le chiffre qui attire sans celui qui prévient.
  */
-function DividendPanel({
+async function DividendPanel({
   dividend,
   currency,
 }: {
   dividend: NonNullable<AssetProfile['dividend']>
   currency: string
 }) {
+  const t = await getPhrase()
   const rows = keepFilled([
     {
-      label: 'Rendement',
+      label: t('Rendement'),
       value: formatShare(dividend.yieldPercent),
-      hint: 'sur le cours actuel',
+      hint: t('sur le cours actuel'),
     },
     {
-      label: 'Montant annuel',
+      label: t('Montant annuel'),
       value:
         dividend.rate === undefined
           ? null
           : `${formatNumber(dividend.rate, 2)} ${currency.toUpperCase()} / action`,
     },
     {
-      label: 'Taux de distribution',
+      label: t('Taux de distribution'),
       value: formatShare(dividend.payoutRatio),
-      hint: 'part du bénéfice reversée',
+      hint: t('part du bénéfice reversée'),
     },
     {
-      label: 'Moyenne sur cinq ans',
+      label: t('Moyenne sur cinq ans'),
       value: formatShare(dividend.fiveYearAverageYield),
-      hint: 'rendement moyen, pour situer celui d’aujourd’hui',
+      hint: t('rendement moyen, pour situer celui d’aujourd’hui'),
     },
-    { label: 'Détachement', value: dividend.exDate ? formatDay(dividend.exDate) : null },
-    { label: 'Versement', value: dividend.payDate ? formatDay(dividend.payDate) : null },
+    { label: t('Détachement'), value: dividend.exDate ? formatDay(dividend.exDate) : null },
+    { label: t('Versement'), value: dividend.payDate ? formatDay(dividend.payDate) : null },
   ])
 
   if (rows.length === 0) return null

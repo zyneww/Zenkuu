@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { guard } from '@/lib/rate-limit'
+
 import { MIN_QUERY_LENGTH, searchAssets } from '@zenkuu/data'
 
 /**
@@ -18,6 +20,18 @@ import { MIN_QUERY_LENGTH, searchAssets } from '@zenkuu/data'
 const MAX_RESULTS = 8
 
 export async function GET(request: Request) {
+  /*
+    ── GARDE-FOU DE DÉBIT ────────────────────────────────────────────────────
+
+    Cette route sert un cache PARTAGÉ alimenté par une source gratuite : une boucle
+    qui fait varier ses paramètres ouvre autant d'entrées de cache que d'appels
+    sortants, et dégrade le site pour tout le monde. Le plafond borne l'entrée plutôt
+    que la sortie — voir `lib/rate-limit.ts`, qui dit aussi ce que cette approche ne
+    couvre pas.
+  */
+  const limited = guard(request, 'recherche', 60)
+  if (limited) return limited
+
   const query = new URL(request.url).searchParams.get('q')?.trim() ?? ''
 
   // Une chaîne trop courte n'est pas une erreur : c'est l'état normal pendant la

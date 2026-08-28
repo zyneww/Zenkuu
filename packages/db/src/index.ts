@@ -22,18 +22,17 @@ export {
 } from './watchlist'
 export type { WatchlistResult, WatchlistSummary } from './watchlist'
 
-export {
-  countActiveAlerts,
-  createAlert,
-  deleteAlert,
-  isAlertDirection,
-  listAlerts,
-  listArmedAlerts,
-  markAlertsTriggered,
-  rearmAlert,
-} from './alerts'
-export { purgeExpiredAlerts } from './alerts'
-export type { AlertDirection } from './alerts'
+/*
+ * ⚠️ LES ALERTES DE PRIX ONT ÉTÉ SUPPRIMÉES DU PRODUIT.
+ *
+ * Ce bloc exportait `createAlert`, `listArmedAlerts`, `markAlertsTriggered` et leurs
+ * voisines, servies par `./alerts`. Le module, la table `price_alerts`, la page
+ * `/alertes`, la tâche planifiée et le gabarit de courriel sont partis avec.
+ *
+ * Ce qui reste et n'a rien à voir : la LISTE DE SUIVI (`./watchlist`), qui répond à
+ * « garde un œil sur cet actif » sans rien envoyer. Les deux étaient souvent cités
+ * ensemble dans les textes du site ; seule la seconde existe encore.
+ */
 
 export { SCREEN_NAME_MAX, deleteScreen, listScreens, saveScreen } from './screens'
 
@@ -72,7 +71,6 @@ export {
   accounts,
   loginCodes,
   newsArticles,
-  priceAlerts,
   savedScreens,
   sessions,
   userPreferences,
@@ -83,11 +81,9 @@ export type {
   LoginCode,
   NewAccount,
   NewNewsArticle,
-  NewPriceAlert,
   NewSavedScreen,
   NewWatchlistItem,
   NewsArticle,
-  PriceAlert,
   SavedScreen,
   Session,
   UserPreferences,

@@ -120,7 +120,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
               />
               {prefs.isVisible('currentValue') ? (
                 <SortableHeader
-                  label="Valeur actuelle $"
+                  label={t('Valeur actuelle $')}
                   sortKey="currentValue"
                   className="hidden sm:table-cell"
                   sort={sort}
@@ -140,7 +140,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
               ) : null}
               {prefs.isVisible('gain') ? (
                 <SortableHeader
-                  label="Plus-value latente"
+                  label={t('Plus-value latente')}
                   sortKey="gain"
                   className="hidden lg:table-cell"
                   sort={sort}

@@ -7,11 +7,13 @@ import { NAV_MENUS } from '@/content/navigation'
 import { ZenkuuWordmark } from '@/components/BrandMark'
 import { useContent } from '@/components/locale/ContentProvider'
 import { AccountControl } from '@/components/account/AccountControl'
-import { AuthOverlay, type AuthMode } from '@/components/account/AuthOverlay'
 import { MobileNav } from '@/components/nav/MobileNav'
 import { NavMenus } from '@/components/nav/NavMenus'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
+import { ThemeSync } from '@/components/settings/ThemeSync'
 import { HeaderSearch } from '@/components/search/HeaderSearch'
+import { AuthDialog } from '@/components/account/AuthDialog'
+import type { AuthMode } from '@/components/account/auth-mode'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 
 /**
@@ -55,14 +57,15 @@ export function NavBar({
   /**
    * Fournisseurs d'identité dont les identifiants sont renseignés.
    *
-   * Traverse en prop pour la même raison qu'`accountsEnabled` : c'est la lecture
-   * d'une variable d'environnement, donc une opération serveur, dont seul le RÉSULTAT
-   * — trois libellés au plus — a sa place dans le paquet client.
+   * Traverse en prop pour la même raison qu'`accountsEnabled` : c'est la lecture d'une
+   * variable d'environnement, donc une opération serveur, dont seul le RÉSULTAT —
+   * trois libellés au plus — a sa place dans le paquet client.
    */
   socialProviders: readonly string[]
 }) {
   const fr = useContent()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   /*
    * L'état des deux fenêtres vit ICI, pas dans les composants qui les déclenchent.
    *
@@ -92,7 +95,6 @@ export function NavBar({
    * `null` = fermée, même convention que `preferenceTab` : un booléen d'ouverture ET
    * un mode en parallèle, ce sont deux variables dont l'une peut contredire l'autre.
    */
-  const [authMode, setAuthMode] = useState<AuthMode | null>(null)
 
   /* STABLES, et il le faut : `HeaderSearch` pose son écouteur de raccourcis dans un
      effet qui dépend de `onOpenOverlay`. Une fonction recréée à chaque rendu ferait
@@ -100,7 +102,6 @@ export function NavBar({
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closePreference = useCallback(() => setPreferenceTab(null), [])
-  const closeAuth = useCallback(() => setAuthMode(null), [])
 
   /*
    * TOUTE LA MÉCANIQUE DES MENUS A QUITTÉ CE FICHIER.
@@ -145,7 +146,12 @@ export function NavBar({
           /* `h-[var(--header-height)]` et non `h-16` : la même valeur sert de décalage
              aux en-têtes collants de `MarketTable`, qui se glisseraient derrière celui-ci
              si les deux divergeaient. Voir `--header-height` dans globals.css. */
-          className="shell-bleed flex h-[var(--header-height)] items-center gap-2 lg:gap-4"
+          /* `shell-header` et non `shell-bleed` : la largeur du CONTENU de la barre
+             suit désormais le réglage d'affichage — centrée sur 1 680 px en
+             « Compact » (CoinGecko), étalée bord à bord en « Étirée »
+             (CoinMarketCap). Le filet du `<header>` reste traversant dans les deux
+             cas. Voir `.shell-header` dans globals.css. */
+          className="shell-header flex h-[var(--header-height)] items-center gap-2 lg:gap-4"
         >
           {/*
             LE TIROIR EST LE PREMIER ÉLÉMENT DE LA BARRE, avant le logo.
@@ -275,6 +281,22 @@ export function NavBar({
             <HeaderSearch onOpenOverlay={openSearch} />
 
             {/*
+              LA BASCULE DE THÈME RETOURNE AU PANNEAU — IL N'EN RESTE QUE L'ÉCOUTEUR.
+
+              Elle a occupé cette place, à côté de la recherche, au motif que c'est la
+              préférence la plus souvent changée du site. C'est vrai le premier jour et
+              faux ensuite : on choisit son thème une fois, alors qu'on cherche un actif
+              à chaque visite. Un bouton permanent pour un geste unique, c'est de la
+              place prise à la recherche et une icône de plus à écarter du regard.
+
+              Le panneau d'affichage la porte, et mieux : avec ses TROIS choix, dont
+              « suivre l'appareil » — celui par défaut, que deux icônes ne savent pas
+              dessiner. `ThemeSync` n'affiche rien ; il garde seulement ce choix vivant
+              quand l'appareil bascule pendant la visite.
+            */}
+            <ThemeSync />
+
+            {/*
               LA ROUE DENTÉE A FUSIONNÉ AVEC LE COMPTE.
 
               Les deux boutons se sont d'abord exclus — le menu de compte reprenait
@@ -292,11 +314,7 @@ export function NavBar({
               `AccountControl`, qui décrit ses trois formes. Le visiteur anonyme garde
               donc l'accès aux réglages, ce qui était le seul acquis à préserver.
             */}
-            <AccountControl
-              available={accountsEnabled}
-              onOpenPreference={setPreferenceTab}
-              onOpenAuth={setAuthMode}
-            />
+            <AccountControl available={accountsEnabled} onOpenAuth={setAuthMode} />
           </div>
         </div>
       </header>
@@ -307,14 +325,14 @@ export function NavBar({
         onTabChange={setPreferenceTab}
         onClose={closePreference}
       />
-      {/* `mode` retombe sur « connexion » quand la fenêtre est fermée : c'est une
-          valeur qui ne sera jamais lue — le composant ne rend rien sans `open` — mais
-          la propriété est requise, et un `null` forcerait à rendre son type nullable
-          pour une situation qui ne se produit pas. */}
-      <AuthOverlay
+      {/* `mode` retombe sur « connexion » quand la fenêtre est fermée : une valeur
+          jamais lue — le composant ne rend rien sans `open` — mais la propriété est
+          requise, et la rendre nullable pour un cas qui ne se produit pas coûterait
+          plus cher que cette ligne. */}
+      <AuthDialog
         open={authMode !== null}
         mode={authMode ?? 'signin'}
-        onClose={closeAuth}
+        onClose={() => setAuthMode(null)}
         socialProviders={socialProviders}
       />
     </>

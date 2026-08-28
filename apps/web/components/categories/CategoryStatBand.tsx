@@ -2,6 +2,7 @@ import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, formatCompact } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
 
 /**
  * EN-TÊTE CHIFFRÉ DES SECTEURS — quatre repères avant le tableau.
@@ -38,7 +39,8 @@ import { Link } from '@/i18n/navigation'
 /** Plancher de capitalisation pour entrer au classement des extrêmes. */
 const FLOOR_USD = 1_000_000_000
 
-export function CategoryStatBand({ categories }: { categories: MarketCategory[] }) {
+export async function CategoryStatBand({ categories }: { categories: MarketCategory[] }) {
+  const t = await getPhrase()
   const valued = categories.filter((category) => (category.marketCap ?? 0) > 0)
   if (valued.length === 0) return null
 
@@ -58,14 +60,14 @@ export function CategoryStatBand({ categories }: { categories: MarketCategory[] 
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
-          label="Secteurs cotés"
+          label={t('Secteurs cotés')}
           value={String(valued.length)}
-          hint={`sur ${categories.length} publiés`}
+          hint={t('sur {n} publiés').replace('{n}', String(categories.length))}
         />
 
         {largest ? (
           <Stat
-            label="Plus grand secteur"
+            label={t('Plus grand secteur')}
             value={largest.name}
             hint={`${formatCompact(largest.marketCap as number)} $`}
             href={`/categories/${largest.id}`}
@@ -77,17 +79,17 @@ export function CategoryStatBand({ categories }: { categories: MarketCategory[] 
         {best && worst && best !== worst ? (
           <>
             <Stat
-              label="Plus forte hausse 24 h"
+              label={t('Plus forte hausse 24 h')}
               value={best.name}
               change={best.marketCapChange24h as number}
-              hint={`${formatCompact(best.marketCap as number)} $ · secteurs > 1 Md $`}
+              hint={`${formatCompact(best.marketCap as number)} $ · ${t('secteurs > 1 Md $')}`}
               href={`/categories/${best.id}`}
             />
             <Stat
-              label="Plus forte baisse 24 h"
+              label={t('Plus forte baisse 24 h')}
               value={worst.name}
               change={worst.marketCapChange24h as number}
-              hint={`${formatCompact(worst.marketCap as number)} $ · secteurs > 1 Md $`}
+              hint={`${formatCompact(worst.marketCap as number)} $ · ${t('secteurs > 1 Md $')}`}
               href={`/categories/${worst.id}`}
             />
           </>

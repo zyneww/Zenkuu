@@ -1,7 +1,6 @@
 'use client'
 
-import { ArrowUpRight } from 'lucide-react'
-import { Search } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import { createContext, useContext, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -13,7 +12,7 @@ import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
 import { useLocale } from 'next-intl'
 
-import { formatAbsolute, useRelativeTime } from '@/components/locale/useRelativeTime'
+import { formatAbsolute } from '@/components/locale/useRelativeTime'
 import { availableMentions, citedAssets, mentions } from '@/components/news/mentions'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
@@ -63,10 +62,27 @@ const SORTS = [
 
 type SortId = (typeof SORTS)[number]['id']
 
+/**
+ * Libellé de rubrique, TRADUIT.
+ *
+ * `NEWS_CATEGORY_LABELS` vit dans le paquet de données et n'y connaît que le français :
+ * c'est une table de quatre libellés éditoriaux, pas un dictionnaire d'interface. Les
+ * quatre traversaient donc les douze langues en l'état, et la page anglaise affichait
+ * « Presse crypto » sur ses puces, ses pastilles de couverture et ses cartes.
+ *
+ * La traduction se fait AU RENDU, comme pour toute autre phrase du site, plutôt qu'en
+ * versant une table de langues dans le paquet de données — qui sert aussi le serveur,
+ * où aucune locale de requête n'est connue.
+ */
+function useCategoryLabel() {
+  const t = usePhrase()
+  return (category: string) =>
+    t(NEWS_CATEGORY_LABELS[category as keyof typeof NEWS_CATEGORY_LABELS] ?? category)
+}
+
 export function NewsFeed({
   articles,
   quotes,
-  sidebar,
 }: {
   articles: NewsItem[]
   /**
@@ -81,6 +97,17 @@ export function NewsFeed({
    * calculée sur le serveur, et lui faire traverser des données brutes obligerait à
    * expédier dans le paquet ce qui tient en quelques lignes de HTML.
    */
+  /**
+   * ⚠️ CETTE PROPRIÉTÉ N'EST PLUS RENDUE, ET C'EST DÉLIBÉRÉ.
+   *
+   * La rangée de une était `[1fr 320px]` : l'article à gauche, cette colonne à droite.
+   * La disposition de la référence pose DEUX colonnes égales — image et texte — et une
+   * troisième n'y a pas de place. Voir la note de la rangée.
+   *
+   * Elle reste dans le type parce que `/actualites` la passe toujours : la retirer
+   * demanderait de toucher l'appelant pour un gain nul, et la garder documente ce qui
+   * a été mis de côté plutôt que de l'effacer sans trace.
+   */
   sidebar?: React.ReactNode
   /**
    * Variation sur 24 h des actifs cités, par identifiant de fiche.
@@ -92,12 +119,18 @@ export function NewsFeed({
   quotes?: Record<string, number>
 }) {
   const t = usePhrase()
+  const categoryLabel = useCategoryLabel()
   const [category, setCategory] = useState<string>('all')
   const [source, setSource] = useState<string>('all')
   const [lang, setLang] = useState<string>('all')
   const [mention, setMention] = useState<string>('all')
   const [sort, setSort] = useState<SortId>('recent')
   const [query, setQuery] = useState('')
+
+  /* Le panneau des listes déroulantes, replié par défaut — voir la note de la barre.
+     Fermé, la rangée de puces et le champ de recherche sont tout ce qui sépare le
+     titre de section du premier article. */
+  const [moreOpen, setMoreOpen] = useState(false)
 
   /*
    * ── « VOIR PLUS » REMPLACE LA BARRE DE PAGINATION ──────────────────────
@@ -242,15 +275,68 @@ export function NewsFeed({
         rangée disparaît plutôt que de laisser un filet horizontal seul en haut de la
         page — un trait qui ne sépare rien se lit comme un défaut de rendu.
       */}
-      {featured || sidebar ? (
-        <div className="grid gap-8 border-b border-border-subtle pb-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {featured ? <FeaturedArticle article={featured} /> : <div />}
-          {sidebar ? (
-            <div className="lg:border-l lg:border-border-subtle lg:pl-8">{sidebar}</div>
-          ) : null}
-        </div>
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        LA UNE — SON PROPRE INTITULÉ, PUIS DEUX COLONNES ÉGALES
+        ══════════════════════════════════════════════════════════════════════════
+
+        ── CE QUI A CHANGÉ, ET POURQUOI CE N'EST PAS DE L'HABILLAGE ─────────────
+
+        La rangée de tête était `[1fr 320px]` : l'article à gauche, une colonne
+        « Les plus cités aujourd'hui » à droite. L'article y était EMPILÉ — couverture
+        pleine largeur, puis le texte dessous — parce que la colonne voisine fixait la
+        hauteur et qu'une image à côté du texte s'y perdait.
+
+        La référence pose deux colonnes ÉGALES : l'image occupe exactement la moitié,
+        le texte l'autre. C'est ce qui donne à la une son échelle — la couverture y est
+        deux fois plus large que celles de la grille, et le titre a la place de tenir
+        en 24 px sur deux lignes au lieu de se replier en petit.
+
+        ⚠️ LA COLONNE « LES PLUS CITÉS » A DISPARU DE CETTE RANGÉE. Elle ne peut pas y
+        rester : deux colonnes égales plus une troisième font trois, et la une cesse
+        d'être une une. Ce que cela retire est nommé — le classement des actifs les plus
+        mentionnés du jour n'est plus affiché sur cette page. La `sidebar` reste une
+        propriété du composant et reste passée par la fiche d'actif, où elle sert.
+
+        L'INTITULÉ est nouveau. Sans lui, le premier article ressemblait à une carte de
+        la grille qu'on aurait agrandie sans raison ; nommé, il devient un choix
+        éditorial — c'est la même pièce, et le mot change ce qu'elle dit.
+      */}
+      {featured ? (
+        <section className="space-y-4 border-b border-border-subtle pb-8">
+          {/* L'intitulé de la une est PLUS PETIT que celui de la grille, et c'est
+              l'ordre de la référence : « 🔥 Featured Article » y est une étiquette
+              posée sur un article, quand « Discover our Latest Articles » ouvre une
+              section entière. L'émoji reste HORS de la phrase traduite — c'est un
+              pictogramme, il n'a rien à faire dans une table de traduction. */}
+          <h2 className="text-xl font-bold text-ink">🔥 {t('À la une')}</h2>
+          <FeaturedArticle article={featured} />
+        </section>
       ) : null}
 
+      <h2 className="display-sm text-ink">{t('Découvrir les derniers articles')}</h2>
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        UNE SEULE BARRE : LES PUCES À GAUCHE, LA RECHERCHE À DROITE
+        ══════════════════════════════════════════════════════════════════════════
+
+        La page portait DEUX barres d'outils sous le titre de section — puces et trois
+        listes déroulantes sur la première, compteur, recherche et tri sur la seconde —
+        soit quatre-vingts pixels de réglages avant le premier article de la grille.
+
+        La référence n'en pose qu'une : la rangée de puces, et le champ de recherche
+        seul à son extrémité droite. C'est la disposition retenue ici.
+
+        LES TROIS LISTES ET LE TRI NE SONT PAS SUPPRIMÉS, ils passent derrière la puce
+        « Plus de filtres » — l'équivalent du « More Tags ⌄ » que la référence pose au
+        bout de la même rangée. Repliés, ils ne coûtent plus une ligne à qui vient lire ;
+        dépliés, ils sont exactement là où on les cherche.
+
+        LE COMPTEUR passe en région vocale seule. Il servait à annoncer aux lecteurs
+        d'écran qu'un filtre venait de raccourcir la liste, ce qu'il continue de faire ;
+        à l'œil, la grille et le bouton « Voir plus (N restants) » le disent déjà.
+      */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/*
           « Familles de presse » et non « Rubriques ».
@@ -267,21 +353,78 @@ export function NewsFeed({
             className="flex flex-wrap items-center gap-2"
             role="group"
             aria-label={t('Familles de presse')}
+            /* La mise en garde ci-dessous a quitté la page pour le panneau replié : à
+               l'œil elle ajoutait une ligne que la référence n'a pas. Elle reste
+               attachée ICI, au survol du groupe de puces, c'est-à-dire à l'endroit
+               exact où la méprise se produit. */
+            title={t(
+              'Ces rubriques désignent la spécialité de l’éditeur, non le sujet de l’article : nous ne déduisons jamais un thème d’un titre.',
+            )}
           >
-            <FilterChip active={category === 'all'} onClick={() => setCategory('all')} label="Tout" />
+            <FilterChip
+              active={category === 'all'}
+              onClick={() => setCategory('all')}
+              label={t('Tout')}
+            />
             {categories.map((entry) => (
               <FilterChip
                 key={entry}
                 active={category === entry}
                 onClick={() => setCategory(entry)}
-                label={NEWS_CATEGORY_LABELS[entry as keyof typeof NEWS_CATEGORY_LABELS] ?? entry}
+                label={categoryLabel(entry)}
               />
             ))}
+
+            {/* La puce de dépliage ferme la rangée, comme le « More Tags ⌄ » de la
+                référence. Elle n'apparaît que s'il y a quelque chose à déplier : sur un
+                lot d'une seule source et d'une seule langue, les trois listes se
+                masquent d'elles-mêmes, et le tri — qui reste, lui, toujours utile —
+                suffit à ce que le panneau ne s'ouvre jamais sur du vide. */}
+            <FilterChip
+              active={moreOpen}
+              onClick={() => setMoreOpen((open) => !open)}
+              label={
+                <>
+                  {t('Plus de filtres')}
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`ml-1 h-3.5 w-3.5 transition-transform duration-150 ${moreOpen ? 'rotate-180' : ''}`}
+                  />
+                </>
+              }
+            />
           </div>
         ) : (
           <span />
         )}
 
+        {/* `InputGroup` de shadcn/ui plutôt qu'un `<input>` habillé à la main : il porte
+            la loupe, l'anneau de focus et les états invalide/désactivé de tous les
+            champs du site — et il fait du champ et de son icône UNE seule saisie, avec
+            un seul anneau autour des deux. */}
+        <InputGroup size="sm" className="w-full sm:w-56">
+          <InputGroupInput
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t('Rechercher…')}
+            aria-label={t('Rechercher dans les actualités')}
+          />
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
+
+      {/* Le compteur n'est plus PEINT — il n'a jamais été là pour l'œil, qui a la
+          grille et le « Voir plus (N restants) » sous les yeux, mais pour annoncer aux
+          lecteurs d'écran qu'un filtre vient de raccourcir la liste. `sr-only` garde
+          l'annonce et rend la ligne à la page. */}
+      <p className="sr-only" aria-live="polite">
+        {ordered.length} article{ordered.length > 1 ? 's' : ''}
+      </p>
+
+      {moreOpen ? (
         <div className="flex flex-wrap items-center gap-2">
           {/*
             « Articles mentionnant X » et NON « Actualités X » — la formulation est
@@ -338,7 +481,7 @@ export function NewsFeed({
               {([
                 { label: t('Toutes les langues'), value: 'all' },
                 ...langs.map((entry) => ({
-                  label: NEWS_LANG_LABELS[entry as keyof typeof NEWS_LANG_LABELS] ?? entry,
+                  label: t(NEWS_LANG_LABELS[entry as keyof typeof NEWS_LANG_LABELS] ?? entry),
                   value: entry,
                 })),
               ]).map((option) => (
@@ -368,55 +511,6 @@ export function NewsFeed({
             </NativeSelect>
           ) : null}
 
-        </div>
-
-        {/*
-          LA PHRASE QUI DÉSAMORCE LA MÉPRISE, une fois pour toute la page.
-
-          Les puces sont lues comme un classement par sujet — c'est ce qu'annonce
-          n'importe quelle barre de filtres d'un site d'actualité. Ici elles portent
-          sur la spécialité de l'éditeur, et l'écart entre les deux ne se devine pas :
-          il se constate seulement en tombant sur une dépêche générale estampillée
-          « Presse crypto », c'est-à-dire trop tard, et au prix de la confiance.
-
-          Elle est écrite ICI plutôt que dans une infobulle : ce qui corrige une
-          lecture par défaut doit être lu AVANT elle, pas trouvé après.
-        */}
-        <p className="w-full text-xs text-ink-muted">
-          {t(
-            'Ces rubriques désignent la spécialité de l’éditeur, non le sujet de l’article : nous ne déduisons jamais un thème d’un titre.',
-          )}
-        </p>
-      </div>
-
-      {/* La rangée de tête est rendue PLUS HAUT, avec sa colonne — voir son en-tête.
-          Cette barre-ci ne porte plus que ce qui gouverne la grille. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Le compteur passe en titre de section : c'est l'information qui répond à
-            « combien y en a-t-il ? », et la reléguer en petite ligne grise sous les
-            filtres la faisait manquer. */}
-        <p className="text-base font-semibold text-ink" aria-live="polite">
-          {ordered.length} article{ordered.length > 1 ? 's' : ''}
-        </p>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* `InputGroup` de shadcn/ui plutôt qu'un `<input>` habillé à la main : il
-              porte la loupe, l'anneau de focus et les états invalide/désactivé de
-              tous les champs du site — et il fait du champ et de son icône UNE seule
-              saisie, avec un seul anneau autour des deux. */}
-          <InputGroup size="sm" className="w-full sm:w-56">
-            <InputGroupInput
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t('Rechercher…')}
-              aria-label={t('Rechercher dans les actualités')}
-            />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-          </InputGroup>
-
           <NativeSelect
             size="sm"
             className="w-max"
@@ -430,8 +524,28 @@ export function NewsFeed({
               </NativeSelectOption>
             ))}
           </NativeSelect>
+
+          {/*
+            LA PHRASE QUI DÉSAMORCE LA MÉPRISE.
+
+            Les puces sont lues comme un classement par sujet — c'est ce qu'annonce
+            n'importe quelle barre de filtres d'un site d'actualité. Ici elles portent
+            sur la spécialité de l'éditeur, et l'écart entre les deux ne se devine pas :
+            il se constate seulement en tombant sur une dépêche générale estampillée
+            « Presse crypto », c'est-à-dire trop tard, et au prix de la confiance.
+
+            Elle était écrite en clair sous les puces, où la référence ne pose rien.
+            Elle est descendue dans ce panneau — celui des filtres qu'elle qualifie — et
+            reste accrochée au survol du groupe de puces lui-même (voir son `title`),
+            c'est-à-dire à l'endroit exact où la méprise se produit.
+          */}
+          <p className="w-full text-xs text-ink-muted">
+            {t(
+              'Ces rubriques désignent la spécialité de l’éditeur, non le sujet de l’article : nous ne déduisons jamais un thème d’un titre.',
+            )}
+          </p>
         </div>
-      </div>
+      ) : null}
 
       {ordered.length === 0 ? (
         <EmptyState
@@ -458,26 +572,26 @@ export function NewsFeed({
               est la règle avec des titres de une à trois lignes. La trame répond une
               fois pour toutes.
 
-              ── LE MONTAGE, ET POURQUOI PAS `gap-px` SUR UN FOND TEINTÉ ────────
+              ⚠️ LA GRILLE À FILETS A ÉTÉ REMPLACÉE PAR UNE GRILLE À GOUTTIÈRES.
 
-              L'autre technique courante — conteneur en `gap-px bg-border`, cases en
-              `bg-canvas` — donne le même dessin mais impose aux cases un fond OPAQUE.
-              La grille cesserait alors d'être transparente, et sa couleur de fond
-              devrait suivre à la main celle de chaque page qui l'accueille.
+              Chaque case portait son filet bas et son filet droit, le conteneur avalant
+              celui de la dernière colonne par un `-mr-px`. Le dessin était propre et
+              c'était le bon choix tant que les cartes n'avaient qu'un titre : les
+              filets tenaient lieu de séparation là où le blanc ne suffisait pas.
 
-              Ici chaque case porte simplement son filet bas et son filet droit. Le
-              `-mr-px` du conteneur, doublé de son `overflow-hidden`, avale le filet
-              droit de la dernière colonne — celui qui, sinon, longerait le bord de la
-              page sans rien séparer. Le filet du haut est porté par le conteneur, et
-              non par la première rangée, sans quoi il manquerait quand la rangée de
-              tête est absente.
+              Les cartes portent désormais un CHAPÔ de cinq lignes. Le blanc suffit —
+              une carte de deux cents pixels de haut se délimite toute seule — et les
+              filets, eux, se mettaient à couper des blocs de hauteurs très inégales,
+              laissant sous les cartes courtes un vide bordé qui se lit comme une case
+              manquante.
+
+              `gap-x-4 gap-y-8` : la gouttière verticale est plus large que
+              l'horizontale, parce que deux cartes l'une SOUS l'autre se touchent par
+              leurs textes, quand deux cartes côte à côte se touchent par leurs images.
             */
-            <ul className="-mr-px grid overflow-hidden border-t border-border-subtle sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid items-start gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
               {rest.map((article) => (
-                <li
-                  key={article.id}
-                  className="border-b border-border-subtle p-5 sm:border-r sm:pr-6"
-                >
+                <li key={article.id}>
                   <ArticleCard article={article} />
                 </li>
               ))}
@@ -542,41 +656,65 @@ export function NewsFeed({
  * Les pastilles se posent alors AU-DESSUS de ce pseudo-élément (`relative z-10`) : ce
  * sont de vrais liens vers nos fiches, frères du lien sortant et non ses enfants.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * L'ARTICLE DE UNE — DEUX COLONNES ÉGALES, IMAGE PUIS TEXTE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── TROIS COMPOSITIONS SE SONT SUCCÉDÉ, ET LA TROISIÈME EST CELLE-CI ────────
+ *
+ * D'abord DEUX COLONNES à largeur fixe — image bornée à 26 rem, texte à droite,
+ * l'ensemble centré verticalement. Elle a été abandonnée pour deux raisons réelles :
+ * la vignette plafonnait quelle que soit la place disponible, si bien que l'article
+ * « mis en avant » avait sur grand écran une image plus petite que celles de la
+ * grille ; et centré dans une rangée dont la hauteur venait d'une colonne voisine, le
+ * texte flottait au milieu du vide.
+ *
+ * Puis EMPILÉE — couverture pleine largeur, texte dessous. Elle corrigeait les deux
+ * défauts, et en créait un autre : la une occupait toute la hauteur du premier écran
+ * pour un seul article, et la grille ne commençait qu'après un défilement.
+ *
+ * Celle-ci est la composition de la référence : deux colonnes ÉGALES, `1fr 1fr`.
+ * L'image prend exactement la moitié — donc deux fois la largeur d'une carte de la
+ * grille, ce qui lui rend son rang — et le texte l'autre moitié, aligné en haut.
+ *
+ * Ce qui rendait la première version fausse a disparu entre-temps : la colonne
+ * voisine n'existe plus (voir la note de la rangée), donc plus rien ne fixe la
+ * hauteur, et la largeur n'est plus bornée par une valeur en rem mais par une
+ * fraction.
+ *
+ * ── L'ORDRE DU TEXTE EST CELUI DES CARTES ───────────────────────────────────
+ *
+ * Rubrique, titre, chapô, actifs cités, signature. Le même que `ArticleCard`, et
+ * c'est voulu : une une n'est pas un autre objet, c'est la même carte en grand. Seule
+ * la taille du titre change — 24 px contre 18 — parce qu'elle a la place.
+ */
 function FeaturedArticle({ article }: { article: NewsItem }) {
+  const categoryLabel = useCategoryLabel()
+
   return (
-    /*
-      ── LA COUVERTURE PASSE AU-DESSUS, ET NON À CÔTÉ ─────────────────────────
-
-      L'article de tête était sur deux colonnes — image à gauche sur 26 rem, texte à
-      droite — et centré verticalement. Deux défauts, visibles dès que la rangée de
-      tête a gagné sa colonne d'actualités :
-
-        · la vignette plafonnait à 26 rem quelle que soit la largeur disponible, si
-          bien que sur un grand écran l'article « mis en avant » avait une image plus
-          petite que celles de la grille juste en dessous ;
-        · centré verticalement dans une rangée dont la hauteur est désormais fixée par
-          la colonne voisine, il flottait au milieu de deux cents pixels de vide.
-
-      Empilé — couverture pleine largeur de sa colonne, puis le texte — il occupe la
-      hauteur de la rangée au lieu de s'y perdre, et sa vignette redevient la plus
-      grande de la page. C'est la composition de blog.kraken.com, et c'est aussi la
-      seule qui tienne quand la largeur de la colonne varie.
-    */
-    <article className="group relative flex flex-col gap-5">
-      {/* L'article en tête garde toujours un visuel : une case vide au sommet de la
-          page se lit comme une image cassée. `Thumbnail` retombe elle-même sur une
-          tuile portant le nom de l'éditeur. */}
-      <span className="block overflow-hidden rounded-card">
+    <article className="group relative grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+      {/* La une garde TOUJOURS un visuel : une case vide au sommet de la page se lit
+          comme une image cassée. `Thumbnail` retombe elle-même sur une tuile portant
+          le nom de l'éditeur. */}
+      <span className="relative block overflow-hidden rounded-card">
         {article.imageUrl ? (
           <Thumbnail url={article.imageUrl} source={article.source} wide />
         ) : (
-          <BrandTile source={article.source} className="block aspect-[2/1]" />
+          <BrandTile source={article.source} className="block aspect-[16/9]" />
         )}
+
+        <CoverTag article={article} />
       </span>
 
       <div className="min-w-0 space-y-2.5">
-        <ArticleMeta article={article} />
-        <h2 className="display-sm text-ink">
+        {article.category ? (
+          <span className="block text-xs font-semibold text-brand-strong">
+            {categoryLabel(article.category)}
+          </span>
+        ) : null}
+
+        <h3 className="display-sm text-ink">
           <a
             href={article.url}
             target="_blank"
@@ -585,24 +723,51 @@ function FeaturedArticle({ article }: { article: NewsItem }) {
           >
             {article.title}
           </a>
-        </h2>
+        </h3>
+
         {article.excerpt ? (
           <p className="text-sm leading-relaxed text-ink-muted">{article.excerpt}</p>
         ) : null}
 
         <CitedAssetChips article={article} />
 
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-brand">
-          Lire chez {article.source}
-          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="sr-only">(nouvelle fenêtre)</span>
-        </span>
+        <ArticleByline article={article} />
       </div>
     </article>
   )
 }
 
+/**
+ * La pastille de rubrique POSÉE SUR LA COUVERTURE, en haut à gauche.
+ *
+ * ── POURQUOI SUR L'IMAGE, ALORS QU'ELLE EST DÉJÀ SOUS ELLE ──────────────────
+ *
+ * Elle ne l'est pas : la ligne sous la couverture porte la rubrique de l'ÉDITEUR
+ * (« Presse crypto »), celle-ci porte la même information dans le registre de la
+ * référence — une étiquette visible sans lire, à l'endroit où l'œil arrive d'abord.
+ * Sur une grille de vingt vignettes, c'est elle qui permet d'écarter d'un balayage
+ * ce qu'on ne cherche pas.
+ *
+ * ⚠️ LE FOND EST TRANSLUCIDE ET FLOUTÉ, ET C'EST UNE NÉCESSITÉ, PAS UN EFFET. La
+ * pastille se pose sur des couvertures dont on ne sait rien — certaines sont
+ * blanches, d'autres noires, d'autres portent un logo clair au coin supérieur gauche.
+ * Un aplat opaque trancherait sur les unes et disparaîtrait sur les autres ; le flou
+ * garantit un contraste minimal quelle que soit l'image dessous.
+ */
+function CoverTag({ article }: { article: NewsItem }) {
+  const categoryLabel = useCategoryLabel()
+  if (!article.category) return null
+
+  return (
+    <span className="absolute left-3 top-3 rounded-pill bg-canvas/70 px-2.5 py-1 text-[0.6875rem] font-medium text-ink backdrop-blur-md">
+      {categoryLabel(article.category)}
+    </span>
+  )
+}
+
 function ArticleCard({ article }: { article: NewsItem }) {
+  const categoryLabel = useCategoryLabel()
+
   return (
     /*
       La carte n'a PAS DE CADRE ni de fond : la vignette délimite déjà le bloc, et
@@ -619,9 +784,40 @@ function ArticleCard({ article }: { article: NewsItem }) {
         )}
       </span>
 
-      <div className="flex flex-1 flex-col gap-1.5">
-        <ArticleByline article={article} />
-        <h3 className="text-sm font-semibold leading-snug text-ink">
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        L'ORDRE DE LECTURE A ÉTÉ RETOURNÉ
+        ══════════════════════════════════════════════════════════════════════════
+
+        La carte se lisait : signature, titre, actifs cités, puis la famille de presse
+        en pastille tout en bas. Deux choses y étaient mal placées.
+
+        LA SIGNATURE OUVRAIT LA CARTE. « Crypto Briefing · 24 août » avant le titre :
+        on apprenait QUI publie avant de savoir QUOI. Sur une grille de vingt cartes,
+        cela fait vingt noms d'éditeurs à traverser pour trouver un sujet. Elle ferme
+        désormais la carte, où elle répond à la question qu'on se pose APRÈS avoir lu
+        le titre — « puis-je faire confiance à ça ? ».
+
+        LA FAMILLE DE PRESSE FERMAIT LA CARTE, en bas, détachée de tout. C'est une
+        étiquette de CLASSEMENT : sa place est au-dessus du titre, où elle annonce le
+        registre avant qu'on ne lise. C'est ce que fait la référence, et c'est aussi ce
+        que font les filtres de cette page, qui trient précisément là-dessus.
+
+        ⚠️ LE CHAPÔ EST NOUVEAU, et c'est le vrai apport. `excerpt` existait sur
+        `NewsItem` depuis toujours et n'était rendu NULLE PART : la grille montrait des
+        titres nus, ce qui oblige à ouvrir un article pour savoir s'il vaut la peine.
+        Cinq lignes au plus — `line-clamp-5`, la valeur de la référence — parce qu'un
+        résumé de flux RSS n'a pas de longueur garantie et qu'une carte de dix lignes
+        casserait l'alignement de la rangée.
+      */}
+      <div className="flex flex-1 flex-col gap-2">
+        {article.category ? (
+          <span className="text-xs font-semibold text-brand-strong">
+            {categoryLabel(article.category)}
+          </span>
+        ) : null}
+
+        <h3 className="text-base font-bold leading-snug text-ink">
           <a
             href={article.url}
             target="_blank"
@@ -631,16 +827,81 @@ function ArticleCard({ article }: { article: NewsItem }) {
             {article.title}
           </a>
         </h3>
+
+        {article.excerpt ? (
+          <p className="line-clamp-5 text-sm leading-relaxed text-ink-muted">{article.excerpt}</p>
+        ) : null}
+
         <CitedAssetChips article={article} />
 
-        {article.category ? (
-          <span className="mt-0.5 self-start rounded-control bg-brand-soft px-1.5 py-0.5 text-micro font-medium text-brand-strong">
-            {NEWS_CATEGORY_LABELS[article.category as keyof typeof NEWS_CATEGORY_LABELS] ??
-              article.category}
-          </span>
-        ) : null}
+        {/* `mt-auto` : la signature se colle au BAS de la carte, quelle que soit la
+            longueur du chapô. Sans lui, les signatures d'une même rangée flottent à
+            des hauteurs différentes et la grille perd sa ligne de pied. */}
+        <div className="mt-auto pt-1">
+          <ArticleByline article={article} />
+        </div>
       </div>
     </article>
+  )
+}
+
+/**
+ * Pastilles des actifs cités par l'article, avec leur variation du moment.
+ *
+ * ── CE QUE ÇA CHANGE POUR LE LECTEUR ───────────────────────────────────
+ *
+ * Repris de la référence, et c'est son meilleur trait. Un titre d'actualité dit ce
+ * qui s'est passé ; il ne dit pas si le marché y a réagi. La pastille met les deux
+ * côte à côte : « XRP, Zcash et Bitcoin testent des niveaux clés » suivi de
+ * « XRP ▾1,5 % » répond à la question qu'on se pose en lisant le titre, sans quitter
+ * la page.
+ *
+ * Elle ne s'affiche QUE si la variation est connue. Une pastille sans nombre au milieu
+ * de pastilles chiffrées ferait chercher un chiffre qui n'arrivera pas.
+ */
+function CitedAssetChips({ article }: { article: NewsItem }) {
+  const quotes = useContext(QuotesContext)
+  const cited = citedAssets(`${article.title} ${article.excerpt ?? ''}`)
+
+  const shown = cited.filter((mention) => quotes[mention.assetId!] !== undefined)
+  if (shown.length === 0) return null
+
+  return (
+    <p className="relative z-10 flex flex-wrap items-center gap-1.5">
+      {/*
+        DES LIENS VERS NOS FICHES, ENFIN.
+
+        Ils étaient des `<span>`, et l'ancienne note ici l'expliquait par une
+        contrainte réelle : la carte entière était un `<a>` vers l'éditeur, et un lien
+        dans un lien est un HTML invalide. La contrainte a été LEVÉE plutôt que
+        contournée — la carte n'enveloppe plus rien, c'est son titre qui porte le lien
+        sortant et l'étend par un pseudo-élément (voir `ArticleCard`). Les pastilles
+        sont donc des FRÈRES de ce lien, posés au-dessus de lui par `z-10`.
+
+        Ce que la pastille dit ne change pas : de quoi parle cet article, et comment
+        cet actif se comporte pendant qu'on le lit. Ce qui change est qu'on peut
+        désormais y aller — et c'est le geste qu'on a en lisant le chiffre.
+
+        `stopPropagation` est INUTILE ici et n'y est pas : les deux liens sont frères,
+        un clic sur la pastille ne traverse jamais celui du titre.
+      */}
+      {shown.slice(0, 3).map((mention) => (
+        <Link
+          key={mention.id}
+          href={assetHref(mention.assetClass ?? 'crypto', mention.assetId as string)}
+          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro transition-colors duration-150 hover:bg-brand-soft"
+        >
+          <span className="font-medium text-ink">{mention.label}</span>
+          <ChangeBadge value={quotes[mention.assetId!]} size="sm" />
+        </Link>
+      ))}
+
+      {/* Le compte des cités NON MONTRÉS, et non le compte total : trois pastilles plus
+          « 3 de plus » ferait croire à six actifs quand il y en a trois de plus. */}
+      {shown.length > 3 ? (
+        <span className="text-micro text-ink-muted">+{shown.length - 3}</span>
+      ) : null}
+    </p>
   )
 }
 
@@ -809,15 +1070,17 @@ export function Thumbnail({
    * pixels — il donnait une image de six cents pixels de haut : le titre passait sous
    * la ligne de flottaison, et la page s'ouvrait sur une photographie sans texte.
    *
-   * Deux pour un est le rapport relevé sur la référence, et c'est celui qui laisse le
-   * titre et le chapeau tenir dans le premier écran.
+   * Le rapport RELEVÉ sur la référence est 16/9 — 620 px sur 343 —, et non le 2/1 qui
+   * tenait ici : la couverture de la une y a exactement la forme de celles de la
+   * grille, en deux fois plus large. C'est aussi le rapport de la tuile de repli
+   * (`BrandTile`), qui divergeait donc silencieusement quand l'image manquait.
    */
   wide?: boolean
 }) {
   const [failed, setFailed] = useState(false)
 
   const shape = `block shrink-0 overflow-hidden ${
-    wide ? 'aspect-[2/1] rounded-card' : tall ? 'aspect-[16/10] rounded-card' : 'aspect-[16/9]'
+    wide ? 'aspect-[16/9] rounded-card' : tall ? 'aspect-[16/10] rounded-card' : 'aspect-[16/9]'
   }`
 
   const safeUrl = upgradeToHttps(url)
@@ -902,112 +1165,7 @@ function BrandTile({ source, className }: { source: string; className: string })
  */
 const QuotesContext = createContext<Record<string, number>>({})
 
-/**
- * Pastilles des actifs cités par l'article, avec leur variation du moment.
- *
- * ── CE QUE ÇA CHANGE POUR LE LECTEUR ───────────────────────────────────
- *
- * Repris de la référence, et c'est son meilleur trait. Un titre d'actualité dit ce
- * qui s'est passé ; il ne dit pas si le marché y a réagi. La pastille met les deux
- * côte à côte : « XRP, Zcash et Bitcoin testent des niveaux clés » suivi de
- * « XRP ▾1,5 % » répond à la question qu'on se pose en lisant le titre, sans quitter
- * la page.
- *
- * Elle ne s'affiche QUE si la variation est connue. Une pastille sans nombre au milieu
- * de pastilles chiffrées ferait chercher un chiffre qui n'arrivera pas.
- */
-function CitedAssetChips({ article }: { article: NewsItem }) {
-  const quotes = useContext(QuotesContext)
-  const cited = citedAssets(`${article.title} ${article.excerpt ?? ''}`)
 
-  const shown = cited.filter((mention) => quotes[mention.assetId!] !== undefined)
-  if (shown.length === 0) return null
-
-  return (
-    <p className="relative z-10 flex flex-wrap items-center gap-1.5">
-      {/*
-        DES LIENS VERS NOS FICHES, ENFIN.
-
-        Ils étaient des `<span>`, et l'ancienne note ici l'expliquait par une
-        contrainte réelle : la carte entière était un `<a>` vers l'éditeur, et un lien
-        dans un lien est un HTML invalide. La contrainte a été LEVÉE plutôt que
-        contournée — la carte n'enveloppe plus rien, c'est son titre qui porte le lien
-        sortant et l'étend par un pseudo-élément (voir `ArticleCard`). Les pastilles
-        sont donc des FRÈRES de ce lien, posés au-dessus de lui par `z-10`.
-
-        Ce que la pastille dit ne change pas : de quoi parle cet article, et comment
-        cet actif se comporte pendant qu'on le lit. Ce qui change est qu'on peut
-        désormais y aller — et c'est le geste qu'on a en lisant le chiffre.
-
-        `stopPropagation` est INUTILE ici et n'y est pas : les deux liens sont frères,
-        un clic sur la pastille ne traverse jamais celui du titre.
-      */}
-      {shown.slice(0, 3).map((mention) => (
-        <Link
-          key={mention.id}
-          href={assetHref(mention.assetClass ?? 'crypto', mention.assetId as string)}
-          className="inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro transition-colors duration-150 hover:bg-brand-soft"
-        >
-          <span className="font-medium text-ink">{mention.label}</span>
-          <ChangeBadge value={quotes[mention.assetId!]} size="sm" />
-        </Link>
-      ))}
-
-      {/* Le compte des cités NON MONTRÉS, et non le compte total : trois pastilles plus
-          « 3 de plus » ferait croire à six actifs quand il y en a trois de plus. */}
-      {shown.length > 3 ? (
-        <span className="text-micro text-ink-muted">+{shown.length - 3}</span>
-      ) : null}
-    </p>
-  )
-}
-
-function ArticleMeta({ article }: { article: NewsItem }) {
-  const locale = useLocale()
-  return (
-    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.6875rem] text-ink-muted">
-      {article.category ? (
-        <span className="font-medium text-brand">
-          {NEWS_CATEGORY_LABELS[article.category as keyof typeof NEWS_CATEGORY_LABELS] ??
-            article.category}
-        </span>
-      ) : null}
-      {/* Le logo accompagne le nom ICI AUSSI : l'article en tête est le seul de la
-          page à ne pas passer par `ArticleByline`, et il aurait été le seul sans
-          repère visuel de provenance. */}
-      <SourceDot source={article.source} url={article.url} />
-      <span>{article.source}</span>
-      {article.author ? (
-        <>
-          <span aria-hidden="true">·</span>
-          <span className="truncate">{article.author}</span>
-        </>
-      ) : null}
-      <span aria-hidden="true">·</span>
-      {/*
-        Sur un fil d'actualité, c'est la FRAÎCHEUR qui compte, pas l'horodatage :
-        « il y a 2 h » se saisit sans calcul mental, « 14:32 » demande de connaître
-        l'heure qu'il est. La date absolue reste dans l'infobulle et dans `dateTime`,
-        pour qui veut la précision.
-
-        Le calcul passe par `useRelativeTime`, et le commentaire qui tenait ici
-        auparavant était FAUX : il affirmait que ce libellé n'était évalué que dans
-        le navigateur « puisque le composant porte 'use client' ». Un composant
-        client est pourtant rendu une première fois par le serveur, et le même écart
-        d'hydratation que Sentry a relevé sur les places de cotation guettait donc
-        ici. Voir l'en-tête du crochet.
-      */}
-      <time dateTime={article.publishedAt} title={formatAbsolute(article.publishedAt, locale)}>
-        <RelativeTime iso={article.publishedAt} />
-      </time>
-    </p>
-  )
-}
-
-/** Un composant, et non un appel direct : un crochet ne s'appelle pas en boucle. */
-function RelativeTime({ iso }: { iso: string }) {
-  return <>{useRelativeTime(iso)}</>
-}
 
 /**
  * Puce de filtre — `Button` de shadcn/ui, en pastille.
@@ -1021,6 +1179,24 @@ function RelativeTime({ iso }: { iso: string }) {
  * pastille est ce qui distingue un FILTRE d'une action — on peut en cocher un
  * parmi plusieurs, là où un bouton déclenche.
  */
+/**
+ * Pastille de filtre — TEINTÉE quand elle est active, jamais pleine.
+ *
+ * ── POURQUOI L'APLAT PLEIN A ÉTÉ ABANDONNÉ ──────────────────────────────────
+ *
+ * La pastille active portait la couleur de marque à pleine saturation, texte sombre
+ * dessus. Sur une rangée de cinq, elle devenait l'élément le plus lumineux de la
+ * page — plus vif que le titre, plus vif que la une — pour dire une chose secondaire :
+ * quel filtre est en cours.
+ *
+ * La référence teinte au lieu de remplir : fond à 10 % de l'accent, texte à l'accent
+ * plein. La pastille se distingue nettement de ses voisines sans monter au premier
+ * plan, ce qui est exactement son rang dans la page.
+ *
+ * `h-8` et `px-3` : les mesures relevées chez elle. `rounded-pill` parce qu'une
+ * étiquette de filtre est une forme close — voir la doctrine des deux familles de
+ * rayons dans `globals.css`.
+ */
 function FilterChip({
   active,
   onClick,
@@ -1028,17 +1204,22 @@ function FilterChip({
 }: {
   active: boolean
   onClick: () => void
-  label: string
+  /* `ReactNode` et non `string` : la puce de dépliage porte un chevron à côté de son
+     texte, et c'est le seul écart. */
+  label: React.ReactNode
 }) {
   return (
-    <Button
-      size="sm"
-      color={active ? 'primary' : 'secondary'}
+    <button
+      type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="rounded-full before:rounded-full"
+      className={`flex h-8 shrink-0 items-center rounded-pill px-3 text-sm font-medium transition-colors duration-150 ${
+        active
+          ? 'bg-brand-soft text-brand-strong'
+          : 'bg-surface text-ink-muted hover:text-ink'
+      }`}
     >
       {label}
-    </Button>
+    </button>
   )
 }

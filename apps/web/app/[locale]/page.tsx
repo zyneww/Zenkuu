@@ -4,12 +4,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 
 import { CryptoBoard } from '@/components/home/CryptoBoard'
-import { GlobalAnalyses } from '@/components/home/analyses/GlobalAnalyses'
-import { MarketPanorama } from '@/components/home/MarketPanorama'
-import { MoversRow } from '@/components/home/MoversRow'
+import { MarketRibbon } from '@/components/home/MarketRibbon'
+import { MarketWidgets } from '@/components/home/MarketWidgets'
 import { NewsSidebar } from '@/components/home/NewsSidebar'
 import { PriceHeader } from '@/components/home/PriceHeader'
-import { getContent, getPhrase } from '@/lib/content'
+import { getContent } from '@/lib/content'
 
 // Régénération alignée sur le TTL du cache applicatif : les deux durées de vie doivent
 // coïncider, sinon la fraîcheur affichée devient imprévisible (§9).
@@ -49,12 +48,20 @@ export async function generateMetadata() {
  *     COLONNE DE GAUCHE                          COLONNE DE DROITE
  *     1. EN-TÊTE       titre, sous-titre,        LE FIL D'ACTUALITÉS
  *                      cinq chiffres              — du haut de la page
- *     2. TROIS CARTES  tendances, hausses,          jusqu'en bas, sans
- *                      baisses                      jamais bouger
+ *     2. REPÈRES       capitalisation, dominance,   jusqu'en bas, sans
+ *                      volume, indice altcoin,      jamais bouger
+ *                      peur et avidité, hors
+ *                      crypto, pools en tendance
  *     3. TABLEAU       cent cryptomonnaies
- *     4. PANORAMA      indices, crypto, devises,
- *                      matières premières
- *     5. ANALYSES      sentiment, secteurs, flux, macro
+ *     4. BLOCS DU BAS  découverte, cotations,
+ *                      secteurs, pools, actualités,
+ *                      palmarès, places, carte
+ *                      thermique, extrêmes, dérivés
+ *
+ * Le point 2 reprend la tête de page de MEXC — un bandeau de cours puis trois cartes
+ * — et le point 4 la disposition de CRYPTORANK. Les deux tournent sur les sources de
+ * Zenkuu : voir `MarketRibbon` et `MarketWidgets`, dont les en-têtes justifient bloc
+ * par bloc ce qui est repris tel quel et ce qui est substitué faute de source.
  *
  * ── POURQUOI LA COLONNE D'ACTUALITÉS REMONTE AU HAUT DE LA PAGE ────────────
  *
@@ -78,7 +85,7 @@ export async function generateMetadata() {
  * ── CE QUI A QUITTÉ CETTE PAGE, ET OÙ LE RETROUVER ─────────────────────────
  *
  *     `MarketPulse`      → les mêmes chiffres, tenus par l'en-tête
- *     `HighlightGrid`    → tendances/hausses/baisses tenues par `MoversRow`
+ *     `HighlightGrid`    → tendances/hausses/baisses tenues par `HomeWidgets`
  *     `EditorialBand`    → /blog et /apprendre
  *     `MarketDate`       → la fraîcheur est dans le sous-titre de l'en-tête
  *     `HomeConverter`    → /convertisseur
@@ -111,7 +118,6 @@ export async function generateMetadata() {
  * C'est aussi la raison pour laquelle le tableau pagine CÔTÉ CLIENT — voir `CryptoBoard`.
  */
 export default async function HomePage() {
-  const t = await getPhrase()
   const [news, globals] = await Promise.all([getNews(14), getCryptoGlobalStats('eur')])
 
   return (
@@ -141,8 +147,13 @@ export default async function HomePage() {
       <div className="flex min-w-0 flex-col gap-8">
         <PriceHeader globals={globals} />
 
-        <Suspense fallback={<CardsSkeleton />}>
-          <MoversRow />
+        {/* Le substitut passe de 300 à 210 px : le ruban est plus court que la grille
+            de repères qu'il remplace — un bandeau de cours et une rangée de cartes de
+            trois lignes. Un substitut plus haut que ce qu'il remplace fait remonter la
+            page au moment où le bloc arrive, ce qui est le défaut que ces hauteurs
+            écrites à la main servent précisément à éviter. */}
+        <Suspense fallback={<BlockSkeleton height="h-[210px]" />}>
+          <MarketRibbon />
         </Suspense>
 
         {/* Le filet de section sépare le bloc de tête du classement. Il est posé sur le
@@ -155,61 +166,22 @@ export default async function HomePage() {
           </div>
         </Suspense>
 
-        <Suspense fallback={<BlockSkeleton height="h-[320px]" />}>
-          <MarketPanorama />
-        </Suspense>
+        {/* ── LES BLOCS DU BAS ────────────────────────────────────────────────
+            `MarketPanorama` et la section « Analyses » qui portait `GlobalAnalyses`
+            tenaient cette place. Les deux sont remplacés par une seule grappe, dont
+            l'ordre et la densité reprennent ceux de la référence — voir l'en-tête de
+            `MarketWidgets`, où chaque substitution de source est justifiée.
 
-        {/* ── LES ANALYSES ────────────────────────────────────────────────────
-            `GlobalAnalyses` était parti sur `/graphiques` quand l'accueil s'est
-            resserré sur les cotations. Il revient, et pas au même endroit : en BAS de
-            page, après le relevé, là où le lecteur qui est descendu jusque-là cherche
-            une lecture plutôt qu'un cours.
-
-            Le composant rend un fragment de cartes, sans grille : c'est l'appelant qui
-            décide de leur disposition, et il le faut — la même série de cartes tient
-            sur deux colonnes ici, à côté d'une colonne d'actualités, et sur trois sur
-            `/graphiques` où elle occupe la pleine largeur. */}
-        <Suspense fallback={<BlockSkeleton height="h-[560px]" />}>
-          <section
-            className="flex flex-col gap-3 border-t border-border-subtle pt-8"
-            aria-label={t('Analyses')}
-          >
-            <h2 className="text-sm font-normal text-ink-muted">{t('Analyses')}</h2>
-            {/*
-              ── LA DERNIÈRE CARTE PREND TOUTE LA RANGÉE QUAND ELLE Y EST SEULE ──
-
-              `GlobalAnalyses` rend CINQ cartes dans une grille à deux colonnes : la
-              cinquième — l'inflation annuelle — se retrouvait seule à gauche, avec six
-              cent quarante pixels de vide à sa droite. Une carte isolée à mi-largeur
-              se lit comme une carte qui n'a pas chargé, et son histogramme de huit
-              années y était comprimé sans raison.
-
-              Le sélecteur porte les DEUX conditions : dernière ET de rang impair. Une
-              sixième carte formerait une rangée complète, où l'étalement serait faux —
-              la règle se désactive alors d'elle-même, sans qu'on ait à y revenir.
-            */}
-            <div className="grid gap-3 xl:grid-cols-2 xl:[&>section:last-child:nth-child(odd)]:col-span-2">
-              <GlobalAnalyses />
-            </div>
-          </section>
+            UN SEUL `<Suspense>` pour la grappe entière, et non un par bloc : ses huit
+            lectures partent ensemble dans un `Promise.all`, si bien que découper la
+            frontière ne ferait apparaître aucun bloc plus tôt — seulement huit
+            substituts qui s'éteindraient à la même seconde. */}
+        <Suspense fallback={<BlockSkeleton height="h-[1200px]" />}>
+          <MarketWidgets />
         </Suspense>
       </div>
 
       <NewsSidebar news={news} />
-    </div>
-  )
-}
-
-/** Substitut des trois cartes — même grille, même hauteur que cinq lignes. */
-function CardsSkeleton() {
-  return (
-    <div className="grid gap-3 md:grid-cols-3" aria-hidden="true">
-      {[0, 1, 2].map((index) => (
-        <Skeleton
-          key={index}
-          className="h-[228px] rounded-card border border-border-subtle bg-surface-muted"
-        />
-      ))}
     </div>
   )
 }

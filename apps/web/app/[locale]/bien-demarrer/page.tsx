@@ -60,8 +60,8 @@ const STEPS = [
   {
     title: 'Savoir ce que les chiffres ne disent pas',
     body: 'Les données ne sont pas en temps réel, certaines valeurs sont indisponibles chez certaines sources, et rien ici n’est un conseil. Ces limites sont documentées plutôt que dissimulées.',
-    href: '/methodologie',
-    linkLabel: 'Lire la méthodologie',
+    href: '/a-propos',
+    linkLabel: 'Nos limites, écrites',
   },
 ]
 

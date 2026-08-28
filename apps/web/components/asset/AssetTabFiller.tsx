@@ -1,6 +1,7 @@
 import type { AssetDetail } from '@zenkuu/data'
 
 import { AssetFaq } from '@/components/asset/AssetFaq'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Ce qu'on met dans un onglet quand la donnée qu'il promet n'existe pas.
@@ -40,7 +41,8 @@ import { AssetFaq } from '@/components/asset/AssetFaq'
  * Le composant se retire ENTIÈREMENT si l'actif n'a ni description ni réponse de FAQ
  * exploitable : un onglet vide vaut mieux qu'un onglet rempli d'un titre sans texte.
  */
-export function AssetTabFiller({ asset }: { asset: AssetDetail }) {
+export async function AssetTabFiller({ asset }: { asset: AssetDetail }) {
+  const t = await getPhrase()
   const hasDescription = Boolean(asset.description)
 
   return (
@@ -55,7 +57,7 @@ export function AssetTabFiller({ asset }: { asset: AssetDetail }) {
 
       {hasDescription ? (
         <section className="space-y-3">
-          <h2 className="display-sm text-ink">À propos</h2>
+          <h2 className="display-sm text-ink">{t('À propos')}</h2>
           <p className="max-w-2xl whitespace-pre-line text-base leading-relaxed text-ink-muted">
             {asset.description}
           </p>

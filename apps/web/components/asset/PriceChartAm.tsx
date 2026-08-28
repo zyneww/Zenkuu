@@ -4,7 +4,7 @@ import * as am5 from '@amcharts/amcharts5'
 import * as am5xy from '@amcharts/amcharts5/xy'
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated'
 import am5locales_fr_FR from '@amcharts/amcharts5/locales/fr_FR'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -120,6 +120,23 @@ export interface PriceChartAmProps {
 /** Hauteur de la bande de volume, en pourcentage du cadre — voir `ASSET_CHART_HEIGHT`. */
 const VOLUME_SHARE = 22
 
+/**
+ * Corps des étiquettes des DEUX axes.
+ *
+ * ⚠️ IL VALAIT 11 PIXELS, ET C'ÉTAIT TROP PETIT. L'échelle des prix est ce qu'on lit
+ * pour donner une valeur à un point de la courbe : c'est la légende du tracé, pas une
+ * mention de bas de page. À 11 px elle était rendue plus petite que le moindre libellé
+ * du rail de chiffres, à quelques centimètres de là.
+ *
+ * 13 px correspond au `text-xs` du site, désormais aussi celui du bandeau de lecture
+ * au-dessus de la courbe — les trois textes du cadre parlent donc du même corps.
+ *
+ * Déclaré UNE fois pour les deux axes : deux corps différents sur les deux bords du
+ * même graphique se voient, et c'est le genre d'écart qui s'installe quand deux
+ * réglages identiques vivent à trente lignes l'un de l'autre.
+ */
+const AXIS_LABEL_SIZE = 13
+
 export function PriceChartAm({
   data,
   height,
@@ -164,6 +181,47 @@ export function PriceChartAm({
    */
   const compareKey = compare.map((entry) => `${entry.key}:${entry.color}`).join(',')
   const referenceKey = referenceLines.map((line) => `${line.value}:${line.label}`).join(',')
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * L'APPARENCE COURANTE, ET POURQUOI ELLE DOIT ÊTRE UNE DÉPENDANCE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `readToken` résout les jetons CSS en couleurs à la CONSTRUCTION : amCharts peint en
+   * canevas et `am5.color` attend une valeur, pas une référence (voir sa note). La
+   * conséquence est écrite depuis toujours dans ce fichier — « le graphique doit être
+   * reconstruit à la bascule de thème » — mais rien ne le déclenchait : les dépendances
+   * de l'effet de structure ne portaient que `color`, un jeton (`var(--color-up)`) dont
+   * la CHAÎNE ne change pas d'un thème à l'autre.
+   *
+   * Relevé au navigateur : passer en clair repeignait toute la page sauf le cadre, dont
+   * la grille et les axes gardaient les couleurs du sombre — des filets presque noirs
+   * sur fond blanc.
+   *
+   * ── POURQUOI LA CLASSE ET NON LE RÉGLAGE ─────────────────────────────────
+   *
+   * `useSettings().theme` vaut « suivre l'appareil » pour la majorité des visiteurs :
+   * il ne dit donc pas ce qui est AFFICHÉ. La classe `dark` de `<html>`, elle, porte
+   * l'apparence réelle quelle qu'en soit l'origine — réglage explicite, système au
+   * chargement, ou système qui bascule en cours de visite (voir `ThemeSync`).
+   *
+   * L'état est initialisé par lecture directe : ce composant n'est jamais rendu au
+   * serveur (`PriceChartInteractive` est importé en `ssr: false`), il n'y a donc aucune
+   * divergence d'hydratation à craindre, et l'on évite une reconstruction au montage.
+   */
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
+
+  useEffect(() => {
+    const root = document.documentElement
+    const read = () => setDark(root.classList.contains('dark'))
+
+    /* Un observateur plutôt qu'un abonnement au store : la classe est posée par
+       `applyTheme`, mais aussi par le script d'amorçage avant toute hydratation. La
+       surveiller couvre les deux, et tout ce qui la posera demain. */
+    const observer = new MutationObserver(read)
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
 
   const holder = useRef<HTMLDivElement>(null)
   const chartRef = useRef<{
@@ -228,17 +286,46 @@ export function PriceChartAm({
        ce qui lui permet d'écrire « 23 août » là où Recharts écrivait cinq fois le même
        mois. */
     const xRenderer = am5xy.AxisRendererX.new(root, {
-      minGridDistance: 64,
+      /* 80 et non 64 : l'axe sans trous (voir plus bas) pose une graduation sur le
+         PREMIER instant porteur de données, laquelle tombe à quelques pixels de la
+         première graduation régulière. À 64 px les deux se chevauchaient au bord
+         gauche — « 18 Aoû » par-dessus « 18 Aoû 12:00 ». */
+      minGridDistance: 80,
       strokeOpacity: 0,
     })
     xRenderer.grid.template.setAll({ visible: false })
     xRenderer.labels.template.setAll({
       fill: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
-      fontSize: 11,
+      /* ⚠️ 11 px ÉTAIT TROP PETIT — voir la note de l'axe des prix, juste en dessous.
+         Les deux axes montent ensemble : deux corps différents sur les deux bords du
+         même cadre se verraient. */
+      fontSize: AXIS_LABEL_SIZE,
     })
 
+    /*
+     * ══════════════════════════════════════════════════════════════════════════
+     * ⚠️ AXE SANS TROUS — LE WEEK-END N'EST PLUS UN SEGMENT RECTILIGNE
+     * ══════════════════════════════════════════════════════════════════════════
+     *
+     * Un `DateAxis` ordinaire réserve de la place à CHAQUE instant de la fenêtre,
+     * qu'il porte une cotation ou non. Sur une action, les soixante-cinq heures qui
+     * séparent la clôture du vendredi de l'ouverture du lundi n'ont aucun point : la
+     * courbe les traversait donc d'un trait droit, sur près d'un cinquième de la
+     * largeur du palier « 7 J ». Relevé sur NFLX, du 21 au 24 août : une diagonale
+     * parfaite, « Vol 0 », qui se lit comme une séance sans volatilité alors
+     * qu'aucune séance n'a eu lieu.
+     *
+     * `GaplessDateAxis` ne garde que les instants RÉELLEMENT porteurs de données et
+     * colle les séances les unes aux autres — c'est ce que font Yahoo Finance et
+     * TradingView, et c'est la seule façon d'être exact sans hacher la courbe.
+     *
+     * Il est posé pour TOUTES les classes d'actif, y compris les cryptos : leur série
+     * n'a pas de trou, l'axe n'a donc rien à retirer et le rendu est identique. Un
+     * axe conditionnel obligerait à faire descendre la classe d'actif jusqu'ici pour
+     * un résultat que la donnée décrit déjà.
+     */
     const xAxis = chart.xAxes.push(
-      am5xy.DateAxis.new(root, {
+      am5xy.GaplessDateAxis.new(root, {
         baseInterval: { timeUnit: 'minute', count: 1 },
         groupData: true,
         renderer: xRenderer,
@@ -259,7 +346,7 @@ export function PriceChartAm({
     })
     yRenderer.labels.template.setAll({
       fill: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
-      fontSize: 11,
+      fontSize: AXIS_LABEL_SIZE,
     })
 
     /*
@@ -273,7 +360,14 @@ export function PriceChartAm({
       const value = (target.dataItem as am5.DataItem<am5xy.IValueAxisDataItem> | undefined)?.get(
         'value',
       )
-      return typeof value === 'number' ? formatAxis(value) : ''
+      if (typeof value !== 'number') return ''
+      /* ⚠️ PAS DE GRADUATION NÉGATIVE SUR UNE ÉCHELLE DE COURS. `extraMin` étend
+         l'échelle de 8 % SOUS le minimum ; sur « MAX », où la série part de 3 000 $
+         pour monter à 125 000 $, ces 8 % passent sous zéro et l'axe écrivait
+         « -20 000,00 $ » — un prix qui n'existe pas. La graduation reste, son
+         étiquette disparaît. */
+      if (value < 0) return ''
+      return formatAxis(value)
     })
 
     const priceAxis = chart.yAxes.push(
@@ -360,9 +454,54 @@ export function PriceChartAm({
           getStrokeFromSprite: false,
           autoTextColor: false,
           labelHTML: '{tip}',
+          /* À CÔTÉ de la verticale, pas au-dessus d'elle. L'orientation par défaut est
+             verticale : la bulle se posait sur la courbe et masquait précisément le
+             morceau de tracé qu'on était en train de lire. `horizontal` la met sur le
+             flanc, et laisse amCharts choisir le côté qui tient dans le cadre — à
+             droite tant qu'il y a la place, ce qui est le cas partout sauf en fin de
+             période. */
+          pointerOrientation: 'horizontal',
         }),
       }),
     )
+
+    /*
+     * ══════════════════════════════════════════════════════════════════════════
+     * LA BULLE EST DÉCROCHÉE DE L'ORDONNÉE DU POINT : ELLE MONTE EN HAUT DU CADRE
+     * ══════════════════════════════════════════════════════════════════════════
+     *
+     * `pointerOrientation: 'horizontal'` ne suffisait pas, et le défaut se MESURE au
+     * navigateur : l'orientation horizontale décale la bulle sur le flanc mais la
+     * garde CENTRÉE VERTICALEMENT sur le point survolé, à une quinzaine de pixels.
+     * Quinze pixels séparent donc son bord de la pastille de 12 px posée sur la
+     * courbe — et il n'en reste aucun dans les deux cas les plus fréquents : quand la
+     * bulle grandit (une comparaison lui ajoute une ligne par courbe) et quand
+     * amCharts la ramène dans le cadre près d'un bord, ce qui la fait basculer de
+     * l'autre côté en la collant au point. La pastille passe alors dessous : c'est le
+     * point qu'on cherche à lire qui disparaît, à l'instant où on le vise.
+     *
+     * ── L'ADAPTATEUR PLUTÔT QU'UN RÉGLAGE ────────────────────────────────────
+     *
+     * `XYSeries` n'a pas de réglage pour cela — `tooltipPositionX/Y` choisissent
+     * QUELLE VALEUR de la donnée sert d'ancre (ouverture, plus haut…), pas où la bulle
+     * se pose. On intercepte donc le point d'ancrage lui-même : `pointTo` est un
+     * réglage de l'infobulle, et un adaptateur en réécrit la valeur à chaque lecture,
+     * après qu'amCharts l'a calculée.
+     *
+     * L'ABSCISSE est conservée telle quelle — la bulle continue de suivre la colonne
+     * de temps sous le curseur, ce qui est tout ce qu'on lui demande. Seule
+     * l'ORDONNÉE est remplacée par le haut de l'aire de tracé, là où il n'y a ni
+     * pastille ni courbe à masquer. amCharts la rentre ensuite dans le cadre par son
+     * propre bornage, quelle que soit sa hauteur.
+     */
+    const priceTooltip = series.get('tooltip')
+    priceTooltip?.adapters.add('pointTo', (point) => {
+      if (!point) return point
+      /* Le haut du tracé est LU à chaque fois, jamais mémorisé : la hauteur du cadre
+         change au redimensionnement de la fenêtre et à l'apparition de la bande de
+         volume, et une valeur figée décalerait la bulle sans que rien ne le signale. */
+      return { x: point.x, y: chart.plotContainer.toGlobal({ x: 0, y: 0 }).y }
+    })
 
     series.strokes.template.setAll({ strokeWidth: 2 })
     styleTooltip(root, series.get('tooltip'))
@@ -435,12 +574,71 @@ export function PriceChartAm({
       'cursor',
       am5xy.XYCursor.new(root, { behavior: 'none', xAxis }),
     )
+
+    /*
+     * ── L'INFOBULLE SORT OÙ QUE SOIT LA SOURIS ────────────────────────────
+     *
+     * C'est CE réglage, et lui seul, qui donne le relevé de la référence : une
+     * bulle qui suit la colonne de temps sous le curseur, que le pointeur frôle la
+     * courbe ou traverse le vide au-dessus.
+     *
+     * `maxTooltipDistance` vaut -1 par défaut, et -1 ne veut pas dire « aucune
+     * limite » : il veut dire « seulement la série la plus proche du POINTEUR ».
+     * Loin du tracé, aucune série n'était assez proche et la bulle disparaissait
+     * précisément là où on la cherchait. `0` lève la condition de distance ; une
+     * seule série porte une infobulle, il n'y a donc rien à départager.
+     */
+    chart.set('maxTooltipDistance', 0)
     cursor.lineY.set('visible', false)
     cursor.lineX.setAll({
       stroke: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
       strokeDasharray: [4, 4],
       strokeOpacity: 0.8,
     })
+
+    /* ── LE POINT DE SURVOL ─────────────────────────────────────────────────
+       La pastille posée SUR la courbe à l'instant survolé. amCharts ne la fournit
+       pas : ses puces sont attachées aux données, il en faudrait une par point —
+       plusieurs milliers d'objets pour n'en montrer qu'un. Un seul cercle, déplacé
+       à la main dans le conteneur de tracé, fait le même travail.
+
+       Ses coordonnées sont recalculées depuis les AXES et non lues sur le pointeur :
+       le curseur s'aligne sur l'abscisse, mais l'ordonnée doit être celle du cours,
+       sans quoi la pastille flotterait à côté du tracé. */
+    const hoverDot = chart.plotContainer.children.push(
+      am5.Circle.new(root, {
+        radius: 4,
+        fill: am5.color(readToken(color, color)),
+        fillOpacity: 1,
+        stroke: am5.color(readToken('--color-canvas', '#0c0c0c')),
+        strokeWidth: 2,
+        forceHidden: true,
+      }),
+    )
+
+    /* ── UNE PASTILLE PAR COURBE DE COMPARAISON ─────────────────────────────
+       Le repère ne valait que pour l'actif de la fiche : sur une comparaison, la
+       verticale traversait la seconde courbe sans rien y marquer, et l'infobulle
+       annonçait un cours dont on ne pouvait pas voir d'où il était lu. Une pastille
+       de la teinte de sa courbe, cerclée du fond comme la première, rattache chaque
+       nombre de la bulle à son tracé. */
+    const compareDots = compare.map((entry) =>
+      chart.plotContainer.children.push(
+        am5.Circle.new(root, {
+          radius: 4,
+          fill: am5.color(readToken(entry.color, entry.color)),
+          fillOpacity: 1,
+          stroke: am5.color(readToken('--color-canvas', '#0c0c0c')),
+          strokeWidth: 2,
+          forceHidden: true,
+        }),
+      ),
+    )
+
+    const hideDots = () => {
+      hoverDot.set('forceHidden', true)
+      for (const dot of compareDots) dot.set('forceHidden', true)
+    }
 
     /*
      * ── LE BANDEAU DE LECTURE SUIT DÉSORMAIS LE CURSEUR ───────────────────────
@@ -472,10 +670,48 @@ export function PriceChartAm({
         | am5.DataItem<am5xy.ILineSeriesDataItem>
         | undefined
       const stamp = item?.get('valueX')
+      const price = item?.get('valueY')
+
+      if (typeof stamp === 'number' && typeof price === 'number') {
+        /* L'abscisse est la même pour toutes les pastilles — c'est la définition du
+           repère : une colonne de temps. Seule l'ordonnée change d'une courbe à
+           l'autre, et elle est lue sur la LIGNE de données, pas sur la série : toutes
+           les séries partagent le même tableau (voir l'effet de données plus bas), si
+           bien qu'un seul relevé porte déjà la valeur de chaque comparaison. */
+        const x = xAxis.get('renderer').positionToCoordinate(xAxis.valueToPosition(stamp))
+        const row = item?.dataContext as Record<string, unknown> | undefined
+
+        hoverDot.setAll({
+          x,
+          y: priceAxis.get('renderer').positionToCoordinate(priceAxis.valueToPosition(price)),
+          forceHidden: false,
+        })
+
+        compare.forEach((entry, index) => {
+          const dot = compareDots[index]
+          if (!dot) return
+          const value = row?.[entry.key]
+          if (typeof value !== 'number') {
+            dot.set('forceHidden', true)
+            return
+          }
+          dot.setAll({
+            x,
+            y: priceAxis.get('renderer').positionToCoordinate(priceAxis.valueToPosition(value)),
+            forceHidden: false,
+          })
+        })
+      } else {
+        hideDots()
+      }
+
       report(typeof stamp === 'number' ? stamp : null)
     })
 
-    chart.plotContainer.events.on('pointerout', () => report(null))
+    chart.plotContainer.events.on('pointerout', () => {
+      hideDots()
+      report(null)
+    })
 
     /* ── L'ÉTIQUETTE DU DERNIER COURS, SUR L'ÉCHELLE ────────────────────────
        Le chiffre qu'on vient chercher en premier est le dernier, et l'échelle ne le
@@ -497,7 +733,11 @@ export function PriceChartAm({
         cornerRadiusBL: 4,
         cornerRadiusBR: 4,
       }),
-      fontSize: 10,
+      /* La pastille du DERNIER cours, sur l'échelle. Un point sous les graduations
+         (12 contre 13) et non deux : elle porte un fond plein, qui la détache déjà —
+         l'aligner exactement sur l'axe la ferait au contraire peser trop lourd. Elle
+         suivait les 10 px de l'ancien axe et se retrouvait, elle, illisible. */
+      fontSize: 12,
       fontWeight: '600',
       paddingLeft: 5,
       paddingRight: 5,
@@ -528,6 +768,9 @@ export function PriceChartAm({
     onReady,
     compareKey,
     referenceKey,
+    /* Voir la note de `dark` : c'est ce qui fait repeindre le cadre à la bascule de
+       thème, les jetons étant résolus une fois pour toutes à la construction. */
+    dark,
   ])
 
   /* ── EFFET DE DONNÉES ─────────────────────────────────────────────────────

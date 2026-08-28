@@ -40,14 +40,12 @@ export const WATCHLIST_ASSET_LIMIT = 200
  */
 export const WATCHLIST_COUNT_LIMIT = 10
 
-/**
- * Alertes armées simultanément.
+/*
+ * ⚠️ `ALERT_LIMIT` A ÉTÉ SUPPRIMÉ AVEC LES ALERTES DE PRIX.
  *
- * Le plafond porte sur les alertes ACTIVES et non sur le total créé : une alerte
- * déclenchée est consommée, elle ne pèse plus sur la tâche planifiée qui relit les
- * seuils à chaque passage. C'est cette tâche que le nombre protège.
+ * Il plafonnait à cent les alertes armées simultanément, pour protéger la tâche
+ * planifiée qui relisait les seuils. Ni la tâche ni les alertes n'existent plus.
  */
-export const ALERT_LIMIT = 100
 
 /** Actifs comparables d'un seul coup dans le comparateur. */
 export const COMPARE_LIMIT = 6

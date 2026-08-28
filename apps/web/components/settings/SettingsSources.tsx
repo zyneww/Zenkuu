@@ -1,5 +1,4 @@
-import { Link } from '@/i18n/navigation'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert } from '@heroui/react'
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -83,16 +82,15 @@ export async function SettingsSources() {
         role="note"
         className="rounded-none border-0 border-l-2 border-gold bg-surface-muted p-4"
       >
-        <AlertTitle className="text-xs text-ink">{t('Ce que ZENKUU ne fait pas.')}</AlertTitle>
-        <AlertDescription className="text-xs leading-relaxed text-ink-muted">{t('Aucun ordre n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et aucune donnée personnelle n’est revendue. Les liens vers des plateformes tierces sont cités sans recommandation.')}</AlertDescription>
+        <Alert.Content>
+        <Alert.Title className="text-xs text-ink">{t('Ce que ZENKUU ne fait pas.')}</Alert.Title>
+        <Alert.Description className="text-xs leading-relaxed text-ink-muted">{t('Aucun ordre n’est exécuté, aucun fonds n’est détenu, aucun portefeuille n’est connecté et aucune donnée personnelle n’est revendue. Les liens vers des plateformes tierces sont cités sans recommandation.')}</Alert.Description>
+        </Alert.Content>
       </Alert>
 
       <p className="text-sm text-ink-muted">
-        Le détail des méthodes de calcul et des limites connues est sur la page{' '}
-        <Link href="/methodologie" className="text-brand hover:underline">
-          méthodologie
-        </Link>
-        .
+        Chaque bloc du site nomme sa source sous les chiffres qu’il affiche, et le pied
+        de page les récapitule avec leurs liens.
       </p>
     </section>
   )

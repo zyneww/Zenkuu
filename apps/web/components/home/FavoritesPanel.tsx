@@ -89,7 +89,7 @@ export function FavoritesPanel({ suggestions }: { suggestions: FavoriteSuggestio
             : t('Suivez un actif pour le retrouver ici, sur toutes vos pages.')}
         </p>
         <Link
-          href="/suivi"
+          href="/tableau-de-bord"
           className="mt-2 inline-block text-xs font-medium text-brand transition-colors hover:text-brand-strong"
         >
           {t('Ouvrir ma liste')} <span aria-hidden="true">→</span>

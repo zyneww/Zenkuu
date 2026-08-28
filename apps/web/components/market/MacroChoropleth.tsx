@@ -392,7 +392,10 @@ export function MacroChoropleth({
   )
 }
 
-function ZoomButton({
+/* Exporté pour le globe, qui a les mêmes commandes au même endroit — voir
+   `MacroGlobe`. Deux copies du même bouton finiraient par diverger sur la taille ou
+   sur l'état désactivé, c'est-à-dire sur ce qui se voit. */
+export function ZoomButton({
   onClick,
   label,
   disabled,

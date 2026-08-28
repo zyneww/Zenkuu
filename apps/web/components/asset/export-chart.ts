@@ -75,12 +75,97 @@ function flatten(source: HTMLCanvasElement): HTMLCanvasElement {
   return target
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CE QUE L'IMAGE PORTE EN PLUS DU TRACÉ
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La toile d'amCharts ne contient QUE le tracé, ses deux échelles et l'histogramme
+ * de volume : le nom de l'actif, la période regardée, la source et la signature du
+ * site sont du HTML posé autour, et ils ne partaient donc pas dans le fichier. Une
+ * courbe sans son actif ni sa période est illisible dès qu'elle quitte la page —
+ * c'est la première chose que CoinGecko inscrit sur ses propres exports.
+ *
+ * On ENVELOPPE donc la toile : bande de titre en haut, signature en bas à droite.
+ * Rien n'est redessiné du tracé lui-même, qui est recopié tel quel.
+ */
+export interface ChartExportMeta {
+  /** Nom et symbole de l'actif — « Bitcoin (BTC) ». */
+  title: string
+  /** Lecture, période, devise — « Prix · MAX · USD ». */
+  subtitle: string
+  /** Provenance de la série, telle qu'affichée sous le graphique. */
+  source?: string
+}
+
+function frame(canvas: HTMLCanvasElement, meta: ChartExportMeta): HTMLCanvasElement {
+  /* Toutes les mesures suivent la LARGEUR de la toile : celle-ci varie avec la
+     densité de pixels de l'écran (mesuré : 755 px pour 944 px CSS), et des tailles
+     fixes donneraient un titre minuscule sur un export en haute densité. */
+  const pad = Math.round(canvas.width * 0.025)
+  const titleSize = Math.round(canvas.width * 0.026)
+  const metaSize = Math.round(canvas.width * 0.017)
+  const header = pad * 2 + titleSize + metaSize
+
+  const target = document.createElement('canvas')
+  target.width = canvas.width
+  target.height = canvas.height + header
+
+  const context = target.getContext('2d')
+  if (!context) return canvas
+
+  const style = getComputedStyle(document.documentElement)
+  const read = (token: string, fallback: string) =>
+    style.getPropertyValue(token).trim() || fallback
+
+  const background = read('--color-panel', '#ffffff')
+  const ink = read('--color-ink', '#111827')
+  const muted = read('--color-ink-muted', '#6b7280')
+
+  context.fillStyle = background
+  context.fillRect(0, 0, target.width, target.height)
+
+  context.textBaseline = 'top'
+  context.fillStyle = ink
+  context.font = `600 ${titleSize}px system-ui, -apple-system, "Segoe UI", sans-serif`
+  context.fillText(meta.title, pad, pad)
+
+  context.fillStyle = muted
+  context.font = `${metaSize}px system-ui, -apple-system, "Segoe UI", sans-serif`
+  context.fillText(meta.subtitle, pad, pad + titleSize + Math.round(pad * 0.35))
+
+  /* La source se range à DROITE de la même bande : c'est une mention, pas un titre,
+     et elle ne doit pas repousser la période. */
+  if (meta.source) {
+    context.textAlign = 'right'
+    context.fillText(meta.source, target.width - pad, pad + titleSize + Math.round(pad * 0.35))
+    context.textAlign = 'left'
+  }
+
+  context.drawImage(canvas, 0, header)
+
+  /* ── LA SIGNATURE ────────────────────────────────────────────────────────
+     Elle existe à l'écran en HTML, dans le coin bas-droit du tracé, et c'est
+     précisément là qu'on l'attend sur une capture qui circule. */
+  context.fillStyle = muted
+  context.globalAlpha = 0.6
+  context.font = `600 ${metaSize}px system-ui, -apple-system, "Segoe UI", sans-serif`
+  context.textAlign = 'right'
+  context.fillText('zenkuu.com', target.width - pad, target.height - pad - metaSize)
+  context.globalAlpha = 1
+  context.textAlign = 'left'
+
+  return target
+}
+
 export function exportChart(
   canvas: HTMLCanvasElement,
   format: ExportFormat,
   assetName: string,
+  meta?: ChartExportMeta,
 ): void {
   const name = fileName(assetName, format)
+  if (meta) canvas = frame(canvas, meta)
 
   if (format === 'png') {
     canvas.toBlob((blob) => {

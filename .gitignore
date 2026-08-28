@@ -56,6 +56,13 @@ desktop.ini
 # de plusieurs mégaoctets à chaque passage.
 .audit/
 
+# Outillage local — configuration de serveurs MCP et dossier de travail d'un agent de
+# design. Propres au poste de qui développe, pas au projet : les committer imposerait
+# aux autres une liste de serveurs qu'ils n'ont pas, et ferait grossir l'historique de
+# fichiers de travail régénérés à chaque passage.
+.mcp.json
+.impeccable/
+
 # Divers (déposés par des plugins externes, hors projet)
 archive-*/
 .claude/data/

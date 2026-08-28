@@ -279,7 +279,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                 }`}
               >
-                {entry.label}
+                {t(entry.label)}
               </button>
             ))}
           </div>

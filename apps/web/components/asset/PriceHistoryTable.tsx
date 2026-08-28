@@ -3,6 +3,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 
 import { HistoryExport, type HistoryRow } from '@/components/asset/HistoryExport'
 import { Money } from '@/components/locale/Money'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Historique de cours jour par jour.
@@ -20,7 +21,7 @@ import { Money } from '@/components/locale/Money'
 /** Nombre de journées affichées. Au-delà, le tableau devient plus long que la page. */
 const MAX_ROWS = 14
 
-export function PriceHistoryTable({
+export async function PriceHistoryTable({
   history,
   currency,
   isRate = false,
@@ -32,6 +33,7 @@ export function PriceHistoryTable({
   /** Sert à nommer le fichier exporté et l'onglet du classeur. */
   assetName: string
 }) {
+  const t = await getPhrase()
   const days = toDailyCloses(history)
   if (days.length < 2) return null
 
@@ -61,7 +63,7 @@ export function PriceHistoryTable({
     <section className="space-y-2" aria-labelledby="historique-des-cours">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="historique-des-cours" className="text-sm font-semibold text-ink">
-          Historique des cours
+          {t('Historique des cours')}
         </h2>
 
         {/*
@@ -80,7 +82,7 @@ export function PriceHistoryTable({
           <thead>
             <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
               <th scope="col" className="px-3 py-2.5 font-medium">Date</th>
-              <th scope="col" className="px-3 py-2.5 text-right font-medium">Clôture</th>
+              <th scope="col" className="px-3 py-2.5 text-right font-medium">{t('Clôture')}</th>
               <th scope="col" className="px-3 py-2.5 text-right font-medium">Variation</th>
             </tr>
           </thead>
@@ -117,8 +119,7 @@ export function PriceHistoryTable({
       </div>
 
       <p className="text-[0.6875rem] text-ink-muted">
-        Dernière valeur reçue pour chaque journée. La variation est calculée d’une
-        journée à la précédente au sein de cette série.
+        {t('Dernière valeur reçue pour chaque journée. La variation est calculée d’une journée à la précédente au sein de cette série.')}
       </p>
     </section>
   )

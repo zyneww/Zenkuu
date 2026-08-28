@@ -365,7 +365,20 @@ export function AreaPlot({
             nombre brut vaut moins que pas de survol du tout. */}
         {formatTooltipY ? (
           <ChartTooltip
-            cursor={{ stroke: 'var(--color-border-subtle)', strokeWidth: 1 }}
+            /* ── LA VERTICALE DE VISÉE EST TIRETÉE, ET DANS L'ENCRE ATTÉNUÉE ──
+               Elle était pleine et de la couleur du filet : à ce ton, elle se
+               confondait avec une bordure de carte et on ne la voyait pas bouger.
+               Tiretée, elle se lit comme un REPÈRE — le même vocabulaire que la
+               grille, un cran au-dessus en contraste puisqu'elle, on la cherche.
+               Le motif « 4 4 » est celui du curseur d'amCharts sur la fiche d'actif :
+               les deux graphiques du site désignent l'instant survolé de la même
+               façon. */
+            cursor={{
+              stroke: 'var(--color-ink-muted)',
+              strokeWidth: 1,
+              strokeDasharray: '4 4',
+              strokeOpacity: 0.8,
+            }}
             content={
               <ChartTooltipContent
                 className="min-w-[8.5rem] border-border-subtle bg-overlay shadow-overlay"
@@ -419,7 +432,16 @@ export function AreaPlot({
             fill={fill && index === 0 ? `url(#${gradientId})` : 'none'}
             fillOpacity={1}
             dot={false}
-            activeDot={{ r: 3.5, strokeWidth: 0, fill: entry.color }}
+            /* Pastille CERCLÉE DU FOND, et non pleine. Sans cet anneau, une pastille
+               posée sur sa propre courbe s'y fond — c'est le trait qu'on voit, pas le
+               point — et deux séries qui se croisent n'en montrent plus qu'une. Le
+               cercle de fond détache le repère de tout ce qu'il recouvre. */
+            activeDot={{
+              r: 4,
+              fill: entry.color,
+              stroke: 'var(--color-canvas)',
+              strokeWidth: 2,
+            }}
             isAnimationActive={!reduced}
             connectNulls
           />

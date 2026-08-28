@@ -3,6 +3,7 @@ import { ExternalLink } from 'lucide-react'
 import type { AssetDetail } from '@zenkuu/data'
 
 import { CopyButton } from '@/components/asset/CopyButton'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Fiche technique : contrats, chaînes, explorateurs, liens officiels.
@@ -51,7 +52,8 @@ function hostLabel(url: string): string {
   }
 }
 
-export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
+export async function AssetTechSheet({ asset }: { asset: AssetDetail }) {
+  const t = await getPhrase()
   const contracts = Object.entries(asset.contracts ?? {})
   const explorers = asset.explorerUrls ?? []
   const community = Object.entries(asset.communityUrls ?? {})
@@ -129,7 +131,7 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
         ) : null}
 
         {asset.whitepaperUrl ? (
-          <SheetRow label="Livre blanc" links={[{ label: 'Lire', url: asset.whitepaperUrl }]} />
+          <SheetRow label="Livre blanc" links={[{ label: t('Lire'), url: asset.whitepaperUrl }]} />
         ) : null}
 
         {asset.sourceCodeUrl ? (
@@ -145,7 +147,7 @@ export function AssetTechSheet({ asset }: { asset: AssetDetail }) {
 
         {community.length > 0 ? (
           <SheetRow
-            label="Communauté"
+            label={t('Communauté')}
             links={community.map(([label, url]) => ({ label, url }))}
           />
         ) : null}
@@ -206,7 +208,8 @@ function SheetRow({
   )
 }
 
-function SheetLink({ label, url }: { label: string; url: string }) {
+async function SheetLink({ label, url }: { label: string; url: string }) {
+  const t = await getPhrase()
   return (
     <a
       href={url}
@@ -217,7 +220,7 @@ function SheetLink({ label, url }: { label: string; url: string }) {
     >
       <span className="truncate">{label}</span>
       <ExternalLink className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
-      <span className="sr-only">(nouvelle fenêtre)</span>
+      <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
     </a>
   )
 }

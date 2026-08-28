@@ -65,7 +65,7 @@ export async function CrossAssetPanel() {
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-sm font-normal text-ink-muted">{t('Les autres marchés')}</h2>
         <Link
-          href="/marches"
+          href="/crypto"
           className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
         >
           {fr.home.seeAll} <span aria-hidden="true">→</span>

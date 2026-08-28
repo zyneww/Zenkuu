@@ -8,7 +8,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu'
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
@@ -71,21 +71,42 @@ import type { NavMenu } from '@/content/navigation'
  */
 
 /**
- * Largeur d'une colonne de section, en pixels.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE PANNEAU EST UNE COLONNE UNIQUE, ET SA LARGEUR NE DÉPEND PLUS DU MENU
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * Le panneau se dimensionne sur le NOMBRE DE SECTIONS du menu, pas sur une largeur
- * fixe : « Actualités » n'en porte qu'une, « Données » trois. Une largeur unique
- * laisserait le premier à moitié vide ou serrerait le second sur trois lignes par
- * entrée. C'est aussi ce qui donne au déplacement son geste — le panneau change de
- * taille en même temps que de place.
+ * ── CE QUE CELA REMPLACE ────────────────────────────────────────────────────
+ *
+ * Les sections étaient posées CÔTE À CÔTE, une colonne chacune, et la largeur du
+ * panneau se calculait sur leur nombre : 276 px pour « Actualités » qui n'en a
+ * qu'une, 832 px pour « Données » qui en a trois. Le panneau changeait donc de
+ * taille en même temps que de place, d'un menu à l'autre.
+ *
+ * ── POURQUOI UNE SEULE COLONNE (demande explicite, réf. CoinGecko) ──────────
+ *
+ * C'est la forme de la référence, et elle a une propriété que la grille n'avait
+ * pas : l'œil descend UNE liste. Sur trois colonnes, il faut choisir une colonne
+ * avant de lire, c'est-à-dire décider où chercher avant de savoir ce qu'il y a —
+ * et les titres de section, qui devraient guider ce choix, sont justement ce
+ * qu'on lit en dernier.
+ *
+ * Empilée, la même quinzaine d'entrées se parcourt d'un seul mouvement, et les
+ * titres redeviennent ce qu'ils sont : des repères DANS la descente, pas des
+ * en-têtes de colonnes à arbitrer.
+ *
+ * ⚠️ LA LARGEUR EST DÉSORMAIS CONSTANTE, et c'est ce qui rend le déplacement du
+ * panneau lisible : il glisse d'un bouton à l'autre sans changer de taille. La
+ * valeur loge le plus long libellé du site — « Nouvelles cryptomonnaies »,
+ * environ 200 px à cette graisse — plus l'icône et les marges.
  */
-const COLUMN_WIDTH = 264
-const PANEL_PADDING = 20
+const PANEL_WIDTH = 268
+const PANEL_PADDING = 8
 
-function panelWidthFor(menu: NavMenu): number {
-  const columns = Math.max(1, Math.min(menu.sections.length, 3))
-  return columns * COLUMN_WIDTH + PANEL_PADDING * 2
-}
+/* ⚠️ UNE CONSTANTE, ET PLUS UNE FONCTION DE `menu`. `panelWidthFor(menu)` calculait
+   la largeur sur le nombre de sections ; celui-ci ne compte plus, puisqu'elles sont
+   empilées. Garder la fonction pour ignorer son argument aurait laissé croire que la
+   largeur dépend encore du menu. */
+const PANEL_TOTAL_WIDTH = PANEL_WIDTH + PANEL_PADDING * 2
 
 export function NavMenus({ menus }: { menus: NavMenu[] }) {
   const t = usePhrase()
@@ -107,6 +128,50 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
     setLastPath(pathname)
     if (value !== '') setValue('')
   }
+
+  /*
+   * ── LE PANNEAU SE CENTRE SOUS SON PROPRE BOUTON ─────────────────────────────
+   *
+   * Il était centré sur la BARRE entière (`left-1/2` dans `NavigationMenuViewport`).
+   * Conséquence relevée à l'écran : « Actualités », quatrième bouton de la rangée,
+   * ouvrait son panneau sous « Parcourir » — à deux cents pixels de ce qu'on venait
+   * de survoler. Le lien entre le bouton et ce qu'il ouvre disparaissait.
+   *
+   * On publie donc le centre du bouton OUVERT, en pixels et relatif à la barre, dans
+   * `--nav-viewport-center` ; le viewport s'y accroche (`left: var(...)`, avec 50 %
+   * pour seul repli). Le bouton est retrouvé par son `data-state="open"` plutôt que
+   * par une collection de `ref` : Radix le pose déjà, et c'est la seule source qui
+   * dise lequel est ouvert au moment où l'on mesure.
+   *
+   * ⚠️ LA VALEUR EST BORNÉE À LA FENÊTRE. Un panneau de trois colonnes fait 832 px :
+   * centré sous un bouton proche d'un bord, il sortirait de l'écran. Les bornes
+   * laissent une gouttière de 16 px de chaque côté — le panneau glisse alors le long
+   * du bord au lieu de déborder.
+   */
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [center, setCenter] = useState<number | null>(null)
+
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root || value === '') return
+
+    const trigger = root.querySelector<HTMLElement>(
+      '[data-slot="navigation-menu-trigger"][data-state="open"]',
+    )
+    const menu = menus.find((entry) => entry.label === value)
+    if (!trigger || !menu) return
+
+    const rootLeft = root.getBoundingClientRect().left
+    const triggerRect = trigger.getBoundingClientRect()
+    const half = PANEL_TOTAL_WIDTH / 2
+    const GUTTER = 16
+
+    const desired = triggerRect.left + triggerRect.width / 2 - rootLeft
+    const min = GUTTER + half - rootLeft
+    const max = window.innerWidth - GUTTER - half - rootLeft
+
+    setCenter(max < min ? (min + max) / 2 : Math.min(Math.max(desired, min), max))
+  }, [value, menus])
 
   return (
     /*
@@ -167,11 +232,13 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
         et le viewport l'anime comme n'importe quel changement de taille — ce qui
         rend au panneau son redimensionnement en même temps que son déplacement.
       */
+      ref={rootRef}
       style={
         {
-          '--radix-navigation-menu-viewport-width': `${panelWidthFor(
-            menus.find((menu) => menu.label === value) ?? menus[0]!,
-          )}px`,
+          '--radix-navigation-menu-viewport-width': `${PANEL_TOTAL_WIDTH}px`,
+          /* Voir la note sur `center` plus haut : le centre du bouton ouvert, en
+             pixels relatifs à la barre. `50%` tant qu'aucun menu n'a été ouvert. */
+          '--nav-viewport-center': center === null ? '50%' : `${center}px`,
         } as React.CSSProperties
       }
       className="hidden shrink-0 xl:flex"
@@ -216,7 +283,7 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
                 l'autre.
               */}
               <NavigationMenuContent
-                style={{ width: panelWidthFor(menu) }}
+                style={{ width: PANEL_TOTAL_WIDTH }}
                 className="p-2"
               >
                 <MenuColumns menu={menu} />
@@ -230,26 +297,41 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
 }
 
 /**
- * Les sections du menu, EN COLONNES et non empilées.
+ * Les sections du menu, EMPILÉES en une colonne unique.
  *
- * L'ancien panneau les empilait, séparées par des filets : « Données » et ses trois
- * sections faisaient alors une colonne de dix entrées, plus haute que la moitié de
- * l'écran. En colonnes, le même menu tient sur quatre lignes — et chaque section
- * devient une cible visuelle plutôt qu'un intertitre qu'on traverse.
+ * ── C'EST LA FORME DE COINGECKO, ET ELLE REMPLACE LA GRILLE ─────────────────
+ *
+ * Les sections étaient posées côte à côte, une colonne chacune. L'argument
+ * d'alors — « en colonnes, le menu tient sur quatre lignes au lieu de dix » —
+ * était vrai et visait la mauvaise grandeur : ce qui coûte dans un menu n'est pas
+ * sa hauteur, c'est le nombre de décisions avant de lire. Sur trois colonnes il
+ * faut choisir une colonne d'abord ; empilé, on descend.
+ *
+ * ── LE TITRE DE SECTION CHANGE DE RÔLE AVEC LA COLONNE ──────────────────────
+ *
+ * Il portait un filet SOUS lui, qui donnait aux trois colonnes un bord commun.
+ * Cette raison tombe avec les colonnes. Le filet passe donc AU-DESSUS du titre,
+ * où il fait ce que fait la référence : séparer deux groupes dans une même
+ * descente. La première section n'en porte pas — un trait en haut du panneau ne
+ * sépare rien de ce qui le précède.
  */
 function MenuColumns({ menu }: { menu: NavMenu }) {
   const fr = useContent()
   const t = usePhrase()
 
   return (
-    <div
-      className="grid gap-1"
-      style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(menu.sections.length, 3))}, minmax(0, 1fr))` }}
-    >
+    <div className="flex flex-col">
       {menu.sections.map((section, index) => (
         <div key={section.label ?? index} className="min-w-0">
           {section.label ? (
-            <p className="px-3 pb-1 pt-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted/70">
+            <p
+              className={`px-3 pb-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted/70 ${
+                /* Filet et respiration au-dessus, SAUF pour la première : voir
+                   l'en-tête. `mt-1.5` sans filet garde le premier titre à la même
+                   distance du bord du panneau que les suivants de leur trait. */
+                index === 0 ? 'pt-1.5' : 'mt-1.5 border-t border-border-subtle pt-3'
+              }`}
+            >
               {t(section.label)}
             </p>
           ) : null}
@@ -263,35 +345,44 @@ function MenuColumns({ menu }: { menu: NavMenu }) {
                   {item.ready && item.href ? (
                     <Link
                       href={item.href}
-                      className="group flex items-start gap-2.5 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-surface-muted"
+                      /*
+                       * LA DESCRIPTION PASSE EN INFOBULLE NATIVE.
+                       *
+                       * Elle occupait une seconde ligne sous chaque libellé. Deux
+                       * conséquences, visibles sur le menu « Données » : les entrées
+                       * d'une colonne ne tombaient plus en face de celles d'à côté —
+                       * la hauteur d'une entrée dépendait de la longueur de sa
+                       * phrase — et le panneau faisait deux fois la hauteur de la
+                       * référence pour le même nombre de destinations.
+                       *
+                       * `title` la rend sans rien coûter à la mise en page : elle
+                       * reste disponible pour qui hésite, et n'encombre plus celui
+                       * qui sait déjà où il va.
+                       */
+                      title={t(item.description)}
+                      className="group flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-surface-muted"
                     >
                       <Icon
-                        className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted transition-colors duration-150 group-hover:text-brand-strong"
+                        className="h-4 w-4 shrink-0 text-ink-muted transition-colors duration-150 group-hover:text-brand-strong"
                         aria-hidden="true"
                       />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium text-ink">{t(item.label)}</span>
-                        <span className="block text-xs leading-snug text-ink-muted">
-                          {t(item.description)}
-                        </span>
-                      </span>
+                      <span className="truncate text-sm font-medium text-ink">{t(item.label)}</span>
                     </Link>
                   ) : (
                     /* Entrée non construite : un <span> et non un lien désactivé, pour
                        qu'aucun clic ni aucune tabulation ne mène nulle part. */
-                    <span className="flex cursor-default items-start gap-2.5 rounded-lg px-3 py-2 opacity-55">
-                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
-                      <span className="min-w-0">
-                        <span className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-ink">{t(item.label)}</span>
-                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-[0.625rem] font-medium">
-                            {fr.nav.soonShort}
-                          </Badge>
-                        </span>
-                        <span className="block text-xs leading-snug text-ink-muted">
-                          {t(item.description)}
-                        </span>
-                      </span>
+                    <span
+                      title={t(item.description)}
+                      className="flex cursor-default items-center gap-2.5 rounded-lg px-3 py-2 opacity-55"
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+                      <span className="truncate text-sm font-medium text-ink">{t(item.label)}</span>
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto shrink-0 rounded-full px-2 py-0 text-[0.625rem] font-medium"
+                      >
+                        {fr.nav.soonShort}
+                      </Badge>
                     </span>
                   )}
                 </li>

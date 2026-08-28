@@ -3,7 +3,8 @@
 import { Badge } from '@/components/ui/badge'
 import { AppleLogo, GoogleLogo, XLogo } from '@/components/account/social-logos'
 import { Button } from '@/components/ui/button'
-import type { AuthMode } from '@/components/account/AuthOverlay'
+import type { AuthMode } from '@/components/account/auth-mode'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Fournisseurs proposés, DANS L'ORDRE D'USAGE RÉEL.
@@ -85,6 +86,8 @@ export function SocialButtons({
   mode: AuthMode
   configured: readonly string[]
 }) {
+  const t = usePhrase()
+
   return (
     <div className="space-y-2">
       {PROVIDERS.map(({ id, label, Logo }) => {
@@ -92,13 +95,17 @@ export function SocialButtons({
 
         /* Le contenu est identique dans les deux branches : seule la BALISE change,
            et l'écrire deux fois ferait diverger les deux états au premier ajustement. */
+        /* ⚠️ CES DEUX TEXTES NE PASSAIENT PAS PAR LE TRADUCTEUR : « Continuer avec
+           Google » et « Bientôt » s'affichaient en français dans les treize langues.
+           Le nom du fournisseur, lui, ne se traduit pas — Google s'appelle Google
+           partout — d'où la césure entre la phrase et l'étiquette. */
         const inner = (
           <>
             <Logo className="size-5" />
-            Continuer avec {label}
+            {t('Continuer avec')} {label}
             {ready ? null : (
               <Badge variant="secondary" className="rounded-full px-2 py-0 text-[0.625rem] font-medium">
-                Bientôt
+                {t('Bientôt')}
               </Badge>
             )}
           </>

@@ -7,16 +7,53 @@
  *
  * ── LOCALE ────────────────────────────────────────────────────────────────────
  *
- * Chaque fonction accepte une locale en dernier argument, et retombe sur le
- * français. Le paramètre est optionnel PAR COMPATIBILITÉ — une quarantaine de sites
- * d'appel existaient avant l'internationalisation — mais toute nouvelle écriture
- * devrait le passer, faute de quoi un lecteur anglophone lira « 1 234,50 » là où il
- * attend « 1,234.50 ».
+ * Chaque fonction accepte une locale en dernier argument. Le paramètre est optionnel
+ * PAR COMPATIBILITÉ — une quarantaine de sites d'appel existaient avant
+ * l'internationalisation — mais toute nouvelle écriture devrait le passer.
+ *
+ * ⚠️ LE DÉFAUT N'EST PLUS LE MÊME POUR TOUT. Il l'a été : tout retombait sur le
+ * français. Les NOMBRES et les MONTANTS retombent désormais sur l'anglo-saxon
+ * (« $77,570.30 »), les DATES restent en français. Les deux constantes ci-dessous
+ * portent chacune son raisonnement — et la distinction n'est pas un oubli.
  */
 
 import { currencyDecimals, currencySymbol, getCurrency } from '@zenkuu/data/currencies'
 
+/**
+ * Locale des DATES. Le site reste français, et une date américaine (« 8/24/2026 ») y
+ * serait lue à l'envers un jour sur deux — le 8 août et le 24 août ne se distinguent
+ * qu'à l'ordre des champs.
+ */
 const DEFAULT_LOCALE = 'fr-FR'
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LOCALE DES NOMBRES ET DES MONTANTS — ANGLO-SAXONNE, ET C'EST DÉLIBÉRÉ
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Les montants s'écrivent désormais « $77,570.30 » et non « 77 570,30 $US » : symbole
+ * devant, virgule pour les milliers, point pour les décimales.
+ *
+ * ── POURQUOI SÉPARER LES NOMBRES DES DATES ───────────────────────────────────
+ *
+ * Parce que les deux conventions ne portent pas le même risque. Un montant anglo-saxon
+ * lu par un francophone reste JUSTE : « $77,570.30 » ne peut pas se comprendre comme
+ * autre chose que soixante-dix-sept mille. Une date anglo-saxonne, elle, devient
+ * FAUSSE une fois sur deux — « 8/24 » et « 24/8 » sont tous deux plausibles. On change
+ * donc ce qui est sans danger et l'on garde le français là où il protège.
+ *
+ * ── CE QUE CELA TOUCHE ───────────────────────────────────────────────────────
+ *
+ * Tout ce qui n'écrit pas explicitement sa locale : le cours en tête de fiche, le rail
+ * de chiffres, les tableaux de cotation, les axes du graphique, les cartes d'accueil,
+ * le convertisseur. C'est le point unique par lequel ils passent tous — d'où le
+ * changement ici plutôt qu'aux sites d'appel.
+ *
+ * ⚠️ LES APPELANTS QUI PASSENT UNE LOCALE GARDENT LA MAIN. C'est voulu : une page
+ * traduite doit pouvoir écrire ses nombres dans sa propre convention. Le défaut ne
+ * s'applique qu'à ceux qui n'en demandent aucune.
+ */
+const NUMBER_LOCALE = 'en-US'
 
 /**
  * Espace fine INSÉCABLE (U+202F), posée devant le signe pourcent.
@@ -125,13 +162,37 @@ export function formatCurrency(
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
-  const locale = options.locale ?? DEFAULT_LOCALE
+  const locale = options.locale ?? NUMBER_LOCALE
   const code = currency.toUpperCase()
 
   if (options.compact) {
     const compact = formatCompact(Math.abs(value), locale)
     if (compact === null) return null
-    return `${value < 0 ? '−' : ''}${compact} ${currencySymbol(code, locale)}`
+
+    /*
+     * ⚠️ LE SYMBOLE SE PLACE SELON LA LANGUE, IL N'EST PLUS TOUJOURS SUFFIXÉ.
+     *
+     * Il l'était : `${montant} ${symbole}`, ce qui donnait « 1,56 Md $ » — juste en
+     * français. Depuis que les nombres se composent en anglo-saxon, la même ligne
+     * écrivait « 1.56B $ », qui n'est la convention de personne : l'anglais met le
+     * signe DEVANT, et sans espace.
+     *
+     * Le décalage se voyait à l'œil sur la fiche : le cours affichait « $77,503.54 »
+     * deux centimètres au-dessus d'une capitalisation « 1,555B $ ».
+     *
+     * On ne peut pas déléguer ce placement à `Intl` : le chemin compact ne passe pas
+     * par le style monétaire (voir l'en-tête), justement parce qu'il doit produire nos
+     * propres abréviations. Le test de langue est donc explicite, et il reprend celui
+     * de `compactUnits` — les deux décrivent la même frontière.
+     *
+     * L'espace du côté français est INSÉCABLE (U+00A0) : une espace ordinaire
+     * autoriserait le navigateur à couper « 1,56 Md » et « $ » sur deux lignes.
+     */
+    const sign = value < 0 ? '−' : ''
+    const symbol = currencySymbol(code, locale)
+    return locale.toLowerCase().startsWith('fr')
+      ? `${sign}${compact} ${symbol}`
+      : `${sign}${symbol}${compact}`
   }
 
   const digits = currencyDecimals(code, value)
@@ -167,7 +228,7 @@ export function formatCurrency(
 
 export function formatCompact(
   value: number | undefined,
-  locale: string = DEFAULT_LOCALE,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
@@ -213,7 +274,7 @@ export function formatCompact(
  */
 export function formatCompactAxis(
   value: number | undefined,
-  locale: string = DEFAULT_LOCALE,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
@@ -226,7 +287,7 @@ export function formatCompactAxis(
 export function formatNumber(
   value: number | undefined,
   maximumFractionDigits = 2,
-  locale: string = DEFAULT_LOCALE,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
   return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(value)
@@ -299,7 +360,7 @@ function axisDigits(value: number): number {
 /** Variation en pourcentage, signe explicite compris : « +2,34 % », « −1,10 % ». */
 export function formatPercent(
   value: number | undefined,
-  locale: string = DEFAULT_LOCALE,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
@@ -337,7 +398,7 @@ export function formatPercent(
  */
 export function formatShare(
   value: number | undefined,
-  locale: string = DEFAULT_LOCALE,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
@@ -352,7 +413,7 @@ export function formatShare(
 /** Taux de change : 4 décimales, sauf pour les paires à forte valeur nominale (JPY). */
 export function formatRate(
   value: number | undefined,
-  locale: string = DEFAULT_LOCALE,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
   return new Intl.NumberFormat(locale, {

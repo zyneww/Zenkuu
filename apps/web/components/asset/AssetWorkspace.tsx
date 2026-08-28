@@ -45,6 +45,7 @@ const PriceChartInteractive = dynamic(
 )
 import {
   ChartToolbar,
+  RANGE_PRESETS,
   daysSinceJanuary,
   snapToAllowedDepth,
   type ChartView,
@@ -59,6 +60,7 @@ import { useLiveTicker } from '@/components/asset/useLiveTicker'
 import { appendLivePoint, clipToRange, mergeCandle } from '@/components/asset/live-series'
 import { AssetDepthChart } from '@/components/asset/AssetDepthChart'
 import { TradingViewChart } from '@/components/asset/TradingViewChart'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import {
   BINANCE_INTERVALS,
   fetchBinanceKlines,
@@ -135,6 +137,13 @@ import {
  * La donnée n'est pas perdue et le tracé reste possible : `chartMetric` sait encore
  * dessiner `volume`, seule l'entrée du sélecteur disparaît.
  */
+/*
+ * ⚠️ LE VOLUME A ÉTÉ AJOUTÉ ICI PUIS RETIRÉ. Il rendait le sélecteur de grandeur
+ * visible sur les cinq classes que la capitalisation ne couvre pas — mais il n'avait
+ * pas été demandé, et une grandeur de plus dans la barre est une décision de produit,
+ * pas un correctif de mise en page. `metricAvailable.volume` reste calculé : la série
+ * existe, seule la commande manque.
+ */
 const METRICS = [
   { key: 'price', message: 'price' },
   { key: 'marketCap', message: 'marketCap' },
@@ -170,6 +179,20 @@ const METRIC_LABELS: Record<ChartMetric, string> = {
   marketCap: 'Capitalisation',
 }
 
+/**
+ * Une date au format `AAAA-MM-JJ`, dans le fuseau du LECTEUR.
+ *
+ * `toISOString().slice(0, 10)` serait plus court et faux d'un jour à l'ouest de
+ * Greenwich : le 1ᵉʳ janvier à minuit heure locale y est encore le 31 décembre en UTC,
+ * et « depuis le 1ᵉʳ janvier » démarrerait donc la veille — un point de plus, tiré de
+ * l'année précédente, en tête de la courbe.
+ */
+function isoDay(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
 /* Les paliers de période vivent désormais dans `ChartToolbar`, avec « Depuis janv. »
    et « Max » que cette liste ne portait pas. La garder ici en aurait fait une
    seconde source de vérité, condamnée à diverger. */
@@ -188,6 +211,21 @@ interface AssetWorkspaceProps {
    * qui sert aussi les actions et les devises n'aurait aucun sens.
    */
   compareOptions?: CompareOption[]
+  /**
+   * Symbole COMPLET chez TradingView, ou `null` si l'actif n'y est pas nommable.
+   *
+   * ── POURQUOI IL ARRIVE TRADUIT, ET NE L'EST PLUS ICI ──────────────────────
+   *
+   * Ce composant appelait `tradingViewSymbol(assetClass, asset.symbol)` — deux fois,
+   * pour deux décisions qui doivent s'accorder : proposer l'interrupteur, et nommer le
+   * cadre. La traduction de la CRYPTO lit désormais la table des places de l'actif,
+   * qui vit côté serveur et ne traverse pas jusqu'ici. La page la fait donc une fois,
+   * et passe le résultat.
+   *
+   * `null` retire l'interrupteur de la barre : mieux vaut pas de bouton qu'un bouton
+   * qui ouvre « Ce symbole n'existe pas ». Voir `tradingview-symbol.ts`.
+   */
+  tradingViewSymbol?: string | null
 }
 
 /**
@@ -205,7 +243,9 @@ export function AssetWorkspace({
   initialDays,
   rates,
   compareOptions = [],
+  tradingViewSymbol = null,
 }: AssetWorkspaceProps) {
+  const t = usePhrase()
   const [days, setDays] = useState(initialDays)
   /**
    * ═════════════════════════════════════════════════════════════════════════════
@@ -264,9 +304,33 @@ export function AssetWorkspace({
    * Les trois autres restent éteints. Le graphique sait toujours les tracer — ce sont
    * des propriétés conservées de `PriceChartInteractive` — mais plus rien ne les allume.
    */
-  const showMovingAverage = false
-  const showPriceLines = false
-  const logScale = false
+  /*
+   * ── LES RÉGLAGES DU TRACÉ SONT REDEVENUS DES ÉTATS ──────────────────────────
+   *
+   * Ils avaient été figés en constantes éteintes, faute de commande : le menu qui les
+   * pilotait avait été retiré de la barre. Il revient sous une roue dentée voisine de
+   * « Comparer » (voir `settings` dans `ChartToolbar`), donc les valeurs redeviennent
+   * des états.
+   *
+   * Les DÉFAUTS ne changent pas — moyenne mobile, repères et échelle logarithmique
+   * restent éteints, volume et frise allumés — pour que la fiche s'ouvre exactement
+   * comme avant pour qui ne touche à rien.
+   */
+  const [showMovingAverage, setShowMovingAverage] = useState(false)
+  const [showPriceLines, setShowPriceLines] = useState(false)
+  const [logScale, setLogScale] = useState(false)
+  const [volumeWanted, setVolumeWanted] = useState(true)
+  const [navigatorWanted, setNavigatorWanted] = useState(true)
+  /*
+   * ── LES DEUX RÉGLAGES D'INFOBULLE ──────────────────────────────────────────
+   *
+   * Ils forment la seconde section de la roue dentée — « Infobulle » —, calquée sur
+   * les « Tooltip Settings » du modèle. Éteints par défaut : la bulle porte déjà la
+   * date, le cours et le volume, et deux lignes de plus d'office en feraient un pavé
+   * qui suit le curseur.
+   */
+  const [tooltipMarketCap, setTooltipMarketCap] = useState(false)
+  const [tooltipChange, setTooltipChange] = useState(false)
   /**
    * Actifs superposés, et grandeurs superposées — deux listes, une seule limite.
    *
@@ -275,6 +339,40 @@ export function AssetWorkspace({
    */
   const [compareIds, setCompareIds] = useState<string[]>([])
   const [compareMetrics, setCompareMetrics] = useState<string[]>([])
+
+  /*
+   * ── LES ACTIFS VENUS DE LA RECHERCHE ────────────────────────────────────────
+   *
+   * `compareOptions` est la liste que la PAGE propose : quelques pairs, choisis
+   * côté serveur. Le panneau cherche désormais dans tout le catalogue (voir
+   * `ComparePanel`), et ce qu'il en ramène n'existe nulle part ici — ni son nom pour
+   * la légende, ni sa classe pour aller chercher sa série.
+   *
+   * Ils sont donc conservés à côté, et fusionnés à la liste proposée. L'état vit ici
+   * plutôt que dans le panneau parce qu'il survit à sa fermeture : rouvrir « Comparer »
+   * doit remontrer ce qui est tracé.
+   */
+  const [discovered, setDiscovered] = useState<CompareOption[]>([])
+
+  /** Ce que le panneau propose : les pairs de la page, puis ce que la recherche a ramené. */
+  const comparable = useMemo<CompareOption[]>(() => {
+    const known = new Set(compareOptions.map((entry) => entry.id))
+    return [...compareOptions, ...discovered.filter((entry) => !known.has(entry.id))]
+  }, [compareOptions, discovered])
+
+  /**
+   * Classe d'actif d'un comparant — la sienne, ou celle de la fiche à défaut.
+   *
+   * ⚠️ LA REQUÊTE PARTAIT TOUJOURS EN `classe=crypto`. C'était sans conséquence tant
+   * que la liste venait d'une fiche crypto ; depuis que la recherche ouvre tout le
+   * catalogue, demander l'historique d'Apple à l'adresse des cryptomonnaies rend
+   * « identifiant inconnu » et la courbe manque sans explication.
+   */
+  const classOfCompared = useCallback(
+    (id: string): AssetClass =>
+      comparable.find((entry) => entry.id === id)?.assetClass ?? assetClass,
+    [comparable, assetClass],
+  )
   /**
    * Vue du cadre, et pas de bougie choisi.
    *
@@ -687,6 +785,26 @@ export function AssetWorkspace({
    * traversé par TOUTES les séries — prix, capitalisation, volume, bougies — et donc
    * le seul où l'écrire une fois suffit.
    */
+  /**
+   * Découpage appliqué à TOUTES les séries avant tracé.
+   *
+   * Deux origines, une seule sortie. Le CALENDRIER pose des bornes explicites, et elles
+   * l'emportent : c'est le geste le plus précis dont dispose le lecteur. À défaut, le
+   * palier « YTD » pose les siennes — du 1ᵉʳ janvier à aujourd'hui — parce que la
+   * profondeur qu'il commande est forcément plus large que la période qu'il nomme (voir
+   * `selectPreset`).
+   *
+   * Recalculé quand `rangeId` change, donc au plus une fois par clic : la date du jour
+   * n'a pas besoin d'être relue à chaque rendu, et la relire y ferait varier la valeur
+   * d'un rendu à l'autre sans que rien ne l'ait demandé.
+   */
+  const clipRange = useMemo<{ from: string; to: string } | null>(() => {
+    if (customRange) return customRange
+    if (rangeId !== 'ytd') return null
+    const now = new Date()
+    return { from: isoDay(new Date(now.getFullYear(), 0, 1)), to: isoDay(now) }
+  }, [customRange, rangeId])
+
   const chartHistory = useMemo<PriceHistory | null>(() => {
     /*
      * LE PAS NE COMMANDE QUE POUR LE PRIX.
@@ -700,13 +818,13 @@ export function AssetWorkspace({
      * Le pas est d'ailleurs remis à zéro au changement de grandeur (voir la barre
      * d'outils) : ce garde-fou est la seconde barrière, pas la première.
      */
-    if (metric === 'price' && intervalHistory) return clipToRange(intervalHistory, customRange)
+    if (metric === 'price' && intervalHistory) return clipToRange(intervalHistory, clipRange)
 
     if (!history) return null
     // Le point du ticker n'est ajouté qu'en l'absence de pas : la série des bougies
     // est déjà tenue à jour par son propre flux, et l'y ajouter dupliquerait la
     // dernière bougie sous forme de point.
-    if (metric === 'price') return clipToRange(appendLivePoint(history, livePrice), customRange)
+    if (metric === 'price') return clipToRange(appendLivePoint(history, livePrice), clipRange)
 
     const points = history.points
       .map((point) => ({
@@ -715,8 +833,8 @@ export function AssetWorkspace({
       }))
       .filter((point): point is { timestamp: number; price: number } => point.price !== undefined)
 
-    return points.length > 1 ? clipToRange({ ...history, points }, customRange) : null
-  }, [history, metric, livePrice, intervalHistory, customRange])
+    return points.length > 1 ? clipToRange({ ...history, points }, clipRange) : null
+  }, [history, metric, livePrice, intervalHistory, clipRange])
 
   /** Une grandeur qui ne produit aucune courbe est retirée du sélecteur. */
   const metricAvailable = useMemo<Record<ChartMetric, boolean>>(
@@ -771,6 +889,17 @@ export function AssetWorkspace({
       { id: 'line', label: 'Courbe', view: 'original', kind: 'area' },
     ]
 
+    /*
+     * ⚠️ UNE MATIÈRE PREMIÈRE N'A QUE LA COURBE (demande explicite).
+     *
+     * Sa barre portait deux icônes de plus — chandeliers et TradingView — soit un
+     * segment de trois boutons pour un actif dont la source ne publie qu'une clôture
+     * par séance. Le segment disparaît de lui-même à une seule entrée : c'est la règle
+     * déjà écrite sur `renderOptions` dans `ChartToolbar`, « un sélecteur à un choix
+     * n'est pas un sélecteur ».
+     */
+    if (assetClass === 'commodity') return entries
+
     /* Les chandeliers exigent de l'OHLC, que la source ne publie QUE pour le prix — et
        pas pour tous les actifs. La condition est la même que celle qui filtrait le
        menu supprimé : la déplacer ici plutôt que de la dupliquer évite qu'un bouton
@@ -784,13 +913,33 @@ export function AssetWorkspace({
       })
     }
 
-    if (assetClass === 'crypto') {
+    /*
+     * ── LE MOTEUR EXTERNE SUIT LE SYMBOLE, PLUS LA CLASSE D'ACTIF ────────────
+     *
+     * La condition était `assetClass === 'crypto'`, et elle disait la bonne chose pour
+     * la mauvaise raison : ce n'est pas la classe qui empêchait TradingView, c'est le
+     * SYMBOLE, construit en dur comme `BINANCE:{SYM}USDT`. Sur une matière première il
+     * aurait produit `BINANCE:GC=FUSDT`, que TradingView ne connaît pas.
+     *
+     * La traduction vit désormais dans `tradingview-symbol.ts`, qui sait nommer une
+     * action, un ETF, une paire de devises, et les douze contrats et huit indices de
+     * notre univers. Elle rend `null` pour ce qu'elle ne sait pas nommer — et c'est
+     * ce `null` qui décide ici, pas la classe.
+     *
+     * LA PROFONDEUR DU CARNET, elle, RESTE crypto : elle lit le carnet d'ordres de
+     * Binance en direct, ce qu'aucune autre classe n'a. Ce n'est pas une question de
+     * nommage mais de source.
+     */
+    if (tradingViewSymbol) {
       entries.push({ id: 'tradingview', label: 'TradingView', view: 'tradingview' })
+    }
+
+    if (assetClass === 'crypto') {
       entries.push({ id: 'depth', label: 'Profondeur du carnet', view: 'depth' })
     }
 
     return entries
-  }, [assetClass, candlesUnavailable, metric])
+  }, [assetClass, tradingViewSymbol, candlesUnavailable, metric])
 
   const availableIntervals = useMemo(
     () =>
@@ -925,7 +1074,9 @@ export function AssetWorkspace({
      */
     Promise.all(
       wanted.map((id) =>
-        fetch(`/api/historique?classe=crypto&id=${encodeURIComponent(id)}&jours=${days}`)
+        fetch(
+          `/api/historique?classe=${classOfCompared(id)}&id=${encodeURIComponent(id)}&jours=${days}`,
+        )
           .then((response) => response.json())
           .then((payload) =>
             payload?.ok
@@ -942,7 +1093,7 @@ export function AssetWorkspace({
     return () => {
       cancelled = true
     }
-  }, [compareKey, days])
+  }, [compareKey, days, classOfCompared])
 
   /**
    * Courbes superposées, dans l'ordre où elles ont été choisies.
@@ -962,7 +1113,7 @@ export function AssetWorkspace({
 
     for (const id of compareIds) {
       const series = compareSeries.find((entry) => entry.id === id)
-      const label = compareOptions.find((entry) => entry.id === id)?.label
+      const label = comparable.find((entry) => entry.id === id)?.label
       if (series && label) rows.push({ id, label, points: series.points })
     }
 
@@ -977,12 +1128,12 @@ export function AssetWorkspace({
       // Un point unique ne s'indexe pas : la base 100 se calcule sur le premier point
       // et la courbe serait une horizontale à 100.
       if (points.length > 1) {
-        rows.push({ id: `metric:${key}`, label: METRIC_LABELS[key as ChartMetric] ?? key, points })
+        rows.push({ id: `metric:${key}`, label: t(METRIC_LABELS[key as ChartMetric] ?? key), points })
       }
     }
 
     return rows
-  }, [compareIds, compareSeries, compareOptions, compareMetrics, history])
+  }, [compareIds, compareSeries, comparable, compareMetrics, history])
 
   /**
    * Choix d'un palier de période.
@@ -995,13 +1146,32 @@ export function AssetWorkspace({
    */
   function selectPreset(preset: RangePreset) {
     setRangeId(preset.id)
-    setCustomRange(null)
 
     if (preset.days !== null) {
+      setCustomRange(null)
       selectRange(preset.days)
       return
     }
 
+    /*
+     * ══════════════════════════════════════════════════════════════════════════
+     * ⚠️ « YTD » AFFICHAIT EXACTEMENT LA MÊME FENÊTRE QUE « 1A »
+     * ══════════════════════════════════════════════════════════════════════════
+     *
+     * Le palier ne posait qu'une PROFONDEUR — `snapToAllowedDepth(daysSinceJanuary())`.
+     * Or cette fonction arrondit vers le palier autorisé SUPÉRIEUR, et les paliers vont
+     * de 90 à 180 puis à 365 : dès la mi-juin, « depuis le 1ᵉʳ janvier » demandait donc
+     * 365 jours et n'en découpait AUCUN. Relevé au navigateur le 24 août — le bouton
+     * s'allumait, l'axe portait « sept. 2025 → août 2026 », c'est-à-dire le contenu de
+     * « 1A ». Cliquer « 1A » puis « YTD » ne changeait alors strictement rien à l'écran.
+     *
+     * La profondeur reste arrondie — c'est la liste blanche du service, on ne peut pas
+     * lui demander 236 jours — et le DÉCOUPAGE se fait à l'affichage, comme pour les
+     * bornes libres. Voir `ytdRange`, qui le pose sans passer par `customRange` : ce
+     * dernier appartient au calendrier, et l'y écrire allumerait sa pastille de dates à
+     * la place du palier qu'on vient de cliquer.
+     */
+    setCustomRange(null)
     selectRange(snapToAllowedDepth(preset.id === 'ytd' ? daysSinceJanuary() : 3650))
   }
 
@@ -1111,10 +1281,10 @@ export function AssetWorkspace({
    * évite deux façons de demander la même chose.
    */
   const selectOverviewRange = useCallback((from: number, to: number) => {
-    applyCustomRange({
-      from: new Date(from).toISOString().slice(0, 10),
-      to: new Date(to).toISOString().slice(0, 10),
-    })
+    /* `isoDay` et non `toISOString()` : la borne est lue dans le fuseau du lecteur, où
+       elle a été tirée. Voir la note de ce format — un décalage d'un jour à l'ouest de
+       Greenwich sinon. */
+    applyCustomRange({ from: isoDay(new Date(from)), to: isoDay(new Date(to)) })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `applyCustomRange` est une déclaration de fonction, stable pour la durée du composant
   }, [])
 
@@ -1146,7 +1316,26 @@ export function AssetWorkspace({
     if (!canvas) return
 
     const { exportChart } = await import('@/components/asset/export-chart')
-    exportChart(canvas, format, `${asset.name}-${metric}`)
+
+    /*
+     * L'EN-TÊTE VOYAGE AVEC L'IMAGE — voir `frame` dans `export-chart`.
+     *
+     * Le fichier partait avec la seule toile d'amCharts : une courbe sans nom
+     * d'actif, sans période et sans provenance, donc illisible dès qu'elle quitte la
+     * page. Les trois mentions sont prises à l'état COURANT du widget, pas à celui du
+     * rendu serveur — c'est ce que le lecteur a sous les yeux au moment du clic.
+     */
+    const rangeLabel =
+      RANGE_PRESETS.find((preset) => preset.id === rangeId)?.label ??
+      (customRange ? `${customRange.from} → ${customRange.to}` : '')
+    const source = (history as (PriceHistory & { source?: { label?: string } }) | null)?.source
+      ?.label
+
+    exportChart(canvas, format, `${asset.name}-${metric}`, {
+      title: `${asset.name} (${asset.symbol})`,
+      subtitle: [t(METRIC_LABELS[metric]), rangeLabel, currency].filter(Boolean).join(' · '),
+      ...(source ? { source: `Source : ${source}` } : {}),
+    })
   }
 
   /**
@@ -1231,16 +1420,111 @@ export function AssetWorkspace({
             */}
             <ChartToolbar
               metric={metric}
-              metricOptions={METRICS.filter((entry) => metricAvailable[entry.key]).map((entry) => ({
+              /*
+               * ⚠️ LA LISTE N'EST PLUS FILTRÉE, ELLE EST MARQUÉE.
+               *
+               * Elle l'était : `filter(metricAvailable[...])` retirait toute grandeur
+               * dont la source ne publie pas la série. Sur les cinq classes servies par
+               * Yahoo, qui ne publient pas d'historique de capitalisation, il ne restait
+               * qu'une entrée — donc pas de segment du tout, et une barre d'outils
+               * amputée de son premier groupe. Relevé sur `/matieres-premieres/gc=f`,
+               * dont la barre ne portait plus que « Comparer ».
+               *
+               * Les deux grandeurs sont donc toujours RENDUES, celle qui n'a pas de
+               * série étant désactivée et légendée. C'est plus honnête que le filtre :
+               * une entrée grisée dit « cette lecture existe, la source ne la fournit
+               * pas ici », là où l'absence laissait croire que le site n'en avait
+               * jamais entendu parler. Voir `ChartToolbar`, qui rend l'état inerte.
+               */
+              metricOptions={METRICS.map((entry) => ({
                 key: entry.key,
-                label: METRIC_LABELS[entry.key],
+                label: t(METRIC_LABELS[entry.key]),
+                available: metricAvailable[entry.key],
               }))}
               onMetricChange={(key) => selectMetric(key as ChartMetric)}
               compareIds={compareIds}
-              compareOptions={compareOptions}
+              compareOptions={comparable}
+              /* Le menu propose les tendances du marché, que personne ne filtre : sans
+                 cet identifiant, une fiche assez chaude pour y figurer se proposerait
+                 en première ligne de sa propre comparaison. */
+              selfId={asset.id}
               onCompareChange={setCompareIds}
+              onCompareDiscover={(option) =>
+                setDiscovered((current) =>
+                  current.some((entry) => entry.id === option.id) ? current : [...current, option],
+                )
+              }
               compareMetrics={compareMetrics}
               onCompareMetricsChange={setCompareMetrics}
+              /*
+               * ── CE QUE LA ROUE DENTÉE COMMANDE ────────────────────────────
+               *
+               * Cinq réglages, tous ADOSSÉS À UNE CAPACITÉ RÉELLE du tracé — c'est la
+               * condition pour qu'une case existe. Les réglages de CoinMarketCap qui
+               * n'ont pas d'équivalent chez nous (indice de peur, financement global,
+               * cours en SOL) ne figurent pas : une case qui ne commande rien vaut
+               * moins que pas de case (§5).
+               *
+               * Le volume porte `available` plutôt que de disparaître : sur un actif
+               * dont la source ne publie aucun volume, l'entrée grisée dit « cette
+               * bande existe, la source ne la remplit pas ici ».
+               */
+              settings={[
+                {
+                  id: 'volume',
+                  group: 'chart',
+                  label: 'Volume d’échange',
+                  checked: volumeWanted,
+                  available: volumeAvailable && metric === 'price',
+                },
+                {
+                  id: 'navigator',
+                  group: 'chart',
+                  label: 'Frise de navigation',
+                  checked: navigatorWanted,
+                },
+                { id: 'ma', group: 'chart', label: 'Moyenne mobile', checked: showMovingAverage },
+                {
+                  id: 'lines',
+                  group: 'chart',
+                  label: 'Repères haut / moyenne / bas',
+                  checked: showPriceLines,
+                  available: metric === 'price',
+                },
+                { id: 'log', group: 'chart', label: 'Échelle logarithmique', checked: logScale },
+
+                /* ── SECTION « INFOBULLE » ────────────────────────────────
+                   Elle ne change RIEN au tracé : ces deux-là ajoutent une ligne à la
+                   bulle qui suit le curseur. C'est le partage du modèle, et il tient
+                   parce que le coût n'est pas le même — une bande de volume mange un
+                   quart du cadre, une ligne de bulle ne coûte que pendant le survol. */
+                {
+                  id: 'tip-change',
+                  group: 'tooltip',
+                  label: 'Variation sur la fenêtre',
+                  checked: tooltipChange,
+                },
+                {
+                  id: 'tip-cap',
+                  group: 'tooltip',
+                  label: 'Capitalisation',
+                  checked: tooltipMarketCap,
+                  /* Grisée plutôt que masquée, comme le volume : sur une action ou une
+                     matière première, la source ne publie aucun historique de
+                     capitalisation, et l'entrée éteinte dit « cette lecture existe,
+                     pas ici » là où l'absence laisserait croire à un oubli. */
+                  available: metricAvailable.marketCap && metric === 'price',
+                },
+              ]}
+              onSettingChange={(id, next) => {
+                if (id === 'volume') setVolumeWanted(next)
+                else if (id === 'navigator') setNavigatorWanted(next)
+                else if (id === 'ma') setShowMovingAverage(next)
+                else if (id === 'lines') setShowPriceLines(next)
+                else if (id === 'log') setLogScale(next)
+                else if (id === 'tip-cap') setTooltipMarketCap(next)
+                else if (id === 'tip-change') setTooltipChange(next)
+              }}
               kind={effectiveKind}
               onKindChange={(key) => setKind(key as ChartKind)}
               view={view}
@@ -1277,8 +1561,12 @@ export function AssetWorkspace({
               tout le monde, et le carnet interrogerait Binance toutes les cinq
               secondes derrière un écran que personne ne regarde.
             */}
-            {view === 'tradingview' ? (
-              <TradingViewChart symbol={asset.symbol} />
+            {/* Le symbole arrive TRADUIT de la page — voir la prop. La condition sur sa
+                présence est la MÊME que celle qui fait exister l'interrupteur dans
+                `renderOptions` : le cadre ne peut donc pas être monté avec un symbole
+                que TradingView ne connaît pas. */}
+            {view === 'tradingview' && tradingViewSymbol ? (
+              <TradingViewChart symbol={tradingViewSymbol} />
             ) : view === 'depth' ? (
               <AssetDepthChart symbol={asset.symbol} />
             ) : (
@@ -1291,7 +1579,8 @@ export function AssetWorkspace({
                 currency={currency}
                 days={days}
                 assetName={asset.name}
-                showVolume={volumeAvailable && metric === 'price'}
+                showVolume={volumeWanted && volumeAvailable && metric === 'price'}
+                showNavigator={navigatorWanted}
                 showMovingAverage={showMovingAverage}
                 showPriceLines={showPriceLines}
                 logScale={logScale}
@@ -1304,6 +1593,14 @@ export function AssetWorkspace({
                    non. C'est ici que la distinction existe — le graphique, lui, ne
                    voit que des nombres. */
                 compactValues={metric !== 'price'}
+                /* La capitalisation ne s'affiche dans la bulle que si la série la
+                   porte ET si l'on trace bien le cours : sous « Capitalisation », la
+                   courbe EST la capitalisation, et la répéter dans la bulle serait
+                   écrire deux fois le même nombre. */
+                showTooltipMarketCap={
+                  tooltipMarketCap && metricAvailable.marketCap && metric === 'price'
+                }
+                showTooltipChange={tooltipChange}
               />
             )}
 
@@ -1318,10 +1615,15 @@ export function AssetWorkspace({
             ) : null}
 
             {compare.length > 0 ? (
+              /* ⚠️ CETTE PHRASE DISAIT « RAMENÉES À 100 », ET C'ÉTAIT VRAI. L'axe de
+                 comparaison porte désormais des POURCENTAGES et non un indice — voir
+                 la note de l'indexation dans `PriceChartInteractive`. La légende sous
+                 le graphique nomme maintenant chaque courbe avec sa couleur, si bien
+                 que l'énumération « traits tiretés : … » n'a plus lieu d'être : elle
+                 redisait en texte ce que les pastilles montrent. */
               <p className="mt-2 text-[0.6875rem] leading-relaxed text-ink-muted">
-                Toutes les courbes sont ramenées à 100 au début de la période : l’axe montre
-                une progression relative, pas un montant. Trait plein&nbsp;: {asset.name}.
-                Traits tiretés&nbsp;: {compare.map((entry) => entry.label).join(', ')}.
+                Chaque courbe part de zéro au début de la période : l’axe montre une
+                progression relative, pas un montant.
               </p>
             ) : null}
         </div>
@@ -1361,6 +1663,7 @@ function OverviewTab({
   days,
   assetName,
   showVolume,
+  showNavigator,
   showMovingAverage,
   showPriceLines,
   logScale,
@@ -1370,6 +1673,8 @@ function OverviewTab({
   onOverviewRange,
   compare,
   compactValues,
+  showTooltipMarketCap,
+  showTooltipChange,
 }: {
   history: PriceHistory | null
   candles: ChartCandle[] | null
@@ -1380,6 +1685,8 @@ function OverviewTab({
   days: number
   assetName: string
   showVolume: boolean
+  /** Frise de navigation sous le tracé — réglable depuis la roue dentée de la barre. */
+  showNavigator: boolean
   showMovingAverage: boolean
   showPriceLines: boolean
   logScale: boolean
@@ -1392,6 +1699,9 @@ function OverviewTab({
   compare: { id: string; label: string; points: { timestamp: number; price: number }[] }[]
   /** La grandeur tracée se compte-t-elle en milliards ? Voir `formatCompactPrice`. */
   compactValues: boolean
+  /** Lignes facultatives de l'infobulle — section « Infobulle » de la roue dentée. */
+  showTooltipMarketCap: boolean
+  showTooltipChange: boolean
 }) {
   const fr = useContent()
   const [interactive, setInteractive] = useState(false)
@@ -1452,6 +1762,7 @@ function OverviewTab({
           days={days}
           label={label}
           showVolume={showVolume}
+          showNavigator={showNavigator}
           showMovingAverage={showMovingAverage}
           showPriceLines={showPriceLines}
           logScale={logScale}
@@ -1461,6 +1772,8 @@ function OverviewTab({
           onOverviewRange={onOverviewRange}
           compare={compare}
           compactValues={compactValues}
+          showTooltipMarketCap={showTooltipMarketCap}
+          showTooltipChange={showTooltipChange}
         />
       ) : (
         <PriceChart

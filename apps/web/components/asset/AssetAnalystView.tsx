@@ -2,6 +2,7 @@ import type { AssetProfile } from '@zenkuu/data'
 
 import { Money } from '@/components/locale/Money'
 import { RailSection } from '@/components/ui/RailSection'
+import { getPhrase } from '@/lib/content'
 
 /**
  * CONSENSUS D'ANALYSTES — ce qui répond, sur une action, à la question que le
@@ -52,7 +53,7 @@ const RECOMMENDATIONS: Record<string, string> = {
   outperform: 'Surperformance',
 }
 
-export function AssetAnalystView({
+export async function AssetAnalystView({
   profile,
   currency,
   price,
@@ -63,6 +64,7 @@ export function AssetAnalystView({
   /** Cours courant, pour situer l'objectif moyen. */
   price: number
 }) {
+  const t = await getPhrase()
   const analyst = profile?.analyst
   if (!analyst) return null
 
@@ -90,7 +92,7 @@ export function AssetAnalystView({
   if (!distribution && analyst.targetMean === undefined) return null
 
   return (
-    <RailSection title="Consensus d'analystes">
+    <RailSection title={t('Consensus d’analystes')}>
       {analyst.recommendation ? (
         <p className="mb-2 text-sm font-semibold text-ink">
           {RECOMMENDATIONS[analyst.recommendation] ?? analyst.recommendation}
@@ -166,7 +168,7 @@ export function AssetAnalystView({
 
           {upside !== null ? (
             <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs text-ink-muted">Écart au cours</span>
+              <span className="text-xs text-ink-muted">{t('Écart au cours')}</span>
               <span
                 className={`tabular text-xs font-medium ${
                   upside >= 0 ? 'text-up' : 'text-down'
@@ -198,8 +200,7 @@ export function AssetAnalystView({
       ) : null}
 
       <p className="mt-3 text-micro leading-snug text-ink-muted">
-        Opinions de bureaux d’analyse, pas une prévision. Le consensus penche
-        structurellement à l’achat : les recommandations de vente y sont rares.
+        {t('Opinions de bureaux d’analyse, pas une prévision. Le consensus penche structurellement à l’achat : les recommandations de vente y sont rares.')}
       </p>
     </RailSection>
   )

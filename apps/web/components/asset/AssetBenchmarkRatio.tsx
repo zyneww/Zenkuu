@@ -1,6 +1,8 @@
 import type { AssetDetail } from '@zenkuu/data'
 import { ChangeBadge } from '@zenkuu/ui'
 
+import { cn } from '@/lib/utils'
+
 /**
  * COURS EXPRIMÉ DANS UN ACTIF DE RÉFÉRENCE — « 0,00014951 BTC ».
  *
@@ -42,7 +44,28 @@ const BENCHMARKS = [
   { code: 'eth', label: 'ETH', selfId: 'ethereum' },
 ] as const
 
-export function AssetBenchmarkRatio({ asset }: { asset: AssetDetail }) {
+export function AssetBenchmarkRatio({
+  asset,
+  className,
+}: {
+  asset: AssetDetail
+  /**
+   * Classes de l'enveloppe.
+   *
+   * ── POURQUOI CETTE PROPRIÉTÉ EXISTE : `display: contents` ────────────────
+   *
+   * Le bloc de cours de la fiche aligne le cours et ce rapport en DEUX COLONNES — les
+   * valeurs à droite d'une première piste, les pastilles de variation dans une seconde.
+   * Pour que les deux enfants de ce composant deviennent des cases de cette grille, il
+   * faut que l'enveloppe cesse d'être une boîte : c'est exactement ce que fait
+   * `contents`, et l'appelant le demande par cette propriété.
+   *
+   * Sans elle, l'enveloppe resterait une case unique et le rapport se retrouverait
+   * entièrement dans la première colonne, décalé sous le cours au lieu d'être aligné
+   * avec lui.
+   */
+  className?: string
+}) {
   const prices = asset.pricesByCurrency
   if (!prices) return null
 
@@ -69,14 +92,19 @@ export function AssetBenchmarkRatio({ asset }: { asset: AssetDetail }) {
   const change = asset.changesByCurrency?.[benchmark.code]
 
   return (
-    <p className="tabular flex items-baseline gap-2 text-xs text-ink-muted">
-      <span>
+    // `span` et non `p` : le composant se rend DANS le `<p>` de la ligne grise de
+    // `AssetQuote`. Un `<p>` imbriqué est du HTML invalide — le navigateur ferme le
+    // premier au vol, l'arbre servi ne correspond plus à celui de React, et toute la
+    // page se re-rend côté client. Le `flex` fait le reste : la boîte se comporte
+    // comme avant.
+    <span className={cn('tabular flex items-baseline gap-2 text-xs text-ink-muted', className)}>
+      <span className="justify-self-end whitespace-nowrap">
         <span className="font-medium text-ink">{formatRatio(value)}</span> {benchmark.label}
       </span>
       {typeof change === 'number' && Number.isFinite(change) ? (
         <ChangeBadge value={change} size="sm" periodLabel={`sur 24 heures en ${benchmark.label}`} />
       ) : null}
-    </p>
+    </span>
   )
 }
 
@@ -92,7 +120,7 @@ export function AssetBenchmarkRatio({ asset }: { asset: AssetDetail }) {
  * scientifique sur les très petits rapports.
  */
 function formatRatio(value: number): string {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat('en-US', {
     maximumSignificantDigits: 4,
     maximumFractionDigits: 10,
   }).format(value)

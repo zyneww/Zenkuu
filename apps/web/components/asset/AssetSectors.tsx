@@ -159,7 +159,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
             }>
               <dl className="space-y-1.5">
                 <div className="flex items-baseline justify-between gap-2">
-                  <dt className="text-xs text-ink-muted">Capitalisation $</dt>
+                  <dt className="text-xs text-ink-muted">{t('Capitalisation $')}</dt>
                   <dd className="tabular flex items-baseline gap-2 text-xs font-medium text-ink">
                     {category.marketCap !== undefined ? formatCompact(category.marketCap) : '—'}
                     {category.marketCapChange24h !== undefined ? (
@@ -169,7 +169,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
                 </div>
 
                 <div className="flex items-baseline justify-between gap-2">
-                  <dt className="text-xs text-ink-muted">Volume 24 h $</dt>
+                  <dt className="text-xs text-ink-muted">{t('Volume 24 h $')}</dt>
                   <dd className="tabular text-xs font-medium text-ink">
                     {category.volume24h !== undefined ? formatCompact(category.volume24h) : '—'}
                   </dd>
@@ -178,7 +178,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
                 {weight !== undefined ? (
                   <div className="pt-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <dt className="text-xs text-ink-muted">Part de {asset.symbol.toUpperCase()}</dt>
+                      <dt className="text-xs text-ink-muted">{t('Part de {s}').replace('{s}', asset.symbol.toUpperCase())}</dt>
                       <dd className="tabular text-xs font-medium text-ink">{formatShare(weight)}</dd>
                     </div>
                     {/*

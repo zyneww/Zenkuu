@@ -75,7 +75,7 @@ export type AuthResult =
       left?: number
     }
 
-/** Même motif permissif que pour les alertes : on écarte l'absurde, on ne prouve rien. */
+/** Motif volontairement permissif : on écarte l'absurde, on ne prouve rien. */
 const EMAIL = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i
 
 /** Validité d'un code. Assez pour aller chercher un courriel, trop court pour traîner. */
@@ -216,7 +216,7 @@ export async function verifyLoginCode(rawEmail: string, rawCode: string): Promis
       path: '/',
     })
 
-    /* La page entière est revalidée : l'en-tête, la liste de suivi et les alertes
+    /* La page entière est revalidée : l'en-tête, la liste de suivi et le tableau de bord
        affichent tous quelque chose de différent une fois connecté. */
     revalidatePath('/', 'layout')
     return { ok: true }
@@ -302,7 +302,7 @@ export async function updateHandle(raw: string): Promise<AuthResult> {
  * Suppression du compte et de tout ce qu'il contient.
  *
  * Irréversible et immédiate, sans période de grâce : ce que le site détient tient en
- * une adresse, un pseudonyme, une liste d'actifs et des seuils d'alerte. Conserver
+ * une adresse, un pseudonyme et une liste d'actifs suivis. Conserver
  * trente jours « au cas où » des données que personne ne réclame serait moins
  * protecteur, pas plus.
  */

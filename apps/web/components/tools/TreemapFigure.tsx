@@ -6,6 +6,8 @@ import {
   heatScaleSwatches,
   heatTone,
   squarify,
+  volatilityScaleSwatches,
+  volatilityTone,
 } from '@/components/tools/treemap'
 import { Link } from '@/i18n/navigation'
 
@@ -105,6 +107,7 @@ export function TreemapFigure({
   periodLabel,
   height = 'min(70vh, 560px)',
   valueUnit = '',
+  tone = 'change',
 }: {
   tiles: TreemapTile[]
   /** Fenêtre décrite par la couleur, reprise dans l'infobulle. */
@@ -112,6 +115,18 @@ export function TreemapFigure({
   height?: string
   /** Suffixe des montants dans l'infobulle, ex. « $ ». */
   valueUnit?: string
+  /**
+   * ÉCHELLE DE COULEUR, et il y en a deux parce qu'il y a deux natures de grandeur.
+   *
+   * `change` — le défaut — est SIGNÉE : vert quand ça monte, rouge quand ça
+   * descend, gris quand rien n'est publié.
+   *
+   * `volatility` est une INTENSITÉ : une dispersion n'a pas de sens de variation, et
+   * la peindre en vert ferait lire « tout le marché monte » là où la figure dit
+   * « tout le marché bouge ». Voir `volatilityTone`, qui porte le raisonnement
+   * complet et la raison pour laquelle son échelle est relative au lot affiché.
+   */
+  tone?: 'change' | 'volatility'
 }) {
   const usable = tiles.filter((tile) => tile.value > 0)
   const boxes = squarify(usable.map((tile) => ({ id: tile.id, value: tile.value })))
@@ -139,6 +154,14 @@ export function TreemapFigure({
    */
   const hasChange = usable.some((tile) => tile.change !== undefined)
 
+  /* Haut de la rampe d'intensité — le plus agité du lot AFFICHÉ, pas d'un maximum
+     théorique. Voir `volatilityTone` : c'est ce qui empêche la carte entière de tomber
+     dans le premier palier quand les volatilités du jour sont toutes basses. */
+  const peak =
+    tone === 'volatility'
+      ? usable.reduce((max, tile) => Math.max(max, tile.change ?? 0), 0)
+      : 0
+
   return (
     /* Hauteur fixe en pixels, positions en pourcentages : la figure s'adapte en largeur
        sans que rien ne soit recalculé, et reste lisible en hauteur.
@@ -164,7 +187,8 @@ export function TreemapFigure({
           top: `${box.y}%`,
           width: `${box.width}%`,
           height: `${box.height}%`,
-          backgroundColor: heatTone(tile.change),
+          backgroundColor:
+            tone === 'volatility' ? volatilityTone(tile.change, peak) : heatTone(tile.change),
         }
 
         const share = total > 0 ? (tile.value / total) * 100 : 0
@@ -321,7 +345,28 @@ export function TreemapFigure({
 }
 
 /** Échelle de couleurs, à poser à côté de la figure. */
-export function TreemapLegend() {
+export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatility' } = {}) {
+  /* La légende d'INTENSITÉ ne porte pas de bornes chiffrées, et ne peut pas en
+     porter : l'échelle est relative au lot affiché (voir `volatilityTone`). Elle
+     nomme donc ses deux extrémités en toutes lettres, ce qui est exactement ce
+     qu'elle sait dire de vrai. */
+  if (tone === 'volatility') {
+    return (
+      <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
+        <span>Calme</span>
+        <span
+          className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
+          aria-hidden="true"
+        >
+          {volatilityScaleSwatches().map((swatch, index) => (
+            <span key={index} className="flex-1" style={{ backgroundColor: swatch }} />
+          ))}
+        </span>
+        <span>Agité</span>
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
       <span>−{HEATMAP_CLAMP} %</span>

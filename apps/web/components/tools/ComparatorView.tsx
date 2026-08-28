@@ -3,6 +3,7 @@
 import { Plus, X } from 'lucide-react'
 import { IconButton } from '@/components/ui/IconButton'
 import { Link } from '@/i18n/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
@@ -91,9 +92,32 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
      du site. Voir `lib/limits.ts`. */
   const max = COMPARE_LIMIT
 
-  const [selected, setSelected] = useState<string[]>(() =>
-    assets.slice(0, 2).map((asset) => asset.id),
-  )
+  /*
+   * ── LA SÉLECTION PEUT ÊTRE AMORCÉE PAR L'URL ────────────────────────────────
+   *
+   * `?actifs=bitcoin,ethereum` pré-remplit la comparaison. C'est ce qu'ouvre l'entrée
+   * « Comparer » du menu contextuel d'une ligne de cotation : partir de l'actif qu'on
+   * regardait, plutôt que d'atterrir sur les deux premiers du classement et devoir le
+   * retrouver dans une liste de deux cents.
+   *
+   * ⚠️ LES IDENTIFIANTS SONT FILTRÉS SUR L'UNIVERS REÇU, pas repris tels quels. Le
+   * paramètre est saisissable à la main, et un identifiant inconnu produirait une
+   * pastille vide que rien ne permettrait de retirer. Le plafond s'applique aussi :
+   * une URL portant vingt actifs n'en ouvre que `max`.
+   *
+   * Lu une seule fois, à l'initialisation. Le lecteur peut ensuite ajouter et retirer
+   * librement — resynchroniser sur l'URL défferait son choix à chaque rendu.
+   */
+  const params = useSearchParams()
+  const [selected, setSelected] = useState<string[]>(() => {
+    const requested = (params.get('actifs') ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0 && assets.some((asset) => asset.id === id))
+      .slice(0, max)
+
+    return requested.length > 0 ? requested : assets.slice(0, 2).map((asset) => asset.id)
+  })
 
   const chosen = useMemo(
     () =>

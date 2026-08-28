@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Cena",
+      "asOf": "Stan na {stamp}",
       "help": "Ostatni kurs opublikowany przez źródło, przeliczony na wybraną przez Ciebie walutę. To nie jest cena wykonania: zależnie od giełdy i chwili rzeczywiste zlecenie zrealizowałoby się po zbliżonym, lecz innym kursie."
     },
     "marketCap": {

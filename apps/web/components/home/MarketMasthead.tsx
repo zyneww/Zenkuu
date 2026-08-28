@@ -129,9 +129,13 @@ function Counter({
  */
 function HighlightRail({ label }: { label: string }) {
   const chips = [
-    { href: '/points-marquants', label: 'Points marquants', Icon: Sparkles },
+    /* « Points marquants » et « Plus fortes hausses » ont été retirés avec leurs
+       pages (demande explicite). « Plus fortes hausses » revient par `/classements`,
+       qui porte exactement ce palmarès — l'entrée n'est donc pas perdue, elle change
+       de destination. */
+    { href: '/classements', label: 'Plus fortes hausses', Icon: Flame },
     { href: '/graphiques', label: 'Tendances', Icon: TrendingUp },
-    { href: '/mouvements', label: 'Plus fortes hausses', Icon: Flame },
+    { href: '/heatmap', label: 'Heatmap', Icon: Sparkles },
     { href: '/nouvelles-cotations', label: 'Nouvelles cotations', Icon: Layers },
     { href: '/actualites', label: 'Actualités', Icon: Newspaper },
   ] as const

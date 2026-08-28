@@ -28,6 +28,11 @@ export {
   MOVERS_UNIVERSES,
   CATEGORY_RANKING_FLOOR_USD,
   MOVERS_UNIVERSE_SIZE,
+  /* Lignes servies avec l'accueil, et la fonction qui va chercher les suivantes.
+     Les deux voyagent ensemble : le tableau doit savoir où s'arrête ce qu'il a
+     reçu pour décider quand appeler la route. */
+  BOARD_UNIVERSE_SIZE,
+  getCryptoBoardPage,
   SUPPORTED_CURRENCIES,
   getMoversUniverse,
   rankMovers,
@@ -60,6 +65,7 @@ export {
   getLessonVideos,
   getNewListings,
   getNftCollections,
+  getTokenizedStocks,
   getTreasuries,
   getPeers,
   getPool,
@@ -149,7 +155,7 @@ export type {
 export type { YahooScreenRow } from './providers/yahoo-screener'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
-export type { TreasuryCoin } from './providers/coingecko-extras'
+export type { TokenizedStock, TreasuryCoin } from './providers/coingecko-extras'
 
 export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
 export type { NewsCategory, NewsLang } from './providers/news'

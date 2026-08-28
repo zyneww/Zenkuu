@@ -3,7 +3,7 @@
 import { Info } from 'lucide-react'
 import { useId } from 'react'
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 
 /**
  * Infobulle explicative — l'icône « ⓘ » posée à côté d'une métrique.
@@ -63,17 +63,17 @@ export function InfoTip({
 
   return (
     <span className="relative inline-flex items-center">
-      <Tooltip delayDuration={120}>
-        <TooltipTrigger
+      <Tooltip delay={120}>
+        <Tooltip.Trigger
           aria-label={label}
           aria-describedby={id}
           className="inline-flex size-4 items-center justify-center text-ink-muted transition-colors duration-150 hover:text-ink focus-visible:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand"
         >
           <Info className="h-3.5 w-3.5" aria-hidden="true" />
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-64 text-pretty">
+        </Tooltip.Trigger>
+        <Tooltip.Content placement="top" className="max-w-64 text-pretty">
           {content}
-        </TooltipContent>
+        </Tooltip.Content>
       </Tooltip>
 
       <span id={id} className="sr-only">

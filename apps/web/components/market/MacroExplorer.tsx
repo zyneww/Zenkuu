@@ -22,6 +22,7 @@ import {
 import { IconButton } from '@/components/ui/IconButton'
 import { Slider } from '@/components/ui/slider'
 import { MacroChoropleth } from '@/components/market/MacroChoropleth'
+import { MacroGlobe } from '@/components/market/MacroGlobe'
 import {
   copyBlobToClipboard,
   downloadBlob,
@@ -89,6 +90,21 @@ export function MacroExplorer({
 }) {
   const t = usePhrase()
   const [selected, setSelected] = useState<string | null>(null)
+
+  /*
+   * ── DEUX VUES, UN SEUL ÉTAT DE DONNÉES ────────────────────────────────────
+   *
+   * L'onglet ne change QUE la projection. L'indicateur, l'année du curseur, les
+   * bornes de couleur, le pays sélectionné et son panneau restent les mêmes objets :
+   * c'est ce qui fait de « Carte » et « Globe » deux vues d'une même page, et non
+   * deux pages. Passer de l'une à l'autre ne recharge rien et ne perd pas la lecture
+   * en cours.
+   *
+   * L'état ne vit PAS dans l'URL, contrairement à l'indicateur : une projection est
+   * un confort de lecture, pas une ressource distincte, et deux adresses pour la même
+   * donnée dispersent le référencement de la page entre elles.
+   */
+  const [view, setView] = useState<'carte' | 'globe'>('carte')
 
   const figureRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -209,6 +225,41 @@ export function MacroExplorer({
 
   return (
     <div className="space-y-4">
+      {/* ── LA BASCULE DE PROJECTION ──────────────────────────────────────────
+
+          Deux boutons et non deux liens : la vue ne vit pas dans l'URL (voir l'état
+          `view`), et un lien qui ne change pas d'adresse est un lien menteur.
+
+          `role="tablist"` avec `aria-selected` plutôt qu'un groupe de boutons nus :
+          ce sont deux vues EXCLUSIVES d'un même contenu, ce que le motif d'onglets
+          décrit exactement — et une synthèse vocale annonce alors « onglet 1 sur 2 »
+          au lieu de deux boutons sans rapport apparent. */}
+      <div
+        role="tablist"
+        aria-label={t('Projection de la carte')}
+        className="inline-flex rounded-control border border-border-subtle p-0.5"
+      >
+        {([
+          ['carte', t('Carte')],
+          ['globe', t('Globe')],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={view === id}
+            onClick={() => setView(id)}
+            className={`rounded-control px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+              view === id
+                ? 'bg-brand text-on-brand'
+                : 'text-ink-muted hover:text-ink'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/*
         ══════════════════════════════════════════════════════════════════════
         LE PANNEAU EST EN SURIMPRESSION, PLUS EN COLONNE DE GRILLE
@@ -239,17 +290,31 @@ export function MacroExplorer({
           year={activeYear}
           legend={<Scale low={low} high={high} tone={tone} unit={unit} scale={scale} />}
         >
-          <MacroChoropleth
-            data={data}
-            low={low}
-            high={high}
-            tone={tone}
-            unit={unit}
-            scale={scale}
-            selected={selected}
-            onSelect={setSelected}
-            svgRef={svgRef}
-          />
+          {view === 'carte' ? (
+            <MacroChoropleth
+              data={data}
+              low={low}
+              high={high}
+              tone={tone}
+              unit={unit}
+              scale={scale}
+              selected={selected}
+              onSelect={setSelected}
+              svgRef={svgRef}
+            />
+          ) : (
+            <MacroGlobe
+              data={data}
+              low={low}
+              high={high}
+              tone={tone}
+              unit={unit}
+              scale={scale}
+              selected={selected}
+              onSelect={setSelected}
+              svgRef={svgRef}
+            />
+          )}
         </MapFrame>
 
         <CountryPanel

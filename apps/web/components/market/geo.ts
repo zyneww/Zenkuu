@@ -119,6 +119,134 @@ export function project(
   return [((lon + 180) / 360) * width, ((90 - lat) / 180) * height]
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * PROJECTION ORTHOGRAPHIQUE — LA TERRE VUE DE L'ESPACE, POUR L'ONGLET « GLOBE »
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QU'ELLE FAIT, EN UNE PHRASE ──────────────────────────────────────────
+ *
+ * Elle place chaque point du globe sur une sphère unitaire, applique la rotation
+ * demandée (la longitude et la latitude qui font FACE au lecteur), puis regarde la
+ * sphère depuis l'infini : les coordonnées à l'écran sont simplement `x` et `y`, et
+ * `z` dit si le point est sur la face visible ou derrière.
+ *
+ * C'est la projection de toutes les vues « planète » — et, contrairement à
+ * l'équirectangulaire d'à côté, elle ne déforme pas les pôles : elle les cache.
+ *
+ * ── POURQUOI PAS THREE.JS ───────────────────────────────────────────────────
+ *
+ * Un globe WebGL était l'autre voie. Elle coûte environ sept cents kilo-octets de
+ * moteur 3D pour dessiner cent soixante-dix-sept polygones plats sur une sphère, et
+ * elle rendrait la figure OPAQUE : un canevas WebGL n'a ni nœud par pays, ni survol
+ * par élément, ni nom lisible par une synthèse vocale. La carte d'à côté a choisi le
+ * SVG pour ces trois raisons exactement (voir `MacroChoropleth`), et rien ne change
+ * ici — le fond de carte, les couleurs, l'infobulle et le clic sont les mêmes.
+ *
+ * Ce qu'on abandonne en échange : l'éclairage, l'atmosphère et les textures d'un
+ * vrai rendu 3D. La rotation, le zoom et la perspective sphérique, eux, sont ici.
+ *
+ * ── LE POINT CACHÉ EST RABATTU SUR L'HORIZON, IL N'EST PAS SUPPRIMÉ ─────────
+ *
+ * ⚠️ C'EST LE SEUL ENDROIT DÉLICAT DE CE FICHIER. Un pays à cheval sur le bord du
+ * globe — la Russie vue depuis l'Atlantique — a des points devant et des points
+ * derrière. Jeter les seconds referme le polygone par une CORDE qui traverse la
+ * sphère : un trait droit en plein océan, très visible.
+ *
+ * On rabat donc chaque point caché sur le cercle d'horizon, dans sa propre
+ * direction. Le contour épouse alors le bord du globe, ce qui est exactement la
+ * silhouette qu'on attend — et ne coûte qu'une normalisation.
+ */
+export interface GlobeRotation {
+  /** Longitude au centre du disque, en degrés. */
+  lon: number
+  /** Latitude au centre du disque, en degrés. */
+  lat: number
+}
+
+const RAD = Math.PI / 180
+
+/**
+ * Point du globe à l'écran, plus sa visibilité.
+ *
+ * `visible` est vrai quand le point est sur la face tournée vers le lecteur. Les
+ * appelants s'en servent pour deux choses : écarter un pays entièrement caché sans
+ * le dessiner, et décider s'il faut rabattre le point sur l'horizon.
+ */
+export function orthographic(
+  lon: number,
+  lat: number,
+  rotation: GlobeRotation,
+  radius: number,
+  cx: number,
+  cy: number,
+): { x: number; y: number; visible: boolean } {
+  const phi = lat * RAD
+  const lambda = (lon - rotation.lon) * RAD
+  const phi0 = rotation.lat * RAD
+
+  const cosPhi = Math.cos(phi)
+  const sinPhi = Math.sin(phi)
+  const cosLambda = Math.cos(lambda)
+
+  /* Repère de la sphère unitaire, après rotation. `z` positif = face visible. */
+  const x = cosPhi * Math.sin(lambda)
+  const y = Math.cos(phi0) * sinPhi - Math.sin(phi0) * cosPhi * cosLambda
+  const z = Math.sin(phi0) * sinPhi + Math.cos(phi0) * cosPhi * cosLambda
+
+  if (z >= 0) return { x: cx + radius * x, y: cy - radius * y, visible: true }
+
+  /* Face cachée : on rabat sur l'horizon, dans la direction du point. La norme peut
+     être nulle au pôle exactement opposé au regard — un seul point sur la sphère —
+     et l'on retombe alors sur le bord droit plutôt que de diviser par zéro. */
+  const norm = Math.hypot(x, y)
+  if (norm === 0) return { x: cx + radius, y: cy, visible: false }
+
+  return { x: cx + (radius * x) / norm, y: cy - (radius * y) / norm, visible: false }
+}
+
+/**
+ * Chemin SVG d'un pays sur le globe, ou `null` s'il est entièrement caché.
+ *
+ * Le rejet des pays cachés n'est pas une optimisation cosmétique : sans lui, la
+ * moitié du monde serait dessinée écrasée sur le cercle d'horizon, en un liseré de
+ * couleurs qui n'appartient à personne.
+ */
+export function globePath(
+  country: CountryFeature,
+  rotation: GlobeRotation,
+  radius: number,
+  cx: number,
+  cy: number,
+): string | null {
+  let anyVisible = false
+  const parts: string[] = []
+
+  for (const ring of country.rings) {
+    /* Les anneaux de moins de trois points ne dessinent rien mais produisent un
+       chemin invalide que certains moteurs rendent comme un trait. */
+    if (ring.length < 3) continue
+
+    const points: string[] = []
+    let ringVisible = false
+
+    for (const [lon, lat] of ring) {
+      const point = orthographic(lon, lat, rotation, radius, cx, cy)
+      if (point.visible) ringVisible = true
+      points.push(`${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+    }
+
+    /* Un anneau dont AUCUN point n'est visible est intégralement derrière : le
+       dessiner ne produirait qu'un arc collé au bord. */
+    if (!ringVisible) continue
+
+    anyVisible = true
+    parts.push(`M${points.join('L')}Z`)
+  }
+
+  return anyVisible ? parts.join('') : null
+}
+
 /** Chemin SVG d'un pays, dans un cadre de dimensions données. */
 export function countryPath(country: CountryFeature, width: number, height: number): string {
   return country.rings

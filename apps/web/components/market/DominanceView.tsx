@@ -131,11 +131,9 @@ export async function DominanceView({
         ) : (
           <EmptyState
             title={t('Courbe en cours de constitution')}
-            description={
-              'Aucune source gratuite ne publie l’historique de dominance : nous l’enregistrons ' +
-              'à chaque lecture des statistiques globales. La courbe apparaîtra dès que ' +
-              'suffisamment de points auront été relevés.'
-            }
+            description={t(
+              'Aucune source gratuite ne publie l’historique de dominance : nous l’enregistrons à chaque lecture des statistiques globales. La courbe apparaîtra dès que suffisamment de points auront été relevés.',
+            )}
           />
         )}
       </section>

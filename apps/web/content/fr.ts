@@ -43,6 +43,11 @@ export const fr = {
     open: 'Ouvrir la recherche',
     close: 'Fermer la recherche',
     placeholder: 'Rechercher un actif, un symbole…',
+    /* Légendes du pied de panneau — voir `SearchShortcuts`, qui rend visible ce que
+       le clavier savait déjà faire. */
+    keyNavigate: 'Parcourir',
+    keyCancel: 'Annuler',
+    keyOpen: 'Ouvrir',
     trendingTitle: 'Tendances',
     trendingHint: 'les plus consultés ces 24 h',
     trendingEmpty: 'Tendances momentanément indisponibles.',

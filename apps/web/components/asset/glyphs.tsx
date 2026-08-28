@@ -41,6 +41,8 @@
  * un repère de couleur qui doit fonctionner dans une ligne de tableau.
  */
 
+import { currencyFlag } from '@/components/settings/flags'
+
 /* ── Drapeaux ─────────────────────────────────────────────────────────────── */
 
 /**
@@ -213,10 +215,50 @@ function resolveFlag(code: string): React.ReactNode | undefined {
   return FLAGS[key] ?? FLAGS[FLAG_ALIAS[key] ?? '']
 }
 
+/** Un drapeau existe-t-il pour ce code — dessiné OU en émoji ? Voir `EmojiFlag`. */
+function hasFlag(code: string): boolean {
+  return resolveFlag(code) !== undefined || currencyFlag(code) !== null
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * DRAPEAU EN ÉMOJI — LE REPLI QUI COMBLE LES QUARANTE AUTRES DEVISES
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * `FLAGS` ne porte que DOUZE drapeaux dessinés, et ce n'était pas un oubli : chacun
+ * est une vingtaine de lignes de SVG. Mais la page des devises en liste vingt-neuf, et
+ * les indices couvrent une quinzaine de places — le réal, la couronne norvégienne, le
+ * peso, le won, la roupie, la lire s'affichaient donc SANS aucun repère, dans une
+ * colonne où toutes leurs voisines en avaient un.
+ *
+ * L'émoji rend exactement le même service : il se dérive mécaniquement du code ISO
+ * (voir `currencyFlag`), il est juste pour toutes les monnaies nationales, et il est
+ * déjà employé par le menu de réglages du site. Ce qu'il ne fait pas — se fondre dans
+ * la palette, garder le même trait que le reste — n'a de valeur que sur les douze
+ * paires les plus vues, qui gardent leur dessin.
+ *
+ * ⚠️ LE DISQUE ET LE CERNE SONT LES MÊMES que ceux du drapeau dessiné : c'est ce qui
+ * évite qu'une colonne mélange deux gabarits de vignette.
+ */
+function EmojiFlag({ emoji, size }: { emoji: string; size: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-pill border border-border-subtle bg-surface-muted"
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.72), lineHeight: 1 }}
+    >
+      {emoji}
+    </span>
+  )
+}
+
 /** Un drapeau seul, dans un disque cerné. */
 export function CurrencyFlag({ code, size = 24 }: { code: string; size?: number }) {
   const flag = resolveFlag(code)
-  if (!flag) return null
+  if (!flag) {
+    const emoji = currencyFlag(code)
+    return emoji ? <EmojiFlag emoji={emoji} size={size} /> : null
+  }
 
   return (
     <svg
@@ -273,7 +315,10 @@ export function PairGlyph({
   quote: string
   size?: number
 }) {
-  if (!resolveFlag(base) || !resolveFlag(quote)) return null
+  /* Le test ne porte plus sur le drapeau DESSINÉ : `CurrencyFlag` retombe désormais
+     sur l'émoji, et exiger les deux tracés renvoyait `null` — donc un monogramme
+     « EUR/NOK » — pour toute paire sortant des douze devises dessinées. */
+  if (!hasFlag(base) || !hasFlag(quote)) return null
 
   return (
     <span
@@ -481,11 +526,20 @@ export function IndexGlyph({
   size?: number
 }) {
   const code = country ? COUNTRY_TO_FLAG[country] : undefined
-  if (!code || !resolveFlag(code)) return null
+  const emoji = country ? COUNTRY_TO_EMOJI[country] : undefined
+  if (!code && !emoji) return null
 
   return (
     <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
-      <CurrencyFlag code={code} size={size} />
+      {/* Le drapeau DESSINÉ quand il existe, l'émoji sinon — voir `EmojiFlag`. Sans ce
+          repli, les indices italiens, espagnols, indiens, coréens, brésiliens,
+          taïwanais, danois ou belges du catalogue tombaient tous sur le monogramme
+          violet, c'est-à-dire sur la vignette que ce composant existe pour éviter. */}
+      {code && resolveFlag(code) ? (
+        <CurrencyFlag code={code} size={size} />
+      ) : (
+        <EmojiFlag emoji={emoji ?? ''} size={size} />
+      )}
       <span
         className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-pill bg-surface font-bold text-ink ring-1 ring-border-subtle"
         style={{
@@ -525,6 +579,30 @@ const COUNTRY_TO_FLAG: Record<string, string> = {
   Irlande: 'EUR',
 }
 
+/**
+ * Pays SANS drapeau dessiné, rendus en émoji.
+ *
+ * La liste couvre tout ce que `yahoo-universe.ts` déclare et que `COUNTRY_TO_FLAG`
+ * n'a pas : relevé sur ce fichier, pas deviné. Une entrée qui apparaîtrait plus tard
+ * sans figurer ici retombe sur le monogramme, comme avant — c'est une dégradation
+ * connue, pas une erreur.
+ */
+const COUNTRY_TO_EMOJI: Record<string, string> = {
+  Italie: '🇮🇹',
+  Espagne: '🇪🇸',
+  Belgique: '🇧🇪',
+  Luxembourg: '🇱🇺',
+  Danemark: '🇩🇰',
+  Inde: '🇮🇳',
+  'Corée du Sud': '🇰🇷',
+  Taïwan: '🇹🇼',
+  Brésil: '🇧🇷',
+  Europe: '🇪🇺',
+}
+
 /** Pays pour lesquels `IndexGlyph` rendra bien quelque chose — même usage que
     `COMMODITY_DRAWN`, et même motif. */
-export const INDEX_FLAGGED: ReadonlySet<string> = new Set(Object.keys(COUNTRY_TO_FLAG))
+export const INDEX_FLAGGED: ReadonlySet<string> = new Set([
+  ...Object.keys(COUNTRY_TO_FLAG),
+  ...Object.keys(COUNTRY_TO_EMOJI),
+])

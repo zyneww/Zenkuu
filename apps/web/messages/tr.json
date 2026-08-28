@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Fiyat",
+      "asOf": "{stamp} itibarıyla",
       "help": "Kaynağın yayımladığı son fiyat, seçtiğiniz para birimine çevrilmiş hâliyle. Bu bir gerçekleşme fiyatı değildir: borsaya ve ana göre gerçek bir emir yakın ama farklı bir seviyeden karşılanırdı."
     },
     "marketCap": {

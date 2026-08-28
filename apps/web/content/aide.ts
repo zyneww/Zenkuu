@@ -21,12 +21,48 @@ export interface HelpArticle {
   body: string[]
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES TROIS PUBLICS — LES ONGLETS DU CENTRE D'AIDE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Le modèle repris (help.fiverr.com) range ses rubriques sous trois onglets de
+ * public : « For freelancers », « For clients », « For Pro clients ». La forme est
+ * bonne — elle évite de présenter six rubriques à quelqu'un que deux concernent —
+ * mais elle n'a de valeur QUE SI LE FILTRE EST RÉEL. Trois onglets qui montrent la
+ * même grille sont un décor, et un décor qui coûte deux clics.
+ *
+ * Le découpage retenu est donc celui qui a un sens ici :
+ *
+ *   · `visiteur` — ce qui vaut sans rien ouvrir. C'est l'onglet par défaut, parce
+ *     que c'est l'état dans lequel arrive la quasi-totalité des lecteurs ;
+ *   · `compte` — ce qui n'existe qu'avec un compte : le suivi, les listes, les
+ *     préférences retrouvées d'un appareil à l'autre ;
+ *   · `cadre` — ce que le site ne fait pas, et le pourquoi. C'est la rubrique qu'on
+ *     vient chercher quand on se demande si ZENKUU est un courtier. Elle n'est pas
+ *     un sous-ensemble des deux autres : elle répond à une question de nature
+ *     différente.
+ *
+ * Une rubrique peut porter PLUSIEURS publics — d'où un tableau. « Données et
+ * sources » concerne le visiteur comme le titulaire d'un compte, et la dupliquer
+ * pour le dire serait faire diverger deux copies du même texte.
+ */
+export type HelpAudience = 'visiteur' | 'compte' | 'cadre'
+
+export const HELP_AUDIENCES: { id: HelpAudience; label: string }[] = [
+  { id: 'visiteur', label: 'Consulter le site' },
+  { id: 'compte', label: 'Mon compte' },
+  { id: 'cadre', label: 'Ce que ZENKUU ne fait pas' },
+]
+
 export interface HelpCategory {
   id: string
   title: string
   description: string
   /** Nom d'icône lucide, résolu à l'affichage — la donnée ne dépend pas de React. */
-  icon: 'database' | 'book-open' | 'user' | 'scale'
+  icon: 'database' | 'book-open' | 'user' | 'scale' | 'sliders' | 'star'
+  /** Onglets sous lesquels la rubrique apparaît. Jamais vide. */
+  audiences: HelpAudience[]
   articles: HelpArticle[]
 }
 
@@ -47,9 +83,13 @@ export const HELP_STARTING_POINTS = [
 export const HELP_CATEGORIES: HelpCategory[] = [
   {
     id: 'donnees',
-    title: 'Données et fraîcheur',
+    title: 'Données et sources',
     description: 'D’où viennent les chiffres, à quel rythme ils changent, et pourquoi.',
     icon: 'database',
+    /* Deux publics : la question « ce chiffre est-il à jour ? » se pose exactement
+       de la même façon avec ou sans compte. Dupliquer la rubrique pour le dire
+       ferait diverger deux copies du même texte. */
+    audiences: ['visiteur', 'compte'],
     articles: [
       {
         slug: 'origine-des-donnees',
@@ -95,19 +135,63 @@ export const HELP_CATEGORIES: HelpCategory[] = [
     ],
   },
   {
-    id: 'lecture',
-    title: 'Lire le site',
-    description: 'Comprendre les classements, les graphiques et les conversions de devise.',
-    icon: 'book-open',
+    id: 'affichage',
+    title: 'Affichage et préférences',
+    description: 'Devise, langue et largeur de page — trois réglages, un seul menu.',
+    icon: 'sliders',
+    audiences: ['visiteur'],
     articles: [
       {
         slug: 'devise-affichage',
         title: 'Changer la devise d’affichage',
         summary: 'La devise choisie s’applique à tout le site, via le taux de référence BCE.',
         body: [
-          'Le sélecteur en forme de globe, dans l’en-tête, fixe la devise d’affichage pour l’ensemble du site.',
+          'La roue dentée, à droite de l’en-tête, ouvre les réglages d’affichage. La première ligne fixe la devise pour l’ensemble du site.',
           'Les sources ne cotent pas toutes dans la devise que vous choisissez. Quand une conversion est appliquée, elle utilise le taux de référence de la Banque centrale européenne, et la date de ce taux est affichée sous le montant.',
           'Une conversion reste une conversion : le montant converti n’est pas un cours réellement coté sur un marché. C’est pourquoi la devise d’origine est toujours rappelée.',
+          'Seules les devises dont un taux a réellement été reçu sont proposées. Une source en panne retire sa part de la liste plutôt que d’offrir une conversion qui laisserait le montant inchangé sans le dire.',
+        ],
+      },
+      {
+        slug: 'langue-affichage',
+        title: 'Changer la langue de l’interface',
+        summary: 'La langue est portée par l’adresse de la page, pas par un réglage caché.',
+        body: [
+          'La deuxième ligne des réglages d’affichage change la langue. Le choix provoque une navigation : la langue vit dans l’adresse — « /fr/… », « /en/… » — et non dans une préférence invisible.',
+          'C’est ce qui permet de partager un lien dans la langue où vous le lisez, et à un moteur de recherche d’indexer chaque version séparément.',
+          'Toutes les langues déclarées ne sont pas traduites. Seules celles dont le fichier de traduction existe réellement sont proposées : afficher les autres reviendrait à promettre une interface qui resterait en français.',
+        ],
+      },
+      {
+        slug: 'affichage-compact-etire',
+        title: 'Affichage compact ou étiré',
+        summary:
+          'Compact centre la page sur 1 680 px ; Étirée occupe toute la largeur de l’écran.',
+        body: [
+          'La dernière ligne des réglages d’affichage propose deux largeurs, sous la forme d’un interrupteur à deux positions.',
+          '« Compact » est le réglage par défaut : la barre de navigation et les fiches d’actif se bornent à 1 680 pixels et se centrent, à la manière de CoinGecko. Sur un écran large, le contenu reste dans une colonne que l’œil parcourt sans avoir à tourner la tête.',
+          '« Étirée » retire ce plafond : la barre et les fiches occupent toute la largeur disponible, à la manière de CoinMarketCap. C’est utile sur une fiche, qui se compose de trois colonnes et gagne à respirer.',
+          'Le réglage ne touche que la barre de navigation et les fiches d’actif. Les classements gardent leur largeur : dix-huit mille lignes étalées sur trois mille pixels éloignent le nom du prix sans rien apporter.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'lecture',
+    title: 'Lire les cours et les graphiques',
+    description: 'Comprendre une fiche, ses graphiques et les classements de variation.',
+    icon: 'book-open',
+    audiences: ['visiteur', 'compte'],
+    articles: [
+      {
+        slug: 'lire-une-fiche',
+        title: 'Comment lire la fiche d’un actif',
+        summary: 'Une bande d’identité, un graphique réglable, puis des onglets de détail.',
+        body: [
+          'Une fiche s’ouvre sur son identité : le logo, portant son rang de capitalisation en pastille, le nom, le code, et l’étoile qui ajoute l’actif à votre liste de suivi.',
+          'Vient ensuite le graphique et sa barre d’outils. On y choisit la grandeur tracée — cours, capitalisation, volume —, la période, et jusqu’à quatre actifs à superposer. Une roue dentée voisine du bouton de téléchargement commande le reste : bande de volume, frise de navigation, moyenne mobile, repères d’extrêmes, échelle logarithmique, et deux lignes facultatives de l’infobulle.',
+          'Les onglets sous le graphique portent le détail : les places où l’actif se négocie, les données d’analyse, et l’écosystème auquel il appartient. Chaque module y nomme sa source et la date du relevé.',
+          'Une grandeur que la source ne publie pas apparaît grisée plutôt qu’absente. C’est délibéré : l’absence laisserait croire à un oubli, là où la mention dit « cette lecture existe, pas pour cet actif ».',
         ],
       },
       {
@@ -133,11 +217,53 @@ export const HELP_CATEGORIES: HelpCategory[] = [
     ],
   },
   {
-    id: 'comptes',
-    title: 'Compte et confidentialité',
-    description: 'Ce qu’un compte apporte, et ce que le site sait de vous.',
-    icon: 'user',
+    id: 'suivi',
+    title: 'Suivi et listes',
+    description: 'Marquer un actif d’une étoile, puis ranger ce que vous suivez.',
+    icon: 'star',
+    audiences: ['compte'],
     articles: [
+      {
+        slug: 'suivre-un-actif',
+        title: 'Suivre un actif',
+        summary: 'Une étoile sur la fiche ou dans le tableau, et rien à valider.',
+        body: [
+          'L’étoile qui ferme la ligne d’identité d’une fiche ajoute l’actif à votre liste de suivi. La même étoile existe en tête de chaque ligne des classements : on suit donc sans quitter le tableau.',
+          'La bascule est immédiate et se défait d’un second clic. Rien n’est à valider, et rien n’est perdu si vous vous trompez.',
+          'Le suivi demande un compte : c’est lui qui porte la liste d’un appareil à l’autre. Sans session, l’étoile renvoie vers la connexion plutôt que d’échouer silencieusement.',
+          'Une liste de suivi n’est pas un portefeuille. Elle n’enregistre ni quantité, ni prix d’achat, ni performance — ZENKUU ne détient aucun fonds et ne calcule aucune plus-value.',
+        ],
+      },
+      {
+        slug: 'gerer-ses-listes',
+        title: 'Organiser ses listes de suivi',
+        summary: 'Renommer, supprimer, déplacer un actif d’une liste à l’autre, exporter.',
+        body: [
+          'La page « Ma sélection » affiche toutes vos listes l’une sous l’autre, et non une par onglet : la raison même de les avoir séparées est de pouvoir les comparer d’un coup d’œil.',
+          'Chaque liste porte ses actions en en-tête : un bouton d’export, un crayon pour la renommer, et une corbeille dès qu’une seconde liste existe. Supprimer la dernière liste ne supprimerait rien de plus que la vider.',
+          'Un actif se déplace par un sélecteur en bout de ligne, qui propose aussi « Nouvelle liste… ». Un glisser-déposer aurait été plus flatteur en démonstration et inutilisable au clavier, au lecteur d’écran et au doigt.',
+          'L’export produit un fichier reprenant l’actif, son code, sa classe, son identifiant et sa date d’ajout — ce que la liste contient, pas des cours qui seraient périmés à l’ouverture du fichier.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'comptes',
+    title: 'Compte et sécurité',
+    description: 'Se connecter, ce qu’un compte apporte, et ce que le site ne demande jamais.',
+    icon: 'user',
+    audiences: ['compte'],
+    articles: [
+      {
+        slug: 'se-connecter',
+        title: 'Se connecter à ZENKUU',
+        summary: 'Par un code reçu par courriel, ou par un fournisseur d’identité.',
+        body: [
+          'La connexion se fait en deux temps : vous saisissez votre adresse électronique, puis le code à usage unique qui vous est envoyé. Il n’y a pas de mot de passe à choisir, donc pas de mot de passe à perdre ni à réutiliser ailleurs.',
+          'Le même chemin sert à créer un compte et à en retrouver un : le code reçu vaut vérification dans les deux cas, et il n’y a donc pas d’écran d’inscription séparé.',
+          'Selon la configuration de l’instance, la connexion par Google, X ou Apple peut être proposée à côté du champ d’adresse. Seuls les fournisseurs réellement configurés apparaissent — un bouton qui mènerait à une erreur ne vaut pas mieux que pas de bouton.',
+        ],
+      },
       {
         slug: 'a-quoi-sert-un-compte',
         title: 'À quoi sert un compte ZENKUU',
@@ -162,9 +288,10 @@ export const HELP_CATEGORIES: HelpCategory[] = [
   },
   {
     id: 'limites',
-    title: 'Limites et cadre',
+    title: 'Cadre et limites',
     description: 'Ce que ZENKUU ne fait pas, et pourquoi c’est délibéré.',
     icon: 'scale',
+    audiences: ['cadre'],
     articles: [
       {
         slug: 'ni-achat-ni-vente',

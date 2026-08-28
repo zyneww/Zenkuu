@@ -11,10 +11,6 @@ import type { SeoDescriptions } from '@/content/seo'
  * `ZENKUU` is the product name and stays as it is in every language.
  */
 export const enSeo: SeoDescriptions = {
-  '/mouvements':
-    'Macro view, spot venues, derivatives and change rankings for the crypto market: market cap, dominance, volume per platform, open interest, funding rates, biggest gainers and losers.',
-  '/points-marquants':
-    'What is moving on the crypto market today: trending assets, biggest gainers and losers, highest volumes, leading sectors and recent listings.',
   '/a-propos':
     'ZENKUU is a read-only multi-asset market analysis platform: not a broker, not an exchange, not an investment adviser.',
   '/aide':
@@ -31,16 +27,12 @@ export const enSeo: SeoDescriptions = {
     'Compare two to six assets across every class — cryptocurrencies, stocks, ETFs, indices, commodities, currencies: paths rebased to a common start, then the figures that set them apart.',
   '/convertisseur':
     'Convert an amount between a cryptocurrency, a stock, an ETF, an index or a commodity and five currencies, at the latest price received.',
-  '/developpeurs':
-    'ZENKUU internal routes, the public data sources in use, and the honest state of a public ZENKUU API.',
   '/heatmap':
     'The crypto market in a single figure, by coin or by sector: area carries market cap, colour carries change.',
   '/macro':
     'Inflation, unemployment, growth, government debt and real interest rates, country by country, from World Bank series.',
-  '/marches':
+  '/crypto':
     'The seven markets Zenkuu tracks on a single page: cryptocurrencies, derivatives, ETFs, stocks, indices, currencies and commodities.',
-  '/methodologie':
-    'Where the numbers on ZENKUU come from, how often they are refreshed, and what we choose not to display for lack of a reliable source.',
   '/nouveautes':
     'Changelog for ZENKUU: features shipped, data sources added and known limits.',
   '/nouvelles-cotations':
@@ -51,6 +43,4 @@ export const enSeo: SeoDescriptions = {
     'The hundred leading spot exchanges ranked by trust score: reported 24-hour volume, share of displayed volume, country. ZENKUU lists no order book and enables no trading.',
   '/pourquoi-zenkuu':
     'Multi-asset, free, read-only and with no invented data: the choices that set ZENKUU apart from existing market trackers.',
-  '/widgets':
-    'Ticker strip, converter and compact ranking — native ZENKUU widgets, embeddable in a third-party page.',
 }

@@ -1,12 +1,25 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
-import { CHANGE_PERIODS, periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
+import {
+  BOARD_VIEWS,
+  BoardCurrency,
+  BoardFilters,
+  BoardSearch,
+  BoardTabs,
+  ClassTabs,
+  rangesActive,
+  withinRanges,
+  type BoardColumnSet,
+  type BoardRanges,
+  type BoardUniverse,
+} from '@/components/market/BoardTabs'
+import { periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
 import {
   MarketTable,
   type MarketSort,
@@ -14,7 +27,6 @@ import {
   type WatchlistContext,
 } from '@/components/market/MarketTable'
 import { usePhrase } from '@/components/locale/ContentProvider'
-import { ExpandingSearch } from '@/components/ui/ExpandingSearch'
 
 /**
  * ── LES VUES RAPIDES, ET CE QU'ELLES PEUVENT HONNÊTEMENT PROMETTRE ──────────
@@ -45,19 +57,18 @@ const QUICK_VIEWS: { key: QuickView; label: string; hint: string }[] = [
   { key: 'losers', label: 'Perdants', hint: 'Variation négative sur la période choisie' },
 ]
 
-/**
- * ── « ÉCHANGEABLES » VS « TOUS LES ACTIFS » ─────────────────────────────────
+/*
+ * ── « ÉCHANGEABLES » / « TOUS LES ACTIFS » ONT ÉTÉ RETIRÉS ──────────────────
  *
- * Repris de CoinGecko, où le partage vaut d'être expliqué : un actif référencé n'est
- * pas forcément un actif qui S'ÉCHANGE. Beaucoup de lignes portent un cours hérité de
- * la dernière transaction connue, parfois vieille de plusieurs jours, avec un volume
- * nul depuis. Elles gonflent les classements et faussent les moyennes.
+ * Le partage séparait les actifs dont la source publie un volume 24 h des autres.
+ * Retiré sur demande, avec la recherche de page et le sélecteur de période : la barre
+ * au-dessus du tableau portait quatre groupes de contrôles pour un tableau qu'on vient
+ * lire, et trois d'entre eux ne portaient que sur les lignes AFFICHÉES — pas sur le
+ * classement.
  *
- * Le critère est ici un VOLUME 24 H STRICTEMENT POSITIF. C'est le seul dont nous
- * disposons, et il est exact au sens où il ne suppose rien : soit la source publie un
- * volume, soit elle n'en publie pas.
+ * Ce qui reste — les vues rapides — filtre la même page, et la ligne de décompte le
+ * dit toujours.
  */
-type Scope = 'tradable' | 'all'
 
 interface MarketBrowserProps {
   assets: MarketAsset[]
@@ -116,6 +127,63 @@ interface MarketBrowserProps {
    * pas reprendre le classement complet.
    */
   clientPerPage?: number
+
+  /**
+   * Remplace les vues rapides par la RANGÉE D'ONGLETS de la référence.
+   *
+   * Les onglets font ce que les boutons ne faisaient pas : ils changent le jeu de
+   * COLONNES en plus de filtrer les lignes. « Performance » aligne les cinq fenêtres
+   * de variation, « Sommet historique » remplace volume et capitalisation par le plus
+   * haut de tous les temps et l'écart qui l'en sépare.
+   *
+   * Exclusif de `quickViews` : les deux commandent le même état, et les afficher
+   * ensemble donnerait deux contrôles qui se contredisent à l'écran.
+   */
+  boardTabs?: boolean
+
+  /** Champ de filtre au-dessus du tableau — porte sur les lignes CHARGÉES. */
+  searchable?: boolean
+
+  /**
+   * Jeu de colonnes des tableaux SANS onglets.
+   *
+   * Avec `boardTabs`, c'est l'onglet actif qui décide et cette prop est ignorée : deux
+   * autorités sur les mêmes colonnes donneraient un tableau dont l'apparence dépend de
+   * l'ordre dans lequel on lit le code. Sans onglets, en revanche, rien ne décidait —
+   * le jeu était figé sur `apercu`, ce qui interdisait aux six pages de classe la
+   * grille de catalogue qu'elles demandent.
+   */
+  columnSet?: BoardColumnSet
+
+  /**
+   * Bouton « Filtres » — fourchettes de capitalisation, volume et variation.
+   *
+   * Séparé de `searchable` bien que les deux occupent la même rangée : le champ de
+   * filtre a du sens sur toutes les classes, les fourchettes seulement là où il y a
+   * assez de lignes pour qu'un intervalle en retire. Sur quarante paires de devises,
+   * un panneau de six champs coûte plus de place qu'il n'en fait gagner.
+   */
+  rangeFilters?: boolean
+
+  /** Bascule USD / EUR / BTC / ETH au bord droit de la rangée d'outils. */
+  currencyPicker?: boolean
+
+  /**
+   * Nombre total d'actifs du CATALOGUE, au-delà de ce qui a été servi.
+   *
+   * ── CE QU'IL DÉBLOQUE ────────────────────────────────────────────────────
+   *
+   * Fourni, le tableau cesse de s'arrêter aux lignes qu'il a reçues : au-delà, il va
+   * chercher la page demandée sur `/api/cotations` et la rend telle quelle. C'est ce
+   * qui met les dix-neuf mille cryptomonnaies du catalogue à portée du tableau de
+   * l'accueil sans rendre la page dynamique — voir `getCryptoBoardPage`.
+   *
+   * ⚠️ IL NE VAUT QUE POUR LA LISTE NON FILTRÉE. Dès qu'un filtre, une recherche ou
+   * un tri est actif, le décompte redevient celui des lignes en mémoire : trier
+   * deux cent cinquante lignes ne dit rien de l'ordre des dix-neuf mille, et
+   * prétendre paginer le catalogue trié serait un mensonge de compteur.
+   */
+  remoteTotal?: number
 }
 
 /**
@@ -140,17 +208,88 @@ interface MarketBrowserProps {
 export function MarketBrowser({
   assets,
   quickViews = true,
+  boardTabs = false,
+  searchable = false,
+  columnSet: fixedColumns,
+  rangeFilters = false,
+  currencyPicker = false,
+  remoteTotal,
   period,
   watchlist,
   clientPerPage,
   ...tableProps
 }: MarketBrowserProps) {
   const t = usePhrase()
-  const [query, setQuery] = useState('')
   const [view, setView] = useState<QuickView>('all')
-  const [scope, setScope] = useState<Scope>('all')
+  const [tab, setTab] = useState<string>(BOARD_VIEWS[0]!.key)
+  /* L'UNIVERS est un second état, indépendant de l'onglet de vue : « Favoris » et
+     « Performance » répondent à deux questions différentes et doivent pouvoir être
+     vrais en même temps — voir `ClassTabs`. Les fondre en un seul état, ce que faisait
+     la version précédente, rendait impossible « la performance de mes favoris ». */
+  const [universe, setUniverse] = useState<BoardUniverse>('crypto')
+  const [ranges, setRanges] = useState<BoardRanges>({})
+  const [query, setQuery] = useState('')
   const [rows, setRows] = useState(clientPerPage ?? 0)
   const [wantedPage, setWantedPage] = useState(1)
+
+  /*
+   * ── L'ONGLET DÉCIDE DE DEUX CHOSES À LA FOIS ──────────────────────────────
+   *
+   * Les colonnes ET le filtre de lignes. C'est la lecture de la référence, et c'est
+   * ce qui distingue ses onglets des anciens boutons de vue rapide : « Performance »
+   * ne retire aucune ligne, il remplace le volume et la capitalisation par les cinq
+   * fenêtres de variation.
+   *
+   * Le filtre est traduit dans le vocabulaire des vues rapides plutôt que d'être
+   * traité à part : les deux mécanismes portent exactement la même question au même
+   * endroit, et les dédoubler ferait deux filtres à tenir d'accord.
+   */
+  const tabMeta = BOARD_VIEWS.find((entry) => entry.key === tab) ?? BOARD_VIEWS[0]!
+  const columnSet: BoardColumnSet = boardTabs ? tabMeta.columns : (fixedColumns ?? 'apercu')
+
+  const filter: QuickView = boardTabs
+    ? tabMeta.filter === 'gagnants'
+      ? 'gainers'
+      : tabMeta.filter === 'perdants'
+        ? 'losers'
+        : 'all'
+    : view
+
+  /*
+   * « N'AFFICHER QUE MES FAVORIS » EST ORTHOGONAL AU RESTE, d'où un booléen à part.
+   *
+   * Il vient de la rangée du haut sous `boardTabs`, et de la vue rapide sinon — les
+   * deux rangées ne coexistent jamais. Le garder distinct de `filter` est ce qui rend
+   * « les gagnants parmi mes favoris » possible : tant que les deux partageaient un
+   * seul état, choisir l'un effaçait l'autre.
+   */
+  const onlyFollowed = boardTabs ? universe === 'favoris' : view === 'watchlist'
+
+  /* Calculé une fois : le test tourne sur chaque ligne, et `Object.values` sur six
+     clés à deux cent cinquante reprises serait payé pour rien quand aucune borne
+     n'est posée — c'est-à-dire presque toujours. */
+  const filtered = rangeFilters && rangesActive(ranges)
+
+  /* Normalisé UNE FOIS : le filtre le compare à deux champs par ligne, sur deux cent
+     cinquante lignes, à chaque frappe. `toLowerCase()` dans la boucle referait le
+     travail cinq cents fois pour rien. */
+  const needle = query.trim().toLowerCase()
+
+  /*
+   * ── LE TRI EN MÉMOIRE ──────────────────────────────────────────────────────
+   *
+   * Il vit ICI et non dans le tableau, pour la même raison que le filtrage et la
+   * pagination : c'est ce composant qui tient la LISTE, et trier une liste dont on ne
+   * détient qu'une tranche produirait un classement faux.
+   *
+   * Il ne remplace pas le tri par URL — `MarketTable` le garde pour les classements
+   * que la source pagine elle-même. Il le complète là où la page a déjà tout reçu :
+   * l'accueil, dont les cent lignes sont servies en une fois (voir `CryptoBoard`).
+   *
+   * `null` au départ : l'ordre d'arrivée est déjà un classement — celui de la source,
+   * par capitalisation. Imposer un tri initial le remplacerait par le nôtre.
+   */
+  const [sort, setSort] = useState<{ key: string; direction: SortDirection } | null>(null)
 
   /* Les identifiants suivis, en `Set` : le filtre les interroge une fois par ligne, et
      un `includes` sur un tableau ferait de ce filtre un parcours quadratique. */
@@ -161,48 +300,50 @@ export function MarketBrowser({
   )
 
   /*
-   * La période vit dans un état LOCAL, à la différence de la page crypto dédiée qui
-   * la porte dans l'URL. Le motif est le même que pour le tri des tableaux non
-   * paginés : `/marches` lit déjà `classe`, `vue` et `page` dans son URL, et y ajouter
-   * un quatrième paramètre pour un réglage de colonne rendrait les liens partagés
-   * illisibles sans rien apporter — la colonne change, pas les données servies.
+   * ── LE SÉLECTEUR DE PÉRIODE A ÉTÉ RETIRÉ ───────────────────────────────────
    *
-   * `period` reçue en prop reste la valeur de départ : une page qui sait déjà quelle
-   * période montrer garde la main sur le premier rendu.
+   * Il offrait « 1 H · 24 h · 7 J · 1 M · 1 A » et pilotait la colonne de variation
+   * principale. Retiré sur demande : les fenêtres secondaires sont DÉJÀ des colonnes
+   * du tableau (1 H, 7 J, 1 M s'affichent à côté de la variation), et le sélecteur ne
+   * faisait donc que décider laquelle des quatre porte le titre.
+   *
+   * La période reste celle que l'appelant demande — c'est lui qui sait ce que la page
+   * annonce.
    */
-  const [localPeriod, setLocalPeriod] = useState<ChangePeriod>(period ?? '24h')
-  const activePeriod = quickViews ? localPeriod : period
+  const activePeriod = period
   const changeField = periodMeta(activePeriod ?? '24h').field
 
-  /** Combien d'actifs de cette page portent un volume — le décompte des boutons. */
-  const tradableCount = useMemo(
-    () => assets.filter((asset) => (asset.volume24h ?? 0) > 0).length,
-    [assets],
-  )
-
   const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-
     const kept = assets.filter((asset) => {
-      if (needle) {
-        const haystack = `${asset.name} ${asset.symbol}`.toLowerCase()
-        if (!haystack.includes(needle)) return false
-      }
-
-      if (scope === 'tradable' && (asset.volume24h ?? 0) <= 0) return false
-
       /* Le filtre des favoris porte sur la PAGE affichée, comme tous les autres de
          cette barre : un actif suivi qui n'est pas dans les cinquante lignes servies
          n'apparaîtra pas. La ligne de décompte sous la barre le dit déjà pour
          l'ensemble des filtres, et `/suivi` porte la liste complète. */
-      if (view === 'watchlist' && !followed.has(asset.id)) return false
+      if (onlyFollowed && !followed.has(asset.id)) return false
+
+      /* Les fourchettes AVANT la recherche textuelle : elles écartent en général
+         beaucoup plus de lignes, et chaque ligne écartée ici est deux `toLowerCase`
+         de moins plus bas. */
+      if (filtered && !withinRanges(asset, ranges)) return false
+
+      /* Le NOM et le SYMBOLE, pas l'un ou l'autre : on cherche « bitcoin » aussi
+         souvent que « btc », et l'identifiant de la source (« wrapped-bitcoin »)
+         n'est jamais ce qu'on tape. `includes` et non un préfixe — « sol » doit
+         trouver « Solana » comme « Wrapped SOL ». */
+      if (
+        needle !== '' &&
+        !asset.name.toLowerCase().includes(needle) &&
+        !asset.symbol.toLowerCase().includes(needle)
+      ) {
+        return false
+      }
 
       const change = asset[changeField] as number | undefined
 
       // Une variation absente n'est ni une hausse ni une baisse : elle sort des deux
       // vues filtrées plutôt que d'être comptée arbitrairement comme nulle.
-      if (view === 'gainers') return (change ?? 0) > 0
-      if (view === 'losers') return (change ?? 0) < 0
+      if (filter === 'gainers') return (change ?? 0) > 0
+      if (filter === 'losers') return (change ?? 0) < 0
       return true
     })
 
@@ -215,14 +356,73 @@ export function MarketBrowser({
      * à la vraie question — « lesquels sortent de leur régime ? » — sans avoir à
      * inventer une frontière.
      */
-    if (view === 'trending') {
+    if (filter === 'trending') {
       return [...kept].sort((a, b) => turnover(b) - turnover(a))
     }
 
     return kept
-  }, [assets, query, view, scope, changeField, followed])
+  }, [assets, filter, onlyFollowed, filtered, ranges, needle, changeField, followed])
 
-  const filtering = query.trim().length > 0 || view !== 'all' || scope !== 'all'
+  /*
+   * ── LE TRI S'APPLIQUE APRÈS LE FILTRE, ET SUR UNE COPIE ────────────────────
+   *
+   * Après : trier puis filtrer donnerait le même résultat ici, mais coûterait un tri
+   * sur des lignes qu'on s'apprête à jeter. Sur une COPIE : `Array.sort` réordonne en
+   * place, et `visible` est mémorisé — le muter ferait dériver le tableau à chaque
+   * rendu sans que le mémo s'en aperçoive.
+   *
+   * ⚠️ « Tendance » pose déjà son propre ordre. Un tri d'en-tête le remplace, et c'est
+   * le bon arbitrage : c'est le geste le plus récent du lecteur.
+   *
+   * Les valeurs absentes vont TOUJOURS EN DERNIER, dans les deux sens. Les ranger comme
+   * des zéros les ferait remonter en tête d'un tri croissant, où elles se liraient
+   * comme les plus petites valeurs alors qu'elles ne sont pas des valeurs.
+   */
+  const sorted = useMemo(() => {
+    if (!sort) return visible
+
+    const factor = sort.direction === 'asc' ? 1 : -1
+
+    return [...visible].sort((a, b) => {
+      const left = a[sort.key as keyof MarketAsset]
+      const right = b[sort.key as keyof MarketAsset]
+
+      const leftMissing = left === undefined || left === null
+      const rightMissing = right === undefined || right === null
+      if (leftMissing && rightMissing) return 0
+      if (leftMissing) return 1
+      if (rightMissing) return -1
+
+      if (typeof left === 'string' && typeof right === 'string') {
+        return factor * left.localeCompare(right)
+      }
+
+      return factor * (Number(left) - Number(right))
+    })
+  }, [visible, sort])
+
+  const filtering = filter !== 'all' || onlyFollowed || filtered || needle !== ''
+
+  /*
+   * ── QUAND LE CATALOGUE ENTIER EST À PORTÉE, ET QUAND IL NE L'EST PAS ───────
+   *
+   * `remoteTotal` ouvre les pages au-delà des lignes reçues. Trois choses le
+   * referment, et chacune pour la même raison de fond : elles réordonnent ou
+   * réduisent une liste dont on ne détient qu'une TRANCHE.
+   *
+   *   · un filtre ou une recherche — « 12 résultats » ne parle que des lignes
+   *     chargées, et proposer une page 40 de ces douze n'aurait aucun sens ;
+   *   · un tri d'en-tête — « la plus forte hausse » de deux cent cinquante lignes
+   *     n'est pas celle de dix-neuf mille, et paginer un classement local en
+   *     l'annonçant comme celui du catalogue serait le mensonge le plus coûteux de
+   *     cette page ;
+   *   · l'absence de `remoteTotal` — les autres classes d'actifs, qui n'ont pas de
+   *     route pour aller chercher la suite.
+   *
+   * Dans ces trois cas le tableau retrouve exactement son comportement d'avant :
+   * il pagine ce qu'il a, et le compteur dit ce qu'il compte.
+   */
+  const catalogue = remoteTotal !== undefined && !filtering && sort === null
 
   /*
    * ── LA PAGE COURANTE EST BORNÉE AU RENDU, ET NON REMISE À ZÉRO PAR UN EFFET ──
@@ -237,43 +437,31 @@ export function MarketBrowser({
    * affichée est toujours valide au premier rendu, et `wantedPage` retrouve sa valeur
    * si le lecteur efface son filtre.
    */
-  const pageCount = rows > 0 ? Math.max(1, Math.ceil(visible.length / rows)) : 1
+  const total = catalogue ? (remoteTotal as number) : sorted.length
+  const pageCount = rows > 0 ? Math.max(1, Math.ceil(total / rows)) : 1
   const currentPage = Math.min(wantedPage, pageCount)
-  const paged = rows > 0 ? visible.slice((currentPage - 1) * rows, currentPage * rows) : visible
+
+  /* Une page est SERVIE LOCALEMENT tant que sa dernière ligne tient dans ce qui a été
+     reçu. Le test porte sur la borne haute et non sur un nombre de pages : à 100
+     lignes par page et 250 reçues, la page 3 déborde de cinquante lignes — la servir
+     à moitié afficherait un tableau tronqué sans que rien ne le dise. */
+  const distant = catalogue && rows > 0 && currentPage * rows > assets.length
+  const remote = useRemotePage(distant, currentPage, rows)
+
+  const paged = rows > 0
+    ? distant
+      ? remote.assets
+      : sorted.slice((currentPage - 1) * rows, currentPage * rows)
+    : sorted
 
   /*
-   * ── LES PORTÉES SERONT-ELLES RENDUES ? LA QUESTION EST POSÉE ICI ───────────
+   * ── LES VUES RAPIDES TIENNENT LA GAUCHE DE LA RANGÉE D'OUTILS ──────────────
    *
-   * Elle l'était plus bas, en ligne dans le calcul des props du tableau. Deux
-   * endroits en ont désormais besoin — la rangée du tableau, et celle-ci — et une
-   * condition dupliquée finirait par diverger : les vues rapides descendraient
-   * pendant que les portées resteraient, ou l'inverse, et la rangée se retrouverait
-   * vide ou doublée.
-   *
-   * Le critère lui-même est inchangé et il est MESURÉ : voir la note du tableau plus
-   * bas pour les deux bornes et ce que chacune corrige.
+   * Elles occupaient leur propre rangée, au-dessus de celle des portées et du
+   * sélecteur de colonnes. Ces deux-là ont été retirés ; il ne reste qu'une rangée,
+   * et les vues y descendent — le sélecteur de lignes en tient le bord droit.
    */
-  const hasScopeButtons = quickViews && tradableCount > 0 && tradableCount < assets.length
-
-  /*
-   * ── LES VUES RAPIDES, RENDUES UNE FOIS ET POSÉES À DEUX ENDROITS ───────────
-   *
-   * « Favoris · Tous · Tendance · Gagnants · Perdants » occupait TOUJOURS sa propre
-   * rangée, en haut. Cela se défend là où les portées existent : elles tiennent la
-   * rangée du dessous, et deux groupes de filtres sur une même ligne se liraient
-   * comme un seul.
-   *
-   * Là où elles n'existent pas — ETF, indices, devises, matières premières, soit la
-   * moitié des classes — la rangée du dessous ne portait plus QUE « Colonnes »,
-   * poussé à droite par un `<span />` vide. Une rangée entière pour un bouton, avec
-   * les vues rapides seules deux rangées plus haut : deux bandes à moitié vides
-   * empilées au-dessus d'un tableau qu'on vient lire.
-   *
-   * Le groupe descend donc rejoindre « Colonnes » dans ce cas, ce qui économise une
-   * rangée sans rien reprendre à personne — et le fait sans condition de classe
-   * d'actif, en suivant simplement ce que la donnée permet.
-   */
-  const quickViewGroup = quickViews ? (
+  const quickViewGroup = quickViews && !boardTabs ? (
     <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Vue rapide">
       {/*
         ── « FAVORIS » OUVRE LA RANGÉE ────────────────────────────────────
@@ -331,141 +519,287 @@ export function MarketBrowser({
   ) : null
 
   /*
-   * ── LE SÉLECTEUR DE PÉRIODE DESCEND À CÔTÉ DE « PERSONNALISER » ────────────
+   * ── LA GAUCHE ET LA DROITE DE LA RANGÉE D'OUTILS ──────────────────────────
    *
-   * Il tenait le bord droit de la rangée du haut, à côté de la recherche. C'était la
-   * mauvaise voisine : la recherche RETIRE DES LIGNES, la période change ce qu'une
-   * COLONNE affiche. Le lecteur qui veut « la variation sur 1 mois avec la
-   * capitalisation » doit alors régler deux choses de même nature à deux endroits
-   * séparés par toute la largeur du tableau.
-   *
-   * Les deux réglages d'affichage se regroupent donc au même bord : période puis
-   * colonnes. La rangée du haut n'a plus qu'à porter les vues rapides et la loupe.
+   * `MarketTable` rend déjà cette rangée : ce qu'on lui passe à gauche, puis à droite,
+   * puis le sélecteur de lignes. On y pose donc le champ de filtre et la bascule de
+   * devise plutôt que d'ouvrir une seconde bande — la référence n'en a qu'une, et deux
+   * rangées de contrôles au-dessus d'un tableau qu'on vient LIRE sont précisément ce
+   * qui avait fait retirer les précédentes.
    */
-  const periodGroup = quickViews ? (
-    <div
-      /* ── FOND PLEIN, PLUS DE TRAIT ──────────────────────────────────
-         Ce groupe portait un contour. Relevé sur la référence : AUCUN de ses
-         contrôles de barre d'outils n'a de bordure — `border-width` vaut `0px`
-         sur tous, et ce qui les détache du fond est une teinte, pas un filet. */
-      className="flex items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
-      role="group"
-      aria-label={t('Période de variation')}
-    >
-      {CHANGE_PERIODS.map((entry) => (
-        <button
-          key={entry.key}
-          type="button"
-          onClick={() => setLocalPeriod(entry.key)}
-          aria-pressed={localPeriod === entry.key}
-          title={t(`Variation ${entry.longLabel}`)}
-          className={`rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-150 ${
-            localPeriod === entry.key
-              ? 'bg-brand text-on-brand'
-              : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-          }`}
-        >
-          {t(entry.label)}
-        </button>
-      ))}
-    </div>
-  ) : null
+  const leadingSlot = searchable ? (
+    <BoardSearch value={query} onChange={setQuery} />
+  ) : (
+    quickViewGroup
+  )
+
+  /* Les fourchettes se posent AVANT la devise, donc plus à gauche : elles agissent sur
+     les lignes, la devise sur leur unité. Le bord droit reste au sélecteur de lignes,
+     que `MarketTable` ajoute après ce qu'on lui donne ici. */
+  const trailingSlot =
+    rangeFilters || currencyPicker ? (
+      <>
+        {rangeFilters ? <BoardFilters ranges={ranges} onChange={setRanges} /> : null}
+        {currencyPicker ? <BoardCurrency /> : null}
+      </>
+    ) : (
+      tableProps.trailingSlot
+    )
+
+  /* « Favoris » ne se filtre plus ici : il a quitté cette liste pour la rangée du
+     haut, qui décide elle-même de l'afficher ou non selon que le suivi est
+     disponible. Les cinq vues restantes portent toutes sur les mêmes lignes et
+     peuvent donc toujours s'afficher. */
+  const tabs = BOARD_VIEWS
 
   return (
     <div className="space-y-3">
       {/*
-        ── LA RANGÉE DU HAUT NE PORTE PLUS QUE LES VUES ET LA LOUPE ─────────────
+        ── LA RANGÉE D'ONGLETS OUVRE LE BLOC ───────────────────────────────────
 
-        Elle portait aussi les cinq périodes, qui sont descendues rejoindre
-        « Personnaliser » — voir `periodGroup`. Ce qui reste ici filtre la LISTE : les
-        vues rapides à gauche, la recherche repliée en loupe à droite.
+        Elle est posée ICI et non dans `MarketTable` parce qu'elle commande la LISTE
+        autant que les colonnes : le filtre « Gagnants » retire des lignes, et c'est ce
+        composant qui les tient. Le tableau ne reçoit que le verdict — un jeu de
+        colonnes et une liste déjà filtrée.
       */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Les vues rapides ne tiennent cette rangée QUE si les portées occupent celle
-            du dessous. Sinon elles y descendent, et cette rangée n'a plus qu'un côté —
-            voir la note de `quickViewGroup`. Le `<span />` garde alors la gauche, sans
-            quoi `justify-between` sur un enfant unique collerait la loupe à gauche. */}
-        {hasScopeButtons ? quickViewGroup : <span />}
+      {boardTabs ? (
+        <div className="flex flex-col gap-1">
+          {/* L'UNIVERS D'ABORD, LA VUE ENSUITE — c'est l'ordre de lecture de la
+              référence, et c'est aussi l'ordre logique : on choisit ce qu'on regarde
+              avant de choisir sous quel angle. Les deux rangées ne portent ni la même
+              taille ni le même trait, sans quoi elles se liraient comme une grille de
+              huit boutons de même rang. */}
+          <ClassTabs
+            active={universe}
+            onSelect={setUniverse}
+            favorisAvailable={watchlist?.available === true}
+          />
+          <BoardTabs views={tabs} active={tab} onSelect={setTab} />
+        </div>
+      ) : null}
 
-        <ExpandingSearch
-          value={query}
-          onChange={setQuery}
-          placeholder={t('Filtrer cette page…')}
-          label={t('Filtrer les actifs affichés sur cette page')}
-        />
-      </div>
+      {/*
+        ── CE QUE LE DÉCOMPTE DOIT DIRE, ET SEULEMENT QUAND IL LE DOIT ─────────
 
+        Il n'apparaît que sous filtre, et il nomme sa PORTÉE. Un « 12 sur 250 » sans
+        cette précision se lirait comme « 12 cryptomonnaies dans tout le catalogue »,
+        alors que douze mille autres n'ont simplement pas été chargées. La loupe de
+        l'en-tête, elle, interroge tout le catalogue — c'est là qu'on renvoie.
+      */}
       {filtering ? (
         <p className="text-xs text-ink-muted" aria-live="polite">
-          {visible.length} sur {assets.length} actif{assets.length > 1 ? 's' : ''} de cette page.
-          Le filtre ne porte pas sur l’ensemble du classement.
+          {t('{n} sur {total} lignes chargées. Le filtre ne porte pas sur l’ensemble du catalogue.')
+            .replace('{n}', String(sorted.length))
+            .replace('{total}', String(assets.length))}
         </p>
       ) : null}
 
-      {visible.length === 0 ? (
+      {sorted.length === 0 ? (
         <EmptyState
           title="Aucun actif ne correspond sur cette page"
-          description="Le filtre ne s’applique qu’aux lignes affichées. Utilisez la recherche de l’en-tête pour chercher dans l’ensemble des actifs suivis."
+          description="Le filtre ne s’applique qu’aux lignes chargées. Utilisez la recherche de l’en-tête pour chercher dans l’ensemble du catalogue."
           compact
         />
       ) : (
-        <MarketTable
-          assets={paged}
-          {...tableProps}
-          {...(/* Après `tableProps`, donc gagnant : la page et le nombre de lignes
-                  servis sont ceux de l'état local, et non ceux que l'appelant a écrits
-                  pour le premier rendu. */
-          rows > 0
-            ? {
-                page: currentPage,
-                perPage: rows,
-                total: visible.length,
-                onPageChange: setWantedPage,
-                onPerPageChange: (next: number) => {
-                  setRows(next)
+        /*
+          ── L'ATTENTE D'UNE PAGE DISTANTE SE VOIT, SANS RIEN DÉPLACER ─────────
+
+          Le tableau garde sa place, ses en-têtes et son pied ; seules les lignes
+          pâlissent le temps de l'aller-retour. Le remplacer par un substitut ferait
+          sauter la page au moment précis où le lecteur vient de cliquer un cran, et
+          `aria-busy` dit aux lecteurs d'écran ce que l'opacité dit à l'œil.
+        */
+        <div
+          aria-busy={remote.loading || undefined}
+          className={remote.loading ? 'opacity-60 transition-opacity duration-150' : undefined}
+        >
+          <MarketTable
+            assets={paged}
+            {...tableProps}
+            {...(/* Après `tableProps`, donc gagnant : la page et le nombre de lignes
+                    servis sont ceux de l'état local, et non ceux que l'appelant a écrits
+                    pour le premier rendu. */
+            rows > 0
+              ? {
+                  page: currentPage,
+                  perPage: rows,
+                  total,
+                  onPageChange: setWantedPage,
+                  onPerPageChange: (next: number) => {
+                    setRows(next)
+                    setWantedPage(1)
+                  },
+                }
+              : {})}
+            {...(watchlist ? { watchlist } : {})}
+            {...(activePeriod ? { period: activePeriod } : {})}
+            /*
+              LES COLONNES SE DÉDUISENT DE L'UNIVERS REÇU, PAS DE LA PAGE AFFICHÉE.
+
+              Sans cela, une page distante encore vide ferait disparaître toutes les
+              colonnes secondaires le temps du chargement — le tableau se réduirait à
+              trois colonnes puis reprendrait sa largeur, sous les yeux du lecteur. Et
+              une page où AUCUN actif ne publie de volume retirerait la colonne pour
+              cette page seulement, ce qui décalerait l'alignement d'une page à l'autre.
+            */
+            columnSource={assets}
+            columnSet={columnSet}
+            /*
+              ── LE TRI PASSE PAR ICI, ET SEULEMENT QUAND LA LISTE EST ENTIÈRE ────
+
+              `clientPerPage` est le signe que l'appelant a servi TOUTES ses lignes d'un
+              coup — c'est ce qui rend la pagination locale possible, et c'est exactement
+              la condition d'un tri local honnête. Sans lui, ce composant ne détient
+              qu'une tranche, et trier « les plus fortes hausses » ne donnerait que les
+              plus fortes hausses DE CETTE PAGE.
+
+              Les tableaux dans ce cas gardent le tri par URL de `MarketTable`, qui fait
+              retrier l'univers entier par la source.
+            */
+            {...(clientPerPage !== undefined
+              ? { activeSort: sort, onSortChange: (key: string, direction: SortDirection) => {
+                  setSort({ key, direction })
                   setWantedPage(1)
-                },
-              }
-            : {})}
-          {...(watchlist ? { watchlist } : {})}
-          {...(activePeriod ? { period: activePeriod } : {})}
-          {...(/* Le groupe local gagne sur celui de l'appelant : quand `quickViews` est
-                  vrai, c'est ce composant qui tient l'état de la période. */
-          periodGroup ? { trailingSlot: periodGroup } : {})}
-          /*
-            ── LES PORTÉES DESCENDENT DANS LE TABLEAU, ET SEULEMENT OÙ ELLES SERVENT
+                } }
+              : {})}
+            {...(leadingSlot ? { leadingSlot } : {})}
+            {...(trailingSlot ? { trailingSlot } : {})}
+          />
 
-            Elles occupaient une rangée à elles, sur toutes les classes d'actifs. Or
-            « Échangeables » ne distingue quelque chose que là où une PART des lignes
-            n'a pas de volume publié : sur les douze matières premières ou les dix
-            indices, les deux boutons affichent le même nombre et retirent zéro ligne.
-            Deux contrôles qui ne changent rien valent moins que leur absence.
+          {/* La panne d'une page distante n'est pas la panne du tableau : les lignes
+              précédentes restent à l'écran, et cette ligne dit ce qui manque. */}
+          {remote.failed ? (
+            <p className="pt-2 text-xs text-down" role="status">
+              {t('Cette page n’a pas pu être chargée. Réessayez dans un instant.')}
+            </p>
+          ) : null}
 
-            Le critère est donc MESURÉ, pas déclaré par classe : on les propose quand
-            le partage sépare réellement la liste en deux parts NON VIDES. Une classe
-            qui gagnerait des lignes sans volume les verrait apparaître d'elle-même,
-            et une liste écrite à la main aurait ici vieilli sans qu'on s'en aperçoive.
-
-            ⚠️ LES DEUX BORNES COMPTENT, et la seconde a été apprise à l'écran.
-            Tester seulement `tradableCount < assets.length` laissait
-            « Échangeables 0 · Tous les actifs 8 » sur les devises : la BCE ne publie
-            aucun volume, donc AUCUNE paire n'est échangeable au sens de ce filtre.
-            Un bouton qui vide le tableau n'est pas un filtre, c'est un piège.
-          */
-          {...(hasScopeButtons
-            ? {
-                scope,
-                onScopeChange: setScope,
-                tradableCount,
-                totalCount: assets.length,
-              }
-            : /* Sans portées, la rangée du tableau accueille les vues rapides plutôt
-                 que de n'afficher que « Colonnes » poussé à droite par du vide. */
-              { leadingSlot: quickViewGroup })}
-        />
+          {/* Les toutes dernières pages du décompte n'existent pas côté source — voir
+              `useRemotePage`. Le pied de tableau reste au-dessus, donc utilisable pour
+              revenir en arrière : c'est ce qu'un état vide plein écran retirerait. */}
+          {remote.empty ? (
+            <p className="pt-3 text-xs text-ink-muted" role="status">
+              {t(
+                'Aucune ligne à cette position : la source publie des données de marché pour moins d’actifs qu’elle n’en dénombre. Revenez à une page plus basse.',
+              )}
+            </p>
+          ) : null}
+        </div>
       )}
     </div>
   )
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES LIGNES D'UNE PAGE QUI N'A PAS ÉTÉ SERVIE AVEC LE RENDU
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * L'accueil reçoit les 250 premières capitalisations avec sa page — c'est le maximum
+ * qu'un seul appel autorise, et le prix à payer pour qu'elle reste STATIQUE. Le
+ * catalogue en compte plus de dix-neuf mille. Ce crochet va chercher les autres.
+ *
+ * ── POURQUOI L'ANCIENNE PAGE RESTE À L'ÉCRAN PENDANT L'ATTENTE ─────────────
+ *
+ * `assets` n'est vidé à aucun moment : passer de la page 11 à la page 12 garde les
+ * lignes de la 11 le temps de l'aller-retour, et l'appelant les pâlit. Les effacer
+ * d'abord ferait clignoter un tableau vide entre deux pages pleines, ce qui se lit
+ * comme une panne alors que tout se passe bien.
+ *
+ * ── POURQUOI IL NE RÉESSAIE PAS TOUT SEUL ─────────────────────────────────
+ *
+ * Un échec laisse `stale` à vrai, donc les dépendances de l'effet inchangées : il ne
+ * se relance pas. C'est voulu. La cause la plus probable d'un échec ici est un 429 du
+ * limiteur de débit, et réessayer en boucle est exactement ce qui l'a déclenché. Le
+ * prochain clic du lecteur relance la demande — c'est la seule reprise qui ne peut
+ * pas empirer les choses.
+ */
+function useRemotePage(active: boolean, page: number, rows: number) {
+  /*
+   * ── NI « EN COURS », NI « EN ÉCHEC » NE SONT DES ÉTATS STOCKÉS ────────────
+   *
+   * Une première version les gardait dans deux `useState` posés en tête d'effet.
+   * ESLint le refuse — `react-hooks/set-state-in-effect` — et il a raison : écrire
+   * l'état SYNCHRONEMENT dans le corps d'un effet déclenche un second rendu en
+   * cascade pour une information que le rendu possédait déjà.
+   *
+   * Les deux se DÉDUISENT de ce que l'on détient :
+   *
+   *   · « en cours » = la page demandée n'est pas celle qu'on a en mémoire, et rien
+   *     n'a échoué pour elle. Aucun drapeau n'est nécessaire : c'est la définition
+   *     même de `stale`.
+   *   · « en échec » = la dernière panne porte SUR CETTE demande. D'où une clé
+   *     mémorisée plutôt qu'un booléen : changer de page efface l'échec sans avoir
+   *     à le remettre à zéro, ce qui était précisément le second `setState`.
+   *
+   * La clé combine page ET nombre de lignes : « page 11 à 25 lignes » et « page 11 à
+   * 100 lignes » sont deux demandes différentes, et les confondre resservirait les
+   * mauvaises lignes en changeant de cran.
+   */
+  const key = `${page}:${rows}`
+  const [state, setState] = useState<{ key: string; assets: MarketAsset[] }>({
+    key: '',
+    assets: [],
+  })
+  const [failedKey, setFailedKey] = useState<string | null>(null)
+
+  const stale = state.key !== key
+  const failed = failedKey === key
+
+  useEffect(() => {
+    /* `failed` dans la garde ET dans les dépendances : sans lui, marquer l'échec
+       relancerait l'effet, qui relancerait la requête, en boucle. Avec lui, l'effet
+       repart une fois pour tomber sur ce retour anticipé et s'arrête là. */
+    if (!active || !stale || failed) return
+
+    /* Drapeau local plutôt qu'`AbortController` : la réponse est déjà en cache
+       serveur, l'annuler n'économise rien, et ce qui compte est de ne PAS écrire
+       l'état d'une demande périmée par-dessus celui de la demande en cours. */
+    let cancelled = false
+
+    fetch(`/api/cotations?page=${page}&lignes=${rows}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { actifs?: MarketAsset[]; indisponible?: boolean } | null) => {
+        if (cancelled) return
+        if (!payload || payload.indisponible || !Array.isArray(payload.actifs)) {
+          setFailedKey(key)
+          return
+        }
+        setState({ key, assets: payload.actifs })
+      })
+      .catch(() => {
+        if (!cancelled) setFailedKey(key)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [active, stale, failed, key, page, rows])
+
+  return {
+    assets: state.assets,
+    loading: active && stale && !failed,
+    failed: active && failed,
+    /*
+     * ── LA QUEUE DU CATALOGUE EST VIDE, ET CE N'EST PAS UNE PANNE ────────────
+     *
+     * Le total affiché vient de `/global`, qui compte les cryptomonnaies ACTIVES.
+     * Le point de terminaison qui pagine, lui, ne sert que celles pour lesquelles il
+     * publie des données de marché — un ensemble plus petit. Les dernières pages du
+     * décompte reviennent donc légitimement vides.
+     *
+     * Trois façons de traiter ça, et deux sont mauvaises :
+     *   · borner le total à une valeur devinée — on écrirait un nombre que rien ne
+     *     justifie, exactement ce que le §5 interdit ;
+     *   · afficher un tableau vide sans rien dire — ce que le lecteur lit comme une
+     *     panne du site ;
+     *   · le DIRE. C'est ce que fait l'appelant, avec ce drapeau.
+     *
+     * Distinct de `failed` : la requête a réussi, la réponse est simplement vide.
+     * Les confondre ferait proposer « réessayez » pour une page qui n'existera jamais.
+     */
+    empty: active && !stale && !failed && state.assets.length === 0,
+  }
 }
 
 /**

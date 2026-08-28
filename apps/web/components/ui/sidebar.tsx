@@ -20,9 +20,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
@@ -128,7 +125,9 @@ function SidebarProvider({
 
   return (
     <SidebarContext.Provider value={contextValue}>
-      <TooltipProvider delayDuration={0}>
+      {/* ⚠️ LE `TooltipProvider` A DISPARU : HeroUI n'en demande aucun, chaque
+          infobulle étant autonome. Voir `components/ui/tooltip.tsx`. */}
+      <>
         <div
           data-slot="sidebar-wrapper"
           style={
@@ -146,7 +145,7 @@ function SidebarProvider({
         >
           {children}
         </div>
-      </TooltipProvider>
+      </>
     </SidebarContext.Provider>
   )
 }
@@ -506,7 +505,7 @@ function SidebarMenuButton({
 }: React.ComponentProps<"button"> & {
   asChild?: boolean
   isActive?: boolean
-  tooltip?: string | React.ComponentProps<typeof TooltipContent>
+  tooltip?: string | React.ComponentProps<typeof Tooltip.Content>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot.Root : "button"
   const { isMobile, state } = useSidebar()
@@ -534,11 +533,12 @@ function SidebarMenuButton({
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent
-        side="right"
-        align="center"
-        hidden={state !== "collapsed" || isMobile}
+      {/* `asChild` a disparu avec Radix : `Tooltip.Trigger` accroche directement son
+          enfant, sans rendre de bouton autour du nôtre. */}
+      <Tooltip.Trigger>{button}</Tooltip.Trigger>
+      <Tooltip.Content
+        placement="right"
+        {...(state !== "collapsed" || isMobile ? { isDisabled: true } : {})}
         {...tooltip}
       />
     </Tooltip>

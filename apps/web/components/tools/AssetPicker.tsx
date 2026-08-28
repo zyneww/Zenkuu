@@ -9,7 +9,6 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import {
   Combobox,
   ComboboxContent,
-  ComboboxEmpty,
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
@@ -190,9 +189,30 @@ export function AssetPicker({
             d'ajout, et un panneau calé sur sa largeur serait trop étroit pour lire un
             nom d'actif. */}
         <ComboboxContent className="min-w-[min(22rem,90vw)] border border-border-subtle bg-overlay shadow-overlay">
+          {/*
+            ══════════════════════════════════════════════════════════════════════
+            ⚠️ `showTrigger={false}` — SANS LUI LE PANNEAU S'ANCRAIT SUR LUI-MÊME
+            ══════════════════════════════════════════════════════════════════════
+
+            Notre `ComboboxInput` enveloppe la primitive dans un `InputGroup` et lui
+            ajoute, PAR DÉFAUT, un chevron qui est un second `Combobox.Trigger`. Utile
+            quand le champ est le déclencheur ; ici le champ vit DANS le panneau, et ce
+            second déclencheur y vit avec lui.
+
+            Base UI ne garde qu'un `triggerElement` dans son magasin : le dernier monté
+            gagne, c'est-à-dire celui du panneau. Or son positionneur s'ancre justement
+            sur `triggerElement` dès que le champ est à l'intérieur du panneau — le
+            panneau s'ancrait donc SUR UN ÉLÉMENT DE LUI-MÊME. Relevé au navigateur sur
+            `/comparateur` : la liste s'ouvrait à trois cents pixels de la carte
+            « Ajouter un actif », dérivait, et se refermait au moindre clic à côté —
+            d'où l'impression d'un menu qui disparaît tout seul.
+
+            Le chevron ne manque à personne : la carte d'ajout porte déjà le sien.
+          */}
           <div className="flex items-center gap-2 border-b border-border-subtle px-3 py-2">
             <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
             <ComboboxInput
+              showTrigger={false}
               placeholder="Rechercher un actif…"
               aria-label="Rechercher un actif"
               className="w-full border-0 bg-transparent py-1 text-sm text-ink shadow-none focus-visible:ring-0"
@@ -200,9 +220,22 @@ export function AssetPicker({
           </div>
 
           <ComboboxList className="max-h-72">
-            <ComboboxEmpty className="px-3 py-6 text-center text-sm text-ink-muted">
-              Aucun actif ne correspond à « {query} ».
-            </ComboboxEmpty>
+            {/*
+              ⚠️ `Combobox.Empty` A ÉTÉ REMPLACÉ PAR UNE CONDITION À NOUS.
+
+              Il se règle sur la collection que Base UI connaît, et cette collection est
+              `items={[]}` — la liste et son filtrage vivent ici (voir l'en-tête). Le
+              composant tenait donc TOUJOURS la liste pour vide : « Aucun actif ne
+              correspond à «  » » s'affichait en permanence, en tête d'une liste de cent
+              quarante entrées bien visibles juste en dessous.
+
+              `groups` est la seule source qui sache ce qui est réellement rendu.
+            */}
+            {groups.length === 0 ? (
+              <p className="px-3 py-6 text-center text-sm text-ink-muted">
+                Aucun actif ne correspond à « {query} ».
+              </p>
+            ) : null}
 
             {groups.map(([assetClass, entries]) => (
               <ComboboxGroup key={assetClass}>

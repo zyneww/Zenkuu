@@ -151,10 +151,10 @@ export default function ApprendrePage() {
           Ces fiches expliquent des notions de marché. Pour comprendre comment ZENKUU
           collecte et rafraîchit ses données, voyez la{' '}
           <Link
-            href="/methodologie"
+            href="/a-propos"
             className="underline underline-offset-2 hover:text-brand-strong"
           >
-            page Méthodologie
+            page À propos
           </Link>
           ; pour une question sur le site lui-même, le{' '}
           <Link href="/aide" className="underline underline-offset-2 hover:text-brand-strong">

@@ -4,6 +4,7 @@ import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 import { RailSection } from '@/components/ui/RailSection'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Progression de l'offre — la part dérivable de la tokenomique.
@@ -37,7 +38,8 @@ import { RailSection } from '@/components/ui/RailSection'
  * alors une information en soi : il dit que le total « théorique » et le total
  * « valorisé » ne coïncident pas.
  */
-export function AssetSupply({ asset }: { asset: AssetDetail }) {
+export async function AssetSupply({ asset }: { asset: AssetDetail }) {
+  const t = await getPhrase()
   const { circulatingSupply, totalSupply, maxSupply, marketCap, fdv } = asset
   const symbol = asset.symbol.toUpperCase()
 
@@ -71,10 +73,10 @@ export function AssetSupply({ asset }: { asset: AssetDetail }) {
   if (releasedShare === undefined && valuedShare === undefined) return null
 
   return (
-    <RailSection title="Progression de l’offre">
+    <RailSection title={t('Progression de l’offre')}>
       {releasedShare !== undefined && circulatingSupply !== undefined && ceiling !== undefined ? (
         <Gauge
-          label={maxSupply !== undefined ? 'Offre émise' : 'Part du total en circulation'}
+          label={t(maxSupply !== undefined ? 'Offre émise' : 'Part du total en circulation')}
           share={releasedShare}
           detail={`${formatCompact(circulatingSupply)} / ${formatCompact(ceiling)} ${symbol}`}
           tone="brand"
@@ -84,7 +86,7 @@ export function AssetSupply({ asset }: { asset: AssetDetail }) {
       {valuedShare !== undefined && marketCap !== undefined && fdv !== undefined ? (
         <div className={releasedShare !== undefined ? 'mt-4' : ''}>
           <Gauge
-            label="Valorisation réalisée"
+            label={t('Valorisation réalisée')}
             share={valuedShare}
             detail={
               <>

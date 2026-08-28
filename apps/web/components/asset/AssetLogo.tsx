@@ -15,6 +15,10 @@ import {
   PairGlyph,
 } from '@/components/asset/glyphs'
 import { monogram } from '@/components/asset/monogram'
+import {
+  DROPSTAB_COMMODITY_ICONS,
+  DropstabCommodityIcon,
+} from '@/components/asset/commodity-icons'
 
 /**
  * Icône d'un actif — un composant, une branche par classe.
@@ -150,8 +154,16 @@ export function AssetLogo({ asset, size = 24 }: AssetLogoProps) {
     }
   }
 
-  // ── 3. Matière première : pictogramme dessiné, ou l'émoji en repli ────────
+  // ── 3. Matière première : vignette DropsTab, pictogramme dessiné, ou émoji ──
   if (entry?.emoji || asset.assetClass === 'commodity') {
+    /* Les vignettes de DropsTab passent AVANT le pictogramme maison : ce sont elles
+       qui ont été demandées comme référence, et elles portent la teinte de la matière
+       en aplat plutôt qu'un trait, ce qui se repère mieux dans une ligne de tableau.
+       Elles ne couvrent que six des douze matières — voir `commodity-icons.tsx`. */
+    if (DROPSTAB_COMMODITY_ICONS[asset.symbol.toUpperCase()]) {
+      return <DropstabCommodityIcon symbol={asset.symbol} size={size} />
+    }
+
     const glyph = <CommodityGlyph symbol={asset.symbol} size={size} />
     if (COMMODITY_DRAWN.has(asset.symbol)) return glyph
 

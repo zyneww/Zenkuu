@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Prezzo",
+      "asOf": "Alle {stamp}",
       "help": "Ultima quotazione pubblicata dalla fonte, convertita nella valuta che hai scelto. Non è un prezzo di esecuzione: a seconda della sede e del momento, un ordine reale verrebbe eseguito a un livello vicino ma diverso."
     },
     "marketCap": {

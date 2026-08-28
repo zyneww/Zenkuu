@@ -10,12 +10,16 @@
 import { CACHE_TTL_SECONDS, cache, cached } from './cache'
 import { CURRENCY_CODES } from './currencies'
 import { recordMarketCap } from './market-cap-series'
+import { getBinanceHistoryBySymbol, getBinanceOhlcBySymbol } from './providers/binance'
 import { fetchCoinGeckoRates } from './providers/coingecko'
 import { COINPAPRIKA_SOURCE, fetchNewListings } from './providers/coinpaprika'
 import {
   TRACKED_NFT_COLLECTIONS,
   fetchNftCollection,
+  fetchTokenizedStocks,
   fetchTreasuries,
+  tokensForStock,
+  type TokenizedStock,
   type TreasuryCoin,
 } from './providers/coingecko-extras'
 import { fetchExchangeRates } from './providers/frankfurter'
@@ -128,6 +132,64 @@ export type DataResult<T> =
  * taille réelle, jamais une valeur codée en dur.
  */
 export const MOVERS_UNIVERSE_SIZE = 100
+
+/**
+ * Lignes servies AVEC la page d'accueil, courbes comprises.
+ *
+ * ── POURQUOI 250, ET PAS PLUS ─────────────────────────────────────────────────
+ *
+ * C'est le plafond de `per_page` chez CoinGecko : au-delà il faut enchaîner les
+ * appels, et le tableau d'accueil est rendu dans une page STATIQUE régénérée toutes
+ * les trois minutes — chaque appel supplémentaire est prélevé sur un quota qui en
+ * tolère cinq par minute pour l'ensemble du site.
+ *
+ * ── POURQUOI 250 EST DÉSORMAIS TENABLE, ALORS QUE 100 ÉTAIT LA LIMITE ────────
+ *
+ * L'ancienne note disait vrai : à 250 actifs, la réponse dépassait deux mégaoctets.
+ * Le poids n'était pas dans les actifs mais dans leurs COURBES — 168 relevés horaires
+ * chacune, sérialisés vers un composant client. `thinSparkline` les ramène à
+ * `SPARKLINE_POINTS`, ce qui divise la charge par trois pour une vignette de 120 px
+ * de large où la différence est invisible.
+ *
+ * Le reste du catalogue — la source en annonce plus de dix-neuf mille — n'est PAS
+ * servi ici : il est atteint page par page par `getCryptoBoardPage`, appelé à la
+ * demande depuis le navigateur quand le lecteur dépasse ces 250 lignes.
+ */
+export const BOARD_UNIVERSE_SIZE = 250
+
+/**
+ * Points conservés par courbe de tableau.
+ *
+ * CoinGecko en publie 168 (sept jours au pas horaire) pour une vignette large de
+ * 120 px : un point tous les 0,7 pixel, dont le navigateur ne peut rien faire. En
+ * garder un sur trois donne 56 points, soit un tous les deux pixels — au-delà de ce
+ * que l'œil distingue à cette taille, et le tiers du poids sur le fil.
+ *
+ * ⚠️ L'ÉCHANTILLONNAGE GARDE TOUJOURS LE DERNIER POINT. Un pas régulier qui s'arrête
+ * avant la fin couperait les dernières heures de la série — c'est-à-dire précisément
+ * celles que le lecteur compare à la variation 24 h affichée juste à côté.
+ */
+const SPARKLINE_POINTS = 56
+
+/**
+ * Allège la courbe d'un actif, sans toucher au reste.
+ *
+ * Rend un OBJET NEUF plutôt que de modifier celui reçu : ces actifs finissent dans
+ * le cache applicatif, et une fonction qui réduit en place ne serait pas idempotente
+ * — la rejouer sur une entrée déjà allégée la réduirait encore.
+ */
+function thinSparkline(asset: MarketAsset): MarketAsset {
+  const values = asset.sparkline7d
+  if (!values || values.length <= SPARKLINE_POINTS) return asset
+
+  const step = (values.length - 1) / (SPARKLINE_POINTS - 1)
+  const kept: number[] = []
+  for (let index = 0; index < SPARKLINE_POINTS; index += 1) {
+    kept.push(values[Math.round(index * step)] as number)
+  }
+
+  return { ...asset, sparkline7d: kept }
+}
 
 /**
  * Tailles d'univers proposées au filtre des « mouvements ».
@@ -598,10 +660,10 @@ export function getCryptoOverview(
   limit = 5,
 ): Promise<DataResult<CryptoOverview>> {
   return run('crypto', `crypto:overview:${currency}:${limit}`, async (provider) => {
-    const universe = await provider.listAssets({
+    const fetched = await provider.listAssets({
       assetClass: 'crypto',
       page: 1,
-      perPage: MOVERS_UNIVERSE_SIZE,
+      perPage: BOARD_UNIVERSE_SIZE,
       sortBy: 'marketCap',
       sortDirection: 'desc',
       currency,
@@ -610,7 +672,22 @@ export function getCryptoOverview(
       withSparkline: true,
     })
 
+    const universe = fetched.map(thinSparkline)
+
+    /*
+     * ── LES MOUVEMENTS RESTENT CALCULÉS SUR LES CENT PREMIÈRES ────────────────
+     *
+     * L'univers servi au tableau est passé de 100 à 250 lignes. Classer les hausses
+     * et les baisses sur ces 250 changerait ce qu'affichent la rangée de repères et
+     * les blocs du bas — sans que rien ne l'ait demandé, et en y faisant entrer des
+     * capitalisations nettement plus petites, où une variation de +200 % sur un
+     * carnet vide n'a pas le même sens.
+     *
+     * La tranche est donc reprise explicitement : le tableau s'élargit, les palmarès
+     * gardent leur périmètre, et `MOVERS_UNIVERSE_SIZE` continue de dire ce qu'il dit.
+     */
     const ranked = universe
+      .slice(0, MOVERS_UNIVERSE_SIZE)
       .filter((asset) => typeof asset.change24h === 'number')
       .sort((a, b) => (b.change24h as number) - (a.change24h as number))
 
@@ -642,8 +719,71 @@ export function getCryptoOverview(
        * réseau amont, lui, est identique au précédent : le même appel, le même quota.
        */
       topByMarketCap: universe,
-      universeSize: universe.length,
+      /*
+       * ⚠️ LA TAILLE DES MOUVEMENTS, PAS CELLE DU TABLEAU — et les deux ont divergé.
+       *
+       * Ce champ n'est lu que par des PHRASES qui qualifient les palmarès : « Parmi
+       * les N plus grandes capitalisations » sous les hausses et les baisses, et la
+       * note de `/crypto`. Il doit donc valoir l'univers sur lequel ces classements
+       * ont réellement été établis.
+       *
+       * Tant que le tableau et les palmarès partageaient le même univers, `length`
+       * répondait. Le tableau est passé à 250 lignes, les palmarès sont restés à 100
+       * (voir juste au-dessus) : rendre `length` ferait annoncer « parmi les 250 »
+       * un classement calculé sur cent. Le `min` couvre le cas où la source en
+       * renverrait moins que demandé — la phrase dit alors ce qui existe.
+       */
+      universeSize: Math.min(universe.length, MOVERS_UNIVERSE_SIZE),
     }
+  })
+}
+
+/**
+ * UNE PAGE QUELCONQUE DU CLASSEMENT CRYPTO, courbes comprises.
+ *
+ * ── CE QU'ELLE RÉSOUT ─────────────────────────────────────────────────────────
+ *
+ * `getCryptoOverview` sert les 250 premières capitalisations AVEC la page d'accueil,
+ * et c'est le maximum qu'un seul appel autorise. La source en publie plus de dix-neuf
+ * mille : sans cette fonction, le tableau de l'accueil s'arrêterait à sa dixième page
+ * et le lecteur n'aurait aucun moyen d'atteindre la suivante depuis là.
+ *
+ * Elle est appelée par la route `/api/cotations`, elle-même appelée par le navigateur
+ * quand le lecteur DEMANDE une page au-delà de ce qui a été servi. C'est ce qui permet
+ * à l'accueil de rester STATIQUE — donc mise en cache une fois pour tous les visiteurs
+ * — tout en donnant accès au catalogue entier. Lire le numéro de page dans l'URL de la
+ * page aurait le même effet visible et coûterait ce cache, plus un appel amont par
+ * visiteur et par page (voir `CryptoBoard`).
+ *
+ * ── LE CACHE EST INDEXÉ SUR LES TROIS PARAMÈTRES ─────────────────────────────
+ *
+ * Deux visiteurs qui demandent la page 12 à 25 lignes partagent donc une seule
+ * réponse. Le sélecteur de lignes en ouvre une par cran, ce qui reste borné : trois
+ * crans, et seules les pages réellement visitées sont peuplées.
+ */
+export function getCryptoBoardPage(
+  page: number,
+  perPage: number,
+  currency = 'eur',
+): Promise<DataResult<MarketAsset[]>> {
+  /* Bornes appliquées ICI et non au point d'entrée seulement : cette fonction est
+     exportée, et un appelant futur ne doit pas pouvoir demander mille lignes — la
+     source refuserait, et la clé de cache serait déjà ouverte. */
+  const safePage = Math.max(1, Math.floor(page))
+  const safePerPage = Math.min(Math.max(Math.floor(perPage), 1), 250)
+
+  return run('crypto', `crypto:board:${currency}:${safePage}:${safePerPage}`, async (provider) => {
+    const batch = await provider.listAssets({
+      assetClass: 'crypto',
+      page: safePage,
+      perPage: safePerPage,
+      sortBy: 'marketCap',
+      sortDirection: 'desc',
+      currency,
+      withSparkline: true,
+    })
+
+    return batch.map(thinSparkline)
   })
 }
 
@@ -728,12 +868,210 @@ export function getAssetTickers(
   )
 }
 
-export function getAssetHistory(
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * PROFONDEUR MAXIMALE DE COINGECKO, ET CE QUI PREND LE RELAIS AU-DELÀ
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE PLAFOND EST DUR, ET IL N'EST PAS UNE PANNE ────────────────────────────
+ *
+ * Le palier public de CoinGecko REFUSE toute fenêtre de plus de 365 jours :
+ * « Public API users are limited to querying historical data within the past 365
+ * days » (erreur 10012, relevée sur l'API le 24 août 2026). Une clé « demo »
+ * n'y change rien — seuls les paliers payants ouvrent l'historique complet.
+ *
+ * Conséquence observée : le palier « MAX » de la fiche demandait 3 650 jours,
+ * n'obtenait jamais rien, et le graphique affichait « Historique de cours
+ * indisponible pour cet actif » sur TOUTES les cryptomonnaies, Bitcoin compris.
+ * Ce n'était pas une indisponibilité passagère : c'était permanent.
+ *
+ * ── D'OÙ VIENT L'HISTOIRE LONGUE ────────────────────────────────────────────
+ *
+ * De Binance, qui sert ses bougies depuis la première cotation de la paire, sans
+ * clé ni quota sérieux. Deux précautions, sans lesquelles ce serait une régression :
+ *
+ *   1. LE SYMBOLE N'EST JAMAIS DEVINÉ. Il est lu dans les COTATIONS que CoinGecko
+ *      publie pour l'actif — la source qui fait autorité sur son identité. Deviner
+ *      « HYPEUSDT » depuis un symbole d'actif afficherait tôt ou tard le cours
+ *      d'une contrefaçon homonyme sous le nom d'un actif connu (§5).
+ *   2. LA DEVISE EST RAMENÉE À CELLE QUI A ÉTÉ DEMANDÉE. Binance cote en USDT,
+ *      l'appelant demande le plus souvent des euros, et le graphique suppose que
+ *      ses points sont DÉJÀ dans la devise de la fiche — voir `usdToSeries` dans
+ *      `AssetWorkspace`. Servir des dollars sous une étiquette « EUR » dessinerait
+ *      un décrochage de cours qui n'a jamais eu lieu. Sans taux de change
+ *      disponible, on renonce au chemin profond plutôt que de convertir au hasard.
+ *
+ * Quand rien de tout cela n'aboutit — actif absent de Binance, taux manquant — la
+ * demande retombe sur les 365 jours que CoinGecko sert réellement. Une courbe d'un
+ * an vaut mieux qu'un message d'erreur, et `days` renvoyé dit la vérité sur ce qui
+ * est tracé.
+ */
+const COINGECKO_MAX_HISTORY_DAYS = 365
+
+/** Devises de cotation assimilables au dollar — voir l'en-tête de `binance.ts`. */
+const BINANCE_USD_QUOTES = ['USDT', 'FDUSD', 'USDC', 'BUSD']
+
+/** L'histoire longue d'une paire ne bouge qu'à la marge : une heure de cache. */
+const DEEP_HISTORY_TTL_SECONDS = 3600
+
+/** La paire d'un actif ne change jamais : une journée de cache. */
+const BINANCE_PAIR_TTL_SECONDS = 86_400
+
+/**
+ * Paire Binance d'un actif, telle que CoinGecko la déclare — ou `null`.
+ *
+ * `null` et non une exception : « cet actif ne se négocie pas sur Binance » est un
+ * fait ordinaire, pas un incident. L'appelant retombe alors sur la fenêtre courte.
+ */
+async function resolveBinancePair(id: string): Promise<string | null> {
+  return cached(
+    `crypto:binance-pair:${id}`,
+    async () => {
+      const provider = getProvider('crypto')
+      if (!provider?.getTickers) return null
+
+      // 100 lignes et non 10 : les cotations sont triées par volume, et une paire
+      // Binance secondaire (HYPE/FDUSD) peut se trouver au-delà des dix premières.
+      const tickers = await provider.getTickers(id, 'usd', 100)
+
+      const match = tickers.find(
+        (ticker) =>
+          ticker.exchangeId === 'binance' &&
+          BINANCE_USD_QUOTES.includes(ticker.target?.toUpperCase() ?? ''),
+      )
+
+      if (!match?.base || !match.target) return null
+      return `${match.base}${match.target}`.toUpperCase()
+    },
+    BINANCE_PAIR_TTL_SECONDS,
+  )
+}
+
+/**
+ * Histoire longue via Binance, déjà convertie — ou `null` si ce chemin n'aboutit pas.
+ */
+async function deepCryptoHistory(
+  id: string,
+  days: number,
+  currency: string,
+): Promise<DataResult<PriceHistory> | null> {
+  try {
+    const symbol = await resolveBinancePair(id)
+    if (!symbol) return null
+
+    const target = currency.toUpperCase()
+
+    const data = await cached(
+      `crypto:history-deep:${id}:${days}:${currency}`,
+      async () => {
+        const history = await getBinanceHistoryBySymbol(symbol, days)
+        if (target === 'USD') return history
+
+        const rates = await getExchangeRates()
+        const toTarget = rates.ok ? rates.data.rates[target] : undefined
+        const toUsd = rates.ok ? rates.data.rates.USD : undefined
+        if (!toTarget || !toUsd) {
+          throw new Error(`Taux ${target} indisponible pour l’historique profond`)
+        }
+
+        // Taux du JOUR appliqué à toute la série — même approximation que celle que
+        // le graphique fait déjà sur le cours en direct (`usdToSeries`), et la seule
+        // possible sans série de change historique.
+        const factor = toTarget / toUsd
+        return {
+          ...history,
+          currency: target,
+          points: history.points.map((point) => ({
+            ...point,
+            price: point.price * factor,
+            ...(point.volume === undefined ? {} : { volume: point.volume * factor }),
+          })),
+        }
+      },
+      DEEP_HISTORY_TTL_SECONDS,
+    )
+
+    return {
+      ok: true,
+      data,
+      source: { label: 'Binance', attributionUrl: 'https://www.binance.com' },
+    }
+  } catch (error) {
+    console.warn(
+      `[zenkuu:data] crypto:history-deep:${id}:${days} — ${String(error)} ; repli sur ${COINGECKO_MAX_HISTORY_DAYS} j`,
+    )
+    return null
+  }
+}
+
+/** Bougies longues via Binance — jumelle de `deepCryptoHistory`, mêmes garde-fous. */
+async function deepCryptoOhlc(
+  id: string,
+  days: number,
+  currency: string,
+): Promise<DataResult<OhlcHistory> | null> {
+  try {
+    const symbol = await resolveBinancePair(id)
+    if (!symbol) return null
+
+    const target = currency.toUpperCase()
+
+    const data = await cached(
+      `crypto:ohlc-deep:${id}:${days}:${currency}`,
+      async () => {
+        const history = await getBinanceOhlcBySymbol(symbol, days)
+        if (target === 'USD') return history
+
+        const rates = await getExchangeRates()
+        const toTarget = rates.ok ? rates.data.rates[target] : undefined
+        const toUsd = rates.ok ? rates.data.rates.USD : undefined
+        if (!toTarget || !toUsd) {
+          throw new Error(`Taux ${target} indisponible pour les bougies profondes`)
+        }
+
+        const factor = toTarget / toUsd
+        return {
+          ...history,
+          currency: target,
+          candles: history.candles.map((candle) => ({
+            timestamp: candle.timestamp,
+            open: candle.open * factor,
+            high: candle.high * factor,
+            low: candle.low * factor,
+            close: candle.close * factor,
+          })),
+        }
+      },
+      DEEP_HISTORY_TTL_SECONDS,
+    )
+
+    return {
+      ok: true,
+      data,
+      source: { label: 'Binance', attributionUrl: 'https://www.binance.com' },
+    }
+  } catch (error) {
+    console.warn(
+      `[zenkuu:data] crypto:ohlc-deep:${id}:${days} — ${String(error)} ; repli sur ${COINGECKO_MAX_HISTORY_DAYS} j`,
+    )
+    return null
+  }
+}
+
+export async function getAssetHistory(
   id: string,
   assetClass: AssetClass,
   days: number,
   currency = 'eur',
 ): Promise<DataResult<PriceHistory>> {
+  if (assetClass === 'crypto' && days > COINGECKO_MAX_HISTORY_DAYS) {
+    const deep = await deepCryptoHistory(id, days, currency)
+    if (deep) return deep
+
+    // Repli : la profondeur demandée n'existe pas, on sert la plus grande qui existe.
+    days = COINGECKO_MAX_HISTORY_DAYS
+  }
+
   return run(
     assetClass,
     `${assetClass}:history:${id}:${days}:${currency}`,
@@ -764,12 +1102,21 @@ export function getAssetHistory(
  * taux de référence par jour ouvré — fait disparaître l'option du sélecteur au lieu
  * de produire des bougies reconstituées.
  */
-export function getAssetOhlc(
+export async function getAssetOhlc(
   id: string,
   assetClass: AssetClass,
   days: number,
   currency = 'eur',
 ): Promise<DataResult<OhlcHistory>> {
+  /* Même plafond, même relais que pour la courbe — voir `COINGECKO_MAX_HISTORY_DAYS`.
+     Sans cela, basculer en chandeliers sur « MAX » ramenait le message d'erreur que
+     la courbe venait d'éviter. */
+  if (assetClass === 'crypto' && days > COINGECKO_MAX_HISTORY_DAYS) {
+    const deep = await deepCryptoOhlc(id, days, currency)
+    if (deep) return deep
+    days = COINGECKO_MAX_HISTORY_DAYS
+  }
+
   return run(
     assetClass,
     `${assetClass}:ohlc:${id}:${days}:${currency}`,
@@ -1213,6 +1560,29 @@ const EXTRAS_SOURCE: DataSource = {
  * précision que personne ne regarde.
  */
 const EXTRAS_TTL_SECONDS = 3_600
+
+/**
+ * Les jetons qui répliquent une action, pour UNE action donnée.
+ *
+ * ⚠️ LE CACHE PORTE SUR LE CATALOGUE, PAS SUR L'ACTION. Un seul appel sert toutes les
+ * fiches du site pendant une heure ; le rapprochement se fait ensuite en mémoire. Une
+ * clé par action multiplierait les appels par le nombre de fiches consultées, pour la
+ * même réponse à chaque fois.
+ */
+export async function getTokenizedStocks(
+  symbol: string,
+  name: string,
+): Promise<DataResult<TokenizedStock[]>> {
+  const all = await runStandalone(
+    'tokenized-stocks',
+    EXTRAS_SOURCE,
+    fetchTokenizedStocks,
+    EXTRAS_TTL_SECONDS,
+  )
+
+  if (!all.ok) return all
+  return { ...all, data: tokensForStock(all.data, symbol, name) }
+}
 
 /** Sociétés cotées détenant l'actif à leur bilan. Registre DÉCLARATIF (voir le type). */
 export function getTreasuries(coin: TreasuryCoin): Promise<DataResult<TreasuryReport>> {

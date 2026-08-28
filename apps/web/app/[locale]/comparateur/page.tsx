@@ -138,7 +138,7 @@ export default async function ComparatorPage() {
         <p className="text-sm text-ink-muted">
           {weave(
             t(
-              'Pour une lecture complète d’un actif, voir sa fiche depuis [Parcourir](/marches), ou filtrer le marché avec le [screener](/screener).',
+              'Pour une lecture complète d’un actif, voir sa fiche depuis [Parcourir](/crypto), ou filtrer le marché avec le [screener](/screener).',
             ),
             (href, label, key) => (
               <Link key={key} href={href} className="text-brand hover:underline">

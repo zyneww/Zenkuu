@@ -1,10 +1,10 @@
 import {
   Activity,
   ArrowRightLeft,
-  Bell,
-  BookOpen,
+  Banknote,
   Building2,
-  Code2,
+  CandlestickChart,
+  Coins,
   Filter,
   Gauge,
   Gem,
@@ -14,13 +14,15 @@ import {
   Grid3x3,
   Info,
   Layers,
-  LayoutGrid,
   LifeBuoy,
   LineChart,
+  Landmark,
+  TrendingUp,
   Newspaper,
   PenLine,
   Rocket,
-  Star,
+  Recycle,
+  Scale,
   Sparkles,
   Sprout,
   Trophy,
@@ -90,31 +92,122 @@ export interface NavMenu {
 
 export const NAV_MENUS: NavMenu[] = [
   /*
-   * ── « PARCOURIR » — UN BOUTON, PAS UN MENU ───────────────────────────────────
+   * ── « PARCOURIR » — UN MENU, ET DE NOUVEAU ───────────────────────────────────
    *
-   * Il s'appelait « Marchés » et déroulait onze entrées réparties en quatre sections :
-   * marchés avancés, cryptoactifs, marchés traditionnels, autres classes. Le panneau
-   * est SUPPRIMÉ, pas déplacé.
+   * Il a été trois choses : un menu « Marchés » de onze entrées, puis un BOUTON menant
+   * à `/marches` — une page unique portant les sept classes en onglets — et de nouveau
+   * un menu. L'aller-retour n'est pas une hésitation : la page intermédiaire a été
+   * supprimée, et avec elle le motif du bouton.
    *
-   * Le motif est que la page d'arrivée porte désormais les mêmes classes en onglets
-   * centrés, et qu'elle les garde à l'écran. Le panneau faisait donc choisir deux fois
-   * — une fois dans un menu qui se referme, une fois dans une barre qui reste — et le
-   * premier choix ne décidait que de l'onglet d'arrivée. Un menu dont chaque entrée
-   * mène à la même page avec un paramètre différent n'est pas un menu, c'est une barre
-   * d'onglets qui se cache.
+   * Ce motif était qu'un menu dont chaque entrée mène à la même page avec un paramètre
+   * différent n'est pas un menu, c'est une barre d'onglets qui se cache. Vrai — mais il
+   * décrivait `/marches?classe=…`, pas la structure des routes. Les six classes sont
+   * redevenues six PAGES (`/crypto`, `/actions`, `/etf`, `/indices`, `/devises`,
+   * `/matieres-premieres`) : chaque entrée mène désormais à une adresse distincte,
+   * indexable et partageable, et le menu redevient un menu.
    *
-   * « Parcourir » et non « Marchés » : le mot décrit le GESTE plutôt que l'objet, ce
-   * qui est juste pour un bouton unique — on ne choisit plus un marché dans une liste,
-   * on ouvre la surface où on les parcourt tous.
+   * ── DEUX SECTIONS, ET LA SECONDE N'EST PAS UN FOURRE-TOUT ───────────────────
    *
-   * Les sept classes ne perdent pas leur URL : `/crypto`, `/actions`, `/etf` et les
-   * autres restent des pages à part entière, indexables et partageables. Elles ne sont
-   * simplement plus énumérées dans une barre de navigation qui les redirait.
+   * La coupure est celle entre ce qu'on DÉTIENT et ce qui l'ENTOURE. À gauche, six
+   * classes d'actifs : des choses qui ont un cours et une capitalisation. À droite,
+   * ce qui n'en a pas — des contrats adossés à un actif, les places où ils se
+   * traitent, et les programmes qui retirent des jetons de la circulation.
+   *
+   * Six et quatre : le panneau s'ouvre sur deux colonnes de hauteur comparable. Une
+   * troisième section pour le seul « Buyback » aurait donné une colonne d'une ligne.
+   *
+   * ── LA STRUCTURE VIENT DE COINGECKO, PAS SON CONTENU ────────────────────────
+   *
+   * Leur menu range en groupes séparés par un filet, chaque entrée portant une icône,
+   * un intitulé et une ligne d'explication. C'est une CONVENTION de mise en forme, et
+   * on la reprend. Ce qu'on ne reprend pas, c'est leur découpage — eux séparent par
+   * type d'objet parce qu'ils vendent de la donnée et référencent des plateformes ;
+   * on sépare par nature d'instrument parce qu'on n'échange rien.
    */
   {
     label: 'Parcourir',
-    href: '/marches',
-    sections: [],
+    sections: [
+      {
+        label: 'Classes d’actifs',
+        items: [
+          {
+            label: 'Cryptomonnaies',
+            description: 'Les cryptoactifs classés par capitalisation',
+            icon: Coins,
+            href: '/crypto',
+            ready: true,
+          },
+          {
+            label: 'Actions',
+            description: 'Les titres cotés suivis par Zenkuu',
+            icon: TrendingUp,
+            href: '/actions',
+            ready: true,
+          },
+          {
+            label: 'ETF',
+            description: 'Les fonds indiciels cotés et leur variation',
+            icon: Layers,
+            href: '/etf',
+            ready: true,
+          },
+          {
+            label: 'Indices',
+            description: 'Les grands indices boursiers',
+            icon: Scale,
+            href: '/indices',
+            ready: true,
+          },
+          {
+            label: 'Devises',
+            description: 'Les paires majeures, à titre indicatif',
+            icon: Banknote,
+            href: '/devises',
+            ready: true,
+          },
+          {
+            label: 'Matières premières',
+            description: 'Énergie, métaux et produits agricoles',
+            icon: Gem,
+            href: '/matieres-premieres',
+            ready: true,
+          },
+        ],
+      },
+      {
+        label: 'Instruments et programmes',
+        items: [
+          {
+            label: 'Dérivés',
+            description: 'Contrats perpétuels, intérêt ouvert, financement',
+            icon: CandlestickChart,
+            href: '/derives',
+            ready: true,
+          },
+          {
+            label: 'Places de cotation',
+            description: 'Où les actifs changent de mains',
+            icon: Landmark,
+            href: '/places',
+            ready: true,
+          },
+          {
+            label: 'Places de dérivés',
+            description: 'Où se portent les positions à effet de levier',
+            icon: Building2,
+            href: '/perpetuels',
+            ready: true,
+          },
+          {
+            label: 'Buyback',
+            description: 'Les jetons rachetés par leur propre protocole',
+            icon: Recycle,
+            href: '/rachats',
+            ready: true,
+          },
+        ],
+      },
+    ],
   },
 
 
@@ -160,31 +253,18 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           /*
-           * UNE ENTRÉE LÀ OÙ IL Y EN AVAIT DEUX.
+           * ⚠️ « ACTIVITÉ DU MARCHÉ » A ÉTÉ RETIRÉE AVEC SES DEUX PAGES.
            *
-           * « Données de trading » et « Points marquants » figuraient côte à côte. Ce
-           * sont deux lectures du MÊME instant de marché — l'une par les volumes et
-           * l'exposition, l'autre par les extrêmes du jour — et rien dans les deux
-           * intitulés ne disait laquelle répondait à la question qu'on se pose. On les
-           * ouvrait donc l'une après l'autre pour trancher.
+           * L'entrée ouvrait `/mouvements`, qui portait une barre à deux onglets vers
+           * `/points-marquants`. Les deux pages ont été supprimées (demande explicite) :
+           * routes, disposition de groupe, barre d'onglets et filtres compris.
            *
-           * Elles deviennent deux onglets d'une même page. Le menu porte la question
-           * (« que fait le marché en ce moment ? »), la page porte le choix de l'angle.
+           * Rien n'est ajouté à leur place ici : « Classements », juste au-dessus,
+           * porte les mêmes palmarès, et la heatmap du menu « Analyse » porte la
+           * lecture d'ensemble. Une entrée de menu vers une page qui n'existe plus
+           * serait un lien mort ; une entrée de remplaçement vers une page déjà
+           * listée serait un doublon.
            */
-          {
-            label: 'Activité du marché',
-            description: 'Volumes et exposition, ou extrêmes du jour',
-            icon: Activity,
-            /*
-             * Pointe sur `/mouvements`, qui EXISTE et porte désormais la barre
-             * à deux onglets. Créer `/crypto/activite` aurait été plus joli au regard
-             * du libellé, et aurait coûté deux redirections, douze liens à réécrire et
-             * deux entrées de sitemap déjà indexées — pour une adresse que personne ne
-             * lit. Le libellé du menu nomme la PAIRE, la barre d'onglets nomme la vue.
-             */
-            href: '/mouvements',
-            ready: true,
-          },
         ],
       },
       {
@@ -380,45 +460,19 @@ export const NAV_MENUS: NavMenu[] = [
       {
         label: 'Ressources',
         items: [
-          {
-            // Remplace le « En savoir plus » initial, trop vague pour une entrée de
-            // menu. Sur un site de données financières, la question que se pose
-            // réellement le lecteur est « d'où viennent ces chiffres ? » — et y
-            // répondre sert directement notre règle « zéro donnée inventée » (§5).
-            label: 'Méthodologie & sources',
-            description: 'D’où viennent nos chiffres, et à quelle fréquence',
-            icon: BookOpen,
-            href: '/methodologie',
-            ready: true,
-          },
-          {
-            label: 'API & développeurs',
-            description: 'Accéder aux données par programme',
-            icon: Code2,
-            href: '/developpeurs',
-            ready: true,
-          },
           /*
-           * WIDGETS — page ORPHELINE, au sens strict.
+           * ⚠️ TROIS ENTRÉES ONT DISPARU D'ICI AVEC LEURS PAGES.
            *
-           * `/widgets` était en service et traduite dans les onze fichiers SEO, mais
-           * relevé sur l'ensemble du dépôt : ZÉRO lien entrant. Aucun menu, aucune
-           * page, aucun pied de page n'y menait. Elle n'était atteignable qu'en
-           * tapant son adresse, ou depuis un moteur de recherche.
+           * « Méthodologie & sources » (`/methodologie`), « API & développeurs »
+           * (`/developpeurs`) et « Widgets de marché » (`/widgets`) ont été
+           * supprimées du site sur demande explicite : routes, entrées de plan de
+           * site, traductions SEO et liens entrants compris.
            *
-           * Sa place est ici et non dans « Données » : un bandeau de cotations à
-           * coller sur un autre site n'est pas une mesure du marché, c'est un moyen
-           * de le republier — le même registre que la méthodologie et l'API, qui
-           * s'adressent aussi à quelqu'un qui construit quelque chose avec nos
-           * chiffres plutôt qu'à quelqu'un qui les consulte.
+           * Il ne reste donc dans « Ressources » que le centre d'aide, qui répond aux
+           * questions d'usage. La colonne n'est pas fusionnée avec sa voisine : elle
+           * garde son titre parce qu'elle garde sa nature — ce à quoi on s'adresse
+           * quand on cherche de l'aide, et non ce qu'on vient consulter.
            */
-          {
-            label: 'Widgets de marché',
-            description: 'Bandeau, convertisseur ou classement à intégrer',
-            icon: LayoutGrid,
-            href: '/widgets',
-            ready: true,
-          },
           {
             label: 'Centre d’aide',
             description: 'Questions fréquentes et assistance',
@@ -431,41 +485,25 @@ export const NAV_MENUS: NavMenu[] = [
       {
         label: 'ZENKUU',
         items: [
-          {
-            label: 'Ma liste de suivi',
-            description: 'Les actifs rattachés à votre compte',
-            icon: Star,
-            href: '/suivi',
-            ready: true,
-          },
-          {
-            label: 'Mes alertes',
-            description: 'Un courriel au franchissement d’un seuil de prix',
-            icon: Bell,
-            href: '/alertes',
-            ready: true,
-          },
-          {
-            /*
-             * L'ENTRÉE « ZENKUU PRO » A DISPARU AVEC L'OFFRE.
-             *
-             * Elle vivait ici plutôt que dans un bouton du bandeau haut, au motif que le
-             * site se vend d'abord par son contenu gratuit (§1) et qu'un appel à
-             * l'abonnement planté dans l'en-tête contredirait cette promesse à chaque
-             * chargement.
-             *
-             * Le raisonnement n'a pas été démenti : il est devenu sans objet. La
-             * facturation était adossée au fournisseur d'identité tiers, retiré du site,
-             * et il n'existe plus qu'un seul jeu de plafonds pour tout le monde
-             * (`lib/limits.ts`). Ce qui reste ici est la seule chose que le compte
-             * apporte encore, et elle n'est pas commerciale.
-             */
-            label: 'Mon compte',
-            description: 'Liste de suivi, alertes et écrans, retrouvés partout',
-            icon: Gem,
-            href: '/parametres?rubrique=compte',
-            ready: true,
-          },
+          /*
+           * ⚠️ TROIS ENTRÉES ONT DISPARU DU HAUT DE CETTE COLONNE.
+           *
+           * « Ma liste de suivi » (`/suivi`), « Mes alertes » (`/alertes`) et
+           * « Mon compte » (`/parametres?rubrique=compte`) ont été retirées du menu
+           * sur demande explicite.
+           *
+           * Les deux premières pages n'existent plus : `/alertes` était déjà partie
+           * avec le système d'alertes, `/suivi` a été supprimée ici même. La liste
+           * des actifs suivis reste consultable — `/tableau-de-bord` en porte une
+           * section, et c'est là que pointent désormais l'étoile de suivi et le menu
+           * de compte.
+           *
+           * ⚠️ `/parametres` N'A PAS ÉTÉ SUPPRIMÉE, et il ne faut pas le faire par
+           * symétrie : elle porte les réglages d'affichage du site — thème, langue,
+           * devise, largeur — et pas seulement la rubrique « compte » que cette
+           * entrée visait. Seule l'entrée de menu est partie ; la page reste
+           * atteignable par la roue dentée de l'en-tête.
+           */
           {
             label: 'Pourquoi ZENKUU',
             description: 'Nos partis pris, et ce qu’on refuse de faire',

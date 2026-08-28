@@ -1,9 +1,11 @@
 import type { AssetClass } from '@zenkuu/data'
-import { getRanking, YAHOO_UNIVERSE } from '@zenkuu/data'
+import { getCryptoGlobalStats, getRanking, YAHOO_UNIVERSE } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
+import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { AssetClassTabs } from '@/components/market/AssetClassTabs'
 import { MarketBrowser } from '@/components/market/MarketBrowser'
+import { MarketFaq } from '@/components/market/MarketFaq'
 import { MarketHighlights } from '@/components/market/MarketHighlights'
 import { MarketStatsStrip } from '@/components/market/MarketStatsStrip'
 import type { MarketSort, SortDirection } from '@/components/market/MarketTable'
@@ -108,6 +110,30 @@ export interface MarketPageViewProps {
   tabs?: React.ReactNode | null
   /** Inséré entre les onglets et le bandeau de points saillants. */
   children?: React.ReactNode
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA MISE EN PAGE DE CATALOGUE — CE QUE LES SIX PAGES DE CLASSE DEMANDENT
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Relevée sur `cryptorank.io/all-coins-list`. Elle change quatre choses à la page
+   * ordinaire, et chacune répond à un point de la référence :
+   *
+   *   · les CHIFFRES GLOBAUX sous le titre — capitalisation, volume, dominances,
+   *     nombre d'actifs. Réservés à la crypto : c'est la seule classe dont une
+   *     source publie un agrégat de marché. Voir plus bas.
+   *   · la GRILLE DE COLONNES `catalogue` — capitalisation avant volume, offre en
+   *     circulation, courbe en fin de ligne.
+   *   · la RANGÉE D'OUTILS complète — champ de filtre et fourchettes.
+   *   · la FAQ de bas de page.
+   *
+   * ⚠️ ELLE N'EST PAS LE DÉFAUT, et ce n'est pas une hésitation. `/classements` et
+   * `/derives` passent par ce même composant : leur donner la grille de catalogue
+   * changerait deux pages que personne n'a demandé de changer, et la FAQ y répondrait
+   * à des questions qu'elles ne posent pas. Le drapeau est donc porté par
+   * `ClassMarketPage`, c'est-à-dire par les six routes concernées et elles seules.
+   */
+  catalogue?: boolean
 }
 
 /** Lecture défensive des paramètres d'URL : ils sont saisissables à la main. */
@@ -127,6 +153,7 @@ export async function MarketPageView({
   classHref,
   tabs,
   children,
+  catalogue = false,
 }: MarketPageViewProps) {
   const fr = await getContent()
   const t = await getPhrase()
@@ -165,7 +192,26 @@ export async function MarketPageView({
    * classement chez un fournisseur distant. Les enchaîner ferait attendre l'un pour
    * l'autre sans qu'aucun ne dépende du résultat du premier.
    */
-  const [ranking, watchlist] = await Promise.all([
+  /*
+   * ── LES CHIFFRES GLOBAUX NE SONT DEMANDÉS QUE LÀ OÙ ILS EXISTENT ──────────
+   *
+   * La référence ouvre sur six chiffres : nombre de devises, capitalisation, volume
+   * 24 h, dominances Bitcoin et Ether, prix du gaz Ethereum. Les cinq premiers sont
+   * publiés par notre agrégat crypto — c'est exactement ce que `GlobalStatsBar` rend
+   * déjà sur l'accueil, et le réutiliser garantit que les deux pages ne peuvent pas
+   * afficher deux capitalisations différentes.
+   *
+   * ⚠️ LE PRIX DU GAZ MANQUE, et il manquera tant qu'aucune source ne le publie : rien
+   * dans `packages/data` n'interroge de nœud Ethereum. Le sixième chiffre est donc
+   * absent plutôt qu'estimé (§5).
+   *
+   * Les cinq autres classes n'ont pas d'équivalent — Yahoo ne publie pas d'agrégat de
+   * marché pour les actions ou les devises — et gardent la bande calculée sur les
+   * lignes reçues, qui est leur seul repère honnête.
+   */
+  const wantsGlobals = catalogue && assetClass === 'crypto'
+
+  const [ranking, watchlist, globals] = await Promise.all([
     getRanking({
       assetClass,
       page,
@@ -175,7 +221,31 @@ export async function MarketPageView({
       currency: 'eur',
     }),
     getWatchlistIds(assetClass),
+    wantsGlobals ? getCryptoGlobalStats('eur') : Promise.resolve(null),
   ])
+
+  /*
+   * ── LA PORTÉE DE LA BANDE CALCULÉE, DÉCIDÉE AVANT LE RENDU ────────────────
+   *
+   * `null` quand les chiffres globaux la remplacent — voir plus bas. Sinon une PHRASE
+   * complète avec un emplacement nommé, et non un fragment concaténé : le nombre se
+   * place où la grammaire de chaque langue l'exige, ce qu'une chaîne coupée en deux
+   * autour de la variable interdit.
+   *
+   * Trois portées et non deux, depuis que la crypto reçoit tout son lot d'un coup :
+   * elle n'est ni « cette page » (le tableau en découpe 250 en dix) ni « tous les
+   * actifs suivis » (le catalogue en compte des milliers). `assetClass` tranche, parce
+   * que la portée dépend de ce que la SOURCE sait servir, pas du mode de pagination
+   * du tableau.
+   */
+  const scope = globals?.ok
+    ? null
+    : (config.paginated
+        ? t('les {n} actifs de cette page')
+        : assetClass === 'crypto'
+          ? t('les {n} plus grandes capitalisations')
+          : t('les {n} actifs suivis dans cette classe')
+      ).replace('{n}', String(ranking.ok ? ranking.data.length : 0))
 
   return (
     <div className="space-y-5">
@@ -183,6 +253,12 @@ export async function MarketPageView({
         <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{subtitle}</p>
       </header>
+
+      {/* Les chiffres globaux se posent SOUS le titre et AU-DESSUS des onglets de
+          classe, comme sur la référence : ils qualifient le marché, pas la classe
+          qu'on est en train de lire. Placés après les onglets, ils se liraient comme
+          une propriété de la classe active — ce qu'ils ne sont pas. */}
+      {globals?.ok ? <GlobalStatsBar stats={globals.data} /> : null}
 
       {/* Navigation inter-classes : le passage de /crypto à /actions ne devrait pas
           imposer un détour par le menu de l'en-tête. */}
@@ -201,23 +277,18 @@ export async function MarketPageView({
               lecteur vient dans cet ordre. */}
           <MarketHighlights assets={ranking.data} assetClass={assetClass} />
 
-          <MarketStatsStrip
-            assets={ranking.data}
-            /* LA PORTÉE EST UNE PHRASE, pas un fragment concaténé : le nombre y
-               occupe un emplacement nommé, ce qui laisse chaque langue le placer où
-               sa grammaire l'exige. */
-            /* Trois portées et non deux, depuis que la crypto reçoit tout son lot
-               d'un coup : elle n'est ni « cette page » (le tableau en découpe 250 en
-               dix) ni « tous les actifs suivis » (le catalogue en compte des
-               milliers). `assetClass` tranche, parce que la portée dépend de ce que
-               la SOURCE sait servir, pas du mode de pagination du tableau. */
-            scopeLabel={(config.paginated
-              ? t('les {n} actifs de cette page')
-              : assetClass === 'crypto'
-                ? t('les {n} plus grandes capitalisations')
-                : t('les {n} actifs suivis dans cette classe')
-            ).replace('{n}', String(ranking.data.length))}
-          />
+          {/* La bande calculée s'efface quand les chiffres globaux sont là : deux
+              rangées d'agrégats l'une sous l'autre, dont la seconde ne porte que sur
+              les lignes reçues, feraient douter de la première. Elle reste partout
+              ailleurs, où elle est le seul repère disponible.
+
+              ⚠️ LE TERNAIRE EST DANS `scope`, PAS AUTOUR DE LA BALISE. Enrouler la
+              balise dans un conteneur d'expression obligeait à garder, en position
+              d'attribut, deux commentaires de bloc que SWC refuse à cet endroit alors
+              que `tsc` les accepte — et l'erreur rendue désignait la balise SUIVANTE,
+              donc jamais sa cause. Décider la portée avant le rendu supprime
+              l'imbrication et la question avec elle. */}
+          {scope === null ? null : <MarketStatsStrip assets={ranking.data} scopeLabel={scope} />}
 
           <MarketBrowser
             assets={ranking.data}
@@ -230,8 +301,24 @@ export async function MarketPageView({
             paginated={config.paginated}
             basePath={listPath}
             watchlist={watchlist}
-            {...(config.clientPerPage ? { clientPerPage: config.clientPerPage } : {})}
+            {...(config.clientPerPage
+              ? {
+                  /*
+                    CENT LIGNES PAR DÉFAUT SUR LES PAGES DE CATALOGUE, contre
+                    vingt-cinq ailleurs. C'est le cran de la référence — « Rows : 100 »
+                    — et il se justifie ici et pas ailleurs : ces pages EXISTENT pour
+                    parcourir un catalogue, et vingt-cinq lignes imposent dix clics
+                    pour traverser ce qu'une seule réponse a déjà servi. Le lecteur
+                    garde la main : le sélecteur du pied de tableau propose les autres
+                    crans.
+                  */
+                  clientPerPage: catalogue ? 100 : config.clientPerPage,
+                }
+              : {})}
             {...(universeTotal !== undefined ? { total: universeTotal } : {})}
+            {...(catalogue
+              ? { columnSet: 'catalogue' as const, searchable: true, rangeFilters: true }
+              : {})}
           />
 
           <SourceNote
@@ -240,6 +327,10 @@ export async function MarketPageView({
             href={ranking.source.attributionUrl}
             updatedAt={ranking.data[0]?.lastUpdated}
           />
+
+          {/* La FAQ ferme la page, APRÈS la note de source : elle commente le tableau
+              et la façon dont il est bâti, ce qui suppose d'avoir vu les deux. */}
+          {catalogue ? <MarketFaq assetClass={assetClass} /> : null}
         </>
       ) : (
         <EmptyState

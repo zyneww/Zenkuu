@@ -309,18 +309,43 @@ const http = createHttpClient({
  * change de forme au point de casser ces expressions, l'article est simplement
  * ignoré — jamais rendu à moitié.
  */
-function extractTag(xml: string, tag: string): string | undefined {
+/**
+ * Retire les balises d'un fragment de flux, et normalise les blancs qu'elles laissent.
+ *
+ * ⚠️ ELLE EST APPELÉE DEUX FOIS, AVANT ET APRÈS LE DÉCODAGE DES ENTITÉS, et c'est
+ * la correction d'un défaut visible en page.
+ *
+ * Certains éditeurs — relevé chez ETF Database et Seeking Alpha — publient une
+ * description dont le balisage est lui-même ÉCHAPPÉ : le flux contient
+ * `&lt;link href="…" /&gt;` et non `<link href="…" />`. Le premier passage ne voit
+ * donc aucune balise à retirer, et c'est `decodeEntities` qui la fabrique juste
+ * après. Résultat à l'écran, sur les cartes de `/actualites` : des extraits
+ * commençant par « <link typ href="htt… />Portag » et « <p>During the trading
+ * week… ».
+ *
+ * Repasser après le décodage règle le cas sans toucher au reste : un fragment sans
+ * balise traverse la fonction inchangé.
+ */
+function stripMarkup(value: string): string {
+  return value
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/* Exportée pour le test `news-excerpt.test.ts` UNIQUEMENT — elle ne figure pas dans
+   `index.ts` et ne fait donc pas partie de l'API du paquet. Le nettoyage qu'elle porte
+   est la seule chose qui sépare un extrait lisible d'un extrait rempli de balises :
+   il mérite une vérification qui ne dépende pas d'un appel réseau. */
+export function extractTag(xml: string, tag: string): string | undefined {
   const match = xml.match(
     new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, 'i'),
   )
   if (!match?.[1]) return undefined
 
-  return decodeEntities(
-    match[1]
-      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-      .replace(/<[^>]+>/g, '')
-      .trim(),
-  )
+  const withoutCdata = match[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+
+  return stripMarkup(decodeEntities(stripMarkup(withoutCdata)))
 }
 
 /**

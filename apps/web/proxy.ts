@@ -65,8 +65,64 @@ function isUnlocalized(pathname: string): boolean {
   )
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA LANGUE CHOISIE EST HONORÉE SUR LES ADRESSES SANS PRÉFIXE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * `localePrefix: 'as-needed'` sert le français sur `/crypto/bitcoin` et l'anglais sur
+ * `/en/crypto/bitcoin`. Un lecteur passé en anglais qui revenait par son signet — donc
+ * sur une adresse sans préfixe — retombait en français : la décision de langue se prend
+ * avant tout JavaScript, et rien dans la requête ne la portait.
+ *
+ * Le cookie `NEXT_LOCALE`, écrit par le sélecteur (voir `useLanguageChoice`), la
+ * porte. On redirige donc vers la variante préfixée quand TROIS conditions sont
+ * réunies — et chacune écarte un cas où la redirection serait nuisible :
+ *
+ *   1. LE COOKIE EXISTE ET DÉSIGNE UNE LANGUE TRADUITE. Sans cookie, rien ne change :
+ *      un robot d'indexation n'en a pas, il continue de voir le français sur les
+ *      adresses sans préfixe, et le classement acquis ne bouge pas.
+ *   2. L'ADRESSE N'A PAS DÉJÀ DE PRÉFIXE. `/en/…` est un choix explicite, plus fort
+ *      que le cookie : le suivre ferait boucler un lien anglais partagé par quelqu'un
+ *      dont le cookie dit « fr ».
+ *   3. C'EST UNE NAVIGATION DE DOCUMENT (`Sec-Fetch-Dest: document`). Les requêtes de
+ *      données de Next.js — la navigation côté client, le préchargement — portent le
+ *      même cookie ; les rediriger ferait répondre du HTML là où du RSC est attendu.
+ *
+ * ⚠️ REDIRECTION TEMPORAIRE (307) ET NON PERMANENTE. Une 308 serait mise en cache par
+ * le navigateur pour l'adresse elle-même : le jour où le lecteur repasse au français,
+ * son propre navigateur continuerait de le renvoyer vers `/en`.
+ */
+const LOCALE_COOKIE = 'NEXT_LOCALE'
+
+function preferredLocale(request: NextRequest): string | null {
+  const cookie = request.cookies.get(LOCALE_COOKIE)?.value
+  if (!cookie || cookie === routing.defaultLocale) return null
+  return (routing.locales as readonly string[]).includes(cookie) ? cookie : null
+}
+
+function hasLocalePrefix(pathname: string): boolean {
+  return (routing.locales as readonly string[]).some(
+    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
+  )
+}
+
 export function proxy(request: NextRequest): NextResponse {
-  if (isUnlocalized(request.nextUrl.pathname)) return NextResponse.next()
+  const { pathname } = request.nextUrl
+  if (isUnlocalized(pathname)) return NextResponse.next()
+
+  if (
+    request.headers.get('sec-fetch-dest') === 'document' &&
+    !hasLocalePrefix(pathname)
+  ) {
+    const preferred = preferredLocale(request)
+    if (preferred) {
+      const target = request.nextUrl.clone()
+      target.pathname = `/${preferred}${pathname === '/' ? '' : pathname}`
+      return NextResponse.redirect(target, 307)
+    }
+  }
+
   return intlMiddleware(request)
 }
 

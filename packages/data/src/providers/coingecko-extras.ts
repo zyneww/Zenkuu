@@ -71,9 +71,24 @@ interface RawTreasury {
   }[]
 }
 
-/** Les deux seuls actifs pour lesquels la source publie un registre. */
+/**
+ * Les deux actifs dont la page « Graphiques » publie le registre.
+ *
+ * ⚠️ CE N'EST PLUS LA LISTE DES ACTIFS COUVERTS, ET LE TYPE LE DISAIT À TORT.
+ *
+ * `TreasuryCoin` valait `'bitcoin' | 'ethereum'`, au motif que l'endpoint gratuit ne
+ * servait que ces deux-là. Vérifié à la source le 24 août 2026 :
+ * `/companies/public_treasury/hyperliquid` répond 200 avec dix-neuf millions de jetons
+ * répartis sur quatre sociétés. La borne était donc une supposition, et elle privait
+ * toutes les autres fiches d'une donnée réellement publiée.
+ *
+ * Cette liste reste — c'est la sélection ÉDITORIALE de `/graphiques`, qui compare deux
+ * registres côte à côte — mais elle ne contraint plus le type : un identifiant sans
+ * registre lève, et l'appelant affiche alors sa section vide, comme pour tout autre
+ * champ absent.
+ */
 export const TREASURY_COINS = ['bitcoin', 'ethereum'] as const
-export type TreasuryCoin = (typeof TREASURY_COINS)[number]
+export type TreasuryCoin = string
 
 /**
  * Sociétés cotées détenant l'actif à leur bilan.
@@ -240,4 +255,147 @@ export async function fetchNftCollection(id: string): Promise<NftCollection> {
   if (raw.links?.homepage?.startsWith('http')) collection.homepage = raw.links.homepage
 
   return collection
+}
+
+/* ── ACTIONS TOKENISÉES ──────────────────────────────────────────────────────── */
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES JETONS QUI RÉPLIQUENT UNE ACTION
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE C'EST ─────────────────────────────────────────────────────────────
+ *
+ * Des jetons adossés à une action cotée : NVIDIA existe en NVDAX chez Backed, NVDAON
+ * chez Ondo, NVDAB chez bStocks, NVDA chez Robinhood Europe. Chacun a son cours, sa
+ * capitalisation et ses places d'échange propres, et TOUS suivent la même action —
+ * l'écart entre leur cours et celui de l'action est ce qui rend la table lisible.
+ *
+ * ── UN SEUL APPEL POUR TOUT LE SITE, ET C'EST LA CONDITION ───────────────────
+ *
+ * La catégorie `tokenized-stock` de CoinGecko rend jusqu'à 250 jetons dans UNE réponse.
+ * On la charge en entier, on la met en cache une heure, et chaque fiche d'action y
+ * cherche les siens. L'alternative — une recherche par action — coûterait un appel par
+ * fiche sur un quota mesuré à huit par minute.
+ *
+ * ⚠️ LA RÉPONSE NE PORTE PAS LA CHAÎNE DU JETON. `/coins/markets` ne publie pas
+ * `platforms` ; l'obtenir demanderait `/coins/{id}` par jeton, soit six appels pour une
+ * seule fiche. La colonne « chaîne » est donc absente de la table, et c'est un manque
+ * assumé plutôt qu'une chaîne devinée d'après le nom de l'émetteur (§5).
+ */
+export interface TokenizedStock {
+  /** Identifiant CoinGecko du JETON, pas de l'action. */
+  id: string
+  symbol: string
+  name: string
+  image?: string
+  /** Émetteur, lu dans le nom que la source publie — voir `ISSUERS`. */
+  issuer?: string
+  priceUsd?: number
+  marketCapUsd?: number
+  volume24hUsd?: number
+}
+
+/**
+ * Émetteurs reconnus au NOM du jeton, tel que la source l'écrit.
+ *
+ * ⚠️ CE N'EST PAS UNE DÉDUCTION, C'EST UNE LECTURE. CoinGecko nomme ses jetons
+ * « NVIDIA (Ondo Tokenized Stock) », « NVIDIA xStock », « NVIDIA • Robinhood Token » :
+ * l'émetteur est écrit dans le libellé, ce motif ne fait que l'en extraire. Un nom qui
+ * ne correspond à aucune entrée laisse le champ vide plutôt que de proposer un
+ * émetteur plausible.
+ *
+ * L'ORDRE COMPTE : « Wrapped … xStock » doit tomber sur la même entrée que « … xStock »,
+ * et les motifs les plus spécifiques passent donc d'abord.
+ */
+const ISSUERS: [RegExp, string][] = [
+  [/\bOndo\b/i, 'Ondo Finance'],
+  [/\bbStocks?\b/i, 'bStocks'],
+  [/\bRobinhood\b/i, 'Robinhood'],
+  [/\bDinari\b/i, 'Dinari'],
+  [/\bRemora\b/i, 'Remora Markets'],
+  [/\bBackpack\b/i, 'Backpack'],
+  [/\bxStock\b/i, 'Backed Finance'],
+]
+
+function issuerOf(name: string): string | undefined {
+  return ISSUERS.find(([pattern]) => pattern.test(name))?.[1]
+}
+
+/** Réponse brute de `/coins/markets`, réduite aux champs que cette table affiche. */
+interface RawTokenizedStock {
+  id?: string
+  symbol?: string
+  name?: string
+  image?: string | null
+  current_price?: number | null
+  market_cap?: number | null
+  total_volume?: number | null
+}
+
+/** Le catalogue entier des actions tokenisées, en dollars. Un appel, une heure de cache. */
+export async function fetchTokenizedStocks(): Promise<TokenizedStock[]> {
+  const rows = await http.getJson<RawTokenizedStock[]>('/coins/markets', {
+    vs_currency: 'usd',
+    category: 'tokenized-stock',
+    order: 'market_cap_desc',
+    per_page: '250',
+    page: '1',
+  })
+
+  if (!Array.isArray(rows)) {
+    throw new ProviderError('coingecko-extras', 'Format des actions tokenisées inattendu')
+  }
+
+  return rows.flatMap((row) => {
+    if (!row.id || !row.symbol || !row.name) return []
+
+    const token: TokenizedStock = { id: row.id, symbol: row.symbol, name: row.name }
+    if (row.image) token.image = row.image
+    const issuer = issuerOf(row.name)
+    if (issuer) token.issuer = issuer
+    if ((row.current_price ?? 0) > 0) token.priceUsd = row.current_price as number
+    if ((row.market_cap ?? 0) > 0) token.marketCapUsd = row.market_cap as number
+    if (typeof row.total_volume === 'number') token.volume24hUsd = row.total_volume
+
+    return [token]
+  })
+}
+
+/**
+ * Les jetons qui répliquent UNE action donnée.
+ *
+ * ── LE RAPPROCHEMENT SE FAIT SUR DEUX SIGNAUX, ET IL EN FAUT DEUX ────────────
+ *
+ * Le SYMBOLE d'abord : les jetons suffixent celui de l'action d'une ou deux lettres
+ * propres à leur émetteur — `NVDA` donne `NVDAX`, `NVDAON`, `NVDAB`, `NVDAC`, et
+ * `WNVDAX` pour la version enveloppée. Le préfixe `W` est retiré avant comparaison.
+ *
+ * Le NOM ensuite : les trois premières lettres du nom de l'action doivent ouvrir celui
+ * du jeton. Ce second signal n'est pas une ceinture de sécurité décorative — sur le seul
+ * symbole, une action à trois lettres attraperait des jetons sans rapport dès qu'un
+ * émetteur choisit deux lettres de suffixe.
+ *
+ * ⚠️ AUCUN RAPPROCHEMENT N'EST PARFAIT ICI : la source ne publie pas le lien entre un
+ * jeton et son sous-jacent. C'est une HEURISTIQUE, et sa marge est bornée par les deux
+ * conditions ci-dessus ; le jour où CoinGecko exposera le lien, ce sont ces vingt lignes
+ * qui disparaîtront.
+ */
+export function tokensForStock(
+  tokens: readonly TokenizedStock[],
+  symbol: string,
+  name: string,
+): TokenizedStock[] {
+  const ticker = symbol.trim().toUpperCase()
+  const needle = name.trim().toLowerCase().slice(0, 3)
+  if (ticker.length < 2 || needle.length < 3) return []
+
+  return tokens
+    .filter((token) => {
+      const candidate = token.symbol.toUpperCase().replace(/^W(?=[A-Z]{3})/, '')
+      if (!candidate.startsWith(ticker)) return false
+      if (candidate.length - ticker.length > 2) return false
+      return token.name.trim().toLowerCase().startsWith(needle)
+    })
+    .sort((a, b) => (b.marketCapUsd ?? 0) - (a.marketCapUsd ?? 0))
 }

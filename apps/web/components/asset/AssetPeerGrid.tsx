@@ -5,6 +5,7 @@ import { ChangeBadge, Sparkline, formatCompact, formatCurrency, formatRate } fro
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { assetHref } from '@/lib/asset-routes'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Comparables, en cartes plutôt qu'en liste.
@@ -29,7 +30,8 @@ import { assetHref } from '@/lib/asset-routes'
  * les comparables sont dérivés. Absent, la carte se contente de ses chiffres. Jamais
  * de ligne plate de remplacement, qui ferait lire une semaine sans mouvement.
  */
-export function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
+export async function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
+  const t = await getPhrase()
   if (peers.length === 0) return null
 
   return (
@@ -77,7 +79,7 @@ export function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
 
             {peer.marketCap !== undefined ? (
               <p className="tabular border-t border-border-subtle pt-2 text-[0.6875rem] text-ink-muted">
-                Capitalisation {formatCompact(peer.marketCap)} {peer.currency}
+                {t('Capitalisation')} {formatCompact(peer.marketCap)} {peer.currency}
               </p>
             ) : null}
           </Link>

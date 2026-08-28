@@ -2,10 +2,6 @@ import type { SeoDescriptions } from '@/content/seo'
 
 /** 页面描述 — 简体中文。参见 `content/seo.ts`。 */
 export const zhSeo: SeoDescriptions = {
-  '/mouvements':
-    '加密市场的宏观视图、现货平台、衍生品与涨跌榜：市值、占比、各平台成交额、未平仓合约、资金费率、涨幅与跌幅居前者。',
-  '/points-marquants':
-    '今日加密市场的动向：热门趋势、涨幅与跌幅居前者、成交额最高者、领涨板块与最新上线。',
   '/a-propos':
     'ZENKUU 是一个只读的多资产市场分析平台：既不是券商，也不是交易所，更不是投资顾问。',
   '/aide':
@@ -21,16 +17,12 @@ export const zhSeo: SeoDescriptions = {
     '在所有资产类别中比较二至六项资产——加密货币、股票、ETF、指数、大宗商品、外汇：走势归至同一基准，再看分开它们的数字。',
   '/convertisseur':
     '按最新收到的价格，在加密货币、股票、ETF、指数或大宗商品与五种货币之间换算金额。',
-  '/developpeurs':
-    'ZENKUU 的内部路由、所用的公开数据源，以及公开 API 的真实进展。',
   '/heatmap':
     '一张图看懂加密市场，按币种或按板块：面积表示市值，颜色表示涨跌。',
   '/macro':
     '通胀、失业、增长、政府债务与实际利率，逐国呈现，依据世界银行的统计序列。',
-  '/marches':
+  '/crypto':
     'Zenkuu 跟踪的七个市场汇于一页：加密货币、衍生品、ETF、股票、指数、外汇与大宗商品。',
-  '/methodologie':
-    'ZENKUU 上的数字从何而来、多久更新一次，以及哪些内容因缺乏可靠来源而选择不予展示。',
   '/nouveautes': 'ZENKUU 更新日志：已交付的功能、新增的数据源与已知的限制。',
   '/nouvelles-cotations':
     '最近上线的加密货币：价格、市值、成交额，以及已知最早的价格记录日期。',
@@ -40,5 +32,4 @@ export const zhSeo: SeoDescriptions = {
     '按信任评分排序的前一百家现货交易平台：申报的 24 小时成交额、所示成交额占比、所在国家。ZENKUU 不收录任何订单簿，也不提供任何交易。',
   '/pourquoi-zenkuu':
     '多资产、免费、只读且绝不编造数据：这些取舍让 ZENKUU 区别于现有的市场追踪平台。',
-  '/widgets': '行情条、换算器与紧凑榜单——ZENKUU 原生小组件，可嵌入第三方页面。',
 }

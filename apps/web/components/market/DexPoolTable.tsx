@@ -127,7 +127,7 @@ export function DexPoolTable({
             <tr key={pool.id} className="transition-colors hover:bg-surface-muted">
               <td className="px-3 py-2">
                 <Link
-                  href={`/marches/pool/${pool.network}/${pool.address}`}
+                  href={`/pool/${pool.network}/${pool.address}`}
                   className="group block min-w-0"
                 >
                   <span className="block truncate font-medium text-ink group-hover:text-brand-strong">

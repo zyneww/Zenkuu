@@ -2,10 +2,6 @@ import type { SeoDescriptions } from '@/content/seo'
 
 /** Seitenbeschreibungen — Deutsch. Siehe `content/seo.ts`. */
 export const deSeo: SeoDescriptions = {
-  '/mouvements':
-    'Makrosicht, Spot-Handelsplätze, Derivate und Veränderungsranglisten des Kryptomarkts: Marktkapitalisierung, Dominanz, Volumen je Plattform, offene Positionen, Finanzierungsraten, größte Gewinner und Verlierer.',
-  '/points-marquants':
-    'Was sich heute am Kryptomarkt bewegt: Trends, größte Gewinner und Verlierer, höchste Volumen, führende Sektoren und jüngste Notierungen.',
   '/a-propos':
     'ZENKUU ist eine Multi-Asset-Plattform zur Marktanalyse, rein lesend: kein Broker, keine Handelsplattform, kein Anlageberater.',
   '/aide':
@@ -22,16 +18,12 @@ export const deSeo: SeoDescriptions = {
     'Zwei bis sechs Werte aller Klassen vergleichen — Kryptowährungen, Aktien, ETFs, Indizes, Rohstoffe, Devisen: Verläufe auf eine gemeinsame Basis gebracht, dann die Zahlen, die sie trennen.',
   '/convertisseur':
     'Einen Betrag zwischen einer Kryptowährung, einer Aktie, einem ETF, einem Index oder einem Rohstoff und fünf Währungen umrechnen, zum zuletzt empfangenen Kurs.',
-  '/developpeurs':
-    'Die internen Routen von ZENKUU, die genutzten öffentlichen Datenquellen und der tatsächliche Stand einer öffentlichen ZENKUU-API.',
   '/heatmap':
     'Der Kryptomarkt in einer einzigen Grafik, nach Coin oder nach Sektor: die Fläche trägt die Marktkapitalisierung, die Farbe trägt die Veränderung.',
   '/macro':
     'Inflation, Arbeitslosigkeit, Wachstum, Staatsverschuldung und reale Zinsen, Land für Land, nach den Reihen der Weltbank.',
-  '/marches':
+  '/crypto':
     'Die sieben von Zenkuu verfolgten Märkte auf einer einzigen Seite: Kryptowährungen, Derivate, ETFs, Aktien, Indizes, Devisen und Rohstoffe.',
-  '/methodologie':
-    'Woher die auf ZENKUU angezeigten Zahlen stammen, wie oft sie aktualisiert werden und was wir mangels verlässlicher Quelle bewusst nicht anzeigen.',
   '/nouveautes':
     'Änderungsprotokoll von ZENKUU: ausgelieferte Funktionen, ergänzte Datenquellen und bekannte Grenzen.',
   '/nouvelles-cotations':
@@ -42,6 +34,4 @@ export const deSeo: SeoDescriptions = {
     'Die hundert größten Spot-Handelsplätze nach Vertrauensnote sortiert: gemeldetes Volumen über 24 Stunden, Anteil am angezeigten Volumen, Land. ZENKUU führt kein Orderbuch und ermöglicht keine Transaktion.',
   '/pourquoi-zenkuu':
     'Multi-Asset, kostenlos, rein lesend und ohne erfundene Daten: die Entscheidungen, die ZENKUU von bestehenden Markt-Trackern unterscheiden.',
-  '/widgets':
-    'Kursband, Umrechner und kompakte Rangliste — native ZENKUU-Widgets, einbindbar in eine fremde Seite.',
 }

@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
  *
  * ── CE QUI A ÉTÉ SUPPRIMÉ, ET POURQUOI ÇA CHANGE CE FICHIER ───────────────────
  *
- * Les listes de suivi, les alertes et les écrans de screener étaient rattachés à un
+ * Les listes de suivi et les écrans de screener étaient rattachés à un
  * COMPTE, tenu par un fournisseur d'authentification tiers. Ce fournisseur a été
  * retiré du site : plus d'inscription, plus de connexion, plus d'abonnement, plus de
  * page de compte.
@@ -24,7 +24,7 @@ import { cookies } from 'next/headers'
  * demander ni adresse ni mot de passe pour suivre un cours.
  *
  * L'interface doit donc le DIRE plutôt que de laisser croire à une perte de données :
- * voir les pages `/suivi` et `/alertes`.
+ * voir la page `/suivi`.
  *
  * ── POURQUOI DEUX FONCTIONS, ET NON UNE ───────────────────────────────────────
  *

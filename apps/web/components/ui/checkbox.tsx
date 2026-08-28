@@ -1,32 +1,71 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { CheckIcon } from "lucide-react"
-import { Checkbox as CheckboxPrimitive } from "radix-ui"
+import { Checkbox as HeroCheckbox } from '@heroui/react'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
-function Checkbox({
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CASE À COCHER — REPOSE DÉSORMAIS SUR HEROUI
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Un seul appelant : le sélecteur de colonnes des tableaux (`table-columns.tsx`), qui
+ * l'écrit en composant UNIQUE — `<Checkbox checked disabled onCheckedChange />`. C'est
+ * ce qui rend la reprise possible sans toucher à ce fichier : les parties de HeroUI
+ * (`Checkbox.Content`, `Checkbox.Control`, `Checkbox.Indicator`) sont composées ICI et
+ * ne sortent jamais.
+ *
+ * ── LA TRADUCTION DES NOMS ───────────────────────────────────────────────────
+ *
+ *   checked          →  isSelected
+ *   defaultChecked   →  defaultSelected
+ *   onCheckedChange  →  onChange   (les deux livrent un booléen)
+ *   disabled         →  isDisabled
+ *
+ * ⚠️ `indeterminate` N'EST PAS TRADUIT depuis Radix : ce dernier le passait par
+ * `checked="indeterminate"`, une troisième valeur dans la même propriété. HeroUI en fait
+ * une propriété distincte (`isIndeterminate`), plus claire mais incompatible. Aucun
+ * appelant n'utilisait l'état, la traduction n'a donc pas lieu d'être écrite tant que
+ * personne ne la demande — et l'écrire « au cas où » reviendrait à deviner la forme que
+ * prendrait ce besoin.
+ *
+ * ── L'ÉTIQUETTE RESTE À L'APPELANT ──────────────────────────────────────────
+ *
+ * HeroUI sait porter son propre libellé dans `Checkbox.Content`. On ne s'en sert pas :
+ * l'appelant a déjà un `<label htmlFor>` avec sa propre troncature et ses propres états
+ * de couleur. Rendre les deux poserait deux étiquettes pour une case.
+ */
+export function Checkbox({
   className,
+  checked,
+  defaultChecked,
+  onCheckedChange,
+  disabled,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: Omit<
+  React.ComponentProps<typeof HeroCheckbox>,
+  'isSelected' | 'defaultSelected' | 'onChange' | 'isDisabled' | 'children'
+> & {
+  checked?: boolean
+  defaultChecked?: boolean
+  onCheckedChange?: (checked: boolean) => void
+  disabled?: boolean
+}) {
   return (
-    <CheckboxPrimitive.Root
+    <HeroCheckbox
       data-slot="checkbox"
-      className={cn(
-        "peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary",
-        className
-      )}
+      className={cn('shrink-0', className)}
+      {...(checked !== undefined ? { isSelected: checked } : {})}
+      {...(defaultChecked !== undefined ? { defaultSelected: defaultChecked } : {})}
+      {...(onCheckedChange ? { onChange: onCheckedChange } : {})}
+      {...(disabled !== undefined ? { isDisabled: disabled } : {})}
       {...props}
     >
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="grid place-content-center text-current transition-none"
-      >
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
+      <HeroCheckbox.Content>
+        <HeroCheckbox.Control>
+          <HeroCheckbox.Indicator />
+        </HeroCheckbox.Control>
+      </HeroCheckbox.Content>
+    </HeroCheckbox>
   )
 }
-
-export { Checkbox }

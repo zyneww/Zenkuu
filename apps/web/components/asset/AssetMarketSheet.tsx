@@ -5,6 +5,7 @@ import { findUniverseEntryBySymbol } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
 import { RailSection } from '@/components/ui/RailSection'
+import { getPhrase } from '@/lib/content'
 
 /**
  * FICHE TECHNIQUE D'UNE VALEUR BOURSIÈRE — l'équivalent de celle d'une cryptomonnaie.
@@ -66,7 +67,7 @@ const KINDS: Partial<Record<AssetClass, string>> = {
   forex: 'Paire de devises',
 }
 
-export function AssetMarketSheet({
+export async function AssetMarketSheet({
   asset,
   assetClass,
   profile,
@@ -76,6 +77,7 @@ export function AssetMarketSheet({
   /** Profil de la source. `null` quand elle n'en publie pas — le bloc se réduit alors. */
   profile: AssetProfile | null
 }) {
+  const t = await getPhrase()
   /* Réservé aux classes boursières : une cryptomonnaie a déjà sa propre fiche
      technique, autrement plus riche (contrats, chaînes, explorateurs). */
   const title = TITLES[assetClass]
@@ -86,20 +88,20 @@ export function AssetMarketSheet({
   const rows: { label: string; value: string; hint?: string }[] = []
 
   const kind = KINDS[assetClass]
-  if (kind) rows.push({ label: 'Nature', value: kind })
+  if (kind) rows.push({ label: t('Nature'), value: t(kind) })
 
   /* La source d'abord, notre table ensuite — voir l'en-tête sur le conflit des deux. */
   const venue = profile?.exchangeName ?? asset.exchange ?? entry?.exchange
-  if (venue) rows.push({ label: 'Place de cotation', value: venue })
+  if (venue) rows.push({ label: t('Place de cotation'), value: venue })
 
-  rows.push({ label: 'Devise de cotation', value: asset.currency.toUpperCase() })
+  rows.push({ label: t('Devise de cotation'), value: asset.currency.toUpperCase() })
 
-  if (asset.symbol) rows.push({ label: 'Code', value: asset.symbol.toUpperCase() })
+  if (asset.symbol) rows.push({ label: t('Code'), value: asset.symbol.toUpperCase() })
 
   const sector = profile?.sector ?? entry?.sector
-  if (sector) rows.push({ label: 'Secteur', value: sector })
+  if (sector) rows.push({ label: t('Secteur'), value: sector })
 
-  if (profile?.industry) rows.push({ label: 'Industrie', value: profile.industry })
+  if (profile?.industry) rows.push({ label: t('Industrie'), value: profile.industry })
 
   /* Ville et pays réunis sur une ligne : deux lignes pour « Cupertino » et
      « États-Unis » dans une colonne de 288 pixels, c'est une ligne de trop pour ce
@@ -107,25 +109,25 @@ export function AssetMarketSheet({
   const place = [profile?.city, profile?.country ?? entry?.country]
     .filter((part): part is string => Boolean(part))
     .join(', ')
-  if (place) rows.push({ label: 'Siège', value: place })
+  if (place) rows.push({ label: t('Siège'), value: place })
 
   if (profile?.employees !== undefined) {
     rows.push({
-      label: 'Effectif',
+      label: t('Effectif'),
       value: formatCompact(profile.employees) ?? String(profile.employees),
-      hint: 'salariés à temps plein déclarés',
+      hint: t('salariés à temps plein déclarés'),
     })
   }
 
-  if (profile?.family) rows.push({ label: 'Émetteur', value: profile.family })
-  if (profile?.category) rows.push({ label: 'Catégorie', value: profile.category })
+  if (profile?.family) rows.push({ label: t('Émetteur'), value: profile.family })
+  if (profile?.category) rows.push({ label: t('Catégorie'), value: profile.category })
 
   const website = profile?.website ?? (entry?.domain ? `https://${entry.domain}` : undefined)
 
   if (rows.length === 0 && !website) return null
 
   return (
-    <RailSection title={title}>
+    <RailSection title={t(title)}>
       <dl>
         {rows.map((row) => (
           <div key={row.label} className="border-b border-border-subtle py-1.5 last:border-0">
@@ -155,7 +157,7 @@ export function AssetMarketSheet({
         >
           Site officiel
           <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-          <span className="sr-only">(nouvelle fenêtre)</span>
+          <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
         </a>
       ) : null}
     </RailSection>

@@ -2,7 +2,10 @@
 
 import { TrendingUp } from 'lucide-react'
 
+import { ChangeBadge } from '@zenkuu/ui'
+
 import { Link } from '@/i18n/navigation'
+import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { useContent } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
@@ -74,6 +77,9 @@ export function SearchResults({
               symbol={asset.symbol}
               image={asset.image}
               rank={asset.rank}
+              price={asset.price}
+              currency={asset.currency}
+              change24h={asset.change24h}
               onNavigate={onNavigate}
             />
           ))
@@ -178,6 +184,9 @@ function ResultRow({
   image,
   rank,
   badge,
+  price,
+  currency,
+  change24h,
   onNavigate,
 }: {
   href: string
@@ -186,6 +195,15 @@ function ResultRow({
   image?: string
   rank?: number
   badge?: string
+  /* ── LE COUPLE COURS + VARIATION ─────────────────────────────────────
+     Les trois voyagent ENSEMBLE ou pas du tout : un cours sans sa devise n'est
+     qu'un nombre, et une variation sans son cours n'a rien à qualifier. Les
+     résultats de RECHERCHE ne les portent pas — l'endpoint de recherche ne
+     publie qu'un nom, un symbole et un rang — quand les TENDANCES, elles, sont
+     rechargées enrichies. La ligne sert donc les deux formes. */
+  price?: number
+  currency?: string
+  change24h?: number
   onNavigate: () => void
 }) {
   return (
@@ -236,15 +254,52 @@ function ResultRow({
           </span>
         )}
 
-        <span className="min-w-0 flex-1 truncate text-sm text-ink">{name}</span>
-        <span className="shrink-0 text-xs uppercase text-ink-muted">{symbol}</span>
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          LE SYMBOLE PASSE DEVANT, LE NOM LE SUIT EN GRIS
+          ══════════════════════════════════════════════════════════════════════
 
-        {rank !== undefined ? (
-          <span className="tabular shrink-0 text-[0.6875rem] text-ink-muted">#{rank}</span>
-        ) : badge ? (
-          <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-micro font-normal">
-            {badge}
-          </Badge>
+          La ligne s'écrivait « Ethereum … ETH … #2 » : le nom d'abord, le code rejeté
+          à droite, le rang à l'extrême droite. Trois informations d'identité réparties
+          sur toute la largeur, et l'œil devait traverser la ligne pour les réunir.
+
+          Elles sont désormais GROUPÉES à gauche, dans l'ordre où on les reconnaît :
+          `ETH` en gras — c'est ce qu'on tape et ce qu'on retient —, son rang collé
+          contre lui en pastille, puis `Ethereum` en gris dessous. La droite de la
+          ligne est rendue au COURS et à sa variation, qui sont l'autre moitié de ce
+          qu'on vient chercher.
+
+          Deux lignes de texte et non une : sur 26 rem, « Ethereum » à côté de « ETH »
+          plus un cours plus un pourcentage se serait tronqué dès les noms longs.
+        */}
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="flex items-center gap-1.5">
+            <span className="truncate text-sm font-semibold uppercase text-ink">{symbol}</span>
+
+            {rank !== undefined ? (
+              <span className="tabular shrink-0 rounded-[4px] bg-surface-muted px-1 text-[0.625rem] leading-4 text-ink-muted">
+                {rank}
+              </span>
+            ) : badge ? (
+              <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-micro font-normal">
+                {badge}
+              </Badge>
+            ) : null}
+          </span>
+
+          <span className="truncate text-xs text-ink-muted">{name}</span>
+        </span>
+
+        {/* Le cours n'apparaît que si la ligne le porte — voir la note des props. Le
+            groupe entier disparaît alors, plutôt que de réserver une colonne vide qui
+            décalerait le nom sur les résultats de recherche. */}
+        {price !== undefined && currency ? (
+          <span className="flex shrink-0 flex-col items-end gap-0.5">
+            <span className="tabular text-sm text-ink">
+              <Money value={price} from={currency} />
+            </span>
+            {change24h !== undefined ? <ChangeBadge value={change24h} size="sm" /> : null}
+          </span>
         ) : null}
       </Link>
     </CommandItem>

@@ -3,6 +3,7 @@ import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import { EmptyState } from '@zenkuu/ui'
 
+import { Mascotte } from '@/components/brand/Mascotte'
 import { getContent } from '@/lib/content'
 
 /**
@@ -21,11 +22,23 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-/** Page 404 — un des moments « mascotte » identifiés au §10. */
+/**
+ * Page 404 — le premier des moments « mascotte » identifiés au §10, et le seul où
+ * elle occupe autant de place.
+ *
+ * Une page introuvable n'a rien à montrer par définition : c'est l'endroit du site où
+ * une présence coûte le moins et sert le plus. Ailleurs, la mascotte reste petite et
+ * ne s'approche jamais d'un chiffre — voir son en-tête.
+ */
 export default async function NotFound() {
   const fr = await getContent()
   return (
-    <div className="py-16">
+    <div className="flex flex-col items-center py-16">
+      {/* AU-DESSUS du cadre et non dedans : `EmptyState` porte un pictogramme d'état
+          dans son propre en-tête, et y glisser l'illustration ferait deux symboles
+          l'un sur l'autre. La mascotte annonce, le cadre explique. */}
+      <Mascotte size={180} className="mb-2" />
+
       <EmptyState
         title={fr.notFound.title}
         description={fr.notFound.body}

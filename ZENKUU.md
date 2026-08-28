@@ -756,7 +756,7 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **RSS** — actualités (Cointelegraph, CoinDesk) | `providers/news.ts` |
 | **Alternative.me** — indice Fear & Greed | `providers/sentiment.ts` |
 | Design system « bleu-nuit et menthe » — sombre par défaut **+ thème clair complet**, contrastes vérifiés par test | `apps/web/app/globals.css` · `apps/web/app/palette.test.ts` |
-| Bascule de thème, suivi système, sans flash au chargement | `components/ThemeScript.tsx`, `ThemeToggle.tsx` |
+| Bascule de thème, suivi système, sans flash au chargement | `components/ThemeScript.tsx`, `settings/ThemeSync.tsx` |
 | Header aligné à gauche, 5 menus déroulants accessibles, recherche et compte à droite | `components/NavBar.tsx`, `content/navigation.ts` |
 | Sélecteur langue/devise (globe), 2 colonnes + recherche | `components/locale/LocalePanel.tsx` |
 | Logo et mascotte en masque CSS (suivent le thème) | `public/brand/`, `.brand-mark` |

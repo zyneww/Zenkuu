@@ -11,7 +11,7 @@ import { ensureVisitorId, readVisitorId } from '@/lib/visitor'
  *
  * ── LES DEUX IDENTITÉS DU SITE, ET POURQUOI IL Y EN A DEUX ────────────────────
  *
- * Un visiteur de ZENKUU peut suivre un actif et armer une alerte SANS compte : c'est
+ * Un visiteur de ZENKUU peut suivre un actif et enregistrer un écran SANS compte : c'est
  * un site d'information, et exiger une inscription pour mettre une étoile à côté du
  * bitcoin serait disproportionné. Cette identité-là tient dans un cookie anonyme
  * (`lib/visitor.ts`).

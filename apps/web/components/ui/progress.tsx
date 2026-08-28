@@ -1,48 +1,59 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Progress as ProgressPrimitive } from "radix-ui"
+import { ProgressBar } from '@heroui/react'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 /**
- * ⚠️ ÉCART ASSUMÉ AVEC LE REGISTRE SHADCN/UI — `indicatorClassName`.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * JAUGE DE PROGRESSION — REPOSE DÉSORMAIS SUR HEROUI
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * La barre d'origine est toujours menthe (`bg-primary`). Zenkuu en a besoin dans
- * plusieurs teintes, et pas par goût : deux jauges superposées — l'offre émise et
- * l'offre en circulation — doivent se distinguer, et la doctrine de l'accent
- * (globals.css) interdit de leur donner deux COULEURS puisqu'aucune des deux ne
- * mesure un mouvement de marché. Elles se distinguent donc par leur place dans la
- * rampe : la menthe pour celle qu'on lit d'abord, l'encre atténuée pour l'autre.
+ * ── CE QUI NE CHANGE PAS, ET C'EST L'ESSENTIEL ───────────────────────────────
  *
- * `className` ne peut pas servir à cela : il atteint la PISTE, pas le remplissage.
- * À reporter si ce fichier est régénéré par `shadcn add progress --overwrite`.
+ * Le rôle ARIA. `AssetSupply` porte une longue note expliquant ce que la jauge a
+ * apporté à un `<div>` dont on poussait la largeur : `role="progressbar"` avec
+ * `aria-valuenow`, `aria-valuemin` et `aria-valuemax`, si bien qu'une synthèse vocale
+ * annonce « 62 %, barre de progression » au lieu de lire une image. HeroUI rend
+ * exactement ces attributs — c'est la même garantie, par une autre bibliothèque.
+ *
+ * ── CE QUE HEROUI AJOUTE ─────────────────────────────────────────────────────
+ *
+ * `isIndeterminate`, pour une attente dont on ne connaît pas la durée. La version
+ * Radix ne l'exposait pas, et les rares endroits qui en auraient eu besoin
+ * affichaient donc une barre figée à zéro, c'est-à-dire un chiffre faux (§5).
+ *
+ * ── L'API PUBLIQUE EST PRÉSERVÉE, `indicatorClassName` COMPRIS ───────────────
+ *
+ * C'est ce qui permet de ne toucher aucun appelant. `AssetSupply` colore son
+ * remplissage en menthe ou en gris selon ce qu'il mesure, et continue de le faire par
+ * cette même propriété — HeroUI la reçoit sur `ProgressBar.Fill`.
+ *
+ * ⚠️ `value` RESTE EN POURCENTAGE. HeroUI accepte une échelle libre par `maxValue` ;
+ * on ne l'expose pas, parce que tous les appelants passent déjà un pourcentage et
+ * qu'ouvrir l'échelle inviterait à mélanger les deux conventions dans le même site.
  */
-function Progress({
+export function Progress({
   className,
   indicatorClassName,
   value,
   ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root> & {
+}: Omit<React.ComponentProps<typeof ProgressBar>, 'children'> & {
+  /** Classes du REMPLISSAGE — la piste, elle, se style par `className`. */
   indicatorClassName?: string
 }) {
   return (
-    <ProgressPrimitive.Root
+    <ProgressBar
       data-slot="progress"
       value={value}
-      className={cn(
-        "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
-        className
-      )}
+      className={cn('relative block h-2 w-full overflow-hidden rounded-full', className)}
       {...props}
     >
-      <ProgressPrimitive.Indicator
-        data-slot="progress-indicator"
-        className={cn("h-full w-full flex-1 bg-primary transition-all", indicatorClassName)}
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-      />
-    </ProgressPrimitive.Root>
+      <ProgressBar.Track className="h-full w-full bg-transparent">
+        <ProgressBar.Fill
+          className={cn('h-full rounded-full transition-[width]', indicatorClassName)}
+        />
+      </ProgressBar.Track>
+    </ProgressBar>
   )
 }
-
-export { Progress }

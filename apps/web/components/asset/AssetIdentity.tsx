@@ -1,5 +1,6 @@
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { findUniverseEntryBySymbol } from '@zenkuu/data'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Carte d'identité d'un actif boursier — secteur, pays, place, devise.
@@ -26,13 +27,14 @@ import { findUniverseEntryBySymbol } from '@zenkuu/data'
  * bloc de quatre tirets serait pire que rien : il ferait passer une absence de donnée
  * pour une donnée vide.
  */
-export function AssetIdentity({
+export async function AssetIdentity({
   asset,
   assetClass,
 }: {
   asset: AssetDetail
   assetClass: AssetClass
 }) {
+  const t = await getPhrase()
   const entry = findUniverseEntryBySymbol(asset.symbol)
   if (!entry) return null
 
@@ -54,8 +56,8 @@ export function AssetIdentity({
    * sources ne publie.
    */
   const rows = [
-    { label: 'Secteur', value: entry.sector },
-    { label: 'Pays du siège', value: entry.country },
+    { label: t('Secteur'), value: entry.sector },
+    { label: t('Pays du siège'), value: entry.country },
   ].filter((row): row is { label: string; value: string } => Boolean(row.value))
 
   if (rows.length === 0) return null

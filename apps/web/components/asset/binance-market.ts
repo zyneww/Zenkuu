@@ -16,7 +16,7 @@
  * s'additionner. C'est déjà le raisonnement du carnet d'ordres (`AssetOrderBook`).
  *
  * Corollaire à ne pas perdre de vue : ces données n'existent que dans l'onglet. Elles
- * ne peuvent alimenter ni le rendu serveur, ni l'indexation, ni une alerte par
+ * ne peuvent alimenter ni le rendu serveur, ni l'indexation, ni un traitement par
  * courriel. Elles COMPLÈTENT la série servie par notre API, elles ne la remplacent
  * pas.
  *

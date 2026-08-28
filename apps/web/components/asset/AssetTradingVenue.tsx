@@ -4,6 +4,7 @@ import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { findUniverseEntryBySymbol } from '@zenkuu/data'
 
 import { Panel } from '@/components/ui/Panel'
+import { getPhrase } from '@/lib/content'
 
 /**
  * OÙ SE NÉGOCIE UNE VALEUR BOURSIÈRE — la place, la devise, la séance.
@@ -53,13 +54,14 @@ const NOTES: Partial<Record<AssetClass, string>> = {
     'Le cours affiché est celui du contrat à terme le plus proche de son échéance, celui qui concentre les échanges. Il change de contrat sous-jacent à chaque expiration, ce qui crée de petits sauts sans mouvement de marché réel.',
 }
 
-export function AssetTradingVenue({
+export async function AssetTradingVenue({
   asset,
   assetClass,
 }: {
   asset: AssetDetail
   assetClass: AssetClass
 }) {
+  const t = await getPhrase()
   const heading = HEADINGS[assetClass]
   if (!heading) return null
 
@@ -70,7 +72,7 @@ export function AssetTradingVenue({
   const hours = session ? formatSession(session) : null
 
   return (
-    <Panel title={heading}>
+    <Panel title={t(heading)}>
       <dl className="grid grid-cols-1 gap-px bg-border-subtle sm:grid-cols-3">
         <Cell
           icon={<Landmark className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -84,14 +86,14 @@ export function AssetTradingVenue({
         />
         <Cell
           icon={<Clock className="h-3.5 w-3.5" aria-hidden="true" />}
-          label="Séance"
+          label={t('Séance')}
           value={hours ?? 'Non publiée'}
           {...(session ? { hint: readableZone(session.timezone) } : {})}
         />
       </dl>
 
       <p className="mt-3 max-w-3xl text-xs leading-relaxed text-ink-muted">
-        {NOTES[assetClass]}
+        {NOTES[assetClass] ? t(NOTES[assetClass]) : null}
       </p>
     </Panel>
   )

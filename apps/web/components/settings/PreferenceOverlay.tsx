@@ -20,7 +20,7 @@ import { CURRENCIES, currencyName, type CurrencyGroup } from '@zenkuu/data/curre
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { LANGUAGES } from '@/components/settings/languages'
-import { useSettings } from '@/lib/stores/settings'
+import { useLanguageChoice } from '@/components/settings/useLanguageChoice'
 
 /**
  * Fenêtre de préférences — langue et devise, en deux onglets.
@@ -110,7 +110,8 @@ export function PreferenceOverlay({
   onClose: () => void
 }) {
   const [query, setQuery] = useState('')
-  const { language, setLanguage } = useSettings()
+  /* Voir `useLanguageChoice` : le magasin ne navigue pas, la route fait foi. */
+  const { language, setLanguage } = useLanguageChoice()
   const { currency, setCurrency, available } = useCurrency()
 
 

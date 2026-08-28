@@ -17,7 +17,6 @@ import { NavBar } from '@/components/NavBar'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
 import { Toaster } from '@/components/ui/sonner'
-import { TooltipProvider } from '@/components/ui/tooltip'
 import { getContent } from '@/lib/content'
 import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
@@ -268,7 +267,10 @@ export default async function RootLayout({
                 icône. Un fournisseur par bulle perdrait exactement cette continuité,
                 puisque chacun compterait son délai pour lui seul.
               */}
-              <TooltipProvider delayDuration={120} skipDelayDuration={300}>
+              {/* ⚠️ LE `TooltipProvider` A DISPARU. Radix l'EXIGEAIT au-dessus de
+                  toute infobulle — sans lui, rien ne s'affichait et aucune erreur ne
+                  le disait. HeroUI rend chaque infobulle autonome, et son délai se
+                  règle par bulle plutôt que pour la page entière. */}
               <a
                 href="#contenu"
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-card focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:shadow"
@@ -312,7 +314,6 @@ export default async function RootLayout({
                   `toast()` s'appelle de n'importe où sans qu'un composant ait à
                   porter son propre conteneur. */}
               <Toaster position="bottom-right" closeButton richColors />
-              </TooltipProvider>
             </CurrencyProvider>
           </ContentProvider>
         </NextIntlClientProvider>

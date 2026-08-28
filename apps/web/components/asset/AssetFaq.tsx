@@ -1,5 +1,7 @@
 'use client'
 
+import { ChevronDown } from 'lucide-react'
+
 import type { AssetDetail } from '@zenkuu/data'
 import { formatCompact, formatCurrency, formatDateTime } from '@zenkuu/ui'
 
@@ -92,17 +94,28 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
         {fr.asset.tabs.faq}
       </h2>
 
-      {/* Deux colonnes à partir de `sm`, comme la FAQ de la page de tarifs : une
-          liste de questions courtes sur toute la largeur d'un écran laisse des
-          lignes de deux mots suivies d'un grand vide. */}
-      <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-        {entries.map((entry) => (
-          <div key={entry.question}>
-            <dt className="text-sm font-semibold text-ink">{entry.question}</dt>
-            <dd className="mt-1 text-sm leading-relaxed text-ink-muted">{entry.answer}</dd>
-          </div>
+      {/* Lignes dépliables, comme chez la référence : la FAQ tient désormais dans
+          une colonne à côté d'« À propos », où cinq questions suivies de leur
+          réponse feraient deux fois la hauteur du texte de gauche.
+
+          `<details>` NATIF, pas un accordéon React : la réponse reste dans le HTML
+          servi même repliée, donc lue par les moteurs sans hydratation — c'est toute
+          la raison d'être de ce bloc (voir l'en-tête du fichier). La première est
+          ouverte pour que le motif « ça se déplie » se voie sans cliquer. */}
+      <div className="divide-y divide-border-subtle border-y border-border-subtle">
+        {entries.map((entry, index) => (
+          <details key={entry.question} className="group" open={index === 0}>
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+              {entry.question}
+              <ChevronDown
+                aria-hidden
+                className="size-4 shrink-0 text-ink-muted transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+            <p className="pb-4 text-sm leading-relaxed text-ink-muted">{entry.answer}</p>
+          </details>
         ))}
-      </dl>
+      </div>
     </section>
   )
 }

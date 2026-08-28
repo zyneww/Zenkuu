@@ -67,6 +67,38 @@ export function emphasise(text: string, className = 'text-ink'): ReactNode[] {
  * de cibles numérotées à côté de la phrase, redonnerait au traducteur un texte à
  * trous. On préfère la faute visible à la faute invisible.
  */
+/**
+ * Même principe encore, étendu aux VALEURS mesurées.
+ *
+ * Le paragraphe d'ouverture d'une page de marché est une phrase entrecoupée de
+ * chiffres, et chaque chiffre porte son propre style — un montant en gras, une
+ * variation en vert ou en rouge. Découper la phrase autour d'eux la rendrait au
+ * français : « s'élève aujourd'hui à », puis le montant, puis « en variation de ».
+ *
+ * La phrase reste donc entière et nomme ses trous :
+ *
+ *     t('La capitalisation s’élève à {cap}, en variation de {change}.')
+ *
+ * Le traducteur déplace `{cap}` et `{change}` où sa langue les veut — le test de
+ * la table vérifie déjà qu'aucun jeton ne se perd en route. Les segments de texte
+ * autour gardent leur emphase Markdown.
+ */
+export function fill(
+  text: string,
+  values: Record<string, ReactNode>,
+  className = 'text-ink',
+): ReactNode[] {
+  const nodes: ReactNode[] = []
+
+  text.split(/(\{\w+\})/).forEach((part, index) => {
+    const name = part.slice(1, -1)
+    if (part.startsWith('{') && name in values) nodes.push(<span key={index}>{values[name]}</span>)
+    else nodes.push(...emphasise(part, className))
+  })
+
+  return nodes
+}
+
 export function weave(
   text: string,
   link: (href: string, label: string, key: number) => ReactNode,

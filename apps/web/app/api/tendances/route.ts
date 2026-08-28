@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getTrendingCrypto } from '@zenkuu/data'
+import { getTrendingCryptoAssets } from '@zenkuu/data'
 
 /**
  * Tendances servies à la demande, pour l'état par défaut de l'overlay de recherche.
@@ -13,9 +13,20 @@ import { getTrendingCrypto } from '@zenkuu/data'
  *
  * Le coût est nul côté quota : la réponse vient du même cache applicatif que
  * l'accueil, avec un TTL de 10 minutes.
+ *
+ * ── LA VERSION ENRICHIE, ET CE QU'ELLE COÛTE ────────────────────────────────
+ *
+ * `getTrendingCrypto` ne rend qu'un nom, un rang et une variation : c'est tout ce que
+ * publie l'endpoint des tendances, d'où la pauvreté assumée de `TrendingAsset`. Le
+ * panneau de recherche affiche désormais un COURS à côté de chaque ligne, ce que
+ * cette forme ne permet pas.
+ *
+ * `getTrendingCryptoAssets` recharge les mêmes identifiants par `listAssets` — un
+ * appel de plus, mis en cache au même TTL, et déjà partagé avec l'onglet « Tendance »
+ * des classements. Sur cache chaud il ne touche donc aucune source externe.
  */
 export async function GET() {
-  const trending = await getTrendingCrypto('eur')
+  const trending = await getTrendingCryptoAssets('eur')
 
   return NextResponse.json(
     { trending: trending.ok ? trending.data : [], indisponible: !trending.ok },

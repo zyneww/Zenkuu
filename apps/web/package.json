@@ -12,6 +12,8 @@
   "dependencies": {
     "@amcharts/amcharts5": "^5.20.2",
     "@base-ui/react": "^1.7.0",
+    "@heroui/react": "^3.2.4",
+    "@heroui/styles": "^3.2.4",
     "@hookform/resolvers": "^5.9.1",
     "@sentry/nextjs": "^10.70.0",
     "@zenkuu/data": "workspace:*",

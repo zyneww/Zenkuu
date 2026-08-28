@@ -1,19 +1,13 @@
 import type { Metadata } from 'next'
-import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import {
   CACHE_TTL_SECONDS,
-  CATEGORY_RANKING_FLOOR_USD,
   getCategories,
   getCryptoGlobalStats,
-  type MarketCategory,
 } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
-import { CategorySpotlight } from '@/components/categories/CategorySpotlight'
-import { Money } from '@/components/locale/Money'
-import { SectorHighlights } from '@/components/categories/SectorHighlights'
 import { getContent } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
 
@@ -31,46 +25,59 @@ void _ttlGuard
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
   return {
-  title: fr.pages.categories,
-  description: fr.categories.subtitle,
-  alternates: { canonical: '/categories' },
+    title: fr.pages.categories,
+    description: fr.categories.subtitle,
+    alternates: { canonical: '/categories' },
   }
 }
 
 /**
- * Secteurs et narratifs de marché.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * SECTEURS ET NARRATIFS DE MARCHÉ — LA FORME DE LA RÉFÉRENCE
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * TOUTES les catégories publiées par la source — environ 750, contre douze
- * auparavant. Ce n'est pas un changement de volume mais de nature : la source les
- * livre dans un SEUL appel sans pagination, si bien que la limite précédente coûtait
- * exactement le même appel réseau tout en jetant 98 % du contenu.
+ * Un titre, une explication, un champ de recherche, un tableau. Rien d'autre.
  *
- * Disposition VOLONTAIREMENT DIFFÉRENTE de la référence du secteur, qui empile un
- * titre centré, trois onglets, quatre cartes à courbes, puis un tableau. Ici les
- * quatre cartes deviennent une bande de mise en avant NOMMÉE (« plus fortes hausses »
- * plutôt qu'un palmarès sans règle énoncée), les onglets disparaissent au profit d'un
- * tri réversible sur le tableau lui-même, et le tableau porte les logos des
- * principaux actifs en LIENS vers leurs fiches.
+ * ── CE QUE CETTE PAGE PORTAIT, ET QUI A DISPARU ─────────────────────────────
  *
- * ⚠️ LA CAPITALISATION TOTALE N'EST PAS UNE SOMME. La référence affiche « la
- * capitalisation des catégories est de 6,26 T$ », obtenue en additionnant ses
- * secteurs. C'est un double comptage : un actif appartient à plusieurs catégories à
- * la fois — Bitcoin relève de « Layer 1 » comme de « Proof of Work ». On affiche donc
- * la capitalisation mondiale réelle, publiée par la source et dédupliquée par
- * construction, plutôt qu'un total gonflé (§5).
+ * Une bande de tête à quatre repères chiffrés, un palmarès de « secteurs en forte
+ * hausse » en quatre cartes, une bande de faits saillants, puis une bande
+ * méthodologique de clôture — quatre blocs POSÉS AUTOUR du tableau, qui repoussaient
+ * la première ligne de données à un écran et demi du haut de la page.
+ *
+ * Tous répondaient à une question à laquelle le tableau répond déjà : « quels
+ * secteurs montent » est un clic sur l'en-tête de variation, « combien de secteurs »
+ * est la longueur de la liste. Le seul contenu qui ne s'y retrouvait pas — le fait
+ * qu'un actif appartienne à PLUSIEURS secteurs, si bien que les capitalisations ne
+ * s'additionnent pas — a rejoint le chapeau, deux lignes sous le titre. C'est aussi
+ * ce que dit la référence à cet endroit exact.
+ *
+ * ── LA DOMINANCE EST CALCULÉE, LE RESTE NE L'EST PAS ────────────────────────
+ *
+ * ⚠️ La référence porte aussi des colonnes à 7 jours, 1 mois, 3 mois, une valorisation
+ * pleinement diluée et un décompte de hausses/baisses par secteur. AUCUNE de ces
+ * valeurs n'est publiée par notre source pour ses catégories : les inventer, ou les
+ * recalculer à partir d'un échantillon d'actifs, produirait des chiffres que rien ne
+ * pourrait vérifier (§5). Les colonnes affichées sont donc celles que la source
+ * livre, plus la dominance — qui, elle, est un rapport exact entre deux valeurs
+ * publiées.
  */
 export default async function CategoriesPage() {
   const t = await getPhrase()
   const fr = await getContent()
+
+  /* En DOLLARS, et c'est la condition de la colonne de dominance : la source ne
+     publie ses agrégats sectoriels qu'en dollars, et un rapport entre une
+     capitalisation en dollars et un total en euros ne voudrait rien dire. */
   const [categories, globalStats] = await Promise.all([
     getCategories(),
-    getCryptoGlobalStats('eur'),
+    getCryptoGlobalStats('usd'),
   ])
 
   if (!categories.ok || categories.data.length === 0) {
     return (
-      <div className="space-y-10">
-        <CategoriesHero categories={null} globalStats={null} />
+      <div className="space-y-8">
+        <CategoriesHeading title={fr.categories.title} lede={fr.categories.subtitle} note={null} />
         <EmptyState
           title={fr.states.unavailableTitle}
           description={categories.ok ? null : categories.reason}
@@ -80,44 +87,33 @@ export default async function CategoriesPage() {
     )
   }
 
-  // Palmarès filtrés par le PLANCHER de capitalisation : sur une base de quelques
-  // milliers de dollars, un seul échange déplace le pourcentage de dizaines de
-  // points, et la tête du classement se remplit de bruit. Le tableau complet, lui,
-  // n'est pas filtré — un annuaire doit être exhaustif.
-  const rankable = categories.data.filter(
-    (category) =>
-      category.marketCapChange24h !== undefined &&
-      (category.marketCap ?? 0) >= CATEGORY_RANKING_FLOOR_USD,
-  )
-
-  const gainers = [...rankable]
-    .filter((category) => (category.marketCapChange24h ?? 0) > 0)
-    .sort((a, b) => (b.marketCapChange24h ?? 0) - (a.marketCapChange24h ?? 0))
-    .slice(0, 4)
+  /* Les rubriques SANS capitalisation sont écartées ici, et pas dans le composant :
+     c'est une décision d'éditorialisation de la page, et c'est elle qui l'annonce
+     sous le titre. La source en publie environ sept cent cinquante ; la moitié sont
+     des étiquettes de taxonomie ne portant aucun actif valorisé. */
+  const listed = categories.data.filter((category) => (category.marketCap ?? 0) > 0)
 
   return (
-    <div className="space-y-12 sm:space-y-16">
-      <CategoriesHero
-        categories={categories.data}
-        globalStats={globalStats.ok ? globalStats.data : null}
+    <div className="space-y-8">
+      <CategoriesHeading
+        title={fr.categories.title}
+        lede={t(
+          'Les catégories décrivent les grandes familles d’actifs du marché. Un même actif peut relever de plusieurs d’entre elles — Bitcoin est à la fois « Layer 1 » et « Proof of Work » — si bien que les capitalisations de ce tableau ne s’additionnent pas.',
+        )}
+        note={t(
+          '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
+        ).replace('{n}', String(listed.length))}
       />
 
-      <CategorySpotlight
-        title={t('Secteurs en forte hausse')}
-        hint={t('Les quatre plus fortes progressions sur 24 heures, parmi les secteurs pesant au moins 10 M$.')}
-        categories={gainers}
+      <CategoryExplorer
+        categories={listed}
+        totalMarketCap={globalStats.ok ? globalStats.data.totalMarketCap : null}
       />
-
-      <SectorHighlights categories={rankable} />
-
-      <CategoryExplorer categories={categories.data} />
-
-      <MethodologyBand />
 
       {/* La source ne publie ces agrégats qu'en dollars : on l'écrit plutôt que
           de convertir nous-mêmes vers l'euro (§5). */}
       <SourceNote
-            strings={{ source: t('Source :'), dated: t('données du {date}') }}
+        strings={{ source: t('Source :'), dated: t('données du {date}') }}
         label={`${categories.source.label} · montants en USD`}
         href={categories.source.attributionUrl}
       />
@@ -125,114 +121,21 @@ export default async function CategoriesPage() {
   )
 }
 
-/**
- * Bande de tête.
- *
- * Les repères sont des DÉNOMBREMENTS, jamais des sommes — un même actif appartient à
- * plusieurs secteurs, et additionner leurs capitalisations le compterait deux fois.
- * Seule exception : la capitalisation mondiale, qui ne vient PAS des catégories mais
- * de l'agrégat global de la source, dédupliqué par construction. Elle est donc juste,
- * et c'est pourquoi elle est la seule valeur monétaire de ce bandeau.
- */
-async function CategoriesHero({
-  categories,
-  globalStats,
+/** Titre, explication, et le décompte qui justifie la longueur de la liste. */
+function CategoriesHeading({
+  title,
+  lede,
+  note,
 }: {
-  categories: MarketCategory[] | null
-  globalStats: { totalMarketCap: number; marketCapChange24h: number; currency: string } | null
+  title: string
+  lede: string
+  note: string | null
 }) {
-  const t = await getPhrase()
-  const fr = await getContent()
-  const rated = (categories ?? []).filter((category) => category.marketCapChange24h !== undefined)
-  const rising = rated.filter((category) => (category.marketCapChange24h ?? 0) > 0).length
-
   return (
-    <header className="border-b border-border-subtle pb-10">
-      <div className="max-w-3xl space-y-4">
-        <h1 className="display-mega text-ink">{fr.categories.title}</h1>
-        <p className="text-base leading-relaxed text-ink-muted sm:text-lg">
-          {fr.categories.subtitle}
-        </p>
-      </div>
-
-      {categories && rated.length > 0 ? (
-        <dl className="mt-8 flex flex-wrap gap-x-12 gap-y-5">
-          <HeroStat label={t('Secteurs suivis')} value={String(categories.length)} />
-          <HeroStat label={t('En hausse sur 24 h')} value={String(rising)} tone="up" />
-          <HeroStat label={t('En repli sur 24 h')} value={String(rated.length - rising)} tone="down" />
-
-          {globalStats ? (
-            <div>
-              <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
-                {t('Capitalisation mondiale')}
-              </dt>
-              <dd className="mt-1 flex items-baseline gap-2">
-                <span className="figure text-3xl font-semibold text-ink">
-                  <Money
-                    value={globalStats.totalMarketCap}
-                    from={globalStats.currency}
-                    compact
-                  />
-                </span>
-                <ChangeBadge value={globalStats.marketCapChange24h} size="sm" />
-              </dd>
-            </div>
-          ) : null}
-        </dl>
-      ) : null}
+    <header className="space-y-3">
+      <h1 className="display-mega text-ink">{title}</h1>
+      <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">{lede}</p>
+      {note ? <p className="text-xs text-ink-muted">{note}</p> : null}
     </header>
-  )
-}
-
-async function HeroStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: string
-  tone?: 'up' | 'down'
-}) {
-  const color = tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : 'text-ink'
-
-  return (
-    <div>
-      <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">{label}</dt>
-      <dd className={`figure mt-1 text-3xl font-semibold ${color}`}>{value}</dd>
-    </div>
-  )
-}
-
-/**
- * Bande de clôture : renvoi méthodologique.
- *
- * Elle occupe la place qu'une bande promotionnelle tiendrait sur une page de
- * plateforme d'échange. Le rythme visuel est le même — fond contrasté, titre de
- * bande, deux actions — mais le contenu renvoie à ce qui engage ZENKUU plutôt
- * qu'à une inscription.
- */
-async function MethodologyBand() {
-  const t = await getPhrase()
-  return (
-    <section
-      className="rounded-lg bg-surface-muted p-6 sm:p-10"
-      aria-labelledby="categories-methodologie"
-    >
-      <div className="max-w-2xl space-y-3">
-        <h2 id="categories-methodologie" className="display-md text-ink">{t('D’où viennent ces secteurs ?')}</h2>
-        <p className="text-sm leading-relaxed text-ink-muted">{t('Les catégories ne sont pas définies par ZENKUU : elles proviennent telles quelles de la source de données, qui décide seule du rattachement d’un actif à un secteur. Un même actif peut relever de plusieurs d’entre eux, si bien que les capitalisations par secteur ne s’additionnent pas — la capitalisation mondiale affichée plus haut est celle que publie la source, et non la somme de ce tableau.')}</p>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <ButtonLink
-          href="/methodologie"
-        >{t('Méthodologie & sources')}</ButtonLink>
-        <ButtonLink
-          href="/apprendre"
-          variant="outline"
-          size="lg"
-        >{t('Apprendre à lire ces chiffres')}</ButtonLink>
-      </div>
-    </section>
   )
 }

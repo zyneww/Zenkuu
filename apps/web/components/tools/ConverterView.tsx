@@ -1,7 +1,6 @@
 'use client'
 
-import { ArrowDownUp, ChevronDown } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
+import { ArrowRightLeft, ChevronDown } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenkuu/data'
@@ -98,29 +97,22 @@ export function ConverterView({
   }, [asset, parsed, rate, reversed])
 
   /*
-   * LE MÊME MONTANT DANS LES AUTRES DEVISES.
+   * ⚠️ LA GRILLE « LE MÊME MONTANT DANS LES AUTRES DEVISES » A ÉTÉ RETIRÉE.
    *
-   * Calculé sur la VALEUR EN EUROS et non sur le résultat affiché : repartir du
-   * résultat enchaînerait deux conversions (euro → devise choisie → autre devise) et
-   * accumulerait deux arrondis là où un seul suffit. L'euro est le pivot parce que
-   * c'est la devise dans laquelle la BCE publie, donc celle où le taux vaut 1.
+   * Elle affichait le montant converti dans les soixante et une devises restantes,
+   * en quatre colonnes de pastilles sous le convertisseur — un pavé de deux cents
+   * lignes qui occupait deux écrans sous une carte de calcul de trois champs.
    *
-   * Les devises sans taux publié sont ÉCARTÉES plutôt qu'affichées à zéro : une ligne
-   * à zéro dans un tableau de conversion se lit comme une valeur, pas comme une
-   * absence (§5).
+   * La refonte reprend la composition de CoinGecko (capture de référence), et son
+   * apport tient en un mot : la SIMPLICITÉ. Une page d'outil répond à une question à
+   * la fois. Les soixante et une autres réponses n'avaient été demandées par
+   * personne, et elles reléguaient la seule qu'on venait chercher — le résultat — en
+   * haut d'un mur de chiffres.
+   *
+   * Ce que la page garde de contenu indexable est le tableau « Cours de référence en
+   * euros », rendu CÔTÉ SERVEUR (voir la page) : c'est lui qui portait le
+   * référencement, pas cette grille, qui n'existait que dans le paquet client.
    */
-  const elsewhere = useMemo(() => {
-    if (!asset || !rates || !Number.isFinite(parsed) || parsed < 0 || reversed) return []
-
-    const inEuro = parsed * asset.price
-    if (inEuro <= 0) return []
-
-    return currencies
-      .map((code) => ({ code, rate: code === 'EUR' ? 1 : rates.rates[code] }))
-      .filter((entry): entry is { code: string; rate: number } => entry.rate !== undefined)
-      .filter((entry) => entry.code !== currency)
-      .map((entry) => ({ code: entry.code, value: inEuro * entry.rate }))
-  }, [asset, rates, parsed, currencies, currency, reversed])
 
   if (!asset) return null
 
@@ -134,15 +126,82 @@ export function ConverterView({
           maximumFractionDigits: result >= 100 ? 2 : 8,
         }).format(result)
 
+  /* Le montant saisi, RÉÉCRIT dans la même grammaire que le résultat. La référence
+     écrit « ₿1.000000 = $79,984.79 » : les deux membres de l'égalité doivent se lire
+     comme deux mesures du même objet, ce qu'un « 1 » brut à gauche et un nombre
+     formaté à droite ne font pas. */
+  const formattedAmount = Number.isFinite(parsed)
+    ? new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(
+        parsed,
+      )
+    : amount
+
+  const stamp = new Date(asset.lastUpdated).toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  /*
+   * Le sélecteur d'actif, rendu à l'une ou l'autre place selon le sens.
+   *
+   * ⚠️ SANS `label`, ET C'EST DÉLIBÉRÉ. `AssetPicker` sait poser son propre intitulé
+   * au-dessus de lui ; la grille ci-dessous en pose déjà un pour chacune de ses trois
+   * colonnes. Les deux ensemble empilaient « Cryptomonnaie » sur « Actif », et
+   * décalaient le champ de vingt pixels vers le bas — les trois cases ne tombaient
+   * plus sur la même ligne de base. Un seul intitulé, et c'est celui de la grille,
+   * qui est le même pour les trois colonnes.
+   */
+  const picker = (
+    <AssetPicker
+      assets={assets}
+      selectedIds={[asset.id]}
+      onSelect={(entry) => setAssetId(entry.id)}
+    >
+      {(open) => <PickerFace asset={asset} open={open} />}
+    </AssetPicker>
+  )
+
+  const money = (
+    <CurrencySelect
+      value={currency}
+      onChange={setCurrency}
+      currencies={currencies}
+      rates={rates}
+    />
+  )
+
   return (
     <div className="space-y-6">
-      <div className="max-w-xl space-y-3 rounded-card border border-border-subtle bg-surface p-5">
-        {/* ── CE QU'ON DONNE ────────────────────────────────────────────────── */}
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-ink-muted">
-            Montant en {fromLabel}
-          </span>
-          <div className="flex items-stretch gap-2">
+      {/*
+        ══════════════════════════════════════════════════════════════════════════
+        UNE SEULE CARTE, TROIS CHAMPS SUR UNE LIGNE
+        ══════════════════════════════════════════════════════════════════════════
+
+        ── CE QUE CELA REMPLACE ────────────────────────────────────────────────
+
+        Deux cases EMPILÉES — « Montant en BTC » puis « Résultat en EUR » — séparées
+        par une flèche verticale posée entre deux filets, chacune portant son
+        sélecteur collé à droite. La disposition disait « ceci devient cela », de haut
+        en bas, comme un formulaire de virement.
+
+        La référence (CoinGecko) pose les trois champs SUR UNE LIGNE et sort le
+        résultat de la zone de saisie : « voici une équation, en voici les deux
+        membres ». La différence n'est pas cosmétique — le résultat cesse d'être une
+        case de formulaire qu'on pourrait croire modifiable, et devient une PHRASE.
+
+        ── LA LARGEUR N'EST PLUS BORNÉE À 36rem ────────────────────────────────
+
+        `max-w-xl` tenait deux champs superposés. Trois champs côte à côte demandent
+        la largeur du contenu ; la carte prend donc celle de la page, et la grille
+        s'effondre en colonne sous `md` — où trois sélecteurs sur 375 pixels seraient
+        illisibles.
+      */}
+      <div className="rounded-card border border-border-subtle bg-surface p-5 sm:p-6">
+        <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-ink-muted">
+              {`Montant en ${fromLabel}`}
+            </span>
             <Input
               size="lg"
               type="text"
@@ -150,93 +209,64 @@ export function ConverterView({
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               aria-label={`Montant en ${fromLabel}`}
-              className="tabular min-w-0 flex-1"
+              className="tabular w-full"
             />
+          </label>
 
-            {/* Le sélecteur est COLLÉ au champ qu'il qualifie, pas posé en dessous :
-                un montant et son unité forment une seule saisie, et les séparer fait
-                relire deux fois pour savoir dans quoi l'on compte. */}
-            <div className="w-40 shrink-0">
-              {reversed ? (
-                <CurrencySelect
-                  value={currency}
-                  onChange={setCurrency}
-                  currencies={currencies}
-                  rates={rates}
-                />
-              ) : (
-                <AssetPicker
-                  assets={assets}
-                  selectedIds={[asset.id]}
-                  onSelect={(entry) => setAssetId(entry.id)}
-                  label="Actif"
-                >
-                  {(open) => <PickerFace asset={asset} open={open} />}
-                </AssetPicker>
-              )}
-            </div>
+          <div>
+            <span className="mb-1.5 block text-xs font-medium text-ink-muted">
+              {reversed ? 'Devise de départ' : 'Cryptomonnaie'}
+            </span>
+            {reversed ? money : picker}
           </div>
-        </label>
 
-        {/* ── L'INVERSION ───────────────────────────────────────────────────────
-            Une flèche VERTICALE, puisque les deux cases sont l'une au-dessus de
-            l'autre. L'horizontale de la version précédente décrivait une disposition
-            qui n'existe plus. */}
-        <div className="flex items-center gap-3">
-          <Separator className="flex-1 bg-border-subtle" />
-          {/* `IconButton` — le bouton-icône bordé du système. `tooltip` pose à
-              la fois l'`aria-label` et une bulle qui, elle, existe au clavier. */}
-          <IconButton
-            variant="outline"
-            onClick={() => setReversed((value) => !value)}
-            label="Inverser le sens de conversion"
-            icon={ArrowDownUp}
-          />
-          <Separator className="flex-1 bg-border-subtle" />
+          {/* ── L'INVERSION ────────────────────────────────────────────────────
+              Une flèche HORIZONTALE, puisque les deux sélecteurs sont côte à côte.
+              La verticale de la version précédente décrivait une disposition qui
+              n'existe plus.
+
+              `mb-1` aligne le bouton sur la ligne de base des deux champs qu'il
+              sépare : `items-end` cale le bas des boîtes, et un bouton carré de 36
+              pixels y tombe un cheveu trop bas sans ce rattrapage. */}
+          <div className="mb-1 flex justify-center md:block">
+            <IconButton
+              variant="outline"
+              onClick={() => setReversed((value) => !value)}
+              label="Inverser le sens de conversion"
+              icon={ArrowRightLeft}
+            />
+          </div>
+
+          <div>
+            <span className="mb-1.5 block text-xs font-medium text-ink-muted">
+              {reversed ? 'Cryptomonnaie' : 'Devise'}
+            </span>
+            {reversed ? picker : money}
+          </div>
         </div>
 
-        {/* ── CE QU'ON REÇOIT ───────────────────────────────────────────────── */}
-        <div>
-          <span className="mb-1.5 block text-xs font-medium text-ink-muted">
-            Résultat en {toLabel}
+        {/*
+          ── LE RÉSULTAT EST UNE PHRASE, PAS UNE CASE ──────────────────────────
+
+          Un `<output>` et non un `<p>` : l'élément existe précisément pour porter le
+          résultat d'un calcul, et les lecteurs d'écran l'annoncent à chaque
+          changement sans qu'on ait à poser `aria-live` à la main.
+
+          L'horodatage le SUIT sur la même ligne, en petit — c'est la place de la
+          référence, et elle est juste : « à quand remonte ce chiffre » est une
+          question qu'on se pose EN LISANT le chiffre, pas avant.
+        */}
+        <output className="tabular mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-2xl font-bold text-ink">
+          {formattedAmount} {fromLabel} = {formattedResult} {toLabel}
+          <span className="text-xs font-normal text-ink-muted">
+            Dernière mise à jour à {stamp}
           </span>
-          <div className="flex items-stretch gap-2">
-            {/*
-              Un `<output>` et non un `<p>` : l'élément existe précisément pour porter
-              le résultat d'un calcul, et les lecteurs d'écran l'annoncent à chaque
-              changement sans qu'on ait à poser `aria-live` à la main.
-            */}
-            <output className="tabular min-w-0 flex-1 truncate rounded-control border border-border-subtle bg-canvas px-3 py-2.5 text-lg font-semibold text-ink">
-              {formattedResult}
-            </output>
+        </output>
 
-            <div className="w-40 shrink-0">
-              {reversed ? (
-                <AssetPicker
-                  assets={assets}
-                  selectedIds={[asset.id]}
-                  onSelect={(entry) => setAssetId(entry.id)}
-                  label="Actif"
-                >
-                  {(open) => <PickerFace asset={asset} open={open} />}
-                </AssetPicker>
-              ) : (
-                <CurrencySelect
-                  value={currency}
-                  onChange={setCurrency}
-                  currencies={currencies}
-                  rates={rates}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* La ligne réciproque est DANS le panneau, en pied. Centrée sous les deux
-            colonnes, elle appartenait à la mise en page symétrique qu'on vient de
-            retirer ; ici elle qualifie le calcul qui la précède. */}
+        {/* La ligne réciproque ferme la carte : elle donne le taux unitaire dans les
+            deux sens, ce que le résultat ne dit pas dès que le montant n'est pas 1. */}
         {unitPrice !== undefined && unitPrice > 0 ? (
-          <p className="tabular border-t border-border-subtle pt-3 text-xs text-ink-muted">
+          <p className="tabular mt-3 border-t border-border-subtle pt-3 text-xs text-ink-muted">
             1 {asset.name} ≈ {formatUnit(unitPrice)} {currency}
             <span className="mx-2 text-border-subtle">·</span>1 {currency} ≈{' '}
             {formatUnit(1 / unitPrice)} {asset.symbol.toUpperCase()}
@@ -244,7 +274,7 @@ export function ConverterView({
         ) : null}
       </div>
 
-      <div className="max-w-xl border-l-2 border-border-subtle pl-4 text-xs leading-relaxed text-ink-muted">
+      <div className="max-w-2xl border-l-2 border-border-subtle pl-4 text-xs leading-relaxed text-ink-muted">
         <p>
           Cours de <strong className="text-ink">{asset.name}</strong> relevé le{' '}
           {new Date(asset.lastUpdated).toLocaleString('fr-FR', {
@@ -269,41 +299,6 @@ export function ConverterView({
           </p>
         )}
       </div>
-
-      {/* ── LE MÊME MONTANT AILLEURS ──────────────────────────────────────────
-          Le bloc qui remplace la grille de pastilles de la référence. Il répond à une
-          autre question, et à une question qu'eux ne posent pas : leur grille dit
-          « combien vaut un bitcoin » — une réponse unique, la même pour tout le monde.
-          Celle-ci dit « combien vaut CE montant, partout », ce qui n'a de sens que
-          parce qu'on suit soixante-deux devises. */}
-      {elsewhere.length > 0 ? (
-        <section className="space-y-2">
-          <h2 className="text-sm font-semibold text-ink">
-            {formatUnit(parsed)} {asset.symbol.toUpperCase()} dans les autres devises
-          </h2>
-
-          <div className="overflow-hidden rounded-card border border-border-subtle">
-            <ul className="grid grid-cols-2 gap-px bg-border-subtle sm:grid-cols-3 lg:grid-cols-4">
-              {elsewhere.map((entry) => (
-                <li
-                  key={entry.code}
-                  className="flex items-baseline justify-between gap-3 bg-surface px-3 py-2"
-                >
-                  <span className="text-xs font-medium text-ink-muted">{entry.code}</span>
-                  <span className="tabular truncate text-sm text-ink">
-                    {formatUnit(entry.value)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <p className="text-xs text-ink-muted">
-            Converti depuis la valeur en euros et non depuis le résultat affiché : enchaîner
-            deux conversions accumulerait deux arrondis là où un seul suffit.
-          </p>
-        </section>
-      ) : null}
     </div>
   )
 }
@@ -357,7 +352,11 @@ function CurrencySelect({
       aria-label="Devise"
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="h-full"
+      /* `w-full` : la case occupe désormais sa colonne de grille, comme les deux
+         autres. Sans lui, elle se dimensionnait sur son contenu — trois lettres — et
+         la troisième colonne de la carte se lisait comme un accessoire à côté de deux
+         vrais champs, là où la référence leur donne la même largeur. */
+      className="h-full w-full"
     >
       {currencies.map((code) => {
         const missing = code !== 'EUR' && rates?.rates[code] === undefined

@@ -116,9 +116,15 @@ export function WatchlistStar({
         aria-pressed={following}
         label={capped ? cappedLabel : action}
         icon={
+          /* ⚠️ `size-5` ET NON `size-4`. L'étoile était rendue au même corps que les
+             chevrons de tri de la même rangée, alors qu'elle n'a pas le même rôle :
+             c'est la seule COMMANDE d'une ligne de tableau, et elle doit se
+             distinguer du décor qui l'entoure. Quatre pixels de plus suffisent à
+             cela sans changer la hauteur de ligne — le bouton qui la porte garde son
+             plancher tactile. */
           <Star
             data-icon
-            className={`size-4 ${following ? 'fill-current' : ''}`}
+            className={`size-5 ${following ? 'fill-current' : ''}`}
             aria-hidden="true"
           />
         }

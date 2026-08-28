@@ -2,6 +2,7 @@ import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { formatCompact, formatPercent } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
+import { getPhrase } from '@/lib/content'
 
 /**
  * Bandeau de statistiques clés, visible SANS changer d'onglet.
@@ -16,13 +17,14 @@ import { Money } from '@/components/locale/Money'
  * n'y a ni capitalisation ni volume : le bandeau se réduit alors aux extrêmes, plutôt
  * que d'aligner des tirets (§5).
  */
-export function AssetKeyStats({
+export async function AssetKeyStats({
   asset,
   assetClass,
 }: {
   asset: AssetDetail
   assetClass: AssetClass
 }) {
+  const t = await getPhrase()
   const isForex = assetClass === 'forex'
 
   // Yahoo ne publie pas de plus haut historique pour les valeurs boursières : ce
@@ -34,25 +36,25 @@ export function AssetKeyStats({
 
   if (asset.marketCap !== undefined) {
     cells.push({
-      label: 'Capitalisation',
+      label: t('Capitalisation'),
       node: <Money value={asset.marketCap} from={asset.currency} compact />,
     })
   }
   if (asset.volume24h !== undefined) {
     cells.push({
-      label: 'Volume 24 h',
+      label: t('Volume 24 h'),
       node: <Money value={asset.volume24h} from={asset.currency} compact />,
     })
   }
   if (asset.high24h !== undefined) {
     cells.push({
-      label: 'Plus haut 24 h',
+      label: t('Plus haut 24 h'),
       node: <Money value={asset.high24h} from={asset.currency} asRate={isForex} />,
     })
   }
   if (asset.low24h !== undefined) {
     cells.push({
-      label: 'Plus bas 24 h',
+      label: t('Plus bas 24 h'),
       node: <Money value={asset.low24h} from={asset.currency} asRate={isForex} />,
     })
   }
@@ -62,14 +64,14 @@ export function AssetKeyStats({
   // répéter à l'identique deux cellules plus loin n'apprend rien.
   if (asset.fdv !== undefined && asset.fdv !== asset.marketCap) {
     cells.push({
-      label: 'Valorisation diluée',
+      label: t('Valorisation diluée'),
       node: <Money value={asset.fdv} from={asset.currency} compact />,
     })
   }
   // N'existe que pour les protocoles de finance décentralisée.
   if (asset.tvl !== undefined) {
     cells.push({
-      label: 'Valeur verrouillée',
+      label: t('Valeur verrouillée'),
       node: <Money value={asset.tvl} from={asset.currency} compact />,
     })
   }
@@ -108,13 +110,13 @@ export function AssetKeyStats({
   }
   if (asset.circulatingSupply !== undefined) {
     cells.push({
-      label: 'Offre en circulation',
+      label: t('Offre en circulation'),
       node: `${formatCompact(asset.circulatingSupply)} ${asset.symbol.toUpperCase()}`,
     })
   }
   if (asset.maxSupply !== undefined) {
     cells.push({
-      label: 'Offre maximale',
+      label: t('Offre maximale'),
       node: `${formatCompact(asset.maxSupply)} ${asset.symbol.toUpperCase()}`,
     })
   }

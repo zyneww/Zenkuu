@@ -6,36 +6,40 @@ import {
   getAssetHistory,
   getCategories,
   getCryptoGlobalStats,
+  getCryptoOverview,
   getMarketCapBasket,
   getMoversUniverse,
   getMarketCapSeriesState,
   getNftCollections,
+  getSentiment,
   getSentimentHistory,
   getTreasuries,
+  type GlobalMarketStats,
   type PriceHistory,
 } from '@zenkuu/data'
-import { EmptyState, SourceNote } from '@zenkuu/ui'
+import { EmptyState, SourceNote, formatCompact, formatCurrency, formatPercent } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
-import { weave } from '@/components/locale/emphasise'
-import { BasketCharts } from '@/components/market/BasketCharts'
+import { fill, weave } from '@/components/locale/emphasise'
+import { AltcoinSeasonGauge } from '@/components/market/AltcoinSeasonGauge'
+import { FearGreedDial } from '@/components/market/FearGreedDial'
+import { MarketPulseCards } from '@/components/market/MarketPulseCards'
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
 import { CategoryStatBand } from '@/components/categories/CategoryStatBand'
+import { ChartsSidebar } from '@/components/market/ChartsSidebar'
 import {
   ChartsTabs,
   readChartView,
   type ChartView,
 } from '@/components/market/ChartsTabs'
 import { DominanceView } from '@/components/market/DominanceView'
-import { GlobalChartsView } from '@/components/market/GlobalChartsView'
-import { MacroBand } from '@/components/market/MacroBand'
-import { MarketOverviewCard } from '@/components/home/MarketOverviewCard'
+import { GlobalChartCard } from '@/components/market/GlobalChartCard'
 import { NftCollectionGrid } from '@/components/market/NftCollectionGrid'
 import { NftOverview } from '@/components/market/NftOverview'
 import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
-import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
 import { TreasuryOverview } from '@/components/market/TreasuryOverview'
 import { TreasuryTable } from '@/components/market/TreasuryTable'
+import { computeAltcoinSeason } from '@/lib/altcoin-season'
 import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
@@ -44,12 +48,16 @@ void _ttlGuard
 
 const TITLES: Record<ChartView, { title: string; lead: string }> = {
   global: {
-    title: 'Graphiques globaux',
+    title: 'Vue d’ensemble du marché',
     lead: 'L’état du marché dans la durée : agrégats mondiaux, capitalisation et volumes des deux plus grandes cryptomonnaies, puis l’indice de sentiment sur un an.',
   },
   dominance: {
     title: 'Dominance de Bitcoin',
     lead: 'La part de la capitalisation mondiale que représente Bitcoin. Elle monte quand le marché se replie vers lui, et baisse quand le reste progresse plus vite.',
+  },
+  altseason: {
+    title: 'Saison des altcoins',
+    lead: 'La part des cent premières capitalisations qui a fait mieux que Bitcoin sur trente jours. Au-dessus de 75 %, le marché favorise les altcoins ; en dessous de 25 %, il se replie sur Bitcoin.',
   },
   secteurs: {
     title: 'Carte thermique',
@@ -123,18 +131,30 @@ export default async function Page({
   const entry = TITLES[view]
 
   return (
-    <div className="space-y-8">
-      <ChartsTabs current={view} />
+    /*
+      ── DEUX COLONNES : LE RAIL, PUIS LA VUE ────────────────────────────────
+      C'est la disposition de la référence. Le rail est `sticky` et disparaît sous
+      `lg` (voir `ChartsSidebar`) ; `min-w-0` sur la colonne de droite est
+      OBLIGATOIRE, sans quoi la largeur minimale d'une piste flexible est celle de
+      son contenu — un tableau large y pousserait le rail hors de l'écran au lieu de
+      défiler dans sa propre boîte.
+    */
+    <div className="flex gap-8">
+      <ChartsSidebar current={view} />
 
-      <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">{t(entry.title)}</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">{t(entry.lead)}</p>
-      </header>
+      <div className="min-w-0 flex-1 space-y-8">
+        <ChartsTabs current={view} />
 
-      {view === 'global' ? <GlobalView /> : null}
-      {view === 'dominance' ? <DominanceSection /> : null}
-      {view === 'secteurs' ? <HeatmapSection /> : null}
-      {view === 'categories' ? <CategoriesSection /> : null}
+        <header className="max-w-3xl space-y-3">
+          <h1 className="display-xl text-ink">{t(entry.title)}</h1>
+          <p className="text-lg leading-relaxed text-ink-muted">{t(entry.lead)}</p>
+        </header>
+
+        {view === 'global' ? <GlobalView /> : null}
+        {view === 'dominance' ? <DominanceSection /> : null}
+        {view === 'altseason' ? <AltseasonSection /> : null}
+        {view === 'secteurs' ? <HeatmapSection /> : null}
+        {view === 'categories' ? <CategoriesSection /> : null}
 
       {/*
         ── LES DEUX VUES LENTES SONT MISES EN FLUX ────────────────────────────
@@ -153,17 +173,18 @@ export default async function Page({
         Les quatre autres vues n'en ont pas besoin : un ou deux appels déjà partagés
         avec le reste du site, donc pratiquement toujours en cache.
       */}
-      {view === 'tresoreries' ? (
-        <Suspense fallback={<LoadingNote label={t('Lecture des registres de trésorerie…')} />}>
-          <TreasuriesSection />
-        </Suspense>
-      ) : null}
+        {view === 'tresoreries' ? (
+          <Suspense fallback={<LoadingNote label={t('Lecture des registres de trésorerie…')} />}>
+            <TreasuriesSection />
+          </Suspense>
+        ) : null}
 
-      {view === 'nft' ? (
-        <Suspense fallback={<LoadingNote label={t('Lecture des collections…')} />}>
-          <NftSection />
-        </Suspense>
-      ) : null}
+        {view === 'nft' ? (
+          <Suspense fallback={<LoadingNote label={t('Lecture des collections…')} />}>
+            <NftSection />
+          </Suspense>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -188,127 +209,337 @@ async function LoadingNote({ label }: { label: string }) {
   )
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * VUE GÉNÉRALE — REFAITE EN CADRES, À LA MANIÈRE DE COINGECKO
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUI A CHANGÉ, ET POURQUOI CE N'EST PAS UN HABILLAGE ───────────────────
+ *
+ * La vue empilait cinq blocs de natures différentes : une bande de chiffres, une
+ * carte d'aperçu, un panier à quatre onglets, un explorateur à trois sélecteurs
+ * partagés, une courbe de sentiment. Chacun avait sa forme et ses commandes ; deux
+ * séries ne se comparaient qu'en faisant défiler, et aucun bloc ne disait de quelle
+ * ASSIETTE il parlait.
+ *
+ * La référence (`coingecko.com/en/charts`) pose au contraire :
+ *
+ *   1. un TITRE suivi d'une phrase qui chiffre l'état du marché ;
+ *   2. un GRAND CADRE — capitalisation totale, ses propres paliers de période, sa
+ *      courbe, et une ligne de totaux qui dit ce que la courbe compte ;
+ *   3. une GRILLE À DEUX COLONNES de cadres identiques, un par série.
+ *
+ * C'est cette structure qui est reprise, cadre par cadre. Ce qui ne l'est pas : sa
+ * barre latérale gauche — les onglets du haut sont conservés, comme demandé.
+ *
+ * ── CE QUE LES CADRES TRACENT RÉELLEMENT ─────────────────────────────────────
+ *
+ * ⚠️ La capitalisation MONDIALE n'est pas accessible gratuitement en série (voir
+ * l'en-tête du fichier). Le grand cadre trace donc le PANIER SUIVI — neuf actifs
+ * additionnés — et il le dit, dans son titre comme dans sa ligne de composition.
+ * L'appeler « capitalisation totale » ferait passer neuf actifs pour dix-huit mille.
+ */
 async function GlobalView() {
   const t = await getPhrase()
-  const [globalStats, btc, eth, sentiment] = await Promise.all([
+  /*
+   * ── LES DEUX APPELS AJOUTÉS NE COÛTENT RIEN DE PLUS ───────────────────────
+   *
+   * `getSentiment()` alimente déjà `/sentiment` et le rail de l'accueil.
+   *
+   * `getCryptoOverview()` alimente déjà le TABLEAU DE L'ACCUEIL, et c'est pour cela
+   * qu'il est choisi ici plutôt que `getMoversUniverse` : lui seul demande les
+   * COURBES MINIATURES à la source (`withSparkline`). Passer par l'univers des
+   * variations aurait rendu cinq cartes sans tracé — ou obligé à un second appel
+   * pour les obtenir, sur un budget qui n'en autorise qu'une poignée.
+   *
+   * Les clés de cache des deux ne dépendent d'aucun actif : la rangée de tête et le
+   * cadran sont donc composés à partir de réponses que le site a déjà.
+   */
+  const [globalStats, btc, eth, sentiment, pulse, mood] = await Promise.all([
     getCryptoGlobalStats('eur'),
     getAssetHistory('bitcoin', 'crypto', 365, 'eur'),
     getAssetHistory('ethereum', 'crypto', 365, 'eur'),
     getSentimentHistory(365),
+    getCryptoOverview('eur', 5),
+    getSentiment(),
   ])
 
-
-  // Lu APRÈS `getCryptoGlobalStats` : c'est cet appel qui vient d'ajouter le point du
-  // jour à la série enregistrée.
-  const marketCapSeries = getMarketCapSeriesState('EUR')
-
-  const histories: Partial<Record<'bitcoin' | 'ethereum', PriceHistory>> = {}
-  if (btc.ok) histories.bitcoin = btc.data
-  if (eth.ok) histories.ethereum = eth.data
+  const stats = globalStats.ok ? globalStats.data : null
 
   return (
-    <div className="space-y-12 sm:space-y-16">
-      {globalStats.ok ? (
-        <>
-          <MacroBand stats={globalStats.data} />
-          <SourceNote
-            strings={{ source: t('Source :'), dated: t('données du {date}') }}
-            label={globalStats.source.label}
-            href={globalStats.source.attributionUrl}
-            updatedAt={globalStats.data.lastUpdated}
-          />
-        </>
-      ) : (
-        <EmptyState title={t('Agrégats mondiaux indisponibles')} description={globalStats.reason} />
-      )}
-
-      <MarketOverviewCard result={globalStats} series={marketCapSeries} />
+    <div className="space-y-6">
+      {/* ── LA RANGÉE DE TÊTE ────────────────────────────────────────────
+          Les cinq premières capitalisations, dans l'ordre où la source les classe —
+          et non une liste arrêtée à la main : un classement figé finirait par citer
+          un actif sorti du haut de tableau depuis deux ans. */}
+      {pulse.ok ? <MarketPulseCards assets={pulse.data.topByMarketCap.slice(0, 5)} /> : null}
 
       {/*
-        ── LE PANIER, ENTRE NOS RELEVÉS DE 24 H ET LES COURBES PAR ACTIF ────────
+        ── LA PHRASE D'OUVERTURE, CHIFFRÉE ───────────────────────────────────
 
-        Sa place dans la page est un argument à elle seule. Au-dessus, la carte
-        d'aperçu montre ce que nous avons MESURÉ nous-mêmes : vingt-quatre heures, pas
-        une de plus. En dessous, les courbes longues montrent Bitcoin et Ethereum, un
-        actif à la fois. Le panier est exactement ce qui manquait entre les deux — une
-        profondeur d'un an sur un agrégat — et il est posé là pour qu'on lise dans cet
-        ordre : ce qu'on a relevé, ce qu'on a additionné, ce que la source publie
-        directement.
-
-        Il n'apparaît que s'il a abouti. Un encadré d'échec de plus n'apprendrait rien
-        que la carte d'aperçu juste au-dessus ne dise déjà.
+        C'est le paragraphe que la référence place sous son titre, et il fait deux
+        choses qu'aucun cadre ne fait : il donne l'état du marché en une lecture, et
+        il sert de résumé aux moteurs de recherche. Les nombres viennent de la même
+        réponse que la bande de chiffres qu'il remplace.
       */}
-      <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
-        <BasketSection />
-      </Suspense>
+      {stats ? (
+        <p className="max-w-4xl text-sm leading-relaxed text-ink-muted">
+          {fill(
+            t(
+              'La capitalisation des cryptomonnaies suivies s’élève aujourd’hui à {cap}, en variation de {change} sur vingt-quatre heures, pour un volume échangé de {volume}. Bitcoin en représente {btc}, Ethereum {eth}. Le site suit {count} cryptomonnaies.',
+            ),
+            {
+              cap: (
+                <span className="font-semibold text-ink">
+                  {formatCurrency(stats.totalMarketCap, stats.currency, { compact: true })}
+                </span>
+              ),
+              change: (
+                <span className={stats.marketCapChange24h >= 0 ? 'text-up' : 'text-down'}>
+                  {formatPercent(stats.marketCapChange24h) ?? '—'}
+                </span>
+              ),
+              volume: (
+                <span className="font-semibold text-ink">
+                  {formatCurrency(stats.totalVolume24h, stats.currency, { compact: true })}
+                </span>
+              ),
+              btc: (
+                <span className="font-semibold text-ink">
+                  {(stats.dominance.btc ?? 0).toFixed(1)} %
+                </span>
+              ),
+              eth: (
+                <span className="font-semibold text-ink">
+                  {(stats.dominance.eth ?? 0).toFixed(1)} %
+                </span>
+              ),
+              count: (
+                <span className="font-semibold text-ink">{formatCompact(stats.activeAssets)}</span>
+              ),
+            },
+          )}
+        </p>
+      ) : (
+        <EmptyState
+          title={t('Agrégats mondiaux indisponibles')}
+          description={globalStats.ok ? null : globalStats.reason}
+        />
+      )}
 
-      {btc.ok || eth.ok ? (
-        <>
-          <GlobalChartsView histories={histories} />
-          <SourceNote
-            strings={{ source: t('Source :'), dated: t('données du {date}') }}
-            label={(btc.ok ? btc.source : eth.ok ? eth.source : { label: '' }).label}
-            href={
-              (btc.ok ? btc.source : eth.ok ? eth.source : { attributionUrl: '#' }).attributionUrl
+      {/*
+        ── LA COLONNE ÉTROITE ET LE GRAND CADRE, CÔTE À CÔTE ─────────────────
+
+        C'est la disposition de la référence, et elle vaut mieux que l'empilement
+        qu'elle remplace : les indicateurs d'ambiance — sentiment, saison des
+        altcoins — se lisent EN MÊME TEMPS que la courbe de capitalisation, et non
+        trois écrans plus bas. C'est précisément leur usage : ils qualifient ce que
+        la courbe montre.
+
+        Sous `xl`, la colonne repasse au-dessus du cadre plutôt qu'à côté : à moins
+        de mille pixels, une colonne de 280 px laisse au graphique une largeur où
+        une année de relevés quotidiens n'est plus lisible.
+
+        LE GRAND CADRE est mis en flux : le panier coûte neuf séries d'un an sur une
+        source plafonnée à quelques appels par minute, et sans `Suspense` tout ce qui
+        précède — déjà en cache — resterait retenu jusqu'au dernier appel.
+      */}
+      <div className="grid gap-4 xl:grid-cols-[19rem_minmax(0,1fr)]">
+        <div className="space-y-4">
+          {mood.ok ? (
+            <FearGreedDial index={mood.data} label={t(mood.data.classification)} />
+          ) : null}
+
+          <Suspense fallback={null}>
+            <AltseasonCard />
+          </Suspense>
+        </div>
+
+        <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
+          <BasketSection stats={stats} />
+        </Suspense>
+      </div>
+
+      {/*
+        ── LA GRILLE À DEUX COLONNES ─────────────────────────────────────────
+
+        Quatre cadres de même gabarit : deux capitalisations, un volume, le sentiment.
+        Ce sont les séries que nos sources publient RÉELLEMENT sur un an — la
+        référence y met les siennes (DeFi, stablecoins), que nous n'avons pas en série.
+      */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {btc.ok ? (
+          <GlobalChartCard
+            title="Capitalisation de Bitcoin"
+            hint="Publiée par la source, jour par jour."
+            format="money"
+            currency={btc.data.currency}
+            colorIndex={1}
+            points={seriesOf(btc.data, 'marketCap')}
+          />
+        ) : null}
+
+        {eth.ok ? (
+          <GlobalChartCard
+            title="Capitalisation d’Ethereum"
+            hint="Même relevé, même profondeur."
+            format="money"
+            currency={eth.data.currency}
+            colorIndex={0}
+            points={seriesOf(eth.data, 'marketCap')}
+          />
+        ) : null}
+
+        {btc.ok ? (
+          <GlobalChartCard
+            title="Volume 24 h de Bitcoin"
+            hint="Le volume échangé sur l’ensemble des places, tel que la source l’agrège."
+            format="money"
+            currency={btc.data.currency}
+            colorIndex={4}
+            points={seriesOf(btc.data, 'volume')}
+          />
+        ) : null}
+
+        {sentiment.ok && sentiment.data.length > 1 ? (
+          <GlobalChartCard
+            title="Indice de sentiment"
+            hint="0 = peur extrême, 100 = avidité extrême."
+            format="plain"
+            colorIndex={2}
+            points={sentiment.data.map((point) => ({ t: point.timestamp, y: point.value }))}
+            note={
+              <>
+                {weave(
+                  t(
+                    'L’indice et sa méthode sont détaillés sur la [page dédiée au sentiment](/sentiment).',
+                  ),
+                  (href, label, key) => (
+                    <Link key={key} href={href} className="text-brand hover:underline">
+                      {label}
+                    </Link>
+                  ),
+                )}{' '}
+                <SourceNote
+                  label={sentiment.source.label}
+                  href={sentiment.source.attributionUrl}
+                  strings={{ source: t('Source :'), dated: t('données du {date}') }}
+                />
+              </>
             }
           />
-        </>
-      ) : (
+        ) : null}
+      </div>
+
+      {!btc.ok && !eth.ok ? (
         <EmptyState
           title="Courbes longues indisponibles"
           description={btc.ok ? null : btc.reason}
           tone="warning"
         />
-      )}
-
-      {sentiment.ok && sentiment.data.length > 1 ? (
-        <div className="space-y-4">
-          <SentimentHistoryView points={sentiment.data} />
-          <p className="text-sm text-ink-muted">
-            {weave(
-              t(
-                'L’indice et sa méthode sont détaillés sur la [page dédiée au sentiment](/sentiment).',
-              ),
-              (href, label, key) => (
-                <Link key={key} href={href} className="text-brand hover:underline">
-                  {label}
-                </Link>
-              ),
-            )}
-          </p>
-          <SourceNote label={sentiment.source.label} href={sentiment.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
-        </div>
       ) : null}
     </div>
   )
 }
 
 /**
- * Panier de capitalisations — MIS EN FLUX, comme les trésoreries et les collections.
+ * Une grandeur d'un historique, en points de courbe.
  *
- * Neuf séries d'un an, dont sept que la page n'a pas déjà chargées. Sur un cache froid
- * et un palier gratuit plafonné à quelques appels par minute, l'assemblage se compte en
- * dizaines de secondes.
- *
- * Ce qui est réductible n'est pas cette durée mais l'ATTENTE AVANT LE PREMIER PIXEL :
- * sans `Suspense`, la vue macro et la carte d'aperçu — toutes deux servies depuis un
- * cache partagé avec le reste du site, donc instantanées — resteraient retenues jusqu'au
- * dernier appel du panier.
- *
- * L'ordre de la page ne change pas, seulement l'ordre d'ARRIVÉE.
+ * Les points sans la grandeur demandée sont ÉCARTÉS et non ramenés à zéro : une
+ * capitalisation absente n'est pas une capitalisation nulle, et le §5 interdit de les
+ * confondre — une chute à zéro au milieu d'une courbe se lirait comme un effondrement.
  */
-async function BasketSection() {
+function seriesOf(
+  history: PriceHistory,
+  key: 'marketCap' | 'volume',
+): { t: number; y: number }[] {
+  const rows: { t: number; y: number }[] = []
+  for (const point of history.points) {
+    const value = point[key]
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      rows.push({ t: point.timestamp, y: value })
+    }
+  }
+  return rows
+}
+
+/**
+ * LE GRAND CADRE — le panier, sa part de Bitcoin, et la ligne de totaux.
+ *
+ * Mis en flux pour la raison décrite plus haut. Il ne rend rien si le panier n'a pas
+ * abouti : la phrase d'ouverture dit déjà l'état de la source, et un second encadré
+ * d'échec n'apprendrait rien.
+ */
+async function BasketSection({ stats }: { stats: GlobalMarketStats | null }) {
   const t = await getPhrase()
   const basket = await getMarketCapBasket('eur', 365)
-
-  // Un encadré d'échec de plus n'apprendrait rien que la carte d'aperçu, juste
-  // au-dessus, ne dise déjà de l'état de la source.
   if (!basket.ok) return null
+
+  const points = basket.data.points.map((point) => ({ t: point.timestamp, y: point.total }))
+
+  /* La part de Bitcoin DANS LE PANIER, et le mot compte : ce n'est pas la dominance,
+     qui se rapporte au marché entier. Le titre du cadre le dit, sa phrase aussi. */
+  const share = basket.data.points
+    .map((point) => {
+      const bitcoin = point.byId.bitcoin
+      if (typeof bitcoin !== 'number' || point.total <= 0) return null
+      return { t: point.timestamp, y: (bitcoin / point.total) * 100 }
+    })
+    .filter((point): point is { t: number; y: number } => point !== null)
 
   return (
     <div className="space-y-4">
-      <BasketCharts basket={basket.data} />
-      <SourceNote label={basket.source.label} href={basket.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
+      <GlobalChartCard
+        large
+        title="Capitalisation du panier suivi"
+        hint="La somme de neuf grandes capitalisations, additionnées jour par jour — pas le marché entier."
+        format="money"
+        currency={basket.data.currency}
+        colorIndex={5}
+        points={points}
+        footer={
+          <>
+            <span className="font-semibold text-ink">{basket.data.members.length}</span>{' '}
+            {t('actifs dans le panier')}
+            {stats ? (
+              <>
+                {' · '}
+                <span className="font-semibold text-ink">
+                  {formatCompact(stats.activeAssets)}
+                </span>{' '}
+                {t('cryptomonnaies suivies')}
+                {' · '}
+                <span className="font-semibold text-ink">
+                  {(stats.dominance.btc ?? 0).toFixed(1)} %
+                </span>{' '}
+                {t('de dominance Bitcoin')}
+              </>
+            ) : null}
+          </>
+        }
+        note={
+          <>
+            {t(
+              'Le panier est figé : il ne suit pas les entrées et sorties du classement. Sa courbe décrit ces neuf actifs, et rien d’autre.',
+            )}{' '}
+            <SourceNote
+              label={basket.source.label}
+              href={basket.source.attributionUrl}
+              strings={{ source: t('Source :'), dated: t('données du {date}') }}
+            />
+          </>
+        }
+      />
+
+      {share.length > 1 ? (
+        <GlobalChartCard
+          title="Part de Bitcoin dans le panier"
+          hint="À ne pas confondre avec la dominance, qui se rapporte au marché entier."
+          format="percent"
+          colorIndex={3}
+          points={share}
+        />
+      ) : null}
     </div>
   )
 }
@@ -354,14 +585,204 @@ async function DominanceSection() {
       <div className="space-y-4">
         <div className="rounded-card border border-brand/25 bg-brand-soft/55 px-4 py-3">
           <h2 className="text-xs font-semibold text-ink">{t('Et sur un an ?')}</h2>
-          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">{t('La dominance ci-dessus est la vraie : Bitcoin rapporté au marché entier, tel que la source le publie. Sa profondeur est celle de nos propres relevés, c’est-à-dire quelques heures. Pour voir la tendance sur douze mois, il faut accepter une mesure approchante — la part de Bitcoin dans un panier de neuf actifs, dont la composition est listée sous les courbes. Choisissez la vue « Répartition ».')}</p>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">{t('La dominance ci-dessus est la vraie : Bitcoin rapporté au marché entier, tel que la source le publie. Sa profondeur est celle de nos propres relevés, c’est-à-dire quelques heures. Pour voir la tendance sur douze mois, il faut accepter une mesure approchante — la part de Bitcoin dans un panier de neuf actifs, dont la composition est listée sous les courbes. Elle est tracée dans le cadre « Part de Bitcoin dans le panier », juste en dessous.')}</p>
         </div>
 
         <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
-          <BasketSection />
+          <BasketSection stats={null} />
         </Suspense>
       </div>
     </div>
+  )
+}
+
+/* ── SAISON DES ALTCOINS ────────────────────────────────────────────────────── */
+
+/**
+ * La carte compacte de la vue d'ensemble.
+ *
+ * Elle ne rend RIEN si l'indice n'est pas calculable, là où la vue complète affiche
+ * un état vide expliqué. La différence est voulue : sur la vue dédiée, l'absence est
+ * le sujet — on est venu pour cet indice — alors qu'ici c'est une carte parmi
+ * d'autres, et un encadré d'échec dans une colonne d'indicateurs occupe la place
+ * d'une information au lieu d'en apporter une.
+ */
+async function AltseasonCard() {
+  const t = await getPhrase()
+  const universe = await getMoversUniverse(100, 'eur')
+  if (!universe.ok) return null
+
+  const season = computeAltcoinSeason(universe.data)
+  if (!season) return null
+
+  return (
+    <section className="rounded-card border border-border-subtle bg-surface p-5">
+      <h2 className="text-sm font-semibold text-ink">{t('Saison des altcoins')}</h2>
+
+      <p className="tabular display-sm mt-3 leading-none text-ink">
+        {Math.round(season.value)}
+        <span className="text-base font-normal text-ink-muted"> /100</span>
+      </p>
+
+      <div className="mt-4 h-1.5 rounded-pill bg-gradient-to-r from-down via-ink-muted/40 to-brand">
+        <div className="relative h-full">
+          <span
+            aria-hidden="true"
+            className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-canvas bg-ink"
+            style={{ left: `${Math.min(100, Math.max(0, season.value))}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-2 flex justify-between text-[0.6875rem] text-ink-muted">
+        <span>{t('Saison de Bitcoin')}</span>
+        <span>{t('Saison des altcoins')}</span>
+      </div>
+
+      <p className="mt-4 border-t border-border-subtle pt-3 text-xs leading-relaxed text-ink-muted">
+        {t('Part des cent premières capitalisations qui font mieux que Bitcoin sur trente jours.')}{' '}
+        <Link
+          href="/graphiques?vue=altseason"
+          className="underline underline-offset-2 hover:text-ink"
+        >
+          {t('Voir le détail')}
+        </Link>
+      </p>
+    </section>
+  )
+}
+
+async function AltseasonSection() {
+  const t = await getPhrase()
+  /* AUCUN APPEL SUPPLÉMENTAIRE : `getMoversUniverse(100)` alimente déjà la carte
+     thermique d'à côté et la page `/mouvements`, et sa clé de cache ne dépend
+     d'aucun actif. La « saison des altcoins » est un comptage sur une donnée que le
+     site a déjà — c'est précisément ce qui la rend calculable ici. */
+  const universe = await getMoversUniverse(100, 'eur')
+
+  if (!universe.ok || universe.data.length === 0) {
+    return (
+      <EmptyState
+        title={t('Classement indisponible')}
+        description={universe.ok ? null : universe.reason}
+        source={universe.source?.label ?? null}
+        tone={universe.ok ? 'neutral' : 'warning'}
+      />
+    )
+  }
+
+  const season = computeAltcoinSeason(universe.data)
+
+  if (!season) {
+    return (
+      <EmptyState
+        title={t('Indice incalculable')}
+        description={t(
+          'La source ne publie pas la variation de Bitcoin sur trente jours pour le moment. L’indice compte les actifs qui font mieux que lui : sans cette valeur, il n’a pas de point de comparaison.',
+        )}
+        tone="warning"
+      />
+    )
+  }
+
+  const { value, ahead, contenders, reference } = season
+
+  /* Les dix plus gros écarts À BITCOIN, et non les dix plus fortes hausses : c'est
+     l'écart qui fait l'indice, et un actif en baisse de 2 % pendant que Bitcoin perd
+     20 % est en tête du comptage sans figurer nulle part dans un classement de
+     hausses. */
+  const ranked = [...contenders].sort(
+    (left, right) => (right.change30d as number) - (left.change30d as number),
+  )
+
+  return (
+    <div className="space-y-6">
+      <AltcoinSeasonGauge
+        value={value}
+        outperformers={ahead.length}
+        universe={contenders.length}
+        windowDays={30}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SpreadList
+          title={t('Les dix plus gros écarts en tête')}
+          rows={ranked.slice(0, 10)}
+          reference={reference}
+        />
+        <SpreadList
+          title={t('Les dix plus gros écarts en queue')}
+          rows={ranked.slice(-10).reverse()}
+          reference={reference}
+        />
+      </div>
+
+      <p className="text-xs leading-relaxed text-ink-muted">
+        {t('Variation de Bitcoin sur la même fenêtre :')}{' '}
+        <span className={reference >= 0 ? 'text-up' : 'text-down'}>
+          {formatPercent(reference) ?? '—'}
+        </span>
+        {'. '}
+        <SourceNote
+          label={universe.source.label}
+          href={universe.source.attributionUrl}
+          strings={{ source: t('Source :'), dated: t('données du {date}') }}
+        />
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Une colonne d'actifs et leur écart à Bitcoin.
+ *
+ * L'ÉCART est la colonne principale, la variation brute la seconde : c'est l'écart
+ * qui décide de l'indice, et le lire à côté de la variation évite d'avoir à faire la
+ * soustraction de tête pour comprendre pourquoi une ligne est là.
+ */
+function SpreadList({
+  title,
+  rows,
+  reference,
+}: {
+  title: string
+  rows: { id: string; name: string; symbol: string; change30d?: number }[]
+  reference: number
+}) {
+  return (
+    <section className="rounded-card border border-border-subtle bg-surface">
+      <h2 className="border-b border-border-subtle px-4 py-2.5 text-xs font-semibold text-ink">
+        {title}
+      </h2>
+      <ul>
+        {rows.map((asset) => {
+          const change = asset.change30d as number
+          const spread = change - reference
+          return (
+            <li
+              key={asset.id}
+              className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-2 last:border-b-0"
+            >
+              <Link
+                href={`/crypto/${asset.id}`}
+                className="min-w-0 flex-1 truncate text-sm text-ink hover:text-brand-strong"
+              >
+                {asset.name}{' '}
+                <span className="text-xs uppercase text-ink-muted">{asset.symbol}</span>
+              </Link>
+
+              <span className={`tabular text-sm font-medium ${spread >= 0 ? 'text-up' : 'text-down'}`}>
+                {spread >= 0 ? '+' : '−'}
+                {Math.abs(spread).toFixed(1).replace('.', ',')} pts
+              </span>
+              <span className="tabular w-16 text-right text-xs text-ink-muted">
+                {formatPercent(change) ?? '—'}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }
 
@@ -413,7 +834,13 @@ async function HeatmapSection() {
 
 async function CategoriesSection() {
   const t = await getPhrase()
-  const categories = await getCategories()
+  /* La capitalisation mondiale n'est là que pour la colonne de dominance du tableau —
+     voir `CategoryExplorer`. En DOLLARS, comme les agrégats sectoriels de la source :
+     un rapport entre deux devises ne voudrait rien dire. */
+  const [categories, globalStats] = await Promise.all([
+    getCategories(),
+    getCryptoGlobalStats('usd'),
+  ])
 
   if (!categories.ok || categories.data.length === 0) {
     return (
@@ -435,7 +862,10 @@ async function CategoriesSection() {
       <CategoryStatBand categories={categories.data} />
 
       <div className="space-y-4">
-        <CategoryExplorer categories={categories.data} />
+        <CategoryExplorer
+          categories={categories.data}
+          totalMarketCap={globalStats.ok ? globalStats.data.totalMarketCap : null}
+        />
         <SourceNote label={categories.source.label} href={categories.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
       </div>
     </div>

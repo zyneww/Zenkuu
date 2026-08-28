@@ -100,7 +100,9 @@ export default async function DashboardPage() {
                 : 'Aucun actif suivi pour le moment.'}
             </p>
           </div>
-          <Link href="/suivi" className="text-sm font-medium text-brand-strong hover:underline">{t('Vue détaillée')}</Link>
+          {/* ⚠️ LE LIEN « VUE DÉTAILLÉE » A DISPARU AVEC `/suivi`, supprimée sur
+              demande explicite. Cette section EST désormais la vue de la liste de
+              suivi : rien ne renvoie plus ailleurs parce qu'il n'y a plus d'ailleurs. */}
         </div>
 
         {watchlistError ? (
@@ -110,7 +112,7 @@ export default async function DashboardPage() {
             title="Aucun actif suivi"
             description={t('Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici.')}
             action={
-              <ButtonLink href="/marches">{t('Parcourir les cryptomonnaies')}</ButtonLink>
+              <ButtonLink href="/crypto">{t('Parcourir les cryptomonnaies')}</ButtonLink>
             }
           />
         ) : (

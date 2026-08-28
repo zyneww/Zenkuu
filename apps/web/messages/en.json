@@ -2,6 +2,7 @@
   "metric": {
     "price": {
       "label": "Price",
+      "asOf": "As of {stamp}",
       "help": "Latest price published by the source, converted into the currency you selected. This is not an execution price: depending on the venue and the moment, a real order would fill at a nearby but different level."
     },
     "marketCap": {
@@ -93,7 +94,6 @@
       "help": "Price change over the past year. A missing period means the source does not publish it — never that it is zero."
     }
   },
-
   "metricPage": {
     "breadcrumb": "Metrics",
     "definitionTitle": "Definition",
@@ -104,7 +104,6 @@
     "backToAsset": "Back to the asset page",
     "currentValue": "Current value"
   },
-
   "chartCard": {
     "expand": "Expand",
     "collapse": "Collapse",
@@ -115,7 +114,6 @@
     "other": "Other",
     "noData": "Series not published by the source for this period."
   },
-
   "search": {
     "placeholder": "Search",
     "shortcut": "Ctrl + K",

@@ -1,7 +1,7 @@
 'use client'
 
 import { fr } from 'react-day-picker/locale'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import type { DateRange } from 'react-day-picker'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -88,6 +88,7 @@ export function DateRangeCalendar({
 }) {
   const t = usePhrase()
   const today = useMemo(() => new Date(), [])
+  const wide = useWideEnoughForTwoMonths()
 
   /*
    * L'état local ne tient QUE la sélection en cours, pas la plage retenue.
@@ -130,12 +131,21 @@ export function DateRangeCalendar({
             setDraft(undefined)
           }
         }}
-        className="p-0"
+        /* DEUX MOIS CÔTE À CÔTE. Choisir une plage sur une seule grille oblige, dès
+           que les bornes tombent de part et d'autre d'un 1ᵉʳ, à changer de mois entre
+           les deux clics — geste pendant lequel la première borne disparaît de
+           l'écran. Deux mois couvrent la quasi-totalité des plages réellement
+           demandées sans navigation. Un seul en dessous de `sm`, où deux ne tiennent
+           pas. */
+        numberOfMonths={wide ? 2 : 1}
+        /* Cases plus grandes : la grille par défaut est calibrée pour un champ de
+           formulaire, pas pour un menu qu'on balaie du regard. */
+        className="p-0 [--cell-size:--spacing(9)]"
       />
 
       {/* ── Pied ──────────────────────────────────────────────────────────── */}
-      <div className="mt-2 flex items-center justify-between gap-2 border-t border-border-subtle pt-2">
-        <p className="text-[0.6875rem] leading-tight text-ink-muted">
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border-subtle pt-3">
+        <p className="text-xs leading-tight text-ink-muted">
           {draft?.from && !draft.to
             ? t('Choisissez la seconde date')
             : value
@@ -158,6 +168,33 @@ export function DateRangeCalendar({
         ) : null}
       </div>
     </div>
+  )
+}
+
+/**
+ * L'écran tient-il deux mois côte à côte ?
+ *
+ * Même mécanique que `useReducedMotion` : la largeur de l'écran est un état EXTERNE à
+ * React, et `useSyncExternalStore` est fait pour cela. Un `useEffect` + `useState`
+ * ajouterait un rendu à chaque ouverture du menu.
+ *
+ * L'instantané serveur rend `false` : un seul mois est toujours affichable, deux ne
+ * le sont pas — le repli prudent est celui qui ne déborde jamais.
+ */
+const TWO_MONTHS_QUERY = '(min-width: 40rem)'
+
+function subscribeToWidth(onChange: () => void): () => void {
+  if (typeof window.matchMedia !== 'function') return () => {}
+  const query = window.matchMedia(TWO_MONTHS_QUERY)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+function useWideEnoughForTwoMonths(): boolean {
+  return useSyncExternalStore(
+    subscribeToWidth,
+    () => (typeof window.matchMedia === 'function' ? window.matchMedia(TWO_MONTHS_QUERY).matches : false),
+    () => false,
   )
 }
 

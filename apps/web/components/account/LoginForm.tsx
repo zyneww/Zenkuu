@@ -159,7 +159,7 @@ export function LoginForm({
        * Rechargement complet plutôt qu'un `router.refresh()`.
        *
        * La session vient de s'ouvrir, et ce qu'elle change dépasse le rendu React :
-       * la liste de suivi, les alertes et le tableau de bord sont rendus côté serveur
+       * la liste de suivi et le tableau de bord sont rendus côté serveur
        * sous une AUTRE clé qu'il y a une seconde, et plusieurs d'entre eux sont mis
        * en cache par route. Un rafraîchissement partiel laisserait des fragments de
        * l'état anonyme à l'écran — le cas le plus visible étant l'étoile d'un actif
@@ -247,7 +247,7 @@ export function LoginForm({
           CE QUE LA CONNEXION APPORTE — et il faut le dire ici.
 
           RIEN de plus qu'un visiteur anonyme ne puisse déjà faire : la liste de suivi
-          et les alertes fonctionnent sans compte. Ce qu'elle apporte est la
+          et les écrans fonctionnent sans compte. Ce qu'elle apporte est la
           PORTABILITÉ. Sans cette phrase, le visiteur suppose qu'on lui demande de
           s'inscrire pour utiliser le site.
 
@@ -258,13 +258,13 @@ export function LoginForm({
         {compact ? (
           <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
             Un compte n’est <strong className="font-medium text-ink">pas nécessaire</strong> pour
-            suivre un actif ou armer une alerte. Il sert à retrouver la même liste sur un autre
+            suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre
             appareil.
           </p>
         ) : (
           <p className="rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5 text-[0.6875rem] leading-relaxed text-ink-muted">
             Un compte n’est <strong className="font-medium text-ink">pas nécessaire</strong> pour
-            suivre un actif ou armer une alerte : ces fonctions marchent déjà sans lui, rangées
+            suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées
             dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à
             ce qu’un nettoyage du navigateur ne l’efface pas.
           </p>

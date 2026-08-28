@@ -4,6 +4,7 @@ import { ArrowUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { IconButton } from '@/components/ui/IconButton'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Cadre à deux colonnes de la fiche : les chiffres à gauche, le contenu à droite.
@@ -108,38 +109,46 @@ import { IconButton } from '@/components/ui/IconButton'
 
 export function AssetLayoutFrame({
   rail,
-  tabsBar,
   identity,
   aside,
   children,
 }: {
   rail: React.ReactNode
   /**
-   * Barre de sommaire, rendue PLEINE LARGEUR au-dessus de la grille.
+   * Identité compacte de l'actif — montrée quand la page a été défilée.
    *
-   * ── ELLE EST COLLANTE ─────────────────────────────────────────────────────
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⚠️ TROIS PROPS ONT DISPARU D'ICI : `tabsBar`, `headline` ET `quote`
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * Tant qu'elle commandait des panneaux exclusifs, elle n'avait pas à suivre : on la
-   * quittait des yeux dès le clic, et le panneau demandé occupait l'écran. Sur une
-   * page unique, elle est le seul repère qui dise OÙ L'ON EST dans une fiche de
-   * plusieurs milliers de pixels. Elle doit donc rester à l'écran.
+   * La rangée collante portait, à l'état déplié, l'identité COMPLÈTE à gauche, le
+   * bloc de cours à droite et la barre de sommaire en bande basse — 170 pixels de
+   * chrome au-dessus du contenu, qui se repliaient en 56 au défilement.
    *
-   * Elle s'arrête à `--header-height` et non plus à 112 pixels : la bande d'identité
-   * qui occupait les 48 pixels intermédiaires a fusionné avec elle (voir l'en-tête).
-   * La valeur est LUE dans le jeton plutôt que recopiée — les deux ne peuvent donc
-   * plus diverger.
+   * Les trois ont été retirés du produit : le sommaire n'existe plus (la fiche est
+   * une page qu'on descend), l'identité complète et le cours ont pris la forme de
+   * la référence — un en-tête ordinaire, puis une carte de cours en tête de colonne
+   * (voir `AssetHeadline` et `AssetPriceCard`).
    *
-   * Le fond est OPAQUE (`bg-canvas`) et non translucide : le contenu qui passe
-   * derrière une bande de 44 pixels au milieu d'un graphique se lit comme une
-   * salissure, là où le même effet sur un en-tête de 64 pixels passe pour une matière.
-   */
-  tabsBar?: React.ReactNode
-  /**
-   * Identité compacte de l'actif — révélée quand la rangée se colle.
+   * Ce qui reste ici est ce que ces deux blocs NE FONT PAS : accompagner la page
+   * une fois qu'on l'a quittée des yeux. La rangée n'a donc plus de forme dépliée,
+   * seulement une bande qui apparaît au défilement.
+   *
+   * ── ELLE NE PREND PLUS UN PIXEL AU FLUX ───────────────────────────────────
+   *
+   * C'est la conséquence la plus utile du retrait. La rangée changeait de HAUTEUR
+   * en se collant, et `position: sticky` gardant l'élément dans le flux, tout le
+   * contenu remontait de 114 pixels à cet instant précis. Un cale d'une hauteur
+   * inverse existait pour compenser, et les deux valeurs devaient être tenues
+   * accordées à la main.
+   *
+   * La rangée est désormais une boîte de hauteur NULLE, dont la bande est posée en
+   * absolu. Elle ne participe donc plus à la mise en page : rien ne bouge quand elle
+   * apparaît, et il n'y a plus de cale ni de couple de valeurs à maintenir.
    *
    * Elle arrive en nœud déjà rendu plutôt qu'en données : c'est `AssetStickyBar`, un
    * composant client branché sur le flux de cours, et ce cadre n'a aucune raison de
-   * connaître la notion d'actif. Il place des colonnes et tient une rangée.
+   * connaître la notion d'actif. Il place des colonnes et tient une bande.
    */
   identity?: React.ReactNode
   /**
@@ -159,6 +168,7 @@ export function AssetLayoutFrame({
   aside?: React.ReactNode
   children: React.ReactNode
 }) {
+  const t = usePhrase()
   /* Déstructuré ICI, et non lu par `stuck.xxx` au fil du rendu : le compilateur React
      traite tout accès de membre sur un objet qui PORTE une référence comme un accès à
      cette référence pendant le rendu, et le refuse. La déstructuration sort le booléen
@@ -174,74 +184,61 @@ export function AssetLayoutFrame({
           confondue avec celle, plus délicate, que portait `AssetStickyBar`. */}
       <div ref={sentinelRef} aria-hidden="true" className="h-px" />
 
-      {/* ── LA RANGÉE PORTE LE SOMMAIRE, ET L'IDENTITÉ QUAND ELLE EST COLLÉE ──
+      {/* ══════════════════════════════════════════════════════════════════════
+          LA BANDE D'ACCOMPAGNEMENT — HAUTEUR NULLE DANS LE FLUX
 
-          Elle a porté deux groupes (sommaire à gauche, réglages de page à droite), puis
-          le sommaire seul. Elle porte aujourd'hui le sommaire et, dès qu'elle se colle,
-          l'identité de l'actif que la bande `fixed` d'autrefois affichait sur sa propre
-          ligne. Voir l'en-tête pour ce que cette fusion a rendu à la page.
+          ── CE QU'ELLE REMPLACE ─────────────────────────────────────────────
 
-          `gap-3` et `items-center` : trois groupes de hauteurs différentes — une ligne
-          d'identité de 20 pixels, des onglets de 44, un bouton de 28 — qui doivent
-          partager une ligne de base optique. `items-end`, qui alignait autrefois deux
-          groupes au-dessus du même filet, les aurait tous collés au trait de
-          sélection. */}
-      <div className="sticky top-[var(--header-height)] z-30 flex items-center gap-3 border-b border-border-subtle bg-canvas">
-        {/*
-          ── L'IDENTITÉ APPARAÎT, ELLE NE POUSSE PAS ────────────────────────────
+          Une rangée collante de 170 pixels qui portait l'identité complète, le bloc
+          de cours et la barre de sommaire, et se repliait en 56 au défilement. Les
+          trois contenus sont partis (voir la note de la prop `identity`), et avec eux
+          la mécanique qu'ils imposaient : deux états superposés en fondu, un `pb-7`
+          mesuré au pixel, et un cale d'exactement 7,125rem chargé de rendre au flux
+          ce que le repli lui prenait.
 
-          Elle est rendue EN PERMANENCE et seulement masquée : la monter au moment où
-          la rangée se colle ferait sauter les onglets de deux cents pixels vers la
-          droite au premier défilement, et le trait de sélection — mesuré en pixels sur
-          le bouton actif — se retrouverait à côté de sa cible le temps d'une image.
+          ── POURQUOI LA BOÎTE EST DE HAUTEUR NULLE ──────────────────────────
 
-          `w-0 overflow-hidden` plutôt que `hidden` : le groupe garde sa place dans
-          l'arbre et ses mesures restent valides, mais il ne prélève aucune largeur tant
-          qu'il est replié. La transition porte donc sur une largeur qui s'ouvre, ce qui
-          se lit comme un glissement et non comme une apparition.
+          `position: sticky` ne sort PAS l'élément du flux : sa boîte continue
+          d'occuper sa place. Une bande qui apparaît en changeant de hauteur déplace
+          donc tout ce qui la suit, à l'instant précis où elle apparaît — un saut sous
+          les yeux, pendant qu'on défile. C'est ce que le cale compensait.
 
-          `inert` retire l'ensemble du parcours clavier quand il est replié — un contenu
-          de largeur nulle reste focalisable sans cet attribut, et la tabulation s'y
-          perdrait.
-        */}
-        {identity !== undefined ? (
-          <div
-            aria-hidden={!stuck}
-            inert={!stuck}
-            className={`flex shrink-0 items-center gap-2 overflow-hidden transition-[width,opacity] duration-200 ${
-              stuck ? 'w-auto opacity-100' : 'w-0 opacity-0'
-            }`}
-          >
-            {identity}
-          </div>
-        ) : null}
+          Une boîte à `h-0` dont la bande est posée en ABSOLU ne participe à aucun
+          calcul de mise en page. La bande se peint par-dessus le contenu quand elle
+          se montre, et rien ne bouge — sans cale, et sans deux valeurs à tenir
+          accordées à la main.
 
-        {tabsBar !== undefined ? <div className="min-w-0 flex-1">{tabsBar}</div> : null}
+          Le fond est OPAQUE (`bg-canvas`) et non translucide : le contenu qui passe
+          derrière une bande de 56 pixels au milieu d'un graphique se lit comme une
+          salissure, là où le même effet sur l'en-tête du site passe pour une matière.
 
-        {/*
-          ── LE RETOUR EN HAUT SUIT L'IDENTITÉ ──────────────────────────────────
-
-          Il appartenait à la bande `fixed` et la fermait à droite. Il reste attaché au
-          même état : il n'a de sens qu'une fois la page défilée, et une flèche « haut
-          de page » affichée en haut de page ne commande rien.
-
-          Le libellé subsiste en `aria-label` — voir `IconButton`. C'est la convention
-          de CoinGecko et de TradingView : à vingt-huit pixels, l'icône tient partout, y
-          compris sur téléphone où la fiche fait le plus d'écrans.
-        */}
+          `top-[var(--header-height)]` est LU dans le jeton plutôt que recopié : la
+          bande se pose sous l'en-tête du site, et les deux ne peuvent pas diverger.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="sticky top-[var(--header-height)] z-30 h-0">
         <div
           aria-hidden={!stuck}
           inert={!stuck}
-          className={`shrink-0 transition-opacity duration-200 ${
-            stuck ? 'opacity-100' : 'pointer-events-none opacity-0'
+          /* `invisible` EN PLUS de `opacity-0` : une opacité nulle laisse le contenu
+             cliquable. `inert` couvre le clavier, `invisible` couvre le pointeur —
+             les deux sont nécessaires, et l'oubli du second faisait cliquer sur un
+             bouton qu'on ne voyait plus. */
+          className={`absolute inset-x-0 top-0 flex h-14 items-center gap-4 border-b border-border-subtle bg-canvas transition-opacity duration-300 ${
+            stuck ? 'visible opacity-100' : 'invisible opacity-0'
           }`}
         >
+          <div className="flex min-w-0 flex-1 items-center gap-2">{identity}</div>
+
+          {/* La flèche n'a de sens qu'une fois la page défilée — affichée en haut de
+              page, elle ne commande rien. Elle vit donc dans la bande, qui n'existe
+              qu'à ce moment-là. */}
           <IconButton
             size="icon-xs"
             variant="outline"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            label="Remonter en haut de la page"
+            label={t('Remonter en haut de la page')}
             icon={ArrowUp}
+            className="shrink-0"
           />
         </div>
       </div>
@@ -335,6 +332,28 @@ export function AssetLayoutFrame({
         */}
         <div className="min-w-0 flex-1 [display:flow-root]">
           <div className="asset-rail min-w-0">{rail}</div>
+
+          {/*
+            ── LA RANGÉE D'ONGLETS OUVRE LA COLONNE PRINCIPALE ──────────────────
+
+            C'est la place de la référence, au pixel près : à gauche, en tête de la
+            colonne du graphique, séparée de lui par un filet, et non centrée dans une
+            bande qui traverse la page.
+
+            `[display:flow-root]` : sans lui, cette boîte n'ouvrirait pas de contexte de
+            formatage et se glisserait SOUS le rail flottant au lieu de commencer à sa
+            droite. C'est la même règle que `.asset-section`, et elle est écrite ici
+            plutôt qu'en classe utilitaire parce qu'elle ne vaut qu'au-dessus de `lg` —
+            en dessous le rail ne flotte pas, et un contexte de formatage de plus n'y
+            change rien.
+
+            `mb-4` : le filet de la rangée doit respirer avant la barre d'outils du
+            graphique, sans quoi les deux se lisent comme un seul bloc de commandes.
+          */}
+          {/* ⚠️ LA RANGÉE D'ONGLETS N'EST PLUS ICI — elle a rejoint la bande collante,
+              où elle reste atteignable une fois la page défilée. Voir sa note là-haut.
+              Le filet qui la soulignait appartenait à cette rangée : il part avec elle,
+              la bande collante ayant déjà le sien. */}
           {children}
         </div>
 
