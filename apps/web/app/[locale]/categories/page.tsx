@@ -110,11 +110,14 @@ export default async function CategoriesPage() {
         totalMarketCap={globalStats.ok ? globalStats.data.totalMarketCap : null}
       />
 
-      {/* La source ne publie ces agrégats qu'en dollars : on l'écrit plutôt que
-          de convertir nous-mêmes vers l'euro (§5). */}
+      {/* La source ne publie ces agrégats QU'EN DOLLARS, et c'est ce que nomme cette
+          note. L'affichage, lui, suit la devise choisie par le visiteur : `Money`
+          convertit depuis l'origine déclarée, au taux dont le sélecteur de préférences
+          donne la date. Nommer l'origine est la condition du §5 — c'est elle qui
+          permet de refaire le calcul. */}
       <SourceNote
         strings={{ source: t('Source :'), dated: t('données du {date}') }}
-        label={`${categories.source.label} · montants en USD`}
+        label={`${categories.source.label} · agrégats cotés en USD`}
         href={categories.source.attributionUrl}
       />
     </div>

@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from 'react'
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
+import { BoardCurrency } from '@/components/market/BoardCurrency'
 import {
   BOARD_VIEWS,
-  BoardCurrency,
   BoardFilters,
   BoardSearch,
   BoardTabs,

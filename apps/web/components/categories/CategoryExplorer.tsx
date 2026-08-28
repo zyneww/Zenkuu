@@ -4,11 +4,20 @@ import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
+import { InputGroupAddon } from '@/components/ui/input-group'
 
 import type { MarketCategory } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
+import { BoardCurrency } from '@/components/market/BoardCurrency'
+import { Money } from '@/components/locale/Money'
 import { SortableHeader } from '@/components/ui/SortableTable'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
@@ -80,6 +89,7 @@ export function CategoryExplorer({
 }) {
   const t = usePhrase()
   const [query, setQuery] = useState(defaultQuery)
+  const [panelOpen, setPanelOpen] = useState(false)
   const [sort, setSort] = useState<SortKey>('marketCap')
   const [direction, setDirection] = useState<Direction>('desc')
 
@@ -133,21 +143,103 @@ export function CategoryExplorer({
         {t('Tous les secteurs')}
       </h2>
 
-      {/* Champ COURT et à gauche, comme chez la référence : c'est un filtre, pas la
-          commande principale de la page. Étalé sur toute la largeur, il passerait
-          pour une recherche de site. */}
-      <InputGroup size="sm" className="w-full max-w-[16rem]">
-        <InputGroupInput
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('Rechercher')}
-          aria-label={t('Filtrer les secteurs par nom ou par définition')}
-        />
-        <InputGroupAddon>
-          <Search />
-        </InputGroupAddon>
-      </InputGroup>
+      {/* Le filtre à gauche, la devise à droite, sur une seule bande — la disposition
+          de la référence. Le champ reste COURT : c'est un filtre, pas la commande
+          principale de la page. Étalé sur toute la largeur, il passerait pour une
+          recherche de site. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/*
+          ⚠️ `items={[]}` et `filter={null}` : la liste et son filtrage vivent dans
+          `visible` — le composant ne sert qu'à tenir l'ouverture, la navigation au
+          clavier et le positionnement. Même montage que `AssetPicker`, dont l'en-tête
+          détaille pourquoi.
+
+          Le champ est ICI le déclencheur, donc HORS du panneau : le chevron par défaut
+          est celui qu'on veut, et l'ancrage vicieux décrit dans `AssetPicker` — un
+          panneau qui s'ancre sur un élément de lui-même — ne peut pas se produire.
+        */}
+        <Combobox
+          open={panelOpen}
+          onOpenChange={setPanelOpen}
+          inputValue={query}
+          onInputValueChange={(value: string) => {
+            setQuery(value)
+            /* Taper ROUVRE le panneau : après avoir choisi un secteur, le lecteur qui
+               corrige sa saisie attend de revoir la liste, pas un champ muet. */
+            setPanelOpen(true)
+          }}
+          filter={null}
+          items={[]}
+        >
+          {/*
+            ⚠️ L'OUVERTURE EST PILOTÉE À LA MAIN, et `openOnInputClick` ne suffit pas.
+
+            La collection que Base UI connaît est `items={[]}` — le filtrage est le
+            nôtre. Il en déduit une liste vide (`data-list-empty` sur le champ, relevé
+            au navigateur) et REFUSE d'ouvrir : le clic ne produisait rien du tout.
+            L'état `open` étant contrôlé, le poser nous-mêmes passe outre.
+          */}
+          <ComboboxInput
+            placeholder={t('Filtrer les catégories…')}
+            aria-label={t('Filtrer les secteurs par nom ou par définition')}
+            className="h-8 w-full max-w-[16rem] text-sm"
+            onClick={() => setPanelOpen(true)}
+          >
+            <InputGroupAddon align="inline-start">
+              <Search className="h-3.5 w-3.5 text-ink-muted" />
+            </InputGroupAddon>
+          </ComboboxInput>
+
+          <ComboboxContent className="border border-border-subtle bg-overlay shadow-overlay">
+            <ComboboxList className="max-h-72">
+              {/*
+                ⚠️ `Combobox.Empty` NE PEUT PAS SERVIR : il se règle sur la collection
+                que Base UI connaît, et cette collection est `items={[]}`. Il tiendrait
+                donc la liste pour vide en permanence, au-dessus des entrées visibles.
+                `visible` est la seule source qui sache ce qui est réellement rendu.
+              */}
+              {visible.length === 0 ? (
+                <p className="px-3 py-6 text-center text-sm text-ink-muted">
+                  {t('Aucun secteur ne correspond')}
+                </p>
+              ) : null}
+
+              {visible.map((category) => (
+                <ComboboxItem
+                  key={category.id}
+                  /*
+                   * ⚠️ `value` PORTE LE NOM, PAS L'IDENTIFIANT.
+                   *
+                   * Base UI écrit lui-même la `value` de l'item choisi dans le champ,
+                   * APRÈS notre `onClick`. Avec l'identifiant, « Layer 1 (L1) » y
+                   * déposait son slug `layer-1` — que le filtre, qui compare au nom,
+                   * ne retrouvait pas : le tableau se vidait au lieu de se réduire au
+                   * secteur demandé. Relevé au navigateur.
+                   *
+                   * Le nom fait donc les deux : identité de l'item pour Base UI, et
+                   * terme de filtre pour nous.
+                   */
+                  value={category.name}
+                  /* Le clic REMPLACE le filtre par le nom exact : le tableau se réduit
+                     alors à ce secteur, et le champ montre pourquoi. Le lecteur peut
+                     l'effacer pour retrouver la liste entière. */
+                  onClick={() => {
+                    setQuery(category.name)
+                    setPanelOpen(false)
+                  }}
+                  className="px-3 py-2 text-sm"
+                >
+                  {category.name}
+                </ComboboxItem>
+              ))}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+
+        {/* Même sélecteur que le tableau de cotations, et même préférence de site :
+            changer de devise ici la change partout (voir `BoardCurrency`). */}
+        <BoardCurrency />
+      </div>
 
       {query.trim() ? (
         <p className="text-xs text-ink-muted" aria-live="polite">
@@ -228,7 +320,20 @@ function CategoryTable({
   const sortState = { key: sort, direction }
 
   return (
-    <div className="overflow-x-auto rounded-card border border-border-subtle">
+    /*
+     * SANS CADRE NI FILETS DE LIGNES — la forme de la référence.
+     *
+     * Le tableau portait un encadré arrondi, un filet sous l'en-tête et un filet entre
+     * chaque ligne. Trois traits pour séparer ce que l'alignement des colonnes sépare
+     * déjà : sur une grille de nombres cadrés à droite, la structure se lit dans les
+     * chiffres, pas dans les traits qui les entourent.
+     *
+     * Ce qui RESTE : le survol de ligne, qui est la seule séparation dont un lecteur
+     * a besoin — celle de la ligne qu'il suit du regard — et un filet sous l'en-tête,
+     * qui ancre les libellés de colonnes. Les retirer TOUS ferait flotter les en-têtes
+     * au-dessus des données sans les rattacher à rien.
+     */
+    <div className="overflow-x-auto">
       {/* Colonnes prioritaires sous `sm` — voir la note de `MarketTable`. */}
       <table className="w-full border-collapse text-sm sm:min-w-[720px]">
         <caption className="sr-only">{t('Secteurs de marché')}</caption>
@@ -270,7 +375,7 @@ function CategoryTable({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-subtle">
+        <tbody>
           {categories.map((category, index) => (
             <tr key={category.id} className="transition-colors hover:bg-surface-muted/60">
               <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
@@ -298,11 +403,15 @@ function CategoryTable({
               <td className="px-3 py-2.5 text-right">
                 <ChangeBadge value={category.marketCapChange24h} size="sm" />
               </td>
+              {/* `Money` et non `formatCurrency(…, 'USD')` : ce tableau était le seul
+                  du site à ignorer la devise choisie par le visiteur. La source cote
+                  bien en dollars — c'est ce que dit `from` — mais l'affichage suit la
+                  préférence, comme partout ailleurs (§5 : l'origine reste nommée). */}
               <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
-                {formatCurrency(category.volume24h, 'USD', { compact: true }) ?? '—'}
+                <Money value={category.volume24h} from="USD" compact />
               </td>
               <td className="tabular px-3 py-2.5 text-right text-ink">
-                {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
+                <Money value={category.marketCap} from="USD" compact />
               </td>
               <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
                 {dominance(category.marketCap, totalMarketCap)}

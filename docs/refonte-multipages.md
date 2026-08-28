@@ -109,11 +109,17 @@ Je m'arrête et je demande si :
 ### T8 — /connexion et /inscription
 - Layout split-screen : panneau gauche sombre à fond étoilé animé, slogan, bouclier ZENKUU
   **dessiné pour ZENKUU** (aucun asset KuCoin).
-- Panneau droit : champ adresse → bouton clair « Suivant » → étape code, réutilisant
-  `LoginForm.tsx` (`requestLoginCode` / `verifyLoginCode`).
-- Séparateur « Ou continuer avec » puis **Google et X uniquement** — les fournisseurs non
-  configurés sont grisés, pas masqués. Pas de Passkey, Telegram, Apple, sous-compte ni QR :
-  le backend ne les sert pas.
+- Panneau droit reproduisant la capture 5 **à l'identique** : onglets
+  « Email/Téléphone | Sous-compte | QR Code », champ de saisie, bouton clair « Suivant »,
+  séparateur « Ou continuer avec », bouton Passkey, puis Telegram / Google / Apple, et le
+  lien d'inscription.
+- L'onglet « Email/Téléphone » réutilise `LoginForm.tsx` (`requestLoginCode` /
+  `verifyLoginCode`) : adresse → code à usage unique. C'est le seul parcours complet.
+- Google et X sont actifs quand configurés. **Sous-compte, QR Code, Passkey, Telegram et
+  Apple sont rendus mais désactivés**, avec au survol la raison de leur inactivité — même
+  traitement que celui déjà appliqué à un fournisseur OAuth non configuré
+  (`CONFIGURED_PROVIDERS`, `lib/oauth.ts`). Un bouton actif sans backend serait une fausse
+  fonctionnalité, ce que la contrainte globale interdit.
 - Le popover navbar continue de fonctionner ; les nouvelles pages s'ajoutent, ne remplacent pas.
 - L'animation du fond respecte `prefers-reduced-motion`.
 
