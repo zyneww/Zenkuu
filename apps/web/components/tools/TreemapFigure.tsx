@@ -208,15 +208,34 @@ export function TreemapFigure({
           pas quatre — sans quoi la plus grande tuile écraserait tout le reste. C'est la
           relation entre une surface et une longueur.
 
-          Le facteur `0.42` et les bornes `[7, 56]` sont réglés pour que la plus petite
-          tuile lisible reste au-dessus du seuil de lisibilité du site (7 px) et que la
-          plus grande n'excède pas une hauteur de titre. La racine est bornée par la
-          plus PETITE dimension : un rectangle très plat ne peut pas porter un texte
-          plus haut que lui.
+          Le facteur `0.42` et la borne haute `56` sont réglés pour que la plus grande
+          tuile n'excède pas une hauteur de titre. La racine est bornée par la plus
+          PETITE dimension : un rectangle très plat ne peut pas porter un texte plus
+          haut que lui.
+
+          ── SOUS ONZE PIXELS, ON N'ÉCRIT PLUS RIEN ──────────────────────────
+
+          ⚠️ Les étiquettes descendaient jusqu'à SEPT pixels, et la ligne de valeur
+          avec elles. `audit-responsive` les a relevées sur la page des collections :
+          « MAYC » en 9,2 px, « 92.7M $ (8,1 %) · −6.52% » en 7 px. Sous le plancher
+          de onze pixels du projet, un chiffre de marché n'est plus lisible — il reste
+          du bruit qui salit la tuile sans rien apprendre.
+
+          Le calibrage brut décide donc ce qui S'AFFICHE, et la taille appliquée ne
+          descend jamais sous onze : une tuile trop petite pour son nom n'en porte
+          pas, une tuile trop petite pour sa valeur n'affiche que son nom. La couleur
+          et l'infobulle continuent de porter l'information. C'est aussi ce que font
+          les cartes thermiques de référence, dont les petites tuiles sont muettes.
         */
         const minSide = Math.min(box.width, box.height)
-        const labelSize = Math.max(7, Math.min(56, Math.sqrt(box.width * box.height) * 0.42))
-        const showValue = minSide > 6 && labelSize >= 11
+        const raw = Math.min(56, Math.sqrt(box.width * box.height) * 0.42)
+        const labelSize = Math.max(11, raw)
+        const showLabel = minSide > 6 && raw >= 11
+        /* La valeur est calibrée à la moitié de l'étiquette : elle ne paraît donc que
+           lorsque cette moitié atteint elle-même le plancher, soit une étiquette de
+           vingt-deux pixels. */
+        const valueSize = Math.max(11, labelSize * 0.5)
+        const showValue = showLabel && labelSize * 0.5 >= 11
 
         /*
           ── L'ICÔNE NE PARAÎT QUE SI ELLE TIENT VRAIMENT ────────────────────
@@ -253,12 +272,14 @@ export function TreemapFigure({
             {/* Étiquettes toujours présentes dans le DOM — donc lisibles par un lecteur
                 d'écran et par un moteur — mais dimensionnées à la tuile pour ne pas
                 déborder sur ses voisines. */}
-            <span
-              className={`block max-w-full truncate font-semibold leading-none ${INK.label}`}
-              style={{ fontSize: `${labelSize.toFixed(1)}px` }}
-            >
-              {tile.label}
-            </span>
+            {showLabel ? (
+              <span
+                className={`block max-w-full truncate font-semibold leading-none ${INK.label}`}
+                style={{ fontSize: `${labelSize.toFixed(1)}px` }}
+              >
+                {tile.label}
+              </span>
+            ) : null}
             {/*
               MONTANT, PART ET VARIATION SUR UNE SEULE LIGNE — l'anatomie de la
               référence, relevée au navigateur.
@@ -279,7 +300,7 @@ export function TreemapFigure({
             {showValue ? (
               <span
                 className={`tabular block truncate leading-tight ${INK.value}`}
-                style={{ fontSize: `${Math.max(7, labelSize * 0.5).toFixed(1)}px` }}
+                style={{ fontSize: `${valueSize.toFixed(1)}px` }}
               >
                 {formatCompact(tile.value)}
                 {valueUnit}
@@ -352,7 +373,7 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
      qu'elle sait dire de vrai. */
   if (tone === 'volatility') {
     return (
-      <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
+      <div className="flex items-center gap-2 text-micro text-ink-muted">
         <span>Calme</span>
         <span
           className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
@@ -368,7 +389,7 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
   }
 
   return (
-    <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
+    <div className="flex items-center gap-2 text-micro text-ink-muted">
       <span>−{HEATMAP_CLAMP} %</span>
       <span
         className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"

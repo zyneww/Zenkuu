@@ -1,31 +1,31 @@
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * LA NAVIGATION DES GRAPHIQUES GLOBAUX — DIX ENTRÉES, TROIS FAMILLES
+ * LA NAVIGATION DES GRAPHIQUES GLOBAUX
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * ── POURQUOI UN NIVEAU DE GROUPE APPARAÎT ───────────────────────────────────
+ * ── LES VUES SONT DEVENUES DES ROUTES ───────────────────────────────────────
  *
- * La page portait SIX vues sur une rangée d'onglets à plat. Le modèle repris
- * (`coinmarketcap.com/charts`) en range une vingtaine dans une BARRE LATÉRALE
- * groupée — Markets, Indicators, ETF Flows, Derivatives, Technical Analysis — et
- * conserve en plus des onglets en tête pour la famille courante.
+ * ⚠️ REVIREMENT ASSUMÉ. Ces vues vivaient sur une seule route, distinguées par un
+ * `?vue=`. L'argument d'alors : sept fichiers et sept jeux de métadonnées pour
+ * changer d'angle sur un même sujet, alors que ces vues « ne sont pas des
+ * destinations de recherche ».
  *
- * Le double niveau n'est pas décoratif : au-delà de six ou sept entrées, une rangée
- * d'onglets déborde ou se replie derrière un « … », et l'on ne voit plus ce que la
- * page contient. Une colonne verticale groupée montre les dix d'un coup, et le nom
- * du groupe dit à quelle question chacune répond.
+ * Il ne tient pas. Le §9 fait du référencement organique le premier moteur
+ * d'acquisition, et un paramètre de requête s'indexe mal — c'était écrit noir sur
+ * blanc dans la version précédente de ce fichier, puis rangé au rayon des coûts
+ * acceptables. Or « dominance bitcoin », « trésoreries d'entreprise » ou « actifs du
+ * monde réel » SONT des requêtes, et la référence (`coingecko.com/en/charts`) leur
+ * donne à chacune sa page. Chaque vue a donc désormais son chemin, son titre et sa
+ * description.
  *
- * ── TOUTES LES ENTRÉES NE SONT PAS DES VUES DE CETTE PAGE ───────────────────
+ * ── TROIS ENTRÉES POINTENT VERS DES PAGES QUI EXISTAIENT DÉJÀ ───────────────
  *
- * C'est le point structurant de ce fichier. Trois des dix — les places de cotation,
- * les places de dérivés, l'indice de sentiment — ONT DÉJÀ LEUR PAGE, avec leur
- * tableau, leurs filtres et leurs métadonnées. Les recréer en vue de `/graphiques`
+ * `/categories`, `/heatmap` et `/sentiment` ont leur page, leur tableau, leurs
+ * filtres et leurs métadonnées depuis longtemps. Les redoubler sous `/graphiques`
  * ferait deux adresses pour un même contenu : deux pages à maintenir, deux cibles
  * d'indexation qui se cannibalisent, et un lecteur qui ne sait pas laquelle fait foi.
- *
- * Une entrée porte donc son `href`, et `view` n'est renseigné que pour celles qui
- * vivent réellement sur cette route. C'est aussi la disposition du modèle, dont le
- * rail mêle sans le dire des vues de `/charts` et des pages entières.
+ * Le rail les référence donc là où elles sont — c'est aussi ce que fait la référence,
+ * dont la colonne mêle sans le dire ses propres vues et des pages entières.
  *
  * ── CE QUI N'EST PAS REPRIS DU MODÈLE, ET POURQUOI ──────────────────────────
  *
@@ -37,114 +37,74 @@
  *   · LIQUIDATIONS — agrégat propriétaire des places de dérivés ;
  *   · ENTRÉES / SORTIES D'EXCHANGES — demande une analyse de chaîne, pas une API de
  *     cotation ;
- *   · CMC 20 / CMC 100 — indices propriétaires de l'éditeur du modèle ;
- *   · TRÉSORERIES BNB — la source n'expose ce registre que pour bitcoin et ether ;
- *   · RSI / MACD et indicateurs de cycle — calculables, mais ce sont des lectures
- *     d'ACTIF et non de marché : leur place est sur la fiche, pas ici.
- *
- * ── L'ADRESSAGE DES VUES RESTE UN PARAMÈTRE DE REQUÊTE ──────────────────────
- *
- * Le modèle en fait autant de pages (`/charts/bitcoin-dominance`…). Ici, un `?vue=`.
- * Ces vues répondent toutes à la même question — « à quoi ressemble le marché, vu de
- * loin » — et se lisent en alternance ; sept routes obligeraient à sept fichiers et
- * sept jeux de métadonnées pour changer d'angle sur le même sujet.
- *
- * Le prix est connu et assumé : un paramètre de requête s'indexe moins bien qu'un
- * chemin. Il est acceptable parce que ces vues ne sont pas des destinations de
- * recherche — on ne cherche pas « dominance bitcoin » pour arriver sur un site de
- * suivi, on cherche « bitcoin ». La page qui doit être indexable, c'est la fiche.
+ *   · TRÉSORERIES BNB — la source n'expose ce registre que pour bitcoin et ether.
  */
 
-/** Icône lucide de chaque groupe, résolue à l'affichage — la donnée ignore React. */
-export type ChartGroupIcon = 'markets' | 'indicators' | 'sectors'
-
-/**
- * Les vues rendues PAR CETTE PAGE.
- *
- * Le type est écrit à la main plutôt que dérivé du tableau : les entrées du rail
- * mêlent vues et pages entières, et dériver le type de l'ensemble ferait entrer
- * `/places` dans le domaine de `readChartView`.
- */
-export type ChartView =
-  | 'global'
+/** Icône lucide de chaque entrée, résolue à l'affichage — la donnée ignore React. */
+export type ChartNavIcon =
+  | 'coins'
   | 'dominance'
-  | 'altseason'
-  | 'tresoreries'
-  | 'secteurs'
+  | 'heatmap'
+  | 'rwa'
   | 'categories'
+  | 'treasuries'
   | 'nft'
+  | 'sentiment'
+  | 'altseason'
 
 export interface ChartNavEntry {
   label: string
   href: string
-  /** Renseigné SEULEMENT si l'entrée est une vue de `/graphiques`. */
-  view?: ChartView
+  icon?: ChartNavIcon
 }
 
 export interface ChartNavGroup {
   id: string
   label: string
-  icon: ChartGroupIcon
+  icon: ChartNavIcon
+  /** Adresse du groupe lui-même, quand il en a une (« Coins » mène à la vue générale). */
+  href?: string
   entries: ChartNavEntry[]
 }
 
+/**
+ * Le rail, dans l'ordre de la référence.
+ *
+ * Un seul groupe déplié — « Coins » — puis quatre entrées de premier niveau. C'est sa
+ * disposition exacte, et elle porte un sens : les trois vues de « Coins » regardent le
+ * MÊME objet, le marché des cryptomonnaies, sous trois angles ; les quatre autres
+ * regardent chacune un objet différent.
+ */
 export const CHART_GROUPS: ChartNavGroup[] = [
   {
-    id: 'marches',
-    label: 'Marchés',
-    icon: 'markets',
+    id: 'coins',
+    label: 'Cryptomonnaies',
+    icon: 'coins',
+    href: '/graphiques',
     entries: [
-      { label: 'Vue d’ensemble', href: '/graphiques', view: 'global' },
-      { label: 'Dominance de Bitcoin', href: '/graphiques?vue=dominance', view: 'dominance' },
-      /* Pages à part entière — voir la note sur les entrées externes. */
-      { label: 'Places de cotation', href: '/places' },
-      { label: 'Places de dérivés', href: '/perpetuels' },
-    ],
-  },
-  {
-    id: 'indicateurs',
-    label: 'Indicateurs',
-    icon: 'indicators',
-    entries: [
-      { label: 'Indice de sentiment', href: '/sentiment' },
-      { label: 'Saison des altcoins', href: '/graphiques?vue=altseason', view: 'altseason' },
-      {
-        label: 'Trésoreries d’entreprise',
-        href: '/graphiques?vue=tresoreries',
-        view: 'tresoreries',
-      },
-    ],
-  },
-  {
-    id: 'secteurs',
-    label: 'Secteurs',
-    icon: 'sectors',
-    entries: [
-      { label: 'Carte thermique', href: '/graphiques?vue=secteurs', view: 'secteurs' },
-      { label: 'Catégories & secteurs', href: '/graphiques?vue=categories', view: 'categories' },
-      { label: 'Collections NFT', href: '/graphiques?vue=nft', view: 'nft' },
+      { label: 'Vue d’ensemble du marché', href: '/graphiques' },
+      { label: 'Dominance de Bitcoin', href: '/graphiques/dominance' },
+      { label: 'Carte thermique', href: '/heatmap' },
     ],
   },
 ]
 
-/** Les vues rendues par cette page, à plat et dans l'ordre du rail. */
-export const CHART_VIEWS = CHART_GROUPS.flatMap((group) =>
-  group.entries.filter((entry): entry is ChartNavEntry & { view: ChartView } =>
-    Boolean(entry.view),
-  ),
-)
+/** Entrées de premier niveau, sous le groupe. */
+export const CHART_LINKS: ChartNavEntry[] = [
+  { label: 'Actifs du monde réel', href: '/graphiques/actifs-reels', icon: 'rwa' },
+  { label: 'Catégories', href: '/categories', icon: 'categories' },
+  { label: 'Trésoreries', href: '/graphiques/tresoreries', icon: 'treasuries' },
+  { label: 'NFT', href: '/graphiques/nft', icon: 'nft' },
+]
 
-/** Lecture défensive : le paramètre est saisissable à la main. */
-export function readChartView(raw: string | string[] | undefined): ChartView {
-  const value = Array.isArray(raw) ? raw[0] : raw
-  return CHART_VIEWS.some((entry) => entry.view === value) ? (value as ChartView) : 'global'
-}
-
-/** Le groupe auquel une vue appartient. */
-export function groupOfView(view: ChartView): ChartNavGroup {
-  const found = CHART_GROUPS.find((group) => group.entries.some((entry) => entry.view === view))
-  /* Le repli ne se produit pas pour une vue valide — `readChartView` garantit le
-     domaine — mais l'écrire évite un `!` qui masquerait un vrai trou le jour où une
-     vue serait ajoutée au type sans l'être au rail. */
-  return found ?? (CHART_GROUPS[0] as ChartNavGroup)
-}
+/**
+ * Indicateurs — un second bloc, sous les précédents.
+ *
+ * Absent de la capture de référence, qui ne montre que le haut de son rail. Ces deux
+ * pages existent et sont atteintes depuis ici plutôt que d'être perdues : les retirer
+ * du rail au nom de la fidélité à une capture partielle aurait cassé leur accès.
+ */
+export const CHART_INDICATORS: ChartNavEntry[] = [
+  { label: 'Indice de sentiment', href: '/sentiment', icon: 'sentiment' },
+  { label: 'Saison des altcoins', href: '/graphiques/saison-altcoins', icon: 'altseason' },
+]

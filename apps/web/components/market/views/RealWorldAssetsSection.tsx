@@ -1,0 +1,173 @@
+import { getAllTokenizedStocks, type TokenizedStock } from '@zenkuu/data'
+import { EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
+
+import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ACTIFS DU MONDE RÉEL — LES ACTIONS TOKENISÉES
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE CETTE PAGE COUVRE, ET CE QU'ELLE NE COUVRE PAS ──────────────────
+ *
+ * « Actifs du monde réel » désigne, chez la référence, tout ce qui représente sur
+ * chaîne un actif hors chaîne : actions, bons du Trésor, immobilier, matières
+ * premières, crédit privé. Nos sources n'en publient QU'UNE catégorie — les actions
+ * tokenisées, via `category=tokenized-stock`.
+ *
+ * La page couvre donc celle-là, et le dit. Annoncer « actifs du monde réel » en
+ * n'affichant que des actions serait un titre qui promet plus que la table ne tient ;
+ * afficher des sections vides pour les autres familles serait pire (§5).
+ *
+ * ── L'ÉMETTEUR EST LU, PAS DEVINÉ ──────────────────────────────────────────
+ *
+ * CoinGecko écrit l'émetteur dans le nom du jeton — « NVIDIA (Ondo Tokenized
+ * Stock) », « NVIDIA xStock ». La colonne l'en extrait. Un nom qui ne correspond à
+ * aucun motif connu laisse la cellule vide plutôt que de proposer un émetteur
+ * plausible.
+ *
+ * ⚠️ LA CHAÎNE D'ÉMISSION EST ABSENTE, et c'est un manque assumé : `/coins/markets`
+ * ne publie pas `platforms`, et l'obtenir demanderait un appel par jeton.
+ */
+export async function RealWorldAssetsSection() {
+  const t = await getPhrase()
+  const tokens = await getAllTokenizedStocks()
+
+  if (!tokens.ok || tokens.data.length === 0) {
+    return (
+      <EmptyState
+        title={t('Catalogue indisponible')}
+        description={tokens.ok ? null : tokens.reason}
+        source={tokens.source?.label ?? null}
+        tone={tokens.ok ? 'neutral' : 'warning'}
+      />
+    )
+  }
+
+  const listed = tokens.data
+  const totalCap = listed.reduce((sum, token) => sum + (token.marketCapUsd ?? 0), 0)
+  const totalVolume = listed.reduce((sum, token) => sum + (token.volume24hUsd ?? 0), 0)
+  const issuers = new Set(listed.map((token) => token.issuer).filter(Boolean))
+
+  return (
+    <div className="space-y-8">
+      <dl className="grid gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-3">
+        <Stat label={t('Jetons cotés')} value={String(listed.length)} />
+        <Stat
+          label={t('Capitalisation cumulée')}
+          value={formatCurrency(totalCap, 'USD', { compact: true }) ?? '—'}
+        />
+        <Stat
+          label={t('Volume 24 h cumulé')}
+          value={formatCurrency(totalVolume, 'USD', { compact: true }) ?? '—'}
+        />
+      </dl>
+
+      <TokenTable tokens={listed} />
+
+      <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
+        <strong className="text-ink">{t('Une famille, pas toutes.')}</strong>{' '}
+        {t(
+          'Cette page couvre les actions tokenisées, seule catégorie d’actifs du monde réel que notre source publie en tant que telle. Les bons du Trésor, l’immobilier et le crédit privé tokenisés existent, mais aucun agrégat gratuit ne les recense — ils ne sont donc pas affichés plutôt que d’être estimés.',
+        )}{' '}
+        {t('Émetteurs identifiés :')} {issuers.size > 0 ? [...issuers].join(', ') : '—'}.
+      </p>
+
+      <SourceNote
+        strings={{ source: t('Source :'), dated: t('données du {date}') }}
+        label={`${tokens.source.label} · montants en USD`}
+        href={tokens.source.attributionUrl}
+      />
+    </div>
+  )
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-surface px-4 py-3">
+      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dd className="tabular mt-1 text-xl font-semibold text-ink">{value}</dd>
+    </div>
+  )
+}
+
+async function TokenTable({ tokens }: { tokens: TokenizedStock[] }) {
+  const t = await getPhrase()
+
+  return (
+    /* Sans cadre ni filets, comme le tableau des catégories : sur une grille de
+       nombres cadrés à droite, la structure se lit dans les chiffres. */
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-sm sm:min-w-[640px]">
+        <caption className="sr-only">{t('Actions tokenisées')}</caption>
+        <thead>
+          <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
+            <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
+              #
+            </th>
+            <th scope="col" className="px-3 py-2.5 font-medium">
+              {t('Jeton')}
+            </th>
+            <th scope="col" className="hidden px-3 py-2.5 font-medium md:table-cell">
+              {t('Émetteur')}
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-right font-medium">
+              {t('Prix')}
+            </th>
+            <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
+              {t('Volume 24 h')}
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-right font-medium">
+              {t('Capitalisation')}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {tokens.map((token, index) => (
+            <tr key={token.id} className="transition-colors hover:bg-surface-muted/60">
+              <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
+                {index + 1}
+              </td>
+              <th scope="row" className="px-3 py-2.5 text-left font-medium">
+                <span className="flex items-center gap-2">
+                  {token.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- logos distants
+                    <img
+                      src={token.image}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      width={20}
+                      height={20}
+                      className="h-5 w-5 rounded-pill border border-surface bg-surface-muted object-contain"
+                    />
+                  ) : null}
+                  <Link
+                    href={`/crypto/${token.id}`}
+                    className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
+                  >
+                    {token.name}
+                  </Link>
+                  <span className="text-xs uppercase text-ink-muted">{token.symbol}</span>
+                </span>
+              </th>
+              <td className="hidden px-3 py-2.5 text-ink-muted md:table-cell">
+                {token.issuer ?? '—'}
+              </td>
+              <td className="tabular px-3 py-2.5 text-right text-ink">
+                {formatCurrency(token.priceUsd, 'USD') ?? '—'}
+              </td>
+              <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
+                {formatCurrency(token.volume24hUsd, 'USD', { compact: true }) ?? '—'}
+              </td>
+              <td className="tabular px-3 py-2.5 text-right text-ink">
+                {formatCurrency(token.marketCapUsd, 'USD', { compact: true }) ?? '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}

@@ -27,19 +27,36 @@ export function SourceNote({ label, href, updatedAt, strings }: SourceNoteProps)
   const stamp = formatDateTime(updatedAt)
 
   return (
-    <p className="mt-3 text-[0.6875rem] text-ink-muted">
+    /*
+     * ⚠️ UN `span` EN BLOC, ET NON UN `p`. C'était un `<p>`, et plusieurs appelants
+     * le placent À L'INTÉRIEUR d'un paragraphe — pour finir une phrase par son
+     * attribution, ce qui est l'usage naturel. Or un `<p>` ne peut pas en contenir un
+     * autre : le navigateur ferme le premier avant d'ouvrir le second, l'arbre rendu
+     * cesse de correspondre à celui du serveur, et React abandonne l'hydratation de
+     * toute la branche. Relevé par `audit-responsive` sur la saison des altcoins,
+     * sous la forme « Hydration failed ».
+     *
+     * Corrigé ICI plutôt qu'au site d'appel : une douzaine d'appelants auraient chacun
+     * pu se tromper à nouveau, et un `span` en bloc rend exactement la même chose.
+     */
+    <span className="mt-3 block text-[0.6875rem] text-ink-muted">
       {strings?.source ?? 'Source :'}{' '}
+      {/* `inline-flex` et non le `inline` par défaut : le plancher tactile du site
+          repose sur `min-height`, qui n'a AUCUN effet sur une boîte en ligne. Relevé
+          par `audit-responsive`, qui mesurait ces liens à quatorze pixels de haut —
+          soit une cible qu'on rate au doigt une fois sur trois. Le lien reste dans le
+          fil de la phrase ; seule sa boîte gagne de la hauteur. */}
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="underline underline-offset-2 hover:text-brand-strong"
+        className="inline-flex min-h-8 items-center underline underline-offset-2 hover:text-brand-strong"
       >
         {label}
       </a>
       {stamp ? (
         <> · {(strings?.dated ?? 'données du {date}').replace('{date}', stamp)}</>
       ) : null}
-    </p>
+    </span>
   )
 }

@@ -65,6 +65,7 @@ export {
   getLessonVideos,
   getNewListings,
   getNftCollections,
+  getAllTokenizedStocks,
   getTokenizedStocks,
   getTreasuries,
   getPeers,

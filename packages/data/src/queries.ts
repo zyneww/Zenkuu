@@ -1573,15 +1573,26 @@ export async function getTokenizedStocks(
   symbol: string,
   name: string,
 ): Promise<DataResult<TokenizedStock[]>> {
-  const all = await runStandalone(
+  const all = await getAllTokenizedStocks()
+
+  if (!all.ok) return all
+  return { ...all, data: tokensForStock(all.data, symbol, name) }
+}
+
+/**
+ * Le catalogue ENTIER des actions tokenisées — la page « Actifs du monde réel ».
+ *
+ * MÊME CLÉ DE CACHE que le filtrage par action : c'est le même appel, et la page
+ * globale ne coûte donc rien de plus qu'une fiche d'action déjà consultée. Le
+ * filtrage de `getTokenizedStocks` se fait en mémoire, après.
+ */
+export function getAllTokenizedStocks(): Promise<DataResult<TokenizedStock[]>> {
+  return runStandalone(
     'tokenized-stocks',
     EXTRAS_SOURCE,
     fetchTokenizedStocks,
     EXTRAS_TTL_SECONDS,
   )
-
-  if (!all.ok) return all
-  return { ...all, data: tokensForStock(all.data, symbol, name) }
 }
 
 /** Sociétés cotées détenant l'actif à leur bilan. Registre DÉCLARATIF (voir le type). */
