@@ -6,7 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 import type { SentimentPoint } from '@zenkuu/data'
 
-import { SentimentChart } from '@/components/sentiment/SentimentChart'
+import { SentimentBars, type PricePoint } from '@/components/sentiment/SentimentBars'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -24,11 +24,31 @@ const RANGES = [
   { days: 365, label: '1 an' },
 ]
 
-export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
+export function SentimentHistoryView({
+  points,
+  /**
+   * Cours du bitcoin, en surimpression. Vide quand la source n'a rien rendu — la
+   * figure retire alors son axe de droite plutôt que d'en afficher un vide (§5).
+   */
+  prices = [],
+}: {
+  points: SentimentPoint[]
+  prices?: PricePoint[]
+}) {
   const t = usePhrase()
   const [days, setDays] = useState(90)
 
   const visible = useMemo(() => points.slice(-days), [points, days])
+
+  /* Le cours est découpé PAR DATE et non par nombre de points : les deux séries
+     n'ont pas le même pas — l'indice est quotidien, le cours peut être horaire selon
+     la profondeur demandée. Un `slice(-days)` sur les prix cadrerait donc une fenêtre
+     différente de celle des barres, et la courbe raconterait une autre période. */
+  const visiblePrices = useMemo(() => {
+    const first = visible[0]
+    if (!first) return []
+    return prices.filter((price) => price.timestamp >= first.timestamp)
+  }, [prices, visible])
 
   // Une période plus longue que l'historique disponible est masquée plutôt que
   // proposée : un bouton « 1 an » qui rend exactement la même courbe que « 6 mois »
@@ -76,7 +96,7 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
         </ToggleGroup>
       </div>
 
-      <SentimentChart points={visible} />
+      <SentimentBars points={visible} prices={visiblePrices} />
 
       {stats ? (
         <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle">
@@ -92,7 +112,9 @@ export function SentimentHistoryView({ points }: { points: SentimentPoint[] }) {
 function Cell({ label, value }: { label: string; value: number }) {
   return (
     <div className="bg-surface px-3 py-2.5">
-      <dt className="text-[0.6875rem] text-ink-muted">{label}</dt>
+      {/* `text-micro` et non `text-[0.6875rem]` : c'est exactement le même cran, mais
+          nommé par le design system plutôt que réécrit en littéral. */}
+      <dt className="text-micro text-ink-muted">{label}</dt>
       <dd className="tabular mt-0.5 text-lg font-semibold text-ink">{value}</dd>
     </div>
   )

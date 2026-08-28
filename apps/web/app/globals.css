@@ -411,6 +411,27 @@
   --color-heat-down-dim: #7f1d1d;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     SPECTRE DE SENTIMENT — peur extrême → avidité extrême, en cinq crans.
+
+     ⚠️ CE N'EST PAS LA RAMPE `heat-*` CI-DESSUS, et la confusion a coûté une
+     reprise. `heat-*` encode une INTENSITÉ : `-dim` est la version sombre de la
+     même couleur, pour une variation faible. L'indice de peur et d'avidité, lui,
+     parcourt un SPECTRE — le milieu n'est pas un rouge éteint, c'est un jaune.
+     Peindre « Peur » avec `heat-down-dim` (#7f1d1d) donnait un bordeaux là où la
+     référence met un orange, et l'échelle cessait de se lire comme un dégradé.
+
+     Ces cinq-là BASCULENT d'un thème à l'autre, contrairement à `heat-*` : ce
+     sont des traits fins et du texte posés sur le fond de la carte, pas des
+     aplats pleins portant du texte blanc. Un jaune vif lisible sur un fond
+     nocturne devient illisible sur du blanc, d'où la version assombrie ici.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-sentiment-1: #c81e3c;
+  --color-sentiment-2: #c26a12;
+  --color-sentiment-3: #a07a06;
+  --color-sentiment-4: #3d9455;
+  --color-sentiment-5: #15803d;
+
+  /* ───────────────────────────────────────────────────────────────────────────
      FOND DES TUILES DE LA CARTE DES SECTEURS — même raisonnement que ci-dessus,
      appliqué aux six jetons de série.
 
@@ -2196,6 +2217,15 @@
   --color-gold: #fbbf24;
   --color-gold-strong: #fcd34d;
   --color-gold-soft: #3a2a0f;
+
+  /* Spectre de sentiment, en version lumineuse — voir le thème clair pour la
+     distinction d'avec `heat-*`. Sur le fond nocturne, ce sont ces valeurs vives
+     qui rendent l'arc du cadran lisible d'un coup d'œil comme un dégradé. */
+  --color-sentiment-1: #f4465d;
+  --color-sentiment-2: #f99c51;
+  --color-sentiment-3: #ffdd52;
+  --color-sentiment-4: #77de73;
+  --color-sentiment-5: #49d16f;
 
   /* Palette de données ÉCLAIRCIE pour le fond sombre. Les teintes du thème clair
      sont choisies pour trancher sur du blanc ; les mêmes sur un quasi-noir

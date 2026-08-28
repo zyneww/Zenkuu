@@ -49,7 +49,13 @@ export function SentimentHistoricalValues({
         const band = sentimentBand(value)
 
         return (
-          <div key={column.caption} className="space-y-2">
+          /* Chaque repère dans sa PROPRE carte, comme sur la référence : trois
+             colonnes nues sur le fond de la carte parente se lisaient comme une seule
+             grille, alors que ce sont trois relevés distincts. */
+          <div
+            key={column.caption}
+            className="space-y-2 rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5"
+          >
             <dt className="space-y-0.5">
               <span className="block text-sm font-semibold text-ink">{column.caption}</span>
               <span className="block text-xs text-ink-muted">{label(value)}</span>

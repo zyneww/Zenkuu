@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { getCryptoGlobalStats, getSentiment, getSentimentHistory } from '@zenkuu/data'
+import {
+  getAssetHistory,
+  getCryptoGlobalStats,
+  getSentiment,
+  getSentimentHistory,
+} from '@zenkuu/data'
 import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
@@ -66,13 +71,23 @@ export default async function SentimentPage() {
 
   // 366 et non 365 : le repère « il y a un an » lit l'index `longueur − 1 − 365`,
   // qui n'existe pas dans une série de 365 points. Un jour de plus le rend atteignable.
-  const [sentiment, history, stats] = await Promise.all([
+  /* Le cours du bitcoin accompagne l'historique : c'est le contre-champ de l'indice —
+     voir `SentimentBars`. Il est demandé sur la MÊME profondeur pour que la fenêtre
+     la plus longue du sélecteur ait de quoi se tracer. */
+  const [sentiment, history, stats, btcHistory] = await Promise.all([
     getSentiment(),
     getSentimentHistory(366),
     getCryptoGlobalStats('usd'),
+    getAssetHistory('bitcoin', 'crypto', 366, 'usd'),
   ])
 
   const points = history.ok ? history.data : []
+
+  /* Un échec sur le cours ne prive pas la page de ses barres : la figure retire son
+     axe de droite et se rend sans lui. */
+  const prices = btcHistory.ok
+    ? btcHistory.data.points.map((point) => ({ timestamp: point.timestamp, value: point.price }))
+    : []
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 py-6">
@@ -121,7 +136,7 @@ export default async function SentimentPage() {
       </div>
 
       {points.length > 1 ? (
-        <SentimentHistoryView points={points} />
+        <SentimentHistoryView points={points} prices={prices} />
       ) : history.ok ? null : (
         <EmptyState
           title="Historique momentanément indisponible"
@@ -198,32 +213,44 @@ function MarketContext({
   const { totalMarketCap, totalVolume24h, marketCapChange24h, dominance } = stats.data
   const btc = dominance.btc
 
+  /* Chaque statistique dans sa propre carte, comme sur la référence : posées à nu
+     les unes sous les autres, trois libellés gris et trois nombres gras formaient une
+     liste, alors que ce sont trois mesures indépendantes. */
   return (
-    <dl className="space-y-3">
-      <div className="space-y-1">
-        <dt className="text-xs text-ink-muted">Capitalisation totale</dt>
-        <dd className="flex items-baseline justify-between gap-2">
-          <span className="tabular text-base font-semibold text-ink">
-            <Money value={totalMarketCap} from="USD" compact />
-          </span>
-          <ChangeBadge value={marketCapChange24h} size="sm" />
-        </dd>
-      </div>
+    <dl className="space-y-2">
+      <StatBox label="Capitalisation totale" change={marketCapChange24h}>
+        <Money value={totalMarketCap} from="USD" compact />
+      </StatBox>
 
-      <div className="space-y-1">
-        <dt className="text-xs text-ink-muted">Volume 24 h</dt>
-        <dd className="tabular text-base font-semibold text-ink">
-          <Money value={totalVolume24h} from="USD" compact />
-        </dd>
-      </div>
+      <StatBox label="Volume 24 h">
+        <Money value={totalVolume24h} from="USD" compact />
+      </StatBox>
 
       {btc !== undefined ? (
-        <div className="space-y-1">
-          <dt className="text-xs text-ink-muted">Dominance BTC</dt>
-          <dd className="tabular text-base font-semibold text-ink">{btc.toFixed(2)} %</dd>
-        </div>
+        <StatBox label="Dominance BTC">{btc.toFixed(2)} %</StatBox>
       ) : null}
     </dl>
+  )
+}
+
+function StatBox({
+  label,
+  change,
+  children,
+}: {
+  label: string
+  /** Absent quand la source ne publie pas d'écart pour cette mesure — voir la page. */
+  change?: number
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1 rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5">
+      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dd className="flex items-baseline justify-between gap-2">
+        <span className="tabular text-base font-semibold text-ink">{children}</span>
+        {change !== undefined ? <ChangeBadge value={change} size="sm" /> : null}
+      </dd>
+    </div>
   )
 }
 

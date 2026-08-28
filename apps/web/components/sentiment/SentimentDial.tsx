@@ -1,57 +1,62 @@
-import { SENTIMENT_BANDS } from '@/components/sentiment/bands'
+import { SENTIMENT_BANDS, sentimentBand, sentimentRamp } from '@/components/sentiment/bands'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * LE CADRAN DE L'INDICE — CINQ ZONES, DES GRADUATIONS, UNE AIGUILLE
+ * LE CADRAN DE L'INDICE — COURONNE DE GRADUATIONS, CINQ ZONES, AIGUILLE
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * ── POURQUOI UNE AIGUILLE ICI, ALORS QUE `SentimentGauge` S'EN PASSE ────────
+ * ── LA GÉOMÉTRIE EST CELLE DE LA RÉFÉRENCE, RELEVÉE AU NAVIGATEUR ──────────
  *
- * Ce n'est pas une contradiction, ce sont deux lectures différentes.
+ * Pas déduite d'une capture : lue dans le DOM de la page de référence. D'où les
+ * rayons qui suivent, qui n'ont rien d'arbitraire —
  *
- * `SentimentGauge` vit dans une colonne latérale de 176 px, à côté d'autres cartes :
- * il y montre la COURSE parcourue depuis zéro, parce qu'une aiguille de 40 px sans
- * graduations ne se compare à rien. Ce cadran-ci est la figure principale d'une page
- * qui ne parle que de lui : il porte ses cinq zones nommées et ses graduations, et
- * dans ce contexte l'aiguille redevient la bonne réponse — elle DÉSIGNE une position
- * sur une échelle qui est, elle, entièrement dessinée.
+ *     couronne de graduations   133 → 153   (100 traits d'un pixel)
+ *     bande colorée             117, épaisse de 18   (soit 108 → 126)
+ *     plateau intérieur         108
+ *     chiffres et pointillés     88
+ *     aiguille                   45 → 118
+ *     libellés courbés          160
+ *
+ * ── LA COURONNE EST UNE JAUGE DE PROGRESSION, PAS UN ORNEMENT ──────────────
+ *
+ * C'est le détail qui fait le cadran, et il se serait perdu à l'œil : les cent
+ * traits ne sont PAS tous colorés. Ceux qui précèdent la valeur du jour portent le
+ * dégradé ; les suivants sont gris. La couronne dit donc deux choses à la fois — où
+ * commence chaque zone, et jusqu'où le marché est monté aujourd'hui.
+ *
+ * ── LES LIBELLÉS SE COLORENT JUSQU'À LA ZONE ATTEINTE ──────────────────────
+ *
+ * Même logique, relevée sur la référence à 73 : « Avidité extrême » y était gris
+ * pendant que les quatre premiers portaient leur teinte. Une zone qu'on n'a pas
+ * atteinte n'a pas à s'annoncer en couleur.
  *
  * ── AUCUN JAVASCRIPT ───────────────────────────────────────────────────────
  *
- * Du SVG calculé au rendu serveur. La jauge de la colonne latérale passe par
- * `recharts`, donc par un îlot client ; ici la géométrie tient en trente lignes de
- * trigonométrie et n'a pas besoin d'une bibliothèque de graphiques. Une page dont la
- * figure de tête est statique n'a aucune raison d'attendre l'hydratation pour
- * l'afficher — et les moteurs de recherche la lisent telle quelle.
- *
- * ── LES TEINTES SONT CELLES DE LA HEATMAP ──────────────────────────────────
- *
- * `heat-down` → `heat-down-dim` → `gold` → `heat-up-dim` → `heat-up` : une rampe à
- * cinq crans déjà définie dans le thème, déjà réglée pour le clair ET le sombre.
- * En inventer une ici aurait produit un rouge de cette page différent du rouge du
- * reste du site.
+ * Du SVG calculé au rendu serveur. `SentimentGauge`, dans la colonne latérale de
+ * l'accueil, passe par `recharts` et donc par un îlot client ; ici la géométrie tient
+ * dans ce fichier et n'a besoin d'aucune bibliothèque. Une figure statique n'a pas à
+ * attendre l'hydratation, et les moteurs de recherche la lisent telle quelle.
  */
 
-/** Rayon extérieur de l'anneau, dans le repère du `viewBox`. */
-const OUTER = 118
-/** Rayon intérieur — l'écart avec `OUTER` fait l'épaisseur de l'anneau. */
-const INNER = 88
-/*
- * ⚠️ LE REPÈRE EST PLUS LARGE QUE L'ANNEAU, ET C'EST UNE CONTRAINTE DE LISIBILITÉ.
- *
- * Les noms de zones étaient écrits en 9 unités. `audit-responsive` les a relevés sur
- * les six formats : sous le plancher de 11 px du projet, un libellé de marché n'est
- * plus lisible à bout de bras. Les passer à 11 les faisait déborder d'un repère de
- * 280 de large — « Avidité extrême » couché le long de l'arc mesure alors près de
- * quatre-vingt-dix unités.
- *
- * Le repère gagne donc quarante unités de large et le centre se décale d'autant :
- * l'anneau garde exactement sa taille, seule la marge où vivent les libellés grandit.
- */
-const CX = 160
-/* Le centre est calé en BAS du viewBox : un demi-disque n'occupe que la moitié
-   haute, et centrer verticalement réserverait en pure perte une bande vide. */
-const CY = 158
+/* Repère IDENTIQUE à celui de la référence, à la hauteur près : elle s'arrête à 176,
+   c'est-à-dire à la ligne d'horizon du demi-disque. Six unités de plus laissent
+   respirer le jambage du grand nombre, posé juste au-dessus. */
+const VIEW_W = 348
+const VIEW_H = 182
+const CX = 174
+const CY = 176
+
+const TICK_INNER = 133
+const TICK_OUTER = 153
+const TICK_COUNT = 100
+
+const BAND_RADIUS = 117
+const BAND_WIDTH = 18
+const PLATE = 108
+const NUMBERS = 88
+const LABEL_ARC = 160
+const NEEDLE_FROM = 45
+const NEEDLE_TO = 118
 
 /** Angle, en degrés, correspondant à une valeur de l'indice. 0 → 180°, 100 → 0°. */
 function angleOf(value: number): number {
@@ -70,26 +75,14 @@ function point(angle: number, radius: number): [number, number] {
   return [CX + radius * Math.cos(rad), CY - radius * Math.sin(rad)]
 }
 
-/** Secteur d'anneau entre deux valeurs de l'indice. */
-function bandPath(from: number, to: number): string {
-  const a1 = angleOf(from)
-  const a2 = angleOf(to)
-  const [ox1, oy1] = point(a1, OUTER)
-  const [ox2, oy2] = point(a2, OUTER)
-  const [ix1, iy1] = point(a1, INNER)
-  const [ix2, iy2] = point(a2, INNER)
-
-  /* `sweep = 1` sur l'arc extérieur : les angles DÉCROISSENT de `from` vers `to`,
-     ce qui se parcourt dans le sens horaire à l'écran. Le retour par l'arc intérieur
-     se fait donc en sens inverse, `sweep = 0`. Chaque zone couvrant moins d'un
-     demi-tour, `large-arc` reste à 0 partout. */
-  return [
-    `M ${ox1} ${oy1}`,
-    `A ${OUTER} ${OUTER} 0 0 1 ${ox2} ${oy2}`,
-    `L ${ix2} ${iy2}`,
-    `A ${INNER} ${INNER} 0 0 0 ${ix1} ${iy1}`,
-    'Z',
-  ].join(' ')
+/** Arc simple entre deux valeurs de l'indice, à tracer au trait. */
+function arcPath(from: number, to: number, radius: number): string {
+  const [x1, y1] = point(angleOf(from), radius)
+  const [x2, y2] = point(angleOf(to), radius)
+  /* `sweep = 1` : les angles DÉCROISSENT de `from` vers `to`, ce qui se parcourt
+     dans le sens horaire à l'écran. Aucune zone ne couvrant un demi-tour,
+     `large-arc` reste à 0. */
+  return `M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}`
 }
 
 export function SentimentDial({
@@ -100,34 +93,94 @@ export function SentimentDial({
   /** Libellé français de la zone, décidé par l'appelant qui tient le dictionnaire. */
   label: string
 }) {
+  const active = sentimentBand(value)
+  const activeIndex = SENTIMENT_BANDS.indexOf(active)
   const needleAngle = angleOf(value)
-  const [nx, ny] = point(needleAngle, INNER - 10)
 
   return (
     <svg
-      viewBox="0 0 320 212"
-      className="h-auto w-full max-w-[20rem]"
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      className="h-auto w-full"
       role="img"
       aria-label={`${value} sur 100 — ${label}`}
     >
-      {/*
-        LES CINQ ZONES SONT PLEINES, TOUTES.
+      <defs>
+        {/* Chemins INVISIBLES sur lesquels courent les noms de zones. Un `<text>`
+            pivoté d'un bloc reste droit ; seul `textPath` couche les lettres une à
+            une le long de la courbe, ce que fait la référence. */}
+        {SENTIMENT_BANDS.map((band) => (
+          <path
+            key={`arc-${band.id}`}
+            id={`sentiment-arc-${band.id}`}
+            d={arcPath(band.from, band.to, LABEL_ARC)}
+            fill="none"
+          />
+        ))}
+      </defs>
 
-        Une première version voilait les zones inactives pour faire ressortir celle de
-        l'aiguille. Relevé au navigateur : en thème CLAIR, un voile à 32 % sur fond
-        blanc délave l'arc au point que l'échelle rouge → verte cesse de se lire — or
-        c'est la seule chose que l'anneau ait à dire, l'aiguille se chargeant d'indiquer
-        où l'on est. La référence les garde saturées ; elle a raison.
-      */}
-      {SENTIMENT_BANDS.map((band) => (
-        <path key={band.id} d={bandPath(band.from, band.to)} fill={band.color} />
+      {/* ── Couronne de graduations ─────────────────────────────────────────── */}
+      {Array.from({ length: TICK_COUNT }, (_, index) => {
+        /* Le trait est centré sur sa part d'échelle plutôt que posé sur sa borne :
+           cent traits sur cent unités, chacun au milieu de la sienne. */
+        const tickValue = index + 0.5
+        const angle = angleOf(tickValue)
+        const [x1, y1] = point(angle, TICK_INNER)
+        const [x2, y2] = point(angle, TICK_OUTER)
+
+        return (
+          <line
+            key={index}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            strokeWidth={1}
+            style={{
+              stroke:
+                tickValue <= value ? sentimentRamp(tickValue / 100) : 'var(--color-border-subtle)',
+            }}
+          />
+        )
+      })}
+
+      {/* ── Bande colorée ───────────────────────────────────────────────────── */}
+      {SENTIMENT_BANDS.map((band, index) => (
+        <path
+          key={band.id}
+          /* Une demi-unité retranchée de chaque côté, sauf aux extrémités : la
+             référence sépare ses zones par un mince intervalle, sans quoi les cinq
+             couleurs se touchent et l'arc paraît continu. */
+          d={arcPath(
+            index === 0 ? band.from : band.from + 0.5,
+            index === SENTIMENT_BANDS.length - 1 ? band.to : band.to - 0.5,
+            BAND_RADIUS,
+          )}
+          fill="none"
+          stroke={band.color}
+          strokeWidth={BAND_WIDTH}
+        />
       ))}
 
-      {/* Graduations chiffrées, aux mêmes valeurs que la référence. Elles sont ce qui
-          rend l'aiguille lisible : sans elles, une direction ne se convertit pas en
-          nombre. */}
+      {/* Plateau intérieur : il masque ce qui dépasse de la bande vers le centre et
+          donne au cadran son fond, légèrement détaché de la carte. */}
+      <path
+        d={`${arcPath(0, 100, PLATE)} L ${CX - PLATE} ${CY} Z`}
+        className="fill-surface-muted"
+      />
+
+      {/* ── Pointillés et chiffres, sur le même cercle ──────────────────────── */}
+      {Array.from({ length: 16 }, (_, index) => {
+        /* Seize points répartis sur le demi-cercle, en sautant les cinq positions
+           où un chiffre est déjà écrit — un point sous un « 50 » ne se voit pas et
+           salit le chiffre. */
+        const dotValue = ((index + 1) / 17) * 100
+        if ([0, 25, 50, 75, 100].some((tick) => Math.abs(tick - dotValue) < 4)) return null
+        const [dx, dy] = point(angleOf(dotValue), NUMBERS)
+        return <circle key={index} cx={dx} cy={dy} r={1} className="fill-ink-muted" />
+      })}
+
       {[0, 25, 50, 75, 100].map((tick) => {
-        const [tx, ty] = point(angleOf(tick), INNER - 16)
+        const [tx, ty] = point(angleOf(tick), NUMBERS)
         return (
           <text
             key={tick}
@@ -135,57 +188,49 @@ export function SentimentDial({
             y={ty}
             textAnchor="middle"
             dominantBaseline="middle"
-            className="fill-ink-muted text-[11px]"
+            className="fill-ink-muted text-[12px] tabular-nums"
           >
             {tick}
           </text>
         )
       })}
 
-      {/* Noms de zones, COUCHÉS LE LONG DE L'ARC comme sur la référence. Posés à
-          l'horizontale, cinq libellés se chevaucheraient sur un demi-cercle de
-          280 px de large. La rotation `90 − angle` rend le texte tangent : nul en
-          haut, il se redresse vers la verticale aux deux extrémités. */}
-      {SENTIMENT_BANDS.map((band) => {
-        const mid = angleOf((band.from + band.to) / 2)
-        const [lx, ly] = point(mid, OUTER + 17)
-        return (
-          <text
-            key={`${band.id}-label`}
-            x={lx}
-            y={ly}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            transform={`rotate(${90 - mid} ${lx} ${ly})`}
-            className="fill-ink-muted text-[11px] font-semibold uppercase"
-          >
+      {/* ── Noms de zones, couchés le long de l'arc ─────────────────────────── */}
+      {SENTIMENT_BANDS.map((band, index) => (
+        <text
+          key={`${band.id}-label`}
+          className="text-[12px] font-semibold uppercase"
+          style={{
+            /* Coloré jusqu'à la zone atteinte, gris au-delà — voir l'en-tête. */
+            fill: index <= activeIndex ? band.color : 'var(--color-ink-muted)',
+          }}
+        >
+          <textPath href={`#sentiment-arc-${band.id}`} startOffset="50%" textAnchor="middle">
             {band.short}
-          </text>
-        )
-      })}
+          </textPath>
+        </text>
+      ))}
 
-      <line
-        x1={CX}
-        y1={CY}
-        x2={nx}
-        y2={ny}
-        className="stroke-ink"
-        strokeWidth={3}
-        strokeLinecap="round"
+      {/* ── Aiguille ────────────────────────────────────────────────────────── */}
+      {/* Un polygone effilé plutôt qu'un segment d'épaisseur constante : la pointe
+          désigne une graduation, le pied ne masque pas le centre du cadran. Il est
+          dessiné pointe en haut puis pivoté — écrire ses trois sommets en
+          trigonométrie aurait triplé le calcul pour le même résultat. */}
+      <polygon
+        points={`-3,-${NEEDLE_FROM} 3,-${NEEDLE_FROM} 0,-${NEEDLE_TO}`}
+        className="fill-ink"
+        transform={`translate(${CX} ${CY}) rotate(${90 - needleAngle})`}
       />
-      <circle cx={CX} cy={CY} r={7} className="fill-ink" />
-      <circle cx={CX} cy={CY} r={3} className="fill-surface" />
+      <circle cx={CX} cy={CY} r={5} className="fill-ink" />
 
-      {/* Le nombre est posé SOUS le moyeu, et pas au creux de l'arc comme la première
-          version l'avait mis : l'aiguille balaie tout le demi-disque, et selon la
-          valeur du jour elle traversait les chiffres. Relevé au navigateur à 73, où
-          le trait coupait le « 3 ». Sous la ligne d'horizon, la zone est libre quelle
-          que soit la valeur — et c'est aussi là que la référence le place. */}
+      {/* Le grand nombre est posé DANS l'ouverture du cadran, au ras de la ligne
+          d'horizon : l'aiguille s'arrête à 45 unités du centre, la zone du bas lui
+          est donc acquise quelle que soit la valeur du jour. */}
       <text
         x={CX}
-        y={CY + 32}
+        y={CY - 4}
         textAnchor="middle"
-        className="fill-ink text-[34px] font-bold tabular-nums"
+        className="fill-ink text-[30px] font-bold tabular-nums"
       >
         {value}
       </text>

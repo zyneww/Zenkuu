@@ -128,9 +128,17 @@ export function SentimentFaq() {
 
 function FaqColumn({ entries, openFirst = false }: { entries: Entry[]; openFirst?: boolean }) {
   return (
-    <div className="divide-y divide-border-subtle border-y border-border-subtle">
+    /* Chaque question dans sa CARTE, comme sur la référence. Une pile de lignes
+       séparées par des filets se lit comme un sommaire ; des cartes disent que chaque
+       entrée s'ouvre pour elle-même. La carte ouverte prend un fond légèrement plus
+       marqué, ce qui rend l'état visible sans avoir à repérer le chevron. */
+    <div className="space-y-2">
       {entries.map((entry, index) => (
-        <details key={entry.question} className="group" open={openFirst && index === 0}>
+        <details
+          key={entry.question}
+          className="group rounded-card border border-border-subtle bg-surface px-4 open:bg-surface-muted"
+          open={openFirst && index === 0}
+        >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
             {entry.question}
             <ChevronDown
