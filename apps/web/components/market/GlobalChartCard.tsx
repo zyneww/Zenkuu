@@ -1,5 +1,6 @@
 'use client'
 
+import { Code2, Download } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useLocale } from 'next-intl'
 
@@ -7,6 +8,10 @@ import { ChangeBadge, formatCompact, formatCurrency } from '@zenkuu/ui'
 
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { dataColor } from '@/components/charts/chart-theme'
+import { CopyButton } from '@/components/asset/CopyButton'
+import { IconButton } from '@/components/ui/IconButton'
+import { InfoTip } from '@/components/ui/InfoTip'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -44,14 +49,30 @@ export interface GlobalChartPoint {
   y: number
 }
 
-/** Paliers proposés, du plus court au plus long. `null` = toute la série. */
+/**
+ * Paliers proposés, du plus court au plus long. `null` = toute la série.
+ *
+ * Les six de la référence, `24H` et `14J` compris. Ils ne sont pas tous OFFERTS pour
+ * autant : voir `offered` dans le composant — un palier qui ne trouverait pas deux
+ * points dans la série n'est pas affiché.
+ */
 const RANGES: { id: string; label: string; days: number | null }[] = [
+  { id: '24h', label: '24H', days: 1 },
   { id: '7d', label: '7J', days: 7 },
+  { id: '14d', label: '14J', days: 14 },
   { id: '1m', label: '1M', days: 30 },
   { id: '3m', label: '3M', days: 90 },
-  { id: '1y', label: '1A', days: 365 },
   { id: 'max', label: 'MAX', days: null },
 ]
+
+/** Points d'une fenêtre, comptés depuis le DERNIER relevé — voir `shown`. */
+function windowOf(points: GlobalChartPoint[], days: number | null): GlobalChartPoint[] {
+  if (!days) return points
+  const latest = points[points.length - 1]?.t
+  if (latest === undefined) return points
+  const cutoff = latest - days * 86_400_000
+  return points.filter((point) => point.t >= cutoff)
+}
 
 export function GlobalChartCard({
   title,
@@ -64,6 +85,8 @@ export function GlobalChartCard({
   note,
   defaultRange = 'max',
   large = false,
+  info,
+  embedId,
 }: {
   title: string
   /** Une phrase courte sous le titre — ce que la courbe mesure vraiment. */
@@ -81,6 +104,14 @@ export function GlobalChartCard({
   defaultRange?: string
   /** Le cadre d'ouverture est plus haut que ceux de la grille. */
   large?: boolean
+  /** Explication du ⓘ posé après le titre. Absente, l'icône ne paraît pas. */
+  info?: string
+  /**
+   * Identifiant de série pour `/embed/graphique`. Absent, le bouton `</>` ne paraît
+   * pas — il n'y a pas d'adresse à proposer, et un bouton qui offrirait un code
+   * d'intégration vers une page inexistante serait pire que son absence.
+   */
+  embedId?: string
 }) {
   const t = usePhrase()
   /* Les mois de l'axe suivent la LANGUE lue, pas celle du code : « 24 nov. » sous une
@@ -88,9 +119,33 @@ export function GlobalChartCard({
   const locale = useLocale()
   const [rangeId, setRangeId] = useState(defaultRange)
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * UN PALIER N'EST OFFERT QUE S'IL A DE QUOI SE TRACER
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ CORRECTION D'UN MENSONGE DISCRET. La version précédente proposait les cinq
+   * paliers quelle que soit la série, et retombait sur la série ENTIÈRE quand la
+   * fenêtre demandée ne contenait pas deux points — en laissant le bouton allumé.
+   * Cliquer « 7J » sur une série qui n'a qu'un point par semaine affichait donc un an
+   * de données sous une étiquette qui annonçait sept jours.
+   *
+   * Un palier qui ne trouve pas deux points est désormais ABSENT. La rangée dit ainsi
+   * ce que la série permet, ce qui est aussi une information : une courbe qui n'offre
+   * que « MAX » annonce d'elle-même qu'elle est courte.
+   */
+  const offered = useMemo(
+    () => RANGES.filter((preset) => !preset.days || windowOf(points, preset.days).length > 1),
+    [points],
+  )
+
+  /* Le palier demandé peut ne pas être offert par CETTE série — le dernier de la
+     liste offerte est alors le plus proche de l'intention « le plus large ». */
+  const active = offered.some((preset) => preset.id === rangeId)
+    ? rangeId
+    : (offered[offered.length - 1]?.id ?? 'max')
+
   const shown = useMemo(() => {
-    const preset = RANGES.find((entry) => entry.id === rangeId)
-    if (!preset?.days) return points
     /*
      * ⚠️ LA FENÊTRE PART DU DERNIER POINT, PAS DE L'HEURE COURANTE.
      *
@@ -102,21 +157,10 @@ export function GlobalChartCard({
      * termine à la clôture de la veille : compter « sept jours avant maintenant »
      * amputait la fenêtre d'un point sur les séries qui ne vont pas jusqu'à l'instant
      * présent — et de plusieurs sur une série de marché fermé le week-end.
-     *
-     * `cutoff` et non `floor` : ce dernier nomme le PLANCHER DE L'AXE plus bas, et
-     * deux sens pour un même mot dans un fichier de deux cents lignes est exactement
-     * ce qui produit une lecture fausse.
      */
-    const latest = points[points.length - 1]?.t
-    if (latest === undefined) return points
-    const cutoff = latest - preset.days * 86_400_000
-    const kept = points.filter((point) => point.t >= cutoff)
-    /* Moins de deux points ne se trace pas : une série quotidienne n'a rien à montrer
-       sur sept jours si la source ne publie qu'un point par semaine. On rend alors la
-       série entière plutôt qu'un cadre vide — c'est la seule dégradation possible qui
-       ne mente pas sur ce qu'on regarde, et le palier reste allumé pour le dire. */
-    return kept.length > 1 ? kept : points
-  }, [points, rangeId])
+    const preset = RANGES.find((entry) => entry.id === active)
+    return windowOf(points, preset?.days ?? null)
+  }, [points, active])
 
   const first = shown[0]?.y
   const last = shown[shown.length - 1]?.y
@@ -124,6 +168,33 @@ export function GlobalChartCard({
     typeof first === 'number' && typeof last === 'number' && first !== 0
       ? ((last - first) / first) * 100
       : undefined
+
+  /*
+   * ── AU-DELÀ DE MILLE POUR CENT, ON COMPTE EN MULTIPLES ────────────────────
+   *
+   * ⚠️ Relevé au navigateur sur la série des stablecoins, dont la source remonte à
+   * 2017 : le cadre annonçait « +280 956 173,19 % ». Le chiffre est exact et
+   * illisible — personne ne convertit huit chiffres en ordre de grandeur.
+   *
+   * « ×2 810 » dit la même chose et se lit. Le seuil est posé à mille pour cent,
+   * c'est-à-dire là où le pourcentage cesse d'être une intuition : en dessous, « +340 % »
+   * se comprend encore d'un coup d'œil.
+   */
+  const multiple =
+    change !== undefined && change > 1_000 && typeof first === 'number' && typeof last === 'number'
+      ? last / first
+      : undefined
+
+  /*
+   * ── L'AXE PORTE L'ANNÉE DÈS QUE LA FENÊTRE DÉPASSE DIX-HUIT MOIS ──────────
+   *
+   * Il écrivait « 5 févr. » sans millésime quelle que soit la profondeur. Sur une
+   * série de huit ans, les graduations devenaient indéchiffrables : trois dates sans
+   * année sur une courbe qui traverse une décennie ne situent rien.
+   */
+  const span =
+    shown.length > 1 ? (shown[shown.length - 1] as GlobalChartPoint).t - (shown[0] as GlobalChartPoint).t : 0
+  const longSpan = span > 18 * 30 * 86_400_000
 
   const value =
     typeof last !== 'number'
@@ -158,26 +229,53 @@ export function GlobalChartCard({
           commandent la page entière, ce que faisait l'ancien explorateur. */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-ink">{t(title)}</h2>
+          <h2 className="flex items-center gap-1 text-sm font-semibold text-ink">
+            {t(title)}
+            {/* Le ⓘ de la référence : il porte ce que le titre ne peut pas dire en
+                trois mots — l'assiette de la courbe, ses limites. */}
+            {info ? <InfoTip content={t(info)} label={t(title)} /> : null}
+          </h2>
           {hint ? <p className="mt-0.5 text-xs text-ink-muted">{t(hint)}</p> : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-0.5 rounded-control bg-surface-muted p-0.5">
-          {RANGES.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              aria-pressed={preset.id === rangeId}
-              onClick={() => setRangeId(preset.id)}
-              className={`rounded-control px-2 py-1 text-[0.6875rem] font-semibold transition-colors duration-150 ${
-                preset.id === rangeId
-                  ? 'bg-surface text-ink shadow-sm'
-                  : 'text-ink-muted hover:text-ink'
-              }`}
-            >
-              {preset.label}
-            </button>
-          ))}
+        {/* ⚠️ `w-full` SOUS `sm`, ET C'EST UNE CORRECTION DE DÉBORDEMENT. Six paliers
+            et deux boutons d'action font environ trois cents pixels : sur un écran de
+            375, posés à droite du titre, ils poussaient la carte hors du cadre de
+            24 px — relevé par `audit-responsive` sur l'iPhone SE. Sur les petits
+            écrans la barre prend donc sa propre ligne, et le groupe de paliers peut
+            lui-même se replier. */}
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-1.5 sm:w-auto sm:justify-end">
+          <div className="flex flex-wrap items-center gap-0.5 rounded-control bg-surface-muted p-0.5">
+            {offered.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={preset.id === active}
+                onClick={() => setRangeId(preset.id)}
+                className={`rounded-control px-2 py-1 text-micro font-semibold transition-colors duration-150 ${
+                  preset.id === active
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── EXPORT ET INTÉGRATION, comme sur la référence ─────────────────
+              L'export porte sur la FENÊTRE AFFICHÉE et non sur la série entière :
+              c'est ce qu'on regarde, et un fichier qui contiendrait autre chose que
+              le graphique d'où on l'a tiré serait un piège. */}
+          <IconButton
+            size="icon-xs"
+            variant="ghost"
+            label={t('Télécharger les données affichées (CSV)')}
+            icon={Download}
+            onClick={() => downloadCsv(t(title), shown, format, currency)}
+          />
+
+          {embedId ? <EmbedButton embedId={embedId} title={t(title)} /> : null}
         </div>
       </div>
 
@@ -186,7 +284,13 @@ export function GlobalChartCard({
           trois mois » se lit sans mesurer la pente à l'œil. */}
       <div className="mt-2 flex items-baseline gap-2">
         <p className="figure text-2xl font-bold text-ink">{value}</p>
-        {change !== undefined ? <ChangeBadge value={change} /> : null}
+        {multiple !== undefined ? (
+          <span className="tabular text-sm font-medium text-up">
+            ×{new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(multiple)}
+          </span>
+        ) : change !== undefined ? (
+          <ChangeBadge value={change} />
+        ) : null}
       </div>
 
       <div className="mt-3">
@@ -205,7 +309,12 @@ export function GlobalChartCard({
           ariaLabel={t(title)}
           series={[{ id: 'serie', label: t(title), color, points: shown.map((p) => ({ x: p.t, y: p.y })) }]}
           formatX={(x) =>
-            new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(new Date(x))
+            new Intl.DateTimeFormat(
+              locale,
+              longSpan
+                ? { month: 'short', year: 'numeric' }
+                : { day: 'numeric', month: 'short' },
+            ).format(new Date(x))
           }
           formatY={(y) =>
             format === 'percent'
@@ -243,5 +352,135 @@ export function GlobalChartCard({
 
       {note ? <div className="mt-3 text-xs leading-relaxed text-ink-muted">{note}</div> : null}
     </section>
+  )
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * EXPORT CSV — LA FENÊTRE AFFICHÉE, PAS LA SÉRIE ENTIÈRE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── UN SEUL FORMAT, ET C'EST UN CHOIX ─────────────────────────────────────
+ *
+ * La référence propose CSV et Excel. Le second demanderait une bibliothèque de
+ * plusieurs centaines de kilooctets pour produire un fichier qu'Excel ouvre déjà
+ * depuis le premier. Un bouton de plus qui télécharge le même contenu serait un
+ * doublon déguisé ; il n'y en a donc qu'un.
+ *
+ * ── LE SÉPARATEUR EST LE POINT-VIRGULE ────────────────────────────────────
+ *
+ * ⚠️ Excel en locale française lit un `.csv` séparé par des VIRGULES comme une seule
+ * colonne — c'est la cause première des « exports cassés » signalés par les
+ * utilisateurs francophones. Le point-virgule est ce que cette locale attend, et la
+ * ligne `sep=;` en tête le dit explicitement aux versions qui ne le devinent pas.
+ *
+ * Les valeurs gardent le POINT décimal : le fichier reste lisible par un tableur
+ * anglophone, par `pandas` et par un `awk`, là où une virgule décimale ne serait
+ * lisible que par la moitié d'entre eux.
+ */
+function downloadCsv(
+  title: string,
+  points: GlobalChartPoint[],
+  format: 'money' | 'percent' | 'plain',
+  currency: string,
+) {
+  /* `toUpperCase` : la devise circule en minuscules dans les réponses des sources
+     (`eur`), et un en-tête « valeur (eur) » se lit comme une faute. */
+  const unit = format === 'money' ? currency.toUpperCase() : format === 'percent' ? '%' : ''
+  const header = `valeur${unit ? ` (${unit})` : ''}`
+
+  const lines = [
+    'sep=;',
+    `date;${header}`,
+    ...points.map((point) => `${new Date(point.t).toISOString().slice(0, 10)};${point.y}`),
+  ]
+
+  /* `﻿` en tête : sans cette marque d'ordre des octets, Excel lit le fichier en
+     ANSI et les accents des en-têtes sortent en mojibake.
+
+     ⚠️ NE PAS TENTER DE LE VÉRIFIER AVEC `blob.text()`. Ce décodeur RETIRE la marque
+     en tête, conformément à la spécification : le test rend alors « pas de BOM » sur
+     un fichier qui en porte un. C'est `arrayBuffer()` qui dit la vérité — les trois
+     premiers octets doivent être EF BB BF, ce qui a été vérifié au navigateur. */
+  const BOM = '﻿'
+  const blob = new Blob([`${BOM}${lines.join('\n')}`], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `zenkuu-${slug(title)}.csv`
+  link.click()
+
+  /*
+   * ⚠️ LA RÉVOCATION EST DIFFÉRÉE D'UN TOUR DE BOUCLE, ET CE N'EST PAS DE LA
+   * PRUDENCE DÉCORATIVE.
+   *
+   * Elle suivait `click()` immédiatement. Vérifié au navigateur en interceptant le
+   * lien : l'URL était DÉJÀ invalide quand on tentait de la relire — le navigateur
+   * n'a pas fini de lire le blob au retour de `click()`, qui ne fait qu'inscrire le
+   * téléchargement dans la file.
+   *
+   * `setTimeout(…, 0)` laisse la file se vider avant de libérer la mémoire. Ne jamais
+   * révoquer fuirait le blob à chaque export.
+   */
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+function slug(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+/**
+ * Le bouton `</>` de la référence — le code d'intégration de CETTE courbe.
+ *
+ * L'adresse pointe vers `/embed/graphique`, une route réelle et sans habillage. Le
+ * code est donné à copier plutôt qu'à retenir, et il est affiché en entier : un champ
+ * tronqué obligerait à faire confiance au bouton.
+ */
+function EmbedButton({ embedId, title }: { embedId: string; title: string }) {
+  const t = usePhrase()
+  /* `origin` est lu à la volée et non au rendu : ce composant est hydraté côté
+     client, et le serveur ne connaît pas le domaine sous lequel il est servi. */
+  const [snippet, setSnippet] = useState('')
+
+  return (
+    <Popover
+      onOpenChange={(open) => {
+        if (open) {
+          setSnippet(
+            `<iframe src="${window.location.origin}/embed/graphique?serie=${embedId}" width="100%" height="320" frameborder="0" title="${title} — ZENKUU"></iframe>`,
+          )
+        }
+      }}
+    >
+      {/* ⚠️ `PopoverTrigger` EST LE BOUTON. Ce popover vient de Radix, dont le
+          déclencheur rend lui-même un `<button>` : y glisser notre `IconButton` par
+          `asChild` empilerait deux boutons — HTML invalide, et un piège au clavier.
+          Les classes reprennent celles d'`IconButton` pour que les trois boutons de
+          la barre d'outils se ressemblent. */}
+      <PopoverTrigger
+        aria-label={t('Code d’intégration')}
+        className="inline-flex size-6 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Code2 className="size-3.5" aria-hidden="true" />
+      </PopoverTrigger>
+      <PopoverContent className="w-[min(28rem,90vw)] space-y-2">
+        <p className="text-xs font-semibold text-ink">{t('Intégrer ce graphique')}</p>
+        <div className="flex items-start gap-2">
+          <code className="tabular block max-h-24 flex-1 overflow-auto rounded-card bg-surface-muted p-2 text-micro leading-relaxed text-ink-muted">
+            {snippet}
+          </code>
+          <CopyButton value={snippet} label={t('Copier le code d’intégration')} />
+        </div>
+        <p className="text-micro text-ink-muted">
+          {t('Le graphique se met à jour tout seul : le cadre affiche toujours les dernières données.')}
+        </p>
+      </PopoverContent>
+    </Popover>
   )
 }

@@ -12,6 +12,7 @@ import {
   getSentiment,
   getSentimentHistory,
   getSpotExchanges,
+  getStablecoinHistory,
   type PriceHistory,
 } from '@zenkuu/data'
 import { EmptyState, SourceNote, formatCompact, formatCurrency, formatPercent } from '@zenkuu/ui'
@@ -115,7 +116,7 @@ async function GlobalView() {
    * tête, la phrase et la ligne de totaux sont composées à partir de réponses que le
    * site a déjà.
    */
-  const [globalStats, btc, eth, sentiment, pulse, mood, categories, exchanges] =
+  const [globalStats, btc, eth, sentiment, pulse, mood, categories, exchanges, stablecoins] =
     await Promise.all([
       getCryptoGlobalStats('eur'),
       getAssetHistory('bitcoin', 'crypto', 365, 'eur'),
@@ -125,6 +126,7 @@ async function GlobalView() {
       getSentiment(),
       getCategories(),
       getSpotExchanges(250),
+      getStablecoinHistory(),
     ])
 
   const stats = globalStats.ok ? globalStats.data : null
@@ -190,54 +192,58 @@ async function GlobalView() {
       )}
 
       {/*
-        ── LA COLONNE ÉTROITE ET LE GRAND CADRE, CÔTE À CÔTE ─────────────────
+        ── LE GRAPHIQUE OCCUPE TOUTE LA LARGEUR ──────────────────────────────
 
-        Les indicateurs d'ambiance — sentiment, saison des altcoins — se lisent EN
-        MÊME TEMPS que la courbe de capitalisation. C'est précisément leur usage : ils
-        qualifient ce que la courbe montre.
+        ⚠️ CORRECTION DE DISPOSITION. Une colonne étroite d'indicateurs — sentiment,
+        saison des altcoins — était collée à sa gauche, héritée de la version
+        précédente de la page. La référence n'en a pas : sa courbe de capitalisation
+        prend la largeur entière, et c'est ce qui lui donne sa lisibilité, une année de
+        relevés quotidiens ne tenant pas dans huit cents pixels.
 
-        Sous `xl`, la colonne repasse au-dessus du cadre : à moins de mille pixels,
-        une colonne de 280 px laisse au graphique une largeur où une année de relevés
-        quotidiens n'est plus lisible.
-      */}
-      <div className="grid gap-4 xl:grid-cols-[19rem_minmax(0,1fr)]">
-        <div className="space-y-4">
-          {mood.ok ? <FearGreedDial index={mood.data} label={t(mood.data.classification)} /> : null}
+        Les deux indicateurs n'ont pas disparu : ils sont passés dans la GRILLE plus
+        bas, avec les autres cadres. Ils y répondent à la même question qu'avant — dans
+        quel état d'esprit est le marché — sans occuper la place de la figure
+        principale.
 
-          <Suspense fallback={null}>
-            <AltseasonCard />
-          </Suspense>
-        </div>
-
-        <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
-          <BasketSection stats={stats} />
-        </Suspense>
-      </div>
-
-      {/*
-        ── LA LIGNE DE TOTAUX ────────────────────────────────────────────────
-
-        C'est la bande que la référence pose sous son grand graphique.
+        La ligne de totaux est passée DANS la carte, comme sur la référence. Elle
+        était en double : la carte en portait déjà une, et la page en posait une
+        seconde trois lignes plus bas.
 
         ⚠️ « Places de cotation » dit SUIVIES et non « au total ». La source ne publie
         pas de décompte global : elle rend une page de résultats, ici plafonnée à deux
         cent cinquante. Écrire « total » ferait passer notre plafond pour son
         inventaire (§5). Les deux autres chiffres, eux, sont bien des totaux publiés.
       */}
-      <dl className="flex flex-wrap items-baseline justify-center gap-x-8 gap-y-2 rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm text-ink-muted">
-        {stats ? (
-          <Total value={formatCompact(stats.activeAssets) ?? '—'} label={t('cryptomonnaies')} />
-        ) : null}
-        {exchanges.ok ? (
-          <Total
-            value={String(exchanges.data.length)}
-            label={t('places de cotation suivies')}
-          />
-        ) : null}
-        {categories.ok ? (
-          <Total value={String(categories.data.length)} label={t('catégories')} />
-        ) : null}
-      </dl>
+      <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
+        <BasketSection
+          stats={stats}
+          footer={
+            <span className="inline-flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+              {stats ? (
+                <Total
+                  value={formatCompact(stats.activeAssets) ?? '—'}
+                  label={t('cryptomonnaies')}
+                />
+              ) : null}
+              {exchanges.ok ? (
+                <>
+                  <Separator />
+                  <Total
+                    value={String(exchanges.data.length)}
+                    label={t('places de cotation suivies')}
+                  />
+                </>
+              ) : null}
+              {categories.ok ? (
+                <>
+                  <Separator />
+                  <Total value={String(categories.data.length)} label={t('catégories')} />
+                </>
+              ) : null}
+            </span>
+          }
+        />
+      </Suspense>
 
       {/*
         ── LA GRILLE À DEUX COLONNES ─────────────────────────────────────────
@@ -247,6 +253,40 @@ async function GlobalView() {
         que nous n'avons qu'en valeur courante, jamais en série.
       */}
       <div className="grid gap-4 lg:grid-cols-2">
+        {/* La DOMINANCE ouvre la grille, comme sur la référence — c'est la première
+            question qu'on se pose après avoir vu la capitalisation. */}
+        <div className="lg:col-span-1">
+          {mood.ok ? <FearGreedDial index={mood.data} label={t(mood.data.classification)} /> : null}
+        </div>
+
+        <Suspense fallback={null}>
+          <AltseasonCard />
+        </Suspense>
+
+        {/* ── LA SEULE COURBE LONGUE DE LA RÉFÉRENCE QUE NOS SOURCES PUBLIENT ──
+            DefiLlama diffuse librement l'historique agrégé des stablecoins depuis
+            2017. Ses deux voisines chez la référence — DeFi et altcoins — n'existent
+            qu'en valeur courante chez nous, et ne sont donc pas tracées (§5). */}
+        {stablecoins.ok && stablecoins.data.length > 1 ? (
+          <GlobalChartCard
+            title="Capitalisation des stablecoins"
+            hint="La somme des stablecoins en circulation, toutes chaînes confondues."
+            info="Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs."
+            embedId="stablecoins"
+            format="money"
+            currency="USD"
+            colorIndex={3}
+            points={stablecoins.data.map((point) => ({ t: point.timestamp, y: point.value }))}
+            note={
+              <SourceNote
+                label={stablecoins.source.label}
+                href={stablecoins.source.attributionUrl}
+                strings={{ source: t('Source :'), dated: t('données du {date}') }}
+              />
+            }
+          />
+        ) : null}
+
         {btc.ok ? (
           <GlobalChartCard
             title="Capitalisation de Bitcoin"
@@ -284,6 +324,7 @@ async function GlobalView() {
           <GlobalChartCard
             title="Indice de sentiment"
             hint="0 = peur extrême, 100 = avidité extrême."
+            embedId="sentiment"
             format="plain"
             colorIndex={2}
             points={sentiment.data.map((point) => ({ t: point.timestamp, y: point.value }))}
@@ -329,13 +370,23 @@ async function GlobalView() {
   )
 }
 
+/* Un total et son libellé. En `span` et non en `div` : cette ligne vit à l'intérieur
+   du pied de carte, qui est lui-même en ligne. */
 function Total({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex items-baseline gap-1.5">
-      <dt className="sr-only">{label}</dt>
-      <dd className="tabular font-semibold text-ink">{value}</dd>
+    <span className="inline-flex items-baseline gap-1.5">
+      <span className="tabular font-semibold text-ink">{value}</span>
       <span>{label}</span>
-    </div>
+    </span>
+  )
+}
+
+/** La barre verticale qui sépare les totaux chez la référence. */
+function Separator() {
+  return (
+    <span aria-hidden="true" className="text-border-subtle">
+      |
+    </span>
   )
 }
 

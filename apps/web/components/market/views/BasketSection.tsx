@@ -22,10 +22,40 @@ import { getPhrase } from '@/lib/content'
  * abouti — la phrase d'ouverture de la page dit déjà l'état de la source, et un second
  * encadré d'échec n'apprendrait rien.
  */
-export async function BasketSection({ stats }: { stats: GlobalMarketStats | null }) {
+export async function BasketSection({
+  stats,
+  /**
+   * Ligne de totaux, DÉCIDÉE PAR L'APPELANT.
+   *
+   * ⚠️ Elle était construite ici à partir de `stats`, et la page en posait une SECONDE
+   * juste en dessous — deux bandes de chiffres à trois lignes d'écart, disant presque
+   * la même chose. La référence n'en a qu'une, et elle est DANS la carte. C'est donc
+   * la page qui la compose, et ce composant qui l'affiche là où elle va.
+   */
+  footer,
+}: {
+  stats: GlobalMarketStats | null
+  footer?: React.ReactNode
+}) {
   const t = await getPhrase()
   const basket = await getMarketCapBasket('eur', 365)
   if (!basket.ok) return null
+
+  /* Repli quand l'appelant n'en fournit pas — la vue « dominance » réutilise ce cadre
+     sans avoir de totaux à annoncer. */
+  const composition = (
+    <>
+      <span className="font-semibold text-ink">{basket.data.members.length}</span>{' '}
+      {t('actifs dans le panier')}
+      {stats ? (
+        <>
+          {' · '}
+          <span className="font-semibold text-ink">{formatCompact(stats.activeAssets)}</span>{' '}
+          {t('cryptomonnaies suivies')}
+        </>
+      ) : null}
+    </>
+  )
 
   const points = basket.data.points.map((point) => ({ t: point.timestamp, y: point.total }))
 
@@ -45,28 +75,13 @@ export async function BasketSection({ stats }: { stats: GlobalMarketStats | null
         large
         title="Capitalisation du panier suivi"
         hint="La somme de neuf grandes capitalisations, additionnées jour par jour — pas le marché entier."
+        info="La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique."
+        embedId="panier"
         format="money"
         currency={basket.data.currency}
         colorIndex={5}
         points={points}
-        footer={
-          <>
-            <span className="font-semibold text-ink">{basket.data.members.length}</span>{' '}
-            {t('actifs dans le panier')}
-            {stats ? (
-              <>
-                {' · '}
-                <span className="font-semibold text-ink">{formatCompact(stats.activeAssets)}</span>{' '}
-                {t('cryptomonnaies suivies')}
-                {' · '}
-                <span className="font-semibold text-ink">
-                  {(stats.dominance.btc ?? 0).toFixed(1)} %
-                </span>{' '}
-                {t('de dominance Bitcoin')}
-              </>
-            ) : null}
-          </>
-        }
+        footer={footer ?? composition}
         note={
           <>
             {t(

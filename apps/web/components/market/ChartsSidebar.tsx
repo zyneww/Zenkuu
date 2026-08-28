@@ -1,5 +1,6 @@
 import {
   ChartNoAxesCombined,
+  ChevronDown,
   Flame,
   Gauge,
   Globe,
@@ -70,18 +71,28 @@ export async function ChartsSidebar({ current }: { current: string }) {
           const Icon = ICONS[group.icon]
           return (
             <div key={group.id}>
-              <p className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-ink">
-                <Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
-                {t(group.label)}
-              </p>
+              {/* Le chevron de la référence, en `details` NATIF plutôt qu'en état
+                  React : ce rail est un composant serveur, et le rendre client pour
+                  un repli coûterait son rendu sans JavaScript. `open` par défaut —
+                  le groupe courant est celui qu'on consulte. */}
+              <details open className="group/coins">
+                <summary className="flex cursor-pointer list-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium text-ink hover:bg-surface-muted [&::-webkit-details-marker]:hidden">
+                  <Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+                  <span className="flex-1">{t(group.label)}</span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="size-3.5 shrink-0 text-ink-muted transition-transform duration-200 group-open/coins:rotate-180"
+                  />
+                </summary>
 
-              <ul className="space-y-0.5">
-                {group.entries.map((entry) => (
-                  <li key={entry.href}>
-                    <SidebarLink entry={entry} current={current} indented label={t(entry.label)} />
-                  </li>
-                ))}
-              </ul>
+                <ul className="space-y-0.5">
+                  {group.entries.map((entry) => (
+                    <li key={entry.href}>
+                      <SidebarLink entry={entry} current={current} indented label={t(entry.label)} />
+                    </li>
+                  ))}
+                </ul>
+              </details>
             </div>
           )
         })}

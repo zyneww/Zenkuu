@@ -81,6 +81,7 @@ export {
   getDerivatives,
   getSentiment,
   getSentimentHistory,
+  getStablecoinHistory,
   getTopNarratives,
   getTrendingCrypto,
   getTrendingCryptoAssets,
@@ -157,6 +158,8 @@ export type { YahooScreenRow } from './providers/yahoo-screener'
 
 export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-extras'
 export type { TokenizedStock, TreasuryCoin } from './providers/coingecko-extras'
+
+export type { StablecoinPoint } from './providers/defillama'
 
 export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
 export type { NewsCategory, NewsLang } from './providers/news'

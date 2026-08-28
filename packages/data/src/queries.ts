@@ -45,6 +45,11 @@ import {
 } from './providers/yahoo-screener'
 import { findUniverseEntry, findUniverseEntryBySymbol, toSlug } from './providers/yahoo-universe'
 import {
+  DEFILLAMA_SOURCE,
+  fetchStablecoinHistory,
+  type StablecoinPoint,
+} from './providers/defillama'
+import {
   SENTIMENT_SOURCE,
   fetchSentiment,
   fetchSentimentHistory,
@@ -1798,6 +1803,23 @@ export function getExchangeRates(): Promise<DataResult<ExchangeRates>> {
 
 export function getSentiment(): Promise<DataResult<SentimentIndex>> {
   return runStandalone('sentiment:fng', SENTIMENT_SOURCE, fetchSentiment, SENTIMENT_TTL_SECONDS)
+}
+
+/**
+ * Capitalisation des stablecoins, jour par jour depuis 2017.
+ *
+ * La SEULE des quatre courbes longues de la référence que nos sources publient
+ * réellement — voir l'en-tête de `providers/defillama.ts` pour ce qui n'y figure pas
+ * et pourquoi. TTL d'une heure : la série ne bouge qu'une fois par jour et pèse près
+ * de trois mille points.
+ */
+export function getStablecoinHistory(): Promise<DataResult<StablecoinPoint[]>> {
+  return runStandalone(
+    'defillama:stablecoins',
+    DEFILLAMA_SOURCE,
+    fetchStablecoinHistory,
+    3_600,
+  )
 }
 
 /**
