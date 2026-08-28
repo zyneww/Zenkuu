@@ -1,13 +1,17 @@
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 
-import { getSentiment, getSentimentHistory, type SentimentPoint } from '@zenkuu/data'
-import { EmptyState, SourceNote } from '@zenkuu/ui'
+import { getCryptoGlobalStats, getSentiment, getSentimentHistory } from '@zenkuu/data'
+import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
 
-import { classify, SentimentPanel } from '@/components/home/SidePanels'
+import { classify } from '@/components/home/SidePanels'
+import { Money } from '@/components/locale/Money'
+import { SENTIMENT_BANDS, sentimentBand } from '@/components/sentiment/bands'
+import { SentimentDial } from '@/components/sentiment/SentimentDial'
+import { SentimentFaq } from '@/components/sentiment/SentimentFaq'
+import { SentimentHistoricalValues } from '@/components/sentiment/SentimentHistoricalValues'
 import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
-import { getContent } from '@/lib/content'
-import { getPhrase } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 
 export const revalidate = 1800
 
@@ -21,54 +25,99 @@ export const revalidate = 1800
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
   return {
-  title: fr.pages.sentiment,
-  description: fr.sentiment.subtitle,
-  alternates: { canonical: '/sentiment' },
+    title: fr.pages.sentiment,
+    description: fr.sentiment.subtitle,
+    alternates: { canonical: '/sentiment' },
   }
 }
 
 /**
- * Indice Fear & Greed.
+ * ══════════════════════════════════════════════════════════════════════════════
+ * INDICE DE PEUR ET D'AVIDITÉ — LA DISPOSITION DE LA RÉFÉRENCE
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * L'HISTORIQUE est la nouveauté, et il ne coûte aucune source supplémentaire : le
- * même endpoint accepte un paramètre `limit` et remonte l'indice jour par jour
- * (vérifié à 400 points). La page passe donc d'un cadran isolé — une valeur sans
- * passé, donc sans repère — à une lecture dans la durée.
+ * Trois cartes en bande de tête — le cadran, les valeurs historiques, le contexte de
+ * marché — puis le graphique en pleine largeur, puis l'échelle et la FAQ.
  *
- * Disposition VOLONTAIREMENT DIFFÉRENTE de la référence, qui empile un grand cadran
- * centré, puis le graphique, puis des cartes « hier / semaine dernière / mois
- * dernier ». Ici le cadran et les repères de comparaison partagent la bande de tête
- * sur deux colonnes — la valeur du jour ne se lit que par rapport aux précédentes,
- * les séparer oblige à faire l'aller-retour de mémoire. Le graphique suit en pleine
- * largeur, l'échelle et la méthode ferment la page.
+ * ── CE QUE CETTE PAGE PORTAIT AVANT ────────────────────────────────────────
+ *
+ * Un cadran étroit hérité de la colonne latérale de l'accueil, une liste de quatre
+ * écarts chiffrés, le graphique, puis deux sections de texte suivi. L'ensemble
+ * répondait aux mêmes questions, mais la figure de tête était une vignette de 176 px
+ * sur une page qui ne parle que d'elle, et les explications formaient deux pavés à
+ * lire en entier pour y trouver une réponse précise.
+ *
+ * Le cadran devient donc la figure principale, avec ses cinq zones nommées et ses
+ * graduations ; les écarts deviennent trois anneaux qui montrent la POSITION sur
+ * l'échelle et plus seulement l'écart ; et le texte se replie en questions, où l'on
+ * ouvre celle qu'on se pose.
+ *
+ * ── LA TROISIÈME CARTE N'AFFICHE QUE CE QUE LA SOURCE DONNE ────────────────
+ *
+ * ⚠️ La référence y met trois variations sur 24 h — capitalisation, volume,
+ * dominance. Nos statistiques globales n'en publient QU'UNE, celle de la
+ * capitalisation (`marketCapChange24h`). Les deux autres lignes portent donc leur
+ * valeur sans écart, plutôt qu'un écart calculé sur un point de comparaison qu'on
+ * n'a pas (§5).
  */
 export default async function SentimentPage() {
   const t = await getPhrase()
   const fr = await getContent()
+
   // 366 et non 365 : le repère « il y a un an » lit l'index `longueur − 1 − 365`,
   // qui n'existe pas dans une série de 365 points. Un jour de plus le rend atteignable.
-  const [sentiment, history] = await Promise.all([getSentiment(), getSentimentHistory(366)])
+  const [sentiment, history, stats] = await Promise.all([
+    getSentiment(),
+    getSentimentHistory(366),
+    getCryptoGlobalStats('usd'),
+  ])
 
   const points = history.ok ? history.data : []
 
   return (
-    <div className="mx-auto max-w-4xl space-y-12 py-6">
+    <div className="mx-auto max-w-6xl space-y-10 py-6">
       <header className="max-w-2xl space-y-3">
         <h1 className="display-xl text-ink">{fr.sentiment.title}</h1>
-        <p className="text-lg leading-relaxed text-ink-muted">{fr.sentiment.subtitle}</p>
+        <p className="text-lg leading-relaxed text-ink-muted">
+          Comprendre les émotions qui animent le marché.
+        </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-start">
-        <SentimentPanel result={sentiment} />
+      {/* `items-start` : les trois cartes ont des hauteurs naturelles différentes et
+          n'ont aucune raison de s'étirer sur la plus haute. */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+        <Card>
+          <CardHeader title={fr.home.sentimentTitle} />
+          {sentiment.ok ? (
+            <DialCard value={sentiment.data.value} label={classify(sentiment.data.value, fr.sentiment.scale)} />
+          ) : (
+            <EmptyState
+              title={fr.states.unavailableTitle}
+              description={sentiment.reason}
+              compact
+            />
+          )}
+        </Card>
 
-        {points.length > 1 ? (
-          <Comparisons points={points} />
-        ) : (
-          <p className="text-sm text-ink-muted">
-            L’historique n’est pas disponible pour l’instant : les repères de comparaison
-            reviendront avec lui.
-          </p>
-        )}
+        <Card>
+          <CardHeader title="Valeurs historiques" />
+          {points.length > 1 ? (
+            <SentimentHistoricalValues
+              points={points}
+              label={(value) => classify(value, fr.sentiment.scale)}
+            />
+          ) : (
+            <p className="text-sm text-ink-muted">
+              L’historique n’est pas disponible pour l’instant : les repères de
+              comparaison reviendront avec lui.
+            </p>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader title="Contexte de marché" />
+          <MarketContext stats={stats} />
+        </Card>
       </div>
 
       {points.length > 1 ? (
@@ -81,180 +130,16 @@ export default async function SentimentPage() {
         />
       )}
 
-      <ScaleSection />
+      <ScaleSection scale={fr.sentiment.scale} />
 
-      <MethodSection />
+      <SentimentFaq />
 
-      {history.ok ? (
-        <SourceNote label={history.source.label} href={history.source.attributionUrl} strings={{ source: t('Source :'), dated: t('données du {date}') }} />
-      ) : null}
-    </div>
-  )
-}
-
-/**
- * Repères de comparaison — hier, la semaine dernière, le mois dernier, l'an dernier.
- *
- * Chaque repère est LU dans la série, jamais interpolé : si le relevé du jour −30
- * manque, la ligne disparaît au lieu d'afficher le point le plus proche. L'indice
- * étant publié une fois par jour, un décalage d'un ou deux jours passerait inaperçu
- * et fausserait pourtant la comparaison.
- */
-async function Comparisons({ points }: { points: SentimentPoint[] }) {
-  const fr = await getContent()
-  const last = points[points.length - 1] as SentimentPoint
-
-  const at = (daysAgo: number): SentimentPoint | undefined =>
-    points[points.length - 1 - daysAgo]
-
-  const rows = [
-    { label: 'Hier', point: at(1) },
-    { label: 'Il y a une semaine', point: at(7) },
-    { label: 'Il y a un mois', point: at(30) },
-    { label: 'Il y a un an', point: at(365) },
-  ].filter((row): row is { label: string; point: SentimentPoint } => Boolean(row.point))
-
-  if (rows.length === 0) return null
-
-  return (
-    <section aria-labelledby="comparaisons-titre" className="space-y-3">
-      <h2 id="comparaisons-titre" className="text-sm font-semibold text-ink">
-        Où en était l’indice
-      </h2>
-
-      <dl className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-surface">
-        {rows.map((row) => {
-          const delta = last.value - row.point.value
-
-          return (
-            <div key={row.label} className="flex items-baseline justify-between gap-3 px-4 py-3">
-              <dt className="text-sm text-ink-muted">{row.label}</dt>
-              <dd className="flex shrink-0 items-baseline gap-3">
-                <span className="text-xs text-ink-muted">{classify(row.point.value, fr.sentiment.scale)}</span>
-                <span className="tabular text-base font-semibold text-ink">{row.point.value}</span>
-                {/* L'écart porte un SIGNE explicite : « 62 » puis « 48 » n'indique
-                    pas d'emblée dans quel sens le marché a bougé. */}
-                <span
-                  className={`tabular w-12 text-right text-xs font-medium ${
-                    delta > 0 ? 'text-up' : delta < 0 ? 'text-down' : 'text-ink-muted'
-                  }`}
-                >
-                  {delta > 0 ? '+' : ''}
-                  {delta}
-                </span>
-              </dd>
-            </div>
-          )
-        })}
-      </dl>
-    </section>
-  )
-}
-
-async function ScaleSection() {
-  const fr = await getContent()
-  const bands = [
-    { range: '0 – 24', label: fr.sentiment.scale.extremeFear, tone: 'text-down font-medium' },
-    { range: '25 – 44', label: fr.sentiment.scale.fear, tone: 'text-down' },
-    { range: '45 – 55', label: fr.sentiment.scale.neutral, tone: 'text-ink' },
-    { range: '56 – 74', label: fr.sentiment.scale.greed, tone: 'text-up' },
-    { range: '75 – 100', label: fr.sentiment.scale.extremeGreed, tone: 'text-up font-medium' },
-  ]
-
-  return (
-    <section className="space-y-3" aria-labelledby="echelle-titre">
-      <h2 id="echelle-titre" className="display-sm text-ink">
-        Comment lire cet indice
-      </h2>
-
-      <dl className="grid gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-5">
-        {bands.map((band) => (
-          <div key={band.range} className="bg-surface px-3 py-3 text-center">
-            <dt className="tabular text-xs text-ink-muted">{band.range}</dt>
-            <dd className={`mt-1 text-sm ${band.tone}`}>{band.label}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  )
-}
-
-/**
- * Ce que l'indice mesure — et ce qu'il ne mesure pas.
- *
- * La référence détaille la pondération de ses composantes. On ne la reprend pas : ce
- * sont les composantes d'Alternative.me, pas les nôtres, et leurs poids ne sont pas
- * publiés de manière stable. Énoncer les facteurs sans inventer de pourcentages est
- * la seule version vérifiable (§5).
- */
-async function MethodSection() {
-  const fr = await getContent()
-  return (
-    <section className="max-w-2xl space-y-3" aria-labelledby="methode-titre">
-      <h2 id="methode-titre" className="display-sm text-ink">
-        Ce que l’indice mesure
-      </h2>
-
-      <p className="text-base leading-relaxed text-ink-muted">
-        L’indice est une composition publiée par Alternative.me. ZENKUU le relaie tel
-        quel, sans le recalculer. Cinq familles de mesures l’alimentent :
-      </p>
-
-      {/*
-        LES FACTEURS EN LISTE, ET TOUJOURS SANS POURCENTAGES.
-
-        Ils étaient énoncés dans une phrase. La liste ne dit rien de plus — c'est
-        exactement le même contenu — mais elle se PARCOURT, là où la phrase se lisait :
-        un lecteur qui veut savoir de quoi ce 72 est fait y trouve cinq entrées
-        distinctes au lieu d'une énumération à décomposer lui-même. C'est la forme que
-        réclame la question « qu'y a-t-il dans ce nombre ? ».
-
-        ⚠️ AUCUN POIDS N'EST AFFICHÉ, ET C'EST DÉLIBÉRÉ — voir l'en-tête de ce
-        composant. La référence détaille une pondération, mais elle n'est pas publiée
-        de façon stable, et la source ne diffuse PAS la contribution quotidienne de
-        chaque facteur : seule la valeur composite sort de son API. Mettre des
-        pourcentages ici reviendrait à les recopier d'une documentation sans pouvoir
-        vérifier qu'ils valent pour le chiffre du jour — de la donnée inventée (§5).
-
-        La dernière ligne dit cette limite plutôt que de la laisser deviner : sans
-        elle, une liste de facteurs laisse croire qu'on pourrait les voir bouger un
-        par un.
-      */}
-      <ul className="space-y-1.5 text-base leading-relaxed text-ink-muted">
-        {[
-          'la volatilité récente du marché',
-          'le volume et l’élan des échanges',
-          'l’activité sur les réseaux sociaux',
-          'la dominance du bitcoin',
-          'les tendances de recherche',
-        ].map((factor) => (
-          <li key={factor} className="flex gap-2">
-            <span aria-hidden="true" className="select-none text-ink-muted">
-              ·
-            </span>
-            <span>{factor}</span>
-          </li>
-        ))}
-      </ul>
-
-      <p className="text-base leading-relaxed text-ink-muted">
-        La source ne publie que le nombre final : la part exacte de chaque facteur dans
-        la valeur du jour n’est pas diffusée, et n’est donc affichée nulle part ici.
-      </p>
-
-      <p className="text-base leading-relaxed text-ink-muted">
-        Il décrit un état d’esprit observé, pas une prévision. Une valeur basse signale
-        que le marché a eu peur, pas qu’il va monter — et l’inverse est tout aussi vrai.
-      </p>
-
-      <p className="rounded-card border-l-2 border-border-subtle bg-surface-muted py-3 pl-4 pr-3 text-sm leading-relaxed text-ink-muted">
+      <p className="max-w-3xl rounded-card border-l-2 border-border-subtle bg-surface-muted py-3 pl-4 pr-3 text-sm leading-relaxed text-ink-muted">
         {fr.sentiment.disclaimer}
       </p>
 
       <p className="text-sm text-ink-muted">
         Pour situer ces mouvements dans le marché :{' '}
-        {/* `/mouvements` a été supprimée (demande explicite) ; `/classements` porte
-            les mêmes palmarès, filtrables, et existe depuis plus longtemps. */}
         <Link href="/classements" className="text-brand hover:underline">
           classements du marché
         </Link>{' '}
@@ -263,6 +148,121 @@ async function MethodSection() {
           apprendre à lire les chiffres
         </Link>
       </p>
+
+      {history.ok ? (
+        <SourceNote
+          label={history.source.label}
+          href={history.source.attributionUrl}
+          strings={{ source: t('Source :'), dated: t('données du {date}') }}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+/** Le cadran et sa valeur nommée. */
+function DialCard({ value, label }: { value: number; label: string }) {
+  const band = sentimentBand(value)
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <SentimentDial value={value} label={label} />
+      {/* Le nom de la zone est répété SOUS le cadran, en couleur : sur l'arc il est
+          couché et minuscule — lisible pour situer les zones entre elles, pas pour
+          lire celle où l'on est. */}
+      <p className="text-base font-semibold" style={{ color: band.color }}>
+        {label}
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Capitalisation, volume et dominance — le contexte dans lequel l'indice se lit.
+ *
+ * Voir l'en-tête de la page : une seule des trois lignes dispose d'une variation
+ * publiée, et les deux autres s'affichent sans en inventer une.
+ */
+function MarketContext({
+  stats,
+}: {
+  stats: Awaited<ReturnType<typeof getCryptoGlobalStats>>
+}) {
+  if (!stats.ok) {
+    return <EmptyState title="Contexte indisponible" description={stats.reason} compact />
+  }
+
+  const { totalMarketCap, totalVolume24h, marketCapChange24h, dominance } = stats.data
+  const btc = dominance.btc
+
+  return (
+    <dl className="space-y-3">
+      <div className="space-y-1">
+        <dt className="text-xs text-ink-muted">Capitalisation totale</dt>
+        <dd className="flex items-baseline justify-between gap-2">
+          <span className="tabular text-base font-semibold text-ink">
+            <Money value={totalMarketCap} from="USD" compact />
+          </span>
+          <ChangeBadge value={marketCapChange24h} size="sm" />
+        </dd>
+      </div>
+
+      <div className="space-y-1">
+        <dt className="text-xs text-ink-muted">Volume 24 h</dt>
+        <dd className="tabular text-base font-semibold text-ink">
+          <Money value={totalVolume24h} from="USD" compact />
+        </dd>
+      </div>
+
+      {btc !== undefined ? (
+        <div className="space-y-1">
+          <dt className="text-xs text-ink-muted">Dominance BTC</dt>
+          <dd className="tabular text-base font-semibold text-ink">{btc.toFixed(2)} %</dd>
+        </div>
+      ) : null}
+    </dl>
+  )
+}
+
+/**
+ * L'échelle, lue depuis `SENTIMENT_BANDS`.
+ *
+ * Les bornes et les teintes ne sont plus réécrites ici : elles viennent du même
+ * module que le cadran et les anneaux, ce qui garantit que les trois figures
+ * découpent l'échelle au même endroit.
+ */
+function ScaleSection({ scale }: { scale: Awaited<ReturnType<typeof getContent>>['sentiment']['scale'] }) {
+  const names: Record<string, string> = {
+    'extreme-fear': scale.extremeFear,
+    fear: scale.fear,
+    neutral: scale.neutral,
+    greed: scale.greed,
+    'extreme-greed': scale.extremeGreed,
+  }
+
+  return (
+    <section className="space-y-3" aria-labelledby="echelle-titre">
+      <h2 id="echelle-titre" className="display-sm text-ink">
+        Comment lire cet indice
+      </h2>
+
+      <dl className="grid gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-5">
+        {SENTIMENT_BANDS.map((band) => (
+          <div key={band.id} className="space-y-1.5 bg-surface px-3 py-3 text-center">
+            <dt className="tabular text-xs text-ink-muted">
+              {band.from} – {band.to}
+            </dt>
+            <dd className="text-sm text-ink">{names[band.id]}</dd>
+            {/* Un filet de la teinte de la zone : il relie ce tableau au cadran, où
+                ce sont ces mêmes couleurs qui découpent l'arc. */}
+            <div
+              aria-hidden="true"
+              className="mx-auto h-1 w-8 rounded-pill"
+              style={{ backgroundColor: band.color }}
+            />
+          </div>
+        ))}
+      </dl>
     </section>
   )
 }
