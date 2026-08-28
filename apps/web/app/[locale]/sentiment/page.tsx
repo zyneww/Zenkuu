@@ -134,7 +134,10 @@ export default async function SentimentPage() {
 
       <SentimentFaq />
 
-      <p className="max-w-3xl rounded-card border-l-2 border-border-subtle bg-surface-muted py-3 pl-4 pr-3 text-sm leading-relaxed text-ink-muted">
+      {/* Fond sourd et rien d'autre. Le liseré gauche que ce bloc portait — repris
+          tel quel de l'ancienne page — ne le détachait pas mieux que son fond, et
+          c'est un ornement dont l'interface se passe. */}
+      <p className="max-w-3xl rounded-card bg-surface-muted px-4 py-3 text-sm leading-relaxed text-ink-muted">
         {fr.sentiment.disclaimer}
       </p>
 
