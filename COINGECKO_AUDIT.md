@@ -19,11 +19,13 @@ listée avec le libellé générique de la famille, pas avec le nom de l'actif ;
 choisi (Bitcoin, Binance, Ethereum…) figure dans l'entrée d'audit, pas ici. Les onglets
 d'une page paramétrée qui ont chacun une URL propre sont listés séparément.
 
-Trois destinations trouvées dans la navigation ne figurent pas ci-dessous car elles
+Quatre destinations trouvées dans la navigation ne figurent pas ci-dessous car elles
 n'ont pas d'URL propre — voir la note en fin de section : la recherche globale (overlay
 sans route dédiée), la barre de navigation et le pied de page (chrome présent sur
-toutes les pages, sans destination qui leur soit propre). Elles sont auditées comme
-composants de la page Accueil, pas comme pages séparées.
+toutes les pages, sans destination qui leur soit propre), et la watchlist (fonction
+repliée dans le portefeuille, sans route publique vérifiable — voir note). Elles sont
+auditées comme composants de la page Accueil ou de la page Portefeuille, pas comme
+pages séparées.
 
 ### Phase 1 — cœur
 
@@ -61,7 +63,6 @@ composants de la page Accueil, pas comme pages séparées.
 - [ ] Prédominance du Bitcoin — `/fr/charts/bitcoin-dominance`
 - [ ] Comparateur — `/fr/compare-cryptocurrencies`
 - [ ] Convertisseur — `/fr/converter`
-- [ ] Watchlist — `/fr/watchlist`
 - [ ] Chaînes — `/fr/chains`
 - [ ] Page de chaîne — `/fr/chains/ethereum`
 - [ ] NFT — `/fr/nft`
@@ -102,6 +103,19 @@ composants de la page Accueil, pas comme pages séparées.
 - [ ] Candy (récompenses) — `/fr/candy`
 - [ ] Application mobile — `/fr/mobile`
 - [ ] Tarifs Premium — `/fr/premium/pricing`
+
+**Watchlist — sans route publique vérifiable.** `/fr/watchlist`, `/en/watchlist`,
+`/watchlist`, `/fr/watchlists` et `/fr/my-watchlist` répondent tous 404 (constaté par
+`curl -I` et `curl -L`, backend CoinGecko réel — en-tête `x-runtime` présent, pas un
+artefact de CDN). Le mot « watchlist » n'apparaît nulle part dans le HTML rendu de
+l'accueil, de la page coin Bitcoin ou de `/fr/portfolio`. Le bouton étoile de la page coin
+(`data-controller="coin-favorites"`, action `handleCoinFavourites`) est la fonction
+équivalente aujourd'hui, et elle est repliée dans le Portefeuille (nav : « Mes Monnaies »
+→ `/fr/portfolio`) plutôt que dans une page dédiée. Auditée comme composant de l'entrée
+Portefeuille, pas comme page séparée.
+
+**`/fr/api/case-studies` — redirection 302 vers `/en/api/case-studies`.** Contenu non
+traduit en français, comme `/en/glossary` et `/learn`.
 
 ## Entrées
 
