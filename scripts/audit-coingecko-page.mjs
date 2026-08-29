@@ -449,10 +449,21 @@ async function sonderInteractions(page, selectors) {
       survol = { echec: String(erreur.message || erreur).slice(0, 160) }
     }
 
+    /* `locator.focus()` délègue à `HTMLElement.focus()`, qui fait défiler
+       l'élément dans la vue par défaut — exactement le défilement que la garde du
+       survol ci-dessus refuse de provoquer. `{ preventScroll: true }` est l'option
+       native pour l'empêcher ; elle n'est accessible qu'en appelant `.focus()`
+       DANS la page, pas via l'API Locator de haut niveau. Avantage annexe : plus
+       besoin de refuser les éléments hors viewport pour le focus, on les sonde
+       sans bouger la page. */
     let focus
     try {
-      await locator.focus({ timeout: DELAI_ACTION_MS })
-      const focusReussi = await locator.evaluate((el) => document.activeElement === el)
+      const focusReussi = await page.evaluate((sel) => {
+        const el = document.querySelector(sel)
+        if (!el) return false
+        el.focus({ preventScroll: true })
+        return document.activeElement === el
+      }, selecteur)
       if (!focusReussi) {
         focus = { echec: 'non focusable (le focus n’a pas pris)' }
       } else {
@@ -548,7 +559,9 @@ async function main() {
 
   await browser.close()
 
-  console.log(`${chemins.length} captures et ${selectors.length ? 'un' : 'aucun'} relevé écrits dans ${dossier}/`)
+  console.log(
+    `${chemins.length} captures et ${selectors.length || interactions.length ? 'un' : 'aucun'} relevé écrits dans ${dossier}/`,
+  )
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
