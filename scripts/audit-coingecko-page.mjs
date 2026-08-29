@@ -136,20 +136,44 @@ export function mecanismeTheme(base) {
  *  aller-retour. Un sélecteur sans correspondance est consigné comme tel, jamais
  *  omis en silence.
  *
+ *  CoinGecko déclare fréquemment une variante MASQUÉE avant la variante visible
+ *  du même composant (onglets de filtre, bascules d'affichage) : viser
+ *  systématiquement la première correspondance du DOM viserait souvent un
+ *  doublon invisible plutôt que ce qu'un visiteur voit réellement. On retient
+ *  donc le premier nœud VISIBLE parmi les correspondances — jamais le premier
+ *  tout court — et on consigne son index/le total quand ce n'est pas le premier
+ *  (`noeud`), pour qu'un lecteur de mesures.json sache qu'il y avait ambiguïté.
+ *  `indices[i]` force le nœud d'un sélecteur donné plutôt que de le
+ *  recalculer : c'est ce qui garde `sonderInteractions` alignée sur EXACTEMENT
+ *  le même nœud entre le repos et les états survol/focus.
+ *
  *  `avecContour` est réservé au sondage des interactions (focus) : l'anneau de
  *  focus vit dans les propriétés `outline`, absentes du relevé « selectors »
  *  d'origine. Par défaut à `false` — la structure produite pour `--selectors` ne
  *  bouge donc pas d'un octet quand `--interactions` est absent. Un seul argument
  *  (objet), pas deux positionnels : `page.evaluate(fn, arg)` n'en transmet qu'un. */
-function mesurerSelecteurs({ selectors, avecContour = false }) {
-  return selectors.map((selecteur) => {
-    let el
+function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
+  const estVisible = (el) => {
+    if (!el.isConnected) return false
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return false
+    const style = getComputedStyle(el)
+    return style.visibility !== 'hidden' && style.display !== 'none'
+  }
+
+  return selectors.map((selecteur, i) => {
+    let noeuds
     try {
-      el = document.querySelector(selecteur)
+      noeuds = Array.from(document.querySelectorAll(selecteur))
     } catch (erreur) {
       return { selecteur, trouve: false, erreur: String(erreur).slice(0, 160) }
     }
-    if (!el) return { selecteur, trouve: false }
+    if (noeuds.length === 0) return { selecteur, trouve: false }
+
+    const force = indices ? indices[i] : null
+    let index = force !== null && force !== undefined ? force : noeuds.findIndex(estVisible)
+    if (index === -1) index = 0 // aucune correspondance visible : on mesure la première, faute de mieux.
+    const el = noeuds[index]
 
     const st = getComputedStyle(el)
     const cote = (prop) => ({
@@ -163,6 +187,7 @@ function mesurerSelecteurs({ selectors, avecContour = false }) {
       selecteur,
       trouve: true,
       texte: (el.textContent || '').trim().slice(0, 60),
+      ...(index !== 0 ? { noeud: { index, total: noeuds.length } } : {}),
       style: {
         policeFamille: st.fontFamily,
         policeGraisse: st.fontWeight,
@@ -189,6 +214,18 @@ function mesurerSelecteurs({ selectors, avecContour = false }) {
       },
     }
   })
+}
+
+/**
+ * Partie DÉCIDABLE du choix de nœud, extraite de `mesurerSelecteurs` : étant la
+ * visibilité (booléen) de chaque correspondance d'un sélecteur, dans l'ordre du
+ * DOM, rend l'index du premier nœud VISIBLE, ou `null` si aucun ne l'est. La
+ * mesure de visibilité elle-même (rectangle non nul, style non caché) ne se
+ * teste qu'avec un navigateur ; ce choix d'index, si. Fonction pure.
+ */
+export function indexPremierVisible(visibilites) {
+  const index = visibilites.findIndex(Boolean)
+  return index === -1 ? null : index
 }
 
 /**
@@ -418,7 +455,13 @@ async function sonderInteractions(page, selectors) {
       continue
     }
 
-    const locator = page.locator(selecteur).first()
+    /* Le nœud choisi au repos (`repos.noeud`) fait foi pour TOUTE la suite :
+       survol, focus et remesures ciblent le même index qu'au repos, jamais un
+       nœud recalculé indépendamment — sans quoi le delta comparerait deux
+       éléments distincts (ex. une variante masquée au repos contre la variante
+       visible survolée), ce qui serait pire que le défaut corrigé. */
+    const index = repos.noeud?.index ?? 0
+    const locator = page.locator(selecteur).nth(index)
     const attente = Math.max(dureeTransitionMs(repos.style.transitionDuree), 50)
 
     /* Ni `hover()` ni sa vérification de visibilité ne doivent faire défiler la
@@ -440,7 +483,11 @@ async function sonderInteractions(page, selectors) {
         } else {
           await locator.hover({ timeout: DELAI_ACTION_MS })
           await page.waitForTimeout(attente)
-          const [etat] = await page.evaluate(mesurerSelecteurs, { selectors: [selecteur], avecContour: true })
+          const [etat] = await page.evaluate(mesurerSelecteurs, {
+            selectors: [selecteur],
+            avecContour: true,
+            indices: [index],
+          })
           survol = deltaDEtat(repos.style, etat.style)
           await page.mouse.move(0, 0)
         }
@@ -455,20 +502,29 @@ async function sonderInteractions(page, selectors) {
        native pour l'empêcher ; elle n'est accessible qu'en appelant `.focus()`
        DANS la page, pas via l'API Locator de haut niveau. Avantage annexe : plus
        besoin de refuser les éléments hors viewport pour le focus, on les sonde
-       sans bouger la page. */
+       sans bouger la page. Ciblage par `querySelectorAll(sel)[index]`, le MÊME
+       index qu'au repos — jamais `querySelector` seul, qui reviendrait au
+       premier nœud, potentiellement masqué. */
     let focus
     try {
-      const focusReussi = await page.evaluate((sel) => {
-        const el = document.querySelector(sel)
-        if (!el) return false
-        el.focus({ preventScroll: true })
-        return document.activeElement === el
-      }, selecteur)
+      const focusReussi = await page.evaluate(
+        ({ sel, idx }) => {
+          const el = document.querySelectorAll(sel)[idx]
+          if (!el) return false
+          el.focus({ preventScroll: true })
+          return document.activeElement === el
+        },
+        { sel: selecteur, idx: index },
+      )
       if (!focusReussi) {
         focus = { echec: 'non focusable (le focus n’a pas pris)' }
       } else {
         await page.waitForTimeout(attente)
-        const [etat] = await page.evaluate(mesurerSelecteurs, { selectors: [selecteur], avecContour: true })
+        const [etat] = await page.evaluate(mesurerSelecteurs, {
+          selectors: [selecteur],
+          avecContour: true,
+          indices: [index],
+        })
         focus = deltaDEtat(repos.style, etat.style)
         await page.evaluate(() => document.activeElement && document.activeElement.blur())
       }
@@ -476,7 +532,11 @@ async function sonderInteractions(page, selectors) {
       focus = { echec: String(erreur.message || erreur).slice(0, 160) }
     }
 
-    resultat[selecteur] = { survol, focus }
+    resultat[selecteur] = {
+      survol,
+      focus,
+      ...(repos.noeud ? { noeud: repos.noeud } : {}),
+    }
   }
 
   return resultat

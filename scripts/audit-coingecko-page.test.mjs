@@ -4,6 +4,7 @@ import {
   capturesIdentiques,
   cheminsDeCapture,
   deltaDEtat,
+  indexPremierVisible,
   lireArguments,
   mecanismeTheme,
   signalDeFond,
@@ -204,5 +205,22 @@ describe('deltaDEtat', () => {
   it('tolère un état absent — un sélecteur sans correspondance', () => {
     expect(deltaDEtat(null, { color: 'rgb(1, 1, 1)' })).toEqual({})
     expect(deltaDEtat({ color: 'rgb(1, 1, 1)' }, null)).toEqual({})
+  })
+})
+
+describe('indexPremierVisible', () => {
+  /* CoinGecko déclare souvent une variante masquée AVANT la variante visible du
+     même composant (onglets de filtre, bascules d'affichage) : retenir
+     systématiquement la première correspondance viserait un doublon invisible. */
+  it('retient le premier nœud visible quand les précédents sont masqués', () => {
+    expect(indexPremierVisible([false, false, true, false])).toBe(2)
+  })
+
+  it('retient le premier nœud quand il est déjà visible', () => {
+    expect(indexPremierVisible([true, false])).toBe(0)
+  })
+
+  it('rend null quand aucune correspondance n’est visible', () => {
+    expect(indexPremierVisible([false, false])).toBeNull()
   })
 })
