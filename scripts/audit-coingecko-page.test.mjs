@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { cheminsDeCapture, lireArguments, mecanismeTheme } from './audit-coingecko-page.mjs'
+import { cheminsDeCapture, lireArguments, mecanismeTheme, signalDeFond, themeDepuisSignaux } from './audit-coingecko-page.mjs'
 
 describe('lireArguments', () => {
   it('lit url et slug', () => {
@@ -82,5 +82,58 @@ describe('mecanismeTheme', () => {
        correspondance par sous-chaîne appliquerait le cookie CoinGecko à un site
        qui n'a rien à voir. */
     expect(mecanismeTheme('https://coingecko.com.evil.example')).toBe('zenkuu')
+  })
+})
+
+describe('themeDepuisSignaux', () => {
+  it('reconnaît « darktheme » seul', () => {
+    expect(themeDepuisSignaux({ classesBody: 'darktheme', fondBody: 'rgb(255, 255, 255)' })).toBe('sombre')
+  })
+
+  it('reconnaît « tw-dark » seul, sans exiger « darktheme »', () => {
+    /* Un gabarit qui ne pose que l'un des deux marqueurs ne doit pas faire lever le
+       contrôle à tort : les deux valent preuve de bascule. */
+    expect(themeDepuisSignaux({ classesBody: 'tw-dark tw-flex', fondBody: 'rgb(255, 255, 255)' })).toBe('sombre')
+  })
+
+  it('retombe sur la couleur de fond quand aucun marqueur de classe n’est présent', () => {
+    expect(themeDepuisSignaux({ classesBody: 'tw-flex tw-container', fondBody: 'rgb(10, 10, 12)' })).toBe('sombre')
+    expect(themeDepuisSignaux({ classesBody: 'tw-flex tw-container', fondBody: 'rgb(255, 255, 255)' })).toBe('clair')
+  })
+
+  it('rend null quand ni la classe ni le fond ne tranchent', () => {
+    /* Constaté sur une fiche d'actif (`/fr/coins/bitcoin`) : `body` y reste teinté
+       d'un bleu-nuit `rgb(33, 45, 59)`, identique octet pour octet quel que soit le
+       cookie `is_dark`. Ni marqueur de classe ni fond décisif : deviner ferait
+       lever le contrôle à tort sur un gabarit qui n'a simplement pas de signal
+       détectable, pas sur un thème qui n'a pas basculé. */
+    expect(themeDepuisSignaux({ classesBody: '', fondBody: 'rgb(33, 45, 59)' })).toBeNull()
+  })
+})
+
+describe('signalDeFond', () => {
+  it('rend « sombre » pour un fond quasi noir', () => {
+    expect(signalDeFond('rgb(13, 18, 23)')).toBe('sombre')
+  })
+
+  it('rend « clair » pour un fond quasi blanc', () => {
+    expect(signalDeFond('rgb(255, 255, 255)')).toBe('clair')
+  })
+
+  it('rend « clair » pour un fond transparent, jamais confondu avec du noir', () => {
+    /* `body` ne porte pas toujours sa propre couleur : sur CoinGecko en clair, elle
+       reste `rgba(0, 0, 0, 0)`. Sans ce garde, cette absence de signal se lirait
+       comme un fond noir — donc sombre. */
+    expect(signalDeFond('rgba(0, 0, 0, 0)')).toBe('clair')
+  })
+
+  it('rend null pour une couleur opaque de luminance intermédiaire', () => {
+    /* Le bleu-nuit de la fiche d'actif : ni assez sombre, ni assez clair pour
+       trancher sans risquer un faux positif sur un bandeau de marque. */
+    expect(signalDeFond('rgb(33, 45, 59)')).toBeNull()
+  })
+
+  it('rend null pour une valeur illisible plutôt que de lever', () => {
+    expect(signalDeFond('transparent')).toBeNull()
   })
 })

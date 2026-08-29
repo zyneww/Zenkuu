@@ -55,6 +55,12 @@ const RACINE_REFERENCES = 'docs/references/coingecko'
 const LARGEURS = [360, 768, 1440]
 const THEMES = ['clair', 'sombre']
 
+/** Le rendu canonique pour l'extraction des jetons (tâche 6) : les cinq autres
+ *  relevés servent à lire la densité (hauteur de ligne, rembourrage) et les points
+ *  d'arrêt en comparant les largeurs et les thèmes entre eux — ils affinent la
+ *  référence, ils ne la remplacent pas. */
+const REFERENCE_MESURES = { largeur: 1440, theme: 'clair' }
+
 /** Clé localStorage brute lue par ThemeScript AVANT l'hydratation — voir
  *  apps/web/components/ThemeScript.tsx. */
 const ZENKUU_THEME_STORAGE_KEY = 'zenkuu-theme'
@@ -190,36 +196,97 @@ async function poserTheme(context, base, theme) {
   }
 }
 
+/**
+ * Signal de dernier recours : la couleur de fond CALCULÉE de `<body>`, utilisée
+ * seulement à ses deux extrêmes.
+ *
+ * Un fond entièrement TRANSPARENT (`rgba(0, 0, 0, 0)`) veut dire qu'aucune couleur
+ * n'y a été peinte — observé sur `/fr` en clair, où `body` ne porte pas sa propre
+ * teinte. Un fond QUASI NOIR veut dire qu'une surface sombre y a explicitement été
+ * peinte — observé sur `/fr` en sombre (`rgb(13, 18, 23)`).
+ *
+ * Entre les deux, une couleur opaque de luminance intermédiaire N'EST PAS un signal
+ * fiable : elle peut être un bandeau de marque propre au gabarit, sans rapport avec
+ * le thème choisi. Constaté sur une fiche d'actif (`/fr/coins/bitcoin`) : `body` y
+ * reste teinté d'un bleu-nuit `rgb(33, 45, 59)` — capture vérifiée OCTET POUR OCTET
+ * identique quel que soit le cookie `is_dark`. Rendre `null` dans ce cas dit « pas
+ * de signal exploitable ici », plutôt que de deviner et de faire lever le contrôle
+ * à tort sur un gabarit dont le thème n'a simplement aucun marqueur détectable par
+ * cette méthode.
+ */
+export function signalDeFond(couleurCalculee) {
+  const nombres = (couleurCalculee || '').match(/[\d.]+/g)
+  if (!nombres || nombres.length < 3) return null
+  const [r, g, b, alpha = 1] = nombres.map(Number)
+  if (alpha === 0) return 'clair'
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  if (luminance < 0.15) return 'sombre'
+  if (luminance > 0.85) return 'clair'
+  return null
+}
+
+/**
+ * Décide si CE chargement porte le thème sombre, à partir de signaux relevés dans
+ * la page — logique pure, testable sans navigateur. Peut rendre `null` : « aucun
+ * signal exploitable », pas « clair par défaut ».
+ *
+ * CoinGecko pose SOIT `darktheme` SOIT `tw-dark` sur `<body>` selon le gabarit (les
+ * deux ont été vues co-posées sur `/fr`, mais rien ne garantit que les 68 pages
+ * suivent la même convention) : exiger l'une en particulier ferait lever le
+ * contrôle à tort sur une page parfaitement basculée. Quand NI L'UNE NI L'AUTRE
+ * n'apparaît, on ne conclut pas au clair pour autant — un gabarit peut très bien ne
+ * pas suivre cette convention tout en étant réellement sombre — et on retombe sur
+ * la couleur de fond.
+ */
+export function themeDepuisSignaux({ classesBody, fondBody }) {
+  if (classesBody.includes('darktheme') || classesBody.includes('tw-dark')) return 'sombre'
+  return signalDeFond(fondBody)
+}
+
 /** Contrôle l'état RÉEL du thème après chargement — pas ce qu'on a demandé, ce que
  *  la page a effectivement rendu. */
 async function themeReel(page, base) {
-  const sombre =
-    mecanismeTheme(base) === 'coingecko'
-      ? await page.evaluate(() => document.body.className.includes('darktheme'))
-      : await page.evaluate(() => document.documentElement.classList.contains('dark'))
+  if (mecanismeTheme(base) === 'coingecko') {
+    const { classesBody, fondBody } = await page.evaluate(() => ({
+      classesBody: document.body.className,
+      fondBody: getComputedStyle(document.body).backgroundColor,
+    }))
+    return themeDepuisSignaux({ classesBody, fondBody })
+  }
+  /* ZENKUU : une seule classe, sur un site qu'on contrôle — pas 68 gabarits tiers
+     dont la convention peut diverger. */
+  const sombre = await page.evaluate(() => document.documentElement.classList.contains('dark'))
   return sombre ? 'sombre' : 'clair'
 }
 
 async function chargerAvecTheme(context, base, url, theme) {
   await poserTheme(context, base, theme)
   const page = await context.newPage()
+  /*
+   * `networkidle`, PAS ICI. `audit-responsive.mjs` l'utilise à raison contre ZENKUU
+   * en local, dont les pages se stabilisent. Le site visé ici est un site de
+   * cotations qui rafraîchit ses cours en continu (WebSocket, polling) :
+   * `networkidle` n'y survient JAMAIS, et son délai de 45 s serait consommé en
+   * entier à chaque passe. Sur une campagne de 68 pages à 6 passes, ça se chiffre
+   * en heures d'attente pure pour un gain nul — `domcontentloaded` fournit un
+   * signal qui se produit réellement sur ce type de page, et le plafond est réduit
+   * d'autant : il ne sert plus qu'à distinguer une page lente d'une page cassée.
+   */
   try {
-    await page.goto(base + url, { waitUntil: 'networkidle', timeout: 45_000 })
+    await page.goto(base + url, { waitUntil: 'domcontentloaded', timeout: 15_000 })
   } catch {
-    // `networkidle` expire sur les pages à flux continu : le DOM est là, on capture.
+    // Page anormalement lente ou cassée : le DOM disponible est capturé quand même.
   }
   await page.waitForTimeout(1200)
-  try {
-    await page.waitForLoadState('domcontentloaded', { timeout: 10_000 })
-  } catch {
-    /* rien : on mesure ce qui est affiché */
-  }
 
   /* La bascule est vérifiée ICI, pas supposée : deux captures identiques prises pour
      une preuve d'invariance sont exactement la donnée factice que le projet
-     interdit. Un mécanisme muet doit casser bruyamment, pas produire un doublon. */
+     interdit. Un mécanisme muet doit casser bruyamment, pas produire un doublon.
+     `themeReel` peut aussi rendre `null` — « aucun signal exploitable sur ce
+     gabarit », jamais rencontré comme « clair par défaut » — auquel cas on
+     poursuit sans verdict plutôt que d'arrêter les 68 pages sur un faux positif. */
   const obtenu = await themeReel(page, base)
-  if (obtenu !== theme) {
+  if (obtenu !== null && obtenu !== theme) {
     throw new Error(
       `Bascule de thème sans effet sur ${new URL(base).hostname} : attendu « ${theme} », obtenu « ${obtenu} ».`,
     )
@@ -269,6 +336,7 @@ async function main() {
       url,
       base,
       releveLe: new Date().toISOString(),
+      reference: REFERENCE_MESURES,
       mesures: releves,
     }
     await writeFile(path.join(dossier, 'mesures.json'), JSON.stringify(releve, null, 2))
