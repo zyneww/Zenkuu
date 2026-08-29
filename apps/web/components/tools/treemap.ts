@@ -172,7 +172,10 @@ const HEAT_STEPS = [0.5, 1.5, 3, 6] as const
  * écraserait l'échelle et rendrait tout le reste uniformément pâle.
  */
 export function heatTone(change: number | undefined): string {
-  if (change === undefined) return 'var(--color-surface-muted)'
+  /* ⚠️ `heat-flat` ET NON `surface-muted` : ce dernier BASCULE avec le thème, et
+     donnait un gris très clair sous l'encre BLANCHE des tuiles — « USDT » en blanc
+     sur blanc cassé, relevé au navigateur. Voir la note du jeton dans `globals.css`. */
+  if (change === undefined) return 'var(--color-heat-flat)'
 
   const magnitude = Math.min(Math.abs(change), HEATMAP_CLAMP)
 
@@ -269,8 +272,10 @@ export function heatTone(change: number | undefined): string {
  * vue ne se comparent pas d'un jour à l'autre. Elles classent le lot du jour.
  */
 export function volatilityTone(value: number | undefined, max: number): string {
-  if (value === undefined) return 'var(--color-surface-muted)'
-  if (!(max > 0)) return 'var(--color-surface-muted)'
+  /* Même correction que dans `heatTone` : l'absence de donnée se peint en
+     `heat-flat`, invariant par thème, parce que l'encre de la tuile est blanche. */
+  if (value === undefined) return 'var(--color-heat-flat)'
+  if (!(max > 0)) return 'var(--color-heat-flat)'
 
   /* Cinq paliers, comme l'échelle signée : deux figures du même site qui compteraient
      leurs crans différemment se liraient comme deux précisions différentes. */

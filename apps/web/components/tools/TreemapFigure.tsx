@@ -99,8 +99,14 @@ export interface TreemapTile {
  * `overflow-hidden` reste indispensable : sans lui, une étiquette trop longue déborde
  * sur les tuiles voisines et rend la carte illisible aux petites tailles.
  */
+/*
+ * `heat-tile` fait de chaque tuile un CONTENEUR DE REQUÊTE — c'est ce qui permet à
+ * son texte de se dimensionner sur sa taille réelle en pixels plutôt que sur des
+ * pourcentages de deux axes différents (voir la note sur `cqmin` plus bas, et
+ * `globals.css` pour les règles).
+ */
 const TILE_CLASS =
-  'absolute flex flex-col items-center justify-center overflow-hidden px-1 text-center'
+  'heat-tile absolute flex flex-col items-center justify-center overflow-hidden px-1 text-center'
 
 export function TreemapFigure({
   tiles,
@@ -203,39 +209,44 @@ export function TreemapFigure({
           coin portent des caractères de six pixels — et cette hiérarchie EST
           l'information : on voit le poids du marché avant d'avoir lu un chiffre.
 
-          La taille est calculée sur la racine carrée de l'aire, et non sur l'aire :
-          une tuile quatre fois plus grande doit porter un texte deux fois plus grand,
-          pas quatre — sans quoi la plus grande tuile écraserait tout le reste. C'est la
-          relation entre une surface et une longueur.
+          ══════════════════════════════════════════════════════════════════════
+          ⚠️ ELLE SE CALCULE EN CSS, ET PAS ICI — LE POURQUOI EST UN BUG RÉEL
+          ══════════════════════════════════════════════════════════════════════
 
-          Le facteur `0.42` et la borne haute `56` sont réglés pour que la plus grande
-          tuile n'excède pas une hauteur de titre. La racine est bornée par la plus
-          PETITE dimension : un rectangle très plat ne peut pas porter un texte plus
-          haut que lui.
+          Elle se calculait en JavaScript : `sqrt(box.width * box.height) * 0.42`.
+
+          C'était FAUX, et le défaut a survécu longtemps parce qu'un plancher le
+          masquait. `box.width` et `box.height` sont des POURCENTAGES — le pavage pose
+          ses tuiles en pourcentages de la boîte, c'est ce qui lui permet de s'adapter
+          en largeur sans rien recalculer. Or 1 % de largeur et 1 % de hauteur ne
+          mesurent pas la même longueur : sur un cadre de 1 448 × 632, le premier vaut
+          14,5 px et le second 6,3. La moyenne géométrique de deux unités différentes
+          ne décrit aucune grandeur.
+
+          Conséquence relevée au navigateur : une tuile de 182 × 157 PIXELS — largement
+          de quoi porter son nom — recevait un calibrage de 7,4, sous le seuil
+          d'affichage. La carte se retrouvait muette partout sauf sur ses trois plus
+          grandes tuiles.
+
+          `cqmin` règle la question à la racine : chaque tuile devient un CONTENEUR, et
+          l'unité vaut un centième de sa plus petite dimension RÉELLE, en pixels. Le
+          navigateur la résout à la peinture, donc après le calcul de la mise en page —
+          ce qu'aucun calcul au rendu ne peut faire.
+
+          Le douzième (`8.5cqmin`) et la borne à 56 px sont réglés pour que la plus
+          grande tuile n'excède pas une hauteur de titre. La plus PETITE dimension est
+          le bon repère : un rectangle très plat ne peut pas porter un texte plus haut
+          que lui.
 
           ── SOUS ONZE PIXELS, ON N'ÉCRIT PLUS RIEN ──────────────────────────
 
-          ⚠️ Les étiquettes descendaient jusqu'à SEPT pixels, et la ligne de valeur
-          avec elles. `audit-responsive` les a relevées sur la page des collections :
-          « MAYC » en 9,2 px, « 92.7M $ (8,1 %) · −6.52% » en 7 px. Sous le plancher
-          de onze pixels du projet, un chiffre de marché n'est plus lisible — il reste
-          du bruit qui salit la tuile sans rien apprendre.
-
-          Le calibrage brut décide donc ce qui S'AFFICHE, et la taille appliquée ne
-          descend jamais sous onze : une tuile trop petite pour son nom n'en porte
-          pas, une tuile trop petite pour sa valeur n'affiche que son nom. La couleur
-          et l'infobulle continuent de porter l'information. C'est aussi ce que font
-          les cartes thermiques de référence, dont les petites tuiles sont muettes.
+          Le plancher de lisibilité du projet. En dessous, un chiffre de marché n'est
+          plus lisible : il reste du bruit qui salit la tuile sans rien apprendre. La
+          règle est portée par une requête de conteneur dans `globals.css`, seule à
+          connaître la taille réelle. La couleur et l'infobulle continuent de porter
+          l'information — c'est aussi ce que font les cartes thermiques de référence,
+          dont les plus petites tuiles sont muettes.
         */
-        const minSide = Math.min(box.width, box.height)
-        const raw = Math.min(56, Math.sqrt(box.width * box.height) * 0.42)
-        const labelSize = Math.max(11, raw)
-        const showLabel = minSide > 6 && raw >= 11
-        /* La valeur est calibrée à la moitié de l'étiquette : elle ne paraît donc que
-           lorsque cette moitié atteint elle-même le plancher, soit une étiquette de
-           vingt-deux pixels. */
-        const valueSize = Math.max(11, labelSize * 0.5)
-        const showValue = showLabel && labelSize * 0.5 >= 11
 
         /*
           ── L'ICÔNE NE PARAÎT QUE SI ELLE TIENT VRAIMENT ────────────────────
@@ -250,21 +261,19 @@ export function TreemapFigure({
           domaines d'éditeurs NFT non déclarés dans `next.config.ts`, et l'optimiseur
           lèverait au rendu. `onError` n'est pas nécessaire — une image absente laisse
           simplement l'étiquette, qui suffit.
-        */
-        const showImage = tile.image !== undefined && labelSize >= 16
 
+          ⚠️ SA TAILLE AUSSI EST EN `cqmin`, et son affichage est décidé par la même
+          requête de conteneur que le texte — voir `globals.css`. La calculer ici
+          retomberait dans le défaut d'unités décrit plus haut.
+        */
         const body = (
           <>
-            {showImage ? (
+            {tile.image !== undefined ? (
               // eslint-disable-next-line @next/next/no-img-element -- domaines d'éditeurs non déclarés
               <img
                 src={tile.image}
                 alt=""
-                className="mb-1 shrink-0 rounded-pill object-cover ring-1 ring-white/25"
-                style={{
-                  width: `${Math.min(28, labelSize * 1.1).toFixed(0)}px`,
-                  height: `${Math.min(28, labelSize * 1.1).toFixed(0)}px`,
-                }}
+                className="tile-logo mb-1 shrink-0 rounded-pill object-cover ring-1 ring-white/25"
                 loading="lazy"
               />
             ) : null}
@@ -272,14 +281,11 @@ export function TreemapFigure({
             {/* Étiquettes toujours présentes dans le DOM — donc lisibles par un lecteur
                 d'écran et par un moteur — mais dimensionnées à la tuile pour ne pas
                 déborder sur ses voisines. */}
-            {showLabel ? (
-              <span
-                className={`block max-w-full truncate font-semibold leading-none ${INK.label}`}
-                style={{ fontSize: `${labelSize.toFixed(1)}px` }}
-              >
-                {tile.label}
-              </span>
-            ) : null}
+            <span
+              className={`tile-label block max-w-full truncate font-semibold leading-none ${INK.label}`}
+            >
+              {tile.label}
+            </span>
             {/*
               MONTANT, PART ET VARIATION SUR UNE SEULE LIGNE — l'anatomie de la
               référence, relevée au navigateur.
@@ -293,21 +299,16 @@ export function TreemapFigure({
               « 439 Md $ » ne dit pas si c'est beaucoup. Elle est omise sous 0,1 %, où
               elle n'apprendrait rien et allongerait la ligne pour rien.
 
-              Le SEUIL porte désormais sur la taille de police calculée et non sur les
-              pourcentages de la boîte : c'est la seule mesure qui dise si la ligne sera
-              réellement lisible, et elle tient compte des proportions de la tuile.
+              Le SEUIL est celui de la requête de conteneur : cette ligne demande plus
+              de place que le nom seul, et n'apparaît donc qu'au-dessus d'une tuile plus
+              grande — voir `globals.css`.
             */}
-            {showValue ? (
-              <span
-                className={`tabular block truncate leading-tight ${INK.value}`}
-                style={{ fontSize: `${valueSize.toFixed(1)}px` }}
-              >
-                {formatCompact(tile.value)}
-                {valueUnit}
-                {share >= 0.1 ? ` (${share.toFixed(1).replace('.', ',')} %)` : ''}
-                {hasChange && tile.change !== undefined ? ` · ${formatPercent(tile.change)}` : ''}
-              </span>
-            ) : null}
+            <span className={`tile-value tabular block truncate leading-tight ${INK.value}`}>
+              {formatCompact(tile.value)}
+              {valueUnit}
+              {share >= 0.1 ? ` (${share.toFixed(1).replace('.', ',')} %)` : ''}
+              {hasChange && tile.change !== undefined ? ` · ${formatPercent(tile.change)}` : ''}
+            </span>
           </>
         )
 
@@ -388,22 +389,45 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
     )
   }
 
+  /*
+   * ── LA LÉGENDE EST SEGMENTÉE ET CHIFFRÉE, COMME CELLE DE LA RÉFÉRENCE ─────
+   *
+   * Elle était un ruban de 128 px portant ses deux bornes, posé au bout de la rangée
+   * de commandes — où il se lisait comme un contrôle de plus. TradingView pose la
+   * sienne SOUS la carte : sept pastilles distinctes, chacune sous sa valeur.
+   *
+   * La différence n'est pas décorative. L'échelle de cette carte procède par PALIERS
+   * (voir `heatTone`) : un ruban continu promet un dégradé que la figure ne dessine
+   * pas, et un lecteur qui cherche à quel palier appartient une tuile ne peut pas le
+   * retrouver dessus. Des pastilles séparées montrent exactement les teintes qu'il
+   * verra, et les nombres disent où chacune commence.
+   */
+  const swatches = heatScaleSwatches()
+  const step = (HEATMAP_CLAMP * 2) / (swatches.length - 1)
+
   return (
-    <div className="flex items-center gap-2 text-micro text-ink-muted">
-      <span>−{HEATMAP_CLAMP} %</span>
-      <span
-        className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
-        aria-hidden="true"
-      >
-        {/* Les paliers sont lus dans `treemap.ts` plutôt que réécrits ici. La liste
-            était écrite à la main — sept valeurs choisies pour « faire dégradé » — et
-            elle a cessé de décrire l'échelle le jour où celle-ci est passée en paliers
-            discrets : la légende annonçait un continuum que la figure ne peignait plus. */}
-        {heatScaleSwatches().map((tone, index) => (
-          <span key={index} className="flex-1" style={{ backgroundColor: tone }} />
-        ))}
+    <div className="flex flex-wrap items-end gap-x-1 gap-y-2 text-micro text-ink-muted">
+      {swatches.map((swatch, index) => {
+        const bound = -HEATMAP_CLAMP + index * step
+        return (
+          <span key={index} className="flex flex-col items-center gap-1">
+            <span
+              aria-hidden="true"
+              className="block h-2.5 w-9 rounded-[2px]"
+              style={{ backgroundColor: swatch }}
+            />
+            <span className="tabular">
+              {bound > 0 ? '+' : bound < 0 ? '−' : ''}
+              {Math.abs(Math.round(bound))} %
+            </span>
+          </span>
+        )
+      })}
+      <span className="sr-only">
+        Échelle de couleur : du rouge à −{HEATMAP_CLAMP} % ou moins, au vert à +
+        {HEATMAP_CLAMP} % ou plus.
       </span>
-      <span>+{HEATMAP_CLAMP} %</span>
     </div>
   )
 }
+

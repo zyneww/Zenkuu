@@ -411,6 +411,22 @@
   --color-heat-down-dim: #7f1d1d;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     LA TUILE SANS DONNÉE — le gris neutre, invariant lui aussi.
+
+     ⚠️ CORRECTION D'UN DÉFAUT DE CONTRASTE. Ces tuiles étaient peintes en
+     `--color-surface-muted`, qui BASCULE : un gris très clair en thème clair. Or
+     l'encre des tuiles est blanche dans les deux thèmes — voir `TILE_INK` — parce
+     que les quatre teintes ci-dessus sont des aplats saturés. Résultat relevé au
+     navigateur sur la carte thermique : « USDT » et « USDC » en blanc sur blanc
+     cassé, illisibles.
+
+     `#3d3d3d` est le gris de la référence TradingView, relevé dans son DOM. Contraste
+     avec le blanc : 10,4:1. Il ne bascule pas, pour la même raison que ses quatre
+     voisines : la tuile porte son propre contraste.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-heat-flat: #3d3d3d;
+
+  /* ───────────────────────────────────────────────────────────────────────────
      SPECTRE DE SENTIMENT — peur extrême → avidité extrême, en cinq crans.
 
      ⚠️ CE N'EST PAS LA RAMPE `heat-*` CI-DESSUS, et la confusion a coûté une
@@ -2541,6 +2557,81 @@
    * les navigateurs qui n'appliquent pas la seconde propriété aux polices
    * proportionnelles de repli.
    */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TUILES DE CARTE THERMIQUE — LA TYPOGRAPHIE SE CALCULE ICI, PAS EN JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════════════
+
+     ⚠️ CETTE RÈGLE CORRIGE UN BUG D'UNITÉS. `TreemapFigure` calculait la taille de
+     ses étiquettes par `sqrt(largeur × hauteur) × 0,42`, où les deux dimensions sont
+     des POURCENTAGES — le pavage pose ses tuiles en pourcentages pour s'adapter en
+     largeur sans rien recalculer. Or 1 % de largeur et 1 % de hauteur ne mesurent pas
+     la même longueur : sur un cadre de 1 448 × 632, l'un vaut 14,5 px et l'autre 6,3.
+     La moyenne géométrique de deux unités différentes ne décrit aucune grandeur.
+
+     Relevé au navigateur : une tuile de 182 × 157 PIXELS recevait un calibrage de 7,4
+     et se retrouvait sous le seuil d'affichage. La carte était muette partout sauf sur
+     ses trois plus grandes tuiles.
+
+     `cqmin` vaut un centième de la plus PETITE dimension réelle de la tuile, en
+     pixels, résolue par le navigateur APRÈS la mise en page — ce qu'aucun calcul au
+     rendu ne peut faire. La plus petite dimension est le bon repère : un rectangle
+     très plat ne peut pas porter un texte plus haut que lui.
+
+     Les seuils d'affichage suivent le plancher de lisibilité du projet (11 px) :
+     une tuile trop petite pour son nom n'en porte pas, une tuile trop petite pour sa
+     valeur n'affiche que son nom. La couleur et l'infobulle continuent de porter
+     l'information — c'est ce que font les cartes thermiques de référence, dont les
+     plus petites tuiles sont muettes.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  .heat-tile {
+    container-type: size;
+  }
+
+  /* Masqués PAR DÉFAUT : la requête ci-dessous les rétablit dès que la tuile est
+     assez grande. L'ordre compte — une tuile sous le seuil ne doit rien montrer. */
+  .heat-tile .tile-label,
+  .heat-tile .tile-value,
+  .heat-tile .tile-logo {
+    display: none;
+  }
+
+  /*
+     ── LE PLANCHER EST TENU PAR `max()`, PAS PAR LE SEUIL DE LA REQUÊTE ──────
+
+     Première version : `min(56px, 8,5cqmin)` sans plancher, et une requête à
+     130 × 130 pour garantir les 11 px. C'était trop strict — une tuile de 294 × 92,
+     largement assez large pour son nom, restait muette parce que sa HAUTEUR passait
+     sous le seuil. La carte gardait des rectangles vides bien visibles.
+
+     Le `max(11px, …)` tient le plancher quelle que soit la tuile ; la requête ne
+     décide plus que de la PLACE DISPONIBLE, et peut donc être franchement plus basse.
+     Les deux contraintes cessent d'être portées par le même nombre.
+  */
+  @container (min-width: 80px) and (min-height: 56px) {
+    .heat-tile .tile-label {
+      display: block;
+      font-size: max(11px, min(56px, 14cqmin));
+    }
+  }
+
+  /* Le logo demande de la place en plus du nom : il n'apparaît qu'au-delà. */
+  @container (min-width: 120px) and (min-height: 120px) {
+    .heat-tile .tile-logo {
+      display: block;
+      width: min(28px, 12cqmin);
+      height: min(28px, 12cqmin);
+    }
+  }
+
+  /* La ligne de valeur est bien plus LONGUE que le nom — « 1 346B € (59,8 %) ·
+     −3.21% » — d'où un seuil de largeur nettement supérieur à celui du nom. */
+  @container (min-width: 190px) and (min-height: 90px) {
+    .heat-tile .tile-value {
+      display: block;
+      font-size: max(11px, min(26px, 6.5cqmin));
+    }
+  }
+
   .tabular {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;

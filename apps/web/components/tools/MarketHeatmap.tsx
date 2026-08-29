@@ -6,7 +6,17 @@ import type { MarketAsset, MarketCategory } from '@zenkuu/data'
 
 import { formatCurrency } from '@zenkuu/ui'
 
-import { Chip, ChipGroup } from '@/components/charts/ChipGroup'
+import { Filter, Grid2x2, Layers, Maximize2, Palette } from 'lucide-react'
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
@@ -70,12 +80,15 @@ import { fullyDilutedValuation } from '@/lib/heatmap-metrics'
  * charge de toute façon.
  */
 
-const MODES = [
-  { id: 'coins', label: 'Pièces' },
-  { id: 'sectors', label: 'Secteurs' },
-] as const
-
-type ModeId = (typeof MODES)[number]['id']
+/**
+ * Le découpage — par pièce ou par secteur.
+ *
+ * Un simple type, et plus une liste d'options : les deux libellés vivent désormais
+ * dans le menu « Source des données », qui réunit le découpage et l'univers en une
+ * seule question — de quoi la carte est-elle faite. Garder ici une liste dont plus
+ * personne ne lit les libellés aurait fait deux endroits où les changer.
+ */
+type ModeId = 'coins' | 'sectors'
 
 /**
  * ── CE QUE LA COULEUR MESURE ────────────────────────────────────────────────
@@ -348,76 +361,127 @@ export function MarketHeatmap({
   const periodWord = mode === 'sectors' ? '24 heures' : PERIOD_WORDS[period]
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <ChipGroup label={t('Découpage')} value={mode} onChange={setMode}>
-            {MODES.map((entry) => (
-              <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
-            ))}
-          </ChipGroup>
+    /*
+     * ⚠️ LA CARTE EST BORNÉE EN LARGEUR, ET C'EST UNE CONTRAINTE DE FORME.
+     *
+     * Elle s'étalait sur toute la colonne — 1 740 px sur un grand écran — pour 520 de
+     * haut, soit un rapport de 3,3:1. Un pavage dans une boîte aussi plate produit des
+     * rectangles extrêmes : Bitcoin prenait la moitié gauche entière et la centaine de
+     * petites tuiles se tassait en bas à droite, sous le seuil où elles peuvent porter
+     * leur nom.
+     *
+     * La référence CoinGecko trace la sienne en 1 360 × 600, soit 2,27:1 — relevé dans
+     * son DOM. C'est ce rapport qui est repris ici, et c'est aussi ce que demande le
+     * cahier des charges : une carte INTÉGRÉE à la page, pas l'application plein écran
+     * de TradingView.
+     */
+    <div className="mx-auto w-full max-w-[85rem] space-y-3">
+      {/*
+        ── LA BARRE D'OUTILS EST CELLE DE TRADINGVIEW ────────────────────────
+        Trois menus déroulants compacts — source, taille, couleur — là où six rangées
+        de pastilles occupaient deux lignes pleines. Ce n'est pas qu'une économie de
+        place : une rangée de pastilles montre toutes les options en permanence, ce qui
+        convient à trois choix et noie l'œil à vingt-cinq.
+      */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* LA SOURCE réunit le découpage ET l'univers, comme le « Crypto coins » de la
+            référence : ce sont deux façons de répondre à la même question — de quoi la
+            carte est-elle faite. */}
+        <HeatmapSelect
+          icon={Layers}
+          label={t('Source des données')}
+          value={mode === 'sectors' ? 'sectors' : universe}
+          onChange={(next) => {
+            if (next === 'sectors') setMode('sectors')
+            else {
+              setMode('coins')
+              setUniverse(next as UniverseId)
+            }
+          }}
+          groups={[
+            {
+              label: t('Cryptomonnaies'),
+              options: UNIVERSES.map((entry) => ({ id: entry.id, label: t(entry.label) })),
+            },
+            {
+              label: t('Autre découpage'),
+              options: [{ id: 'sectors', label: t('Par secteur') }],
+            },
+          ]}
+        />
 
-          {/* Absentes en mode secteur : la source ne publie qu'une fenêtre de variation
-              par catégorie. Un contrôle inopérant est pire qu'un contrôle absent — il
-              fait douter de la donnée plutôt que de l'interface. */}
-          {mode === 'coins' ? (
-            <ChipGroup label={t('Couleur')} value={period} onChange={setPeriod}>
-              {COLOR_MODES.map((entry) => (
-                <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
-              ))}
-            </ChipGroup>
-          ) : null}
+        {/* Absents en mode secteur : la source ne publie qu'une fenêtre de variation et
+            qu'une grandeur par catégorie. Un contrôle inopérant est pire qu'un contrôle
+            absent — il fait douter de la donnée plutôt que de l'interface. */}
+        {mode === 'coins' ? (
+          <>
+            <HeatmapSelect
+              icon={Maximize2}
+              label={t('Grandeur portée par la surface')}
+              value={sizeBy}
+              onChange={(next) => setSizeBy(next as SizeId)}
+              groups={[
+                {
+                  options: SIZE_MODES.map((entry) => ({ id: entry.id, label: t(entry.label) })),
+                },
+              ]}
+            />
 
-          {/* Absent en mode secteur : la source ne publie pas le volume d'un secteur,
-             et un sélecteur dont la seconde option ne rendrait rien vaut moins que son
-             absence — même raisonnement que pour les périodes ci-dessus. */}
-          {mode === 'coins' ? (
-            <ChipGroup label={t('Taille')} value={sizeBy} onChange={setSizeBy}>
-              {SIZE_MODES.map((entry) => (
-                <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
-              ))}
-            </ChipGroup>
-          ) : null}
+            <HeatmapSelect
+              icon={Palette}
+              label={t('Grandeur portée par la couleur')}
+              value={period}
+              onChange={(next) => setPeriod(next as PeriodId)}
+              groups={[
+                {
+                  label: t('Variation'),
+                  options: COLOR_MODES.filter((entry) => entry.id !== 'volatilite').map(
+                    (entry) => ({ id: entry.id, label: `${t('Variation')} ${t(entry.label)}` }),
+                  ),
+                },
+                {
+                  label: t('Dispersion'),
+                  options: [{ id: 'volatilite', label: t('Volatilité 7 j') }],
+                },
+              ]}
+            />
 
-          {/* L'UNIVERS et le SEUIL n'existent que par pièce : un secteur n'est ni
-              Bitcoin ni un stablecoin, et sa capitalisation ne se compare pas à celle
-              d'un actif — les seuils y découperaient une liste de dix narratifs. */}
-          {mode === 'coins' ? (
-            <ChipGroup label={t('Univers')} value={universe} onChange={setUniverse}>
-              {UNIVERSES.map((entry) => (
-                <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
-              ))}
-            </ChipGroup>
-          ) : null}
+            <HeatmapSelect
+              icon={Filter}
+              label={t('Capitalisation minimale')}
+              value={String(threshold)}
+              onChange={(next) => setThreshold(Number(next))}
+              groups={[
+                {
+                  options: THRESHOLDS.map((entry) => ({
+                    id: String(entry.id),
+                    label: entry.id === 0 ? t('Toutes tailles') : t(entry.label),
+                  })),
+                },
+              ]}
+            />
+          </>
+        ) : null}
 
-          {mode === 'coins' ? (
-            <ChipGroup label={t('Cap. min.')} value={threshold} onChange={setThreshold}>
-              {THRESHOLDS.map((entry) => (
-                <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
-              ))}
-            </ChipGroup>
-          ) : null}
-
-          <ChipGroup label={t('Tuiles')} value={count} onChange={setCount}>
-            {COUNTS.map((size) => (
-              <Chip key={size} id={size} label={String(size)} />
-            ))}
-          </ChipGroup>
-        </div>
-
-        {/* La légende accompagne désormais TOUJOURS la figure : il n'existe plus qu'une
-            coloration, celle de la variation, et elle mesure bien une grandeur. */}
-        <TreemapLegend tone={period === 'volatilite' ? 'volatility' : 'change'} />
+        <HeatmapSelect
+          icon={Grid2x2}
+          label={t('Nombre de tuiles')}
+          value={String(count)}
+          onChange={(next) => setCount(Number(next))}
+          groups={[
+            {
+              options: COUNTS.map((size) => ({ id: String(size), label: `${size} ${t('tuiles')}` })),
+            },
+          ]}
+        />
       </div>
 
       <HeatmapFrame>
         <TreemapFigure
           tiles={tiles}
           periodLabel={periodWord}
-          /* La MÊME hauteur que la carte des collections et celle des trésoreries : ces
-             trois figures sont désormais le même objet, et une hauteur qui varierait de
-             l'une à l'autre se verrait en passant de page en page. */
-          height="min(62vh, 520px)"
+          /* 600 px pour 1 360 de large au plus : le rapport de la référence. */
+          height="min(70vh, 600px)"
           valueUnit={valueUnit}
           /* La rampe d'intensité remplace l'échelle signée en mode volatilité : une
              dispersion n'a pas de sens de variation, et le vert la ferait lire comme
@@ -425,6 +489,11 @@ export function MarketHeatmap({
           tone={period === 'volatilite' ? 'volatility' : 'change'}
         />
       </HeatmapFrame>
+
+      {/* La légende passe SOUS la carte, comme chez TradingView. Elle était posée en
+          haut à droite, au bout de la rangée de commandes, où elle se lisait comme un
+          contrôle de plus. Sa place est contre la figure qu'elle explique. */}
+      <TreemapLegend tone={period === 'volatilite' ? 'volatility' : 'change'} />
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
         {/* La phrase SUIT le sélecteur de taille. Elle disait « capitalisation » en dur,
@@ -476,5 +545,58 @@ export function MarketHeatmap({
             )}
       </p>
     </div>
+  )
+}
+
+/**
+ * Un menu de la barre d'outils — le déclencheur de la référence, à l'identique.
+ *
+ * ── POURQUOI UN MENU PLUTÔT QU'UNE RANGÉE DE PASTILLES ────────────────────
+ *
+ * Les pastilles montrent toutes les options en permanence. C'est le bon choix à trois
+ * choix — la bascule Pièces/Secteurs en garde une — et le mauvais à vingt-cinq : six
+ * rangées occupaient deux lignes pleines au-dessus de la carte, et la question « que
+ * regarde-t-on » se perdait dans la liste des réponses possibles.
+ *
+ * ── LE DÉCLENCHEUR PORTE LA VALEUR, PAS LE NOM DU RÉGLAGE ─────────────────
+ *
+ * « Capitalisation » plutôt que « Taille : capitalisation ». C'est ce que fait la
+ * référence, et cela tient parce que les libellés sont écrits pour se suffire — d'où
+ * « Variation 24 h » et non « 24 h ». Le nom du réglage vit dans l'`aria-label`, où
+ * un lecteur d'écran le trouve sans que la barre s'allonge.
+ */
+function HeatmapSelect({
+  icon: Icon,
+  label,
+  value,
+  onChange,
+  groups,
+}: {
+  icon: typeof Layers
+  label: string
+  value: string
+  onChange: (next: string) => void
+  /** Un groupe sans `label` rend ses options sans en-tête. */
+  groups: { label?: string; options: { id: string; label: string }[] }[]
+}) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger size="sm" aria-label={label} className="w-max gap-1.5 font-medium">
+        <Icon className="size-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {groups.map((group, index) => (
+          <SelectGroup key={group.label ?? index}>
+            {group.label ? <SelectLabel>{group.label}</SelectLabel> : null}
+            {group.options.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
