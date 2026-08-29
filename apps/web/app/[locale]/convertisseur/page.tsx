@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ChevronDown } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 
 import {
@@ -72,7 +73,13 @@ export default async function ConverterPage() {
   const assets: MarketAsset[] = crypto.ok ? crypto.data.filter((asset) => asset.price > 0) : []
 
   return (
-    <div className="space-y-8">
+    /* ── UNE COLONNE, ET NON LA LARGEUR DE LA PAGE ────────────────────────────
+       La carte de conversion fait 448 px et se centre ; sans borne, elle flottait au
+       milieu d'une page de 1 400 pendant que le tableau de cours et la FAQ restaient
+       collés au bord gauche. Les trois blocs se lisaient comme trois pages
+       superposées. La référence tient dans une colonne étroite : le titre, la carte et
+       la FAQ y partagent le même axe. */
+    <div className="mx-auto max-w-4xl space-y-8">
       {/* ── L'EN-TÊTE SE RESSERRE ────────────────────────────────────────────
 
           Il portait un titre en `display-xl` au-dessus d'un paragraphe en `text-lg` :
@@ -84,12 +91,39 @@ export default async function ConverterPage() {
           convertisseur commence immédiatement. C'est ce que « reproduire la
           simplicité » veut dire ici : ce n'est pas la carte qui était compliquée,
           c'est ce qu'on empilait autour. */}
-      <header className="max-w-3xl space-y-2">
-        <h1 className="display-sm text-ink">Convertisseur et calculateur de cryptos</h1>
+      {/*
+        ── L'EN-TÊTE DE LA RÉFÉRENCE : UN TITRE, PUIS TROIS MENTIONS ──────────
+
+        Elle pose « Convert » en grand, puis sur une seule ligne trois arguments
+        séparés par des barres — « 0 Fees | Locked-In Prices | One-Click Trading » —
+        dont le premier est une pastille verte.
+
+        ⚠️ LES NÔTRES DISENT AUTRE CHOSE, ET C'EST OBLIGÉ. « 0 frais » est vrai chez
+        eux parce qu'ils exécutent sans commission ; c'est vrai chez nous parce qu'il
+        n'y a rien à exécuter. « Prix verrouillé » n'a aucun sens sans exécution — un
+        calcul ne verrouille rien. Les trois mentions décrivent donc ce que cette page
+        fait réellement : elle ne coûte rien, elle donne le cours du marché, et elle ne
+        demande pas de compte.
+      */}
+      <header className="max-w-3xl space-y-3">
+        <h1 className="display-sm text-ink">Convertisseur</h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ink-muted">
+          <span className="rounded-pill bg-up-soft px-2.5 py-0.5 text-xs font-semibold text-up">
+            0 frais
+          </span>
+          <span aria-hidden="true" className="text-border-subtle">
+            |
+          </span>
+          <span>Cours du marché</span>
+          <span aria-hidden="true" className="text-border-subtle">
+            |
+          </span>
+          <span>Sans compte</span>
+        </div>
         <p className="text-sm leading-relaxed text-ink-muted">
           Convertir un montant entre {assets.length} cryptomonnaies et {SUPPORTED_CURRENCIES.length}{' '}
-          devises, au dernier cours reçu. Aucun compte n’est nécessaire, et rien ne
-          s’exécute : c’est un calcul, pas une offre.
+          devises, au dernier cours reçu. Rien ne s’exécute : c’est un calcul, pas une
+          offre.
         </p>
       </header>
 
@@ -167,22 +201,141 @@ export default async function ConverterPage() {
         />
       )}
 
-      <section className="max-w-2xl space-y-2 border-t border-border-subtle pt-6">
-        <h2 className="text-sm font-semibold text-ink">Ce que cet outil ne fait pas</h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
-          ZENKUU n’exécute aucune transaction et ne détient aucun fonds. Le résultat est
-          un calcul à partir d’un cours publié — pas un prix qui vous serait proposé, ni
-          un taux auquel un intermédiaire s’engagerait. Les frais, écarts et délais
-          d’exécution d’une transaction réelle n’y figurent pas.
-        </p>
-        <p className="text-sm text-ink-muted">
-          Voir aussi les{' '}
-          <Link href="/devises" className="text-brand hover:underline">
-            taux de référence BCE
-          </Link>
-          .
-        </p>
-      </section>
+      {/* ── LES DEUX CARTES DE RENVOI DE LA RÉFÉRENCE ──────────────────────────
+          Elle place ici « Try Simple Earn » et « Try Fiat Trading », deux produits
+          maison. Nous n'en avons aucun à vendre : les deux cartes mènent donc là où va
+          naturellement quelqu'un qui vient de convertir — le cours complet de l'actif,
+          ou les taux de change officiels. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <RelatedCard
+          href="/crypto"
+          title="Voir les cours"
+          description="Les cryptomonnaies classées par capitalisation, avec leurs variations."
+        />
+        <RelatedCard
+          href="/devises"
+          title="Taux de référence BCE"
+          description="Les paires de change majeures, telles que la Banque centrale les publie."
+        />
+      </div>
+
+      <ConverterFaq />
     </div>
+  )
+}
+
+function RelatedCard({
+  href,
+  title,
+  description,
+}: {
+  href: string
+  title: string
+  description: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-card border border-border-subtle bg-surface px-4 py-3 transition-colors hover:border-brand/40 hover:bg-surface-muted"
+    >
+      <p className="text-sm font-semibold text-ink">
+        {title} <span aria-hidden="true">→</span>
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-ink-muted">{description}</p>
+    </Link>
+  )
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * FAQ — LES QUESTIONS DE LA RÉFÉRENCE, LES RÉPONSES DE CE SITE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La référence en pose cinq, numérotées : frais, avantages face au marché au comptant,
+ * restrictions, règlement des transactions, ordres à cours limité.
+ *
+ * ⚠️ QUATRE DES CINQ N'ONT PAS DE RÉPONSE ICI, et pas par paresse : elles décrivent une
+ * EXÉCUTION. « Comment les transactions sont-elles réglées » suppose un compte de
+ * financement ; « comment fonctionnent les ordres à cours limité » suppose un carnet
+ * d'ordres. Traduire leurs réponses donnerait un texte fidèle décrivant un service que
+ * ce site ne rend pas — une fausse explication, aussi trompeuse qu'un faux chiffre.
+ *
+ * Les questions posées ici sont donc celles qu'on se pose DEVANT CETTE PAGE. La
+ * première reprend la leur, parce que « y a-t-il des frais » se pose partout ; les
+ * autres répondent à ce que la page fait réellement.
+ *
+ * `<details>` natif, comme les autres FAQ du site : la réponse reste dans le HTML servi
+ * même repliée, donc lue par les moteurs sans hydratation.
+ */
+function ConverterFaq() {
+  const entries: { question: string; answer: string[] }[] = [
+    {
+      question: 'Des frais s’appliquent-ils ?',
+      answer: [
+        'Aucun. Il n’y a rien à facturer : cette page ne fait qu’un calcul à partir d’un cours publié, sans intermédiaire et sans transaction.',
+        'C’est aussi ce qui la distingue d’un prix qu’on vous proposerait : une conversion réelle, chez qui que ce soit, porte des frais, un écart entre l’achat et la vente, et un délai d’exécution. Aucun des trois ne figure ici.',
+      ],
+    },
+    {
+      question: 'D’où vient le cours utilisé ?',
+      answer: [
+        'Du cours agrégé publié par notre source de marché, relevé au plus tard quelques minutes avant l’affichage. L’horodatage exact est écrit sous la carte.',
+        'Les cryptomonnaies sont cotées en euros ; toute autre devise applique en plus un taux de la Banque centrale européenne, publié une fois par jour ouvré. Le résultat combine donc deux mesures d’instants différents, ce que la page indique dès que la devise n’est pas l’euro.',
+      ],
+    },
+    {
+      question: 'Puis-je convertir réellement depuis cette page ?',
+      answer: [
+        'Non. ZENKUU n’exécute aucune opération et ne détient aucun fonds — c’est un parti pris, pas une limite technique.',
+        'Vous ne trouverez donc nulle part sur ce site un bouton d’achat, de vente, de dépôt ou de retrait. Ce que cette page donne est un ordre de grandeur fiable, pas une offre.',
+      ],
+    },
+    {
+      question: 'Que deviennent les calculs que je garde ?',
+      answer: [
+        'Ils restent dans votre navigateur, dans son stockage local. Rien n’est envoyé à un serveur, et aucun compte n’est nécessaire pour les conserver.',
+        'Ils disparaissent si vous effacez les données du site, et ne suivent pas d’un appareil à l’autre.',
+      ],
+    },
+    {
+      question: 'Pourquoi certaines devises sont-elles grisées ?',
+      answer: [
+        'Parce que leur taux n’a pas été publié au dernier relevé. Plutôt que de les retirer — ce qui ferait chercher une devise qu’on sait exister — elles restent visibles et inactives, avec la raison écrite dans la liste.',
+        'Une devise sans taux ne peut pas donner un résultat : l’afficher quand même reviendrait à inventer un chiffre.',
+      ],
+    },
+  ]
+
+  return (
+    <section className="max-w-3xl space-y-4 border-t border-border-subtle pt-8" aria-labelledby="faq-convertisseur">
+      <h2 id="faq-convertisseur" className="display-sm text-ink">
+        Questions fréquentes
+      </h2>
+
+      <div className="space-y-2">
+        {entries.map((entry, index) => (
+          <details
+            key={entry.question}
+            className="group rounded-card border border-border-subtle bg-surface px-4 open:bg-surface-muted"
+            open={index === 0}
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+              {index + 1}. {entry.question}
+              <ChevronDown
+                aria-hidden
+                className="size-4 shrink-0 text-ink-muted transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+            <div className="space-y-2 pb-4">
+              {entry.answer.map((paragraph) => (
+                <p key={paragraph} className="text-sm leading-relaxed text-ink-muted">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
   )
 }
