@@ -254,7 +254,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
           ) : (
             groups.map((group) => (
               <div key={group.id} className="pb-1">
-                <p className="px-3 pb-1 pt-2 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+                <p className="px-3 pb-1 pt-2 text-micro font-semibold uppercase tracking-wide text-ink-muted">
                   {t(group.label)}
                 </p>
 
@@ -288,7 +288,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
 
                       <span className="flex shrink-0 items-center gap-1.5">
                         {entry.unit ? (
-                          <span className="tabular text-[0.625rem] text-ink-muted">
+                          <span className="tabular text-micro text-ink-muted">
                             {entry.unit}
                           </span>
                         ) : null}

@@ -379,7 +379,7 @@ function MenuColumns({ menu }: { menu: NavMenu }) {
                       <span className="truncate text-sm font-medium text-ink">{t(item.label)}</span>
                       <Badge
                         variant="secondary"
-                        className="ml-auto shrink-0 rounded-full px-2 py-0 text-[0.625rem] font-medium"
+                        className="ml-auto shrink-0 rounded-full px-2 py-0 text-micro font-medium"
                       >
                         {fr.nav.soonShort}
                       </Badge>

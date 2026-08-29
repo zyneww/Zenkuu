@@ -472,7 +472,11 @@ function DiscoveryRail({
                 <AssetLogo asset={asset} size={20} />
                 <span className="flex flex-col">
                   <span className="text-xs font-medium text-ink">{asset.name}</span>
-                  <span className="tabular text-[0.625rem] text-ink-muted">
+                  {/* `text-micro` (11 px) et non 10 px : c'est le plancher que
+                      `scripts/audit-responsive.mjs` fait respecter et que DESIGN.md
+                      pose comme non négociable. Ces deux cours passaient dessous
+                      depuis toujours — relevés sur les six formats. */}
+                  <span className="tabular text-micro text-ink-muted">
                     <Money value={asset.price} from={asset.currency} />
                   </span>
                 </span>
@@ -497,7 +501,11 @@ function DiscoveryRail({
               >
                 <span className="flex flex-col">
                   <span className="text-xs font-medium text-ink">{listing.name}</span>
-                  <span className="tabular text-[0.625rem] text-ink-muted">
+                  {/* `text-micro` (11 px) et non 10 px : c'est le plancher que
+                      `scripts/audit-responsive.mjs` fait respecter et que DESIGN.md
+                      pose comme non négociable. Ces deux cours passaient dessous
+                      depuis toujours — relevés sur les six formats. */}
+                  <span className="tabular text-micro text-ink-muted">
                     <Money value={listing.price} from={listing.currency} />
                   </span>
                 </span>

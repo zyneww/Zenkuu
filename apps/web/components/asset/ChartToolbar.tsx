@@ -1299,7 +1299,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
                           posé après, il aurait détaché le titre de sa propre liste. */}
                       {index > 0 ? <MenubarSeparator /> : null}
 
-                      <MenubarLabel className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
+                      <MenubarLabel className="text-micro uppercase tracking-wide text-ink-muted">
                         {t(group.label)}
                       </MenubarLabel>
 
@@ -1344,7 +1344,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
                   vectoriel, donc net à l'impression et retouchable ; PDF est ce qu'on
                   joint à une note. Choisir à la place du lecteur reviendrait à décider
                   de l'usage qu'il fera du fichier. */}
-              <MenubarLabel className="text-[0.625rem] uppercase tracking-wide text-ink-muted">
+              <MenubarLabel className="text-micro uppercase tracking-wide text-ink-muted">
                 {t('Exporter')}
               </MenubarLabel>
 
@@ -1639,7 +1639,7 @@ function ComparePanel({
           */
           className="menu-panel absolute left-0 top-full z-50 mt-1.5 w-64 rounded-card border border-border-subtle bg-overlay p-2 shadow-overlay"
         >
-          <p className="px-2 pb-1 pt-1 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+          <p className="px-2 pb-1 pt-1 text-micro font-semibold uppercase tracking-wide text-ink-muted">
             {fallback ? t('Comparables') : t('En tendance')}
           </p>
 
@@ -1767,7 +1767,7 @@ function ComparePanel({
               à 100 000 € écrase un actif à 3 € — et l'axe cesse alors de porter des
               montants. Le dire ici évite qu'on cherche ensuite pourquoi les euros ont
               disparu de l'échelle. */}
-          <p className="mt-1 border-t border-border-subtle px-2 pt-1.5 text-[0.625rem] leading-snug text-ink-muted">
+          <p className="mt-1 border-t border-border-subtle px-2 pt-1.5 text-micro leading-snug text-ink-muted">
             {used > 0
               ? t('Courbes en variation depuis le début de la période.')
               : `${COMPARE_MAX} courbes au plus.`}

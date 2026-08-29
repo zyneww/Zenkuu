@@ -53,7 +53,7 @@ export function Kbd({
        * Elle a d'abord été posée en `text-ink-muted`, et elle DISPARAISSAIT chez tout
        * appelant qui passait une taille de texte. `cn` est `tailwind-merge` : il
        * regroupe les classes par propriété CSS et ne garde que la dernière de chaque
-       * groupe. Il sait que `text-[0.625rem]` est une taille — la valeur est une
+       * groupe. Il sait que `text-micro` est une taille — la valeur est une
        * longueur — mais `text-micro` est une classe ÉCRITE À LA MAIN dans
        * `globals.css`, absente du thème Tailwind : faute de mieux, il la range parmi
        * les couleurs de texte et évince `text-ink-muted` avec elle.

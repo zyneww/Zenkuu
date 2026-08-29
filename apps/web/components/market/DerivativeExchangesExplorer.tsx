@@ -354,7 +354,7 @@ export function DerivativeExchangesExplorer({
                               souvent nuls. Les mettre en colonne propre réserverait
                               cinquante pixels à une colonne de tirets. */}
                           {row.futuresPairs ? (
-                            <span className="ml-1 text-[0.625rem] opacity-70">
+                            <span className="ml-1 text-micro opacity-70">
                               +{row.futuresPairs} éch.
                             </span>
                           ) : null}
@@ -405,7 +405,7 @@ function KindBadge({ kind }: { kind: DerivativeExchange['kind'] }) {
   if (kind === 'dex') {
     return (
       <span
-        className="rounded-control bg-up-soft px-1.5 py-0.5 text-[0.625rem] font-medium text-up"
+        className="rounded-control bg-up-soft px-1.5 py-0.5 text-micro font-medium text-up"
         title={t('Positions réglées sur chaîne par contrat autonome')}
       >{t('Décentralisée')}</span>
     )
@@ -414,7 +414,7 @@ function KindBadge({ kind }: { kind: DerivativeExchange['kind'] }) {
   if (kind === 'cex') {
     return (
       <span
-        className="rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.625rem] font-medium text-ink-muted"
+        className="rounded-control bg-surface-muted px-1.5 py-0.5 text-micro font-medium text-ink-muted"
         title={t('Fonds détenus par l’opérateur de la plateforme')}
       >{t('Dépositaire')}</span>
     )
@@ -422,7 +422,7 @@ function KindBadge({ kind }: { kind: DerivativeExchange['kind'] }) {
 
   return (
     <span
-      className="text-[0.625rem] text-ink-muted opacity-70"
+      className="text-micro text-ink-muted opacity-70"
       title={t('ZENKUU n’a pas encore classé cette place')}
     >
       non classée

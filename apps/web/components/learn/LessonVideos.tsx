@@ -156,7 +156,7 @@ function Thumbnail({ video }: { video: LessonVideo }) {
         loading="lazy"
         className="h-full w-full object-cover"
       />
-      <span className="absolute bottom-1.5 right-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[0.625rem] font-medium tabular-nums text-white">
+      <span className="absolute bottom-1.5 right-1.5 rounded bg-black/75 px-1.5 py-0.5 text-micro font-medium tabular-nums text-white">
         {formatDuration(video.durationSeconds)}
       </span>
     </>

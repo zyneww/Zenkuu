@@ -277,7 +277,7 @@ function ResultRow({
             <span className="truncate text-sm font-semibold uppercase text-ink">{symbol}</span>
 
             {rank !== undefined ? (
-              <span className="tabular shrink-0 rounded-[4px] bg-surface-muted px-1 text-[0.625rem] leading-4 text-ink-muted">
+              <span className="tabular shrink-0 rounded-[4px] bg-surface-muted px-1 text-micro leading-4 text-ink-muted">
                 {rank}
               </span>
             ) : badge ? (

@@ -212,7 +212,7 @@ export function SavedScreens({
                         className="w-40"
                       />
                     </FormControl>
-                    <FormMessage className="text-[0.625rem]" />
+                    <FormMessage className="text-micro" />
                   </FormItem>
                 )}
               />

@@ -389,7 +389,7 @@ export function ColumnPicker({
             amputé la semaine dernière se lit aujourd'hui comme un tableau incomplet,
             et l'on cherche la donnée manquante du côté de la source. */}
         {prefs.hiddenCount > 0 ? (
-          <span className="tabular rounded-pill bg-brand px-1.5 text-[0.625rem] text-on-brand">
+          <span className="tabular rounded-pill bg-brand px-1.5 text-micro text-on-brand">
             −{prefs.hiddenCount}
           </span>
         ) : null}
@@ -567,7 +567,7 @@ function ColumnDialog({
                         {column.label}
                       </label>
                       {column.locked ? (
-                        <span className="shrink-0 text-[0.625rem] text-ink-muted">
+                        <span className="shrink-0 text-micro text-ink-muted">
                           {t('toujours')}
                         </span>
                       ) : null}
@@ -607,7 +607,7 @@ function ColumnDialog({
                 >
                   <span className="truncate">{column.label}</span>
                   {column.locked ? (
-                    <span className="shrink-0 text-[0.625rem] text-ink-muted">{t('toujours')}</span>
+                    <span className="shrink-0 text-micro text-ink-muted">{t('toujours')}</span>
                   ) : (
                     <button
                       type="button"

@@ -41,25 +41,25 @@ export function SearchShortcuts({
       className="mt-1.5 hidden items-center gap-3 border-t border-border-subtle px-2 pt-2 text-[0.6875rem] text-ink-muted sm:flex"
     >
       <span className="flex items-center gap-1">
-        <Kbd className="text-[0.625rem]">Tab</Kbd>
-        <Kbd className="text-[0.625rem]">
+        <Kbd className="text-micro">Tab</Kbd>
+        <Kbd className="text-micro">
           <ArrowDown className="h-2.5 w-2.5" />
         </Kbd>
-        <Kbd className="text-[0.625rem]">
+        <Kbd className="text-micro">
           <ArrowUp className="h-2.5 w-2.5" />
         </Kbd>
         {strings.navigate}
       </span>
 
       <span className="flex items-center gap-1">
-        <Kbd className="text-[0.625rem]">Échap</Kbd>
+        <Kbd className="text-micro">Échap</Kbd>
         {strings.cancel}
       </span>
 
       {/* Rejeté à droite : c'est l'action qui CONCLUT la recherche, et la placer au
           bout de la rangée la distingue des deux qui la parcourent. */}
       <span className="ml-auto flex items-center gap-1">
-        <Kbd className="text-[0.625rem]">
+        <Kbd className="text-micro">
           <CornerDownLeft className="h-2.5 w-2.5" />
         </Kbd>
         {strings.open}

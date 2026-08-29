@@ -612,13 +612,13 @@ function ExportMenu({
           role="menu"
           className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-card border border-border-subtle bg-surface py-1 shadow-lg"
         >
-          <p className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Aperçu de la carte')}</p>
+          <p className="px-3 pb-1 pt-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">{t('Aperçu de la carte')}</p>
 
           <MenuItem icon={<Download className="h-3.5 w-3.5" />} onClick={onDownload}>{t('Télécharger l’image')}</MenuItem>
           <MenuItem icon={<Copy className="h-3.5 w-3.5" />} onClick={onCopyImage}>{t('Copier l’image')}</MenuItem>
           <MenuItem icon={<Link2 className="h-3.5 w-3.5" />} onClick={onCopyLink}>{t('Copier le lien')}</MenuItem>
 
-          <p className="border-t border-border-subtle px-3 pb-1 pt-1.5 text-[0.625rem] leading-snug text-ink-muted">
+          <p className="border-t border-border-subtle px-3 pb-1 pt-1.5 text-micro leading-snug text-ink-muted">
             {indicatorLabel}
             {year ? ` · ${year}` : ''}
           </p>
@@ -964,7 +964,7 @@ function CountryPanel({
                 l'autre : la Banque mondiale renseigne la France depuis 1960 et le
                 Soudan du Sud depuis 2011. Sans lui, une courbe courte se lirait comme
                 une histoire courte plutôt que comme une publication tardive. */}
-            <p className="tabular text-[0.625rem] text-ink-muted">
+            <p className="tabular text-micro text-ink-muted">
               {stats.published} années publiées
             </p>
           </div>
@@ -1014,14 +1014,14 @@ function CountryPanel({
             })()}
           </svg>
 
-          <div className="tabular flex justify-between text-[0.625rem] text-ink-muted">
+          <div className="tabular flex justify-between text-micro text-ink-muted">
             <span>{stats.firstYear}</span>
             <span>{stats.lastYear}</span>
           </div>
         </div>
       ) : null}
 
-      <p className="text-[0.625rem] leading-relaxed text-ink-muted">{t('Série annuelle publiée avec plusieurs mois de retard, et à des dates différentes selon les pays. Deux pays voisins sur la carte peuvent décrire deux moments distincts.')}</p>
+      <p className="text-micro leading-relaxed text-ink-muted">{t('Série annuelle publiée avec plusieurs mois de retard, et à des dates différentes selon les pays. Deux pays voisins sur la carte peuvent décrire deux moments distincts.')}</p>
     </aside>
   )
 }
@@ -1039,7 +1039,7 @@ function Measure({
 }) {
   return (
     <div>
-      <dt className="text-[0.625rem] uppercase tracking-wide text-ink-muted">{label}</dt>
+      <dt className="text-micro uppercase tracking-wide text-ink-muted">{label}</dt>
       <dd
         className={`tabular text-sm font-semibold ${
           tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : 'text-ink'

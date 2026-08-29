@@ -150,9 +150,15 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
 
           return (
             <Panel key={category.id} headingLevel="h3" rule={false} title={
+              /* `block min-h-8 leading-8` : le lien était EN LIGNE, donc haut de ses
+                 seules lettres — 17 px relevés par `audit-responsive`, contre un
+                 plancher de 32. Un `<a>` en ligne ne s'agrandit ni par la hauteur de
+                 ligne ni par un `padding` vertical ; il doit devenir un bloc. Même
+                 correctif que sur les cartes de l'accueil (`AnalysisCard`), et
+                 `truncate` reste ici parce que c'est désormais CE lien qui déborde. */
               <Link
                 href={`/categories/${category.id}`}
-                className="truncate underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand-strong hover:decoration-solid"
+                className="block min-h-8 truncate leading-8 underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand-strong hover:decoration-solid"
               >
                 {category.name}
               </Link>

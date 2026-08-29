@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
  */
 const inputGroupVariants = cva(
   cn(
-    "group/input-group relative flex w-full items-center rounded-md border border-input shadow-xs transition-[color,box-shadow] outline-none dark:bg-input/30",
+    "group/input-group relative flex w-full items-center rounded-control border border-input shadow-xs transition-[color,box-shadow] outline-none dark:bg-input/30",
     "min-w-0 has-[>textarea]:h-auto"
   ),
   {
@@ -115,7 +115,7 @@ const inputGroupButtonVariants = cva(
     variants: {
       size: {
         xs: "h-6 gap-1 rounded-[calc(var(--radius)-5px)] px-2 has-[>svg]:px-2 [&>svg:not([class*='size-'])]:size-3.5",
-        sm: "h-8 gap-1.5 rounded-md px-2.5 has-[>svg]:px-2.5",
+        sm: "h-8 gap-1.5 rounded-control px-2.5 has-[>svg]:px-2.5",
         "icon-xs":
           "size-6 rounded-[calc(var(--radius)-5px)] p-0 has-[>svg]:p-0",
         "icon-sm": "size-8 p-0 has-[>svg]:p-0",

@@ -178,7 +178,7 @@ export function AssetTreasuries({
                     ) : null}
                     <span className="min-w-0">{holder.name}</span>
                     {holder.ticker ? (
-                      <span className="shrink-0 rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+                      <span className="shrink-0 rounded-control bg-surface-muted px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
                         {holder.ticker}
                       </span>
                     ) : null}

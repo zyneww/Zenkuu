@@ -163,6 +163,41 @@ Je m'arrête et je demande si :
 - Le remplacement de `Switzer-Variable.woff2` ne dégrade aucune page existante — vérifié par
   passage sur les pages les plus denses (fiche d'actif, screener, classements).
 
+#### Ce qui a été fait, et ce qui a été trouvé en chemin
+
+- ⚠️ **LA POLICE DE KUCOIN EST PROPRIÉTAIRE.** Relevée sur leur page par
+  `getComputedStyle` : **Kufox Sans**, variable 400→800, romaine et italique. Fonte sur
+  mesure commandée pour la marque — elle ne se vend ni ne se distribue.
+- **Équivalent retenu : Figtree** (SIL OFL, variable, servie par `next/font/google`).
+  Choisie par MESURE et non à l'œil — chasse, hauteur d'x et hauteur de capitale relevées
+  au canevas à corps 100 sur onze candidates. Figtree est la seule à tomber près de la
+  cible sur les trois à la fois (chasse −1,9 %, x/cap 0,714 contre 0,718). Le tableau
+  complet vit dans `DESIGN.md` et dans l'entête de `app/[locale]/layout.tsx`.
+- **DM Mono ne change pas.** KuCoin compose ses cotations dans sa fonte proportionnelle ;
+  ce site aligne cent lignes sur onze colonnes rafraîchies toutes les trois minutes, et
+  la chasse fixe est ce qui empêche la colonne de tressauter. « La police KuCoin » désigne
+  ici la fonte d'INTERFACE.
+- ⚠️ **`DESIGN.md` NE DÉCRIVAIT PAS CE SITE.** Il portait `name: Coinbase-design-analysis`
+  et documentait un fond blanc, un bleu #0052ff et les fontes CoinbaseDisplay /
+  CoinbaseSans — une pièce d'inspiration importée en début de projet et jamais remplacée.
+  Le détecteur `impeccable` y lit l'échelle typographique : il validait donc chaque taille
+  du dépôt contre celle de Coinbase, d'où la file d'exceptions accumulée. Réécrit d'après
+  `globals.css` ; l'analyse d'origine est conservée à `docs/references/coinbase-analyse.md`.
+- **Harmonisation des rayons.** 42 occurrences de `rounded-md` (6 px, le défaut de
+  Tailwind) réparties sur 21 fichiers de `components/ui/` — les fichiers vendus par le
+  registre shadcn/ui, jamais adaptés aux jetons du projet. Menus, sélecteurs, champs,
+  onglets et palettes rendaient donc à 6 px pendant que tout le reste rendait à 8. Toutes
+  passées à `rounded-control`. Relevé au navigateur : le 6 px a **disparu** de l'accueil,
+  et les 8 px y dominent (44 occurrences) comme sur coingecko.com (37).
+- **Non retenu, et c'est délibéré** : le palier à 16 px des panneaux de l'accueil, que
+  CoinGecko n'a pas, et la hauteur de ligne de leurs tableaux (69 px contre 53 ici). Le
+  site est plus dense par choix ; aligner ces deux-là effacerait ce qui le distingue de sa
+  référence.
+- **Les défauts pré-existants de l'accueil sont corrigés** (11 cibles < 32 px, 8 textes
+  < 11 px) : deux cours de widget passent à `text-micro`, et le titre de carte devient un
+  bloc de 32 px — `truncate` devant descendre du `<h3>` au lien pour que l'ellipse
+  continue de couper.
+
 ## Après T10
 
 - Protection de `main` sur GitHub (`zyneww/Zenkuu`).

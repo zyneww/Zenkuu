@@ -465,7 +465,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
           l'abonnement a été retiré du site. L'étiquette dit donc autre chose — la
           seule chose qu'un compte change réellement.
         */}
-        <p className="mt-1.5 inline-flex items-center gap-1 rounded-pill border border-border-subtle px-1.5 py-0.5 text-[0.625rem] font-medium text-ink-muted">
+        <p className="mt-1.5 inline-flex items-center gap-1 rounded-pill border border-border-subtle px-1.5 py-0.5 text-micro font-medium text-ink-muted">
           <UserRound className="h-2.5 w-2.5" aria-hidden="true" />{t('Liste synchronisée')}</p>
       </div>
     </div>

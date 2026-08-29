@@ -365,7 +365,7 @@ export function SectorMap({
                           {tile.asset.name}
                         </span>
                       </span>
-                      <span className="tabular truncate text-[0.625rem] text-white/70">
+                      <span className="tabular truncate text-micro text-white/70">
                         <Money value={tile.value} from="EUR" compact />
                         {share > 0 ? ` (${formatShare(share * 100)})` : ''}
                       </span>

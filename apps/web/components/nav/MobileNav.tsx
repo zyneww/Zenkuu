@@ -288,7 +288,7 @@ export function MobileNav() {
                                           <span className="text-sm font-medium text-ink">
                                             {t(item.label)}
                                           </span>
-                                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-[0.625rem] font-medium">
+                                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-micro font-medium">
                                             {fr.nav.soonShort}
                                           </Badge>
                                         </span>

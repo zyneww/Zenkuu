@@ -352,7 +352,7 @@ function CurrencyList({
     <>
       {groups.map((group) => (
         <div key={group.title}>
-          <p className="px-2 pb-1 pt-2 text-[0.625rem] font-semibold uppercase tracking-wide text-ink-muted">
+          <p className="px-2 pb-1 pt-2 text-micro font-semibold uppercase tracking-wide text-ink-muted">
             {t(group.title)}
           </p>
           {group.codes.map((code) => (

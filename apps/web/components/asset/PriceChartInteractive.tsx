@@ -793,7 +793,7 @@ export function PriceChartInteractive({
           style={{ bottom: showVolume ? '26%' : '2rem' }}
         >
           <ZenkuuMark className="h-3 w-auto" />
-          <span className="text-[0.625rem] font-semibold lowercase tracking-wide">zenkuu</span>
+          <span className="text-micro font-semibold lowercase tracking-wide">zenkuu</span>
         </span>
       </div>
 

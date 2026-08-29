@@ -296,7 +296,7 @@ export async function AssetHeadline({
                  disque, qui est lui-même en `bg-surface`. Deux fonds identiques
                  feraient disparaître la découpe, et la pastille se lirait comme une
                  excroissance du disque plutôt que comme une étiquette posée dessus. */
-              <span className="tabular absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-pill border border-border-subtle bg-canvas px-1.5 py-[0.1875rem] text-[0.625rem] font-semibold leading-none text-ink-muted">
+              <span className="tabular absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-pill border border-border-subtle bg-canvas px-1.5 py-[0.1875rem] text-micro font-semibold leading-none text-ink-muted">
                 #{asset.rank}
                 {/* Le libellé complet du rang est ACCOLÉ à la pastille : un lecteur
                     d'écran annonce « #1, 1ʳᵉ capitalisation » d'un seul tenant, au

@@ -75,16 +75,34 @@ export function AnalysisCard({
       <div className="flex flex-1 flex-col gap-3 rounded-panel border border-border-subtle bg-panel p-4 transition-colors duration-200 hover:border-ink-muted/35">
         <header className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-0.5">
-            <h3 className="truncate text-base font-semibold text-ink">
+            {/*
+              ⚠️ `truncate` A QUITTÉ LE `<h3>` POUR DESCENDRE DANS SES DEUX BRANCHES,
+              et c'est ce qui rend la cible tactile possible.
+
+              Le titre était un `<a>` EN LIGNE : sa boîte vaut alors la hauteur de ses
+              lettres — 19 px relevés par `audit-responsive` sur les six formats, contre
+              un plancher de 32. Onze cibles de l'accueil étaient dans ce cas.
+
+              Un `<a>` en ligne ne se laisse pas agrandir : la hauteur de ligne ne
+              change pas sa boîte, et un `padding` vertical déborde sans pousser. Il
+              faut donc qu'il devienne un BLOC — `block min-h-8 leading-8`, le texte
+              centré dans ses 32 px.
+
+              Mais `truncate` posé sur le `<h3>` ne coupe plus rien dès que son enfant
+              est un bloc : l'ellipse s'applique à l'élément qui DÉBORDE, et c'est
+              désormais le lien. Les deux réglages se tiennent donc ensemble, et
+              déplacer l'un sans l'autre laisse un titre long traverser la carte.
+            */}
+            <h3 className="min-w-0 text-base font-semibold text-ink">
               {href ? (
                 <Link
                   href={href}
-                  className="underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors hover:decoration-ink-muted"
+                  className="block min-h-8 truncate leading-8 underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors hover:decoration-ink-muted"
                 >
                   {title}
                 </Link>
               ) : (
-                title
+                <span className="block truncate">{title}</span>
               )}
             </h3>
             {hint ? <p className="text-micro text-ink-muted">{hint}</p> : null}

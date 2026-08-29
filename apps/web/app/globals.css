@@ -2630,8 +2630,17 @@
      nous plaçait donc un cran sous la référence à l'endroit précis où elle est déjà
      la plus dense, et le faisait pour la seule raison que la place existait.
 
-     Le cran de dix n'est pas perdu pour autant : `--text-2xs` le porte, avec sa
-     graisse 600, exactement pour les pastilles où la référence l'emploie.
+     ⚠️ CETTE PHRASE ÉTAIT FAUSSE ET A ÉTÉ CORRIGÉE. Elle annonçait que « le cran de
+     dix n'est pas perdu, `--text-2xs` le porte ». Or `--text-2xs` vaut 0.6875rem,
+     c'est-à-dire ONZE pixels — le même cran que cette classe. Le dix n'existe nulle
+     part dans les jetons, et il ne doit pas exister : DESIGN.md pose onze comme
+     plancher et `scripts/audit-responsive.mjs` échoue en dessous.
+
+     Trente-huit littéraux `text-[0.625rem]` survivaient pourtant dans vingt fichiers,
+     écrits à la main plutôt que par un jeton — d'où leur survie. Ils sont tous passés
+     à `.text-micro`. Si un dixième de cran redevient nécessaire un jour, il faudra
+     l'ajouter à l'échelle de DESIGN.md d'abord ; le détecteur refuse désormais toute
+     taille qui n'y figure pas.
 
      N'impose QUE la taille — ni interligne ni graisse — pour rester un remplacement
      strict de l'ancienne valeur arbitraire.

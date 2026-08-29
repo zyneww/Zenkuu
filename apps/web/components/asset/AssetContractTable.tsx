@@ -140,7 +140,7 @@ export function AssetContractTable({ asset }: { asset: AssetDetail }) {
                       </button>
                       {/* `aria-live` : l'accusé apparaît sans que le focus bouge, donc
                           rien ne l'annoncerait à un lecteur d'écran sans cette région. */}
-                      <span aria-live="polite" className="text-[0.625rem] text-brand">
+                      <span aria-live="polite" className="text-micro text-brand">
                         {copied === chain ? t('Copiée') : ''}
                       </span>
                     </span>

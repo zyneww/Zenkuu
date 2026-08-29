@@ -69,7 +69,7 @@ export async function AssetChangeGrid({ asset }: { asset: MarketAsset }) {
             key={entry.key}
             className="flex flex-1 flex-col gap-1.5 border-b border-r border-border-subtle px-4 py-3 last:border-r-0 sm:border-0 sm:border-b-0"
           >
-            <dt className="text-[0.625rem] font-medium uppercase tracking-widest text-ink-muted">
+            <dt className="text-micro font-medium uppercase tracking-widest text-ink-muted">
               {entry.label}
             </dt>
             <dd className="text-sm">
