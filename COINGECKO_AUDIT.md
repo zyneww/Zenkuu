@@ -146,6 +146,12 @@ traduit en français, comme `/en/glossary` et `/learn`.
     emplacement différents.
   - **Sélecteur de langue et de devise** — déclencheur, dans la barre de navigation, d'un
     panneau proposant le choix de la langue, de la devise d'affichage et du mode sombre.
+    Mesuré via `[data-settings-target="currencyText"]`, le nœud texte affichant la devise
+    (« USD ») — **pas** le conteneur cliquable qui ouvre le panneau, qui ne porte aucun
+    attribut propre à cibler (déclenché par une directive Alpine `@click`, sans classe ni
+    id distinctifs). Les valeurs relevées décrivent donc la typographie et la couleur du
+    texte de devise, pas le rembourrage, le rayon, le filet ni la zone cliquable du
+    déclencheur lui-même.
   - **Méga-menu de navigation** — panneau déroulant par rubrique (Cryptos, Highlights…),
     groupé en sous-sections titrées (« Au-delà des jetons », « Populaire », « Outils »),
     chaque lien portant une icône.
@@ -191,8 +197,9 @@ traduit en français, comme `/en/glossary` et `/learn`.
   exchanges, catégories, NFT, articles), ajout au portefeuille depuis la ligne (icône
   étoile), affichage/masquage du bandeau de synthèse marché, bascule de thème clair/sombre,
   sélecteur de langue et de devise, bannière de téléchargement de l'application mobile.
-- **Interactions** : survol de ligne et de lien (changement de fond/couleur, via les
-  classes `hover:` Tailwind lues dans le HTML) ; l'en-tête de colonne actuellement trié
+- **Interactions** : les classes `hover:` Tailwind lues dans le HTML déclarent un survol
+  de ligne et de lien (changement de fond/couleur) — non observé à l'écran, faute d'outil
+  de navigation piloté ; l'en-tête de colonne actuellement trié
   porte `aria-sort="ascending"` — seul cet état initial a été observé, le basculement
   effectif au clic (vers `descending`, puis sur une autre colonne) n'a pas été éprouvé,
   faute d'outil de navigation piloté ; ouverture d'un méga-menu au survol ou au
