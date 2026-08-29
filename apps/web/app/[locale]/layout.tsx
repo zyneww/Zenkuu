@@ -9,6 +9,7 @@ import { isRtl } from '@/components/settings/languages'
 
 import { getExchangeRates } from '@zenkuu/data'
 
+import { BackToTop } from '@/components/BackToTop'
 import { ContentProvider } from '@/components/locale/ContentProvider'
 import { CurrencyProvider } from '@/components/locale/CurrencyProvider'
 import { stripFunctions } from '@/content/locales'
@@ -303,17 +304,50 @@ export default async function RootLayout({
               */}
               <NavBar accountsEnabled={ACCOUNTS_ENABLED} socialProviders={CONFIGURED_PROVIDERS} />
 
-              <main id="contenu" className="shell py-6">
+              {/*
+                `tabIndex={-1}` : une cible de lien d'évitement DOIT être focusable.
+
+                Sans lui, le lien « aller au contenu » juste au-dessus déplace le
+                défilement mais PAS le focus — la tabulation suivante repart de
+                l'en-tête, donc du menu qu'on venait de sauter. Le défaut est ancien et
+                silencieux : rien ne le signale, le lien a l'air de fonctionner.
+
+                Le même attribut sert au bouton de retour en haut, qui rend le focus
+                ici après avoir remonté la page. Voir `BackToTop`.
+
+                `-1` et non `0` : la cible ne doit pas ENTRER dans l'ordre de
+                tabulation — on ne veut pas d'un arrêt supplémentaire sur un conteneur
+                à chaque parcours de la page —, seulement pouvoir recevoir le focus
+                quand on le lui donne par programme.
+              */}
+              <main id="contenu" tabIndex={-1} className="shell py-6">
                 {children}
               </main>
 
               <Footer />
 
+              {/* Hors du `main` : il flotte au-dessus de la page entière, pied de page
+                  compris, et n'appartient donc à aucun de ses étages. */}
+              <BackToTop />
+
               {/* La pile de notifications passagères — enregistrement d'une alerte,
                   copie d'une adresse, export lancé. Une seule pour tout le site :
                   `toast()` s'appelle de n'importe où sans qu'un composant ait à
                   porter son propre conteneur. */}
-              <Toaster position="bottom-right" closeButton richColors />
+              {/*
+                ⚠️ `offset` REMONTE LA PILE AU-DESSUS DU BOUTON DE RETOUR EN HAUT.
+
+                Les deux occupent le même coin, et Sonner peint à un z-index de six
+                chiffres : une notification recouvrait le bouton exactement au moment
+                où l'on venait de faire quelque chose — c'est-à-dire au moment où l'on
+                a le plus de chances de vouloir remonter.
+
+                88 pixels = 24 (l'écart du bouton au bord) + 40 (sa hauteur) + 24
+                (l'espace entre les deux). Ce n'est pas un nombre choisi à l'œil : s'il
+                change, c'est que `bottom-6` ou `size-icon-lg` ont changé dans
+                `BackToTop`.
+              */}
+              <Toaster position="bottom-right" offset={88} closeButton richColors />
             </CurrencyProvider>
           </ContentProvider>
         </NextIntlClientProvider>

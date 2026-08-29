@@ -1,10 +1,6 @@
 'use client'
 
-import { ArrowUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-
-import { IconButton } from '@/components/ui/IconButton'
-import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Cadre à deux colonnes de la fiche : les chiffres à gauche, le contenu à droite.
@@ -168,7 +164,6 @@ export function AssetLayoutFrame({
   aside?: React.ReactNode
   children: React.ReactNode
 }) {
-  const t = usePhrase()
   /* Déstructuré ICI, et non lu par `stuck.xxx` au fil du rendu : le compilateur React
      traite tout accès de membre sur un objet qui PORTE une référence comme un accès à
      cette référence pendant le rendu, et le refuse. La déstructuration sort le booléen
@@ -227,19 +222,24 @@ export function AssetLayoutFrame({
             stuck ? 'visible opacity-100' : 'invisible opacity-0'
           }`}
         >
-          <div className="flex min-w-0 flex-1 items-center gap-2">{identity}</div>
+          {/*
+            ⚠️ LA FLÈCHE DE RETOUR EN HAUT A QUITTÉ CETTE BANDE.
 
-          {/* La flèche n'a de sens qu'une fois la page défilée — affichée en haut de
-              page, elle ne commande rien. Elle vit donc dans la bande, qui n'existe
-              qu'à ce moment-là. */}
-          <IconButton
-            size="icon-xs"
-            variant="outline"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            label={t('Remonter en haut de la page')}
-            icon={ArrowUp}
-            className="shrink-0"
-          />
+            Elle y vivait parce que le site n'en avait pas d'autre : « affichée en haut
+            de page, elle ne commande rien », donc autant la loger dans une bande qui
+            n'apparaît qu'une fois la page défilée. Le raisonnement était juste tant
+            qu'elle était seule.
+
+            `components/BackToTop.tsx` est désormais posé dans la mise en page, donc sur
+            TOUTES les pages. Les garder toutes les deux mettait deux commandes
+            identiques à l'écran en même temps — une en haut à droite, une en bas à
+            droite — ce qui a été constaté au navigateur sur cette fiche.
+
+            Elle emporte avec elle un défaut : elle passait `behavior: 'smooth'`, ce qui
+            écrase la propriété CSS `scroll-behavior` et donc la règle qui la ramène à
+            `auto` sous `prefers-reduced-motion`. Voir la note dans `BackToTop`.
+          */}
+          <div className="flex min-w-0 flex-1 items-center gap-2">{identity}</div>
         </div>
       </div>
 

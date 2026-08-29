@@ -141,6 +141,19 @@ Je m'arrête et je demande si :
   après un défilement suffisant, retour fluide au clic.
 - Respecte `prefers-reduced-motion`, atteignable au clavier, libellé accessible,
   ne recouvre aucune barre collante existante.
+- ⚠️ `scrollTo({ top: 0 })` **sans `behavior`** : une valeur explicite écrase la propriété
+  CSS `scroll-behavior`, donc la règle qui la ramène à `auto` sous `prefers-reduced-motion`
+  (`globals.css`). Omis, `behavior` vaut « suis la feuille de style ».
+- Trois corrections annexes, imposées par ce bouton :
+  · `main#contenu` reçoit `tabIndex={-1}` — le focus doit pouvoir y revenir après la
+    remontée, faute de quoi il retombe sur `body`. Le lien d'évitement du gabarit en
+    bénéficie : sa cible n'était pas focusable, il déplaçait donc le défilement mais pas
+    le focus.
+  · le `Toaster` passe à `offset={88}` — Sonner peint en bas à droite à un z-index de six
+    chiffres et recouvrait le bouton.
+  · la flèche de la barre d'identité des fiches (`AssetLayoutFrame`) est **retirée** : deux
+    commandes identiques s'affichaient simultanément. Elle portait en plus le défaut
+    `behavior: 'smooth'` décrit ci-dessus.
 
 ### T10 — Design system
 - Police identifiée et appliquée globalement ; si propriétaire, équivalent libre le plus
