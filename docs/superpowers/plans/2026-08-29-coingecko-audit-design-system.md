@@ -744,6 +744,184 @@ EOF
 
 ---
 
+### Tâche 3ter : Les états interactifs
+
+La perte du MCP de navigation a été compensée pour la **capture** et la **mesure**, pas
+pour l'**interaction**. Les étapes 4 et 5 du protocole — survol, focus, actif, et les
+durées de transition qui vont avec — ne sont plus exécutables, et la tâche 4 a dû
+consigner « non observé » sur tout ce volet.
+
+C'est un tiers du protocole demandé, et `DESIGN_SYSTEM.md` a besoin de ces valeurs : sa
+famille « mouvement » ne se remplit qu'avec des durées et des courbes relevées sur de
+vrais changements d'état.
+
+Playwright sait survoler, cliquer et donner le focus nativement. Étendre l'outil est donc
+la même manœuvre qui a déjà fait gagner la capture — et le résultat est **meilleur** qu'un
+pilotage à la main : la même commande rejoue les mêmes états sur les 68 pages, alors qu'un
+opérateur les explore différemment à chaque fois.
+
+**Fichiers :**
+- Modifier : `scripts/audit-coingecko-page.mjs`
+- Modifier : `scripts/audit-coingecko-page.test.mjs`
+
+**Interfaces :**
+- Consomme : la structure existante — `lireArguments`, `mesurerSelecteurs`,
+  `REFERENCE_MESURES`, la boucle des six passes de `main`.
+- Produit : un argument `--interactions=<liste de sélecteurs>` et une clé `interactions`
+  dans `mesures.json`. Consommé par les tâches 4 (tour de complétion), 5 et 6.
+
+- [ ] **Étape 1 : Écrire les tests qui échouent**
+
+Ce qui se teste sans navigateur, c'est la **lecture de l'argument** et le **calcul du
+delta**. Le pilotage sera éprouvé par la fumée de l'étape 5.
+
+Ajouter à `scripts/audit-coingecko-page.test.mjs` :
+
+```js
+import { deltaDEtat } from './audit-coingecko-page.mjs'
+
+describe('lireArguments — interactions', () => {
+  it('découpe la liste de sélecteurs interactifs sur les virgules', () => {
+    const a = lireArguments(['--url=/fr', '--slug=a', '--interactions=tr,a.lien'])
+    expect(a.interactions).toEqual(['tr', 'a.lien'])
+  })
+
+  it('rend une liste vide quand l’argument est absent', () => {
+    expect(lireArguments(['--url=/fr', '--slug=a']).interactions).toEqual([])
+  })
+})
+
+describe('deltaDEtat', () => {
+  /* Un état interactif ne se décrit pas par un dump complet : trois états sur dix-huit
+     sélecteurs et deux thèmes produiraient des milliers de lignes dont l'immense
+     majorité serait identique au repos. Ce qui porte l'information, c'est ce qui
+     CHANGE — et c'est cela seul que le système de dessin consomme. */
+  it('ne garde que les propriétés qui ont changé', () => {
+    const repos = { color: 'rgb(0, 0, 0)', backgroundColor: 'rgb(255, 255, 255)' }
+    const actif = { color: 'rgb(0, 0, 255)', backgroundColor: 'rgb(255, 255, 255)' }
+    expect(deltaDEtat(repos, actif)).toEqual({ color: 'rgb(0, 0, 255)' })
+  })
+
+  it('rend un objet vide quand rien ne bouge', () => {
+    const etat = { color: 'rgb(0, 0, 0)' }
+    expect(deltaDEtat(etat, { ...etat })).toEqual({})
+  })
+
+  it('signale une propriété apparue', () => {
+    expect(deltaDEtat({}, { outlineColor: 'rgb(1, 2, 3)' })).toEqual({
+      outlineColor: 'rgb(1, 2, 3)',
+    })
+  })
+
+  it('signale une propriété disparue plutôt que de la taire', () => {
+    /* Une bordure qui DISPARAÎT au survol est un fait de dessin. L'omettre
+       laisserait croire qu'elle persiste. */
+    expect(deltaDEtat({ borderTopWidth: '1px' }, {})).toEqual({ borderTopWidth: null })
+  })
+
+  it('tolère un état absent — un sélecteur sans correspondance', () => {
+    expect(deltaDEtat(null, { color: 'rgb(1, 1, 1)' })).toEqual({})
+    expect(deltaDEtat({ color: 'rgb(1, 1, 1)' }, null)).toEqual({})
+  })
+})
+```
+
+- [ ] **Étape 2 : Lancer les tests pour les voir échouer**
+
+```bash
+bunx vitest run scripts/audit-coingecko-page.test.mjs
+```
+
+Attendu : ÉCHEC — `deltaDEtat` n'est pas exporté, et `interactions` est indéfini.
+
+- [ ] **Étape 3 : Étendre le script**
+
+Exigences, par ordre d'importance :
+
+1. **`deltaDEtat(repos, etat)` exportée**, aux signatures que les tests fixent. Fonction
+   pure, sans dépendance au navigateur.
+2. **`--interactions=<liste>`** lu par `lireArguments`, découpé sur les virgules, liste
+   vide par défaut. Quand l'argument est absent, **le comportement du script ne change
+   pas d'un iota** : les tâches déjà faites doivent pouvoir rejouer leur commande à
+   l'identique.
+3. **Le sondage a lieu pendant les deux passes de la largeur de référence** (1440 px),
+   en thème clair **et** en thème sombre. Pas de chargement de page supplémentaire : la
+   page est déjà là. Les couleurs d'état diffèrent entre thèmes, d'où les deux.
+4. **Trois états par sélecteur** : repos, survol, focus. Le repos est la mesure déjà
+   relevée ; le survol par `locator.hover()` ; le focus par `locator.focus()`. Après
+   chaque changement d'état, laisser passer la transition avant de mesurer — une valeur
+   lue à mi-transition est fausse, et la durée est lisible dans la propriété
+   `transition` du repos.
+5. **Ce qui est écrit, ce sont les deltas**, pas les états complets. Ajouter à
+   `mesures.json` une clé `interactions` : pour chaque thème, pour chaque sélecteur, le
+   delta du survol et celui du focus. Le focus doit inclure les propriétés d'`outline`,
+   qui portent l'anneau de focus.
+6. **Un sélecteur qui ne peut pas être survolé ou recevoir le focus est consigné comme
+   tel**, jamais omis en silence : hors écran, masqué, non focusable. La raison est
+   écrite dans le relevé.
+7. **Aucun clic.** Le survol et le focus ne modifient pas l'état de la page ; un clic
+   peut naviguer, ouvrir une modale, ou déclencher une action. Le tri au clic reste hors
+   de portée de cette tâche et continue d'être consigné « non observé » — c'est un
+   compromis assumé, pas un oubli.
+8. **Une limite de temps globale au sondage.** Un sélecteur qui ne répond pas ne doit
+   pas bloquer une campagne de 68 pages : au-delà de la limite, consigner l'échec et
+   continuer.
+
+- [ ] **Étape 4 : Lancer les tests pour les voir passer**
+
+```bash
+bunx vitest run scripts/audit-coingecko-page.test.mjs
+```
+
+Attendu : tous au vert, les 26 précédents compris.
+
+- [ ] **Étape 5 : Épreuve de fumée**
+
+D'abord la non-régression — sans `--interactions`, rien ne doit changer :
+
+```bash
+node scripts/audit-coingecko-page.mjs --url=/fr --slug=fumee-sans --selectors="body,a,button"
+```
+
+Puis le sondage, sur des sélecteurs réellement interactifs :
+
+```bash
+node scripts/audit-coingecko-page.mjs --url=/fr --slug=fumee-avec \
+  --selectors="body,a,button" --interactions="tbody tr,thead th,a,button"
+```
+
+Vérifier dans `mesures.json` : la clé `interactions` porte les deux thèmes, chaque
+sélecteur y a un delta de survol et un de focus, et **au moins un delta n'est pas vide** —
+un site dont aucun élément ne réagirait au survol serait invraisemblable, et des deltas
+tous vides signaleraient que le sondage n'a rien mesuré.
+
+Chronométrer la seconde commande et reporter le surcoût par rapport à la première.
+
+Supprimer les deux dossiers d'épreuve ensuite.
+
+- [ ] **Étape 6 : Commit**
+
+```bash
+git add scripts/audit-coingecko-page.mjs scripts/audit-coingecko-page.test.mjs
+git commit -m "$(cat <<'EOF'
+Le relevé sonde aussi le survol et le focus
+
+Les étapes « états » et « interactions » du protocole étaient devenues
+inexécutables avec la perte du MCP de navigation, et DESIGN_SYSTEM.md a
+besoin des durées et des couleurs d'état pour sa famille « mouvement ».
+
+Playwright sonde nativement, et le fait mieux qu'un pilotage à la main
+sur 68 pages : la même commande rejoue les mêmes états partout. Seuls
+les DELTAS sont écrits — trois états sur dix-huit sélecteurs et deux
+thèmes seraient illisibles, et ce qui informe, c'est ce qui change.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
 ### Tâche 4 : Auditer l'accueil — la page qui fixe la méthode
 
 L'accueil porte la navigation, le tableau de cotations, les sparklines, les cartes de
