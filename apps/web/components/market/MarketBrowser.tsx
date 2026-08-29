@@ -560,8 +560,10 @@ export function MarketBrowser({
             aria-hidden="true"
           />
           {t('Favoris')}
+          {/* `text-micro` et non `text-[0.6875rem]` : même cran, mais nommé par le
+              design system plutôt que réécrit en littéral. */}
           {followedCount > 0 ? (
-            <span className="tabular text-[0.6875rem] opacity-70">{followedCount}</span>
+            <span className="tabular text-micro opacity-70">{followedCount}</span>
           ) : null}
         </button>
       ) : null}
