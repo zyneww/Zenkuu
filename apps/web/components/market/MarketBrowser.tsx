@@ -184,6 +184,40 @@ interface MarketBrowserProps {
    * prétendre paginer le catalogue trié serait un mensonge de compteur.
    */
   remoteTotal?: number
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LES AUTRES UNIVERS DE LA RANGÉE DU HAUT — actions, devises
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── POURQUOI ILS SONT SERVIS AVEC LA PAGE, ET NON CHERCHÉS AU CLIC ────────
+   *
+   * Le cahier des charges demande une bascule SANS saut ni flash de contenu. Un
+   * chargement au clic impose l'inverse : un état d'attente, une hauteur qui bouge
+   * quand les lignes arrivent, et un échec réseau possible sur un geste qui devrait
+   * être instantané.
+   *
+   * Les deux jeux sont petits en regard du principal — quelques dizaines de lignes
+   * sans courbes, contre deux cent cinquante cryptomonnaies avec leurs sparklines —
+   * et la page étant STATIQUE et régénérée toutes les trois minutes, ils sont payés
+   * une fois pour tous les visiteurs, pas une fois par clic.
+   *
+   * ⚠️ CHAQUE UNIVERS PORTE SA CLASSE. Elle décide des colonnes : une paire de
+   * devises n'a ni capitalisation ni volume, et lui servir la grille des
+   * cryptomonnaies alignerait des tirets sur quatre colonnes. Elle décide aussi de la
+   * base des liens — `/devises/eurusd` et non `/crypto/eurusd`.
+   */
+  otherUniverses?: Partial<
+    Record<
+      'actions' | 'devises',
+      {
+        assets: MarketAsset[]
+        assetClass: AssetClass
+        basePath: string
+        columnSet: BoardColumnSet
+      }
+    >
+  >
 }
 
 /**
@@ -206,7 +240,7 @@ interface MarketBrowserProps {
  * initial — le tableau part complet, la recherche s'y greffe après hydratation.
  */
 export function MarketBrowser({
-  assets,
+  assets: ownAssets,
   quickViews = true,
   boardTabs = false,
   searchable = false,
@@ -217,6 +251,7 @@ export function MarketBrowser({
   period,
   watchlist,
   clientPerPage,
+  otherUniverses,
   ...tableProps
 }: MarketBrowserProps) {
   const t = usePhrase()
@@ -227,6 +262,32 @@ export function MarketBrowser({
      vrais en même temps — voir `ClassTabs`. Les fondre en un seul état, ce que faisait
      la version précédente, rendait impossible « la performance de mes favoris ». */
   const [universe, setUniverse] = useState<BoardUniverse>('crypto')
+  /*
+   * ── L'UNIVERS DÉCIDE DE LA LISTE, DE LA CLASSE ET DES COLONNES ────────────
+   *
+   * `swapped` est renseigné pour « Actions » et « Devises », et vide pour les deux
+   * univers crypto — ceux-là partagent la liste que l'appelant a servie, « Favoris »
+   * n'étant qu'un FILTRE dessus et non un autre jeu de données.
+   *
+   * ⚠️ La liste est substituée AVANT tout le reste — tri, filtre, pagination — parce
+   * que ces trois opérations portent sur elle. Les brancher sur `ownAssets` en
+   * laissant seulement l'affichage changer aurait paginé les cryptomonnaies pendant
+   * qu'on regarde des devises.
+   */
+  const swapped =
+    universe === 'actions' || universe === 'devises' ? otherUniverses?.[universe] : undefined
+
+  const assets = swapped?.assets ?? ownAssets
+
+  /* Les onglets réellement proposés. Un univers non fourni n'apparaît pas : mieux
+     vaut un onglet absent qu'un onglet menant à un tableau vide. */
+  const availableUniverses = useMemo<BoardUniverse[]>(() => {
+    const list: BoardUniverse[] = ['favoris', 'crypto']
+    if (otherUniverses?.actions) list.push('actions')
+    if (otherUniverses?.devises) list.push('devises')
+    return list
+  }, [otherUniverses])
+
   const [ranges, setRanges] = useState<BoardRanges>({})
   const [query, setQuery] = useState('')
   const [rows, setRows] = useState(clientPerPage ?? 0)
@@ -417,12 +478,18 @@ export function MarketBrowser({
    *     l'annonçant comme celui du catalogue serait le mensonge le plus coûteux de
    *     cette page ;
    *   · l'absence de `remoteTotal` — les autres classes d'actifs, qui n'ont pas de
-   *     route pour aller chercher la suite.
+   *     route pour aller chercher la suite ;
+   *   · ⚠️ UN UNIVERS SUBSTITUÉ. `/api/cotations` ne sert QUE des cryptomonnaies —
+   *     voir son en-tête. Laisser le catalogue ouvert sur l'onglet « Actions »
+   *     ferait apparaître des cryptomonnaies dès la page 2 d'un tableau d'actions,
+   *     sous des colonnes d'actions. Le compteur redevient donc local dès qu'on
+   *     quitte la crypto.
    *
-   * Dans ces trois cas le tableau retrouve exactement son comportement d'avant :
+   * Dans ces quatre cas le tableau retrouve exactement son comportement d'avant :
    * il pagine ce qu'il a, et le compteur dit ce qu'il compte.
    */
-  const catalogue = remoteTotal !== undefined && !filtering && sort === null
+  const catalogue =
+    remoteTotal !== undefined && !filtering && sort === null && swapped === undefined
 
   /*
    * ── LA PAGE COURANTE EST BORNÉE AU RENDU, ET NON REMISE À ZÉRO PAR UN EFFET ──
@@ -528,7 +595,13 @@ export function MarketBrowser({
    * qui avait fait retirer les précédentes.
    */
   const leadingSlot = searchable ? (
-    <BoardSearch value={query} onChange={setQuery} />
+    <BoardSearch
+      value={query}
+      onChange={setQuery}
+      subject={
+        universe === 'actions' ? 'actions' : universe === 'devises' ? 'devises' : 'cryptomonnaies'
+      }
+    />
   ) : (
     quickViewGroup
   )
@@ -573,6 +646,7 @@ export function MarketBrowser({
             active={universe}
             onSelect={setUniverse}
             favorisAvailable={watchlist?.available === true}
+            available={availableUniverses}
           />
           <BoardTabs views={tabs} active={tab} onSelect={setTab} />
         </div>
@@ -613,9 +687,29 @@ export function MarketBrowser({
           aria-busy={remote.loading || undefined}
           className={remote.loading ? 'opacity-60 transition-opacity duration-150' : undefined}
         >
-          <MarketTable
-            assets={paged}
-            {...tableProps}
+          {/*
+            ── LA BASCULE D'UNIVERS EST ANIMÉE, ET LA CLÉ EST CE QUI L'ANIME ────
+
+            `key={universe}` force React à REMPLACER la sous-arborescence plutôt qu'à
+            la réconcilier. Sans elle, le tableau garderait ses nœuds et changerait ses
+            cellules en place : l'animation d'entrée ne se rejouerait jamais, puisque
+            rien ne serait monté.
+
+            C'est aussi ce qui remet à zéro l'état interne du tableau — colonne triée,
+            ligne survolée — qui n'a aucun sens d'un univers à l'autre : une devise n'a
+            pas de colonne « capitalisation » sur laquelle un tri crypto pourrait
+            survivre.
+          */}
+          <div key={universe} className="board-swap">
+            <MarketTable
+              assets={paged}
+              {...tableProps}
+              {...(swapped
+                ? {
+                    assetClass: swapped.assetClass,
+                    basePath: swapped.basePath,
+                  }
+                : {})}
             {...(/* Après `tableProps`, donc gagnant : la page et le nombre de lignes
                     servis sont ceux de l'état local, et non ceux que l'appelant a écrits
                     pour le premier rendu. */
@@ -643,7 +737,7 @@ export function MarketBrowser({
               cette page seulement, ce qui décalerait l'alignement d'une page à l'autre.
             */
             columnSource={assets}
-            columnSet={columnSet}
+            columnSet={swapped?.columnSet ?? columnSet}
             /*
               ── LE TRI PASSE PAR ICI, ET SEULEMENT QUAND LA LISTE EST ENTIÈRE ────
 
@@ -662,9 +756,10 @@ export function MarketBrowser({
                   setWantedPage(1)
                 } }
               : {})}
-            {...(leadingSlot ? { leadingSlot } : {})}
-            {...(trailingSlot ? { trailingSlot } : {})}
-          />
+              {...(leadingSlot ? { leadingSlot } : {})}
+              {...(trailingSlot ? { trailingSlot } : {})}
+            />
+          </div>
 
           {/* La panne d'une page distante n'est pas la panne du tableau : les lignes
               précédentes restent à l'écran, et cette ligne dit ce qui manque. */}

@@ -1,4 +1,4 @@
-import { getCryptoGlobalStats, getCryptoOverview } from '@zenkuu/data'
+import { getCryptoGlobalStats, getCryptoOverview, getRanking } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
 import { ROWS } from '@/components/home/overview-rows'
@@ -66,13 +66,63 @@ export async function CryptoBoard() {
     page annonce — pour que le pied de tableau puisse écrire « sur 19 340 » plutôt que
     de s'arrêter aux lignes reçues.
   */
-  const [overview, watchlist, globals] = await Promise.all([
+  /*
+    ── LES DEUX AUTRES UNIVERS PARTENT AVEC LA PAGE ──────────────────────────
+
+    « Actions » et « Devises » étaient des LIENS : cliquer quittait l'accueil. Ils
+    sont désormais des onglets, et leur contenu doit être là quand on clique — le
+    cahier des charges demande une bascule sans saut ni flash, ce qu'un chargement au
+    clic ne peut pas donner.
+
+    Le coût est modeste : quelques dizaines de lignes sans courbes, contre deux cent
+    cinquante cryptomonnaies avec leurs sparklines. Et la page étant statique, il est
+    payé une fois toutes les trois minutes pour tous les visiteurs, pas une fois par
+    clic.
+
+    ⚠️ Les LISTES DE SUIVI ne sont demandées que pour la crypto. L'onglet « Favoris »
+    filtre la liste crypto — c'est ce que fait `onlyFollowed` dans `MarketBrowser` —
+    et charger trois listes pour n'en filtrer qu'une coûterait deux requêtes de base
+    de données par visite pour rien.
+  */
+  const [overview, watchlist, globals, stocks, forex] = await Promise.all([
     getCryptoOverview('eur', ROWS),
     getWatchlistIds('crypto'),
     getCryptoGlobalStats('eur'),
+    getRanking({ assetClass: 'stock', page: 1, perPage: 50, currency: 'eur' }),
+    getRanking({ assetClass: 'forex', page: 1, perPage: 50, currency: 'eur' }),
   ])
 
   const assets = overview.ok ? overview.data.topByMarketCap : []
+
+  /*
+    Un univers qui n'a pas répondu n'est PAS proposé : `ClassTabs` ne rend que les
+    onglets qu'on lui déclare, et un onglet menant à un tableau vide se lit comme une
+    panne du site plutôt que comme une panne de source.
+  */
+  const otherUniverses = {
+    ...(stocks.ok && stocks.data.length > 0
+      ? {
+          actions: {
+            assets: stocks.data,
+            assetClass: 'stock' as const,
+            basePath: '/actions',
+            /* `catalogue` et non `apercu` : une action n'a ni offre en circulation ni
+               courbe de sept jours, et la grille crypto lui alignerait des tirets. */
+            columnSet: 'catalogue' as const,
+          },
+        }
+      : {}),
+    ...(forex.ok && forex.data.length > 0
+      ? {
+          devises: {
+            assets: forex.data,
+            assetClass: 'forex' as const,
+            basePath: '/devises',
+            columnSet: 'catalogue' as const,
+          },
+        }
+      : {}),
+  }
 
   /*
     ── LE TOTAL VIENT DE LA SOURCE, ET N'EST PAS DEVINÉ ──────────────────────
@@ -131,6 +181,7 @@ export async function CryptoBoard() {
           boardTabs
           searchable
           currencyPicker
+          otherUniverses={otherUniverses}
           {...(catalogue !== undefined ? { remoteTotal: catalogue } : {})}
         />
       ) : (

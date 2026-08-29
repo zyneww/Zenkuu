@@ -1,6 +1,7 @@
 'use client'
 
 import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -180,90 +181,139 @@ export const BOARD_LINKS: { href: string; label: string }[] = [
  * Un bouton qui navigue est un lien déguisé : il perd le clic milieu, le survol qui
  * annonce la destination, et l'indexation. C'est le même argument que `BOARD_LINKS`.
  */
-export const BOARD_UNIVERSE_LINKS: { href: string; label: string }[] = [
-  { href: '/actions', label: 'Actions' },
-  { href: '/devises', label: 'Devises' },
-]
-
-/** Univers que la rangée du haut sait filtrer sans quitter la page. */
-export type BoardUniverse = 'crypto' | 'favoris'
+/**
+ * Univers que la rangée du haut sait afficher SANS QUITTER LA PAGE.
+ *
+ * ⚠️ « Actions » et « Devises » y sont entrés. C'étaient des LIENS : cliquer quittait
+ * l'accueil pour `/actions` ou `/devises`, ce qui répondait à la question mais
+ * abandonnait le contexte — la bande de chiffres, les cartes, le fil d'actualité. Une
+ * rangée d'onglets dont la moitié navigue n'est pas une rangée d'onglets.
+ *
+ * Les deux jeux sont désormais chargés avec la page et le tableau bascule dessus. Ils
+ * restent facultatifs côté composant : les pages qui n'en passent pas gardent les deux
+ * seuls onglets crypto, et l'onglet manquant ne s'affiche pas plutôt que de mener à un
+ * tableau vide.
+ */
+export type BoardUniverse = 'crypto' | 'favoris' | 'actions' | 'devises'
 
 export function ClassTabs({
   active,
   onSelect,
   favorisAvailable,
-  links = BOARD_UNIVERSE_LINKS,
+  available,
 }: {
   active: BoardUniverse
   onSelect: (next: BoardUniverse) => void
   favorisAvailable: boolean
-  links?: { href: string; label: string }[]
+  /** Univers réellement disponibles. Un absent n'est pas rendu. */
+  available: BoardUniverse[]
 }) {
   const t = usePhrase()
+  const listRef = useRef<HTMLDivElement>(null)
+  const tabRefs = useRef(new Map<string, HTMLButtonElement>())
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null)
+
+  const LABELS: Record<BoardUniverse, { label: string; hint: string }> = {
+    favoris: { label: 'Favoris', hint: 'Seuls les actifs de votre liste de suivi' },
+    crypto: { label: 'Crypto', hint: 'L’ensemble des cryptomonnaies du classement' },
+    actions: { label: 'Actions', hint: 'Les actions cotées suivies par le site' },
+    devises: { label: 'Devises', hint: 'Les principales paires de change' },
+  }
+
+  const tabs = available.filter((id) => id !== 'favoris' || favorisAvailable)
 
   /*
-    ── LA GÉOMÉTRIE EST RELEVÉE, PAS DEVINÉE ────────────────────────────────
+   * ── LE TRAIT GLISSE, IL NE CLIGNOTE PAS ───────────────────────────────────
+   *
+   * Il était un `after:` posé sur le bouton actif : chaque onglet avait le sien, et
+   * ils s'allumaient l'un après l'autre. Des traits dont un seul est visible ne
+   * peuvent pas se déplacer. Un trait UNIQUE pour toute la rangée parcourt la
+   * distance, et c'est ce mouvement qui dit « d'ici vers là » — même mécanique que
+   * `LinkTabs`, dont l'en-tête porte le raisonnement complet.
+   *
+   * `offsetLeft` est compté depuis le conteneur, référent de position du trait : les
+   * deux lisent les mêmes coordonnées. `getBoundingClientRect` donnerait des
+   * coordonnées d'ÉCRAN, fausses dès que la rangée a défilé horizontalement.
+   *
+   * La comparaison avant `setIndicator` n'est pas une optimisation mais une
+   * NÉCESSITÉ : l'objet est neuf à chaque mesure, et le poser tel quel relancerait
+   * l'effet en boucle par l'observateur qui vient de le déclencher.
+   */
+  useEffect(() => {
+    const list = listRef.current
+    if (!list) return
 
-    Mesuré au navigateur sur la référence : intitulés de 20 px en graisse 500, actif
-    en encre pleine, inactif en encre atténuée, trait de 2 px sous l'actif seul.
+    function measure() {
+      const node = tabRefs.current.get(active)
+      if (!node) return
+      const left = node.offsetLeft
+      const width = node.offsetWidth
+      setIndicator((previous) =>
+        previous && previous.left === left && previous.width === width ? previous : { left, width },
+      )
+    }
 
-    LES COULEURS RESTENT CELLES DU SITE, comme pour `BoardTabs` : la référence code
-    son gris en dur (#87909F) et son actif en quasi-noir (#0D0E0F). Repris tels quels,
-    les deux deviendraient illisibles en thème sombre, où l'encre et le fond
-    s'inversent. `text-ink` et `text-ink-muted` portent exactement la même hiérarchie
-    dans les deux thèmes.
-
-    ⚠️ Le trait de l'actif est en `bg-ink` et non en `bg-brand`, contrairement à la
-    rangée du dessous. Ce n'est pas une incohérence : deux rangées d'onglets empilées
-    doivent se distinguer, sans quoi le lecteur ne voit qu'une grille de huit boutons.
-    La référence fait le même partage — trait sombre en haut, simple graisse en bas.
-  */
-  const style = (selected: boolean) =>
-    `relative whitespace-nowrap px-1 pb-2 pt-1 text-xl transition-colors duration-150 ${
-      selected
-        ? 'font-medium text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-ink'
-        : 'font-medium text-ink-muted hover:text-ink'
-    }`
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(list)
+    for (const node of tabRefs.current.values()) observer.observe(node)
+    return () => observer.disconnect()
+  }, [active, tabs.length])
 
   return (
     <div
+      ref={listRef}
       role="tablist"
       aria-label={t('Univers du tableau')}
-      className="scrollbar-none flex items-center gap-6 overflow-x-auto"
+      /*
+        ── LA GÉOMÉTRIE EST RELEVÉE, PAS DEVINÉE ────────────────────────────
+
+        Mesuré au navigateur sur la référence : intitulés de 20 px en graisse 500,
+        actif en encre pleine, inactif en encre atténuée, trait de 2 px.
+
+        LES COULEURS RESTENT CELLES DU SITE : la référence code son gris en dur
+        (#87909F) et son actif en quasi-noir (#0D0E0F). Repris tels quels, les deux
+        deviendraient illisibles en thème sombre. `text-ink` et `text-ink-muted`
+        portent la même hiérarchie dans les deux.
+      */
+      className="scrollbar-none relative flex items-center gap-6 overflow-x-auto"
     >
-      {favorisAvailable ? (
-        <button
-          type="button"
-          role="tab"
-          aria-selected={active === 'favoris'}
-          title={t('Seuls les actifs de votre liste de suivi')}
-          onClick={() => onSelect('favoris')}
-          className={style(active === 'favoris')}
-        >
-          {t('Favoris')}
-        </button>
+      {tabs.map((id) => {
+        const selected = id === active
+        return (
+          <button
+            key={id}
+            ref={(node) => {
+              if (node) tabRefs.current.set(id, node)
+              else tabRefs.current.delete(id)
+            }}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            title={t(LABELS[id].hint)}
+            onClick={() => onSelect(id)}
+            className={`whitespace-nowrap px-1 pb-2 pt-1 text-xl font-medium transition-colors duration-150 ${
+              selected ? 'text-ink' : 'text-ink-muted hover:text-ink'
+            }`}
+          >
+            {t(LABELS[id].label)}
+          </button>
+        )
+      })}
+
+      {/* ⚠️ EN `bg-ink` ET NON `bg-brand`, contrairement à la rangée du dessous. Ce
+          n'est pas une incohérence : deux rangées d'onglets empilées doivent se
+          distinguer, sans quoi le lecteur ne voit qu'une grille de boutons. La
+          référence fait le même partage — trait sombre en haut, simple graisse en bas.
+
+          Décoratif : `aria-selected` dit déjà l'onglet actif au lecteur d'écran. */}
+      {indicator !== null ? (
+        <span
+          aria-hidden="true"
+          className="tab-indicator bg-ink!"
+          style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
+        />
       ) : null}
-
-      <button
-        type="button"
-        role="tab"
-        aria-selected={active === 'crypto'}
-        title={t('L’ensemble des cryptomonnaies du classement')}
-        onClick={() => onSelect('crypto')}
-        className={style(active === 'crypto')}
-      >
-        {t('Crypto')}
-      </button>
-
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className="whitespace-nowrap px-1 pb-2 pt-1 text-xl font-medium text-ink-muted transition-colors duration-150 hover:text-ink"
-        >
-          {t(link.label)}
-        </Link>
-      ))}
     </div>
   )
 }
@@ -350,9 +400,18 @@ export function BoardTabs({
 export function BoardSearch({
   value,
   onChange,
+  /**
+   * Ce que le champ filtre, au singulier de la classe affichée.
+   *
+   * ⚠️ Il annonçait « cryptomonnaies » en dur. C'était vrai tant que la rangée du haut
+   * ne portait que des cryptos ; depuis que « Actions » et « Devises » y sont de vrais
+   * onglets, le champ décrivait une autre liste que celle sous ses yeux.
+   */
+  subject = 'cryptomonnaies',
 }: {
   value: string
   onChange: (next: string) => void
+  subject?: string
 }) {
   const t = usePhrase()
 
@@ -366,8 +425,8 @@ export function BoardSearch({
         type="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={t('Filtrer les cryptomonnaies…')}
-        aria-label={t('Filtrer les cryptomonnaies affichées')}
+        placeholder={`${t('Filtrer les')} ${t(subject)}…`}
+        aria-label={`${t('Filtrer les')} ${t(subject)} ${t('affichées')}`}
         className="h-9 w-full rounded-control border border-border-subtle bg-surface pl-9 pr-9 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-ring/50 [&::-webkit-search-cancel-button]:hidden"
       />
       {value ? (

@@ -1580,6 +1580,54 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════
+     BASCULE D'UNIVERS DU TABLEAU D'ACCUEIL — l'entrée du contenu remplacé
+     ═══════════════════════════════════════════════════════════════════════════
+
+     Le cahier des charges demande une transition « sans saut brutal ni flash de
+     contenu ». Ce qui produit le flash n'est pas l'absence d'animation : c'est le
+     remplacement instantané d'un bloc par un autre de hauteur différente. La
+     translation est donc VERTICALE et courte — six pixels — et l'opacité fait le
+     reste : le nouveau tableau paraît glisser en place plutôt qu'apparaître.
+
+     ⚠️ PAS DE TRANSITION DE HAUTEUR. Elle semblerait plus douce et serait pire : les
+     univers n'ont pas le même nombre de lignes, et animer la hauteur ferait défiler
+     tout ce qui suit le tableau pendant l'animation — le pied de page monterait puis
+     redescendrait à chaque clic d'onglet.
+
+     `prefers-reduced-motion` supprime le mouvement mais garde le fondu : la bascule
+     doit rester perceptible, c'est le déplacement qui gêne.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  .board-swap {
+    animation: board-swap-in var(--duration-move) var(--ease-standard) both;
+  }
+
+  @keyframes board-swap-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .board-swap {
+      animation-name: board-swap-fade;
+    }
+
+    @keyframes board-swap-fade {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
      LA FICHE D'ACTIF : LE CONTENU REPREND LA LARGEUR QUAND LE RAIL S'ARRÊTE
      ═══════════════════════════════════════════════════════════════════════════
 
