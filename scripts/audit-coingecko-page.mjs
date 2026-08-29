@@ -47,7 +47,7 @@
  */
 
 import { chromium } from 'playwright'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -243,6 +243,24 @@ export function themeDepuisSignaux({ classesBody, fondBody }) {
   return signalDeFond(fondBody)
 }
 
+/**
+ * Le contrôle de vérité, celui qui ne dépend d'aucune convention de nommage ni
+ * d'aucun seuil calibré : deux captures OCTET POUR OCTET identiques ne peuvent pas
+ * survenir par hasard sur un site qui rafraîchit ses cours en continu, quel que
+ * soit le gabarit. `themeDepuisSignaux` échoue TÔT, avant de dépenser six passes ;
+ * celui-ci échoue TARD mais sûrement, y compris sur les pages où aucun signal de
+ * classe ou de fond n'existe (constaté sur `/fr/coins/bitcoin`, qui ne pose aucun
+ * marqueur détectable par les deux). Les deux se complètent, l'un ne remplace pas
+ * l'autre.
+ *
+ * Égalité STRICTE, pas une ressemblance seuillée : deux pixels qui bougent d'une
+ * capture à l'autre sur une page vivante ne prouvent rien, mais deux fichiers
+ * rigoureusement identiques prouvent que rien n'a changé — y compris le thème.
+ */
+export function capturesIdentiques(a, b) {
+  return Buffer.compare(a, b) === 0
+}
+
 /** Contrôle l'état RÉEL du thème après chargement — pas ce qu'on a demandé, ce que
  *  la page a effectivement rendu. */
 async function themeReel(page, base) {
@@ -329,6 +347,23 @@ async function main() {
     }
 
     await context.close()
+  }
+
+  /* Le contrôle par octets, après coup : il ne dépend d'aucun signal intermédiaire,
+     seulement des fichiers réellement écrits. Comparé pour chaque largeur, une
+     fois les deux captures du couple sur disque. */
+  for (const largeur of LARGEURS) {
+    const clair = chemins.find((c) => c.largeur === largeur && c.theme === 'clair').fichier
+    const sombre = chemins.find((c) => c.largeur === largeur && c.theme === 'sombre').fichier
+    const [bufClair, bufSombre] = await Promise.all([
+      readFile(path.join(process.cwd(), clair)),
+      readFile(path.join(process.cwd(), sombre)),
+    ])
+    if (capturesIdentiques(bufClair, bufSombre)) {
+      throw new Error(
+        `Captures clair et sombre identiques à ${largeur}px sur ${url} (${slug}) : le thème n'a pas basculé.`,
+      )
+    }
   }
 
   if (selectors.length > 0) {

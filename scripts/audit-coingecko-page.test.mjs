@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { cheminsDeCapture, lireArguments, mecanismeTheme, signalDeFond, themeDepuisSignaux } from './audit-coingecko-page.mjs'
+import {
+  capturesIdentiques,
+  cheminsDeCapture,
+  lireArguments,
+  mecanismeTheme,
+  signalDeFond,
+  themeDepuisSignaux,
+} from './audit-coingecko-page.mjs'
 
 describe('lireArguments', () => {
   it('lit url et slug', () => {
@@ -135,5 +142,21 @@ describe('signalDeFond', () => {
 
   it('rend null pour une valeur illisible plutôt que de lever', () => {
     expect(signalDeFond('transparent')).toBeNull()
+  })
+})
+
+describe('capturesIdentiques', () => {
+  it('rend vrai pour deux tampons d’octets identiques', () => {
+    expect(capturesIdentiques(Buffer.from('même contenu'), Buffer.from('même contenu'))).toBe(true)
+  })
+
+  it('rend faux dès qu’un seul octet diffère', () => {
+    expect(capturesIdentiques(Buffer.from('clair'), Buffer.from('sombre'))).toBe(false)
+  })
+
+  it('rend faux pour deux tampons de même longueur mais de contenu différent', () => {
+    /* Deux images de même poids peuvent différer en contenu : la comparaison porte
+       sur les octets, jamais sur la seule longueur. */
+    expect(capturesIdentiques(Buffer.from([1, 2, 3]), Buffer.from([1, 2, 4]))).toBe(false)
   })
 })
