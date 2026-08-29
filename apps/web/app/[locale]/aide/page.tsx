@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation'
 import { HelpCategoryGrid } from '@/components/help/HelpCategoryGrid'
 import { HelpSearch } from '@/components/help/HelpSearch'
 import { HELP_ARTICLES, HELP_STARTING_POINTS } from '@/content/aide'
+import { RELEASES } from '@/content/nouveautes'
 import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -116,7 +117,43 @@ export default async function AidePage() {
         </div>
       </section>
 
-      {/* ══ 4. AILLEURS SUR LE SITE ═════════════════════════════════════════
+      {/* ══ 4. ANNONCES ═════════════════════════════════════════════════════
+          La référence pose ici une section « Announcements » — listings, maintenances,
+          promotions.
+
+          ⚠️ ZENKUU N'A RIEN DE TOUT CELA À ANNONCER : pas de cotation à ouvrir, pas de
+          maintenance de plateforme, pas d'offre. La seule chose qu'on puisse
+          honnêtement mettre sous ce titre est le journal des LIVRAISONS — ce qui a
+          changé sur le site. Les entrées viennent de la même table que la page
+          Nouveautés, et non d'une copie qui divergerait à la première mise à jour. */}
+      <section aria-labelledby="annonces">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id="annonces" className="display-sm text-ink">
+            {t('Annonces')}
+          </h2>
+          <Link href="/nouveautes" className="text-sm text-brand hover:underline">
+            {t('Tout le journal')}
+          </Link>
+        </div>
+
+        <ul className="mt-6 divide-y divide-border-subtle border-y border-border-subtle">
+          {RELEASES.slice(0, 3).map((release, index) => (
+            <li key={index}>
+              <Link
+                href="/nouveautes"
+                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 transition-colors duration-150 hover:text-brand-strong"
+              >
+                <span className="text-sm font-medium text-ink">{t(release.title)}</span>
+                <time dateTime={release.date} className="shrink-0 text-xs text-ink-muted">
+                  {t(release.label)}
+                </time>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ══ 5. AILLEURS SUR LE SITE ═════════════════════════════════════════
           La « Community » du modèle, et les quatre destinations existent réellement.
           Aucune n'est un lien mort ni une page à venir. */}
       <section aria-labelledby="ailleurs">
@@ -163,6 +200,48 @@ export default async function AidePage() {
             )
           })}
         </ul>
+      </section>
+
+      {/* ══ 6. UN PROBLÈME PERSISTE ? ═══════════════════════════════════════
+          Le bloc « Still have problems? » de la référence, qui ouvre chez elle un
+          formulaire de ticket et un chat d'assistance.
+
+          ⚠️ IL N'Y A PAS DE GUICHET DERRIÈRE, et le bloc le dit plutôt que de le
+          laisser découvrir après un clic. ZENKUU est un site de consultation sans
+          compte obligatoire : personne n'attend de ticket. Ce qu'on peut offrir est
+          réel — la méthode qui explique d'où viennent les chiffres, et un compte
+          social ouvert où l'on répond.
+
+          Annoncer un support inexistant serait la promesse la plus coûteuse de cette
+          page : elle ne se découvre qu'au moment où quelqu'un a réellement un
+          problème. */}
+      <section className="bleed bg-surface-muted" aria-labelledby="probleme-persiste">
+        <div className="shell flex flex-col items-center gap-4 py-12 text-center">
+          <h2 id="probleme-persiste" className="display-sm text-ink">
+            {t('Un problème persiste ?')}
+          </h2>
+          <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
+            {t(
+              'ZENKUU n’a pas de service d’assistance : c’est un site de consultation, sans compte obligatoire ni transaction. Si un chiffre vous semble faux, la page « À propos » explique d’où il vient et comment il est rafraîchi — c’est presque toujours là que se trouve la réponse. Sinon, le compte Instagram est ouvert.',
+            )}
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/a-propos"
+              className="inline-flex min-h-9 items-center rounded-pill bg-brand px-4 text-sm font-semibold text-on-brand transition-opacity hover:opacity-90"
+            >
+              {t('Comprendre nos données')}
+            </Link>
+            <a
+              href="https://www.instagram.com/getzenkuu/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-9 items-center rounded-pill border border-border-subtle px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface"
+            >
+              {t('Nous écrire sur Instagram')}
+            </a>
+          </div>
+        </div>
       </section>
     </div>
   )

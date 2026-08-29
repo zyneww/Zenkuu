@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { RELEASES } from '@/content/nouveautes'
 import { getContent, getSeo } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
 
@@ -26,60 +27,10 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Journal des nouveautés.
  *
- * Les entrées décrivent des livraisons RÉELLES, datées d'après l'historique du dépôt.
- * Un changelog inventé se repère immédiatement — et sur un site dont l'argument
- * principal est de ne rien inventer, ce serait la contradiction la plus visible
- * possible (§5).
+ * ⚠️ LA TABLE A DÉMÉNAGÉ dans `content/nouveautes.ts` : le centre d'aide en a besoin
+ * lui aussi, pour la section « Annonces » de sa référence. La recopier là-bas aurait
+ * garanti que les deux versions divergent à la première livraison.
  */
-
-interface Release {
-  date: string
-  /** Format lisible affiché — la date ISO sert à l'attribut `dateTime`. */
-  label: string
-  title: string
-  items: string[]
-}
-
-const RELEASES: Release[] = [
-  {
-    date: '2026-08-09',
-    label: '9 août 2026',
-    title: 'Graphiques enrichis, comptes et centre d’aide',
-    items: [
-      'Graphiques : ajout des vues chandeliers, barres, ligne et écart, en complément de l’aire. Les vues en bougies n’apparaissent que si la source publie réellement de l’OHLC.',
-      'Options de graphique : volume échangé, moyenne mobile adaptée à la fenêtre, et lignes de plus haut, moyenne et plus bas.',
-      'Le volume est extrait de la réponse d’historique déjà récupérée : il n’occasionne aucun appel supplémentaire aux sources.',
-      'Comptes utilisateurs via Clerk, avec pages de connexion et d’inscription. En l’absence de configuration, le site fonctionne normalement et l’annonce explicitement.',
-      'Centre d’aide : douze articles répartis en quatre catégories, avec recherche locale et une page par article.',
-      'Section Apprendre : neuf fiches classées par thème et par niveau.',
-      'Nouvelles pages « Pourquoi ZENKUU », « Bien démarrer » et « API & développeurs ».',
-    ],
-  },
-  {
-    date: '2026-08-09',
-    label: '9 août 2026',
-    title: 'Navigation, recherche et devises',
-    items: [
-      'Recherche universelle couvrant toutes les classes d’actifs depuis l’en-tête.',
-      'En-tête centré avec quatre menus déroulants accessibles au clavier.',
-      'Sélecteur de langue et de devise ; la devise choisie s’applique à l’ensemble du site.',
-      'Graphiques interactifs sur les fiches d’actif, avec sélecteur de période.',
-      'Pied de page complet, avec mentions de sources et rappel du cadre en lecture seule.',
-    ],
-  },
-  {
-    date: '2026-08-09',
-    label: '9 août 2026',
-    title: 'Socle du projet',
-    items: [
-      'Monorepo Turborepo et Bun, TypeScript strict.',
-      'Couche d’adaptateurs de données à interface commune : CoinGecko, Frankfurter (BCE), Yahoo Finance, flux RSS d’actualités et Alternative.me.',
-      'Cache à durées étagées, déduplication des appels concurrents et limitation de débit à fenêtre glissante.',
-      'Design system clair crème/orange, thème sombre, bascule sans clignotement au chargement.',
-      'Six classements et six fiches d’actif, catégories, actualités et indice de sentiment.',
-    ],
-  },
-]
 
 export default async function NouveautesPage() {
   const t = await getPhrase()
