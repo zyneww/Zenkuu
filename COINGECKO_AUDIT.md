@@ -104,11 +104,17 @@ pages séparées.
 - [ ] Application mobile — `/fr/mobile`
 - [ ] Tarifs Premium — `/fr/premium/pricing`
 
-**Watchlist — sans route publique vérifiable.** `/fr/watchlist`, `/en/watchlist`,
-`/watchlist`, `/fr/watchlists` et `/fr/my-watchlist` répondent tous 404 (constaté par
-`curl -I` et `curl -L`, backend CoinGecko réel — en-tête `x-runtime` présent, pas un
-artefact de CDN). Le mot « watchlist » n'apparaît nulle part dans le HTML rendu de
-l'accueil, de la page coin Bitcoin ou de `/fr/portfolio`. Le bouton étoile de la page coin
+**Watchlist — sans route publique vérifiable.** Constaté par `curl -L` (GET, suivi des
+redirections), URL par URL :
+- `/fr/watchlist` → 404 direct.
+- `/en/watchlist` → 404 direct.
+- `/fr/my-watchlist` → 404 direct.
+- `/watchlist` → 301 vers `/en/watchlist`, qui rend ensuite 404.
+- `/fr/watchlists` (pluriel) → 301 vers `/fr/highlights`, qui rend 200 — cette URL ne
+  renvoie jamais 404, elle mène simplement ailleurs, ce qui explique pourquoi le pluriel
+  ne mène nulle part non plus : redirigé vers une page déjà listée sous « Highlights ».
+Le mot « watchlist » n'apparaît nulle part dans le HTML rendu de l'accueil, de la page
+coin Bitcoin ou de `/fr/portfolio`. Le bouton étoile de la page coin
 (`data-controller="coin-favorites"`, action `handleCoinFavourites`) est la fonction
 équivalente aujourd'hui, et elle est repliée dans le Portefeuille (nav : « Mes Monnaies »
 → `/fr/portfolio`) plutôt que dans une page dédiée. Auditée comme composant de l'entrée
