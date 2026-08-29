@@ -1628,6 +1628,55 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════
+     LE CIEL DES PAGES D'AUTHENTIFICATION
+     ═══════════════════════════════════════════════════════════════════════════
+
+     Cent quatre-vingts points qui respirent, sur le panneau sombre de `/connexion`
+     et `/inscription`. Voir `components/account/AuthAside.tsx` pour la géométrie ;
+     ici, seulement le mouvement.
+
+     ── POURQUOI L'OPACITÉ ET RIEN D'AUTRE ─────────────────────────────────────
+
+     Une étoile qui scintille change de LUMINOSITÉ, pas de taille ni de position.
+     Animer `r` ou une translation ferait travailler la mise en page du SVG à chaque
+     image, pour cent quatre-vingts éléments ; `opacity` est composée par le GPU et
+     ne déclenche ni calcul de géométrie ni repeinture.
+
+     ⚠️ LA VALEUR HAUTE DE L'ANIMATION EST 1, PAS L'OPACITÉ DE L'ÉTOILE. Chaque
+     cercle porte déjà la sienne dans son attribut `opacity`, entre 0,35 et 0,65
+     selon sa taille : l'animation la MULTIPLIE, puisqu'une propriété d'animation
+     l'emporte sur l'attribut de présentation. Les grosses étoiles pulsent donc plus
+     fort que les petites, ce qui est le comportement voulu — et ce qui se perdrait
+     si l'on écrivait des valeurs absolues ici.
+
+     La durée est longue à dessein. Sous deux ou trois secondes, un ciel de cette
+     densité clignote au lieu de respirer, et le regard part vers le panneau
+     décoratif au lieu d'aller au champ de saisie. Les délais sont répartis dans le
+     composant pour que les étoiles ne battent pas à l'unisson.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  .auth-star {
+    animation: auth-star-twinkle 6s var(--ease-standard) infinite;
+  }
+
+  @keyframes auth-star-twinkle {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Le ciel RESTE, seule la pulsation s'arrête : les étoiles sont le décor de la
+     page, pas son animation. Les retirer laisserait un aplat noir. */
+  @media (prefers-reduced-motion: reduce) {
+    .auth-star {
+      animation: none;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
      LA FICHE D'ACTIF : LE CONTENU REPREND LA LARGEUR QUAND LE RAIL S'ARRÊTE
      ═══════════════════════════════════════════════════════════════════════════
 

@@ -115,12 +115,25 @@ Je m'arrête et je demande si :
   lien d'inscription.
 - L'onglet « Email/Téléphone » réutilise `LoginForm.tsx` (`requestLoginCode` /
   `verifyLoginCode`) : adresse → code à usage unique. C'est le seul parcours complet.
-- Google et X sont actifs quand configurés. **Sous-compte, QR Code, Passkey, Telegram et
-  Apple sont rendus mais désactivés**, avec au survol la raison de leur inactivité — même
-  traitement que celui déjà appliqué à un fournisseur OAuth non configuré
-  (`CONFIGURED_PROVIDERS`, `lib/oauth.ts`). Un bouton actif sans backend serait une fausse
-  fonctionnalité, ce que la contrainte globale interdit.
+- Google et X sont actifs quand configurés. **Sous-compte, QR Code, Passkey et Apple sont
+  rendus mais désactivés**, avec au survol la raison de leur inactivité — même traitement
+  que celui déjà appliqué à un fournisseur OAuth non configuré (`CONFIGURED_PROVIDERS`,
+  `lib/oauth.ts`). Un bouton actif sans backend serait une fausse fonctionnalité, ce que la
+  contrainte globale interdit.
+- ⚠️ **TELEGRAM EST RETIRÉ DE CE CRITÈRE.** Il y figurait par relevé de la capture 5. Les
+  cinq autres méthodes désactivées coûtent une icône générique ou un logotype DÉJÀ dans le
+  dépôt ; Telegram demanderait d'y recopier une marque de plus pour un bouton qui ne mènera
+  nulle part, ce qui tombe sous la contrainte « ne pas copier d'assets propriétaires ». Les
+  logotypes de `social-logos.tsx` ne sont admis que parce qu'une charte d'authentification
+  les impose pour un fournisseur avec lequel on s'authentifie réellement. La rangée compte
+  donc trois boutons — Google, X, Apple — soit la forme de la référence, sans la marque en
+  trop.
 - Le popover navbar continue de fonctionner ; les nouvelles pages s'ajoutent, ne remplacent pas.
+  Les deux commandes de l'en-tête ouvrent toujours la fenêtre : les pages servent les cas où
+  il n'y a pas eu de clic — lien partagé, signet, retour d'OAuth, redirection.
+- Les deux pages sont en `robots: index:false, follow:true` : elles n'ont rien à offrir à qui
+  arrive d'un moteur, et une page de connexion bien classée détourne les requêtes de marque
+  vers un écran sans issue (§9).
 - L'animation du fond respecte `prefers-reduced-motion`.
 
 ### T9 — Retour en haut

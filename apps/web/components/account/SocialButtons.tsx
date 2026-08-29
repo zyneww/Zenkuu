@@ -82,16 +82,42 @@ export function SocialButtons({
    * cours de saisie.
    */
   configured,
+  /**
+   * Disposition des boutons.
+   *
+   * `stack` — un bouton pleine largeur par ligne, avec sa phrase « Continuer avec X ».
+   * C'est la forme du menu de compte et de la fenêtre d'authentification, où la
+   * colonne fait 288 pixels et où trois lignes se lisent d'un coup d'œil.
+   *
+   * `row` — trois boutons à parts égales sur une seule ligne, réduits à leur
+   * logotype. C'est la forme des PAGES d'authentification, dont la référence range
+   * les fournisseurs en rangée sous le séparateur.
+   *
+   * ⚠️ EN RANGÉE, LE NOM DU FOURNISSEUR SORT DU FLUX VISIBLE et passe dans
+   * `aria-label` : trois libellés côte à côte dans un tiers de colonne se coupent au
+   * milieu d'un mot. Il reste donc annoncé à la synthèse vocale et affiché au survol,
+   * mais il n'est plus dessiné — le logotype le porte, ce qui est précisément son
+   * travail.
+   */
+  layout = 'stack',
 }: {
   mode: AuthMode
   configured: readonly string[]
+  layout?: 'stack' | 'row'
 }) {
   const t = usePhrase()
+  const row = layout === 'row'
 
   return (
-    <div className="space-y-2">
+    <div className={row ? 'flex gap-2' : 'space-y-2'}>
       {PROVIDERS.map(({ id, label, Logo }) => {
         const ready = configured.includes(id)
+
+        /* La phrase complète sert d'étiquette accessible dans les deux dispositions —
+           c'est elle qui part au survol et à la synthèse vocale quand la rangée
+           n'affiche que le logotype. */
+        const sentence = `${t('Continuer avec')} ${label}`
+        const reason = ready ? sentence : `${sentence} — ${t('bientôt disponible')}`
 
         /* Le contenu est identique dans les deux branches : seule la BALISE change,
            et l'écrire deux fois ferait diverger les deux états au premier ajustement. */
@@ -99,29 +125,52 @@ export function SocialButtons({
            Google » et « Bientôt » s'affichaient en français dans les treize langues.
            Le nom du fournisseur, lui, ne se traduit pas — Google s'appelle Google
            partout — d'où la césure entre la phrase et l'étiquette. */
-        const inner = (
+        const inner = row ? (
+          /* En rangée, le logotype EST le bouton. La pastille « Bientôt » n'y tient
+             pas — trois boutons se partagent la ligne — et l'indisponibilité se lit
+             déjà à l'opacité que `disabled` applique, doublée du libellé au survol. */
+          <Logo className="size-5" />
+        ) : (
           <>
             <Logo className="size-5" />
             {t('Continuer avec')} {label}
+            {/* `text-micro` (11 px) et non 10 px : c'est le plancher que l'audit
+                responsive du projet fait respecter, et cette pastille passait dessous
+                depuis toujours. */}
             {ready ? null : (
-              <Badge variant="secondary" className="rounded-full px-2 py-0 text-[0.625rem] font-medium">
+              <Badge variant="secondary" className="rounded-full px-2 py-0 text-micro font-medium">
                 {t('Bientôt')}
               </Badge>
             )}
           </>
         )
 
+        const shape = row ? 'flex-1 justify-center' : 'w-full justify-start'
+
         if (!ready) {
           return (
-            <Button key={id} variant="outline" size="lg" disabled className="w-full justify-start">
+            <Button
+              key={id}
+              variant="outline"
+              size="lg"
+              disabled
+              className={shape}
+              /* `title` ET `aria-label` : le premier pour le pointeur, le second pour
+                 la synthèse vocale. Un bouton désactivé garde les deux — ce que la
+                 mention « Bientôt » perdrait en rangée, où elle n'est pas dessinée. */
+              title={reason}
+              aria-label={reason}
+            >
               {inner}
             </Button>
           )
         }
 
         return (
-          <Button key={id} asChild variant="outline" size="lg" className="w-full justify-start">
-            <a href={`/api/auth/${id}?intention=${mode}`}>{inner}</a>
+          <Button key={id} asChild variant="outline" size="lg" className={shape}>
+            <a href={`/api/auth/${id}?intention=${mode}`} title={sentence} aria-label={sentence}>
+              {inner}
+            </a>
           </Button>
         )
       })}
