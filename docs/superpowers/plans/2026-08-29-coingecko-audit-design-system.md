@@ -1500,8 +1500,16 @@ bun run lint
 bun run typecheck
 ```
 
-Attendu : les quatre en code de sortie 0. **Ne pas lancer `next build`** : le serveur de
-développement tourne.
+Attendu : code de sortie 0 pour la première, la troisième et la quatrième.
+
+⚠️ **`bunx vitest run` échoue déjà avant ce sous-projet**, sur une assertion périmée de
+`apps/web/components/tools/treemap.test.ts` (`heatTone(undefined)` y est attendu en
+`surface-muted`, alors que le code rend `heat-flat` depuis une correction de contraste
+mesurée). Ce défaut vient de `main`, pas d'ici. Le critère est donc : **aucun échec
+NOUVEAU par rapport à cette ligne de base**, et le décompte des tests en échec doit rester
+à un seul, celui-là. Un second échec, quel qu'il soit, bloque la clôture du sous-projet.
+
+**Ne pas lancer `next build`** : le serveur de développement tourne.
 
 - [ ] **Étape 2 : Les trois scripts d'audit du dépôt**
 
