@@ -105,3 +105,17 @@ build-output.txt
 # ⚠️ À ne pas confondre avec `docs/superpowers/`, qui porte les specs et les plans et
 # qui, lui, est VERSIONNÉ. Seul le dossier caché de la racine est du travail jetable.
 .superpowers/
+
+# Captures de référence de CoinGecko (sous-projet A) et état d'avant-migration de
+# ZENKUU.
+#
+# Ce sont des outils de travail, pas des livrables. Trois raisons de ne pas les
+# versionner : ce sont des captures d'un site TIERS, elles pèsent plusieurs dizaines
+# de mégaoctets, et une mesure d'un instant qui entre dans l'historique finit par
+# passer pour un état de référence longtemps après être devenue fausse.
+#
+# Ce qui est versionné, ce sont les MESURES en texte, dans COINGECKO_AUDIT.md et
+# DESIGN_SYSTEM.md, chacune datée et accompagnée de sa provenance.
+docs/references/coingecko/
+docs/references/zenkuu-avant/
+docs/references/zenkuu-apres/
