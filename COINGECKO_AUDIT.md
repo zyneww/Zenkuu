@@ -136,60 +136,74 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Priorité** : phase 1
 - **État** : audité
 - **Composants** :
-  - **Barre de navigation** — bandeau supérieur fixe : logo, statistiques de marché
-    globales (nombre de monnaies, plateformes, capitalisation, volume, prédominance
-    BTC/ETH, prix du gaz Ethereum), méga-menus, recherche, bouton d'inscription/connexion.
+  - **Barre de navigation** — bandeau supérieur fixe : logo, méga-menus, recherche,
+    ticker de statistiques globales, sélecteur de langue et de devise, bouton
+    d'inscription/connexion.
+  - **Ticker de statistiques globales** — ligne de chiffres de marché mise à jour en
+    continu dans la barre de navigation (nombre de monnaies, plateformes, capitalisation,
+    volume, prédominance BTC/ETH, prix du gaz Ethereum) — à ne pas confondre avec le
+    bandeau de synthèse marché plus bas dans la page : même famille de données, objet et
+    emplacement différents.
+  - **Sélecteur de langue et de devise** — déclencheur, dans la barre de navigation, d'un
+    panneau proposant le choix de la langue, de la devise d'affichage et du mode sombre.
   - **Méga-menu de navigation** — panneau déroulant par rubrique (Cryptos, Highlights…),
     groupé en sous-sections titrées (« Au-delà des jetons », « Populaire », « Outils »),
     chaque lien portant une icône.
   - **Overlay de recherche globale** — popover plein-largeur ouvert au clic sur le champ de
     recherche : champ de saisie, onglets de filtrage (Tendance, NFT…), zone de résultats,
     encart sponsorisé.
-  - **Bandeau de tendances** — rangée de cartes de synthèse marché (capitalisation totale,
-    volume 24 h…) surmontées d'un mini-graphique de fond, activable/désactivable par un
-    commutateur.
-  - **Carte de tendance** — une carte individuelle du bandeau de tendances : valeur, pastille
-    de variation, mini-graphique.
+  - **Bandeau de synthèse marché** — rangée de cartes résumant l'état du marché
+    (capitalisation totale, volume 24 h…) surmontées d'un mini-graphique de fond,
+    activable/désactivable par un commutateur. Distinct du ticker de statistiques
+    globales de la barre de navigation : plus bas dans la page, présenté en cartes, et
+    masquable par l'utilisateur.
+  - **Carte de synthèse marché** — une carte individuelle du bandeau de synthèse marché :
+    valeur, pastille de variation, mini-graphique.
   - **Tableau de cotations** — table principale listant les monnaies : rang, monnaie, cours,
     variations à 1 h/24 h/7 j/30 j, volume, capitalisation, FDV, ratio capitalisation/FDV,
-    sparkline.
+    mini-graphique d'évolution.
   - **En-tête de colonne triable** — cellule d'en-tête cliquable portant `aria-sort`.
   - **Ligne de tableau** — ligne représentant une monnaie.
   - **Cellule de tableau** — cellule individuelle d'une ligne (ex. cours).
+  - **Lien** — lien texte ou associé à une icône/image, en dehors du pied de page (ex. le
+    nom de la monnaie dans une ligne de tableau, qui mène à sa fiche).
   - **Texte secondaire** — texte de moindre emphase sous un libellé principal (ex. le
     symbole sous le nom de la monnaie).
   - **Pastille de variation** — badge coloré (hausse/baisse) avec flèche et pourcentage.
-  - **Sparkline** — mini-graphique d'évolution sur 7 jours en fin de ligne de tableau.
+  - **Mini-graphique d'évolution (sparkline)** — mini-graphique de l'évolution du cours sur
+    7 jours, en fin de ligne de tableau.
   - **Bouton plein** — bouton à fond de couleur primaire (ex. « Utiliser l'app »).
   - **Bouton discret** — bouton à fond neutre et filet visible (ex. « Connexion »).
   - **Onglet actif** / **onglet inactif** — puce de filtre au sein d'un groupe d'onglets
     (ex. Tendance/NFT dans l'overlay de recherche).
-  - **Commutateur** — interrupteur à bascule (afficher/masquer le bandeau de tendances,
-    mode sombre).
+  - **Commutateur** — interrupteur à bascule (afficher/masquer le bandeau de synthèse
+    marché, mode sombre).
   - **Pagination** — liens de page numérotés sous le tableau de cotations.
   - **Pied de page** — zone de bas de page, colonnes de liens groupées par thème,
     rétractables en accordéon sur mobile.
   - **Lien de pied de page** — lien texte au sein d'une colonne du pied de page.
   - **Titre de section** — intitulé en tête de bloc (ex. le titre de page, masqué
     visuellement mais présent pour le SEO ; ou « Principaux éléments » au-dessus du
-    bandeau de tendances).
+    bandeau de synthèse marché).
 - **Fonctionnalités** : classement des cryptomonnaies avec tri par colonne, filtrage
   temporel implicite (colonnes 1 h/24 h/7 j/30 j), pagination (100 lignes par page),
   recherche globale multi-catégories (jetons, paires DEX, actions, matières premières,
   exchanges, catégories, NFT, articles), ajout au portefeuille depuis la ligne (icône
-  étoile), affichage/masquage du bandeau de tendances, bascule de thème clair/sombre,
+  étoile), affichage/masquage du bandeau de synthèse marché, bascule de thème clair/sombre,
   sélecteur de langue et de devise, bannière de téléchargement de l'application mobile.
 - **Interactions** : survol de ligne et de lien (changement de fond/couleur, via les
-  classes `hover:` Tailwind lues dans le HTML) ; clic sur un en-tête de colonne pour
-  trier (`aria-sort` bascule entre les états) ; ouverture d'un méga-menu au survol ou au
+  classes `hover:` Tailwind lues dans le HTML) ; l'en-tête de colonne actuellement trié
+  porte `aria-sort="ascending"` — seul cet état initial a été observé, le basculement
+  effectif au clic (vers `descending`, puis sur une autre colonne) n'a pas été éprouvé,
+  faute d'outil de navigation piloté ; ouverture d'un méga-menu au survol ou au
   clic (`data-action="mouseover->navbar#handleOver … click->navbar#handleClick"`) ;
   ouverture de l'overlay de recherche au clic sur le champ (`click->search-v2#showSearchPopup`)
   et fermeture au clic extérieur ou sur la croix ; bascule du commutateur de thème
-  (`click->settings#toggleDarkMode`) et de celui du bandeau de tendances
+  (`click->settings#toggleDarkMode`) et de celui du bandeau de synthèse marché
   (`click->highlights#toggleHighlights`) ; accordéon du pied de page sur mobile
   (`click->footer#toggleFooterGroup`).
 - **Données requises** : cours, variations 1 h/24 h/7 j/30 j, volume 24 h, capitalisation
-  boursière, FDV et ratio capitalisation/FDV, sparkline 7 jours, capitalisation et volume
+  boursière, FDV et ratio capitalisation/FDV, mini-graphique d'évolution (sparkline) sur 7 jours, capitalisation et volume
   globaux, prédominance BTC/ETH — tous disponibles via l'API CoinGecko (gratuite) déjà
   utilisée par ZENKUU. Le nombre de monnaies et de plateformes listées vient du même
   jeu de données. Les tendances de recherche (onglet « Tendance » de l'overlay) sont
@@ -201,11 +215,11 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Écart avec ZENKUU** : `apps/web` (page `/fr`, vue le 2026-08-29 sur
   `http://localhost:3000/fr`) porte déjà un tableau (`data-slot="table"`, en-têtes
   `aria-sort`, actuellement à `"none"` — le tri n'est pas encore branché côté client sur
-  au moins une colonne visible), une sparkline, un pied de page, une palette de commande
+  au moins une colonne visible), un mini-graphique d'évolution (sparkline), un pied de page, une palette de commande
   (`data-slot="command"` — l'équivalent structurel de l'overlay de recherche CoinGecko) et
   un `navigation-menu` (l'équivalent du méga-menu), ainsi qu'une pagination
   (`data-slot="pagination"`). L'ossature des composants existe donc déjà. Ce qui manque
-  au regard de l'accueil CoinGecko : le bandeau de tendances (cartes de synthèse
+  au regard de l'accueil CoinGecko : le bandeau de synthèse marché (cartes de synthèse
   capitalisation/volume/prédominance avec mini-graphique et commutateur
   afficher/masquer), les statistiques de marché globales dans la barre de navigation
   elle-même (nombre de monnaies, plateformes, capitalisation, volume, prédominance,
@@ -216,7 +230,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : le contrôle de bascule de thème du script (marqueurs `darktheme`/`tw-dark`
   puis couleur de fond de `<body>`) a validé la bascule sur ce gabarit, et les captures
   claire/sombre diffèrent octet pour octet aux trois largeurs — pas d'erreur levée.
-  Relevé exact des 17 sélecteurs (styles typographiques, couleurs, filets, rayons,
+  Relevé exact des 18 sélecteurs (styles typographiques, couleurs, filets, rayons,
   ombres, rembourrages, marges, transitions) dans
   `docs/references/coingecko/accueil/mesures.json`, six passes (360/768/1440 ×
   clair/sombre), chaque valeur portant son sélecteur et sa page de provenance. États non
