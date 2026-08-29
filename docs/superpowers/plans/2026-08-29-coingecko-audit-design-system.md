@@ -54,8 +54,12 @@ ne peut être constituée qu'avant que quoi que ce soit ne bouge, donc en premie
 
 **Fichiers :**
 - Modifier : `.gitignore` (fin de fichier)
-- Créer : `docs/references/coingecko/.gardien` (fichier vide, pour que l'arborescence existe)
+- Créer : `docs/references/coingecko/` (dossier de travail, non versionné)
 - Créer : `docs/references/zenkuu-avant/` (captures de référence, non versionnées)
+
+Aucun fichier gardien : les dossiers étant exclus, un `.gardien` le serait aussi et ne
+ferait pas exister l'arborescence dans Git. `mkdir -p` à l'étape 2 suffit — ces dossiers
+n'ont besoin d'exister que sur le disque de qui exécute.
 
 **Interfaces :**
 - Produit : le dossier `docs/references/coingecko/<slug>/` où toutes les tâches suivantes
@@ -78,7 +82,11 @@ Ajouter à la fin de `.gitignore` :
 # DESIGN_SYSTEM.md, chacune datée et accompagnée de sa provenance.
 docs/references/coingecko/
 docs/references/zenkuu-avant/
+docs/references/zenkuu-apres/
 ```
+
+`zenkuu-apres/` figure ici bien qu'il ne soit créé qu'à la tâche 11 : les trois dossiers
+relèvent de la même règle, et poser l'exclusion en trois fois inviterait à en oublier une.
 
 - [ ] **Étape 2 : Vérifier que la règle mord**
 
@@ -1171,8 +1179,13 @@ EOF
 charges et le code se contrediraient dès le sous-projet B.
 
 **Fichiers :**
-- Modifier : `ZENKUU.md` (sous `### 3.1 Design system`, ligne 45 ; sous `## 7. Contraintes
-  non négociables`, ligne 666)
+- Modifier : `ZENKUU.md` (sous `### 3.1 Design system`, ligne 45 ; ligne 47 ; ligne 261 ;
+  sous `## 7. Contraintes non négociables`, ligne 672)
+
+⚠️ **`ZENKUU.md` nomme « Geist » à TROIS endroits** — lignes 47, 261 et 672 —, et non au
+seul endroit que corrige l'étape 2. La police retenue est **Figtree**, choisie par mesure
+(voir le tableau de `DESIGN.md`) ; les trois mentions sont donc périmées et l'étape 1 les
+corrige toutes, sans quoi la vérification de l'étape 3 échouerait sur celles qui restent.
 
 **Interfaces :**
 - Consomme : la spec du sous-projet A.
@@ -1192,6 +1205,15 @@ Insérer immédiatement sous le titre `### 3.1 Design system (tranché, en place
 > Le cadre de la migration vit dans
 > `docs/superpowers/specs/2026-08-29-coingecko-audit-design-system-design.md`.
 ```
+
+Puis corriger les deux mentions périmées de la police, dans la même section :
+
+- **ligne 47**, `- Police d'interface et d'affichage : **Geist** · nombres : **DM Mono**`
+  devient `- Police d'interface et d'affichage : **Figtree** · nombres : **DM Mono**` ;
+- **ligne 261**, `Geist, variable,` devient `Figtree, variable,`.
+
+`DESIGN.md` documente le passage à Figtree et la mesure qui l'a décidé — le rapport
+hauteur d'x sur hauteur de capitale. `ZENKUU.md` ne l'avait pas suivi.
 
 - [ ] **Étape 2 : Amender la section 7**
 

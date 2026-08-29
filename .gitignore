@@ -95,3 +95,13 @@ coverage/
 # perturber un serveur de développement en cours. Le journal d'une compilation
 # locale n'a aucune raison d'entrer dans l'historique.
 build-output.txt
+
+# Espace de travail de l'exécution par sous-agents (superpowers/SDD).
+#
+# Registre, briefs, rapports et paquets de revue du plan en cours. Régénérable, propre
+# à la machine qui exécute, et sans valeur une fois le plan terminé — la trace qui
+# compte est l'historique Git.
+#
+# ⚠️ À ne pas confondre avec `docs/superpowers/`, qui porte les specs et les plans et
+# qui, lui, est VERSIONNÉ. Seul le dossier caché de la racine est du travail jetable.
+.superpowers/
