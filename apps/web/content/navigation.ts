@@ -124,22 +124,195 @@ export const NAV_MENUS: NavMenu[] = [
    * type d'objet parce qu'ils vendent de la donnée et référencent des plateformes ;
    * on sépare par nature d'instrument parce qu'on n'échange rien.
    */
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « COINS » — LA CRYPTO, ET RIEN QU'ELLE
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * ── LE RENOMMAGE EST UNE SCISSION, PAS UNE ÉTIQUETTE ─────────────────────────
+   *
+   * « Parcourir » portait DEUX choses : les six classes d'actifs — dont cinq n'ont
+   * rien de crypto — et les instruments du marché crypto. Le nom était vague parce
+   * que le contenu l'était : « parcourir » ne dit pas quoi.
+   *
+   * Appeler ce menu « Coins » oblige à en sortir ce qui n'est pas une cryptomonnaie.
+   * Actions, ETF, indices, devises et matières premières partent donc dans « TradFi »,
+   * juste à côté — où elles retrouvent la macroéconomie, qui décrit le terrain sur
+   * lequel elles se tiennent. Les deux menus répondent enfin à une question chacun.
+   *
+   * ── TROIS SECTIONS, DANS L'ORDRE OÙ ON CHERCHE ───────────────────────────────
+   *
+   * « Classements » d'abord — c'est ce qu'on vient voir. « Explorer » ensuite, pour
+   * les lectures d'ensemble. « Instruments » en dernier : ce sont des objets de
+   * second rang, qu'on ne cherche qu'en sachant déjà ce qu'on veut.
+   *
+   * ⚠️ QUATRE ENTRÉES DE LA RÉFÉRENCE MANQUENT, ET C'EST DÉLIBÉRÉ. Son menu porte
+   * « Performance », « All Time High », « Trending Cryptos » et « Blockchains ». Les
+   * deux premières sont des VUES du tableau d'accueil — des onglets, pas des pages —
+   * et les pointer ici mènerait à une adresse qui ne les ouvre pas. « Trending » n'a
+   * qu'une route d'API, sans page. « Blockchains » n'a aucune source : comparer des
+   * métriques de chaînes demande un agrégat que rien de ce que le site charge ne
+   * publie. Une entrée de menu vers une page qui n'existe pas est un lien mort ; le
+   * §5 vaut aussi pour la navigation.
+   */
   {
-    label: 'Parcourir',
+    label: 'Coins',
     sections: [
       {
-        label: 'Classes d’actifs',
+        label: 'Classements',
         items: [
           {
-            label: 'Cryptomonnaies',
-            description: 'Les cryptoactifs classés par capitalisation',
+            label: 'Top 100 cryptomonnaies',
+            description: 'Les premières capitalisations, page par page',
             icon: Coins,
             href: '/crypto',
             ready: true,
           },
           {
+            /* La SEULE entrée de l'ancien menu « Données » qui n'était pas déjà
+               ailleurs : `/classements` est l'index des quatre palmarès, là où les
+               trois entrées ci-dessous ouvrent chacune le sien. */
+            label: 'Tous les classements',
+            description: 'Hausses, baisses, volumes et rotation, au même endroit',
+            icon: Trophy,
+            href: '/classements',
+            ready: true,
+          },
+          {
+            label: 'Plus fortes hausses',
+            description: 'Les cryptos qui montent le plus sur la période',
+            icon: TrendingUp,
+            href: '/classements/hausses',
+            ready: true,
+          },
+          {
+            label: 'Plus fortes baisses',
+            description: 'L’autre bout du classement, sur la même fenêtre',
+            icon: Activity,
+            href: '/classements/baisses',
+            ready: true,
+          },
+          {
+            label: 'Volumes',
+            description: 'Ce qui s’échange le plus, indépendamment du cours',
+            icon: Trophy,
+            href: '/classements/volumes',
+            ready: true,
+          },
+          {
+            label: 'Nouvelles cotations',
+            description: 'Les actifs référencés le plus récemment',
+            icon: Sprout,
+            href: '/nouvelles-cotations',
+            ready: true,
+          },
+        ],
+      },
+      {
+        label: 'Explorer',
+        items: [
+          {
+            label: 'Données de marché globales',
+            description: 'Capitalisation, dominance, stablecoins et trésoreries',
+            icon: LineChart,
+            href: '/graphiques',
+            ready: true,
+          },
+          {
+            label: 'Toutes les catégories',
+            description: 'Les cryptomonnaies rangées par narratif',
+            icon: Layers,
+            href: '/categories',
+            ready: true,
+          },
+          {
+            label: 'Écosystèmes',
+            description: 'Les projets rattachés à chaque plateforme',
+            icon: Globe2,
+            href: '/categories/ecosystemes',
+            ready: true,
+          },
+          {
+            label: 'Carte thermique',
+            description: 'Le marché en une figure : surface et couleur',
+            icon: Grid3x3,
+            href: '/heatmap',
+            ready: true,
+          },
+          {
+            label: 'Indice de sentiment',
+            description: 'La peur et l’avidité, jour par jour',
+            icon: Gauge,
+            href: '/sentiment',
+            ready: true,
+          },
+        ],
+      },
+      {
+        label: 'Instruments',
+        items: [
+          {
+            label: 'Dérivés',
+            description: 'Contrats perpétuels, intérêt ouvert, financement',
+            icon: CandlestickChart,
+            href: '/derives',
+            ready: true,
+          },
+          {
+            label: 'Places de cotation',
+            description: 'Où les actifs changent de mains',
+            icon: Landmark,
+            href: '/places',
+            ready: true,
+          },
+          {
+            label: 'Places de dérivés',
+            description: 'Où se portent les positions à effet de levier',
+            icon: Building2,
+            href: '/perpetuels',
+            ready: true,
+          },
+          {
+            label: 'Rachats',
+            description: 'Les jetons rachetés par leur propre protocole',
+            icon: Recycle,
+            href: '/rachats',
+            ready: true,
+          },
+        ],
+      },
+    ],
+  },
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « TRADFI » — CE QUI SE COTE AILLEURS QUE SUR UNE CHAÎNE
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * ── SES ENTRÉES SONT DÉDUITES DU SITE, PAS INVENTÉES ─────────────────────────
+   *
+   * Chacune correspond à une route qui existe et qui rend des données réelles :
+   * `/actions` et `/devises` viennent d'être branchées en onglets sur l'accueil,
+   * `/etf`, `/indices` et `/matieres-premieres` sont servies par le même
+   * `MarketPageView` que les cryptos, `/macro` par la Banque mondiale, et
+   * `/graphiques/actifs-reels` par le catalogue des actions tokenisées.
+   *
+   * ── POURQUOI LA MACRO EST ICI ET NON DANS « ANALYSE » ────────────────────────
+   *
+   * Elle y était, rangée parmi les « Visualisations ». Le voisinage était
+   * défendable — c'est une carte — mais il séparait l'inflation des actions, alors
+   * que la première explique la seconde. Ici, elle ferme le menu comme un contexte :
+   * les actifs d'abord, le terrain sur lequel ils évoluent ensuite.
+   */
+  {
+    label: 'TradFi',
+    sections: [
+      {
+        label: 'Classes d’actifs',
+        items: [
+          {
             label: 'Actions',
-            description: 'Les titres cotés suivis par Zenkuu',
+            description: 'Les titres cotés suivis par ZENKUU',
             icon: TrendingUp,
             href: '/actions',
             ready: true,
@@ -175,34 +348,20 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'Instruments et programmes',
+        label: 'Contexte',
         items: [
           {
-            label: 'Dérivés',
-            description: 'Contrats perpétuels, intérêt ouvert, financement',
-            icon: CandlestickChart,
-            href: '/derives',
+            label: 'Macroéconomie',
+            description: 'Inflation, chômage, dette : l’état des économies',
+            icon: Globe2,
+            href: '/macro',
             ready: true,
           },
           {
-            label: 'Places de cotation',
-            description: 'Où les actifs changent de mains',
+            label: 'Actifs du monde réel',
+            description: 'Les actions répliquées en jetons sur chaîne',
             icon: Landmark,
-            href: '/places',
-            ready: true,
-          },
-          {
-            label: 'Places de dérivés',
-            description: 'Où se portent les positions à effet de levier',
-            icon: Building2,
-            href: '/perpetuels',
-            ready: true,
-          },
-          {
-            label: 'Buyback',
-            description: 'Les jetons rachetés par leur propre protocole',
-            icon: Recycle,
-            href: '/rachats',
+            href: '/graphiques/actifs-reels',
             ready: true,
           },
         ],
@@ -211,134 +370,54 @@ export const NAV_MENUS: NavMenu[] = [
   },
 
 
-  {
-    /*
-     * « Données » plutôt que « Classements ».
-     *
-     * Le menu ne contient plus seulement des palmarès : il réunit maintenant tout ce
-     * qui se lit comme une MESURE du marché — un classement, des flux d'échange, des
-     * courbes longues, des arrivées récentes, des faits saillants. « Classements »
-     * redevient ce qu'il est réellement : une entrée parmi d'autres, pas un chapeau.
-     */
-    label: 'Données',
-    sections: [
-      {
-        label: 'Palmarès',
-        items: [
-          {
-            label: 'Classements',
-            description: 'Le classement complet, page par page',
-            icon: Trophy,
-            href: '/classements',
-            ready: true,
-          },
-          /*
-           * CATÉGORIES — la page existait, le menu l'ignorait.
-           *
-           * `/categories` est en service, indexée au sitemap, et reçoit DIX liens
-           * depuis d'autres pages (fiches d'actif, points marquants). Elle n'était
-           * simplement joignable par aucun menu : on ne pouvait y arriver qu'en
-           * passant d'abord par une page qui y renvoie. Un classement sectoriel est
-           * pourtant une porte d'entrée, pas une destination de second rebond.
-           *
-           * Rangée dans « Palmarès » et non dans « Suivi du marché », parce que c'en
-           * est un : la page classe les secteurs par variation, exactement comme
-           * « Classements » classe les actifs. Le voisinage est le bon.
-           */
-          {
-            label: 'Catégories',
-            description: 'Les secteurs classés par leur variation du jour',
-            icon: Layers,
-            href: '/categories',
-            ready: true,
-          },
-          /*
-           * ⚠️ « ACTIVITÉ DU MARCHÉ » A ÉTÉ RETIRÉE AVEC SES DEUX PAGES.
-           *
-           * L'entrée ouvrait `/mouvements`, qui portait une barre à deux onglets vers
-           * `/points-marquants`. Les deux pages ont été supprimées (demande explicite) :
-           * routes, disposition de groupe, barre d'onglets et filtres compris.
-           *
-           * Rien n'est ajouté à leur place ici : « Classements », juste au-dessus,
-           * porte les mêmes palmarès, et la heatmap du menu « Analyse » porte la
-           * lecture d'ensemble. Une entrée de menu vers une page qui n'existe plus
-           * serait un lien mort ; une entrée de remplaçement vers une page déjà
-           * listée serait un doublon.
-           */
-        ],
-      },
-      {
-        label: 'Suivi du marché',
-        items: [
-          {
-            label: 'Graphiques globaux',
-            description: 'Capitalisation, dominance, secteurs et trésoreries',
-            icon: LineChart,
-            href: '/graphiques',
-            ready: true,
-          },
-          /*
-           * PLACES DE COTATION — la donnée existait, la page n'existait pas.
-           *
-           * `getSpotExchanges` alimentait un panneau enterré au milieu de la page de
-           * données de trading, entre les agrégats macro et les dérivés. C'est
-           * pourtant la réponse à une question qu'on se pose seule : « où ce marché
-           * s'échange-t-il vraiment, et à qui fait-on confiance ? ». Elle méritait une
-           * URL.
-           */
-          {
-            label: 'Places de cotation',
-            description: 'Où le marché s’échange, et avec quelle confiance',
-            icon: Building2,
-            href: '/places',
-            ready: true,
-          },
-          {
-            /*
-             * PLACES DE DÉRIVÉS — la question que « Places de cotation » ne pose pas.
-             *
-             * Celle du dessus classe par CONFIANCE, ce qui est la bonne mesure au
-             * comptant : on y dépose des fonds pour détenir. Celle-ci classe par
-             * INTÉRÊT OUVERT, parce qu'on n'y détient rien — on y porte une exposition,
-             * et c'est son ampleur qui dit où le risque s'accumule.
-             */
-            label: 'Places de dérivés',
-            description: 'Où se portent les positions à effet de levier',
-            icon: Building2,
-            href: '/perpetuels',
-            ready: true,
-          },
-          {
-            label: 'Nouvelles cryptomonnaies',
-            description: 'Les actifs référencés le plus récemment',
-            icon: Sprout,
-            href: '/nouvelles-cotations',
-            ready: true,
-          },
-        ],
-      },
-      {
-        // « Catégories & secteurs » vivait aussi ici : le doublon est retiré au
-        // profit de l'entrée du menu Marchés, où la notion se range plus
-        // naturellement. La section est renommée en conséquence — « Segments »
-        // n'avait de sens qu'au pluriel.
-        label: 'Indicateurs',
-        items: [
-          {
-            label: 'Indice de sentiment',
-            description: 'Fear & Greed du marché crypto',
-            icon: Gauge,
-            href: '/sentiment',
-            ready: true,
-          },
-        ],
-      },
-    ],
-  },
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * ⚠️ LE MENU « DONNÉES » A ÉTÉ RETIRÉ — IL ÉTAIT DEVENU UN DOUBLON INTÉGRAL
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * Il portait neuf entrées, réparties en « Palmarès », « Suivi du marché » et
+   * « Indicateurs » : classements, catégories, graphiques globaux, places de cotation,
+   * places de dérivés, nouvelles cotations, indice de sentiment.
+   *
+   * Les NEUF vivent désormais dans « Coins », où elles trouvent leur sujet — ce sont
+   * toutes des lectures du marché crypto. Les garder ici aurait fait deux chemins vers
+   * chaque page, et ce fichier condamne déjà ce défaut deux fois dans ses propres
+   * commentaires : « une entrée de remplacement vers une page déjà listée serait un
+   * doublon ».
+   *
+   * Un menu dont chaque entrée figure ailleurs n'aide plus à choisir : il double la
+   * surface à parcourir sans ajouter une destination. La barre passe donc de cinq
+   * menus à quatre — Coins, TradFi, Analyse, Plus — et chacun répond à une question
+   * qu'aucun autre ne pose.
+   * ══════════════════════════════════════════════════════════════════════════════
+   */
 
   {
     label: 'Analyse',
     sections: [
+      /*
+       * ── « ACTUALITÉS » DESCEND ICI, ET PERD SON MENU PROPRE ──────────────────
+       *
+       * Elle occupait un menu de premier niveau pour UNE entrée. Un menu d'une ligne
+       * coûte à la barre la même place qu'un menu de quinze, et il oblige à un clic
+       * pour découvrir qu'il n'y avait rien à choisir.
+       *
+       * Sa place est en tête d'« Analyse » : lire ce qui s'est passé précède
+       * l'outillage qui sert à l'interpréter. Le fil complet reste à `/actualites`,
+       * inchangé — seul le chemin qui y mène a bougé.
+       */
+      {
+        label: 'Actualités',
+        items: [
+          {
+            label: 'Toute l’actualité',
+            description: 'Le fil complet, toutes sources confondues',
+            icon: Newspaper,
+            href: '/actualites',
+            ready: true,
+          },
+        ],
+      },
       {
         label: 'Outils',
         items: [
@@ -365,65 +444,30 @@ export const NAV_MENUS: NavMenu[] = [
           },
         ],
       },
-      {
-        label: 'Visualisations',
-        items: [
-          {
-            label: 'Heatmap sectorielle',
-            description: 'Les secteurs en un coup d’œil',
-            icon: Grid3x3,
-            href: '/heatmap',
-            ready: true,
-          },
-          {
-            /*
-             * Elle vit dans « Visualisations » et non dans « Marchés », et le rangement
-             * est une position : ces chiffres ne sont PAS des cours. Ils décrivent le
-             * terrain sur lequel les marchés se tiennent, à un pas annuel. Les mettre à
-             * côté des classements les ferait lire comme une cotation de plus.
-             */
-            label: 'Carte macroéconomique',
-            description: 'Inflation, chômage, dette : l’état des économies',
-            icon: Globe2,
-            href: '/macro',
-            ready: true,
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    label: 'Actualités',
-    sections: [
-      {
-        items: [
-          {
-            label: 'Toute l’actualité',
-            description: 'Le fil complet, toutes sources confondues',
-            icon: Newspaper,
-            href: '/actualites',
-            ready: true,
-          },
-        ],
-      },
       /*
-       * SECTION « AGENDA » RETIRÉE — calendrier économique et événements crypto.
+       * ⚠️ LA SECTION « VISUALISATIONS » A ÉTÉ VIDÉE PAR LE DÉCOUPAGE, PAS SUPPRIMÉE
+       * PAR GOÛT.
        *
-       * Les deux entrées étaient marquées « bientôt » depuis l'origine. Elles le
-       * seraient restées : aucune source gratuite et sans clé ne publie ni le
-       * calendrier des publications macroéconomiques, ni les dates de halving, de
-       * déblocage de jetons ou de mise à jour réseau. Les reconstituer à la main
-       * reviendrait à saisir des dates que rien ne vérifie — c'est-à-dire à publier de
-       * la donnée non sourcée, ce que le §5 interdit précisément.
+       * Elle portait deux entrées, et chacune est allée rejoindre son sujet : la carte
+       * thermique est une lecture du marché CRYPTO — elle est dans « Coins » — et la
+       * carte macroéconomique décrit le terrain des marchés traditionnels, où
+       * l'inflation explique les actions. Elle ferme donc « TradFi ».
        *
-       * Une entrée « bientôt » est une promesse. Deux promesses qu'on sait ne pas
-       * pouvoir tenir coûtent plus cher, en confiance, que leur absence. Le jour où une
-       * source paraît, la section revient — et il y aura alors quelque chose derrière.
+       * Une section « Visualisations » restait défendable tant qu'elle réunissait deux
+       * figures ; vidée de l'une comme de l'autre, elle n'aurait plus décrit qu'un
+       * format d'affichage. On ne range pas un menu par forme de rendu.
        *
-       * Même raisonnement pour « Corrélations », retiré du menu Analyse : le calcul
-       * exige l'historique de chaque actif comparé, soit un appel par actif sur un
-       * quota qui en tolère cinq par minute.
+       * ── ET « AGENDA », RETIRÉE BIEN AVANT ───────────────────────────────────
+       *
+       * Calendrier économique et événements crypto : deux entrées marquées « bientôt »
+       * depuis l'origine, et qui le seraient restées. Aucune source gratuite et sans
+       * clé ne publie le calendrier des publications macroéconomiques, ni les dates de
+       * halving, de déblocage de jetons ou de mise à jour réseau. Les saisir à la main
+       * reviendrait à publier de la donnée que rien ne vérifie (§5).
+       *
+       * Même raisonnement pour « Corrélations » : le calcul exige l'historique de
+       * chaque actif comparé, soit un appel par actif sur un quota qui en tolère cinq
+       * par minute.
        */
     ],
   },
