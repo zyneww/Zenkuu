@@ -96,9 +96,11 @@ Migrer des pages avant que ce socle existe reviendrait à le réécrire une fois
 
 ## 6. Protocole d'audit
 
-Une boucle identique pour chaque page, exécutée avec le MCP `claude-in-chrome` — le
-navigateur réel de l'exploitant, le panneau intégré ne s'affichant pas chez lui — et
-`chrome-devtools` pour les styles calculés.
+Une boucle identique pour chaque page, exécutée avec le MCP `chrome-devtools` — seul des
+deux à savoir écrire une capture sur disque, et celui qui lit les styles calculés. Le MCP
+`claude-in-chrome`, qui pilote le Chrome réel de l'exploitant, n'intervient que sur les
+pages exigeant sa session CoinGecko ; pour celles-là la capture de référence ne peut pas
+être écrite sur disque, et l'entrée d'audit le signale.
 
 **Étape 0 — Énumération, une seule fois.**
 Navigation, tous les mega-dropdowns ouverts, pied de page, et `sitemap.xml`. Le résultat

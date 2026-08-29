@@ -15,9 +15,10 @@ pixel du site ZENKUU ne bouge**.
 une commande. L'audit se déroule page par page, un commit par page, de sorte qu'une
 interruption ne coûte jamais plus que la page en cours.
 
-**Outils :** MCP `claude-in-chrome` (navigateur réel de l'exploitant), MCP
-`chrome-devtools` (styles calculés), Node 20+, vitest, Playwright via les scripts d'audit
-existants, Tailwind 4, Next 16.
+**Outils :** MCP `chrome-devtools` (captures sur disque et styles calculés), MCP
+`claude-in-chrome` (le Chrome réel de l'exploitant, pour les seules pages exigeant sa
+session CoinGecko), Node 20+, vitest, Playwright via les scripts d'audit existants,
+Tailwind 4, Next 16. Voir « Outillage navigateur » pour la répartition.
 
 **Spec :** [`docs/superpowers/specs/2026-08-29-coingecko-audit-design-system-design.md`](../specs/2026-08-29-coingecko-audit-design-system-design.md)
 
@@ -44,6 +45,27 @@ Elles s'appliquent implicitement à **chaque** tâche de ce plan.
 - **Pas de `next build` tant que le serveur de développement tourne** — cela corrompt le
   cache Turbopack et met tout le site en erreur 500, y compris avec un `distDir` distinct.
 - **Aucun second serveur de développement n'est démarré** : celui du port 3000 tourne déjà.
+
+## Outillage navigateur — répartition des rôles
+
+Les deux MCP disponibles ne pilotent **pas le même navigateur**, et aucun ne fait tout :
+
+| | `chrome-devtools` | `claude-in-chrome` |
+|---|---|---|
+| Navigateur | instance propre, vierge | le Chrome réel de l'exploitant |
+| Session CoinGecko | non | **oui** |
+| Capture sur disque | **oui** (`filePath`) | non — l'image revient dans la réponse |
+| `getComputedStyle` | **oui** (`evaluate_script`) | oui (`javascript_tool`) |
+| Redimensionnement | `resize_page`, `emulate` | `resize_window` |
+
+**Règle :** `chrome-devtools` fait tout le travail — captures et mesures — sur les pages
+publiques et sur ZENKUU en local. `claude-in-chrome` n'est employé que pour les pages
+qui exigent la session CoinGecko de l'exploitant.
+
+Pour ces pages-là, la capture de référence **ne peut pas être écrite sur disque**. L'entrée
+d'audit consigne alors l'observation en texte et le dit dans « Notes » : une capture
+manquante qu'on signale vaut mieux qu'une capture d'une page déconnectée qu'on ferait
+passer pour la page connectée.
 
 ---
 
@@ -103,8 +125,9 @@ la nouvelle règle n'a pas emporté la référence Coinbase déjà versionnée.
 - [ ] **Étape 3 : Capturer l'état d'avant-migration de ZENKUU**
 
 Le serveur de développement tourne déjà sur le port 3000 — ne pas en démarrer un second.
-Avec `claude-in-chrome`, capturer six pages représentatives dans les deux thèmes, en
-1440 px de large, vers `docs/references/zenkuu-avant/` :
+Avec `chrome-devtools` (`take_screenshot` avec `filePath` et `fullPage: true`, après
+`resize_page` à 1440 px), capturer six pages représentatives dans les deux thèmes vers
+`docs/references/zenkuu-avant/` :
 
 | Page | Fichiers attendus |
 |---|---|
@@ -439,7 +462,7 @@ figée avant le premier audit.
 
 - [ ] **Étape 1 : Relever les points d'entrée**
 
-Avec `claude-in-chrome`, sur `https://www.coingecko.com/` :
+Avec `chrome-devtools`, sur `https://www.coingecko.com/` :
 
 1. Ouvrir **chacun** des menus et mega-dropdowns de la navigation principale, relever
    toutes les destinations.
@@ -552,7 +575,7 @@ méthode avant de la répéter trente fois.
 
 - [ ] **Étape 1 : Capturer**
 
-Sur `https://www.coingecko.com/fr` avec `claude-in-chrome`, en 360, 768 et 1440 px de
+Sur `https://www.coingecko.com/fr` avec `chrome-devtools`, en 360, 768 et 1440 px de
 large, dans les deux thèmes. Six fichiers dans `docs/references/coingecko/accueil/` :
 `360-clair.png`, `360-sombre.png`, `768-clair.png`, `768-sombre.png`, `1440-clair.png`,
 `1440-sombre.png`. Le thème se bascule par le contrôle du site, pas en forçant une classe.
