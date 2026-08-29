@@ -132,27 +132,20 @@ export function mecanismeTheme(base) {
   return hostname === 'coingecko.com' || hostname.endsWith('.coingecko.com') ? 'coingecko' : 'zenkuu'
 }
 
-/** Sonde exécutée DANS la page : un `getComputedStyle` par sélecteur, en un seul
- *  aller-retour. Un sélecteur sans correspondance est consigné comme tel, jamais
- *  omis en silence.
+/** Sonde exécutée DANS la page : la visibilité de chaque correspondance d'un
+ *  sélecteur, une seule fois par sélecteur — rien d'autre. Le calcul lui-même
+ *  ne se teste qu'avec un navigateur ; la décision qu'on en tire (quel index
+ *  retenir) est un algorithme pur, extrait dans `indexPremierVisible` et testé
+ *  séparément, sans DOM.
  *
- *  CoinGecko déclare fréquemment une variante MASQUÉE avant la variante visible
- *  du même composant (onglets de filtre, bascules d'affichage) : viser
- *  systématiquement la première correspondance du DOM viserait souvent un
- *  doublon invisible plutôt que ce qu'un visiteur voit réellement. On retient
- *  donc le premier nœud VISIBLE parmi les correspondances — jamais le premier
- *  tout court — et on consigne son index/le total quand ce n'est pas le premier
- *  (`noeud`), pour qu'un lecteur de mesures.json sache qu'il y avait ambiguïté.
- *  `indices[i]` force le nœud d'un sélecteur donné plutôt que de le
- *  recalculer : c'est ce qui garde `sonderInteractions` alignée sur EXACTEMENT
- *  le même nœud entre le repos et les états survol/focus.
- *
- *  `avecContour` est réservé au sondage des interactions (focus) : l'anneau de
- *  focus vit dans les propriétés `outline`, absentes du relevé « selectors »
- *  d'origine. Par défaut à `false` — la structure produite pour `--selectors` ne
- *  bouge donc pas d'un octet quand `--interactions` est absent. Un seul argument
- *  (objet), pas deux positionnels : `page.evaluate(fn, arg)` n'en transmet qu'un. */
-function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
+ *  Rectangle de rendu non nul (`display:none` et les nœuds détachés rendent un
+ *  rectangle entièrement à zéro) et absence de `visibility:hidden` — qui, lui,
+ *  conserve un rectangle non nul. Limite connue, acceptée : un élément à
+ *  `opacity:0` ou recouvert par un autre passe pour visible ici. Le motif
+ *  dominant sur ce site (des classes qui basculent `display`/`visibility`,
+ *  pas l'opacité) rend ce critère suffisant en pratique ; à durcir si un
+ *  gabarit CoinGecko masque autrement une variante. */
+function visibilitesParSelecteur(selectors) {
   const estVisible = (el) => {
     if (!el.isConnected) return false
     const rect = el.getBoundingClientRect()
@@ -161,6 +154,53 @@ function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
     return style.visibility !== 'hidden' && style.display !== 'none'
   }
 
+  return selectors.map((selecteur) => {
+    let noeuds
+    try {
+      noeuds = Array.from(document.querySelectorAll(selecteur))
+    } catch {
+      return { selecteur, trouve: false }
+    }
+    if (noeuds.length === 0) return { selecteur, trouve: false }
+    return { selecteur, trouve: true, visibilites: noeuds.map(estVisible) }
+  })
+}
+
+/** Étant, pour chaque sélecteur, la visibilité de ses correspondances (calculée
+ *  par `visibilitesParSelecteur`), rend le nœud à retenir — le premier visible,
+ *  ou 0 à défaut — via `indexPremierVisible`, la SEULE définition de la règle,
+ *  réellement appelée ici (pas dupliquée dans une évaluation en page, ce qui
+ *  serait impossible : `page.evaluate` sérialise `mesurerSelecteurs` seule,
+ *  sans les fonctions déclarées à côté d'elle dans ce module). */
+async function indicesVisibles(page, selectors) {
+  const releve = await page.evaluate(visibilitesParSelecteur, selectors)
+  return releve.map((r) => (r.trouve ? (indexPremierVisible(r.visibilites) ?? 0) : null))
+}
+
+/** Sonde exécutée DANS la page : un `getComputedStyle` par sélecteur, en un seul
+ *  aller-retour. Un sélecteur sans correspondance est consigné comme tel, jamais
+ *  omis en silence.
+ *
+ *  Le nœud mesuré est TOUJOURS celui désigné par `indices[i]` (calculé en amont
+ *  par `indicesVisibles`, jamais recalculé ici) — c'est ce qui garde
+ *  `sonderInteractions` alignée sur EXACTEMENT le même nœud entre le repos et
+ *  les états survol/focus. Son index et le total des correspondances sont
+ *  consignés (`noeud`) quand ce n'est pas le premier, pour qu'un lecteur de
+ *  mesures.json sache qu'il y avait ambiguïté. Cette règle suppose la
+ *  composition DOM stable entre les instants mesurés — une hypothèse, pas une
+ *  garantie : si le sélecteur gagne ou perd des correspondances entre-temps
+ *  (page de cotations qui se rafraîchit), l'index peut désigner un nœud
+ *  différent, et rien ne le détecte. Risque déjà présent avant cette
+ *  correction (l'ancien code visait l'index 0 avec la même fragilité) : ce
+ *  n'est pas une régression, et s'en prémunir coûterait plus que ça ne
+ *  rapporte ici.
+ *
+ *  `avecContour` est réservé au sondage des interactions (focus) : l'anneau de
+ *  focus vit dans les propriétés `outline`, absentes du relevé « selectors »
+ *  d'origine. Par défaut à `false` — la structure produite pour `--selectors` ne
+ *  bouge donc pas d'un octet quand `--interactions` est absent. Un seul argument
+ *  (objet), pas deux positionnels : `page.evaluate(fn, arg)` n'en transmet qu'un. */
+function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
   return selectors.map((selecteur, i) => {
     let noeuds
     try {
@@ -171,8 +211,7 @@ function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
     if (noeuds.length === 0) return { selecteur, trouve: false }
 
     const force = indices ? indices[i] : null
-    let index = force !== null && force !== undefined ? force : noeuds.findIndex(estVisible)
-    if (index === -1) index = 0 // aucune correspondance visible : on mesure la première, faute de mieux.
+    const index = force !== null && force !== undefined ? force : 0
     const el = noeuds[index]
 
     const st = getComputedStyle(el)
@@ -437,7 +476,8 @@ async function sonderInteractions(page, selectors) {
   const resultat = {}
   if (selectors.length === 0) return resultat
 
-  const reposTous = await page.evaluate(mesurerSelecteurs, { selectors, avecContour: true })
+  const indices = await indicesVisibles(page, selectors)
+  const reposTous = await page.evaluate(mesurerSelecteurs, { selectors, avecContour: true, indices })
 
   for (let i = 0; i < selectors.length; i += 1) {
     const selecteur = selectors[i]
@@ -457,9 +497,15 @@ async function sonderInteractions(page, selectors) {
 
     /* Le nœud choisi au repos (`repos.noeud`) fait foi pour TOUTE la suite :
        survol, focus et remesures ciblent le même index qu'au repos, jamais un
-       nœud recalculé indépendamment — sans quoi le delta comparerait deux
-       éléments distincts (ex. une variante masquée au repos contre la variante
-       visible survolée), ce qui serait pire que le défaut corrigé. */
+       nœud recalculé par une règle différente — sans quoi le delta comparerait
+       deux éléments distincts (ex. une variante masquée au repos contre la
+       variante visible survolée). Ce qui est garanti : la RÈGLE de choix est
+       unique et partagée. Ce qui ne l'est pas : que le DOM reste identique
+       entre le repos et le survol/focus — si le sélecteur gagne ou perd des
+       correspondances entre-temps (page de cotations qui se rafraîchit),
+       l'index peut désigner un nœud différent, et rien ne le détecte. Risque
+       déjà présent avant cette correction (l'ancien code visait l'index 0
+       avec la même fragilité) : pas une régression, pas gardée contre ici. */
     const index = repos.noeud?.index ?? 0
     const locator = page.locator(selecteur).nth(index)
     const attente = Math.max(dureeTransitionMs(repos.style.transitionDuree), 50)
@@ -572,7 +618,8 @@ async function main() {
          eux : un relevé unique à 1440/clair les rendrait invisibles. On mesure donc
          à chaque passe — la page est déjà chargée pour la capture, le coût marginal
          est nul. */
-      const valeurs = await page.evaluate(mesurerSelecteurs, { selectors })
+      const indices = await indicesVisibles(page, selectors)
+      const valeurs = await page.evaluate(mesurerSelecteurs, { selectors, indices })
       releves.push({ largeur, theme, valeurs })
     }
 
