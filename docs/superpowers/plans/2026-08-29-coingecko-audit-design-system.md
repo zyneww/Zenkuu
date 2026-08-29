@@ -48,24 +48,35 @@ Elles s'appliquent implicitement à **chaque** tâche de ce plan.
 
 ## Outillage navigateur — répartition des rôles
 
-Les deux MCP disponibles ne pilotent **pas le même navigateur**, et aucun ne fait tout :
+**Le MCP `chrome-devtools` n'est plus employé.** Il partage un unique profil Chrome
+(`~/.cache/chrome-devtools-mcp/chrome-profile`, sans `--isolated`) entre toutes les
+sessions de la machine : deux sessions y entrent en collision sur le verrou de profil,
+et rien ne permet à un agent de distinguer « son » processus de celui d'autrui. Un
+sous-agent a tenté de dénouer ce conflit et a tué tous les processus du serveur, ceux
+des autres sessions compris. Le problème est structurel, pas accidentel, et il reste
+68 pages pendant lesquelles il se reproduirait.
 
-| | `chrome-devtools` | `claude-in-chrome` |
+| | `scripts/audit-coingecko-page.mjs` | `claude-in-chrome` |
 |---|---|---|
-| Navigateur | instance propre, vierge | le Chrome réel de l'exploitant |
+| Moteur | Chromium via Playwright, **profil isolé par exécution** | le Chrome réel de l'exploitant |
 | Session CoinGecko | non | **oui** |
-| Capture sur disque | **oui** (`filePath`) | non — l'image revient dans la réponse |
-| `getComputedStyle` | **oui** (`evaluate_script`) | oui (`javascript_tool`) |
-| Redimensionnement | `resize_page`, `emulate` | `resize_window` |
+| Capture sur disque | **oui**, nativement | non — l'image revient dans la réponse |
+| `getComputedStyle` | **oui**, en lot, vers un JSON | oui (`javascript_tool`) |
+| Coût pour 68 pages | une commande par page | un aller-retour d'outil par action |
 
-**Règle :** `chrome-devtools` fait tout le travail — captures et mesures — sur les pages
-publiques et sur ZENKUU en local. `claude-in-chrome` n'est employé que pour les pages
-qui exigent la session CoinGecko de l'exploitant.
+**Règle :** l'outil de relevé du dépôt (tâche 3bis) fait tout le travail — captures et
+mesures — sur les pages publiques et sur ZENKUU en local. `claude-in-chrome` n'est employé
+que pour les pages qui exigent la session CoinGecko de l'exploitant.
 
 Pour ces pages-là, la capture de référence **ne peut pas être écrite sur disque**. L'entrée
 d'audit consigne alors l'observation en texte et le dit dans « Notes » : une capture
 manquante qu'on signale vaut mieux qu'une capture d'une page déconnectée qu'on ferait
 passer pour la page connectée.
+
+⚠️ **Aucune commande qui tue un processus** (`pkill`, `kill`, `killall`) ni qui supprime un
+fichier de verrou système, dans aucune tâche. Un conflit d'outillage se remonte à
+l'exploitant ; il ne se résout pas à l'aveugle sur des processus qui peuvent appartenir à
+quelqu'un d'autre.
 
 ---
 
@@ -557,6 +568,182 @@ EOF
 
 ---
 
+### Tâche 3bis : L'outil de relevé
+
+Le MCP de navigation s'est révélé structurellement inutilisable (voir « Outillage
+navigateur »). Les 68 pages seront relevées par un script du dépôt, qui pilote Chromium
+par Playwright — déjà une dépendance du projet, et déjà employé par
+`scripts/audit-responsive.mjs`.
+
+Ce n'est pas seulement un remplacement : c'est aussi ce qui rend la boucle de la tâche 5
+abordable. Une commande par page remplace une dizaine d'allers-retours d'outil.
+
+**Fichiers :**
+- Créer : `scripts/audit-coingecko-page.mjs`
+- Créer : `scripts/audit-coingecko-page.test.mjs`
+
+**Interfaces :**
+- Consomme : `playwright`, déjà installé à la racine.
+- Produit : la commande
+  `node scripts/audit-coingecko-page.mjs --url=<chemin> --slug=<slug> [--selectors=<liste>] [--base=<origine>]`
+  qui écrit six captures dans `docs/references/coingecko/<slug>/` et un relevé de styles
+  dans `docs/references/coingecko/<slug>/mesures.json`. Consommée par les tâches 4, 5 et 11.
+
+- [ ] **Étape 1 : Écrire le test qui échoue**
+
+Le script est de l'entrée-sortie : ce qui mérite un test unitaire, c'est la **construction
+des chemins et des arguments**, pas le pilotage du navigateur. Extraire ces deux fonctions
+pures et les tester ; le pilotage sera éprouvé par la fumée de l'étape 5.
+
+Créer `scripts/audit-coingecko-page.test.mjs` :
+
+```js
+import { describe, expect, it } from 'vitest'
+
+import { cheminsDeCapture, lireArguments } from './audit-coingecko-page.mjs'
+
+describe('lireArguments', () => {
+  it('lit url et slug', () => {
+    const a = lireArguments(['--url=/fr', '--slug=accueil'])
+    expect(a.url).toBe('/fr')
+    expect(a.slug).toBe('accueil')
+  })
+
+  it('applique l’origine de CoinGecko par défaut', () => {
+    expect(lireArguments(['--url=/fr', '--slug=accueil']).base).toBe('https://www.coingecko.com')
+  })
+
+  it('accepte une origine explicite, pour auditer ZENKUU en local', () => {
+    const a = lireArguments(['--url=/fr', '--slug=z', '--base=http://localhost:3000'])
+    expect(a.base).toBe('http://localhost:3000')
+  })
+
+  it('découpe la liste de sélecteurs sur les virgules', () => {
+    const a = lireArguments(['--url=/fr', '--slug=a', '--selectors=table td,a.lien'])
+    expect(a.selectors).toEqual(['table td', 'a.lien'])
+  })
+
+  it('rend une liste de sélecteurs vide quand l’argument est absent', () => {
+    expect(lireArguments(['--url=/fr', '--slug=a']).selectors).toEqual([])
+  })
+
+  it('exige url et slug', () => {
+    expect(() => lireArguments(['--url=/fr'])).toThrow(/slug/)
+    expect(() => lireArguments(['--slug=a'])).toThrow(/url/)
+  })
+
+  it('refuse un slug qui sortirait du dossier de références', () => {
+    /* Un slug est un nom de dossier, pas un chemin : sans ce garde-fou,
+       `--slug=../../..` écrirait des captures n'importe où dans le dépôt. */
+    expect(() => lireArguments(['--url=/fr', '--slug=../evasion'])).toThrow(/slug/)
+  })
+})
+
+describe('cheminsDeCapture', () => {
+  it('rend six chemins, trois largeurs par deux thèmes', () => {
+    const chemins = cheminsDeCapture('accueil')
+    expect(chemins).toHaveLength(6)
+  })
+
+  it('nomme les fichiers largeur-thème, sous le dossier du slug', () => {
+    const noms = cheminsDeCapture('accueil').map((c) => c.fichier)
+    expect(noms).toEqual([
+      'docs/references/coingecko/accueil/360-clair.png',
+      'docs/references/coingecko/accueil/360-sombre.png',
+      'docs/references/coingecko/accueil/768-clair.png',
+      'docs/references/coingecko/accueil/768-sombre.png',
+      'docs/references/coingecko/accueil/1440-clair.png',
+      'docs/references/coingecko/accueil/1440-sombre.png',
+    ])
+  })
+
+  it('porte la largeur et le thème de chaque capture', () => {
+    const [premier] = cheminsDeCapture('accueil')
+    expect(premier.largeur).toBe(360)
+    expect(premier.theme).toBe('clair')
+  })
+})
+```
+
+- [ ] **Étape 2 : Lancer le test pour le voir échouer**
+
+```bash
+bunx vitest run scripts/audit-coingecko-page.test.mjs
+```
+
+Attendu : ÉCHEC — le module n'existe pas.
+
+- [ ] **Étape 3 : Écrire le script**
+
+Créer `scripts/audit-coingecko-page.mjs`. Exigences, dans l'ordre d'importance :
+
+1. **Exporte `lireArguments(argv)` et `cheminsDeCapture(slug)`**, aux signatures que le
+   test fixe. Le bloc de ligne de commande est gardé comme dans
+   `scripts/audit-coingecko-doc.mjs` (comparaison de `import.meta.url` à
+   `pathToFileURL(process.argv[1]).href`), pour que l'import par vitest ne lance rien.
+2. **Trois largeurs — 360, 768, 1440 — et deux thèmes.** Capture pleine page.
+3. **Le thème se bascule par le mécanisme réel du site**, jamais en forçant une classe CSS.
+   Repérer une fois comment CoinGecko persiste la préférence (stockage local ou cookie),
+   le poser avant le chargement, et **écrire en commentaire la clé observée et la date du
+   relevé**. Si le mécanisme reste introuvable, ne rien forcer : lever une erreur explicite
+   qui dit ce qui a été cherché.
+4. **`--selectors`** relève `getComputedStyle` sur le premier nœud correspondant à chaque
+   sélecteur, **en une seule évaluation dans la page**, et écrit `mesures.json` :
+   pour chaque sélecteur, le sélecteur, un extrait de texte pour l'identifier, et les
+   propriétés — famille et graisse de police, taille, interligne, interlettrage, couleur,
+   fond, filet, rayon, ombre, rembourrages, marges, durée et courbe de transition.
+   Un sélecteur sans correspondance est consigné comme tel, jamais omis en silence.
+5. **`--base`** permet de viser ZENKUU en local ; la valeur par défaut est CoinGecko.
+6. **Profil isolé par exécution** — c'est le comportement par défaut de
+   `chromium.launch()`, ne pas le contourner par un `userDataDir` partagé. C'est ce qui
+   supprime la classe d'incident qui a fait tomber le MCP.
+7. **Aucune commande qui tue un processus.** Si le navigateur ne démarre pas, lever et
+   sortir en code 1.
+
+- [ ] **Étape 4 : Lancer le test pour le voir passer**
+
+```bash
+bunx vitest run scripts/audit-coingecko-page.test.mjs
+```
+
+Attendu : 10 tests au vert.
+
+- [ ] **Étape 5 : Épreuve de fumée sur une vraie page**
+
+```bash
+node scripts/audit-coingecko-page.mjs --url=/fr --slug=fumee --selectors="body,a,button"
+ls docs/references/coingecko/fumee/
+```
+
+Attendu : six fichiers `.png` et un `mesures.json`. Vérifier que le JSON porte des valeurs
+réelles pour les trois sélecteurs, et que les captures `-clair` et `-sombre` diffèrent en
+taille — deux fichiers identiques signaleraient que la bascule de thème n'a pas pris.
+
+Puis supprimer le dossier d'épreuve : `rm -rf docs/references/coingecko/fumee`.
+
+- [ ] **Étape 6 : Commit**
+
+```bash
+git add scripts/audit-coingecko-page.mjs scripts/audit-coingecko-page.test.mjs
+git commit -m "$(cat <<'EOF'
+L'audit reçoit son propre outil de relevé
+
+Le MCP de navigation partage un profil Chrome entre toutes les sessions
+de la machine : deux sessions y entrent en collision et aucune ne peut
+dénouer le conflit sans toucher aux processus des autres. Playwright
+était déjà là, déjà piloté par audit-responsive.mjs, et son profil est
+isolé par exécution.
+
+Une commande par page remplace une dizaine d'allers-retours d'outil, ce
+qui rend les 68 pages restantes abordables.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
 ### Tâche 4 : Auditer l'accueil — la page qui fixe la méthode
 
 L'accueil porte la navigation, le tableau de cotations, les sparklines, les cartes de
@@ -575,10 +762,17 @@ méthode avant de la répéter trente fois.
 
 - [ ] **Étape 1 : Capturer**
 
-Sur `https://www.coingecko.com/fr` avec `chrome-devtools`, en 360, 768 et 1440 px de
-large, dans les deux thèmes. Six fichiers dans `docs/references/coingecko/accueil/` :
+Avec l'outil de la tâche 3bis, qui produit les six fichiers et le relevé de styles en une
+commande :
+
+```bash
+node scripts/audit-coingecko-page.mjs --url=/fr --slug=accueil --selectors="<liste>"
+```
+
+La liste de sélecteurs est celle de l'étape 3 : compose-la d'abord en lisant la page, puis
+lance la commande une seule fois. Résultat attendu dans `docs/references/coingecko/accueil/` :
 `360-clair.png`, `360-sombre.png`, `768-clair.png`, `768-sombre.png`, `1440-clair.png`,
-`1440-sombre.png`. Le thème se bascule par le contrôle du site, pas en forçant une classe.
+`1440-sombre.png`, et `mesures.json`.
 
 - [ ] **Étape 2 : Relever la structure**
 
@@ -676,10 +870,13 @@ Pour **chaque** page non cochée de la liste, dans l'ordre :
 
 - [ ] **Étape 1 : Capturer**
 
-En 360, 768 et 1440 px de large, dans les deux thèmes, vers
-`docs/references/coingecko/<slug>/` : `360-clair.png`, `360-sombre.png`, `768-clair.png`,
-`768-sombre.png`, `1440-clair.png`, `1440-sombre.png`. Le thème se bascule par le contrôle
-du site.
+```bash
+node scripts/audit-coingecko-page.mjs --url=<chemin> --slug=<slug> --selectors="<liste>"
+```
+
+Une seule commande produit les six captures et `mesures.json` dans
+`docs/references/coingecko/<slug>/`. La liste de sélecteurs reprend le gabarit posé par la
+tâche 4, augmenté des sélecteurs propres à la page.
 
 - [ ] **Étape 2 : Relever la structure**
 
