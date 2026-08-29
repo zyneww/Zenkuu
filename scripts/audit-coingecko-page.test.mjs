@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   capturesIdentiques,
   cheminsDeCapture,
+  deltaDEtat,
   lireArguments,
   mecanismeTheme,
   signalDeFond,
@@ -158,5 +159,50 @@ describe('capturesIdentiques', () => {
     /* Deux images de même poids peuvent différer en contenu : la comparaison porte
        sur les octets, jamais sur la seule longueur. */
     expect(capturesIdentiques(Buffer.from([1, 2, 3]), Buffer.from([1, 2, 4]))).toBe(false)
+  })
+})
+
+describe('lireArguments — interactions', () => {
+  it('découpe la liste de sélecteurs interactifs sur les virgules', () => {
+    const a = lireArguments(['--url=/fr', '--slug=a', '--interactions=tr,a.lien'])
+    expect(a.interactions).toEqual(['tr', 'a.lien'])
+  })
+
+  it('rend une liste vide quand l’argument est absent', () => {
+    expect(lireArguments(['--url=/fr', '--slug=a']).interactions).toEqual([])
+  })
+})
+
+describe('deltaDEtat', () => {
+  /* Un état interactif ne se décrit pas par un dump complet : trois états sur dix-huit
+     sélecteurs et deux thèmes produiraient des milliers de lignes dont l'immense
+     majorité serait identique au repos. Ce qui porte l'information, c'est ce qui
+     CHANGE — et c'est cela seul que le système de dessin consomme. */
+  it('ne garde que les propriétés qui ont changé', () => {
+    const repos = { color: 'rgb(0, 0, 0)', backgroundColor: 'rgb(255, 255, 255)' }
+    const actif = { color: 'rgb(0, 0, 255)', backgroundColor: 'rgb(255, 255, 255)' }
+    expect(deltaDEtat(repos, actif)).toEqual({ color: 'rgb(0, 0, 255)' })
+  })
+
+  it('rend un objet vide quand rien ne bouge', () => {
+    const etat = { color: 'rgb(0, 0, 0)' }
+    expect(deltaDEtat(etat, { ...etat })).toEqual({})
+  })
+
+  it('signale une propriété apparue', () => {
+    expect(deltaDEtat({}, { outlineColor: 'rgb(1, 2, 3)' })).toEqual({
+      outlineColor: 'rgb(1, 2, 3)',
+    })
+  })
+
+  it('signale une propriété disparue plutôt que de la taire', () => {
+    /* Une bordure qui DISPARAÎT au survol est un fait de dessin. L'omettre
+       laisserait croire qu'elle persiste. */
+    expect(deltaDEtat({ borderTopWidth: '1px' }, {})).toEqual({ borderTopWidth: null })
+  })
+
+  it('tolère un état absent — un sélecteur sans correspondance', () => {
+    expect(deltaDEtat(null, { color: 'rgb(1, 1, 1)' })).toEqual({})
+    expect(deltaDEtat({ color: 'rgb(1, 1, 1)' }, null)).toEqual({})
   })
 })

@@ -94,7 +94,12 @@ export function lireArguments(argv) {
   const selectorsArg = arg(argv, 'selectors', null)
   const selectors = selectorsArg ? selectorsArg.split(',') : []
 
-  return { url, slug, base, selectors }
+  /* Absent, la campagne se rejoue à l'identique : aucune interaction n'est sondée,
+     aucune clé « interactions » n'apparaît dans mesures.json. */
+  const interactionsArg = arg(argv, 'interactions', null)
+  const interactions = interactionsArg ? interactionsArg.split(',') : []
+
+  return { url, slug, base, selectors, interactions }
 }
 
 export function cheminsDeCapture(slug) {
@@ -129,8 +134,14 @@ export function mecanismeTheme(base) {
 
 /** Sonde exécutée DANS la page : un `getComputedStyle` par sélecteur, en un seul
  *  aller-retour. Un sélecteur sans correspondance est consigné comme tel, jamais
- *  omis en silence. */
-function mesurerSelecteurs(selectors) {
+ *  omis en silence.
+ *
+ *  `avecContour` est réservé au sondage des interactions (focus) : l'anneau de
+ *  focus vit dans les propriétés `outline`, absentes du relevé « selectors »
+ *  d'origine. Par défaut à `false` — la structure produite pour `--selectors` ne
+ *  bouge donc pas d'un octet quand `--interactions` est absent. Un seul argument
+ *  (objet), pas deux positionnels : `page.evaluate(fn, arg)` n'en transmet qu'un. */
+function mesurerSelecteurs({ selectors, avecContour = false }) {
   return selectors.map((selecteur) => {
     let el
     try {
@@ -167,9 +178,68 @@ function mesurerSelecteurs(selectors) {
         marges: cote('margin'),
         transitionDuree: st.transitionDuration,
         transitionCourbe: st.transitionTimingFunction,
+        ...(avecContour
+          ? {
+              contourCouleur: st.outlineColor,
+              contourStyle: st.outlineStyle,
+              contourEpaisseur: st.outlineWidth,
+              contourDecalage: st.outlineOffset,
+            }
+          : {}),
       },
     }
   })
+}
+
+/**
+ * Ne garde que ce qui a CHANGÉ entre le repos et un état interactif (survol ou
+ * focus). Un dump complet des trois états sur dix-huit sélecteurs et deux thèmes
+ * produirait des milliers de lignes identiques au repos — ce qui informe le
+ * système de dessin, c'est ce qui bouge.
+ *
+ * Une propriété DISPARUE (présente au repos, absente de l'état) est rendue à
+ * `null`, jamais omise : une bordure qui s'efface au survol est un fait de
+ * dessin, le taire laisserait croire qu'elle persiste. Fonction pure, sans
+ * dépendance au navigateur — testable directement.
+ */
+export function deltaDEtat(repos, etat) {
+  if (!repos || !etat) return {}
+  const delta = {}
+  const cles = new Set([...Object.keys(repos), ...Object.keys(etat)])
+  for (const cle of cles) {
+    const dansRepos = Object.prototype.hasOwnProperty.call(repos, cle)
+    const dansEtat = Object.prototype.hasOwnProperty.call(etat, cle)
+    if (dansRepos && !dansEtat) {
+      delta[cle] = null
+      continue
+    }
+    if (!dansRepos && dansEtat) {
+      delta[cle] = etat[cle]
+      continue
+    }
+    const avant = repos[cle]
+    const apres = etat[cle]
+    const identique =
+      typeof avant === 'object' || typeof apres === 'object'
+        ? JSON.stringify(avant) === JSON.stringify(apres)
+        : avant === apres
+    if (!identique) delta[cle] = apres
+  }
+  return delta
+}
+
+/** Lit la durée de transition la plus longue d'une valeur `transitionDuration`
+ *  calculée (ex. `"0.2s, 0.15s"`), en millisecondes. Rend 0 pour une valeur
+ *  absente ou illisible plutôt que de lever. */
+function dureeTransitionMs(transitionDuration) {
+  if (!transitionDuration) return 0
+  const valeurs = transitionDuration.split(',').map((segment) => {
+    const correspondance = segment.trim().match(/^(-?[\d.]+)(ms|s)$/)
+    if (!correspondance) return 0
+    const nombre = parseFloat(correspondance[1])
+    return correspondance[2] === 'ms' ? nombre : nombre * 1000
+  })
+  return valeurs.length ? Math.max(...valeurs) : 0
 }
 
 /** Pose la préférence de thème AVANT le chargement, par le mécanisme réel du site
@@ -313,8 +383,96 @@ async function chargerAvecTheme(context, base, url, theme) {
   return page
 }
 
+/* Limite de temps globale du sondage des interactions, pour UNE passe (un thème) :
+   un sélecteur qui ne répond jamais ne doit pas bloquer une campagne de 68 pages.
+   Combinée au délai par action ci-dessous, qui borne chaque hover/focus pris
+   individuellement. */
+const LIMITE_SONDAGE_MS = 10_000
+const DELAI_ACTION_MS = 2_000
+
+/** Sonde le survol et le focus d'une liste de sélecteurs sur la page DÉJÀ CHARGÉE
+ *  (aucun `page.goto` ici — la page des deux passes de 1440px est réutilisée).
+ *  N'écrit que les DELTAS par rapport au repos ; jamais de clic — un clic peut
+ *  naviguer, ouvrir une modale ou déclencher une action, ce qui ruinerait la page
+ *  pour les mesures suivantes. */
+async function sonderInteractions(page, selectors) {
+  const echeance = Date.now() + LIMITE_SONDAGE_MS
+  const resultat = {}
+  if (selectors.length === 0) return resultat
+
+  const reposTous = await page.evaluate(mesurerSelecteurs, { selectors, avecContour: true })
+
+  for (let i = 0; i < selectors.length; i += 1) {
+    const selecteur = selectors[i]
+    const repos = reposTous[i]
+
+    if (Date.now() > echeance) {
+      const echec = { echec: 'limite de temps globale du sondage dépassée' }
+      resultat[selecteur] = { survol: echec, focus: echec }
+      continue
+    }
+
+    if (!repos.trouve) {
+      const echec = { echec: 'sélecteur introuvable' }
+      resultat[selecteur] = { survol: echec, focus: echec }
+      continue
+    }
+
+    const locator = page.locator(selecteur).first()
+    const attente = Math.max(dureeTransitionMs(repos.style.transitionDuree), 50)
+
+    /* Ni `hover()` ni sa vérification de visibilité ne doivent faire défiler la
+       page — cela changerait ce que les six captures ont déjà figé. On vérifie
+       donc la visibilité et la présence dans le viewport SANS agir, et on ne
+       tente le survol que si l'élément y est déjà. */
+    let survol
+    try {
+      const visible = await locator.isVisible()
+      if (!visible) {
+        survol = { echec: 'masqué (non visible)' }
+      } else {
+        const dansViewport = await locator.evaluate((el) => {
+          const r = el.getBoundingClientRect()
+          return r.top >= 0 && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth
+        })
+        if (!dansViewport) {
+          survol = { echec: 'hors écran (hors du viewport visible)' }
+        } else {
+          await locator.hover({ timeout: DELAI_ACTION_MS })
+          await page.waitForTimeout(attente)
+          const [etat] = await page.evaluate(mesurerSelecteurs, { selectors: [selecteur], avecContour: true })
+          survol = deltaDEtat(repos.style, etat.style)
+          await page.mouse.move(0, 0)
+        }
+      }
+    } catch (erreur) {
+      survol = { echec: String(erreur.message || erreur).slice(0, 160) }
+    }
+
+    let focus
+    try {
+      await locator.focus({ timeout: DELAI_ACTION_MS })
+      const focusReussi = await locator.evaluate((el) => document.activeElement === el)
+      if (!focusReussi) {
+        focus = { echec: 'non focusable (le focus n’a pas pris)' }
+      } else {
+        await page.waitForTimeout(attente)
+        const [etat] = await page.evaluate(mesurerSelecteurs, { selectors: [selecteur], avecContour: true })
+        focus = deltaDEtat(repos.style, etat.style)
+        await page.evaluate(() => document.activeElement && document.activeElement.blur())
+      }
+    } catch (erreur) {
+      focus = { echec: String(erreur.message || erreur).slice(0, 160) }
+    }
+
+    resultat[selecteur] = { survol, focus }
+  }
+
+  return resultat
+}
+
 async function main() {
-  const { url, slug, base, selectors } = lireArguments(process.argv.slice(2))
+  const { url, slug, base, selectors, interactions } = lireArguments(process.argv.slice(2))
   const chemins = cheminsDeCapture(slug)
   const dossier = path.join(RACINE_REFERENCES, slug)
   await mkdir(dossier, { recursive: true })
@@ -329,6 +487,7 @@ async function main() {
   }
 
   const releves = []
+  const interactionsParTheme = {}
 
   for (const { largeur, theme, fichier } of chemins) {
     const context = await browser.newContext({ viewport: { width: largeur, height: 900 } })
@@ -342,8 +501,15 @@ async function main() {
          eux : un relevé unique à 1440/clair les rendrait invisibles. On mesure donc
          à chaque passe — la page est déjà chargée pour la capture, le coût marginal
          est nul. */
-      const valeurs = await page.evaluate(mesurerSelecteurs, selectors)
+      const valeurs = await page.evaluate(mesurerSelecteurs, { selectors })
       releves.push({ largeur, theme, valeurs })
+    }
+
+    /* Le sondage des interactions réutilise la page déjà chargée, aux deux passes
+       de la largeur de référence (clair et sombre) — les couleurs d'état diffèrent
+       entre thèmes, d'où les deux. Aucun `page.goto` supplémentaire. */
+    if (interactions.length > 0 && largeur === REFERENCE_MESURES.largeur) {
+      interactionsParTheme[theme] = await sonderInteractions(page, interactions)
     }
 
     await context.close()
@@ -366,13 +532,16 @@ async function main() {
     }
   }
 
-  if (selectors.length > 0) {
+  if (selectors.length > 0 || interactions.length > 0) {
     const releve = {
       url,
       base,
       releveLe: new Date().toISOString(),
       reference: REFERENCE_MESURES,
       mesures: releves,
+      /* Absent quand --interactions n'est pas fourni : la structure de
+         mesures.json ne bouge pas d'un octet pour les commandes déjà rejouées. */
+      ...(interactions.length > 0 ? { interactions: interactionsParTheme } : {}),
     }
     await writeFile(path.join(dossier, 'mesures.json'), JSON.stringify(releve, null, 2))
   }
