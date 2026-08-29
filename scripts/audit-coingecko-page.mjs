@@ -12,18 +12,32 @@
  *
  * ── LA BASCULE DE THÈME ───────────────────────────────────────────────────────
  *
- * CoinGecko ne lit pas une préférence en `localStorage` : il persiste le thème dans
- * un COOKIE `is_dark` (`"true"` ou `"false"`), sur le domaine de la page. Un script
- * intégré tout en haut du `<body>` lit ce cookie et ajoute `darktheme`/`tw-dark` au
- * corps du document avant que le reste du HTML ne s'affiche, pour éviter un flash.
+ * Le mécanisme dépend du site visé — CoinGecko et ZENKUU ne persistent pas leur
+ * préférence de la même façon :
  *
- * Relevé le 2026-08-29, en ouvrant https://www.coingecko.com/fr avec Playwright et
- * en déclenchant le contrôleur Stimulus `settings#toggleDarkMode` : `document.cookie`
- * gagne `is_dark=true` après la première bascule, `is_dark=false` après la seconde.
- * On pose donc ce cookie AVANT `page.goto`, plutôt que d'ajouter une classe CSS après
- * coup — une classe forcée produirait une capture qui ne correspond à aucun état réel
- * du site. C'est une valeur observée sur un site tiers : elle peut changer, à vérifier
- * si les captures cessent un jour de refléter le thème demandé.
+ *   - CoinGecko ne lit pas `localStorage` : il persiste le thème dans un COOKIE
+ *     `is_dark` (`"true"` ou `"false"`), sur le domaine de la page. Un script
+ *     intégré tout en haut du `<body>` lit ce cookie et ajoute `darktheme`/`tw-dark`
+ *     au corps du document avant que le reste du HTML ne s'affiche, pour éviter un
+ *     flash. Relevé le 2026-08-29, en ouvrant https://www.coingecko.com/fr avec
+ *     Playwright et en déclenchant le contrôleur Stimulus `settings#toggleDarkMode` :
+ *     `document.cookie` gagne `is_dark=true` après la première bascule,
+ *     `is_dark=false` après la seconde. C'est une valeur observée sur un site
+ *     tiers : elle peut changer, à vérifier si les captures cessent un jour de
+ *     refléter le thème demandé.
+ *
+ *   - ZENKUU lit `localStorage['zenkuu-theme']` (`'dark'` / `'light'` / absente —
+ *     absente veut dire « suivre le système »), posée par
+ *     `apps/web/components/ThemeScript.tsx`, qui ajoute la classe `dark` sur
+ *     `<html>` avant la première peinture. La clé est lue dans le code du dépôt,
+ *     pas devinée.
+ *
+ * Dans les deux cas, la préférence est posée AVANT `page.goto`, plutôt qu'une classe
+ * CSS ajoutée après coup — une classe forcée produirait une capture qui ne
+ * correspond à aucun état réel du site. Et dans les deux cas, l'état RÉEL de la page
+ * est recontrôlé après chargement (`themeReel`) : si la bascule n'a pas pris, le
+ * script échoue bruyamment plutôt que de produire deux captures identiques prises
+ * pour une preuve d'invariance qui n'en serait pas une.
  *
  * ── USAGE ────────────────────────────────────────────────────────────────────
  *
@@ -40,9 +54,16 @@ import { pathToFileURL } from 'node:url'
 const RACINE_REFERENCES = 'docs/references/coingecko'
 const LARGEURS = [360, 768, 1440]
 const THEMES = ['clair', 'sombre']
-/** Largeur et thème sur lesquels le relevé `getComputedStyle` est effectué : le
- *  rendu desktop clair est la référence pour les jetons de design du projet. */
-const REFERENCE_MESURES = { largeur: 1440, theme: 'clair' }
+
+/** Clé localStorage brute lue par ThemeScript AVANT l'hydratation — voir
+ *  apps/web/components/ThemeScript.tsx. */
+const ZENKUU_THEME_STORAGE_KEY = 'zenkuu-theme'
+
+/** Clé du store zustand/persist qui rehydrate ENSUITE et réapplique le thème — voir
+ *  apps/web/lib/stores/settings.ts. Sans elle, son état par défaut ('system')
+ *  écraserait la classe posée par ThemeScript quelques centaines de millisecondes
+ *  après le chargement. */
+const ZENKUU_SETTINGS_STORAGE_KEY = 'zenkuu-settings'
 
 const arg = (argv, flag, fallback) => {
   const hit = argv.find((a) => a.startsWith(`--${flag}=`))
@@ -82,6 +103,22 @@ export function cheminsDeCapture(slug) {
     }
   }
   return chemins
+}
+
+/**
+ * Le mécanisme de bascule dépend du site visé, pas de la commande : logique pure,
+ * testable sans navigateur. `www.coingecko.com` et tout sous-domaine de
+ * `coingecko.com` utilisent le cookie ; tout le reste — ZENKUU en local ou en
+ * production — utilise `localStorage`.
+ */
+export function mecanismeTheme(base) {
+  let hostname
+  try {
+    hostname = new URL(base).hostname
+  } catch {
+    return 'zenkuu'
+  }
+  return hostname === 'coingecko.com' || hostname.endsWith('.coingecko.com') ? 'coingecko' : 'zenkuu'
 }
 
 /** Sonde exécutée DANS la page : un `getComputedStyle` par sélecteur, en un seul
@@ -129,10 +166,42 @@ function mesurerSelecteurs(selectors) {
   })
 }
 
+/** Pose la préférence de thème AVANT le chargement, par le mécanisme réel du site
+ *  visé — jamais en forçant une classe CSS après coup. */
+async function poserTheme(context, base, theme) {
+  if (mecanismeTheme(base) === 'coingecko') {
+    await context.addCookies([{ name: 'is_dark', value: theme === 'sombre' ? 'true' : 'false', url: base }])
+  } else {
+    const valeur = theme === 'sombre' ? 'dark' : 'light'
+    /* Deux clés, pas une : `ThemeScript` lit la clé brute AVANT l'hydratation, mais
+       le store `zustand/persist` ('zenkuu-settings') rehydrate ENSUITE avec son
+       propre état par défaut ('system') et le réapplique via `onRehydrateStorage`
+       — sans cette seconde écriture, il écrase la classe posée par `ThemeScript`
+       moins de deux secondes après le chargement. Constaté dans ce même script, en
+       observant `localStorage` et la classe de `<html>` se réinitialiser ~1,5 s
+       après le chargement. Voir apps/web/lib/stores/settings.ts. */
+    await context.addInitScript(
+      ([cleThemeScript, cleStore, v]) => {
+        localStorage.setItem(cleThemeScript, v)
+        localStorage.setItem(cleStore, JSON.stringify({ state: { theme: v }, version: 0 }))
+      },
+      [ZENKUU_THEME_STORAGE_KEY, ZENKUU_SETTINGS_STORAGE_KEY, valeur],
+    )
+  }
+}
+
+/** Contrôle l'état RÉEL du thème après chargement — pas ce qu'on a demandé, ce que
+ *  la page a effectivement rendu. */
+async function themeReel(page, base) {
+  const sombre =
+    mecanismeTheme(base) === 'coingecko'
+      ? await page.evaluate(() => document.body.className.includes('darktheme'))
+      : await page.evaluate(() => document.documentElement.classList.contains('dark'))
+  return sombre ? 'sombre' : 'clair'
+}
+
 async function chargerAvecTheme(context, base, url, theme) {
-  /* Le cookie est posé AVANT le chargement : le script anti-flash de CoinGecko le
-     lit dès les premiers octets du <body>. */
-  await context.addCookies([{ name: 'is_dark', value: theme === 'sombre' ? 'true' : 'false', url: base }])
+  await poserTheme(context, base, theme)
   const page = await context.newPage()
   try {
     await page.goto(base + url, { waitUntil: 'networkidle', timeout: 45_000 })
@@ -145,6 +214,17 @@ async function chargerAvecTheme(context, base, url, theme) {
   } catch {
     /* rien : on mesure ce qui est affiché */
   }
+
+  /* La bascule est vérifiée ICI, pas supposée : deux captures identiques prises pour
+     une preuve d'invariance sont exactement la donnée factice que le projet
+     interdit. Un mécanisme muet doit casser bruyamment, pas produire un doublon. */
+  const obtenu = await themeReel(page, base)
+  if (obtenu !== theme) {
+    throw new Error(
+      `Bascule de thème sans effet sur ${new URL(base).hostname} : attendu « ${theme} », obtenu « ${obtenu} ».`,
+    )
+  }
+
   return page
 }
 
@@ -163,7 +243,7 @@ async function main() {
     throw new Error(`Chromium n'a pas pu démarrer : ${erreur.message}`)
   }
 
-  let mesures = null
+  const releves = []
 
   for (const { largeur, theme, fichier } of chemins) {
     const context = await browser.newContext({ viewport: { width: largeur, height: 900 } })
@@ -171,8 +251,14 @@ async function main() {
 
     await page.screenshot({ path: path.join(process.cwd(), fichier), fullPage: true })
 
-    if (selectors.length > 0 && largeur === REFERENCE_MESURES.largeur && theme === REFERENCE_MESURES.theme) {
-      mesures = await page.evaluate(mesurerSelecteurs, selectors)
+    if (selectors.length > 0) {
+      /* Les familles « densité » (hauteur de ligne, rembourrage) et « grille et
+         points d'arrêt » se lisent en comparant les largeurs et les thèmes entre
+         eux : un relevé unique à 1440/clair les rendrait invisibles. On mesure donc
+         à chaque passe — la page est déjà chargée pour la capture, le coût marginal
+         est nul. */
+      const valeurs = await page.evaluate(mesurerSelecteurs, selectors)
+      releves.push({ largeur, theme, valeurs })
     }
 
     await context.close()
@@ -183,8 +269,7 @@ async function main() {
       url,
       base,
       releveLe: new Date().toISOString(),
-      reference: REFERENCE_MESURES,
-      mesures: mesures ?? selectors.map((selecteur) => ({ selecteur, trouve: false })),
+      mesures: releves,
     }
     await writeFile(path.join(dossier, 'mesures.json'), JSON.stringify(releve, null, 2))
   }

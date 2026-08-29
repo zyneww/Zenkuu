@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { cheminsDeCapture, lireArguments } from './audit-coingecko-page.mjs'
+import { cheminsDeCapture, lireArguments, mecanismeTheme } from './audit-coingecko-page.mjs'
 
 describe('lireArguments', () => {
   it('lit url et slug', () => {
@@ -61,5 +61,26 @@ describe('cheminsDeCapture', () => {
     const [premier] = cheminsDeCapture('accueil')
     expect(premier.largeur).toBe(360)
     expect(premier.theme).toBe('clair')
+  })
+})
+
+describe('mecanismeTheme', () => {
+  it('choisit le cookie CoinGecko pour www.coingecko.com', () => {
+    expect(mecanismeTheme('https://www.coingecko.com')).toBe('coingecko')
+  })
+
+  it('choisit le cookie CoinGecko pour un sous-domaine de coingecko.com', () => {
+    expect(mecanismeTheme('https://fr.coingecko.com')).toBe('coingecko')
+  })
+
+  it('choisit le stockage local de ZENKUU pour toute autre origine', () => {
+    expect(mecanismeTheme('http://localhost:3000')).toBe('zenkuu')
+  })
+
+  it('ne confond pas un domaine qui contient « coingecko » sans l’être', () => {
+    /* `coingecko.com.evil.example` n'EST PAS coingecko.com : sans ce garde, une
+       correspondance par sous-chaîne appliquerait le cookie CoinGecko à un site
+       qui n'a rien à voir. */
+    expect(mecanismeTheme('https://coingecko.com.evil.example')).toBe('zenkuu')
   })
 })
