@@ -197,15 +197,41 @@ traduit en français, comme `/en/glossary` et `/learn`.
   exchanges, catégories, NFT, articles), ajout au portefeuille depuis la ligne (icône
   étoile), affichage/masquage du bandeau de synthèse marché, bascule de thème clair/sombre,
   sélecteur de langue et de devise, bannière de téléchargement de l'application mobile.
-- **Interactions** : les classes `hover:` Tailwind lues dans le HTML déclarent un survol
-  de ligne et de lien (changement de fond/couleur) — non observé à l'écran, faute d'outil
-  de navigation piloté ; l'en-tête de colonne actuellement trié
-  porte `aria-sort="ascending"` — seul cet état initial a été observé, le basculement
-  effectif au clic (vers `descending`, puis sur une autre colonne) n'a pas été éprouvé,
-  faute d'outil de navigation piloté ; ouverture d'un méga-menu au survol ou au
-  clic (`data-action="mouseover->navbar#handleOver … click->navbar#handleClick"`) ;
-  ouverture de l'overlay de recherche au clic sur le champ (`click->search-v2#showSearchPopup`)
-  et fermeture au clic extérieur ou sur la croix ; bascule du commutateur de thème
+- **Interactions** : dix sélecteurs sondés en survol et en focus sur la largeur de
+  référence (1440 px, deux thèmes) — deltas exacts dans `mesures.json` → `interactions`.
+  **Ligne de tableau** : le survol change le fond (transparent → une teinte neutre très
+  proche du fond de page, différente par thème), sans transition (`0s`, changement
+  instantané) ; non focusable. **Lien de monnaie** (nom dans la ligne) : le survol ne
+  produit AUCUN delta de style mesurable sur le lien lui-même — la classe `hover:`
+  Tailwind lue dans le HTML doit donc agir sur un ancêtre (la ligne) ou un élément non
+  ciblé par ce sélecteur, pas sur le lien en tant que tel ; le focus, lui, affiche
+  l'anneau par défaut du navigateur (`outline: auto`, non personnalisé), identique en
+  clair et en sombre. **En-tête de colonne triable** : survol sondé, aucun changement de
+  style détecté ; non focusable (cohérent avec un tri déclenché par un gestionnaire JS
+  sur un élément sans sémantique de bouton) — l'attribut `aria-sort="ascending"` reste
+  l'unique état de tri observé, le basculement effectif au clic (vers `descending`, puis
+  sur une autre colonne) n'a pas été éprouvé, faute de clic simulé (hors portée de ce
+  relevé). **Bouton discret** (Connexion) : survol ET focus mesurés, avec une asymétrie
+  entre thèmes — le survol change fond et ombre dans les deux thèmes (transition
+  `0.15s`, courbe `cubic-bezier(0.4, 0, 0.2, 1)`, l'ombre simulant un relief) ; le focus
+  en clair n'ajoute qu'un anneau de contour quasi transparent, alors qu'en sombre il
+  ajoute EN PLUS le même changement de fond/ombre que le survol — un clic-clavier n'est
+  donc visuellement repérable qu'en mode sombre sur ce bouton. **Lien de pied de page** :
+  survol non sondé (« hors écran », sous le pli à 1440×900 — signalé tel quel, pas
+  inventé) ; focus mesuré, anneau par défaut identique à celui du lien de monnaie.
+  **Bouton plein** (« Utiliser l'app »), **onglet actif**, **onglet inactif**,
+  **commutateur** et **sélecteur de langue et de devise** (nœud `currencyText`) :
+  sondage exécuté mais chacun des cinq était « masqué (non visible) » au moment du
+  relevé — ce sont des composants qui n'apparaissent qu'une fois un panneau ou un
+  overlay ouvert (bannière app mobile hors du flux normal, onglets et zone de recherche
+  dans l'overlay fermé, commutateur dans un panneau non déployé, sélecteur de devise
+  dans le panneau paramètres non ouvert) ; ni le survol ni le focus n'ont donc pu être
+  mesurés — l'ouverture réelle de ces panneaux reste hors de portée (voir Notes).
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
+  ouverture d'un méga-menu au survol ou au clic
+  (`data-action="mouseover->navbar#handleOver … click->navbar#handleClick"`) ; ouverture
+  de l'overlay de recherche au clic sur le champ (`click->search-v2#showSearchPopup`) et
+  fermeture au clic extérieur ou sur la croix ; bascule du commutateur de thème
   (`click->settings#toggleDarkMode`) et de celui du bandeau de synthèse marché
   (`click->highlights#toggleHighlights`) ; accordéon du pied de page sur mobile
   (`click->footer#toggleFooterGroup`).
@@ -240,18 +266,22 @@ traduit en français, comme `/en/glossary` et `/learn`.
   Relevé exact des 18 sélecteurs (styles typographiques, couleurs, filets, rayons,
   ombres, rembourrages, marges, transitions) dans
   `docs/references/coingecko/accueil/mesures.json`, six passes (360/768/1440 ×
-  clair/sombre), chaque valeur portant son sélecteur et sa page de provenance. États non
-  observés faute d'outil de navigation piloté (le MCP `chrome-devtools` était
-  indisponible pour cette campagne) : le survol effectif (translation de couleur au
-  passage de la souris), le focus clavier et son anneau visuel, l'état trié dans les
-  deux sens (croissant/décroissant) au-delà de l'attribut `aria-sort` initial, l'état
-  vide, l'état de chargement, l'état d'erreur, et l'ouverture effective (position,
-  animation) des méga-menus et de l'overlay de recherche — leur contenu a été lu dans le
-  HTML rendu (pré-affiché mais masqué par CSS/Alpine, `display:none` / `x-show`), pas
-  observé ouvert à l'écran. Le pied de page a été lu entièrement dans le HTML (les
-  groupes rétractables mobiles sont présents dans le DOM, pas seulement visibles en
-  version desktop). Aucun texte de CoinGecko n'est recopié au-delà des libellés
-  strictement nécessaires à l'identification d'un composant.
+  clair/sombre), chaque valeur portant son sélecteur et sa page de provenance. Dix de
+  ces sélecteurs ont ensuite été sondés en survol et en focus (largeur de référence,
+  deux thèmes) — deltas dans la clé `interactions` du même fichier ; résultats détaillés
+  dans le champ « Interactions » ci-dessus. Cinq de ces dix (bouton plein, onglet actif,
+  onglet inactif, commutateur, sélecteur de langue et de devise) étaient masqués au
+  moment du sondage, faute d'un panneau ou d'un overlay ouvert. Restent non observés,
+  faute de simuler un clic ou de provoquer une condition — hors de portée de ce relevé
+  par sonde de survol/focus, quel que soit l'outil : l'état trié dans les deux sens
+  (croissant/décroissant) au-delà de l'attribut `aria-sort` initial, l'ouverture
+  *effective* (position, animation, z-index réel) des méga-menus et de l'overlay de
+  recherche — leur contenu a été lu dans le HTML rendu (pré-affiché mais masqué par
+  CSS/Alpine, `display:none` / `x-show`), pas observé ouvert à l'écran — et l'état vide,
+  l'état de chargement, l'état d'erreur. Le pied de page a été lu entièrement dans le
+  HTML (les groupes rétractables mobiles sont présents dans le DOM, pas seulement
+  visibles en version desktop). Aucun texte de CoinGecko n'est recopié au-delà des
+  libellés strictement nécessaires à l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
 
