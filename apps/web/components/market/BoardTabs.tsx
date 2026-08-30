@@ -361,7 +361,7 @@ export function BoardTabs({
             onClick={() => onSelect(view.key)}
             className={`relative whitespace-nowrap px-3 pb-2.5 pt-2 text-sm transition-colors duration-150 ${
               selected
-                ? 'font-semibold text-brand-strong after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
+                ? 'font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
                 : 'font-normal text-ink hover:text-brand'
             }`}
           >

@@ -523,7 +523,7 @@ export function ScreenerView({
                             : t('Trier par {column}').replace('{column}', t(column.label))
                         }
                         className={`inline-flex w-full items-center justify-end gap-1 transition-colors duration-150 hover:text-ink ${
-                          active ? 'text-brand-strong' : ''
+                          active ? 'text-ink' : ''
                         }`}
                       >
                         {t(column.label)}
