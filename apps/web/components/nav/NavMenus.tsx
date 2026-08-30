@@ -324,8 +324,13 @@ function MenuColumns({ menu }: { menu: NavMenu }) {
       {menu.sections.map((section, index) => (
         <div key={section.label ?? index} className="min-w-0">
           {section.label ? (
+            /* `--v2-text-2xs` (12px) et non `text-micro` (11px) : le titre de colonne
+               d'un méga-dropdown CoinGecko mesure 12px sur les six combinaisons
+               largeur/thème relevées — voir DESIGN_SYSTEM.md §11. C'est le même jeton
+               que celui créé pour `.gecko-up`/`.gecko-down`, ici confirmé par une
+               troisième famille de nœuds. */
             <p
-              className={`px-3 pb-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted/70 ${
+              className={`px-3 pb-1.5 text-[length:var(--v2-text-2xs)] font-semibold uppercase tracking-wide text-ink-muted/70 ${
                 /* Filet et respiration au-dessus, SAUF pour la première : voir
                    l'en-tête. `mt-1.5` sans filet garde le premier titre à la même
                    distance du bord du panneau que les suivants de leur trait. */
