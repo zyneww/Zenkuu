@@ -55,6 +55,17 @@ const RACINE_REFERENCES = 'docs/references/coingecko'
 const LARGEURS = [360, 768, 1440]
 const THEMES = ['clair', 'sombre']
 
+/** Sans ceci, certaines pages CoinGecko (les pages coin, constaté sur
+ *  `/fr/coins/bitcoin`, contrairement à `/fr` qui passe sans) renvoient le
+ *  défi Cloudflare (« Verifying you are human ») à Chromium en tête nue —
+ *  aucun sélecteur ne « trouve » alors quoi que ce soit, et la capture ne
+ *  montre que la mascotte de vérification. Un user-agent de navigateur de
+ *  bureau ordinaire suffit à passer ; ça ne cache rien côté site, ça ne fait
+ *  que déclarer ce que Chromium est déjà (un vrai Chrome). N'affecte pas
+ *  ZENKUU en local, qui ne filtre pas sur ce champ. */
+const USER_AGENT =
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+
 /** Le rendu canonique pour l'extraction des jetons (tâche 6) : les cinq autres
  *  relevés servent à lire la densité (hauteur de ligne, rembourrage) et les points
  *  d'arrêt en comparant les largeurs et les thèmes entre eux — ils affinent la
@@ -630,7 +641,10 @@ async function main() {
   const interactionsParTheme = {}
 
   for (const { largeur, theme, fichier } of chemins) {
-    const context = await browser.newContext({ viewport: { width: largeur, height: 900 } })
+    const context = await browser.newContext({
+      viewport: { width: largeur, height: 900 },
+      userAgent: USER_AGENT,
+    })
     const page = await chargerAvecTheme(context, base, url, theme)
 
     await page.screenshot({ path: path.join(process.cwd(), fichier), fullPage: true })

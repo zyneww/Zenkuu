@@ -33,7 +33,7 @@ pages séparées.
 - [ ] Accueil, toutes les monnaies — `/fr/all-cryptocurrencies`
 - [ ] Accueil, classement rehypothéqué — `/fr/top-market-cap-rehypothecated`
 - [ ] Accueil en devise (EUR) — `/fr/currencies/eur`
-- [ ] Page coin, onglet Vue d'ensemble — `/fr/coins/bitcoin`
+- [x] Page coin, onglet Vue d'ensemble — `/fr/coins/bitcoin`
 - [ ] Page coin, onglet Tokenomique — `/fr/coins/bitcoin#tokenomics`
 - [ ] Page coin, onglet Données financières — `/fr/coins/bitcoin#financials`
 - [ ] Page coin, onglet Prédominance — `/fr/coins/bitcoin#dominance`
@@ -321,6 +321,185 @@ traduit en français, comme `/en/glossary` et `/learn`.
   HTML (les groupes rétractables mobiles sont présents dans le DOM, pas seulement
   visibles en version desktop). Aucun texte de CoinGecko n'est recopié au-delà des
   libellés strictement nécessaires à l'identification d'un composant.
+
+### Page coin, onglet Vue d'ensemble — `/fr/coins/bitcoin`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : gabarit de détail d'un actif — cours, graphique, statistiques de marché,
+  marchés où l'actif se négocie, contenu éditorial (à propos, sécurité, FAQ), monnaies
+  connexes. Premier gabarit paramétré de l'audit : ce qu'il porte se généralise en
+  substance aux futures pages de catégorie, de chaîne, de NFT et d'actif tokenisé.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** :
+  - **Onglet principal de fiche** (`gecko-tab-underline-item`) — item d'un groupe
+    d'onglets à soulignement, en tête de fiche (Présentation, Marchés, Trésoreries,
+    Actualités, Monnaies similaires, plus deux liens externes vers des pages dédiées :
+    Données historiques, Halving du BTC). À ne pas confondre avec l'**onglet actif** /
+    **onglet inactif** déjà nommés sur l'accueil (`gecko-tab-chip-item`, puce arrondie
+    de groupe de filtres) : famille visuelle différente (soulignement plutôt que puce
+    de fond), classe CSS différente, et rôle différent (navigation de page entière,
+    pas filtrage d'une liste). Dupliqué deux fois dans le DOM par point de rupture
+    (14 correspondances pour 7 onglets visibles, la variante mobile masquée) — le
+    même motif de duplication que `gecko-tab-chip-item` sur l'accueil.
+  - **Onglet secondaire de fiche** (variante de `gecko-tab-chip-item`, `#tab-about` /
+    `#tab-tokenomics` / `#tab-financials` / `#tab-dominance`) — second groupe de
+    puces, imbriqué dans l'onglet Présentation : bascule le contenu affiché sous le
+    graphique entre « À propos », « Tokenomique », « Données financières » et
+    « Prédominance » sans navigation de page (`x-data="tabPanel('about')"`,
+    `@click="activeTab = '…'"`). Réutilise la classe `gecko-tab-chip-item` déjà nommée
+    sur l'accueil, mais dans un troisième contexte (l'accueil l'utilisait déjà pour
+    deux : les filtres de l'overlay de recherche et — hors accueil, vu dans ce
+    HTML — la modale de sélection de monnaie du portefeuille) : la classe seule ne
+    suffit plus à désigner un composant sur cette page, il faut l'id du bouton
+    (`#tab-tokenomics`, etc.) pour cibler sans ambiguïté un nœud précis.
+  - **En-tête de fiche** (`[data-coin-show-target="staticCoinPrice"]`) — logo, nom,
+    sous-titre (« Cours du BTC »), pastille de rang (« #1 »), cours courant et
+    variation 24 h. Bloc figé (non collant) ; existe aussi en variante **collante**
+    (`[data-coin-show-target="stickyCoinPrice"]`), déclarée par le HTML
+    (`tw-hidden` par défaut, révélée au défilement par un contrôleur Stimulus) mais
+    non observée à l'écran par ce relevé, qui ne simule pas de défilement.
+  - **Cours courant** (`[data-price-target="price"]`, dans l'en-tête de fiche) — le
+    chiffre de prix en grand format (36 px, gras). Distinct du texte de variation
+    attenant, qui réutilise `.gecko-up`/`.gecko-down` déjà nommés sur l'accueil (même
+    classe, ici appliquée à du texte de delta à côté d'un gros chiffre plutôt qu'à
+    une pastille de tableau — pas redécrit).
+  - **Widget de statistiques** (`table` sous `[itemtype="https://schema.org/Table"]`)
+    — table clé/valeur (`<th>`/`<td>`) listant capitalisation boursière, évaluation
+    après dilution (FDV), volume 24 h, offre en circulation/totale/maximale,
+    participation totale au réseau. Chaque ligne porte une infobulle d'aide
+    (`data-controller="tooltip"`) déclarée par le HTML, non observée ouverte à
+    l'écran (pas de survol simulé sur l'icône info dans ce relevé).
+  - **Graphique de cours** (`#gecko-coin-chart`, Highcharts) — graphique principal de
+    la fiche, avec sélecteur de plage temporelle et bascule Cours/Comparer/export.
+    Trois autres instances Highchart existent sur la page (jauge de tokenomique en
+    camembert, graphique de prédominance, graphique financier) — non mesurées
+    séparément, même famille de rendu.
+  - **Groupe de boutons segmenté** (`gecko-button-group-item`) — sélecteur de plage du
+    graphique (24 h/7 j/1 M/3 M/1 AN/Max), item actif et inactif. Nouveau : ni le
+    style ni la structure (pastille `x-ref="pill"` qui glisse derrière l'item actif)
+    ne correspondent à `gecko-tab-chip-item` ni à `gecko-tab-underline-item` — un
+    troisième mécanisme de sélection à onglet. La classe seule a 37 correspondances
+    sur la page (d'autres groupes de boutons existent ailleurs, ex. le graphique
+    financier) : mesuré ici scopé à son conteneur
+    (`[data-global-charts-target="rangeSelector"] .gecko-button-group-item`) pour ne
+    pas retomber sur un groupe différent par accident d'ordre DOM.
+  - **Convertisseur** (`.gecko-input-group` / `.gecko-input`) — bloc de saisie
+    « Convertisseur BTC » : champ de montant, devise source, résultat. 13
+    correspondances de `.gecko-input` sur la page (le convertisseur n'est pas le seul
+    champ de texte) ; le nœud retenu (`index: 1, total: 13`) est bien celui du
+    convertisseur visible au chargement — consigné dans `mesures.json`.
+  - **Bloc Marchés** — table listant les plateformes où l'actif se négocie (rang,
+    plateforme, paire, cours, écart, profondeur ±2 %, volume 24 h, volume %, dernière
+    mise à jour), avec ses propres onglets de filtrage (Toutes/CEX/DEX). Vu dans la
+    capture mais non instrumenté par un sélecteur dans ce relevé — mêmes colonnes que
+    le **tableau de cotations** de l'accueil, structure de table de marché
+    apparentée ; à instrumenter séparément si une page de marchés dédiée est auditée.
+  - **Bloc Trésoreries** — table listant les détenteurs institutionnels (entité, type,
+    variation sur 30 jours, montant, coût moyen, valeur, mNAV, part de l'offre) —
+    nouveau type de table, vu mais non mesuré par sélecteur dans ce relevé.
+- **Fonctionnalités** : bascule d'onglet principal (navigation de page) et secondaire
+  (bascule de panneau sans rechargement), sélection de plage temporelle du graphique,
+  export/impression du graphique (icônes vues à droite du sélecteur de plage, non
+  éprouvées), conversion BTC ↔ devise, sondage communautaire (« Que pensez-vous du
+  cours de BTC aujourd'hui ? », pouces haut/bas — vu dans la capture, non instrumenté),
+  ajout au portefeuille/liste de suivi (icône étoile de l'en-tête).
+- **Interactions** : six sélecteurs propres à cette page sondés en survol et en focus
+  (largeur de référence, deux thèmes) — deltas dans `mesures.json` → `interactions`.
+  **Onglet principal actif** : aucun delta au survol (cohérent, déjà actif) ; non
+  focusable (ancre `<a>` sans état de focus personnalisé mesurable — l'anneau par
+  défaut du navigateur ne s'est pas déclenché, `« non focusable »`). **Onglet
+  principal inactif** : le survol ajoute un filet bas de 0 px d'épaisseur mais de
+  couleur posée (`rgb(203, 213, 225)` en clair, `rgb(56, 74, 97)` en sombre) — un
+  filet théoriquement invisible à 0 px, à vérifier au clic réel si cette valeur est
+  une transition capturée à mi-course ou une erreur de calcul de largeur ; non
+  focusable pour la même raison que l'onglet actif. **Onglet secondaire**
+  (`#tab-tokenomics`) : survol hors du viewport visible au chargement (situé sous le
+  graphique, hors écran à 1440 px sans défiler — non sondé) ; le focus, lui, affiche
+  un anneau de contour classique (`outline: auto`, 1px), identique aux liens de
+  l'accueil. **Groupe de boutons segmenté**, actif et inactif : les deux rapportent
+  « masqué (non visible) » au survol au moment du sondage, alors que la capture
+  statique prise juste avant montre le même bloc bien visible en haut de la page —
+  écart non expliqué par ce relevé (candidat : décalage de mise en page causé par le
+  chargement différé d'une publicité entre la capture et le sondage, hypothèse non
+  vérifiée, donc non retenue comme explication) ; à réauditer si ce composant doit
+  être repris tel quel. **Convertisseur** : hors du viewport visible au survol (plus
+  bas que le graphique à 1440 px) ; le focus affiche un anneau bleu clair
+  (`rgba(59, 130, 246, 0.5)`, largeur 0 dans les deux thèmes — style de focus
+  personnalisé posé mais dont le rayon effectif est nul dans ce relevé, à vérifier
+  au clic réel).
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
+  bascule effective de l'onglet secondaire (le contenu de chaque panneau est présent
+  dans le DOM derrière `x-show`, pas cliqué) ; ouverture des infobulles d'aide du
+  widget de statistiques ; la barre collante de prix au défilement ; le vote du
+  sondage communautaire ; les filtres CEX/DEX du bloc Marchés ; le tri éventuel du
+  bloc Marchés et du bloc Trésoreries.
+- **Données requises** : cours et variation 24 h, capitalisation boursière, FDV,
+  volume 24 h, offre en circulation/totale/maximale, participation au réseau,
+  historique de cours pour le graphique — toutes disponibles via l'API CoinGecko déjà
+  utilisée par ZENKUU. Les plateformes et paires du bloc Marchés viennent du même jeu
+  de données (marchés par actif). Les données du bloc Trésoreries (détenteurs
+  institutionnels, mNAV) sont déjà couvertes côté ZENKUU par une source de trésorerie
+  existante (`@zenkuu/data`, type `TreasuryReport`, consommé par
+  `apps/web/components/asset/AssetTreasuries.tsx`) — pas un écart. Le sondage
+  communautaire (pouces haut/bas) n'est pas une donnée sourcée à l'extérieur : c'est
+  un vote propre au site CoinGecko, hors périmètre de la liste de sources de ZENKUU ;
+  non reporté en synthèse pour cette raison.
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/crypto/[id]/page.tsx` (lu dans le
+  code le 2026-08-30 ; le serveur de dev du port 3000 n'était pas joignable au moment
+  du relevé — comparaison faite sur le code source, pas sur un rendu observé,
+  contrairement à l'entrée Accueil) rend `AssetPageView`, qui compose déjà la plupart
+  des familles vues ici : `AssetKeyStats` (bandeau de statistiques clé, mais VISIBLE
+  en permanence sous le graphique plutôt qu'enfermé dans un onglet séparé — un choix
+  produit explicite, documenté dans le fichier : « jusqu'ici enfermés dans l'onglet
+  Statistiques, donc invisibles à qui ne cliquait pas »), `AssetConverter`,
+  `PriceChartInteractive`/`PriceChartAm`/`TradingViewChart` (graphique),
+  `AssetTickers` (bloc Marchés), `AssetTreasuries` (bloc Trésoreries),
+  `AssetSimilarRail` (Monnaies connexes), `AssetNewsRail` (Actualités),
+  `AssetFaq`, `AssetSentiment`. Écart structurel le plus net : `AssetSections.tsx`
+  documente le retrait délibéré d'une barre d'onglets collante à sommaire — ZENKUU
+  a choisi la fiche en défilement continu avec ancres (`#analyse`, `#places`) plutôt
+  que la navigation par onglet de CoinGecko (onglet principal à soulignement ET
+  onglet secondaire à puces, deux mécanismes de bascule superposés sur la même
+  fiche) ; ce n'est pas un manque à combler mais un choix déjà tranché à documenter
+  au moment de juger si la famille « onglet de fiche » de cette entrée doit être
+  reprise. Le **groupe de boutons segmenté** (sélecteur de plage du graphique) n'a
+  pas d'équivalent nommé identifié dans `components/asset/` lors de cette lecture —
+  à vérifier dans `ChartToolbar.tsx`/`ChartNavigator.tsx`, non ouverts pour cette
+  entrée.
+- **Notes** : bascule de thème validée sur ce gabarit (marqueurs `darktheme`/
+  `tw-dark` puis fond de `<body>`), captures claire/sombre différentes octet pour
+  octet aux trois largeurs — pas d'erreur levée, contredisant l'attente du brief
+  (« les pages coin sont connues pour ne pas basculer ») : sur `bitcoin`, à cette
+  date, la bascule a fonctionné. **Blocage rencontré et corrigé** : les trois
+  premières tentatives de relevé (sans user-agent personnalisé) ont toutes buté sur
+  le défi anti-robot Cloudflare de CoinGecko (page « Verifying you are human »,
+  capture identique aux trois passes, aucun sélecteur trouvé) — reproductible,
+  contrairement à l'accueil qui avait passé ce même défi sans réglage particulier.
+  Corrigé en ajoutant un user-agent de navigateur de bureau ordinaire au contexte
+  Playwright de `scripts/audit-coingecko-page.mjs` (constante `USER_AGENT`,
+  `browser.newContext`) — un réglage qui déclare ce que Chromium est déjà, ne
+  cache rien côté site, et n'affecte pas les relevés ZENKUU en local (qui ne
+  filtrent pas sur ce champ) ; le relevé qui suit cette modification a rendu la page
+  réelle. **Spécifique à la crypto, pour le sous-projet C** : les onglets
+  Tokenomique/Financials/Prédominance (composants clé/valeur + graphiques dédiés
+  aux émissions et à la dilution de l'offre), le convertisseur en unité native de
+  l'actif (BTC, pas seulement en devise), le bloc Trésoreries (détention
+  institutionnelle, mNAV — propre aux actifs à offre plafonnée), les liens externes
+  Données historiques/Halving (le halving n'a de sens que pour Bitcoin et les
+  actifs à émission programmée) sont les éléments de ce gabarit qui ne se
+  généraliseront pas tels quels aux cinq autres classes d'actifs (actions, ETF,
+  matières premières, indices, devises) : une action n'a pas de tokenomique ni de
+  halving, une matière première n'a pas d'offre en circulation au sens crypto.
+  Restent non observés, faute de simuler un clic ou un défilement — hors de portée
+  de ce relevé par sonde de survol/focus : la bascule effective entre les quatre
+  panneaux secondaires, l'ouverture des infobulles du widget de statistiques, la
+  barre de prix collante au défilement, le tri des blocs Marchés et Trésoreries, le
+  vote du sondage communautaire, et le contenu réel de l'onglet Marchés en tant que
+  page (`#tab-markets` pointe vers une ancre de la même page, pas une route dédiée —
+  contrairement à Données historiques et Halving qui, eux, ouvrent une URL séparée
+  listée dans `## Liste des pages`). Aucun texte de CoinGecko n'est recopié
+  au-delà des libellés strictement nécessaires à l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
 
