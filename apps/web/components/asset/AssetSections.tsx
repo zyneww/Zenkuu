@@ -1,5 +1,6 @@
 'use client'
 
+import { AssetTabBar } from '@/components/asset/AssetTabBar'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
@@ -107,6 +108,11 @@ export function AssetSections({
      sans quoi les composants concernés n'apprendraient jamais la nouvelle. */
   const [reached, setReached] = useState<Set<string>>(() => new Set(tabs[0] ? [tabs[0].id] : []))
 
+  /* Section actuellement en tête de fenêtre — c'est elle que la barre d'onglets
+     désigne. Distincte de `reached`, qui dit ce qui a le DROIT de charger et ne
+     retire jamais rien : ici la valeur doit aussi bien reculer qu'avancer. */
+  const [activeId, setActiveId] = useState<string | null>(() => tabs[0]?.id ?? null)
+
   const registerSection = useCallback((id: string, node: HTMLElement | null) => {
     if (node) sectionRefs.current.set(id, node)
     else sectionRefs.current.delete(id)
@@ -148,6 +154,91 @@ export function AssetSections({
     }
     return () => observer.disconnect()
   }, [tabs])
+
+  /*
+   * ── QUELLE SECTION LA BARRE DÉSIGNE-T-ELLE ? ───────────────────────────────
+   *
+   * Un SECOND observateur, et non une extension du premier : les deux répondent à
+   * des questions opposées. Celui du dessus prend 600 px d'avance pour laisser
+   * charger ce qui arrive ; celui-ci doit désigner ce qu'on REGARDE, donc une bande
+   * étroite en haut de la fenêtre.
+   *
+   * `rootMargin` réduit la zone d'intérêt à une bande étroite. Sans ce
+   * rétrécissement, trois sections se chevaucheraient dans le viewport et la
+   * dernière annoncée gagnerait — la barre désignerait une section déjà dépassée.
+   *
+   * ⚠️ LA BANDE COMMENCE À `SCROLL_OFFSET`, PAS EN HAUT DE LA FENÊTRE, et c'est ce
+   * qui la rend juste après un clic. L'ancre pose la section à 80 px du bord haut
+   * (`scrollMarginTop`). Une bande partant de 0 englobait donc encore la FIN de la
+   * section précédente, qui l'emportait puisqu'on retient la plus haute : cliquer
+   * « Analyse » faisait défiler au bon endroit mais laissait « Places » désigné.
+   * Constaté au navigateur sur la fiche Uniswap.
+   *
+   * On retient la PLUS HAUTE des sections qui coupent cette bande, et non la
+   * dernière notifiée : l'ordre des entrées d'un `IntersectionObserver` n'est pas
+   * celui du document.
+   */
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+
+    const visibles = new Set<string>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const id = entry.target.getAttribute('data-section')
+          if (id === null) continue
+          if (entry.isIntersecting) visibles.add(id)
+          else visibles.delete(id)
+        }
+        const premier = tabs.find((tab) => visibles.has(tab.id))
+        if (premier) setActiveId(premier.id)
+      },
+      { rootMargin: `-${SCROLL_OFFSET}px 0px -75% 0px`, threshold: 0 },
+    )
+
+    for (const tab of tabs) {
+      const node = sectionRefs.current.get(tab.id)
+      if (node) observer.observe(node)
+    }
+    return () => observer.disconnect()
+  }, [tabs])
+
+  /*
+   * ── UN ONGLET QUI NE MÈNE À RIEN NE S'AFFICHE PAS ─────────────────────────
+   *
+   * `AssetPageView` le dit déjà pour son onglet « Places » : « un onglet cliquable
+   * qui ne mène à rien est pire qu'un onglet absent ». Le cas se produit vraiment —
+   * sur Bitcoin, la section « Places » rend une hauteur NULLE : la place de cotation
+   * se retire pour la crypto, la table des contrats se retire sous deux chaînes, et
+   * la branche restante rend `null` dès qu'il existe des places de cotation.
+   *
+   * Ce garde-fou ne remplace pas la condition écrite là-bas, il la RATTRAPE : un
+   * parent ne peut pas savoir ce qu'un enfant a rendu, et recopier chaque test dans
+   * la barre ferait diverger deux jeux de conditions le jour où l'un change. On
+   * mesure donc le résultat plutôt que de le prédire.
+   *
+   * La mesure est faite APRÈS peinture et à chaque changement de `reached` : une
+   * section qui charge son contenu à l'approche part à zéro et grandit ensuite. Sans
+   * cette dépendance, un onglet légitime disparaîtrait pour de bon.
+   */
+  const [vides, setVides] = useState<ReadonlySet<string>>(() => new Set())
+
+  useEffect(() => {
+    const image = requestAnimationFrame(() => {
+      const trouves = new Set<string>()
+      for (const tab of tabs) {
+        const node = sectionRefs.current.get(tab.id)
+        if (node && node.getBoundingClientRect().height === 0) trouves.add(tab.id)
+      }
+      setVides((precedent) => {
+        if (precedent.size === trouves.size && [...trouves].every((id) => precedent.has(id))) {
+          return precedent
+        }
+        return trouves
+      })
+    })
+    return () => cancelAnimationFrame(image)
+  }, [tabs, reached])
 
   if (tabs.length === 0) return null
 
@@ -199,7 +290,10 @@ export function AssetSections({
           retirer de l'arbre : sans quoi elle formerait à elle seule un bloc rétréci le
           long du rail flottant sur toute sa hauteur. Ses marges d'espacement survivent
           — elles visent ses enfants. Voir `globals.css`. */}
-      <div className="asset-sections space-y-12">{sections}</div>
+      <div className="asset-sections space-y-12">
+        <AssetTabBar tabs={tabs.filter((tab) => !vides.has(tab.id))} activeId={activeId} />
+        {sections}
+      </div>
     </AssetLayoutFrame>
   )
 }
