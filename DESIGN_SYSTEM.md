@@ -294,6 +294,23 @@ indisponibles par l'API, à documenter comme tels plutôt qu'à simuler.
 
 ---
 
+## Divergence assumée — hauteur du bouton `default`
+
+`apps/web/components/ui/button.tsx`, variante `size="default"`, applique la taille
+de texte mesurée (13px, `--text-xs`) et le rembourrage horizontal mesuré (10px,
+`--v2-space-4`), mais **conserve `h-9` (36px)** au lieu de suivre la hauteur
+implicite de CoinGecko. Chez la référence, 13px de texte + 6px de rembourrage
+vertical de chaque côté donnent environ **31px** de hauteur de bouton — sous les
+**32px de cible tactile minimum** que `DESIGN.md` pose comme non négociable (voir
+« Ce qui n'est pas négociable », point 4) et que `scripts/audit-responsive.mjs`
+fait respecter sur six formats. **Tranché : l'accessibilité l'emporte sur la
+fidélité à la mesure.** Le rembourrage vertical (`py-2`) reste sans effet réel sur
+la hauteur finale, imposée par `h-9`, mais est gardé dans le code pour la
+lisibilité (cohérence avec les autres tailles du composant). Ne pas « corriger »
+`h-9` vers une valeur plus proche de 31px sans revisiter d'abord cette contrainte.
+
+---
+
 ## Réserves
 
 - Les comptes d'occurrences agrègent les neuf pages avec `mesures.json` ; ils ne
