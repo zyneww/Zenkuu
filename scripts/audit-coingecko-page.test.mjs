@@ -4,6 +4,7 @@ import {
   capturesIdentiques,
   cheminsDeCapture,
   deltaDEtat,
+  indexPorteurDuTexte,
   indexPremierVisible,
   lireArguments,
   mecanismeTheme,
@@ -241,5 +242,42 @@ describe('noeudAConsigner', () => {
        correspondance masquée. C'est le total qui doit trancher : consigné dès
        qu'il y a ambiguïté, même à l'index 0. */
     expect(noeudAConsigner(0, 2)).toEqual({ index: 0, total: 2 })
+  })
+})
+
+describe('indexPorteurDuTexte', () => {
+  /* Le cas ordinaire : l'élément visé porte lui-même son texte, rien à déléguer. */
+  it('retient l’élément visé quand il porte son propre texte', () => {
+    expect(indexPorteurDuTexte([6, 0, 0])).toBe(0)
+  })
+
+  /* Le cas qui a faussé l'audit : `<a>` → `<div>` → `<div>Bitcoin</div>`. Les deux
+     premiers n'ont aucun texte en propre ; leur `color` calculée est le défaut du
+     navigateur, jamais peint. Le relevé doit descendre jusqu'au troisième. */
+  it('descend jusqu’au premier descendant qui possède du texte en propre', () => {
+    expect(indexPorteurDuTexte([0, 0, 7])).toBe(2)
+  })
+
+  /* Un conteneur dont les seuls nœuds texte sont l'indentation du gabarit compte
+     pour vide : l'appelant mesure des longueurs DÉJÀ élaguées, donc zéro ici. */
+  it('ignore un nœud dont le texte propre est vide', () => {
+    expect(indexPorteurDuTexte([0, 4])).toBe(1)
+  })
+
+  /* Aucun texte nulle part : une icône, un séparateur, un conteneur de mise en
+     page. Rendre `null` laisse l'appelant retomber sur l'élément visé plutôt que
+     d'inventer un porteur — on ne remplace pas un relevé douteux par un faux. */
+  it('rend null quand aucun nœud ne porte de texte', () => {
+    expect(indexPorteurDuTexte([0, 0, 0])).toBeNull()
+  })
+
+  it('rend null sur une descendance vide', () => {
+    expect(indexPorteurDuTexte([])).toBeNull()
+  })
+
+  /* Le premier porteur l'emporte, pas le plus long : lire la couleur du libellé
+     principal, pas celle du plus gros bloc de texte de la descendance. */
+  it('retient le premier porteur, pas le plus fourni', () => {
+    expect(indexPorteurDuTexte([0, 3, 120])).toBe(1)
   })
 })

@@ -7,6 +7,22 @@ consigne que des mesures, chacune datée.
 Spec : `docs/superpowers/specs/2026-08-29-coingecko-audit-design-system-design.md`
 Vérification : `node scripts/audit-coingecko-doc.mjs --strict`
 
+> ⚠️ **Correction de méthode — 2026-08-30.** Jusqu'à cette date,
+> `scripts/audit-coingecko-page.mjs` lisait les propriétés typographiques (couleur,
+> police, taille, interligne) sur le nœud désigné par le sélecteur, même lorsque ce
+> nœud ne possède aucun texte en propre. CoinGecko imbriquant ses libellés, l'outil
+> relevait alors la couleur héritée du conteneur — 84 mesures valaient
+> `rgb(0, 0, 238)`, le bleu de lien par défaut du navigateur, qui n'est jamais peint
+> à l'écran. L'outil lit désormais la typographie sur le premier descendant portant
+> du texte en propre, et consigne ce nœud sous la clé `porteurTexte` ; les propriétés
+> de boîte restent lues sur l'élément visé. La décision est extraite dans
+> `indexPorteurDuTexte` et couverte par six tests.
+>
+> **Les neuf pages déjà relevées ont été remesurées avec l'outil corrigé.** Les
+> constats de ce document portant sur les fonds, les filets, les espacements et les
+> tailles n'étaient pas touchés — ils étaient relevés sur des nœuds portant leur
+> texte. Ce qui manquait, c'est le motif d'accent : encre au repos, vert au survol.
+
 ## Liste des pages
 
 Figée le 2026-08-29 à partir de la navigation, des mega-dropdowns, du pied de page,

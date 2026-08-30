@@ -218,16 +218,32 @@ seul le rôle l'est.
 | surface survolée (clair) | `rgb(248, 250, 252)` — delta de survol, `.gecko-homepage-coin-table tbody tr:first-child` | accueil | `--color-surface` (existant — coïncidence exacte, #f8fafc) |
 | surface survolée (sombre) | `rgb(27, 35, 45)` / `rgb(33, 45, 59)` — deltas de survol, boutons et lignes | accueil, plusieurs pages | **aucun jeton existant ne coïncide** — `--color-panel` sombre est `#2f2f33`, la valeur mesurée en est distincte. **Rôle à créer** : une couleur de surface survolée sombre, nommée dans la convention `--color-*` existante (pas `--v2-*`, réservé à la structure), valeur à trancher en tâche 9 |
 | filet (bordure) | `rgb(229, 231, 235)` — 648 occ., cellules et conteneurs, toutes pages, tous thèmes | toutes pages | `--color-border-subtle` (existant — coïncidence exacte, #e5e7eb, en thème clair) |
-| accent | — (non repris : le rôle est rempli par la palette ZENKUU, pas par la couleur mesurée) | onglet sélectionné, bouton d'action | `--color-brand` (existant — bleu glacier `#a9eafe` en sombre, cyan profond `#0e7490` en clair, par consigne du projet) |
+| accent | `rgb(75, 204, 0)` clair / `rgb(128, 224, 56)` sombre — **60 occurrences, toutes en FOND, aucune en encre** | fond de bouton d'action, pastille d'onglet sélectionné | `--color-brand` — repris tel quel le 2026-08-30, sur décision « palette CoinGecko intégrale », en remplacement du cyan ZENKUU. ⚠️ Ce vert ne porte JAMAIS de texte au repos chez CoinGecko : il ne sert qu'en aplat, sous une encre NOIRE (`--color-on-brand`) |
+| texte de lien | `rgb(51, 65, 85)` clair / `rgb(190, 203, 218)` sombre — nom de pièce, tableau de l'accueil | liens de tableau, libellés cliquables | `--color-ink` — **CoinGecko ne colore pas ses liens au repos.** Le vert n'apparaît qu'au SURVOL : 40 éléments portent `tw-text-slate-700` au repos et `hover:tw-text-primary-500` au survol |
 | hausse | `rgb(0, 168, 62)` clair / `rgb(50, 202, 91)` sombre — `.gecko-up`, 6+ pages | toutes pages avec données de marché | `--color-up` (existant) |
 | baisse | `rgb(255, 58, 51)` — `.gecko-down`, identique dans les deux thèmes, 18 occ. | toutes pages avec données de marché | `--color-down` (existant) |
 | encre (texte principal) | `rgb(15, 23, 42)` clair, 65 occ. / `rgb(223, 229, 236)` sombre, 65 occ. | `h1`, texte de cellule | `--color-ink` (existant) |
 | encre atténuée | `rgb(100, 116, 139)` clair / `rgb(74, 99, 130)`, `rgb(158, 176, 199)` sombre | libellés secondaires | `--color-ink-muted` (existant) |
 | en-tête collant (sticky) | non distingué du fond de ligne dans ce relevé — `thead th[aria-sort]` partage la même valeur de fond que les lignes de données | `table.sortable`, toutes pages | **rôle non tranchable ici** : le relevé statique ne capture pas l'état scrollé/collant d'un en-tête ; pas de jeton proposé, à observer lors de la migration du composant tableau |
 
-**Bilan couleurs :** sept rôles sur neuf coïncident avec un jeton ZENKUU existant.
-Deux rôles restent sans jeton correspondant — surface survolée en thème sombre
-(à créer, tâche 9) et en-tête collant (non mesurable ici, à observer plus tard).
+**Bilan couleurs :** sept rôles sur neuf coïncidaient avec un jeton ZENKUU existant.
+Deux rôles restaient sans jeton correspondant — surface survolée en thème sombre
+(créée depuis) et en-tête collant (non mesurable ici, à observer plus tard).
+
+> ⚠️ **Ces valeurs ont été reprises après correction de l'outil de relevé, le
+> 2026-08-30.** Jusque-là, `audit-coingecko-page.mjs` lisait les propriétés
+> typographiques sur le nœud que le sélecteur désigne, même quand ce nœud ne
+> possède aucun texte en propre. CoinGecko imbriquant ses libellés
+> (`<a><div><div class="tw-text-gray-700">Bitcoin</div></div></a>`), l'outil
+> relevait la couleur héritée de l'ancre — soit `rgb(0, 0, 238)`, le bleu de
+> lien par défaut du navigateur, qui ne peint aucun pixel. 84 relevés étaient
+> dans ce cas, et c'est ce qui a masqué le motif de survol ci-dessus pendant tout
+> l'audit initial.
+>
+> Les couleurs de FOND, de FILET et l'encre relevée sur `h1` et sur les cellules
+> n'étaient PAS touchées : ces nœuds portent leur texte en propre. Aucune ligne de
+> ce tableau n'a donc dû être corrigée — seules les deux lignes ajoutées ci-dessus
+> étaient hors de portée de l'ancien outil.
 
 ---
 

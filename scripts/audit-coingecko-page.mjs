@@ -230,6 +230,38 @@ function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
     const el = noeuds[index]
 
     const st = getComputedStyle(el)
+
+    /* LE NŒUD VISÉ N'EST PAS TOUJOURS CELUI QUI PORTE LE TEXTE. CoinGecko imbrique
+       ses libellés : `<a><div><div class="tw-text-gray-700">Bitcoin</div></div></a>`.
+       L'ancre ne possède aucun nœud texte en propre, donc sa `color` calculée reste
+       le défaut du navigateur (rgb(0, 0, 238)) — une valeur qui ne peint aucun pixel.
+       La lire a produit 84 relevés faux et masqué, pendant tout l'audit initial, le
+       fait que CoinGecko survole son texte vers `primary-500`.
+
+       On lit donc la TYPOGRAPHIE sur le premier descendant qui possède du texte en
+       propre, et la BOÎTE (fond, filet, rembourrage, marge, rayon, ombre) sur
+       l'élément visé : ce sont deux questions distinctes, et la boîte appartient
+       bien au nœud que le sélecteur désigne.
+
+       Logique dupliquée à dessein de `indexPorteurDuTexte`, pas appelée — même
+       contrainte de sérialisation que `noeudAConsigner`, voir sa note. */
+    const candidats = [el, ...el.querySelectorAll('*')]
+    const longueursPropres = candidats.map((n) => {
+      let total = 0
+      for (const enfant of n.childNodes) {
+        if (enfant.nodeType === 3) total += (enfant.textContent || '').trim().length
+      }
+      return total
+    })
+    const iPorteur = longueursPropres.findIndex((n) => n > 0)
+    const porteur = iPorteur === -1 ? el : candidats[iPorteur]
+    const stTexte = porteur === el ? st : getComputedStyle(porteur)
+    const classePorteur =
+      typeof porteur.className === 'string' && porteur.className.trim()
+        ? '.' + porteur.className.trim().split(/\s+/).slice(0, 2).join('.')
+        : ''
+    const porteurTexte = porteur === el ? null : porteur.tagName.toLowerCase() + classePorteur
+
     const cote = (prop) => ({
       haut: st[`${prop}Top`],
       droite: st[`${prop}Right`],
@@ -247,13 +279,14 @@ function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
       trouve: true,
       texte: (el.textContent || '').trim().slice(0, 60),
       ...(noeud ? { noeud } : {}),
+      ...(porteurTexte ? { porteurTexte } : {}),
       style: {
-        policeFamille: st.fontFamily,
-        policeGraisse: st.fontWeight,
-        taille: st.fontSize,
-        interligne: st.lineHeight,
-        interlettrage: st.letterSpacing,
-        couleur: st.color,
+        policeFamille: stTexte.fontFamily,
+        policeGraisse: stTexte.fontWeight,
+        taille: stTexte.fontSize,
+        interligne: stTexte.lineHeight,
+        interlettrage: stTexte.letterSpacing,
+        couleur: stTexte.color,
         fond: st.backgroundColor,
         filet: { epaisseur: st.borderTopWidth, style: st.borderTopStyle, couleur: st.borderTopColor },
         rayon: st.borderRadius,
@@ -312,6 +345,24 @@ export function indexPremierVisible(visibilites) {
  * dessin, le taire laisserait croire qu'elle persiste. Fonction pure, sans
  * dépendance au navigateur — testable directement.
  */
+/**
+ * Partie DÉCIDABLE du choix du nœud qui porte la TYPOGRAPHIE, extraite de
+ * `mesurerSelecteurs` : étant, pour l'élément visé puis sa descendance en ordre
+ * DOM, la longueur du texte que chacun possède EN PROPRE (ses nœuds texte directs,
+ * hors descendants), rend l'index du premier qui en possède — ou `null` si aucun
+ * n'en possède, auquel cas l'appelant retombe sur l'élément visé.
+ *
+ * POURQUOI ELLE EXISTE. Un élément sans texte propre garde une `color` calculée :
+ * celle qu'il hérite, ou le défaut du navigateur s'il n'hérite rien d'explicite.
+ * Cette valeur ne décrit aucun pixel de l'écran, mais elle a l'air d'un relevé
+ * valide — c'est ainsi que 84 mesures de `rgb(0, 0, 238)`, le bleu de lien par
+ * défaut, sont entrées dans l'audit sans que rien ne le signale. Fonction pure.
+ */
+export function indexPorteurDuTexte(longueurs) {
+  const index = longueurs.findIndex((n) => n > 0)
+  return index === -1 ? null : index
+}
+
 export function deltaDEtat(repos, etat) {
   if (!repos || !etat) return {}
   const delta = {}
