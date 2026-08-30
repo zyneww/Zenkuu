@@ -98,7 +98,7 @@ migration.
 
 - [ ] Portefeuille — `/fr/portfolio`
 - [ ] Apprendre — `/learn`
-- [ ] Apprendre, article — `/learn/crypto-narratives`
+- [x] Apprendre, article — `/learn/crypto-narratives`
 - [ ] Actualités — `/fr/news`
 - [ ] Rapports — `/fr/publications/reports`
 - [ ] Perspectives Recherche — `/research`
@@ -1035,6 +1035,117 @@ traduit en français, comme `/en/glossary` et `/learn`.
   entonnoir, le clic publicitaire Acheter, et la page 2 et suivantes de la
   pagination. Aucun texte de CoinGecko n'est recopié au-delà des libellés
   strictement nécessaires à l'identification d'un composant.
+
+### Apprendre, article — `/learn/crypto-narratives`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : gabarit de lecture longue — article éditorial listant dix
+  narratifs crypto du moment, sommaire ancré, méta-données de rédaction,
+  notation et articles associés. N'existe qu'en anglais (voir la note en
+  tête de `## Liste des pages`) : relevé fait sur la version `/learn`, sans
+  équivalent `/fr`.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** :
+  - **Bandeau d'annonce** — nouveau : bande pleine largeur, fond sombre,
+    au-dessus de la barre de navigation (« Now Live: 2026 State of Crypto
+    Security Report », lien souligné + croix de fermeture). Premier
+    bandeau de ce type dans l'audit ; à distinguer du **ticker de
+    statistiques globales** déjà nommé, qui vit lui aussi tout en haut de
+    page mais affiche des chiffres de marché, pas une annonce éditoriale.
+  - **Barre de sous-navigation de rubrique** — nouveau : rangée de liens
+    texte sous la barre de navigation principale (All/Latest/Airdrops/
+    Coins & Tokens/Guides/Wallets & Bridges/API/Reviews/More+), propre à
+    la section Apprendre. Liens simples, pas des onglets à état actif
+    comme les familles `gecko-tab-*` déjà nommées.
+  - **Fil d'Ariane simplifié** (« Coverage ») — nouveau : simple libellé de
+    catégorie au-dessus du titre, sans lien ni séparateur — plus léger que
+    le fil d'Ariane à liens vu ailleurs sur le site.
+  - **En-tête d'article** — nouveau : titre (36 px/700, `h1`), note en
+    étoiles (« 4.3 »), ligne de signature (« by CoinGecko | Edited by Vera
+    Lim - Updated July 16 2026 », l'auteur et le réviseur chacun en lien),
+    bouton « Make us preferred on Google » avec icône de marque.
+  - **Encart de résumé** — nouveau : bloc à filet gauche coloré,
+    reprenant le titre du premier paragraphe en gras suivi d'une synthèse
+    en 2-3 phrases — un rappel visuel avant le corps de l'article, distinct
+    d'un paragraphe de corps normal.
+  - **Sommaire d'article** — nouveau : colonne latérale collante, liste de
+    liens ancrés vers chaque section numérotée, bouton de fermeture (croix)
+    en tête. Famille de composant que le brief de cette tâche annonçait
+    (« gabarit de lecture »).
+  - **Bouton de retour en haut** — nouveau : bouton carré à icône flèche
+    vers le haut, sous le sommaire, collant à la même position.
+  - **Corps d'article** (`article`, `article p`, `article h2`) — nouveau :
+    paragraphes (16 px/400, interligne 25.6 px, `rgb(100, 116, 139)`) et
+    titres de section (20 px/700, interligne 36 px, `rgb(15, 23, 42)`) —
+    échelle typographique à deux niveaux propre au corps de texte long,
+    plus petite que les titres de fiche déjà mesurés ailleurs (36 px pour
+    le `h1` de cette page, cohérent avec le `h1` de la page coin).
+  - **Horodatage** (`time`) — nouveau : texte de date de mise à jour
+    (16 px/400, même couleur que le corps de texte).
+  - **Widget de notation par émoji** — nouveau : cinq visages cliquables
+    (très mécontent à ravi) sous l'article, plus un compteur de votes
+    (« Vote count: 279 ») — mécanisme de notation propre à cette famille de
+    page, sans équivalent vu ailleurs dans l'audit.
+  - **Carte de profil de rédaction** — nouveau : avatar rond, nom
+    (« CoinGecko »), paragraphe de présentation de l'équipe éditoriale,
+    lien social (Twitter/X). À ne pas confondre avec la **table
+    d'identité** déjà nommée sur la page d'exchange : celle-ci décrit une
+    personne/organisation, pas une entité de marché.
+  - **Carte d'article associé** — nouveau : vignette image, étiquette de
+    catégorie (« Coverage », « Guides », « Reports »), titre en lien —
+    quatre instances en grille de bas de page (« Related Articles »).
+- **Fonctionnalités** : navigation par sommaire ancré, fermeture du
+  sommaire, retour en haut de page, notation de l'article par émoji,
+  suivi de l'auteur et du réviseur, navigation vers les articles associés,
+  fermeture du bandeau d'annonce, sous-navigation de rubrique.
+- **Interactions** : un sélecteur propre à cette page sondé en survol et en
+  focus (largeur de référence, deux thèmes) — deltas dans `mesures.json` →
+  `interactions`. **Paragraphe de corps** (`article p`, 59 correspondances,
+  premier nœud visible retenu) : aucun changement mesurable au survol
+  (cohérent, texte non interactif) ; non focusable.
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à
+  l'écran : fermeture du bandeau d'annonce, ouverture/fermeture du
+  sommaire, clic de notation par émoji, défilement déclenchant le retour
+  en haut, sous-navigation de rubrique.
+- **Données requises** : cette page ne porte aucune donnée de marché — son
+  contenu est un texte éditorial rédigé, hors périmètre des sources de
+  ZENKUU (CoinGecko, Binance, Frankfurter, Yahoo Finance, CoinPaprika,
+  alternative.me, DefiLlama, RSS). Rien à reporter en synthèse : l'absence
+  de source n'est pas un écart de couverture de données, c'est la nature
+  du gabarit (contenu rédigé, pas agrégé).
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/blog/[slug]/page.tsx` (lu
+  dans le code le 2026-08-30 ; dev server non revérifié pour cette page
+  précise, comparaison sur code source) porte déjà l'essentiel de
+  l'ossature de lecture : fil d'Ariane à liens, en-tête (titre, résumé,
+  `ArticleMeta`, date de révision), corps en sections titrées, **sommaire
+  d'article** collant (explicitement placé À DROITE du corps, « l'ordre de
+  lecture naturel », choix documenté dans le fichier — CoinGecko le pose
+  aussi à droite ici, contrairement à d'autres sites qui le mettent à
+  gauche : convergence, pas un écart), `ShareButtons`, et **carte
+  d'article associé** via `BlogCard` sous « À lire ensuite ». N'ont pas
+  d'équivalent identifié dans le fichier lu : le **bandeau d'annonce**, la
+  **barre de sous-navigation de rubrique**, l'**encart de résumé** en
+  tête d'article, le **widget de notation par émoji**, la **carte de
+  profil de rédaction** et le **bouton de retour en haut** — tous
+  candidats à une reprise partielle plutôt qu'à une adoption en bloc,
+  cette page CoinGecko empilant plus de mécanismes secondaires
+  qu'`ArticlePage` n'en porte aujourd'hui.
+- **Notes** : bascule de thème validée sur ce gabarit (captures
+  claire/sombre différentes octet pour octet aux trois largeurs). Aucun
+  blocage Cloudflare rencontré (correctif du user-agent déjà en place).
+  Page en anglais uniquement — contrairement aux entrées précédentes,
+  aucun texte relevé ici n'est en français dans la source, ce qui ne
+  change rien à la contrainte : aucun texte de CoinGecko n'est recopié
+  au-delà des libellés strictement nécessaires à l'identification d'un
+  composant, et les descriptions ci-dessus sont rédigées, pas traduites.
+  Le contenu de l'article (les dix narratifs eux-mêmes) n'est délibérément
+  pas résumé ici : la consigne de cette tâche est de décrire la mise en
+  page et la typographie d'une page dense en texte, pas de reproduire son
+  propos. Restent non observés, faute de simuler un clic ou un
+  défilement : la fermeture du bandeau d'annonce, l'ouverture/fermeture
+  du sommaire, le clic de notation, et le comportement réel du bouton de
+  retour en haut au défilement.
 
 ## Synthèse — données sans source gratuite
 
