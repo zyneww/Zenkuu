@@ -47,3 +47,25 @@ describe('la couche de jetons --v2-*', () => {
     expect(promis.filter((nom) => !declares.includes(nom))).toEqual([])
   })
 })
+
+const DESIGN = readFileSync(
+  fileURLToPath(new URL('../../../DESIGN.md', import.meta.url)),
+  'utf8',
+)
+
+describe('l’échelle typographique de DESIGN.md', () => {
+  /**
+   * `impeccable` valide chaque taille du dépôt contre cette échelle. Le temps de la
+   * migration, elle doit porter l'UNION des deux systèmes — sinon chaque taille
+   * nouvelle est signalée comme un défaut et la file d'exceptions regonfle.
+   */
+  it('couvre toutes les tailles déclarées par la couche --v2-*', () => {
+    const tailles = new Set(
+      [...DESIGN.matchAll(/^\s{4}[a-z0-9-]+:\s*(\d+)px\s*$/gm)].map((m) => Number(m[1])),
+    )
+    const manquantes = [...CSS.matchAll(/^\s+--v2-text-[a-z0-9-]*:\s*([\d.]+)rem;/gm)]
+      .map((m) => Math.round(Number(m[1]) * 16))
+      .filter((px) => !tailles.has(px))
+    expect([...new Set(manquantes)]).toEqual([])
+  })
+})

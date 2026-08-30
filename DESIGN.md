@@ -40,8 +40,16 @@ typography:
   # L'ÉCHELLE ÉNUMÉRÉE. Ce sont les jetons `--text-*` de `apps/web/app/globals.css`,
   # aux mêmes valeurs et dans le même ordre. Toute taille littérale écrite dans un
   # composant doit tomber sur l'un de ces crans.
+  #
+  # ⚠️ PENDANT LA MIGRATION, C'EST L'UNION DE DEUX SYSTÈMES. La couche `--v2-*`
+  # (voir DESIGN_SYSTEM.md) ajoute ses propres crans. `impeccable` lit CETTE liste
+  # pour valider chaque taille du dépôt : l'amputer d'un cran `--v2-*` ferait
+  # signaler comme défaut une valeur parfaitement légitime, et regonflerait la file
+  # d'exceptions de `.impeccable/config.json`. Les crans hérités disparaîtront quand
+  # les anciens jetons seront retirés, à la toute fin de la migration.
   scale:
     micro: 11px
+    v2-2xs: 12px
     xs: 13px
     sm: 14px
     base: 16px
@@ -240,6 +248,15 @@ sur tout texte en dessous. Une valeur plus petite dans un composant est un défa
 lorsqu'il s'agit d'**unités de `viewBox` SVG** — un `fontSize="54"` sur un tracé mis à
 l'échelle n'est pas de la typographie, et ces cas passent par la liste d'exceptions de
 `.impeccable/config.json`, jamais par une classe.
+
+**Deux systèmes coexistent le temps de la migration.** `text-micro` à `text-4xl`
+appartiennent à l'échelle héritée de ZENKUU, ci-dessus. `v2-2xs` (12 px) est le premier
+cran de la couche `--v2-*` posée par l'audit CoinGecko (`DESIGN_SYSTEM.md`, section 10) —
+un cran que ZENKUU n'avait pas, entre son plancher `text-micro` (11 px) et `text-xs`
+(13 px). `impeccable` valide chaque taille du dépôt contre l'union des deux : amputer
+cette liste d'un cran `--v2-*` ferait signaler comme défaut une valeur pourtant relevée et
+documentée. Les crans hérités disparaîtront un par un à mesure que les sous-projets B à E
+retirent les anciens jetons ; l'union ne dure que le temps de la migration.
 
 ### Les titres
 
