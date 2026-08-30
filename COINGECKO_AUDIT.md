@@ -27,6 +27,20 @@ repliée dans le portefeuille, sans route publique vérifiable — voir note). E
 auditées comme composants de la page Accueil ou de la page Portefeuille, pas comme
 pages séparées.
 
+**Les cases non cochées ci-dessous ne sont pas un travail en retard.** La tâche 5 a
+été réduite en cours de route : la fidélité de CoinGecko tient dans une vingtaine de
+composants partagés que quelques pages archétypes suffisent à faire émerger — l'audit
+de l'accueil en a nommé 22 d'un coup, et les six pages auditées à ce jour n'ont ajouté
+qu'un nombre décroissant de familles réellement nouvelles à chaque page. Auditer les
+62 pages restantes maintenant serait un sur-échantillonnage : elles seront auditées
+**au moment de leur migration**, quand la question « qu'est-ce qu'on garde de cette
+page ? » est concrète et que le relevé sert immédiatement, pas des mois avant que le
+site ait bougé. `node scripts/audit-coingecko-doc.mjs --strict` continue donc, à
+raison, de signaler ces pages comme non auditées : ce n'est pas une régression à
+corriger avant la fin du sous-projet A (voir tâche 11 pour le critère de clôture
+révisé), c'est la porte de la complétude finale, qui se franchira à la fin de la
+migration.
+
 ### Phase 1 — cœur
 
 - [x] Accueil — `/fr`
@@ -46,7 +60,7 @@ pages séparées.
 - [ ] Exchanges, dérivés — `/fr/platesformes/derivatives`
 - [ ] Exchanges, DEX perpétuels — `/fr/platesformes/derivatives/decentralized`
 - [x] Page d'exchange — `/fr/platesformes/binance`
-- [ ] Graphiques globaux — `/fr/charts`
+- [x] Graphiques globaux — `/fr/charts`
 
 ### Phase 2 — données
 
@@ -805,6 +819,105 @@ traduit en français, comme `/en/glossary` et `/learn`.
   seulement par leur présence, pas par leurs valeurs). Aucun texte de CoinGecko
   n'est recopié au-delà des libellés strictement nécessaires à l'identification
   d'un composant.
+
+### Graphiques globaux — `/fr/charts`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : cinq graphiques de marché empilés (capitalisation totale, prédominance
+  BTC, capitalisation DeFi, capitalisation des stablecoins, capitalisation des
+  altcoins), chacun dans sa propre carte avec sélecteur de plage, calendrier,
+  export et intégration. Page à dominante graphique de l'audit : pas de tableau
+  principal, le contenu est presque entièrement fait de graphiques répétant le même
+  gabarit de carte.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** :
+  - **Carte de graphique** (`.chart-group`) — nouveau conteneur : titre avec
+    infobulle, barre d'outils (sélecteur de plage, calendrier, export, intégration)
+    et graphique. Cinq instances homogènes sur cette page (même fond, même filet,
+    même rayon `12px`, même ombre de contour `rgb(239, 242, 245)` — cohérent avec
+    les jetons de surface déjà vus ailleurs sur le site).
+  - **Sélecteur de plage par calendrier** (`#calendar`) — nouveau : bouton
+    déclenchant un sélecteur de plage de dates (Flatpickr, `readonly`, valeur
+    initiale « 2013-04-28 to 2026-08-29 »), à côté du groupe de boutons segmenté
+    déjà nommé (24h/7j/14J/1M/3M/Max). **Duplication d'id observée** : les cinq
+    cartes de graphique portent chacune un bouton `id="calendar"` — HTML invalide
+    (id non unique), constaté tel quel, pas corrigé par ce relevé.
+  - **Bouton d'export** (`#export`) et **bouton d'intégration** (`#embed`) —
+    nouveaux : deux boutons icône-seule en bout de barre d'outils, chacun ouvrant un
+    menu déroulant déclaré par le HTML (le second propose le code `<iframe>` en
+    thème clair ou sombre) mais non ouvert à l'écran par ce relevé.
+  - **Groupe de boutons segmenté** (déjà nommé) — réutilisé pour le sélecteur de
+    plage de chaque graphique (24h/7j/14J/1M/3M/Max), à côté du calendrier plutôt
+    qu'à sa place.
+  - **Navigation latérale de section** (`.side-nav`) — nouveau : colonne de gauche,
+    groupes de liens repliables par icône et libellé (Monnaies, Actifs du monde
+    réel, Catégories, Trésoreries, NFT), avec l'item courant mis en évidence. Item
+    individuel sur une classe distincte (`gecko-tab-chip-secondary-item`) de tout
+    ce qui a été nommé jusqu'ici — ni `gecko-tab-chip-item`, ni
+    `gecko-tab-underline-item`. Vu uniquement sur cette page dans cet audit ; à
+    vérifier si elle est propre à la section « Graphiques » ou partagée par
+    d'autres sections (Highlights, RWA…) que cet audit n'a pas ouvertes. Non
+    instrumentée par un sélecteur de mesure dans ce relevé — observée dans la
+    capture et dans le HTML, pas mesurée en style.
+  - **Légende de graphique** et **navigateur de plage (brush)** — natifs
+    Highcharts (`.highcharts-legend-item`, point coloré + libellé sous le
+    graphique ; `.highcharts-navigator`, bande de mini-aperçu avec poignées de
+    sélection sous l'axe temporel), déclarés dans le HTML de cette page mais absents
+    des captures du **graphique de cours** déjà nommé sur la page coin — première
+    fois que ces deux sous-éléments de la même famille de graphique sont observés
+    sur ce site. Non instrumentés par sélecteur dans ce relevé (rendu SVG interne
+    au graphique, pas un nœud HTML autonome).
+- **Fonctionnalités** : sélection de plage par bouton ou par calendrier, export des
+  données de la fenêtre affichée, génération d'un code d'intégration (thème clair
+  ou sombre), navigation latérale entre familles de graphiques (Monnaies, Actifs du
+  monde réel, Catégories, Trésoreries, NFT — chacune une page distincte déjà listée
+  ou à ajouter selon le périmètre retenu), lien direct vers l'API du marché global.
+- **Interactions** : trois sélecteurs sondés en survol et en focus (largeur de
+  référence, deux thèmes) — deltas dans `mesures.json` → `interactions`.
+  **Calendrier**, **export**, **intégration** : aucun changement mesurable au
+  survol pour les trois ; le focus affiche un anneau de contour identique et
+  personnalisé sur les trois (`rgba(0, 0, 0, 0)`, 2 px, décalage 2 px — un anneau
+  transparent mais présent en tant que déclaration de style, cohérent avec le
+  bouton discret de l'accueil qui posait aussi un anneau quasi transparent mais
+  solide). Le calendrier a cinq correspondances sur la page (`index: 0, total: 5`,
+  homogènes — les cinq cartes portent le même bouton) ; export et intégration
+  n'ont chacun qu'une correspondance (un seul bouton d'export et un seul bouton
+  d'intégration existent réellement sur la page, malgré cinq cartes — à vérifier
+  si un seul export sert les cinq graphiques ou si les identifiants dupliqués
+  masquent les quatre autres du sondage, non tranché par ce relevé).
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
+  ouverture du calendrier, ouverture des menus d'export et d'intégration, bascule
+  effective du groupe de boutons segmenté vers une autre plage, repli/dépli des
+  groupes de la navigation latérale.
+- **Données requises** : capitalisation totale, prédominance BTC/ETH/stablecoins,
+  capitalisation DeFi, capitalisation des stablecoins (par émetteur) et des
+  altcoins sont toutes des séries temporelles agrégées — publiées par l'API
+  CoinGecko gratuite (endpoint marché global et historique global), déjà consommée
+  par ZENKUU (`GlobalChartCard`). Rien à reporter en synthèse pour cette page.
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/graphiques/page.tsx` (lu dans le
+  code le 2026-08-30, dev server injoignable au moment du relevé — comparaison sur
+  code source) rend déjà `GlobalChartCard`, avec sélecteur de plage à préréglages
+  (`rangeId`/`defaultRange`), export limité à la fenêtre affichée (choix documenté
+  dans le fichier : « l'export porte sur la fenêtre affichée et non sur la série
+  entière ») et un bouton d'intégration (`EmbedButton`, vers une route réelle
+  `/embed/graphique`) — parité fonctionnelle déjà large sur la barre d'outils de
+  carte. N'ont pas d'équivalent identifié dans le fichier lu : le **sélecteur de
+  plage par calendrier** (choix de dates arbitraires, pas seulement des
+  préréglages), la **navigation latérale de section**, et le **navigateur de
+  plage (brush)** sous chaque graphique — ZENKUU expose des préréglages de plage
+  mais pas de mini-aperçu de la série entière avec poignées de sélection.
+- **Notes** : bascule de thème validée sur ce gabarit (captures claire/sombre
+  différentes octet pour octet aux trois largeurs). Aucun blocage Cloudflare
+  rencontré (correctif du user-agent déjà en place). Fichier HTML source
+  particulièrement volumineux pour cette page (environ 7 Mo contre 0,9 à 2,1 Mo
+  pour les quatre entrées précédentes) — cohérent avec cinq graphiques Highcharts
+  inline, chacun portant sa propre série de points SVG. Restent non observés,
+  faute de simuler un clic : l'ouverture du calendrier, des menus d'export et
+  d'intégration, le changement de plage effectif, le repli des groupes de la
+  navigation latérale, et le contenu réel de la carte « Explorer les détails de
+  l'API » vue sous la navigation latérale. Aucun texte de CoinGecko n'est recopié
+  au-delà des libellés strictement nécessaires à l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
 
