@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  "Glossaire": "Woordenlijst",
+  "Index du glossaire": "Index van de woordenlijst",
+  "Ouvrir le glossaire": "Woordenlijst openen",
+  "voir la fiche": "bekijk de uitleg",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "De woordenschat die nodig is om deze site te lezen. Elke definitie zegt wat het begrip meet — en wat niet.",
   Parcourir: 'Verkennen',
   Données: 'Gegevens',
   Analyse: 'Analyse',

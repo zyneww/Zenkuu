@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  "Glossaire": "Thuật ngữ",
+  "Index du glossaire": "Mục lục thuật ngữ",
+  "Ouvrir le glossaire": "Mở bảng thuật ngữ",
+  "voir la fiche": "xem bài hướng dẫn",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "Vốn từ cần thiết để đọc trang này. Mỗi định nghĩa cho biết khái niệm đo lường điều gì — và không đo lường điều gì.",
   Parcourir: 'Duyệt',
   Données: 'Dữ liệu',
   Analyse: 'Phân tích',

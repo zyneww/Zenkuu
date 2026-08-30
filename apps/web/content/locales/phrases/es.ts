@@ -8,6 +8,11 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  "Glossaire": "Glosario",
+  "Index du glossaire": "Índice del glosario",
+  "Ouvrir le glossaire": "Abrir el glosario",
+  "voir la fiche": "ver la ficha",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "El vocabulario necesario para leer este sitio. Cada definición dice qué mide el concepto — y qué no mide.",
   /* ── Navegación ─────────────────────────────────────────────────────────── */
   Parcourir: 'Explorar',
   Données: 'Datos',

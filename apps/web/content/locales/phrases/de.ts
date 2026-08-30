@@ -9,6 +9,11 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  "Glossaire": "Glossar",
+  "Index du glossaire": "Glossarverzeichnis",
+  "Ouvrir le glossaire": "Glossar öffnen",
+  "voir la fiche": "zum Leitfaden",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "Das Vokabular, das zum Lesen dieser Website nötig ist. Jede Definition sagt, was der Begriff misst — und was nicht.",
   /* ── Navigation ─────────────────────────────────────────────────────────── */
   Parcourir: 'Durchsuchen',
   Données: 'Daten',

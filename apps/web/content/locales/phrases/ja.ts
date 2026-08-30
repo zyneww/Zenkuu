@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  "Glossaire": "用語集",
+  "Index du glossaire": "用語集の索引",
+  "Ouvrir le glossaire": "用語集を開く",
+  "voir la fiche": "解説を見る",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "このサイトを読むために必要な用語。各定義は、その概念が何を測るか——そして何を測らないかを示します。",
   Parcourir: '一覧',
   Données: 'データ',
   Analyse: '分析',

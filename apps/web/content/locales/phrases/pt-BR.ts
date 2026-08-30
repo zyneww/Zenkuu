@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  "Glossaire": "Glossário",
+  "Index du glossaire": "Índice do glossário",
+  "Ouvrir le glossaire": "Abrir o glossário",
+  "voir la fiche": "ver o guia",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "O vocabulário necessário para ler este site. Cada definição diz o que a noção mede — e o que ela não mede.",
   Parcourir: 'Explorar',
   Données: 'Dados',
   Analyse: 'Análise',

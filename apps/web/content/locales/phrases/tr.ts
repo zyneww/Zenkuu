@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  "Glossaire": "Sözlük",
+  "Index du glossaire": "Sözlük dizini",
+  "Ouvrir le glossaire": "Sözlüğü aç",
+  "voir la fiche": "rehbere bak",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "Bu siteyi okumak için gereken sözcükler. Her tanım, kavramın neyi ölçtüğünü — ve neyi ölçmediğini söyler.",
   Parcourir: 'Keşfet',
   Données: 'Veriler',
   Analyse: 'Analiz',

@@ -13,6 +13,11 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  "Glossaire": "Glossary",
+  "Index du glossaire": "Glossary index",
+  "Ouvrir le glossaire": "Open the glossary",
+  "voir la fiche": "read the guide",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "The vocabulary you need to read this site. Every definition says what the notion measures — and what it does not.",
   /* ── Navigation ─────────────────────────────────────────────────────────── */
   Parcourir: 'Browse',
   Données: 'Data',

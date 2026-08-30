@@ -341,8 +341,10 @@ export const NAV_MENUS: NavMenu[] = [
    * autres sont des produits — un programme de récompenses, une chaîne vidéo, une
    * lettre d'information, un cabinet de recherche — pas des pages de données.
    *
-   * Le glossaire n'a pas d'entrée parce qu'il n'a pas d'index : `/resoudre/[terme]`
-   * définit UN terme, sans page qui les liste. C'est noté dans l'audit.
+   * Le glossaire A une entrée depuis le 2026-08-31. Cette note disait le contraire —
+   * « pas d'index : `/resoudre/[terme]` définit UN terme, sans page qui les liste » —
+   * et c'était vrai : les 32 définitions vivaient en SECTION de `/apprendre`. Elles
+   * ont leur propre route, comme le `/glossary` de la référence.
    */
   {
     label: 'Apprendre',
@@ -375,6 +377,13 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Nos analyses de fond',
             icon: PenLine,
             href: '/blog',
+            ready: true,
+          },
+          {
+            label: 'Glossaire',
+            description: 'Le vocabulaire du marché, défini terme par terme',
+            icon: GraduationCap,
+            href: '/glossaire',
             ready: true,
           },
         ],

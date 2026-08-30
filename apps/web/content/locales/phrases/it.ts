@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  "Glossaire": "Glossario",
+  "Index du glossaire": "Indice del glossario",
+  "Ouvrir le glossaire": "Apri il glossario",
+  "voir la fiche": "vedi la scheda",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "Il vocabolario necessario per leggere questo sito. Ogni definizione dice che cosa misura la nozione — e che cosa non misura.",
   Parcourir: 'Esplora',
   Données: 'Dati',
   Analyse: 'Analisi',

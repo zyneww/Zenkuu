@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  "Glossaire": "Глоссарий",
+  "Index du glossaire": "Указатель глоссария",
+  "Ouvrir le glossaire": "Открыть глоссарий",
+  "voir la fiche": "смотреть разбор",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "Словарь, необходимый для чтения этого сайта. Каждое определение говорит, что понятие измеряет — и чего оно не измеряет.",
   Parcourir: 'Обзор',
   Données: 'Данные',
   Analyse: 'Анализ',

@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  "Glossaire": "Słowniczek",
+  "Index du glossaire": "Indeks słowniczka",
+  "Ouvrir le glossaire": "Otwórz słowniczek",
+  "voir la fiche": "zobacz przewodnik",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "Słownictwo potrzebne do czytania tej strony. Każda definicja mówi, co dane pojęcie mierzy — i czego nie mierzy.",
   Parcourir: 'Przeglądaj',
   Données: 'Dane',
   Analyse: 'Analiza',

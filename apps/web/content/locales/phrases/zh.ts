@@ -2,6 +2,11 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  "Glossaire": "术语表",
+  "Index du glossaire": "术语表索引",
+  "Ouvrir le glossaire": "打开术语表",
+  "voir la fiche": "查看说明",
+  "Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.": "阅读本站所需的词汇。每条定义都会说明该概念衡量什么——以及不衡量什么。",
   Parcourir: '浏览',
   Données: '数据',
   Analyse: '分析',

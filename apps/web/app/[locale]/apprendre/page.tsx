@@ -4,8 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { CoverArt } from '@/components/editorial/CoverArt'
 import { LessonBrowser } from '@/components/learn/LessonBrowser'
 import { LESSONS, LESSON_TOPICS, levelLabel } from '@/content/apprendre'
-import { glossaryByLetter } from '@/content/glossaire'
-import { getContent, getSeo } from '@/lib/content'
+import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
  * La fiche mise en avant, choisie à la main.
@@ -78,7 +77,11 @@ const STARTING_PATH = [
   'dominance',
 ]
 
-export default function ApprendrePage() {
+export default async function ApprendrePage() {
+  /* Le renvoi vers le glossaire passe par la table de phrases : le reste de cette
+     page écrit son texte en français littéral, mais ce bloc est neuf et le brief
+     demande désormais toutes les langues supportées. */
+  const t = await getPhrase()
   const starters = STARTING_PATH.map((slug) =>
     LESSONS.find((lesson) => lesson.slug === slug),
   ).filter((lesson): lesson is (typeof LESSONS)[number] => Boolean(lesson))
@@ -179,7 +182,33 @@ export default function ApprendrePage() {
         <LessonBrowser />
       </section>
 
-      <Glossary />
+      {/* ── LE GLOSSAIRE A SA PROPRE PAGE ────────────────────────────────────
+          Il vivait ici en section, au motif que « trente-deux entrées ne justifient
+          pas une route à part ». Le mandat de recalage des routes sur la référence
+          l'a emporté : elle sert le sien à `/glossary`, sous « Learn ».
+
+          Ce qui reste ici est le RENVOI, et non une copie : servir le même contenu à
+          deux adresses ferait deux pages en concurrence pour la même requête, et
+          obligerait à les tenir accordées à la main. */}
+      <section
+        className="border-t border-border-subtle pt-8"
+        aria-labelledby="renvoi-glossaire"
+      >
+        <h2 id="renvoi-glossaire" className="display-sm text-ink">
+          {t('Glossaire')}
+        </h2>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">
+          {t(
+            'Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la notion mesure — et ce qu’elle ne mesure pas.',
+          )}
+        </p>
+        <Link
+          href="/glossaire"
+          className="mt-3 inline-flex min-h-8 items-center text-sm font-medium text-ink hover:underline"
+        >
+          {t('Ouvrir le glossaire')}
+        </Link>
+      </section>
 
       {/*
         ── LA BANNIÈRE DE FIN, ET CE QU'ELLE N'ANNONCE PAS ────────────────────
@@ -323,75 +352,3 @@ function TopicSections() {
   )
 }
 
-/**
- * ── LE GLOSSAIRE, RANGÉ PAR LETTRE ────────────────────────────────────────────
- *
- * La référence en fait une page entière avec un index A–Z cliquable en tête. Le nôtre
- * tient sous la bibliothèque : trente-deux entrées ne justifient pas une route à part,
- * et les avoir sur la même page que les fiches permet d'y renvoyer depuis chacune.
- *
- * L'index de tête ne liste QUE les lettres qui portent une entrée. Un alphabet complet
- * dont la moitié des lettres ne mène nulle part fait chercher ce qui n'existe pas.
- */
-function Glossary() {
-  const groups = glossaryByLetter()
-
-  return (
-    <section className="space-y-5 border-t border-border-subtle pt-8" aria-labelledby="glossaire">
-      <div>
-        <h2 id="glossaire" className="display-sm text-ink">
-          Glossaire
-        </h2>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Le vocabulaire nécessaire pour lire le site. Chaque définition dit ce que la
-          notion mesure — et ce qu’elle ne mesure pas.
-        </p>
-      </div>
-
-      <nav aria-label="Index du glossaire" className="flex flex-wrap gap-1.5">
-        {groups.map((group) => (
-          <a
-            key={group.letter}
-            href={`#glossaire-${group.letter}`}
-            className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-control border border-border-subtle px-2 text-sm font-semibold text-ink-muted transition-colors hover:border-brand hover:text-brand"
-          >
-            {group.letter}
-          </a>
-        ))}
-      </nav>
-
-      <div className="space-y-6">
-        {groups.map((group) => (
-          <div key={group.letter} id={`glossaire-${group.letter}`} className="space-y-2">
-            <h3 className="text-sm font-bold text-ink">{group.letter}</h3>
-            <dl className="divide-y divide-border-subtle border-t border-border-subtle">
-              {group.entries.map((entry) => (
-                <div key={entry.term} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-5">
-                  <dt className="text-sm font-semibold text-ink">
-                    {entry.term}
-                    {/* `inline-flex min-h-8` : le plancher tactile du site repose sur
-                        `min-height`, sans effet sur une boîte en ligne. `audit-responsive`
-                        mesurait ces liens à 27 × 17 px — une cible qu'on rate au doigt.
-                        Le libellé s'allonge aussi : « fiche » seul ne dit pas où il mène. */}
-                    {entry.lesson ? (
-                      <>
-                        {' '}
-                        <Link
-                          href={`/apprendre/${entry.lesson}`}
-                          className="inline-flex min-h-8 items-center px-1 text-xs font-normal text-ink hover:underline"
-                        >
-                          voir la fiche
-                        </Link>
-                      </>
-                    ) : null}
-                  </dt>
-                  <dd className="text-sm leading-relaxed text-ink-muted">{entry.definition}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
