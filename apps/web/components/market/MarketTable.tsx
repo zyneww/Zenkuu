@@ -267,18 +267,22 @@ export function MarketTable({
    */
   const quotes = columnSet === 'cotations'
   /**
-   * Grille de CATALOGUE — la page d'une classe d'actif entière.
+   * Grille de CATALOGUE — les classes d'actif NON crypto.
    *
-   * Relevée sur Cryptorank : rang, actif, cours, variation 24 h, capitalisation,
-   * volume, offre en circulation, courbe 7 jours. Elle diffère de l'aperçu par deux
-   * choses seulement, et les deux sont demandées par la référence :
+   * Employée par les actions et les devises (voir `CryptoBoard`) et par
+   * `MarketPageView` : une action n'a ni offre en circulation ni courbe 7 jours, et la
+   * grille crypto lui alignerait des tirets.
    *
-   *   · l'ORDRE de la capitalisation et du volume, inversé — voir `BoardColumnSet` ;
-   *   · l'OFFRE EN CIRCULATION, colonne que ce tableau n'avait pas.
+   * ⚠️ CETTE NOTE CITAIT CRYPTORANK COMME RÉFÉRENCE, et affirmait que « huit colonnes
+   * est déjà ce que la référence aligne » pour justifier d'effacer les fenêtres 1 h,
+   * 7 j et 1 M. C'était vrai de Cryptorank, pas de CoinGecko :
+   * `/en/all-cryptocurrencies`, relevée le 2026-08-31, aligne DIX colonnes — rang,
+   * monnaie, cours, 1 h, 24 h, 7 j, 30 j, volume, offre en circulation, offre TOTALE.
    *
-   * Les fenêtres secondaires (1 h, 7 j, 1 M) et l'amplitude s'effacent : huit colonnes
-   * est déjà ce que la référence aligne, et les y ajouter reviendrait à reprendre sa
-   * grille en la contredisant.
+   * Ce jeu n'est pas pour autant faux : il ne sert PAS la crypto, et les fenêtres
+   * secondaires n'ont pas d'équivalent chez un fournisseur d'actions. Ce qui reste à
+   * faire est ailleurs — `/crypto` emploie `cotations`, qui porte les fenêtres mais
+   * pas l'offre. Voir `MIGRATION_RAPPORT.md`, section « Partiel ».
    */
   const catalogue = columnSet === 'catalogue'
   /**
@@ -497,6 +501,19 @@ export function MarketTable({
       les indices ou les devises. `has()` la retire donc d'elle-même sur les cinq
       autres classes, sans qu'une exception par classe soit écrite ici.
     */
+    /* ⚠️ L'OFFRE RESTE AU SEUL `catalogue`, ET J'AI ESSAYÉ L'INVERSE. Je l'ai étendue
+       à `quotes` en lisant que `/en/all-cryptocurrencies` la porte. Vérification au
+       navigateur : elle est alors apparue sur l'ACCUEIL, qui emploie ce jeu — et leur
+       accueil, lui, ne la porte pas. Quinze colonnes au lieu de treize.
+
+       La bonne lecture : l'offre appartient à leur page de CATALOGUE
+       (`/all-cryptocurrencies`), pas à leur accueil. Chez ZENKUU, `/crypto` emploie
+       déjà `catalogue` et l'affiche donc — l'écart que je croyais combler n'existait
+       pas. Vérifié : Bitcoin y rend « 20,1 M BTC ».
+
+       Ce qui manque VRAIMENT est l'offre TOTALE, que leur catalogue porte en plus. Le
+       champ existe (`totalSupply`) ; l'écart entre les deux offres est la dilution à
+       venir, que `Cap./FDV` exprime déjà autrement. */
     supply: catalogue && has('circulatingSupply'),
     change24h: !athView,
     ath: athView && has('ath'),
