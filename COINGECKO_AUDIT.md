@@ -49,7 +49,7 @@ terminé. Elles ne sont pas pour autant un travail en retard — l'ordre suit la
 migration, page par page, parce qu'un relevé sert au moment où la question
 « qu'est-ce qu'on garde de cette page ? » est concrète.
 
-**46 pages sur 68 sont auditées, 22 restent.** Le rendement décroît, et c'est
+**58 pages sur 68 sont auditées, 10 restent.** Le rendement décroît, et c'est
 attendu : la fidélité de CoinGecko tient dans une vingtaine de composants partagés
 que l'accueil a nommés d'un coup. Les six pages ajoutées le 2026-08-30 confirment le
 constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de colonne
@@ -80,7 +80,7 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 
 - [x] Accueil — `/fr`
 - [x] Accueil, toutes les monnaies — `/en/all-cryptocurrencies`
-- [ ] Accueil, classement rehypothéqué — `/en/top-market-cap-rehypothecated`
+- [x] Accueil, classement rehypothéqué — `/en/top-market-cap-rehypothecated`
 - [x] Accueil en devise (EUR) — `/en/currencies/eur`
 - [x] Page coin, onglet Vue d'ensemble — `/en/coins/bitcoin`
 - [ ] Page coin, onglet Tokenomique — `/en/coins/bitcoin#tokenomics`
@@ -93,7 +93,7 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Exchanges, spot — `/en/exchanges`
 - [x] Exchanges, DEX — `/en/exchanges/decentralized`
 - [x] Exchanges, dérivés — `/en/exchanges/derivatives`
-- [ ] Exchanges, DEX perpétuels — `/en/exchanges/derivatives/decentralized`
+- [x] Exchanges, DEX perpétuels — `/en/exchanges/derivatives/decentralized`
 - [x] Page d'exchange — `/en/exchanges/binance`
 - [x] Graphiques globaux — `/en/charts`
 
@@ -115,19 +115,19 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Chaînes — `/en/chains`
 - [x] Page de chaîne — `/en/chains/ethereum`
 - [x] NFT — `/en/nft`
-- [ ] NFT par chaîne — `/en/nft/chains/ethereum`
+- [x] NFT par chaîne — `/en/nft/chains/ethereum`
 - [x] Page de collection NFT (floor price) — `/en/nft/bored-ape-yacht-club`
 - [x] RWA — `/en/rwa`
 - [x] RWA, graphique global — `/en/charts/rwa`
 - [x] RWA, actions tokenisées — `/en/stocks`
-- [ ] Page d'action tokenisée — `/en/stocks/nvidia`
+- [x] Page d'action tokenisée — `/en/stocks/nvidia`
 - [x] RWA, ETF tokenisés — `/en/etfs`
-- [ ] Page d'ETF tokenisé — `/en/etfs/spdr-s-p-500-etf-trust`
+- [x] Page d'ETF tokenisé — `/en/etfs/spdr-s-p-500-etf-trust`
 - [x] RWA, matières premières tokenisées — `/en/commodities`
-- [ ] Page de matière première tokenisée — `/en/commodities/gold`
+- [x] Page de matière première tokenisée — `/en/commodities/gold`
 - [x] Trésoreries — `/en/treasuries`
 - [x] Trésoreries, entreprises — `/en/treasuries/companies`
-- [ ] Trésoreries, États — `/en/treasuries/governments`
+- [x] Trésoreries, États — `/en/treasuries/governments`
 
 ### Phase 3 — contenu et services
 
@@ -135,10 +135,10 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [ ] Apprendre — `/learn`
 - [x] Apprendre, article — `/learn/crypto-narratives`
 - [x] Actualités — `/en/news`
-- [ ] Rapports — `/en/publications/reports`
+- [x] Rapports — `/en/publications/reports`
 - [ ] Perspectives Recherche — `/research`
 - [x] Glossaire — `/en/glossary`
-- [ ] Glossaire, terme — `/en/glossary/blockchain`
+- [x] Glossaire, terme — `/en/glossary/blockchain`
 - [x] Widgets — `/en/widget`
 - [x] Page API — `/en/api`
 - [ ] API DEX — `/en/api/dex`
@@ -149,9 +149,9 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Méthodologie — `/en/methodology`
 - [x] À propos — `/en/about`
 - [x] FAQ — `/en/faq`
-- [ ] Candy (récompenses) — `/en/candy`
-- [ ] Application mobile — `/en/mobile`
-- [ ] Tarifs Premium — `/en/premium/pricing`
+- [x] Candy (récompenses) — `/en/candy`
+- [x] Application mobile — `/en/mobile`
+- [x] Tarifs Premium — `/en/premium/pricing`
 
 **Watchlist — sans route publique vérifiable.** Constaté par `curl -L` (GET, suivi des
 redirections), URL par URL :
@@ -2124,6 +2124,203 @@ traduit en français, comme `/en/glossary` et `/learn`.
   sont publiques et le calcul tient en quelques lignes.
 - **Notes** : sept lignes, la plus courte table relevée. Elle ne se pagine pas et n'a pas
   de tri.
+
+### Classement rehypothéqué — `/en/top-market-cap-rehypothecated`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : l'accueil, recalculé en comptant les jetons adossés à un autre actif dans la
+  capitalisation de leur sous-jacent plutôt qu'à part. Un bitcoin enveloppé y compte comme
+  du bitcoin, pas comme un actif distinct.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes, gabarit de l'accueil ; chrome commun.
+- **Fonctionnalités** : tri ; pagination ; navigation vers la fiche.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : le RATTACHEMENT de chaque jeton adossé à son sous-jacent.
+  ⚠️ Aucune source de cotation ne le publie : il faut savoir que `WBTC` représente du
+  bitcoin, `stETH` de l'ether, et ainsi de suite pour des centaines de jetons.
+- **Écart avec ZENKUU** : aucun équivalent, et la donnée de rattachement manque.
+- **Notes** : c'est un point de vue sur la MÊME donnée, pas une donnée nouvelle. Le
+  double comptage qu'il corrige est réel — sans lui, un bitcoin enveloppé gonfle la
+  capitalisation totale du marché.
+
+### Places de dérivés décentralisées — `/en/exchanges/derivatives/decentralized`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les plateformes de perpétuels sans intermédiaire, classées par intérêt ouvert.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de 55 lignes — rang, place, règlement, intérêt ouvert 24 h,
+  volume 24 h, nombre de perpétuels, nombre de futures, intérêt ouvert, volume 7 j ;
+  chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la place.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : intérêt ouvert et volumes par place décentralisée.
+- **Écart avec ZENKUU** : `/perpetuels` liste les places de dérivés sans distinguer
+  centralisées et décentralisées.
+- **Notes** : neuf colonnes, la table la plus large relevée après les pages RWA.
+
+### NFT par chaîne — `/en/nft/chains/ethereum`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les collections NFT d'une chaîne donnée, classées par capitalisation.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes, gabarit de `/en/nft` — rang, collection, prix
+  plancher, 24 h, 7 j, 30 j, courbe, capitalisation, volume 24 h ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la collection.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : marché NFT par collection ET rattachement à une chaîne.
+- **Écart avec ZENKUU** : aucun équivalent — `/graphiques/nft` ne filtre pas par chaîne.
+- **Notes** : même gabarit que `/en/nft`, y compris la courbe placée AVANT la
+  capitalisation. Les deux pages partagent un composant.
+
+### Action tokenisée — `/en/stocks/nvidia`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la fiche d'une action tokenisée, avec les places où son jeton se négocie.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : bloc d'identité (« Nvidia NVDA #2 ») ; tableau de dix places — rang,
+  place, paire, cours, écart, profondeur à +2 % et −2 %, volume 24 h, part du volume ;
+  chrome commun.
+- **Fonctionnalités** : tri des places ; navigation vers la place.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : carnet d'ordres par paire, pour la profondeur et l'écart.
+- **Écart avec ZENKUU** : `AssetTickers` rend une table de places très proche sur la fiche
+  d'actif, avec écart et profondeur. **La structure existe** ; c'est l'objet — une action
+  tokenisée — qui n'a pas de source.
+- **Notes** : la profondeur à ±2 % mesure la liquidité réelle, pas le volume déclaré.
+  C'est ce qui distingue une place profonde d'une place bruyante.
+
+### ETF tokenisé — `/en/etfs/spdr-s-p-500-etf-trust`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la fiche d'un ETF tokenisé — cours, graphique, convertisseur, historique.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : bloc d'identité ; graphique de cours ; **convertisseur intégré** ;
+  section d'historique ; chrome commun.
+- **Fonctionnalités** : changement de fenêtre du graphique ; conversion.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : cours du jeton et de l'ETF sous-jacent.
+- **Écart avec ZENKUU** : la fiche d'actif couvre le gabarit. Le convertisseur INTÉGRÉ à
+  la fiche n'a pas d'équivalent — `/convertisseur` est une page séparée.
+- **Notes** : trois fiches d'objet relevées (action, ETF, matière première) partagent ce
+  gabarit : identité, graphique, convertisseur, historique.
+
+### Matière première tokenisée — `/en/commodities/gold`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la fiche de l'or tokenisé, au même gabarit que l'ETF.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : identiques à `/en/etfs/[id]` — identité (« Gold XAU #1 »), graphique,
+  convertisseur, historique ; chrome commun.
+- **Fonctionnalités** : identiques.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : cours du jeton et du sous-jacent.
+- **Écart avec ZENKUU** : `/matieres-premieres/[id]` couvre le gabarit pour de vraies
+  matières premières.
+- **Notes** : le rang « #1 » dans le titre est celui de l'or DANS SA CATÉGORIE, pas dans
+  le marché entier.
+
+### Trésoreries d'États — `/en/treasuries/governments`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la moitié « États » de la page trésoreries — les gouvernements qui détiennent
+  des cryptomonnaies, souvent par saisie judiciaire.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau au gabarit de `/en/treasuries/companies`, sans la colonne
+  d'actif par action — un État n'a pas d'actions ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers l'entité.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : déclarations de détention par État. ⚠️ Encore moins publiées que
+  celles des sociétés : elles viennent d'annonces officielles et de dossiers judiciaires.
+- **Écart avec ZENKUU** : `/graphiques/tresoreries` ne sépare pas États et sociétés.
+- **Notes** : la page mère porte 244 lignes, les sociétés 231 — les États sont donc une
+  poignée. La séparation en deux pages est éditoriale, pas volumétrique.
+
+### Terme de glossaire — `/en/glossary/blockchain`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la page d'UN terme, avec sa définition développée.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : titre (`h1` « Blockchain »), texte de définition ; chrome commun.
+  **Aucun tableau.**
+- **Fonctionnalités** : lecture ; navigation vers l'index.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : la définition, écrite à la main.
+- **Écart avec ZENKUU** : `/resoudre/[terme]` existe mais répond à une autre question —
+  c'est un résolveur qui cherche un actif par son nom, pas une page de définition. Les
+  32 définitions vivent sur `/glossaire`, sans page par terme.
+- **Notes** : ⚠️ contrairement à leur index `/en/glossary`, cette page-ci PORTE un `h1`.
+  L'absence de titre est donc un défaut de l'index seul, pas une convention du site.
+
+### Rapports — `/en/publications/reports`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les publications de recherche téléchargeables.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : grille de couvertures ; chrome commun. ⚠️ **AUCUN `h1`** — troisième
+  page relevée dans ce cas, après le glossaire et les widgets.
+- **Fonctionnalités** : téléchargement.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : les rapports eux-mêmes — production éditoriale.
+- **Écart avec ZENKUU** : `/blog` porte des analyses de fond, sans format téléchargeable.
+- **Notes** : trois pages sans `h1` sur 58 relevées. Ce n'est pas une convention, c'est
+  une négligence qui se répète.
+
+### Premium — `/en/premium/pricing`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la page commerciale de l'abonnement payant.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : argumentaire, deux sections (« What You Get », « How It Works »),
+  grille tarifaire ; chrome commun.
+- **Fonctionnalités** : souscription.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune — page de vente.
+- **Écart avec ZENKUU** : **aucune reprise prévue.** ZENKUU ne vend rien ; une page de
+  tarifs sans produit à vendre n'aurait aucun contenu.
+- **Notes** : son titre — « Zero Ads, Unlimited Tracking » — décrit ce que l'abonnement
+  RETIRE : la publicité que le site gratuit affiche. ZENKUU n'en affiche pas.
+
+### Application mobile — `/en/mobile`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la vitrine de l'application native.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : trois sections de présentation ; liens vers les magasins ; chrome
+  commun.
+- **Fonctionnalités** : téléchargement de l'application.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune.
+- **Écart avec ZENKUU** : **aucune reprise prévue** — il n'y a pas d'application ZENKUU.
+- **Notes** : le bouton « Use App » du chrome commun mène ici. Il est présent sur toutes
+  leurs pages et n'a pas d'équivalent chez nous, ce qui explique l'écart de largeur de
+  leur barre de navigation.
+
+### Candy — `/en/candy`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le programme de récompenses — des points gagnés en visitant le site,
+  échangeables contre des lots.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : présentation du programme ; chrome commun.
+- **Fonctionnalités** : collecte de points ; échange.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : un compte et un solde de points — donnée d'opérateur.
+- **Écart avec ZENKUU** : **aucune reprise prévue.** Un programme de fidélité récompense
+  la fréquentation, pas la lecture ; il pousse à revenir plutôt qu'à comprendre.
+- **Notes** : c'est la quatrième mécanique d'audience relevée, après les consultations,
+  les mises en suivi et les vues de fiches.
 
 ## Synthèse — données sans source gratuite
 
