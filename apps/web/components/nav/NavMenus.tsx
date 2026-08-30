@@ -256,13 +256,13 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
            */
           menu.href && menu.sections.length === 0 ? (
             <NavigationMenuItem key={menu.label}>
-              <NavigationMenuLink asChild className="px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink">
+              <NavigationMenuLink asChild className="px-3 py-2 text-sm font-semibold text-ink-muted hover:text-ink">
                 <Link href={menu.href}>{t(menu.label)}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
           ) : (
             <NavigationMenuItem key={menu.label} value={menu.label}>
-              <NavigationMenuTrigger className="bg-transparent px-3 py-2 text-sm font-medium text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
+              <NavigationMenuTrigger className="bg-transparent px-3 py-2 text-sm font-semibold text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
                 {t(menu.label)}
               </NavigationMenuTrigger>
 

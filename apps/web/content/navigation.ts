@@ -32,17 +32,28 @@ import {
 /**
  * Structure de la navigation principale.
  *
- * Conçue depuis notre propre positionnement, pas recopiée : CoinGecko range son
- * menu par TYPE D'OBJET (Cryptocurrencies, Exchanges, RWA, Products, API) parce
- * qu'il vend de la donnée et référence des plateformes d'échange. ZENKUU ne vend
- * rien et n'échange rien — on range donc par INTENTION DE LECTURE : « qu'est-ce que
- * je regarde ? » (Marchés), « que mesure-t-on ? » (Données), « qu'est-ce
- * que j'en déduis ? » (Analyse), « que s'est-il passé ? » (Actualités), « comment ça
- * marche ? » (Plus).
+ * ⚠️ CETTE STRUCTURE EST CELLE DE LA RÉFÉRENCE, ET C'EST UN RENVERSEMENT ASSUMÉ.
  *
- * Ce qu'on emprunte à leur structure en revanche, c'est le DÉCOUPAGE EN SECTIONS
- * avec libellés discrets : au-delà de quatre entrées, une liste plate se parcourt
- * mal. Les sections donnent un point d'accroche visuel et rendent le menu balayable.
+ * Cette note disait exactement l'inverse : « Conçue depuis notre propre
+ * positionnement, pas recopiée », et rangeait par INTENTION DE LECTURE — Marchés,
+ * Données, Analyse, Actualités, Plus — au motif que CoinGecko range par type d'objet
+ * parce qu'il vend de la donnée, ce que ZENKUU ne fait pas.
+ *
+ * Le raisonnement se tenait sous l'ancien mandat. Le mandat du 2026-08-30 est la
+ * fidélité intégrale, et l'exploitant a tranché pour « méga-menus complets, contenu
+ * ZENKUU ». Les rubriques suivent donc les leurs — Cryptomonnaies, Plateformes,
+ * Actifs réels, Apprendre, Portefeuille — relevées sur `coingecko.com`, et chaque
+ * panneau est rempli des pages que ZENKUU possède RÉELLEMENT.
+ *
+ * Deux règles ont guidé le remplissage :
+ *
+ *   · Une rubrique de la référence sans équivalent ici DISPARAÎT plutôt que de
+ *     pointer vers du vide — API, Ask Gecko, Candy, et les produits.
+ *
+ *   · Une page de ZENKUU sans équivalent chez elle ne disparaît PAS. La référence a
+ *     une rubrique de produits : cette place existe dans sa structure, et « Plus »
+ *     l'occupe. Orpheliner une page construite pour gagner une rubrique coûterait
+ *     plus que la sixième entrée de la barre.
  *
  * Aucune entrée ne mène ni ne fait référence à un achat, une vente ou un ordre (§7).
  *
@@ -92,111 +103,50 @@ export interface NavMenu {
 
 export const NAV_MENUS: NavMenu[] = [
   /*
-   * ── « PARCOURIR » — UN MENU, ET DE NOUVEAU ───────────────────────────────────
-   *
-   * Il a été trois choses : un menu « Marchés » de onze entrées, puis un BOUTON menant
-   * à `/marches` — une page unique portant les sept classes en onglets — et de nouveau
-   * un menu. L'aller-retour n'est pas une hésitation : la page intermédiaire a été
-   * supprimée, et avec elle le motif du bouton.
-   *
-   * Ce motif était qu'un menu dont chaque entrée mène à la même page avec un paramètre
-   * différent n'est pas un menu, c'est une barre d'onglets qui se cache. Vrai — mais il
-   * décrivait `/marches?classe=…`, pas la structure des routes. Les six classes sont
-   * redevenues six PAGES (`/crypto`, `/actions`, `/etf`, `/indices`, `/devises`,
-   * `/matieres-premieres`) : chaque entrée mène désormais à une adresse distincte,
-   * indexable et partageable, et le menu redevient un menu.
-   *
-   * ── DEUX SECTIONS, ET LA SECONDE N'EST PAS UN FOURRE-TOUT ───────────────────
-   *
-   * La coupure est celle entre ce qu'on DÉTIENT et ce qui l'ENTOURE. À gauche, six
-   * classes d'actifs : des choses qui ont un cours et une capitalisation. À droite,
-   * ce qui n'en a pas — des contrats adossés à un actif, les places où ils se
-   * traitent, et les programmes qui retirent des jetons de la circulation.
-   *
-   * Six et quatre : le panneau s'ouvre sur deux colonnes de hauteur comparable. Une
-   * troisième section pour le seul « Buyback » aurait donné une colonne d'une ligne.
-   *
-   * ── LA STRUCTURE VIENT DE COINGECKO, PAS SON CONTENU ────────────────────────
-   *
-   * Leur menu range en groupes séparés par un filet, chaque entrée portant une icône,
-   * un intitulé et une ligne d'explication. C'est une CONVENTION de mise en forme, et
-   * on la reprend. Ce qu'on ne reprend pas, c'est leur découpage — eux séparent par
-   * type d'objet parce qu'ils vendent de la donnée et référencent des plateformes ;
-   * on sépare par nature d'instrument parce qu'on n'échange rien.
-   */
-  /*
    * ══════════════════════════════════════════════════════════════════════════════
-   * « COINS » — LA CRYPTO, ET RIEN QU'ELLE
+   * « CRYPTOMONNAIES » — LEUR PREMIÈRE RUBRIQUE, LEURS ENTRÉES
    * ══════════════════════════════════════════════════════════════════════════════
    *
-   * ── LE RENOMMAGE EST UNE SCISSION, PAS UNE ÉTIQUETTE ─────────────────────────
+   * Panneau relevé le 2026-08-30 sur `coingecko.com` : By Market Cap, Categories,
+   * Chains, Rehypothecated, Crypto Treasuries, NFT, Highlights, New
+   * Cryptocurrencies, Gainers & Losers, All Coins, Compare Coins and NFT,
+   * Converter, Global Chart.
    *
-   * « Parcourir » portait DEUX choses : les six classes d'actifs — dont cinq n'ont
-   * rien de crypto — et les instruments du marché crypto. Le nom était vague parce
-   * que le contenu l'était : « parcourir » ne dit pas quoi.
+   * Onze des treize ont un équivalent ici. « Rehypothecated » n'en a pas — c'est un
+   * classement d'actifs réhypothéqués qu'aucune source de ZENKUU ne produit — et
+   * « All Coins » fait double emploi avec « By Market Cap » chez eux.
    *
-   * Appeler ce menu « Coins » oblige à en sortir ce qui n'est pas une cryptomonnaie.
-   * Actions, ETF, indices, devises et matières premières partent donc dans « TradFi »,
-   * juste à côté — où elles retrouvent la macroéconomie, qui décrit le terrain sur
-   * lequel elles se tiennent. Les deux menus répondent enfin à une question chacun.
+   * ── DEUX ENTRÉES REJOIGNENT LE MENU, ET ELLES EXISTAIENT DÉJÀ ─────────────
    *
-   * ── TROIS SECTIONS, DANS L'ORDRE OÙ ON CHERCHE ───────────────────────────────
-   *
-   * « Classements » d'abord — c'est ce qu'on vient voir. « Explorer » ensuite, pour
-   * les lectures d'ensemble. « Instruments » en dernier : ce sont des objets de
-   * second rang, qu'on ne cherche qu'en sachant déjà ce qu'on veut.
-   *
-   * ⚠️ QUATRE ENTRÉES DE LA RÉFÉRENCE MANQUENT, ET C'EST DÉLIBÉRÉ. Son menu porte
-   * « Performance », « All Time High », « Trending Cryptos » et « Blockchains ». Les
-   * deux premières sont des VUES du tableau d'accueil — des onglets, pas des pages —
-   * et les pointer ici mènerait à une adresse qui ne les ouvre pas. « Trending » n'a
-   * qu'une route d'API, sans page. « Blockchains » n'a aucune source : comparer des
-   * métriques de chaînes demande un agrégat que rien de ce que le site charge ne
-   * publie. Une entrée de menu vers une page qui n'existe pas est un lien mort ; le
-   * §5 vaut aussi pour la navigation.
+   * `/graphiques/tresoreries` et `/graphiques/nft` sont des pages construites que la
+   * navigation ne montrait pas : on ne pouvait les atteindre qu'en connaissant leur
+   * adresse. La structure de la référence leur donne une place.
    */
   {
-    label: 'Coins',
+    label: 'Cryptomonnaies',
     sections: [
       {
         label: 'Classements',
         items: [
           {
-            label: 'Top 100 cryptomonnaies',
+            label: 'Par capitalisation',
             description: 'Les premières capitalisations, page par page',
             icon: Coins,
             href: '/crypto',
             ready: true,
           },
           {
-            /* La SEULE entrée de l'ancien menu « Données » qui n'était pas déjà
-               ailleurs : `/classements` est l'index des quatre palmarès, là où les
-               trois entrées ci-dessous ouvrent chacune le sien. */
-            label: 'Tous les classements',
+            label: 'Points forts',
             description: 'Hausses, baisses, volumes et rotation, au même endroit',
             icon: Trophy,
             href: '/classements',
             ready: true,
           },
           {
-            label: 'Plus fortes hausses',
-            description: 'Les cryptos qui montent le plus sur la période',
+            label: 'Hausses et baisses',
+            description: 'Les deux bouts du classement, sur la même fenêtre',
             icon: TrendingUp,
             href: '/classements/hausses',
-            ready: true,
-          },
-          {
-            label: 'Plus fortes baisses',
-            description: 'L’autre bout du classement, sur la même fenêtre',
-            icon: Activity,
-            href: '/classements/baisses',
-            ready: true,
-          },
-          {
-            label: 'Volumes',
-            description: 'Ce qui s’échange le plus, indépendamment du cours',
-            icon: Trophy,
-            href: '/classements/volumes',
             ready: true,
           },
           {
@@ -212,71 +162,57 @@ export const NAV_MENUS: NavMenu[] = [
         label: 'Explorer',
         items: [
           {
-            label: 'Données de marché globales',
-            description: 'Capitalisation, dominance, stablecoins et trésoreries',
-            icon: LineChart,
-            href: '/graphiques',
-            ready: true,
-          },
-          {
             label: 'Toutes les catégories',
-            description: 'Les cryptomonnaies rangées par narratif',
+            description: 'Les secteurs du marché, classés par capitalisation',
             icon: Layers,
             href: '/categories',
             ready: true,
           },
           {
-            label: 'Écosystèmes',
-            description: 'Les projets rattachés à chaque plateforme',
+            label: 'Chaînes',
+            description: 'Les écosystèmes, et ce qui s’y déploie',
             icon: Globe2,
             href: '/categories/ecosystemes',
             ready: true,
           },
           {
-            label: 'Carte thermique',
-            description: 'Le marché en une figure : surface et couleur',
-            icon: Grid3x3,
-            href: '/heatmap',
+            label: 'Trésoreries',
+            description: 'Les sociétés qui détiennent des cryptomonnaies',
+            icon: Landmark,
+            href: '/graphiques/tresoreries',
             ready: true,
           },
           {
-            label: 'Indice de sentiment',
-            description: 'La peur et l’avidité, jour par jour',
-            icon: Gauge,
-            href: '/sentiment',
+            label: 'NFT',
+            description: 'Les collections et leurs prix planchers',
+            icon: Grid3x3,
+            href: '/graphiques/nft',
             ready: true,
           },
         ],
       },
       {
-        label: 'Instruments',
+        label: 'Outils',
         items: [
           {
-            label: 'Dérivés',
-            description: 'Contrats perpétuels, intérêt ouvert, financement',
-            icon: CandlestickChart,
-            href: '/derives',
+            label: 'Comparateur',
+            description: 'Deux actifs en regard, chiffre par chiffre',
+            icon: GitCompareArrows,
+            href: '/comparateur',
             ready: true,
           },
           {
-            label: 'Places de cotation',
-            description: 'Où les actifs changent de mains',
-            icon: Landmark,
-            href: '/places',
+            label: 'Convertisseur',
+            description: 'Un montant d’un actif vers une devise',
+            icon: ArrowRightLeft,
+            href: '/convertisseur',
             ready: true,
           },
           {
-            label: 'Places de dérivés',
-            description: 'Où se portent les positions à effet de levier',
-            icon: Building2,
-            href: '/perpetuels',
-            ready: true,
-          },
-          {
-            label: 'Rachats',
-            description: 'Les jetons rachetés par leur propre protocole',
-            icon: Recycle,
-            href: '/rachats',
+            label: 'Graphique global',
+            description: 'Capitalisation, volume et dominance dans le temps',
+            icon: LineChart,
+            href: '/graphiques',
             ready: true,
           },
         ],
@@ -286,40 +222,92 @@ export const NAV_MENUS: NavMenu[] = [
 
   /*
    * ══════════════════════════════════════════════════════════════════════════════
-   * « TRADFI » — CE QUI SE COTE AILLEURS QUE SUR UNE CHAÎNE
+   * « PLATEFORMES » — LEUR DEUXIÈME RUBRIQUE
    * ══════════════════════════════════════════════════════════════════════════════
    *
-   * ── SES ENTRÉES SONT DÉDUITES DU SITE, PAS INVENTÉES ─────────────────────────
+   * Leur panneau : Crypto Exchanges, Decentralized Exchanges, Derivatives, Perp
+   * DEXs. Trois sur quatre ont un équivalent ; ZENKUU n'a pas de liste de places
+   * décentralisées — `/pool/[network]/[address]` décrit UNE réserve, pas un
+   * classement de plateformes.
    *
-   * Chacune correspond à une route qui existe et qui rend des données réelles :
-   * `/actions` et `/devises` viennent d'être branchées en onglets sur l'accueil,
-   * `/etf`, `/indices` et `/matieres-premieres` sont servies par le même
-   * `MarketPageView` que les cryptos, `/macro` par la Banque mondiale, et
-   * `/graphiques/actifs-reels` par le catalogue des actions tokenisées.
-   *
-   * ── POURQUOI LA MACRO EST ICI ET NON DANS « ANALYSE » ────────────────────────
-   *
-   * Elle y était, rangée parmi les « Visualisations ». Le voisinage était
-   * défendable — c'est une carte — mais il séparait l'inflation des actions, alors
-   * que la première explique la seconde. Ici, elle ferme le menu comme un contexte :
-   * les actifs d'abord, le terrain sur lequel ils évoluent ensuite.
+   * Quatre entrées ne remplissent pas trois colonnes : la section n'a donc pas de
+   * libellé, comme chez eux, où ce panneau est une liste simple.
    */
   {
-    label: 'TradFi',
+    label: 'Plateformes',
     sections: [
       {
-        label: 'Classes d’actifs',
         items: [
           {
+            label: 'Places de cotation',
+            description: 'Où les actifs se négocient, et à quel volume',
+            icon: Landmark,
+            href: '/places',
+            ready: true,
+          },
+          {
+            label: 'Dérivés',
+            description: 'Contrats à terme et perpétuels, par place',
+            icon: CandlestickChart,
+            href: '/derives',
+            ready: true,
+          },
+          {
+            label: 'Places de dérivés',
+            description: 'Les plateformes spécialisées dans les perpétuels',
+            icon: Building2,
+            href: '/perpetuels',
+            ready: true,
+          },
+        ],
+      },
+    ],
+  },
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « ACTIFS RÉELS » — C'EST LEUR RUBRIQUE « RWA », ET ELLE ABSORBE TRADFI
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * Découverte du relevé : chez eux, les actions, les matières premières et les ETF
+   * ne forment PAS une rubrique séparée. Ils vivent sous « RWA » — By Market Cap,
+   * Stocks, Commodities, ETFs, Global Chart — parce que ce sont des actifs du monde
+   * réel tokenisés.
+   *
+   * Le menu « TradFi » de ZENKUU disparaît donc, et ses cinq classes le rejoignent.
+   * Indices et devises s'y ajoutent : ils n'ont pas d'entrée chez la référence, mais
+   * ce sont des pages construites qui relèvent de la même famille, et les laisser
+   * hors du menu les rendrait inatteignables.
+   */
+  {
+    label: 'Actifs réels',
+    sections: [
+      {
+        items: [
+          {
+            label: 'Par capitalisation',
+            description: 'Les actifs du monde réel portés par une chaîne',
+            icon: Landmark,
+            href: '/graphiques/actifs-reels',
+            ready: true,
+          },
+          {
             label: 'Actions',
-            description: 'Les titres cotés suivis par ZENKUU',
+            description: 'Les valeurs cotées, cours et capitalisation',
             icon: TrendingUp,
             href: '/actions',
             ready: true,
           },
           {
+            label: 'Matières premières',
+            description: 'Métaux, énergie et denrées',
+            icon: Gem,
+            href: '/matieres-premieres',
+            ready: true,
+          },
+          {
             label: 'ETF',
-            description: 'Les fonds indiciels cotés et leur variation',
+            description: 'Les fonds indiciels, par encours',
             icon: Layers,
             href: '/etf',
             ready: true,
@@ -333,16 +321,121 @@ export const NAV_MENUS: NavMenu[] = [
           },
           {
             label: 'Devises',
-            description: 'Les paires majeures, à titre indicatif',
+            description: 'Les parités entre monnaies',
             icon: Banknote,
             href: '/devises',
             ready: true,
           },
+        ],
+      },
+    ],
+  },
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « APPRENDRE » — LEUR RUBRIQUE « LEARN »
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * Leur panneau : Learn Crypto, Research Insights, News, Reports, Learn & Earn,
+   * Videos, Newsletter, Glossary. Quatre sur huit ont un équivalent. Les quatre
+   * autres sont des produits — un programme de récompenses, une chaîne vidéo, une
+   * lettre d'information, un cabinet de recherche — pas des pages de données.
+   *
+   * Le glossaire n'a pas d'entrée parce qu'il n'a pas d'index : `/resoudre/[terme]`
+   * définit UN terme, sans page qui les liste. C'est noté dans l'audit.
+   */
+  {
+    label: 'Apprendre',
+    sections: [
+      {
+        items: [
           {
-            label: 'Matières premières',
-            description: 'Énergie, métaux et produits agricoles',
-            icon: Gem,
-            href: '/matieres-premieres',
+            label: 'Apprendre',
+            description: 'Les notions du marché, expliquées',
+            icon: GraduationCap,
+            href: '/apprendre',
+            ready: true,
+          },
+          {
+            label: 'Bien démarrer',
+            description: 'Par où commencer quand on arrive',
+            icon: Rocket,
+            href: '/bien-demarrer',
+            ready: true,
+          },
+          {
+            label: 'Actualité',
+            description: 'Ce qui bouge, et chez quel éditeur',
+            icon: Newspaper,
+            href: '/actualites',
+            ready: true,
+          },
+          {
+            label: 'Blog',
+            description: 'Nos analyses de fond',
+            icon: PenLine,
+            href: '/blog',
+            ready: true,
+          },
+        ],
+      },
+    ],
+  },
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « PORTEFEUILLE » — UN LIEN, PAS UN PANNEAU
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * Leur rubrique « Portfolio » déroule My Coins / My NFTs / Overview. Ici, une
+   * seule page porte les trois : dérouler un panneau d'une entrée ferait choisir
+   * pour ne rien choisir. `href` sans `sections` — voir la note du type.
+   */
+  {
+    label: 'Portefeuille',
+    href: '/tableau-de-bord',
+    sections: [],
+  },
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « PLUS » — CE QUE ZENKUU A ET QUE LA RÉFÉRENCE N'A PAS
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * La référence a une rubrique de produits (application, publicité, widget,
+   * GeckoTerminal) : cette place existe donc dans sa structure. On y range ce qui
+   * n'a pas d'équivalent chez elle plutôt que de le retirer du menu.
+   *
+   * ⚠️ CE N'EST PAS UN FOURRE-TOUT PAR DÉFAUT. Chaque entrée mène à une page
+   * CONSTRUITE que la nouvelle structure laisserait autrement inatteignable : carte
+   * thermique, indice de sentiment, screener, macroéconomie, rachats. Les orpheliner
+   * pour gagner une rubrique coûterait plus qu'une sixième entrée dans la barre.
+   */
+  {
+    label: 'Plus',
+    sections: [
+      {
+        label: 'Outils',
+        items: [
+          {
+            label: 'Carte thermique',
+            description: 'Le marché en une figure, par taille et variation',
+            icon: Grid3x3,
+            href: '/heatmap',
+            ready: true,
+          },
+          {
+            label: 'Indice de sentiment',
+            description: 'Ce que l’humeur du marché mesure, et ne mesure pas',
+            icon: Gauge,
+            href: '/sentiment',
+            ready: true,
+          },
+          {
+            label: 'Screener',
+            description: 'Filtrer le marché sur vos propres critères',
+            icon: Filter,
+            href: '/screener',
             ready: true,
           },
         ],
@@ -352,176 +445,16 @@ export const NAV_MENUS: NavMenu[] = [
         items: [
           {
             label: 'Macroéconomie',
-            description: 'Inflation, chômage, dette : l’état des économies',
+            description: 'Le terrain sur lequel les cours évoluent',
             icon: Globe2,
             href: '/macro',
             ready: true,
           },
           {
-            label: 'Actifs du monde réel',
-            description: 'Les actions répliquées en jetons sur chaîne',
-            icon: Landmark,
-            href: '/graphiques/actifs-reels',
-            ready: true,
-          },
-        ],
-      },
-    ],
-  },
-
-
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * ⚠️ LE MENU « DONNÉES » A ÉTÉ RETIRÉ — IL ÉTAIT DEVENU UN DOUBLON INTÉGRAL
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * Il portait neuf entrées, réparties en « Palmarès », « Suivi du marché » et
-   * « Indicateurs » : classements, catégories, graphiques globaux, places de cotation,
-   * places de dérivés, nouvelles cotations, indice de sentiment.
-   *
-   * Les NEUF vivent désormais dans « Coins », où elles trouvent leur sujet — ce sont
-   * toutes des lectures du marché crypto. Les garder ici aurait fait deux chemins vers
-   * chaque page, et ce fichier condamne déjà ce défaut deux fois dans ses propres
-   * commentaires : « une entrée de remplacement vers une page déjà listée serait un
-   * doublon ».
-   *
-   * Un menu dont chaque entrée figure ailleurs n'aide plus à choisir : il double la
-   * surface à parcourir sans ajouter une destination. La barre passe donc de cinq
-   * menus à quatre — Coins, TradFi, Analyse, Plus — et chacun répond à une question
-   * qu'aucun autre ne pose.
-   * ══════════════════════════════════════════════════════════════════════════════
-   */
-
-  {
-    label: 'Analyse',
-    sections: [
-      /*
-       * ── « ACTUALITÉS » DESCEND ICI, ET PERD SON MENU PROPRE ──────────────────
-       *
-       * Elle occupait un menu de premier niveau pour UNE entrée. Un menu d'une ligne
-       * coûte à la barre la même place qu'un menu de quinze, et il oblige à un clic
-       * pour découvrir qu'il n'y avait rien à choisir.
-       *
-       * Sa place est en tête d'« Analyse » : lire ce qui s'est passé précède
-       * l'outillage qui sert à l'interpréter. Le fil complet reste à `/actualites`,
-       * inchangé — seul le chemin qui y mène a bougé.
-       */
-      {
-        label: 'Actualités',
-        items: [
-          {
-            label: 'Toute l’actualité',
-            description: 'Le fil complet, toutes sources confondues',
-            icon: Newspaper,
-            href: '/actualites',
-            ready: true,
-          },
-        ],
-      },
-      {
-        label: 'Outils',
-        items: [
-          {
-            label: 'Comparateur',
-            description: 'Deux à quatre actifs côte à côte',
-            icon: GitCompareArrows,
-            href: '/comparateur',
-            ready: true,
-          },
-          {
-            label: 'Convertisseur',
-            description: 'Conversion entre actifs et devises',
-            icon: ArrowRightLeft,
-            href: '/convertisseur',
-            ready: true,
-          },
-          {
-            label: 'Screener',
-            description: 'Filtrer le marché sur vos critères',
-            icon: Filter,
-            href: '/screener',
-            ready: true,
-          },
-        ],
-      },
-      /*
-       * ⚠️ LA SECTION « VISUALISATIONS » A ÉTÉ VIDÉE PAR LE DÉCOUPAGE, PAS SUPPRIMÉE
-       * PAR GOÛT.
-       *
-       * Elle portait deux entrées, et chacune est allée rejoindre son sujet : la carte
-       * thermique est une lecture du marché CRYPTO — elle est dans « Coins » — et la
-       * carte macroéconomique décrit le terrain des marchés traditionnels, où
-       * l'inflation explique les actions. Elle ferme donc « TradFi ».
-       *
-       * Une section « Visualisations » restait défendable tant qu'elle réunissait deux
-       * figures ; vidée de l'une comme de l'autre, elle n'aurait plus décrit qu'un
-       * format d'affichage. On ne range pas un menu par forme de rendu.
-       *
-       * ── ET « AGENDA », RETIRÉE BIEN AVANT ───────────────────────────────────
-       *
-       * Calendrier économique et événements crypto : deux entrées marquées « bientôt »
-       * depuis l'origine, et qui le seraient restées. Aucune source gratuite et sans
-       * clé ne publie le calendrier des publications macroéconomiques, ni les dates de
-       * halving, de déblocage de jetons ou de mise à jour réseau. Les saisir à la main
-       * reviendrait à publier de la donnée que rien ne vérifie (§5).
-       *
-       * Même raisonnement pour « Corrélations » : le calcul exige l'historique de
-       * chaque actif comparé, soit un appel par actif sur un quota qui en tolère cinq
-       * par minute.
-       */
-    ],
-  },
-
-  {
-    label: 'Plus',
-    sections: [
-      {
-        label: 'Apprendre',
-        items: [
-          {
-            label: 'Apprendre',
-            description: 'Comprendre les marchés, pas à pas',
-            icon: GraduationCap,
-            href: '/apprendre',
-            ready: true,
-          },
-          {
-            label: 'Bien démarrer',
-            description: 'Prendre en main ZENKUU en cinq minutes',
-            icon: Rocket,
-            href: '/bien-demarrer',
-            ready: true,
-          },
-          {
-            label: 'Blog',
-            description: 'Analyses et coulisses du produit',
-            icon: PenLine,
-            href: '/blog',
-            ready: true,
-          },
-        ],
-      },
-      {
-        label: 'Ressources',
-        items: [
-          /*
-           * ⚠️ TROIS ENTRÉES ONT DISPARU D'ICI AVEC LEURS PAGES.
-           *
-           * « Méthodologie & sources » (`/methodologie`), « API & développeurs »
-           * (`/developpeurs`) et « Widgets de marché » (`/widgets`) ont été
-           * supprimées du site sur demande explicite : routes, entrées de plan de
-           * site, traductions SEO et liens entrants compris.
-           *
-           * Il ne reste donc dans « Ressources » que le centre d'aide, qui répond aux
-           * questions d'usage. La colonne n'est pas fusionnée avec sa voisine : elle
-           * garde son titre parce qu'elle garde sa nature — ce à quoi on s'adresse
-           * quand on cherche de l'aide, et non ce qu'on vient consulter.
-           */
-          {
-            label: 'Centre d’aide',
-            description: 'Questions fréquentes et assistance',
-            icon: LifeBuoy,
-            href: '/aide',
+            label: 'Rachats',
+            description: 'Les jetons retirés de la circulation',
+            icon: Recycle,
+            href: '/rachats',
             ready: true,
           },
         ],
@@ -529,42 +462,30 @@ export const NAV_MENUS: NavMenu[] = [
       {
         label: 'ZENKUU',
         items: [
-          /*
-           * ⚠️ TROIS ENTRÉES ONT DISPARU DU HAUT DE CETTE COLONNE.
-           *
-           * « Ma liste de suivi » (`/suivi`), « Mes alertes » (`/alertes`) et
-           * « Mon compte » (`/parametres?rubrique=compte`) ont été retirées du menu
-           * sur demande explicite.
-           *
-           * Les deux premières pages n'existent plus : `/alertes` était déjà partie
-           * avec le système d'alertes, `/suivi` a été supprimée ici même. La liste
-           * des actifs suivis reste consultable — `/tableau-de-bord` en porte une
-           * section, et c'est là que pointent désormais l'étoile de suivi et le menu
-           * de compte.
-           *
-           * ⚠️ `/parametres` N'A PAS ÉTÉ SUPPRIMÉE, et il ne faut pas le faire par
-           * symétrie : elle porte les réglages d'affichage du site — thème, langue,
-           * devise, largeur — et pas seulement la rubrique « compte » que cette
-           * entrée visait. Seule l'entrée de menu est partie ; la page reste
-           * atteignable par la roue dentée de l'en-tête.
-           */
+          {
+            label: 'Centre d’aide',
+            description: 'Les questions qui reviennent, et leurs réponses',
+            icon: LifeBuoy,
+            href: '/aide',
+            ready: true,
+          },
           {
             label: 'Pourquoi ZENKUU',
-            description: 'Nos partis pris, et ce qu’on refuse de faire',
+            description: 'Les partis pris du site, en détail',
             icon: Sparkles,
             href: '/pourquoi-zenkuu',
             ready: true,
           },
           {
             label: 'Nouveautés',
-            description: 'Ce qui a changé récemment',
+            description: 'Ce qui a changé, daté',
             icon: Sparkles,
             href: '/nouveautes',
             ready: true,
           },
           {
             label: 'À propos',
-            description: 'Notre positionnement et nos limites',
+            description: 'Qui édite ce site, et avec quelles sources',
             icon: Info,
             href: '/a-propos',
             ready: true,
@@ -574,7 +495,6 @@ export const NAV_MENUS: NavMenu[] = [
     ],
   },
 ]
-
 /** Icône générique des classes d'actifs, réutilisée hors navigation. */
 export const ASSET_CLASS_ICON = Activity
 
