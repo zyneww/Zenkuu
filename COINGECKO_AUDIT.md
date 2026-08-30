@@ -105,7 +105,7 @@ migration.
 - [ ] Glossaire — `/en/glossary`
 - [ ] Glossaire, terme — `/en/glossary/blockchain`
 - [ ] Widgets — `/fr/widget`
-- [ ] Page API — `/fr/api`
+- [x] Page API — `/fr/api`
 - [ ] API DEX — `/fr/api/dex`
 - [ ] API NFT — `/fr/api/nft`
 - [ ] Tarifs API — `/fr/api/pricing`
@@ -1146,6 +1146,110 @@ traduit en français, comme `/en/glossary` et `/learn`.
   défilement : la fermeture du bandeau d'annonce, l'ouverture/fermeture
   du sommaire, le clic de notation, et le comportement réel du bouton de
   retour en haut au défilement.
+
+### Page API — `/fr/api`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : gabarit marchand — page produit de l'API CoinGecko, entièrement
+  faite de blocs promotionnels empilés (héros, produits, statistiques
+  d'usage, clients, témoignages, FAQ, appel à l'action final). Premier
+  gabarit purement commercial de l'audit : aucune donnée de marché en
+  direct, aucun tableau.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** :
+  - **Compteur d'usage** — nouveau : ligne de texte courte
+    (« Nombre de demandes API mensuelles servies : 10,000,000,000+ »),
+    répétée à l'identique en tête de héros et en tête du bloc d'appel à
+    l'action final.
+  - **En-tête héroïque marchand** — nouveau : titre en deux couleurs (une
+    partie en teinte neutre, une partie en teinte d'accent — « avec » et
+    la fin de la phrase en gris-bleu plus clair que le reste du titre),
+    paragraphe d'accroche, groupe de trois appels à l'action (bouton
+    plein, bouton discret, lien à chevron), légende de bas de héros
+    (« Commencez gratuitement, aucune carte de crédit n'est requise »).
+  - **Bandeau de logos clients** — nouveau : rangée de logos de marques
+    partenaires (Coinbase, Nansen, Phantom, Zerion, Crypto.com, MetaMask),
+    répétée en fin de page dans le bloc d'appel à l'action final.
+  - **Carte illustrée décorative** — nouveau : trois cartes à fond dégradé
+    coloré, chacune une capture stylisée d'interface (tableau de cours,
+    widget de gains, graphe de nœuds) sans texte ni lien, purement
+    illustrative — sous le héros, avant le texte de section « Nos
+    produits API ».
+  - **Grille de cartes de produit** — nouveau : carte icône + titre +
+    chemin d'URL en style code (`/derivatives/*`) + description, en grille
+    3 colonnes, avec bouton « Afficher tout ▾ » qui étend la grille
+    au-delà des six premières cartes.
+  - **Bande de statistiques marketing** — nouveau : cinq chiffres
+    d'ampleur (44M+ Jetons, 1900+ Plates-formes d'échange, 99,9 %
+    Disponibilité, 240+ Réseaux, 12+ Années de données historiques),
+    chacun avec un court paragraphe. À ne pas confondre avec le
+    **bandeau de synthèse marché** de l'accueil ni la **bande de
+    statistiques marketing** de vente : celle-ci vante une capacité
+    technique de la plateforme (couverture, fiabilité), pas un état de
+    marché — même forme visuelle (chiffre en gros + libellé), intention
+    et source radicalement différentes (chiffres d'entreprise, pas de
+    marché).
+  - **Carte de témoignage** — nouveau : citation en grand format, nom et
+    titre du client sous la citation, quatre instances (deux courtes en
+    grille, deux longues en pleine largeur) citant des entreprises
+    partenaires.
+  - **Groupe de puces de filtre** (`gecko-tab-chip-item`, déjà nommé) —
+    réutilisé pour filtrer les catégories de la FAQ (Général/Tarifs/
+    Abonnements/Données et Sécurité/Assistance/Avertissement, plus un
+    lien externe « Études de cas ») : même classe que partout ailleurs sur
+    le site, pas une variante.
+  - **Accordéon FAQ** — nouveau : ligne question + icône plus/moins
+    (Alpine, `:class="{ 'fa-plus': !expanded, 'fa-minus': expanded }"`),
+    contenu de réponse masqué par défaut (`x-cloak`), non ouvert à l'écran
+    par ce relevé.
+- **Fonctionnalités** : bascule de catégorie de produit (chips), extension
+  de la grille de produits (« Afficher tout »), filtrage de la FAQ par
+  catégorie, ouverture/fermeture de chaque question de la FAQ, appels à
+  l'action multiples vers l'inscription, le contact commercial, la
+  documentation et le contact entreprise (répétés à plusieurs endroits de
+  la page).
+- **Interactions** : deux sélecteurs propres à cette page sondés en survol
+  et en focus (largeur de référence, deux thèmes) — deltas dans
+  `mesures.json` → `interactions`. **Groupe de puces de filtre** (FAQ,
+  actif et inactif) : mêmes constats déjà relevés sur l'accueil pour ce
+  composant (nœud actif sans delta au survol, nœud inactif changeant de
+  fond au survol) — pas une variante propre à cette page, le composant se
+  comporte à l'identique dans ce troisième contexte.
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à
+  l'écran : ouverture de chaque question de la FAQ, extension de la
+  grille de produits, bascule effective des catégories de produit.
+- **Données requises** : cette page ne porte aucune donnée de marché — son
+  contenu est un argumentaire commercial (chiffres d'entreprise, logos de
+  clients, témoignages), hors périmètre des sources de données de ZENKUU.
+  Rien à reporter en synthèse pour cette raison : comme pour la page
+  Apprendre, l'absence de source n'est pas un écart de couverture, c'est
+  la nature du gabarit.
+- **Écart avec ZENKUU** : aucune page marchande de ce type n'existe dans
+  `apps/web/app/[locale]/` — `app/api/*` désigne les routes d'API interne
+  du site, pas une page de vente. Le plus proche gabarit du dépôt,
+  `apps/web/app/[locale]/pourquoi-zenkuu/page.tsx` (lu le 2026-08-30),
+  documente EXPLICITEMENT dans ses commentaires le rejet de plusieurs des
+  conventions vues ici : « pas de surtitre décoratif, pas d'icône par
+  carte, pas de bandeau de garanties, pas d'alternance mécanique » —
+  qualifiées de « conventions sans contenu ». Une future page API ZENKUU
+  devra donc arbitrer, composant par composant, entre la convention
+  marchande observée ici (bande de logos, cartes illustrées décoratives,
+  témoignages, compteur d'usage) et ce parti pris déjà pris ailleurs sur
+  le site contre le papier peint marketing — ce n'est pas un manque à
+  combler mécaniquement, c'est une décision de positionnement à trancher
+  par l'exploitant.
+- **Notes** : bascule de thème validée sur ce gabarit (captures
+  claire/sombre différentes octet pour octet aux trois largeurs). Aucun
+  blocage Cloudflare rencontré (correctif du user-agent déjà en place).
+  Page la plus longue en hauteur rendue de cet audit après les Graphiques
+  globaux (environ 10 200 px à 1440 px de large) — cohérent avec
+  l'empilement de blocs promotionnels propre à ce gabarit. Restent non
+  observés, faute de simuler un clic : l'ouverture de chaque question de
+  la FAQ, l'extension de la grille de produits au-delà des six premières
+  cartes, et la bascule effective entre catégories de produit. Aucun
+  texte de CoinGecko n'est recopié au-delà des libellés strictement
+  nécessaires à l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
 
