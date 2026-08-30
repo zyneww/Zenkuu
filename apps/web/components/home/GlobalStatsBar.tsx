@@ -4,6 +4,7 @@ import type { GlobalMarketStats, MarketCapPoint, SentimentIndex } from '@zenkuu/
 import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
+import { StatsBarCollapse } from '@/components/home/StatsBarCollapse'
 import { Money } from '@/components/locale/Money'
 import { getContent, getPhrase } from '@/lib/content'
 
@@ -72,6 +73,7 @@ export async function GlobalStatsBar({
   )
 
   return (
+    <StatsBarCollapse label={t('Repères du marché')}>
     <section
       aria-label={t('Repères du marché')}
       /* `basis-36` : chaque tuile réclame 9 rem et prend le reste à parts égales. Sur
@@ -152,6 +154,7 @@ export async function GlobalStatsBar({
         </Stat>
       ) : null}
     </section>
+    </StatsBarCollapse>
   )
 }
 

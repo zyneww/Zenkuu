@@ -47,10 +47,24 @@ interface SettingsState {
   layout: LayoutMode
   currency: string
   language: string
+  /**
+   * Bandeau de repères du marché (`GlobalStatsBar`) replié ou non.
+   *
+   * ⚠️ PAS DE CLÉ BRUTE NI DE SCRIPT D'AMORÇAGE ICI, contrairement au thème et à la
+   * largeur des fiches : replier ce bandeau ne fait pas sauter la mise en page — la
+   * section reste montée, seul son contenu apparaît ou non — alors que le flash de
+   * thème ou le saut de largeur sont visibles sur TOUTE la page. Le repli se lit donc
+   * après l'hydratation, comme la devise ou la langue plus haut. Un visiteur qui
+   * l'avait replié verra le bandeau un instant avant qu'il ne se replie à nouveau —
+   * compromis assumé plutôt qu'un second script d'amorçage pour un réglage mineur.
+   * Par défaut : DÉPLIÉ (affiché).
+   */
+  statsBarCollapsed: boolean
   setTheme: (theme: ThemeMode) => void
   setLayout: (layout: LayoutMode) => void
   setCurrency: (currency: string) => void
   setLanguage: (language: string) => void
+  setStatsBarCollapsed: (collapsed: boolean) => void
 }
 
 /**
@@ -164,6 +178,7 @@ export const useSettings = create<SettingsState>()(
       layout: 'compact',
       currency: 'EUR',
       language: 'fr',
+      statsBarCollapsed: false,
 
       setTheme: (theme) => {
         applyTheme(theme)
@@ -175,6 +190,7 @@ export const useSettings = create<SettingsState>()(
       },
       setCurrency: (currency) => set({ currency }),
       setLanguage: (language) => set({ language }),
+      setStatsBarCollapsed: (collapsed) => set({ statsBarCollapsed: collapsed }),
     }),
     {
       name: 'zenkuu-settings',
