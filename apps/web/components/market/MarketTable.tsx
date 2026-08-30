@@ -156,10 +156,12 @@ interface MarketTableProps {
    *   `apercu`       le tableau d'origine : cours, variation, courbe, volume,
    *                  capitalisation. C'est le défaut, et les appelants qui n'ont pas
    *                  d'onglets n'ont rien à passer.
-   *   `cotations`    la grille de SÉANCE : cours, variation, haut et bas du jour,
-   *                  volume, et un lien vers la fiche. Le rang, la capitalisation, la
-   *                  courbe et les fenêtres de comparaison s'effacent — ce jeu répond
-   *                  à « où en est la journée ? » et non à « où se situe cet actif ? ».
+   *   `cotations`    la grille de MARCHÉ de la référence : rang, cours, variations
+   *                  1 h / 24 h / 7 j / 1 M, volume, capitalisation, FDV, ratio et
+   *                  courbe 7 jours. ⚠️ Elle décrivait une grille de SÉANCE — « haut
+   *                  et bas du jour [...] le rang, la capitalisation, la courbe et les
+   *                  fenêtres de comparaison s'effacent » — modelée sur MEXC. Voir la
+   *                  note de `quotes` plus bas pour le relevé qui l'a corrigée.
    *   `performance`  les CINQ fenêtres de variation côte à côte — 1 h, 24 h, 7 j,
    *                  30 j, 1 an. Le volume s'efface pour leur faire de la place :
    *                  onze colonnes sur un écran de portable n'en affichent que six,

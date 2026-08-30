@@ -38,14 +38,18 @@ import { Link } from '@/i18n/navigation'
  * courbe, volume, capitalisation. C'est la grille d'un CLASSEMENT — on y cherche où
  * un actif se situe par rapport aux autres.
  *
- * `cotations` est la grille d'une PLACE DE MARCHÉ, relevée sur MEXC : cours, variation,
- * plus haut et plus bas du jour, volume. On n'y cherche pas un rang mais une SÉANCE —
- * dans quelle fourchette le cours s'est déplacé depuis hier, et à quel bout de cette
- * fourchette il se trouve maintenant. Les deux questions sont distinctes, et le haut
- * et le bas de séance ne répondaient à aucune des colonnes précédentes.
+ * ⚠️ `cotations` ÉTAIT LA GRILLE D'UNE PLACE DE MARCHÉ, RELEVÉE SUR MEXC. Elle portait
+ * cours, variation, plus haut et plus bas du jour, volume — « on n'y cherche pas un
+ * rang mais une SÉANCE ». Le raisonnement se tenait, mais il décrivait un autre site.
  *
- * La capitalisation et la courbe cèdent la place : la première est déjà l'ORDRE des
- * lignes, la seconde redit la variation qu'elle jouxtait. Elles restent sur `/crypto`,
+ * Relevé le 2026-08-30 sur l'accueil de CoinGecko : rang, monnaie, cours, 1 h, 24 h,
+ * 7 j, 30 j, volume, capitalisation, FDV, ratio, courbe 7 jours. Ni haut ni bas de
+ * séance. Le rang et la capitalisation, que cette note disait redondants avec l'ordre
+ * des lignes, y sont bien présents.
+ *
+ * Les deux bornes de séance sont donc parties, et les cinq colonnes retirées sont
+ * revenues. Ce qui suit décrit l'état ANTÉRIEUR, conservé parce qu'il explique
+ * pourquoi `/crypto` a longtemps porté d'autres colonnes que l'accueil :
  * dont c'est le sujet.
  *
  * ── `catalogue` EST LA GRILLE DES SIX PAGES DE CLASSE ────────────────────────
@@ -103,7 +107,10 @@ export const BOARD_VIEWS: BoardView[] = [
     label: 'Aperçu',
     columns: 'cotations',
     filter: 'aucun',
-    hint: 'Cours, variation, plus haut et plus bas du jour, volume',
+    /* L'indice annonçait « plus haut et plus bas du jour » : ces deux colonnes ont
+       été retirées le 2026-08-30, la référence ne les portant pas. Un indice qui
+       promet des colonnes absentes est pire qu'un indice vague. */
+    hint: 'Rang, cours, variations, volume, capitalisation et courbe 7 jours',
   },
   {
     key: 'performance',
