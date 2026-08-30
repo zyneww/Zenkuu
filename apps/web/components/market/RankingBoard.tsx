@@ -198,9 +198,9 @@ function Board({
   const t = usePhrase()
   return (
     <section className="space-y-3" aria-label={title}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-ink">{title}</h3>
-        <span className="flex items-center gap-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h3 className="min-w-0 truncate text-sm font-semibold text-ink">{title}</h3>
+        <span className="flex shrink-0 items-center gap-2">
           <span className="text-xs text-ink-muted">{hint}</span>
           {detail ? <RankingDetailLink type={detail.type} period={detail.period} /> : null}
         </span>
@@ -293,9 +293,9 @@ function TurnoverBoard({
   const t = usePhrase()
   return (
     <section className="space-y-3" aria-label={t('Rotation la plus forte')}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-ink">{t('Rotation la plus forte')}</h3>
-        <span className="flex items-center gap-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h3 className="min-w-0 truncate text-sm font-semibold text-ink">{t('Rotation la plus forte')}</h3>
+        <span className="flex shrink-0 items-center gap-2">
           <span className="text-xs text-ink-muted">volume / capitalisation</span>
           <RankingDetailLink type="rotation" period={period} />
         </span>
