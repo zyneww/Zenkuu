@@ -49,7 +49,7 @@ terminé. Elles ne sont pas pour autant un travail en retard — l'ordre suit la
 migration, page par page, parce qu'un relevé sert au moment où la question
 « qu'est-ce qu'on garde de cette page ? » est concrète.
 
-**34 pages sur 68 sont auditées, 34 restent.** Le rendement décroît, et c'est
+**46 pages sur 68 sont auditées, 22 restent.** Le rendement décroît, et c'est
 attendu : la fidélité de CoinGecko tient dans une vingtaine de composants partagés
 que l'accueil a nommés d'un coup. Les six pages ajoutées le 2026-08-30 confirment le
 constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de colonne
@@ -79,14 +79,14 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 ### Phase 1 — cœur
 
 - [x] Accueil — `/fr`
-- [ ] Accueil, toutes les monnaies — `/en/all-cryptocurrencies`
+- [x] Accueil, toutes les monnaies — `/en/all-cryptocurrencies`
 - [ ] Accueil, classement rehypothéqué — `/en/top-market-cap-rehypothecated`
-- [ ] Accueil en devise (EUR) — `/en/currencies/eur`
+- [x] Accueil en devise (EUR) — `/en/currencies/eur`
 - [x] Page coin, onglet Vue d'ensemble — `/en/coins/bitcoin`
 - [ ] Page coin, onglet Tokenomique — `/en/coins/bitcoin#tokenomics`
 - [ ] Page coin, onglet Données financières — `/en/coins/bitcoin#financials`
 - [ ] Page coin, onglet Prédominance — `/en/coins/bitcoin#dominance`
-- [ ] Page coin, onglet Données historiques — `/en/coins/bitcoin/historical_data`
+- [x] Page coin, onglet Données historiques — `/en/coins/bitcoin/historical_data`
 - [ ] Page coin, onglet Prédiction — `/en/coins/bitcoin/prediction`
 - [x] Catégories — `/en/categories`
 - [x] Page de catégorie — `/en/categories/meme-token`
@@ -107,7 +107,7 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Highlights, les plus consultées — `/en/highlights/most-viewed-crypto`
 - [x] Highlights, volume élevé — `/en/highlights/high-volume`
 - [x] Highlights, déblocages de jetons à venir — `/en/highlights/incoming-token-unlocks`
-- [ ] Highlights, cryptos à venir — `/en/highlights/upcoming-cryptocurrencies`
+- [x] Highlights, cryptos à venir — `/en/highlights/upcoming-cryptocurrencies`
 - [x] Carte thermique (heatmap) — `/en/charts/crypto-heatmap`
 - [x] Prédominance du Bitcoin — `/en/charts/bitcoin-dominance`
 - [x] Comparateur — `/en/compare-cryptocurrencies`
@@ -116,9 +116,9 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Page de chaîne — `/en/chains/ethereum`
 - [x] NFT — `/en/nft`
 - [ ] NFT par chaîne — `/en/nft/chains/ethereum`
-- [ ] Page de collection NFT (floor price) — `/en/nft/bored-ape-yacht-club`
+- [x] Page de collection NFT (floor price) — `/en/nft/bored-ape-yacht-club`
 - [x] RWA — `/en/rwa`
-- [ ] RWA, graphique global — `/en/charts/rwa`
+- [x] RWA, graphique global — `/en/charts/rwa`
 - [x] RWA, actions tokenisées — `/en/stocks`
 - [ ] Page d'action tokenisée — `/en/stocks/nvidia`
 - [x] RWA, ETF tokenisés — `/en/etfs`
@@ -126,7 +126,7 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] RWA, matières premières tokenisées — `/en/commodities`
 - [ ] Page de matière première tokenisée — `/en/commodities/gold`
 - [x] Trésoreries — `/en/treasuries`
-- [ ] Trésoreries, entreprises — `/en/treasuries/companies`
+- [x] Trésoreries, entreprises — `/en/treasuries/companies`
 - [ ] Trésoreries, États — `/en/treasuries/governments`
 
 ### Phase 3 — contenu et services
@@ -134,21 +134,21 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Portefeuille — `/en/portfolio`
 - [ ] Apprendre — `/learn`
 - [x] Apprendre, article — `/learn/crypto-narratives`
-- [ ] Actualités — `/en/news`
+- [x] Actualités — `/en/news`
 - [ ] Rapports — `/en/publications/reports`
 - [ ] Perspectives Recherche — `/research`
 - [x] Glossaire — `/en/glossary`
 - [ ] Glossaire, terme — `/en/glossary/blockchain`
-- [ ] Widgets — `/en/widget`
+- [x] Widgets — `/en/widget`
 - [x] Page API — `/en/api`
 - [ ] API DEX — `/en/api/dex`
 - [ ] API NFT — `/en/api/nft`
 - [ ] Tarifs API — `/en/api/pricing`
 - [ ] Études de cas API — `/en/api/case-studies`
-- [ ] Page coin, onglet Halving — `/en/coins/bitcoin/bitcoin-halving`
+- [x] Page coin, onglet Halving — `/en/coins/bitcoin/bitcoin-halving`
 - [x] Méthodologie — `/en/methodology`
-- [ ] À propos — `/en/about`
-- [ ] FAQ — `/en/faq`
+- [x] À propos — `/en/about`
+- [x] FAQ — `/en/faq`
 - [ ] Candy (récompenses) — `/en/candy`
 - [ ] Application mobile — `/en/mobile`
 - [ ] Tarifs Premium — `/en/premium/pricing`
@@ -1910,6 +1910,220 @@ traduit en français, comme `/en/glossary` et `/learn`.
   33 pages. Elle ne remet pas en cause le cran unique — une page éditoriale isolée n'est
   pas une règle — mais elle est consignée pour que personne ne la « corrige » en croyant
   trouver une incohérence de mesure.
+
+### Toutes les cryptomonnaies — `/en/all-cryptocurrencies`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le catalogue complet, là où l'accueil ne montre que les cent premières.
+  Il remplace la capitalisation et la courbe par **l'offre en circulation et l'offre
+  totale** : on n'y cherche pas un rang mais l'existence et la dilution d'un jeton.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** : tableau de cinquante lignes rendues — rang, monnaie, cours, 1 h, 24 h,
+  7 j, 30 j, volume 24 h, offre en circulation, offre totale ; pagination ; chrome commun.
+- **Fonctionnalités** : tri ; pagination ; navigation vers la fiche.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : `circulatingSupply` et `totalSupply`, déjà servis par la source.
+- **Écart avec ZENKUU** : `/crypto` est le catalogue, mais avec les colonnes de l'accueil.
+  Le jeu `catalogue` de `MarketTable` porte déjà l'offre en circulation — les deux jeux
+  existent, c'est leur affectation aux pages qui diffère.
+- **Notes** : c'est la seule page relevée qui montre l'offre TOTALE à côté de l'offre en
+  circulation. L'écart entre les deux est la dilution à venir, que `Cap./FDV` exprime
+  autrement.
+
+### Accueil en euro — `/en/currencies/eur`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : l'accueil, coté dans une autre devise. Colonnes identiques à l'accueil, cent
+  lignes, seule la devise d'affichage change.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** : identiques à l'accueil.
+- **Fonctionnalités** : identiques à l'accueil.
+- **Interactions** : identiques à l'accueil.
+- **Données requises** : les mêmes, converties.
+- **Écart avec ZENKUU** : **aucun, et par une meilleure voie.** ZENKUU convertit côté
+  client via son sélecteur de devise (`CurrencyProvider`), sans route dédiée : le choix
+  suit le lecteur d'une page à l'autre au lieu d'être attaché à une adresse. Une route par
+  devise multiplierait le catalogue par le nombre de monnaies supportées.
+- **Notes** : leur choix a un avantage — l'adresse est partageable avec sa devise. Le
+  nôtre en a un autre — le réglage persiste. Les deux se défendent ; aucun travail n'en
+  découle.
+
+### Données historiques — `/en/coins/bitcoin/historical_data`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la série jour par jour d'un actif — date, capitalisation, volume, clôture.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** : tableau de vingt lignes — date, capitalisation, volume, clôture ;
+  pagination ; chrome commun.
+- **Fonctionnalités** : tri ; pagination.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : l'historique quotidien, déjà servi par la source de ZENKUU.
+- **Écart avec ZENKUU** : `PriceHistoryTable` rend cette table DANS l'onglet « Analyse »
+  de la fiche, sans route propre. La référence en fait une page — `/coins/[id]/historical_data`.
+- **Notes** : la série est déjà servie ; seule l'adresse manque. C'est le même motif que le
+  glossaire, déplacé de section à page le 2026-08-31.
+- **Notes** : quatre colonnes seulement, la table la plus étroite relevée sur leur site.
+
+### Cryptos à venir — `/en/highlights/upcoming-cryptocurrencies`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les jetons ajoutés au catalogue mais pas encore cotés — date d'ajout, mises
+  en suivi, catégorie.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes — rang, monnaie, **date d'ajout**, **ajouts en
+  liste de suivi**, catégorie ; chrome commun. **Aucune colonne de cours** — ces jetons
+  n'en ont pas.
+- **Fonctionnalités** : tri ; navigation vers la fiche.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : la date d'ajout au catalogue et le NOMBRE DE MISES EN SUIVI.
+  ⚠️ La seconde est une donnée d'audience, propre à l'opérateur — même obstacle que
+  « Trending » et « Most Viewed ».
+- **Écart avec ZENKUU** : `/nouvelles-cotations` liste les actifs récemment RÉFÉRENCÉS,
+  qui ont un cours. Cette page-ci liste ceux qui n'en ont pas encore : deux moments
+  différents du cycle.
+- **Notes** : aucune colonne de cours, ce qui est cohérent — un jeton non coté n'en a pas.
+  C'est la seule page de liste relevée dans ce cas.
+
+### Collection NFT — `/en/nft/bored-ape-yacht-club`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la fiche d'une collection NFT — prix plancher, capitalisation, volume, ventes.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : bloc d'identité ; sept lignes de statistiques ; graphique ; chrome
+  commun. **Aucun tableau au sens strict** — les statistiques sont en lignes de définition.
+- **Fonctionnalités** : lecture ; changement de fenêtre du graphique.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : marché NFT par collection — hors du périmètre des cotations.
+- **Écart avec ZENKUU** : aucune fiche de collection. `/graphiques/nft` liste sans ouvrir.
+- **Notes** : `h1` à 24px/700, comme partout — la règle du cran unique tient jusque sur
+  les fiches d'objets.
+
+### Trésoreries d'entreprises — `/en/treasuries/companies`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la moitié « sociétés » de la page trésoreries, avec une colonne de plus —
+  l'actif par action.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de 231 lignes — rang, société, trois principales détentions,
+  activité récente, coût total, valeur du jour, mNAV, **actif par action** ; une section
+  de guide ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la société.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : mêmes que `/en/treasuries`, plus le nombre d'actions en
+  circulation pour l'actif par action.
+- **Écart avec ZENKUU** : `/graphiques/tresoreries` ne distingue pas les sociétés des
+  États. La colonne d'actif par action n'a pas d'équivalent.
+- **Notes** : 231 lignes non paginées, presque autant que la page mère (244) — la
+  répartition entreprises/États est très déséquilibrée.
+- **Notes** : 231 lignes non paginées, presque autant que la page mère (244) — la
+  répartition entreprises/États est très déséquilibrée.
+
+### Graphiques RWA — `/en/charts/rwa`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les actifs du monde réel vus par type et par émetteur, en figures.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : deux sections de graphique — « RWA by Type », « RWA by Issuer » ;
+  chrome commun. **Aucun tableau.**
+- **Fonctionnalités** : lecture ; survol des figures.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : la répartition des encours tokenisés par type et par émetteur.
+- **Écart avec ZENKUU** : `/graphiques/actifs-reels` couvre partiellement le rôle. La
+  ventilation par ÉMETTEUR n'a pas d'équivalent — elle demanderait de rattacher chaque
+  jeton à l'institution qui l'émet.
+- **Notes** : deux figures et aucun tableau — c'est la seule page « charts » relevée qui
+  ne porte pas de liste sous ses graphiques.
+
+### Actualités — `/en/news`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le fil d'actualité crypto, agrégé d'éditeurs tiers.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : liste d'articles en cartes ; chrome commun. **Aucun tableau.**
+- **Fonctionnalités** : lecture ; navigation vers l'éditeur.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : un flux d'articles — ZENKUU en a un.
+- **Écart avec ZENKUU** : `/actualites` couvre le rôle, avec un filtrage par catégorie et
+  des pastilles d'actifs cités que la référence n'a pas. **Ce n'est pas un manque de leur
+  côté** : ce sont deux traitements du même contenu.
+- **Notes** : leur fil est une liste simple. Les pastilles d'actifs cités de ZENKUU
+  rattachent chaque article aux jetons dont il parle — c'est ce qui permet de passer d'une
+  actualité à une cotation sans repasser par la recherche.
+
+### À propos — `/en/about`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la page institutionnelle — histoire, chiffres, partenaires, jalons.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : trois sections titrées — « Our Impact in Numbers », « Trusted by Top
+  Industry [Players] », « Celebrate Our Milestones » ; chrome commun.
+- **Fonctionnalités** : lecture.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune — contenu éditorial.
+- **Écart avec ZENKUU** : `/a-propos` couvre le rôle. Les sections de partenaires et de
+  jalons décrivent une entreprise, pas un produit : **elles n'ont pas à être reprises**.
+- **Notes** : titre « The CoinGecko Story » — la page raconte une société. Celle de ZENKUU
+  décrit un site et ses sources, ce qui est le sujet utile au lecteur.
+
+### FAQ — `/en/faq`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les questions fréquentes, en accordéon.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : liste de questions dépliables ; chrome commun. **Aucun tableau.**
+- **Fonctionnalités** : dépliage.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune — contenu éditorial.
+- **Écart avec ZENKUU** : `/aide` couvre le rôle, avec des rubriques et des fiches
+  séparées là où la référence empile tout sur une page.
+- **Notes** : une page unique se cherche au `Ctrl+F` ; des fiches séparées s'indexent et
+  se partagent. Les deux approches se défendent, aucun travail n'en découle.
+
+### Widgets — `/en/widget`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le générateur de composants embarquables pour un site tiers.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : formulaire de configuration ; aperçu ; extrait de code à copier ;
+  chrome commun. ⚠️ **AUCUN `h1`** — comme le glossaire.
+- **Fonctionnalités** : configuration ; copie du code.
+- **Interactions** : les champs se remplissent, l'aperçu suit.
+- **Données requises** : les cotations, servies par un point d'entrée public.
+- **Écart avec ZENKUU** : `/embed/graphique` et `/embed/ticker` existent — ce sont les
+  widgets EUX-MÊMES, sans page qui les configure ni ne les documente.
+- **Notes** : deuxième page relevée sans `h1`. Si ZENKUU construit cette page, elle en
+  portera un.
+
+### Halving du bitcoin — `/en/coins/bitcoin/bitcoin-halving`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le calendrier des divisions par deux de la récompense de bloc, passées et à
+  venir.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : tableau de sept lignes — numéro du halving, date, hauteur de bloc,
+  récompense avant, récompense après ; chrome commun.
+- **Fonctionnalités** : lecture.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : le calendrier lui-même. ⚠️ **Ce n'est pas une donnée de marché
+  mais un fait de protocole** : les dates passées sont vérifiables sur la chaîne, la date
+  à venir est une estimation qui dépend du rythme de production des blocs.
+- **Écart avec ZENKUU** : aucun équivalent. C'est l'une des rares pages de la référence
+  qu'un site de cotation peut construire sans source externe — les règles du protocole
+  sont publiques et le calcul tient en quelques lignes.
+- **Notes** : sept lignes, la plus courte table relevée. Elle ne se pagine pas et n'a pas
+  de tri.
 
 ## Synthèse — données sans source gratuite
 
