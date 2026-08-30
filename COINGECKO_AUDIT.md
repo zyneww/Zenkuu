@@ -39,7 +39,7 @@ pages séparées.
 - [ ] Page coin, onglet Prédominance — `/fr/coins/bitcoin#dominance`
 - [ ] Page coin, onglet Données historiques — `/fr/coins/bitcoin/historical_data`
 - [ ] Page coin, onglet Prédiction — `/fr/coins/bitcoin/prediction`
-- [ ] Catégories — `/fr/categories`
+- [x] Catégories — `/fr/categories`
 - [ ] Page de catégorie — `/fr/categories/meme-token`
 - [ ] Exchanges, spot — `/fr/platesformes`
 - [ ] Exchanges, DEX — `/fr/platesformes/decentralized`
@@ -500,6 +500,106 @@ traduit en français, comme `/en/glossary` et `/learn`.
   contrairement à Données historiques et Halving qui, eux, ouvrent une URL séparée
   listée dans `## Liste des pages`). Aucun texte de CoinGecko n'est recopié
   au-delà des libellés strictement nécessaires à l'identification d'un composant.
+
+### Catégories — `/fr/categories`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : liste des secteurs/narratifs du marché (Plateforme de contrats
+  intelligents, Stablecoins, Made in USA…) classés par capitalisation, avec pour
+  chacun ses trois principaux actifs, ses variations et un mini-graphique. Première
+  page de l'audit dont le tableau principal n'est pas celui des cotations : les
+  lignes ne portent pas de cours individuel, seulement des agrégats de groupe.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** :
+  - **Tableau de catégories** (`table.sortable`) — même ossature que le **tableau de
+    cotations** de l'accueil (en-tête collant, colonnes triables, lignes zébrées au
+    survol) mais listant des secteurs, pas des monnaies : rang, catégorie, grands
+    gagnants, variations 1 h/24 h/7 j, capitalisation, volume 24 h, nombre de
+    monnaies, mini-graphique 7 jours. Pas de colonne de cours ni de FDV — cohérent
+    avec l'absence de prix au niveau d'un secteur.
+  - **Cellule « Grands gagnants »** — liste de logos de monnaies (jusqu'à trois),
+    chacun un lien vers sa fiche, sans aucun chiffre attaché : la famille de
+    composant que le brief de cette tâche annonçait (« tableau de listes non
+    chiffrées »). À ne pas confondre avec la **mini-graphique d'évolution
+    (sparkline)** déjà nommée, qui ferme la même ligne mais reste un graphique, pas
+    une liste d'icônes.
+  - **En-tête de colonne triable**, **ligne de tableau**, **cellule de tableau**,
+    **lien**, **pastille de variation** (`.gecko-up`/`.gecko-down`, 146 et 154
+    correspondances — même famille que l'accueil, homogène), **mini-graphique
+    d'évolution (sparkline)** : tous déjà nommés sur l'accueil, réutilisés sans
+    variante observée (même fond de survol de ligne, `rgb(248, 250, 252)` en clair /
+    `rgb(27, 35, 45)` en sombre — valeurs identiques à celles de l'accueil, jetons de
+    surface confirmés partagés).
+  - **Commutateur** (déjà nommé) — vu ici dans son **état coché** : un commutateur
+    « Les points forts » du panneau de filtres, `checked="checked"` par défaut, fond
+    vert plein (`rgb(75, 204, 0)`) contre le fond neutre gris de l'exemple non coché
+    relevé sur l'accueil. Complète la description de l'accueil plutôt que de la
+    remplacer : un même composant, un second état observé.
+  - **Pagination** (déjà nommée sur l'accueil, mesurée ici pour la première fois
+    avec un sélecteur concret : `.gecko-pagination` / `.gecko-pagination-selector`)
+    — compteur de résultats (« Afficher les résultats de 1 à 100 sur 756 ») plus un
+    sélecteur de lignes par page (« Lignes : 100 »), en plus des liens numérotés déjà
+    décrits.
+- **Fonctionnalités** : tri par colonne, filtrage par groupe de catégories (chips
+  Tous/Principaux éléments/Base Écosystème/Catégories/Fonds Launchpad/Communauté/
+  Trading Card RWA — variante du groupe de puces déjà nommé sur l'accueil, non
+  redécrite), tri par capitalisation ou par variation (menu déroulant « Market Cap »
+  au-dessus du tableau, non instrumenté par sélecteur dans ce relevé), recherche
+  globale (icône loupe ouvrant l'overlay déjà nommé), pagination et choix du nombre
+  de lignes par page, ajout d'une catégorie aux favoris (icône étoile par ligne).
+  Trois cartes de synthèse en tête de page (Vos suivis / Tendance / Grands Gagnants)
+  vues dans la capture mais non instrumentées par sélecteur dans ce relevé — à
+  rapprocher de la **carte de synthèse marché** de l'accueil si une future page
+  les mesure : même position (au-dessus du tableau), contenu différent (listes de
+  catégories, pas de chiffres de marché globaux).
+- **Interactions** : deux sélecteurs propres à cette page sondés en survol et en
+  focus (largeur de référence, deux thèmes) — deltas dans `mesures.json` →
+  `interactions`. **Ligne de tableau** : le survol change le fond, valeurs
+  identiques à celles déjà relevées sur l'accueil pour le même composant (voir
+  ci-dessus) ; non focusable. **En-tête de colonne triable** : aucun changement au
+  survol, non focusable — même constat que sur l'accueil.
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
+  ouverture du menu déroulant de tri (« Market Cap »), bascule effective des chips
+  de filtrage, changement du nombre de lignes par page, navigation de pagination
+  au-delà de la première page.
+- **Données requises** : capitalisation, variation 1 h/24 h/7 j, volume 24 h, nombre
+  de monnaies et les trois principaux actifs par catégorie (logos) sont tous publiés
+  par l'endpoint catégories de l'API CoinGecko gratuite — vérifié par appel direct à
+  cette date, champ `topCoins` (jusqu'à trois logos par catégorie) présent dans la
+  réponse. Rien à reporter en synthèse pour cette page.
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/categories/page.tsx` (lu dans le
+  code le 2026-08-30, dev server injoignable au moment du relevé — comparaison sur
+  code source) documente une décision déjà prise et déjà motivée dans le fichier :
+  quatre blocs que CoinGecko pose autour de son tableau (bande de repères chiffrés,
+  palmarès de secteurs en hausse, bande de faits saillants, bloc méthodologique de
+  clôture) ont été retirés, au motif que chacun répond à une question que le tableau
+  résout déjà par le tri ou par sa longueur. Le fichier note aussi, explicitement,
+  que la référence affiche des colonnes (7 j, 1 mois, 3 mois, FDV, décompte de
+  hausses/baisses) qu'aucune source gratuite ne publie pour les catégories — ce
+  relevé confirme cette limite pour 1 h/24 h/7 j/capitalisation/volume/nombre de
+  monnaies (publiés) mais ne l'a pas vérifiée pour les colonnes 1 mois/3 mois/FDV/
+  décompte, qui n'apparaissent pas non plus dans la réponse `topCoins` inspectée ici
+  — cohérent avec la note du fichier, sans vérification directe pour ces colonnes
+  précises dans ce relevé. `apps/web/components/categories/CategoryExplorer.tsx`
+  (`TopAssets`) rend déjà l'équivalent exact de la cellule « Grands gagnants » —
+  logos des trois principaux actifs, et même AMÉLIORÉS (cliquables vers la fiche de
+  l'actif, avec libellé accessible ajouté « faute d'identifiants » dans la version
+  précédente) : pas un écart, une parité déjà dépassée sur ce point précis.
+- **Notes** : bascule de thème validée sur ce gabarit (captures claire/sombre
+  différentes octet pour octet aux trois largeurs). Aucun blocage Cloudflare
+  rencontré sur cette page (correctif du user-agent posé lors de l'entrée
+  précédente, présent dès la première tentative). `.gecko-toggle-track` et
+  `[data-settings-target="currencyText"]` ont chacun deux correspondances sur cette
+  page (contre cinq sur l'accueil) : la page porte moins de panneaux superposés,
+  mais le même risque de nœud masqué existe et a été vérifié — les deux nœuds
+  retenus (`index: 1` pour le premier, `index: 0` pour le second) sont bien
+  visibles. Restent non observés, faute de simuler un clic : le menu déroulant de
+  tri, la bascule des chips de filtrage au-delà de leur état initial, le changement
+  de nombre de lignes par page, la page 2 et suivantes de la pagination, et le
+  contenu réel des trois cartes de synthèse de tête de page. Aucun texte de
+  CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
+  l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
 
