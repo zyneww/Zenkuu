@@ -41,7 +41,7 @@ pages séparées.
 - [ ] Page coin, onglet Prédiction — `/fr/coins/bitcoin/prediction`
 - [x] Catégories — `/fr/categories`
 - [ ] Page de catégorie — `/fr/categories/meme-token`
-- [ ] Exchanges, spot — `/fr/platesformes`
+- [x] Exchanges, spot — `/fr/platesformes`
 - [ ] Exchanges, DEX — `/fr/platesformes/decentralized`
 - [ ] Exchanges, dérivés — `/fr/platesformes/derivatives`
 - [ ] Exchanges, DEX perpétuels — `/fr/platesformes/derivatives/decentralized`
@@ -599,6 +599,85 @@ traduit en français, comme `/en/glossary` et `/learn`.
   de nombre de lignes par page, la page 2 et suivantes de la pagination, et le
   contenu réel des trois cartes de synthèse de tête de page. Aucun texte de
   CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
+  l'identification d'un composant.
+
+### Exchanges, spot — `/fr/platesformes`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : classement des plateformes d'échange au comptant par score de confiance
+  (« Trust Score »), avec volume 24 h déclaré et mini-graphique. Premier tableau de
+  l'audit dont le tri par défaut n'est pas un chiffre de marché mais un score
+  composite propre à CoinGecko.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** :
+  - **Tableau des plateformes d'échange** (`table.sortable`) — même ossature que le
+    tableau de cotations et le tableau de catégories déjà nommés (en-tête collant,
+    tri par colonne, lignes zébrées au survol) : rang, plateforme, Trust Score,
+    volume 24 h, mini-graphique 7 jours.
+  - **Pastille de score de confiance** (Trust Score) — badge arrondi coloré portant
+    une fraction sur 10 (`10/10`, `7/10`…) : vert (`bg-success-100`) pour les scores
+    élevés, jaune (`bg-warning-100`) pour les scores intermédiaires, observés tous
+    deux dans la capture, plus un état `N/A` en gris pour les plateformes non
+    notées. À ne pas confondre avec la **pastille de variation** (`.gecko-up`/
+    `.gecko-down`) déjà nommée : forme identique (badge arrondi à fond teinté) mais
+    sémantique différente — un score de confiance statique, pas une variation de
+    cours signée.
+  - **Badge de confiance d'exchange** — petite icône SVG à côté du nom de la
+    plateforme, avec infobulle (« La plateforme d'échange a été auditée par des
+    tiers concernant leurs actifs », « Données sur les réserves disponibles ») —
+    deux variantes vues (icône « audit », icône « réserves »), chacune déclarée par
+    le HTML avec sa propre infobulle, non ouverte à l'écran par ce relevé.
+  - **Mini-graphique d'évolution (sparkline)** — même nom déjà posé sur l'accueil et
+    les catégories, mais **variante de rendu** : ici une image statique
+    (`<img src=".../sparkline.svg">`), pas un SVG Highcharts inline interactif comme
+    sur l'accueil. À vérifier si cette différence est propre à cette page ou
+    générale aux tableaux secondaires de CoinGecko, si une prochaine page la
+    recroise.
+  - **Pagination** — déjà nommée et mesurée sur la page Catégories, réutilisée à
+    l'identique ici (compteur « Afficher les résultats de 1 à 100 sur 163 »).
+- **Fonctionnalités** : tri par colonne (Trust Score par défaut), filtrage par pays
+  (bouton « Filtrer par pays » au-dessus du tableau, non instrumenté par sélecteur
+  dans ce relevé), recherche globale (icône loupe, overlay déjà nommé), lien vers la
+  méthodologie du Trust Score (infobulle de l'en-tête de colonne), pagination et
+  choix du nombre de lignes par page. Onglets de famille d'exchange
+  (Spot/Décentralisées/Dérivés) portés par la barre de navigation, hors composants
+  de cette page — chacun a sa propre URL déjà listée dans `## Liste des pages`.
+- **Interactions** : deux sélecteurs propres à cette page sondés en survol et en
+  focus (largeur de référence, deux thèmes) — deltas dans `mesures.json` →
+  `interactions`. **Ligne de tableau** et **en-tête de colonne triable** : mêmes
+  constats que sur l'accueil et les catégories (survol change le fond de la ligne
+  aux mêmes valeurs de jeton, en-tête non focusable, aucun delta au survol de
+  l'en-tête).
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
+  ouverture du filtre pays, ouverture des infobulles de badge de confiance et de
+  méthodologie du Trust Score, navigation de pagination au-delà de la première
+  page.
+- **Données requises** : Trust Score, volume 24 h, mini-graphique 7 jours sont tous
+  publiés par l'endpoint exchanges de l'API CoinGecko gratuite, déjà consommée par
+  ZENKUU (`getSpotExchanges`, champ `trustScore`). Rien à reporter en synthèse pour
+  cette page.
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/places/page.tsx` (lu dans le code
+  le 2026-08-30, dev server injoignable au moment du relevé — comparaison sur code
+  source) rend déjà un classement de places de cotation trié par note de confiance,
+  avec la même donnée (`trustScore`, tri, volume, part de volume, pays) — parité
+  fonctionnelle déjà là, documentée dans le fichier comme correction d'un lien de
+  navigation qui menait à une 404. L'écart est visuel, pas fonctionnel :
+  `apps/web/components/market/SpotExchangesPanel.tsx` (ligne 269) affiche le score
+  en texte brut (`{score}/10`) sans le badge coloré vert/jaune/gris que porte cette
+  page CoinGecko — seule `ExchangeTickersTable.tsx` (le tableau de paires d'une
+  fiche d'exchange, pas cette page de classement) porte déjà un composant de score
+  visuel (`TrustDot`, un point plutôt qu'un badge). La **pastille de score de
+  confiance** en badge, telle que vue ici, n'a donc pas encore d'équivalent sur la
+  page de classement des places.
+- **Notes** : bascule de thème validée sur ce gabarit (captures claire/sombre
+  différentes octet pour octet aux trois largeurs). Aucun blocage Cloudflare
+  rencontré (correctif du user-agent déjà en place). Tous les sélecteurs propres à
+  cette page ont une correspondance unique ou un premier nœud directement visible
+  (`noeud` absent des mesures, pas d'ambiguïté à consigner). Restent non observés,
+  faute de simuler un clic : le filtre par pays, les infobulles de badge de
+  confiance et de méthodologie, la page 2 et suivantes de la pagination. Aucun
+  texte de CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
   l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
