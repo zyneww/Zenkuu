@@ -275,17 +275,15 @@ export default async function RootLayout({
          arrivent, le sens de lecture est déjà juste — miroir de la mise en page,
          ponctuation et nombres du bon côté. */
       dir={isRtl(locale) ? 'rtl' : 'ltr'}
-      /* `dark` POSÉE DÈS LE SERVEUR, et non seulement par `ThemeScript`.
+      /* PAS DE `dark` ICI — CoinGecko est clair par défaut, et le HTML servi porte
+         donc cette identité sans classe additionnelle.
 
-         Le script s'exécute avant la première peinture et suffirait donc à éviter
-         le flash. Mais il ne s'exécute pas du tout sans JavaScript, et le HTML
-         servi doit déjà porter le thème du site : sans cette classe, un lecteur
-         qui bloque les scripts verrait un site clair là où l'identité est sombre.
-
-         `ThemeScript` la RETIRE ensuite si le visiteur a explicitement choisi le
-         clair — l'ordre est donc : le défaut arrive avec le document, le choix le
-         corrige avant la peinture. */
-      className={`dark ${sans.variable} ${mono.variable}`}
+         `ThemeScript` s'exécute avant la première peinture et AJOUTE `dark` si le
+         visiteur l'a explicitement choisi, ou si son système le préfère et qu'il
+         n'a rien mémorisé (voir `components/ThemeScript.tsx`). Sans JavaScript, le
+         lecteur reste sur le clair servi — c'est désormais l'identité du site, pas
+         une dégradation. */
+      className={`${sans.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
       <head>
