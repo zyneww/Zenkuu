@@ -1,6 +1,7 @@
 'use client'
 
 import type { AssetTab } from '@/components/asset/AssetSections'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -50,11 +51,12 @@ import type { AssetTab } from '@/components/asset/AssetSections'
  * chaque section. Un gestionnaire de clic aurait redemandé ce décalage à la main.
  */
 export function AssetTabBar({ tabs, activeId }: { tabs: AssetTab[]; activeId: string | null }) {
+  const t = usePhrase()
   if (tabs.length === 0) return null
 
   return (
     <nav
-      aria-label="Sections de la fiche"
+      aria-label={t('Sections de la fiche')}
       /* `scrollbar-none` : la rangée déborde sur mobile et doit pouvoir défiler, mais
          une barre de défilement sous sept onglets pèse plus lourd que ce qu'elle
          signale. La référence emploie `tw-overflow-x-auto` sans plus. */
