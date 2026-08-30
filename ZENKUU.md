@@ -44,7 +44,16 @@ Objectif business : devenir une référence d'analyse de marché généraliste, 
 
 ### 3.1 Design system (tranché, en place)
 
-- Police d'interface et d'affichage : **Geist** · nombres : **DM Mono**
+> ⚠️ **Une migration est en cours.** Le système décrit ci-dessous reste celui du site
+> tel qu'il rend aujourd'hui. Une couche `--v2-*` cohabite avec lui dans
+> `globals.css` : elle porte la structure — densité, rythme, échelle, rayons —
+> relevée sur la référence du secteur, et documentée dans `DESIGN_SYSTEM.md`. **Les
+> couleurs, elles, ne changent pas** : sombre par défaut, bleu glacier.
+>
+> Le cadre de la migration vit dans
+> `docs/superpowers/specs/2026-08-29-coingecko-audit-design-system-design.md`.
+
+- Police d'interface et d'affichage : **Figtree** · nombres : **DM Mono**
 - Rayon : **4 px** pour les contrôles, **12/16 px** pour les cartes — deux familles, jamais d'entre-deux
 - Échelle d'espacement : **4 px**
 - Palette : **« bleu-nuit et menthe » — encre bleu-nuit + menthe, l'ambre en éclat ponctuel**
@@ -258,7 +267,7 @@ aucune superposition n'était possible :
 - **Titres d'affichage en graisse 700**, interlettrage négatif, plafonnés à 48 px (`.display-*`).
   Les tailles plafonnent plus bas qu'avant parce que graisse et taille se compensent : un titre
   de 80 px en graisse 400 reste aéré, le même en 700 devient un mur.
-- **Une seule famille d'interface, le contraste porté par la GRAISSE** : Geist, variable,
+- **Une seule famille d'interface, le contraste porté par la GRAISSE** : Figtree, variable,
   de 100 à 900 depuis une ressource unique. Le système à deux polices (IBM Plex Sans pour
   les titres, Inter pour l'interface) a été abandonné : une fonte variable rend le
   dédoublement coûteux sans le rendre plus expressif. `--font-display` survit et pointe
@@ -669,7 +678,12 @@ Le site est développé **en français**. Aucune autre langue ne doit être ajou
 - **Zéro donnée mock/test/placeholder**, à aucun stade du développement.
 - **Toutes les API et outils utilisés doivent être 100 % gratuits**.
 - **Header aligné à gauche** — marque et menus collés ensemble, recherche et compte à droite. (A remplacé le header centré : une navigation centrée n'a pas de bord auquel se raccrocher, sa position dépend de la largeur des deux groupes qui l'entourent, et ajouter une entrée de menu la déplaçait toute entière.)
-- Le design system (Geist + DM Mono, rayons 4/12-16 px, échelle 4 px, palette « bleu-nuit et menthe », sombre par défaut) est la base par défaut ; tout changement de thème doit être explicitement demandé.
+- Le design system est la base par défaut ; tout changement doit être explicitement
+  demandé. **Une telle demande a été formulée le 29 août 2026** et son cadre est
+  écrit dans `docs/superpowers/specs/2026-08-29-coingecko-audit-design-system-design.md` :
+  la structure migre vers celle de la référence du secteur, la palette ZENKUU et le
+  sombre par défaut sont conservés. Cette puce reste en vigueur pour tout changement
+  qui sortirait de ce cadre.
 
 ---
 
