@@ -288,11 +288,11 @@ ciblé sur `/fr`, comble ce point mort : `header.dashboard` (le bandeau),
 jetons »). Valeurs constantes sur les trois largeurs (360/768/1440) et les deux
 thèmes — aucune divergence entre points de rupture ni entre thèmes.
 
-| Nœud | Taille / interligne / graisse | Jeton ZENKUU |
-|---|---|---|
-| `.nav-menu-item` (entrée de premier niveau) | 14px / 20px / 600 | `--text-sm` (existant, 14px — déjà aligné, aucun écart) |
-| `.nav-items a` (lien de méga-dropdown) | 14px / 20px / 600 | `--text-sm` (existant, 14px — déjà aligné, aucun écart) |
-| `.nav-items span.tw-shrink-0` (titre de colonne) | 12px / 16px / 400 | `--v2-text-2xs` (existant, créé en §1 — troisième famille de nœuds à confirmer ce cran, après `.gecko-up`/`.gecko-down` et les pastilles de rang) |
+| Valeur mesurée | Occurrences | Relevée sur | Jeton ZENKUU |
+|---|---|---|---|
+| 14px / 20px / 600 | 6 (3 largeurs × 2 thèmes, constant) | `.nav-menu-item` — entrée de premier niveau, `/fr` | `--text-sm` (existant, 14px — déjà aligné, aucun écart) |
+| 14px / 20px / 600 | 6 (3 largeurs × 2 thèmes, constant) | `.nav-items a` — lien de méga-dropdown, `/fr` | `--text-sm` (existant, 14px — déjà aligné, aucun écart) |
+| 12px / 16px / 400 | 6 (3 largeurs × 2 thèmes, constant) | `.nav-items span.tw-shrink-0` — titre de colonne de dropdown, `/fr` | `--v2-text-2xs` (existant, créé en §1 — troisième famille de nœuds à confirmer ce cran, après `.gecko-up`/`.gecko-down` et les pastilles de rang) |
 
 **L'hypothèse de départ (chrome à 13px, comme le pied de page) ne tient pas pour
 la navigation.** Les deux familles de nœuds portant du texte cliquable — entrée de
