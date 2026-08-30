@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  "Écart au sommet historique": "Отставание от исторического максимума",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Насколько каждый актив далёк от своего максимума, в порядке капитализации.",
+  "Plus proches de leur sommet": "Ближе всего к своему максимуму",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "Насколько каждый актив далёк от своего исторического максимума — от ближайшего к самому далёкому.",
   "Glossaire": "Глоссарий",
   "Index du glossaire": "Указатель глоссария",
   "Ouvrir le glossaire": "Открыть глоссарий",

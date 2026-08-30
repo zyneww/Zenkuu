@@ -8,6 +8,10 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  "Écart au sommet historique": "Distancia al máximo histórico",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Lo que separa a cada activo de su máximo histórico, por orden de capitalización.",
+  "Plus proches de leur sommet": "Más cerca de su máximo histórico",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "La distancia que separa a cada activo de su máximo histórico, del más cercano al más lejano.",
   "Glossaire": "Glosario",
   "Index du glossaire": "Índice del glosario",
   "Ouvrir le glossaire": "Abrir el glosario",

@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  "Écart au sommet historique": "Afstand tot recordhoogte",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Hoe ver elk activum van zijn recordhoogte staat, op volgorde van marktkapitalisatie.",
+  "Plus proches de leur sommet": "Dichtst bij hun recordhoogte",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "Hoe ver elk activum van zijn recordhoogte staat, van dichtstbij naar verst.",
   "Glossaire": "Woordenlijst",
   "Index du glossaire": "Index van de woordenlijst",
   "Ouvrir le glossaire": "Woordenlijst openen",

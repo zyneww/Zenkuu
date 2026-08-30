@@ -156,6 +156,13 @@ export const NAV_MENUS: NavMenu[] = [
             href: '/nouvelles-cotations',
             ready: true,
           },
+          {
+            label: 'Écart au sommet',
+            description: 'Ce qui sépare chaque actif de son plus haut historique',
+            icon: Trophy,
+            href: '/classements/sommet',
+            ready: true,
+          },
         ],
       },
       {

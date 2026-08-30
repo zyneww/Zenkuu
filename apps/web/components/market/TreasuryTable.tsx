@@ -97,7 +97,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
             l'ordre des lignes le dit déjà. */}
         <Table className="border-collapse sm:min-w-[46rem]">
           <TableHeader className="[&_tr]:border-b-0">
-            <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
+            <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
               {prefs.isVisible('rank') ? (
                 <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
                   #

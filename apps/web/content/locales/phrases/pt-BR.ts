@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  "Écart au sommet historique": "Distância da máxima histórica",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "O que separa cada ativo de sua máxima histórica, em ordem de capitalização.",
+  "Plus proches de leur sommet": "Mais perto de sua máxima histórica",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "A distância que separa cada ativo de sua máxima histórica, do mais próximo ao mais distante.",
   "Glossaire": "Glossário",
   "Index du glossaire": "Índice do glossário",
   "Ouvrir le glossaire": "Abrir o glossário",

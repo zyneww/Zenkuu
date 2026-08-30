@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  "Écart au sommet historique": "Odległość od historycznego szczytu",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Jak daleko każdy aktyw jest od swojego szczytu, w kolejności kapitalizacji.",
+  "Plus proches de leur sommet": "Najbliżej swojego szczytu",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "Jak daleko każdy aktyw jest od swojego historycznego szczytu, od najbliższego do najdalszego.",
   "Glossaire": "Słowniczek",
   "Index du glossaire": "Indeks słowniczka",
   "Ouvrir le glossaire": "Otwórz słowniczek",

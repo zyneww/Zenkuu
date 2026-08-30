@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  "Écart au sommet historique": "Distanza dal massimo storico",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Quanto dista ogni attività dal suo massimo storico, in ordine di capitalizzazione.",
+  "Plus proches de leur sommet": "Più vicini al loro massimo storico",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "La distanza che separa ogni attività dal suo massimo storico, dal più vicino al più lontano.",
   "Glossaire": "Glossario",
   "Index du glossaire": "Indice del glossario",
   "Ouvrir le glossaire": "Apri il glossario",

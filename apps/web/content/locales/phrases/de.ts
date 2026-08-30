@@ -9,6 +9,10 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  "Écart au sommet historique": "Abstand zum Allzeithoch",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Wie weit jeder Wert von seinem Allzeithoch entfernt ist, nach Marktkapitalisierung geordnet.",
+  "Plus proches de leur sommet": "Am nächsten am Allzeithoch",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "Wie weit jeder Wert von seinem Allzeithoch entfernt ist, vom nächsten zum fernsten.",
   "Glossaire": "Glossar",
   "Index du glossaire": "Glossarverzeichnis",
   "Ouvrir le glossaire": "Glossar öffnen",

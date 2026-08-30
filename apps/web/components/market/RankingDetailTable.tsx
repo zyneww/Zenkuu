@@ -97,7 +97,7 @@ export function RankingDetailTable({
             la règle pour tous les tableaux du site. */}
         <table className="w-full border-collapse text-sm sm:min-w-[44rem]">
           <thead>
-            <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
+            <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
               {prefs.isVisible('rank') ? (
                 <ColumnHeader
                   label="#"

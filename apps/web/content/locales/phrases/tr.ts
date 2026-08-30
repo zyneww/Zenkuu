@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  "Écart au sommet historique": "Zirveden uzaklık",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Her varlığın zirvesinden ne kadar uzakta olduğu, piyasa değeri sırasıyla.",
+  "Plus proches de leur sommet": "Zirvesine en yakın olanlar",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "Her varlığın tüm zamanların zirvesinden ne kadar uzakta olduğu, en yakından en uzağa.",
   "Glossaire": "Sözlük",
   "Index du glossaire": "Sözlük dizini",
   "Ouvrir le glossaire": "Sözlüğü aç",

@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  "Écart au sommet historique": "距历史高点的差距",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "各资产距其历史最高点的差距，按市值排序。",
+  "Plus proches de leur sommet": "最接近历史高点",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "各资产距其历史最高点的差距，由近及远排列。",
   "Glossaire": "术语表",
   "Index du glossaire": "术语表索引",
   "Ouvrir le glossaire": "打开术语表",

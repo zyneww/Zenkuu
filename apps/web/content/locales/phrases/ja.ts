@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  "Écart au sommet historique": "過去最高値からの乖離",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "各銘柄が過去最高値からどれだけ離れているか、時価総額順に表示します。",
+  "Plus proches de leur sommet": "最高値に最も近い銘柄",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "各銘柄が過去最高値からどれだけ離れているか、近い順に表示します。",
   "Glossaire": "用語集",
   "Index du glossaire": "用語集の索引",
   "Ouvrir le glossaire": "用語集を開く",

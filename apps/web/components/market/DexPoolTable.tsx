@@ -90,7 +90,7 @@ export function DexPoolTable({
           question d'analyse, pas de repérage : ils peuvent attendre l'écran large. */}
       <Table className="border-collapse sm:min-w-[52rem]">
         <TableHeader className="[&_tr]:border-b-0">
-          <tr className="border-b border-border-subtle text-left text-[0.6875rem] uppercase tracking-wide text-ink-muted">
+          <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
             <SortableHeader label="Paire" sortKey="name" align="left" sort={sort} onToggle={toggle} />
             {showNetwork ? (
               <SortableHeader

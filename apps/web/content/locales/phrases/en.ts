@@ -13,6 +13,10 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  "Écart au sommet historique": "Price since all-time high",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "How far each asset sits from its all-time high, in market-cap order.",
+  "Plus proches de leur sommet": "Closest to their all-time high",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "How far each asset sits from its all-time high, from closest to furthest.",
   "Glossaire": "Glossary",
   "Index du glossaire": "Glossary index",
   "Ouvrir le glossaire": "Open the glossary",

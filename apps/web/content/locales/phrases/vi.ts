@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  "Écart au sommet historique": "Khoảng cách tới đỉnh lịch sử",
+  "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Khoảng cách giữa mỗi tài sản và đỉnh lịch sử, xếp theo vốn hóa.",
+  "Plus proches de leur sommet": "Gần đỉnh lịch sử nhất",
+  "L’écart qui sépare chaque actif de son plus haut historique, du plus proche au plus loin.": "Khoảng cách giữa mỗi tài sản và đỉnh lịch sử của nó, từ gần nhất đến xa nhất.",
   "Glossaire": "Thuật ngữ",
   "Index du glossaire": "Mục lục thuật ngữ",
   "Ouvrir le glossaire": "Mở bảng thuật ngữ",

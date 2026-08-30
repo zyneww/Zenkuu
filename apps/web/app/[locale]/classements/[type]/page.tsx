@@ -37,7 +37,7 @@ void _ttlGuard
  * aller-retour serveur pour découper un tableau qu'on a déjà en main.
  */
 
-type RankingType = 'hausses' | 'baisses' | 'volumes' | 'rotation'
+type RankingType = 'hausses' | 'baisses' | 'volumes' | 'rotation' | 'sommet'
 
 /*
  * LES PÉRIODES VIENNENT DE `MOVERS_PERIODS`, ET NE SONT PAS RÉÉCRITES ICI.
@@ -84,6 +84,32 @@ const RANKINGS: Record<
     title: 'Rotation la plus forte',
     lead: 'Le volume rapporté à la capitalisation — ce qui tourne vite au regard de sa taille.',
     metric: 'turnover',
+  },
+  /*
+   * ── SOMMET HISTORIQUE — LA CINQUIÈME, ET ELLE EXISTAIT DÉJÀ À MOITIÉ ──────
+   *
+   * Le tableau de marché porte une vue `ath` depuis longtemps, atteignable par
+   * `/crypto?vue=ath` : un PARAMÈTRE, pas une adresse. La référence en fait une
+   * route propre — `/highlights/all-time-high-crypto` — et le mandat de recalage
+   * demande la même chose.
+   *
+   * ⚠️ ELLE CLASSE PAR CAPITALISATION, PAS PAR ÉCART, et ce n'est pas ce que j'ai
+   * écrit d'abord. Le tri par écart paraissait le sens utile — « qui approche de son
+   * record » en tête. Mesuré sur leur page : Bitcoin, Ethereum, Tether, BNB, dans
+   * l'ordre exact des capitalisations, avec l'écart en COLONNE.
+   *
+   * La vérification au navigateur a montré pourquoi. Trié par écart, ZENKUU remontait
+   * « Spiko EU T-Bills Money Market Fund » puis « Spiko Amundi Overnight Swap » :
+   * des fonds monétaires tokenisés, dont le cours ne bouge pas et qui sont donc
+   * toujours à leur sommet. Le classement remontait du bruit, exactement comme un
+   * palmarès de hausses non borné.
+   *
+   * L'écart reste l'INFORMATION de la page ; il n'en est pas le tri.
+   */
+  sommet: {
+    title: 'Écart au sommet historique',
+    lead: 'Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.',
+    metric: 'volume',
   },
 }
 
@@ -238,6 +264,15 @@ function rank(universe: MarketAsset[], type: RankingType, field: keyof MarketAss
       .sort((a, b) => (b.volume24h ?? 0) - (a.volume24h ?? 0))
   }
 
+  if (type === 'sommet') {
+    /* Ordre des capitalisations, celui de la référence. Le filtre garde les actifs
+       dont le sommet est publié : sans `ath`, la colonne d'écart serait vide et la
+       ligne n'aurait rien à dire sur cette page. */
+    return [...universe]
+      .filter((asset) => typeof asset.ath === 'number' && (asset.ath as number) > 0)
+      .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
+  }
+
   if (type === 'rotation') {
     return [...universe]
       .filter((asset) => (asset.marketCap ?? 0) > 0 && (asset.volume24h ?? 0) > 0)
@@ -260,3 +295,4 @@ function rank(universe: MarketAsset[], type: RankingType, field: keyof MarketAss
     .filter((asset) => (asset[field] as number) < 0)
     .sort((a, b) => (a[field] as number) - (b[field] as number))
 }
+
