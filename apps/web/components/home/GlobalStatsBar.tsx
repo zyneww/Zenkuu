@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation'
-import type { GlobalMarketStats, SentimentIndex } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { getMarketCapSeriesState, MIN_POINTS_FOR_CHART } from '@zenkuu/data'
+import type { GlobalMarketStats, MarketCapPoint, SentimentIndex } from '@zenkuu/data'
+import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
 import { Money } from '@/components/locale/Money'
@@ -48,6 +49,28 @@ export async function GlobalStatsBar({
   const btc = stats.dominance['btc']
   const eth = stats.dominance['eth']
 
+  /*
+   * MINI-GRAPHIQUE DE CAPITALISATION — LECTURE SYNCHRONE, SANS APPEL RÉSEAU.
+   *
+   * `getMarketCapSeriesState` ne fait rien d'autre que lire le tampon en mémoire du
+   * processus (voir `market-cap-series.ts`) : aucun coût de quota à l'appeler ici, à
+   * chaque rendu. La série peut être vide ou trop courte, notamment juste après un
+   * redémarrage — c'est l'état NORMAL documenté par ce module, pas une panne, et
+   * `series.ready` le distingue explicitement plutôt que de laisser un tracé plat.
+   *
+   * Volume et dominance voyagent dans les MÊMES points, mais certains — antérieurs à
+   * l'ajout de ces champs — ne les portent pas : on filtre donc séparément plutôt que
+   * de réutiliser `series.ready`, qui ne compte que la présence de `value`.
+   */
+  const series = getMarketCapSeriesState(stats.currency)
+  const volumePoints = series.points.filter(
+    (point): point is MarketCapPoint & { volume: number } => typeof point.volume === 'number',
+  )
+  const dominancePoints = series.points.filter(
+    (point): point is MarketCapPoint & { btcDominance: number } =>
+      typeof point.btcDominance === 'number',
+  )
+
   return (
     <section
       aria-label={t('Repères du marché')}
@@ -75,15 +98,36 @@ export async function GlobalStatsBar({
       <Stat label={t('Capitalisation totale')}>
         <Money value={stats.totalMarketCap} from={stats.currency} compact />
         <ChangeBadge value={stats.marketCapChange24h} size="sm" />
+        <MiniTrend
+          points={series.points}
+          field="value"
+          ready={series.ready}
+          label={t('Évolution de la capitalisation, relevés ZENKUU')}
+          emptyLabel={t('Courbe en construction')}
+        />
       </Stat>
 
       <Stat label={t('Volume 24 h')}>
         <Money value={stats.totalVolume24h} from={stats.currency} compact />
+        <MiniTrend
+          points={volumePoints}
+          field="volume"
+          ready={volumePoints.length >= MIN_POINTS_FOR_CHART}
+          label={t('Évolution du volume, relevés ZENKUU')}
+          emptyLabel={t('Courbe en construction')}
+        />
       </Stat>
 
       {typeof btc === 'number' ? (
         <Stat label={t('Dominance BTC')}>
           <span className="tabular">{btc.toFixed(1)} %</span>
+          <MiniTrend
+            points={dominancePoints}
+            field="btcDominance"
+            ready={dominancePoints.length >= MIN_POINTS_FOR_CHART}
+            label={t('Évolution de la dominance BTC, relevés ZENKUU')}
+            emptyLabel={t('Courbe en construction')}
+          />
         </Stat>
       ) : null}
 
@@ -109,6 +153,43 @@ export async function GlobalStatsBar({
       ) : null}
     </section>
   )
+}
+
+/**
+ * Mini-graphique d'une métrique, ou l'aveu explicite qu'elle est trop courte.
+ *
+ * `ready` distingue « pas assez de points relevés » d'un tracé plat qui mentirait sur
+ * la tendance. Dans ce cas, un court libellé remplace le graphique plutôt qu'un tiret
+ * muet — c'est ce que le commentaire d'en-tête de `market-cap-series.ts` demande
+ * explicitement : l'interface doit DIRE que la courbe est trop courte, pas le laisser
+ * deviner.
+ */
+function MiniTrend({
+  points,
+  field,
+  ready,
+  label,
+  emptyLabel,
+}: {
+  points: MarketCapPoint[]
+  field: 'value' | 'volume' | 'btcDominance'
+  ready: boolean
+  label: string
+  emptyLabel: string
+}) {
+  if (!ready) {
+    return (
+      <span className="text-[0.6875rem] font-normal text-ink-muted" title={emptyLabel}>
+        {emptyLabel}
+      </span>
+    )
+  }
+
+  const values = points
+    .map((point) => point[field])
+    .filter((value): value is number => typeof value === 'number')
+
+  return <Sparkline values={values} width={64} height={22} label={label} />
 }
 
 /**
