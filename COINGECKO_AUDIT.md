@@ -49,7 +49,7 @@ terminé. Elles ne sont pas pour autant un travail en retard — l'ordre suit la
 migration, page par page, parce qu'un relevé sert au moment où la question
 « qu'est-ce qu'on garde de cette page ? » est concrète.
 
-**24 pages sur 68 sont auditées, 44 restent.** Le rendement décroît, et c'est
+**34 pages sur 68 sont auditées, 34 restent.** Le rendement décroît, et c'est
 attendu : la fidélité de CoinGecko tient dans une vingtaine de composants partagés
 que l'accueil a nommés d'un coup. Les six pages ajoutées le 2026-08-30 confirment le
 constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de colonne
@@ -91,8 +91,8 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Catégories — `/en/categories`
 - [x] Page de catégorie — `/en/categories/meme-token`
 - [x] Exchanges, spot — `/en/exchanges`
-- [ ] Exchanges, DEX — `/en/exchanges/decentralized`
-- [ ] Exchanges, dérivés — `/en/exchanges/derivatives`
+- [x] Exchanges, DEX — `/en/exchanges/decentralized`
+- [x] Exchanges, dérivés — `/en/exchanges/derivatives`
 - [ ] Exchanges, DEX perpétuels — `/en/exchanges/derivatives/decentralized`
 - [x] Page d'exchange — `/en/exchanges/binance`
 - [x] Graphiques globaux — `/en/charts`
@@ -104,20 +104,20 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Gagnants et perdants — `/en/crypto-gainers-losers`
 - [x] Nouvelles cryptos — `/en/new-cryptocurrencies`
 - [x] All-time high — `/en/highlights/all-time-high-crypto`
-- [ ] Highlights, les plus consultées — `/en/highlights/most-viewed-crypto`
-- [ ] Highlights, volume élevé — `/en/highlights/high-volume`
-- [ ] Highlights, déblocages de jetons à venir — `/en/highlights/incoming-token-unlocks`
+- [x] Highlights, les plus consultées — `/en/highlights/most-viewed-crypto`
+- [x] Highlights, volume élevé — `/en/highlights/high-volume`
+- [x] Highlights, déblocages de jetons à venir — `/en/highlights/incoming-token-unlocks`
 - [ ] Highlights, cryptos à venir — `/en/highlights/upcoming-cryptocurrencies`
 - [x] Carte thermique (heatmap) — `/en/charts/crypto-heatmap`
 - [x] Prédominance du Bitcoin — `/en/charts/bitcoin-dominance`
 - [x] Comparateur — `/en/compare-cryptocurrencies`
 - [x] Convertisseur — `/en/converter`
 - [x] Chaînes — `/en/chains`
-- [ ] Page de chaîne — `/en/chains/ethereum`
-- [ ] NFT — `/en/nft`
+- [x] Page de chaîne — `/en/chains/ethereum`
+- [x] NFT — `/en/nft`
 - [ ] NFT par chaîne — `/en/nft/chains/ethereum`
 - [ ] Page de collection NFT (floor price) — `/en/nft/bored-ape-yacht-club`
-- [ ] RWA — `/en/rwa`
+- [x] RWA — `/en/rwa`
 - [ ] RWA, graphique global — `/en/charts/rwa`
 - [x] RWA, actions tokenisées — `/en/stocks`
 - [ ] Page d'action tokenisée — `/en/stocks/nvidia`
@@ -137,7 +137,7 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [ ] Actualités — `/en/news`
 - [ ] Rapports — `/en/publications/reports`
 - [ ] Perspectives Recherche — `/research`
-- [ ] Glossaire — `/en/glossary`
+- [x] Glossaire — `/en/glossary`
 - [ ] Glossaire, terme — `/en/glossary/blockchain`
 - [ ] Widgets — `/en/widget`
 - [x] Page API — `/en/api`
@@ -146,7 +146,7 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [ ] Tarifs API — `/en/api/pricing`
 - [ ] Études de cas API — `/en/api/case-studies`
 - [ ] Page coin, onglet Halving — `/en/coins/bitcoin/bitcoin-halving`
-- [ ] Méthodologie — `/en/methodology`
+- [x] Méthodologie — `/en/methodology`
 - [ ] À propos — `/en/about`
 - [ ] FAQ — `/en/faq`
 - [ ] Candy (récompenses) — `/en/candy`
@@ -1730,6 +1730,186 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : les trois pages « RWA » partagent un gabarit unique, aux colonnes près. Une
   seule implémentation les couvrirait toutes les trois — mais aucune n'est faisable sans
   source de jetons adossés.
+
+### Les plus consultées — `/en/highlights/most-viewed-crypto`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les quinze actifs dont les fiches ont été le plus ouvertes. Comme
+  « Tendances », c'est une mesure d'ATTENTION, pas de marché.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de quinze lignes au gabarit commun — rang, monnaie, cours,
+  1 h, 24 h, 7 j, volume 24 h, capitalisation, courbe 7 jours ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la fiche.
+- **Interactions** : survol de ligne et d'onglet aux valeurs communes à tout leur site.
+- **Données requises** : un compteur de consultations par actif. **ZENKUU ne le produit
+  pas** — même obstacle que « Tendances », et il n'est pas contournable sans audience
+  propre.
+- **Écart avec ZENKUU** : aucun équivalent, et il ne peut pas y en avoir sans cette
+  donnée. **Ce n'est pas un manque à combler** : c'est une page qui décrit le trafic de
+  l'opérateur, pas le marché.
+- **Notes** : les trois pages « highlights » relevées ce jour partagent EXACTEMENT le
+  gabarit de colonnes de l'accueil. Un seul composant les rend toutes.
+
+### Volume élevé — `/en/highlights/high-volume`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les cent premières cryptomonnaies par volume échangé sur 24 heures — ce qui
+  s'échange le plus, indépendamment du sens du cours.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cinquante lignes rendues, au gabarit commun ; chrome commun.
+- **Fonctionnalités** : tri ; pagination ; navigation vers la fiche.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : `volume24h`, déjà servi.
+- **Écart avec ZENKUU** : `/classements/volumes` couvre exactement ce rôle. **Aucun
+  écart** — c'est l'un des rares cas où les deux pages font la même chose de la même
+  façon.
+- **Notes** : leur titre annonce cent lignes, la page en rend cinquante et pagine.
+
+### Déblocages de jetons — `/en/highlights/incoming-token-unlocks`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les jetons dont une tranche d'offre va être libérée, avec la part déjà en
+  circulation et la date de la prochaine libération.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cinquante lignes — rang, monnaie, cours, 1 h, 24 h, 7 j,
+  capitalisation, **part libérée**, **prochain déblocage**, **date du prochain
+  déblocage** ; chrome commun.
+- **Fonctionnalités** : tri ; pagination ; navigation vers la fiche.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : le CALENDRIER de vesting de chaque jeton. ⚠️ **Aucune source de
+  cotation ne le publie** : il vient des documents de l'émetteur, agrégés à la main.
+- **Écart avec ZENKUU** : aucun équivalent, et la donnée manque. À noter dans la synthèse
+  des données sans source gratuite.
+- **Notes** : c'est la seule des trois pages « highlights » qui s'écarte du gabarit
+  commun — elle remplace volume et courbe par ses trois colonnes de calendrier.
+
+### Places décentralisées — `/en/exchanges/decentralized`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : classement des places d'échange décentralisées par volume 24 heures.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes — rang, place, volume 24 h, part de marché,
+  nombre de jetons et de paires, paire la plus échangée ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la place.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : volume et paires par place décentralisée.
+- **Écart avec ZENKUU** : `/places` liste les places CENTRALISÉES. Il n'existe pas
+  d'équivalent décentralisé — `/pool/[network]/[address]` décrit UNE réserve, pas un
+  classement de plateformes.
+- **Notes** : la colonne « paire la plus échangée » n'a d'équivalent nulle part sur
+  ZENKUU.
+
+### Places de dérivés — `/en/exchanges/derivatives`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : classement des places de dérivés par intérêt ouvert.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau — rang, place, mode de règlement, intérêt ouvert 24 h, volume
+  24 h ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la place.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : intérêt ouvert par place, et mode de règlement.
+- **Écart avec ZENKUU** : `/perpetuels` couvre ce rôle. Le tri par intérêt ouvert plutôt
+  que par volume est leur choix ; le mode de règlement n'a pas d'équivalent.
+- **Notes** : trier par intérêt ouvert et non par volume n'est pas un détail — l'intérêt
+  ouvert mesure les positions ENCORE OUVERTES, le volume ce qui a été échangé. Une place
+  peut afficher un gros volume avec peu de positions tenues.
+
+### Page de chaîne — `/en/chains/ethereum`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : tout ce qui vit sur une chaîne donnée, en une page : ses jetons, ses
+  collections NFT, ses places décentralisées, et les articles qui en parlent.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de dix jetons au gabarit de l'accueil (rang → courbe 7 jours) ;
+  **quatre sections empilées** — « Ethereum Coins », « Ethereum NFTs », « Ethereum
+  Decentralized Exchanges », « Articles related to Ethereum » ; chrome commun.
+- **Fonctionnalités** : tri du tableau ; navigation vers chaque objet listé.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : l'appartenance de chaque objet à une chaîne — jetons, NFT, places.
+- **Écart avec ZENKUU** : `/categories/ecosystemes` liste les écosystèmes mais n'ouvre pas
+  de page PAR chaîne. Les sections NFT et places décentralisées n'ont pas d'équivalent.
+- **Notes** : dix lignes seulement dans le tableau de jetons — c'est un aperçu qui renvoie
+  ailleurs, pas un classement.
+
+### NFT — `/en/nft`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : classement des collections NFT par capitalisation, avec leur prix plancher.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes — rang, collection, **prix plancher**, 24 h,
+  7 j, 30 j, courbe 7 jours, capitalisation, volume 24 h, **ventes 24 h** ; quatre
+  sections de FAQ en bas de page ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la collection.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : prix plancher, ventes et capitalisation par collection. ⚠️ Ce
+  sont des données de marché NFT, distinctes des cotations de jetons.
+- **Écart avec ZENKUU** : `/graphiques/nft` existe et vient d'entrer dans la navigation.
+  Le nombre de VENTES sur 24 heures n'a pas d'équivalent.
+- **Notes** : la courbe 7 jours est placée AVANT la capitalisation ici, alors qu'elle
+  ferme la ligne sur l'accueil. C'est la seule page relevée où cet ordre diffère.
+
+### Actifs du monde réel — `/en/rwa`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la page mère des trois pages tokenisées (actions, ETF, matières premières) —
+  même gabarit de colonnes, tous types confondus.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau — rang, nom, cours, cours tokenisé, 24 h, 7 j, 30 j, écart de
+  cours, capitalisation, capitalisation tokenisée, volume tokenisé, volume et intérêt
+  ouvert des perpétuels ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la fiche du jeton.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : cours du jeton ET du sous-jacent — même obstacle que ses trois
+  pages filles.
+- **Écart avec ZENKUU** : `/graphiques/actifs-reels` porte ce nom mais décrit autre chose.
+  Voir l'entrée `/en/stocks` pour la distinction complète.
+- **Notes** : les quatre pages RWA relevées partagent un gabarit unique. Une seule
+  implémentation les couvrirait — mais aucune n'est faisable sans source de jetons
+  adossés.
+
+### Glossaire — `/en/glossary`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les définitions du vocabulaire crypto, rangées alphabétiquement.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : index de lettres ; liste de définitions ; chrome commun. **Aucun
+  tableau** — trois des sept sélecteurs de la campagne n'ont donc rien trouvé.
+- **Fonctionnalités** : navigation par lettre ; renvoi vers les fiches d'apprentissage.
+- **Interactions** : les liens d'index défilent vers leur section.
+- **Données requises** : les définitions elles-mêmes, écrites à la main.
+- **Écart avec ZENKUU** : comblé le 2026-08-31 — `/glossaire`, 32 termes, 19 lettres.
+- **Notes** : ⚠️ **LEUR PAGE N'A AUCUN `h1`.** Son titre « Glossary » est un `h3`. C'est un
+  défaut d'accessibilité — un lecteur d'écran qui liste les titres n'y trouve pas le sujet
+  de la page — et il n'est PAS reproduit : `/glossaire` porte un `h1`. Premier écart où la
+  fidélité cède, et il ne coûte rien visuellement.
+
+### Méthodologie — `/en/methodology`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : comment les chiffres du site sont calculés — capitalisation, volume, note de
+  confiance des places.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : page de texte structurée en sections ; chrome commun. **Aucun tableau.**
+- **Fonctionnalités** : lecture ; navigation interne.
+- **Interactions** : aucune au-delà du chrome.
+- **Données requises** : aucune — c'est du texte éditorial.
+- **Écart avec ZENKUU** : `/a-propos` et `/pourquoi-zenkuu` couvrent une partie de ce rôle.
+  Aucune page ne décrit le CALCUL des grandeurs affichées.
+- **Notes** : ⚠️ **SON `h1` MESURE 30 px, pas 24.** C'est la SEULE exception relevée sur
+  33 pages. Elle ne remet pas en cause le cran unique — une page éditoriale isolée n'est
+  pas une règle — mais elle est consignée pour que personne ne la « corrige » en croyant
+  trouver une incohérence de mesure.
 
 ## Synthèse — données sans source gratuite
 
