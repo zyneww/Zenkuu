@@ -216,6 +216,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
             field={field}
             periodLabel={label}
             metric={entry.metric}
+            showAthDate={type === 'sommet'}
           />
 
           <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">

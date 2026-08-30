@@ -42,6 +42,7 @@ export function RankingDetailTable({
   field,
   periodLabel,
   metric = 'price',
+  showAthDate = false,
 }: {
   /** Déjà triés par la page. */
   assets: MarketAsset[]
@@ -50,6 +51,16 @@ export function RankingDetailTable({
   periodLabel: string
   /** Grandeur affichée dans la colonne de droite. */
   metric?: 'price' | 'volume' | 'turnover'
+  /**
+   * Date du plus haut historique, en colonne.
+   *
+   * Un drapeau et non une colonne toujours rendue : cette date n'a de sens que sur le
+   * palmarès « écart au sommet », où elle répond à « quand ce record a-t-il été
+   * posé ». La référence la porte sur cette page-là et sur aucune autre. Sur les
+   * quatre autres palmarès, elle serait une colonne de dates sans rapport avec le
+   * critère de tri.
+   */
+  showAthDate?: boolean
 }) {
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(25)
@@ -128,6 +139,14 @@ export function RankingDetailTable({
                   className="hidden md:table-cell"
                 />
               ) : null}
+              {showAthDate ? (
+                <ColumnHeader
+                  label="Date du sommet"
+                  columnId="athDate"
+                  columnPrefs={prefs}
+                  className="hidden md:table-cell"
+                />
+              ) : null}
               {prefs.isVisible('chart') ? (
                 <ColumnHeader
                   label="7 jours"
@@ -161,7 +180,9 @@ export function RankingDetailTable({
                     className="group flex min-w-0 items-center gap-3"
                   >
                     <AssetLogo asset={asset} size={22} />
-                    <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand">
+                    {/* Graisse 600 : le nom de l'actif est la seule cellule que la
+                        référence épaissit — voir `MarketTable`, où la règle est posée. */}
+                    <span className="min-w-0 flex-1 truncate font-semibold text-ink group-hover:text-brand">
                       {asset.name}
                     </span>
                     <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
@@ -200,6 +221,15 @@ export function RankingDetailTable({
                   </td>
                 ) : null}
 
+                {showAthDate ? (
+                  <td className="hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
+                    {/* Un tiret cadratin plutôt qu'une cellule vide : sur un actif dont
+                        la source ne date pas le sommet, la case blanche se lit comme un
+                        défaut d'affichage. */}
+                    {asset.athDate ? formatAthDate(asset.athDate) : '—'}
+                  </td>
+                ) : null}
+
                 {prefs.isVisible('chart') ? (
                   <td className="hidden px-3 py-2.5 text-right lg:table-cell">
                     {asset.sparkline7d ? (
@@ -235,4 +265,22 @@ function turnover(asset: MarketAsset): string {
   const volume = asset.volume24h ?? 0
   if (cap <= 0 || volume <= 0) return '—'
   return `${((volume / cap) * 100).toFixed(0)} %`
+}
+
+/**
+ * Date du sommet, au format court.
+ *
+ * `toLocaleDateString` sans locale explicite suit celle du NAVIGATEUR, ce qui est le
+ * bon comportement ici : ce composant est client, et la date est une donnée brute que
+ * le lecteur lit dans sa propre convention. Une date invalide rend un tiret plutôt que
+ * « Invalid Date ».
+ */
+function formatAthDate(iso: string): string {
+  const t = Date.parse(iso)
+  if (Number.isNaN(t)) return '—'
+  return new Date(t).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
