@@ -318,8 +318,15 @@ une valeur explicite écrase la propriété CSS, donc la règle d'accessibilité
    hausse est une hausse, pas une opportunité.
 3. **Les deux thèmes, à chaque écran.** Un composant qui n'a été regardé qu'en sombre
    n'est pas fini.
-4. **11 px de plancher, 32 px de cible tactile.** `scripts/audit-responsive.mjs` les
+4. **11 px de plancher, 24 px de cible tactile.** `scripts/audit-responsive.mjs` les
    fait respecter sur six formats.
+
+   ⚠️ **La cible tactile était à 32 px jusqu'au 30 août 2026.** Elle passe à 24 px, le
+   minimum du critère WCAG 2.2 AA 2.5.8 : la référence dont ce site reproduit la
+   structure descend sous 32 px sur ses contrôles, et garder l'ancien seuil interdisait
+   la fidélité sur toute une famille de composants. C'est un arbitrage de l'exploitant
+   entre deux exigences légitimes, pas un abandon — 24 px reste normatif, et rien en
+   dessous n'est acceptable.
 5. **Une fonctionnalité absente est grisée avec sa raison, jamais masquée ni simulée.**
    C'est le traitement des fournisseurs OAuth non configurés, et celui des méthodes de
    connexion que le site ne sert pas.

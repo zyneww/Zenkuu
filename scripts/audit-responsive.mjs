@@ -13,10 +13,18 @@
  *      assumé (tableaux) sont exclus : chez eux, déborder est le comportement voulu.
  *
  *   2. CIBLES TACTILES. Un lien de 16 px de haut se rate au doigt une fois sur trois.
- *      Le seuil retenu est 32 px plutôt que les 44 px des recommandations d'Apple :
- *      44 px est la cible IDÉALE, 32 px la limite en dessous de laquelle un contrôle
- *      devient pénible. Viser 44 partout obligerait à écarter des lignes de tableau
- *      denses qui, elles, se touchent très bien.
+ *      Le seuil retenu est 24 px — le minimum du critère WCAG 2.2 AA 2.5.8 (Target
+ *      Size Minimum). Les 44 px des recommandations d'Apple restent la cible IDÉALE ;
+ *      24 px est le plancher NORMATIF en dessous duquel un contrôle cesse d'être
+ *      conforme.
+ *
+ *      ⚠️ CE SEUIL ÉTAIT À 32 PX, et l'abaisser est une décision, pas un relâchement.
+ *      La référence dont ce site reproduit la structure descend sous 32 px sur ses
+ *      contrôles (bouton mesuré à ~31 px, voir DESIGN_SYSTEM.md) : garder 32 px
+ *      interdisait la fidélité sur toute une famille de composants. L'exploitant a
+ *      tranché pour la fidélité le 2026-08-30. On ne DESCEND PAS jusqu'à désactiver
+ *      le contrôle : 24 px reste un plancher réel, et une cible en dessous est un
+ *      défaut d'accessibilité, pas une question de goût.
  *
  *   3. TEXTE MINUSCULE. Sous 11 px, un chiffre de marché n'est plus lisible sur un
  *      écran tenu à bout de bras.
@@ -200,7 +208,7 @@ const PROBE = `(() => {
        grammaire du site, et l'épaissir de moitié rendrait un classement de cinquante
        lignes interminable. On ne la mesure donc pas au même aune qu'un bouton. */
     const inRow = el.closest('td, th') !== null
-    const minH = inRow ? 24 : 32
+    const minH = 24
     if (r.height < minH || r.width < 24) {
       small.push({ el: name(el), text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 28), w: Math.round(r.width), h: Math.round(r.height) })
     }
@@ -338,7 +346,7 @@ async function main() {
     }
     const flags = [
       r.overflowPx > 0 ? `déborde de ${r.overflowPx}px (${r.wideCount} él.)` : null,
-      r.smallCount > 0 ? `${r.smallCount} cibles < 32px` : null,
+      r.smallCount > 0 ? `${r.smallCount} cibles < 24px` : null,
       r.tinyCount > 0 ? `${r.tinyCount} textes < 11px` : null,
       r.errors?.length ? `${r.errors.length} erreurs console` : null,
     ].filter(Boolean)
