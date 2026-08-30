@@ -88,7 +88,7 @@ export async function AssetRailIdentity({
             lecteur. C'est l'inverse de ce qu'on veut.
           */}
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-bold leading-tight tracking-tight text-ink">
+            <h1 className="text-lg font-bold leading-tight text-ink">
               {asset.name}
             </h1>
 

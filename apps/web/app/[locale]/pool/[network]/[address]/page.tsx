@@ -108,7 +108,7 @@ export default async function Page({ params }: RouteParams) {
 
       <header className="space-y-2">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">{data.name}</h1>
+          <h1 className="display-xl text-ink">{data.name}</h1>
           {data.dex ? (
             <span className="rounded-control bg-surface-muted px-2 py-0.5 text-xs text-ink-muted">
               {data.dex}

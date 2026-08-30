@@ -176,7 +176,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
                 {data.name} <span className="uppercase">{data.symbol}</span>
               </Link>
             </p>
-            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-ink">
+            <h1 className="flex items-center gap-2 display-xl text-ink">
               {label}
               <InfoTip content={help} label={`À propos de : ${label}`} />
             </h1>

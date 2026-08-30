@@ -62,7 +62,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </nav>
 
       <header className="space-y-3">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{article.title}</h1>
+        <h1 className="display-xl text-ink">{article.title}</h1>
         <p className="text-sm leading-relaxed text-ink-muted">{article.summary}</p>
       </header>
 

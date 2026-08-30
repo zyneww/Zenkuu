@@ -1147,7 +1147,7 @@ function BrandTile({ source, className }: { source: string; className: string })
 
   return (
     <span className={`${className} ${tint} flex items-center justify-center px-3`} aria-hidden="true">
-      <span className="truncate text-sm font-semibold tracking-tight">{source}</span>
+      <span className="truncate text-sm font-semibold">{source}</span>
     </span>
   )
 }

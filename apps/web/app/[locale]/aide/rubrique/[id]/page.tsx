@@ -56,7 +56,7 @@ export default async function RubriquePage({ params }: { params: Promise<{ id: s
       </nav>
 
       <header className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{category.title}</h1>
+        <h1 className="display-xl text-ink">{category.title}</h1>
         <p className="text-sm leading-relaxed text-ink-muted">{category.description}</p>
       </header>
 

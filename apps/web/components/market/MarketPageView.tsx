@@ -250,7 +250,7 @@ export async function MarketPageView({
   return (
     <div className="space-y-5">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
+        <h1 className="display-xl text-ink">{title}</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{subtitle}</p>
       </header>
 

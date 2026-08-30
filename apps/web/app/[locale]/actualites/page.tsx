@@ -301,7 +301,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <h2 className="text-2xl font-bold tracking-tight text-ink">{label}</h2>
+      <h2 className="text-2xl font-bold text-ink">{label}</h2>
 
       {href && seeAll ? (
         <Link
@@ -429,7 +429,7 @@ function LeadArticle({ article }: { article: NewsItem }) {
         <div className="space-y-3">
           <Badges article={article} />
 
-          <h2 className="text-2xl font-bold leading-tight tracking-tight text-ink transition-colors duration-150 group-hover:text-brand">
+          <h2 className="text-2xl font-bold leading-tight text-ink transition-colors duration-150 group-hover:text-brand">
             {article.title}
           </h2>
 
