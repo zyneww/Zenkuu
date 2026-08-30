@@ -312,14 +312,36 @@ export async function AssetHeadline({
 
               Sur 288 pixels, « Euro / Dollar américain » suivi de sa pastille tenait
               en deux lignes et menaçait de se tronquer. En pleine largeur, la ligne
-              porte le nom en 30 pixels et le code en gris à côté — exactement la
-              ligne de titre de la référence.
+              porte les deux.
+
+              ── ⚠️ LE NOM PASSE DE 36 PX À 18, ET C'EST UNE INVERSION DE HIÉRARCHIE ──
+
+              Cette note disait « le nom en 30 pixels [...] exactement la ligne de
+              titre de la référence ». Le relevé du 2026-08-30 sur
+              `coingecko.com/en/coins/bitcoin` dit l'inverse :
+
+                  Bitcoin        18 px / 700   encre
+                  BTC Price      14 px / 400   encre atténuée
+                  #1             12 px / 500   encre atténuée
+                  $78,707.13     36 px / 700   encre        ← le plus gros de la page
+                  0.7% (24h)     18 px / 700   vert
+
+              C'est le COURS qui porte les 36 px, pas le nom. ZENKUU faisait
+              exactement l'inverse — nom à 36, cours à 14 — et l'écart n'est pas
+              cosmétique : sur une page où l'on vient chercher un prix, le nom de
+              l'actif est déjà connu du lecteur, qui l'a saisi ou cliqué pour arriver
+              là. Le mettre deux fois plus gros que le chiffre qu'on cherche inverse
+              la raison de la visite.
+
+              `text-lg` (18 px) plutôt qu'un cran `display-*` : ces crans portent une
+              famille d'affichage et un interlettrage négatif que la référence
+              n'applique à aucun de ses textes.
             */}
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-              <h1 className="display-lg leading-none text-ink">
+              <h1 className="text-lg font-bold leading-none text-ink">
                 {assetName(asset.name, assetClass, phrase)}
               </h1>
-              <span className="text-lg font-semibold uppercase leading-none tracking-wide text-ink-muted">
+              <span className="text-sm font-normal uppercase leading-none text-ink-muted">
                 {asset.symbol}
               </span>
               {/* Ni le rang ni l'étoile ne sont ICI : le premier est accroché au bas du
