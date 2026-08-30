@@ -87,6 +87,8 @@ const PAIRS: readonly [foreground: string, background: string, minimum: number][
   ['--color-ink-muted', '--color-canvas', 4.5],
   ['--color-ink-muted', '--color-surface', 4.5],
   ['--color-ink-muted', '--color-surface-muted', 4.5],
+  ['--color-ink', '--color-surface-hover', 4.5],
+  ['--color-ink-muted', '--color-surface-hover', 4.5],
   ['--color-brand', '--color-canvas', 4.5],
   ['--color-brand', '--color-surface', 4.5],
   ['--color-on-brand', '--color-brand', 4.5],

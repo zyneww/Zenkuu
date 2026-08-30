@@ -190,6 +190,11 @@
   --color-canvas: #ffffff;
   --color-surface: #f8fafc;
   --color-panel: #ffffff;
+  /* Rôle de survol relevé sur la référence (DESIGN_SYSTEM.md §9, ligne de
+     `.gecko-homepage-coin-table tbody tr:first-child`, thème clair) — coïncidence
+     exacte avec --color-surface (#f8fafc), donc pas de nouvelle teinte ici : seul
+     le rôle est nouveau, la valeur ne l'est pas. */
+  --color-surface-hover: #f8fafc;
   /* Ni un plan ni une carte : le ton de survol de ligne, d'en-tête de colonne et de
      bande de contraste. Il doit se distinguer de la CARTE et non du canvas, puisque
      c'est sur une carte qu'il apparaît — d'où une valeur plus sombre que le canvas
@@ -2320,6 +2325,14 @@
   /* SECOND PLAN — ce qui se pose SUR une carte. Voir la note ci-dessus : ce cran
      n'existe pas chez Dropstab, il existe ici parce que ce site imbrique. */
   --color-panel: #2f2f33;
+  /* Rôle de survol relevé sur la référence (DESIGN_SYSTEM.md §9, deltas de survol
+     sur boutons et lignes, accueil et plusieurs pages, thème sombre) — aucun jeton
+     existant ne coïncide (--color-panel sombre, #2f2f33, en est distinct). Teinte
+     choisie dans la palette ZENKUU, pas celle mesurée chez CoinGecko : un léger
+     éclaircissement de --color-panel, sous --color-surface-muted, conformément à la
+     règle « pas d'ombre entre les étages » de DESIGN.md. Contrastes rejoués par
+     `app/palette.test.ts`. */
+  --color-surface-hover: #323238;
   /* Survols de ligne, en-têtes de colonne, bandes de contraste. Un cran sous le
      filet, sans quoi la grille d'un tableau disparaîtrait sur ses propres
      en-têtes. */
