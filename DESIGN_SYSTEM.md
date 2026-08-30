@@ -33,13 +33,13 @@ palier du système.**
 | 13px / 18,525px / normal | 406 | boutons de pied de page, liens du pied de page, onglets (`gecko-tab-chip-item`), pagination, toutes pages | `--text-xs` (existant — 0,8125rem = 13px, interligne 1,125rem = 18px) |
 | 14px / 20px / normal | 192 | cellule de tête et de première ligne de `table.sortable`, `h1`, toutes pages | `--text-sm` (existant — 0,875rem = 14px, interligne 1,25rem = 20px) |
 | 12px / 16px / normal | 50 | `.gecko-up` / `.gecko-down` (variation de prix), pastilles de rang | `--v2-text-2xs` (nouveau — 12px/16px ; ZENKUU n'a que 11px pour ce cran, `--text-2xs`) |
-| 24px | 20 | agrégats de carte, catégorie, exchange | proche de `--text-2xl` (28px, existant) — écart non négligeable, pas de coïncidence : `--v2-text-2xl-dense` (nouveau, 24px) |
+| 24px | 20 | agrégats de carte, catégorie, exchange | **fusionné** dans `--text-2xl` (existant, 28px) — 20 occurrences est sous le seuil de 30 posé en section 3, et un jeton existant porte déjà le même rôle documenté (« agrégat de carte ») à 4px près ; pas de jeton `--v2-*` créé |
 | 36px | 12 | chiffre héros d'une carte (accueil, page coin) | `--text-3xl` (existant — 2,25rem = 36px) |
 | 18px / 28px | 12 | titres de section | `--text-lg` (existant — 1,125rem = 18px, interligne 1,75rem = 28px) |
 | 16px | 12 | paragraphes, `#embed` (graphiques globaux) | `--text-base` (existant — 1rem = 16px) |
-| 30px | 10 | en-têtes de bloc (catégories, exchanges) | entre `--text-2xl` (28px) et `--text-3xl` (36px), pas de coïncidence : `--v2-text-heading` (nouveau, 30px) |
-| 26px | 6 | sous-titre de fiche | pas de coïncidence directe : `--v2-text-subheading` (nouveau, 26px) |
-| 20px | 6 | libellé de section secondaire | pas de coïncidence directe, écart faible avec `--text-xl` (22px) — retenu comme variante : `--v2-text-heading-sm` (nouveau, 20px) |
+| 30px | 10 | en-têtes de bloc (catégories, exchanges) | **fusionné** dans `--text-2xl` (existant, 28px, écart 2px) — 10 occurrences est sous le seuil ; pas de jeton `--v2-*` créé |
+| 26px | 6 | sous-titre de fiche | **fusionné** dans `--text-2xl` (existant, 28px, écart 2px) — 6 occurrences, compte anecdotique ; pas de jeton `--v2-*` créé |
+| 20px | 6 | libellé de section secondaire | **fusionné** dans `--text-xl` (existant, 22px, écart 2px) — 6 occurrences, compte anecdotique ; pas de jeton `--v2-*` créé |
 
 **Famille de police.** Tous les nœuds mesurés rapportent `Inter, -apple-system, …`
 en thème clair et `Inter-Dark, Inter, -apple-system, …` en thème sombre (363
@@ -66,46 +66,62 @@ nœuds** :
 Autrement dit : CoinGecko n'est **pas** uniformément un cran plus dense que ZENKUU.
 Sa donnée primaire (les cellules de tableau qui portent l'information) est au même
 cran que le cran dominant de ZENKUU (14px / `--text-sm`). C'est son chrome —
-navigation, pied de page, contrôles secondaires — qui descend d'un cran, à 13px,
-là où `--text-xs` de ZENKUU est aujourd'hui documenté pour « colonnes secondaires
-de tableau ». **La correspondance à corriger n'est pas la taille des jetons, mais
-leur rôle documenté** : `--text-xs` (13px) doit couvrir le chrome/la navigation en
-plus des colonnes secondaires ; `--text-sm` (14px) reste le cran des données
-primaires. Aucun nouveau jeton de taille n'est nécessaire pour ce constat — seule
-la légende d'usage de `--text-xs` doit s'élargir.
+navigation, pied de page, contrôles secondaires — qui **majoritairement** descend
+d'un cran, à 13px, là où `--text-xs` de ZENKUU est aujourd'hui documenté pour
+« colonnes secondaires de tableau ». **La correspondance à corriger n'est pas la
+taille des jetons, mais leur rôle documenté** : `--text-xs` (13px) doit couvrir le
+chrome/la navigation en plus des colonnes secondaires ; `--text-sm` (14px) reste le
+cran des données primaires. Aucun nouveau jeton de taille n'est nécessaire pour ce
+constat — seule la légende d'usage de `--text-xs` doit s'élargir.
+
+**Deux contre-exemples, pour ne pas lire ce qui précède comme une règle absolue :**
+le sélecteur de devise `[data-settings-target="currencyText"]` — un contrôle, donc
+en principe du chrome — est mesuré à **14px sur 42 occurrences**, soit 22 % de toute
+la population 14px de ce relevé ; et `.gecko-toggle-track` (bascule) alterne entre
+13px (18 occ.) et 14px (24 occ.) **selon la page**, sans cran unique. Un lecteur qui
+appliquerait 13px à tout contrôle sans vérifier commettrait l'erreur inverse de
+celle que ce document corrige.
 
 | Valeur mesurée | Occurrences | Relevée sur | Jeton ZENKUU |
 |---|---|---|---|
-| 13px sur chrome (nav, pied de page, contrôles) | 406 | pied de page, boutons, onglets, pagination | `--text-xs` (existant, portée d'usage à élargir) |
-| 14px sur données (cellules, `h1`) | 192 | `table.sortable`, `.gecko-homepage-coin-table` | `--text-sm` (existant, confirmé cran dominant) |
+| 13px, majoritaire sur le chrome (nav, pied de page, contrôles) | 406 | pied de page, boutons, onglets, pagination | `--text-xs` (existant, portée d'usage à élargir) |
+| 14px, majoritaire sur les données (cellules, `h1`) | 192 | `table.sortable`, `.gecko-homepage-coin-table` | `--text-sm` (existant, confirmé cran dominant) |
+| 14px sur un contrôle (contre-exemple) | 42 | `[data-settings-target="currencyText"]`, sélecteur de devise | `--text-sm` (existant — ce contrôle ne suit pas la règle majoritaire du chrome) |
+| 13px/14px selon la page (contre-exemple) | 18 / 24 | `.gecko-toggle-track`, bascule | pas de cran unique — à vérifier composant par composant en tâche 7, pas déduit de la règle générale |
 
 ---
 
 ## 3. Rythme d'espacement
 
-Rembourrages (padding) mesurés sur les quatre côtés, agrégés toutes pages :
+Rembourrages (padding) mesurés sur les quatre côtés (haut/droite/bas/gauche), agrégés
+toutes pages. **Note de méthode :** le compteur additionne les quatre côtés d'un même
+nœud dans un seul total par valeur — un bouton dont le rembourrage est `6px` en haut/bas
+et `10px` à droite/gauche contribue deux fois à « 6px » et deux fois à « 10px ». La
+conclusion d'échelle (paliers cohérents en base 2px) tient malgré ce mode de compte,
+mais la colonne « Relevée sur » nomme un sélecteur qui porte en réalité deux valeurs
+selon l'axe, pas une valeur unique :
 
 | Valeur mesurée | Occurrences | Relevée sur | Jeton ZENKUU |
 |---|---|---|---|
-| 6px | 340 | `#use-app-btn button` et boutons similaires | `--v2-space-2` (nouveau — ZENKUU n'a pas d'échelle d'espacement de contrôle, seulement `--spacing-section` 96px et `--spacing-band` 64px, macro) |
-| 10px | 330 | `table.sortable tbody tr:first-child td:nth-child(4)` (cellule de tableau) | `--v2-space-3` (nouveau) |
-| 12px | 168 | `table.sortable thead th[aria-sort]` (en-tête de colonne) | `--v2-space-4` (nouveau) |
+| 6px | 340 | `#use-app-btn button` (rembourrage haut/bas, 6px — droite/gauche 10px) et boutons similaires | `--v2-space-2` (nouveau — ZENKUU n'a pas d'échelle d'espacement de contrôle, seulement `--spacing-section` 96px et `--spacing-band` 64px, macro) |
+| 10px | 330 | `#use-app-btn button` (rembourrage droite/gauche), `table.sortable tbody tr:first-child td:nth-child(4)` (cellule de tableau) | `--v2-space-4` (nouveau) |
+| 12px | 168 | `table.sortable thead th[aria-sort]` (en-tête de colonne) | `--v2-space-5` (nouveau) |
 | 4px | 126 | `#embed` et petits écarts internes | `--v2-space-1` (nouveau) |
-| 16px | 88 | conteneurs de section, `#embed` | `--v2-space-5` (nouveau) |
-| 8px | 58 | `.gecko-tab-underline-item.selected` | `--v2-space-2b` (nouveau — proche de 6px mais distinct, à trancher en tâche 7 : fusionner avec 6px ou garder séparé selon usage réel) |
+| 16px | 88 | conteneurs de section, `#embed`, `.gecko-tab-underline-item.selected` (rembourrage droite/gauche) | `--v2-space-6` (nouveau) |
+| 8px | 58 | `.gecko-tab-underline-item.selected` (rembourrage haut/bas, 8px — droite/gauche 16px) | `--v2-space-3` (nouveau — **gardé séparé de `--v2-space-2` (6px)**, pas fusionné : ce sont deux tailles de contrôle réellement distinctes — `#use-app-btn button` (6px/10px) est un petit bouton compact, `.gecko-tab-underline-item.selected` (8px/16px) est un onglet plus grand ; les deux se retrouvent sur plusieurs pages, pas un doublon de mesure) |
 
 Marges mesurées :
 
 | Valeur mesurée | Occurrences | Relevée sur | Jeton ZENKUU |
 |---|---|---|---|
 | 4px | 132 | espacement de paragraphe, titres | `--v2-space-1` (même jeton que le rembourrage 4px ci-dessus) |
-| 32px | 54 | séparation de bloc | `--v2-space-6` (nouveau) |
+| 32px | 54 | séparation de bloc | `--v2-space-7` (nouveau) |
 
 **Verdict.** ZENKUU n'a aujourd'hui aucune échelle d'espacement de contrôle (seules
-deux valeurs macro, section/bande). Les six paliers ci-dessus (4/6/8/10/12/16px,
-plus 32px) sont tous au-dessus du seuil d'exception (≥30 occurrences sauf 32px à 54)
-et forment une échelle cohérente en base 2px. **Toute cette famille est nouvelle**,
-à trancher en tâche 7 sous forme d'échelle `--v2-space-1` à `--v2-space-6`.
+deux valeurs macro, section/bande). Les sept paliers ci-dessus (4/6/8/10/12/16/32px)
+sont tous au-dessus du seuil d'exception (≥30 occurrences) et forment une échelle
+cohérente en base 2px, numérotée `--v2-space-1` (4px) à `--v2-space-7` (32px) sans
+saut ni lettre insérée. **Toute cette famille est nouvelle**, à trancher en tâche 7.
 
 ---
 
@@ -117,7 +133,7 @@ et forment une échelle cohérente en base 2px. **Toute cette famille est nouvel
 | 8px | 192 | boutons, onglets, contrôles | `--radius-control` (existant — 8px, identique) |
 | 6px | 48 | pastilles de rang, petits contrôles | `--radius-md` (existant — 6px, identique) |
 | 12px | 12 | cartes, conteneurs de section | `--radius-card` (existant — 12px, identique) |
-| `8px 8px 0px 0px` | 6 | en-tête de carte à coins arrondis en haut seulement | pas de jeton composite existant : `--v2-radius-top` (nouveau — reprend la valeur de `--radius-control`, forme composite seulement) |
+| `8px 8px 0px 0px` | 6 | en-tête de carte à coins arrondis en haut seulement | **gardé sous le seuil de 30** (6 occurrences) : aucun jeton ZENKUU ne porte une forme composite (coins hauts seulement) — il n'y a rien à quoi le rattacher, contrairement aux tailles de titre de la section 1. `--v2-radius-top` (nouveau — reprend la magnitude de `--radius-control` (8px) existant, seule la forme composite est nouvelle) |
 
 Trois coïncidences exactes sur quatre paliers : la charte de rayons de ZENKUU
 couvre déjà la quasi-totalité de ce que CoinGecko utilise.
@@ -134,8 +150,8 @@ CoinGecko dans cet audit. Deux familles d'ombres dures (sans flou) ont en revanc
 
 | Valeur mesurée | Occurrences | Relevée sur | Jeton ZENKUU |
 |---|---|---|---|
-| `… 0px 4px 0px 0px` (décalage dur, couleur variable) | 12 | boutons pressés/survolés (`button[data-action]`) | pas de jeton équivalent : `--v2-shadow-press` (nouveau — décalage 4px, pas de flou) |
-| `… 0px 0px 0px 2px` (anneau, couleur variable) | 4 | états de focus/squelette de chargement | pas de jeton équivalent : `--v2-shadow-ring` (nouveau — anneau 2px, pas de flou) |
+| `… 0px 4px 0px 0px` (décalage dur, couleur variable) | 12 | boutons pressés/survolés (`button[data-action]`) | **gardé sous le seuil de 30** (12 occurrences) : `--shadow-overlay` existant est une ombre floutée, pas un décalage dur — aucun jeton ne porte cette forme, il n'y a rien à quoi la rattacher. `--v2-shadow-press` (nouveau — décalage 4px, pas de flou) |
+| `… 0px 0px 0px 2px` (anneau, couleur variable) | 4 | états de focus/squelette de chargement | **gardé sous le seuil de 30** (4 occurrences, le plus bas du document) : le compte est faible parce que peu de composants étaient focalisés au moment de la capture statique, pas parce que le motif est rare — un anneau de focus porte l'accessibilité (jamais sacrifiable, cf. contraintes globales) et n'a pas d'équivalent ZENKUU. `--v2-shadow-ring` (nouveau — anneau 2px, pas de flou) |
 | `none` | 594 | majorité des nœuds statiques | cohérent, aucun jeton requis |
 
 **À signaler :** l'absence de mesure d'ombre de survol pour cartes/menus n'est pas
@@ -219,26 +235,33 @@ Deux rôles restent sans jeton correspondant — surface survolée en thème som
 
 Cette section récapitule les **seuls** jetons `--v2-*` nouveaux identifiés dans ce
 document ; c'est elle que la tâche 7 implémente littéralement. Tous les autres
-paliers relevés coïncident avec un jeton ZENKUU déjà existant (voir sections 1 à 9)
-et ne demandent aucune création.
+paliers relevés coïncident avec un jeton ZENKUU déjà existant ou y ont été fusionnés
+(voir sections 1 à 9) et ne demandent aucune création. Le seuil de la section 3
+(≥30 occurrences pour être un palier plutôt qu'une exception) s'applique à toute
+cette table : trois jetons ci-dessous (`--v2-radius-top`, `--v2-shadow-press`,
+`--v2-shadow-ring`) sont en dessous et sont gardés avec une justification explicite
+plutôt que fusionnés, faute de jeton ZENKUU existant sur lequel les rattacher —
+voir sections 4 et 5 pour le détail de chaque cas.
 
 | Jeton | Valeur | Occurrences | Origine (section) |
 |---|---|---|---|
 | `--v2-text-2xs` | 12px / 16px | 50 | 1. Typographie — `.gecko-up`/`.gecko-down`, pastilles de rang |
-| `--v2-text-2xl-dense` | 24px | 20 | 1. Typographie — agrégats de carte |
-| `--v2-text-heading` | 30px | 10 | 1. Typographie — en-têtes de bloc |
-| `--v2-text-subheading` | 26px | 6 | 1. Typographie — sous-titre de fiche |
-| `--v2-text-heading-sm` | 20px | 6 | 1. Typographie — libellé de section secondaire |
 | `--v2-space-1` | 4px | 126 | 3. Rythme d'espacement |
 | `--v2-space-2` | 6px | 340 | 3. Rythme d'espacement |
-| `--v2-space-2b` | 8px | 58 | 3. Rythme d'espacement (à fusionner ou non avec `--v2-space-2`, tâche 7) |
-| `--v2-space-3` | 10px | 330 | 3. Rythme d'espacement |
-| `--v2-space-4` | 12px | 168 | 3. Rythme d'espacement |
-| `--v2-space-5` | 16px | 88 | 3. Rythme d'espacement |
-| `--v2-space-6` | 32px | 54 | 3. Rythme d'espacement |
-| `--v2-radius-top` | `8px 8px 0px 0px` | 6 | 4. Rayons — en-tête de carte |
-| `--v2-shadow-press` | `0px 4px 0px 0px`, couleur héritée | 12 | 5. Élévation — bouton pressé/survolé |
-| `--v2-shadow-ring` | `0px 0px 0px 2px`, couleur héritée | 4 | 5. Élévation — anneau de focus/squelette |
+| `--v2-space-3` | 8px | 58 | 3. Rythme d'espacement — gardé distinct de `--v2-space-2`, deux tailles de contrôle réelles |
+| `--v2-space-4` | 10px | 330 | 3. Rythme d'espacement |
+| `--v2-space-5` | 12px | 168 | 3. Rythme d'espacement |
+| `--v2-space-6` | 16px | 88 | 3. Rythme d'espacement |
+| `--v2-space-7` | 32px | 54 | 3. Rythme d'espacement |
+| `--v2-radius-top` | `8px 8px 0px 0px` | 6 | 4. Rayons — en-tête de carte (sous le seuil, gardé : aucun jeton ne porte cette forme composite) |
+| `--v2-shadow-press` | `0px 4px 0px 0px`, couleur héritée | 12 | 5. Élévation — bouton pressé/survolé (sous le seuil, gardé : aucun jeton ne porte un décalage dur sans flou) |
+| `--v2-shadow-ring` | `0px 0px 0px 2px`, couleur héritée | 4 | 5. Élévation — anneau de focus/squelette (sous le seuil, gardé : accessibilité du focus, jamais sacrifiable) |
+
+**Fusionnés, pas créés** (voir section 1 pour le détail) : 24px (agrégat de carte)
+dans `--text-2xl` ; 30px (en-tête de bloc) dans `--text-2xl` ; 26px (sous-titre de
+fiche) dans `--text-2xl` ; 20px (libellé de section secondaire) dans `--text-xl`.
+Ces quatre paliers, tous sous le seuil de 30 occurrences et à moins de 4px d'un
+jeton ZENKUU existant, ne figurent pas dans la table ci-dessus.
 
 Aucun jeton `--v2-color-*` n'est créé, conformément aux contraintes globales : la
 couleur de surface survolée sombre signalée en section 9 est une nouvelle entrée de
