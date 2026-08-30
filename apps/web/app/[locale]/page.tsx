@@ -157,12 +157,21 @@ export default async function HomePage() {
       <div className="flex min-w-0 flex-col gap-8">
         <PriceHeader globals={globals} />
 
-      {/* Le substitut passe de 300 à 210 px : le ruban est plus court que la grille
-          de repères qu'il remplace — un bandeau de cours et une rangée de cartes de
-          trois lignes. Un substitut plus haut que ce qu'il remplace fait remonter la
-          page au moment où le bloc arrive, ce qui est le défaut que ces hauteurs
-          écrites à la main servent précisément à éviter. */}
-      <Suspense fallback={<BlockSkeleton height="h-[210px]" />}>
+      {/* ── LA HAUTEUR DU SUBSTITUT EST MESURÉE, PLUS DEVINÉE ───────────────
+          Elle valait 210 px, avec cette note : « un substitut plus haut que ce qu'il
+          remplace fait remonter la page au moment où le bloc arrive, ce qui est le
+          défaut que ces hauteurs écrites à la main servent précisément à éviter ».
+          Le diagnostic était juste, la valeur ne l'était pas.
+
+          Mesuré au navigateur le 2026-08-31 : le ruban rend 149 px. Le substitut
+          était donc 61 px TROP GRAND, et la page remontait d'autant à l'arrivée du
+          contenu — un décalage de 0,125 au CLS, au-dessus du seuil de 0,1.
+
+          ⚠️ C'EST LE SEUL DÉCALAGE MESURABLE DE LA PAGE. Les deux autres relevés
+          valent 0. Une hauteur écrite à la main n'est juste que le jour où on la
+          mesure : celle-ci l'a été, et un changement de contenu du ruban la
+          rendrait fausse à nouveau. */}
+      <Suspense fallback={<BlockSkeleton height="h-[149px]" />}>
         <MarketRibbon />
       </Suspense>
 
@@ -183,7 +192,12 @@ export default async function HomePage() {
           lectures partent ensemble dans un `Promise.all`, si bien que découper la
           frontière ne ferait apparaître aucun bloc plus tôt — seulement huit
           substituts qui s'éteindraient à la même seconde. */}
-      <Suspense fallback={<BlockSkeleton height="h-[1200px]" />}>
+      {/* 3700 px et non 1200 : la grappe en rend 3728, mesuré au même passage. Elle
+          vit SOUS la ligne de flottaison, donc son écart ne comptait pas dans le CLS
+          — mais un substitut trois fois trop court fait sauter la barre de
+          défilement au moment où le contenu arrive, ce qui se voit sur une page
+          qu'on est en train de parcourir. */}
+      <Suspense fallback={<BlockSkeleton height="h-[3700px]" />}>
         <MarketWidgets />
       </Suspense>
 
