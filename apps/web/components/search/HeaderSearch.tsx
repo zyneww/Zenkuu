@@ -219,7 +219,7 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
                   `bg-canvas` est le bon choix pour les DEUX thèmes à la fois, et
                   c'est ce qui rend la correction symétrique : le canvas est
                   l'extrémité de la rampe, donc plus CLAIR que `surface-muted` en
-                  thème clair (blanc sur #f1f5f9) et plus SOMBRE en thème sombre
+                  thème clair (blanc sur #f8fafc) et plus SOMBRE en thème sombre
                   (#0d1217 sur #35353a). La touche s'enfonce dans le champ dans un
                   cas, s'en détache dans l'autre — dans les deux, elle se voit.
                 */

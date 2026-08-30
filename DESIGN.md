@@ -9,7 +9,7 @@ description: >-
   (#1b232d). La tension de marque est un vert franc (#4bcc00 en clair, #80e038 en
   sombre) qui ne sert JAMAIS de couleur de texte au repos : uniquement en aplat, sous
   une encre noire. Les liens sont en encre, et ne verdissent qu'au survol. Toute la
-  donnée chiffrée est composée en chasse fixe (DM Mono) pour que les colonnes ne
+  donnée chiffrée est composée en Inter à chiffres tabulaires pour que les colonnes ne
   tressautent pas d'un rafraîchissement à l'autre ; tout le reste est en Inter. La
   densité est assumée — 14 px de corps dominant, des tableaux de cent lignes — et
   c'est ce qui distingue le site des vitrines du secteur.
@@ -83,7 +83,7 @@ typography:
     fontSize: 11px
     fontWeight: 500
   numeric:
-    fontFamily: "'DM Mono', ui-monospace, monospace"
+    fontFamily: "Inter, sans-serif"
     fontSize: 14px
     fontWeight: 400
   display-hero:
@@ -163,10 +163,13 @@ Il n'y a **pas d'ombre entre les étages** : la profondeur vient de l'éclaircis
 
 | Rôle | Sombre | Clair | Emploi |
 |---|---|---|---|
-| `canvas` | `#18181b` | `#ffffff` | le fond de page |
-| `surface` | `#27272a` | `#f8fafc` | une carte posée sur le fond |
-| `panel` | `#2f2f33` | `#ffffff` | les panneaux de l'accueil |
-| `surface-muted` | `#35353a` | `#f1f5f9` | un encadré DANS une carte |
+| `canvas` | `#0d1217` | `#ffffff` | le fond de page |
+| `surface` | `#1b232d` | `#f8fafc` | une carte posée sur le fond |
+| `panel` | `#0d1217` | `#ffffff` | les panneaux de l'accueil |
+| `surface-muted` | `#35353a` | `#f8fafc` | un encadré DANS une carte |
+
+⚠️ `surface-muted` en SOMBRE garde `#35353a`, la valeur d'avant la bascule : aucun
+relevé de la référence ne lui correspond, et l'inventer serait pire que la laisser.
 
 ⚠️ En thème clair, `canvas` et `panel` valent tous deux `#ffffff` : le panneau ne se
 détache alors que par sa bordure. C'est voulu — un empilement de gris sur fond blanc se
@@ -174,16 +177,27 @@ lit comme une salissure.
 
 ### Le filet
 
-**Un seul** — `border-subtle` (`#3f3f46` / `#e5e7eb`). `--color-border` en est un ALIAS,
+**Un seul** — `border-subtle` (`#212d3b` / `#e5e7eb`), tracé à **1,25 px** partout où
+la référence trace un trait : filet du panneau droit, soulignement d'onglet, séparation
+du pied de page. `--color-border` en est un ALIAS,
 pas une seconde valeur : le site ne connaît qu'une épaisseur de trait, et les jetons
 hérités de shadcn/ui y sont tous reroutés (`globals.css`, ligne ~921).
 
 ### La marque
 
-`brand` (`#a9eafe` en sombre, `#0e7490` en clair) est une **tension**, pas une couleur
-de remplissage. Elle porte les liens, l'onglet actif, l'indicateur de graduation, et un
-seul bouton plein par écran. Un second aplat de marque sur la même vue annule le
-premier.
+`brand` (`#80e038` en sombre, `#4bcc00` en clair) est un **aplat**, et c'est un
+renversement : elle était décrite ici comme « une tension, pas une couleur de
+remplissage », portant les liens.
+
+Relevé sur la référence : ce vert ne porte JAMAIS de texte au repos — 60 mesures en
+fond, aucune en encre. Les liens sont en encre et ne verdissent qu'au SURVOL. Le vert
+sert d'aplat de bouton, et de texte pour un seul cas : l'onglet sélectionné en forme de
+puce (`brand-strong`, `#35af00` en clair). L'onglet SOULIGNÉ, lui, garde son texte en
+encre et met le vert dans son filet.
+
+⚠️ Le texte posé SUR l'aplat est BLANC en clair (`on-brand`), ce qui donne 2,11:1 —
+sous le seuil AA. C'est la valeur de la référence, conservée par décision de
+l'exploitant et épinglée dans `app/palette.test.ts`.
 
 ### Hausse et baisse
 
@@ -203,7 +217,14 @@ sur presque-blanc en thème clair.
 
 ### Les deux fontes
 
-**Inter** porte l'interface et les titres. **DM Mono** porte les nombres.
+**Inter** porte l'interface, les titres ET les nombres. **DM Mono** ne porte plus que
+les adresses de contrat, où la chasse fixe sert à comparer deux chaînes hexadécimales.
+
+⚠️ Les nombres étaient en DM Mono, sur tout le site. La référence les compose en Inter,
+avec `font-variant-numeric: normal`. La justification écrite ici — le tressautement des
+colonnes au rafraîchissement — était réelle, mais elle demandait des chiffres de largeur
+égale, pas une autre fonte : `tabular-nums` les obtient dans Inter. La famille suit donc
+la référence, la variante numérique reste. C'est l'unique écart, et il est d'un cran.
 
 **Inter est la fonte de la référence, servie telle quelle.** CoinGecko compose tout son
 site en Inter — 363 mesures concordantes sur neuf pages, relevées le 2026-08-30, avec la
@@ -233,11 +254,19 @@ pixels ne bouge pas. Le détail vit dans l'entête de `apps/web/app/[locale]/lay
 dans les mesures. Elle n'est pas distribuée publiquement : les deux thèmes reçoivent donc
 la même Inter.
 
-**DM Mono n'a pas suivi.** KuCoin compose ses cotations dans sa fonte proportionnelle ;
-ce site aligne cent lignes sur onze colonnes rafraîchies toutes les trois minutes, et la
-chasse fixe est ce qui empêche la colonne de tressauter quand un « 1 » remplace un « 8 ».
-Sa graisse est bornée à 500 dans `globals.css` : DM Mono ne connaît que 300/400/500, et
-un `font-bold` la ferait synthétiser par épaississement du tracé, ce qui bave à 11 px.
+**DM Mono ne compose plus les cotations.** Ce paragraphe disait l'inverse : « KuCoin
+compose ses cotations dans sa fonte proportionnelle ; ce site aligne cent lignes sur onze
+colonnes rafraîchies toutes les trois minutes, et la chasse fixe est ce qui empêche la
+colonne de tressauter quand un "1" remplace un "8" ».
+
+Le besoin est réel — les cours arrivent par WebSocket — mais il portait sur la LARGEUR
+DES CHIFFRES, pas sur la fonte. `font-variant-numeric: tabular-nums` donne des chiffres
+de largeur égale dans Inter, et la colonne tient sans changer de famille.
+
+Il reste chargée pour les **adresses de contrat**, où la chasse fixe sert à comparer deux
+chaînes hexadécimales caractère par caractère. La borne de graisse qui vivait ici — DM
+Mono ne connaît que 300/400/500, et un `font-bold` la faisait synthétiser — est partie
+avec elle : Inter est variable de 100 à 900.
 
 ### L'échelle
 

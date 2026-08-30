@@ -62,7 +62,7 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Design system ZENKUU (§3.1, §7)
-   Geist · rayon 4/12px · échelle 4px.
+   Inter · rayon 4/12px · échelle 4px.
 
    Ces jetons sont la SEULE définition des couleurs du produit. Aucun composant
    n'écrit de valeur hexadécimale et aucun n'utilise de variante `dark:` : le thème
@@ -618,7 +618,7 @@
      Elle était jusqu'ici distincte : kraken/DESIGN.md décrit un système à deux
      polices, une fonte de marque pour les titres et une fonte produit pour
      l'interface, et la voix d'une page y naît du contraste entre les deux. On fait
-     désormais porter ce contraste par la GRAISSE d'une seule famille — Geist étant
+     désormais porter ce contraste par la GRAISSE d'une seule famille — Inter étant
      variable, toute l'échelle de 100 à 900 vient d'une ressource unique, ce qui
      rend le dédoublement de familles coûteux sans être plus expressif.
 
