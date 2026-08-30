@@ -128,7 +128,7 @@ export function ExchangeTickersTable({
               <caption className="sr-only">{t('Paires cotées sur cette place')}</caption>
 
               <thead>
-                <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
+                <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
                   <SortableHeader
                     label="Paire"
                     sortKey="pair"

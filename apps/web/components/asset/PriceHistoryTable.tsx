@@ -80,7 +80,7 @@ export async function PriceHistoryTable({
             Dernière valeur connue par journée, sur les {rows.length} derniers jours
           </caption>
           <thead>
-            <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
+            <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
               <th scope="col" className="px-3 py-2.5 font-medium">Date</th>
               <th scope="col" className="px-3 py-2.5 text-right font-medium">{t('Clôture')}</th>
               <th scope="col" className="px-3 py-2.5 text-right font-medium">Variation</th>

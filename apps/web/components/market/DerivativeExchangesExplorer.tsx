@@ -211,7 +211,7 @@ export function DerivativeExchangesExplorer({
               <caption className="sr-only">{t('Places de produits dérivés, classées par intérêt ouvert')}</caption>
 
               <thead>
-                <tr className="border-b border-border-subtle text-left text-xs text-ink-muted">
+                <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
                   {prefs.isVisible('rank') ? (
                     <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
                       #

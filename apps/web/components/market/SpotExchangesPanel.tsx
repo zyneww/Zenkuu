@@ -315,7 +315,7 @@ function HeadCell({
     return (
       <th
         scope="col"
-        className={`px-3 py-2.5 text-xs font-medium text-ink-muted ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
+        className={`px-3 py-2.5 text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
       >
         {label}
       </th>
