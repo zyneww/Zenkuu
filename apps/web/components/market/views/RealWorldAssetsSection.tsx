@@ -145,7 +145,7 @@ async function TokenTable({ tokens }: { tokens: TokenizedStock[] }) {
                   ) : null}
                   <Link
                     href={`/crypto/${token.id}`}
-                    className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
+                    className="inline-flex items-center text-ink transition-colors hover:text-brand hover:underline"
                   >
                     {token.name}
                   </Link>

@@ -322,7 +322,7 @@ function Composition({ basket }: { basket: MarketCapBasket }) {
           <li key={member.id} className="flex items-baseline justify-between gap-2">
             <Link
               href={`/crypto/${member.id}`}
-              className="truncate text-xs text-ink-muted transition-colors duration-150 hover:text-brand-strong"
+              className="truncate text-xs text-ink-muted transition-colors duration-150 hover:text-brand"
             >
               {MEMBER_LABELS[member.id] ?? member.id}
             </Link>

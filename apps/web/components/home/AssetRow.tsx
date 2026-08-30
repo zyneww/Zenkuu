@@ -64,7 +64,7 @@ export function AssetRow({
           `TrendingPanel`, qui se lit juste à côté dans la même rangée de cartes. Deux
           panneaux voisins qui nomment un actif de deux façons différentes se lisent
           comme deux composants étrangers l'un à l'autre. */}
-      <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink transition-colors group-hover:text-brand-strong">
+      <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink transition-colors group-hover:text-brand">
         {asset.name}
         <span className="ml-1 uppercase text-ink-muted">{asset.symbol}</span>
       </span>

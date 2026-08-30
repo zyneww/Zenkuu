@@ -77,7 +77,7 @@ export async function KeyFigures() {
             key={t(figure.label)}
             className="rounded-card border border-border-subtle bg-surface p-4"
           >
-            <dt className="text-2xl font-bold tracking-tight text-brand-strong">
+            <dt className="text-2xl font-bold tracking-tight text-ink">
               {figure.value}{' '}
               <span className="text-sm font-medium text-ink">{t(figure.label)}</span>
             </dt>

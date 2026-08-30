@@ -158,7 +158,7 @@ function Panel({
           <Link
             href={href}
             prefetch={false}
-            className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+            className="shrink-0 text-xs font-medium text-ink hover:underline"
           >
             {action}
           </Link>
@@ -317,7 +317,7 @@ async function NewsPanel({ result }: { result: DataResult<NewsItem[]> }) {
                 rel="noopener noreferrer nofollow"
                 className="group flex h-full flex-col justify-center gap-0.5 py-1.5"
               >
-                <span className="line-clamp-2 text-xs font-medium leading-snug text-ink group-hover:text-brand-strong">
+                <span className="line-clamp-2 text-xs font-medium leading-snug text-ink group-hover:text-brand">
                   {item.title}
                 </span>
                 <span className="text-[0.6875rem] text-ink-muted">

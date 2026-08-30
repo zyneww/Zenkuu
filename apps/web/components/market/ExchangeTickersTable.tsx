@@ -244,7 +244,7 @@ export function ExchangeTickersTable({
                         {ticker.coinId ? (
                           <Link
                             href={`/crypto/${ticker.coinId}`}
-                            className="font-medium text-ink transition-colors hover:text-brand-strong"
+                            className="font-medium text-ink transition-colors hover:text-brand"
                           >
                             {ticker.base}
                             {ticker.target ? (
@@ -269,7 +269,7 @@ export function ExchangeTickersTable({
                             target="_blank"
                             rel="nofollow noopener noreferrer"
                             title={`Voir ${ticker.base}/${ticker.target} chez l’opérateur`}
-                            className="text-ink-muted transition-colors hover:text-brand-strong"
+                            className="text-ink-muted transition-colors hover:text-brand"
                           >
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
                             <span className="sr-only">(nouvelle fenêtre)</span>

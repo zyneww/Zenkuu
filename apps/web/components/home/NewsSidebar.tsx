@@ -193,7 +193,7 @@ function Spotlight({ article, readLabel }: { article: NewsItem; readLabel: strin
             <RelativeTime iso={article.publishedAt} />
           </p>
 
-          <h3 className="text-base font-semibold leading-snug text-ink group-hover:text-brand-strong">
+          <h3 className="text-base font-semibold leading-snug text-ink group-hover:text-brand">
             {article.title}
           </h3>
 
@@ -204,7 +204,7 @@ function Spotlight({ article, readLabel }: { article: NewsItem; readLabel: strin
             <p className="line-clamp-3 text-xs leading-relaxed text-ink-muted">{article.excerpt}</p>
           ) : null}
 
-          <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-brand">
+          <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-ink">
             {readLabel}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             <span className="sr-only">(nouvelle fenêtre)</span>
@@ -243,7 +243,7 @@ function Feed({
         <h3 className="text-sm font-semibold text-ink">{title}</h3>
         <Link
           href="/actualites"
-          className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+          className="shrink-0 text-xs font-medium text-ink hover:underline"
         >
           {seeAll}
         </Link>
@@ -263,7 +263,7 @@ function Feed({
               rel="noopener noreferrer"
               className="group flex flex-col gap-1 py-2.5 pr-1"
             >
-              <span className="text-xs font-medium leading-snug text-ink group-hover:text-brand-strong">
+              <span className="text-xs font-medium leading-snug text-ink group-hover:text-brand">
                 {article.title}
               </span>
               <span className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">

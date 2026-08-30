@@ -54,7 +54,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       />
 
       <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
-        <Link href="/aide" className="hover:text-brand-strong">
+        <Link href="/aide" className="hover:text-brand">
           Centre d’aide
         </Link>
         <span aria-hidden="true"> / </span>
@@ -73,7 +73,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </div>
 
       <footer className="border-t border-border-subtle pt-4">
-        <Link href="/aide" className="text-sm text-brand-strong hover:underline">
+        <Link href="/aide" className="text-sm text-ink hover:underline">
           ← Retour au centre d’aide
         </Link>
       </footer>

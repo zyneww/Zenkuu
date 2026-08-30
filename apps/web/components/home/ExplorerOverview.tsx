@@ -240,7 +240,7 @@ export async function ExplorerOverview({
             action={
               <Link
                 href={newsHref}
-                className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
+                className="shrink-0 text-sm text-ink transition-colors hover:text-brand"
               >
                 {t('Voir plus')}
               </Link>
@@ -258,7 +258,7 @@ export async function ExplorerOverview({
           action={
             <Link
               href={marketHref('crypto')}
-              className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
+              className="shrink-0 text-sm text-ink transition-colors hover:text-brand"
             >
               {t('Tout voir')}
             </Link>

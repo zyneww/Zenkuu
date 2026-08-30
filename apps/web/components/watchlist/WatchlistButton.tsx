@@ -140,7 +140,7 @@ export function WatchlistButton({
             donc vers la liste, où l'on fait de la place.
           */}
           {failure === 'limit-reached' || failure === 'list-limit' ? (
-            <Link href="/tableau-de-bord" className="text-brand hover:text-brand-strong">
+            <Link href="/tableau-de-bord" className="text-ink hover:text-brand">
               Gérer mes listes
             </Link>
           ) : null}

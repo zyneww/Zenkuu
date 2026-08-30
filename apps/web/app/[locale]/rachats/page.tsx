@@ -160,7 +160,7 @@ export default async function Page() {
                     href={program.source}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-brand hover:underline"
+                    className="text-xs text-ink hover:underline"
                   >
                     {t('Vérifier')}
                   </a>

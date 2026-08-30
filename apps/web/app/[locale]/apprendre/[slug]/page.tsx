@@ -104,11 +104,11 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       />
 
       <nav aria-label="Fil d’Ariane" className="mb-6 text-xs text-ink-muted">
-        <Link href="/apprendre" className="hover:text-brand-strong">
+        <Link href="/apprendre" className="hover:text-brand">
           Apprendre
         </Link>
         <span aria-hidden="true"> / </span>
-        <Link href={`/apprendre#${lesson.topicId}`} className="hover:text-brand-strong">
+        <Link href={`/apprendre#${lesson.topicId}`} className="hover:text-brand">
           {lesson.topicTitle}
         </Link>
       </nav>
@@ -258,7 +258,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                   <span className="block overflow-hidden rounded-card">
                     <CoverArt seed={entry.slug} label={levelLabel(entry.level)} />
                   </span>
-                  <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                  <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
                     {entry.title}
                   </span>
                   <span className="text-xs leading-relaxed text-ink-muted">{entry.summary}</span>

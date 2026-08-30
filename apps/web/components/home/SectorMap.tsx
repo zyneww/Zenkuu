@@ -261,7 +261,7 @@ export function SectorMap({
 
         <Link
           href={moreHref}
-          className="shrink-0 text-xs font-medium text-brand transition-colors hover:text-brand-strong"
+          className="shrink-0 text-xs font-medium text-ink transition-colors hover:text-brand"
         >
           {t('Voir l’aperçu complet')} <span aria-hidden="true">→</span>
         </Link>

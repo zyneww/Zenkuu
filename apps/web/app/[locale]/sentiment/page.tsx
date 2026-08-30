@@ -158,11 +158,11 @@ export default async function SentimentPage() {
 
       <p className="text-sm text-ink-muted">
         Pour situer ces mouvements dans le marché :{' '}
-        <Link href="/classements" className="text-brand hover:underline">
+        <Link href="/classements" className="text-ink hover:underline">
           classements du marché
         </Link>{' '}
         ·{' '}
-        <Link href="/apprendre" className="text-brand hover:underline">
+        <Link href="/apprendre" className="text-ink hover:underline">
           apprendre à lire les chiffres
         </Link>
       </p>

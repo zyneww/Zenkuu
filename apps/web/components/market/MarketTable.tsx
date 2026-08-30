@@ -1042,7 +1042,7 @@ export function MarketTable({
                     */}
                     <Link href={href} prefetch={false} className="flex min-w-0 items-center gap-3">
                       <AssetLogo asset={asset} size={24} />
-                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand-strong">
+                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand">
                         {asset.name}
                       </span>
                       <span className="shrink-0 text-right text-xs uppercase text-ink-muted">

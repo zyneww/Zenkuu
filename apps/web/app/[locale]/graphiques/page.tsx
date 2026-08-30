@@ -340,7 +340,7 @@ async function GlobalView() {
                     <Link
                       key={key}
                       href={href}
-                      className="inline-flex min-h-8 items-center text-brand hover:underline"
+                      className="inline-flex min-h-8 items-center text-ink hover:underline"
                     >
                       {label}
                     </Link>
@@ -417,7 +417,7 @@ async function LatestReading() {
           <h2 id="lectures-titre" className="display-sm text-ink">
             {t('Derniers articles de recherche')}
           </h2>
-          <Link href="/blog" className="text-sm text-brand hover:underline">
+          <Link href="/blog" className="text-sm text-ink hover:underline">
             {t('Tous les articles')}
           </Link>
         </div>
@@ -450,7 +450,7 @@ async function LatestReading() {
         <h2 id="lectures-titre" className="display-sm text-ink">
           {t('Dernières actualités du marché')}
         </h2>
-        <Link href="/actualites" className="text-sm text-brand hover:underline">
+        <Link href="/actualites" className="text-sm text-ink hover:underline">
           {t('Toutes les actualités')}
         </Link>
       </div>

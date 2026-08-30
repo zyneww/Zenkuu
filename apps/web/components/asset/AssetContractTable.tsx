@@ -140,7 +140,7 @@ export function AssetContractTable({ asset }: { asset: AssetDetail }) {
                       </button>
                       {/* `aria-live` : l'accusé apparaît sans que le focus bouge, donc
                           rien ne l'annoncerait à un lecteur d'écran sans cette région. */}
-                      <span aria-live="polite" className="text-micro text-brand">
+                      <span aria-live="polite" className="text-micro text-ink">
                         {copied === chain ? t('Copiée') : ''}
                       </span>
                     </span>
@@ -152,7 +152,7 @@ export function AssetContractTable({ asset }: { asset: AssetDetail }) {
                         href={explorer.url(address)}
                         target="_blank"
                         rel="nofollow noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-brand hover:underline"
+                        className="inline-flex items-center gap-1 text-ink hover:underline"
                       >
                         {explorer.label}
                         <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />

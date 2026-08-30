@@ -201,11 +201,18 @@
      vérifié par `app/palette.test.ts`) qui échoue : CoinGecko ne mesure aucun cas
      où ce vert porte du texte sur un fond aussi clair. Voir le rapport de tâche. */
   --color-brand: #4bcc00;
-  /* Dérivé, NON MESURÉ — CoinGecko ne relève pas de variante de survol pour ce
-     vert. Assombri pour l'emphase en thème clair, éclairci pour la lisibilité au
-     survol en thème sombre : même logique que l'ancien jeton cyan, appliquée à la
-     nouvelle teinte. Non couvert par `app/palette.test.ts`. */
-  --color-brand-strong: #3da000;
+  /* MESURÉ le 2026-08-30 — c'est `tw-text-primary-600` de CoinGecko, résolu en
+     posant la classe sur une sonde injectée dans leur page : rgb(53, 175, 0). La
+     valeur précédente (#3da000) était dérivée à la main et ne correspondait à
+     aucune teinte de leur palette.
+
+     ⚠️ CE JETON NE PORTE PAS LE SURVOL. Le même relevé montre que CoinGecko
+     survole son texte vers `primary-500` — c'est-à-dire `--color-brand`, pas
+     cette teinte-ci : 40 éléments portent `tw-text-slate-700` au repos et
+     `hover:tw-text-primary-500` au survol. Les 109 `hover:text-brand-strong` de
+     ZENKUU ont été ramenés à `hover:text-brand` pour cette raison. Il ne reste
+     ici que l'emphase et `--link`. Non couvert par `app/palette.test.ts`. */
+  --color-brand-strong: #35af00;
   /* Dérivé, NON MESURÉ — aplat teinté pour pastille active / état vide, jamais
      support de texte à lui seul. Non couvert par `app/palette.test.ts`. */
   --color-brand-soft: #eafbe0;
@@ -2297,8 +2304,10 @@
      choix retenu).
 
      Contraste sur le canvas sombre : 11,32:1 — largement au-dessus du seuil AA,
-     y compris en texte de lien. `--color-brand-strong`/`-soft` sont dérivés, non
-     mesurés, non couverts par `app/palette.test.ts` (même réserve qu'en clair). */
+     y compris en texte de lien. `--color-brand-strong`/`-soft` restent dérivés
+     ICI, non mesurés, non couverts par `app/palette.test.ts` : le relevé du
+     2026-08-30 a fixé la variante CLAIRE sur `primary-600` mesuré, mais n'a pas
+     résolu son équivalent sombre. À mesurer au prochain passage navigateur. */
   --color-brand: #80e038;
   --color-brand-strong: #99e660;
   --color-brand-soft: #21311c;

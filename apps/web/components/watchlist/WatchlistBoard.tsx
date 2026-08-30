@@ -123,7 +123,7 @@ export function WatchlistBoard({
                   onBlur={() => submitRename(list.name)}
                   aria-label={`Nouveau nom pour ${list.name}`}
                 />
-                <button type="submit" className="text-xs font-medium text-brand hover:text-brand-strong">
+                <button type="submit" className="text-xs font-medium text-ink hover:text-brand">
                   Renommer
                 </button>
               </form>
@@ -188,7 +188,7 @@ export function WatchlistBoard({
                 key={`${item.assetClass}:${item.assetId}`}
                 className="flex items-center justify-between gap-3 rounded-card border border-border-subtle bg-surface px-4 py-3"
               >
-                <Link href={item.href} className="min-w-0 flex-1 text-sm font-medium text-ink hover:text-brand-strong">
+                <Link href={item.href} className="min-w-0 flex-1 text-sm font-medium text-ink hover:text-brand">
                   {item.label}
                   {item.symbol ? (
                     <span className="ml-1.5 text-xs uppercase text-ink-muted">{item.symbol}</span>

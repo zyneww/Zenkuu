@@ -106,7 +106,7 @@ export default async function ScreenerPage({
             aria-current={entry.id === market.id ? 'page' : undefined}
             className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors duration-150 ${
               entry.id === market.id
-                ? 'border-brand text-brand-strong'
+                ? 'border-brand text-ink'
                 : 'border-transparent text-ink-muted hover:text-ink'
             }`}
           >
@@ -250,7 +250,7 @@ async function Scope({ market }: { market: ScreenerMarket }) {
             'Le filtrage est instantané parce qu’il porte sur des données déjà reçues avec la page — aucun aller-retour serveur n’est déclenché à chaque réglage. Les sources sont nommées dans le [pied de page](/a-propos).',
           ),
           (href, label, key) => (
-            <Link key={key} href={href} className="text-brand hover:underline">
+            <Link key={key} href={href} className="text-ink hover:underline">
               {label}
             </Link>
           ),

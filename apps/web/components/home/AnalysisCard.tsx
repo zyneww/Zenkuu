@@ -111,7 +111,7 @@ export function AnalysisCard({
           {href && action ? (
             <Link
               href={href}
-              className="group shrink-0 whitespace-nowrap text-xs text-brand transition-colors hover:text-brand-strong"
+              className="group shrink-0 whitespace-nowrap text-xs text-ink transition-colors hover:text-brand"
             >
               {action}{' '}
               <span

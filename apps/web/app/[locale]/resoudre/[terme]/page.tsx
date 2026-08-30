@@ -221,7 +221,7 @@ export default async function Page({ params }: { params: Promise<{ terme: string
       {/* Le retour à la LISTE et non à l'accueil : c'est de là qu'on vient, et une page
           d'échec qui renvoie à la racine fait perdre le contexte de lecture. */}
       <p className="text-sm text-ink-muted">
-        <Link href="/nouvelles-cotations" className="text-brand-strong hover:underline">
+        <Link href="/nouvelles-cotations" className="text-ink hover:underline">
           Revenir aux cotations récentes
         </Link>
       </p>

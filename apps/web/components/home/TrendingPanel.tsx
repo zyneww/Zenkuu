@@ -36,7 +36,7 @@ export async function TrendingPanel({ assets, unavailableReason }: TrendingPanel
         <h2 className="text-sm font-semibold text-ink">{fr.home.trendingTitle}</h2>
         <Link
           href="/crypto?vue=tendance"
-          className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+          className="shrink-0 text-xs font-medium text-ink hover:underline"
         >
           {fr.home.seeAll}
         </Link>
@@ -71,7 +71,7 @@ export async function TrendingPanel({ assets, unavailableReason }: TrendingPanel
                   <span className="h-5 w-5 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true" />
                 )}
 
-                <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink group-hover:text-brand-strong">
+                <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink group-hover:text-brand">
                   {asset.name}
                   <span className="ml-1 uppercase text-ink-muted">{asset.symbol}</span>
                 </span>

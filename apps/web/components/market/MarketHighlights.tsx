@@ -229,7 +229,7 @@ function Row({ asset, trailing }: { asset: MarketAsset; trailing: 'change' | 'pr
         className="group flex items-center gap-2"
       >
         <AssetLogo asset={asset} size={20} />
-        <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand-strong">
+        <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand">
           {asset.name}
         </span>
 

@@ -206,7 +206,7 @@ function Ticker({ assets }: { assets: MarketAsset[] }) {
           className="group flex shrink-0 items-center gap-2 text-sm"
         >
           <AssetLogo asset={asset} size={18} />
-          <span className="font-medium uppercase text-ink group-hover:text-brand-strong">
+          <span className="font-medium uppercase text-ink group-hover:text-brand">
             {asset.symbol}
           </span>
           <span className="tabular text-ink">
@@ -293,7 +293,7 @@ function AssetRow({ asset }: { asset: MarketAsset }) {
       className="group flex items-center gap-2.5 text-sm"
     >
       <AssetLogo asset={asset} size={20} />
-      <span className="min-w-0 flex-1 truncate font-medium uppercase text-ink group-hover:text-brand-strong">
+      <span className="min-w-0 flex-1 truncate font-medium uppercase text-ink group-hover:text-brand">
         {asset.symbol}
       </span>
       <span className="tabular shrink-0 text-ink">
@@ -352,7 +352,7 @@ function ListingRow({
       ) : (
         <span className="size-5 shrink-0 rounded-pill bg-brand-soft" aria-hidden="true" />
       )}
-      <span className="min-w-0 flex-1 truncate font-medium uppercase text-ink group-hover:text-brand-strong">
+      <span className="min-w-0 flex-1 truncate font-medium uppercase text-ink group-hover:text-brand">
         {listing.symbol}
       </span>
       <span className="tabular shrink-0 text-ink">{formatCurrency(listing.price, 'USD')}</span>

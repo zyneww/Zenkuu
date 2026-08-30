@@ -228,7 +228,7 @@ export function ConverterView({
                 setAmount('1')
               }}
               aria-label="Inverser le sens de conversion"
-              className="flex size-9 items-center justify-center rounded-pill border border-border-subtle bg-surface text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+              className="flex size-9 items-center justify-center rounded-pill border border-border-subtle bg-surface text-ink-muted transition-colors hover:border-brand hover:text-brand"
             >
               <ArrowUpDown className="size-4" aria-hidden="true" />
             </button>

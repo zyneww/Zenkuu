@@ -50,7 +50,7 @@ export function SourceNote({ label, href, updatedAt, strings }: SourceNoteProps)
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex min-h-8 items-center underline underline-offset-2 hover:text-brand-strong"
+        className="inline-flex min-h-8 items-center underline underline-offset-2 hover:text-brand"
       >
         {label}
       </a>

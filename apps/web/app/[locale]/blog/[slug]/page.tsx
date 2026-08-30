@@ -91,7 +91,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       />
 
       <nav aria-label="Fil d’Ariane" className="mb-6 text-xs text-ink-muted">
-        <Link href="/blog" className="hover:text-brand-strong">
+        <Link href="/blog" className="hover:text-brand">
           Blog
         </Link>
         <span aria-hidden="true"> / </span>

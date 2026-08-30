@@ -255,7 +255,7 @@ export function ColumnHeader({
              manque vraiment — à l'oreille. */
           {...(hint ? { title: hint } : {})}
           onClick={() => onSort(sortKey, isActive && sort?.direction === 'desc' ? 'asc' : 'desc')}
-          className={`${innerClass} rounded-sm outline-none transition-colors duration-150 hover:text-brand-strong focus-visible:ring-1 focus-visible:ring-ring ${
+          className={`${innerClass} rounded-sm outline-none transition-colors duration-150 hover:text-brand focus-visible:ring-1 focus-visible:ring-ring ${
             isActive ? 'text-ink' : ''
           }`}
         >
@@ -380,7 +380,7 @@ export function ColumnPicker({
            bordure de marque ; il se dit maintenant par le TEXTE en teinte de marque,
            qui reste lisible sans réintroduire le seul trait de la barre. */
         className={`inline-flex items-center gap-1.5 rounded-control bg-surface-muted px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
-          prefs.hiddenCount > 0 ? 'text-brand-strong' : 'text-ink-muted hover:text-ink'
+          prefs.hiddenCount > 0 ? 'text-ink' : 'text-ink-muted hover:text-ink'
         }`}
       >
         <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
@@ -592,7 +592,7 @@ function ColumnDialog({
                     new Set(prefs.columns.filter((column) => column.locked).map((c) => c.id)),
                   )
                 }
-                className="text-xs text-ink-muted transition-colors hover:text-brand-strong"
+                className="text-xs text-ink-muted transition-colors hover:text-brand"
               >
                 {t('Tout retirer')}
               </button>

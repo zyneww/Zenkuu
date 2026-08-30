@@ -503,7 +503,7 @@ function Step({
      plus pâle que le compteur qui le commente.
   */
   const shared =
-    'tabular min-w-9 rounded-xl border-0 bg-surface-muted/70 text-sm font-medium text-ink shadow-none hover:bg-surface-muted hover:text-brand-strong'
+    'tabular min-w-9 rounded-xl border-0 bg-surface-muted/70 text-sm font-medium text-ink shadow-none hover:bg-surface-muted hover:text-brand'
 
   if (disabled) {
     return (

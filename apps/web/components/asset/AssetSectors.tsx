@@ -124,7 +124,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
         <h2 className="display-sm text-ink">Secteurs</h2>
         <Link
           href="/categories"
-          className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+          className="shrink-0 text-xs font-medium text-ink hover:underline"
         >{t('Tous les secteurs')}</Link>
       </div>
 
@@ -158,7 +158,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
                  `truncate` reste ici parce que c'est désormais CE lien qui déborde. */
               <Link
                 href={`/categories/${category.id}`}
-                className="block min-h-8 truncate leading-8 underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand-strong hover:decoration-solid"
+                className="block min-h-8 truncate leading-8 underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand hover:decoration-solid"
               >
                 {category.name}
               </Link>
@@ -217,7 +217,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
         <p className="text-xs text-ink-muted">
           {hidden} autre{hidden > 1 ? 's' : ''} secteur{hidden > 1 ? 's' : ''} rattache
           {hidden > 1 ? 'nt' : ''} {asset.name} chez la source, de capitalisation plus faible.{' '}
-          <Link href="/categories" className="font-medium text-brand-strong hover:underline">{t('Voir la liste complète')}</Link>
+          <Link href="/categories" className="font-medium text-ink hover:underline">{t('Voir la liste complète')}</Link>
           .
         </p>
       ) : null}

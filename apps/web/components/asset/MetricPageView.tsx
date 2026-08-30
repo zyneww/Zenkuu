@@ -144,19 +144,19 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
       <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
-            <Link href="/" className="hover:text-brand-strong">
+            <Link href="/" className="hover:text-brand">
               {fr.nav.home}
             </Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href={marketHref(assetClass)} className="hover:text-brand-strong">
+            <Link href={marketHref(assetClass)} className="hover:text-brand">
               {fr.assetClass[assetClass]}
             </Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href={assetHref(assetClass, data.id)} className="hover:text-brand-strong">
+            <Link href={assetHref(assetClass, data.id)} className="hover:text-brand">
               {data.name}
             </Link>
           </li>
@@ -172,7 +172,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
           <AssetLogo asset={data} size={40} />
           <div>
             <p className="text-xs text-ink-muted">
-              <Link href={assetHref(assetClass, data.id)} className="hover:text-brand-strong">
+              <Link href={assetHref(assetClass, data.id)} className="hover:text-brand">
                 {data.name} <span className="uppercase">{data.symbol}</span>
               </Link>
             </p>
@@ -293,7 +293,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
 
           <Link
             href={assetHref(assetClass, data.id)}
-            className="inline-block text-xs font-medium text-brand-strong hover:underline"
+            className="inline-block text-xs font-medium text-ink hover:underline"
           >
             {tp('backToAsset')}
           </Link>

@@ -159,7 +159,7 @@ export default async function HeatmapPage() {
               'La période ne s’applique qu’aux pièces : la source publie cinq fenêtres de variation par actif, et une seule par secteur. Le détail de chaque narratif est sur sa page — voir [tous les secteurs](/categories).',
             ),
             (href, label, key) => (
-              <Link key={key} href={href} className="text-brand hover:underline">
+              <Link key={key} href={href} className="text-ink hover:underline">
                 {label}
               </Link>
             ),

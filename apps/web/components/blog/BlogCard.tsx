@@ -33,7 +33,7 @@ export function BlogCard({ article, compact = false }: { article: Article; compa
       <article className="border-b border-border-subtle pb-4 last:border-0">
         <ArticleMeta article={article} />
         <h3 className="mt-1 text-base font-semibold text-ink">
-          <Link href={`/blog/${article.slug}`} className="transition-colors hover:text-brand-strong">
+          <Link href={`/blog/${article.slug}`} className="transition-colors hover:text-brand">
             {article.title}
           </Link>
         </h3>
@@ -51,12 +51,12 @@ export function BlogCard({ article, compact = false }: { article: Article; compa
         {/* L'exergue de rubrique reprend la couleur de marque, comme chez la
             référence : c'est le premier mot qu'on lit d'une carte, et il situe le
             sujet avant même le titre. */}
-        <span className="text-xs font-medium text-brand">{categoryLabel(article.category)}</span>
+        <span className="text-xs font-medium text-ink">{categoryLabel(article.category)}</span>
 
         <h3 className="text-lg font-semibold leading-snug text-ink">
           {/* Le lien porte sur le titre seul plutôt que sur la carte entière : une
               carte cliquable empêche de sélectionner le chapô à la souris. */}
-          <Link href={`/blog/${article.slug}`} className="transition-colors hover:text-brand-strong">
+          <Link href={`/blog/${article.slug}`} className="transition-colors hover:text-brand">
             {article.title}
           </Link>
         </h3>
@@ -82,7 +82,7 @@ export function BlogCard({ article, compact = false }: { article: Article; compa
 export function ArticleMeta({ article }: { article: Article }) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
-      <span className="font-medium text-brand-strong">{categoryLabel(article.category)}</span>
+      <span className="font-medium text-ink">{categoryLabel(article.category)}</span>
       <span aria-hidden="true">·</span>
       <span>{article.author}</span>
       <span aria-hidden="true">·</span>

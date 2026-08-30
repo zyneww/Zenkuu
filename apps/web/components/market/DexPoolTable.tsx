@@ -130,7 +130,7 @@ export function DexPoolTable({
                   href={`/pool/${pool.network}/${pool.address}`}
                   className="group block min-w-0"
                 >
-                  <span className="block truncate font-medium text-ink group-hover:text-brand-strong">
+                  <span className="block truncate font-medium text-ink group-hover:text-brand">
                     {pool.name}
                   </span>
                   {pool.dex ? (

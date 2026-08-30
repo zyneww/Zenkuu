@@ -147,7 +147,7 @@ export default async function NewListingsPage() {
             'Pour le marché établi, voir les [classements complets](/classements) ou la [heatmap sectorielle](/heatmap).',
           ),
           (href, label, key) => (
-            <Link key={key} href={href} className="text-brand hover:underline">
+            <Link key={key} href={href} className="text-ink hover:underline">
               {label}
             </Link>
           ),

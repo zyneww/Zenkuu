@@ -209,7 +209,7 @@ export default async function RankingsPage({
 
             <p className="text-sm text-ink-muted">
               Pour le détail des cours :{' '}
-              <Link href="/crypto" className="text-brand hover:underline">
+              <Link href="/crypto" className="text-ink hover:underline">
                 cotations
               </Link>{' '}
               ·{' '}
@@ -217,7 +217,7 @@ export default async function RankingsPage({
                   disparu avec les deux pages qu'ils visaient (demande explicite). La
                   heatmap prend leur place : c'est la lecture d'ensemble la plus proche
                   de ce qu'ils apportaient — les extrêmes du jour, d'un coup d'œil. */}
-              <Link href="/heatmap" className="text-brand hover:underline">
+              <Link href="/heatmap" className="text-ink hover:underline">
                 heatmap sectorielle
               </Link>
             </p>

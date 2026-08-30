@@ -107,7 +107,7 @@ export default async function AidePage() {
               <li key={article.slug}>
                 <Link
                   href={`/aide/${article.slug}`}
-                  className="text-sm text-ink transition-colors duration-150 hover:text-brand-strong"
+                  className="text-sm text-ink transition-colors duration-150 hover:text-brand"
                 >
                   {t(article.title)}
                 </Link>
@@ -131,7 +131,7 @@ export default async function AidePage() {
           <h2 id="annonces" className="display-sm text-ink">
             {t('Annonces')}
           </h2>
-          <Link href="/nouveautes" className="text-sm text-brand hover:underline">
+          <Link href="/nouveautes" className="text-sm text-ink hover:underline">
             {t('Tout le journal')}
           </Link>
         </div>
@@ -141,7 +141,7 @@ export default async function AidePage() {
             <li key={index}>
               <Link
                 href="/nouveautes"
-                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 transition-colors duration-150 hover:text-brand-strong"
+                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 transition-colors duration-150 hover:text-brand"
               >
                 <span className="text-sm font-medium text-ink">{t(release.title)}</span>
                 <time dateTime={release.date} className="shrink-0 text-xs text-ink-muted">

@@ -52,7 +52,7 @@ export async function AssetSimilarRail({ peers }: { peers: MarketAsset[] }) {
               <AssetLogo asset={peer} size={18} />
 
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-medium text-ink group-hover:text-brand-strong">
+                <span className="block truncate text-xs font-medium text-ink group-hover:text-brand">
                   {peer.name}
                 </span>
                 <span className="tabular block truncate text-micro text-ink-muted">

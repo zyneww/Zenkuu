@@ -149,7 +149,7 @@ function Spotlight({ article }: { article: NewsItem }) {
             <RelativeTime iso={article.publishedAt} />
           </p>
 
-          <h3 className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+          <h3 className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
             {article.title}
           </h3>
 
@@ -162,7 +162,7 @@ function Spotlight({ article }: { article: NewsItem }) {
             </p>
           ) : null}
 
-          <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-brand">
+          <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-ink">
             {t('Lire l’article')}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
@@ -208,7 +208,7 @@ function Feed({ articles }: { articles: NewsItem[] }) {
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand-strong">
+                <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand">
                   {article.title}
                 </span>
                 <span className="mt-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">

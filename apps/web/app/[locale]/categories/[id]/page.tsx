@@ -74,7 +74,7 @@ export default async function CategoryPage({
   return (
     <div className="space-y-10">
       <nav aria-label={t('Fil d’Ariane')} className="text-sm text-ink-muted">
-        <Link href="/categories" className="hover:text-brand-strong hover:underline">
+        <Link href="/categories" className="hover:text-brand hover:underline">
           Secteurs
         </Link>
         <span aria-hidden="true" className="mx-2">

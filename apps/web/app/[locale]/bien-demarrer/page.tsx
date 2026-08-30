@@ -150,7 +150,7 @@ export default async function BienDemarrerPage() {
                   <p className="text-sm leading-relaxed text-ink-muted">{t(step.body)}</p>
                   <Link
                     href={step.href}
-                    className="inline-block text-xs text-brand-strong hover:underline"
+                    className="inline-block text-xs text-ink hover:underline"
                   >
                     {t(step.linkLabel)} →
                   </Link>

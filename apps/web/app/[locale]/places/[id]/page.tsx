@@ -103,7 +103,7 @@ export default async function ExchangePage({ params }: RouteProps) {
       <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
-            <Link href="/" className="hover:text-brand-strong">
+            <Link href="/" className="hover:text-brand">
               Accueil
             </Link>
           </li>
@@ -114,7 +114,7 @@ export default async function ExchangePage({ params }: RouteProps) {
                 toujours au même endroit ferait mentir la moitié des fiches. */}
             <Link
               href={place.derivatives ? '/perpetuels' : '/places'}
-              className="hover:text-brand-strong"
+              className="hover:text-brand"
             >
               {place.derivatives ? 'Places de dérivés' : 'Places de cotation'}
             </Link>

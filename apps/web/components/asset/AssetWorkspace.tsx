@@ -1544,7 +1544,7 @@ export function AssetWorkspace({
             {/* Accusé de copie — une ligne discrète plutôt qu'une notification
                 flottante : la commande a réussi, ce n'est pas un événement. */}
             {linkCopied ? (
-              <p className="mb-2 text-[0.6875rem] text-brand-strong" role="status">
+              <p className="mb-2 text-[0.6875rem] text-ink" role="status">
                 Lien de cette vue copié.
               </p>
             ) : null}

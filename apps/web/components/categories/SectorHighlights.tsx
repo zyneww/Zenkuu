@@ -94,7 +94,7 @@ function HighlightGroup({
           <li key={category.id} className="flex items-baseline justify-between gap-3">
             <Link
               href={`/categories/${category.id}`}
-              className="truncate text-sm text-ink transition-colors hover:text-brand-strong hover:underline"
+              className="truncate text-sm text-ink transition-colors hover:text-brand hover:underline"
             >
               {category.name}
             </Link>

@@ -119,7 +119,7 @@ export async function MarketFaq({ assetClass }: { assetClass: AssetClass }) {
             </summary>
             <p className="pb-4 pr-8 text-sm leading-relaxed text-ink-muted">
               {weave(t(entry.answer), (href, label, key) => (
-                <Link key={key} href={href} className="text-brand hover:underline">
+                <Link key={key} href={href} className="text-ink hover:underline">
                   {label}
                 </Link>
               ))}

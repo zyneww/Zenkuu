@@ -124,7 +124,7 @@ export function ClassBoard({
           </h3>
           <Link
             href={board.href}
-            className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
+            className="shrink-0 text-sm text-ink transition-colors hover:text-brand"
           >
             {t('Tout voir')} <span aria-hidden="true">→</span>
           </Link>

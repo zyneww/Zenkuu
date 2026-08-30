@@ -177,7 +177,7 @@ export default async function NewsPage({
         <p>
           <Link
             href="/actualites"
-            className="text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong"
+            className="text-sm font-medium text-ink transition-colors duration-150 hover:text-brand"
           >
             ← {t('Toutes les rubriques')}
           </Link>
@@ -306,7 +306,7 @@ function SectionHeading({
       {href && seeAll ? (
         <Link
           href={href}
-          className="shrink-0 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong"
+          className="shrink-0 text-sm font-medium text-ink transition-colors duration-150 hover:text-brand"
         >
           {seeAll} →
         </Link>
@@ -429,7 +429,7 @@ function LeadArticle({ article }: { article: NewsItem }) {
         <div className="space-y-3">
           <Badges article={article} />
 
-          <h2 className="text-2xl font-bold leading-tight tracking-tight text-ink transition-colors duration-150 group-hover:text-brand-strong">
+          <h2 className="text-2xl font-bold leading-tight tracking-tight text-ink transition-colors duration-150 group-hover:text-brand">
             {article.title}
           </h2>
 
@@ -456,7 +456,7 @@ function AsideArticle({ article }: { article: NewsItem }) {
         <span className="min-w-0 flex-1 space-y-1.5">
           <Badges article={article} />
 
-          <span className="block text-sm font-semibold leading-snug text-ink transition-colors duration-150 group-hover:text-brand-strong">
+          <span className="block text-sm font-semibold leading-snug text-ink transition-colors duration-150 group-hover:text-brand">
             {article.title}
           </span>
 
@@ -494,7 +494,7 @@ function ArticleCard({ article }: { article: NewsItem }) {
 
         <Badges article={article} />
 
-        <h3 className="line-clamp-3 text-sm font-semibold leading-snug text-ink transition-colors duration-150 group-hover:text-brand-strong">
+        <h3 className="line-clamp-3 text-sm font-semibold leading-snug text-ink transition-colors duration-150 group-hover:text-brand">
           {article.title}
         </h3>
 

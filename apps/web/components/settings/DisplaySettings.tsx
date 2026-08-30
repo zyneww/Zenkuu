@@ -425,7 +425,7 @@ function PickRow({
       aria-checked={selected}
       onClick={onClick}
       className={`flex w-full items-center gap-2.5 rounded-card px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-surface-muted ${
-        selected ? 'text-brand-strong' : 'text-ink'
+        selected ? 'text-ink' : 'text-ink'
       }`}
     >
       {/* Largeur RÉSERVÉE même sans drapeau : les métaux précieux n'en ont pas (voir

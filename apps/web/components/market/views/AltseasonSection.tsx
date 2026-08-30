@@ -173,7 +173,7 @@ function SpreadList({
             >
               <Link
                 href={`/crypto/${asset.id}`}
-                className="min-w-0 flex-1 truncate text-sm text-ink hover:text-brand-strong"
+                className="min-w-0 flex-1 truncate text-sm text-ink hover:text-brand"
               >
                 {asset.name} <span className="text-xs uppercase text-ink-muted">{asset.symbol}</span>
               </Link>

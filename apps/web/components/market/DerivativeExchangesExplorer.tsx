@@ -312,7 +312,7 @@ export function DerivativeExchangesExplorer({
                           className="group flex min-w-0 items-center gap-2.5"
                         >
                           <ExchangeLogo name={row.name} src={row.image} size={22} />
-                          <span className="min-w-0 truncate font-medium text-ink group-hover:text-brand-strong">
+                          <span className="min-w-0 truncate font-medium text-ink group-hover:text-brand">
                             {row.name}
                           </span>
                         </Link>

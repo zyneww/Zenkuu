@@ -434,7 +434,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
             type="button"
             onClick={() => setEditing(true)}
             title={t('Modifier le pseudonyme')}
-            className="block max-w-full truncate text-left text-sm font-semibold text-ink hover:text-brand-strong"
+            className="block max-w-full truncate text-left text-sm font-semibold text-ink hover:text-brand"
           >
             {account.handle}
           </button>

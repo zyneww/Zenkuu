@@ -226,7 +226,7 @@ function Board({
               >
                 <span className="tabular w-4 shrink-0 text-xs text-ink-muted">{index + 1}</span>
                 <AssetLogo asset={asset} size={22} />
-                <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand-strong">
+                <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand">
                   {asset.name}
                   <span className="ml-1.5 text-xs uppercase text-ink-muted">{asset.symbol}</span>
                 </span>
@@ -313,7 +313,7 @@ function TurnoverBoard({
               >
                 <span className="tabular w-4 shrink-0 text-xs text-ink-muted">{index + 1}</span>
                 <AssetLogo asset={row.asset} size={22} />
-                <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand-strong">
+                <span className="min-w-0 flex-1 truncate text-sm text-ink group-hover:text-brand">
                   {row.asset.name}
                 </span>
                 <span className="tabular w-16 shrink-0 text-right text-xs font-medium text-ink">

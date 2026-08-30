@@ -394,7 +394,7 @@ function CategoryTable({
                     /* `inline-flex items-center` et non le `inline` par défaut : le
                        plancher tactile de globals.css repose sur `min-height`, qui n'a
                        AUCUN effet sur une boîte en ligne. */
-                    className="inline-flex items-center text-ink transition-colors hover:text-brand-strong hover:underline"
+                    className="inline-flex items-center text-ink transition-colors hover:text-brand hover:underline"
                   >
                     {category.name}
                   </Link>

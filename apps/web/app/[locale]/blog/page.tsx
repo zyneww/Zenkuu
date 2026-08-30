@@ -140,7 +140,7 @@ export default async function BlogPage() {
           </Link>
 
           <div className="space-y-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-brand">
+            <span className="text-xs font-medium uppercase tracking-wide text-ink">
               {categoryLabel(featured.category)}
             </span>
 
@@ -151,7 +151,7 @@ export default async function BlogPage() {
             <h2 className="display-md text-ink">
               <Link
                 href={`/blog/${featured.slug}`}
-                className="transition-colors hover:text-brand-strong"
+                className="transition-colors hover:text-brand"
               >
                 {featured.title}
               </Link>
@@ -207,7 +207,7 @@ export default async function BlogPage() {
           <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2">
             {BLOG_CATEGORIES.map((entry) => (
               <li key={entry.id} className="text-sm">
-                <span className="font-medium text-brand-strong">{entry.label}</span>
+                <span className="font-medium text-ink">{entry.label}</span>
                 <span className="text-ink-muted"> — {entry.description}</span>
               </li>
             ))}
@@ -218,7 +218,7 @@ export default async function BlogPage() {
             à dire, jamais pour tenir un calendrier.{' '}
             <Link
               href="/blog/rss.xml"
-              className="underline underline-offset-2 hover:text-brand-strong"
+              className="underline underline-offset-2 hover:text-brand"
             >
               Fil RSS
             </Link>

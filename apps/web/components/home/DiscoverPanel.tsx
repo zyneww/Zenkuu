@@ -65,7 +65,7 @@ export async function DiscoverPanel({ result }: { result: DataResult<NewsItem[]>
         </span>
 
         <span className="flex flex-1 flex-col gap-1 p-4">
-          <span className="text-base font-semibold leading-snug text-ink group-hover:text-brand-strong">
+          <span className="text-base font-semibold leading-snug text-ink group-hover:text-brand">
             {featured.title}
           </span>
           <span className="text-xs text-ink-muted">
@@ -79,7 +79,7 @@ export async function DiscoverPanel({ result }: { result: DataResult<NewsItem[]>
             </span>
           ) : null}
 
-          <span className="mt-auto pt-3 text-xs font-medium text-brand">
+          <span className="mt-auto pt-3 text-xs font-medium text-ink">
             {t('Lire l’article')} <span aria-hidden="true">→</span>
           </span>
         </span>
@@ -102,7 +102,7 @@ export async function DiscoverPanel({ result }: { result: DataResult<NewsItem[]>
                 rel="noopener noreferrer nofollow"
                 className="group block"
               >
-                <span className="block text-xs font-medium leading-snug text-ink group-hover:text-brand-strong">
+                <span className="block text-xs font-medium leading-snug text-ink group-hover:text-brand">
                   {item.title}
                 </span>
                 <span className="mt-0.5 block text-micro text-ink-muted">

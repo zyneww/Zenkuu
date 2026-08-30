@@ -65,7 +65,7 @@ export async function SettingsSources() {
                 href={source.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-brand hover:underline"
+                className="text-xs text-ink hover:underline"
               >{t('Site de la source')}</a>
             </div>
             <p className="mt-1 text-xs text-ink-muted">{source.scope}</p>

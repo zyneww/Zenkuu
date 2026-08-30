@@ -33,7 +33,7 @@ export function CategoryCard({ category }: { category: MarketCategory }) {
           */}
           <Link
             href={`/categories/${category.id}`}
-            className="text-ink transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand-strong"
+            className="text-ink transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand"
           >
             {category.name}
           </Link>

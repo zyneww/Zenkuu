@@ -114,7 +114,7 @@ export function LessonVideos({ videos }: { videos: LessonVideo[] }) {
                     </span>
                   </span>
                   <span className="min-w-0 space-y-0.5">
-                    <span className="block text-xs font-medium leading-snug text-ink group-hover:text-brand-strong">
+                    <span className="block text-xs font-medium leading-snug text-ink group-hover:text-brand">
                       {video.title}
                     </span>
                     <span className="block text-[0.6875rem] text-ink-muted">

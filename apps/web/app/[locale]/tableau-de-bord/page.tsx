@@ -136,7 +136,7 @@ export default async function DashboardPage() {
                     )}
 
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-ink group-hover:text-brand-strong">
+                      <span className="block truncate text-sm font-medium text-ink group-hover:text-brand">
                         {item.label}
                       </span>
                       {item.symbol ? (

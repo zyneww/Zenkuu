@@ -67,7 +67,7 @@ export async function HighlightPanel({
         {href ? (
           <Link
             href={href}
-            className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+            className="shrink-0 text-xs font-medium text-ink hover:underline"
           >
             {fr.home.seeAll}
           </Link>

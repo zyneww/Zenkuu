@@ -338,7 +338,7 @@ function Card({
           {card.href !== undefined ? (
             <Link
               href={card.href}
-              className="truncate underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand-strong hover:decoration-solid"
+              className="truncate underline decoration-border-subtle decoration-dotted underline-offset-4 transition-colors duration-150 hover:text-brand hover:decoration-solid"
             >
               {card.label}
             </Link>

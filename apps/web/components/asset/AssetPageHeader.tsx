@@ -369,7 +369,7 @@ export async function AssetHeadline({
                     <Link
                       key={category}
                       href={`/categories/${id}`}
-                      className="min-w-0 truncate rounded-pill border border-border-subtle px-2 py-0.5 font-medium transition-colors hover:border-brand hover:text-brand-strong"
+                      className="min-w-0 truncate rounded-pill border border-border-subtle px-2 py-0.5 font-medium transition-colors hover:border-brand hover:text-brand"
                     >
                       {category}
                     </Link>
@@ -405,7 +405,7 @@ export async function AssetHeadline({
                               rel="noopener noreferrer nofollow"
                               aria-label={link.label}
                               title={link.label}
-                              className="flex size-7 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+                              className="flex size-7 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors hover:border-brand hover:text-brand"
                             >
                               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                             </a>
@@ -441,7 +441,7 @@ export async function AssetHeadline({
                             <DropdownMenuTrigger
                               aria-label="Plus de liens"
                               title="Plus de liens"
-                              className="flex size-7 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors hover:border-brand hover:text-brand-strong data-[state=open]:border-brand data-[state=open]:text-brand-strong"
+                              className="flex size-7 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors hover:border-brand hover:text-brand data-[state=open]:border-brand data-[state=open]:text-brand-strong"
                             >
                               <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
                             </DropdownMenuTrigger>

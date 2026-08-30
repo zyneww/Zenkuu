@@ -99,7 +99,7 @@ export function HelpCategoryGrid() {
                   <li key={article.slug}>
                     <Link
                       href={`/aide/${article.slug}`}
-                      className="text-sm leading-snug text-ink-muted transition-colors duration-150 hover:text-brand-strong"
+                      className="text-sm leading-snug text-ink-muted transition-colors duration-150 hover:text-brand"
                     >
                       {t(article.title)}
                     </Link>
@@ -109,7 +109,7 @@ export function HelpCategoryGrid() {
 
               <Link
                 href={`/aide/rubrique/${category.id}`}
-                className="mt-5 inline-flex rounded-sm border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+                className="mt-5 inline-flex rounded-sm border border-border-subtle px-3 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand"
               >
                 {t('Voir tous les articles')}
               </Link>

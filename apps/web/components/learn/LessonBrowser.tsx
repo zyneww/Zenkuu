@@ -141,10 +141,10 @@ export function LessonBrowser() {
                     <CoverArt seed={lead.slug} label={levelLabel(lead.level)} ratio="16/10" />
                   </span>
                   <span className="space-y-1.5">
-                    <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-brand">
+                    <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-ink">
                       {levelLabel(lead.level)}
                     </span>
-                    <span className="block text-base font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                    <span className="block text-base font-semibold leading-snug text-ink group-hover:text-brand">
                       {lead.title}
                     </span>
                     <span className="block text-sm leading-relaxed text-ink-muted">
@@ -167,7 +167,7 @@ export function LessonBrowser() {
                           <span className="text-[0.6875rem] font-medium uppercase tracking-wide text-ink-muted">
                             {levelLabel(lesson.level)}
                           </span>
-                          <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                          <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
                             {lesson.title}
                           </span>
                           <span className="text-xs leading-relaxed text-ink-muted">

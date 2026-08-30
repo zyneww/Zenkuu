@@ -381,10 +381,10 @@ function Identity({ listing, match }: { listing: NewListing; match?: ListingMatc
   return (
     <Link
       href={href}
-      className="group flex items-center gap-2 transition-colors hover:text-brand-strong"
+      className="group flex items-center gap-2 transition-colors hover:text-brand"
     >
       {badge}
-      <span className="truncate font-medium text-ink group-hover:text-brand-strong">
+      <span className="truncate font-medium text-ink group-hover:text-brand">
         {listing.name}
       </span>
       <span className="tabular shrink-0 text-xs uppercase text-ink-muted">{listing.symbol}</span>

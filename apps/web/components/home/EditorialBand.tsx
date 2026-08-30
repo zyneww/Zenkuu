@@ -100,7 +100,7 @@ function Column({
         <h2 className="text-sm font-normal text-ink-muted">{title}</h2>
         <Link
           href={href}
-          className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
+          className="shrink-0 text-sm text-ink transition-colors hover:text-brand"
         >
           {action} <span aria-hidden="true">→</span>
         </Link>
@@ -135,7 +135,7 @@ function Card({
       <CoverArt seed={seed} label={label} ratio="21/9" />
 
       <span className="flex flex-1 flex-col gap-1.5 p-3">
-        <span className="line-clamp-2 text-sm font-medium leading-snug text-ink group-hover:text-brand-strong">
+        <span className="line-clamp-2 text-sm font-medium leading-snug text-ink group-hover:text-brand">
           {title}
         </span>
         {/* `mt-auto` : les cartes d'une rangée sont étirées à la hauteur de la plus

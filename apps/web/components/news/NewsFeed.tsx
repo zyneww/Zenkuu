@@ -709,7 +709,7 @@ function FeaturedArticle({ article }: { article: NewsItem }) {
 
       <div className="min-w-0 space-y-2.5">
         {article.category ? (
-          <span className="block text-xs font-semibold text-brand-strong">
+          <span className="block text-xs font-semibold text-ink">
             {categoryLabel(article.category)}
           </span>
         ) : null}
@@ -719,7 +719,7 @@ function FeaturedArticle({ article }: { article: NewsItem }) {
             href={article.url}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="after:absolute after:inset-0 after:content-[''] group-hover:text-brand-strong"
+            className="after:absolute after:inset-0 after:content-[''] group-hover:text-brand"
           >
             {article.title}
           </a>
@@ -812,7 +812,7 @@ function ArticleCard({ article }: { article: NewsItem }) {
       */}
       <div className="flex flex-1 flex-col gap-2">
         {article.category ? (
-          <span className="text-xs font-semibold text-brand-strong">
+          <span className="text-xs font-semibold text-ink">
             {categoryLabel(article.category)}
           </span>
         ) : null}
@@ -822,7 +822,7 @@ function ArticleCard({ article }: { article: NewsItem }) {
             href={article.url}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="after:absolute after:inset-0 after:content-[''] group-hover:text-brand-strong"
+            className="after:absolute after:inset-0 after:content-[''] group-hover:text-brand"
           >
             {article.title}
           </a>

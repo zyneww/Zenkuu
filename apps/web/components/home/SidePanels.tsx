@@ -29,7 +29,7 @@ export async function NarrativesPanel({ result }: { result: DataResult<MarketCat
             {result.data.map((category) => (
               <li key={category.id} className="flex items-center justify-between gap-3 py-2">
                 <Link href={`/categories/${category.id}`} className="min-w-0 group">
-                  <span className="block truncate text-sm text-ink group-hover:text-brand-strong">
+                  <span className="block truncate text-sm text-ink group-hover:text-brand">
                     {category.name}
                   </span>
                   <span className="tabular block text-[0.6875rem] text-ink-muted">
@@ -92,7 +92,7 @@ export async function NewsPanel({
                   rel="noopener noreferrer nofollow"
                   className="group block"
                 >
-                  <span className="block text-xs leading-snug text-ink group-hover:text-brand-strong">
+                  <span className="block text-xs leading-snug text-ink group-hover:text-brand">
                     {item.title}
                   </span>
                   <span className="mt-0.5 block text-[0.6875rem] text-ink-muted">

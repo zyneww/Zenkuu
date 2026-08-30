@@ -201,7 +201,7 @@ export async function MarketWidgets() {
                       key="pair"
                       href={`/pool/${pool.network}/${pool.address}`}
                       prefetch={false}
-                      className="truncate transition-colors hover:text-brand-strong"
+                      className="truncate transition-colors hover:text-brand"
                     >
                       {pool.name}
                     </Link>,
@@ -566,7 +566,7 @@ function NewsBlock({
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="text-sm leading-snug text-ink transition-colors hover:text-brand-strong"
+                className="text-sm leading-snug text-ink transition-colors hover:text-brand"
               >
                 {article.title}
               </a>

@@ -235,7 +235,7 @@ export function AssetTreasuries({
           href="https://www.coingecko.com/en/public-companies"
           target="_blank"
           rel="nofollow noopener noreferrer"
-          className="inline-flex items-center gap-1 hover:text-brand-strong"
+          className="inline-flex items-center gap-1 hover:text-brand"
         >
           Registre complet chez CoinGecko
           <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />

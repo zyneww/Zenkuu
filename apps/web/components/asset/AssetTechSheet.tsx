@@ -216,7 +216,7 @@ async function SheetLink({ label, url }: { label: string; url: string }) {
       target="_blank"
       rel="nofollow noopener noreferrer"
       title={label}
-      className="inline-flex max-w-[9rem] items-center gap-1 rounded-control border border-border-subtle bg-surface px-2 py-1 text-[0.6875rem] text-ink transition-colors hover:border-brand hover:text-brand-strong"
+      className="inline-flex max-w-[9rem] items-center gap-1 rounded-control border border-border-subtle bg-surface px-2 py-1 text-[0.6875rem] text-ink transition-colors hover:border-brand hover:text-brand"
     >
       <span className="truncate">{label}</span>
       <ExternalLink className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />

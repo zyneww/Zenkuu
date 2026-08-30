@@ -347,7 +347,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
                 <th key={asset.id} scope="col" className="px-3 py-2.5 text-right">
                   <Link
                     href={assetHref(asset.assetClass, asset.id)}
-                    className="inline-flex items-center gap-1.5 text-ink hover:text-brand-strong"
+                    className="inline-flex items-center gap-1.5 text-ink hover:text-brand"
                   >
                     <AssetLogo asset={asset} size={18} />
                     <span className="font-medium">{asset.symbol.toUpperCase()}</span>

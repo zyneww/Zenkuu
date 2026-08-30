@@ -90,7 +90,7 @@ export function FavoritesPanel({ suggestions }: { suggestions: FavoriteSuggestio
         </p>
         <Link
           href="/tableau-de-bord"
-          className="mt-2 inline-block text-xs font-medium text-brand transition-colors hover:text-brand-strong"
+          className="mt-2 inline-block text-xs font-medium text-ink transition-colors hover:text-brand"
         >
           {t('Ouvrir ma liste')} <span aria-hidden="true">→</span>
         </Link>

@@ -338,7 +338,7 @@ export function AssetTickers({
                         href={ticker.tradeUrl}
                         target="_blank"
                         rel="nofollow noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 hover:text-brand-strong"
+                        className="inline-flex items-center gap-1.5 hover:text-brand"
                       >
                         {ticker.exchange}
                         <ExternalLink
@@ -378,7 +378,7 @@ export function AssetTickers({
                       href={ticker.tradeUrl}
                       target="_blank"
                       rel="nofollow noopener noreferrer"
-                      className="inline-flex items-center gap-1 whitespace-nowrap hover:text-brand-strong"
+                      className="inline-flex items-center gap-1 whitespace-nowrap hover:text-brand"
                     >
                       {shortenAddress(ticker.base)}/{shortenAddress(ticker.target)}
                       <ExternalLink className="h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />

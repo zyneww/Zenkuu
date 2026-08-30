@@ -66,7 +66,7 @@ export async function CrossAssetPanel() {
         <h2 className="text-sm font-normal text-ink-muted">{t('Les autres marchés')}</h2>
         <Link
           href="/crypto"
-          className="shrink-0 text-sm text-brand transition-colors hover:text-brand-strong"
+          className="shrink-0 text-sm text-ink transition-colors hover:text-brand"
         >
           {fr.home.seeAll} <span aria-hidden="true">→</span>
         </Link>
@@ -87,7 +87,7 @@ export async function CrossAssetPanel() {
                 <Link
                   href={marketHref(assetClass)}
                   prefetch={false}
-                  className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+                  className="shrink-0 text-xs font-medium text-ink hover:underline"
                 >
                   {fr.home.seeAll}
                 </Link>

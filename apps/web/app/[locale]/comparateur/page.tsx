@@ -141,7 +141,7 @@ export default async function ComparatorPage() {
               'Pour une lecture complète d’un actif, voir sa fiche depuis [Parcourir](/crypto), ou filtrer le marché avec le [screener](/screener).',
             ),
             (href, label, key) => (
-              <Link key={key} href={href} className="text-brand hover:underline">
+              <Link key={key} href={href} className="text-ink hover:underline">
                 {label}
               </Link>
             ),

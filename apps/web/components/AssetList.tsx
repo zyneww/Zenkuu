@@ -48,7 +48,7 @@ export function AssetList({
             <AssetLogo asset={asset} size={24} />
 
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm text-ink group-hover:text-brand-strong">
+              <span className="block truncate text-sm text-ink group-hover:text-brand">
                 {asset.name}
               </span>
               <span className="block text-[0.6875rem] uppercase text-ink-muted">

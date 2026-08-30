@@ -361,7 +361,7 @@ export function BoardTabs({
             onClick={() => onSelect(view.key)}
             className={`relative whitespace-nowrap px-3 pb-2.5 pt-2 text-sm transition-colors duration-150 ${
               selected
-                ? 'font-semibold text-brand after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
+                ? 'font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
                 : 'font-normal text-ink hover:text-brand'
             }`}
           >
@@ -546,7 +546,7 @@ export function BoardFilters({
           type="button"
           className={`flex h-9 items-center gap-2 rounded-control border px-3 text-sm transition-colors ${
             active > 0
-              ? 'border-brand text-brand'
+              ? 'border-brand text-ink'
               : 'border-border-subtle text-ink hover:border-ink-muted'
           }`}
         >

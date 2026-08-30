@@ -307,7 +307,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         source={asset.source?.label ?? null}
         tone="warning"
         action={
-          <Link href={marketHref(assetClass)} className="text-sm font-medium text-brand-strong underline">
+          <Link href={marketHref(assetClass)} className="text-sm font-medium text-ink underline">
             {fr.asset.backToRanking}
           </Link>
         }
@@ -809,7 +809,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <h2 className="display-sm text-ink">{fr.asset.similarTitle}</h2>
           <Link
             href={marketHref(assetClass)}
-            className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+            className="shrink-0 text-xs font-medium text-ink hover:underline"
           >
             {fr.home.seeAll}
           </Link>
@@ -1571,7 +1571,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             <h2 className="display-sm text-ink">{t('Tendances du moment')}</h2>
             <Link
               href="/classements"
-              className="shrink-0 text-xs font-medium text-brand-strong hover:underline"
+              className="shrink-0 text-xs font-medium text-ink hover:underline"
             >
               {fr.home.seeAll}
             </Link>
@@ -1647,13 +1647,13 @@ async function Breadcrumb({ assetClass, name }: { assetClass: AssetClass; name: 
     <UiBreadcrumb aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
       <BreadcrumbList className="gap-1.5 text-xs sm:gap-1.5">
         <BreadcrumbItem>
-          <BreadcrumbLink asChild className="hover:text-brand-strong">
+          <BreadcrumbLink asChild className="hover:text-brand">
             <Link href="/">{fr.nav.home}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink asChild className="hover:text-brand-strong">
+          <BreadcrumbLink asChild className="hover:text-brand">
             <Link href={marketHref(assetClass)}>{fr.assetClass[assetClass]}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>

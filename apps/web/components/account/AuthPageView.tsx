@@ -160,7 +160,7 @@ export async function AuthPageView({
             {signup ? t('Vous avez déjà un compte ?') : t('Pas encore de compte ?')}{' '}
             <Link
               href={signup ? '/connexion' : '/inscription'}
-              className="font-medium text-brand-strong underline-offset-4 hover:underline"
+              className="font-medium text-ink underline-offset-4 hover:underline"
             >
               {signup ? t('Se connecter') : t('S’inscrire')}
             </Link>

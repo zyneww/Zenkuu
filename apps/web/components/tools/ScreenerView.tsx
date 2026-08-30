@@ -458,7 +458,7 @@ export function ScreenerView({
                 title={t(entry.hint)}
                 className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-xs font-medium transition-colors duration-150 ${
                   entry.id === columnSet.id
-                    ? 'border-brand text-brand-strong'
+                    ? 'border-brand text-ink'
                     : 'border-transparent text-ink-muted hover:text-ink'
                 }`}
               >
@@ -523,7 +523,7 @@ export function ScreenerView({
                             : t('Trier par {column}').replace('{column}', t(column.label))
                         }
                         className={`inline-flex w-full items-center justify-end gap-1 transition-colors duration-150 hover:text-ink ${
-                          active ? 'text-brand-strong' : ''
+                          active ? 'text-ink' : ''
                         }`}
                       >
                         {t(column.label)}
@@ -620,7 +620,7 @@ function Identity({ row }: { row: ScreenerRow }) {
       ) : null}
       {/* `flex-1` sur le nom pousse le symbole contre le bord droit de la colonne. */}
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-medium text-ink group-hover:text-brand-strong">
+        <span className="block truncate font-medium text-ink group-hover:text-brand">
           {row.name}
         </span>
         {row.meta ? (

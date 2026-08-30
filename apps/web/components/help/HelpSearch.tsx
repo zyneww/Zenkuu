@@ -93,7 +93,7 @@ export function HelpSearch({
               key={entry}
               type="button"
               onClick={() => setQuery(entry)}
-              className="rounded-pill border border-border-subtle bg-surface px-2.5 py-1 text-ink transition-colors duration-150 hover:border-brand hover:text-brand-strong"
+              className="rounded-pill border border-border-subtle bg-surface px-2.5 py-1 text-ink transition-colors duration-150 hover:border-brand hover:text-brand"
             >
               {t(entry)}
             </button>

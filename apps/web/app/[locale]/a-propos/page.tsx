@@ -144,7 +144,7 @@ export default async function AProposPage({
                 <Link
                   key={key}
                   href={href}
-                  className="underline underline-offset-2 hover:text-brand-strong"
+                  className="underline underline-offset-2 hover:text-brand"
                 >
                   {label}
                 </Link>
@@ -166,8 +166,8 @@ export default async function AProposPage({
           phrase d'accroche et deux boutons de même poids est un pied de page
           promotionnel : ici, ce sont deux liens vers deux pages, rien de plus. */}
       <section className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-subtle pt-8">
-        <Link href="/pourquoi-zenkuu" className="text-sm text-brand hover:underline">{t('Les partis pris, en détail')}</Link>
-        <Link href="/aide" className="text-sm text-brand hover:underline">{t('Questions fréquentes')}</Link>
+        <Link href="/pourquoi-zenkuu" className="text-sm text-ink hover:underline">{t('Les partis pris, en détail')}</Link>
+        <Link href="/aide" className="text-sm text-ink hover:underline">{t('Questions fréquentes')}</Link>
       </section>
     </div>
   )

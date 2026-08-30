@@ -148,7 +148,7 @@ export default function ApprendrePage() {
                     {index + 1}
                   </span>
                 </span>
-                <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
                   {lesson.title}
                 </span>
                 <span className="text-xs leading-relaxed text-ink-muted">{lesson.summary}</span>
@@ -247,10 +247,10 @@ function FeaturedLesson() {
       >
         <CoverArt seed={lesson.slug} label={levelLabel(lesson.level)} />
         <div className="flex flex-col justify-center gap-2 px-5 pb-5 sm:py-6 sm:pl-0 sm:pr-6">
-          <span className="text-micro font-semibold uppercase tracking-wide text-brand-strong">
+          <span className="text-micro font-semibold uppercase tracking-wide text-ink">
             {lesson.topicTitle}
           </span>
-          <span className="display-sm leading-tight text-ink group-hover:text-brand-strong">
+          <span className="display-sm leading-tight text-ink group-hover:text-brand">
             {lesson.title}
           </span>
           <span className="text-sm leading-relaxed text-ink-muted">{lesson.summary}</span>
@@ -293,7 +293,7 @@ function TopicSections() {
               {hidden > 0 ? (
                 <Link
                   href={`/apprendre#${topic.id}`}
-                  className="text-xs font-medium text-brand hover:underline"
+                  className="text-xs font-medium text-ink hover:underline"
                 >
                   Voir les {topic.lessons.length} fiches
                 </Link>
@@ -308,7 +308,7 @@ function TopicSections() {
                     className="group flex h-full flex-col gap-2.5"
                   >
                     <CoverArt seed={lesson.slug} label={levelLabel(lesson.level)} />
-                    <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand-strong">
+                    <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
                       {lesson.title}
                     </span>
                     <span className="text-xs leading-relaxed text-ink-muted">{lesson.summary}</span>
@@ -353,7 +353,7 @@ function Glossary() {
           <a
             key={group.letter}
             href={`#glossaire-${group.letter}`}
-            className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-control border border-border-subtle px-2 text-sm font-semibold text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+            className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-control border border-border-subtle px-2 text-sm font-semibold text-ink-muted transition-colors hover:border-brand hover:text-brand"
           >
             {group.letter}
           </a>
@@ -363,7 +363,7 @@ function Glossary() {
       <div className="space-y-6">
         {groups.map((group) => (
           <div key={group.letter} id={`glossaire-${group.letter}`} className="space-y-2">
-            <h3 className="text-sm font-bold text-brand-strong">{group.letter}</h3>
+            <h3 className="text-sm font-bold text-ink">{group.letter}</h3>
             <dl className="divide-y divide-border-subtle border-t border-border-subtle">
               {group.entries.map((entry) => (
                 <div key={entry.term} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-5">
@@ -378,7 +378,7 @@ function Glossary() {
                         {' '}
                         <Link
                           href={`/apprendre/${entry.lesson}`}
-                          className="inline-flex min-h-8 items-center px-1 text-xs font-normal text-brand hover:underline"
+                          className="inline-flex min-h-8 items-center px-1 text-xs font-normal text-ink hover:underline"
                         >
                           voir la fiche
                         </Link>

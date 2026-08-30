@@ -368,7 +368,7 @@ function MenuColumns({ menu }: { menu: NavMenu }) {
                       className="group flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-surface-muted"
                     >
                       <Icon
-                        className="h-4 w-4 shrink-0 text-ink-muted transition-colors duration-150 group-hover:text-brand-strong"
+                        className="h-4 w-4 shrink-0 text-ink-muted transition-colors duration-150 group-hover:text-brand"
                         aria-hidden="true"
                       />
                       <span className="truncate text-sm font-medium text-ink">{t(item.label)}</span>
