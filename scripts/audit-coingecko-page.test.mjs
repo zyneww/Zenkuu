@@ -7,6 +7,7 @@ import {
   indexPremierVisible,
   lireArguments,
   mecanismeTheme,
+  noeudAConsigner,
   signalDeFond,
   themeDepuisSignaux,
 } from './audit-coingecko-page.mjs'
@@ -222,5 +223,23 @@ describe('indexPremierVisible', () => {
 
   it('rend null quand aucune correspondance n’est visible', () => {
     expect(indexPremierVisible([false, false])).toBeNull()
+  })
+})
+
+describe('noeudAConsigner', () => {
+  it('ne consigne rien pour une seule correspondance', () => {
+    expect(noeudAConsigner(0, 1)).toBeNull()
+  })
+
+  it('consigne l’index et le total quand le nœud retenu n’est pas le premier', () => {
+    expect(noeudAConsigner(2, 4)).toEqual({ index: 2, total: 4 })
+  })
+
+  it('consigne quand même le total pour plusieurs correspondances dont aucune visible', () => {
+    /* `indexPremierVisible` rend `null` quand rien n'est visible, et l'appelant
+       retombe alors sur l'index 0 — indiscernable, sur l'index seul, d'une unique
+       correspondance masquée. C'est le total qui doit trancher : consigné dès
+       qu'il y a ambiguïté, même à l'index 0. */
+    expect(noeudAConsigner(0, 2)).toEqual({ index: 0, total: 2 })
   })
 })

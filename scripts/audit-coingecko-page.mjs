@@ -185,8 +185,12 @@ async function indicesVisibles(page, selectors) {
  *  par `indicesVisibles`, jamais recalculé ici) — c'est ce qui garde
  *  `sonderInteractions` alignée sur EXACTEMENT le même nœud entre le repos et
  *  les états survol/focus. Son index et le total des correspondances sont
- *  consignés (`noeud`) quand ce n'est pas le premier, pour qu'un lecteur de
- *  mesures.json sache qu'il y avait ambiguïté. Cette règle suppose la
+ *  consignés (`noeud` — règle testée sous `noeudAConsigner`) dès qu'il y a
+ *  plusieurs correspondances — pas seulement quand le nœud retenu n'est pas le
+ *  premier :
+ *  quand aucun nœud n'est visible, l'index retombe à 0, et une condition sur
+ *  l'index seul rendrait indiscernables « une seule correspondance, masquée »
+ *  et « plusieurs correspondances, aucune visible ». Cette règle suppose la
  *  composition DOM stable entre les instants mesurés — une hypothèse, pas une
  *  garantie : si le sélecteur gagne ou perd des correspondances entre-temps
  *  (page de cotations qui se rafraîchit), l'index peut désigner un nœud
@@ -221,12 +225,17 @@ function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
       bas: st[`${prop}Bottom`],
       gauche: st[`${prop}Left`],
     })
+    /* Logique dupliquée à dessein de `noeudAConsigner`, pas appelée : `page.evaluate`
+       sérialise `mesurerSelecteurs` seule (voir plus haut), aucune fonction déclarée à
+       côté d'elle dans ce module ne peut être référencée ici. `noeudAConsigner` en est
+       la version testable hors navigateur — les deux DOIVENT rester identiques. */
+    const noeud = noeuds.length > 1 ? { index, total: noeuds.length } : null
 
     return {
       selecteur,
       trouve: true,
       texte: (el.textContent || '').trim().slice(0, 60),
-      ...(index !== 0 ? { noeud: { index, total: noeuds.length } } : {}),
+      ...(noeud ? { noeud } : {}),
       style: {
         policeFamille: st.fontFamily,
         policeGraisse: st.fontWeight,
@@ -253,6 +262,20 @@ function mesurerSelecteurs({ selectors, avecContour = false, indices = null }) {
       },
     }
   })
+}
+
+/**
+ * Partie DÉCIDABLE de la consignation du nœud, extraite de `mesurerSelecteurs` :
+ * étant l'index retenu et le nombre total de correspondances d'un sélecteur,
+ * décide si l'ambiguïté doit apparaître dans mesures.json. Un sélecteur à une
+ * seule correspondance n'a rien à consigner (rend `null`). Un sélecteur à
+ * plusieurs correspondances, si — MÊME quand l'index retenu est 0 : c'est le
+ * total qui porte le signal, pas la position, sans quoi le cas « plusieurs
+ * correspondances, aucune visible » (l'index retombe à 0 par défaut) serait
+ * indiscernable de « une seule correspondance, masquée ». Fonction pure.
+ */
+export function noeudAConsigner(index, total) {
+  return total > 1 ? { index, total } : null
 }
 
 /**

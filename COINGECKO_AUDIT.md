@@ -238,11 +238,13 @@ traduit en français, comme `/en/glossary` et `/learn`.
   cibler différemment (l'`<input>` associé) pour une prochaine campagne si son état de
   focus doit être mesuré. **Bouton plein** (« Utiliser l'app ») et **sélecteur de
   langue et de devise** (nœud `currencyText`) : ces deux-là restent réellement masqués
-  après correction — une seule correspondance chacun, masquée aux deux (bannière hors
-  du flux normal à cette taille de fenêtre pour le premier ; nœud dans le panneau
-  paramètres non ouvert pour le second) ; ni le survol ni le focus n'ont donc pu être
-  mesurés pour ces deux — l'ouverture réelle du panneau qui les révèle reste hors de
-  portée (voir Notes).
+  après correction — une seule correspondance pour le premier, masquée (bannière hors
+  du flux normal à cette taille de fenêtre) ; deux correspondances pour le second,
+  toutes deux masquées
+  (`interactions.*.[data-settings-target="currencyText"].noeud = {index: 0, total: 2}`
+  — nœuds dans le panneau paramètres non ouvert) ; ni le survol ni le focus n'ont donc
+  pu être mesurés pour ces deux — l'ouverture réelle du panneau qui les révèle reste
+  hors de portée (voir Notes).
   Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
   ouverture d'un méga-menu au survol ou au clic
   (`data-action="mouseover->navbar#handleOver … click->navbar#handleClick"`) ; ouverture
@@ -299,7 +301,15 @@ traduit en français, comme `/en/glossary` et `/learn`.
   sélecteur de groupe (ex. le conteneur direct de la rangée de filtres au-dessus du
   tableau) plutôt que de compter sur l'ordre d'apparition dans le DOM, qui peut varier
   d'une page à l'autre. Deux des dix (bouton plein, sélecteur de langue et de devise)
-  restent réellement masqués — une seule correspondance chacun, elle-même masquée.
+  restent réellement masqués : une seule correspondance pour le bouton plein, elle-même
+  masquée ; deux correspondances pour le sélecteur de langue et de devise, toutes deux
+  masquées (`interactions.*.[data-settings-target="currencyText"].noeud = {index: 0,
+  total: 2}` — corrigé dans l'outil pour le consigner : l'ancienne condition
+  n'écrivait `noeud` dans `mesures.json` que si l'index retenu n'était pas 0, ce qui
+  rendait ce cas indiscernable d'une seule correspondance masquée quand, comme ici,
+  aucun nœud n'est visible et l'index retombe à 0 ; le total est désormais consigné dès
+  qu'il y a plusieurs correspondances, quel que soit l'index retenu — voir
+  `noeudAConsigner` dans `scripts/audit-coingecko-page.mjs`).
   Restent non observés,
   faute de simuler un clic ou de provoquer une condition — hors de portée de ce relevé
   par sonde de survol/focus, quel que soit l'outil : l'état trié dans les deux sens
