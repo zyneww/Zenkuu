@@ -8,7 +8,9 @@ import { SpotExchangesTable } from '@/components/market/SpotExchangesPanel'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 
-const PAGE_SIZES = [25, 50, 100] as const
+/* 100 en tête, comme la page Exchanges de la référence, qui rend cent plateformes
+   d'un coup. Les deux crans plus petits restent dans le sélecteur. */
+const PAGE_SIZES = [100, 50, 25] as const
 
 /** Colonnes triables du registre — les cinq que porte l'en-tête. */
 export type ExchangeSortKey = 'name' | 'volume' | 'share' | 'trust' | 'country'
