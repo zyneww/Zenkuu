@@ -93,205 +93,131 @@
   --header-height: 4rem;
 
   /* ───────────────────────────────────────────────────────────────────────────
-     Palette « bleu-nuit et menthe ».
+     PALETTE COINGECKO — MESURÉE SUR DIX PAGES, REPRISE TELLE QUELLE.
 
-     ⚠️ ELLE REMPLACE « NUIT CHAUDE », ET LES DEUX NE SE MÉLANGENT PAS.
+     Le site portait jusqu'ici la STRUCTURE de CoinGecko (plans, filets, rôles)
+     habillée de teintes ZENKUU — un bleu glacier en sombre, un cyan profond en
+     clair, sombre par défaut. L'exploitant a validé la bascule intégrale : ce
+     bloc porte désormais les couleurs RÉELLES de CoinGecko, mesurées dans le
+     navigateur sur dix pages (`docs/references/coingecko/*/mesures.json`, 3
+     largeurs × 2 thèmes chacune), et non plus seulement leur rôle.
 
-     Le site vivait sur un bleu-noir froid (#070a0f) avec un accent achromatique.
-     La refonte prend pour référence tokenomist.ai, dont le fond mesuré au
-     navigateur est un noir CHAUD — rgb(17, 13, 15), c'est-à-dire quatre points de
-     rouge au-dessus du bleu. L'écart est minuscule et il décide de tout : un noir
-     chaud n'a pas la froideur clinique d'un terminal, il a celle d'une salle de
-     marché éclairée bas. C'est cette impression-là qui a été retenue.
+     Chaque jeton ci-dessous porte en commentaire le sélecteur et la page qui ont
+     produit sa valeur. Les ratios notés sont ceux que rejoue `app/palette.test.ts`
+     à chaque exécution : un commentaire peut mentir en vieillissant, un test non.
 
-     La teinte, elle, est à nous. Ni le violet/rose de Tokenomist, ni le bleu de
-     CoinGecko, Coinbase et TradingView : un CYAN, posé à l'endroit du cercle
-     chromatique que le secteur laisse vide, avec l'ambre pour seul éclat
-     ponctuel. Reprendre une structure de palette n'est pas la copier ; reprendre
-     ses teintes l'aurait été.
-
-     Toutes les valeurs qui suivent sont MESURÉES, et la mesure est rejouée à
-     chaque exécution des tests : voir `app/palette.test.ts`, qui relit ce fichier
-     et refait le calcul de contraste de chaque paire. Un ratio noté en commentaire
-     ne casse pas quand la valeur change ; un test, si.
-     ─────────────────────────────────────────────────────────────────────────── */
+     ⚠️ TOUTES LES TEINTES DE COINGECKO NE PASSENT PAS LE SEUIL AA. `--color-up`,
+     `--color-down` et `--color-brand` (en texte sur le canvas clair) restent SOUS
+     4,5:1 avec leur valeur mesurée — voir chaque bloc pour le ratio exact. Ce
+     n'est pas une erreur de teinte : c'est CoinGecko elle-même qui vit sous ce
+     seuil à ces endroits précis. Reprendre ces valeurs malgré cela est un choix
+     de l'exploitant, pas une correction que ce fichier s'autorise. */
 
   /* ───────────────────────────────────────────────────────────────────────────
-     TROIS PLANS — et c'est un renversement de ce qui était écrit ici.
+     TROIS PLANS CHEZ ZENKUU, DEUX SEULEMENT CHEZ COINGECKO.
 
-     ── CE QUE DISAIT LA VERSION PRÉCÉDENTE ───────────────────────────────────
+     `canvas` et `panel` sont IDENTIQUES chez CoinGecko, dans les deux thèmes —
+     rgb(255, 255, 255) en clair, rgb(13, 18, 23) en sombre (DESIGN_SYSTEM.md §9 :
+     ligne de `table.sortable`, en-tête de colonne, 41 à 68 occurrences selon le
+     thème). Leur site est plat : une carte ne se distingue pas du fond par une
+     élévation, seulement par le FILET qui l'entoure.
 
-     « SURFACE UNIQUE » : `canvas` et `surface` étaient volontairement ÉGAUX, une
-     carte ne se distinguant que par son FILET. L'argument était qu'une pile de
-     surfaces surélevées évoque le document quand un plan unique évoque
-     l'instrument.
+     `surface` et `surface-hover` reprennent la SEULE autre teinte grise mesurée :
+     le delta de survol capturé sur `.gecko-homepage-coin-table tbody
+     tr:first-child` (clair) et sur les lignes/boutons de plusieurs pages
+     (sombre). En clair, cette valeur coïncide exactement avec l'ancien
+     `--color-surface` ZENKUU (#f8fafc) — pure coïncidence numérique. En sombre,
+     le relevé détaillait deux candidats : rgb(27, 35, 45), 6 occurrences dans les
+     deltas de survol de plusieurs pages, contre rgb(33, 45, 59), 1 seule
+     occurrence — le focus d'un unique bouton de connexion sur l'accueil ; le
+     premier l'emporte.
 
-     ── POURQUOI C'EST ABANDONNÉ ──────────────────────────────────────────────
-
-     Parce que la référence fait exactement l'inverse, et qu'elle a raison sur ce
-     point précis. Chez Tokenomist, le fond est à rgb(17, 13, 15) et les cartes à
-     rgb(28, 23, 25) : onze points de clarté, soit un écart qu'on ne NOMME pas mais
-     qu'on voit. Une carte y est un objet posé, pas une zone délimitée.
-
-     Le défaut de la surface unique n'était pas théorique. Une page qui porte
-     quinze blocs porte quinze filets, et quinze filets font une grille de tableur
-     — c'est écrit noir sur blanc dans la note sur `border-subtle` plus bas, qui
-     redoutait précisément ce que la surface unique produisait. L'élévation résout
-     ce que le filet seul ne pouvait pas.
-
-     ── LES TROIS PLANS ───────────────────────────────────────────────────────
-
-       canvas         le fond de page. Rien n'est posé dessus sans s'en détacher.
-       surface        les CARTES. Un cran au-dessus du canvas, dans les deux
-                      thèmes — plus clair en sombre, blanc pur sur un canvas
-                      légèrement teinté en clair.
-       panel          le SECOND plan, pour ce qui se pose SUR une carte.
-       surface-muted  ni un plan ni une carte : le ton de survol de ligne, d'en-tête
-                      de colonne et de bande de contraste.
-
-     ── L'EFFET DE BORD EST VOULU, CETTE FOIS ─────────────────────────────────
-
-     La note précédente refusait d'élever `surface` au motif que « 124 blocs du
-     site portent `bg-surface` en comptant sur son égalité avec le canvas », et
-     qu'en élever autant d'un coup serait un effet de bord et non une décision.
-
-     C'est devenu LA décision. Ces 124 blocs sont exactement les cartes du site :
-     les élever tous d'un coup est ce qui fait passer les trente-six pages à
-     l'allure de la référence sans qu'aucune n'ait à être rouverte. Le jeton
-     `panel` reste séparé pour la raison qui l'a fait naître — il lui faut un cran
-     de plus, au-dessus de `surface` et non au-dessus de `canvas`.
-     ─────────────────────────────────────────────────────────────────────────── */
-
-  /* ───────────────────────────────────────────────────────────────────────────
-     THÈME CLAIR — le même site, à l'autre bout de la rampe.
-
-     Le blanc n'est pas n'importe quel blanc : il est FROID, de la même famille que
-     le bleu-ardoise du thème sombre. #f4f6f9 monte de 244 à 249 du rouge au bleu —
-     l'écart est mesurable sans être nommable, et il suffit à ce que les deux thèmes
-     soient les deux extrémités d'une seule rampe plutôt que deux emprunts à deux
-     sites différents.
-
-     ── L'ÉLÉVATION VA DANS LE MÊME SENS DES DEUX CÔTÉS ───────────────────────
-
-     En sombre, une carte est plus CLAIRE que le fond. En clair, elle doit l'être
-     aussi, faute de quoi la hiérarchie se retournerait d'un thème à l'autre et un
-     lecteur qui bascule perdrait ses repères. Le canvas descend donc à #f4f6f9 et
-     la carte prend le blanc pur. Le sens de l'élévation est le même partout ; seule
-     son amplitude change, parce qu'il reste moins de place au-dessus du blanc qu'au-
-     dessus du noir.
-     ─────────────────────────────────────────────────────────────────────────── */
-  /* LES TROIS PLANS SONT DISTINCTS ICI AUSSI, et il a fallu descendre le canvas
-     pour ça. Avec un canvas presque blanc, la carte prenait le blanc pur et le second
-     plan n'avait plus où aller : `surface` et `panel` se retrouvaient tous deux à
-     #ffffff, c'est-à-dire au plafond. Le thème clair perdait alors le plan que le
-     thème sombre avait — exactement l'inversion de hiérarchie que la note ci-dessus
-     s'emploie à éviter. Le canvas descend donc d'un cran, ce qui libère la place des
-     deux plans au-dessus de lui. */
+     `surface` (repos) reprend la même valeur que `surface-hover`, par symétrie
+     avec ce que le clair fait déjà : CoinGecko ne mesure pas de troisième plan
+     gris distinct de ce delta de survol, dans aucun des deux thèmes. */
   --color-canvas: #ffffff;
   --color-surface: #f8fafc;
   --color-panel: #ffffff;
-  /* Rôle de survol relevé sur la référence (DESIGN_SYSTEM.md §9, ligne de
-     `.gecko-homepage-coin-table tbody tr:first-child`, thème clair) — coïncidence
-     exacte avec --color-surface (#f8fafc), donc pas de nouvelle teinte ici : seul
-     le rôle est nouveau, la valeur ne l'est pas. */
+  /* Delta de survol — `.gecko-homepage-coin-table tbody tr:first-child`, accueil,
+     thème clair (DESIGN_SYSTEM.md §9). Coïncidence exacte avec l'ancien jeton
+     ZENKUU (#f8fafc) : la valeur ne change pas, seule sa provenance change. */
   --color-surface-hover: #f8fafc;
-  /* Ni un plan ni une carte : le ton de survol de ligne, d'en-tête de colonne et de
-     bande de contraste. Il doit se distinguer de la CARTE et non du canvas, puisque
-     c'est sur une carte qu'il apparaît — d'où une valeur plus sombre que le canvas
-     lui-même. */
-  --color-surface-muted: #f1f5f9;
-  /* Filet à 1,30:1 sur la carte. CoinGecko trace ses séparateurs de tableau à
-     1,09:1 — presque rien, et tenable chez eux, où les blocs sont posés sur des
-     fonds gris. Ici le filet ne porte plus seul l'existence d'une carte (elle est
-     élevée, voir la note sur les trois plans), mais il porte encore les
-     SÉPARATEURS de rangée, où passer sous 1,15:1 fait disparaître la grille. */
+  /* NON REPRIS DE COINGECKO — jeton interne, ajusté ici pour rester lisible.
+     CoinGecko ne mesure aucune troisième teinte grise en clair : ce jeton restait
+     à l'ancienne valeur ZENKUU (#f1f5f9), qui ne passe plus qu'à 4,34:1 avec la
+     nouvelle encre atténuée mesurée plus bas (rgb(100, 116, 139)) — sous le seuil
+     de 4,5:1. Remonté à la valeur de `--color-surface` (#f8fafc, 4,55:1), qui est
+     de toute façon la seule teinte secondaire que CoinGecko expose en clair. */
+  --color-surface-muted: #f8fafc;
+  /* Filet — rgb(229, 231, 235), IDENTIQUE dans les deux thèmes chez CoinGecko,
+     toutes pages, 648 occurrences au total (DESIGN_SYSTEM.md §9). Coïncidence
+     exacte avec l'ancien jeton ZENKUU en thème clair (#e5e7eb) ; le thème sombre
+     est traité séparément dans le bloc `.dark`, voir la réserve à ce sujet dans
+     le rapport de tâche. */
   --color-border-subtle: #e5e7eb;
 
-  /* Texte — deux teintes seulement, et toutes deux tirées vers le FROID, pour rester
-     de la même famille que le fond. C'est l'inverse exact de ce que faisait la palette
-     « nuit chaude » qui précède, et pour la même raison qu'elle invoquait : un gris
-     neutre posé sur un fond teinté se lit dans la teinte COMPLÉMENTAIRE par contraste
-     simultané. Sur un bleu de nuit, un gris neutre vire au brun ; #475569 porte assez de
-     bleu pour y échapper.
-     Contrastes sur le canvas clair : ink 16,49:1 · ink-muted 7,00:1. Le second garde
-     de la marge sur le seuil AA de 4,5:1 (§9). Mesures rejouées par
-     `app/palette.test.ts`. */
-  --color-ink: #111827;
-  --color-ink-muted: #4b5563;
+  /* Encre — `h1` et texte de cellule (DESIGN_SYSTEM.md §9). rgb(15, 23, 42)
+     clair, 65 occurrences ; rgb(223, 229, 236) sombre, 65 occurrences (bloc
+     `.dark`).
+     Encre atténuée — libellés secondaires. rgb(100, 116, 139) clair, 48
+     occurrences ; rgb(158, 176, 199) sombre, 27 occurrences. À ne pas confondre
+     avec rgb(74, 99, 130), mesuré 27 fois en sombre mais toujours comme COULEUR
+     DE FILET (`filet.couleur`, jamais `couleur` de texte) dans le relevé — il
+     n'entre donc pas dans ce rôle.
+     Contraste sur le canvas clair : ink 17,85:1 · ink-muted 4,76:1 — au-dessus du
+     seuil AA de 4,5:1. Mesures rejouées par `app/palette.test.ts`. */
+  --color-ink: #0f172a;
+  --color-ink-muted: #64748b;
 
   /* ───────────────────────────────────────────────────────────────────────────
-     L'ACCENT EST UN CYAN — et ce paragraphe remplace celui qui disait l'inverse.
+     L'ACCENT DEVIENT LE VERT DE COINGECKO — le seul rôle que §9 laissait vide.
 
-     ── CE QUE DISAIT LA VERSION PRÉCÉDENTE ───────────────────────────────────
+     §9 notait l'accent comme « non repris : le rôle est rempli par la palette
+     ZENKUU, pas par la couleur mesurée ». La bascule intégrale referme cette
+     parenthèse : l'exploitant veut LEUR vert, pas seulement leur structure.
 
-     « L'ACCENT N'EST PAS UNE COULEUR ». L'argument tenait en trois temps : les huit
-     teintes porteuses de sens du site (hausse, baisse, six séries) ne laissent sur
-     le cercle chromatique que deux intervalles libres ; le plus large tombe sur un
-     orange trop proche du rouge de baisse, le suivant sur le bleu de Coinbase, de
-     TradingView et de CoinMarketCap. Faute de place, l'accent devenait l'EXTRÊME DE
-     LA RAMPE — un blanc glacé en thème sombre, un bleu-ardoise dense en clair.
+     CoinGecko mesure ce vert à deux endroits, avec deux teintes différentes en
+     clair :
+       - rgb(75, 204, 0) — fond du bouton d'action `#use-app-btn button` et du
+         curseur de bascule `.gecko-toggle-track`, 30 à 39 occurrences : LE vert
+         le plus visible du site, celui d'un bouton plein.
+       - rgb(53, 175, 0) — texte de l'onglet sélectionné
+         `.gecko-tab-chip-item.selected`, 12 occurrences : une teinte plus sombre,
+         réservée au texte.
+     En sombre, une seule valeur sert les deux usages : rgb(128, 224, 56).
 
-     ── POURQUOI C'EST ABANDONNÉ ──────────────────────────────────────────────
+     Le jeton reprend la teinte du BOUTON D'ACTION (75, 204, 0 / 128, 224, 56) —
+     la plus reconnaissable, celle que §9 visait déjà par « onglet sélectionné,
+     bouton d'action ».
 
-     La mesure était juste, sa conclusion trop stricte. Elle raisonnait sur la
-     TEINTE seule, en oubliant que deux couleurs de même teinte se distinguent aussi
-     par leur saturation et leur clarté. Le cyan retenu vit à 182° — c'est-à-dire
-     exactement la teinte de `--color-data-4` — et pourtant les deux ne se
-     confondent jamais : l'un est un aplat clair et saturé posé sur des CONTRÔLES,
-     l'autre un trait sur un GRAPHIQUE. Ils ne se rencontrent sur aucun objet, ce que
-     l'ancienne note reconnaissait déjà pour data-1 et la marque d'alors.
+     ⚠️ AUCUNE DES DEUX TEINTES NE PASSE 4,5:1 EN TEXTE SUR LE CANVAS CLAIR. La
+     plus favorable (53, 175, 0) plafonne à 2,88:1 ; celle retenue tombe à 2,11:1.
+     CoinGecko elle-même ne pose jamais ce vert EN TEXTE sur blanc — son bouton
+     d'action porte du texte NOIR par-dessus (`couleur: rgb(0, 0, 0)`, mesuré sur
+     `#use-app-btn button` dans les deux thèmes), jamais du vert sur blanc.
+     `--color-on-brand` reprend donc ce noir mesuré, dans les deux thèmes — il
+     passe largement (9,94:1 clair, 12,64:1 sombre). C'est l'usage ZENKUU du
+     jeton comme texte de LIEN sur le canvas (`--color-brand` / `--color-canvas`,
+     vérifié par `app/palette.test.ts`) qui échoue : CoinGecko ne mesure aucun cas
+     où ce vert porte du texte sur un fond aussi clair. Voir le rapport de tâche. */
+  --color-brand: #4bcc00;
+  /* Dérivé, NON MESURÉ — CoinGecko ne relève pas de variante de survol pour ce
+     vert. Assombri pour l'emphase en thème clair, éclairci pour la lisibilité au
+     survol en thème sombre : même logique que l'ancien jeton cyan, appliquée à la
+     nouvelle teinte. Non couvert par `app/palette.test.ts`. */
+  --color-brand-strong: #3da000;
+  /* Dérivé, NON MESURÉ — aplat teinté pour pastille active / état vide, jamais
+     support de texte à lui seul. Non couvert par `app/palette.test.ts`. */
+  --color-brand-soft: #eafbe0;
 
-     Et le coût de la décision précédente était réel, écrit dans la note elle-même :
-     en thème clair, l'accent vivait à 1,72:1 de l'encre. Un lien ne s'y distinguait
-     pas par sa couleur, seulement par son soulignement — « le seul endroit où ce
-     système demande de la vigilance ». Une interface entière ne peut pas reposer sur
-     une vigilance.
-
-     ── CE QUE LE CYAN GAGNE ──────────────────────────────────────────────────
-
-     Il est identifiable, et c'est ce qu'on demande à une couleur de marque : ni le
-     violet/rose de Tokenomist, ni le bleu qu'emploient trois des quatre plus gros
-     sites du secteur. Un lecteur peut dire « la couleur du site », ce qui était
-     impossible d'un accent achromatique.
-
-     ── LES DEUX CONTRAINTES QU'IL DOIT TENIR ─────────────────────────────────
-
-       --color-brand         texte de lien SUR le canvas       ≥ 4,5:1
-                             ET fond plein SOUS `on-brand`     ≥ 4,5:1
-       --color-brand-strong  survol et emphase — plus SOMBRE en thème clair, plus
-                             CLAIR en thème sombre : l'emphase s'éloigne du fond,
-                             elle ne va pas dans une direction absolue.
-       --color-brand-soft    aplat teinté (pastille active, état vide d'alerte).
-                             Ne porte jamais de texte à lui seul.
-
-     Les deux contraintes de `--color-brand` sont vérifiées SÉPARÉMENT par
-     `app/palette.test.ts` : une teinte qui passe l'une et rate l'autre rend les
-     boutons pleins illisibles sans que rien ne le signale à l'écran.
-
-     ── CE QUE CE CHANGEMENT NE TOUCHE PAS ────────────────────────────────────
-
-     La palette de DONNÉES plus bas. Elle reste multicolore et indépendante, pour la
-     raison qu'elle documente elle-même — une série de graphique n'est pas un élément
-     d'interface, et les teindre toutes en cyan rendrait deux courbes voisines
-     indiscernables.
-     ─────────────────────────────────────────────────────────────────────────── */
-  /* ⚠️ MÊME TEINTE QUE L'AZURIN DU THÈME SOMBRE (196°), DESCENDUE EN CLARTÉ.
-     #a9eafe rendrait 1,32:1 sur du blanc — illisible. Ce sont les deux extrémités
-     d'une seule rampe, pas deux couleurs : `app/palette.test.ts` vérifie que celle-ci
-     reste au-dessus du seuil AA sur le canvas comme sur les cartes. */
-  --color-brand: #0e7490;
-  --color-brand-strong: #155e75;
-  --color-brand-soft: #cff3ff;
-
-  /* Couleur du TEXTE posé SUR un aplat de marque. Ce jeton existe parce qu'un
-     `text-white` écrit en dur dans un bouton ne peut pas être correct dans les deux
-     thèmes : le cyan est SOMBRE en thème clair (blanc dessus : 5,19:1) et LUMINEUX en
-     thème sombre (blanc dessus : 1,7:1 — très loin sous le seuil AA). La couleur du
-     texte doit donc basculer avec le fond, et c'est précisément ce qu'un jeton sait
-     faire. Le défaut a existé sous chacune des marques successives — orange, magenta,
-     puis achromatique — et passait inaperçu faute de boutons pleins fréquents. Il ne
-     peut plus : `app/palette.test.ts` mesure cette paire-là à chaque exécution. */
-  --color-on-brand: #ffffff;
+  /* Couleur du TEXTE posé SUR un aplat de marque — mesurée, pas dérivée.
+     CoinGecko pose du texte NOIR sur son bouton d'action vert dans les deux
+     thèmes (`couleur: rgb(0, 0, 0)` sur `#use-app-btn button`, clair comme
+     sombre) : ce jeton reprend cette valeur telle quelle plutôt que de choisir
+     noir/blanc par calcul. Elle passe largement dans les deux thèmes (9,94:1
+     clair, 12,64:1 sombre) — `app/palette.test.ts` la vérifie à chaque
+     exécution. */
+  --color-on-brand: #000000;
 
   /* ── LA LUEUR DES ÉTATS ACTIFS ────────────────────────────────────────────
      Une ombre portée SANS décalage ni flou étendu : c'est la diffusion d'un
@@ -299,9 +225,10 @@
      n'est plus une couleur, et elle ne doit apparaître que sur ce que le lecteur
      a choisi ou survole — jamais en décoration.
 
-     Deux valeurs parce que la lumière ne se comporte pas pareil des deux côtés :
-     sur fond sombre elle rayonne, sur fond clair elle ne peut que densifier. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(14 116 144 / 0.24);
+     La teinte suit `--color-brand` : verte désormais, et non plus cyan. Deux
+     valeurs parce que la lumière ne se comporte pas pareil des deux côtés : sur
+     fond sombre elle rayonne, sur fond clair elle ne peut que densifier. */
+  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(75 204 0 / 0.24);
 
   /* ── L'OR RESTE, PARCE QU'IL SIGNIFIE ─────────────────────────────────────
      La doctrine de l'accent réserve la couleur à ce que le site mesure. L'or n'y
@@ -332,29 +259,32 @@
   --color-gold-soft: #fef3c7;
 
   /* ───────────────────────────────────────────────────────────────────────────
-     HAUSSE ET BAISSE — deux teintes qui passent le seuil AA dans les deux thèmes.
+     HAUSSE ET BAISSE — les valeurs EXACTES de CoinGecko, cette fois reprises.
 
-     Les valeurs EXACTES de CoinGecko ont vécu ici, et elles en sont sorties : leur
-     rouge (#ff3a33) donne 3,44:1 sur blanc, sous les 4,5:1 exigés pour du texte, et
-     l'écart n'avait été toléré que par la redondance décrite juste en dessous. La
-     palette bleu-nuit n'a plus de raison de l'emprunter — elle ne cherche plus à
-     ressembler à eux. Ces deux-ci mesurent 4,82:1 et 5,00:1 sur le canvas clair,
-     10,24:1 et 7,31:1 sur le canvas sombre : le seuil est franchi partout.
+     Une version précédente de ce fichier expliquait pourquoi leur rouge mesuré
+     (rgb(255, 58, 51), classe `.gecko-down`, identique dans les deux thèmes, 18
+     occurrences) avait été écarté : 3,44:1 sur blanc, sous les 4,5:1 exigés pour
+     du texte. La bascule intégrale vers la palette CoinGecko revient dessus — ce
+     paragraphe documente le résultat plutôt que de le cacher.
 
-     La redondance reste, et il faut dire pourquoi. La couleur ne porte
-     jamais l'information seule sur ce site : un chevron et un signe accompagnent
-     systématiquement la valeur, et c'est cette redondance — pas le contraste de la
-     teinte — qui rend une baisse lisible pour un lecteur daltonien. Le rouge reste
-     donc réservé à des CHIFFRES accompagnés de leur signe ; il ne doit jamais
-     porter seul une phrase, un libellé ou un message d'erreur, où le seuil
-     s'appliquerait pleinement.
+     ⚠️ DEUX PAIRES SUR QUATRE ÉCHOUENT EN THÈME CLAIR, MESURÉES PAR
+     `app/palette.test.ts` :
+       --color-down / --color-canvas   rgb(255, 58, 51) sur blanc   → 3,56:1
+       --color-up   / --color-canvas   rgb(0, 168, 62)  sur blanc   → 3,15:1
+     Les deux passent largement en thème sombre (5,29:1 et 8,72:1 sur le canvas
+     sombre rgb(13, 18, 23)). La redondance déjà en place — chevron et signe
+     accompagnant systématiquement la valeur — reste la seule protection pour un
+     lecteur daltonien en thème clair ; elle ne compense pas un ratio de texte
+     sous le seuil AA, et ne prétend pas le faire. Voir le rapport de tâche pour
+     la décision à prendre.
 
-     Le fond teinté de hausse est mesuré chez eux aussi ; celui de baisse en est le
-     pendant, leur page n'en exposant pas au moment du relevé.
+     `--color-up-soft` et `--color-down-soft` restent aux valeurs ZENKUU
+     existantes : ils ne font partie d'aucun des dix rôles mesurés pour cette
+     tâche, et ne sont couverts par aucune paire de `app/palette.test.ts`.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-up: #15803d;
+  --color-up: #00a83e;
   --color-up-soft: #d9f7e7;
-  --color-down: #dc2626;
+  --color-down: #ff3a33;
   --color-down-soft: #fdeaec;
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -2215,7 +2145,14 @@
 .dark,
 .nuit {
   /* ───────────────────────────────────────────────────────────────────────────
-     THÈME SOMBRE — LE THÈME PAR DÉFAUT, et l'identité du site.
+     THÈME SOMBRE — UN CHOIX DU VISITEUR, PLUS LE DÉFAUT DU SITE.
+
+     ⚠️ CoinGecko est clair par défaut, et le site le devient avec elle : `<html>`
+     ne porte plus `dark` dans le HTML servi (voir `app/[locale]/layout.tsx`), et
+     `ThemeScript`/`applyTheme` (lib/stores/settings.ts) l'AJOUTENT désormais au
+     lieu de le retirer, sans changer leur logique — elle togglait déjà la classe
+     dans les deux sens. Le thème sombre reste entièrement ce que ce bloc décrit ;
+     seul son statut de PREMIÈRE IMPRESSION change.
 
      ── CE QU'IL REMPLACE, ET POURQUOI ────────────────────────────────────────
 
@@ -2317,74 +2254,62 @@
      zinc-700 : ce dernier est la couleur des FILETS, et une bande de survol de la
      même valeur ferait disparaître la grille des tableaux qui la traverse.
      ══════════════════════════════════════════════════════════════════════════ */
-  --color-canvas: #18181b;
-  /* LA CARTE — zinc-800, la valeur exacte des cartes et de l'en-tête de Dropstab.
-     Écart de 1,32:1 sur le canvas : plus du double de l'amplitude que laissait le
-     noir absolu, et c'est ce qui rend les cartes lisibles sans filet. */
-  --color-surface: #27272a;
-  /* SECOND PLAN — ce qui se pose SUR une carte. Voir la note ci-dessus : ce cran
-     n'existe pas chez Dropstab, il existe ici parce que ce site imbrique. */
-  --color-panel: #2f2f33;
-  /* Rôle de survol relevé sur la référence (DESIGN_SYSTEM.md §9, deltas de survol
-     sur boutons et lignes, accueil et plusieurs pages, thème sombre) — aucun jeton
-     existant ne coïncide (--color-panel sombre, #2f2f33, en est distinct). Teinte
-     choisie dans la palette ZENKUU, pas celle mesurée chez CoinGecko : un léger
-     éclaircissement de --color-panel, sous --color-surface-muted, conformément à la
-     règle « pas d'ombre entre les étages » de DESIGN.md. Contrastes rejoués par
-     `app/palette.test.ts`. */
-  --color-surface-hover: #323238;
-  /* Survols de ligne, en-têtes de colonne, bandes de contraste. Un cran sous le
-     filet, sans quoi la grille d'un tableau disparaîtrait sur ses propres
-     en-têtes. */
+  /* ══════════════════════════════════════════════════════════════════════════
+     ⚠️ LA RAMPE SOMBRE EST DÉSORMAIS CELLE DE COINGECKO, MESURÉE — ET ELLE
+     REMPLACE ZINC/DROPSTAB CI-DESSUS (log conservé, plus la couleur en vigueur).
+
+     Neutres mesurés sur dix pages (DESIGN_SYSTEM.md §9,
+     docs/references/coingecko/*/mesures.json, thème sombre) :
+       canvas = panel      rgb(13, 18, 23)   — `table.sortable`, 41 occurrences
+       surface = hover     rgb(27, 35, 45)   — delta de survol, 6 occurrences
+       ink                 rgb(223, 229, 236) — `h1`, texte de cellule, 65 occ.
+       ink-muted           rgb(158, 176, 199) — libellés secondaires, 27 occ.
+
+     `--color-border-subtle` NE PASSE PAS À LEUR valeur mesurée (rgb(229, 231,
+     235), identique au clair chez eux) : posée telle quelle sur ce fond, elle
+     produirait un filet quasi blanc que rien dans l'aspect CoinGecko réel ne
+     montre — DESIGN_SYSTEM.md §9 ne garantit d'ailleurs la coïncidence qu'« en
+     thème clair ». Elle reste à la valeur ZENKUU (#3f3f46) ; voir le rapport de
+     tâche pour cette réserve.
+
+     `--color-surface-muted` reste à la valeur ZENKUU (#35353a) : hors des dix
+     rôles mesurés pour cette tâche, et son contraste avec la nouvelle
+     `--color-ink-muted` tient déjà (5,51:1, `app/palette.test.ts`).
+     ══════════════════════════════════════════════════════════════════════════ */
+  --color-canvas: #0d1217;
+  --color-surface: #1b232d;
+  --color-panel: #0d1217;
+  /* Delta de survol dominant — 6 occurrences dans les deltas de survol de
+     plusieurs pages, contre 1 seule (le focus d'un unique bouton de connexion sur
+     l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9. */
+  --color-surface-hover: #1b232d;
   --color-surface-muted: #35353a;
-  /* zinc-700 — le filet de Dropstab. Il monte à 1,86:1 sur le canvas et reste
-     visible sur les quatre plans, y compris sur la bande de survol juste au-dessus. */
   --color-border-subtle: #3f3f46;
 
-  /* BLANC PUR, comme Dropstab. La raison qui faisait teinter l'encre — un blanc posé
-     sur un bleu de nuit vire au jaunâtre par contraste simultané — tombe avec le
-     fond bleuté : la rampe zinc est NEUTRE, et un blanc y reste blanc. 16,1:1 sur
-     le canvas. */
-  --color-ink: #ffffff;
-  /* zinc-400, la seconde voix de Dropstab. 6,6:1 sur le canvas : au-dessus du seuil
-     AA de 4,5:1, en dessous du AAA de 7:1 que tenait la valeur précédente. C'est le
-     seul recul de contraste de cette bascule, et il est assumé — c'est la teinte que
-     la référence emploie, et elle ne porte jamais de texte long. */
-  --color-ink-muted: #a1a1aa;
+  --color-ink: #dfe5ec;
+  --color-ink-muted: #9eb0c7;
 
-  /* Même teinte qu'en clair (172°), même méthode : on part de la clarté du dessin
-     et l'on s'en écarte du minimum nécessaire — vers le HAUT ici, puisque le fond a
-     changé de côté. Une menthe claire là où le thème clair pose un vert-bleu profond :
-     ce sont les deux extrémités d'une même rampe, pas deux couleurs.
+  /* VERT COINGECKO, sombre — rgb(128, 224, 56), mesuré à la fois comme fond du
+     bouton d'action (`#use-app-btn button`) et comme texte de l'onglet
+     sélectionné (`.gecko-tab-chip-item.selected`) : une seule valeur sert les
+     deux usages en sombre, contre deux légèrement différentes en clair. Voir la
+     note complète dans le bloc `@theme` (le rôle, les deux teintes clair, le
+     choix retenu).
 
-     Contrastes sur le canvas : brand 13,31:1 · brand-strong 15,61:1. Le premier passe
-     à la fois le seuil des composants et celui du texte, avec une marge confortable —
-     c'est la contrepartie d'un fond aussi sombre. */
-  /* ══════════════════════════════════════════════════════════════════════════
-     AZURIN — #a9eafe, la couleur demandée, posée telle quelle.
+     Contraste sur le canvas sombre : 11,32:1 — largement au-dessus du seuil AA,
+     y compris en texte de lien. `--color-brand-strong`/`-soft` sont dérivés, non
+     mesurés, non couverts par `app/palette.test.ts` (même réserve qu'en clair). */
+  --color-brand: #80e038;
+  --color-brand-strong: #99e660;
+  --color-brand-soft: #21311c;
+  /* Sur fond sombre la lueur RAYONNE : portée plus large. La teinte suit
+     `--color-brand`, verte désormais. */
+  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(128 224 56 / 0.38);
 
-     Elle est CLAIRE (luminance 0,77) : sur le fond profond ci-dessus elle passe
-     16,4:1, soit très au-delà du seuil AAA. C'est ce qui permet de l'employer aussi
-     bien pour du texte de lien que pour un aplat de bouton — les deux usages qu'un
-     accent doit couvrir sans se dédoubler.
-
-     ⚠️ ELLE N'EXISTE QU'EN THÈME SOMBRE. Sur du blanc, #a9eafe tombe à 1,32:1 : ce
-     serait illisible. Le thème clair porte donc la même TEINTE (196°) descendue en
-     clarté — voir `--color-brand` dans le bloc `@theme`.
-     ══════════════════════════════════════════════════════════════════════════ */
-  --color-brand: #a9eafe;
-  --color-brand-strong: #cdf3ff;
-  --color-brand-soft: #10262e;
-  /* Sur fond sombre la lueur RAYONNE : portée plus large, teinte franchement
-     mentholée. C'est le seul endroit du site où une couleur d'interface se diffuse au
-     lieu de se poser, et elle ne doit apparaître que sur ce que le lecteur a choisi ou
-     survole — jamais en décoration. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(169 234 254 / 0.38);
-
-  /* Encre TRÈS sombre sur menthe lumineuse : 11,43:1. Une nuance du canvas et non un
-     noir arbitraire — un bouton plein doit rendre la couleur du fond, pas une
-     seconde nuance de noir à côté. */
-  --color-on-brand: #06121a;
+  /* Texte NOIR sur le vert — mesuré, pas dérivé : CoinGecko pose `couleur: rgb(0,
+     0, 0)` sur `#use-app-btn button` dans les deux thèmes, jamais du blanc.
+     12,64:1 sur `--color-brand` sombre — `app/palette.test.ts` la vérifie. */
+  --color-on-brand: #000000;
 
   --color-gold: #fbbf24;
   --color-gold-strong: #fcd34d;
@@ -2410,14 +2335,15 @@
   --color-data-5: #60a5fa;
   --color-data-6: #a3e635;
 
-  /* Sémantique de marché, remontée pour le fond sombre : hausse 10,24:1 · baisse
-     7,31:1. Le vert tire vers l'ÉMERAUDE et le rouge vers la ROSE plutôt que vers
-     leurs versions saturées habituelles — sur un bleu-nuit, un vert pur et un rouge
-     pur vibrent, et trente lignes de cotation les mettent côte à côte. Ces deux-là
-     partagent la fraîcheur du fond sans cesser d'être lisibles comme vert et rouge. */
-  --color-up: #22c55e;
+  /* Hausse et baisse — valeurs EXACTES de CoinGecko, sombre. `.gecko-up` mesure
+     rgb(50, 202, 91), `.gecko-down` rgb(255, 58, 51) (identique au clair, voir le
+     bloc `@theme`). Les deux passent confortablement sur ce canvas : 8,72:1 et
+     5,29:1 — contrairement au clair, où les deux mêmes rôles échouent (voir la
+     réserve dans `@theme`).
+     `-soft` restent aux valeurs ZENKUU existantes, hors des dix rôles mesurés. */
+  --color-up: #32ca5b;
   --color-up-soft: #0c2e22;
-  --color-down: #ef4444;
+  --color-down: #ff3a33;
   --color-down-soft: #3a1620;
 
   /* Teinte de statut — voir le thème clair. C'est un CYAN et non un vert : décalé
