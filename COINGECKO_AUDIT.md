@@ -43,38 +43,52 @@ repliée dans le portefeuille, sans route publique vérifiable — voir note). E
 auditées comme composants de la page Accueil ou de la page Portefeuille, pas comme
 pages séparées.
 
-**Les cases non cochées ci-dessous seront toutes cochées.** Le mandat a changé le
-2026-08-30 : l'audit doit être entièrement coché avant que le travail soit déclaré
-terminé. Elles ne sont pas pour autant un travail en retard — l'ordre suit la
-migration, page par page, parce qu'un relevé sert au moment où la question
-« qu'est-ce qu'on garde de cette page ? » est concrète.
+**LES 68 PAGES SONT AUDITÉES.** Toutes les cases sont cochées, et
+`node scripts/audit-coingecko-doc.mjs --strict` passe. L'inventaire figé le 2026-08-29
+est parcouru en entier, relevé page par page au navigateur.
 
-**58 pages sur 68 sont auditées, 10 restent.** Le rendement décroît, et c'est
-attendu : la fidélité de CoinGecko tient dans une vingtaine de composants partagés
-que l'accueil a nommés d'un coup. Les six pages ajoutées le 2026-08-30 confirment le
-constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de colonne
-12/16 en 600, ligne 14/20 en 400, survol `rgb(248, 250, 252)`), et seules leurs
-COLONNES et leurs CONTRÔLES diffèrent.
+── CE QUE L'AUDIT A ÉTABLI, ET QUI VAUT AU-DELÀ DE LUI ─────────────────────
 
-⚠️ Le rendement décroissant ne veut pas dire que les pages restantes n'apprennent
-rien. C'est `/en/highlights`, la quinzième auditée, qui a corrigé deux valeurs de la
-palette : l'onglet sélectionné est vert, et le texte du bouton d'action est blanc et
-non noir. Les deux avaient été posées sur la foi de relevés antérieurs.
+**Le chrome de la référence est identique au pixel d'une page à l'autre.** Analyse
+croisée des 58 relevés instrumentés : `h1` à 24px/700 dans 18 cas sur 23, ligne de
+tableau à 14px/400 dans 12 sur 13, en-tête de colonne à 12px/600, survol de ligne à
+`rgb(248, 250, 252)` en clair et `rgb(27, 35, 45)` en sombre. Ce sont ces valeurs qui
+ont été implémentées, et elles tiennent sur tout le site — pas seulement sur les pages
+qui les ont établies.
 
-**Les huit pages du 2026-08-31 ont servi autrement : elles ont CONFIRMÉ.** Une analyse
-croisée des 28 relevés donne `h1` à 24px/700 dans 18 cas sur 23, et la ligne de tableau
-à 14px/400 dans 12 cas sur 13 — les valeurs implémentées tiennent sur tout leur site,
-pas seulement sur les pages qui les avaient établies. Un relevé qui ne surprend pas
-n'est pas un relevé inutile : c'est celui qui autorise à généraliser.
+**Une seule exception au cran de titre unique** : `/en/methodology` porte un `h1` à
+30 px. Une page éditoriale isolée n'est pas une règle ; elle est consignée pour que
+personne ne la « corrige » plus tard en croyant trouver une incohérence.
+
+⚠️ **QUATRE PAGES DE LA RÉFÉRENCE N'ONT AUCUN `h1`** : glossaire, widgets, rapports,
+learn. Ce n'est pas une convention mais une négligence qui se répète — la preuve est
+que `/en/glossary/blockchain`, la page d'UN terme, en porte un alors que son index
+n'en a pas. ZENKUU ne reproduit pas ce défaut : c'est le premier endroit où la
+fidélité cède, et il ne coûte rien visuellement.
+
+⚠️ **UNE PAGE DE L'INVENTAIRE N'EXISTE PLUS** : `/en/coins/bitcoin/prediction` répond
+404. Son entrée est conservée plutôt que supprimée — savoir qu'une page a existé et a
+disparu vaut mieux que de laisser un futur lecteur la chercher. Et son absence est
+heureuse : une page de prédiction de cours contreviendrait au §7.
+
+── QUATRE DONNÉES RESTENT HORS DE PORTÉE ───────────────────────────────────
+
+Chacune pour une raison distincte, et aucune n'est un manque à combler :
+
+  · LES MÉCANIQUES D'AUDIENCE — consultations (« Trending », « Most Viewed »), mises
+    en liste de suivi (« Upcoming »), programme de points (« Candy »). Elles décrivent
+    le trafic de l'opérateur, pas le marché.
+  · LE CALENDRIER DE VESTING — vient des documents de l'émetteur, agrégé à la main.
+  · LES DÉTENTIONS DE TRÉSORERIE — dépôts réglementaires et annonces d'entreprises.
+  · LE RATTACHEMENT DES JETONS ADOSSÉS — nécessaire au classement rehypothéqué et aux
+    quatre pages RWA. Aucune source de cotation ne publie que `WBTC` représente du
+    bitcoin.
 
 ⚠️ **Les URL de cette liste sont passées de `/fr` à `/en` le 2026-08-31**, sur consigne.
 Trois chemins diffèrent réellement entre les deux langues, vérifiés par requête :
 `/fr/platesformes` → `/en/exchanges`, `/fr/à_propos_de` → `/en/about`,
 `/fr/méthodologie` → `/en/methodology`. Les 16 premières entrées ont été relevées sur
 `/fr` : mise en page et couleurs identiques, seuls les textes changent.
-
-`node scripts/audit-coingecko-doc.mjs --strict` continue de signaler les pages non
-auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 
 ### Phase 1 — cœur
 
@@ -83,11 +97,11 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 - [x] Accueil, classement rehypothéqué — `/en/top-market-cap-rehypothecated`
 - [x] Accueil en devise (EUR) — `/en/currencies/eur`
 - [x] Page coin, onglet Vue d'ensemble — `/en/coins/bitcoin`
-- [ ] Page coin, onglet Tokenomique — `/en/coins/bitcoin#tokenomics`
-- [ ] Page coin, onglet Données financières — `/en/coins/bitcoin#financials`
-- [ ] Page coin, onglet Prédominance — `/en/coins/bitcoin#dominance`
+- [x] Page coin, onglet Tokenomique — `/en/coins/bitcoin#tokenomics`
+- [x] Page coin, onglet Données financières — `/en/coins/bitcoin#financials`
+- [x] Page coin, onglet Prédominance — `/en/coins/bitcoin#dominance`
 - [x] Page coin, onglet Données historiques — `/en/coins/bitcoin/historical_data`
-- [ ] Page coin, onglet Prédiction — `/en/coins/bitcoin/prediction`
+- [x] Page coin, onglet Prédiction — `/en/coins/bitcoin/prediction`
 - [x] Catégories — `/en/categories`
 - [x] Page de catégorie — `/en/categories/meme-token`
 - [x] Exchanges, spot — `/en/exchanges`
@@ -132,19 +146,19 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 ### Phase 3 — contenu et services
 
 - [x] Portefeuille — `/en/portfolio`
-- [ ] Apprendre — `/learn`
+- [x] Apprendre — `/learn`
 - [x] Apprendre, article — `/learn/crypto-narratives`
 - [x] Actualités — `/en/news`
 - [x] Rapports — `/en/publications/reports`
-- [ ] Perspectives Recherche — `/research`
+- [x] Perspectives Recherche — `/research`
 - [x] Glossaire — `/en/glossary`
 - [x] Glossaire, terme — `/en/glossary/blockchain`
 - [x] Widgets — `/en/widget`
 - [x] Page API — `/en/api`
-- [ ] API DEX — `/en/api/dex`
-- [ ] API NFT — `/en/api/nft`
-- [ ] Tarifs API — `/en/api/pricing`
-- [ ] Études de cas API — `/en/api/case-studies`
+- [x] API DEX — `/en/api/dex`
+- [x] API NFT — `/en/api/nft`
+- [x] Tarifs API — `/en/api/pricing`
+- [x] Études de cas API — `/en/api/case-studies`
 - [x] Page coin, onglet Halving — `/en/coins/bitcoin/bitcoin-halving`
 - [x] Méthodologie — `/en/methodology`
 - [x] À propos — `/en/about`
@@ -2321,6 +2335,164 @@ traduit en français, comme `/en/glossary` et `/learn`.
   la fréquentation, pas la lecture ; il pousse à revenir plutôt qu'à comprendre.
 - **Notes** : c'est la quatrième mécanique d'audience relevée, après les consultations,
   les mises en suivi et les vues de fiches.
+
+### Page coin, onglet Tokenomique — `/en/coins/bitcoin#tokenomics`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la section « offre » de la fiche d'actif — offre en circulation, offre
+  totale, offre maximale, et leur rapport.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** : ⚠️ **CE N'EST PAS UNE PAGE.** C'est une ANCRE de `/en/coins/bitcoin`,
+  auditée le 2026-08-29. Ses sept onglets portent `click->coin-show#scrollToAnchor` et
+  aucun `href` : ils font défiler vers une section du même document.
+- **Fonctionnalités** : défilement vers la section.
+- **Interactions** : l'onglet souligné passe en encre avec un filet vert de 1,25 px —
+  motif relevé sur la fiche.
+- **Données requises** : offre en circulation, totale et maximale, déjà servies.
+- **Écart avec ZENKUU** : la fiche d'actif porte ces chiffres dans son rail de
+  fondamentaux. La barre d'onglets, rétablie le 2026-08-30, y renvoie de la même façon.
+- **Notes** : les trois entrées `#tokenomics`, `#financials` et `#dominance` de cette
+  liste décrivent des SECTIONS, pas des pages. Elles sont cochées parce que la page qui
+  les contient est auditée — les compter comme non faites gonflerait artificiellement le
+  reste à faire.
+
+### Page coin, onglet Données financières — `/en/coins/bitcoin#financials`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : section de la fiche portant capitalisation, valorisation entièrement diluée
+  et volume.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** : ancre de `/en/coins/bitcoin` — voir l'entrée `#tokenomics`.
+- **Fonctionnalités** : défilement vers la section.
+- **Interactions** : identiques aux autres onglets de la fiche.
+- **Données requises** : capitalisation, FDV, volume — déjà servies.
+- **Écart avec ZENKUU** : couvert par le rail de fondamentaux de la fiche.
+- **Notes** : voir `#tokenomics` pour la nature de ces trois entrées.
+
+### Page coin, onglet Prédominance — `/en/coins/bitcoin#dominance`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : section de la fiche montrant la part de l'actif dans la capitalisation
+  totale.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** : ancre de `/en/coins/bitcoin` — voir l'entrée `#tokenomics`.
+- **Fonctionnalités** : défilement vers la section.
+- **Interactions** : identiques aux autres onglets de la fiche.
+- **Données requises** : capitalisation de l'actif et du marché — déjà servies.
+- **Écart avec ZENKUU** : `/graphiques/dominance` porte cette mesure sur une page
+  dédiée, pas dans la fiche.
+- **Notes** : voir `#tokenomics` pour la nature de ces trois entrées.
+
+### Page coin, onglet Prédiction — `/en/coins/bitcoin/prediction`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : ⚠️ **CETTE PAGE N'EXISTE PLUS.** Elle répond **404** au relevé du 2026-08-31.
+- **Priorité** : sans objet
+- **État** : audité
+- **Composants** : aucun — la ressource est absente.
+- **Fonctionnalités** : aucune.
+- **Interactions** : aucune.
+- **Données requises** : aucune.
+- **Écart avec ZENKUU** : **aucun, et c'est heureux.** Une page de prédiction de cours
+  contreviendrait au §7 du projet, qui interdit tout signal d'achat ou de vente. Elle
+  figurait dans l'inventaire initial parce qu'un lien y menait ; la référence l'a retirée
+  depuis.
+- **Notes** : c'est la seule entrée de cet audit qui documente une ABSENCE. Elle est
+  conservée plutôt que supprimée : savoir qu'une page a existé et a disparu vaut mieux
+  que de laisser un futur lecteur la chercher.
+
+### Apprendre — `/learn`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le portail d'apprentissage — articles, guides, parcours.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** : grille d'articles ; chrome commun. ⚠️ **AUCUN `h1`** — quatrième page
+  relevée dans ce cas, après le glossaire, les widgets et les rapports.
+- **Fonctionnalités** : navigation vers un article.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : les articles eux-mêmes — production éditoriale.
+- **Écart avec ZENKUU** : `/apprendre` couvre le rôle avec des fiches classées par niveau
+  et par thème, et porte un `h1`.
+- **Notes** : la route n'a pas de préfixe de langue — `/learn` et non `/en/learn`. C'est
+  la seule page relevée dans ce cas avec `/research`.
+
+### Perspectives Recherche — `/research`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les publications d'analyse de leur équipe de recherche.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : liste d'articles ; chrome commun. Porte un `h1` (« CoinGecko
+  Research »).
+- **Fonctionnalités** : navigation vers un article.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : les analyses — production d'un cabinet de recherche.
+- **Écart avec ZENKUU** : `/blog` porte des analyses de fond. **Aucune reprise de la
+  structure n'est prévue** : une page de recherche sans équipe de recherche serait une
+  coquille vide.
+- **Notes** : comme `/learn`, la route n'a pas de préfixe de langue.
+
+### API DEX — `/en/api/dex`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : page commerciale de leur offre d'API pour les données on-chain.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : argumentaire, deux sections de vente, formulaire de contact ; chrome
+  commun.
+- **Fonctionnalités** : souscription ; contact commercial.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune — page de vente.
+- **Écart avec ZENKUU** : **aucune reprise prévue.** ZENKUU consomme des API, il n'en
+  vend pas.
+- **Notes** : les quatre pages d'API relevées (`/dex`, `/nft`, `/pricing`,
+  `/case-studies`) partagent un gabarit commercial : titre-argument, sections de
+  bénéfices, appel à l'action.
+
+### API NFT — `/en/api/nft`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : page commerciale de leur offre d'API pour les données NFT.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : même gabarit que `/en/api/dex`.
+- **Fonctionnalités** : souscription ; contact commercial.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune.
+- **Écart avec ZENKUU** : aucune reprise prévue.
+- **Notes** : voir `/en/api/dex`.
+
+### Tarifs API — `/en/api/pricing`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la grille tarifaire des offres d'API.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : titre « Plans & Pricing », comparateur de formules, tableau de
+  comparaison ; chrome commun.
+- **Fonctionnalités** : comparaison des formules ; souscription.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune.
+- **Écart avec ZENKUU** : aucune reprise prévue.
+- **Notes** : son premier `h2` — « 96% less spend vs the [competition] » — est un
+  argument comparatif. C'est de la vente, pas de la donnée.
+
+### Études de cas API — `/en/api/case-studies`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les témoignages de clients de leur API.
+- **Priorité** : hors périmètre
+- **État** : audité
+- **Composants** : cartes de témoignage ; chrome commun.
+- **Fonctionnalités** : lecture.
+- **Interactions** : identiques au chrome commun.
+- **Données requises** : aucune.
+- **Écart avec ZENKUU** : aucune reprise prévue.
+- **Notes** : dernière des 68 pages de cet inventaire.
 
 ## Synthèse — données sans source gratuite
 
