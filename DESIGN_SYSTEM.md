@@ -277,6 +277,52 @@ de la tâche 7.
 
 ---
 
+## 11. Navigation — relevé complémentaire (tâche B3)
+
+Les dix pages auditées portent 18 sélecteurs qui ne couvrent aucun élément de
+navigation (tableau, boutons, onglets, pied de page, titre). Un second relevé,
+ciblé sur `/fr`, comble ce point mort : `header.dashboard` (le bandeau),
+`.nav-menu-item` (entrée de premier niveau — « Cryptos », « Exchanges », « RWA »…),
+`.nav-items a` (lien à l'intérieur d'un méga-dropdown) et
+`.nav-items span.tw-shrink-0` (titre de colonne du dropdown, ex. « Au-delà des
+jetons »). Valeurs constantes sur les trois largeurs (360/768/1440) et les deux
+thèmes — aucune divergence entre points de rupture ni entre thèmes.
+
+| Nœud | Taille / interligne / graisse | Jeton ZENKUU |
+|---|---|---|
+| `.nav-menu-item` (entrée de premier niveau) | 14px / 20px / 600 | `--text-sm` (existant, 14px — déjà aligné, aucun écart) |
+| `.nav-items a` (lien de méga-dropdown) | 14px / 20px / 600 | `--text-sm` (existant, 14px — déjà aligné, aucun écart) |
+| `.nav-items span.tw-shrink-0` (titre de colonne) | 12px / 16px / 400 | `--v2-text-2xs` (existant, créé en §1 — troisième famille de nœuds à confirmer ce cran, après `.gecko-up`/`.gecko-down` et les pastilles de rang) |
+
+**L'hypothèse de départ (chrome à 13px, comme le pied de page) ne tient pas pour
+la navigation.** Les deux familles de nœuds portant du texte cliquable — entrée de
+menu et lien de dropdown — sont mesurées à 14px, pas 13px : elles rejoignent les
+deux contre-exemples déjà notés en §2 (sélecteur de devise, bascule d'affichage).
+ZENKUU a déjà `--text-sm` (14px) à ces deux endroits : rien à migrer côté taille.
+
+**Ce qui n'a pas pu être mesuré.** `.nav-items a` et `.nav-items span.tw-shrink-0`
+vivent dans un méga-dropdown FERMÉ au chargement, dont la visibilité est pilotée
+par Alpine.js (`x-show`/`x-transition`), pas seulement par un point de rupture
+CSS : le sondage d'états (survol/focus) échoue avec « masqué (non visible) » pour
+ces deux sélecteurs, aux deux thèmes. Les valeurs de taille/graisse ci-dessus
+restent fiables — `getComputedStyle` les rend indépendamment du rendu visible pour
+une classe utilitaire simple, et elles sont constantes sur les six combinaisons
+largeur/thème — mais aucun delta de survol ni de focus n'a pu être relevé sur ces
+deux nœuds : ils ne figurent dans aucun tableau d'interaction.
+
+**Un écart mesuré et délibérément non migré : la graisse.** `.nav-menu-item` et
+`.nav-items a` sont à `font-weight: 600` chez CoinGecko ; `NavMenus.tsx` applique
+`font-medium` (500) aux rôles équivalents. Ce document ne suit la graisse sur
+aucune des dix pages d'origine (absente de la table de correspondance en §1 et en
+section 10) — l'introduire ici, sur un seul relevé complémentaire, dépasserait le
+périmètre d'une migration de TAILLE. Consigné, non appliqué.
+
+Source : relevé du 2026-08-30 sur `/fr`, dossier de travail
+`docs/references/coingecko/nav-releve/` supprimé après usage (relevé de travail,
+pas une entrée d'audit — voir tâche B3).
+
+---
+
 ## Dette héritée — statut des données financières gratuites d'exchange
 
 `COINGECKO_AUDIT.md` ne compte que deux lignes pour dix pages sur le statut de
