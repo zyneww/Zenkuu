@@ -203,4 +203,34 @@ référence trie par capitalisation, l'écart est en colonne.
   correspondance, aucune redirection n'est posée.
 - **Les 29 pages CoinGecko sans route ZENKUU**, dont la moitié est bloquée par les données
   ci-dessus.
-- **Les performances** : aucune mesure Lighthouse n'a été faite cette session.
+- **Les performances** : premières mesures faites le 2026-08-31, sur le serveur de
+  développement.
+
+  | Page | LCP | CLS |
+  |---|---|---|
+  | Accueil | 1880 ms | **0,001** (était 0,125) |
+  | `/crypto` | 1700 ms | 0,001 |
+  | `/crypto/bitcoin` | 1252 ms | 0,047 |
+
+  Les trois sont sous les seuils (LCP < 2500 ms, CLS < 0,1). Le gain de l'accueil vient
+  de deux substituts de chargement mal dimensionnés — un ruban déclaré à 210 px pour
+  149 réels.
+
+  ⚠️ **CES CHIFFRES VIENNENT DU SERVEUR DE DÉVELOPPEMENT**, qui compile à la demande.
+  Le CLS est fiable — un décalage de mise en page ne dépend pas du mode de compilation
+  — mais LCP et TTFB seront meilleurs en production. **Une mesure sur build reste à
+  faire.**
+
+  ⚠️ **UNE TENTATIVE D'AMÉLIORATION A ÉTÉ ANNULÉE.** Le CLS de 0,047 de la fiche vient
+  d'une section de hauteur nulle — `places` sur Bitcoin — qui occupe les 48 px de
+  `space-y-12` de part et d'autre. La masquer après mesure a fait MONTER le CLS à
+  0,057 : masquer un bloc après peinture est exactement le décalage qu'on cherchait à
+  éviter. Deux approches essayées, deux échecs :
+
+    · `empty:hidden` ne s'applique pas — la section contient toujours un
+      `PanelVisibilityProvider`, donc elle n'est jamais vide au sens CSS ;
+    · une classe posée depuis la mesure marche, mais arrive trop tard.
+
+  La correction juste serait de ne pas RENDRE la section, ce qui demande au parent de
+  savoir ce que l'enfant rendra — le problème que `AssetPageView` documente déjà. La
+  valeur reste sous le seuil ; l'amélioration n'en vaut pas le risque aujourd'hui.
