@@ -924,9 +924,9 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Date du relevé** : 2026-08-30
 - **Rôle** : fiche de secteur — tableau de cotations restreint aux actifs d'un
   seul secteur (Meme), précédé d'un en-tête de contexte propre au secteur
-  (description, capitalisation, volume) et d'une carte de sous-classements à
-  onglets. Confirme et détaille les « trois cartes de synthèse » vues sans
-  instrumentation sur la page Catégories.
+  (description, capitalisation, volume) et d'une grille de mise en avant du
+  secteur (« Principaux éléments »). Confirme et détaille les « trois cartes
+  de synthèse » vues sans instrumentation sur la page Catégories.
 - **Priorité** : phase 1
 - **État** : audité
 - **Composants** :
@@ -944,14 +944,17 @@ traduit en français, comme `/en/glossary` et `/learn`.
     « Principaux éléments », coché par défaut : bascule d'affichage d'un
     bloc, pas de nouvel état par rapport à celui déjà décrit sur les
     catégories (coché, fond vert).
-  - **Carte de sous-classement à onglets** — nouveau : widget en deux
-    volets à onglets internes (`activeTab` Alpine : Tendance / Grands
-    Gagnants / Trending NFT), chaque panneau listant jusqu'à trois monnaies
-    du secteur avec logo, nom, cours et variation. À ne pas confondre avec
-    la **cellule « Grands gagnants »** déjà nommée sur la page Catégories :
+  - **Grille de mise en avant du secteur** — nouveau : trois cartes côte à
+    côte sous l'en-tête (masquables par le **Commutateur** ci-dessus) : une
+    carte « Capitalisation boursière » et une carte « Volume 24 h » (chiffre
+    plus mini-graphique décoratif), suivies d'une carte de liste « Tendance »
+    listant jusqu'à six monnaies du secteur avec logo, nom, cours et
+    variation. Un seul panneau de liste, sans onglet ni bascule interne —
+    vérifié sur le rendu réel de la page. À ne pas confondre avec la
+    **cellule « Grands gagnants »** déjà nommée sur la page Catégories :
     même idée (mettre en avant des actifs du secteur) mais forme et
     contenu différents — la cellule est une liste de logos SANS chiffre
-    dans une ligne de tableau, cette carte est un widget autonome À onglets
+    dans une ligne de tableau, cette carte est un widget de liste autonome
     ET chiffré (cours, variation). Deux composants distincts pour une même
     intention éditoriale.
   - **Bouton Acheter (encart publicitaire)** — nouveau : pastille verte à
@@ -980,8 +983,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   (bouton « Personnaliser », non ouvert dans ce relevé), filtre avancé
   (icône entonnoir, non ouvert), ajout du secteur entier aux favoris
   (bouton Suivre), ajout d'une monnaie aux favoris depuis la ligne,
-  pagination, bascule d'onglet interne de la carte de sous-classement,
-  clic publicitaire « Acheter » sur certaines lignes. Section d'actualités
+  pagination, clic publicitaire « Acheter » sur certaines lignes. Section d'actualités
   liées au secteur en pied de tableau (« Dernières actualités de Meme »,
   trois cartes) vue dans la capture, non instrumentée par sélecteur.
 - **Interactions** : deux sélecteurs propres à cette page sondés en survol
@@ -991,18 +993,16 @@ traduit en français, comme `/en/glossary` et `/learn`.
   (survol change le fond aux mêmes valeurs de jeton, en-tête non
   focusable).
   Restent, par ailleurs, déclarés par le HTML sans avoir été observés à
-  l'écran : bascule effective des onglets internes de la carte de
-  sous-classement, ouverture du menu déroulant de secteur voisin,
+  l'écran : ouverture du menu déroulant de secteur voisin,
   ouverture du panneau « Personnaliser » et du filtre entonnoir,
   déclenchement réel du bouton Acheter, navigation de pagination au-delà
   de la première page.
 - **Données requises** : cotations, variations, volume, capitalisation et
   mini-graphique du secteur filtré viennent du même endpoint « actifs
   d'une catégorie » que la page Catégories, déjà couvert par l'API
-  CoinGecko gratuite. Les trois coins de « Tendance » et « Grands
-  Gagnants » de la carte de sous-classement sont un sous-ensemble du même
-  jeu de données (pas une source distincte). Rien à reporter en synthèse
-  pour cette page.
+  CoinGecko gratuite. Les monnaies listées dans la carte « Tendance » de
+  la grille de mise en avant sont un sous-ensemble du même jeu de données
+  (pas une source distincte). Rien à reporter en synthèse pour cette page.
 - **Écart avec ZENKUU** : `apps/web/app/[locale]/categories/[id]/page.tsx`
   (lu dans le code, puis vérifié sur le rendu réel du serveur de dev à
   `http://localhost:3000/fr/categories/meme-token`, redirection 307 vers
@@ -1017,7 +1017,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   choix déjà motivé dans le fichier (« le tri porterait sur l'ensemble du
   classement, pas sur le sous-ensemble affiché »), donc pas un manque
   accidentel. N'ont pas d'équivalent identifié dans le fichier lu : la
-  **carte de sous-classement à onglets** (Tendance/Grands Gagnants/NFT),
+  **grille de mise en avant du secteur** (capitalisation, volume, Tendance),
   le **bouton Suivre** dédié au secteur, la barre d'outils de filtrage
   étendue (Personnaliser, filtre entonnoir, puce déroulante de secteur
   voisin) et la section d'actualités liées au secteur. Le **bouton
@@ -1030,10 +1030,9 @@ traduit en français, comme `/en/glossary` et `/learn`.
   sélecteur à correspondances nombreuses (22) dont le nœud visible retenu
   est au 11ᵉ rang — cohérent avec l'observation déjà faite sur l'accueil,
   pas une anomalie propre à cette page. Restent non observés, faute de
-  simuler un clic : les onglets internes de la carte de sous-classement,
-  le menu déroulant de secteur voisin, le panneau Personnaliser, le filtre
-  entonnoir, le clic publicitaire Acheter, et la page 2 et suivantes de la
-  pagination. Aucun texte de CoinGecko n'est recopié au-delà des libellés
+  simuler un clic : le menu déroulant de secteur voisin, le panneau
+  Personnaliser, le filtre entonnoir, le clic publicitaire Acheter, et la
+  page 2 et suivantes de la pagination. Aucun texte de CoinGecko n'est recopié au-delà des libellés
   strictement nécessaires à l'identification d'un composant.
 
 ### Apprendre, article — `/learn/crypto-narratives`
@@ -1048,11 +1047,11 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **État** : audité
 - **Composants** :
   - **Bandeau d'annonce** — nouveau : bande pleine largeur, fond sombre,
-    au-dessus de la barre de navigation (« Now Live: 2026 State of Crypto
-    Security Report », lien souligné + croix de fermeture). Premier
-    bandeau de ce type dans l'audit ; à distinguer du **ticker de
-    statistiques globales** déjà nommé, qui vit lui aussi tout en haut de
-    page mais affiche des chiffres de marché, pas une annonce éditoriale.
+    au-dessus de la barre de navigation, composée d'un texte d'annonce
+    court, d'un lien souligné et d'une croix de fermeture. Premier bandeau
+    de ce type dans l'audit ; à distinguer du **ticker de statistiques
+    globales** déjà nommé, qui vit lui aussi tout en haut de page mais
+    affiche des chiffres de marché, pas une annonce éditoriale.
   - **Barre de sous-navigation de rubrique** — nouveau : rangée de liens
     texte sous la barre de navigation principale (All/Latest/Airdrops/
     Coins & Tokens/Guides/Wallets & Bridges/API/Reviews/More+), propre à
@@ -1062,9 +1061,9 @@ traduit en français, comme `/en/glossary` et `/learn`.
     catégorie au-dessus du titre, sans lien ni séparateur — plus léger que
     le fil d'Ariane à liens vu ailleurs sur le site.
   - **En-tête d'article** — nouveau : titre (36 px/700, `h1`), note en
-    étoiles (« 4.3 »), ligne de signature (« by CoinGecko | Edited by Vera
-    Lim - Updated July 16 2026 », l'auteur et le réviseur chacun en lien),
-    bouton « Make us preferred on Google » avec icône de marque.
+    étoiles, ligne de signature : auteur, réviseur, date de mise à jour
+    (auteur et réviseur chacun en lien), bouton « Make us preferred on
+    Google » avec icône de marque.
   - **Encart de résumé** — nouveau : bloc à filet gauche coloré,
     reprenant le titre du premier paragraphe en gras suivi d'une synthèse
     en 2-3 phrases — un rappel visuel avant le corps de l'article, distinct
@@ -1158,16 +1157,17 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Priorité** : phase 3
 - **État** : audité
 - **Composants** :
-  - **Compteur d'usage** — nouveau : ligne de texte courte
-    (« Nombre de demandes API mensuelles servies : 10,000,000,000+ »),
-    répétée à l'identique en tête de héros et en tête du bloc d'appel à
-    l'action final.
+  - **Compteur d'usage** — nouveau : ligne de texte courte associant un
+    libellé de métrique d'usage à un chiffre d'ampleur, répétée à
+    l'identique en tête de héros et en tête du bloc d'appel à l'action
+    final.
   - **En-tête héroïque marchand** — nouveau : titre en deux couleurs (une
     partie en teinte neutre, une partie en teinte d'accent — « avec » et
     la fin de la phrase en gris-bleu plus clair que le reste du titre),
     paragraphe d'accroche, groupe de trois appels à l'action (bouton
-    plein, bouton discret, lien à chevron), légende de bas de héros
-    (« Commencez gratuitement, aucune carte de crédit n'est requise »).
+    plein, bouton discret, lien à chevron), légende d'accroche courte en
+    bas de héros, sous le titre (taille et graisse non mesurées dans ce
+    relevé).
   - **Bandeau de logos clients** — nouveau : rangée de logos de marques
     partenaires (Coinbase, Nansen, Phantom, Zerion, Crypto.com, MetaMask),
     répétée en fin de page dans le bloc d'appel à l'action final.
@@ -1273,8 +1273,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
     interfaces abstraites sans rapport direct avec le produit vendu sur la
     page, celle-ci montre l'écran RÉEL du produit annoncé par le héros.
   - **Liste de fonctionnalités à icône** — nouveau : groupes de lignes
-    icône + phrase courte (« Données de cours en temps réel pour plus de
-    19 000+ monnaies », etc.), répétés sous plusieurs sous-titres
+    icône + phrase courte de bénéfice, répétés sous plusieurs sous-titres
     (Suivi des gains, Listes personnalisées, Application mobile) — gabarit
     de contenu marketing simple, différent de la **grille de cartes de
     produit** de la page API (pas de carte, pas de chemin d'URL, pas de
@@ -1315,10 +1314,11 @@ traduit en français, comme `/en/glossary` et `/learn`.
   pour l'onglet Connexion de la nav, pas propre à cette page) et le champ
   newsletter n'ont pas été activés.
 - **Données requises** : cette page ne porte aucune donnée de marché
-  chiffrée à elle — le nombre « 19 000+ monnaies » et le nombre
-  d'utilisateurs implicite du produit sont des arguments commerciaux, pas
-  des mesures à reproduire. Rien à reporter en synthèse pour cette
-  raison, comme pour les pages Apprendre et API.
+  chiffrée à elle — le nombre de monnaies couvertes mis en avant dans la
+  liste de fonctionnalités et le nombre d'utilisateurs implicite du
+  produit sont des arguments commerciaux, pas des mesures à reproduire.
+  Rien à reporter en synthèse pour cette raison, comme pour les pages
+  Apprendre et API.
 - **Écart avec ZENKUU** : ZENKUU n'a pas de page marchande équivalente à
   `/fr/portfolio` — son modèle de compte est différent dès la racine.
   `apps/web/app/[locale]/connexion/page.tsx` (lu le 2026-08-30) documente
