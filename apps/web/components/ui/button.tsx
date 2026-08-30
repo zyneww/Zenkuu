@@ -21,7 +21,13 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        // Rembourrage horizontal aligné sur la mesure CoinGecko (--v2-space-4, 10px).
+        // Hauteur h-9 (36px) volontairement conservée : DESIGN.md impose 32px de
+        // cible tactile minimum, or 13px de texte + 6px de rembourrage vertical
+        // (mesuré chez CoinGecko) donnerait ~31px. Voir DESIGN_SYSTEM.md pour la note.
+        // Rembourrage vertical laissé en py-2 : sans effet réel puisque h-9 fixe la
+        // hauteur, mais gardé pour que le code reste lisible en isolation (ex. flex-wrap).
+        default: "h-9 px-[var(--v2-space-4)] py-2 text-xs has-[>svg]:px-3",
         xs: "h-6 gap-1 rounded-control px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 gap-1.5 rounded-control px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-control px-6 has-[>svg]:px-4",
