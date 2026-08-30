@@ -20,7 +20,7 @@ import { Link, useRouter } from '@/i18n/navigation'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, Sparkline, formatCompact } from '@zenkuu/ui'
+import { ChangeBadge, Sparkline, formatCompact, formatShare } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
@@ -31,6 +31,7 @@ import { ColumnHeader } from '@/components/ui/table-columns'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
+import { fullyDilutedValuation, marketCapToFdvShare } from '@/lib/heatmap-metrics'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 export type MarketSort = 'marketCap' | 'volume24h'
@@ -352,6 +353,47 @@ export function MarketTable({
    * les deux ferait déborder le tableau sur mobile sans bénéfice de lecture.
    */
   const showDayRange = !showMarketCap && has('high24h') && has('low24h')
+
+  /**
+   * TROIS COLONNES POUR COMBLER L'ÉCART RELEVÉ FACE À COINGECKO — 30 j, FDV,
+   * ratio capitalisation/FDV.
+   *
+   * ── POURQUOI `cotations` ET `apercu` SEULEMENT ──────────────────────────────
+   *
+   * `cotations` est la grille par défaut de l'accueil (voir `BoardTabs`), et c'est
+   * exactement la vue que l'audit a lue en constatant l'écart. `apercu` est son
+   * ancêtre direct, gardé pour les cinq classes non crypto. Ni `performance` (qui
+   * affiche déjà les cinq fenêtres, 30 j comprise, via `extraPeriods`), ni `ath`, ni
+   * `catalogue` — dont les huit colonnes reprennent délibérément la référence
+   * Cryptorank — n'ont besoin de ce complément.
+   *
+   * ── 30 j : LA MÊME TABLE `CHANGE_PERIODS` QUE LE SÉLECTEUR, PAS UN LIBELLÉ RÉÉCRIT ─
+   *
+   * Redéclarer « 30 j » ici créerait un second endroit où cette fenêtre est nommée.
+   * `visibleExtras` peut déjà porter la fenêtre 30 j quand un sélecteur de période est
+   * actif hors `cotations`/`catalogue`/`ath` — on ne l'ajoute donc PAS deux fois.
+   *
+   * ── FDV ET RATIO SONT RÉUTILISÉS, PAS RÉÉCRITS ──────────────────────────────
+   *
+   * `fullyDilutedValuation` vit déjà dans `lib/heatmap-metrics.ts`, testée pour ses
+   * cas limites (offre manquante, prix nul). Le ratio n'est qu'un rapport des deux,
+   * et hérite donc de son `undefined` dès qu'un des deux termes manque — jamais un
+   * zéro qui affirmerait « aucune dilution restante ».
+   */
+  const period30d = CHANGE_PERIODS.find((entry) => entry.key === '30d')!
+  const wantsValuationExtras = (quotes || columnSet === 'apercu') && !catalogue
+  const shows30d =
+    wantsValuationExtras &&
+    has('change30d') &&
+    selected?.key !== '30d' &&
+    /* Sur `apercu` avec un sélecteur de période actif, 30 j peut déjà être servie
+       par `extraPeriods` (voir plus haut) — on ne la répète pas. `cotations` ne
+       rend jamais `extraPeriods` (`visibleExtras` la vide), donc cette clause n'y
+       change rien. */
+    !(columnSet === 'apercu' && selected && extraPeriods.some((entry) => entry.key === '30d'))
+  const showFdv =
+    wantsValuationExtras && detectOn.some((asset) => fullyDilutedValuation(asset) !== undefined)
+  const showFdvRatio = showFdv
 
   /*
    * ── LE SÉLECTEUR DE COLONNES A QUITTÉ CE TABLEAU ──────────────────────────
@@ -784,6 +826,17 @@ export function MarketTable({
                   className="hidden @min-[790px]:table-cell"
                 />
               ) : null}
+              {/* Comble l'écart relevé face à CoinGecko — voir `shows30d` plus haut. Même
+                  seuil que les fenêtres secondaires (`extraClass`) : c'est la même
+                  nature de colonne, une variation de comparaison qui cède la première
+                  sur un téléphone. */}
+              {shows30d ? (
+                <ColumnHeader
+                  label={period30d.label}
+                  {...sortFor(period30d.field)}
+                  className={extraClass}
+                />
+              ) : null}
               {/* Masquées sous `md` et non sous `sm` : elles arrivent APRÈS la variation
                   principale, qui tient déjà la place disponible sur un téléphone. Ce
                   sont des colonnes de comparaison, les premières à céder. */}
@@ -857,6 +910,25 @@ export function MarketTable({
                 />
               ))}
 
+              {/* FDV et son ratio se rangent APRÈS les deux agrégats, comme la capitalisation
+                  et le volume : ce sont deux mesures de valorisation qui prolongent la
+                  capitalisation, pas une comparaison de variation comme les colonnes
+                  précédentes. Même seuil que l'offre en circulation (`supplyClass`) —
+                  toutes trois sont des colonnes de complément qui cèdent ensemble. */}
+              {showFdv ? (
+                <ColumnHeader
+                  label={t('Valorisation diluée')}
+                  hint={t('Capitalisation appliquée à l’offre maximale — ou totale, faute de plafond publié')}
+                  className={supplyClass}
+                />
+              ) : null}
+              {showFdvRatio ? (
+                <ColumnHeader
+                  label={t('Cap. / FDV')}
+                  hint={t('Part de la valorisation diluée déjà comptée dans la capitalisation')}
+                  className={supplyClass}
+                />
+              ) : null}
               {/* L'offre se range APRÈS les deux agrégats et AVANT la courbe, comme
                   sur la référence : elle est le troisième terme de la capitalisation
                   (cours × offre), et se lit donc contre elle. */}
@@ -1002,6 +1074,16 @@ export function MarketTable({
                     </td>
                   ) : null}
 
+                  {shows30d ? (
+                    <td className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${extraClass}`}>
+                      <ChangeBadge
+                        value={asset.change30d}
+                        periodLabel={period30d.longLabel}
+                        size="sm"
+                      />
+                    </td>
+                  ) : null}
+
                   {visibleExtras.map((entry) => (
                     <td key={entry.key} className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${extraClass}`}>
                       {/* `periodLabel` vient de la table, pas d'une chaîne recopiée : c'est
@@ -1089,6 +1171,30 @@ export function MarketTable({
                       <Money value={asset[aggregateMeta[key].field]} from={asset.currency} compact />
                     </td>
                   ))}
+
+                  {/* `fullyDilutedValuation` rend `undefined` sans offre maximale NI
+                      totale — jamais un zéro qui affirmerait « aucune dilution
+                      restante ». `formatCompact` et non `Money` : `fullyDilutedValuation`
+                      rend un nombre brut dans la devise de l'actif, comme la
+                      capitalisation et le volume juste au-dessus. */}
+                  {showFdv ? (
+                    <td className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right ${supplyClass}`}>
+                      {fullyDilutedValuation(asset) !== undefined ? (
+                        <Money value={fullyDilutedValuation(asset)} from={asset.currency} compact />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  ) : null}
+
+                  {/* Hérite l'indéfini de la FDV — voir `marketCapToFdvShare`. */}
+                  {showFdvRatio ? (
+                    <td
+                      className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
+                    >
+                      {formatShare(marketCapToFdvShare(asset)) ?? '—'}
+                    </td>
+                  ) : null}
 
                   {/* `formatCompact` et non `Money` : voir `shows.supply`. Le SYMBOLE
                       suit le nombre — « 20,07 M BTC » — parce qu'un nombre abrégé nu

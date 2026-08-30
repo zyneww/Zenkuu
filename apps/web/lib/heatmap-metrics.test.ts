@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { MarketAsset } from '@zenkuu/data'
 
-import { fullyDilutedValuation, volatility7d } from './heatmap-metrics'
+import { fullyDilutedValuation, marketCapToFdvShare, volatility7d } from './heatmap-metrics'
 
 /** Le minimum qu'un `MarketAsset` doit porter pour que ces deux calculs aient un sens. */
 function asset(overrides: Partial<MarketAsset>): MarketAsset {
@@ -35,6 +35,22 @@ describe('fullyDilutedValuation', () => {
   it('rend indéfini plutôt que zéro sur une offre nulle ou un prix nul', () => {
     expect(fullyDilutedValuation(asset({ price: 2, maxSupply: 0 }))).toBeUndefined()
     expect(fullyDilutedValuation(asset({ price: 0, maxSupply: 100 }))).toBeUndefined()
+  })
+})
+
+describe('marketCapToFdvShare', () => {
+  it('exprime la part en pourcentage, pas en fraction', () => {
+    expect(
+      marketCapToFdvShare(asset({ price: 2, marketCap: 1000, maxSupply: 1000 })),
+    ).toBeCloseTo(50, 6)
+  })
+
+  it('rend indéfini sans FDV — pas d’offre maximale ni totale', () => {
+    expect(marketCapToFdvShare(asset({ price: 2, marketCap: 1000 }))).toBeUndefined()
+  })
+
+  it('rend indéfini sans capitalisation, même avec une FDV', () => {
+    expect(marketCapToFdvShare(asset({ price: 2, maxSupply: 1000 }))).toBeUndefined()
   })
 })
 

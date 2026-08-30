@@ -45,6 +45,21 @@ export function fullyDilutedValuation(asset: MarketAsset): number | undefined {
 }
 
 /**
+ * PART de la valorisation diluée déjà comptée dans la capitalisation, en pourcentage
+ * (98,5 et non 0,985) — ce que le tableau de cotations affiche à côté de la FDV.
+ *
+ * Hérite l'indéfini de `fullyDilutedValuation` : sans offre maximale ni totale, il n'y
+ * a pas de dénominateur, donc pas de ratio — jamais un 100 % qui affirmerait à tort
+ * « toute l'offre circule déjà ».
+ */
+export function marketCapToFdvShare(asset: MarketAsset): number | undefined {
+  const fdv = fullyDilutedValuation(asset)
+  if (fdv === undefined || asset.marketCap === undefined) return undefined
+
+  return (asset.marketCap / fdv) * 100
+}
+
+/**
  * VOLATILITÉ sur sept jours, en pourcentage.
  *
  * ── CE QU'ELLE MESURE, EXACTEMENT ───────────────────────────────────────────
