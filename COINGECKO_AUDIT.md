@@ -43,19 +43,26 @@ repliée dans le portefeuille, sans route publique vérifiable — voir note). E
 auditées comme composants de la page Accueil ou de la page Portefeuille, pas comme
 pages séparées.
 
-**Les cases non cochées ci-dessous ne sont pas un travail en retard.** La tâche 5 a
-été réduite en cours de route : la fidélité de CoinGecko tient dans une vingtaine de
-composants partagés que quelques pages archétypes suffisent à faire émerger — l'audit
-de l'accueil en a nommé 22 d'un coup, et les dix pages auditées à ce jour n'ont ajouté
-qu'un nombre décroissant de familles réellement nouvelles à chaque page. Auditer les
-58 pages restantes maintenant serait un sur-échantillonnage : elles seront auditées
-**au moment de leur migration**, quand la question « qu'est-ce qu'on garde de cette
-page ? » est concrète et que le relevé sert immédiatement, pas des mois avant que le
-site ait bougé. `node scripts/audit-coingecko-doc.mjs --strict` continue donc, à
-raison, de signaler ces pages comme non auditées : ce n'est pas une régression à
-corriger avant la fin du sous-projet A (voir tâche 11 pour le critère de clôture
-révisé), c'est la porte de la complétude finale, qui se franchira à la fin de la
-migration.
+**Les cases non cochées ci-dessous seront toutes cochées.** Le mandat a changé le
+2026-08-30 : l'audit doit être entièrement coché avant que le travail soit déclaré
+terminé. Elles ne sont pas pour autant un travail en retard — l'ordre suit la
+migration, page par page, parce qu'un relevé sert au moment où la question
+« qu'est-ce qu'on garde de cette page ? » est concrète.
+
+**16 pages sur 68 sont auditées, 52 restent.** Le rendement décroît, et c'est
+attendu : la fidélité de CoinGecko tient dans une vingtaine de composants partagés
+que l'accueil a nommés d'un coup. Les six pages ajoutées le 2026-08-30 confirment le
+constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de colonne
+12/16 en 600, ligne 14/20 en 400, survol `rgb(248, 250, 252)`), et seules leurs
+COLONNES et leurs CONTRÔLES diffèrent.
+
+⚠️ Le rendement décroissant ne veut pas dire que les pages restantes n'apprennent
+rien. C'est `/fr/highlights`, la quinzième auditée, qui a corrigé deux valeurs de la
+palette : l'onglet sélectionné est vert, et le texte du bouton d'action est blanc et
+non noir. Les deux avaient été posées sur la foi de relevés antérieurs.
+
+`node scripts/audit-coingecko-doc.mjs --strict` continue de signaler les pages non
+auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 
 ### Phase 1 — cœur
 
@@ -80,10 +87,10 @@ migration.
 
 ### Phase 2 — données
 
-- [ ] Highlights (principaux éléments) — `/fr/highlights`
+- [x] Highlights (principaux éléments) — `/fr/highlights`
 - [ ] Tendances — `/fr/highlights/trending-crypto`
-- [ ] Gagnants et perdants — `/fr/crypto-gainers-losers`
-- [ ] Nouvelles cryptos — `/fr/new-cryptocurrencies`
+- [x] Gagnants et perdants — `/fr/crypto-gainers-losers`
+- [x] Nouvelles cryptos — `/fr/new-cryptocurrencies`
 - [ ] All-time high — `/fr/highlights/all-time-high-crypto`
 - [ ] Highlights, les plus consultées — `/fr/highlights/most-viewed-crypto`
 - [ ] Highlights, volume élevé — `/fr/highlights/high-volume`
@@ -91,9 +98,9 @@ migration.
 - [ ] Highlights, cryptos à venir — `/fr/highlights/upcoming-cryptocurrencies`
 - [ ] Carte thermique (heatmap) — `/fr/charts/crypto-heatmap`
 - [ ] Prédominance du Bitcoin — `/fr/charts/bitcoin-dominance`
-- [ ] Comparateur — `/fr/compare-cryptocurrencies`
-- [ ] Convertisseur — `/fr/converter`
-- [ ] Chaînes — `/fr/chains`
+- [x] Comparateur — `/fr/compare-cryptocurrencies`
+- [x] Convertisseur — `/fr/converter`
+- [x] Chaînes — `/fr/chains`
 - [ ] Page de chaîne — `/fr/chains/ethereum`
 - [ ] NFT — `/fr/nft`
 - [ ] NFT par chaîne — `/fr/nft/chains/ethereum`
@@ -1384,6 +1391,182 @@ traduit en français, comme `/en/glossary` et `/learn`.
   Aucun blocage Cloudflare rencontré. Aucun texte de CoinGecko n'est
   recopié au-delà des libellés strictement nécessaires à l'identification
   d'un composant.
+
+### Gagnants et perdants — `/fr/crypto-gainers-losers`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : palmarès des plus fortes hausses et des plus fortes baisses sur une période
+  choisie. Deux tableaux frères sur une seule page, jamais l'un sans l'autre — la page
+  répond à « qu'est-ce qui bouge », pas à « comment va le marché ».
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** :
+  - **Deux sections titrées** — « Grands gagnants » et « Grands perdants », chacune
+    précédée d'un émoji dans le texte même du `h2` (fusée, gyrophare). L'émoji fait partie
+    du titre, ce n'est pas une icône séparée.
+  - **Sélecteur de période** — déclencheur affichant la période active (« 24 heures »).
+  - **Sélecteur d'univers** — déclencheur restreignant l'échantillon (« Principal 1000 »).
+    C'est lui qui rend le palmarès lisible : sans borne, les plus fortes variations sont
+    toujours des jetons minuscules.
+  - **Tableau de palmarès** ×2 — 30 lignes chacun. Colonnes : suivi (étoile), rang, nom,
+    cours, volume, variation sur la période, mini-graphique.
+  - Chrome commun au site : navigation, recherche, pied de page, bouton d'action.
+- **Fonctionnalités** : choix de la période ; choix de l'univers ; tri ; mise en suivi
+  d'une ligne ; navigation vers la fiche d'un actif.
+- **Interactions** : le survol d'une ligne pose `rgb(248, 250, 252)` en clair et
+  `rgb(27, 35, 45)` en sombre — les mêmes valeurs que l'accueil. **Un seul en-tête porte
+  `aria-sort`** par tableau alors que plusieurs colonnes semblent triables : le tri n'est
+  pas exposé par cet attribut sur cette page.
+- **Données requises** : variations par période sur un univers borné, et le rang de
+  capitalisation qui définit cette borne.
+- **Écart avec ZENKUU** : `/classements` et `/classements/[type]` couvrent le même besoin
+  avec quatre palmarès au lieu de deux (hausses, baisses, volumes, rotation) et un
+  sélecteur de période. **Ce n'est pas un manque** : ZENKUU en offre davantage. Ce qui
+  manque est le sélecteur d'univers — sans lui, un palmarès de hausses remonte du bruit.
+- **Notes** : les deux tableaux partagent exactement la même structure de colonnes ; un
+  seul composant peut les rendre tous les deux.
+
+### Nouvelles cryptomonnaies — `/fr/new-cryptocurrencies`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : liste des actifs récemment ajoutés au catalogue, du plus récent au plus
+  ancien. La page répond à « qu'est-ce qui vient d'apparaître » ; son tri par défaut est
+  chronologique, pas par capitalisation.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** :
+  - **Tableau des nouvelles cotations** — 50 lignes. Colonnes : suivi, rang, monnaie,
+    (colonne sans en-tête), cours, **chaîne**, 1 h, 24 h, volume 24 h, valorisation
+    entièrement diluée, **dernier ajout**, mini-graphique.
+  - **Pagination** — la liste dépasse une page.
+  - Chrome commun au site.
+- **Fonctionnalités** : tri ; pagination ; mise en suivi ; navigation vers la fiche.
+- **Interactions** : survol de ligne identique à l'accueil. Un seul en-tête porte
+  `aria-sort`.
+- **Données requises** : date d'ajout au catalogue et chaîne de déploiement. **La date
+  d'ajout n'est pas une donnée de marché** : elle appartient au catalogue de l'opérateur.
+  Un site qui n'a pas son propre catalogue ne peut pas la produire — il la reprend de sa
+  source, ou il n'a pas cette page.
+- **Écart avec ZENKUU** : `/nouvelles-cotations` couvre le rôle. Deux colonnes n'ont pas
+  d'équivalent : la chaîne de déploiement et la valorisation entièrement diluée.
+- **Notes** : la colonne sans en-tête entre « Monnaie » et « Cours » ne porte aucun
+  libellé accessible.
+
+### Chaînes — `/fr/chains`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : classement des blockchains par valeur totale verrouillée. Le titre le dit
+  explicitement — l'axe de tri par défaut n'est ni la capitalisation ni le volume, mais la
+  TVL.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** :
+  - **Tableau des chaînes** — 100 lignes. Colonnes : rang, chaîne, **grands gagnants**,
+    24 h, 7 j, 30 j, volume 24 h, TVL, prédominance, nombre de monnaies, courbe 7 jours.
+  - **Groupe d'onglets de filtre** — « Tous », « Principaux éléments », « Catégories »,
+    « Toutes les chaînes », plus des puces thématiques d'actualité.
+  - **Pagination**.
+  - Chrome commun au site.
+- **Fonctionnalités** : filtrage par onglet ; tri ; pagination ; navigation vers une
+  chaîne.
+- **Interactions** : survol de ligne `rgb(248, 250, 252)` / `rgb(27, 35, 45)` ; survol
+  d'un onglet non sélectionné `rgb(241, 245, 249)` — les mêmes valeurs que l'accueil.
+- **Données requises** : TVL par chaîne, prédominance, nombre d'actifs par chaîne. **La
+  TVL n'est pas dérivable des données de cotation** : elle demande une source de données
+  de protocole.
+- **Écart avec ZENKUU** : `/categories/ecosystemes` s'en approche mais classe des
+  écosystèmes par capitalisation, pas des chaînes par TVL. La colonne « grands gagnants »,
+  qui met en avant le meilleur actif de chaque chaîne, n'a pas d'équivalent.
+- **Notes** : ⚠️ le relevé de la troisième colonne rapporte `rgb(0, 0, 238)` et un texte
+  vide. Ce n'est PAS le défaut corrigé le 2026-08-30 : le lien de cette colonne ne contient
+  aucun nœud texte — c'est un logo. L'outil retombe donc sur l'élément visé et n'annonce
+  aucun `porteurTexte`, ce qui est le comportement voulu. C'est le sélecteur qui visait la
+  mauvaise colonne ; la couleur relevée n'a aucun sens et ne doit pas être reprise.
+
+### Convertisseur — `/fr/converter`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : convertir un montant d'un actif vers une devise. La page affiche le résultat
+  dans son propre titre de section (« 1,000000 BTC = … »), pas dans un encadré séparé.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** :
+  - **Champ de montant** — `input[type=number]`, classe `gecko-input`, **52 px de haut**,
+    corps 14 px. C'est le champ le plus haut relevé sur le site.
+  - **Résultat en titre** — la conversion s'écrit dans un `h2`.
+  - **Graphique** — courbe historique de la paire.
+  - **Paires populaires** — section de raccourcis vers des conversions fréquentes.
+  - **Cours dans les principales devises** — section listant le même actif dans plusieurs
+    devises.
+  - **Champ d'abonnement e-mail** — `input[type=email]`, 40 px, avec bouton « S'abonner ».
+    Élément de collecte, sans rapport avec la conversion.
+  - Chrome commun au site. **Aucun tableau sur cette page.**
+- **Fonctionnalités** : saisie d'un montant ; choix des deux termes ; lecture du
+  graphique ; accès aux paires populaires.
+- **Interactions** : le champ et le bouton d'action sont sondés ; aucun delta de survol
+  n'est relevé sur le champ.
+- **Données requises** : cours instantané de la paire et son historique.
+- **Écart avec ZENKUU** : `/convertisseur` couvre le rôle. Les sections « paires
+  populaires » et « cours dans les principales devises » n'ont pas d'équivalent — ce sont
+  des raccourcis de navigation, pas des données neuves.
+- **Notes** : porter le résultat dans un `h2` est un choix inhabituel — le nombre le plus
+  important de la page est un titre, pas une valeur encadrée.
+
+### Comparateur — `/fr/compare-cryptocurrencies`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : calculer le cours qu'aurait un actif A s'il portait la capitalisation d'un
+  actif B. Ce n'est pas une comparaison de fiches côte à côte : c'est une seule opération
+  hypothétique, à deux termes.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** :
+  - **Deux sélecteurs d'actif** — « Sélectionner A » et « Sélectionner B ».
+  - **Bascule de base de calcul** — « Capitalisation boursière » ou « Évaluation après
+    dilution ». Elle change le sens du résultat, pas sa présentation.
+  - **Phrase de résultat** — énoncé en toutes lettres du calcul demandé.
+  - **Comparaisons populaires** — raccourcis vers des couples fréquents.
+  - Chrome commun au site. **Aucun tableau, aucun graphique.**
+- **Fonctionnalités** : choix des deux termes ; choix de la base ; accès aux comparaisons
+  populaires.
+- **Interactions** : les puces de filtre et les champs sont sondés.
+- **Données requises** : capitalisation et valorisation entièrement diluée des deux
+  actifs, et l'offre en circulation de A pour reconstituer un cours.
+- **Écart avec ZENKUU** : `/comparateur` existe mais répond à une autre question — il met
+  deux fiches en regard. **Le calcul hypothétique de CoinGecko n'a pas d'équivalent.**
+  ⚠️ Ce calcul frôle la limite du §7 : « le cours qu'aurait A avec la capitalisation de B »
+  se lit facilement comme un objectif de cours. Il reste descriptif — un rapport entre deux
+  grandeurs mesurées, sans projection dans le temps — mais sa reprise demanderait une
+  formulation qui n'induise aucune anticipation.
+- **Notes** : ⚠️ le premier `h1` de la page est « Sélectionner B », le libellé d'un
+  contrôle. La page n'a pas de titre décrivant son rôle.
+
+### Points forts — `/fr/highlights`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : tableau de bord d'entrée vers les autres palmarès. La page ne présente pas de
+  données en profondeur : elle donne un aperçu de chaque classement et renvoie vers lui.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** :
+  - **Grille de cartes** — six cartes de `244 × 101 px`, dans une grille à colonnes de
+    244 px. Chaque carte est un lien entier vers un palmarès.
+  - **Titre de carte** — 18 px, graisse 700, tronqué (`tw-truncate`) : les titres longs
+    sont coupés par conception, pas par accident.
+  - **Groupe d'onglets de filtre** — 21 puces relevées, dont 4 dans un groupe
+    sélectionnable.
+  - Chrome commun au site. **Aucun tableau.**
+- **Fonctionnalités** : navigation vers chaque palmarès ; filtrage par onglet.
+- **Interactions** : survol d'un onglet non sélectionné `rgb(241, 245, 249)`. Le survol des
+  cartes n'a pas pu être relevé — elles sont hors du viewport au moment du sondage.
+- **Données requises** : un extrait de chaque palmarès qu'elle annonce ; aucune donnée qui
+  lui soit propre.
+- **Écart avec ZENKUU** : `/classements` remplit ce rôle d'aiguillage tout en montrant les
+  palmarès eux-mêmes, pas seulement leurs vignettes. **Ce n'est pas un manque** : une page
+  qui ne fait qu'aiguiller ajoute un clic entre le lecteur et la donnée.
+- **Notes** : c'est sur cette page que le relevé a établi les deux faits qui ont corrigé la
+  palette — l'onglet sélectionné est VERT (`rgb(53, 175, 0)` en clair, `rgb(128, 224, 56)`
+  en sombre) et le texte du bouton d'action est BLANC sur le vert, pas noir.
 
 ## Synthèse — données sans source gratuite
 
