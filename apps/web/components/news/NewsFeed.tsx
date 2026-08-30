@@ -765,7 +765,7 @@ function CoverTag({ article }: { article: NewsItem }) {
   )
 }
 
-function ArticleCard({ article }: { article: NewsItem }) {
+export function ArticleCard({ article }: { article: NewsItem }) {
   const categoryLabel = useCategoryLabel()
 
   return (

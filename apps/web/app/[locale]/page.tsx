@@ -6,7 +6,7 @@ import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 import { CryptoBoard } from '@/components/home/CryptoBoard'
 import { MarketRibbon } from '@/components/home/MarketRibbon'
 import { MarketWidgets } from '@/components/home/MarketWidgets'
-import { NewsSidebar } from '@/components/home/NewsSidebar'
+import { HomeNewsGrid } from '@/components/home/HomeNewsGrid'
 import { PriceHeader } from '@/components/home/PriceHeader'
 import { getContent } from '@/lib/content'
 
@@ -122,66 +122,57 @@ export default async function HomePage() {
 
   return (
     /*
-      ── LA GRILLE TIENT LA PAGE ENTIÈRE ──────────────────────────────────────
+      ── LA PAGE EST UNE COLONNE, PAS UNE GRILLE À DEUX PISTES ────────────────
 
-      COLONNE DE DROITE À LARGEUR FIXE, et non à un tiers de la page. Un tiers paraît
-      le choix naturel, et c'est le mauvais : les deux colonnes n'ont pas le même
-      appétit. Le fil porte des titres sur deux lignes — au-delà de 340 px il gagne du
-      blanc, pas de la lisibilité. Le tableau, lui, a onze colonnes dont la plus étroite
-      ne se comprime plus : chaque pixel qu'on lui prend en retire une (voir les seuils
-      de `MarketTable`). Tout le surplus des grands écrans va donc au tableau.
+      Elle portait `lg:grid-cols-[minmax(0,1fr)_340px]` : le tableau à gauche, un
+      panneau d'actualités fixe à droite, sur toute la hauteur.
 
-      `minmax(0,1fr)` et non `1fr` : une piste de grille en `1fr` refuse de passer sous
-      la taille minimale de son contenu, et un tableau large la ferait déborder au lieu
-      de rétrécir.
+      Relevé le 2026-08-30 sur l'accueil de la référence, à 2116 px de large : aucun
+      `<aside>`, aucune grille à deux colonnes de plus de 900 px, rien à droite du
+      tableau — qui remplit ses 1270 px de conteneur bord à bord. Ses actualités sont
+      une grille pleine largeur SOUS le classement. Voir `HomeNewsGrid`.
 
-      `items-start` : la colonne de droite ne s'étire pas d'elle-même — c'est elle qui
-      demande `self-stretch`, parce que son filet vertical doit courir sur toute la
-      hauteur. Voir `NewsSidebar`.
+      `min-w-0` reste INDISPENSABLE et son absence ne se verrait pas tout de suite :
+      la largeur minimale d'un enfant flexible est celle de son contenu le plus large
+      — le tableau — et la page défilerait horizontalement au lieu de le laisser
+      rétrécir. C'est la même raison qu'avant, sur un conteneur différent.
     */
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-      {/* `min-w-0` sur la colonne de gauche est OBLIGATOIRE et son absence ne se voit
-          pas tout de suite : sans lui, la largeur minimale de cette piste est celle de
-          son contenu le plus large — le tableau — et la page défilerait
-          horizontalement au lieu de laisser le tableau rétrécir. */}
-      <div className="flex min-w-0 flex-col gap-8">
-        <PriceHeader globals={globals} />
+    <div className="flex min-w-0 flex-col gap-8">
+      <PriceHeader globals={globals} />
 
-        {/* Le substitut passe de 300 à 210 px : le ruban est plus court que la grille
-            de repères qu'il remplace — un bandeau de cours et une rangée de cartes de
-            trois lignes. Un substitut plus haut que ce qu'il remplace fait remonter la
-            page au moment où le bloc arrive, ce qui est le défaut que ces hauteurs
-            écrites à la main servent précisément à éviter. */}
-        <Suspense fallback={<BlockSkeleton height="h-[210px]" />}>
-          <MarketRibbon />
-        </Suspense>
+      {/* Le substitut passe de 300 à 210 px : le ruban est plus court que la grille
+          de repères qu'il remplace — un bandeau de cours et une rangée de cartes de
+          trois lignes. Un substitut plus haut que ce qu'il remplace fait remonter la
+          page au moment où le bloc arrive, ce qui est le défaut que ces hauteurs
+          écrites à la main servent précisément à éviter. */}
+      <Suspense fallback={<BlockSkeleton height="h-[210px]" />}>
+        <MarketRibbon />
+      </Suspense>
 
-        {/* Le filet de section sépare le bloc de tête du classement. Il est posé sur le
-            bloc et non sur la grille : la grille traverse désormais toute la page, et
-            un filet en travers de ses deux colonnes couperait la colonne d'actualités
-            en son milieu. */}
-        <Suspense fallback={<BoardSkeleton />}>
-          <div className="border-t border-border-subtle pt-8">
-            <CryptoBoard />
-          </div>
-        </Suspense>
+      {/* Le filet de section sépare le bloc de tête du classement. */}
+      <Suspense fallback={<BoardSkeleton />}>
+        <div className="border-t border-border-subtle pt-8">
+          <CryptoBoard />
+        </div>
+      </Suspense>
 
-        {/* ── LES BLOCS DU BAS ────────────────────────────────────────────────
-            `MarketPanorama` et la section « Analyses » qui portait `GlobalAnalyses`
-            tenaient cette place. Les deux sont remplacés par une seule grappe, dont
-            l'ordre et la densité reprennent ceux de la référence — voir l'en-tête de
-            `MarketWidgets`, où chaque substitution de source est justifiée.
+      {/* ── LES BLOCS DU BAS ────────────────────────────────────────────────
+          `MarketPanorama` et la section « Analyses » qui portait `GlobalAnalyses`
+          tenaient cette place. Les deux sont remplacés par une seule grappe, dont
+          l'ordre et la densité reprennent ceux de la référence — voir l'en-tête de
+          `MarketWidgets`, où chaque substitution de source est justifiée.
 
-            UN SEUL `<Suspense>` pour la grappe entière, et non un par bloc : ses huit
-            lectures partent ensemble dans un `Promise.all`, si bien que découper la
-            frontière ne ferait apparaître aucun bloc plus tôt — seulement huit
-            substituts qui s'éteindraient à la même seconde. */}
-        <Suspense fallback={<BlockSkeleton height="h-[1200px]" />}>
-          <MarketWidgets />
-        </Suspense>
-      </div>
+          UN SEUL `<Suspense>` pour la grappe entière, et non un par bloc : ses huit
+          lectures partent ensemble dans un `Promise.all`, si bien que découper la
+          frontière ne ferait apparaître aucun bloc plus tôt — seulement huit
+          substituts qui s'éteindraient à la même seconde. */}
+      <Suspense fallback={<BlockSkeleton height="h-[1200px]" />}>
+        <MarketWidgets />
+      </Suspense>
 
-      <NewsSidebar news={news} />
+      {/* Les actualités ferment la page, comme sur la référence — après le
+          classement, pas à côté de lui. */}
+      <HomeNewsGrid news={news} />
     </div>
   )
 }

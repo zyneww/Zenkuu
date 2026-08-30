@@ -1857,13 +1857,37 @@
     letter-spacing: -0.021em;
   }
 
-  /* 40px — variante de tête pour les pages éditoriales longues. */
+  /* ── LE TITRE DE PAGE — 24 px, MESURÉ SUR 40 RELEVÉS ──────────────────────
+     Ce cran valait 40 px (clamp 30→40) et portait « variante de tête pour les pages
+     éditoriales longues ». Le relevé du 2026-08-30 sur seize pages de la référence
+     donne un seul et même titre de page, partout :
+
+         ≥ 768 px    24 px / interligne 32 px / graisse 700 / interlettrage normal
+         360 px      20 px / interligne 32 px / graisse 700
+
+     40 occurrences de 24 px, TOUTES sur `h1` — c'est la taille de titre la plus
+     répandue de leur site, et elle n'existait pas dans l'échelle ZENKUU, qui saute
+     de 22 px (`--text-xl`) à 28 px (`--text-2xl`).
+
+     ⚠️ L'INTERLETTRAGE PASSE À `normal`, et ce n'est pas un détail de recopie. Il
+     valait −0,018em. La référence ne resserre AUCUN de ses textes, à aucune taille —
+     `DESIGN_SYSTEM.md` le note comme un écart non résolu depuis l'audit. Le titre de
+     page est le premier endroit où il est levé, parce qu'un resserrement se voit
+     d'autant plus que le corps est grand.
+
+     L'interligne est FIXE à 2rem et non proportionnel : les deux largeurs relevées
+     donnent 32 px, alors que le corps, lui, descend de 24 à 20 px. Un rapport
+     constant aurait fait glisser l'interligne avec le corps.
+
+     ⚠️ Ce cran est employé 21 fois. Le redéfinir ici transforme tous les titres de
+     page d'un coup — c'est voulu, et c'est pourquoi rien n'a été touché aux appels.
+     `.display-mega` (48 px) reste disponible pour ce qui demande davantage. */
   .display-xl {
     font-family: var(--font-display);
-    font-size: clamp(1.875rem, 4vw, 2.5rem);
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
     font-weight: 700;
-    line-height: 1.18;
-    letter-spacing: -0.018em;
+    line-height: 2rem;
+    letter-spacing: normal;
   }
 
   /* 36px — « Section Heading ». */
