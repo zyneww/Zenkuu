@@ -45,7 +45,7 @@ pages séparées.
 - [ ] Exchanges, DEX — `/fr/platesformes/decentralized`
 - [ ] Exchanges, dérivés — `/fr/platesformes/derivatives`
 - [ ] Exchanges, DEX perpétuels — `/fr/platesformes/derivatives/decentralized`
-- [ ] Page d'exchange — `/fr/platesformes/binance`
+- [x] Page d'exchange — `/fr/platesformes/binance`
 - [ ] Graphiques globaux — `/fr/charts`
 
 ### Phase 2 — données
@@ -679,6 +679,132 @@ traduit en français, comme `/en/glossary` et `/learn`.
   confiance et de méthodologie, la page 2 et suivantes de la pagination. Aucun
   texte de CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
   l'identification d'un composant.
+
+### Page d'exchange — `/fr/platesformes/binance`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : fiche de détail d'une plateforme d'échange — marchés (paires), identité,
+  statistiques de volume, décomposition du score de confiance. Premier gabarit de
+  détail de l'audit pour une entité **non-actif** : pas de cours propre à
+  l'exchange, pas de graphique de prix, pas de convertisseur.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** :
+  - **Onglet principal de fiche** (déjà nommé sur la page coin,
+    `gecko-tab-underline-item`) — réutilisé tel quel, avec un jeu d'onglets propre à
+    une plateforme d'échange (Marchés, À propos de, Statistiques, Score de
+    confiance) plus deux liens externes (Preuve de réserves → DefiLlama, Jeton
+    d'échange → la fiche coin du jeton natif). Confirme que ce composant sert de
+    gabarit d'onglet de fiche générique, pas seulement pour les actifs.
+  - **Groupe de boutons segmenté** (déjà nommé sur la page coin,
+    `gecko-button-group-item`) — réutilisé ici pour basculer entre « Cours au
+    comptant » et « Contrats perpétuels » (lien vers une fiche d'exchange dérivée
+    séparée, pas un changement de panneau).
+  - **Bouton plein** (déjà nommé) — le CTA « Commencer à négocier » vers le site de
+    l'exchange (lien affilié, `rel="nofollow noopener"`) : mêmes jetons de couleur,
+    de survol et de focus que le bouton plein de l'accueil (fond `rgb(75, 204, 0)`,
+    ombre de relief identique) — confirmé par sondage d'interaction, pas seulement
+    par lecture statique.
+  - **Tableau de paires** — nouveau : table de marché listant les paires négociées
+    sur cette plateforme (rang, monnaie, paire avec lien externe vers l'exchange,
+    cours, spread, profondeur de carnet ±2 %, volume 24 h, volume en %, dernière
+    mise à jour en texte relatif). Mêmes colonnes que le bloc Marchés vu sur la page
+    coin Bitcoin (marchés d'un ACTIF), mais ici les lignes sont les paires d'un
+    SEUL exchange plutôt que les exchanges d'un seul actif — l'axe de la table est
+    inversé, la forme visuelle est la même famille. Bouton « Afficher plus » sous le
+    tableau plutôt qu'une pagination numérotée (vu dans la capture, non instrumenté
+    par sélecteur).
+  - **Widget graphique en anneau (camembert)** — deux instances
+    (`[data-controller="pie-chart"]`) : répartition du volume par paire et par
+    devise de règlement, sous les intitulés « Binance Statistiques ». Premier
+    graphique en anneau de l'audit — à ne pas confondre avec le **graphique de
+    cours** (Highcharts en aires/lignes) déjà nommé sur la page coin : famille de
+    rendu différente (proportions d'un tout, pas une série temporelle), bien que
+    partageant probablement le même moteur (Highcharts, non confirmé pour ce
+    graphique précis dans ce relevé).
+  - **Graphique d'aire de volume** — grand graphique sous les deux anneaux
+    (« Volume de négociation de la plate-forme d'échange »), avec sélecteur de
+    plage 24h/7j/1M/3M/1AN — vu dans la capture avec le même
+    `gecko-button-group-item` que le sélecteur de plage du graphique de cours ;
+    non instrumenté par un sélecteur propre dans ce relevé (même famille que le
+    graphique de cours de la page coin, remplissage sous la courbe en plus).
+  - **Bloc de décomposition du score de confiance** — section « Score de confiance »
+    reprenant la pastille déjà nommée en grand format (« 10/10 »), suivie de quatre
+    jauges horizontales (Liquidité, Réglementation, Cybersécurité, Fournisseur de
+    données) : piste grise arrondie avec portion remplie proportionnelle à un
+    pourcentage, chacune avec une infobulle méthodologique. Nouveau, mais non
+    instrumenté par un sélecteur fiable dans ce relevé — la piste n'a pas de classe
+    `gecko-*` propre, seulement des utilitaires Tailwind génériques
+    (`tw-rounded-full`, `tw-h-1.5`) qui matcheraient d'autres éléments arrondis de
+    la page ; à cibler par un scope plus précis (le conteneur de la section) si une
+    prochaine page recroise ce composant.
+  - **Table d'identité** (« À propos de Binance », « Frais ») — deux tables clé/
+    valeur côte à côte : identité (site web, communauté, e-mail, ID API, adresse,
+    nombre d'entrées, nombre de paires, année de création, pays du siège) et
+    tarification (dépôt, frais, moyens de paiement, opérations sur marge, marché
+    des futures). Famille apparentée au **widget de statistiques** déjà nommé sur
+    la page coin (même forme `<th>`/`<td>`), mais ce relevé n'a pas confirmé le même
+    `itemtype="https://schema.org/Table"` pour cette table précise (recherché,
+    non trouvé dans le HTML de cette page) — à vérifier avant de fusionner les deux
+    entrées sous un seul composant.
+  - **Liste de contrôle** (Réglementation, Cybersécurité, Incident, Couverture API,
+    Équipe) — lignes libellé + coche verte ou tiret, vues dans la capture, non
+    instrumentées par sélecteur dans ce relevé. Nouveau type de composant
+    (affirmation/négation par coche), distinct de la case à cocher d'un
+    **commutateur**.
+- **Fonctionnalités** : bascule d'onglet de fiche, bascule spot/perpétuels
+  (navigation), tri du tableau de paires, affichage étendu du tableau de paires
+  (« Afficher plus »), sélection de plage temporelle du graphique de volume, appel à
+  l'action affilié vers la plateforme externe, infobulles méthodologiques sur
+  chaque composante du score de confiance.
+- **Interactions** : trois sélecteurs sondés en survol et en focus (largeur de
+  référence, deux thèmes) — deltas dans `mesures.json` → `interactions`. **Ligne du
+  tableau de paires** et **en-tête de colonne triable** : mêmes constats que sur
+  les tableaux déjà audités (fond de survol identique, en-tête non focusable).
+  **Bouton plein** (CTA « Commencer à négocier ») : survol et focus confirmés
+  identiques, jeton pour jeton, au bouton plein déjà mesuré sur l'accueil — un
+  composant partagé, pas redécrit dans le détail.
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
+  bascule effective entre les cinq onglets de fiche, ouverture des infobulles du
+  score de confiance, sélection de plage du graphique de volume, extension du
+  tableau de paires via « Afficher plus ».
+- **Données requises** : paires négociées, cours, spread, profondeur de carnet,
+  volume 24 h, répartition du volume par paire/devise sont publiés par l'endpoint
+  tickers de l'API CoinGecko gratuite, déjà consommée par ZENKUU
+  (`ExchangeTickersTable`). Le **score de confiance décomposé** (quatre
+  sous-scores : liquidité, réglementation, cybersécurité, fournisseur de données) et
+  les champs d'identité (année de création, pays du siège, couverture API,
+  historique d'incidents) n'ont pas été vérifiés dans ce relevé comme publiés par
+  l'API gratuite — seul le score global (`trustScore`, déjà consommé) l'est
+  confirmé ; à vérifier avant de les inscrire en synthèse comme manquants ou
+  disponibles.
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/places/[id]/page.tsx` (lu dans le
+  code le 2026-08-30, dev server injoignable au moment du relevé — comparaison sur
+  code source) rend déjà une fiche d'identité (fil d'Ariane, logo, nom, pastille de
+  score via `ExchangeLogo`/`TrustDot`) et le **tableau de paires**
+  (`ExchangeTickersTable`, déjà repéré depuis l'entrée Exchanges spot comme porteur
+  du composant `TrustDot`). N'ont pas d'équivalent identifié dans les fichiers lus
+  pour cette entrée : les deux **widgets graphiques en anneau** (répartition du
+  volume par paire/devise), le **graphique d'aire de volume** de la plateforme, le
+  **bloc de décomposition du score de confiance** en quatre jauges, la **table
+  d'identité** étendue (frais, moyens de paiement, année de création…) et les
+  **listes de contrôle** (réglementation, cybersécurité, incidents, couverture
+  API) — tout ce qui, sur CoinGecko, vit sous les onglets À propos/Statistiques/
+  Score de confiance et que la fiche ZENKUU actuelle, à la lecture du seul fichier
+  de page, ne semble pas porter.
+- **Notes** : bascule de thème validée sur ce gabarit (captures claire/sombre
+  différentes octet pour octet aux trois largeurs). Aucun blocage Cloudflare
+  rencontré (correctif du user-agent déjà en place, posé lors de l'entrée Page
+  coin). Le CTA affilié a deux correspondances sur la page (`a[href*="binance.com/
+  register"]`, `index: 0, total: 2`) : la seconde est probablement un second appel
+  à l'action plus bas dans la page (non vérifié). Restent non observés, faute de
+  simuler un clic ou un défilement : la bascule effective des cinq onglets de
+  fiche, l'ouverture des infobulles du score de confiance, la sélection de plage du
+  graphique de volume, l'extension « Afficher plus » du tableau de paires, et le
+  contenu détaillé des deux graphiques en anneau et du graphique d'aire (mesurés
+  seulement par leur présence, pas par leurs valeurs). Aucun texte de CoinGecko
+  n'est recopié au-delà des libellés strictement nécessaires à l'identification
+  d'un composant.
 
 ## Synthèse — données sans source gratuite
 
