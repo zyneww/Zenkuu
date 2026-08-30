@@ -9,8 +9,17 @@ import { getWatchlistIds } from '@/lib/watchlist-actions'
 /** Base des liens du tableau — fiches d'actif et tri par URL. */
 const BASE_PATH = '/crypto'
 
-/** Lignes par page, valeur de départ du sélecteur du pied de tableau. */
-const PER_PAGE = 25
+/**
+ * Lignes par page, valeur de départ du sélecteur du pied de tableau.
+ *
+ * 100 et non 25 : le tableau d'accueil de la référence en rend cent d'un coup, et
+ * c'est une décision de densité, pas un réglage. Un classement par capitalisation
+ * qui s'arrête à vingt-cinq oblige à paginer pour voir le vingt-sixième actif —
+ * alors que la question « où se situe X » se pose précisément au-delà du top 25.
+ *
+ * Le sélecteur du pied reste : cent est le point de DÉPART, pas un plafond.
+ */
+const PER_PAGE = 100
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════

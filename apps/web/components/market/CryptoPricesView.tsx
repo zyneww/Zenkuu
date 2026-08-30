@@ -25,7 +25,8 @@ import { getContent } from '@/lib/content'
 import { getWatchlistIds } from '@/lib/watchlist-actions'
 import { getPhrase } from '@/lib/content'
 
-const PER_PAGE = 50
+/* 100, la densité de la référence — voir la note de `CryptoBoard`. */
+const PER_PAGE = 100
 const MAX_PAGE = 100
 const BASE_PATH = '/crypto'
 
