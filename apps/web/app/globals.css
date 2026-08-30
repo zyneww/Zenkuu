@@ -2306,12 +2306,17 @@
        ink                 rgb(223, 229, 236) — `h1`, texte de cellule, 65 occ.
        ink-muted           rgb(158, 176, 199) — libellés secondaires, 27 occ.
 
-     `--color-border-subtle` NE PASSE PAS À LEUR valeur mesurée (rgb(229, 231,
-     235), identique au clair chez eux) : posée telle quelle sur ce fond, elle
-     produirait un filet quasi blanc que rien dans l'aspect CoinGecko réel ne
-     montre — DESIGN_SYSTEM.md §9 ne garantit d'ailleurs la coïncidence qu'« en
-     thème clair ». Elle reste à la valeur ZENKUU (#3f3f46) ; voir le rapport de
-     tâche pour cette réserve.
+     `--color-border-subtle` EST MESURÉ DEPUIS LE 2026-08-30, et la réserve qui
+     tenait ici est levée. Elle disait : « ne passe pas à leur valeur mesurée
+     (rgb(229, 231, 235), identique au clair chez eux) : posée telle quelle sur ce
+     fond, elle produirait un filet quasi blanc ». Le constat était juste, la
+     conclusion trop large — ce rgb(229, 231, 235) venait de filets d'ÉPAISSEUR
+     NULLE, où `border-color` vaut `currentColor` et ne décrit donc aucun trait.
+
+     Le filet gauche de `aside#right-sidebar` sur leur accueil est un vrai trait,
+     déclaré : `1.25px rgb(33, 45, 59)` en thème sombre. C'est cette valeur.
+
+     Le clair garde #e5e7eb, mesuré 648 fois et inchangé.
 
      `--color-surface-muted` reste à la valeur ZENKUU (#35353a) : hors des dix
      rôles mesurés pour cette tâche, et son contraste avec la nouvelle
@@ -2325,7 +2330,7 @@
      l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9. */
   --color-surface-hover: #1b232d;
   --color-surface-muted: #35353a;
-  --color-border-subtle: #3f3f46;
+  --color-border-subtle: #212d3b;
 
   --color-ink: #dfe5ec;
   --color-ink-muted: #9eb0c7;

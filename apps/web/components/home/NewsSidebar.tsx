@@ -16,6 +16,14 @@ import { getContent, getPhrase } from '@/lib/content'
  * Elle prend la place que la référence donne à son panneau « Insights » et à sa liste
  * « Latest Market News » : mêmes emplacements, contenu qui nous appartient.
  *
+ * ⚠️ CETTE COLONNE A ÉTÉ RETIRÉE PUIS RÉTABLIE LE MÊME JOUR, SUR UNE MESURE FAUSSE.
+ * Une sonde exécutée dans un navigateur neuf n'a trouvé aucun `<aside>` sur leur
+ * accueil et a conclu que le panneau n'existait pas. Il est REPLIABLE, et replié par
+ * défaut : `aside#right-sidebar`, 288 × 1201, apparaît dès qu'on le déplie, et
+ * l'état est mémorisé par visiteur. Une absence mesurée n'est pas une absence.
+ *
+ * Largeur alignée sur la leur : 288 px, contre 340 auparavant.
+ *
  * ── DEUX BLOCS, ET LE PREMIER PREND TOUT CE QUE L'ARTICLE PORTE ────────────
  *
  *   1. À LA UNE   couverture, source, date, titre, résumé — le dernier article publié
@@ -117,7 +125,10 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
          mi-hauteur du tableau. Étiré, ce bloc épouse la rangée entière — et c'est le
          DIV INTÉRIEUR qui colle, pas lui. C'est aussi ce que fait `AssetNewsAside`, et
          pour la même raison. */
-      className="lg:self-stretch lg:border-l lg:border-border-subtle lg:pl-6"
+      /* `border-l-[1.25px]` : la valeur relevée sur `aside#right-sidebar`, et non le
+         pixel entier de `border-l`. Le quart de pixel se voit — c'est un filet plus
+         dense qu'un trait de un, plus léger qu'un de deux. */
+      className="lg:self-stretch lg:border-l-[1.25px] lg:border-border-subtle lg:pl-6"
     >
       {/* `min-h-0` sur la surface défilante est OBLIGATOIRE et son absence ne se voit
           pas : un enfant de conteneur flexible a une hauteur minimale égale à son
@@ -140,6 +151,10 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
           `pr-1 -mr-1` PART AVEC ELLE : cette compensation réservait la largeur de la
           barre pour que le texte ne saute pas à son apparition. Sans barre, elle ne
           décalait plus que la colonne. */}
+      {/* ⚠️ LE DÉCALAGE RESTE CELUI DE L'EN-TÊTE, ET C'EST UN ÉCART ASSUMÉ. La
+          référence colle son panneau à `top: 0` parce que son en-tête défile
+          entièrement — rien ne le surplombe une fois la page descendue. Celui de
+          ZENKUU est collant : coller le panneau à 0 le glisserait dessous. */}
       <div className="flex flex-col gap-3 lg:sticky lg:top-[calc(var(--header-height)+1rem)] lg:max-h-[calc(100dvh-var(--header-height)-2rem)]">
         <div className="scrollbar-none flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain">
           <Spotlight article={lead} readLabel={t('Lire l’article')} />

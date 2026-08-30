@@ -7,6 +7,7 @@ import { CryptoBoard } from '@/components/home/CryptoBoard'
 import { MarketRibbon } from '@/components/home/MarketRibbon'
 import { MarketWidgets } from '@/components/home/MarketWidgets'
 import { HomeNewsGrid } from '@/components/home/HomeNewsGrid'
+import { NewsSidebar } from '@/components/home/NewsSidebar'
 import { PriceHeader } from '@/components/home/PriceHeader'
 import { getContent } from '@/lib/content'
 
@@ -122,23 +123,39 @@ export default async function HomePage() {
 
   return (
     /*
-      ── LA PAGE EST UNE COLONNE, PAS UNE GRILLE À DEUX PISTES ────────────────
+      ── DEUX COLONNES, ET LA GRILLE D'ACTUALITÉS EN PLUS ─────────────────────
 
-      Elle portait `lg:grid-cols-[minmax(0,1fr)_340px]` : le tableau à gauche, un
-      panneau d'actualités fixe à droite, sur toute la hauteur.
+      ⚠️ CETTE NOTE A DIT LE CONTRAIRE PENDANT QUELQUES HEURES, SUR UNE MESURE
+      FAUSSE. Elle affirmait : « aucun `<aside>`, rien à droite du tableau », relevé
+      à 2116 px de large, et la colonne avait été retirée pour cela.
 
-      Relevé le 2026-08-30 sur l'accueil de la référence, à 2116 px de large : aucun
-      `<aside>`, aucune grille à deux colonnes de plus de 900 px, rien à droite du
-      tableau — qui remplit ses 1270 px de conteneur bord à bord. Ses actualités sont
-      une grille pleine largeur SOUS le classement. Voir `HomeNewsGrid`.
+      Le panneau de la référence est REPLIABLE — `gecko-sidebar-expanded-panel`,
+      `gecko-sidebar-inner` — et l'état est mémorisé par visiteur. Le premier relevé
+      s'est fait dans un navigateur neuf, où il est replié par défaut : la sonde n'a
+      rien vu et a conclu qu'il n'existait pas. Relevé de nouveau dans un navigateur
+      où il est déplié : `aside#right-sidebar`, 288 × 1201, collant à `top: 0`,
+      filet gauche de 1,25 px, portant « Insights » et « Portfolio ».
 
-      `min-w-0` reste INDISPENSABLE et son absence ne se verrait pas tout de suite :
-      la largeur minimale d'un enfant flexible est celle de son contenu le plus large
-      — le tableau — et la page défilerait horizontalement au lieu de le laisser
-      rétrécir. C'est la même raison qu'avant, sur un conteneur différent.
+      LA LEÇON EST GÉNÉRALE : une absence mesurée n'est pas une absence. Un composant
+      replié, masqué sous un point de rupture, ou différé rend exactement le même
+      `querySelectorAll` vide qu'un composant inexistant.
+
+      La grille du bas, elle, était juste : la référence a bien LES DEUX — le panneau
+      à droite ET une grille d'actualités pleine largeur sous le classement, relevée
+      à 7736 px du haut. Voir `HomeNewsGrid`.
+
+      `minmax(0,1fr)` et non `1fr` : une piste en `1fr` refuse de passer sous la
+      taille minimale de son contenu, et le tableau la ferait déborder au lieu de
+      rétrécir. `items-start` : la colonne ne s'étire pas d'elle-même — c'est elle
+      qui demande `self-stretch`, pour que son filet coure sur toute la hauteur.
     */
-    <div className="flex min-w-0 flex-col gap-8">
-      <PriceHeader globals={globals} />
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_288px]">
+      {/* `min-w-0` est OBLIGATOIRE et son absence ne se voit pas tout de suite : sans
+          lui, la largeur minimale de cette piste est celle de son contenu le plus
+          large — le tableau — et la page défilerait horizontalement au lieu de
+          laisser le tableau rétrécir. */}
+      <div className="flex min-w-0 flex-col gap-8">
+        <PriceHeader globals={globals} />
 
       {/* Le substitut passe de 300 à 210 px : le ruban est plus court que la grille
           de repères qu'il remplace — un bandeau de cours et une rangée de cartes de
@@ -170,9 +187,14 @@ export default async function HomePage() {
         <MarketWidgets />
       </Suspense>
 
-      {/* Les actualités ferment la page, comme sur la référence — après le
-          classement, pas à côté de lui. */}
-      <HomeNewsGrid news={news} />
+        {/* La grille ferme la colonne principale. Elle ne fait PAS double emploi
+            avec le panneau de droite : le panneau porte un fil court qu'on lit en
+            regardant le tableau, la grille développe les mêmes sujets en cartes une
+            fois le classement parcouru. La référence a exactement ces deux-là. */}
+        <HomeNewsGrid news={news} />
+      </div>
+
+      <NewsSidebar news={news} />
     </div>
   )
 }
