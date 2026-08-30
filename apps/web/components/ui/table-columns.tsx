@@ -233,7 +233,10 @@ export function ColumnHeader({
         colonne est la dernière — laquelle change avec la largeur de la fenêtre, les
         colonnes de comparaison cédant les premières.
       */
-      className={`border-l border-border-subtle/60 px-3 py-2.5 text-xs font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
+      /* 12 px et non 13 : les en-têtes de colonne de la référence sont en
+         12px/600, contre 13px ici — `text-xs` vaut 13 dans l'échelle ZENKUU, et
+         `--v2-text-2xs` est le seul cran à 12. La graisse, elle, coïncidait déjà. */
+      className={`border-l border-border-subtle/60 px-3 py-2.5 text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
       aria-sort={
         isActive ? (sort?.direction === 'desc' ? 'descending' : 'ascending') : 'none'
       }

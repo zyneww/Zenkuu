@@ -75,7 +75,11 @@ export function ChangeBadge({
     // vivent dans des largeurs fixes (`w-16`) où la coupure est certaine sans cette
     // règle — un nombre séparé de son signe se lit comme un affichage cassé.
     <span
-      className={`tabular inline-flex items-center gap-1 whitespace-nowrap font-medium ${textSize} ${tone} ${spacing}`}
+      /* Graisse 400 et non 500. Dans le tableau de la référence, les variations
+         (1 h, 24 h, 7 j, 30 j) sont rendues en 14px/400, exactement comme le cours et
+         le volume : rien ne les épaissit. Elles se distinguent par la COULEUR, qui
+         suffit — les épaissir en plus disait deux fois la même chose. */
+      className={`tabular inline-flex items-center gap-1 whitespace-nowrap font-normal ${textSize} ${tone} ${spacing}`}
       aria-label={readable}
       title={periodLabel ? `Variation ${periodLabel}` : 'Variation sur 24 heures'}
     >

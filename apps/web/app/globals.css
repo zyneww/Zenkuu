@@ -701,7 +701,6 @@
 
   --text-2xs: 0.6875rem; /* 11px — pastilles d'état */
   --text-2xs--line-height: 0.875rem;
-  --text-2xs--letter-spacing: -0.1px;
   --text-2xs--font-weight: 600;
 
   /* 12px ET NON 11, alors que 11 est bien le second cran de la référence.
@@ -717,36 +716,43 @@
      le met — et le partage des deux crans reproduit alors le sien. */
   --text-xs: 0.8125rem; /* 13px — colonnes secondaires de tableau */
   --text-xs--line-height: 1.125rem;
-  --text-xs--letter-spacing: -0.12px;
 
+  /* ── ⚠️ LE RESSERREMENT A ÉTÉ RETIRÉ DE TOUS LES CRANS ────────────────────
+     Sept crans portaient un `letter-spacing` négatif, de −0,12 px à −1 px. La
+     référence n'en applique AUCUN : tous ses textes, à toutes les tailles,
+     rapportent `normal` — relevé sur seize pages, et reconfirmé au navigateur sur
+     son tableau. `DESIGN_SYSTEM.md` le notait comme un écart NON résolu depuis
+     l'audit, en attendant la bascule sur Inter dont il fallait voir l'effet sur les
+     largeurs. Elle a eu lieu ; l'écart se lève ici, d'un coup, sur toute l'échelle.
+
+     Conséquence à surveiller : sans resserrement, chaque ligne de texte s'allonge
+     de quelques pour mille. C'est la même direction que le passage de Figtree à
+     Inter, et elle se vérifie au même endroit — les colonnes de tableau à 320 px. */
   --text-sm: 0.875rem; /* 14px — LE CRAN DE DENSITÉ, dominant sur la référence */
   --text-sm--line-height: 1.25rem;
-  --text-sm--letter-spacing: -0.12px;
-  --text-sm--font-weight: 500;
+  /* 400 et non 500 : dans le tableau de la référence, TOUTES les cellules de
+     données sont en 14px/400, et seul le nom de l'actif monte à 600. La valeur 500
+     posée ici épaississait la donnée chiffrée du site entier sans qu'aucune classe
+     ne le demande. */
+  --text-sm--font-weight: 400;
 
   --text-base: 1rem; /* 16px — LE CRAN DE LECTURE : paragraphes, boutons */
   --text-base--line-height: 1.5rem;
-  --text-base--letter-spacing: -0.2px;
 
   --text-lg: 1.125rem; /* 18px — titres de carte, intitulés de section */
   --text-lg--line-height: 1.75rem;
-  --text-lg--letter-spacing: -0.2px;
 
   --text-xl: 1.375rem; /* 22px — en-tête daté */
   --text-xl--line-height: 1.75rem;
-  --text-xl--letter-spacing: -0.4px;
 
   --text-2xl: 1.75rem; /* 28px — agrégat de carte */
   --text-2xl--line-height: 2.125rem;
-  --text-2xl--letter-spacing: -0.6px;
 
   --text-3xl: 2.25rem; /* 36px — chiffre héros d'une carte */
   --text-3xl--line-height: 2.75rem;
-  --text-3xl--letter-spacing: -1px;
 
   --text-4xl: 2.75rem; /* 44px — cours en tête de fiche d'actif */
   --text-4xl--line-height: 3.25rem;
-  --text-4xl--letter-spacing: -1.2px;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Couches FLOTTANTES — un quatrième ton, au-dessus des trois plans.
@@ -1854,7 +1860,6 @@
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
     line-height: 1.17;
-    letter-spacing: -0.021em;
   }
 
   /* ── LE TITRE DE PAGE — 24 px, MESURÉ SUR 40 RELEVÉS ──────────────────────
@@ -1896,7 +1901,6 @@
     font-size: clamp(1.625rem, 3.5vw, 2.25rem);
     font-weight: 700;
     line-height: 1.22;
-    letter-spacing: -0.014em;
   }
 
   /* 28px — « Sub-heading », titre de bande à l'intérieur d'une page. */
@@ -1905,7 +1909,6 @@
     font-size: clamp(1.375rem, 2.5vw, 1.75rem);
     font-weight: 700;
     line-height: 1.29;
-    letter-spacing: -0.018em;
   }
 
   /* 22px/600 — « Feature Title ». Interlettrage NORMAL, pas négatif : le
@@ -2124,18 +2127,8 @@
     font-family: var(--font-sans);
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
-    letter-spacing: -0.025em;
   }
 
-  /* Nombres : police tabulaire et chasse fixe. Complète `.tabular` existant.
-     La graisse n'est plus bornée — voir la note de `.tabular`. */
-  .numeric {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    font-variation-settings: 'wdth' 80;
-  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -2778,37 +2771,40 @@
     }
   }
 
+  /* ── ⚠️ LES CHIFFRES NE SONT PLUS EN CHASSE FIXE ──────────────────────────
+     Cette classe posait `font-family: var(--font-mono)` — DM Mono — sur toute la
+     donnée chiffrée du site. Relevé le 2026-08-30 sur le tableau de la référence :
+     ses cellules sont en INTER, 14px/400, avec `font-variant-numeric: normal`.
+     Aucune chasse fixe, aucun chiffre tabulaire.
+
+     `DESIGN.md` justifiait DM Mono par le tressautement des colonnes au
+     rafraîchissement. L'argument est réel, mais il ne demandait pas une AUTRE
+     FONTE : il demandait des chiffres de largeur égale, et `tabular-nums` les
+     obtient dans Inter aussi. La famille suit donc la référence ; la variante
+     numérique reste, parce que ZENKUU pousse ses cours par WebSocket et qu'une
+     colonne qui bouge à chaque tick est un défaut que la référence ne subit pas au
+     même degré.
+
+     C'est le seul écart conservé ici, et il est d'un cran : eux `normal`, nous
+     `tabular-nums`, dans la même fonte et à la même graisse.
+
+     `font-synthesis-weight: none` PART AVEC LA MONO. Il existait parce que DM Mono
+     n'a que 300/400/500 et que toute demande au-delà était un faux gras plus large.
+     Inter est variable de 100 à 900 : la contrainte n'a plus d'objet, et la garder
+     plafonnerait à 500 des graisses qu'Inter rend correctement. */
   .tabular {
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
-    letter-spacing: -0.01em;
 
-    /*
-     * ── LA BORNE DE GRAISSE, ET POURQUOI ELLE REVIENT ─────────────────────
-     *
-     * Ici vivait `font-variation-settings: 'wdth' 80`, qui resserrait la chasse
-     * de Martian Mono — large de nature — pour tenir onze colonnes. L'axe de
-     * largeur n'existe plus : DM Mono n'est pas variable, et la déclaration
-     * serait sans effet. Elle est retirée plutôt que laissée inerte, faute de
-     * quoi le prochain lecteur croira que la densité des colonnes est réglée là.
-     *
-     * Ce qui revient à sa place, c'est la contrainte que Martian Mono avait levée.
-     * DM Mono n'existe qu'en 300, 400 et 500 : toute demande supérieure — le prix
-     * en tête de fiche, les totaux de tableau, qui portent `font-semibold` — est
-     * obtenue par le navigateur en ÉPAISSISSANT le tracé. Ce faux gras est plus
-     * large que la fonte d'origine, si bien qu'une colonne de chiffres à chasse
-     * fixe cesse d'avoir une chasse fixe dès qu'une de ses lignes est mise en
-     * avant — l'exact contraire de ce qu'on vient chercher ici.
-     *
-     * `font-synthesis-weight: none` fait donc rendre toute demande au-delà de 500
-     * en 500 : l'emphase se perd, l'alignement tient. C'est le bon arbitrage, la
-     * colonne étant la raison d'être de la classe. Un chiffre qui a réellement
-     * besoin d'être plus gras doit sortir de `.tabular` et passer en police de
-     * texte avec `font-variant-numeric: tabular-nums` — c'est déjà ce que fait le
-     * cours en tête de fiche.
-     */
-    font-synthesis-weight: none;
+    /* ⚠️ L'INTERLETTRAGE PART AVEC LA MONO. Il valait −0,01em, un resserrement qui
+       compensait la largeur naturelle de DM Mono. Inter n'a pas ce défaut, et la
+       référence ne resserre AUCUN de ses textes, à aucune taille — c'est l'écart que
+       `DESIGN_SYSTEM.md` note depuis l'audit. Le retirer ici le lève sur toute la
+       donnée chiffrée du site, soit la plus grande surface de texte qu'il touche.
+
+       Le bloc « LA BORNE DE GRAISSE » qui vivait ici est parti avec
+       `font-synthesis-weight: none` : il expliquait pourquoi plafonner à 500 dans une
+       fonte qui n'a que 300/400/500. Inter est variable de 100 à 900. */
   }
 
   /*

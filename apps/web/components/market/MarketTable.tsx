@@ -786,7 +786,13 @@ export function MarketTable({
                 dessus de rien et se lisent comme des traits perdus. L'opacité et non
                 un jeton plein : la bande doit rester en dessous des lignes qu'elle
                 surplombe quand le tableau défile, pas les concurrencer. */}
-            <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-xs text-ink-muted">
+            {/* 12 px et graisse 600 : la taille des en-têtes de colonne de la
+                référence. `text-xs` vaut 13 dans l'échelle ZENKUU, et
+                `--v2-text-2xs` est le seul cran à 12. `font-semibold` sur la rangée
+                plutôt que sur chaque cellule : un `<th>` sans graisse déclarée
+                retombe sur le gras du navigateur (700), ce qui laissait la colonne de
+                suivi en 700 quand toutes ses voisines étaient en 600. */}
+            <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
               {/* Le rang coûte quarante pixels pour redire ce que l'ORDRE des lignes
                   dit déjà. Il part le premier. */}
               {/* L'étoile a sa propre colonne, sans en-tête : un intitulé « Suivi »
@@ -794,7 +800,7 @@ export function MarketTable({
                   que la colonne fait. Le libellé vit dans le `aria-label` de chaque
                   bouton, où il est nominatif — « Suivre Bitcoin » plutôt que « Suivi ». */}
               {watchlist ? (
-                <th scope="col" className="w-8 px-1 py-2.5">
+                <th scope="col" className="w-8 px-1 py-2.5 font-semibold">
                   <span className="sr-only">{fr.market.columns.watch}</span>
                 </th>
               ) : null}
@@ -1042,7 +1048,12 @@ export function MarketTable({
                     */}
                     <Link href={href} prefetch={false} className="flex min-w-0 items-center gap-3">
                       <AssetLogo asset={asset} size={24} />
-                      <span className="min-w-0 flex-1 truncate font-medium text-ink group-hover:text-brand">
+                      {/* Graisse 600 : dans le tableau de la référence, le nom de
+                          l'actif est la SEULE cellule plus grasse que les autres —
+                          14px/600 quand toutes les données sont en 14px/400. C'est
+                          ce qui laisse l'œil descendre la colonne des noms sans lire
+                          les chiffres. */}
+                      <span className="min-w-0 flex-1 truncate font-semibold text-ink group-hover:text-brand">
                         {asset.name}
                       </span>
                       <span className="shrink-0 text-right text-xs uppercase text-ink-muted">
@@ -1051,7 +1062,10 @@ export function MarketTable({
                     </Link>
                   </th>
 
-                  <td className="tabular px-2 py-2.5 @min-[790px]:px-3 text-right font-medium text-ink">
+                  {/* Graisse 400 et non 500 : toutes les cellules de DONNÉES de la
+                      référence sont en 14px/400 — cours, variations, volume,
+                      capitalisation, FDV. Seul le nom monte à 600. */}
+                  <td className="tabular px-2 py-2.5 @min-[790px]:px-3 text-right font-normal text-ink">
                     <Money value={asset.price} from={asset.currency} asRate={isForex} />
                   </td>
 
@@ -1063,14 +1077,14 @@ export function MarketTable({
                       // que 24 h (la BCE ne publie qu'un taux par jour ouvré) : on
                       // reprend alors son libellé plutôt que d'affirmer « 24 h ».
                       periodLabel={selected ? selected.longLabel : asset.changePeriodLabel}
-                      size="sm"
+                     
                     />
                   </td>
                   ) : null}
 
                   {shows.change7d ? (
                     <td className="hidden px-2 py-2.5 @min-[790px]:px-3 text-right @min-[790px]:table-cell">
-                      <ChangeBadge value={asset.change7d} periodLabel="sur 7 jours" size="sm" />
+                      <ChangeBadge value={asset.change7d} periodLabel="sur 7 jours" />
                     </td>
                   ) : null}
 
@@ -1079,7 +1093,7 @@ export function MarketTable({
                       <ChangeBadge
                         value={asset.change30d}
                         periodLabel={period30d.longLabel}
-                        size="sm"
+                       
                       />
                     </td>
                   ) : null}
@@ -1092,7 +1106,7 @@ export function MarketTable({
                       <ChangeBadge
                         value={asset[entry.field]}
                         periodLabel={entry.longLabel}
-                        size="sm"
+                       
                       />
                     </td>
                   ))}
@@ -1118,7 +1132,7 @@ export function MarketTable({
                       <ChangeBadge
                         value={athGap(asset)}
                         periodLabel="depuis son plus haut historique"
-                        size="sm"
+                       
                       />
                     </td>
                   ) : null}
