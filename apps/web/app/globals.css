@@ -99,8 +99,8 @@
      habillée de teintes ZENKUU — un bleu glacier en sombre, un cyan profond en
      clair, sombre par défaut. L'exploitant a validé la bascule intégrale : ce
      bloc porte désormais les couleurs RÉELLES de CoinGecko, mesurées dans le
-     navigateur sur dix pages (`docs/references/coingecko/*/mesures.json`, 3
-     largeurs × 2 thèmes chacune), et non plus seulement leur rôle.
+     navigateur sur dix pages (`docs/references/coingecko`, un `mesures.json`
+     par page, 3 largeurs × 2 thèmes chacune), et non plus seulement leur rôle.
 
      Chaque jeton ci-dessous porte en commentaire le sélecteur et la page qui ont
      produit sa valeur. Les ratios notés sont ceux que rejoue `app/palette.test.ts`
@@ -2259,7 +2259,7 @@
      REMPLACE ZINC/DROPSTAB CI-DESSUS (log conservé, plus la couleur en vigueur).
 
      Neutres mesurés sur dix pages (DESIGN_SYSTEM.md §9,
-     docs/references/coingecko/*/mesures.json, thème sombre) :
+     docs/references/coingecko, un mesures.json par page, thème sombre) :
        canvas = panel      rgb(13, 18, 23)   — `table.sortable`, 41 occurrences
        surface = hover     rgb(27, 35, 45)   — delta de survol, 6 occurrences
        ink                 rgb(223, 229, 236) — `h1`, texte de cellule, 65 occ.
