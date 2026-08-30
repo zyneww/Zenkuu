@@ -381,7 +381,7 @@ function Group({
             >
               <span
                 className={`w-12 shrink-0 text-[0.6875rem] font-medium uppercase tracking-wide ${
-                  item.selected ? 'text-ink' : 'text-ink-muted'
+                  item.selected ? 'text-brand-strong' : 'text-ink-muted'
                 }`}
               >
                 {item.code}
@@ -395,7 +395,7 @@ function Group({
                     troncature coûte la lisibilité. */}
                 <span
                   className={`block text-sm leading-snug ${
-                    item.selected ? 'font-medium text-ink' : 'text-ink'
+                    item.selected ? 'font-medium text-brand-strong' : 'text-ink'
                   }`}
                 >
                   {item.title}

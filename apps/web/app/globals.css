@@ -217,14 +217,24 @@
      support de texte à lui seul. Non couvert par `app/palette.test.ts`. */
   --color-brand-soft: #eafbe0;
 
-  /* Couleur du TEXTE posé SUR un aplat de marque — mesurée, pas dérivée.
-     CoinGecko pose du texte NOIR sur son bouton d'action vert dans les deux
-     thèmes (`couleur: rgb(0, 0, 0)` sur `#use-app-btn button`, clair comme
-     sombre) : ce jeton reprend cette valeur telle quelle plutôt que de choisir
-     noir/blanc par calcul. Elle passe largement dans les deux thèmes (9,94:1
-     clair, 12,64:1 sombre) — `app/palette.test.ts` la vérifie à chaque
-     exécution. */
-  --color-on-brand: #000000;
+  /* Couleur du TEXTE posé SUR un aplat de marque — REMESURÉE le 2026-08-30.
+     CoinGecko pose du texte BLANC sur ses boutons verts en thème clair. Vérifié
+     sur cinq boutons distincts d'une même page (« S'inscrire », « Utiliser
+     l'app », « Créer un compte », « Télécharger l'app », « Sans publicité ») :
+     tous rendent `rgb(255, 255, 255)` sur `rgb(75, 204, 0)`.
+
+     ⚠️ CE JETON VALAIT #000000, ET C'ÉTAIT UN ARTEFACT DE MESURE. L'ancien outil
+     lisait la couleur sur le `<button>`, qui ne possède aucun nœud texte en
+     propre : sa `color` calculée retombait sur le noir par défaut du navigateur.
+     Le texte visible vit dans un `<div>` enfant, et il est blanc. Même défaut que
+     les 84 relevés à `rgb(0, 0, 238)` — voir `indexPorteurDuTexte` dans
+     `scripts/audit-coingecko-page.mjs`.
+
+     ⚠️ BLANC SUR CE VERT DONNE 2,11:1, TRÈS EN DESSOUS DE 4,5:1. C'est un défaut
+     d'accessibilité de CoinGecko, sur ses appels à l'action les plus visibles.
+     Le noir aurait donné 9,94:1. La fidélité l'emporte par décision de
+     l'exploitant, et l'écart est épinglé dans `ECARTS` — pas masqué. */
+  --color-on-brand: #ffffff;
 
   /* ── LA LUEUR DES ÉTATS ACTIFS ────────────────────────────────────────────
      Une ombre portée SANS décalage ni flou étendu : c'est la diffusion d'un
@@ -2305,20 +2315,27 @@
 
      Contraste sur le canvas sombre : 11,32:1 — largement au-dessus du seuil AA,
      y compris en texte de lien. `--color-brand-strong`/`-soft` restent dérivés
-     ICI, non mesurés, non couverts par `app/palette.test.ts` : le relevé du
-     2026-08-30 a fixé la variante CLAIRE sur `primary-600` mesuré, mais n'a pas
-     résolu son équivalent sombre. À mesurer au prochain passage navigateur. */
+     ICI pour `-soft` seul. `--color-brand-strong` EST mesuré depuis le
+     2026-08-30 : l'onglet sélectionné de `/fr/highlights` rend `rgb(128, 224, 56)`
+     en sombre, soit `primary-400` — la MÊME valeur que `--color-brand`. Ce n'est
+     pas une erreur de recopie : CoinGecko emploie `primary-600` en clair et
+     `primary-400` en sombre pour son vert d'emphase, et `primary-400` sert aussi
+     d'aplat de bouton en sombre. Les deux rôles coïncident de ce côté. */
   --color-brand: #80e038;
-  --color-brand-strong: #99e660;
+  --color-brand-strong: #80e038;
   --color-brand-soft: #21311c;
   /* Sur fond sombre la lueur RAYONNE : portée plus large. La teinte suit
      `--color-brand`, verte désormais. */
   --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(128 224 56 / 0.38);
 
-  /* Texte NOIR sur le vert — mesuré, pas dérivé : CoinGecko pose `couleur: rgb(0,
-     0, 0)` sur `#use-app-btn button` dans les deux thèmes, jamais du blanc.
-     12,64:1 sur `--color-brand` sombre — `app/palette.test.ts` la vérifie. */
-  --color-on-brand: #000000;
+  /* Vert TRÈS FONCÉ sur le vert clair — REMESURÉ le 2026-08-30 : `#use-app-btn
+     button` rend `rgb(11, 97, 0)` sur `rgb(128, 224, 56)` en thème sombre. La
+     valeur précédente (#000000) venait du même artefact qu'en clair — l'ancien
+     outil lisait le `<button>`, sans texte propre, au lieu de son enfant porteur.
+
+     Contrairement au thème clair, celui-ci PASSE : 4,70:1, au-dessus de 4,5:1.
+     Le thème sombre de CoinGecko est ici plus accessible que son thème clair. */
+  --color-on-brand: #0b6100;
 
   --color-gold: #fbbf24;
   --color-gold-strong: #fcd34d;

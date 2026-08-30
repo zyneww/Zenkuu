@@ -133,7 +133,7 @@ export function LinkTabs({
             href={tab.href}
             aria-current={selected ? 'page' : undefined}
             className={`whitespace-nowrap px-3 pb-3 pt-2.5 text-sm font-medium transition-colors duration-150 ${
-              selected ? 'text-ink' : 'text-ink-muted hover:text-ink'
+              selected ? 'text-brand-strong' : 'text-ink-muted hover:text-ink'
             }`}
           >
             {tab.label}

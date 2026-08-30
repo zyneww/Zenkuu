@@ -106,7 +106,7 @@ export default async function ScreenerPage({
             aria-current={entry.id === market.id ? 'page' : undefined}
             className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors duration-150 ${
               entry.id === market.id
-                ? 'border-brand text-ink'
+                ? 'border-brand text-brand-strong'
                 : 'border-transparent text-ink-muted hover:text-ink'
             }`}
           >

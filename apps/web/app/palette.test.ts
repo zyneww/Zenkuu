@@ -42,6 +42,13 @@ import { describe, expect, it } from 'vitest'
  *   --color-brand / --color-surface   2,02:1   le même, sur la surface
  *   --color-up    / --color-canvas    3,15:1   rgb(0, 168, 62)  — 310 occurrences
  *   --color-down  / --color-canvas    3,56:1   rgb(255, 58, 51) —  90 occurrences
+ *   --color-on-brand / --color-brand  2,11:1   texte BLANC sur le bouton vert
+ *
+ * Le dernier a été ajouté le 2026-08-30, après remesure. Il valait auparavant
+ * 9,94:1 parce que le jeton était noir — mais ce noir était un ARTEFACT : l'outil
+ * lisait la couleur du `<button>`, qui n'a pas de texte en propre, au lieu de son
+ * enfant porteur. CoinGecko pose bien du texte BLANC sur ses boutons verts, vérifié
+ * sur cinq boutons distincts. Le thème sombre, lui, passe à 4,70:1.
  *
  * CE N'EST PAS UNE DÉROGATION SILENCIEUSE, et le seuil AA n'est pas abaissé d'un
  * dixième. Ces couples QUITTENT `PAIRS` pour `ECARTS`, où leur ratio mesuré est
@@ -134,6 +141,7 @@ const ECARTS: Record<string, readonly [foreground: string, background: string, p
     ['--color-brand', '--color-surface', 2.02],
     ['--color-up', '--color-canvas', 3.15],
     ['--color-down', '--color-canvas', 3.56],
+    ['--color-on-brand', '--color-brand', 2.11],
   ],
   'thème sombre': [],
 }

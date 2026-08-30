@@ -128,7 +128,7 @@ export function WatchlistStar({
             aria-hidden="true"
           />
         }
-        className={following ? 'text-ink hover:text-brand' : ''}
+        className={following ? 'text-brand-strong hover:text-brand-strong' : ''}
       />
 
       {capped ? (
