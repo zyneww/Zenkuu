@@ -1029,14 +1029,65 @@ EOF
 
 ---
 
-### Tâche 5 : Auditer toutes les pages restantes
+### Tâche 5 : Auditer les pages archétypes
 
-Répétition de la boucle de la tâche 4 jusqu'à ce qu'aucune case ne reste vide. **Un commit
-par page.** L'ordre suit la liste : phase 1, puis 2, puis 3.
+**Cette tâche a été réduite en cours de route, et c'est une décision, pas un renoncement.**
+
+Le découpage de ce plan repose sur une phrase : *« la fidélité de CoinGecko ne vit pas
+dans une trentaine de mises en page, mais dans une vingtaine de composants partagés que
+chaque page recompose. »* L'audit de l'accueil l'a confirmée — 22 composants nommés d'un
+seul coup. Auditer les 67 pages restantes pour retrouver ces composants est donc un
+sur-échantillonnage : la valeur est concentrée sur les premières pages et décroît vite,
+les dernières ne faisant que référencer ce qui est déjà décrit.
+
+Deux faits ont achevé de trancher : l'énumération a trouvé **68 pages** là où l'ordre de
+grandeur annoncé était la moitié, et le site n'a toujours pas bougé d'une ligne — alors
+que la réplique est demandée précisément pour pouvoir juger page par page ce qui est gardé.
+
+**Cette tâche audite donc les pages qui portent des familles de composants nouvelles.**
+Les autres seront auditées **au moment de leur migration**, quand la question « qu'est-ce
+que je garde ? » est concrète et que le relevé sert immédiatement.
 
 **Fichiers :**
-- Modifier : `COINGECKO_AUDIT.md` (une entrée et une case par page)
+- Modifier : `COINGECKO_AUDIT.md` (une entrée et une case par page auditée, plus le
+  marquage des pages différées)
 - Créer : `docs/references/coingecko/<slug>/` (six captures par page, non versionnées)
+
+**Le critère de choix.** Une page mérite d'être auditée maintenant si elle porte une
+**famille de composants** qu'aucune page déjà auditée ne porte. Une page qui recompose
+les mêmes composants dans un ordre différent n'apprend rien au système de dessin.
+
+Sélection proposée — à confirmer en lisant les pages, pas à appliquer aveuglément :
+
+| Page | Famille qu'elle apporte |
+|---|---|
+| Accueil — `/fr` | ✅ fait : tableau dense, navigation, pied de page, overlay de recherche |
+| Page coin, Vue d'ensemble — `/fr/coins/bitcoin` | gabarit de détail, onglets, widgets de statistiques, graphique |
+| Catégories — `/fr/categories` | tableau de listes non chiffrées |
+| Page de catégorie — `/fr/categories/meme-token` | tableau filtré, en-tête de contexte |
+| Exchanges, spot — `/fr/platesformes` | tableau à colonnes de confiance et de volume |
+| Page d'exchange — `/fr/platesformes/binance` | gabarit de détail non-actif, tableau de paires |
+| Graphiques globaux — `/fr/charts` | page à dominante graphique |
+| Une page éditoriale (learn ou article) | gabarit de lecture, typographie longue |
+| Page API | gabarit marchand — tarifs, appels à l'action |
+| Portefeuille — `/fr/portfolio` | gabarit de compte, états vides |
+
+Si en auditant l'une d'elles tu constates qu'elle n'apporte **aucun** composant nouveau,
+dis-le et passe à la suivante : c'est une information utile, pas un échec. Inversement,
+si une page hors de cette liste s'avère nécessaire, ajoute-la en motivant.
+
+**Marquer les pages différées.** À la fin de la tâche, ajouter dans `COINGECKO_AUDIT.md`,
+en tête de la liste des pages, une note disant que les cases non cochées ne sont pas un
+travail en retard mais un travail **délibérément différé au moment de la migration de
+chaque page**, avec la raison. Sans cette note, un lecteur futur lira 58 cases vides comme
+un audit inachevé.
+
+⚠️ **Conséquence sur le vérificateur.** `node scripts/audit-coingecko-doc.mjs --strict`
+continuera d'échouer tant que les 58 pages différées ne sont pas cochées — et **c'est le
+comportement correct** : l'audit n'est effectivement pas complet. Ne modifie pas le
+vérificateur pour le faire taire. Le critère de clôture du sous-projet A change en
+conséquence (voir tâche 11) ; `--strict` reste la porte de la complétude finale, qui se
+franchira à la fin de la migration.
 
 **Interfaces :**
 - Consomme : le vocabulaire de composants posé par la tâche 4 — un composant déjà nommé
@@ -1672,13 +1723,26 @@ EOF
 - [ ] **Étape 1 : Toutes les vérifications automatiques**
 
 ```bash
-node scripts/audit-coingecko-doc.mjs --strict
+node scripts/audit-coingecko-doc.mjs
 bunx vitest run
 bun run lint
 bun run typecheck
 ```
 
 Attendu : code de sortie 0 pour la première, la troisième et la quatrième.
+
+⚠️ **`--strict` n'est PLUS le critère de clôture du sous-projet A**, la tâche 5 ayant été
+réduite aux pages archétypes. Il continuera d'échouer sur les pages différées, et c'est
+juste : l'audit n'est pas complet, il est délibérément partiel. Le critère devient :
+
+1. `node scripts/audit-coingecko-doc.mjs` **sans** `--strict` rend le code 0 — donc chaque
+   entrée écrite est structurellement valide et rattachée à la liste ;
+2. **toutes les pages archétypes de la tâche 5 sont cochées** ;
+3. la note expliquant que les cases restantes sont différées, et pourquoi, figure en tête
+   de la liste des pages.
+
+`--strict` reste la porte de la complétude finale, qui se franchira quand la migration
+aura audité les dernières pages.
 
 ⚠️ **`bunx vitest run` échoue déjà avant ce sous-projet**, sur une assertion périmée de
 `apps/web/components/tools/treemap.test.ts` (`heatTone(undefined)` y est attendu en
