@@ -2,39 +2,41 @@
 version: 1
 name: ZENKUU
 description: >-
-  Un site d'information de marché en lecture seule, sombre par défaut. Le fond est un
-  gris de nuit (#18181b) sur lequel les surfaces montent par paliers d'éclaircissement
-  plutôt que par ombres — surface, panneau, surface sourde. La tension de marque est un
-  bleu glacier (#a9eafe en sombre, un cyan profond #0e7490 en clair), employé avec
-  parcimonie : liens, onglet actif, un seul bouton plein par écran. Toute la donnée
-  chiffrée est composée en chasse fixe (DM Mono) pour que les colonnes ne tressautent
-  pas d'un rafraîchissement à l'autre ; tout le reste est en Figtree. La densité est
-  assumée — 14 px de corps dominant, des tableaux de cent lignes — et c'est ce qui
-  distingue le site des vitrines du secteur.
+  Un site d'information de marché en lecture seule, CLAIR par défaut. Le fond est un
+  blanc pur sur lequel les surfaces se distinguent par des filets gris très pâles
+  (#e5e7eb) plutôt que par des paliers d'éclaircissement ; en thème sombre, le fond
+  descend à un bleu-noir profond (#0d1217) et les surfaces remontent par paliers
+  (#1b232d). La tension de marque est un vert franc (#4bcc00 en clair, #80e038 en
+  sombre) qui ne sert JAMAIS de couleur de texte au repos : uniquement en aplat, sous
+  une encre noire. Les liens sont en encre, et ne verdissent qu'au survol. Toute la
+  donnée chiffrée est composée en chasse fixe (DM Mono) pour que les colonnes ne
+  tressautent pas d'un rafraîchissement à l'autre ; tout le reste est en Inter. La
+  densité est assumée — 14 px de corps dominant, des tableaux de cent lignes — et
+  c'est ce qui distingue le site des vitrines du secteur.
 
 colors:
-  brand: "#a9eafe"
-  brand-strong: "#cdf3ff"
-  brand-light: "#0e7490"
-  brand-strong-light: "#155e75"
-  canvas: "#18181b"
+  brand: "#80e038"
+  brand-light: "#4bcc00"
+  brand-strong: "#99e660"
+  brand-strong-light: "#35af00"
+  canvas: "#0d1217"
   canvas-light: "#ffffff"
-  surface: "#27272a"
+  surface: "#1b232d"
   surface-light: "#f8fafc"
-  panel: "#2f2f33"
+  panel: "#0d1217"
   panel-light: "#ffffff"
   surface-muted: "#35353a"
-  surface-muted-light: "#f1f5f9"
+  surface-muted-light: "#f8fafc"
   border-subtle: "#3f3f46"
   border-subtle-light: "#e5e7eb"
-  ink: "#ffffff"
-  ink-light: "#111827"
-  ink-muted: "#a1a1aa"
-  ink-muted-light: "#4b5563"
-  up: "#22c55e"
-  up-light: "#15803d"
-  down: "#ef4444"
-  down-light: "#dc2626"
+  ink: "#dfe5ec"
+  ink-light: "#0f172a"
+  ink-muted: "#9eb0c7"
+  ink-muted-light: "#64748b"
+  up: "#32ca5b"
+  up-light: "#00a83e"
+  down: "#ff3a33"
+  down-light: "#ff3a33"
 
 typography:
   # L'ÉCHELLE ÉNUMÉRÉE. Ce sont les jetons `--text-*` de `apps/web/app/globals.css`,
@@ -62,22 +64,22 @@ typography:
     hero: 48px
 
   body:
-    fontFamily: "Figtree, ui-sans-serif, system-ui, -apple-system, sans-serif"
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif"
     fontSize: 14px
     fontWeight: 500
     lineHeight: 1.14
     letterSpacing: -0.12px
   reading:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 16px
     fontWeight: 400
     lineHeight: 1.6
   table-secondary:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 13px
     fontWeight: 400
   micro:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 11px
     fontWeight: 500
   numeric:
@@ -85,31 +87,31 @@ typography:
     fontSize: 14px
     fontWeight: 400
   display-hero:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 48px
     fontWeight: 700
     lineHeight: 1.17
     letterSpacing: -0.021em
   display-xl:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 40px
     fontWeight: 700
     lineHeight: 1.18
     letterSpacing: -0.018em
   display-lg:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 36px
     fontWeight: 700
     lineHeight: 1.22
     letterSpacing: -0.014em
   display-md:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 28px
     fontWeight: 700
     lineHeight: 1.29
     letterSpacing: -0.018em
   display-sm:
-    fontFamily: "Figtree, sans-serif"
+    fontFamily: "Inter, sans-serif"
     fontSize: 22px
     fontWeight: 600
     lineHeight: 1.2
@@ -133,7 +135,7 @@ shadows:
 > blanc, un bleu #0052ff et les fontes sous licence CoinbaseDisplay / CoinbaseSans.
 > C'était une pièce d'INSPIRATION importée en début de projet, jamais remplacée — et
 > jamais vraie de ce site, qui est sombre par défaut, glacier plutôt que bleu roi, et
-> composé en Figtree.
+> composé en Inter (en Figtree à l’époque de cette note).
 >
 > Le coût n'était pas seulement documentaire. Le détecteur `impeccable` lit l'échelle
 > typographique dans l'entête de CE fichier : il validait donc chaque taille écrite
@@ -201,27 +203,35 @@ sur presque-blanc en thème clair.
 
 ### Les deux fontes
 
-**Figtree** porte l'interface et les titres. **DM Mono** porte les nombres.
+**Inter** porte l'interface et les titres. **DM Mono** porte les nombres.
 
-⚠️ **Figtree est un ÉQUIVALENT LIBRE, choisi par mesure.** La refonte demande la fonte de
-KuCoin ; relevée sur leur page, c'est *Kufox Sans*, une fonte sur mesure et propriétaire
-qui ne se distribue pas. Trois grandeurs relevées au canevas à corps 100 — chasse totale,
-hauteur d'x, hauteur de capitale — désignent Figtree comme la plus proche parmi les
-fontes libres :
+**Inter est la fonte de la référence, servie telle quelle.** CoinGecko compose tout son
+site en Inter — 363 mesures concordantes sur neuf pages, relevées le 2026-08-30, avec la
+pile de repli `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+Arial`. Inter est publiée sous SIL OFL et servie par `next/font/google` : il n'y a aucune
+raison de lui chercher un équivalent.
+
+⚠️ **Ce paragraphe décrivait un tout autre problème jusqu'au 2026-08-30.** ZENKUU servait
+Figtree comme équivalent libre de *Kufox Sans*, la fonte SUR MESURE de **KuCoin** — cible
+d'une refonte antérieure, légitimement non redistribuable. Le raisonnement était juste
+pour cette cible ; il ne s'applique pas à CoinGecko, dont la fonte est publique.
 
 | Fonte | Chasse | x | Capitale | x/cap |
 |---|---|---|---|---|
-| **Kufox Sans** (cible) | 1675 | 51 | 71 | 0,718 |
-| **Figtree** (retenue) | 1644 | 50 | 70 | **0,714** |
-| Geist (précédente) | 1673 | 53 | 71 | 0,746 |
-| Urbanist | 1561 | 51 | 71 | 0,718 |
-| Manrope | 1683 | 55 | 73 | 0,753 |
-| Plus Jakarta Sans | 1736 | 54 | 75 | 0,720 |
-| Inter | 1733 | 54 | 73 | 0,740 |
+| **Inter** (servie) | 1733 | 54 | 73 | 0,740 |
+| Figtree (précédente) | 1644 | 50 | 70 | 0,714 |
+| Geist (avant elle) | 1673 | 53 | 71 | 0,746 |
 
-Le rapport x/capitale est la colonne qui décide : c'est lui qui fait qu'une fonte paraît
-grande ou petite à corps égal. Le détail du raisonnement vit dans l'entête de
-`apps/web/app/[locale]/layout.tsx`.
+⚠️ **Inter est 5,4 % plus large que Figtree à corps égal, et c'est la direction qui
+casse.** Le passage à Figtree allait dans le sens sûr : les colonnes dimensionnées au
+caractère près gagnaient de la marge. Celui-ci va dans l'autre sens — un libellé qui
+tenait tout juste peut se mettre à déborder. Sa hauteur d'x monte de 50 à 54 (+8 %) : le
+texte paraît plus grand à corps identique, ce qui est la proportion voulue. L'échelle en
+pixels ne bouge pas. Le détail vit dans l'entête de `apps/web/app/[locale]/layout.tsx`.
+
+⚠️ **CoinGecko sert une variante `Inter-Dark` en thème sombre**, relevée en tête de pile
+dans les mesures. Elle n'est pas distribuée publiquement : les deux thèmes reçoivent donc
+la même Inter.
 
 **DM Mono n'a pas suivi.** KuCoin compose ses cotations dans sa fonte proportionnelle ;
 ce site aligne cent lignes sur onze colonnes rafraîchies toutes les trois minutes, et la

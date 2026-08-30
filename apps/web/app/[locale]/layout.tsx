@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Mono, Figtree } from 'next/font/google'
+import { DM_Mono, Inter } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
@@ -29,78 +29,67 @@ import { SITE_URL, languageAlternates } from '@/lib/site'
 import '@/app/globals.css'
 
 /**
- * Police d'INTERFACE ET D'AFFICHAGE — Figtree.
+ * Police d'INTERFACE ET D'AFFICHAGE — Inter.
  *
  * ══════════════════════════════════════════════════════════════════════════════
- * ⚠️ LA POLICE DE LA RÉFÉRENCE EST PROPRIÉTAIRE. CECI EST SON ÉQUIVALENT LIBRE.
+ * LA FONTE DE LA RÉFÉRENCE EST LIBRE : ON LA SERT, ON NE L'IMITE PAS.
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * La refonte demande la fonte de KuCoin. Relevée sur leur page — `getComputedStyle`
- * sur le corps du document — c'est **Kufox Sans**, chargée en variable de 400 à 800,
- * romaine et italique. C'est une fonte SUR MESURE, commandée pour cette marque : elle
- * ne se vend pas, ne se distribue pas, et la recopier depuis leur CDN serait un vol de
- * fichier autant qu'une violation de licence. Il fallait donc son équivalent le plus
- * proche parmi les fontes libres — ce que la consigne prévoyait explicitement.
+ * CoinGecko sert **Inter**. Relevé le 2026-08-30 sur neuf de leurs pages, 363 mesures
+ * concordantes, pile de repli complète :
+ * `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial`.
+ * Inter est publiée sous SIL OFL et servie par `next/font/google` : rien n'oblige à
+ * lui chercher un équivalent.
  *
- * ── LE CHOIX EST MESURÉ, PAS ESTIMÉ À L'ŒIL ─────────────────────────────────
+ * ── POURQUOI CE FICHIER PARLAIT DE KUCOIN ───────────────────────────────────
+ *
+ * La version précédente retenait Figtree comme équivalent libre de **Kufox Sans**,
+ * fonte SUR MESURE de KuCoin — cible d'une refonte antérieure. Ce raisonnement était
+ * juste POUR CETTE CIBLE : une fonte commandée pour une marque ne se redistribue pas,
+ * et la recopier depuis un CDN serait un vol de fichier autant qu'une violation de
+ * licence. Il ne s'applique pas à CoinGecko, dont la fonte est publique. Servir un
+ * substitut à une fonte qu'on a le DROIT de servir ajoutait un écart sans contrepartie.
+ *
+ * ── CE QUE LE CHANGEMENT DÉPLACE, ET DANS QUEL SENS ─────────────────────────
  *
  * Trois grandeurs relevées au canevas, à corps 100, sur la chaîne
- * « Capitalisation boursiere 1234567890 » — la chasse totale, la hauteur d'x et la
- * hauteur de capitale. La troisième colonne, le RAPPORT x/capitale, est celle qui
- * décide : c'est elle qui fait qu'une fonte paraît grande ou petite à corps égal,
- * bien plus que la chasse.
+ * « Capitalisation boursiere 1234567890 » — chasse totale, hauteur d'x, hauteur de
+ * capitale. Le rapport x/capitale décide de la taille APPARENTE à corps égal :
  *
- *   Kufox Sans (cible)   chasse 1675   x 51   cap 71   x/cap 0,718
- *   Figtree              chasse 1644   x 50   cap 70   x/cap 0,714   ← retenue
- *   Geist (précédente)   chasse 1673   x 53   cap 71   x/cap 0,746
- *   Urbanist             chasse 1561   x 51   cap 71   x/cap 0,718
- *   Manrope              chasse 1683   x 55   cap 73   x/cap 0,753
- *   Plus Jakarta Sans    chasse 1736   x 54   cap 75   x/cap 0,720
- *   Outfit               chasse 1608   x 48   cap 70   x/cap 0,686
- *   Inter                chasse 1733   x 54   cap 73   x/cap 0,740
- *   Poppins              chasse 1804   x 56   cap 71   x/cap 0,789
- *   Be Vietnam Pro       chasse 1826   x 53   cap 74   x/cap 0,716
- *   Sora                 chasse 1864   x 54   cap 73   x/cap 0,740
+ *   Inter     chasse 1733   x 54   cap 73   x/cap 0,740   ← servie désormais
+ *   Figtree   chasse 1644   x 50   cap 70   x/cap 0,714   ← précédente
  *
- * Figtree est la seule à tomber près de la cible sur les TROIS à la fois : 1,9 % plus
- * étroite, une demi-unité de hauteur d'x, quatre millièmes d'écart sur le rapport.
- * Urbanist reproduit le rapport au millième près mais perd 6,8 % de chasse — une
- * densité sensiblement différente. Les autres s'écartent d'au moins 3,5 %.
+ * ⚠️ INTER EST 5,4 % PLUS LARGE QUE FIGTREE À CORPS ÉGAL, ET C'EST LA DIRECTION QUI
+ * CASSE. Le passage à Figtree allait dans le sens sûr : les colonnes dimensionnées au
+ * caractère près gagnaient de la marge. Celui-ci va dans l'autre sens — un libellé qui
+ * tenait tout juste peut se mettre à déborder. Les tableaux denses sont à revérifier
+ * à 360 px, la largeur où la marge est la plus mince.
  *
- * ── LA SUBSTITUTION VA DANS LE SENS SÛR ─────────────────────────────────────
+ * La hauteur d'x monte de 50 à 54 (+8 %) : le texte PARAÎT plus grand à corps
+ * identique. C'est voulu, c'est la proportion de la référence. L'échelle en pixels
+ * ne bouge pas.
  *
- * Figtree est 1,8 % PLUS ÉTROITE que Geist à corps égal. C'est la direction qui ne
- * casse rien : les colonnes de tableau dimensionnées au caractère près gagnent
- * quelques pixels de marge au lieu d'en perdre. Un libellé qui débordait déjà
- * débordera encore ; aucun ne se met à déborder du fait du changement.
- *
- * ⚠️ CE QUI CHANGE VRAIMENT EST LA HAUTEUR D'X : 50 contre 53, soit 5,7 % de moins.
- * Le texte PARAÎT donc légèrement plus petit à corps identique, et c'est précisément
- * ce que « adopter les proportions de KuCoin » veut dire — leur fonte a des capitales
- * hautes et un œil modeste. L'échelle en pixels, elle, ne bouge pas : 13 px de corps,
- * 16 px d'interligne, graisse 500, interlettrage −0,12 px restent ceux relevés sur
- * tokenomist.ai (voir `--text-sm` dans globals.css).
+ * ⚠️ CE QU'ON NE PEUT PAS REPRODUIRE. CoinGecko sert une variante `Inter-Dark` en
+ * thème sombre — relevée en tête de pile dans les 363 mesures, vraisemblablement
+ * ajustée optiquement pour du texte clair sur fond sombre. Elle n'est pas distribuée
+ * publiquement. Les deux thèmes reçoivent donc la même Inter ; l'écart, s'il existe,
+ * porte sur le rendu du gras en sombre, pas sur les proportions.
  *
  * ── UN SEUL FICHIER POUR TOUTE L'ÉCHELLE ─────────────────────────────────────
  *
- * `next/font/google` sert la version VARIABLE de Figtree : les cinq graisses utilisées
- * par le site viennent d'une ressource unique, et le navigateur interpole au lieu de
+ * `next/font/google` sert la version VARIABLE d'Inter : les graisses utilisées par le
+ * site viennent d'une ressource unique, et le navigateur interpole au lieu de
  * synthétiser un gras artificiel. `display: 'swap'` évite le texte invisible pendant
  * le chargement, qui pénalise le LCP mesuré (§9).
- *
- * `app/fonts/Switzer-Variable.woff2` A ÉTÉ SUPPRIMÉ. Il n'était plus référencé par
- * personne depuis le passage à `next/font/google` — 43 kilooctets de fonte morte que
- * le dépôt trimballait, et un candidat de plus à la confusion pour qui cherche
- * quelle fonte le site sert vraiment. Le répertoire `app/fonts/` disparaît avec lui.
  */
-const sans = Figtree({
+const sans = Inter({
   subsets: ['latin'],
   display: 'swap',
-  /* ⚠️ LE NOM DE LA VARIABLE RESTE `--font-geist`. Il est lu par `--font-sans` ET
-     `--font-display` dans `globals.css` : le renommer demanderait de toucher aux deux
-     pour un gain nul. Ce fichier est la seule source de vérité sur la fonte servie ;
-     le nom du tuyau n'a pas à la répéter. */
-  variable: '--font-geist',
+  /* Nommée d'après le RÔLE, pas d'après la fonte. `--font-geist` avait survécu à
+     Geist, puis à Figtree, et désignait donc une fonte qu'il ne nommait plus depuis
+     deux changements — un nom qui ment un peu plus à chaque fois. `globals.css` la
+     lit dans `--font-sans` et dans `--font-display`. */
+  variable: '--font-ui',
 })
 
 /**

@@ -220,7 +220,7 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
                   c'est ce qui rend la correction symétrique : le canvas est
                   l'extrémité de la rampe, donc plus CLAIR que `surface-muted` en
                   thème clair (blanc sur #f1f5f9) et plus SOMBRE en thème sombre
-                  (#18181b sur #35353a). La touche s'enfonce dans le champ dans un
+                  (#0d1217 sur #35353a). La touche s'enfonce dans le champ dans un
                   cas, s'en détache dans l'autre — dans les deux, elle se voit.
                 */
                 <Kbd className="hidden shrink-0 bg-canvas text-micro lg:inline-flex" aria-hidden="true">

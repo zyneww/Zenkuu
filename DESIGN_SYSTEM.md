@@ -44,15 +44,33 @@ palier du système.**
 **Famille de police.** Tous les nœuds mesurés rapportent `Inter, -apple-system, …`
 en thème clair et `Inter-Dark, Inter, -apple-system, …` en thème sombre (363
 occurrences chacun — c'est la même police, la variante « Dark » n'est qu'une
-étiquette de contexte de thème, pas un dessin différent). ZENKUU utilise Geist
-(`--font-sans`). C'est un choix de marque, pas une mesure structurelle : ce document
-ne recommande **pas** de créer un jeton `--v2-font-*` pour l'aligner sur Inter —
-hors périmètre de cet audit structurel.
+étiquette de contexte de thème, pas un dessin différent). **ZENKUU sert Inter
+depuis le 2026-08-30** (`--font-ui`, lu par `--font-sans` et `--font-display`).
+
+> ⚠️ **Ce paragraphe recommandait l'inverse jusqu'au 2026-08-30** : « ne pas créer de
+> jeton pour l'aligner sur Inter — hors périmètre de cet audit structurel ». Deux
+> choses ont changé. Le périmètre d'abord : le mandat est devenu la fidélité
+> intégrale. Mais surtout, l'obstacle supposé n'existait pas. ZENKUU servait Figtree
+> comme ÉQUIVALENT LIBRE de **Kufox Sans**, la fonte sur mesure de **KuCoin** — cible
+> d'une refonte antérieure, et légitimement non redistribuable. Inter, elle, est
+> publiée sous SIL OFL et servie par `next/font/google` : lui substituer un
+> équivalent ajoutait un écart sans aucune contrepartie.
+>
+> ⚠️ Inter est **5,4 % plus large** que Figtree à corps égal, et sa hauteur d'x monte
+> de 50 à 54. C'est la direction qui peut faire déborder une colonne dimensionnée au
+> caractère près. Mesures complètes et réserves dans l'en-tête de
+> `app/[locale]/layout.tsx`.
 
 **Interlettrage.** Toutes les valeurs mesurées, à toutes les tailles, rapportent
 `normal` (pas de resserrement). ZENKUU applique un `letter-spacing` négatif par
-cran (`-0,12px` à `-1px`). C'est une différence de dessin délibérée de ZENKUU, pas
-une lacune à combler : rien à créer ici.
+cran (`-0,12px` à `-1px`).
+
+> ⚠️ **Écart NON résolu, requalifié le 2026-08-30.** Ce paragraphe concluait « une
+> différence de dessin délibérée de ZENKUU, pas une lacune à combler ». C'était vrai
+> tant que le mandat était structurel. Sous le mandat de fidélité intégrale, un
+> resserrement que la référence n'a pas EST un écart. Il n'est pas encore corrigé :
+> le retirer touche toute l'échelle typographique et doit être mesuré à part, après
+> la bascule sur Inter dont il faut d'abord voir l'effet sur les largeurs.
 
 ---
 

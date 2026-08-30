@@ -71,7 +71,7 @@
    C'est ce qui permet d'ajouter un thème sans repasser sur un seul composant.
    ───────────────────────────────────────────────────────────────────────────── */
 @theme {
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Hauteur de l'en-tête du site — UNE SEULE DÉFINITION, DEUX CONSOMMATEURS.
@@ -615,7 +615,7 @@
      Le jeton SUBSISTE malgré tout, et ce n'est pas de l'indécision : les quatre
      classes `.display-*` le consomment. Le supprimer obligerait à les retoucher
      toutes pour un résultat identique. */
-  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
 
   /* ───────────────────────────────────────────────────────────────────────────
      ÉCHELLE DE TEXTE — réglée ICI, et surtout pas par `html { font-size }`.
