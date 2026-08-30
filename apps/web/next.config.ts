@@ -277,7 +277,57 @@ const config: NextConfig = {
       ['/marches', '/crypto'],
     ]
 
-    return [...moved, ...removed].flatMap(([source, destination]) => [
+    /*
+     * ── LES CHEMINS DE LA RÉFÉRENCE, POUR QUI LES SAISIT ─────────────────────
+     *
+     * Le mandat recale l'arborescence sur celle de CoinGecko. Ces règles couvrent le
+     * cas symétrique : quelqu'un qui connaît leurs adresses et les tape ici.
+     *
+     * ⚠️ CE N'EST PAS DE LA RÉÉCRITURE D'URL. Une redirection 308 déplace le visiteur
+     * vers l'adresse ZENKUU et le lui montre. Servir le contenu SOUS leur adresse
+     * ferait deux URL pour une page, ce qu'aucun moteur n'aime et qui laisserait
+     * croire que le site répond à leurs chemins.
+     *
+     * Seuls les chemins dont l'équivalent existe VRAIMENT figurent ici. Rediriger
+     * `/en/nft/chains/ethereum` vers une page qui ne filtre pas par chaîne enverrait
+     * le visiteur sur autre chose que ce qu'il a demandé — un 404 est plus honnête.
+     */
+    const reference: [string, string][] = [
+      ['/coins/:id', '/crypto/:id'],
+      ['/coins/:id/historical_data', '/crypto/:id'],
+      ['/coins/bitcoin/bitcoin-halving', '/crypto/bitcoin/halving'],
+      ['/all-cryptocurrencies', '/crypto'],
+      ['/exchanges', '/places'],
+      ['/exchanges/derivatives', '/derives'],
+      ['/chains', '/categories/ecosystemes'],
+      ['/treasuries', '/graphiques/tresoreries'],
+      ['/nft', '/graphiques/nft'],
+      ['/glossary', '/glossaire'],
+      ['/converter', '/convertisseur'],
+      ['/compare-cryptocurrencies', '/comparateur'],
+      ['/new-cryptocurrencies', '/nouvelles-cotations'],
+      ['/crypto-gainers-losers', '/classements'],
+      ['/highlights', '/classements'],
+      ['/highlights/all-time-high-crypto', '/classements/sommet'],
+      ['/highlights/high-volume', '/classements/volumes'],
+      ['/charts', '/graphiques'],
+      ['/charts/bitcoin-dominance', '/graphiques/dominance'],
+      ['/charts/crypto-heatmap', '/heatmap'],
+      ['/charts/rwa', '/graphiques/actifs-reels'],
+      ['/news', '/actualites'],
+      ['/learn', '/apprendre'],
+      ['/about', '/a-propos'],
+      ['/faq', '/aide'],
+      ['/portfolio', '/tableau-de-bord'],
+    ]
+
+    /* ⚠️ `/coins/:id/historical_data` PASSE AVANT `/coins/:id`, sans quoi la seconde
+       avalerait la première et enverrait sur la fiche de l'actif « historical_data ».
+       Même règle d'ordre que pour `/crypto/graphiques` plus haut. Le tri place les
+       chemins les plus SEGMENTÉS en tête. */
+    reference.sort((a, b2) => b2[0].split('/').length - a[0].split('/').length)
+
+    return [...moved, ...removed, ...reference].flatMap(([source, destination]) => [
       { source, destination, permanent: true },
       {
         source: `/:locale(\\w{2}|pt-BR)${source}`,
