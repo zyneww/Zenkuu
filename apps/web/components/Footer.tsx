@@ -62,7 +62,16 @@ export async function Footer() {
   const lastReading = series.points[series.points.length - 1]?.timestamp
 
   return (
-    <footer className="mt-16 border-t border-border-subtle bg-surface">
+    /* ── LE PIED NE SE DÉTACHE PAS DU FOND ────────────────────────────────
+       Il portait `bg-surface` : un pavé plus clair que la page, sur toute la
+       largeur, à la fin de chaque écran. Relevé le 2026-08-30 sur la référence :
+       son `<footer>` n'a AUCUN fond propre — la couleur qu'on y voit est celle du
+       `<body>`, `rgb(13, 18, 23)`, c'est-à-dire le canevas. Ce qui sépare le pied
+       du contenu chez elle est le seul filet, pas un changement de teinte.
+
+       `border-t-[1.25px]` reprend la valeur mesurée sur ce filet, comme le panneau
+       droit — c'est l'épaisseur qu'elle emploie partout où elle trace un trait. */
+    <footer className="mt-16 border-t-[1.25px] border-border-subtle">
       {/* ── LE CORPS ─────────────────────────────────────────────────────────
           L'ANNUAIRE PASSE À GAUCHE ET L'IDENTITÉ À DROITE, à la manière du bloc
           « Footer With Big Text » repris ici : les colonnes de liens ouvrent le pied,
