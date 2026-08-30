@@ -172,7 +172,7 @@ export async function CryptoBoard() {
              illustre alors la variation qu'elle jouxte, ce qui est la lecture de la
              référence. En fin de ligne elle se lit comme une vignette de complément,
              ce qui convient aux classes sans capitalisation, pas à celle-ci. */
-          chartPosition="inline"
+          chartPosition="end"
           /* ── LES QUATRE AJOUTS DE LA REFONTE ────────────────────────────────
              Onglets à la place des vues rapides, champ de filtre, bascule de devise,
              et le nombre total d'actifs du catalogue — c'est lui qui autorise le

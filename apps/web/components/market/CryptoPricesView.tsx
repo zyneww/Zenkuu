@@ -105,7 +105,7 @@ export async function CryptoPricesView({
               basePath={BASE_PATH}
               period={period}
               watchlist={watchlist}
-              chartPosition="inline"
+              chartPosition="end"
               quickViews={false}
               /* La période descend à côté de « Personnaliser », comme sur les pages à
                  état local — voir `CryptoPeriodLinks`. */

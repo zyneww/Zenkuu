@@ -240,18 +240,28 @@ export function MarketTable({
   const performance = columnSet === 'performance'
   const athView = columnSet === 'ath'
   /**
-   * Grille de SÉANCE — cours, variation, haut et bas du jour, volume.
+   * Grille de MARCHÉ — celle de la référence, colonne pour colonne.
    *
-   * Relevée sur MEXC, dont c'est l'écran de place de marché. Ce qu'elle apporte et
-   * qu'aucun autre jeu ne portait : les deux BORNES de la journée. Un cours seul ne
-   * dit pas s'il est au sommet ou au creux de sa séance, et c'est pourtant la première
-   * chose qu'on lit sur un tableau de cotations.
+   * ⚠️ CETTE GRILLE ÉTAIT MODELÉE SUR MEXC, ET LA NOTE LE DISAIT. Elle affirmait :
+   * « Relevée sur MEXC, dont c'est l'écran de place de marché », puis justifiait de
+   * retirer le rang — « la référence n'en affiche pas » —, la capitalisation, la
+   * courbe et les fenêtres 1 h / 7 j / 1 M.
    *
-   * Ce qu'elle retire, et pourquoi ce n'est pas une perte :
-   *   · le RANG — la référence n'en affiche pas, et l'ordre des lignes le dit déjà ;
-   *   · la CAPITALISATION — c'est le critère de tri par défaut, donc encore l'ordre ;
-   *   · la COURBE et les fenêtres 1 h / 7 j / 1 M — quatre colonnes de comparaison là
-   *     où cette grille répond à une question de séance. `/crypto` les garde toutes.
+   * Relevé le 2026-08-30 sur le tableau d'accueil de coingecko.com, largeurs
+   * comprises :
+   *
+   *     étoile 49 · # 66 · Coin 360 · Price 130 · 1h 99 · 24h 106 · 7d 110 ·
+   *     30d · 24h Volume 208 · Market Cap 208 · FDV · Market Cap/FDV ·
+   *     Last 7 Days 249
+   *
+   * Le rang EST là. La capitalisation aussi — et c'est la colonne la plus importante
+   * d'une liste crypto, celle qui donne son sens au tri par défaut. La courbe
+   * 7 jours ferme chaque ligne. Les quatre fenêtres de variation sont côte à côte.
+   *
+   * Ce qui PART, parce que la référence ne l'a pas : les deux bornes de séance
+   * (haut et bas du jour). C'était l'apport revendiqué de la grille MEXC ; il n'a
+   * pas d'équivalent ici, et les garder ajouterait deux colonnes à une ligne qui en
+   * porte déjà douze.
    */
   const quotes = columnSet === 'cotations'
   /**
@@ -386,11 +396,17 @@ export function MarketTable({
     wantsValuationExtras &&
     has('change30d') &&
     selected?.key !== '30d' &&
-    /* Sur `apercu` avec un sélecteur de période actif, 30 j peut déjà être servie
-       par `extraPeriods` (voir plus haut) — on ne la répète pas. `cotations` ne
-       rend jamais `extraPeriods` (`visibleExtras` la vide), donc cette clause n'y
-       change rien. */
-    !(columnSet === 'apercu' && selected && extraPeriods.some((entry) => entry.key === '30d'))
+    /* ⚠️ LA GARDE EST INCONDITIONNELLE DEPUIS QUE `cotations` REND LES FENÊTRES.
+       Elle visait `apercu` seul, et se justifiait ainsi : « `cotations` ne rend
+       jamais `extraPeriods` (`visibleExtras` la vide), donc cette clause n'y change
+       rien ». C'était vrai jusqu'au 2026-08-30 — la grille de marché rend désormais
+       les quatre fenêtres de la référence, et l'invariant est tombé : la colonne
+       « 1 M » s'affichait DEUX FOIS, une par `shows30d` et une par les fenêtres.
+       Constaté au navigateur.
+
+       La condition ne regarde donc plus le jeu de colonnes, mais le seul fait qui
+       compte : cette fenêtre est-elle déjà servie ailleurs ? */
+    !extraPeriods.some((entry) => entry.key === '30d')
   const showFdv =
     wantsValuationExtras && detectOn.some((asset) => fullyDilutedValuation(asset) !== undefined)
   const showFdvRatio = showFdv
@@ -461,12 +477,12 @@ export function MarketTable({
    * Les mélanger plus haut ferait disparaître des colonnes pour la mauvaise raison.
    */
   const shows = {
-    rank: showRank && !quotes,
-    change7d: show7d && !athView && !quotes && !catalogue,
-    chartInline: chartInline && !athView && !quotes,
-    chartAtEnd: chartAtEnd && !athView && !quotes,
+    rank: showRank,
+    change7d: show7d && !athView && !catalogue,
+    chartInline: chartInline && !athView,
+    chartAtEnd: chartAtEnd && !athView,
     volume: showVolume && !performance && !athView,
-    marketCap: showMarketCap && !performance && !quotes,
+    marketCap: showMarketCap && !performance,
     dayRange: showDayRange && !performance && !athView && !quotes && !catalogue,
     /*
       L'OFFRE EN CIRCULATION N'EST PAS UN MONTANT, et c'est pourquoi elle ne passe pas
@@ -494,8 +510,8 @@ export function MarketTable({
       Les deux ne coexistent jamais : `dayRange` est éteinte ci-dessus quand `quotes`
       est vrai.
     */
-    high24h: quotes && has('high24h'),
-    low24h: quotes && has('low24h'),
+    high24h: false,
+    low24h: false,
     /*
       ── LA COLONNE « ACTION » N'EST PAS UN BOUTON D'ACHAT ────────────────────
 
@@ -511,7 +527,7 @@ export function MarketTable({
     action: quotes,
   }
 
-  const visibleExtras = athView || quotes || catalogue ? [] : extraPeriods
+  const visibleExtras = athView || catalogue ? [] : extraPeriods
 
   /*
    * ── L'ORDRE DES DEUX COLONNES D'AGRÉGAT, DÉCIDÉ ICI ET NULLE PART AILLEURS ──
