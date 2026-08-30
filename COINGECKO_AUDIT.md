@@ -54,7 +54,7 @@ migration.
 - [ ] Page coin, onglet Données historiques — `/fr/coins/bitcoin/historical_data`
 - [ ] Page coin, onglet Prédiction — `/fr/coins/bitcoin/prediction`
 - [x] Catégories — `/fr/categories`
-- [ ] Page de catégorie — `/fr/categories/meme-token`
+- [x] Page de catégorie — `/fr/categories/meme-token`
 - [x] Exchanges, spot — `/fr/platesformes`
 - [ ] Exchanges, DEX — `/fr/platesformes/decentralized`
 - [ ] Exchanges, dérivés — `/fr/platesformes/derivatives`
@@ -918,6 +918,123 @@ traduit en français, comme `/en/glossary` et `/learn`.
   navigation latérale, et le contenu réel de la carte « Explorer les détails de
   l'API » vue sous la navigation latérale. Aucun texte de CoinGecko n'est recopié
   au-delà des libellés strictement nécessaires à l'identification d'un composant.
+
+### Page de catégorie — `/fr/categories/meme-token`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : fiche de secteur — tableau de cotations restreint aux actifs d'un
+  seul secteur (Meme), précédé d'un en-tête de contexte propre au secteur
+  (description, capitalisation, volume) et d'une carte de sous-classements à
+  onglets. Confirme et détaille les « trois cartes de synthèse » vues sans
+  instrumentation sur la page Catégories.
+- **Priorité** : phase 1
+- **État** : audité
+- **Composants** :
+  - **En-tête de contexte** (`h1` + description) — nouveau : titre du secteur
+    avec icône de copie de lien, suivi d'une phrase générée décrivant la
+    capitalisation du jour et sa variation 24 h. Famille annoncée par le
+    brief de cette tâche (« en-tête de contexte »).
+  - **Bouton Suivre** — nouveau : bouton plein-largeur d'icône étoile
+    (`far fa-star`) et libellé « Suivre », à côté de l'en-tête. Même
+    mécanisme d'ajout aux favoris que l'icône étoile déjà vue en ligne de
+    tableau sur l'accueil et les catégories, mais ici présenté comme un
+    bouton complet (icône + texte) plutôt qu'une icône seule en cellule — un
+    second habillage du même geste, pas un second composant fonctionnel.
+  - **Commutateur** (déjà nommé) — réutilisé ici sous le libellé
+    « Principaux éléments », coché par défaut : bascule d'affichage d'un
+    bloc, pas de nouvel état par rapport à celui déjà décrit sur les
+    catégories (coché, fond vert).
+  - **Carte de sous-classement à onglets** — nouveau : widget en deux
+    volets à onglets internes (`activeTab` Alpine : Tendance / Grands
+    Gagnants / Trending NFT), chaque panneau listant jusqu'à trois monnaies
+    du secteur avec logo, nom, cours et variation. À ne pas confondre avec
+    la **cellule « Grands gagnants »** déjà nommée sur la page Catégories :
+    même idée (mettre en avant des actifs du secteur) mais forme et
+    contenu différents — la cellule est une liste de logos SANS chiffre
+    dans une ligne de tableau, cette carte est un widget autonome À onglets
+    ET chiffré (cours, variation). Deux composants distincts pour une même
+    intention éditoriale.
+  - **Bouton Acheter (encart publicitaire)** — nouveau : pastille verte à
+    filet (`Acheter`) affichée sur certaines lignes du tableau seulement,
+    déclenchée par `data-controller="coin-row-ads"` /
+    `data-action="click->coin-row-ads#sendImpression"`. Ce n'est pas une
+    fonctionnalité de trading du site : c'est un emplacement publicitaire
+    déguisé en action de ligne, à ne pas confondre avec le **bouton plein**
+    ou le **bouton discret** déjà nommés — troisième famille de bouton par
+    l'intention (commerciale tierce), pas par la forme.
+  - **Barre d'outils de filtrage étendue** — nouveau, au-dessus du tableau :
+    reprend le groupe de puces de filtrage déjà vu sur les catégories
+    (Tous/Principaux éléments/Base Ecosystem…) et y ajoute une puce
+    déroulante (« All Meme », avec chevron) et deux boutons icône+texte
+    (« Personnaliser », icône étincelles ; filtre, icône entonnoir seule) —
+    aucun des deux n'existait sur la page Catégories.
+  - **Tableau de cotations** (déjà nommé sur l'accueil), **en-tête de
+    colonne triable**, **ligne de tableau**, **pastille de variation**
+    (`.gecko-up`/`.gecko-down`, 230 et 209 correspondances — famille
+    homogène), **mini-graphique d'évolution (sparkline)**, **pagination** :
+    tous réutilisés sans variante — mêmes colonnes que l'accueil, restreint
+    à un secteur (rang MONDIAL conservé dans la colonne #, pas un rang
+    propre au secteur).
+- **Fonctionnalités** : tri par colonne, filtrage par groupe de puces et par
+  menu déroulant de secteur voisin, personnalisation des colonnes affichées
+  (bouton « Personnaliser », non ouvert dans ce relevé), filtre avancé
+  (icône entonnoir, non ouvert), ajout du secteur entier aux favoris
+  (bouton Suivre), ajout d'une monnaie aux favoris depuis la ligne,
+  pagination, bascule d'onglet interne de la carte de sous-classement,
+  clic publicitaire « Acheter » sur certaines lignes. Section d'actualités
+  liées au secteur en pied de tableau (« Dernières actualités de Meme »,
+  trois cartes) vue dans la capture, non instrumentée par sélecteur.
+- **Interactions** : deux sélecteurs propres à cette page sondés en survol
+  et en focus (largeur de référence, deux thèmes) — deltas dans
+  `mesures.json` → `interactions`. **Ligne de tableau** et **en-tête de
+  colonne triable** : mêmes constats que sur les tableaux déjà audités
+  (survol change le fond aux mêmes valeurs de jeton, en-tête non
+  focusable).
+  Restent, par ailleurs, déclarés par le HTML sans avoir été observés à
+  l'écran : bascule effective des onglets internes de la carte de
+  sous-classement, ouverture du menu déroulant de secteur voisin,
+  ouverture du panneau « Personnaliser » et du filtre entonnoir,
+  déclenchement réel du bouton Acheter, navigation de pagination au-delà
+  de la première page.
+- **Données requises** : cotations, variations, volume, capitalisation et
+  mini-graphique du secteur filtré viennent du même endpoint « actifs
+  d'une catégorie » que la page Catégories, déjà couvert par l'API
+  CoinGecko gratuite. Les trois coins de « Tendance » et « Grands
+  Gagnants » de la carte de sous-classement sont un sous-ensemble du même
+  jeu de données (pas une source distincte). Rien à reporter en synthèse
+  pour cette page.
+- **Écart avec ZENKUU** : `apps/web/app/[locale]/categories/[id]/page.tsx`
+  (lu dans le code, puis vérifié sur le rendu réel du serveur de dev à
+  `http://localhost:3000/fr/categories/meme-token`, redirection 307 vers
+  `/categories/meme-token` puis 200) rend déjà l'**en-tête de contexte**
+  presque à l'identique dans l'intention : titre, `ChangeBadge` (l'analogue
+  de la **pastille de variation**), description du secteur, et un bloc
+  `<dl>` de trois statistiques (capitalisation du secteur, volume 24 h,
+  actifs listés) — le fichier documente lui-même que la colonne `#` du
+  tableau reste le rang MONDIAL, pas un rang recalculé pour le secteur,
+  contrairement à ce que CoinGecko pourrait laisser croire visuellement.
+  `MarketTable` y est rendu `sortable={false}` et `paginated={false}` —
+  choix déjà motivé dans le fichier (« le tri porterait sur l'ensemble du
+  classement, pas sur le sous-ensemble affiché »), donc pas un manque
+  accidentel. N'ont pas d'équivalent identifié dans le fichier lu : la
+  **carte de sous-classement à onglets** (Tendance/Grands Gagnants/NFT),
+  le **bouton Suivre** dédié au secteur, la barre d'outils de filtrage
+  étendue (Personnaliser, filtre entonnoir, puce déroulante de secteur
+  voisin) et la section d'actualités liées au secteur. Le **bouton
+  Acheter** publicitaire n'a pas vocation à être répliqué — c'est un
+  encart tiers, hors périmètre d'une migration de composant.
+- **Notes** : bascule de thème validée sur ce gabarit (captures
+  claire/sombre différentes octet pour octet aux trois largeurs). Aucun
+  blocage Cloudflare rencontré (correctif du user-agent déjà en place).
+  `.gecko-tab-chip-item:not(.selected)` reste, comme sur l'accueil, un
+  sélecteur à correspondances nombreuses (22) dont le nœud visible retenu
+  est au 11ᵉ rang — cohérent avec l'observation déjà faite sur l'accueil,
+  pas une anomalie propre à cette page. Restent non observés, faute de
+  simuler un clic : les onglets internes de la carte de sous-classement,
+  le menu déroulant de secteur voisin, le panneau Personnaliser, le filtre
+  entonnoir, le clic publicitaire Acheter, et la page 2 et suivantes de la
+  pagination. Aucun texte de CoinGecko n'est recopié au-delà des libellés
+  strictement nécessaires à l'identification d'un composant.
 
 ## Synthèse — données sans source gratuite
 
