@@ -136,7 +136,7 @@ function CategoriesHeading({
 }) {
   return (
     <header className="space-y-3">
-      <h1 className="display-mega text-ink">{title}</h1>
+      <h1 className="display-xl text-ink">{title}</h1>
       <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">{lede}</p>
       {note ? <p className="text-xs text-ink-muted">{note}</p> : null}
     </header>

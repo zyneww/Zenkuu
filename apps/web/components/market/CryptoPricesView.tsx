@@ -240,7 +240,7 @@ async function CryptoHeader({
   const fr = await getContent()
   return (
     <header className="mx-auto max-w-3xl space-y-4 text-center">
-      <h1 className="display-mega text-ink">{fr.crypto.title}</h1>
+      <h1 className="display-xl text-ink">{fr.crypto.title}</h1>
 
       {stats.ok ? (
         <p className="text-base leading-relaxed text-ink-muted">

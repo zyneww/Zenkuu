@@ -114,7 +114,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       </nav>
 
       <header className="space-y-4">
-        <h1 className="display-lg text-ink">{lesson.title}</h1>
+        <h1 className="display-xl text-ink">{lesson.title}</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">{lesson.summary}</p>
         {/* Niveau et durée sur une seule ligne : ce sont les deux seules choses qu'un
             lecteur veut savoir avant de s'engager, et aucune n'est inventée — le

@@ -107,7 +107,7 @@ export default function ApprendrePage() {
         seule promesse qu'on puisse tenir.
       */}
       <header className="rounded-card bg-gradient-to-br from-brand to-brand-strong px-7 py-8">
-        <h1 className="display-lg text-on-brand">Apprendre la crypto et les marchés</h1>
+        <h1 className="display-xl text-on-brand">Apprendre la crypto et les marchés</h1>
         <p className="mt-2 max-w-2xl text-base leading-relaxed text-on-brand/85">
           Comprendre ce que vous regardez : ce que chaque chiffre mesure réellement,
           et surtout ce qu’il ne mesure pas. Aucune de ces fiches ne recommande d’agir

@@ -99,7 +99,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </nav>
 
       <header className="space-y-4 border-b border-border-subtle pb-8">
-        <h1 className="display-lg text-ink">{article.title}</h1>
+        <h1 className="display-xl text-ink">{article.title}</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">{article.summary}</p>
         <ArticleMeta article={article} />
         {article.updatedAt ? (

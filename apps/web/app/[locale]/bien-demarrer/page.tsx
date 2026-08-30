@@ -88,7 +88,7 @@ export default async function BienDemarrerPage() {
       </nav>
 
       <header className="space-y-3">
-        <h1 className="display-lg text-ink">{t('Bien démarrer')}</h1>
+        <h1 className="display-xl text-ink">{t('Bien démarrer')}</h1>
         <p className="max-w-2xl text-base leading-relaxed text-ink-muted">{t('Cinq étapes pour prendre en main ZENKUU. Aucune ne demande de compte : tout ce qui suit est accessible sans inscription.')}</p>
       </header>
 

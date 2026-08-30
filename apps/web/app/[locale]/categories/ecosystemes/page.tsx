@@ -75,7 +75,7 @@ export default async function EcosystemsPage() {
   return (
     <div className="space-y-8">
       <header className="space-y-3">
-        <h1 className="display-mega text-ink">{t('Écosystèmes')}</h1>
+        <h1 className="display-xl text-ink">{t('Écosystèmes')}</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
           {t(
             'Les grandes familles de jetons regroupées par la chaîne sur laquelle ils vivent. Un même actif peut relever de plusieurs écosystèmes, si bien que les capitalisations de ce tableau ne s’additionnent pas.',

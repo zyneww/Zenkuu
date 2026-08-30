@@ -134,7 +134,7 @@ export default async function ExchangePage({ params }: RouteProps) {
           </span>
 
           <div className="min-w-0">
-            <h1 className="display-lg leading-none text-ink">{place.name}</h1>
+            <h1 className="display-xl leading-none text-ink">{place.name}</h1>
 
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
               <span className="rounded-pill border border-border-subtle px-2 py-0.5 font-medium">

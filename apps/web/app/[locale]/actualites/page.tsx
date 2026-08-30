@@ -283,7 +283,7 @@ function Attribution({ note }: { note: string }) {
 function PageHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <header className="space-y-3 text-center">
-      <h1 className="display-lg text-ink">{title}</h1>
+      <h1 className="display-xl text-ink">{title}</h1>
       <p className="mx-auto max-w-2xl text-sm leading-relaxed text-ink-muted">{subtitle}</p>
     </header>
   )

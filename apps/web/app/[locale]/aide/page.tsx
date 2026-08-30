@@ -75,7 +75,7 @@ export default async function AidePage() {
       {/* ══ 1. LE BANDEAU DE RECHERCHE ══════════════════════════════════════ */}
       <section className="bleed bg-surface-muted">
         <div className="shell flex flex-col items-center gap-6 py-14 text-center">
-          <h1 className="display-lg max-w-2xl text-ink">
+          <h1 className="display-xl max-w-2xl text-ink">
             {t('Comment pouvons-nous vous aider ?')}
           </h1>
 
