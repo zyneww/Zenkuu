@@ -14,6 +14,7 @@ import { ContentProvider } from '@/components/locale/ContentProvider'
 import { CurrencyProvider } from '@/components/locale/CurrencyProvider'
 import { stripFunctions } from '@/content/locales'
 import { Footer } from '@/components/Footer'
+import { GlobalTicker } from '@/components/nav/GlobalTicker'
 import { NavBar } from '@/components/NavBar'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
@@ -340,6 +341,12 @@ export default async function RootLayout({
                 prop : ce sont des lectures de variables d'environnement, qui ne
                 rendent rien dynamique.
               */}
+              {/* Le bandeau de repères précède la barre de navigation, comme sur la
+                  référence : sa première rangée porte l'état du marché, la seconde la
+                  navigation. Il est rendu ICI et non dans `NavBar` parce qu'il lit des
+                  données — `NavBar` est un composant client. */}
+              <GlobalTicker />
+
               <NavBar accountsEnabled={ACCOUNTS_ENABLED} socialProviders={CONFIGURED_PROVIDERS} />
 
               {/*
