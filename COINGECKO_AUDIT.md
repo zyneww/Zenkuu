@@ -30,9 +30,9 @@ pages séparées.
 **Les cases non cochées ci-dessous ne sont pas un travail en retard.** La tâche 5 a
 été réduite en cours de route : la fidélité de CoinGecko tient dans une vingtaine de
 composants partagés que quelques pages archétypes suffisent à faire émerger — l'audit
-de l'accueil en a nommé 22 d'un coup, et les six pages auditées à ce jour n'ont ajouté
+de l'accueil en a nommé 22 d'un coup, et les dix pages auditées à ce jour n'ont ajouté
 qu'un nombre décroissant de familles réellement nouvelles à chaque page. Auditer les
-62 pages restantes maintenant serait un sur-échantillonnage : elles seront auditées
+58 pages restantes maintenant serait un sur-échantillonnage : elles seront auditées
 **au moment de leur migration**, quand la question « qu'est-ce qu'on garde de cette
 page ? » est concrète et que le relevé sert immédiatement, pas des mois avant que le
 site ait bougé. `node scripts/audit-coingecko-doc.mjs --strict` continue donc, à
@@ -96,7 +96,7 @@ migration.
 
 ### Phase 3 — contenu et services
 
-- [ ] Portefeuille — `/fr/portfolio`
+- [x] Portefeuille — `/fr/portfolio`
 - [ ] Apprendre — `/learn`
 - [x] Apprendre, article — `/learn/crypto-narratives`
 - [ ] Actualités — `/fr/news`
@@ -1250,6 +1250,124 @@ traduit en français, comme `/en/glossary` et `/learn`.
   cartes, et la bascule effective entre catégories de produit. Aucun
   texte de CoinGecko n'est recopié au-delà des libellés strictement
   nécessaires à l'identification d'un composant.
+
+### Portefeuille — `/fr/portfolio`
+
+- **Date du relevé** : 2026-08-30
+- **Rôle** : page de compte — vue observée pour un visiteur SANS session
+  CoinGecko. `/fr/portfolio` n'exige pas d'identifiant à l'URL et rend, pour
+  ce relevé, une page marchande d'onboarding vantant le Portefeuille
+  CoinGecko (suivi de gains, listes personnalisées, application mobile),
+  pas le tableau réel d'un portefeuille rempli. **La vue connectée n'a pas
+  été observée** : l'outil de relevé du dépôt tourne dans un Chromium
+  isolé sans accès à la session de l'exploitant, et cette tâche demande
+  explicitement d'auditer ce que voit un visiteur non connecté — c'est
+  très probablement aussi ce que ZENKUU doit rendre pour ce même visiteur.
+- **Priorité** : phase 3
+- **État** : audité
+- **Composants** :
+  - **Illustration de produit** — nouveau : capture stylisée de l'interface
+    réelle du Portefeuille (bureau et mobile, superposées), utilisée en
+    tête de héros. À ne pas confondre avec la **carte illustrée
+    décorative** déjà nommée sur la page API : celle-ci montrait des
+    interfaces abstraites sans rapport direct avec le produit vendu sur la
+    page, celle-ci montre l'écran RÉEL du produit annoncé par le héros.
+  - **Liste de fonctionnalités à icône** — nouveau : groupes de lignes
+    icône + phrase courte (« Données de cours en temps réel pour plus de
+    19 000+ monnaies », etc.), répétés sous plusieurs sous-titres
+    (Suivi des gains, Listes personnalisées, Application mobile) — gabarit
+    de contenu marketing simple, différent de la **grille de cartes de
+    produit** de la page API (pas de carte, pas de chemin d'URL, pas de
+    bordure).
+  - **Illustration de graphique en anneau (décorative)** — nouveau : gros
+    camembert coloré sans légende cliquable, purement illustratif —
+    distinct du **widget graphique en anneau** déjà nommé sur la page
+    d'exchange, qui portait de vraies données de répartition de volume ;
+    celui-ci n'affiche que des pourcentages d'exemple, non rattachés à un
+    compte réel.
+  - **Illustration de listes imbriquées (décorative)** — nouveau : deux
+    petits panneaux superposés simulant des listes de suivi personnalisées
+    (« Blue Chips », « Interested Coins »… puis « Binance », « Bybit »…) —
+    maquette du produit, pas une liste interactive.
+  - **Badge de conformité** — nouveau : deux petits encarts logo + texte en
+    pied de page (« SOC 2 TYPE 1 », « Sensiba SOC 2 Type 2 ») attestant
+    d'une certification tierce — première apparition de ce type de badge
+    dans l'audit.
+  - **Bandeau d'abonnement newsletter** — nouveau, bien que visible sans
+    être nommé dans les captures des entrées Page de catégorie et Page
+    API : bande pleine largeur juste avant le copyright, titre, phrase
+    d'accroche, champ de saisie d'adresse e-mail et bouton « S'abonner »
+    plein. Chrome de pied de page partagé, pas propre à cette page.
+  - **Bouton plein**, **pied de page** (accordéon groupé sur mobile, déjà
+    observé), **badges de téléchargement d'application** (Google Play/App
+    Store, déjà vus en fonctionnalité sur l'accueil, ici accompagnés d'un
+    troisième badge : un QR code cliquable, nouveau) : tous réutilisés ou
+    complétés sans changer de famille.
+- **Fonctionnalités** : inscription au Portefeuille (CTA principal),
+  téléchargement de l'application mobile (lien, QR code), abonnement à la
+  newsletter. Aucune fonctionnalité de gestion de portefeuille réelle
+  (ajout d'actif, suivi de solde, alerte) n'est exposée à cette vue : ce
+  sont des promesses illustrées, pas des contrôles.
+- **Interactions** : aucune sondée par sélecteur sur cette page — voir
+  Notes pour la raison (échec de bascule de thème avant l'étape de
+  sondage). Rien à consigner ici au-delà de ce qui est déjà lu dans le
+  HTML : le bouton d'inscription (`click->auth#openSignInModal` réutilisé
+  pour l'onglet Connexion de la nav, pas propre à cette page) et le champ
+  newsletter n'ont pas été activés.
+- **Données requises** : cette page ne porte aucune donnée de marché
+  chiffrée à elle — le nombre « 19 000+ monnaies » et le nombre
+  d'utilisateurs implicite du produit sont des arguments commerciaux, pas
+  des mesures à reproduire. Rien à reporter en synthèse pour cette
+  raison, comme pour les pages Apprendre et API.
+- **Écart avec ZENKUU** : ZENKUU n'a pas de page marchande équivalente à
+  `/fr/portfolio` — son modèle de compte est différent dès la racine.
+  `apps/web/app/[locale]/connexion/page.tsx` (lu le 2026-08-30) documente
+  une connexion SANS mot de passe (code à six chiffres par courriel), et
+  explique pourquoi cette page n'est délibérément ni indexée ni conçue
+  pour capter du trafic de recherche (« aucun contenu à offrir à qui
+  arrive d'un moteur »). `apps/web/app/[locale]/tableau-de-bord/page.tsx`
+  (lu le 2026-08-30) est le plus proche équivalent fonctionnel : une vue
+  de compte qui, pour un visiteur sans identifiant de session
+  (`ownerId()` vide), rend directement un **état vide** documenté dans le
+  fichier (« Aucun actif suivi pour le moment ») plutôt qu'un mur
+  d'inscription illustré — le fichier note aussi qu'une page `/suivi`
+  séparée a été « supprimée sur demande explicite » et absorbée dans le
+  tableau de bord, exactement le mouvement inverse de CoinGecko qui garde
+  une liste de suivi repliée dans son Portefeuille (déjà noté dans la
+  liste des pages de ce document). L'écart de fond n'est donc pas un
+  composant manquant mais un choix de produit : CoinGecko VEND l'usage
+  d'un compte à un visiteur anonyme avant de le laisser entrer, ZENKUU
+  montre l'état vide réel du compte tout de suite, sans mur intermédiaire.
+  Aucun des composants strictement décoratifs de cette page (illustration
+  de produit, camembert décoratif, maquette de listes imbriquées, badges
+  de conformité) n'a, ni ne doit forcément avoir, d'équivalent ZENKUU.
+- **Notes** : **outil en échec, consigné tel quel** — la bascule vers le
+  thème sombre à 1440 px a échoué de façon reproductible (deux tentatives
+  identiques, même erreur : « Bascule de thème sans effet… attendu «
+  sombre », obtenu « clair » »), alors que le thème sombre fonctionne
+  normalement à 360 et 768 px sur cette même page (captures
+  `360-sombre.png` et `768-sombre.png` bien sombres, vérifiées à l'œil).
+  L'échec porte donc sur la dernière navigation de la séquence (360 puis
+  768 puis 1440, clair et sombre à chaque largeur), pas sur le mécanisme
+  de thème lui-même. Candidat : une limitation de débit côté serveur
+  après plusieurs navigations rapprochées dans la même session — cohérent
+  avec un `curl -I` sur ce même domaine ayant renvoyé 429 pendant cette
+  tâche — hypothèse non vérifiée (aucun code de statut HTTP inspecté par
+  le script au moment de l'échec), donc non retenue comme explication
+  établie. Conséquence : **aucun fichier `mesures.json` n'a été produit**
+  pour cette page (l'écriture n'intervient qu'après les six passes) —
+  seules les cinq captures obtenues (`360-clair`, `360-sombre`,
+  `768-clair`, `768-sombre`, `1440-clair`) existent dans
+  `docs/references/coingecko/portefeuille/`. Aucune valeur de
+  `getComputedStyle` n'est donc disponible pour cette entrée ; les
+  composants ci-dessus sont décrits depuis les captures et depuis le HTML
+  brut (`curl -L`, confirmé 200), jamais inventés. Bascule de thème
+  validée à 360 et 768 px (captures claire/sombre différentes octet pour
+  octet) ; non confirmée à 1440 px pour la raison ci-dessus — à
+  réauditer si ce gabarit doit être repris avec des mesures complètes.
+  Aucun blocage Cloudflare rencontré. Aucun texte de CoinGecko n'est
+  recopié au-delà des libellés strictement nécessaires à l'identification
+  d'un composant.
 
 ## Synthèse — données sans source gratuite
 
