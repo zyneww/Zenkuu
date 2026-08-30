@@ -211,22 +211,38 @@ traduit en français, comme `/en/glossary` et `/learn`.
   sur un élément sans sémantique de bouton) — l'attribut `aria-sort="ascending"` reste
   l'unique état de tri observé, le basculement effectif au clic (vers `descending`, puis
   sur une autre colonne) n'a pas été éprouvé, faute de clic simulé (hors portée de ce
-  relevé). **Bouton discret** (Connexion) : survol ET focus mesurés, avec une asymétrie
-  entre thèmes — le survol change fond et ombre dans les deux thèmes (transition
-  `0.15s`, courbe `cubic-bezier(0.4, 0, 0.2, 1)`, l'ombre simulant un relief) ; le focus
-  en clair n'ajoute qu'un anneau de contour quasi transparent, alors qu'en sombre il
-  ajoute EN PLUS le même changement de fond/ombre que le survol — un clic-clavier n'est
-  donc visuellement repérable qu'en mode sombre sur ce bouton. **Lien de pied de page** :
-  survol non sondé (« hors écran », sous le pli à 1440×900 — signalé tel quel, pas
-  inventé) ; focus mesuré, anneau par défaut identique à celui du lien de monnaie.
-  **Bouton plein** (« Utiliser l'app »), **onglet actif**, **onglet inactif**,
-  **commutateur** et **sélecteur de langue et de devise** (nœud `currencyText`) :
-  sondage exécuté mais chacun des cinq était « masqué (non visible) » au moment du
-  relevé — ce sont des composants qui n'apparaissent qu'une fois un panneau ou un
-  overlay ouvert (bannière app mobile hors du flux normal, onglets et zone de recherche
-  dans l'overlay fermé, commutateur dans un panneau non déployé, sélecteur de devise
-  dans le panneau paramètres non ouvert) ; ni le survol ni le focus n'ont donc pu être
-  mesurés — l'ouverture réelle de ces panneaux reste hors de portée (voir Notes).
+  relevé). **Bouton discret** (Connexion) : survol ET focus mesurés, dans les deux
+  thèmes — le survol change fond et ombre (transition `0.15s`, courbe
+  `cubic-bezier(0.4, 0, 0.2, 1)`, l'ombre simulant un relief) ; le focus ajoute son
+  propre couple fond/ombre (plus clair que le survol, `rgb(254, 254, 255)` en clair,
+  `rgb(27, 36, 46)` en sombre) plus un anneau de contour quasi transparent
+  (`rgba(0, 0, 0, 0.008)`, solide, 2px) — trois états de fond bien distincts (repos,
+  survol, focus), cohérents entre les deux thèmes. **Onglet actif** (puce de filtre
+  sélectionnée, ex. au-dessus du tableau de cotations) : sondage corrigé — l'ancienne
+  campagne visait par erreur le premier nœud DOM correspondant (masqué), le nœud
+  réellement affiché à l'écran est le 3ᵉ sur 4 correspondances
+  (`interactions.*.".gecko-tab-chip-item.selected".noeud = {index: 2, total: 4}`) ;
+  une fois le bon nœud visé, aucun changement mesurable au survol (déjà à l'état actif,
+  cohérent), et un anneau de focus par défaut du navigateur identique aux liens.
+  **Onglet inactif** : même correction, nœud réellement visible au 11ᵉ rang sur 21
+  correspondances (`index: 10, total: 21` — sélecteur très imprécis, voir Notes) ;
+  une fois ce nœud visé, le survol change le fond (`rgb(241, 245, 249)` en clair,
+  `rgb(27, 35, 45)` en sombre — cette dernière valeur identique au fond de survol de la
+  ligne de tableau en sombre, signe d'un jeton de surface partagé), et le focus affiche
+  le même anneau par défaut que les autres éléments focusables de la page.
+  **Commutateur** : même correction, nœud réellement visible au 2ᵉ rang sur 5
+  correspondances (`index: 1, total: 5`) ; une fois ce nœud visé, aucun changement
+  mesurable au survol et non focusable directement — cohérent avec un composant dont la
+  case à cocher réelle (l'élément focusable/actionnable) est un `<input>` séparé, la
+  piste visuelle (`.gecko-toggle-track`) n'étant qu'un habillage sans état propre ; à
+  cibler différemment (l'`<input>` associé) pour une prochaine campagne si son état de
+  focus doit être mesuré. **Bouton plein** (« Utiliser l'app ») et **sélecteur de
+  langue et de devise** (nœud `currencyText`) : ces deux-là restent réellement masqués
+  après correction — une seule correspondance chacun, masquée aux deux (bannière hors
+  du flux normal à cette taille de fenêtre pour le premier ; nœud dans le panneau
+  paramètres non ouvert pour le second) ; ni le survol ni le focus n'ont donc pu être
+  mesurés pour ces deux — l'ouverture réelle du panneau qui les révèle reste hors de
+  portée (voir Notes).
   Restent, par ailleurs, déclarés par le HTML sans avoir été observés à l'écran :
   ouverture d'un méga-menu au survol ou au clic
   (`data-action="mouseover->navbar#handleOver … click->navbar#handleClick"`) ; ouverture
@@ -269,9 +285,22 @@ traduit en français, comme `/en/glossary` et `/learn`.
   clair/sombre), chaque valeur portant son sélecteur et sa page de provenance. Dix de
   ces sélecteurs ont ensuite été sondés en survol et en focus (largeur de référence,
   deux thèmes) — deltas dans la clé `interactions` du même fichier ; résultats détaillés
-  dans le champ « Interactions » ci-dessus. Cinq de ces dix (bouton plein, onglet actif,
-  onglet inactif, commutateur, sélecteur de langue et de devise) étaient masqués au
-  moment du sondage, faute d'un panneau ou d'un overlay ouvert. Restent non observés,
+  dans le champ « Interactions » ci-dessus. Trois de ces dix sélecteurs
+  (`.gecko-tab-chip-item.selected`, `.gecko-tab-chip-item:not(.selected)`,
+  `.gecko-toggle-track`) ont plusieurs correspondances dans le DOM (4, 21 et 5
+  respectivement) dont la première est masquée — une campagne initiale, qui visait le
+  premier nœud sans vérifier sa visibilité, les avait donc classés à tort « masqué »
+  alors que le nœud réellement affiché (3ᵉ, 11ᵉ et 2ᵉ rang) a un état mesurable ;
+  corrigé dans l'outil (le premier nœud VISIBLE est retenu, son index et le nombre
+  total de correspondances sont consignés dans `mesures.json` sous
+  `interactions.*.<sélecteur>.noeud` quand ce n'est pas le tout premier) et dans cette
+  entrée. `.gecko-tab-chip-item:not(.selected)` reste un sélecteur imprécis (21
+  correspondances) : une prochaine campagne gagnerait à le resserrer avec un
+  sélecteur de groupe (ex. le conteneur direct de la rangée de filtres au-dessus du
+  tableau) plutôt que de compter sur l'ordre d'apparition dans le DOM, qui peut varier
+  d'une page à l'autre. Deux des dix (bouton plein, sélecteur de langue et de devise)
+  restent réellement masqués — une seule correspondance chacun, elle-même masquée.
+  Restent non observés,
   faute de simuler un clic ou de provoquer une condition — hors de portée de ce relevé
   par sonde de survol/focus, quel que soit l'outil : l'état trié dans les deux sens
   (croissant/décroissant) au-delà de l'attribut `aria-sort` initial, l'ouverture
