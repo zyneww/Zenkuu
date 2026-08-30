@@ -49,7 +49,7 @@ terminé. Elles ne sont pas pour autant un travail en retard — l'ordre suit la
 migration, page par page, parce qu'un relevé sert au moment où la question
 « qu'est-ce qu'on garde de cette page ? » est concrète.
 
-**16 pages sur 68 sont auditées, 52 restent.** Le rendement décroît, et c'est
+**24 pages sur 68 sont auditées, 44 restent.** Le rendement décroît, et c'est
 attendu : la fidélité de CoinGecko tient dans une vingtaine de composants partagés
 que l'accueil a nommés d'un coup. Les six pages ajoutées le 2026-08-30 confirment le
 constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de colonne
@@ -57,9 +57,21 @@ constat — chrome identique au pixel (titre 24/32 en graisse 700, en-tête de c
 COLONNES et leurs CONTRÔLES diffèrent.
 
 ⚠️ Le rendement décroissant ne veut pas dire que les pages restantes n'apprennent
-rien. C'est `/fr/highlights`, la quinzième auditée, qui a corrigé deux valeurs de la
+rien. C'est `/en/highlights`, la quinzième auditée, qui a corrigé deux valeurs de la
 palette : l'onglet sélectionné est vert, et le texte du bouton d'action est blanc et
 non noir. Les deux avaient été posées sur la foi de relevés antérieurs.
+
+**Les huit pages du 2026-08-31 ont servi autrement : elles ont CONFIRMÉ.** Une analyse
+croisée des 28 relevés donne `h1` à 24px/700 dans 18 cas sur 23, et la ligne de tableau
+à 14px/400 dans 12 cas sur 13 — les valeurs implémentées tiennent sur tout leur site,
+pas seulement sur les pages qui les avaient établies. Un relevé qui ne surprend pas
+n'est pas un relevé inutile : c'est celui qui autorise à généraliser.
+
+⚠️ **Les URL de cette liste sont passées de `/fr` à `/en` le 2026-08-31**, sur consigne.
+Trois chemins diffèrent réellement entre les deux langues, vérifiés par requête :
+`/fr/platesformes` → `/en/exchanges`, `/fr/à_propos_de` → `/en/about`,
+`/fr/méthodologie` → `/en/methodology`. Les 16 premières entrées ont été relevées sur
+`/fr` : mise en page et couleurs identiques, seuls les textes changent.
 
 `node scripts/audit-coingecko-doc.mjs --strict` continue de signaler les pages non
 auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
@@ -67,97 +79,97 @@ auditées. Ce n'est pas une régression : c'est le compteur de ce qui reste.
 ### Phase 1 — cœur
 
 - [x] Accueil — `/fr`
-- [ ] Accueil, toutes les monnaies — `/fr/all-cryptocurrencies`
-- [ ] Accueil, classement rehypothéqué — `/fr/top-market-cap-rehypothecated`
-- [ ] Accueil en devise (EUR) — `/fr/currencies/eur`
-- [x] Page coin, onglet Vue d'ensemble — `/fr/coins/bitcoin`
-- [ ] Page coin, onglet Tokenomique — `/fr/coins/bitcoin#tokenomics`
-- [ ] Page coin, onglet Données financières — `/fr/coins/bitcoin#financials`
-- [ ] Page coin, onglet Prédominance — `/fr/coins/bitcoin#dominance`
-- [ ] Page coin, onglet Données historiques — `/fr/coins/bitcoin/historical_data`
-- [ ] Page coin, onglet Prédiction — `/fr/coins/bitcoin/prediction`
-- [x] Catégories — `/fr/categories`
-- [x] Page de catégorie — `/fr/categories/meme-token`
-- [x] Exchanges, spot — `/fr/platesformes`
-- [ ] Exchanges, DEX — `/fr/platesformes/decentralized`
-- [ ] Exchanges, dérivés — `/fr/platesformes/derivatives`
-- [ ] Exchanges, DEX perpétuels — `/fr/platesformes/derivatives/decentralized`
-- [x] Page d'exchange — `/fr/platesformes/binance`
-- [x] Graphiques globaux — `/fr/charts`
+- [ ] Accueil, toutes les monnaies — `/en/all-cryptocurrencies`
+- [ ] Accueil, classement rehypothéqué — `/en/top-market-cap-rehypothecated`
+- [ ] Accueil en devise (EUR) — `/en/currencies/eur`
+- [x] Page coin, onglet Vue d'ensemble — `/en/coins/bitcoin`
+- [ ] Page coin, onglet Tokenomique — `/en/coins/bitcoin#tokenomics`
+- [ ] Page coin, onglet Données financières — `/en/coins/bitcoin#financials`
+- [ ] Page coin, onglet Prédominance — `/en/coins/bitcoin#dominance`
+- [ ] Page coin, onglet Données historiques — `/en/coins/bitcoin/historical_data`
+- [ ] Page coin, onglet Prédiction — `/en/coins/bitcoin/prediction`
+- [x] Catégories — `/en/categories`
+- [x] Page de catégorie — `/en/categories/meme-token`
+- [x] Exchanges, spot — `/en/exchanges`
+- [ ] Exchanges, DEX — `/en/exchanges/decentralized`
+- [ ] Exchanges, dérivés — `/en/exchanges/derivatives`
+- [ ] Exchanges, DEX perpétuels — `/en/exchanges/derivatives/decentralized`
+- [x] Page d'exchange — `/en/exchanges/binance`
+- [x] Graphiques globaux — `/en/charts`
 
 ### Phase 2 — données
 
-- [x] Highlights (principaux éléments) — `/fr/highlights`
-- [ ] Tendances — `/fr/highlights/trending-crypto`
-- [x] Gagnants et perdants — `/fr/crypto-gainers-losers`
-- [x] Nouvelles cryptos — `/fr/new-cryptocurrencies`
-- [ ] All-time high — `/fr/highlights/all-time-high-crypto`
-- [ ] Highlights, les plus consultées — `/fr/highlights/most-viewed-crypto`
-- [ ] Highlights, volume élevé — `/fr/highlights/high-volume`
-- [ ] Highlights, déblocages de jetons à venir — `/fr/highlights/incoming-token-unlocks`
-- [ ] Highlights, cryptos à venir — `/fr/highlights/upcoming-cryptocurrencies`
-- [ ] Carte thermique (heatmap) — `/fr/charts/crypto-heatmap`
-- [ ] Prédominance du Bitcoin — `/fr/charts/bitcoin-dominance`
-- [x] Comparateur — `/fr/compare-cryptocurrencies`
-- [x] Convertisseur — `/fr/converter`
-- [x] Chaînes — `/fr/chains`
-- [ ] Page de chaîne — `/fr/chains/ethereum`
-- [ ] NFT — `/fr/nft`
-- [ ] NFT par chaîne — `/fr/nft/chains/ethereum`
-- [ ] Page de collection NFT (floor price) — `/fr/nft/bored-ape-yacht-club`
-- [ ] RWA — `/fr/rwa`
-- [ ] RWA, graphique global — `/fr/charts/rwa`
-- [ ] RWA, actions tokenisées — `/fr/stocks`
-- [ ] Page d'action tokenisée — `/fr/stocks/nvidia`
-- [ ] RWA, ETF tokenisés — `/fr/etfs`
-- [ ] Page d'ETF tokenisé — `/fr/etfs/spdr-s-p-500-etf-trust`
-- [ ] RWA, matières premières tokenisées — `/fr/commodities`
-- [ ] Page de matière première tokenisée — `/fr/commodities/gold`
-- [ ] Trésoreries — `/fr/treasuries`
-- [ ] Trésoreries, entreprises — `/fr/treasuries/companies`
-- [ ] Trésoreries, États — `/fr/treasuries/governments`
+- [x] Highlights (principaux éléments) — `/en/highlights`
+- [x] Tendances — `/en/highlights/trending-crypto`
+- [x] Gagnants et perdants — `/en/crypto-gainers-losers`
+- [x] Nouvelles cryptos — `/en/new-cryptocurrencies`
+- [x] All-time high — `/en/highlights/all-time-high-crypto`
+- [ ] Highlights, les plus consultées — `/en/highlights/most-viewed-crypto`
+- [ ] Highlights, volume élevé — `/en/highlights/high-volume`
+- [ ] Highlights, déblocages de jetons à venir — `/en/highlights/incoming-token-unlocks`
+- [ ] Highlights, cryptos à venir — `/en/highlights/upcoming-cryptocurrencies`
+- [x] Carte thermique (heatmap) — `/en/charts/crypto-heatmap`
+- [x] Prédominance du Bitcoin — `/en/charts/bitcoin-dominance`
+- [x] Comparateur — `/en/compare-cryptocurrencies`
+- [x] Convertisseur — `/en/converter`
+- [x] Chaînes — `/en/chains`
+- [ ] Page de chaîne — `/en/chains/ethereum`
+- [ ] NFT — `/en/nft`
+- [ ] NFT par chaîne — `/en/nft/chains/ethereum`
+- [ ] Page de collection NFT (floor price) — `/en/nft/bored-ape-yacht-club`
+- [ ] RWA — `/en/rwa`
+- [ ] RWA, graphique global — `/en/charts/rwa`
+- [x] RWA, actions tokenisées — `/en/stocks`
+- [ ] Page d'action tokenisée — `/en/stocks/nvidia`
+- [x] RWA, ETF tokenisés — `/en/etfs`
+- [ ] Page d'ETF tokenisé — `/en/etfs/spdr-s-p-500-etf-trust`
+- [x] RWA, matières premières tokenisées — `/en/commodities`
+- [ ] Page de matière première tokenisée — `/en/commodities/gold`
+- [x] Trésoreries — `/en/treasuries`
+- [ ] Trésoreries, entreprises — `/en/treasuries/companies`
+- [ ] Trésoreries, États — `/en/treasuries/governments`
 
 ### Phase 3 — contenu et services
 
-- [x] Portefeuille — `/fr/portfolio`
+- [x] Portefeuille — `/en/portfolio`
 - [ ] Apprendre — `/learn`
 - [x] Apprendre, article — `/learn/crypto-narratives`
-- [ ] Actualités — `/fr/news`
-- [ ] Rapports — `/fr/publications/reports`
+- [ ] Actualités — `/en/news`
+- [ ] Rapports — `/en/publications/reports`
 - [ ] Perspectives Recherche — `/research`
 - [ ] Glossaire — `/en/glossary`
 - [ ] Glossaire, terme — `/en/glossary/blockchain`
-- [ ] Widgets — `/fr/widget`
-- [x] Page API — `/fr/api`
-- [ ] API DEX — `/fr/api/dex`
-- [ ] API NFT — `/fr/api/nft`
-- [ ] Tarifs API — `/fr/api/pricing`
-- [ ] Études de cas API — `/fr/api/case-studies`
-- [ ] Page coin, onglet Halving — `/fr/coins/bitcoin/bitcoin-halving`
-- [ ] Méthodologie — `/fr/méthodologie`
-- [ ] À propos — `/fr/à_propos_de`
-- [ ] FAQ — `/fr/faq`
-- [ ] Candy (récompenses) — `/fr/candy`
-- [ ] Application mobile — `/fr/mobile`
-- [ ] Tarifs Premium — `/fr/premium/pricing`
+- [ ] Widgets — `/en/widget`
+- [x] Page API — `/en/api`
+- [ ] API DEX — `/en/api/dex`
+- [ ] API NFT — `/en/api/nft`
+- [ ] Tarifs API — `/en/api/pricing`
+- [ ] Études de cas API — `/en/api/case-studies`
+- [ ] Page coin, onglet Halving — `/en/coins/bitcoin/bitcoin-halving`
+- [ ] Méthodologie — `/en/methodology`
+- [ ] À propos — `/en/about`
+- [ ] FAQ — `/en/faq`
+- [ ] Candy (récompenses) — `/en/candy`
+- [ ] Application mobile — `/en/mobile`
+- [ ] Tarifs Premium — `/en/premium/pricing`
 
 **Watchlist — sans route publique vérifiable.** Constaté par `curl -L` (GET, suivi des
 redirections), URL par URL :
-- `/fr/watchlist` → 404 direct.
 - `/en/watchlist` → 404 direct.
-- `/fr/my-watchlist` → 404 direct.
+- `/en/watchlist` → 404 direct.
+- `/en/my-watchlist` → 404 direct.
 - `/watchlist` → 301 vers `/en/watchlist`, qui rend ensuite 404.
-- `/fr/watchlists` (pluriel) → 301 vers `/fr/highlights`, qui rend 200 — cette URL ne
+- `/en/watchlists` (pluriel) → 301 vers `/en/highlights`, qui rend 200 — cette URL ne
   renvoie jamais 404, elle mène simplement ailleurs, ce qui explique pourquoi le pluriel
   ne mène nulle part non plus : redirigé vers une page déjà listée sous « Highlights ».
 Le mot « watchlist » n'apparaît nulle part dans le HTML rendu de l'accueil, de la page
-coin Bitcoin ou de `/fr/portfolio`. Le bouton étoile de la page coin
+coin Bitcoin ou de `/en/portfolio`. Le bouton étoile de la page coin
 (`data-controller="coin-favorites"`, action `handleCoinFavourites`) est la fonction
 équivalente aujourd'hui, et elle est repliée dans le Portefeuille (nav : « Mes Monnaies »
-→ `/fr/portfolio`) plutôt que dans une page dédiée. Auditée comme composant de l'entrée
+→ `/en/portfolio`) plutôt que dans une page dédiée. Auditée comme composant de l'entrée
 Portefeuille, pas comme page séparée.
 
-**`/fr/api/case-studies` — redirection 302 vers `/en/api/case-studies`.** Contenu non
+**`/en/api/case-studies` — redirection 302 vers `/en/api/case-studies`.** Contenu non
 traduit en français, comme `/en/glossary` et `/learn`.
 
 ## Entrées
@@ -359,7 +371,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   visibles en version desktop). Aucun texte de CoinGecko n'est recopié au-delà des
   libellés strictement nécessaires à l'identification d'un composant.
 
-### Page coin, onglet Vue d'ensemble — `/fr/coins/bitcoin`
+### Page coin, onglet Vue d'ensemble — `/en/coins/bitcoin`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : gabarit de détail d'un actif — cours, graphique, statistiques de marché,
@@ -538,7 +550,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   listée dans `## Liste des pages`). Aucun texte de CoinGecko n'est recopié
   au-delà des libellés strictement nécessaires à l'identification d'un composant.
 
-### Catégories — `/fr/categories`
+### Catégories — `/en/categories`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : liste des secteurs/narratifs du marché (Plateforme de contrats
@@ -638,7 +650,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
   l'identification d'un composant.
 
-### Exchanges, spot — `/fr/platesformes`
+### Exchanges, spot — `/en/exchanges`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : classement des plateformes d'échange au comptant par score de confiance
@@ -717,7 +729,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   texte de CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
   l'identification d'un composant.
 
-### Page d'exchange — `/fr/platesformes/binance`
+### Page d'exchange — `/en/exchanges/binance`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : fiche de détail d'une plateforme d'échange — marchés (paires), identité,
@@ -843,7 +855,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   n'est recopié au-delà des libellés strictement nécessaires à l'identification
   d'un composant.
 
-### Graphiques globaux — `/fr/charts`
+### Graphiques globaux — `/en/charts`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : cinq graphiques de marché empilés (capitalisation totale, prédominance
@@ -942,7 +954,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   l'API » vue sous la navigation latérale. Aucun texte de CoinGecko n'est recopié
   au-delà des libellés strictement nécessaires à l'identification d'un composant.
 
-### Page de catégorie — `/fr/categories/meme-token`
+### Page de catégorie — `/en/categories/meme-token`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : fiche de secteur — tableau de cotations restreint aux actifs d'un
@@ -1169,7 +1181,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   du sommaire, le clic de notation, et le comportement réel du bouton de
   retour en haut au défilement.
 
-### Page API — `/fr/api`
+### Page API — `/en/api`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : gabarit marchand — page produit de l'API CoinGecko, entièrement
@@ -1274,11 +1286,11 @@ traduit en français, comme `/en/glossary` et `/learn`.
   texte de CoinGecko n'est recopié au-delà des libellés strictement
   nécessaires à l'identification d'un composant.
 
-### Portefeuille — `/fr/portfolio`
+### Portefeuille — `/en/portfolio`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : page de compte — vue observée pour un visiteur SANS session
-  CoinGecko. `/fr/portfolio` n'exige pas d'identifiant à l'URL et rend, pour
+  CoinGecko. `/en/portfolio` n'exige pas d'identifiant à l'URL et rend, pour
   ce relevé, une page marchande d'onboarding vantant le Portefeuille
   CoinGecko (suivi de gains, listes personnalisées, application mobile),
   pas le tableau réel d'un portefeuille rempli. **La vue connectée n'a pas
@@ -1343,7 +1355,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   Rien à reporter en synthèse pour cette raison, comme pour les pages
   Apprendre et API.
 - **Écart avec ZENKUU** : ZENKUU n'a pas de page marchande équivalente à
-  `/fr/portfolio` — son modèle de compte est différent dès la racine.
+  `/en/portfolio` — son modèle de compte est différent dès la racine.
   `apps/web/app/[locale]/connexion/page.tsx` (lu le 2026-08-30) documente
   une connexion SANS mot de passe (code à six chiffres par courriel), et
   explique pourquoi cette page n'est délibérément ni indexée ni conçue
@@ -1392,7 +1404,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   recopié au-delà des libellés strictement nécessaires à l'identification
   d'un composant.
 
-### Gagnants et perdants — `/fr/crypto-gainers-losers`
+### Gagnants et perdants — `/en/crypto-gainers-losers`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : palmarès des plus fortes hausses et des plus fortes baisses sur une période
@@ -1426,7 +1438,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : les deux tableaux partagent exactement la même structure de colonnes ; un
   seul composant peut les rendre tous les deux.
 
-### Nouvelles cryptomonnaies — `/fr/new-cryptocurrencies`
+### Nouvelles cryptomonnaies — `/en/new-cryptocurrencies`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : liste des actifs récemment ajoutés au catalogue, du plus récent au plus
@@ -1452,7 +1464,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : la colonne sans en-tête entre « Monnaie » et « Cours » ne porte aucun
   libellé accessible.
 
-### Chaînes — `/fr/chains`
+### Chaînes — `/en/chains`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : classement des blockchains par valeur totale verrouillée. Le titre le dit
@@ -1483,7 +1495,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
   aucun `porteurTexte`, ce qui est le comportement voulu. C'est le sélecteur qui visait la
   mauvaise colonne ; la couleur relevée n'a aucun sens et ne doit pas être reprise.
 
-### Convertisseur — `/fr/converter`
+### Convertisseur — `/en/converter`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : convertir un montant d'un actif vers une devise. La page affiche le résultat
@@ -1512,7 +1524,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : porter le résultat dans un `h2` est un choix inhabituel — le nombre le plus
   important de la page est un titre, pas une valeur encadrée.
 
-### Comparateur — `/fr/compare-cryptocurrencies`
+### Comparateur — `/en/compare-cryptocurrencies`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : calculer le cours qu'aurait un actif A s'il portait la capitalisation d'un
@@ -1541,7 +1553,7 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : ⚠️ le premier `h1` de la page est « Sélectionner B », le libellé d'un
   contrôle. La page n'a pas de titre décrivant son rôle.
 
-### Points forts — `/fr/highlights`
+### Points forts — `/en/highlights`
 
 - **Date du relevé** : 2026-08-30
 - **Rôle** : tableau de bord d'entrée vers les autres palmarès. La page ne présente pas de
@@ -1567,6 +1579,157 @@ traduit en français, comme `/en/glossary` et `/learn`.
 - **Notes** : c'est sur cette page que le relevé a établi les deux faits qui ont corrigé la
   palette — l'onglet sélectionné est VERT (`rgb(53, 175, 0)` en clair, `rgb(128, 224, 56)`
   en sombre) et le texte du bouton d'action est BLANC sur le vert, pas noir.
+
+### Tendances — `/en/highlights/trending-crypto`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les quinze actifs les plus consultés du moment. La page répond à « qu'est-ce
+  que les autres regardent », pas à « qu'est-ce qui monte » — c'est une mesure d'attention,
+  pas de marché.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de quinze lignes — rang, monnaie, cours, 1 h, 24 h, 7 j, volume
+  24 h, capitalisation, courbe 7 jours ; groupe d'onglets de filtre ; chrome commun.
+- **Fonctionnalités** : filtrage par onglet ; tri ; navigation vers la fiche.
+- **Interactions** : survol de ligne et d'onglet aux mêmes valeurs que l'accueil.
+- **Données requises** : un compteur de consultations par actif. **ZENKUU ne le produit
+  pas** : c'est une donnée d'audience, propre à l'opérateur, qu'aucune source de marché ne
+  publie. Un « tendances » bâti sur la variation ou le volume mesurerait autre chose et le
+  dirait mal.
+- **Écart avec ZENKUU** : `/crypto?vue=tendance` existe mais s'appuie sur des critères de
+  marché. **L'écart est de NATURE, pas de degré** — et il n'est pas comblable sans
+  audience propre.
+- **Notes** : quinze lignes seulement, là où leurs autres classements en portent cent.
+
+### Écart au sommet — `/en/highlights/all-time-high-crypto`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : montrer, pour les cent premières capitalisations, ce qui les sépare de leur
+  plus haut historique.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes — rang, monnaie, cours, cours du sommet, écart en
+  %, date du sommet ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la fiche.
+- **Interactions** : identiques aux autres pages de liste.
+- **Données requises** : `ath` et `athDate`, tous deux déjà servis par la source de ZENKUU.
+- **Écart avec ZENKUU** : comblé le 2026-08-31 — `/classements/sommet`.
+  ⚠️ **Le tri se fait par CAPITALISATION, pas par écart.** Trié par écart, le classement
+  remonte des fonds monétaires tokenisés dont le cours ne bouge pas et qui sont donc
+  toujours à leur sommet. L'écart est l'information de la page, pas son ordre.
+- **Notes** : leur tableau porte aussi la DATE du sommet, ce que `/classements/sommet`
+  n'affiche pas encore — `athDate` est disponible.
+
+### Carte thermique — `/en/charts/crypto-heatmap`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le marché en une figure, chaque actif en tuile dimensionnée par sa
+  capitalisation et teintée par sa variation.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : figure plein cadre ; groupe d'onglets de filtre ; chrome commun.
+  **Aucun tableau** — deux des sept sélecteurs de la campagne n'ont donc rien trouvé, et
+  c'est le comportement attendu.
+- **Fonctionnalités** : filtrage ; survol d'une tuile.
+- **Interactions** : les onglets se survolent comme ailleurs.
+- **Données requises** : capitalisation et variation par actif — ZENKUU les a.
+- **Écart avec ZENKUU** : `/heatmap` couvre le rôle.
+- **Notes** : `h1` à 24px/700 comme partout, ce qui confirme le cran unique jusque sur les
+  pages de figure.
+
+### Prédominance du bitcoin — `/en/charts/bitcoin-dominance`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : la part du bitcoin dans la capitalisation totale, dans le temps.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : graphique de série temporelle ; sélecteur de période ; chrome commun.
+  **Aucun tableau.**
+- **Fonctionnalités** : choix de la fenêtre ; lecture au survol.
+- **Données requises** : historique de la dominance. ⚠️ **Aucune source gratuite ne le
+  publie** — ZENKUU construit sa série à partir de ses propres relevés (voir
+  `packages/data/src/market-cap-series.ts`), ce qui la rend courte au démarrage.
+- **Interactions** : le sélecteur de période se survole ; le graphique affiche la valeur
+  au survol.
+- **Écart avec ZENKUU** : `/graphiques/dominance` couvre le rôle, avec cette réserve de
+  profondeur d'historique.
+- **Notes** : deux des sept sélecteurs de la campagne n'ont rien trouvé — cette page n'a
+  pas de tableau, c'est le comportement attendu.
+
+### Trésoreries — `/en/treasuries`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : les entités — sociétés cotées, États, fonds — qui détiennent des
+  cryptomonnaies à leur bilan, avec le coût d'acquisition et la valeur du jour.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de 244 lignes — rang, entité, type, trois principales
+  détentions, activité récente, coût total, valeur du jour, mNAV ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers l'entité.
+- **Données requises** : déclarations de détention par entité, leur date et leur coût.
+  ⚠️ **Ce n'est pas une donnée de marché** : elle vient de dépôts réglementaires et
+  d'annonces d'entreprises, agrégés à la main. Aucune source de cotation ne la produit.
+- **Interactions** : survol de ligne aux valeurs communes à tout leur site.
+- **Écart avec ZENKUU** : `/graphiques/tresoreries` existe et vient d'entrer dans la
+  navigation. Le mNAV — valeur de marché rapportée à l'actif net — n'a pas d'équivalent.
+- **Notes** : 244 lignes, le plus long tableau relevé sur leur site. Il n'est pas paginé.
+
+### Actions tokenisées — `/en/stocks`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : ⚠️ **CE NE SONT PAS DES ACTIONS COTÉES.** Le titre le dit — « Top Tokenized
+  Stocks by Market Cap » — et les colonnes le confirment : cours de l'action ET cours du
+  jeton, écart entre les deux, capitalisation tokenisée. La page mesure la représentation
+  ON-CHAIN d'une action, pas l'action elle-même.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : tableau de cent lignes — rang, nom, cours, cours tokenisé, 24 h, 7 j,
+  30 j, écart de cours, capitalisation, capitalisation tokenisée, volume tokenisé 24 h,
+  volume et intérêt ouvert des perpétuels, courbe 7 jours ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la fiche du jeton.
+- **Interactions** : survol de ligne et d'onglet aux valeurs communes à tout leur site.
+- **Données requises** : cours du jeton ET du sous-jacent, pour en tirer l'écart.
+- **Écart avec ZENKUU** : `/actions` liste de VRAIES valeurs boursières, via Yahoo. Les
+  deux pages portent le même mot et décrivent deux choses différentes. **Ce n'est pas un
+  manque de ZENKUU** : c'est un sujet distinct, qui demanderait une source de jetons
+  adossés à des actions.
+- **Notes** : `table.sortable tbody tr:first-child` mesure 14px/600 ici contre 14px/400
+  sur douze autres pages — la première cellule de cette page est un nom, pas un chiffre.
+
+### ETF tokenisés — `/en/etfs`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : le pendant de `/en/stocks` pour les fonds indiciels — même structure, avec
+  l'encours (AUM) à la place de la capitalisation.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : mêmes colonnes que les actions tokenisées, AUM substitué à la
+  capitalisation ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la fiche du jeton.
+- **Interactions** : survol de ligne et d'onglet aux valeurs communes à tout leur site.
+- **Données requises** : cours du jeton, encours du fonds sous-jacent, et leur écart.
+- **Écart avec ZENKUU** : même remarque que pour les actions — `/etf` liste de vrais fonds
+  indiciels. Sujet distinct, pas un manque.
+- **Notes** : l'AUM remplace la capitalisation — un fonds n'a pas de capitalisation propre,
+  il a un encours. La substitution est juste, et elle distingue cette page de sa jumelle.
+
+### Matières premières tokenisées — `/en/commodities`
+
+- **Date du relevé** : 2026-08-31
+- **Rôle** : troisième page du même gabarit, pour l'or, l'argent et les autres matières
+  premières représentées par un jeton.
+- **Priorité** : phase 2
+- **État** : audité
+- **Composants** : même structure que les deux précédentes ; chrome commun.
+- **Fonctionnalités** : tri ; navigation vers la fiche du jeton.
+- **Interactions** : survol de ligne et d'onglet aux valeurs communes à tout leur site.
+- **Données requises** : cours du jeton ET du sous-jacent, pour en tirer l'écart — comme
+  les deux pages précédentes.
+- **Écart avec ZENKUU** : `/matieres-premieres` liste des cours de matières premières.
+  Même distinction que ci-dessus.
+- **Notes** : les trois pages « RWA » partagent un gabarit unique, aux colonnes près. Une
+  seule implémentation les couvrirait toutes les trois — mais aucune n'est faisable sans
+  source de jetons adossés.
 
 ## Synthèse — données sans source gratuite
 
