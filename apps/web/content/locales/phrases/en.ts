@@ -13,6 +13,15 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  "Halving du bitcoin": "Bitcoin halving",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Bitcoin halving schedule",
+  "Hauteur de bloc": "Block height",
+  "Récompense avant": "Reward before",
+  "Récompense après": "Reward after",
+  "estimée": "estimated",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Every 210,000 blocks, the reward paid to miners is halved. It is a protocol rule, not a decision: it caps total issuance at 21 million bitcoin.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Past dates are observed on-chain and verifiable at the block height shown. Later ones are projections: a block targets ten minutes, but difficulty adjusts with a lag and the real pace drifts by a few days a year. The rewards are exact — they follow from the protocol rule.",
   "Écart au sommet historique": "Price since all-time high",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "How far each asset sits from its all-time high, in market-cap order.",
   "Plus proches de leur sommet": "Closest to their all-time high",

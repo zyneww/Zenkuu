@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  "Halving du bitcoin": "Halving do bitcoin",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Calendário dos halvings do bitcoin",
+  "Hauteur de bloc": "Altura do bloco",
+  "Récompense avant": "Recompensa antes",
+  "Récompense après": "Recompensa depois",
+  "estimée": "estimada",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "A cada 210.000 blocos, a recompensa paga aos mineradores é dividida ao meio. É uma regra do protocolo, não uma decisão: ela limita a emissão total a 21 milhões de bitcoins.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "As datas passadas são observadas na cadeia e verificáveis na altura de bloco indicada. As seguintes são projeções: um bloco mira dez minutos, mas a dificuldade se ajusta com atraso e o ritmo real desvia alguns dias por ano. As recompensas, essas, são exatas — decorrem da regra do protocolo.",
   "Écart au sommet historique": "Distância da máxima histórica",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "O que separa cada ativo de sua máxima histórica, em ordem de capitalização.",
   "Plus proches de leur sommet": "Mais perto de sua máxima histórica",

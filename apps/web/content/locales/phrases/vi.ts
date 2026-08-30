@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  "Halving du bitcoin": "Halving của bitcoin",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Lịch halving của bitcoin",
+  "Hauteur de bloc": "Chiều cao khối",
+  "Récompense avant": "Phần thưởng trước",
+  "Récompense après": "Phần thưởng sau",
+  "estimée": "ước tính",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Cứ mỗi 210.000 khối, phần thưởng trả cho thợ đào lại giảm một nửa. Đó là quy tắc của giao thức, không phải một quyết định: nó giới hạn tổng phát hành ở 21 triệu bitcoin.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Các mốc đã qua được quan sát trên chuỗi và có thể kiểm chứng tại chiều cao khối đã nêu. Các mốc sau là dự phóng: một khối nhắm tới mười phút, nhưng độ khó điều chỉnh có độ trễ và nhịp thực tế lệch vài ngày mỗi năm. Phần thưởng thì chính xác — chúng suy ra từ quy tắc giao thức.",
   "Écart au sommet historique": "Khoảng cách tới đỉnh lịch sử",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Khoảng cách giữa mỗi tài sản và đỉnh lịch sử, xếp theo vốn hóa.",
   "Plus proches de leur sommet": "Gần đỉnh lịch sử nhất",

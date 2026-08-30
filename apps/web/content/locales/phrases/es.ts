@@ -8,6 +8,15 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  "Halving du bitcoin": "Halving de bitcoin",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Calendario de halvings de bitcoin",
+  "Hauteur de bloc": "Altura de bloque",
+  "Récompense avant": "Recompensa antes",
+  "Récompense après": "Recompensa después",
+  "estimée": "estimada",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Cada 210 000 bloques, la recompensa pagada a los mineros se divide por dos. Es una regla del protocolo, no una decisión: limita la emisión total a 21 millones de bitcoins.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Las fechas pasadas se observan en la cadena y son verificables en la altura de bloque indicada. Las siguientes son proyecciones: un bloque apunta a diez minutos, pero la dificultad se ajusta con retraso y el ritmo real se desvía unos días al año. Las recompensas sí son exactas — se deducen de la regla del protocolo.",
   "Écart au sommet historique": "Distancia al máximo histórico",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Lo que separa a cada activo de su máximo histórico, por orden de capitalización.",
   "Plus proches de leur sommet": "Más cerca de su máximo histórico",

@@ -163,6 +163,13 @@ export const NAV_MENUS: NavMenu[] = [
             href: '/classements/sommet',
             ready: true,
           },
+          {
+            label: 'Halving du bitcoin',
+            description: 'Le calendrier des divisions par deux de la récompense de bloc',
+            icon: Recycle,
+            href: '/crypto/bitcoin/halving',
+            ready: true,
+          },
         ],
       },
       {

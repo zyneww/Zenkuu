@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  "Halving du bitcoin": "Halving di bitcoin",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Calendario degli halving di bitcoin",
+  "Hauteur de bloc": "Altezza del blocco",
+  "Récompense avant": "Ricompensa prima",
+  "Récompense après": "Ricompensa dopo",
+  "estimée": "stimata",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Ogni 210 000 blocchi, la ricompensa versata ai miner viene dimezzata. È una regola del protocollo, non una decisione: limita l’emissione totale a 21 milioni di bitcoin.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Le date passate sono osservate sulla catena e verificabili all’altezza del blocco indicata. Quelle successive sono proiezioni: un blocco punta a dieci minuti, ma la difficoltà si adegua in ritardo e il ritmo reale devia di qualche giorno all’anno. Le ricompense, invece, sono esatte — discendono dalla regola del protocollo.",
   "Écart au sommet historique": "Distanza dal massimo storico",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Quanto dista ogni attività dal suo massimo storico, in ordine di capitalizzazione.",
   "Plus proches de leur sommet": "Più vicini al loro massimo storico",

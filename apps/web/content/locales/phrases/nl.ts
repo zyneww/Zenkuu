@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  "Halving du bitcoin": "Bitcoin-halving",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Schema van bitcoin-halvings",
+  "Hauteur de bloc": "Blokhoogte",
+  "Récompense avant": "Beloning ervoor",
+  "Récompense après": "Beloning erna",
+  "estimée": "geschat",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Elke 210.000 blokken wordt de beloning voor miners gehalveerd. Dat is een protocolregel, geen besluit: het begrenst de totale uitgifte tot 21 miljoen bitcoin.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Datums uit het verleden zijn op de keten waargenomen en verifieerbaar op de getoonde blokhoogte. Latere zijn projecties: een blok mikt op tien minuten, maar de moeilijkheid past zich met vertraging aan en het echte tempo wijkt jaarlijks enkele dagen af. De beloningen zijn wel exact — ze volgen uit de protocolregel.",
   "Écart au sommet historique": "Afstand tot recordhoogte",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Hoe ver elk activum van zijn recordhoogte staat, op volgorde van marktkapitalisatie.",
   "Plus proches de leur sommet": "Dichtst bij hun recordhoogte",

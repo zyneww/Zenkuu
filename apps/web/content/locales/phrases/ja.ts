@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  "Halving du bitcoin": "ビットコインの半減期",
+  "Halving": "半減期",
+  "Calendrier des halvings du bitcoin": "ビットコイン半減期の予定表",
+  "Hauteur de bloc": "ブロック高",
+  "Récompense avant": "半減前の報酬",
+  "Récompense après": "半減後の報酬",
+  "estimée": "推定",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "210,000ブロックごとに、マイナーへの報酬は半分になります。これは決定ではなくプロトコルの規則であり、総発行量を2,100万BTCに制限します。",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "過去の日付はチェーン上で観測され、示されたブロック高で検証できます。以降は予測です——ブロックは10分を目標としますが、難易度の調整には遅れがあり、実際のペースは年に数日ずれます。報酬のほうは正確です——プロトコルの規則から導かれます。",
   "Écart au sommet historique": "過去最高値からの乖離",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "各銘柄が過去最高値からどれだけ離れているか、時価総額順に表示します。",
   "Plus proches de leur sommet": "最高値に最も近い銘柄",

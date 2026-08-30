@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  "Halving du bitcoin": "比特币减半",
+  "Halving": "减半",
+  "Calendrier des halvings du bitcoin": "比特币减半时间表",
+  "Hauteur de bloc": "区块高度",
+  "Récompense avant": "减半前奖励",
+  "Récompense après": "减半后奖励",
+  "estimée": "预计",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "每 210,000 个区块，支付给矿工的奖励减半一次。这是协议规则而非决策：它把总发行量限制在 2100 万枚比特币。",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "过去的日期在链上可观测，并可按所示区块高度核验。之后的日期是推算：一个区块以十分钟为目标，但难度调整存在滞后，实际节奏每年会偏移数天。奖励则是精确的——它们由协议规则推导而来。",
   "Écart au sommet historique": "距历史高点的差距",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "各资产距其历史最高点的差距，按市值排序。",
   "Plus proches de leur sommet": "最接近历史高点",

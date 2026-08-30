@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  "Halving du bitcoin": "Bitcoin halving",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Bitcoin halving takvimi",
+  "Hauteur de bloc": "Blok yüksekliği",
+  "Récompense avant": "Öncesindeki ödül",
+  "Récompense après": "Sonrasındaki ödül",
+  "estimée": "tahmini",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Her 210.000 blokta bir, madencilere ödenen ödül yarıya iner. Bu bir karar değil, protokol kuralıdır: toplam arzı 21 milyon bitcoin ile sınırlar.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Geçmiş tarihler zincir üzerinde gözlenir ve belirtilen blok yüksekliğinde doğrulanabilir. Sonrakiler projeksiyondur: bir blok on dakikayı hedefler, ancak zorluk gecikmeli ayarlanır ve gerçek hız yılda birkaç gün sapar. Ödüller ise kesindir — protokol kuralından çıkar.",
   "Écart au sommet historique": "Zirveden uzaklık",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Her varlığın zirvesinden ne kadar uzakta olduğu, piyasa değeri sırasıyla.",
   "Plus proches de leur sommet": "Zirvesine en yakın olanlar",

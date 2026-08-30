@@ -9,6 +9,15 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  "Halving du bitcoin": "Bitcoin-Halving",
+  "Halving": "Halving",
+  "Calendrier des halvings du bitcoin": "Zeitplan der Bitcoin-Halvings",
+  "Hauteur de bloc": "Blockhöhe",
+  "Récompense avant": "Belohnung davor",
+  "Récompense après": "Belohnung danach",
+  "estimée": "geschätzt",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Alle 210 000 Blöcke wird die Belohnung für Miner halbiert. Das ist eine Protokollregel, keine Entscheidung: sie begrenzt die Gesamtausgabe auf 21 Millionen Bitcoin.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Vergangene Daten sind auf der Kette beobachtet und bei der angegebenen Blockhöhe überprüfbar. Spätere sind Projektionen: ein Block zielt auf zehn Minuten, doch die Schwierigkeit passt sich verzögert an und das reale Tempo weicht jährlich um einige Tage ab. Die Belohnungen sind exakt — sie folgen aus der Protokollregel.",
   "Écart au sommet historique": "Abstand zum Allzeithoch",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Wie weit jeder Wert von seinem Allzeithoch entfernt ist, nach Marktkapitalisierung geordnet.",
   "Plus proches de leur sommet": "Am nächsten am Allzeithoch",

@@ -2,6 +2,15 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  "Halving du bitcoin": "Халвинг биткоина",
+  "Halving": "Халвинг",
+  "Calendrier des halvings du bitcoin": "График халвингов биткоина",
+  "Hauteur de bloc": "Высота блока",
+  "Récompense avant": "Награда до",
+  "Récompense après": "Награда после",
+  "estimée": "оценка",
+  "Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.": "Каждые 210 000 блоков вознаграждение майнерам уменьшается вдвое. Это правило протокола, а не решение: оно ограничивает общую эмиссию 21 миллионом биткоинов.",
+  "Les dates passées sont observées sur la chaîne et vérifiables à la hauteur de bloc indiquée. Les suivantes sont des projections : un bloc vise dix minutes, mais la difficulté s’ajuste avec retard et le rythme réel dérive de quelques jours par an. Les récompenses, elles, sont exactes — elles se déduisent de la règle du protocole.": "Прошедшие даты наблюдаются в цепочке и проверяются по указанной высоте блока. Последующие — проекции: блок нацелен на десять минут, но сложность подстраивается с задержкой, и реальный темп смещается на несколько дней в год. Вознаграждения же точны — они следуют из правила протокола.",
   "Écart au sommet historique": "Отставание от исторического максимума",
   "Ce qui sépare chaque actif de son plus haut, dans l’ordre des capitalisations.": "Насколько каждый актив далёк от своего максимума, в порядке капитализации.",
   "Plus proches de leur sommet": "Ближе всего к своему максимуму",
