@@ -893,6 +893,52 @@
    l'utilisaient ont suivi. Confondre les deux repeindrait en or tous les survols
    de menu du site.
    ───────────────────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────────
+   COUCHE `--v2-*` — LA STRUCTURE RELEVÉE, PAS ENCORE CONSOMMÉE
+   ─────────────────────────────────────────────────────────────────────────────
+   Ces jetons portent la densité, le rythme d'espacement, l'échelle typographique
+   et les rayons relevés lors du sous-projet A. Ils COHABITENT avec les jetons
+   existants : rien ne les consomme tant que le sous-projet B n'a pas commencé, et
+   le site rend exactement comme avant.
+
+   Aucun jeton de COULEUR ici. La palette de ZENKUU ne change pas ; ce qui change,
+   c'est la structure qui la met en scène. `apps/web/app/tokens-v2.test.ts` fait
+   respecter cette règle, ainsi que la correspondance avec DESIGN_SYSTEM.md.
+
+   La dernière étape de la migration complète est un renommage mécanique qui laisse
+   tomber le préfixe `--v2-`, une fois les anciens jetons retirés.
+   ───────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Typographie — DESIGN_SYSTEM.md §1 : `.gecko-up` / `.gecko-down` (variation de
+     prix), pastilles de rang — 50 occurrences, toutes pages avec données de
+     marché. ZENKUU n'a que 11px pour ce cran (`--text-2xs`) ; interligne mesuré
+     16px, non porté par un jeton séparé (cohérence avec les 11 jetons promis). */
+  --v2-text-2xs: 0.75rem; /* 12px, interligne 16px */
+
+  /* Rythme d'espacement — DESIGN_SYSTEM.md §3, agrégé toutes pages. ZENKUU n'avait
+     aucune échelle de contrôle (seulement les macros --spacing-section 96px et
+     --spacing-band 64px) ; ces sept paliers, tous ≥30 occurrences, la constituent. */
+  --v2-space-1: 4px; /* #embed et petits écarts internes — 126 occ. */
+  --v2-space-2: 6px; /* #use-app-btn button (haut/bas) et boutons similaires — 340 occ. */
+  --v2-space-3: 8px; /* .gecko-tab-underline-item.selected (haut/bas) — 58 occ., gardé distinct de --v2-space-2 : deux tailles de contrôle réelles */
+  --v2-space-4: 10px; /* #use-app-btn button (droite/gauche), table.sortable tbody tr:first-child td:nth-child(4) — 330 occ. */
+  --v2-space-5: 12px; /* table.sortable thead th[aria-sort] (en-tête de colonne) — 168 occ. */
+  --v2-space-6: 16px; /* conteneurs de section, #embed, .gecko-tab-underline-item.selected (droite/gauche) — 88 occ. */
+  --v2-space-7: 32px; /* séparation de bloc (marge) — 54 occ. */
+
+  /* Rayons — DESIGN_SYSTEM.md §4 : en-tête de carte à coins arrondis en haut
+     seulement — 6 occurrences, sous le seuil de 30, gardé faute de jeton composite
+     existant sur lequel le rattacher. Magnitude reprise de --radius-control (8px). */
+  --v2-radius-top: 8px 8px 0px 0px;
+
+  /* Élévation — DESIGN_SYSTEM.md §5 : deux ombres dures (sans flou), liées à des
+     interactions. `currentColor` porte la couleur variable relevée — aucune
+     couleur n'est figée dans le jeton, conformément à l'interdiction de
+     --v2-color-*. */
+  --v2-shadow-press: 0px 4px 0px 0px currentColor; /* button[data-action] pressé/survolé — 12 occ. */
+  --v2-shadow-ring: 0px 0px 0px 2px currentColor; /* focus / squelette de chargement — 4 occ., accessibilité jamais sacrifiable */
+}
+
 @theme {
   --color-background: var(--color-canvas);
   --color-foreground: var(--color-ink);
