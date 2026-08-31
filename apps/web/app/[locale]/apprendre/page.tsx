@@ -112,9 +112,7 @@ export default async function ApprendrePage() {
       <header className="rounded-card bg-gradient-to-br from-brand to-brand-strong px-7 py-8">
         <h1 className="display-xl text-on-brand">{t('Apprendre la crypto et les marchés')}</h1>
         <p className="mt-2 max-w-2xl text-base leading-relaxed text-on-brand/85">
-          Comprendre ce que vous regardez : ce que chaque chiffre mesure réellement,
-          et surtout ce qu’il ne mesure pas. Aucune de ces fiches ne recommande d’agir
-          — ZENKUU explique des notions, il ne conseille pas.
+          {t('Comprendre ce que vous regardez : ce que chaque chiffre mesure réellement, et surtout ce qu’il ne mesure pas. Aucune de ces fiches ne recommande d’agir — ZENKUU explique des notions, il ne conseille pas.')}
         </p>
       </header>
 
@@ -128,10 +126,10 @@ export default async function ApprendrePage() {
             l'annoncer d'abord évite d'avoir à les compter pour s'en rendre compte. */}
         <div>
           <h2 id="par-ou-commencer" className="text-sm font-semibold text-ink">
-            Parcours conseillé
+            {t('Parcours conseillé')}
           </h2>
           <p className="mt-0.5 text-xs text-ink-muted">
-            Six fiches dans l’ordre, du débutant à l’avancé.
+            {t('Six fiches dans l’ordre, du débutant à l’avancé.')}
           </p>
         </div>
         <ol className="grid gap-5 sm:grid-cols-3">
@@ -160,8 +158,7 @@ export default async function ApprendrePage() {
           ))}
         </ol>
         <p className="text-micro text-ink-muted">
-          Parcours conseillé par la rédaction — ZENKUU ne mesure pas l’audience de ses
-          pages et ne prétend donc pas afficher « les plus lues ».
+          {t('Parcours conseillé par la rédaction — ZENKUU ne mesure pas l’audience de ses pages et ne prétend donc pas afficher « les plus lues ».')}
         </p>
       </section>
 
@@ -170,13 +167,13 @@ export default async function ApprendrePage() {
       <section className="space-y-4" aria-labelledby="bibliotheque">
         <div>
           <h2 id="bibliotheque" className="text-sm font-semibold text-ink">
-            Toute la bibliothèque
+            {t('Toute la bibliothèque')}
           </h2>
           {/* Le navigateur filtrable SUIT les sections par sujet plutôt que de les
               remplacer : les sections répondent à « qu'y a-t-il sur ce thème », le
               filtre à « où est la fiche sur X ». Deux questions, deux outils. */}
           <p className="mt-0.5 text-xs text-ink-muted">
-            Les mêmes fiches, filtrables par sujet et par niveau.
+            {t('Les mêmes fiches, filtrables par sujet et par niveau.')}
           </p>
         </div>
         <LessonBrowser />
@@ -225,22 +222,20 @@ export default async function ApprendrePage() {
       <section className="rounded-card bg-gradient-to-br from-brand to-brand-strong px-7 py-7">
         <h2 className="display-sm text-on-brand">{t('Et maintenant ?')}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-on-brand/85">
-          Ces fiches expliquent des notions de marché. Pour comprendre comment ZENKUU
-          collecte et rafraîchit ses données, ou pour une question sur le site lui-même,
-          deux pages prennent le relais.
+          {t('Ces fiches expliquent des notions de marché. Pour comprendre comment ZENKUU collecte et rafraîchit ses données, ou pour une question sur le site lui-même, deux pages prennent le relais.')}
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href="/a-propos"
             className="inline-flex min-h-9 items-center rounded-pill bg-canvas px-4 text-sm font-semibold text-ink transition-opacity hover:opacity-90"
           >
-            Notre méthode
+            {t('Notre méthode')}
           </Link>
           <Link
             href="/aide"
             className="inline-flex min-h-9 items-center rounded-pill border border-on-brand/40 px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-on-brand/10"
           >
-            Centre d’aide
+            {t('Centre d’aide')}
           </Link>
         </div>
       </section>

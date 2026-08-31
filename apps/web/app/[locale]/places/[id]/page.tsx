@@ -104,7 +104,7 @@ export default async function ExchangePage({ params }: RouteProps) {
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
             <Link href="/" className="hover:text-brand">
-              Accueil
+              {t('Accueil')}
             </Link>
           </li>
           <li aria-hidden="true">/</li>
@@ -168,7 +168,7 @@ export default async function ExchangePage({ params }: RouteProps) {
         {place.url ? (
           <Button asChild size="sm" variant="outline">
             <a href={place.url} target="_blank" rel="nofollow noopener noreferrer">
-              Site de la place
+              {t('Site de la place')}
               <span className="sr-only"> {t('(nouvelle fenêtre)')}</span>
             </a>
           </Button>

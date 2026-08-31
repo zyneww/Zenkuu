@@ -510,7 +510,7 @@ function SeasonalityPanel({ points }: { points: SeriesPoint[] }) {
           <thead>
             <tr className="text-ink-muted">
               <th scope="col" className="py-1 text-left font-medium">
-                Année
+                {t('Année')}
               </th>
               {MONTH_LABELS.map((label, index) => (
                 <th key={index} scope="col" className="py-1 text-center font-medium">

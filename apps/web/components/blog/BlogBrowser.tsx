@@ -117,7 +117,7 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
           {archive.length > 0 ? (
             <section className="space-y-4 pt-4" aria-labelledby="archives-titre">
               <h2 id="archives-titre" className="display-sm text-ink">
-                Archives
+                {t('Archives')}
               </h2>
               <div className="space-y-4">
                 {archive.map((article) => (

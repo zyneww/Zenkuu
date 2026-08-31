@@ -1,3 +1,4 @@
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { ArrowRight } from 'lucide-react'
 
 import type { MoversPeriod } from '@zenkuu/data'
@@ -36,12 +37,13 @@ export function RankingDetailLink({
   type: string
   period: MoversPeriod
 }) {
+  const t = usePhrase()
   return (
     <Link
       href={`/classements/${type}?periode=${period}`}
       className="group inline-flex shrink-0 items-center gap-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
     >
-      Voir en détail
+      {t('Voir en détail')}
       <ArrowRight
         className="h-3 w-3 transition-transform duration-150 group-hover:translate-x-0.5"
         aria-hidden="true"

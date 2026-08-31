@@ -39,6 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * imposent que la mention accompagne la donnée là où elle est affichée.
  */
 export default async function EmbedTickerPage() {
+  const t = await getPhrase()
   // Même taille de page que le classement crypto, pour partager sa clé de cache : une
   // taille propre à cette route provoquerait un appel sortant dédié à chaque
   // expiration, pour une donnée déjà en mémoire (voir `/widgets`).
@@ -48,7 +49,7 @@ export default async function EmbedTickerPage() {
   if (!ranking.ok || assets.length === 0) {
     return (
       <p className="p-2 text-xs text-ink-muted">
-        Cotations momentanément indisponibles.
+        {t('Cotations momentanément indisponibles.')}
       </p>
     )
   }
@@ -63,6 +64,11 @@ export default async function EmbedTickerPage() {
           rel="noopener noreferrer"
           className="underline underline-offset-2"
         >
+          {/* PAS DE `t()` ICI, ET C'EST VOULU. C'est la mention d'attribution que
+              les conditions de l'API imposent de porter telle quelle : la traduire
+              la ferait cesser d'être ce qu'elle doit être. `phrases.test.ts` refuse
+              d'ailleurs une entrée dont la traduction recopie la clé — c'est cette
+              règle qui a mis le doigt dessus. */}
           Powered by CoinGecko
         </a>
         {' · '}

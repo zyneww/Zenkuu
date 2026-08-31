@@ -242,7 +242,7 @@ export function ExchangeTickersTable({
                     scope="col"
                     className="hidden px-3 py-2.5 text-right font-medium lg:table-cell"
                   >
-                    Cotée
+                    {t('Cotée')}
                   </th>
                 </tr>
               </thead>

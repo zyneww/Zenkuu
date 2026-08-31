@@ -368,8 +368,20 @@ export function TreemapFigure({
 }
 
 /** Échelle de couleurs, à poser à côté de la figure. */
-export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatility' } = {}) {
-  const t = usePhrase()
+/* ⚠️ LES DEUX LIBELLÉS ARRIVENT EN PROPRIÉTÉS, ET C'EST OBLIGÉ. Cette légende est
+   rendue depuis `MarketHeatmap` (client) ET depuis `TreasuryOverview` et
+   `NftOverview` (serveur). Un crochet client échouerait dans les seconds, une
+   fonction asynchrone dans le premier : la propriété est la seule forme qui traverse
+   les deux mondes. */
+export function TreemapLegend({
+  tone = 'change',
+  calmLabel = 'Calme',
+  choppyLabel = 'Agité',
+}: {
+  tone?: 'change' | 'volatility'
+  calmLabel?: string
+  choppyLabel?: string
+} = {}) {
   /* La légende d'INTENSITÉ ne porte pas de bornes chiffrées, et ne peut pas en
      porter : l'échelle est relative au lot affiché (voir `volatilityTone`). Elle
      nomme donc ses deux extrémités en toutes lettres, ce qui est exactement ce
@@ -377,7 +389,7 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
   if (tone === 'volatility') {
     return (
       <div className="flex items-center gap-2 text-micro text-ink-muted">
-        <span>{t('Calme')}</span>
+        <span>{calmLabel}</span>
         <span
           className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
           aria-hidden="true"
@@ -386,7 +398,7 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
             <span key={index} className="flex-1" style={{ backgroundColor: swatch }} />
           ))}
         </span>
-        <span>{t('Agité')}</span>
+        <span>{choppyLabel}</span>
       </div>
     )
   }

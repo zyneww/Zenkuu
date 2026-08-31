@@ -246,7 +246,7 @@ function SessionsCard() {
             })
           }
         >
-          Tout fermer
+          {t('Tout fermer')}
         </Button>
       </div>
     </div>
@@ -302,7 +302,7 @@ function DangerCard() {
               dans la fenêtre : c'est la seule différence visuelle entre « j'ouvre la
               confirmation » et « je supprime », et elle doit se voir. */}
           <Button variant="outline" data-destructive>
-            Supprimer mon compte
+            {t('Supprimer mon compte')}
           </Button>
         </AlertDialogTrigger>
 

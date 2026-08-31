@@ -53,7 +53,7 @@ export function DashboardPreferences() {
   return (
     <section className="space-y-4" aria-labelledby="preferences-titre">
       <h2 id="preferences-titre" className="display-sm text-ink">
-        Préférences d’affichage
+        {t('Préférences d’affichage')}
       </h2>
 
       <dl className="divide-y divide-border-subtle rounded-card border border-border-subtle">
@@ -101,9 +101,7 @@ export function DashboardPreferences() {
       </dl>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        Ces réglages sont enregistrés sur cet appareil, dans votre navigateur — ils ne
-        sont pas rattachés à votre compte et ne suivent donc pas d’un appareil à
-        l’autre. Seule votre liste de suivi l’est.
+        {t('Ces réglages sont enregistrés sur cet appareil, dans votre navigateur — ils ne sont pas rattachés à votre compte et ne suivent donc pas d’un appareil à l’autre. Seule votre liste de suivi l’est.')}
       </p>
 
       <PreferenceOverlay tab={tab} onTabChange={setTab} onClose={() => setTab(null)} />

@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import { Link } from '@/i18n/navigation'
 import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 
@@ -25,7 +26,7 @@ import { assetHref } from '@/lib/asset-routes'
  * en a d'autres à droite » sans réclamer de hauteur, et le débordement reste
  * accessible au clavier puisque chaque carte est un lien focalisable.
  */
-export function AssetTrendingRail({
+export async function AssetTrendingRail({
   assets,
   currentId,
 }: {
@@ -33,13 +34,14 @@ export function AssetTrendingRail({
   /** L'actif consulté, retiré de la liste : s'y proposer soi-même est absurde. */
   currentId: string
 }) {
+  const t = await getPhrase()
   const items = assets.filter((asset) => asset.id !== currentId).slice(0, 8)
   if (items.length < 2) return null
 
   return (
     <section aria-labelledby="tendance-titre" className="space-y-3">
       <h2 id="tendance-titre" className="text-sm font-semibold text-ink">
-        En tendance
+        {t('En tendance')}
       </h2>
 
       {/*

@@ -69,12 +69,16 @@ export function AuthAside({
   slogan,
   tagline,
   shieldLabel,
+  readOnlyNotice,
 }: {
   slogan: string
   tagline: string
   /* L'étiquette de l'écu suit le chemin de `slogan` et `tagline` : ce fichier n'a
      aucun import et ne traduit rien lui-même — ses textes lui arrivent traduits. */
   shieldLabel: string
+  /* Même chemin que `slogan` et `shieldLabel` : ce fichier ne traduit rien
+     lui-même. */
+  readOnlyNotice: string
 }) {
   const sky = stars()
 
@@ -126,8 +130,7 @@ export function AuthAside({
           quelqu'un qui arrive par un lien de connexion, et la seule chose qu'il doive
           savoir avant de saisir une adresse. */}
       <p className="relative max-w-sm text-xs leading-relaxed text-white/45">
-        ZENKUU est un site d’information en lecture seule. Aucun dépôt, aucun retrait,
-        aucun ordre — le compte ne sert qu’à retrouver vos listes de suivi.
+        {readOnlyNotice}
       </p>
     </aside>
   )

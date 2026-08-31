@@ -89,8 +89,7 @@ export async function SettingsSources() {
       </Alert>
 
       <p className="text-sm text-ink-muted">
-        Chaque bloc du site nomme sa source sous les chiffres qu’il affiche, et le pied
-        de page les récapitule avec leurs liens.
+        {t('Chaque bloc du site nomme sa source sous les chiffres qu’il affiche, et le pied de page les récapitule avec leurs liens.')}
       </p>
     </section>
   )

@@ -163,7 +163,7 @@ export function DateRangeCalendar({
             }}
             className="shrink-0 text-[0.6875rem] text-ink-muted"
           >
-            Effacer
+            {t('Effacer')}
           </Button>
         ) : null}
       </div>

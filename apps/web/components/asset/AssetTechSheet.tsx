@@ -73,7 +73,7 @@ export async function AssetTechSheet({ asset }: { asset: AssetDetail }) {
         id="fiche-technique"
         className="border-b border-border-subtle pb-1 text-micro font-semibold uppercase tracking-wide text-ink-muted"
       >
-        Fiche technique
+        {t('Fiche technique')}
       </h2>
 
       {contracts.length > 0 ? (

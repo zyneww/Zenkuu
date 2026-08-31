@@ -80,9 +80,7 @@ export default async function Page() {
       )}
 
       <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">
-        ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction. Un
-        produit dérivé porte un effet de levier : ce tableau situe l’exposition du
-        marché, il n’y donne pas accès.
+        {t('ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction. Un produit dérivé porte un effet de levier : ce tableau situe l’exposition du marché, il n’y donne pas accès.')}
       </p>
     </div>
   )

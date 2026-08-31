@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import { ChevronDown } from 'lucide-react'
 
 /**
@@ -108,11 +109,12 @@ const MODULES: Entry[] = [
   },
 ]
 
-export function SentimentFaq() {
+export async function SentimentFaq() {
+  const t = await getPhrase()
   return (
     <section aria-labelledby="faq-sentiment" className="space-y-4">
       <h2 id="faq-sentiment" className="display-sm text-ink">
-        Questions fréquentes
+        {t('Questions fréquentes')}
       </h2>
 
       {/* Deux colonnes comme la référence : les questions générales à gauche, les

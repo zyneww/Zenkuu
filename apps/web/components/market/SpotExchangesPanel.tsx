@@ -64,7 +64,7 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
           href="/places"
           className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-control px-2 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
         >
-          Le registre complet
+          {t('Le registre complet')}
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </Link>
       </div>

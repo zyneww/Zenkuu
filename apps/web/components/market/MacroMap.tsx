@@ -275,7 +275,7 @@ export function MacroMap({
         {/* ── Le classement ─────────────────────────────────────────────── */}
         <aside className="space-y-2">
           <h3 className="text-micro font-semibold uppercase tracking-wide text-ink-muted">
-            Classement
+            {t('Classement')}
           </h3>
 
           <ol className="divide-y divide-border-subtle rounded-card border border-border-subtle">

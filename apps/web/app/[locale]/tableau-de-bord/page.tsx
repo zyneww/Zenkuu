@@ -159,7 +159,7 @@ export default async function DashboardPage() {
                       /* Cours absent du classement chargé : on le DIT, plutôt que
                          d'afficher un tiret qui passerait pour une valeur nulle. */
                       <span className="shrink-0 text-xs text-ink-muted">
-                        cours sur la fiche
+                        {t('cours sur la fiche')}
                       </span>
                     )}
                   </Link>

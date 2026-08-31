@@ -56,7 +56,7 @@ export async function DominanceView({
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-sm font-semibold text-ink">{t('Répartition actuelle')}</h2>
             <p className="tabular text-xs text-ink-muted">
-              part de la capitalisation mondiale
+              {t('part de la capitalisation mondiale')}
             </p>
           </div>
 

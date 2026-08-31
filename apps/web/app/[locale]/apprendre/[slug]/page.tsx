@@ -138,7 +138,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
         className="mt-7 rounded-card border border-border-subtle bg-surface-muted p-5"
       >
         <h2 id="a-retenir" className="text-sm font-semibold text-ink">
-          À retenir
+          {t('À retenir')}
         </h2>
         <ul className="mt-3 space-y-2">
           {lesson.takeaways.map((takeaway) => (
@@ -181,15 +181,13 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
             <section aria-labelledby="en-video" className="scroll-mt-24 space-y-4 pt-2">
               <div>
                 <h2 id="en-video" className="display-sm text-ink">
-                  En vidéo
+                  {t('En vidéo')}
                 </h2>
                 {/* Précision de PÉRIMÈTRE, pas glose du titre (§3.1.1) : ces vidéos ne
                     sont ni écrites, ni relues, ni choisies une par une par ZENKUU. Le
                     lecteur doit savoir d'où elles viennent avant de les regarder. */}
                 <p className="mt-1 text-xs leading-relaxed text-ink-muted">
-                  Sélection automatique de YouTube sur le sujet de la fiche. Ces
-                  contenus sont ceux de leurs auteurs — ZENKUU ne les a ni produits ni
-                  relus.
+                  {t('Sélection automatique de YouTube sur le sujet de la fiche. Ces contenus sont ceux de leurs auteurs — ZENKUU ne les a ni produits ni relus.')}
                 </p>
               </div>
               <LessonVideos videos={videos.data} />
@@ -203,7 +201,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
               Cette fiche est explicative. Elle ne constitue pas une recommandation
               d’investissement — voir la{' '}
               <Link href="/aide/pas-de-conseil" className="underline underline-offset-2">
-                note sur le cadre de ZENKUU
+                {t('note sur le cadre de ZENKUU')}
               </Link>
               .
             </p>
@@ -240,7 +238,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                       href="#en-video"
                       className="-ml-px block border-l border-transparent pl-3 text-sm leading-snug text-ink-muted transition-colors hover:border-brand hover:text-ink"
                     >
-                      En vidéo
+                      {t('En vidéo')}
                     </a>
                   </li>
                 ) : null}

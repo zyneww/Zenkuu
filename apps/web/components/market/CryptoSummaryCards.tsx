@@ -1,4 +1,3 @@
-import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
 
 import type {
@@ -151,8 +150,8 @@ async function SentimentCard({ sentiment }: { sentiment: SentimentIndex }) {
  * réserve à l'onglet « Tendance », où le tableau entier en dépend. La carte affiche
  * donc ce qui est réellement sourcé : le nom, le rang et la variation.
  */
-function TrendingCard({ assets }: { assets: TrendingAsset[] }) {
-  const t = usePhrase()
+async function TrendingCard({ assets }: { assets: TrendingAsset[] }) {
+  const t = await getPhrase()
   return (
     <CardShell title={t('Tendance')} badge="24 h" href="/crypto?vue=tendance">
       <ul className="space-y-2.5">

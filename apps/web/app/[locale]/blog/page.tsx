@@ -220,7 +220,7 @@ export default async function BlogPage() {
               href="/blog/rss.xml"
               className="underline underline-offset-2 hover:text-brand"
             >
-              Fil RSS
+              {t('Fil RSS')}
             </Link>
             .
           </p>

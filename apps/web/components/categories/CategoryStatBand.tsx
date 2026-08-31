@@ -102,14 +102,14 @@ export async function CategoryStatBand({ categories }: { categories: MarketCateg
         seul relevé à la fois. Il n’y a donc pas de courbe sectorielle sur cette page, et
         n’en inventer aucune est préférable à en estimer une. Pour de la profondeur, voir la{' '}
         <Link href="/graphiques" className="font-medium text-ink hover:underline">
-          vue générale
+          {t('vue générale')}
         </Link>{' '}
         et son panier de capitalisations, qui remonte à douze mois — et la{' '}
         <Link
           href="/graphiques?vue=secteurs"
           className="font-medium text-ink hover:underline"
         >
-          carte thermique
+          {t('carte thermique')}
         </Link>{' '}
         pour voir ces mêmes secteurs en surfaces. Montants en dollars, tels que publiés.
       </p>

@@ -230,7 +230,7 @@ export function DerivativeExchangesExplorer({
                       scope="col"
                       className="hidden px-3 py-2.5 text-left font-medium md:table-cell"
                     >
-                      Nature
+                      {t('Nature')}
                     </th>
                   ) : null}
                   <SortableHeader
@@ -425,7 +425,7 @@ function KindBadge({ kind }: { kind: DerivativeExchange['kind'] }) {
       className="text-micro text-ink-muted opacity-70"
       title={t('ZENKUU n’a pas encore classé cette place')}
     >
-      non classée
+      {t('non classée')}
     </span>
   )
 }

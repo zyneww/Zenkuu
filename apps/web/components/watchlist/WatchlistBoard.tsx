@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { FolderInput, Pencil, Trash2 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
@@ -46,6 +47,7 @@ export function WatchlistBoard({
   /** Faux pour l'offre gratuite dès qu'une liste existe : le déplacement en créerait une seconde. */
   canCreateList: boolean
 }) {
+  const t = usePhrase()
   const [message, setMessage] = useState<string | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -124,7 +126,7 @@ export function WatchlistBoard({
                   aria-label={`Nouveau nom pour ${list.name}`}
                 />
                 <button type="submit" className="text-xs font-medium text-ink hover:text-brand">
-                  Renommer
+                  {t('Renommer')}
                 </button>
               </form>
             ) : (

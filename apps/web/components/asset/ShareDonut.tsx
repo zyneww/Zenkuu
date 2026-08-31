@@ -306,7 +306,7 @@ export function ShareDonut({
                 </th>
               ) : null}
               <th scope="col" className="pb-1 text-right font-medium">
-                % Part
+                {t('% Part')}
               </th>
             </tr>
           </thead>

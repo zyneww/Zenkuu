@@ -62,7 +62,7 @@ export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-ink">
-            Intérêt ouvert par place
+            {t('Intérêt ouvert par place')}
             <span className="ml-2 font-normal text-ink-muted">
               {formatCurrency(totalOpenInterest, 'USD', { compact: true })} sur les{' '}
               {exchanges.length} premières

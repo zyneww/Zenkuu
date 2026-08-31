@@ -1545,7 +1545,7 @@ export function AssetWorkspace({
                 flottante : la commande a réussi, ce n'est pas un événement. */}
             {linkCopied ? (
               <p className="mb-2 text-[0.6875rem] text-ink" role="status">
-                Lien de cette vue copié.
+                {t('Lien de cette vue copié.')}
               </p>
             ) : null}
 
@@ -1622,8 +1622,7 @@ export function AssetWorkspace({
                  que l'énumération « traits tiretés : … » n'a plus lieu d'être : elle
                  redisait en texte ce que les pastilles montrent. */
               <p className="mt-2 text-[0.6875rem] leading-relaxed text-ink-muted">
-                Chaque courbe part de zéro au début de la période : l’axe montre une
-                progression relative, pas un montant.
+                {t('Chaque courbe part de zéro au début de la période : l’axe montre une progression relative, pas un montant.')}
               </p>
             ) : null}
         </div>

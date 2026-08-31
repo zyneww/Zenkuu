@@ -143,10 +143,10 @@ export function AssetTreasuries({
                 {t('Coût total')}
               </th>
               <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold sm:table-cell">
-                Valeur aujourd’hui
+                {t('Valeur aujourd’hui')}
               </th>
               <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold md:table-cell">
-                Part de l’offre
+                {t('Part de l’offre')}
               </th>
             </tr>
           </TableHeader>
@@ -237,7 +237,7 @@ export function AssetTreasuries({
           rel="nofollow noopener noreferrer"
           className="inline-flex items-center gap-1 hover:text-brand"
         >
-          Registre complet chez CoinGecko
+          {t('Registre complet chez CoinGecko')}
           <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
         </a>

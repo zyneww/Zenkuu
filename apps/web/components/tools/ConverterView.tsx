@@ -292,8 +292,7 @@ export function ConverterView({
           </p>
         ) : (
           <p className="mt-1">
-            Aucune conversion de devise n’est appliquée : le résultat porte le seul
-            horodatage du cours.
+            {t('Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.')}
           </p>
         )}
       </div>
@@ -359,13 +358,14 @@ function LocalHistory({
   history: SavedConversion[]
   onClear: () => void
 }) {
+  const t = usePhrase()
   if (history.length === 0) return null
 
   return (
     <section className="mx-auto w-full max-w-md space-y-2" aria-labelledby="historique-conversions">
       <div className="flex items-baseline justify-between gap-3">
         <h2 id="historique-conversions" className="text-sm font-semibold text-ink">
-          Calculs gardés
+          {t('Calculs gardés')}
         </h2>
         <button
           type="button"
@@ -401,8 +401,7 @@ function LocalHistory({
       </ul>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        Ces calculs vivent dans votre navigateur et n’en sortent pas. Ce ne sont pas des
-        opérations : ZENKUU n’exécute rien et ne détient rien.
+        {t('Ces calculs vivent dans votre navigateur et n’en sortent pas. Ce ne sont pas des opérations : ZENKUU n’exécute rien et ne détient rien.')}
       </p>
     </section>
   )

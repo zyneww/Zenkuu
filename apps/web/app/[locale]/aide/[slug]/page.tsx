@@ -57,7 +57,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <Link href="/aide" className="hover:text-brand">
-          Centre d’aide
+          {t('Centre d’aide')}
         </Link>
         <span aria-hidden="true"> / </span>
         <span className="text-ink">{article.categoryTitle}</span>
@@ -76,7 +76,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <footer className="border-t border-border-subtle pt-4">
         <Link href="/aide" className="text-sm text-ink hover:underline">
-          ← Retour au centre d’aide
+          {t('← Retour au centre d’aide')}
         </Link>
       </footer>
     </article>

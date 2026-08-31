@@ -140,8 +140,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <footer className="space-y-4 border-t border-border-subtle pt-6">
             <ShareButtons title={article.title} path={`/blog/${article.slug}`} />
             <p className="text-xs leading-relaxed text-ink-muted">
-              Cet article décrit le fonctionnement de ZENKUU. Il ne constitue pas un
-              conseil en investissement.
+              {t('Cet article décrit le fonctionnement de ZENKUU. Il ne constitue pas un conseil en investissement.')}
             </p>
           </footer>
         </article>

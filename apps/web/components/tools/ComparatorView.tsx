@@ -341,7 +341,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           <thead>
             <tr className="border-b border-border-subtle text-left">
               <th scope="col" className="px-3 py-2.5 text-xs font-medium text-ink-muted">
-                Indicateur
+                {t('Indicateur')}
               </th>
               {chosen.map((asset) => (
                 <th key={asset.id} scope="col" className="px-3 py-2.5 text-right">

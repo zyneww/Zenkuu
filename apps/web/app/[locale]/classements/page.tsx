@@ -199,7 +199,7 @@ export default async function RankingsPage({
                 <>
                   {' '}
                   <strong className="text-ink">
-                    Elle n’apparaît pas sur les devises, ni le palmarès des volumes :
+                    {t('Elle n’apparaît pas sur les devises, ni le palmarès des volumes :')}
                   </strong>{' '}
                   une paire de change n’a ni capitalisation ni volume publié par la Banque
                   centrale européenne.
@@ -210,7 +210,7 @@ export default async function RankingsPage({
             <p className="text-sm text-ink-muted">
               Pour le détail des cours :{' '}
               <Link href="/crypto" className="text-ink hover:underline">
-                cotations
+                {t('cotations')}
               </Link>{' '}
               ·{' '}
               {/* Les renvois vers « données de trading » et « points marquants » ont
@@ -218,7 +218,7 @@ export default async function RankingsPage({
                   heatmap prend leur place : c'est la lecture d'ensemble la plus proche
                   de ce qu'ils apportaient — les extrêmes du jour, d'un coup d'œil. */}
               <Link href="/heatmap" className="text-ink hover:underline">
-                heatmap sectorielle
+                {t('heatmap sectorielle')}
               </Link>
             </p>
           </section>

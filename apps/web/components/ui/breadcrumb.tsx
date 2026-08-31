@@ -1,13 +1,15 @@
-import { usePhrase } from '@/components/locale/ContentProvider'
 import * as React from "react"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
 import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+/* L'étiquette vient de l'APPELANT : `{...props}` est diffusé après
+   `aria-label`, si bien qu'un `aria-label` passé en propriété l'emporte. C'est ce
+   que fait `AssetPageView`, et c'est ce qui permet à ce composant de rester
+   utilisable depuis le serveur — un crochet client l'en empêcherait. */
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-  const t = usePhrase()
-  return <nav aria-label={t('Fil d’Ariane')} data-slot="breadcrumb" {...props} />
+  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
 }
 
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
@@ -82,11 +84,14 @@ function BreadcrumbSeparator({
   )
 }
 
+/* Même raison que `Breadcrumb` juste au-dessus : ce module est importé par des
+   composants SERVEUR, et un crochet client y échoue à l'exécution — une erreur que le
+   typecheck ne voit pas. Le libellé arrive donc en propriété. */
 function BreadcrumbEllipsis({
   className,
+  moreLabel = 'Plus',
   ...props
-}: React.ComponentProps<"span">) {
-  const t = usePhrase()
+}: React.ComponentProps<"span"> & { moreLabel?: string }) {
   return (
     <span
       data-slot="breadcrumb-ellipsis"
@@ -96,7 +101,7 @@ function BreadcrumbEllipsis({
       {...props}
     >
       <MoreHorizontal className="size-4" />
-      <span className="sr-only">{t('Plus')}</span>
+      <span className="sr-only">{moreLabel}</span>
     </span>
   )
 }

@@ -1,4 +1,3 @@
-import { usePhrase } from '@/components/locale/ContentProvider'
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import { ButtonLink } from '@/components/ui/ButtonLink'
@@ -259,8 +258,8 @@ export default async function PourquoiZenkuuPage() {
 }
 
 /** Cellule de comparaison. L'information est portée par le texte, pas par la couleur seule (§9). */
-function Mark({ value }: { value: boolean }) {
-  const t = usePhrase()
+async function Mark({ value }: { value: boolean }) {
+  const t = await getPhrase()
   return (
     <td className="px-3 py-2.5 text-center">
       {value ? (

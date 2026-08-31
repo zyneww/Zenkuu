@@ -224,7 +224,7 @@ export default async function Page({ params }: { params: Promise<{ terme: string
           d'échec qui renvoie à la racine fait perdre le contexte de lecture. */}
       <p className="text-sm text-ink-muted">
         <Link href="/nouvelles-cotations" className="text-ink hover:underline">
-          Revenir aux cotations récentes
+          {t('Revenir aux cotations récentes')}
         </Link>
       </p>
     </div>

@@ -51,7 +51,7 @@ export default async function RubriquePage({ params }: { params: Promise<{ id: s
 
       <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <Link href="/aide" className="hover:text-brand">
-          Centre d’aide
+          {t('Centre d’aide')}
         </Link>
         <span aria-hidden="true"> / </span>
         <span className="text-ink">{category.title}</span>
@@ -79,7 +79,7 @@ export default async function RubriquePage({ params }: { params: Promise<{ id: s
       </ul>
 
       <Link href="/aide" className="inline-block text-sm text-ink hover:underline">
-        ← Toutes les rubriques
+        {t('← Toutes les rubriques')}
       </Link>
     </div>
   )

@@ -177,7 +177,7 @@ export function LoginForm({
         {hideHeading ? null : (
           <div className="space-y-1.5">
             <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
-              Se connecter
+              {t('Se connecter')}
             </h2>
             <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne correspond à aucun compte, il en crée un.')}</p>
           </div>
@@ -286,7 +286,7 @@ export function LoginForm({
         >
           <ArrowLeft className="h-3 w-3" aria-hidden="true" />{t('Changer d’adresse')}</button>
         <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
-          Votre code
+          {t('Votre code')}
         </h2>
         <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
           Envoyé à <span className="font-medium text-ink">{email}</span>. Il expire dans quinze

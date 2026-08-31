@@ -103,6 +103,9 @@ export async function AuthPageView({
     <div className="bleed -my-6 grid lg:min-h-[38rem] lg:grid-cols-2">
       <AuthAside
         shieldLabel={t('Écu ZENKUU')}
+        readOnlyNotice={t(
+          'ZENKUU est un site d’information en lecture seule. Aucun dépôt, aucun retrait, aucun ordre — le compte ne sert qu’à retrouver vos listes de suivi.',
+        )}
         slogan={t('D’abord comprendre. Ensuite décider.')}
         tagline={t(
           'Les cotations, les classements et les listes de suivi de ZENKUU s’utilisent sans compte. Celui-ci ne sert qu’à les emporter d’un appareil à l’autre.',

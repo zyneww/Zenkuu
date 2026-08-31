@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Loader2, Star } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useState, useTransition } from 'react'
@@ -33,6 +34,7 @@ export function WatchlistButton({
   initialFollowing: boolean
   signedIn: boolean
 }) {
+  const t = usePhrase()
   const [following, setFollowing] = useState(initialFollowing)
   const [failure, setFailure] = useState<FailureReason | null>(null)
   const [pending, startTransition] = useTransition()
@@ -64,7 +66,7 @@ export function WatchlistButton({
           Suivi indisponible
         </Button>
         <p className="max-w-[16rem] text-right text-[0.6875rem] leading-snug text-ink-muted">
-          Aucune base de données n’est configurée sur cette instance.
+          {t('Aucune base de données n’est configurée sur cette instance.')}
         </p>
       </div>
     )
@@ -141,7 +143,7 @@ export function WatchlistButton({
           */}
           {failure === 'limit-reached' || failure === 'list-limit' ? (
             <Link href="/tableau-de-bord" className="text-ink hover:text-brand">
-              Gérer mes listes
+              {t('Gérer mes listes')}
             </Link>
           ) : null}
         </p>

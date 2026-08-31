@@ -109,7 +109,7 @@ export default async function ConverterPage() {
         <h1 className="display-xl text-ink">{t('Convertisseur')}</h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ink-muted">
           <span className="rounded-pill bg-up-soft px-2.5 py-0.5 text-xs font-semibold text-up">
-            0 frais
+            {t('0 frais')}
           </span>
           <span aria-hidden="true" className="text-border-subtle">
             |

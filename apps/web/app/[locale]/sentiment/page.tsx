@@ -94,7 +94,7 @@ export default async function SentimentPage() {
       <header className="max-w-2xl space-y-3">
         <h1 className="display-xl text-ink">{fr.sentiment.title}</h1>
         <p className="text-lg leading-relaxed text-ink-muted">
-          Comprendre les émotions qui animent le marché.
+          {t('Comprendre les émotions qui animent le marché.')}
         </p>
       </header>
 
@@ -123,8 +123,7 @@ export default async function SentimentPage() {
             />
           ) : (
             <p className="text-sm text-ink-muted">
-              L’historique n’est pas disponible pour l’instant : les repères de
-              comparaison reviendront avec lui.
+              {t('L’historique n’est pas disponible pour l’instant : les repères de comparaison reviendront avec lui.')}
             </p>
           )}
         </Card>
@@ -159,11 +158,11 @@ export default async function SentimentPage() {
       <p className="text-sm text-ink-muted">
         Pour situer ces mouvements dans le marché :{' '}
         <Link href="/classements" className="text-ink hover:underline">
-          classements du marché
+          {t('classements du marché')}
         </Link>{' '}
         ·{' '}
         <Link href="/apprendre" className="text-ink hover:underline">
-          apprendre à lire les chiffres
+          {t('apprendre à lire les chiffres')}
         </Link>
       </p>
 
@@ -264,7 +263,8 @@ function StatBox({
  * module que le cadran et les anneaux, ce qui garantit que les trois figures
  * découpent l'échelle au même endroit.
  */
-function ScaleSection({ scale }: { scale: Awaited<ReturnType<typeof getContent>>['sentiment']['scale'] }) {
+async function ScaleSection({ scale }: { scale: Awaited<ReturnType<typeof getContent>>['sentiment']['scale'] }) {
+  const t = await getPhrase()
   const names: Record<string, string> = {
     'extreme-fear': scale.extremeFear,
     fear: scale.fear,
@@ -276,7 +276,7 @@ function ScaleSection({ scale }: { scale: Awaited<ReturnType<typeof getContent>>
   return (
     <section className="space-y-3" aria-labelledby="echelle-titre">
       <h2 id="echelle-titre" className="display-sm text-ink">
-        Comment lire cet indice
+        {t('Comment lire cet indice')}
       </h2>
 
       <dl className="grid gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-5">

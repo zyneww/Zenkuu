@@ -155,7 +155,7 @@ export async function AssetMarketSheet({
           rel="nofollow noopener noreferrer"
           className="mt-3 inline-flex items-center gap-1.5 rounded-card border border-border-subtle px-2.5 py-1.5 text-xs text-ink transition-colors hover:border-brand hover:text-brand"
         >
-          Site officiel
+          {t('Site officiel')}
           <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
         </a>

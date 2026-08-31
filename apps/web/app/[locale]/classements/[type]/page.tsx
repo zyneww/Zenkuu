@@ -173,7 +173,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
     <div className="space-y-6">
       <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <Link href="/classements" className="transition-colors hover:text-ink">
-          Classements crypto
+          {t('Classements crypto')}
         </Link>
         <span className="mx-1.5" aria-hidden="true">
           /
@@ -220,9 +220,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
           />
 
           <p className="max-w-2xl text-xs leading-relaxed text-ink-muted">
-            Périmètre borné aux 250 plus grandes capitalisations, et ce n’est pas une limite
-            technique : sur un jeton minuscule, un seul échange déplace le cours de dizaines
-            de points. Un classement non borné ne remonterait que ce bruit.
+            {t('Périmètre borné aux 250 plus grandes capitalisations, et ce n’est pas une limite technique : sur un jeton minuscule, un seul échange déplace le cours de dizaines de points. Un classement non borné ne remonterait que ce bruit.')}
           </p>
 
           {result.ok ? (
