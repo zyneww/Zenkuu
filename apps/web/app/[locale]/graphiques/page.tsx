@@ -266,7 +266,19 @@ async function GlobalView() {
         {/* ── LA SEULE COURBE LONGUE DE LA RÉFÉRENCE QUE NOS SOURCES PUBLIENT ──
             DefiLlama diffuse librement l'historique agrégé des stablecoins depuis
             2017. Ses deux voisines chez la référence — DeFi et altcoins — n'existent
-            qu'en valeur courante chez nous, et ne sont donc pas tracées (§5). */}
+            qu'en valeur courante chez nous, et ne sont donc pas tracées (§5).
+
+            ⚠️ VÉRIFIÉ LE 2026-08-31, ET LA RÉSERVE TIENT. Leur page « charts » porte
+            cinq sections : Total Crypto Market Cap, Bitcoin Dominance, DeFi Market
+            Cap, Stablecoin Market Cap, Altcoin Market Cap. Les cinq sont des COURBES,
+            pas des valeurs — leur section DeFi annonce « the market cap and volume of
+            all DeFi coins » sur la durée.
+
+            La capitalisation DeFi du jour est calculable : c'est une catégorie, et
+            `getCategories` est déjà en cache. Son HISTORIQUE ne l'est pas. Tracer une
+            courbe depuis le jour où ZENKUU commence à relever donnerait un graphique
+            qui démarre aujourd'hui à côté de quatre autres qui remontent à 2017 — ce
+            que fait déjà la série de capitalisation globale, avec sa mention. */}
         {stablecoins.ok && stablecoins.data.length > 1 ? (
           <GlobalChartCard
             title="Capitalisation des stablecoins"
