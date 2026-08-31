@@ -2311,9 +2311,25 @@
 
      Le clair garde #e5e7eb, mesuré 648 fois et inchangé.
 
-     `--color-surface-muted` reste à la valeur ZENKUU (#35353a) : hors des dix
-     rôles mesurés pour cette tâche, et son contraste avec la nouvelle
-     `--color-ink-muted` tient déjà (5,51:1, `app/palette.test.ts`).
+     `--color-surface-muted` A ÉTÉ MESURÉ LE 2026-08-31, et la réserve qui tenait
+     ici est levée. Elle disait : « reste à la valeur ZENKUU (#35353a) : hors des dix
+     rôles mesurés pour cette tâche ». Le relevé ne portait alors que sur dix rôles ;
+     il en couvre soixante-huit pages aujourd'hui, et la question a une réponse.
+
+     Leur thème sombre n'a que TROIS neutres, et c'est la rampe `moon` :
+
+       moon-900   rgb(13, 18, 23)   le canvas, 258 nœuds
+       moon-800   rgb(27, 35, 45)   les surfaces ET les panneaux flottants, 129
+       moon-700   rgb(33, 45, 59)   les filets, les séparateurs, la ligne choisie, 247
+
+     Il n'y a pas de quatrième cran. `#35353a` n'appartient pas à cette rampe : c'est
+     un gris NEUTRE, quand les trois autres sont bleutés, et il vient de la rampe
+     `zinc` de Dropstab décrite plus haut. Le canvas et `surface` ont été repris de
+     CoinGecko ; ce jeton-ci était resté en arrière.
+
+     Le rôle tranche : leur `table thead th` est en `moon-800`, et c'est exactement
+     ce que `--color-muted` sert ici. Le contraste avec `--color-ink-muted` y gagne
+     au passage — 7,16:1 contre 5,51:1.
      ══════════════════════════════════════════════════════════════════════════ */
   --color-canvas: #0d1217;
   --color-surface: #1b232d;
@@ -2322,7 +2338,7 @@
      plusieurs pages, contre 1 seule (le focus d'un unique bouton de connexion sur
      l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9. */
   --color-surface-hover: #1b232d;
-  --color-surface-muted: #35353a;
+  --color-surface-muted: #1b232d;
   --color-border-subtle: #212d3b;
 
   --color-ink: #dfe5ec;
@@ -2405,15 +2421,23 @@
   /* Couche flottante : ici elle MONTE nettement au-dessus du fond, alors qu'en
      thème clair elle descend à peine. Sur un quasi-noir, c'est la clarté qui dit
      « au-dessus » ; sur du blanc, il n'y a pas de place au-dessus, d'où l'ombre. */
-  /* Mesuré : un ton trop proche du canvas fait qu'un menu déroulant s'y confond
-     avec la page, le filet seul le retenant. Celui-ci monte à 1,45:1 sur le canvas,
-     ce qui suffit à dire « au-dessus » sans créer une seconde surface de contenu.
-     Il passe SOUS `--color-border-subtle` (#3f3f46) et non au-dessus : c'est ce qui
-     laisse le filet dessiner le contour du panneau flottant plutôt que de s'y
-     dissoudre. */
-  /* zinc-800, comme les menus de Dropstab : un cran au-dessus du canvas, un cran
-     sous le filet. */
-  --color-overlay: #27272a;
+  /* ⚠️ LA RÈGLE ÉNONCÉE ICI ÉTAIT JUSTE, MAIS SA VALEUR AVAIT CESSÉ DE LA SUIVRE.
+
+     Elle demandait que la couche flottante passe SOUS `--color-border-subtle`, « ce
+     qui laisse le filet dessiner le contour du panneau plutôt que de s'y dissoudre ».
+     Elle citait un filet à #3f3f46. Ce filet a été remesuré depuis et vaut #212d3b —
+     plus sombre que le #27272a de la couche. La condition s'était donc INVERSÉE en
+     silence : le panneau était devenu plus clair que son propre contour.
+
+     Le relevé du 2026-08-31 donne la réponse et rétablit la règle du même coup. Leurs
+     panneaux flottants sont en `moon-800` cerclés de `moon-700` — mesuré sur un menu
+     déroulant de leur fiche d'actif, `!tw-w-44 dark:tw-bg-moon-800
+     dark:tw-ring-moon-700`. C'est mot pour mot ce que cette note décrivait : un cran
+     au-dessus du canvas, un cran sous le filet.
+
+     #27272a venait de la rampe `zinc` de Dropstab, comme `surface-muted` juste
+     au-dessus ; ni l'un ni l'autre n'a jamais été mesuré chez la référence. */
+  --color-overlay: #1b232d;
   /* Ombre RENFORCÉE — sur un fond aussi sombre, une ombre à 0,6 n'a pas assez de noir
      sous elle pour se voir. Elle le reste sous le canvas bleu-nuit, dont le canal le
      plus clair vaut dix-huit : l'ordre de grandeur est inchangé. */
