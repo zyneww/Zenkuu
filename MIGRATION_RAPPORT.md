@@ -81,6 +81,30 @@ ZENKUU se cale sous l'en-tête collant, faute de quoi il glisserait dessous.
 
 **Conséquence directe du point précédent** : les deux se règlent ensemble.
 
+### Le contenu éditorial reste en français dans les douze langues
+
+L'INTERFACE est traduite : libellés, titres, intitulés de colonne, messages d'état
+passent par `getPhrase()` et les douze tables de `content/locales/phrases/`. Vérifié sur
+`/en/glossaire` — titre « Glossary », intro anglaise.
+
+Le CONTENU, lui, ne l'est pas. Les 32 définitions du glossaire s'affichent en français
+quelle que soit la langue.
+
+| Contenu | Volume | × 12 langues |
+|---|---|---|
+| Glossaire (32 définitions) | 5 800 car. | 70 k |
+| Fiches d'apprentissage | 1 100 car. | 13 k |
+| Blog, aide, nouveautés | non mesuré | — |
+
+**Reporté sur décision de l'exploitant, le 2026-08-31.** C'est un chantier mécanique
+de plusieurs heures qui ne change rien pour un lecteur francophone, et rien n'est
+cassé en attendant : les définitions s'affichent, dans une langue.
+
+⚠️ **13 des 32 termes SONT déjà traduits** — leur libellé, pas leur définition. Un
+lecteur anglophone voit donc « Blockchain » suivi d'un texte français. L'incohérence
+est visible ; elle vient de traductions ajoutées au fil de l'eau pour d'autres usages,
+pas d'un travail à moitié fait sur cette page.
+
 ### Les resserrements positifs subsistent
 
 57 occurrences de `tracking-wide` et au-delà, sur des libellés en capitales. Aucun relevé
