@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  "Part du volume": "Volume %",
+  "Part de cette paire dans le volume des paires affichées": "Aandeel van dit paar in het volume van de getoonde paren",
   "Historique des cours": "Koershistorie",
   "Historique": "Historie",
   "Historique indisponible": "Historie niet beschikbaar",

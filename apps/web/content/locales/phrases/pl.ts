@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  "Part du volume": "Udział w wolumenie",
+  "Part de cette paire dans le volume des paires affichées": "Udział tej pary w wolumenie wyświetlanych par",
   "Historique des cours": "Historia kursów",
   "Historique": "Historia",
   "Historique indisponible": "Historia niedostępna",

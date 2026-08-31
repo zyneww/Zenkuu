@@ -37,7 +37,9 @@ import { usePhrase } from '@/components/locale/ContentProvider'
 
 type SortKey = 'pair' | 'price' | 'spread' | 'volume' | 'openInterest' | 'funding'
 
-const DEFAULT_PER_PAGE = 25
+/* 50, comme leur page d'échange — relevé le 2026-08-31 sur `/en/exchanges/binance`.
+   La source en renvoie cent au plus ; le sélecteur du pied couvre le reste. */
+const DEFAULT_PER_PAGE = 50
 
 export function ExchangeTickersTable({
   tickers,
@@ -53,6 +55,28 @@ export function ExchangeTickersTable({
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
 
   /* Au moins une paire porte-t-elle une note ? Voir la note de la colonne. */
+  /*
+   * ── LA PART DU VOLUME, CALCULÉE SUR LES PAIRES REÇUES ────────────────────
+   *
+   * Relevé le 2026-08-31 : leur page d'échange porte une colonne « Volume % ». Elle
+   * dit ce que chaque paire pèse dans l'activité de la place — un chiffre qui situe,
+   * là où le volume brut demande de comparer des ordres de grandeur à l'œil.
+   *
+   * ⚠️ LE DÉNOMINATEUR EST LE TOTAL DES PAIRES REÇUES, pas le volume déclaré par la
+   * place. Les deux diffèrent : la source ne renvoie que les cent premières paires,
+   * et le profil de la place annonce un volume qui inclut tout le reste. Rapporter
+   * au second donnerait des parts qui ne somment jamais à 100 % sans qu'on sache
+   * pourquoi. Le premier se somme exactement — c'est la part DANS CE TABLEAU, ce que
+   * le lecteur a sous les yeux.
+   *
+   * En dollars, comme le volume affiché : mêler `volumeUsd` et `volume` — unités de
+   * l'actif de base — additionnerait des bitcoins et des dollars.
+   */
+  const totalVolumeUsd = useMemo(
+    () => tickers.reduce((sum, t) => sum + (t.volumeUsd ?? 0), 0),
+    [tickers],
+  )
+
   const hasTrust = useMemo(
     () => tickers.some((ticker) => ticker.trustScore !== undefined),
     [tickers],
@@ -204,6 +228,16 @@ export function ExchangeTickersTable({
                     onToggle={toggle}
                   />
 
+                  {totalVolumeUsd > 0 ? (
+                    <th
+                      scope="col"
+                      className="hidden px-3 py-2.5 text-right font-medium lg:table-cell"
+                      title={t('Part de cette paire dans le volume des paires affichées')}
+                    >
+                      {t('Part du volume')}
+                    </th>
+                  ) : null}
+
                   <th
                     scope="col"
                     className="hidden px-3 py-2.5 text-right font-medium lg:table-cell"
@@ -325,6 +359,17 @@ export function ExchangeTickersTable({
                           ? formatCompact(ticker.volume)
                           : '—'}
                     </td>
+
+                    {totalVolumeUsd > 0 ? (
+                      <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
+                        {/* Sans signe : une PART n'a pas de direction. `formatPercent`
+                            préfixe d'un « + » toute valeur positive, ce qui ferait lire
+                            « +12,40 % » comme une hausse au lieu d'une proportion. */}
+                        {ticker.volumeUsd !== undefined
+                          ? `${((ticker.volumeUsd / totalVolumeUsd) * 100).toFixed(2).replace('.', ',')} %`
+                          : '—'}
+                      </td>
+                    ) : null}
 
                     <td className="hidden px-3 py-2.5 text-right text-xs text-ink-muted lg:table-cell">
                       {ticker.lastTradedAt ? <TradedAt iso={ticker.lastTradedAt} /> : '—'}

@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  "Part du volume": "Volume %",
+  "Part de cette paire dans le volume des paires affichées": "Quota di questa coppia sul volume delle coppie mostrate",
   "Historique des cours": "Storico dei prezzi",
   "Historique": "Storico",
   "Historique indisponible": "Storico non disponibile",

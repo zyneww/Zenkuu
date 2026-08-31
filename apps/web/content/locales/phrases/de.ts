@@ -9,6 +9,8 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  "Part du volume": "Volumenanteil",
+  "Part de cette paire dans le volume des paires affichées": "Anteil dieses Paares am Volumen der angezeigten Paare",
   "Historique des cours": "Kursverlauf",
   "Historique": "Verlauf",
   "Historique indisponible": "Verlauf nicht verfügbar",

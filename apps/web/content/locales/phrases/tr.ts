@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  "Part du volume": "Hacim payı",
+  "Part de cette paire dans le volume des paires affichées": "Gösterilen çiftlerin hacmi içinde bu çiftin payı",
   "Historique des cours": "Fiyat geçmişi",
   "Historique": "Geçmiş",
   "Historique indisponible": "Geçmiş kullanılamıyor",

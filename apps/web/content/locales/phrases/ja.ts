@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  "Part du volume": "出来高比率",
+  "Part de cette paire dans le volume des paires affichées": "表示中のペア全体の出来高に占めるこのペアの割合",
   "Historique des cours": "価格の履歴",
   "Historique": "履歴",
   "Historique indisponible": "履歴を取得できません",

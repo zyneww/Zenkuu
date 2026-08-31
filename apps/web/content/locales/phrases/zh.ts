@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  "Part du volume": "成交量占比",
+  "Part de cette paire dans le volume des paires affichées": "该交易对在所显示交易对总成交量中的占比",
   "Historique des cours": "价格历史",
   "Historique": "历史",
   "Historique indisponible": "暂无历史数据",

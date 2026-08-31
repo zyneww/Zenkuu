@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  "Part du volume": "Tỷ trọng khối lượng",
+  "Part de cette paire dans le volume des paires affichées": "Tỷ trọng của cặp này trong khối lượng các cặp được hiển thị",
   "Historique des cours": "Lịch sử giá",
   "Historique": "Lịch sử",
   "Historique indisponible": "Không có lịch sử",

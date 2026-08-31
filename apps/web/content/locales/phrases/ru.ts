@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  "Part du volume": "Доля объёма",
+  "Part de cette paire dans le volume des paires affichées": "Доля этой пары в объёме показанных пар",
   "Historique des cours": "История цен",
   "Historique": "История",
   "Historique indisponible": "История недоступна",

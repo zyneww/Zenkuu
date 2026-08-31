@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  "Part du volume": "Volume %",
+  "Part de cette paire dans le volume des paires affichées": "Parte deste par no volume dos pares exibidos",
   "Historique des cours": "Histórico de preços",
   "Historique": "Histórico",
   "Historique indisponible": "Histórico indisponível",

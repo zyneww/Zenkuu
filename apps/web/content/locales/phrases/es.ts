@@ -8,6 +8,8 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  "Part du volume": "Volumen %",
+  "Part de cette paire dans le volume des paires affichées": "Parte de este par en el volumen de los pares mostrados",
   "Historique des cours": "Histórico de precios",
   "Historique": "Histórico",
   "Historique indisponible": "Histórico no disponible",

@@ -13,6 +13,8 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  "Part du volume": "Volume %",
+  "Part de cette paire dans le volume des paires affichées": "This pair’s share of the volume across the pairs shown",
   "Historique des cours": "Price history",
   "Historique": "History",
   "Historique indisponible": "History unavailable",
