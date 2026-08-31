@@ -105,6 +105,24 @@ lecteur anglophone voit donc « Blockchain » suivi d'un texte français. L'inco
 est visible ; elle vient de traductions ajoutées au fil de l'eau pour d'autres usages,
 pas d'un travail à moitié fait sur cette page.
 
+### La page d'une plateforme n'a ni rang, ni profondeur, ni part de volume
+
+Leur page d'échange aligne dix colonnes — rang, monnaie, paire, cours, écart,
+profondeur +2 %, profondeur −2 %, volume 24 h, part du volume, dernière mise à jour.
+`/places/[id]` en rend cinq, sur 25 lignes.
+
+⚠️ **LA PROFONDEUR N'EST PAS DISPONIBLE ICI, ET J'AI ESSAYÉ.** Le champ existe
+(`depthUpUsd`, `depthDownUsd`) et `AssetTickers` le rend déjà sur la fiche d'actif. Mais
+il vient de `coins/{id}/tickers?depth=true` — l'endpoint PAR ACTIF. Celui des paires
+d'une place, `exchanges/{id}`, ne prend pas ce paramètre et ne renvoie pas ces champs.
+`ExchangeTicker` ne les porte donc pas, à juste titre.
+
+Obtenir la profondeur par place demanderait un appel par actif coté — des centaines
+pour une grande plateforme. Ce n'est pas une limite de code.
+
+Le rang et la part de volume, eux, sont calculables depuis ce qui est déjà lu. Restent
+à faire.
+
 ### La fenêtre 1 h ne se rend pas hors sélecteur
 
 Les pages de catégorie et de liste affichent 24 h, 7 j et 1 M, jamais 1 h. La
