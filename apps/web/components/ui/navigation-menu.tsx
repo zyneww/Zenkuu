@@ -90,8 +90,17 @@ function NavigationMenuContent({
     <NavigationMenuPrimitive.Content
       data-slot="navigation-menu-content"
       className={cn(
-        "top-0 left-0 w-full p-2 pr-2.5 data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 data-[motion^=from-]:animate-in data-[motion^=from-]:fade-in data-[motion^=to-]:animate-out data-[motion^=to-]:fade-out md:absolute md:w-auto",
-        "group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-control group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:shadow group-data-[viewport=false]/navigation-menu:duration-200 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none group-data-[viewport=false]/navigation-menu:data-[state=closed]:animate-out group-data-[viewport=false]/navigation-menu:data-[state=closed]:fade-out-0 group-data-[viewport=false]/navigation-menu:data-[state=closed]:zoom-out-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:animate-in group-data-[viewport=false]/navigation-menu:data-[state=open]:fade-in-0 group-data-[viewport=false]/navigation-menu:data-[state=open]:zoom-in-95",
+        /* Les classes `data-[motion=…]` de shadcn faisaient GLISSER le contenu de
+           cinquante-deux unités quand on passait d'un menu à l'autre. La référence n'a
+           pas ce geste : ses huit panneaux sont des éléments distincts, positionnés
+           chacun sous son propre bouton, et le passage de l'un à l'autre est une
+           substitution — pas un déplacement. Retirées. */
+        "top-0 left-0 w-full p-2 pr-2.5 md:absolute md:w-auto",
+        /* La variante SANS viewport, que ce site n'emploie pas aujourd'hui — la barre
+           en rend un. Elle est alignée sur le viewport ci-dessous plutôt que laissée en
+           arrière : mêmes rayon, ombre et absence d'animation, pour qu'un futur passage
+           à `viewport={false}` n'y ramène pas le geste d'OKX par la porte de service. */
+        "group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-md group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:shadow-overlay **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
         className
       )}
       {...props}
@@ -129,7 +138,23 @@ function NavigationMenuViewport({
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(
-          "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-control border bg-popover text-popover-foreground shadow data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
+          /* ── TROIS ÉCARTS AVEC LA RÉFÉRENCE, CORRIGÉS ICI ──────────────────────
+           Relevé le 2026-08-31 sur leur menu de navigation déployé.
+
+           · PLUS D'ANIMATION. `zoom-in-90` + `animate-in` jouaient l'entrée en 150 ms.
+             Les leurs apparaissent d'un coup : 15 panneaux flottants mesurés sur leur
+             accueil, tous à `transition-duration: 0s` et `animation-name: none`.
+           · `shadow-overlay` ET NON `shadow`. Le `shadow` de shadcn ne résout aucune
+             valeur dans cette configuration — le panneau était mesuré à
+             `rgba(0, 0, 0, 0) 0px 0px 0px 0px`, c'est-à-dire SANS ombre du tout. Le
+             jeton du site porte leur `shadow-lg`.
+           · `rounded-md` (6 px) ET NON `rounded-control` (8 px), qui est le rayon de
+             LEUR panneau de navigation. Le 8 px reste le rayon le plus courant de leur
+             feuille de style, d'où le jeton inchangé : c'est ce panneau-ci qui diffère.
+
+           Le geste retiré venait d'OKX, comme la palette sombre venait de Dropstab et
+           l'ombre des panneaux flottants — dernier de la série. */
+        "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-overlay md:w-[var(--radix-navigation-menu-viewport-width)]",
           className
         )}
         {...props}

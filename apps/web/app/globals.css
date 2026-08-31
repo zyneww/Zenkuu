@@ -1346,79 +1346,6 @@
   }
 
   /* ───────────────────────────────────────────────────────────────────────────
-     LE MÉGA-PANNEAU DE LA BARRE — un seul panneau, qui se déplace.
-
-     Il remplace `.menu-panel` dans l'en-tête. La différence n'est pas cosmétique :
-     `.menu-panel` habillait N panneaux montés et démontés à tour de rôle, celui-ci
-     habille UN panneau qui reste dans l'arbre et change de place. Voir l'en-tête de
-     components/nav/NavMenus.tsx pour le motif.
-
-     ── QUATRE PROPRIÉTÉS, DEUX GESTES QUI NE SE MÉLANGENT PAS ────────────────
-
-     `opacity` et `transform` disent l'OUVERTURE ; `left` et `width` disent le
-     DÉPLACEMENT. Les secondes ne sont animées que sous `data-shifting`, c'est-à-dire
-     quand le panneau passe d'un menu à un autre sans se refermer. Les animer aussi à
-     l'ouverture ferait glisser le panneau depuis la position du menu précédent, sous
-     les yeux de quelqu'un qui vient à peine d'entrer dans la barre.
-
-     ── `visibility` PLUTÔT QUE LE DÉMONTAGE ─────────────────────────────────
-
-     Un panneau à `opacity: 0` garde ses liens cliquables et tabulables au-dessus de
-     la page. `visibility: hidden` les retire des deux — et, contrairement à `display:
-     none`, se laisse différer : la transition de sortie se joue en entier, puis la
-     visibilité bascule à la fin du délai. C'est ce qui permet de garder le panneau
-     monté, donc de le faire se déplacer plutôt que renaître.
-
-     Courbe et durée relevées sur la référence : 0,3 s, cubic-bezier(.645,.045,.355,1).
-     ─────────────────────────────────────────────────────────────────────────── */
-  .mega-panel {
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-6px) scale(0.985);
-    transform-origin: top left;
-    transition:
-      opacity 0.24s cubic-bezier(0.645, 0.045, 0.355, 1),
-      transform 0.24s cubic-bezier(0.645, 0.045, 0.355, 1),
-      visibility 0s linear 0.24s;
-  }
-
-  .mega-panel[data-open='true'] {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-    /* Le délai de `visibility` retombe à zéro à l'ouverture : le panneau doit être
-       visible AVANT que l'opacité ne commence à monter, faute de quoi la transition
-       se jouerait sur un élément que le navigateur ne peint pas. */
-    transition:
-      opacity 0.24s cubic-bezier(0.645, 0.045, 0.355, 1),
-      transform 0.24s cubic-bezier(0.645, 0.045, 0.355, 1),
-      visibility 0s linear;
-  }
-
-  .mega-panel[data-shifting='true'] {
-    transition:
-      opacity 0.24s cubic-bezier(0.645, 0.045, 0.355, 1),
-      transform 0.24s cubic-bezier(0.645, 0.045, 0.355, 1),
-      visibility 0s linear,
-      left 0.3s cubic-bezier(0.645, 0.045, 0.355, 1),
-      width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-  }
-
-  /* Le déplacement est une commodité, pas une information : qui demande moins
-     d'animation garde l'ouverture nette et perd le glissement, ce qui ne retire
-     aucune fonction. */
-  @media (prefers-reduced-motion: reduce) {
-    .mega-panel,
-    .mega-panel[data-open='true'],
-    .mega-panel[data-shifting='true'] {
-      transition:
-        opacity 0.01s linear,
-        visibility 0s linear;
-      transform: none;
-    }
-  }
-
-  /* ───────────────────────────────────────────────────────────────────────────
      PANNEAU DE MENU DÉROULANT — apparition et disparition.
 
      ⚠️ CETTE RÈGLE NE SERT PLUS L'EN-TÊTE. Elle habille désormais les autres
@@ -1432,8 +1359,19 @@
      seule peinture, et l'animation d'entrée est tout simplement sautée. L'attribut,
      lui, est présent dès le premier rendu.
 
-     Le démontage effectif est piloté par `usePresence`, qui attend `transitionend` —
-     voir components/nav/presence.ts.
+     ⚠️ IL N'Y A PLUS D'ANIMATION, ET LE DÉMONTAGE PASSE DONC PAR LE GARDE-FOU.
+     `usePresence` attend `transitionend` ; or une transition de durée nulle n'émet
+     JAMAIS cet événement. C'est son repli de 400 ms qui démonte désormais — le crochet
+     l'avait prévu, sa note citant « une règle CSS qui annule la transition » parmi les
+     cas où l'événement manque.
+
+     Ce sursis serait invisible mais nuisible : un panneau à `opacity: 0` garde ses
+     liens cliquables et tabulables au-dessus de la page pendant ces 400 ms. D'où le
+     `visibility: hidden` de l'état fermé, qui les retire des deux. Le panneau
+     disparaît à l'instant où on le ferme ; son nœud s'en va un peu après, sans rien
+     intercepter entre-temps.
+
+     Voir components/nav/presence.ts et usePresence.ts.
 
      Le centrage sous le bouton passe par une marge négative et non par
      `-translate-x-1/2` : cet utilitaire écrit `transform`, la propriété même que ces
@@ -1450,30 +1388,20 @@
        Déclaré dans la même couche que les états d'arrivée, l'ordre redevient celui
        des déclarations. */
     opacity: 0;
-    /* Un GLISSEMENT plus court qu'avant (6px au lieu de 8) doublé d'un LÉGER
-       agrandissement. Le déplacement seul fait tomber le panneau ; le facteur
-       d'échelle le fait DÉPLIER depuis son point d'attache, ce qui est le geste
-       d'OKX. 0,98 et non 0,95 : au-delà de deux centièmes, le texte du panneau se
-       met à respirer pendant la transition, et l'œil lit un défaut de rendu. */
-    transform: translateY(-6px) scale(0.98);
-    /* Le point fixe est le HAUT du panneau, c'est-à-dire son bord commun avec le
-       bouton qui l'ouvre. Laissé au centre — le défaut — le panneau grandirait
-       aussi vers le haut et paraîtrait se décoller de son déclencheur. */
-    transform-origin: top center;
-    transition-property: opacity, transform;
-    transition-timing-function: var(--ease-menu);
+    /* `visibility` ET PAS SEULEMENT `opacity` : voir la note d'en-tête. Le nœud
+       survit 400 ms à la fermeture, le temps que le garde-fou de `usePresence` le
+       démonte ; masqué de cette façon, il n'intercepte ni clic ni tabulation. */
+    visibility: hidden;
   }
 
   .menu-panel[data-state='open'] {
     opacity: 1;
-    transform: translateY(0) scale(1);
-    transition-duration: var(--duration-menu-in);
+    visibility: visible;
   }
 
   .menu-panel[data-state='closing'] {
     opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-    transition-duration: var(--duration-menu-out);
+    visibility: hidden;
   }
 
   /* ──────────────────────────────────────────────────────────────
