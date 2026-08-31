@@ -56,7 +56,7 @@ La correspondance se fait par le RÔLE de la page, pas par la ressemblance des U
 | `/nouvelles-cotations` | `/new-cryptocurrencies` | ✅ |
 | `/perpetuels` | `/exchanges/derivatives/decentralized` | ✅ |
 | `/places` | `/exchanges` | ✅ |
-| `/places/[id]` | `/platesformes/binance` | ⬜ |
+| `/places/[id]` | `/exchanges/binance` | ✅ |
 | `/resoudre/[terme]` | `/glossary/blockchain` | ✅ |
 | `/tableau-de-bord` | `/portfolio` | ✅ |
 
