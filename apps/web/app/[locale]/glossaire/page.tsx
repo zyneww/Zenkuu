@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+import { getLocale } from 'next-intl/server'
+
 import { glossaryByLetter } from '@/content/glossaire'
 import { Link } from '@/i18n/navigation'
 import { getPhrase, getSeo } from '@/lib/content'
@@ -47,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function GlossaryPage() {
   const t = await getPhrase()
-  const groups = glossaryByLetter()
+  const groups = glossaryByLetter(t, await getLocale())
 
   return (
     <div className="space-y-5">
@@ -83,7 +85,7 @@ export default async function GlossaryPage() {
                   className="grid gap-1 py-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-5"
                 >
                   <dt className="text-sm font-semibold text-ink">
-                    {entry.term}
+                    {t(entry.term)}
                     {/* `inline-flex min-h-8` : le plancher tactile du site repose sur
                         `min-height`, sans effet sur une boîte en ligne. Le libellé
                         s'allonge aussi — « fiche » seul ne dit pas où il mène. */}
@@ -99,7 +101,7 @@ export default async function GlossaryPage() {
                       </>
                     ) : null}
                   </dt>
-                  <dd className="text-sm leading-relaxed text-ink-muted">{entry.definition}</dd>
+                  <dd className="text-sm leading-relaxed text-ink-muted">{t(entry.definition)}</dd>
                 </div>
               ))}
             </dl>

@@ -225,11 +225,22 @@ export function glossaryInitial(term: string): string {
 }
 
 /** Les entrées groupées par initiale, dans l'ordre alphabétique français. */
-export function glossaryByLetter(): { letter: string; entries: GlossaryEntry[] }[] {
+/**
+ * Le classement suit la LANGUE AFFICHÉE, pas le français.
+ *
+ * L'initiale et l'ordre sont tirés du terme TRADUIT : rangés sur le français, la
+ * lettre « B » coifferait « Blockchain » rendu « Kettenbuch », et l'index
+ * alphabétique désignerait des entrées qui ne commencent pas par cette lettre.
+ * L'appelant fournit donc le traducteur et la locale de comparaison.
+ */
+export function glossaryByLetter(
+  traduire: (text: string) => string = (text) => text,
+  locale = 'fr',
+): { letter: string; entries: GlossaryEntry[] }[] {
   const map = new Map<string, GlossaryEntry[]>()
 
   for (const entry of GLOSSARY) {
-    const letter = glossaryInitial(entry.term)
+    const letter = glossaryInitial(traduire(entry.term))
     const bucket = map.get(letter)
     if (bucket) bucket.push(entry)
     else map.set(letter, [entry])
@@ -238,7 +249,7 @@ export function glossaryByLetter(): { letter: string; entries: GlossaryEntry[] }
   return [...map.entries()]
     .map(([letter, entries]) => ({
       letter,
-      entries: entries.sort((a, b) => a.term.localeCompare(b.term, 'fr')),
+      entries: entries.sort((a, b) => traduire(a.term).localeCompare(traduire(b.term), locale)),
     }))
-    .sort((a, b) => a.letter.localeCompare(b.letter, 'fr'))
+    .sort((a, b) => a.letter.localeCompare(b.letter, locale))
 }
