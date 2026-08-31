@@ -1,3 +1,22 @@
+/**
+ * ⚠️ CE COMPOSANT N'EST RENDU NULLE PART — vérifié le 2026-08-31 sur `components/` et
+ * `app/`. Il n'a aucun appelant.
+ *
+ * Ce n'est PAS un manque fonctionnel, et c'est la raison pour laquelle il n'a pas été
+ * monté : tout ce qu'il porte est déjà servi ailleurs, sous une autre forme.
+ *
+ *   capitalisation, volume, FDV, rang   →  le rail de métriques (`AssetMetricRail`)
+ *   offres en circulation et maximale   →  `AssetSupply`, en JAUGES plutôt qu'en lignes
+ *                                          (« Offre émise 95,6 % · 20,1 M / 21 M BTC »)
+ *   extrêmes 24 h et historiques        →  `AssetRangeBar`
+ *
+ * Le monter dupliquerait ces chiffres sur la même page. Le supprimer ferait perdre un
+ * composant testé, qui rend un bandeau compact là où les trois autres rendent des
+ * colonnes — une forme dont une future page de comparaison pourrait avoir besoin.
+ *
+ * Il reste donc en attente, avec cette note pour que le prochain lecteur sache qu'il
+ * est inerte PAR CHOIX et non par oubli.
+ */
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { formatCompact, formatPercent } from '@zenkuu/ui'
 
