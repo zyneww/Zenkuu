@@ -2376,4 +2376,26 @@ export const enPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': 'Area: the collection’s capitalisation. Colour: change in the **floor price** over 24 hours — the only change the source publishes here, and not the change in capitalisation: the number of items on sale moves too. The areas divide up **our selection**, not the NFT market: see the footnote. Amounts in dollars.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': 'An account is **not required** to track an asset or save a screen. It exists so you find the same list on another device.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': 'An account is **not required** to track an asset or save a screen: those features already work without one, stored in your browser. It exists so you find the same list on another device, and so clearing your browser does not erase it.',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': 'What is the price of {nom} today?',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} trades at {cours}. Last value published by our source on {date}.',
+  'Quelle est la capitalisation de {nom} ?': 'What is the market cap of {nom}?',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': 'Its market cap stands at {capitalisation}, which places it at rank {rang} in its asset class.',
+  'Sa capitalisation s’élève à {capitalisation}.': 'Its market cap stands at {capitalisation}.',
+  'Quel est le plus haut historique de {nom} ?': 'What is the all-time high of {nom}?',
+  'Son plus haut historique est de {cours}, atteint le {date}.': 'Its all-time high is {cours}, reached on {date}.',
+  'Son plus haut historique est de {cours}.': 'Its all-time high is {cours}.',
+  'Combien d’unités de {nom} existeront au maximum ?': 'How many units of {nom} will exist at most?',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': 'Maximum supply is {max} {symbole}, of which {circulante} {symbole} are currently circulating.',
+  'L’offre maximale est de {max} {symbole}.': 'Maximum supply is {max} {symbole}.',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'Can I buy {nom} on ZENKUU?',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'No. ZENKUU is an information platform: we execute no orders, hold no funds and are neither a broker nor an exchange.',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': 'No asset matches “{requete}”.',
+  'Cours de {nom}': '{nom} price',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} days',
 }

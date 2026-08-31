@@ -2364,4 +2364,26 @@ export const nlPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': 'Oppervlak: kapitalisatie van de collectie. Kleur: verandering van de **bodemprijs** over 24 uur — de enige verandering die de bron hier publiceert, en niet die van de kapitalisatie: ook het aantal te koop staande exemplaren beweegt. De oppervlakken verdelen **onze selectie**, niet de NFT-markt: zie de voetnoot. Bedragen in dollar.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': 'Een account is **niet nodig** om een waarde te volgen of een scherm op te slaan. Het dient om dezelfde lijst op een ander apparaat terug te vinden.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': 'Een account is **niet nodig** om een waarde te volgen of een scherm op te slaan: die functies werken al zonder, opgeborgen in uw browser. Het dient om dezelfde lijst op een ander apparaat terug te vinden, en om te voorkomen dat een opschoning van de browser haar wist.',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': 'Wat is de koers van {nom} vandaag?',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} noteert op {cours}. Laatste waarde die onze bron publiceerde op {date}.',
+  'Quelle est la capitalisation de {nom} ?': 'Wat is de marktkapitalisatie van {nom}?',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': 'De marktkapitalisatie bedraagt {capitalisation}, goed voor plaats {rang} binnen zijn activaklasse.',
+  'Sa capitalisation s’élève à {capitalisation}.': 'De marktkapitalisatie bedraagt {capitalisation}.',
+  'Quel est le plus haut historique de {nom} ?': 'Wat is de recordkoers van {nom}?',
+  'Son plus haut historique est de {cours}, atteint le {date}.': 'De recordkoers is {cours}, bereikt op {date}.',
+  'Son plus haut historique est de {cours}.': 'De recordkoers is {cours}.',
+  'Combien d’unités de {nom} existeront au maximum ?': 'Hoeveel eenheden van {nom} zullen er maximaal bestaan?',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': 'Het maximale aanbod is {max} {symbole}, waarvan er nu {circulante} {symbole} in omloop zijn.',
+  'L’offre maximale est de {max} {symbole}.': 'Het maximale aanbod is {max} {symbole}.',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'Kan ik {nom} kopen op ZENKUU?',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'Nee. ZENKUU is een informatieplatform: wij voeren geen orders uit, houden geen gelden aan en zijn noch makelaar noch handelsplatform.',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': 'Geen enkel asset komt overeen met « {requete} ».',
+  'Cours de {nom}': 'Koers van {nom}',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} dagen',
 }

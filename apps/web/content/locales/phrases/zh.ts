@@ -2357,4 +2357,26 @@ export const zhPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': '面积：该系列的市值。颜色：24 小时内**地板价**的变动——这是数据源在此唯一公布的变动，并非市值的变动：在售数量同样会变。这些面积瓜分的是**我们的选样**，而不是整个 NFT 市场：见页脚注释。金额以美元计。',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': '关注资产或保存筛选视图**不需要**账号。账号的作用是让你在另一台设备上找回同一份列表。',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': '关注资产或保存筛选视图**不需要**账号：这些功能已经能用，数据存在你的浏览器里。账号的作用是让你在另一台设备上找回同一份列表，并且不会因清理浏览器而丢失。',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': '{nom} 今天的价格是多少？',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} 现报 {cours}。这是我们的数据源于 {date} 公布的最新数值。',
+  'Quelle est la capitalisation de {nom} ?': '{nom} 的市值是多少？',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': '其市值为 {capitalisation}，在同类资产中排名第 {rang}。',
+  'Sa capitalisation s’élève à {capitalisation}.': '其市值为 {capitalisation}。',
+  'Quel est le plus haut historique de {nom} ?': '{nom} 的历史最高价是多少？',
+  'Son plus haut historique est de {cours}, atteint le {date}.': '历史最高价为 {cours}，于 {date} 触及。',
+  'Son plus haut historique est de {cours}.': '历史最高价为 {cours}。',
+  'Combien d’unités de {nom} existeront au maximum ?': '{nom} 最多会有多少枚？',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': '最大供应量为 {max} {symbole}，其中 {circulante} {symbole} 已在流通。',
+  'L’offre maximale est de {max} {symbole}.': '最大供应量为 {max} {symbole}。',
+  'Peut-on acheter {nom} sur ZENKUU ?': '可以在 ZENKUU 上购买 {nom} 吗？',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': '不能。ZENKUU 是信息平台：我们不执行任何委托，不托管资金，既非经纪商也非交易所。',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': '没有资产与「{requete}」匹配。',
+  'Cours de {nom}': '{nom} 价格',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} 天',
 }

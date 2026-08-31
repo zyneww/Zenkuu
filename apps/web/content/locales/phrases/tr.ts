@@ -2364,4 +2364,26 @@ export const trPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': 'Alan: koleksiyonun piyasa değeri. Renk: 24 saatte **taban fiyat** değişimi — kaynağın burada yayımladığı tek değişim budur ve piyasa değerinin değişimi değildir: satıştaki adet sayısı da hareket eder. Alanlar **bizim seçkimizi** paylaşır, NFT piyasasını değil: dipnota bakınız. Tutarlar dolar cinsindendir.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': 'Bir varlığı takip etmek ya da bir ekranı kaydetmek için hesap **gerekmez**. Hesap, aynı listeyi başka bir cihazda bulmaya yarar.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': 'Bir varlığı takip etmek ya da bir ekranı kaydetmek için hesap **gerekmez**: bu işlevler tarayıcınızda saklanarak hesapsız da çalışır. Hesap, aynı listeyi başka bir cihazda bulmaya ve tarayıcı temizliğinin onu silmemesine yarar.',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': '{nom} bugün kaç para?',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} {cours} seviyesinde işlem görüyor. Kaynağımızın yayımladığı son değer: {date}.',
+  'Quelle est la capitalisation de {nom} ?': '{nom} için piyasa değeri nedir?',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': 'Piyasa değeri {capitalisation} olup, bu onu kendi varlık sınıfında {rang}. sıraya yerleştirir.',
+  'Sa capitalisation s’élève à {capitalisation}.': 'Piyasa değeri {capitalisation}.',
+  'Quel est le plus haut historique de {nom} ?': '{nom} için tüm zamanların zirvesi nedir?',
+  'Son plus haut historique est de {cours}, atteint le {date}.': 'Tüm zamanların zirvesi {cours}; {date} tarihinde görüldü.',
+  'Son plus haut historique est de {cours}.': 'Tüm zamanların zirvesi {cours}.',
+  'Combien d’unités de {nom} existeront au maximum ?': 'En fazla kaç adet {nom} var olacak?',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': 'Azami arz {max} {symbole}; bunun {circulante} {symbole} kadarı şu anda dolaşımda.',
+  'L’offre maximale est de {max} {symbole}.': 'Azami arz {max} {symbole}.',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'ZENKUU üzerinden {nom} satın alınabilir mi?',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'Hayır. ZENKUU bir bilgi platformudur: hiçbir emir gerçekleştirmez, fon tutmaz, ne aracı kurum ne de borsadır.',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': '« {requete} » ile eşleşen varlık yok.',
+  'Cours de {nom}': '{nom} fiyatı',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} gün',
 }

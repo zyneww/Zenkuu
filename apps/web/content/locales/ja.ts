@@ -44,7 +44,6 @@ const ja: Translation = {
     trendingEmpty: 'トレンドは一時的に利用できません。',
     otherAssets: '株式・ETF・指数・商品',
     loading: '検索中…',
-    noResult: (query: string) => `「${query}」に一致する銘柄はありません。`,
     cryptoUnavailable:
       '暗号資産のデータ元が一時的に混雑しています。他の資産クラスは引き続き閲覧できます。',
     hint: 'Ctrl + K で検索を再度開けます',
@@ -257,7 +256,6 @@ const ja: Translation = {
     convertedNotice: (from: string, to: string, date: string) =>
       `金額は ${date} の欧州中央銀行の参照レートで ${from} から ${to} に換算しています。情報源はこの銘柄を ${from} 建てで表示しています。`,
     aboutTitle: (name: string) => `${name} について`,
-    priceLabel: (name: string) => `${name} の価格`,
     statsTitle: "市場統計",
     similarTitle: "類似の銘柄",
     rangeTitle: "期間",
@@ -299,28 +297,6 @@ const ja: Translation = {
     rangeYearTitle: "1 年間の高安値",
     lowest: "安値",
     highest: "高値",
-    faq: {
-      buyQ: (name: string) => `ZENKUU で ${name} を購入できますか？`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `最大供給量は ${max} ${symbol} で、うち ${circulating} ${symbol} が現在流通しています。`
-          : `最大供給量は ${max} ${symbol} です。`,
-      supplyQ: (name: string) => `${name} は最大で何単位まで存在しますか？`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `史上最高値は ${price} で、${date} に記録されました。`
-          : `史上最高値は ${price} です。`,
-      athQ: (name: string) => `${name} の史上最高値は？`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `時価総額は ${cap} で、同じ資産クラスの中で ${rank} 位です。`
-          : `時価総額は ${cap} です。`,
-      capQ: (name: string) => `${name} の時価総額は？`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} は ${price} で取引されています。情報源が公開した最新の値は ${updated} 時点のものです。`,
-      priceQ: (name: string) => `${name} の今日の価格は？`,
-      buyA: "いいえ。ZENKUU は情報プラットフォームです。注文を執行せず、資産も預からず、ブローカーでも取引所でもありません。",
-    },
     stats: {
       marketCap: "時価総額",
       volume: "出来高 24 時間",

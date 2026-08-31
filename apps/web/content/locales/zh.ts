@@ -37,7 +37,6 @@ const zh: Translation = {
     trendingEmpty: '热门数据暂时不可用。',
     otherAssets: '股票、ETF、指数与大宗商品',
     loading: '正在搜索…',
-    noResult: (query: string) => `没有资产与「${query}」匹配。`,
     cryptoUnavailable: '加密数据源暂时繁忙，其他资产类别仍可查阅。',
     hint: '按 Ctrl + K 重新打开搜索',
   },
@@ -249,7 +248,6 @@ const zh: Translation = {
     convertedNotice: (from: string, to: string, date: string) =>
       `金额按 ${date} 的欧洲央行参考汇率自 ${from} 换算为 ${to}。数据源以 ${from} 为该资产计价。`,
     aboutTitle: (name: string) => `关于 ${name}`,
-    priceLabel: (name: string) => `${name} 价格`,
     statsTitle: "市场统计",
     similarTitle: "可比资产",
     rangeTitle: "周期",
@@ -291,28 +289,6 @@ const zh: Translation = {
     rangeYearTitle: "一年内极值",
     lowest: "最低",
     highest: "最高",
-    faq: {
-      buyQ: (name: string) => `可以在 ZENKUU 上购买 ${name} 吗？`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `最大供应量为 ${max} ${symbol}，其中 ${circulating} ${symbol} 已在流通。`
-          : `最大供应量为 ${max} ${symbol}。`,
-      supplyQ: (name: string) => `${name} 最多会有多少枚？`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `历史最高价为 ${price}，于 ${date} 触及。`
-          : `历史最高价为 ${price}。`,
-      athQ: (name: string) => `${name} 的历史最高价是多少？`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `其市值为 ${cap}，在同类资产中排名第 ${rank}。`
-          : `其市值为 ${cap}。`,
-      capQ: (name: string) => `${name} 的市值是多少？`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} 现报 ${price}。这是我们的数据源于 ${updated} 公布的最新数值。`,
-      priceQ: (name: string) => `${name} 今天的价格是多少？`,
-      buyA: "不能。ZENKUU 是信息平台：我们不执行任何委托，不托管资金，既非经纪商也非交易所。",
-    },
     stats: {
       marketCap: "市值",
       volume: "24 小时成交量",

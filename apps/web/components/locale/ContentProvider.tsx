@@ -22,14 +22,26 @@ import { translate } from '@/content/phrases'
  * langue côté client — ferait apparaître les libellés APRÈS l'hydratation, ce qui
  * revient à afficher une interface muette pendant un instant sur chaque page.
  *
- * ── LES FONCTIONS NE TRAVERSENT PAS ───────────────────────────────────────────
+ * ── LES FONCTIONS NE TRAVERSENT PAS, ET ÇA S'EST VU ───────────────────────────
  *
- * Attention : 23 entrées du dictionnaire sont des fonctions, et une fonction ne peut
- * pas franchir la frontière serveur → client. Elles arrivent donc `undefined` côté
- * client. C'est sans conséquence AUJOURD'HUI — aucun des six composants client ne
- * les utilise — mais ce serait un `TypeError` silencieux le jour où l'un d'eux s'y
- * mettrait. Le repli sur `fr` ci-dessous les rétablit dans leur version française,
- * ce qui vaut mieux qu'un plantage.
+ * 13 entrées du dictionnaire sont des fonctions, et une fonction ne peut pas franchir
+ * la frontière serveur → client : elles arrivent `undefined`. Le repli sur `fr`
+ * ci-dessous les rétablit — dans leur version FRANÇAISE.
+ *
+ * ⚠️ CE REPLI CACHE LE DÉFAUT AU LIEU DE LE SIGNALER, et il a effectivement caché.
+ * Trois composants clients appelaient des fonctions du dictionnaire — `AssetFaq`,
+ * `SearchResults`, `AssetWorkspace` — et affichaient donc du français dans les douze
+ * autres langues, sans erreur, sans trace, sur toutes les fiches d'actif. Les onze
+ * phrases concernées sont passées à la TABLE DE PHRASES, qui est un objet de chaînes
+ * et traverse sans perte ; les fonctions correspondantes ont quitté les treize
+ * dictionnaires.
+ *
+ * ── LA RÈGLE, DONC ────────────────────────────────────────────────────────────
+ *
+ * Une phrase à trous lue depuis un composant CLIENT passe par `usePhrase()` et un
+ * `.replace('{nom}', …)`, jamais par une fonction du dictionnaire. Les 13 fonctions
+ * restantes ne sont appelées que côté serveur, où elles fonctionnent — mais le jour
+ * où l'une d'elles descend dans un composant client, elle se taira de la même façon.
  */
 
 /**

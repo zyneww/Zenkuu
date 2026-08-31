@@ -41,7 +41,6 @@ const de: Translation = {
     trendingEmpty: 'Trends derzeit nicht verfügbar.',
     otherAssets: 'Aktien, ETFs, Indizes und Rohstoffe',
     loading: 'Suche läuft…',
-    noResult: (query: string) => `Kein Wert passt zu „${query}“.`,
     cryptoUnavailable:
       'Die Krypto-Quelle ist derzeit überlastet. Die übrigen Anlageklassen bleiben abrufbar.',
     hint: 'Strg + K öffnet die Suche erneut',
@@ -236,7 +235,6 @@ const de: Translation = {
   },
 
   asset: {
-    priceLabel: (name: string) => `Kurs von ${name}`,
     statsTitle: 'Marktstatistiken',
     aboutTitle: (name: string) => `Über ${name}`,
     similarTitle: 'Vergleichbare Werte',
@@ -277,29 +275,6 @@ const de: Translation = {
     rangeYearTitle: 'Extremwerte über ein Jahr',
     lowest: 'Tief',
     highest: 'Hoch',
-    faq: {
-      priceQ: (name: string) => `Wie hoch ist der Kurs von ${name} heute?`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} wird zu ${price} gehandelt. Letzter von unserer Quelle veröffentlichter Wert am ${updated}.`,
-      capQ: (name: string) => `Wie hoch ist die Marktkapitalisierung von ${name}?`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `Die Marktkapitalisierung beträgt ${cap} und belegt damit Rang ${rank} in ihrer Anlageklasse.`
-          : `Die Marktkapitalisierung beträgt ${cap}.`,
-      athQ: (name: string) => `Was ist das Allzeithoch von ${name}?`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `Das Allzeithoch liegt bei ${price}, erreicht am ${date}.`
-          : `Das Allzeithoch liegt bei ${price}.`,
-      supplyQ: (name: string) => `Wie viele Einheiten von ${name} wird es höchstens geben?`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `Das maximale Angebot beträgt ${max} ${symbol}, davon sind derzeit ${circulating} ${symbol} im Umlauf.`
-          : `Das maximale Angebot beträgt ${max} ${symbol}.`,
-      buyQ: (name: string) => `Kann man ${name} auf ZENKUU kaufen?`,
-      buyA:
-        'Nein. ZENKUU ist eine Informationsplattform: Wir führen keine Orders aus, halten keine Gelder und sind weder Broker noch Handelsplatz.',
-    },
     stats: {
       marketCap: 'Marktkapitalisierung',
       volume: 'Volumen 24 Std.',

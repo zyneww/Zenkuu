@@ -10,8 +10,8 @@ import { fr } from '@/content/fr'
  * convenait pas à la reprise de l'existant, et le calcul mérite d'être posé.
  *
  * Le dictionnaire français compte 206 entrées consultées depuis 43 fichiers, et
- * 23 d'entre elles sont des FONCTIONS — `noResult(query)`, `convertedNotice(from,
- * to, date)`, `capA(cap, rank?)` avec sa branche conditionnelle. Basculer sur des
+ * 13 d'entre elles sont des FONCTIONS — `convertedNotice(from, to, date)` et ses
+ * pareilles, dont certaines portent une branche conditionnelle. Basculer sur des
  * clés aurait imposé deux chantiers : réécrire des centaines de sites d'appel
  * `fr.x.y` en `t('x.y')`, et convertir chaque fonction en message ICU — la dernière
  * avec un `select` pour son cas optionnel.

@@ -38,7 +38,6 @@ const nl: Translation = {
     trendingEmpty: 'Trending tijdelijk niet beschikbaar.',
     otherAssets: 'Aandelen, ETF’s, indices en grondstoffen',
     loading: 'Bezig met zoeken…',
-    noResult: (query: string) => `Geen enkel asset komt overeen met « ${query} ».`,
     cryptoUnavailable:
       'De cryptobron is tijdelijk verzadigd. De overige activaklassen blijven raadpleegbaar.',
     hint: 'Ctrl + K om opnieuw te zoeken',
@@ -251,7 +250,6 @@ const nl: Translation = {
     convertedNotice: (from: string, to: string, date: string) =>
       `Bedragen omgerekend van ${from} naar ${to} tegen de ECB-referentiekoers van ${date}. De bron noteert dit actief in ${from}.`,
     aboutTitle: (name: string) => `Over ${name}`,
-    priceLabel: (name: string) => `Koers van ${name}`,
     statsTitle: "Marktstatistieken",
     similarTitle: "Vergelijkbare activa",
     rangeTitle: "Periode",
@@ -293,28 +291,6 @@ const nl: Translation = {
     rangeYearTitle: "Uitersten over een jaar",
     lowest: "Laagste",
     highest: "Hoogste",
-    faq: {
-      buyQ: (name: string) => `Kan ik ${name} kopen op ZENKUU?`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `Het maximale aanbod is ${max} ${symbol}, waarvan er nu ${circulating} ${symbol} in omloop zijn.`
-          : `Het maximale aanbod is ${max} ${symbol}.`,
-      supplyQ: (name: string) => `Hoeveel eenheden van ${name} zullen er maximaal bestaan?`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `De recordkoers is ${price}, bereikt op ${date}.`
-          : `De recordkoers is ${price}.`,
-      athQ: (name: string) => `Wat is de recordkoers van ${name}?`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `De marktkapitalisatie bedraagt ${cap}, goed voor plaats ${rank} binnen zijn activaklasse.`
-          : `De marktkapitalisatie bedraagt ${cap}.`,
-      capQ: (name: string) => `Wat is de marktkapitalisatie van ${name}?`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} noteert op ${price}. Laatste waarde die onze bron publiceerde op ${updated}.`,
-      priceQ: (name: string) => `Wat is de koers van ${name} vandaag?`,
-      buyA: "Nee. ZENKUU is een informatieplatform: wij voeren geen orders uit, houden geen gelden aan en zijn noch makelaar noch handelsplatform.",
-    },
     stats: {
       marketCap: "Marktkapitalisatie",
       volume: "Volume 24 u",

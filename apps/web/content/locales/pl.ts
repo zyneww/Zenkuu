@@ -38,7 +38,6 @@ const pl: Translation = {
     trendingEmpty: 'Trendy chwilowo niedostępne.',
     otherAssets: 'Akcje, ETF-y, indeksy i surowce',
     loading: 'Wyszukiwanie…',
-    noResult: (query: string) => `Żadne aktywo nie odpowiada « ${query} ».`,
     cryptoUnavailable:
       'Źródło kryptowalut jest chwilowo przeciążone. Pozostałe klasy aktywów są dostępne.',
     hint: 'Ctrl + K, aby ponownie otworzyć wyszukiwanie',
@@ -251,7 +250,6 @@ const pl: Translation = {
     convertedNotice: (from: string, to: string, date: string) =>
       `Kwoty przeliczone z ${from} na ${to} po kursie referencyjnym EBC z ${date}. Źródło notuje to aktywo w ${from}.`,
     aboutTitle: (name: string) => `O ${name}`,
-    priceLabel: (name: string) => `Kurs ${name}`,
     statsTitle: "Statystyki rynkowe",
     similarTitle: "Porównywalne aktywa",
     rangeTitle: "Okres",
@@ -293,28 +291,6 @@ const pl: Translation = {
     rangeYearTitle: "Ekstrema w ciągu roku",
     lowest: "Minimum",
     highest: "Maksimum",
-    faq: {
-      buyQ: (name: string) => `Czy można kupić ${name} w ZENKUU?`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `Maksymalna podaż to ${max} ${symbol}, z czego ${circulating} ${symbol} jest obecnie w obiegu.`
-          : `Maksymalna podaż to ${max} ${symbol}.`,
-      supplyQ: (name: string) => `Ile jednostek ${name} powstanie maksymalnie?`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `Historyczny szczyt to ${price}, osiągnięty ${date}.`
-          : `Historyczny szczyt to ${price}.`,
-      athQ: (name: string) => `Jaki jest historyczny szczyt ${name}?`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `Kapitalizacja wynosi ${cap}, co daje ${rank}. miejsce w swojej klasie aktywów.`
-          : `Kapitalizacja wynosi ${cap}.`,
-      capQ: (name: string) => `Jaka jest kapitalizacja ${name}?`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} notowane jest po ${price}. Ostatnia wartość opublikowana przez nasze źródło ${updated}.`,
-      priceQ: (name: string) => `Ile dziś kosztuje ${name}?`,
-      buyA: "Nie. ZENKUU jest serwisem informacyjnym: nie realizujemy żadnych zleceń, nie przechowujemy środków i nie jesteśmy ani brokerem, ani giełdą.",
-    },
     stats: {
       marketCap: "Kapitalizacja",
       volume: "Wolumen 24 godz.",

@@ -38,7 +38,6 @@ const tr: Translation = {
     trendingEmpty: 'Öne çıkanlar geçici olarak kullanılamıyor.',
     otherAssets: 'Hisse senetleri, ETF’ler, endeksler ve emtialar',
     loading: 'Aranıyor…',
-    noResult: (query: string) => `« ${query} » ile eşleşen varlık yok.`,
     cryptoUnavailable:
       'Kripto kaynağı geçici olarak yoğun. Diğer varlık sınıfları görüntülenebilir.',
     hint: 'Aramayı yeniden açmak için Ctrl + K',
@@ -251,7 +250,6 @@ const tr: Translation = {
     convertedNotice: (from: string, to: string, date: string) =>
       `Tutarlar, ${date} tarihli AMB referans kuruyla ${from} biriminden ${to} birimine çevrildi. Kaynak bu varlığı ${from} cinsinden fiyatlıyor.`,
     aboutTitle: (name: string) => `${name} hakkında`,
-    priceLabel: (name: string) => `${name} fiyatı`,
     statsTitle: "Piyasa istatistikleri",
     similarTitle: "Benzer varlıklar",
     rangeTitle: "Dönem",
@@ -293,28 +291,6 @@ const tr: Translation = {
     rangeYearTitle: "Bir yıllık uç değerler",
     lowest: "En düşük",
     highest: "En yüksek",
-    faq: {
-      buyQ: (name: string) => `ZENKUU üzerinden ${name} satın alınabilir mi?`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `Azami arz ${max} ${symbol}; bunun ${circulating} ${symbol} kadarı şu anda dolaşımda.`
-          : `Azami arz ${max} ${symbol}.`,
-      supplyQ: (name: string) => `En fazla kaç adet ${name} var olacak?`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `Tüm zamanların zirvesi ${price}; ${date} tarihinde görüldü.`
-          : `Tüm zamanların zirvesi ${price}.`,
-      athQ: (name: string) => `${name} için tüm zamanların zirvesi nedir?`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `Piyasa değeri ${cap} olup, bu onu kendi varlık sınıfında ${rank}. sıraya yerleştirir.`
-          : `Piyasa değeri ${cap}.`,
-      capQ: (name: string) => `${name} için piyasa değeri nedir?`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} ${price} seviyesinde işlem görüyor. Kaynağımızın yayımladığı son değer: ${updated}.`,
-      priceQ: (name: string) => `${name} bugün kaç para?`,
-      buyA: "Hayır. ZENKUU bir bilgi platformudur: hiçbir emir gerçekleştirmez, fon tutmaz, ne aracı kurum ne de borsadır.",
-    },
     stats: {
       marketCap: "Piyasa değeri",
       volume: "Hacim 24 sa",

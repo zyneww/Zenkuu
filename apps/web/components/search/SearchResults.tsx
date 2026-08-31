@@ -7,7 +7,7 @@ import { ChangeBadge } from '@zenkuu/ui'
 import { Link } from '@/i18n/navigation'
 import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
-import { useContent } from '@/components/locale/ContentProvider'
+import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
 import { Spinner } from '@/components/ui/spinner'
@@ -63,6 +63,7 @@ export function SearchResults({
   onNavigate: () => void
 }) {
   const fr = useContent()
+  const t = usePhrase()
   const { results, loading, trending, showTrending, found, query } = search
 
   if (showTrending) {
@@ -147,7 +148,9 @@ export function SearchResults({
 
   return (
     <CommandEmpty className="px-3 py-6 text-center text-xs text-ink-muted">
-      {results?.cryptoIndisponible ? fr.search.cryptoUnavailable : fr.search.noResult(query)}
+      {results?.cryptoIndisponible
+          ? fr.search.cryptoUnavailable
+          : t('Aucun actif ne correspond à « {requete} ».').replace('{requete}', query)}
     </CommandEmpty>
   )
 }

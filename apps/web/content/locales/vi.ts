@@ -38,7 +38,6 @@ const vi: Translation = {
     trendingEmpty: 'Xu hướng tạm thời không khả dụng.',
     otherAssets: 'Cổ phiếu, ETF, chỉ số và hàng hoá',
     loading: 'Đang tìm…',
-    noResult: (query: string) => `Không có tài sản nào khớp với « ${query} ».`,
     cryptoUnavailable:
       'Nguồn dữ liệu tiền mã hoá đang quá tải. Các lớp tài sản khác vẫn tra cứu được.',
     hint: 'Ctrl + K để mở lại tìm kiếm',
@@ -251,7 +250,6 @@ const vi: Translation = {
     convertedNotice: (from: string, to: string, date: string) =>
       `Số tiền được quy đổi từ ${from} sang ${to} theo tỷ giá tham chiếu ECB ngày ${date}. Nguồn niêm yết tài sản này bằng ${from}.`,
     aboutTitle: (name: string) => `Về ${name}`,
-    priceLabel: (name: string) => `Giá ${name}`,
     statsTitle: "Thống kê thị trường",
     similarTitle: "Tài sản tương đương",
     rangeTitle: "Khoảng thời gian",
@@ -293,28 +291,6 @@ const vi: Translation = {
     rangeYearTitle: "Cực trị trong một năm",
     lowest: "Thấp nhất",
     highest: "Cao nhất",
-    faq: {
-      buyQ: (name: string) => `Có thể mua ${name} trên ZENKUU không?`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `Nguồn cung tối đa là ${max} ${symbol}, trong đó ${circulating} ${symbol} đang lưu hành.`
-          : `Nguồn cung tối đa là ${max} ${symbol}.`,
-      supplyQ: (name: string) => `Tối đa sẽ có bao nhiêu đơn vị ${name}?`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `Đỉnh lịch sử là ${price}, đạt được ngày ${date}.`
-          : `Đỉnh lịch sử là ${price}.`,
-      athQ: (name: string) => `Đỉnh lịch sử của ${name} là bao nhiêu?`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `Vốn hóa đạt ${cap}, xếp thứ ${rank} trong lớp tài sản của nó.`
-          : `Vốn hóa đạt ${cap}.`,
-      capQ: (name: string) => `Vốn hóa của ${name} là bao nhiêu?`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} đang giao dịch ở mức ${price}. Giá trị mới nhất do nguồn của chúng tôi công bố ngày ${updated}.`,
-      priceQ: (name: string) => `Hôm nay giá ${name} là bao nhiêu?`,
-      buyA: "Không. ZENKUU là nền tảng thông tin: chúng tôi không thực hiện lệnh, không giữ tiền và không phải là môi giới hay sàn giao dịch.",
-    },
     stats: {
       marketCap: "Vốn hoá",
       volume: "Khối lượng 24 giờ",

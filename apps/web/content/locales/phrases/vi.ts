@@ -2364,4 +2364,26 @@ export const viPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': 'Diện tích: vốn hóa của bộ sưu tập. Màu sắc: biến động **giá sàn** trong 24 giờ — biến động duy nhất mà nguồn công bố ở đây, và không phải biến động vốn hóa: số lượng vật phẩm đang rao bán cũng thay đổi. Các diện tích chia nhau **tuyển chọn của chúng tôi**, không phải toàn thị trường NFT: xem chú thích cuối trang. Số tiền tính bằng đô la.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': 'Tài khoản là **không bắt buộc** để theo dõi một tài sản hay lưu một màn hình. Nó dùng để tìm lại đúng danh sách ấy trên một thiết bị khác.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': 'Tài khoản là **không bắt buộc** để theo dõi một tài sản hay lưu một màn hình: những chức năng ấy đã chạy được mà không cần nó, lưu ngay trong trình duyệt của bạn. Nó dùng để tìm lại đúng danh sách trên một thiết bị khác, và để việc dọn dẹp trình duyệt không xóa mất.',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': 'Hôm nay giá {nom} là bao nhiêu?',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} đang giao dịch ở mức {cours}. Giá trị mới nhất do nguồn của chúng tôi công bố ngày {date}.',
+  'Quelle est la capitalisation de {nom} ?': 'Vốn hóa của {nom} là bao nhiêu?',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': 'Vốn hóa đạt {capitalisation}, xếp thứ {rang} trong lớp tài sản của nó.',
+  'Sa capitalisation s’élève à {capitalisation}.': 'Vốn hóa đạt {capitalisation}.',
+  'Quel est le plus haut historique de {nom} ?': 'Đỉnh lịch sử của {nom} là bao nhiêu?',
+  'Son plus haut historique est de {cours}, atteint le {date}.': 'Đỉnh lịch sử là {cours}, đạt được ngày {date}.',
+  'Son plus haut historique est de {cours}.': 'Đỉnh lịch sử là {cours}.',
+  'Combien d’unités de {nom} existeront au maximum ?': 'Tối đa sẽ có bao nhiêu đơn vị {nom}?',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': 'Nguồn cung tối đa là {max} {symbole}, trong đó {circulante} {symbole} đang lưu hành.',
+  'L’offre maximale est de {max} {symbole}.': 'Nguồn cung tối đa là {max} {symbole}.',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'Có thể mua {nom} trên ZENKUU không?',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'Không. ZENKUU là nền tảng thông tin: chúng tôi không thực hiện lệnh, không giữ tiền và không phải là môi giới hay sàn giao dịch.',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': 'Không có tài sản nào khớp với « {requete} ».',
+  'Cours de {nom}': 'Giá {nom}',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} ngày',
 }

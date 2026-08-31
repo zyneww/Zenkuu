@@ -2364,4 +2364,26 @@ export const jaPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': '面積はコレクションの時価総額、色は24時間の**フロア価格**の変化率です。ここでソースが公表する変化率はこれだけで、時価総額の変化率ではありません。出品されている点数も動くからです。面積が分け合っているのは**私たちの選定範囲**であって、NFT 市場全体ではありません。脚注をご覧ください。金額はドル建てです。',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': '銘柄を追跡したり画面を保存したりするのに、アカウントは**必要ありません**。アカウントは、同じリストを別の端末で開くためのものです。',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': '銘柄を追跡したり画面を保存したりするのに、アカウントは**必要ありません**。これらはブラウザーに保存され、アカウントなしでも動きます。アカウントは、同じリストを別の端末で開くため、そしてブラウザーのデータ消去で消えないようにするためのものです。',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': '{nom} の今日の価格は？',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} は {cours} で取引されています。情報源が公開した最新の値は {date} 時点のものです。',
+  'Quelle est la capitalisation de {nom} ?': '{nom} の時価総額は？',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': '時価総額は {capitalisation} で、同じ資産クラスの中で {rang} 位です。',
+  'Sa capitalisation s’élève à {capitalisation}.': '時価総額は {capitalisation} です。',
+  'Quel est le plus haut historique de {nom} ?': '{nom} の史上最高値は？',
+  'Son plus haut historique est de {cours}, atteint le {date}.': '史上最高値は {cours} で、{date} に記録されました。',
+  'Son plus haut historique est de {cours}.': '史上最高値は {cours} です。',
+  'Combien d’unités de {nom} existeront au maximum ?': '{nom} は最大で何単位まで存在しますか？',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': '最大供給量は {max} {symbole} で、うち {circulante} {symbole} が現在流通しています。',
+  'L’offre maximale est de {max} {symbole}.': '最大供給量は {max} {symbole} です。',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'ZENKUU で {nom} を購入できますか？',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'いいえ。ZENKUU は情報プラットフォームです。注文を執行せず、資産も預からず、ブローカーでも取引所でもありません。',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': '「{requete}」に一致する銘柄はありません。',
+  'Cours de {nom}': '{nom} の価格',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n}日間',
 }

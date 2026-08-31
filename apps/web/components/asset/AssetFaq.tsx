@@ -1,11 +1,12 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
+import { useLocale } from 'next-intl'
 
 import type { AssetDetail } from '@zenkuu/data'
 import { formatCompact, formatCurrency, formatDateTime } from '@zenkuu/ui'
 
-import { useContent } from '@/components/locale/ContentProvider'
+import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 
 /**
@@ -38,7 +39,28 @@ import { useCurrency } from '@/components/locale/CurrencyProvider'
  */
 export function AssetFaq({ asset }: { asset: AssetDetail }) {
   const fr = useContent()
+  const t = usePhrase()
+  const locale = useLocale()
   const { currency, convert } = useCurrency()
+
+  /**
+   * Les phrases viennent de la TABLE et non du dictionnaire, et ce n'est pas une
+   * question de style.
+   *
+   * Ce composant est CLIENT. Les entrées `asset.faq` du dictionnaire sont des
+   * FONCTIONS, et une fonction ne franchit pas la frontière serveur → client :
+   * elles arrivaient `undefined`, le repli de `useContent()` les rétablissait
+   * depuis `fr`, et les cinq questions s'affichaient en français dans les douze
+   * autres langues. La table de phrases est un objet de chaînes — elle traverse.
+   *
+   * Les valeurs sont substituées après coup plutôt qu'interpolées : c'est ce qui
+   * permet au traducteur de déplacer `{nom}` ou `{cours}` où sa langue les veut.
+   */
+  const remplir = (texte: string, valeurs: Record<string, string>) =>
+    Object.entries(valeurs).reduce(
+      (phrase, [nom, valeur]) => phrase.replaceAll(`{${nom}}`, valeur),
+      t(texte),
+    )
 
   /* Les réponses sont des PHRASES : le montant y est interpolé, il ne peut donc pas
      passer par le composant `Money`. La conversion est faite à la main, avec la même
@@ -49,44 +71,65 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
 
   const entries: { question: string; answer: string }[] = [
     {
-      question: fr.asset.faq.priceQ(asset.name),
-      answer: fr.asset.faq.priceA(
-        asset.name,
-        money(asset.price),
-        formatDateTime(asset.lastUpdated) ?? '—',
+      question: remplir('Quel est le cours de {nom} aujourd’hui ?', { nom: asset.name }),
+      answer: remplir(
+        '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.',
+        {
+          nom: asset.name,
+          cours: money(asset.price),
+          date: formatDateTime(asset.lastUpdated) ?? '—',
+        },
       ),
     },
   ]
 
   if (asset.marketCap !== undefined) {
     entries.push({
-      question: fr.asset.faq.capQ(asset.name),
-      answer: fr.asset.faq.capA(money(asset.marketCap, true), asset.rank),
+      question: remplir('Quelle est la capitalisation de {nom} ?', { nom: asset.name }),
+      answer: remplir(
+        asset.rank
+          ? 'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.'
+          : 'Sa capitalisation s’élève à {capitalisation}.',
+        { capitalisation: money(asset.marketCap, true), rang: String(asset.rank ?? '') },
+      ),
     })
   }
 
   if (asset.ath !== undefined && asset.assetClass === 'crypto') {
     entries.push({
-      question: fr.asset.faq.athQ(asset.name),
-      answer: fr.asset.faq.athA(
-        money(asset.ath),
-        asset.athDate ? formatDay(asset.athDate) : null,
+      question: remplir('Quel est le plus haut historique de {nom} ?', { nom: asset.name }),
+      answer: remplir(
+        asset.athDate
+          ? 'Son plus haut historique est de {cours}, atteint le {date}.'
+          : 'Son plus haut historique est de {cours}.',
+        { cours: money(asset.ath), date: asset.athDate ? formatDay(asset.athDate, locale) : '' },
       ),
     })
   }
 
   if (asset.maxSupply !== undefined) {
+    const circulante = formatCompact(asset.circulatingSupply)
     entries.push({
-      question: fr.asset.faq.supplyQ(asset.name),
-      answer: fr.asset.faq.supplyA(
-        formatCompact(asset.maxSupply) ?? '—',
-        asset.symbol,
-        formatCompact(asset.circulatingSupply),
+      question: remplir('Combien d’unités de {nom} existeront au maximum ?', { nom: asset.name }),
+      answer: remplir(
+        circulante
+          ? 'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.'
+          : 'L’offre maximale est de {max} {symbole}.',
+        {
+          max: formatCompact(asset.maxSupply) ?? '—',
+          symbole: asset.symbol,
+          circulante: circulante ?? '',
+        },
       ),
     })
   }
 
-  entries.push({ question: fr.asset.faq.buyQ(asset.name), answer: fr.asset.faq.buyA })
+  entries.push({
+    question: remplir('Peut-on acheter {nom} sur ZENKUU ?', { nom: asset.name }),
+    answer: t(
+      'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.',
+    ),
+  })
 
   return (
     <section aria-labelledby="faq-titre" className="space-y-3">
@@ -120,8 +163,8 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
   )
 }
 
-function formatDay(iso: string): string {
+function formatDay(iso: string, locale: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return iso
-  return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(date)
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(date)
 }

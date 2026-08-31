@@ -52,7 +52,6 @@ const en: Translation = {
     trendingEmpty: 'Trending temporarily unavailable.',
     otherAssets: 'Stocks, ETFs, indices and commodities',
     loading: 'Searching…',
-    noResult: (query: string) => `No asset matches “${query}”.`,
     cryptoUnavailable:
       'The crypto source is temporarily saturated. The other asset classes remain available.',
     hint: 'Ctrl + K to reopen search',
@@ -244,7 +243,6 @@ const en: Translation = {
   },
 
   asset: {
-    priceLabel: (name: string) => `${name} price`,
     statsTitle: 'Market statistics',
     aboutTitle: (name: string) => `About ${name}`,
     similarTitle: 'Comparable assets',
@@ -285,29 +283,6 @@ const en: Translation = {
     rangeYearTitle: 'One-year extremes',
     lowest: 'Low',
     highest: 'High',
-    faq: {
-      priceQ: (name: string) => `What is the price of ${name} today?`,
-      priceA: (name: string, price: string, updated: string) =>
-        `${name} trades at ${price}. Last value published by our source on ${updated}.`,
-      capQ: (name: string) => `What is the market cap of ${name}?`,
-      capA: (cap: string, rank?: number) =>
-        rank
-          ? `Its market cap stands at ${cap}, which places it at rank ${rank} in its asset class.`
-          : `Its market cap stands at ${cap}.`,
-      athQ: (name: string) => `What is the all-time high of ${name}?`,
-      athA: (price: string, date: string | null) =>
-        date
-          ? `Its all-time high is ${price}, reached on ${date}.`
-          : `Its all-time high is ${price}.`,
-      supplyQ: (name: string) => `How many units of ${name} will exist at most?`,
-      supplyA: (max: string, symbol: string, circulating: string | null) =>
-        circulating
-          ? `Maximum supply is ${max} ${symbol}, of which ${circulating} ${symbol} are currently circulating.`
-          : `Maximum supply is ${max} ${symbol}.`,
-      buyQ: (name: string) => `Can I buy ${name} on ZENKUU?`,
-      buyA:
-        'No. ZENKUU is an information platform: we execute no orders, hold no funds and are neither a broker nor an exchange.',
-    },
     stats: {
       marketCap: 'Market cap',
       volume: 'Volume 24h',

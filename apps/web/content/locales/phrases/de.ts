@@ -2372,4 +2372,26 @@ export const dePhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': 'Fläche: Kapitalisierung der Sammlung. Farbe: Veränderung des **Bodenpreises** über 24 Stunden — die einzige Veränderung, die die Quelle hier veröffentlicht, und nicht die der Kapitalisierung: Auch die Zahl der zum Verkauf stehenden Stücke bewegt sich. Die Flächen teilen sich **unsere Auswahl**, nicht den NFT-Markt: siehe die Fußnote. Beträge in Dollar.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': 'Ein Konto ist **nicht nötig**, um einen Wert zu verfolgen oder eine Ansicht zu speichern. Es dient dazu, dieselbe Liste auf einem anderen Gerät wiederzufinden.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': 'Ein Konto ist **nicht nötig**, um einen Wert zu verfolgen oder eine Ansicht zu speichern: Diese Funktionen laufen bereits ohne es, abgelegt in Ihrem Browser. Es dient dazu, dieselbe Liste auf einem anderen Gerät wiederzufinden und sie vor einer Browser-Bereinigung zu bewahren.',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': 'Wie hoch ist der Kurs von {nom} heute?',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} wird zu {cours} gehandelt. Letzter von unserer Quelle veröffentlichter Wert am {date}.',
+  'Quelle est la capitalisation de {nom} ?': 'Wie hoch ist die Marktkapitalisierung von {nom}?',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': 'Die Marktkapitalisierung beträgt {capitalisation} und belegt damit Rang {rang} in ihrer Anlageklasse.',
+  'Sa capitalisation s’élève à {capitalisation}.': 'Die Marktkapitalisierung beträgt {capitalisation}.',
+  'Quel est le plus haut historique de {nom} ?': 'Was ist das Allzeithoch von {nom}?',
+  'Son plus haut historique est de {cours}, atteint le {date}.': 'Das Allzeithoch liegt bei {cours}, erreicht am {date}.',
+  'Son plus haut historique est de {cours}.': 'Das Allzeithoch liegt bei {cours}.',
+  'Combien d’unités de {nom} existeront au maximum ?': 'Wie viele Einheiten von {nom} wird es höchstens geben?',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': 'Das maximale Angebot beträgt {max} {symbole}, davon sind derzeit {circulante} {symbole} im Umlauf.',
+  'L’offre maximale est de {max} {symbole}.': 'Das maximale Angebot beträgt {max} {symbole}.',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'Kann man {nom} auf ZENKUU kaufen?',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'Nein. ZENKUU ist eine Informationsplattform: Wir führen keine Orders aus, halten keine Gelder und sind weder Broker noch Handelsplatz.',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': 'Kein Wert passt zu „{requete}“.',
+  'Cours de {nom}': 'Kurs von {nom}',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} Tage',
 }

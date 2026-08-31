@@ -2364,4 +2364,26 @@ export const ruPhrases: Phrases = {
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': 'Площадь — капитализация коллекции. Цвет — изменение **минимальной цены** за 24 часа: единственное изменение, которое источник здесь публикует, и это не изменение капитализации — число выставленных на продажу экземпляров тоже меняется. Площади делят между собой **нашу выборку**, а не рынок NFT: см. сноску. Суммы в долларах.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': 'Учётная запись **не нужна**, чтобы отслеживать актив или сохранить экран. Она нужна, чтобы найти тот же список на другом устройстве.',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.': 'Учётная запись **не нужна**, чтобы отслеживать актив или сохранить экран: эти функции и так работают, сохраняясь в вашем браузере. Она нужна, чтобы найти тот же список на другом устройстве и чтобы очистка браузера его не стёрла.',
+
+  /* ── FAQ D'ACTIF — reprise des dictionnaires — ajouté le 2026-08-31 ── */
+  'Quel est le cours de {nom} aujourd’hui ?': 'Сколько стоит {nom} сегодня?',
+  '{nom} s’échange à {cours}. Dernière valeur publiée par notre source le {date}.': '{nom} торгуется по {cours}. Последнее значение, опубликованное нашим источником {date}.',
+  'Quelle est la capitalisation de {nom} ?': 'Какова капитализация {nom}?',
+  'Sa capitalisation s’élève à {capitalisation}, ce qui le place au rang {rang} de sa classe d’actif.': 'Капитализация составляет {capitalisation}, что даёт {rang}-е место в своём классе активов.',
+  'Sa capitalisation s’élève à {capitalisation}.': 'Капитализация составляет {capitalisation}.',
+  'Quel est le plus haut historique de {nom} ?': 'Каков исторический максимум {nom}?',
+  'Son plus haut historique est de {cours}, atteint le {date}.': 'Исторический максимум — {cours}, достигнут {date}.',
+  'Son plus haut historique est de {cours}.': 'Исторический максимум — {cours}.',
+  'Combien d’unités de {nom} existeront au maximum ?': 'Сколько единиц {nom} будет существовать максимум?',
+  'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.': 'Максимальная эмиссия — {max} {symbole}, из них {circulante} {symbole} в обращении.',
+  'L’offre maximale est de {max} {symbole}.': 'Максимальная эмиссия — {max} {symbole}.',
+  'Peut-on acheter {nom} sur ZENKUU ?': 'Можно ли купить {nom} на ZENKUU?',
+  'Non. ZENKUU est une plateforme d’information : nous n’exécutons aucun ordre, ne détenons aucun fonds et ne sommes ni courtier ni plateforme d’échange.': 'Нет. ZENKUU — информационная платформа: мы не исполняем заявок, не храним средств и не являемся ни брокером, ни биржей.',
+
+  /* ── RECHERCHE ET FICHE — reprises des dictionnaires — ajouté le 2026-08-31 ── */
+  'Aucun actif ne correspond à « {requete} ».': 'Ни один актив не соответствует « {requete} ».',
+  'Cours de {nom}': 'Курс {nom}',
+
+  /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
+  '{n} jours': '{n} дней',
 }

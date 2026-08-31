@@ -1706,6 +1706,7 @@ function OverviewTab({
   showTooltipChange: boolean
 }) {
   const fr = useContent()
+  const t = usePhrase()
   const [interactive, setInteractive] = useState(false)
 
   /*
@@ -1740,7 +1741,7 @@ function OverviewTab({
     )
   }
 
-  const label = `${fr.asset.priceLabel(assetName)} — ${days} jours`
+  const label = `${t('Cours de {nom}').replace('{nom}', assetName)} — ${t('{n} jours').replace('{n}', String(days))}`
 
   return (
     // L'opacité pendant le chargement conserve le graphique précédent à l'écran :
