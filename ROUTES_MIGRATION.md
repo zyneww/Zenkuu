@@ -1,120 +1,120 @@
 # Correspondance des routes — ZENKUU → CoinGecko
 
-Établi le 2026-08-30. ZENKUU : 62 routes. CoinGecko : 68 pages, 65 chemins distincts.
+Régénéré le 2026-08-31, audit complet (68/68). ZENKUU : 65 routes.
 
 La correspondance se fait par le RÔLE de la page, pas par la ressemblance des URL.
-Ce document ne décide rien : il rend la décision visible, page par page.
 
-> ⚠️ Aucune redirection n'est encore posée. Renommer une route casse les liens
-> internes et les URL déjà partagées ; chaque bascule doit venir avec sa
-> redirection depuis l'ancienne adresse.
+> **26 redirections sont posées** depuis les chemins de la référence vers leurs
+> équivalents ZENKUU — voir `redirects()` dans `apps/web/next.config.ts`. Elles ne
+> couvrent QUE les chemins dont l'équivalent existe : rediriger vers une page qui ne
+> répond pas à la demande serait pire qu'un 404.
 
-## 1. Routes ZENKUU avec équivalent CoinGecko
+## 1. Routes ZENKUU avec équivalent
 
-| Route ZENKUU | Équivalent CoinGecko | Équivalent audité ? |
+| Route ZENKUU | Équivalent | Audité |
 |---|---|---|
-| `/` | `/` | ✅ audité |
-| `/a-propos` | `/à_propos_de` | ⬜ non audité |
-| `/actions` | `/stocks` | ⬜ non audité |
-| `/actions/[id]` | `/stocks/nvidia` | ⬜ non audité |
-| `/actualites` | `/news` | ⬜ non audité |
-| `/aide` | `/faq` | ⬜ non audité |
-| `/aide/[slug]` | `/faq` | ⬜ non audité |
-| `/aide/rubrique/[id]` | `/faq` | ⬜ non audité |
-| `/apprendre` | `/learn` | ⬜ non audité |
-| `/apprendre/[slug]` | `/learn/crypto-narratives` | ✅ audité |
-| `/blog` | `/publications/reports` | ⬜ non audité |
-| `/blog/[slug]` | `/publications/reports` | ⬜ non audité |
-| `/categories` | `/categories` | ✅ audité |
-| `/categories/[id]` | `/categories/meme-token` | ✅ audité |
-| `/categories/ecosystemes` | `/chains` | ⬜ non audité |
-| `/classements` | `/highlights` | ⬜ non audité |
-| `/classements/[type]` | `/highlights/trending-crypto` | ⬜ non audité |
-| `/comparateur` | `/compare-cryptocurrencies` | ⬜ non audité |
-| `/convertisseur` | `/converter` | ⬜ non audité |
-| `/crypto` | `/all-cryptocurrencies` | ⬜ non audité |
-| `/crypto/[id]` | `/coins/bitcoin` | ✅ audité |
-| `/derives` | `/platesformes/derivatives` | ⬜ non audité |
-| `/devises` | `/currencies/eur` | ⬜ non audité |
-| `/devises/[id]` | `/currencies/eur` | ⬜ non audité |
-| `/embed/graphique` | `/widget` | ⬜ non audité |
-| `/embed/ticker` | `/widget` | ⬜ non audité |
-| `/etf` | `/etfs` | ⬜ non audité |
-| `/etf/[id]` | `/etfs/spdr-s-p-500-etf-trust` | ⬜ non audité |
-| `/graphiques` | `/charts` | ✅ audité |
-| `/graphiques/actifs-reels` | `/charts/rwa` | ⬜ non audité |
-| `/graphiques/dominance` | `/charts/bitcoin-dominance` | ⬜ non audité |
-| `/graphiques/nft` | `/nft` | ⬜ non audité |
-| `/graphiques/tresoreries` | `/treasuries` | ⬜ non audité |
-| `/heatmap` | `/charts/crypto-heatmap` | ⬜ non audité |
-| `/matieres-premieres` | `/commodities` | ⬜ non audité |
-| `/matieres-premieres/[id]` | `/commodities/gold` | ⬜ non audité |
-| `/nouveautes` | `/highlights/upcoming-cryptocurrencies` | ⬜ non audité |
-| `/nouvelles-cotations` | `/new-cryptocurrencies` | ⬜ non audité |
-| `/places` | `/platesformes` | ✅ audité |
-| `/places/[id]` | `/platesformes/binance` | ✅ audité |
-| `/resoudre/[terme]` | `/glossary/blockchain` | ⬜ non audité |
-| `/tableau-de-bord` | `/portefeuille` | ⬜ non audité |
+| `/` | `/` | ✅ |
+| `/a-propos` | `/about` | ✅ |
+| `/actions` | `/stocks` | ✅ |
+| `/actions/[id]` | `/stocks/nvidia` | ✅ |
+| `/actualites` | `/news` | ✅ |
+| `/aide` | `/faq` | ✅ |
+| `/aide/[slug]` | `/faq` | ✅ |
+| `/aide/rubrique/[id]` | `/faq` | ✅ |
+| `/apprendre` | `/learn` | ✅ |
+| `/apprendre/[slug]` | `/learn/crypto-narratives` | ✅ |
+| `/blog` | `/publications/reports` | ✅ |
+| `/blog/[slug]` | `/publications/reports` | ✅ |
+| `/categories` | `/categories` | ✅ |
+| `/categories/[id]` | `/categories/meme-token` | ✅ |
+| `/categories/ecosystemes` | `/chains` | ✅ |
+| `/classements` | `/highlights` | ✅ |
+| `/classements/[type]` | `/crypto-gainers-losers` | ✅ |
+| `/comparateur` | `/compare-cryptocurrencies` | ✅ |
+| `/convertisseur` | `/converter` | ✅ |
+| `/crypto` | `/all-cryptocurrencies` | ✅ |
+| `/crypto/[id]` | `/coins/bitcoin` | ✅ |
+| `/crypto/[id]/halving` | `/coins/bitcoin/bitcoin-halving` | ✅ |
+| `/crypto/[id]/historique` | `/coins/bitcoin/historical_data` | ✅ |
+| `/derives` | `/exchanges/derivatives` | ✅ |
+| `/devises` | `/currencies/eur` | ✅ |
+| `/devises/[id]` | `/currencies/eur` | ✅ |
+| `/embed/graphique` | `/widget` | ✅ |
+| `/embed/ticker` | `/widget` | ✅ |
+| `/etf` | `/etfs` | ✅ |
+| `/etf/[id]` | `/etfs/spdr-s-p-500-etf-trust` | ✅ |
+| `/glossaire` | `/glossary` | ✅ |
+| `/graphiques` | `/charts` | ✅ |
+| `/graphiques/actifs-reels` | `/charts/rwa` | ✅ |
+| `/graphiques/dominance` | `/charts/bitcoin-dominance` | ✅ |
+| `/graphiques/nft` | `/nft` | ✅ |
+| `/graphiques/tresoreries` | `/treasuries` | ✅ |
+| `/heatmap` | `/charts/crypto-heatmap` | ✅ |
+| `/matieres-premieres` | `/commodities` | ✅ |
+| `/matieres-premieres/[id]` | `/commodities/gold` | ✅ |
+| `/nouveautes` | `/highlights/upcoming-cryptocurrencies` | ✅ |
+| `/nouvelles-cotations` | `/new-cryptocurrencies` | ✅ |
+| `/perpetuels` | `/exchanges/derivatives/decentralized` | ✅ |
+| `/places` | `/exchanges` | ✅ |
+| `/places/[id]` | `/platesformes/binance` | ⬜ |
+| `/resoudre/[terme]` | `/glossary/blockchain` | ✅ |
+| `/tableau-de-bord` | `/portfolio` | ✅ |
 
 ## 2. Routes ZENKUU sans équivalent
 
-Chacune est à trancher : transformer en page CoinGecko voisine, ou supprimer avec redirection.
+Chacune avec sa raison. Aucune n'est un oubli : ce sont des fonctions que la
+référence n'a pas, ou des pages de compte qu'elle traite en modale.
 
-| Route ZENKUU | Pourquoi aucun équivalent |
+| Route ZENKUU | Pourquoi |
 |---|---|
-| `/actions/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU |
+| `/actions/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU, sans équivalent |
 | `/bien-demarrer` | Contenu éditorial propre à ZENKUU |
-| `/connexion` | Compte : CoinGecko ouvre une modale, pas une route dédiée |
-| `/crypto/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU |
-| `/devises/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU |
-| `/etf/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU |
-| `/graphiques/saison-altcoins` | Fonction ZENKUU sans équivalent CoinGecko relevé |
-| `/indices` | Fonction ZENKUU sans équivalent CoinGecko relevé |
+| `/connexion` | Compte : la référence ouvre une modale, pas une route dédiée |
+| `/crypto/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU, sans équivalent |
+| `/devises/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU, sans équivalent |
+| `/etf/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU, sans équivalent |
+| `/graphiques/saison-altcoins` | Fonction ZENKUU sans équivalent relevé |
+| `/indices` | Fonction ZENKUU sans équivalent relevé |
 | `/indices/[id]` | Idem |
-| `/indices/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU |
+| `/indices/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU, sans équivalent |
 | `/inscription` | Compte : idem, modale sans route propre |
-| `/macro` | Fonction ZENKUU sans équivalent CoinGecko relevé |
-| `/matieres-premieres/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU |
-| `/parametres` | Compte : réglages, pas de page publique équivalente relevée |
-| `/perpetuels` | Proche de /platesformes/derivatives, à fusionner ou distinguer |
-| `/pool/[network]/[address]` | Pool DEX : CoinGecko le traite sur GeckoTerminal, hors périmètre |
+| `/macro` | Fonction ZENKUU sans équivalent relevé |
+| `/matieres-premieres/[id]/metriques/[metrique]` | Page de métrique : motif propre à ZENKUU, sans équivalent |
+| `/parametres` | Compte : réglages, aucune page publique équivalente |
+| `/pool/[network]/[address]` | Pool DEX : la référence le traite sur GeckoTerminal, hors périmètre |
 | `/pourquoi-zenkuu` | Contenu éditorial propre à ZENKUU (identité du site) |
-| `/rachats` | Fonction ZENKUU sans équivalent CoinGecko relevé |
-| `/screener` | Fonction ZENKUU sans équivalent CoinGecko relevé |
-| `/sentiment` | Fonction ZENKUU sans équivalent CoinGecko relevé |
+| `/rachats` | Fonction ZENKUU sans équivalent relevé |
+| `/screener` | Fonction ZENKUU sans équivalent relevé sur les 68 pages |
+| `/sentiment` | Fonction ZENKUU sans équivalent relevé |
 
-## 3. Pages CoinGecko sans route ZENKUU
+## 3. Pages de la référence sans route ZENKUU
 
-Ce sont les pages à créer pour que l'arborescence soit complète.
+Les pages à créer pour que l'arborescence soit complète. **La moitié est bloquée**
+par une donnée hors de portée — voir `MIGRATION_RAPPORT.md`, section « Bloqué ».
 
-| Page CoinGecko | Rôle | Audité ? |
-|---|---|---|
-| `/top-market-cap-rehypothecated` | Accueil, classement rehypothéqué | ⬜ |
-| `/coins/bitcoin/historical_data` | Page coin, onglet Données historiques | ⬜ |
-| `/coins/bitcoin/prediction` | Page coin, onglet Prédiction | ⬜ |
-| `/platesformes/decentralized` | Exchanges, DEX | ⬜ |
-| `/platesformes/derivatives/decentralized` | Exchanges, DEX perpétuels | ⬜ |
-| `/crypto-gainers-losers` | Gagnants et perdants | ⬜ |
-| `/highlights/all-time-high-crypto` | All-time high | ⬜ |
-| `/highlights/most-viewed-crypto` | Highlights, les plus consultées | ⬜ |
-| `/highlights/high-volume` | Highlights, volume élevé | ⬜ |
-| `/highlights/incoming-token-unlocks` | Highlights, déblocages de jetons à venir | ⬜ |
-| `/chains/ethereum` | Page de chaîne | ⬜ |
-| `/nft/chains/ethereum` | NFT par chaîne | ⬜ |
-| `/nft/bored-ape-yacht-club` | Page de collection NFT (floor price) | ⬜ |
-| `/rwa` | RWA | ⬜ |
-| `/treasuries/companies` | Trésoreries, entreprises | ⬜ |
-| `/treasuries/governments` | Trésoreries, États | ⬜ |
-| `/portfolio` | Portefeuille | ✅ |
-| `/research` | Perspectives Recherche | ⬜ |
-| `/glossary` | Glossaire | ⬜ |
-| `/api` | Page API | ✅ |
-| `/api/dex` | API DEX | ⬜ |
-| `/api/nft` | API NFT | ⬜ |
-| `/api/pricing` | Tarifs API | ⬜ |
-| `/api/case-studies` | Études de cas API | ⬜ |
-| `/coins/bitcoin/bitcoin-halving` | Page coin, onglet Halving | ⬜ |
-| `/méthodologie` | Méthodologie | ⬜ |
-| `/candy` | Candy (récompenses) | ⬜ |
-| `/mobile` | Application mobile | ⬜ |
-| `/premium/pricing` | Tarifs Premium | ⬜ |
+| Page | Rôle |
+|---|---|
+| `/top-market-cap-rehypothecated` | Accueil, classement rehypothéqué |
+| `/coins/bitcoin/prediction` | Page coin, onglet Prédiction |
+| `/exchanges/decentralized` | Exchanges, DEX |
+| `/exchanges/binance` | Page d'exchange |
+| `/highlights/trending-crypto` | Tendances |
+| `/highlights/most-viewed-crypto` | Highlights, les plus consultées |
+| `/highlights/high-volume` | Highlights, volume élevé |
+| `/highlights/incoming-token-unlocks` | Highlights, déblocages de jetons à venir |
+| `/chains/ethereum` | Page de chaîne |
+| `/nft/chains/ethereum` | NFT par chaîne |
+| `/nft/bored-ape-yacht-club` | Page de collection NFT (floor price) |
+| `/rwa` | RWA |
+| `/treasuries/companies` | Trésoreries, entreprises |
+| `/treasuries/governments` | Trésoreries, États |
+| `/research` | Perspectives Recherche |
+| `/api` | Page API |
+| `/api/dex` | API DEX |
+| `/api/nft` | API NFT |
+| `/api/pricing` | Tarifs API |
+| `/api/case-studies` | Études de cas API |
+| `/methodology` | Méthodologie |
+| `/candy` | Candy (récompenses) |
+| `/mobile` | Application mobile |
+| `/premium/pricing` | Tarifs Premium |
