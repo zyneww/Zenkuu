@@ -534,14 +534,20 @@ export function MarketTable({
     /*
       ── LA COLONNE « ACTION » N'EST PAS UN BOUTON D'ACHAT ────────────────────
 
-      La référence y pose « Trade », qui ouvre son carnet d'ordres. ZENKUU ne
-      passe aucun ordre et n'en passera pas : reprendre le mot serait promettre une
-      fonction qui n'existe pas, et c'est exactement le genre d'emprunt qu'une
-      reprise de mise en page ne doit pas faire.
+      La référence y pose « **Buy** » — pas « Trade », comme cette note le disait
+      avant le relevé du 2026-08-31 — et le place en TROISIÈME colonne, juste après
+      le nom de l'actif. C'est un lien d'affiliation vers une plateforme d'échange.
+
+      ZENKUU ne passe aucun ordre et n'en passera pas. Reprendre le mot serait
+      promettre une fonction qui n'existe pas, et sa POSITION — troisième colonne,
+      avant même le cours — dirait que l'achat est la première chose à faire d'une
+      ligne de cotation. Le §7 du projet interdit tout signal d'achat ou de vente ;
+      c'est le seul endroit du tableau où la fidélité de mise en page entre
+      frontalement en conflit avec lui.
 
       L'action que cette ligne permet réellement est d'ouvrir la fiche de l'actif.
-      Le bouton le dit — « Fiche » — et c'est un LIEN, pas un bouton : il mène
-      ailleurs.
+      Le bouton le dit — « Fiche » — c'est un LIEN, et il ferme la ligne au lieu de
+      l'ouvrir.
     */
     action: quotes,
   }

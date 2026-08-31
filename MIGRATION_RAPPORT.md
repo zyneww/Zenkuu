@@ -144,6 +144,20 @@ actions mais des actions TOKENISÉES.** `/actions`, `/etf` et `/matieres-premier
 ZENKUU listent de vraies valeurs via Yahoo. Même mot, deux sujets — ce n'est pas un
 manque, c'est un objet distinct.
 
+### Le bouton « Buy » de leur tableau
+
+Leur colonne 3 — juste après le nom, AVANT le cours — porte un bouton « Buy », lien
+d'affiliation vers une plateforme d'échange.
+
+⚠️ **C'est le seul endroit du site où la fidélité de mise en page entre frontalement
+en conflit avec le §7**, qui interdit tout signal d'achat ou de vente. Ce n'est pas
+seulement le mot : sa POSITION dirait que l'achat est la première chose à faire d'une
+ligne de cotation.
+
+ZENKUU met « Fiche » en DERNIÈRE colonne — un lien vers la page de l'actif, qui ferme
+la ligne au lieu de l'ouvrir. La décision était déjà prise et documentée dans le code ;
+le relevé n'a fait que préciser ce qu'elle écarte.
+
 ### Hors périmètre par nature
 
 Les pages d'API (4), Premium, Mobile, Candy et Research vendent un abonnement, une
