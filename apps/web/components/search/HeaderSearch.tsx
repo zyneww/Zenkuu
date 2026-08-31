@@ -157,7 +157,7 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
           <PopoverAnchor asChild>
             <div
               className={cn(
-                'flex h-9 items-center gap-2 rounded-control border bg-surface-muted pl-2.5 pr-1.5 transition-colors duration-150',
+                'flex h-9 items-center gap-2 rounded-control border bg-canvas pl-2.5 pr-1.5 transition-colors duration-150',
                 focused ? 'border-brand' : 'border-border-subtle hover:border-brand/60',
               )}
             >
@@ -206,24 +206,26 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
                 />
               ) : (
                 /*
-                  ⚠️ `bg-canvas` ET NON `bg-transparent` — LE RACCOURCI ÉTAIT
-                  ILLISIBLE DANS LES DEUX THÈMES.
+                  ⚠️ `bg-surface-muted` DEPUIS QUE LA COQUE EST PASSÉE AU CANEVAS, ET
+                  C'EST L'INVERSE EXACT DE CE QUI ÉTAIT ÉCRIT ICI.
 
-                  La coque du champ est en `bg-surface-muted`. Une touche
-                  transparente prenait donc exactement ce fond, et son filet
-                  `border-border-subtle` — réglé pour se voir SUR une carte —
-                  disparaissait dessus : il ne restait qu'un texte gris à 11 px sans
-                  contour, sur un aplat de la même famille. Relevé sur la capture, en
-                  clair comme en sombre.
+                  La note disait : « `bg-canvas` et non `bg-transparent` — le raccourci
+                  était illisible », parce que la coque du champ était en
+                  `bg-surface-muted` et qu'une touche transparente s'y fondait.
 
-                  `bg-canvas` est le bon choix pour les DEUX thèmes à la fois, et
-                  c'est ce qui rend la correction symétrique : le canvas est
-                  l'extrémité de la rampe, donc plus CLAIR que `surface-muted` en
-                  thème clair (blanc sur #f8fafc) et plus SOMBRE en thème sombre
-                  (#0d1217 sur #35353a). La touche s'enfonce dans le champ dans un
-                  cas, s'en détache dans l'autre — dans les deux, elle se voit.
+                  Le relevé du 2026-08-31 a retourné la situation : la référence pose
+                  son groupe de champ sur le CANEVAS (`rgb(13, 18, 23)` en sombre,
+                  mesuré sur `.gecko-input-group`), sans teinte de surface — le même
+                  motif que son pied de page, qui délimite par un filet plutôt que par
+                  un aplat. La coque a suivi.
+
+                  Une touche restée en `bg-canvas` se serait donc confondue avec le
+                  champ : exactement le défaut que l'ancienne note décrivait, dans
+                  l'autre sens. Les deux valeurs sont échangées, et le contraste tient
+                  toujours dans les deux thèmes — `surface-muted` est le premier cran
+                  au-dessus du canevas de chaque côté de la rampe.
                 */
-                <Kbd className="hidden shrink-0 bg-canvas text-micro lg:inline-flex" aria-hidden="true">
+                <Kbd className="hidden shrink-0 bg-surface-muted text-micro lg:inline-flex" aria-hidden="true">
                   {t('shortcut')}
                 </Kbd>
               )}
