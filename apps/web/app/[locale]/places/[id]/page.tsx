@@ -169,7 +169,7 @@ export default async function ExchangePage({ params }: RouteProps) {
           <Button asChild size="sm" variant="outline">
             <a href={place.url} target="_blank" rel="nofollow noopener noreferrer">
               Site de la place
-              <span className="sr-only"> (nouvelle fenêtre)</span>
+              <span className="sr-only"> {t('(nouvelle fenêtre)')}</span>
             </a>
           </Button>
         ) : null}
@@ -272,7 +272,7 @@ export default async function ExchangePage({ params }: RouteProps) {
                   <Button asChild size="xs" variant="outline" className="capitalize">
                     <a href={url} target="_blank" rel="nofollow noopener noreferrer">
                       {network}
-                      <span className="sr-only"> (nouvelle fenêtre)</span>
+                      <span className="sr-only"> {t('(nouvelle fenêtre)')}</span>
                     </a>
                   </Button>
                 </li>

@@ -72,7 +72,7 @@ export default async function Page() {
         </>
       ) : (
         <EmptyState
-          title="Dérivés momentanément indisponibles"
+          title={t('Dérivés momentanément indisponibles')}
           description={derivatives.ok ? null : derivatives.reason}
           source={derivatives.source?.label ?? null}
           tone={derivatives.ok ? 'neutral' : 'warning'}

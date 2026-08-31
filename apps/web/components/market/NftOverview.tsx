@@ -115,7 +115,7 @@ export async function NftOverview({ collections }: { collections: NftCollection[
           <strong className="text-ink">prix plancher</strong> sur 24 heures — la seule
           variation que la source publie ici, et qui n’est pas celle de la capitalisation :
           le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent{' '}
-          <strong className="text-ink">notre sélection</strong>, pas le marché NFT : voir la
+          <strong className="text-ink">{t('notre sélection')}</strong>, pas le marché NFT : voir la
           note en bas de page. Montants en dollars.
         </p>
       </div>

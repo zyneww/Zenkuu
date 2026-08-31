@@ -281,7 +281,7 @@ async function GlobalView() {
             que fait déjà la série de capitalisation globale, avec sa mention. */}
         {stablecoins.ok && stablecoins.data.length > 1 ? (
           <GlobalChartCard
-            title="Capitalisation des stablecoins"
+            title={t('Capitalisation des stablecoins')}
             hint="La somme des stablecoins en circulation, toutes chaînes confondues."
             info="Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs."
             embedId="stablecoins"
@@ -312,7 +312,7 @@ async function GlobalView() {
 
         {eth.ok ? (
           <GlobalChartCard
-            title="Capitalisation d’Ethereum"
+            title={t('Capitalisation d’Ethereum')}
             hint="Même relevé, même profondeur."
             format="money"
             currency={eth.data.currency}

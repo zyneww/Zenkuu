@@ -239,7 +239,7 @@ export function AssetTreasuries({
         >
           Registre complet chez CoinGecko
           <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-          <span className="sr-only">(nouvelle fenêtre)</span>
+          <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
         </a>
       </p>
     </section>

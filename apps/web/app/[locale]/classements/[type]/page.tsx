@@ -171,7 +171,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
 
   return (
     <div className="space-y-6">
-      <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
+      <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <Link href="/classements" className="transition-colors hover:text-ink">
           Classements crypto
         </Link>
@@ -191,7 +191,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
           partageable sans que le destinataire ait à re-cliquer. La rotation et les
           volumes ne s'en servent pas — ils ne trient pas sur une variation. */}
       {type === 'hausses' || type === 'baisses' ? (
-        <nav aria-label="Période" className="flex flex-wrap items-center gap-1">
+        <nav aria-label={t('Période')} className="flex flex-wrap items-center gap-1">
           {MOVERS_PERIODS.map((key) => (
             <Link
               key={key}
@@ -236,7 +236,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
         </>
       ) : (
         <EmptyState
-          title="Rien à classer"
+          title={t('Rien à classer')}
           description={
             result.ok
               ? `Aucun actif ne remplit ce critère ${label}.`

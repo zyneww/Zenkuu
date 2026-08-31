@@ -134,7 +134,7 @@ export default async function NewListingsPage() {
         </>
       ) : (
         <EmptyState
-          title="Cotations récentes indisponibles"
+          title={t('Cotations récentes indisponibles')}
           description={listings.ok ? 'La source n’a renvoyé aucune cotation exploitable.' : listings.reason}
           source={listings.source?.label ?? null}
           tone="warning"

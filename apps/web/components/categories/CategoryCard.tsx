@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
 
 import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
@@ -15,7 +16,9 @@ import type { MarketCategory } from '@zenkuu/data'
  * rendre cliquables créerait deux cibles de navigation concurrentes dans une même
  * carte, ce qui dégrade l'usage au clavier et au lecteur d'écran.
  */
-export function CategoryCard({ category }: { category: MarketCategory }) {
+export async function CategoryCard({ category }: { category: MarketCategory }) {
+  const t = await getPhrase()
+
   const logos = (category.topAssets ?? []).slice(0, 4)
 
   return (
@@ -73,7 +76,7 @@ export function CategoryCard({ category }: { category: MarketCategory }) {
               />
             ))}
           </div>
-          <span className="text-[0.6875rem] text-ink-muted">actifs représentatifs</span>
+          <span className="text-[0.6875rem] text-ink-muted">{t('actifs représentatifs')}</span>
         </div>
       ) : null}
     </article>

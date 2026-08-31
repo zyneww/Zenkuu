@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Check, Link2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -20,6 +21,7 @@ import { SITE_URL } from '@/lib/site'
  * `intent` fait le même travail sans rien exposer.
  */
 export function ShareButtons({ title, path }: { title: string; path: string }) {
+  const t = usePhrase()
   const [copied, setCopied] = useState(false)
   const url = `${SITE_URL}${path}`
 
@@ -67,7 +69,7 @@ export function ShareButtons({ title, path }: { title: string; path: string }) {
           target="_blank"
           rel="noopener noreferrer nofollow"
         >
-          Partager sur X<span className="sr-only"> (nouvelle fenêtre)</span>
+          Partager sur X<span className="sr-only"> {t('(nouvelle fenêtre)')}</span>
         </a>
       </Button>
 

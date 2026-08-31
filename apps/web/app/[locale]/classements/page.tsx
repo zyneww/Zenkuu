@@ -182,7 +182,7 @@ export default async function RankingsPage({
             ) : (
               <p className="text-sm leading-relaxed text-ink-muted">
                 Cette classe compte un univers restreint et entièrement suivi : le classement
-                la couvre donc <strong className="text-ink">en totalité</strong>, sans
+                la couvre donc <strong className="text-ink">{t('en totalité')}</strong>, sans
                 troncature. Un palmarès y décrit le marché tel que ZENKUU le suit, ce qui
                 n’est pas la même chose que le marché mondial de cette classe.
               </p>
@@ -232,7 +232,7 @@ export default async function RankingsPage({
         </>
       ) : (
         <EmptyState
-          title="Classements momentanément indisponibles"
+          title={t('Classements momentanément indisponibles')}
           description={result.ok ? null : result.reason}
           source={result.source?.label ?? null}
           tone={result.ok ? 'neutral' : 'warning'}

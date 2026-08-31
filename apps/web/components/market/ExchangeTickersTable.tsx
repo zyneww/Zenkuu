@@ -306,7 +306,7 @@ export function ExchangeTickersTable({
                             className="text-ink-muted transition-colors hover:text-brand"
                           >
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                            <span className="sr-only">(nouvelle fenêtre)</span>
+                            <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
                           </a>
                         ) : null}
                       </span>

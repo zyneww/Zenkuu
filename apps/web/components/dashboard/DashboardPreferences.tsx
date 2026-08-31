@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { useState } from 'react'
 
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -44,6 +45,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
 }
 
 export function DashboardPreferences() {
+  const t = usePhrase()
   const [tab, setTab] = useState<PreferenceTab | null>(null)
   const { theme, language, setTheme } = useSettings()
   const { currency } = useCurrency()
@@ -79,7 +81,7 @@ export function DashboardPreferences() {
             type="single"
             size="sm"
             variant="outline"
-            aria-label="Thème"
+            aria-label={t('Thème')}
             value={String(theme)}
             onValueChange={(next) => {
               /* Radix n'a pas de `disallowEmptySelection` : recliquer l'option

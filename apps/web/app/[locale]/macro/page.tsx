@@ -198,7 +198,7 @@ export default async function MacroPage({
         />
       ) : result.data.length === 0 ? (
         <EmptyState
-          title="Aucun pays publié pour cet indicateur"
+          title={t('Aucun pays publié pour cet indicateur')}
           description="La source ne renseigne cette série pour aucun pays de son catalogue."
           compact
         />

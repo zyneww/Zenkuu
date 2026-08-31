@@ -205,7 +205,7 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
                 <th scope="col" className="pb-1.5 text-left font-medium">Trimestre</th>
                 <th scope="col" className="pb-1.5 text-right font-medium">Attendu</th>
                 <th scope="col" className="pb-1.5 text-right font-medium">{t('Publié')}</th>
-                <th scope="col" className="pb-1.5 text-right font-medium">Écart</th>
+                <th scope="col" className="pb-1.5 text-right font-medium">{t('Écart')}</th>
               </tr>
             </thead>
             <tbody>

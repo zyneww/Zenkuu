@@ -102,6 +102,7 @@ export async function AuthPageView({
     */
     <div className="bleed -my-6 grid lg:min-h-[38rem] lg:grid-cols-2">
       <AuthAside
+        shieldLabel={t('Écu ZENKUU')}
         slogan={t('D’abord comprendre. Ensuite décider.')}
         tagline={t(
           'Les cotations, les classements et les listes de suivi de ZENKUU s’utilisent sans compte. Celui-ci ne sert qu’à les emporter d’un appareil à l’autre.',

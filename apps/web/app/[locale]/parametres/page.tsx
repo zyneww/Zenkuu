@@ -74,7 +74,7 @@ export default async function SettingsPage({
       <div className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
         {/* Colonne de rubriques — de vrais liens, donc navigables au clavier, au
             clic milieu, et indexables par le navigateur dans son historique. */}
-        <nav aria-label="Rubriques des paramètres">
+        <nav aria-label={t('Rubriques des paramètres')}>
           <ul className="flex gap-1 overflow-x-auto border-b border-border-subtle pb-2 lg:flex-col lg:gap-0 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-2">
             {SECTIONS.map((section) => (
               <li key={section.id}>

@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { ArrowUpDown, BookmarkPlus, ChevronDown, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -86,6 +87,7 @@ export function ConverterView({
   rates: ExchangeRates | null
   currencies: readonly SupportedCurrency[]
 }) {
+  const t = usePhrase()
   const [amount, setAmount] = useState('1')
   const [assetId, setAssetId] = useState(assets[0]?.id ?? '')
   const [currency, setCurrency] = useState<string>('EUR')
@@ -227,7 +229,7 @@ export function ConverterView({
                    repart de l'unité, qui est la question la plus courante. */
                 setAmount('1')
               }}
-              aria-label="Inverser le sens de conversion"
+              aria-label={t('Inverser le sens de conversion')}
               className="flex size-9 items-center justify-center rounded-pill border border-border-subtle bg-surface text-ink-muted transition-colors hover:border-brand hover:text-brand"
             >
               <ArrowUpDown className="size-4" aria-hidden="true" />

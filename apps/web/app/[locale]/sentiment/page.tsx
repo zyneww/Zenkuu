@@ -130,7 +130,7 @@ export default async function SentimentPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Contexte de marché" />
+          <CardHeader title={t('Contexte de marché')} />
           <MarketContext stats={stats} />
         </Card>
       </div>
@@ -139,7 +139,7 @@ export default async function SentimentPage() {
         <SentimentHistoryView points={points} prices={prices} />
       ) : history.ok ? null : (
         <EmptyState
-          title="Historique momentanément indisponible"
+          title={t('Historique momentanément indisponible')}
           description={history.reason}
           compact
         />

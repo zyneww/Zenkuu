@@ -1,3 +1,4 @@
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { ArrowDown, ArrowUp, CornerDownLeft } from 'lucide-react'
 
 import { Kbd } from '@/components/ui/kbd'
@@ -32,6 +33,7 @@ export function SearchShortcuts({
 }: {
   strings: { navigate: string; cancel: string; open: string }
 }) {
+  const t = usePhrase()
   return (
     <div
       /* `aria-hidden` : un lecteur d'écran annonce déjà les rôles de liste et d'option
@@ -52,7 +54,7 @@ export function SearchShortcuts({
       </span>
 
       <span className="flex items-center gap-1">
-        <Kbd className="text-micro">Échap</Kbd>
+        <Kbd className="text-micro">{t('Échap')}</Kbd>
         {strings.cancel}
       </span>
 

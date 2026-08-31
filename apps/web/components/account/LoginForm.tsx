@@ -257,13 +257,13 @@ export function LoginForm({
         */}
         {compact ? (
           <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-            Un compte n’est <strong className="font-medium text-ink">pas nécessaire</strong> pour
+            Un compte n’est <strong className="font-medium text-ink">{t('pas nécessaire')}</strong> pour
             suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre
             appareil.
           </p>
         ) : (
           <p className="rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5 text-[0.6875rem] leading-relaxed text-ink-muted">
-            Un compte n’est <strong className="font-medium text-ink">pas nécessaire</strong> pour
+            Un compte n’est <strong className="font-medium text-ink">{t('pas nécessaire')}</strong> pour
             suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées
             dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à
             ce qu’un nettoyage du navigateur ne l’efface pas.

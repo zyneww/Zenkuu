@@ -181,7 +181,7 @@ export async function TreasuryOverview({
             Une tuile <strong className="text-ink">grise</strong> signale une société qui n’a
             pas communiqué son coût d’entrée — l’absence est affichée comme telle, jamais
             remplacée par zéro. Ce registre recense enfin des positions{' '}
-            <strong className="text-ink">déclarées</strong>, à la date de leur annonce : une
+            <strong className="text-ink">{t('déclarées')}</strong>, à la date de leur annonce : une
             société qui aurait vendu sans le publier y figure encore. Montants en dollars.
           </p>
         </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { useEffect } from 'react'
 
 import {
@@ -44,6 +45,7 @@ interface SearchOverlayProps {
  * virtuel monter sans recouvrir les résultats.
  */
 export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
+  const t = usePhrase()
   const fr = useContent()
   const search = useAssetSearch({ active: open })
   const { reset } = search
@@ -85,7 +87,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
       <div className="flex items-center justify-between gap-4 border-t border-border-subtle px-4 py-2 text-[0.6875rem] text-ink-muted">
         <span>{fr.search.hint}</span>
-        <Kbd>Échap</Kbd>
+        <Kbd>{t('Échap')}</Kbd>
       </div>
     </CommandDialog>
   )

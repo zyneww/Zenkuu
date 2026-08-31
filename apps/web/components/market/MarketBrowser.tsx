@@ -673,7 +673,7 @@ export function MarketBrowser({
 
       {sorted.length === 0 ? (
         <EmptyState
-          title="Aucun actif ne correspond sur cette page"
+          title={t('Aucun actif ne correspond sur cette page')}
           description="Le filtre ne s’applique qu’aux lignes chargées. Utilisez la recherche de l’en-tête pour chercher dans l’ensemble du catalogue."
           compact
         />

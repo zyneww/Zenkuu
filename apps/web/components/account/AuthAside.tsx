@@ -65,7 +65,17 @@ function stars() {
   })
 }
 
-export function AuthAside({ slogan, tagline }: { slogan: string; tagline: string }) {
+export function AuthAside({
+  slogan,
+  tagline,
+  shieldLabel,
+}: {
+  slogan: string
+  tagline: string
+  /* L'étiquette de l'écu suit le chemin de `slogan` et `tagline` : ce fichier n'a
+     aucun import et ne traduit rien lui-même — ses textes lui arrivent traduits. */
+  shieldLabel: string
+}) {
   const sky = stars()
 
   return (
@@ -109,7 +119,7 @@ export function AuthAside({ slogan, tagline }: { slogan: string; tagline: string
       </div>
 
       <div className="relative flex flex-1 items-center justify-center">
-        <ZenkuuShield />
+        <ZenkuuShield label={shieldLabel} />
       </div>
 
       {/* Un rappel du cadre, en bas du panneau : c'est la première page que voit
@@ -130,13 +140,13 @@ export function AuthAside({ slogan, tagline }: { slogan: string; tagline: string
  * obtient par une texture métallique. Le monogramme est posé en creux, dans la teinte
  * du fond du panneau : c'est ce qui le fait lire comme gravé plutôt que collé.
  */
-function ZenkuuShield() {
+function ZenkuuShield({ label }: { label: string }) {
   return (
     <svg
       viewBox="0 0 200 240"
       className="h-auto w-56 max-w-full drop-shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
       role="img"
-      aria-label="Écu ZENKUU"
+      aria-label={label}
     >
       <defs>
         <linearGradient id="zenkuu-shield-face" x1="0" y1="0" x2="1" y2="1">

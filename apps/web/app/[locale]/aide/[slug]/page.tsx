@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
@@ -34,6 +35,7 @@ export async function generateMetadata({
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const t = await getPhrase()
   const { slug } = await params
   const article = findHelpArticle(slug)
 
@@ -53,7 +55,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         ]}
       />
 
-      <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
+      <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
         <Link href="/aide" className="hover:text-brand">
           Centre d’aide
         </Link>

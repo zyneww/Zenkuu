@@ -121,7 +121,10 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="display-sm text-ink">Secteurs</h2>
+        {/* Passé par `t()` : ce titre s'affichait en français dans les douze autres
+            langues. Il avait échappé au relevé des littéraux nus parce que « Secteurs »
+            ne porte aucun accent — l'heuristique cherchait une marque française. */}
+        <h2 className="display-sm text-ink">{t('Secteurs')}</h2>
         <Link
           href="/categories"
           className="shrink-0 text-xs font-medium text-ink hover:underline"

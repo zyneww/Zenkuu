@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 
@@ -130,6 +131,7 @@ export async function generateMetadata({
 }
 
 export default async function Page({ params }: { params: Promise<{ terme: string }> }) {
+  const t = await getPhrase()
   const { terme } = await params
   const query = decodeURIComponent(terme).trim()
 
@@ -169,7 +171,7 @@ export default async function Page({ params }: { params: Promise<{ terme: string
     <div className="space-y-6 py-10">
       {found.cryptoIndisponible ? (
         <EmptyState
-          title="Recherche momentanément indisponible"
+          title={t('Recherche momentanément indisponible')}
           description={`Nous n’avons pas pu interroger la source pour « ${query} ». Ce n’est pas la preuve que cet actif n’a pas de fiche — seulement que la recherche n’a pas répondu. Réessayez dans une minute.`}
           tone="warning"
         />

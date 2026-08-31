@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation'
+import { getPhrase } from '@/lib/content'
 
 import {
   CHANGE_PERIODS,
@@ -68,7 +69,7 @@ export function CryptoViewControls({
  * L'apparence est en revanche alignée sur le groupe local — fond plein, pas de filet —
  * pour que le même réglage se reconnaisse d'une page à l'autre.
  */
-export function CryptoPeriodLinks({
+export async function CryptoPeriodLinks({
   basePath,
   view,
   period,
@@ -77,11 +78,13 @@ export function CryptoPeriodLinks({
   view: CryptoView
   period: ChangePeriod
 }) {
+  const t = await getPhrase()
+
   return (
     <div
       className="flex items-center gap-0.5 rounded-control bg-surface-muted p-0.5"
       role="group"
-      aria-label="Période de variation"
+      aria-label={t('Période de variation')}
     >
       {CHANGE_PERIODS.map((entry) => {
         const active = entry.key === period

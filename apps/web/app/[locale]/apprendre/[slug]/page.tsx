@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
@@ -73,6 +74,7 @@ export async function generateMetadata({
 }
 
 export default async function LessonPage({ params }: { params: Promise<{ slug: string }> }) {
+  const t = await getPhrase()
   const { slug } = await params
   const lesson = findLesson(slug)
 
@@ -103,7 +105,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
         ]}
       />
 
-      <nav aria-label="Fil d’Ariane" className="mb-6 text-xs text-ink-muted">
+      <nav aria-label={t('Fil d’Ariane')} className="mb-6 text-xs text-ink-muted">
         <Link href="/apprendre" className="hover:text-brand">
           Apprendre
         </Link>
@@ -250,7 +252,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
 
       {related.length > 0 ? (
         <section className="mt-14 space-y-4 border-t border-border-subtle pt-10">
-          <h2 className="display-sm text-ink">À lire ensuite</h2>
+          <h2 className="display-sm text-ink">{t('À lire ensuite')}</h2>
           <ul className="grid gap-5 sm:grid-cols-3">
             {related.map((entry) => (
               <li key={entry.slug}>

@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -51,6 +52,7 @@ export function ExpandingSearch({
   /** Libellé accessible. Le champ n'en a pas de visible une fois replié. */
   label: string
 }) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -127,7 +129,7 @@ export function ExpandingSearch({
             onChange('')
             inputRef.current?.focus()
           }}
-          aria-label="Effacer la recherche"
+          aria-label={t('Effacer la recherche')}
           className="absolute right-1.5 flex h-5 w-5 items-center justify-center rounded-sm text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />

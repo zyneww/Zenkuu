@@ -80,7 +80,7 @@ export default async function PerpetuelsPage() {
         </>
       ) : (
         <EmptyState
-          title="Classement des places de dérivés indisponible"
+          title={t('Classement des places de dérivés indisponible')}
           description={exchanges.ok ? 'La source ne publie aucune place.' : exchanges.reason}
           source={exchanges.source?.label ?? null}
           tone={exchanges.ok ? 'neutral' : 'warning'}

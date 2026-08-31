@@ -114,11 +114,11 @@ export default async function ConverterPage() {
           <span aria-hidden="true" className="text-border-subtle">
             |
           </span>
-          <span>Cours du marché</span>
+          <span>{t('Cours du marché')}</span>
           <span aria-hidden="true" className="text-border-subtle">
             |
           </span>
-          <span>Sans compte</span>
+          <span>{t('Sans compte')}</span>
         </div>
         <p className="text-sm leading-relaxed text-ink-muted">
           Convertir un montant entre {assets.length} cryptomonnaies et {SUPPORTED_CURRENCIES.length}{' '}
@@ -162,7 +162,7 @@ export default async function ConverterPage() {
             qui clique a déjà sa réponse, ce qu'il cherche ensuite est le contexte.
           */}
           <section className="max-w-xl space-y-2 border-t border-border-subtle pt-6">
-            <h2 className="text-sm font-semibold text-ink">Cours de référence en euros</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('Cours de référence en euros')}</h2>
 
             <div className="overflow-hidden rounded-card border border-border-subtle">
               <ul className="divide-y divide-border-subtle">
@@ -209,12 +209,12 @@ export default async function ConverterPage() {
       <div className="grid gap-3 sm:grid-cols-2">
         <RelatedCard
           href="/crypto"
-          title="Voir les cours"
+          title={t('Voir les cours')}
           description="Les cryptomonnaies classées par capitalisation, avec leurs variations."
         />
         <RelatedCard
           href="/devises"
-          title="Taux de référence BCE"
+          title={t('Taux de référence BCE')}
           description="Les paires de change majeures, telles que la Banque centrale les publie."
         />
       </div>

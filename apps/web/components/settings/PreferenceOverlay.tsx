@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Check } from 'lucide-react'
 import { Search } from 'lucide-react'
 
@@ -109,6 +110,7 @@ export function PreferenceOverlay({
   onTabChange: (tab: PreferenceTab) => void
   onClose: () => void
 }) {
+  const t = usePhrase()
   const [query, setQuery] = useState('')
   /* Voir `useLanguageChoice` : le magasin ne navigue pas, la route fait foi. */
   const { language, setLanguage } = useLanguageChoice()
@@ -277,7 +279,7 @@ export function PreferenceOverlay({
                 <EmptyMedia variant="icon">
                   <Search />
                 </EmptyMedia>
-                <EmptyTitle className="text-sm">Aucun résultat</EmptyTitle>
+                <EmptyTitle className="text-sm">{t('Aucun résultat')}</EmptyTitle>
                 <EmptyDescription>
                   {isCurrency
                     ? 'Aucune devise ne correspond à cette recherche.'

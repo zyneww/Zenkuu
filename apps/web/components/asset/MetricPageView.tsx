@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -139,9 +140,15 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
 
   const siblings = availableMetrics(data).filter((entry) => entry.slug !== metric.slug)
 
+  /* ⚠️ PAS `t` : CE FICHIER EN A DÉJÀ UN, ET D'UN AUTRE SYSTÈME.
+     `t` y vaut `getTranslations('metric')` et `tp` `getTranslations('metricPage')` —
+     next-intl, dont les clés vivent dans `messages/*.json`. La table de phrases est
+     une seconde voie, dont le nom doit donc différer. */
+  const phrase = await getPhrase()
+
   return (
     <div className="space-y-6">
-      <nav aria-label="Fil d’Ariane" className="text-xs text-ink-muted">
+      <nav aria-label={phrase('Fil d’Ariane')} className="text-xs text-ink-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
             <Link href="/" className="hover:text-brand">

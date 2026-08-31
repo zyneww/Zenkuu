@@ -98,7 +98,7 @@ export async function BasketSection({
 
       {share.length > 1 ? (
         <GlobalChartCard
-          title="Part de Bitcoin dans le panier"
+          title={t('Part de Bitcoin dans le panier')}
           hint="À ne pas confondre avec la dominance, qui se rapporte au marché entier."
           format="percent"
           colorIndex={3}

@@ -63,6 +63,8 @@ import { mentioning } from '@/lib/mentions'
 import { assetHref, marketHref } from '@/lib/asset-routes'
 import type { MetricGroup } from '@/lib/asset-metrics'
 import { getWatchlistState } from '@/lib/watchlist-actions'
+import { getLocale } from 'next-intl/server'
+
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -181,6 +183,9 @@ export interface AssetPageViewProps {
 
 export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   const t = await getPhrase()
+  /* Sert au seul titre « À propos de … », dont l'élision est une règle française —
+     voir la note à son endroit de rendu. */
+  const locale = await getLocale()
   const fr = await getContent()
   const [
     asset,
@@ -1494,7 +1499,22 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         */}
         {about ? (
           <section className="space-y-3">
-            <h2 className="display-sm text-ink">À propos {frenchOf(data.name)}</h2>
+            {/* ⚠️ CE TITRE ÉTAIT ASSEMBLÉ PAR UNE RÈGLE DE GRAMMAIRE FRANÇAISE, ET
+                S'APPLIQUAIT AUX TREIZE LANGUES. `frenchOf` élide « de » devant une
+                voyelle — « d'Aave », « de Bitcoin » — ce qui est juste en français et
+                n'a aucun sens ailleurs : un lecteur allemand lisait « À propos de
+                Bitcoin » sur une page par ailleurs entièrement traduite.
+
+                La phrase devient un gabarit à substituant, traduit comme les autres.
+                Le français garde son élision : il est le REPLI de la table, donc le
+                seul cas où le gabarit ne serait pas remplacé — d'où la branche
+                explicite sur la locale plutôt qu'une comparaison entre la clé et sa
+                traduction, qui reviendrait au même en moins lisible. */}
+            <h2 className="display-sm text-ink">
+              {locale === 'fr'
+                ? `À propos ${frenchOf(data.name)}`
+                : t('À propos de {nom}').replace('{nom}', data.name)}
+            </h2>
             {/* `whitespace-pre-line` : la source sépare ses paragraphes par des
                 sauts de ligne, pas par du balisage. Sans cette règle, le texte
                 arriverait en un seul pavé compact.

@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import type { Metadata } from 'next'
 
 import {
@@ -48,6 +49,7 @@ export default async function Page({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  const t = await getPhrase()
   const raw = (await searchParams)['serie']
   const serie = Array.isArray(raw) ? raw[0] : raw
 
@@ -70,7 +72,7 @@ export default async function Page({
     if (!history.ok) return null
     return (
       <GlobalChartCard
-        title="Capitalisation des stablecoins"
+        title={t('Capitalisation des stablecoins')}
         format="money"
         currency="USD"
         colorIndex={3}

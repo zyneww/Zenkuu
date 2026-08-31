@@ -157,7 +157,11 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
           ZENKUU est collant : coller le panneau à 0 le glisserait dessous. */}
       <div className="flex flex-col gap-3 lg:sticky lg:top-[calc(var(--header-height)+1rem)] lg:max-h-[calc(100dvh-var(--header-height)-2rem)]">
         <div className="scrollbar-none flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain">
-          <Spotlight article={lead} readLabel={t('Lire l’article')} />
+          <Spotlight
+            article={lead}
+            readLabel={t('Lire l’article')}
+            newWindowLabel={t('(nouvelle fenêtre)')}
+          />
 
           {rest.length > 0 ? (
             <Feed articles={rest} title={fr.home.newsTitle} seeAll={fr.home.seeAll} />
@@ -183,7 +187,15 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
  * filets entre lui et le tableau — celui de sa carte, celui de la colonne, et la
  * gouttière — là où un seul suffit à dire « ceci n'est plus le tableau ».
  */
-function Spotlight({ article, readLabel }: { article: NewsItem; readLabel: string }) {
+function Spotlight({
+  article,
+  readLabel,
+  newWindowLabel,
+}: {
+  article: NewsItem
+  readLabel: string
+  newWindowLabel: string
+}) {
   return (
     <section>
       <a
@@ -222,7 +234,7 @@ function Spotlight({ article, readLabel }: { article: NewsItem; readLabel: strin
           <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-ink">
             {readLabel}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="sr-only">(nouvelle fenêtre)</span>
+            <span className="sr-only">{newWindowLabel}</span>
           </span>
         </div>
       </a>

@@ -81,7 +81,7 @@ export function SettingsAccount() {
         <div className="rounded-card border border-border-subtle bg-surface p-4">
           <p className="text-sm leading-relaxed text-ink-muted">
             Un compte apporte une seule chose, et il faut le dire clairement : la{' '}
-            <strong className="font-medium text-ink">portabilité</strong>. La même liste sur le
+            <strong className="font-medium text-ink">{t('portabilité')}</strong>. La même liste sur le
             téléphone et sur l’ordinateur, et la survie à un nettoyage du navigateur. Aucune
             fonction supplémentaire n’en dépend.
           </p>

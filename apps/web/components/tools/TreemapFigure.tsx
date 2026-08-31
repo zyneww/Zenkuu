@@ -1,3 +1,4 @@
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { formatCompact, formatPercent } from '@zenkuu/ui'
 
 import {
@@ -368,6 +369,7 @@ export function TreemapFigure({
 
 /** Échelle de couleurs, à poser à côté de la figure. */
 export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatility' } = {}) {
+  const t = usePhrase()
   /* La légende d'INTENSITÉ ne porte pas de bornes chiffrées, et ne peut pas en
      porter : l'échelle est relative au lot affiché (voir `volatilityTone`). Elle
      nomme donc ses deux extrémités en toutes lettres, ce qui est exactement ce
@@ -384,7 +386,7 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
             <span key={index} className="flex-1" style={{ backgroundColor: swatch }} />
           ))}
         </span>
-        <span>Agité</span>
+        <span>{t('Agité')}</span>
       </div>
     )
   }
