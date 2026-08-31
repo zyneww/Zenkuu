@@ -47,13 +47,14 @@ référence n'en affiche pas » de rang. CoinGecko en affiche un.
 - **Hiérarchie inversée** : le cours passe à 36 px, le nom à 18. C'était l'inverse.
 - Les onglets sans contenu se retirent d'eux-mêmes de la barre.
 
-### Trois pages neuves
+### Quatre pages neuves
 
 | Page | Ce qu'elle apporte |
 |---|---|
 | `/glossaire` | Les 32 définitions, extraites de `/apprendre` où elles n'avaient pas d'adresse |
 | `/classements/sommet` | L'écart au sommet historique, avec la date du record |
 | `/crypto/bitcoin/halving` | Le calendrier des halvings, **calculé** — leur table porte une coquille |
+| `/crypto/[id]/historique` | La série jour par jour. Le composant existait et n'était **rendu nulle part** |
 
 ### L'audit
 
@@ -86,17 +87,25 @@ ZENKUU se cale sous l'en-tête collant, faute de quoi il glisserait dessous.
 n'établit ce que la référence y fait : les retirer sans mesure remplacerait un écart par
 un autre.
 
-### `/crypto` garde des colonnes propres
+### `/crypto` n'affiche pas l'offre TOTALE
 
-Le jeu `catalogue` de `MarketTable` porte l'offre en circulation, que
-`/en/all-cryptocurrencies` affiche aussi — avec l'offre TOTALE en plus. L'affectation des
-jeux de colonnes aux pages diffère encore de la leur.
+L'offre en circulation y est — vérifié, Bitcoin rend « 20,1 M BTC ». Ce point affirmait
+un écart plus large ; il se réduit à l'offre totale, que leur catalogue porte en plus.
 
-### Les données historiques n'ont pas d'adresse
+Le champ existe (`totalSupply`). L'écart entre les deux offres est la dilution à venir,
+que `Cap./FDV` exprime déjà autrement — une quinzième colonne pour redire ce qu'une
+autre dit se paie en largeur sans rien apprendre.
 
-`PriceHistoryTable` rend la série jour par jour DANS l'onglet « Analyse ». La référence en
-fait une page, `/coins/[id]/historical_data`. Même motif que le glossaire, déplacé
-aujourd'hui — le travail est identique et petit.
+### ~~Les données historiques n'ont pas d'adresse~~ — comblé
+
+`/crypto/[id]/historique` existe depuis le 2026-08-31. Ce point disait que
+`PriceHistoryTable` rendait la série « DANS l'onglet Analyse » : c'était déjà faux — le
+composant n'était rendu NULLE PART. Il dormait dans le dépôt, testé et documenté, sans
+appelant.
+
+⚠️ Deux de leurs quatre colonnes manquent : capitalisation et volume par jour.
+`PriceHistory` ne porte que le cours, et les ajouter demanderait une seconde série par
+actif pour une page de consultation ponctuelle.
 
 ---
 
@@ -199,8 +208,10 @@ référence trie par capitalisation, l'écart est en colonne.
   flux d'actualités qui n'a pas répondu pendant la génération : le code dégrade
   proprement, c'est le comportement voulu. Serveur de développement relancé ensuite,
   toutes les pages répondent sous 1,4 s une fois le cache chaud.
-- **Les redirections** depuis les anciennes routes : `ROUTES_MIGRATION.md` établit la
-  correspondance, aucune redirection n'est posée.
+- ~~Les redirections~~ — **26 posées le 2026-08-31**, depuis les chemins de la référence
+  vers leurs équivalents ZENKUU. Vérifiées serveur relancé, y compris avec préfixe de
+  langue. Ce sont des 308, pas des réécritures : servir le contenu sous leur adresse
+  ferait deux URL pour une page.
 - **Les 29 pages CoinGecko sans route ZENKUU**, dont la moitié est bloquée par les données
   ci-dessus.
 - **Les performances** : premières mesures faites le 2026-08-31, sur le serveur de
