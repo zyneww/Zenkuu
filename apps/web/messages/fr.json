@@ -17,6 +17,10 @@
       "label": "Valorisation diluée",
       "help": "Capitalisation que l’actif atteindrait si la totalité de son offre maximale circulait. Reprise telle quelle de la source, jamais recalculée : les règles sur les jetons verrouillés ou brûlés lui appartiennent."
     },
+    "marketCapToFdv": {
+      "label": "Cap. / FDV",
+      "help": "Part de la valorisation diluée déjà atteinte par la capitalisation. À 100 %, toute l’offre circule ; plus la part est basse, plus il reste de jetons à émettre."
+    },
     "tvl": {
       "label": "Valeur verrouillée",
       "help": "Montant déposé dans les contrats du protocole. N’existe que pour la finance décentralisée, et mesure l’usage plutôt que le prix."

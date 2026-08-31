@@ -17,6 +17,10 @@
       "label": "Valutazione diluita",
       "help": "Capitalizzazione che l’asset raggiungerebbe se circolasse l’intera offerta massima. Ripresa così com’è dalla fonte, mai ricalcolata: le regole sui token bloccati o bruciati appartengono a lei."
     },
+    "marketCapToFdv": {
+      "label": "Cap. / FDV",
+      "help": "Quanta parte della valutazione diluita è già raggiunta dalla capitalizzazione. Al 100 % tutta l’offerta circola; più è bassa, più token restano da emettere."
+    },
     "tvl": {
       "label": "Valore bloccato",
       "help": "Importo depositato nei contratti del protocollo. Esiste solo per la finanza decentralizzata, e misura l’utilizzo più che il prezzo."

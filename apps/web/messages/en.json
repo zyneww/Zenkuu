@@ -17,6 +17,10 @@
       "label": "Fully diluted valuation",
       "help": "Market cap the asset would reach if its entire maximum supply were circulating. Taken from the source as published, never recomputed: the rules on locked or burned tokens are theirs."
     },
+    "marketCapToFdv": {
+      "label": "Market cap / FDV",
+      "help": "How much of the fully diluted valuation the market cap already represents. At 100 %, the whole supply circulates; the lower it is, the more tokens are left to issue."
+    },
     "tvl": {
       "label": "Total value locked",
       "help": "Amount deposited in the protocol's contracts. Exists only for decentralised finance, and measures usage rather than price."

@@ -17,6 +17,10 @@
       "label": "Voll verwässerte Bewertung",
       "help": "Marktkapitalisierung, die der Wert erreichen würde, wenn sein gesamtes Maximalangebot im Umlauf wäre. Unverändert von der Quelle übernommen, nie nachgerechnet: die Regeln zu gesperrten oder verbrannten Token gehören ihr."
     },
+    "marketCapToFdv": {
+      "label": "Marktkap. / FDV",
+      "help": "Welchen Anteil der verwässerten Bewertung die Marktkapitalisierung bereits erreicht. Bei 100 % zirkuliert das gesamte Angebot; je niedriger, desto mehr Token stehen noch aus."
+    },
     "tvl": {
       "label": "Gebundener Gesamtwert",
       "help": "In den Verträgen des Protokolls hinterlegter Betrag. Existiert nur im dezentralen Finanzwesen und misst die Nutzung, nicht den Kurs."

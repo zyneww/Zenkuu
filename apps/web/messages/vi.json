@@ -17,6 +17,10 @@
       "label": "Định giá pha loãng",
       "help": "Vốn hoá mà tài sản sẽ đạt nếu toàn bộ nguồn cung tối đa được lưu hành. Lấy nguyên từ nguồn, không bao giờ tính lại: các quy tắc về token bị khoá hay bị đốt thuộc về nguồn."
     },
+    "marketCapToFdv": {
+      "label": "Vốn hóa / FDV",
+      "help": "Vốn hóa đã chiếm bao nhiêu phần của định giá pha loãng hoàn toàn. Ở mức 100 %, toàn bộ nguồn cung đang lưu hành; càng thấp thì càng còn nhiều token chưa phát hành."
+    },
     "tvl": {
       "label": "Giá trị bị khoá",
       "help": "Số tiền gửi trong các hợp đồng của giao thức. Chỉ tồn tại với tài chính phi tập trung, và đo mức sử dụng hơn là giá."

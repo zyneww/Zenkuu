@@ -17,6 +17,10 @@
       "label": "Valoración diluida",
       "help": "Capitalización que alcanzaría el activo si toda su oferta máxima estuviera en circulación. Se toma tal cual de la fuente, nunca se recalcula: las reglas sobre tokens bloqueados o quemados son suyas."
     },
+    "marketCapToFdv": {
+      "label": "Cap. / FDV",
+      "help": "Qué parte de la valoración diluida alcanza ya la capitalización. Al 100 %, toda la oferta circula; cuanto más baja, más tokens quedan por emitir."
+    },
     "tvl": {
       "label": "Valor bloqueado",
       "help": "Importe depositado en los contratos del protocolo. Solo existe en las finanzas descentralizadas, y mide el uso más que el precio."

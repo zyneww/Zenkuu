@@ -1,3 +1,4 @@
+import { marketCapToFdvShare } from '@/lib/heatmap-metrics'
 import type { AssetDetail } from '@zenkuu/data'
 
 /**
@@ -126,6 +127,29 @@ export const METRICS: readonly MetricDef[] = [
     // l'offre circule déjà, et répéter le même nombre deux lignes plus bas n'apprend
     // rien tout en suggérant à tort deux mesures distinctes.
     read: (a) => (a.fdv !== undefined && a.fdv !== a.marketCap ? a.fdv : undefined),
+  },
+  {
+    /*
+     * Rapport entre la capitalisation et la valorisation diluée — la part de l'offre
+     * déjà en circulation, vue par la valeur.
+     *
+     * La référence l'affiche dans son rail ET dans son tableau (« Market Cap / FDV »).
+     * ZENKUU l'avait en colonne de tableau depuis le 2026-08-29, pas dans le rail.
+     *
+     * ⚠️ CALCULÉ, PAS LU. `marketCapToFdvShare` vit dans `lib/heatmap-metrics.ts`,
+     * testée pour ses cas limites — offre manquante, prix nul. Elle rend `undefined`
+     * dès qu'un des deux termes manque, jamais un zéro qui affirmerait « aucune
+     * dilution restante ».
+     *
+     * Omis quand la FDV égale la capitalisation, comme la ligne voisine : le ratio y
+     * vaut 100 % pour tout actif dont l'offre circule entièrement, et une colonne de
+     * « 100 % » n'apprend rien.
+     */
+    slug: 'capitalisation-sur-fdv',
+    message: 'marketCapToFdv',
+    group: 'market',
+    kind: 'percent',
+    read: (a) => (a.fdv !== undefined && a.fdv !== a.marketCap ? marketCapToFdvShare(a) : undefined),
   },
   {
     slug: 'valeur-verrouillee',

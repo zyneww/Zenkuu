@@ -17,6 +17,10 @@
       "label": "Wycena rozwodniona",
       "help": "Kapitalizacja, jaką aktywo osiągnęłoby, gdyby w obiegu była cała podaż maksymalna. Przejęta od źródła bez zmian, nigdy przeliczana: zasady dotyczące tokenów zablokowanych lub spalonych należą do niego."
     },
+    "marketCapToFdv": {
+      "label": "Kapitalizacja / FDV",
+      "help": "Jaką część rozwodnionej wyceny stanowi już kapitalizacja. Przy 100 % cała podaż jest w obiegu; im niżej, tym więcej tokenów pozostaje do emisji."
+    },
     "tvl": {
       "label": "Wartość zablokowana",
       "help": "Kwota zdeponowana w kontraktach protokołu. Istnieje wyłącznie dla finansów zdecentralizowanych i mierzy raczej użycie niż cenę."

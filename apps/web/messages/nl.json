@@ -17,6 +17,10 @@
       "label": "Verwaterde waardering",
       "help": "Kapitalisatie die het activum zou bereiken als het volledige maximale aanbod circuleerde. Overgenomen zoals de bron hem geeft, nooit herberekend: de regels over vergrendelde of verbrande tokens zijn van haar."
     },
+    "marketCapToFdv": {
+      "label": "Marktkap. / FDV",
+      "help": "Welk deel van de verwaterde waardering de marktkapitalisatie al vertegenwoordigt. Bij 100 % circuleert het hele aanbod; hoe lager, hoe meer tokens nog uitgegeven moeten worden."
+    },
     "tvl": {
       "label": "Vergrendelde waarde",
       "help": "Bedrag gestort in de contracten van het protocol. Bestaat alleen voor gedecentraliseerde financiën, en meet het gebruik eerder dan de koers."
