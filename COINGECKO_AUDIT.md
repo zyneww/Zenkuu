@@ -664,6 +664,20 @@ traduit en français, comme `/en/glossary` et `/learn`.
   CoinGecko n'est recopié au-delà des libellés strictement nécessaires à
   l'identification d'un composant.
 
+> ⚠️ **COMPARAISON COLONNE PAR COLONNE, 2026-08-31.** Leur page en aligne dix — rang,
+> catégorie, meilleurs gagnants, 1 h, 24 h, 7 j, capitalisation, volume 24 h, **nombre
+> de jetons**, courbe 7 jours. ZENKUU en affiche six.
+>
+> **Trois manquent parce que la source ne les publie pas.** L'API publique
+> `/coins/categories` rend `market_cap`, `market_cap_change_24h`, `volume_24h`,
+> `top_3_coins` et `content` — et rien d'autre. Ni variation 1 h, ni 7 j, ni compte de
+> jetons. Leur propre page les affiche depuis leur base interne.
+>
+> ZENKUU a en revanche une colonne **Dominance** qu'ils n'ont pas : la part du secteur
+> dans la capitalisation totale, calculée à partir de deux nombres déjà lus. Ce n'est
+> pas un écart à combler dans l'autre sens — c'est une lecture que leur page laisse au
+> lecteur.
+
 ### Exchanges, spot — `/en/exchanges`
 
 - **Date du relevé** : 2026-08-30
