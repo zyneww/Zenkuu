@@ -3,6 +3,7 @@
 import { Check, Copy } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { IconButton } from '@/components/ui/IconButton'
 
 /**
@@ -26,6 +27,7 @@ import { IconButton } from '@/components/ui/IconButton'
  * voir `components/ui/IconButton.tsx`.
  */
 export function CopyButton({ value, label }: { value: string; label: string }) {
+  const t = usePhrase()
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
         className="shrink-0"
       />
       <span role="status" className="sr-only">
-        {copied ? 'Adresse copiée dans le presse-papiers' : ''}
+        {copied ? t('Adresse copiée dans le presse-papiers') : ''}
       </span>
     </>
   )

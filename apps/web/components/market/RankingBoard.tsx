@@ -134,7 +134,7 @@ export function RankingBoard({
         >
           {PERIODS.map((entry) => (
             <ToggleGroupItem key={entry.key} value={String(entry.key)} className="tabular">
-              {entry.label}
+              {t(entry.label)}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

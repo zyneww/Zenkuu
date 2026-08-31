@@ -410,9 +410,9 @@ export function ScreenerView({
             sheetName="Screener"
             rows={sortedRows}
             columns={[
-              { header: 'Nom', value: (row) => row.name },
-              { header: 'Symbole', value: (row) => row.symbol },
-              { header: 'Devise', value: (row) => row.currency ?? '' },
+              { header: t('Nom'), value: (row) => row.name },
+              { header: t('Symbole'), value: (row) => row.symbol },
+              { header: t('Devise'), value: (row) => row.currency ?? '' },
               ...columnSet.columns.map((column) => ({
                 header: t(column.label),
                 value: (row: ScreenerRow) => row.values[column.key] ?? '',
@@ -494,7 +494,7 @@ export function ScreenerView({
                   #
                 </th>
                 <th scope="col" className="px-3 py-2.5 font-medium">
-                  {market.id === 'dex' ? 'Pool' : market.id === 'cex' ? 'Place' : 'Actif'}
+                  {market.id === 'dex' ? t('Pool') : market.id === 'cex' ? t('Place') : t('Actif')}
                 </th>
 
                 {columnSet.columns.map((column) => {

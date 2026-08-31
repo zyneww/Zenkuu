@@ -205,7 +205,7 @@ export function ConverterView({
       <div className="mx-auto w-full max-w-md">
         <div className="relative space-y-1 rounded-card border border-border-subtle bg-surface p-4">
           <Panel
-            label="Payer"
+            label={t('Payer')}
             selector={reversed ? money : picker}
             value={amount}
             onChange={setAmount}
@@ -237,7 +237,7 @@ export function ConverterView({
           </div>
 
           <Panel
-            label="Recevoir"
+            label={t('Recevoir')}
             selector={reversed ? picker : money}
             value={formattedResult}
             unit={toLabel}

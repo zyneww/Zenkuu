@@ -111,8 +111,8 @@ export function SavedScreens({
       if (!result.ok) {
         setMessage(
           result.reason === 'db-disabled'
-            ? 'La base de données n’est pas configurée : l’écran ne serait pas conservé.'
-            : 'L’enregistrement a échoué.',
+            ? t('La base de données n’est pas configurée : l’écran ne serait pas conservé.')
+            : t('L’enregistrement a échoué.'),
         )
         return
       }

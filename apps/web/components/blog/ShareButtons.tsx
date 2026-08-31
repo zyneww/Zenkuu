@@ -60,7 +60,7 @@ export function ShareButtons({ title, path }: { title: string; path: string }) {
           navigateur — et non un bouton qui navigue en JavaScript. */}
       <Button size="sm" variant="outline" onClick={copyLink}>
         {copied ? <Check /> : <Link2 />}
-        {copied ? 'Lien copié' : 'Copier le lien'}
+        {copied ? t('Lien copié') : t('Copier le lien')}
       </Button>
 
       <Button asChild size="sm" variant="outline">

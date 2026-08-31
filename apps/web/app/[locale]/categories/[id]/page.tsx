@@ -41,10 +41,11 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
+  const t = await getPhrase()
   const { id } = await params
   const category = await loadCategory(id)
 
-  if (!category) return { title: 'Secteur introuvable' }
+  if (!category) return { title: t('Secteur introuvable') }
 
   return {
     title: category.name,

@@ -60,8 +60,8 @@ export function WatchlistBoard({
 
     setMessage(
       result.reason === 'list-limit'
-        ? 'Vous avez atteint le nombre maximal de listes.'
-        : 'L’opération a échoué. Réessayez.',
+        ? t('Vous avez atteint le nombre maximal de listes.')
+        : t('L’opération a échoué. Réessayez.'),
     )
   }
 
@@ -144,11 +144,11 @@ export function WatchlistBoard({
                 sheetName={list.name}
                 rows={list.items}
                 columns={[
-                  { header: 'Actif', value: (item) => item.label },
-                  { header: 'Symbole', value: (item) => item.symbol?.toUpperCase() ?? '' },
-                  { header: 'Classe', value: (item) => item.assetClass },
-                  { header: 'Identifiant', value: (item) => item.assetId },
-                  { header: 'Ajouté le', value: (item) => item.addedAt },
+                  { header: t('Actif'), value: (item) => item.label },
+                  { header: t('Symbole'), value: (item) => item.symbol?.toUpperCase() ?? '' },
+                  { header: t('Classe'), value: (item) => item.assetClass },
+                  { header: t('Identifiant'), value: (item) => item.assetId },
+                  { header: t('Ajouté le'), value: (item) => item.addedAt },
                 ]}
               />
 

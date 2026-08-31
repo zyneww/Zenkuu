@@ -154,7 +154,7 @@ export function ShareDonut({
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          aria-label={expanded ? 'Réduire le graphique' : 'Agrandir le graphique'}
+          aria-label={expanded ? t('Réduire le graphique') : t('Agrandir le graphique')}
           aria-pressed={expanded}
           className="shrink-0 rounded-sm p-1 text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
         >
@@ -302,7 +302,7 @@ export function ShareDonut({
               </th>
               {valueCurrency ? (
                 <th scope="col" className="pb-1 text-right font-medium">
-                  {valueHeader ?? 'Valeur'}
+                  {valueHeader ?? t('Valeur')}
                 </th>
               ) : null}
               <th scope="col" className="pb-1 text-right font-medium">

@@ -452,7 +452,7 @@ function RelativePanel({
                       className="rounded-card border border-border-subtle px-2 py-1.5"
                     >
                       <p className="text-micro uppercase tracking-wide text-ink-muted">
-                        {window.label}
+                        {t(window.label)}
                       </p>
                       <p className="tabular mt-0.5 text-xs">
                         {gap === undefined ? (

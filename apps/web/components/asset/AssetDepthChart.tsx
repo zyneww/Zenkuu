@@ -106,8 +106,8 @@ export function AssetDepthChart({ symbol }: { symbol: string }) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-card border border-border-subtle text-sm text-ink-muted">
         {unavailable
-          ? 'Binance ne publie pas de carnet pour cet actif.'
-          : 'Chargement du carnet…'}
+          ? t('Binance ne publie pas de carnet pour cet actif.')
+          : t('Chargement du carnet…')}
       </div>
     )
   }

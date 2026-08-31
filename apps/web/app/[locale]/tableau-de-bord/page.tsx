@@ -97,7 +97,7 @@ export default async function DashboardPage() {
             <p className="mt-1 text-sm text-ink-muted">
               {followed.length > 0
                 ? `${followed.length} actif${followed.length > 1 ? 's' : ''} suivi${followed.length > 1 ? 's' : ''}.`
-                : 'Aucun actif suivi pour le moment.'}
+                : t('Aucun actif suivi pour le moment.')}
             </p>
           </div>
           {/* ⚠️ LE LIEN « VUE DÉTAILLÉE » A DISPARU AVEC `/suivi`, supprimée sur

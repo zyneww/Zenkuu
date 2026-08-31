@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { ExportMenu } from '@/components/tools/ExportMenu'
 
 export interface HistoryRow {
@@ -32,17 +33,19 @@ export function HistoryExport({
   assetName: string
   currency: string
 }) {
+  const t = usePhrase()
+
   return (
     <ExportMenu
       filename={`zenkuu-historique-${slug(assetName)}`}
       sheetName={assetName.slice(0, 31)}
       rows={rows}
       columns={[
-        { header: 'Date', value: (row) => row.day },
-        { header: `Clôture (${currency.toUpperCase()})`, value: (row) => row.price },
+        { header: t('Date'), value: (row) => row.day },
+        { header: `${t('Clôture')} (${currency.toUpperCase()})`, value: (row) => row.price },
         // `null` plutôt que 0 sur la ligne la plus ancienne : elle n'a pas de
         // journée précédente, et un zéro se lirait comme « aucune variation ».
-        { header: 'Variation (%)', value: (row) => row.change },
+        { header: t('Variation (%)'), value: (row) => row.change },
       ]}
     />
   )

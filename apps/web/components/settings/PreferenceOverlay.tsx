@@ -132,7 +132,7 @@ export function PreferenceOverlay({
       const usable = new Set(available)
 
       return CURRENCY_GROUP_ORDER.map((group) => ({
-        title: CURRENCY_GROUP_LABELS[group],
+        title: t(CURRENCY_GROUP_LABELS[group]),
         items: CURRENCIES.filter((meta) => meta.group === group && usable.has(meta.code)).map(
           (meta) => ({
             key: meta.code,
@@ -175,7 +175,7 @@ export function PreferenceOverlay({
         items: LANGUAGES.filter((entry) => entry.popular).map((entry) => toItem(entry, 'popular')),
       },
     ]
-  }, [tab, available, currency, language])
+  }, [tab, available, currency, language, t])
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -262,7 +262,7 @@ export function PreferenceOverlay({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t('Rechercher…')}
-              aria-label={isCurrency ? 'Rechercher une devise' : 'Rechercher une langue'}
+              aria-label={isCurrency ? t('Rechercher une devise') : t('Rechercher une langue')}
             />
             <InputGroupAddon>
               <Search />
@@ -282,8 +282,8 @@ export function PreferenceOverlay({
                 <EmptyTitle className="text-sm">{t('Aucun résultat')}</EmptyTitle>
                 <EmptyDescription>
                   {isCurrency
-                    ? 'Aucune devise ne correspond à cette recherche.'
-                    : 'Aucune langue ne correspond à cette recherche.'}
+                    ? t('Aucune devise ne correspond à cette recherche.')
+                    : t('Aucune langue ne correspond à cette recherche.')}
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>

@@ -128,7 +128,9 @@ export async function SentimentFaq() {
   )
 }
 
-function FaqColumn({ entries, openFirst = false }: { entries: Entry[]; openFirst?: boolean }) {
+async function FaqColumn({ entries, openFirst = false }: { entries: Entry[]; openFirst?: boolean }) {
+  const t = await getPhrase()
+
   return (
     /* Chaque question dans sa CARTE, comme sur la référence. Une pile de lignes
        séparées par des filets se lit comme un sommaire ; des cartes disent que chaque
@@ -142,7 +144,7 @@ function FaqColumn({ entries, openFirst = false }: { entries: Entry[]; openFirst
           open={openFirst && index === 0}
         >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
-            {entry.question}
+            {t(entry.question)}
             <ChevronDown
               aria-hidden
               className="size-4 shrink-0 text-ink-muted transition-transform duration-200 group-open:rotate-180"
@@ -151,7 +153,7 @@ function FaqColumn({ entries, openFirst = false }: { entries: Entry[]; openFirst
           <div className="space-y-2 pb-4">
             {entry.answer.map((paragraph) => (
               <p key={paragraph} className="text-sm leading-relaxed text-ink-muted">
-                {paragraph}
+                {t(paragraph)}
               </p>
             ))}
           </div>

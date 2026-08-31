@@ -419,6 +419,7 @@ function MapFrame({
   legend: React.ReactNode
   children: React.ReactNode
 }) {
+  const t = usePhrase()
   const [fullscreen, setFullscreen] = useState(false)
 
   /*
@@ -464,8 +465,8 @@ function MapFrame({
             if (document.fullscreenElement) void document.exitFullscreen()
             else void ref.current?.requestFullscreen()
           }}
-          aria-label={fullscreen ? 'Quitter le plein écran' : 'Afficher en plein écran'}
-          title={fullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+          aria-label={fullscreen ? t('Quitter le plein écran') : t('Afficher en plein écran')}
+          title={fullscreen ? t('Quitter le plein écran') : t('Plein écran')}
           className="flex h-7 w-7 items-center justify-center rounded-sm border border-border-subtle bg-surface text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
         >
           {fullscreen ? (
@@ -883,7 +884,7 @@ function CountryPanel({
           size="icon-xs"
           variant="ghost"
           icon={X}
-          label="Fermer"
+          label={t('Fermer')}
           tooltip={false}
           onClick={onClose}
           className="shrink-0"
@@ -914,7 +915,7 @@ function CountryPanel({
       </div>
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border-subtle pt-3">
-        <Measure label="Rang mondial" value={`${rank} / ${total}`} />
+        <Measure label={t('Rang mondial')} value={`${rank} / ${total}`} />
         {regional ? (
           <Measure label={t('Dans sa région')} value={`${regional.rank} / ${regional.total}`} />
         ) : null}

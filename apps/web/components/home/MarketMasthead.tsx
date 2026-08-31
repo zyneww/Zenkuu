@@ -127,7 +127,8 @@ function Counter({
  * Deux rails de pastilles restent distinguables sans être colorés ; deux rails
  * colorés le seraient au prix du seul principe que ce design system défend.
  */
-function HighlightRail({ label }: { label: string }) {
+async function HighlightRail({ label }: { label: string }) {
+  const t = await getPhrase()
   const chips = [
     /* « Points marquants » et « Plus fortes hausses » ont été retirés avec leurs
        pages (demande explicite). « Plus fortes hausses » revient par `/classements`,
@@ -154,7 +155,7 @@ function HighlightRail({ label }: { label: string }) {
           className="inline-flex h-[26px] items-center gap-1 rounded-pill border border-transparent bg-surface-muted px-3 text-sm text-ink transition-colors duration-150 hover:border-border-subtle hover:bg-panel"
         >
           <Icon aria-hidden="true" className="size-3.5 shrink-0 text-ink-muted" />
-          {text}
+          {t(text)}
         </Link>
       ))}
     </nav>

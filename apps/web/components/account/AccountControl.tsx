@@ -284,7 +284,7 @@ export function AccountControl({
       {mounted ? (
         <div
           role="menu"
-          aria-label={account ? 'Compte' : 'Connexion et réglages'}
+          aria-label={account ? t('Compte') : t('Connexion et réglages')}
           data-state={state}
           onTransitionEnd={onTransitionEnd}
           /*
@@ -528,6 +528,7 @@ function SecurityRow({ onDone }: { onDone: () => void }) {
 }
 
 function SignOutRow() {
+  const t = usePhrase()
   const [pending, startTransition] = useTransition()
 
   return (
@@ -540,7 +541,7 @@ function SignOutRow() {
         })
       }
     >
-      {pending ? 'Déconnexion…' : 'Déconnexion'}
+      {pending ? t('Déconnexion…') : t('Déconnexion')}
     </MenuButton>
   )
 }

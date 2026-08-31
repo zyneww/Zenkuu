@@ -107,24 +107,24 @@ export function GlobalChartsView({
           </p>
         </div>
 
-        <Group label="Période" value={days} onChange={setDays}>
+        <Group label={t('Période')} value={days} onChange={setDays}>
           {RANGES.map((range) => (
-            <Chip key={range.days} id={range.days} label={range.label} />
+            <Chip key={range.days} id={range.days} label={t(range.label)} />
           ))}
         </Group>
       </div>
 
       <div className="rounded-card border border-border-subtle bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle p-3">
-          <Group label="Actif" value={seriesId} onChange={setSeriesId}>
+          <Group label={t('Actif')} value={seriesId} onChange={setSeriesId}>
             {available.map((entry) => (
               <Chip key={entry.id} id={entry.id} label={entry.label} />
             ))}
           </Group>
 
-          <Group label="Grandeur" value={metric} onChange={setMetric}>
+          <Group label={t('Grandeur')} value={metric} onChange={setMetric}>
             {METRICS.map((entry) => (
-              <Chip key={entry.id} id={entry.id} label={entry.label} />
+              <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
             ))}
           </Group>
         </div>

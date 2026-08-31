@@ -49,7 +49,8 @@ export async function AssetKeyStats({
   // Yahoo ne publie pas de plus haut historique pour les valeurs boursières : ce
   // champ y porte les extrêmes 52 semaines. Le libellé doit donc changer, sous peine
   // d'annoncer un record de tous les temps qui n'en est pas un.
-  const extremeLabel = assetClass === 'crypto' ? 'historique' : 'sur 52 semaines'
+  const hautLabel = assetClass === 'crypto' ? 'Plus haut historique' : 'Plus haut sur 52 semaines'
+  const basLabel = assetClass === 'crypto' ? 'Plus bas historique' : 'Plus bas sur 52 semaines'
 
   const cells: { label: string; node: React.ReactNode }[] = []
 
@@ -96,7 +97,7 @@ export async function AssetKeyStats({
   }
   if (asset.ath !== undefined) {
     cells.push({
-      label: `Plus haut ${extremeLabel}`,
+      label: t(hautLabel),
       node: (
         <>
           <Money value={asset.ath} from={asset.currency} asRate={isForex} />
@@ -114,7 +115,7 @@ export async function AssetKeyStats({
   }
   if (asset.atl !== undefined) {
     cells.push({
-      label: `Plus bas ${extremeLabel}`,
+      label: t(basLabel),
       node: (
         <>
           <Money value={asset.atl} from={asset.currency} asRate={isForex} />

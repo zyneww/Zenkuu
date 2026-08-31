@@ -1,6 +1,7 @@
 import type { SentimentPoint } from '@zenkuu/data'
 
 import { sentimentBand } from '@/components/sentiment/bands'
+import { getPhrase } from '@/lib/content'
 
 /**
  * « Valeurs historiques » — trois relevés passés, en anneaux.
@@ -24,7 +25,7 @@ import { sentimentBand } from '@/components/sentiment/bands'
 const RADIUS = 20
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export function SentimentHistoricalValues({
+export async function SentimentHistoricalValues({
   points,
   label,
 }: {
@@ -32,6 +33,7 @@ export function SentimentHistoricalValues({
   /** Traducteur de valeur en nom de zone, fourni par la page qui tient le contenu. */
   label: (value: number) => string
 }) {
+  const t = await getPhrase()
   const at = (daysAgo: number): SentimentPoint | undefined => points[points.length - 1 - daysAgo]
 
   const columns = [
@@ -57,7 +59,7 @@ export function SentimentHistoricalValues({
             className="space-y-2 rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5"
           >
             <dt className="space-y-0.5">
-              <span className="block text-sm font-semibold text-ink">{column.caption}</span>
+              <span className="block text-sm font-semibold text-ink">{t(column.caption)}</span>
               <span className="block text-xs text-ink-muted">{label(value)}</span>
             </dt>
 

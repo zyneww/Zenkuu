@@ -6,6 +6,7 @@ import { Table, TableBody, TableHeader } from '@/components/ui/table'
 import type { DexPool } from '@zenkuu/data'
 import { ChangeBadge, formatCompact } from '@zenkuu/ui'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 
@@ -68,6 +69,7 @@ export function DexPoolTable({
     [],
   )
 
+  const t = usePhrase()
   const { rows, sort, toggle } = useTableSort<DexPool, PoolSortKey>({
     rows: pools,
     accessors,
@@ -91,10 +93,10 @@ export function DexPoolTable({
       <Table className="border-collapse sm:min-w-[52rem]">
         <TableHeader className="[&_tr]:border-b-0">
           <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
-            <SortableHeader label="Paire" sortKey="name" align="left" sort={sort} onToggle={toggle} />
+            <SortableHeader label={t('Paire')} sortKey="name" align="left" sort={sort} onToggle={toggle} />
             {showNetwork ? (
               <SortableHeader
-                label="Chaîne"
+                label={t('Chaîne')}
                 sortKey="network"
                 align="left"
                 className="hidden sm:table-cell"
@@ -102,18 +104,18 @@ export function DexPoolTable({
                 onToggle={toggle}
               />
             ) : null}
-            <SortableHeader label="Prix $" sortKey="price" sort={sort} onToggle={toggle} />
-            <SortableHeader label="24 h" sortKey="change" sort={sort} onToggle={toggle} />
-            <SortableHeader label="Réserve $" sortKey="liquidity" sort={sort} onToggle={toggle} />
+            <SortableHeader label={t('Prix $')} sortKey="price" sort={sort} onToggle={toggle} />
+            <SortableHeader label={t('24 h')} sortKey="change" sort={sort} onToggle={toggle} />
+            <SortableHeader label={t('Réserve $')} sortKey="liquidity" sort={sort} onToggle={toggle} />
             <SortableHeader
-              label="Volume 24 h $"
+              label={t('Volume 24 h $')}
               sortKey="volume"
               className="hidden md:table-cell"
               sort={sort}
               onToggle={toggle}
             />
             <SortableHeader
-              label="Acheteurs / vendeurs"
+              label={t('Acheteurs / vendeurs')}
               sortKey="traders"
               className="hidden md:table-cell"
               sort={sort}

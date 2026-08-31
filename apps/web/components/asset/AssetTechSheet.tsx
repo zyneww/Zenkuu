@@ -127,15 +127,15 @@ export async function AssetTechSheet({ asset }: { asset: AssetDetail }) {
       */}
       <dl className="divide-y divide-border-subtle">
         {asset.homepageUrl ? (
-          <SheetRow label="Site" links={[{ label: hostLabel(asset.homepageUrl), url: asset.homepageUrl }]} />
+          <SheetRow label={t('Site')} links={[{ label: hostLabel(asset.homepageUrl), url: asset.homepageUrl }]} />
         ) : null}
 
         {asset.whitepaperUrl ? (
-          <SheetRow label="Livre blanc" links={[{ label: t('Lire'), url: asset.whitepaperUrl }]} />
+          <SheetRow label={t('Livre blanc')} links={[{ label: t('Lire'), url: asset.whitepaperUrl }]} />
         ) : null}
 
         {asset.sourceCodeUrl ? (
-          <SheetRow label="Code source" links={[{ label: hostLabel(asset.sourceCodeUrl), url: asset.sourceCodeUrl }]} />
+          <SheetRow label={t('Code source')} links={[{ label: hostLabel(asset.sourceCodeUrl), url: asset.sourceCodeUrl }]} />
         ) : null}
 
         {explorers.length > 0 ? (

@@ -25,10 +25,11 @@ interface RouteParams {
 }
 
 export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const t = await getPhrase()
   const { network, address } = await params
   const pool = await getPool(network, address)
 
-  if (!pool.ok) return { title: 'Pool introuvable' }
+  if (!pool.ok) return { title: t('Pool introuvable') }
 
   return {
     title: `${pool.data.name} · pool ${network}`,
@@ -162,7 +163,7 @@ export default async function Page({ params }: RouteParams) {
           <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-6">
             {(['m5', 'm15', 'm30', 'h1', 'h6', 'h24'] as const).map((window) => (
               <div key={window} className="bg-surface px-3 py-2 text-center">
-                <dt className="text-[0.6875rem] uppercase text-ink-muted">{WINDOW_LABEL[window]}</dt>
+                <dt className="text-[0.6875rem] uppercase text-ink-muted">{t(WINDOW_LABEL[window]!)}</dt>
                 <dd className="mt-0.5">
                   <ChangeBadge value={data.priceChange?.[window]} size="sm" />
                 </dd>
@@ -179,10 +180,10 @@ export default async function Page({ params }: RouteParams) {
           subtitle={t('Le nombre d’adresses distinctes est plus difficile à gonfler que celui des transactions : combien de mains, et non combien de gestes.')}
         >
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
-            <Count label="Achats" value={data.trades24h.buys} tone="up" />
-            <Count label="Ventes" value={data.trades24h.sells} tone="down" />
-            <Count label="Acheteurs distincts" value={data.trades24h.buyers} tone="up" />
-            <Count label="Vendeurs distincts" value={data.trades24h.sellers} tone="down" />
+            <Count label={t('Achats')} value={data.trades24h.buys} tone="up" />
+            <Count label={t('Ventes')} value={data.trades24h.sells} tone="down" />
+            <Count label={t('Acheteurs distincts')} value={data.trades24h.buyers} tone="up" />
+            <Count label={t('Vendeurs distincts')} value={data.trades24h.sellers} tone="down" />
           </dl>
         </Panel>
       ) : null}

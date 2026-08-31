@@ -139,7 +139,7 @@ export function LoginForm({
     startTransition(async () => {
       const result = await requestLoginCode(email)
       if (!result.ok) {
-        setError(message(result))
+        setError(message(result, t))
         return
       }
       setStep('code')
@@ -152,7 +152,7 @@ export function LoginForm({
     startTransition(async () => {
       const result = await verifyLoginCode(email, code)
       if (!result.ok) {
-        setError(message(result))
+        setError(message(result, t))
         return
       }
       /*
@@ -217,7 +217,7 @@ export function LoginForm({
                 // reprocherait au lecteur une saisie qu'il est en train de réparer.
                 if (emailError) setEmailError(null)
               }}
-              placeholder="vous@exemple.fr"
+              placeholder={t('vous@exemple.fr')}
               aria-label={t('Adresse électronique')}
               aria-invalid={emailError !== null}
               aria-describedby={emailError ? 'courriel-connexion-erreur' : undefined}
@@ -240,7 +240,7 @@ export function LoginForm({
             d'appuyer dessus. `disabled` empêche le second envoi. */}
         <Button type="submit" size="sm" disabled={pending} className="w-full">
           {pending ? <Loader2 className="animate-spin" /> : null}
-          {pending ? 'Envoi…' : 'Recevoir un code'}
+          {pending ? t('Envoi…') : t('Recevoir un code')}
         </Button>
 
         {/*
@@ -363,27 +363,30 @@ function Feedback({ children }: { children: React.ReactNode }) {
  * Aucun message ne révèle si l'adresse est connue — voir `lib/auth-actions.ts`. Les
  * cas listés décrivent tous soit une saisie à corriger, soit une panne de notre côté.
  */
-function message(result: Extract<AuthResult, { ok: false }>): string {
+function message(result: Extract<AuthResult, { ok: false }>, t: (text: string) => string): string {
   switch (result.reason) {
     case 'unavailable':
-      return 'La connexion n’est pas configurée sur cette instance.'
+      return t('La connexion n’est pas configurée sur cette instance.')
     case 'invalid-email':
-      return 'Cette adresse ne semble pas valide.'
+      return t('Cette adresse ne semble pas valide.')
     case 'too-many':
-      return 'Trop de codes demandés pour cette adresse. Réessayez dans une heure.'
+      return t('Trop de codes demandés pour cette adresse. Réessayez dans une heure.')
     case 'send-failed':
-      return 'Le courriel n’a pas pu partir. Réessayez dans un instant.'
+      return t('Le courriel n’a pas pu partir. Réessayez dans un instant.')
     case 'code-missing':
-      return 'Aucun code en attente pour cette adresse. Demandez-en un nouveau.'
+      return t('Aucun code en attente pour cette adresse. Demandez-en un nouveau.')
     case 'code-expired':
-      return 'Ce code a expiré. Demandez-en un nouveau.'
+      return t('Ce code a expiré. Demandez-en un nouveau.')
     case 'code-exhausted':
-      return 'Trop d’essais : ce code est annulé. Demandez-en un nouveau.'
+      return t('Trop d’essais : ce code est annulé. Demandez-en un nouveau.')
     case 'code-wrong':
       return result.left !== undefined && result.left > 0
-        ? `Code incorrect — ${result.left} essai${result.left > 1 ? 's' : ''} restant${result.left > 1 ? 's' : ''}.`
-        : 'Code incorrect.'
+        ? t(result.left > 1 ? 'Code incorrect — {n} essais restants.' : 'Code incorrect — {n} essai restant.').replace(
+            '{n}',
+            String(result.left),
+          )
+        : t('Code incorrect.')
     default:
-      return 'La connexion a échoué. Réessayez.'
+      return t('La connexion a échoué. Réessayez.')
   }
 }

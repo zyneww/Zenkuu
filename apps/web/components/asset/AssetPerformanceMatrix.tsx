@@ -137,7 +137,7 @@ export async function AssetPerformanceMatrix({
                   scope="col"
                   className="border-l border-border-subtle/60 px-4 py-2.5 text-right font-semibold"
                 >
-                  {period.label}
+                  {t(period.label)}
                 </th>
               ))}
             </tr>

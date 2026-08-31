@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 
 import { AuthPageView } from '@/components/account/AuthPageView'
-import { getSeo } from '@/lib/content'
+import { getPhrase, getSeo } from '@/lib/content'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
 import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = await getSeo()
+  const [seo, t] = await Promise.all([getSeo(), getPhrase()])
   return {
-    title: 'Inscription',
+    title: t('Inscription'),
     description: seo(
       '/inscription',
       'Créez un compte ZENKUU avec une adresse électronique. Ni mot de passe ni vérification d’identité — le compte ne sert qu’à emporter vos listes de suivi.',

@@ -95,7 +95,7 @@ export async function AssetAnalystView({
     <RailSection title={t('Consensus d’analystes')}>
       {analyst.recommendation ? (
         <p className="mb-2 text-sm font-semibold text-ink">
-          {RECOMMENDATIONS[analyst.recommendation] ?? analyst.recommendation}
+          {t(RECOMMENDATIONS[analyst.recommendation] ?? analyst.recommendation)}
           {total > 0 ? (
             <span className="ml-1.5 text-xs font-normal text-ink-muted">
               sur {total} avis

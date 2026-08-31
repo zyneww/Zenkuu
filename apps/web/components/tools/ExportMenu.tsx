@@ -3,6 +3,7 @@
 import { Check, Download } from 'lucide-react'
 import { useState } from 'react'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -60,6 +61,7 @@ export function ExportMenu<T>({
   /** Nom de l'onglet du classeur Excel. */
   sheetName?: string
 }) {
+  const t = usePhrase()
   const [copied, setCopied] = useState(false)
 
   async function run(format: ExportFormat, extension: string) {
@@ -91,7 +93,7 @@ export function ExportMenu<T>({
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" disabled={rows.length === 0}>
           {copied ? <Check /> : <Download />}
-          {copied ? 'Copié' : 'Exporter'}
+          {copied ? t('Copié') : t('Exporter')}
         </Button>
       </DropdownMenuTrigger>
 
@@ -100,7 +102,10 @@ export function ExportMenu<T>({
             le sort de l'ordre de tabulation et le marque comme intitulé du groupe, ce
             qui le fait annoncer AVANT les formats plutôt qu'entre deux d'entre eux. */}
         <DropdownMenuLabel className="text-[0.6875rem] font-normal uppercase tracking-wide text-ink-muted">
-          {rows.length} ligne{rows.length > 1 ? 's' : ''} à exporter
+          {t(rows.length > 1 ? '{n} lignes à exporter' : '{n} ligne à exporter').replace(
+            '{n}',
+            String(rows.length),
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 

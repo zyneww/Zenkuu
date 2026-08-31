@@ -82,7 +82,7 @@ export default async function PlacesPage() {
       ) : (
         <EmptyState
           title={t('Classement des places indisponible')}
-          description={exchanges.ok ? 'La source ne publie aucune place.' : exchanges.reason}
+          description={exchanges.ok ? t('La source ne publie aucune place.') : exchanges.reason}
           source={exchanges.source?.label ?? null}
           tone={exchanges.ok ? 'neutral' : 'warning'}
         />

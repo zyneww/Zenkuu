@@ -237,7 +237,7 @@ export async function AssetHeadline({
   }
 
   if (asset.whitepaperUrl) {
-    links.push({ key: 'livre-blanc', href: asset.whitepaperUrl, label: 'Livre blanc', icon: FileText })
+    links.push({ key: 'livre-blanc', href: asset.whitepaperUrl, label: phrase('Livre blanc'), icon: FileText })
   }
 
   if (asset.sourceCodeUrl) {

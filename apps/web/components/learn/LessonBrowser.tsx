@@ -76,7 +76,7 @@ export function LessonBrowser() {
         </InputGroup>
 
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Filtrer par niveau')}>
-          <FilterButton active={level === 'tous'} onClick={() => setLevel('tous')} label="Tous niveaux" />
+          <FilterButton active={level === 'tous'} onClick={() => setLevel('tous')} label={t('Tous niveaux')} />
           {LEVELS.map((entry) => (
             <FilterButton
               key={entry.id}

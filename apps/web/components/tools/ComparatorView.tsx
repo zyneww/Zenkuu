@@ -267,9 +267,9 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               mode="multiple"
               disabledReason={(asset) =>
                 selected.includes(asset.id)
-                  ? 'déjà comparé'
+                  ? t('déjà comparé')
                   : selected.length >= max
-                    ? 'limite atteinte'
+                    ? t('limite atteinte')
                     : null
               }
               triggerClassName="flex h-full min-h-[4.5rem] w-full items-center justify-center gap-2 rounded-card border border-dashed border-border-subtle bg-surface px-3 py-2.5 text-sm text-ink-muted transition-colors hover:border-brand hover:text-ink focus:border-brand focus:outline-none"
@@ -504,6 +504,8 @@ function SlotCard({
   /** Absent sur le dernier actif : une comparaison vide n'a rien à montrer. */
   onRemove?: (() => void) | undefined
 }) {
+  const t = usePhrase()
+
   return (
     <div className="relative overflow-hidden rounded-card border border-border-subtle bg-surface">
       <span className="block h-1 w-full" style={{ backgroundColor: color }} aria-hidden="true" />
@@ -516,7 +518,7 @@ function SlotCard({
           <p className="text-xs text-ink-muted">
             <span className="uppercase">{asset.symbol}</span>
             <span className="mx-1.5 text-border-subtle">·</span>
-            {CLASS_SHORT[asset.assetClass]}
+            {t(CLASS_SHORT[asset.assetClass])}
           </p>
           <p className="tabular mt-1 flex items-baseline gap-2 text-sm text-ink">
             <Money value={asset.price} from={asset.currency} />

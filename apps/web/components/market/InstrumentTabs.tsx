@@ -30,7 +30,7 @@ export async function InstrumentTabs({ current }: { current: 'derives' | 'places
   ]
 
   return (
-    <TabsBar ariaLabel="Instruments et places">
+    <TabsBar ariaLabel={t('Instruments et places')}>
       <LinkTabs tabs={tabs} active={current} />
     </TabsBar>
   )

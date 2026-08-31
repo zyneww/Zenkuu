@@ -373,7 +373,7 @@ export function MacroGlobe({
                 {country.name}
                 {row
                   ? ` — ${formatMacroValue(row.value, scale)}${unit ? ` ${unit}` : ''} (${row.year})`
-                  : ' — non publié'}
+                  : t(' — non publié')}
               </title>
             </path>
           )
@@ -399,7 +399,7 @@ export function MacroGlobe({
 
         <ZoomButton
           onClick={() => setZoom((current) => Math.min(MAX_ZOOM, current * 1.5))}
-          label="Agrandir"
+          label={t('Agrandir')}
           disabled={zoom >= MAX_ZOOM}
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />

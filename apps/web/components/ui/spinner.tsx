@@ -1,5 +1,8 @@
+'use client'
+
 import { Spinner as HeroSpinner } from '@heroui/react'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { cn } from '@/lib/utils'
 
 /**
@@ -27,7 +30,7 @@ import { cn } from '@/lib/utils'
  */
 export function Spinner({
   className,
-  label = 'Chargement en cours',
+  label,
   ...props
 }: React.ComponentProps<typeof HeroSpinner> & {
   /**
@@ -39,10 +42,15 @@ export function Spinner({
    */
   label?: string
 }) {
+  const t = usePhrase()
+  // `undefined` prend le libellé par défaut ; la chaîne vide le retire, ce que les
+  // appelants qui décrivent déjà l'attente dans leur texte demandent explicitement.
+  const texte = label ?? t('Chargement en cours')
+
   return (
     <span role="status" className="contents">
       <HeroSpinner className={cn(className)} {...props} />
-      {label ? <span className="sr-only">{label}</span> : null}
+      {texte ? <span className="sr-only">{texte}</span> : null}
     </span>
   )
 }

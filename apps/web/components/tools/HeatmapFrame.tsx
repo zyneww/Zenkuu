@@ -2,6 +2,7 @@
 
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { IconButton } from '@/components/ui/IconButton'
 
 /**
@@ -32,6 +33,7 @@ export function HeatmapFrame({
   /** Contrôles posés à gauche du bouton de plein écran. */
   tools?: React.ReactNode
 }) {
+  const t = usePhrase()
   const [fullscreen, setFullscreen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -69,7 +71,7 @@ export function HeatmapFrame({
             if (document.fullscreenElement) void document.exitFullscreen()
             else void ref.current?.requestFullscreen()
           }}
-          label={fullscreen ? 'Quitter le plein écran' : 'Afficher en plein écran'}
+          label={fullscreen ? t('Quitter le plein écran') : t('Afficher en plein écran')}
           icon={fullscreen ? Minimize2 : Maximize2}
         />
       </div>

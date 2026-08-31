@@ -130,7 +130,7 @@ interface RouteParams {
 export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
   const t = await getPhrase()
   const { type } = await params
-  if (!isRankingType(type)) return { title: 'Classement introuvable' }
+  if (!isRankingType(type)) return { title: t('Classement introuvable') }
 
   const entry = RANKINGS[type]
   return {

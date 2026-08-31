@@ -90,7 +90,7 @@ export function SentimentHistoryView({
         >
           {available.map((range) => (
             <ToggleGroupItem key={range.days} value={String(range.days)} className="tabular">
-              {range.label}
+              {t(range.label)}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -101,7 +101,7 @@ export function SentimentHistoryView({
       {stats ? (
         <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle">
           <Cell label={t('Plus bas sur la période')} value={stats.min} />
-          <Cell label="Moyenne" value={stats.moyenne} />
+          <Cell label={t('Moyenne')} value={stats.moyenne} />
           <Cell label={t('Plus haut sur la période')} value={stats.max} />
         </dl>
       ) : null}

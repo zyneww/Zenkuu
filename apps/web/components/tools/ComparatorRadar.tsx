@@ -77,14 +77,14 @@ export function ComparatorRadar({
   const rows = useMemo(
     () =>
       HORIZONS.map((horizon) => {
-        const row: Record<string, string | number> = { horizon: horizon.label }
+        const row: Record<string, string | number> = { horizon: t(horizon.label) }
         for (const asset of assets) {
           const value = asset[horizon.key]
           if (typeof value === 'number' && Number.isFinite(value)) row[asset.id] = value
         }
         return row
       }),
-    [assets],
+    [assets, t],
   )
 
   /*

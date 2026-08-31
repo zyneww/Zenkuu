@@ -178,7 +178,7 @@ export function ExchangeTickersTable({
                         title={t('Positions non dénouées sur ce contrat, en dollars')}
                       />
                       <SortableHeader
-                        label="Financement"
+                        label={t('Financement')}
                         sortKey="funding"
                         className="hidden md:table-cell"
                         sort={sort}
@@ -429,10 +429,12 @@ function TradedAt({ iso }: { iso: string }) {
  * lecteurs d'écran ; la couleur n'est qu'un raccourci pour ceux qui la perçoivent.
  */
 function TrustDot({ score }: { score?: string }) {
+  const t = usePhrase()
   if (!score) return <span className="text-ink-muted">—</span>
 
-  const label =
-    score === 'green' ? 'Bonne' : score === 'yellow' ? 'Moyenne' : score === 'red' ? 'Faible' : score
+  const label = t(
+    score === 'green' ? 'Bonne' : score === 'yellow' ? 'Moyenne' : score === 'red' ? 'Faible' : score,
+  )
   const tone =
     score === 'green' ? 'bg-up' : score === 'yellow' ? 'bg-[var(--color-warning)]' : 'bg-down'
 

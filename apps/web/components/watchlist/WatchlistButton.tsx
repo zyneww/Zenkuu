@@ -63,7 +63,7 @@ export function WatchlistButton({
       <div className="flex flex-col items-end gap-1">
         <Button size="sm" variant="outline" disabled>
           <Star />
-          Suivi indisponible
+          {t('Suivi indisponible')}
         </Button>
         <p className="max-w-[16rem] text-right text-[0.6875rem] leading-snug text-ink-muted">
           {t('Aucune base de données n’est configurée sur cette instance.')}
@@ -127,12 +127,12 @@ export function WatchlistButton({
           className={`size-[1.125rem] ${following ? 'fill-current' : ''}`}
           aria-hidden="true"
         />
-        {following ? 'Suivi' : 'Suivre'}
+        {following ? t('Suivi') : t('Suivre')}
       </Button>
 
       {failure ? (
         <p role="status" className="max-w-[16rem] text-right text-[0.6875rem] leading-snug text-ink-muted">
-          {reasonLabel(failure)}{' '}
+          {reasonLabel(failure, t)}{' '}
           {/*
             Le plafond est le SEUL refus qui se résout par un geste du lecteur : les
             autres décrivent une panne d'exploitation, sur laquelle il ne peut rien.
@@ -154,15 +154,18 @@ export function WatchlistButton({
 
 type FailureReason = Exclude<WatchlistActionResult, { ok: true }>['reason']
 
-function reasonLabel(reason: FailureReason): string {
+function reasonLabel(reason: FailureReason, t: (text: string) => string): string {
   switch (reason) {
     case 'limit-reached':
-      return `Votre liste atteint ${WATCHLIST_ASSET_LIMIT} actifs, le plafond du site.`
+      return t('Votre liste atteint {n} actifs, le plafond du site.').replace(
+        '{n}',
+        String(WATCHLIST_ASSET_LIMIT),
+      )
     case 'list-limit':
-      return 'Vous avez atteint le nombre maximal de listes.'
+      return t('Vous avez atteint le nombre maximal de listes.')
     case 'db-disabled':
-      return 'La base de données n’est pas configurée : le suivi n’est pas conservé.'
+      return t('La base de données n’est pas configurée : le suivi n’est pas conservé.')
     default:
-      return 'L’enregistrement a échoué. Réessayez.'
+      return t('L’enregistrement a échoué. Réessayez.')
   }
 }

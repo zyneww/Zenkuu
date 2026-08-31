@@ -210,12 +210,12 @@ export default async function ConverterPage() {
         <RelatedCard
           href="/crypto"
           title={t('Voir les cours')}
-          description="Les cryptomonnaies classées par capitalisation, avec leurs variations."
+          description={t('Les cryptomonnaies classées par capitalisation, avec leurs variations.')}
         />
         <RelatedCard
           href="/devises"
           title={t('Taux de référence BCE')}
-          description="Les paires de change majeures, telles que la Banque centrale les publie."
+          description={t('Les paires de change majeures, telles que la Banque centrale les publie.')}
         />
       </div>
 
@@ -321,7 +321,7 @@ async function ConverterFaq() {
             open={index === 0}
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
-              {index + 1}. {entry.question}
+              {index + 1}. {t(entry.question)}
               <ChevronDown
                 aria-hidden
                 className="size-4 shrink-0 text-ink-muted transition-transform duration-200 group-open:rotate-180"
@@ -330,7 +330,7 @@ async function ConverterFaq() {
             <div className="space-y-2 pb-4">
               {entry.answer.map((paragraph) => (
                 <p key={paragraph} className="text-sm leading-relaxed text-ink-muted">
-                  {paragraph}
+                  {t(paragraph)}
                 </p>
               ))}
             </div>
