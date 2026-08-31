@@ -69,7 +69,9 @@ export default async function CategoryPage({
   const category = await loadCategory(id)
   if (!category) notFound()
 
-  const assets = await getCategoryAssets(category.id, 'eur', 50, 1)
+  /* 100 et non 50 : leur page de catégorie reprend le gabarit de l'accueil, cent
+     lignes comprises. Relevé le 2026-08-31 sur `/en/categories/meme-token`. */
+  const assets = await getCategoryAssets(category.id, 'eur', 100, 1)
 
   return (
     <div className="space-y-10">
@@ -138,6 +140,22 @@ export default async function CategoryPage({
               sortable={false}
               paginated={false}
               basePath={`/categories/${category.id}`}
+              /* `cotations` — le jeu de la grille de marché, celui de l'accueil.
+                 Leur page de catégorie reprend le gabarit de leur accueil, et ce jeu
+                 apporte la capitalisation, la FDV et le ratio qu'`apercu` n'avait pas.
+                 Relevé le 2026-08-31 sur `/en/categories/meme-token`.
+
+                 ⚠️ LA FENÊTRE 1 H MANQUE ENCORE, et pas par oubli. Les fenêtres
+                 secondaires (`extraPeriods`) ne se rendent QUE si un sélecteur de
+                 période est actif : sans lui, la colonne principale porte déjà 24 h et
+                 les autres seraient sans point de comparaison. Cette page n'a pas de
+                 sélecteur. L'ajouter demanderait de découpler les deux mécanismes,
+                 pour UNE colonne — voir `MIGRATION_RAPPORT.md`, section « Partiel ».
+
+                 La colonne « Action » apparaît avec ce jeu : c'est un lien vers la
+                 fiche, pas le bouton « Buy » de la référence. Voir sa note dans
+                 `MarketTable`. */
+              columnSet="cotations"
               chartPosition="end"
             />
             <SourceNote

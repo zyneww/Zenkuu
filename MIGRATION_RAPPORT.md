@@ -105,6 +105,19 @@ lecteur anglophone voit donc « Blockchain » suivi d'un texte français. L'inco
 est visible ; elle vient de traductions ajoutées au fil de l'eau pour d'autres usages,
 pas d'un travail à moitié fait sur cette page.
 
+### La fenêtre 1 h ne se rend pas hors sélecteur
+
+Les pages de catégorie et de liste affichent 24 h, 7 j et 1 M, jamais 1 h. La
+référence affiche les quatre partout.
+
+Ce n'est pas un oubli : `extraPeriods` ne se calcule QUE si un sélecteur de période est
+actif. La logique se tient — sans sélecteur, la colonne principale porte déjà 24 h et
+les fenêtres secondaires seraient sans point de comparaison. Mais elle empêche
+d'afficher 1 h sur une page qui n'a pas de sélecteur.
+
+Découpler les deux mécanismes est faisable et borné ; ça n'a pas été fait aujourd'hui
+pour UNE colonne, et le code porte la note à l'endroit où la question se posera.
+
 ### Les resserrements positifs subsistent
 
 57 occurrences de `tracking-wide` et au-delà, sur des libellés en capitales. Aucun relevé
