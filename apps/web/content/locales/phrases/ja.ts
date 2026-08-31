@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  "Historique des cours": "価格の履歴",
+  "Historique": "履歴",
+  "Historique indisponible": "履歴を取得できません",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "各日の終値と前日との差。チャートは形を示し、この表は数値を示します。",
   "Halving du bitcoin": "ビットコインの半減期",
   "Halving": "半減期",
   "Calendrier des halvings du bitcoin": "ビットコイン半減期の予定表",
@@ -327,7 +331,6 @@ export const jaPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'プラットフォーム運営者が保有する資金',
   'Fréquence': '更新頻度',
   'Grandeur tracée': '表示する指標',
-  'Historique des cours': '価格の推移',
   'Indicateurs macroéconomiques': 'マクロ経済指標',
   'Initiés': '内部関係者',
   'Intérêt ouvert': '建玉',

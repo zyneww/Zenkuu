@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  "Historique des cours": "Histórico de preços",
+  "Historique": "Histórico",
+  "Historique indisponible": "Histórico indisponível",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "O fechamento de cada dia e a diferença com o anterior. O gráfico mostra uma forma; esta tabela dá os números.",
   "Halving du bitcoin": "Halving do bitcoin",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Calendário dos halvings do bitcoin",
@@ -327,7 +331,6 @@ export const ptBRPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Recursos mantidos pelo operador da plataforma',
   'Fréquence': 'Frequência',
   'Grandeur tracée': 'Grandeza traçada',
-  'Historique des cours': 'Histórico de cotações',
   'Indicateurs macroéconomiques': 'Indicadores macroeconômicos',
   'Initiés': 'Insiders',
   'Intérêt ouvert': 'Contratos em aberto',

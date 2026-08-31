@@ -8,6 +8,10 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  "Historique des cours": "Histórico de precios",
+  "Historique": "Histórico",
+  "Historique indisponible": "Histórico no disponible",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "El cierre de cada día y la diferencia con el anterior. El gráfico muestra una forma; esta tabla da los números.",
   "Halving du bitcoin": "Halving de bitcoin",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Calendario de halvings de bitcoin",
@@ -334,7 +338,6 @@ export const esPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Fondos en poder del operador de la plataforma',
   'Fréquence': 'Frecuencia',
   'Grandeur tracée': 'Magnitud representada',
-  'Historique des cours': 'Histórico de cotizaciones',
   'Indicateurs macroéconomiques': 'Indicadores macroeconómicos',
   'Initiés': 'Iniciados',
   'Intérêt ouvert': 'Interés abierto',

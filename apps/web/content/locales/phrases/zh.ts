@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  "Historique des cours": "价格历史",
+  "Historique": "历史",
+  "Historique indisponible": "暂无历史数据",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "每日的收盘价，以及与前一日的差额。图表显示形态，本表给出数字。",
   "Halving du bitcoin": "比特币减半",
   "Halving": "减半",
   "Calendrier des halvings du bitcoin": "比特币减半时间表",
@@ -320,7 +324,6 @@ export const zhPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': '由平台运营方持有的资金',
   'Fréquence': '频率',
   'Grandeur tracée': '绘制的指标',
-  'Historique des cours': '历史价格',
   'Indicateurs macroéconomiques': '宏观经济指标',
   'Initiés': '内部人士',
   'Intérêt ouvert': '未平仓合约',

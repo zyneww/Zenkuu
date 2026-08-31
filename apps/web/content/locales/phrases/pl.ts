@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  "Historique des cours": "Historia kursów",
+  "Historique": "Historia",
+  "Historique indisponible": "Historia niedostępna",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "Zamknięcie każdego dnia i różnica względem poprzedniego. Wykres pokazuje kształt; ta tabela podaje liczby.",
   "Halving du bitcoin": "Halving bitcoina",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Harmonogram halvingów bitcoina",
@@ -327,7 +331,6 @@ export const plPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Środki w posiadaniu operatora platformy',
   'Fréquence': 'Częstotliwość',
   'Grandeur tracée': 'Wykreślana wielkość',
-  'Historique des cours': 'Historia kursów',
   'Indicateurs macroéconomiques': 'Wskaźniki makroekonomiczne',
   'Initiés': 'Osoby powiązane',
   'Intérêt ouvert': 'Otwarte pozycje',

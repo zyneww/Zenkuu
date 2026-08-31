@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  "Historique des cours": "Lịch sử giá",
+  "Historique": "Lịch sử",
+  "Historique indisponible": "Không có lịch sử",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "Giá đóng cửa mỗi ngày và chênh lệch so với hôm trước. Biểu đồ cho thấy hình dạng; bảng này cho các con số.",
   "Halving du bitcoin": "Halving của bitcoin",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Lịch halving của bitcoin",
@@ -327,7 +331,6 @@ export const viPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Tiền do đơn vị vận hành nền tảng nắm giữ',
   'Fréquence': 'Tần suất',
   'Grandeur tracée': 'Đại lượng được vẽ',
-  'Historique des cours': 'Lịch sử giá',
   'Indicateurs macroéconomiques': 'Chỉ báo kinh tế vĩ mô',
   'Initiés': 'Người nội bộ',
   'Intérêt ouvert': 'Hợp đồng mở',

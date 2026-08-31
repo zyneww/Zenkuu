@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  "Historique des cours": "Fiyat geçmişi",
+  "Historique": "Geçmiş",
+  "Historique indisponible": "Geçmiş kullanılamıyor",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "Her günün kapanışı ve bir önceki günle farkı. Grafik bir biçim gösterir; bu tablo sayıları verir.",
   "Halving du bitcoin": "Bitcoin halving",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Bitcoin halving takvimi",
@@ -327,7 +331,6 @@ export const trPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Platform işletmecisinin tuttuğu fonlar',
   'Fréquence': 'Sıklık',
   'Grandeur tracée': 'Çizilen büyüklük',
-  'Historique des cours': 'Fiyat geçmişi',
   'Indicateurs macroéconomiques': 'Makroekonomik göstergeler',
   'Initiés': 'İçeridekiler',
   'Intérêt ouvert': 'Açık pozisyon',

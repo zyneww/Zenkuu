@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  "Historique des cours": "Koershistorie",
+  "Historique": "Historie",
+  "Historique indisponible": "Historie niet beschikbaar",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "De slotkoers van elke dag en het verschil met de dag ervoor. De grafiek toont een vorm; deze tabel geeft de cijfers.",
   "Halving du bitcoin": "Bitcoin-halving",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Schema van bitcoin-halvings",
@@ -327,7 +331,6 @@ export const nlPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Middelen in handen van de platformexploitant',
   'Fréquence': 'Frequentie',
   'Grandeur tracée': 'Getekende grootheid',
-  'Historique des cours': 'Koershistorie',
   'Indicateurs macroéconomiques': 'Macro-economische indicatoren',
   'Initiés': 'Insiders',
   'Intérêt ouvert': 'Openstaande posities',

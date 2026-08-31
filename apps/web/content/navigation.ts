@@ -170,6 +170,17 @@ export const NAV_MENUS: NavMenu[] = [
             href: '/crypto/bitcoin/halving',
             ready: true,
           },
+          {
+            /* Bitcoin comme point d'entrée : la route est `/crypto/[id]/historique`,
+               et un menu ne peut pas nommer les milliers d'actifs. Depuis là, changer
+               d'identifiant dans l'adresse suffit — et la fiche de chaque actif reste
+               le chemin normal. */
+            label: 'Historique des cours',
+            description: 'La clôture de chaque journée, jour par jour',
+            icon: LineChart,
+            href: '/crypto/bitcoin/historique',
+            ready: true,
+          },
         ],
       },
       {

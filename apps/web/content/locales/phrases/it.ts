@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  "Historique des cours": "Storico dei prezzi",
+  "Historique": "Storico",
+  "Historique indisponible": "Storico non disponibile",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "La chiusura di ogni giornata e lo scarto con il giorno prima. Il grafico mostra una forma; questa tabella dà i numeri.",
   "Halving du bitcoin": "Halving di bitcoin",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Calendario degli halving di bitcoin",
@@ -327,7 +331,6 @@ export const itPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Fondi detenuti dall’operatore della piattaforma',
   'Fréquence': 'Frequenza',
   'Grandeur tracée': 'Grandezza tracciata',
-  'Historique des cours': 'Storico dei prezzi',
   'Indicateurs macroéconomiques': 'Indicatori macroeconomici',
   'Initiés': 'Insider',
   'Intérêt ouvert': 'Interesse aperto',

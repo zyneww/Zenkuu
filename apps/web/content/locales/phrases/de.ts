@@ -9,6 +9,10 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  "Historique des cours": "Kursverlauf",
+  "Historique": "Verlauf",
+  "Historique indisponible": "Verlauf nicht verfügbar",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "Der Schlusskurs jedes Tages und der Abstand zum Vortag. Das Diagramm zeigt eine Form; diese Tabelle liefert die Zahlen.",
   "Halving du bitcoin": "Bitcoin-Halving",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Zeitplan der Bitcoin-Halvings",
@@ -335,7 +339,6 @@ export const dePhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Vom Plattformbetreiber gehaltene Mittel',
   'Fréquence': 'Häufigkeit',
   'Grandeur tracée': 'Dargestellte Größe',
-  'Historique des cours': 'Kursverlauf',
   'Indicateurs macroéconomiques': 'Makroökonomische Indikatoren',
   'Initiés': 'Insider',
   'Intérêt ouvert': 'Offene Positionen',

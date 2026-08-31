@@ -13,6 +13,10 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  "Historique des cours": "Price history",
+  "Historique": "History",
+  "Historique indisponible": "History unavailable",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "Each day’s close, and the gap with the day before. The chart shows a shape; this table gives the numbers.",
   "Halving du bitcoin": "Bitcoin halving",
   "Halving": "Halving",
   "Calendrier des halvings du bitcoin": "Bitcoin halving schedule",
@@ -339,7 +343,6 @@ export const enPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Funds held by the platform operator',
   'Fréquence': 'Frequency',
   'Grandeur tracée': 'Plotted measure',
-  'Historique des cours': 'Price history',
   'Indicateurs macroéconomiques': 'Macroeconomic indicators',
   'Initiés': 'Insiders',
   'Intérêt ouvert': 'Open interest',

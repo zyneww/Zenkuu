@@ -2,6 +2,10 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  "Historique des cours": "История цен",
+  "Historique": "История",
+  "Historique indisponible": "История недоступна",
+  "La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.": "Закрытие каждого дня и разница с предыдущим. График показывает форму; эта таблица даёт числа.",
   "Halving du bitcoin": "Халвинг биткоина",
   "Halving": "Халвинг",
   "Calendrier des halvings du bitcoin": "График халвингов биткоина",
@@ -327,7 +331,6 @@ export const ruPhrases: Phrases = {
   'Fonds détenus par l’opérateur de la plateforme': 'Средства, удерживаемые оператором площадки',
   'Fréquence': 'Частота',
   'Grandeur tracée': 'Отображаемая величина',
-  'Historique des cours': 'История котировок',
   'Indicateurs macroéconomiques': 'Макроэкономические показатели',
   'Initiés': 'Инсайдеры',
   'Intérêt ouvert': 'Открытый интерес',
