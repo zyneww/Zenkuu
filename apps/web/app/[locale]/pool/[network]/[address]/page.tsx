@@ -5,6 +5,7 @@ import { getPool, getPoolsOnNetwork } from '@zenkuu/data'
 import { ChangeBadge, EmptyState, SourceNote, formatCompact } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
+import { fill } from '@/components/locale/emphasise'
 import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { Panel } from '@/components/ui/Panel'
 import { getPhrase } from '@/lib/content'
@@ -117,7 +118,7 @@ export default async function Page({ params }: RouteParams) {
           ) : null}
           {data.feePercent !== undefined ? (
             <span className="rounded-control bg-surface-muted px-2 py-0.5 text-xs text-ink-muted">
-              {data.feePercent.toString().replace('.', ',')} % de frais
+              {t('{taux} % de frais').replace('{taux}', data.feePercent.toString().replace('.', ','))}
             </span>
           ) : null}
         </div>
@@ -139,8 +140,9 @@ export default async function Page({ params }: RouteParams) {
             cherchera le module d'échange : mieux vaut lui dire qu'il n'existe pas que
             de le laisser le chercher. */}
         <p className="text-xs text-ink-muted">
-          Adresse du pool <code className="text-[0.6875rem]">{data.address}</code> · lecture seule,
-          aucun ordre ne part d’ici.
+          {fill(t('Adresse du pool {adresse} · lecture seule, aucun ordre ne part d’ici.'), {
+            adresse: <code className="text-[0.6875rem]">{data.address}</code>,
+          })}
         </p>
       </header>
 
@@ -192,7 +194,7 @@ export default async function Page({ params }: RouteParams) {
       {others.length > 0 ? (
         <section className="space-y-2">
           <h2 className="text-sm font-semibold text-ink">
-            Où ce jeton se négocie aussi, sur {network}
+            {t('Où ce jeton se négocie aussi, sur {reseau}').replace('{reseau}', network)}
           </h2>
           <p className="text-xs text-ink-muted">{t('Les autres pools du même jeton de base, du plus profond au moins profond.')}</p>
           <DexPoolTable pools={others.slice(0, 12)} />

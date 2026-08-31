@@ -51,9 +51,9 @@ export function SpotExchangesPanel({ exchanges }: { exchanges: SpotExchange[] })
         <div className="min-w-0 space-y-1">
           <h2 id="places-titre" className="display-md text-ink">{t('Où s’échange le marché au comptant')}</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">
-            Les {exchanges.length} premières places par note de confiance, et le volume
-            qu’elles déclarent sur 24 heures. ZENKUU ne référence aucun carnet d’ordres et
-            ne permet aucune transaction : ce tableau situe l’activité, il n’y donne pas accès.
+            {t(
+              'Les {n} premières places par note de confiance, et le volume qu’elles déclarent sur 24 heures. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction : ce tableau situe l’activité, il n’y donne pas accès.',
+            ).replace('{n}', String(exchanges.length))}
           </p>
         </div>
 

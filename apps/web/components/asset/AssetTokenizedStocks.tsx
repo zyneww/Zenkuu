@@ -120,18 +120,20 @@ export function AssetTokenizedStocks({
       <section aria-labelledby="jetons-titre" className="space-y-3">
         <div className="space-y-1">
           <h2 id="jetons-titre" className="display-sm text-ink">
-            {t('Jetons')} {assetName}
+            {t('Jetons {nom}').replace('{nom}', assetName)}
           </h2>
           <p className="text-sm leading-relaxed text-ink-muted">
-            Les jetons adossés à {assetName}, un par émetteur. Chacun a son cours et sa
-            liquidité propres&nbsp;: l’écart au cours de l’action mesure la qualité de
-            l’adossement.
+            {t(
+              'Les jetons adossés à {nom}, un par émetteur. Chacun a son cours et sa liquidité propres : l’écart au cours de l’action mesure la qualité de l’adossement.',
+            ).replace('{nom}', assetName)}
           </p>
         </div>
 
         <div className="rounded-card">
           <Table className="border-collapse sm:min-w-[640px]">
-            <caption className="sr-only">Versions tokenisées de {assetName}</caption>
+            <caption className="sr-only">
+              {t('Versions tokenisées de {nom}').replace('{nom}', assetName)}
+            </caption>
             <TableHeader className="[&_tr]:border-b-0">
               <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-xs text-ink-muted">
                 <th scope="col" className="w-10 px-3 py-2.5 text-right font-semibold">#</th>

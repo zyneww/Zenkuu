@@ -121,9 +121,11 @@ export default async function ConverterPage() {
           <span>{t('Sans compte')}</span>
         </div>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Convertir un montant entre {assets.length} cryptomonnaies et {SUPPORTED_CURRENCIES.length}{' '}
-          devises, au dernier cours reçu. Rien ne s’exécute : c’est un calcul, pas une
-          offre.
+          {t(
+            'Convertir un montant entre {actifs} cryptomonnaies et {devises} devises, au dernier cours reçu. Rien ne s’exécute : c’est un calcul, pas une offre.',
+          )
+            .replace('{actifs}', String(assets.length))
+            .replace('{devises}', String(SUPPORTED_CURRENCIES.length))}
         </p>
       </header>
 

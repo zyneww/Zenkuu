@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 
 import { ASSET_CHART_HEIGHT } from '@/components/asset/chart-kinds'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { useSettings } from '@/lib/stores/settings'
 
 /**
@@ -51,6 +52,7 @@ export function TradingViewChart({
   /** Symbole COMPLET au format TradingView — « BINANCE:BTCUSDT », « COMEX:GC1! ». */
   symbol: string
 }) {
+  const t = usePhrase()
   const containerRef = useRef<HTMLDivElement>(null)
   const { theme } = useSettings()
 
@@ -133,7 +135,7 @@ export function TradingViewChart({
           le symbole EFFECTIVEMENT tracé, qui porte sa place en préfixe : c'est la
           seule formulation qui ne puisse pas mentir (§5). */}
       <p className="border-t border-border-subtle px-3 py-2 text-xs text-ink-muted">
-        Graphique fourni par TradingView, sur {symbol}.
+        {t('Graphique fourni par TradingView, sur {symbole}.').replace('{symbole}', symbol)}
       </p>
     </div>
   )

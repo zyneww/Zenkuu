@@ -115,7 +115,9 @@ export async function DominanceView({
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">{t('Dominance de Bitcoin dans le temps')}</h2>
           {series.ready ? (
-            <p className="text-xs text-ink-muted">relevés ZENKUU sur {formatDepth(series.spanMinutes)}</p>
+            <p className="text-xs text-ink-muted">
+              {t('relevés ZENKUU sur {duree}').replace('{duree}', formatDepth(series.spanMinutes))}
+            </p>
           ) : null}
         </div>
 

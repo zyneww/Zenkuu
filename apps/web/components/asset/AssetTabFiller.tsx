@@ -52,7 +52,7 @@ export async function AssetTabFiller({ asset }: { asset: AssetDetail }) {
           place. Sans lui, le lecteur pourrait croire que « À propos » EST le contenu
           de l'onglet Trésorerie — et se demander pourquoi. */}
       <p className="text-xs text-ink-muted">
-        En attendant, voici ce que nous savons de {asset.name}.
+        {t('En attendant, voici ce que nous savons de {nom}.').replace('{nom}', asset.name)}
       </p>
 
       {hasDescription ? (

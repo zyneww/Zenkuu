@@ -155,7 +155,9 @@ export default async function ExchangePage({ params }: RouteProps) {
               ) : null}
 
               {place.country ? <span>{place.country}</span> : null}
-              {place.yearEstablished ? <span>· depuis {place.yearEstablished}</span> : null}
+              {place.yearEstablished ? (
+                <span>{t('· depuis {annee}').replace('{annee}', String(place.yearEstablished))}</span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -243,7 +245,7 @@ export default async function ExchangePage({ params }: RouteProps) {
       {/* ── À propos, et les réseaux ──────────────────────────────────────── */}
       {place.description || place.social ? (
         <section className="max-w-3xl space-y-3">
-          <h2 className="display-sm text-ink">À propos de {place.name}</h2>
+          <h2 className="display-sm text-ink">{t('À propos de {nom}').replace('{nom}', place.name)}</h2>
 
           {place.description ? (
             <>
@@ -255,8 +257,10 @@ export default async function ExchangePage({ params }: RouteProps) {
                   présentation d'opérateur financier introduirait des approximations
                   que rien ne signalerait au lecteur (§5). */}
               <p className="text-micro text-ink-muted opacity-80">
-                Présentation publiée en anglais par {result.source?.label ?? 'la source'},
-                reprise sans traduction.
+                {t('Présentation publiée en anglais par {source}, reprise sans traduction.').replace(
+                  '{source}',
+                  result.source?.label ?? t('la source'),
+                )}
               </p>
             </>
           ) : null}

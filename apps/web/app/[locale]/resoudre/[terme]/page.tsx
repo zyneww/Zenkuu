@@ -194,9 +194,9 @@ export default async function Page({ params }: { params: Promise<{ terme: string
           */}
           <h2 className="display-sm text-ink">{t('Actifs approchants')}</h2>
           <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-            Résultats d’une recherche élargie à «&nbsp;{fallback}&nbsp;». Ils portent un
-            nom voisin, ce qui ne veut pas dire qu’ils désignent le même actif — plusieurs
-            émetteurs publient des jetons de même nom. À vous de reconnaître le bon.
+            {t(
+              'Résultats d’une recherche élargie à « {terme} ». Ils portent un nom voisin, ce qui ne veut pas dire qu’ils désignent le même actif — plusieurs émetteurs publient des jetons de même nom. À vous de reconnaître le bon.',
+            ).replace('{terme}', fallback ?? '')}
           </p>
 
           <ul className="divide-y divide-border-subtle overflow-hidden rounded-card">

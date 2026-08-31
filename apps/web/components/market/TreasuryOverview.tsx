@@ -1,6 +1,7 @@
 import type { TreasuryReport } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
+import { emphasise } from '@/components/locale/emphasise'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import {
   TreemapFigure,
@@ -174,15 +175,11 @@ export async function TreasuryOverview({
           </HeatmapFrame>
 
           <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
-            {tiles.length} positions. Surface : valeur au cours du jour. Couleur :{' '}
-            <strong className="text-ink">{t('plus-value latente')}</strong> — l’écart entre cette
-            valeur et le coût d’acquisition déclaré, rapporté à ce coût. Ce n’est ni un
-            résultat réalisé ni une performance boursière : la position n’a pas été vendue.
-            Une tuile <strong className="text-ink">{t('grise')}</strong> signale une société qui n’a
-            pas communiqué son coût d’entrée — l’absence est affichée comme telle, jamais
-            remplacée par zéro. Ce registre recense enfin des positions{' '}
-            <strong className="text-ink">{t('déclarées')}</strong>, à la date de leur annonce : une
-            société qui aurait vendu sans le publier y figure encore. Montants en dollars.
+            {emphasise(
+              t(
+                '{n} positions. Surface : valeur au cours du jour. Couleur : **plus-value latente** — l’écart entre cette valeur et le coût d’acquisition déclaré, rapporté à ce coût. Ce n’est ni un résultat réalisé ni une performance boursière : la position n’a pas été vendue. Une tuile **grise** signale une société qui n’a pas communiqué son coût d’entrée — l’absence est affichée comme telle, jamais remplacée par zéro. Ce registre recense enfin des positions **déclarées**, à la date de leur annonce : une société qui aurait vendu sans le publier y figure encore. Montants en dollars.',
+              ).replace('{n}', String(tiles.length)),
+            )}
           </p>
         </div>
       ) : null}

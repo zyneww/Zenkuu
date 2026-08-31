@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { emphasise, weave } from '@/components/locale/emphasise'
 import { Link } from '@/i18n/navigation'
 
 import {
@@ -174,52 +175,56 @@ export default async function RankingsPage({
 
             {assetClass === 'crypto' ? (
               <p className="text-sm leading-relaxed text-ink-muted">
-                Le périmètre est <strong className="text-ink">borné aux 250 plus grandes
-                capitalisations</strong>, et ce n’est pas une limite technique : sur un jeton
-                minuscule, un seul échange déplace le cours de dizaines de points. Un
-                classement non borné ne remonterait que ce bruit.
+                {emphasise(
+                  t(
+                    'Le périmètre est **borné aux 250 plus grandes capitalisations**, et ce n’est pas une limite technique : sur un jeton minuscule, un seul échange déplace le cours de dizaines de points. Un classement non borné ne remonterait que ce bruit.',
+                  ),
+                )}
               </p>
             ) : (
               <p className="text-sm leading-relaxed text-ink-muted">
-                Cette classe compte un univers restreint et entièrement suivi : le classement
-                la couvre donc <strong className="text-ink">{t('en totalité')}</strong>, sans
-                troncature. Un palmarès y décrit le marché tel que ZENKUU le suit, ce qui
-                n’est pas la même chose que le marché mondial de cette classe.
+                {emphasise(
+                  t(
+                    'Cette classe compte un univers restreint et entièrement suivi : le classement la couvre donc **en totalité**, sans troncature. Un palmarès y décrit le marché tel que ZENKUU le suit, ce qui n’est pas la même chose que le marché mondial de cette classe.',
+                  ),
+                )}
               </p>
             )}
 
             <p className="text-sm leading-relaxed text-ink-muted">
-              La <strong className="text-ink">{t('rotation')}</strong> rapporte le volume de 24 heures
-              à la capitalisation. Une rotation élevée signale un actif très échangé au
-              regard de sa taille — ce qui décrit une activité, jamais une direction.
+              {emphasise(
+                t(
+                  'La **rotation** rapporte le volume de 24 heures à la capitalisation. Une rotation élevée signale un actif très échangé au regard de sa taille — ce qui décrit une activité, jamais une direction.',
+                ),
+              )}
               {/* Dit ici plutôt que laissé constater : les devises n'ont ni capitalisation
                   ni volume publié, et deux des quatre palmarès y sont donc absents. Sans
                   cette phrase, leur absence se lit comme une panne. */}
               {assetClass === 'forex' ? (
                 <>
                   {' '}
-                  <strong className="text-ink">
-                    {t('Elle n’apparaît pas sur les devises, ni le palmarès des volumes :')}
-                  </strong>{' '}
-                  une paire de change n’a ni capitalisation ni volume publié par la Banque
-                  centrale européenne.
+                  {emphasise(
+                    t(
+                      '**Elle n’apparaît pas sur les devises, ni le palmarès des volumes :** une paire de change n’a ni capitalisation ni volume publié par la Banque centrale européenne.',
+                    ),
+                  )}
                 </>
               ) : null}
             </p>
 
+            {/* Les renvois vers « données de trading » et « points marquants » ont
+                disparu avec les deux pages qu'ils visaient (demande explicite). La
+                heatmap prend leur place : c'est la lecture d'ensemble la plus proche
+                de ce qu'ils apportaient — les extrêmes du jour, d'un coup d'œil. */}
             <p className="text-sm text-ink-muted">
-              Pour le détail des cours :{' '}
-              <Link href="/crypto" className="text-ink hover:underline">
-                {t('cotations')}
-              </Link>{' '}
-              ·{' '}
-              {/* Les renvois vers « données de trading » et « points marquants » ont
-                  disparu avec les deux pages qu'ils visaient (demande explicite). La
-                  heatmap prend leur place : c'est la lecture d'ensemble la plus proche
-                  de ce qu'ils apportaient — les extrêmes du jour, d'un coup d'œil. */}
-              <Link href="/heatmap" className="text-ink hover:underline">
-                {t('heatmap sectorielle')}
-              </Link>
+              {weave(
+                t('Pour le détail des cours : [cotations](/crypto) · [heatmap sectorielle](/heatmap)'),
+                (href, label, key) => (
+                  <Link key={key} href={href} className="text-ink hover:underline">
+                    {label}
+                  </Link>
+                ),
+              )}
             </p>
           </section>
 

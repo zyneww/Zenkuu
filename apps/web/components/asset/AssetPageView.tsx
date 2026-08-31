@@ -1530,8 +1530,10 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             {/* L'attribution, systématique — voir le calcul de `about` plus haut. */}
             {about.credit === 'source-en' ? (
               <p className="text-micro text-ink-muted opacity-80">
-                Résumé d’activité publié en anglais par {asset.source?.label ?? 'la source'},
-                repris sans traduction.
+                {t('Résumé d’activité publié en anglais par {source}, repris sans traduction.').replace(
+                  '{source}',
+                  asset.source?.label ?? t('la source'),
+                )}
               </p>
             ) : null}
 

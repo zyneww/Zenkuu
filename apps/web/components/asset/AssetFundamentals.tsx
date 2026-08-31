@@ -1,6 +1,7 @@
 import type { AssetProfile } from '@zenkuu/data'
 import { formatCompact, formatNumber, formatPercent, formatShare } from '@zenkuu/ui'
 
+import { fill } from '@/components/locale/emphasise'
 import { Panel } from '@/components/ui/Panel'
 import { getPhrase } from '@/lib/content'
 
@@ -65,10 +66,11 @@ export async function AssetFundamentals({
             marché. Même arbitrage que pour « Valorisation » dans `AssetProfileRail`. */}
         <h2 className="display-sm text-ink">{t('Comptes de l’entreprise')}</h2>
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-          Ce que {assetName} gagne et ce qu’elle doit, tel que la société le publie. Les
-          montants sont en {currency.toUpperCase()}, devise de cotation — ils ne suivent pas
-          la devise d’affichage, parce qu’un chiffre d’affaires converti au taux du jour
-          n’est comparable à rien.
+          {t(
+            'Ce que {nom} gagne et ce qu’elle doit, tel que la société le publie. Les montants sont en {devise}, devise de cotation — ils ne suivent pas la devise d’affichage, parce qu’un chiffre d’affaires converti au taux du jour n’est comparable à rien.',
+          )
+            .replace('{nom}', assetName)
+            .replace('{devise}', currency.toUpperCase())}
         </p>
       </div>
 
@@ -187,14 +189,12 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
       <div className="space-y-3">
         {next ? (
           <p className="rounded-card bg-surface-muted px-3 py-2 text-xs leading-relaxed text-ink">
-            Prochaine publication annoncée le{' '}
-            <span className="font-semibold">{next}</span>
-            {earnings.nextEstimate !== undefined ? (
-              <>
-                {' '}· consensus {formatNumber(earnings.nextEstimate, 2)} par action
-              </>
-            ) : null}
-            .
+            {fill(t('Prochaine publication annoncée le {date}.'), {
+              date: <span className="font-semibold">{next}</span>,
+            })}
+            {earnings.nextEstimate !== undefined
+              ? ` ${t('· consensus {montant} par action').replace('{montant}', formatNumber(earnings.nextEstimate, 2) ?? '—')}`
+              : null}
           </p>
         ) : null}
 
@@ -258,7 +258,10 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
                     {formatCompact(year.revenue) ?? '—'}
                     {year.earnings !== undefined ? (
                       <span className="ml-2 text-ink-muted">
-                        dont {formatCompact(year.earnings)} de résultat
+                        {t('dont {montant} de résultat').replace(
+                          '{montant}',
+                          formatCompact(year.earnings) ?? '—',
+                        )}
                       </span>
                     ) : null}
                   </dd>

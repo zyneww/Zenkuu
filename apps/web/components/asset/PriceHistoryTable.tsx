@@ -77,7 +77,10 @@ export async function PriceHistoryTable({
       <div className="overflow-x-auto rounded-card">
         <table className="w-full min-w-[380px] border-collapse text-sm">
           <caption className="sr-only">
-            Dernière valeur connue par journée, sur les {rows.length} derniers jours
+            {t('Dernière valeur connue par journée, sur les {n} derniers jours').replace(
+              '{n}',
+              String(rows.length),
+            )}
           </caption>
           <thead>
             <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">

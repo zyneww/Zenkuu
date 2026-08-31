@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { BINANCE_DATA_HOST, toBinancePair } from '@/components/asset/binance-market'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { fill } from '@/components/locale/emphasise'
 
 /**
  * Graphique de PROFONDEUR — combien il faudrait acheter ou vendre pour déplacer le cours.
@@ -145,9 +146,11 @@ export function AssetDepthChart({ symbol }: { symbol: string }) {
 
       <figcaption className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[0.6875rem] text-ink-muted">
         <span>
-          <span className="font-medium text-up">{formatQuantity(shape.bidTotal)}</span> à l’achat ·{' '}
-          <span className="font-medium text-down">{formatQuantity(shape.askTotal)}</span> à la vente,
-          à ±{SPAN_PERCENT} % du cours
+          {fill(t('{achat} à l’achat · {vente} à la vente, à ±{ecart} % du cours'), {
+            achat: <span className="font-medium text-up">{formatQuantity(shape.bidTotal)}</span>,
+            vente: <span className="font-medium text-down">{formatQuantity(shape.askTotal)}</span>,
+            ecart: SPAN_PERCENT,
+          })}
         </span>
         <span>{t('Carnet Binance · instantané, rafraîchi toutes les 5 s')}</span>
       </figcaption>

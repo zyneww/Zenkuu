@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { weave } from '@/components/locale/emphasise'
 import { Link } from '@/i18n/navigation'
 
 import {
@@ -156,14 +157,16 @@ export default async function SentimentPage() {
       </p>
 
       <p className="text-sm text-ink-muted">
-        Pour situer ces mouvements dans le marché :{' '}
-        <Link href="/classements" className="text-ink hover:underline">
-          {t('classements du marché')}
-        </Link>{' '}
-        ·{' '}
-        <Link href="/apprendre" className="text-ink hover:underline">
-          {t('apprendre à lire les chiffres')}
-        </Link>
+        {weave(
+          t(
+            'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [apprendre à lire les chiffres](/apprendre)',
+          ),
+          (href, label, key) => (
+            <Link key={key} href={href} className="text-ink hover:underline">
+              {label}
+            </Link>
+          ),
+        )}
       </p>
 
       {history.ok ? (

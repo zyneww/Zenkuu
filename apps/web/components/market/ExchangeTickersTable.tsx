@@ -121,8 +121,9 @@ export function ExchangeTickersTable({
         <div>
           <h2 className="display-sm text-ink">{t('Paires cotées')}</h2>
           <p className="text-xs text-ink-muted">
-            Les {tickers.length} paires les plus actives publiées par la source, pas
-            l’intégralité du catalogue de la place.
+            {t(
+              'Les {n} paires les plus actives publiées par la source, pas l’intégralité du catalogue de la place.',
+            ).replace('{n}', String(tickers.length))}
           </p>
         </div>
 

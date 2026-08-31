@@ -1351,7 +1351,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
               {(['png', 'jpeg', 'svg', 'pdf'] as const).map((format) => (
                 <MenubarItem key={format} onSelect={() => props.onExport(format)}>
                   <Download className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
-                  Télécharger en {format.toUpperCase()}
+                  {t('Télécharger en {format}').replace('{format}', format.toUpperCase())}
                 </MenubarItem>
               ))}
             </MenubarContent>

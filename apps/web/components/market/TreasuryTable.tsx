@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { emphasise } from '@/components/locale/emphasise'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { TreasuryHolder, TreasuryReport } from '@zenkuu/data'
@@ -231,11 +232,11 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
       </div>
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-        Registre <strong className="text-ink">{t('déclaratif')}</strong> : il recense ce que des
-        sociétés cotées ont annoncé détenir, à la date de leur annonce. Ce n’est ni une
-        lecture on-chain, ni un état vérifié — une société qui aurait vendu sans le publier
-        y figure encore. La plus-value affichée est <strong className="text-ink">{t('latente')}</strong> :
-        rien n’a été réalisé.
+        {emphasise(
+          t(
+            'Registre **déclaratif** : il recense ce que des sociétés cotées ont annoncé détenir, à la date de leur annonce. Ce n’est ni une lecture on-chain, ni un état vérifié — une société qui aurait vendu sans le publier y figure encore. La plus-value affichée est **latente** : rien n’a été réalisé.',
+          ),
+        )}
       </p>
     </div>
   )

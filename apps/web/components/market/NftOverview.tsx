@@ -1,6 +1,7 @@
 import type { NftCollection } from '@zenkuu/data'
 import { formatCompact, formatShare } from '@zenkuu/ui'
 
+import { emphasise } from '@/components/locale/emphasise'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
 import { getPhrase } from '@/lib/content'
@@ -111,12 +112,11 @@ export async function NftOverview({ collections }: { collections: NftCollection[
         </HeatmapFrame>
 
         <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
-          Surface : capitalisation de la collection. Couleur : variation du{' '}
-          <strong className="text-ink">{t('prix plancher')}</strong> sur 24 heures — la seule
-          variation que la source publie ici, et qui n’est pas celle de la capitalisation :
-          le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent{' '}
-          <strong className="text-ink">{t('notre sélection')}</strong>, pas le marché NFT : voir la
-          note en bas de page. Montants en dollars.
+          {emphasise(
+            t(
+              'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.',
+            ),
+          )}
         </p>
       </div>
     </section>

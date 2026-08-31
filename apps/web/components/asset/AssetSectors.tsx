@@ -2,6 +2,7 @@ import type { AssetDetail } from '@zenkuu/data'
 import { getCategories, getExchangeRates } from '@zenkuu/data'
 import { ChangeBadge, formatCompact, formatShare } from '@zenkuu/ui'
 
+import { emphasise } from '@/components/locale/emphasise'
 import { Link } from '@/i18n/navigation'
 import { Panel } from '@/components/ui/Panel'
 import { getPhrase } from '@/lib/content'
@@ -132,12 +133,12 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
       </div>
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-        Les narratifs auxquels la source rattache {asset.name}, avec la taille de chacun et
-        la part que l’actif y occupe. Un secteur peut en recouper un autre : les parts ne
-        s’additionnent pas. Les montants sont{' '}
-        <strong className="font-medium text-ink">{t('en dollars')}</strong> — la source ne publie
-        les agrégats sectoriels que dans cette devise, et les convertir mêlerait deux
-        horodatages.
+        {emphasise(
+          t(
+            'Les narratifs auxquels la source rattache {nom}, avec la taille de chacun et la part que l’actif y occupe. Un secteur peut en recouper un autre : les parts ne s’additionnent pas. Les montants sont **en dollars** — la source ne publie les agrégats sectoriels que dans cette devise, et les convertir mêlerait deux horodatages.',
+          ).replace('{nom}', asset.name),
+          'font-medium text-ink',
+        )}
       </p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">

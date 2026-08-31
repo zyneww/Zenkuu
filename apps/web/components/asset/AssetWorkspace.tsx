@@ -1609,8 +1609,11 @@ export function AssetWorkspace({
                 défaut montre une moyenne pondérée de plusieurs dizaines. */}
             {intervalId && view === 'original' ? (
               <p className="mt-2 text-[0.6875rem] text-ink-muted">
-                Bougies de {asset.symbol}/USDT sur Binance, converties en {currency}. La
-                courbe par défaut agrège au contraire l’ensemble des places de cotation.
+                {t(
+                  'Bougies de {paire} sur Binance, converties en {devise}. La courbe par défaut agrège au contraire l’ensemble des places de cotation.',
+                )
+                  .replace('{paire}', `${asset.symbol}/USDT`)
+                  .replace('{devise}', currency)}
               </p>
             ) : null}
 

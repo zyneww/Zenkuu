@@ -142,8 +142,10 @@ export function GlobalChartsView({
             />
           ) : (
             <p className="py-16 text-center text-sm text-ink-muted">
-              La source ne publie pas cette grandeur pour {current?.label} sur la période
-              choisie.
+              {t('La source ne publie pas cette grandeur pour {actif} sur la période choisie.').replace(
+                '{actif}',
+                current?.label ?? '',
+              )}
             </p>
           )}
         </div>

@@ -65,8 +65,9 @@ export async function AssetOwnership({
       <div className="space-y-1">
         <h2 className="display-sm text-ink">{t('Répartition du capital')}</h2>
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-          Qui détient {assetName}, d’après les déclarations réglementaires. Elles sont
-          trimestrielles : une position affichée ici a pu changer depuis sa date de dépôt.
+          {t(
+            'Qui détient {nom}, d’après les déclarations réglementaires. Elles sont trimestrielles : une position affichée ici a pu changer depuis sa date de dépôt.',
+          ).replace('{nom}', assetName)}
         </p>
       </div>
 

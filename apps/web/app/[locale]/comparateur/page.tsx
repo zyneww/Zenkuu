@@ -202,9 +202,11 @@ async function ComparatorBody() {
 
       {missing.length > 0 ? (
         <p className="text-xs text-ink-muted">
-          {missing.length === 1 ? 'Une classe d’actifs est' : `${missing.length} classes d’actifs sont`}{' '}
-          momentanément indisponible{missing.length > 1 ? 's' : ''} : les autres restent
-          comparables.
+          {t(
+            missing.length === 1
+              ? 'Une classe d’actifs est momentanément indisponible : les autres restent comparables.'
+              : '{n} classes d’actifs sont momentanément indisponibles : les autres restent comparables.',
+          ).replace('{n}', String(missing.length))}
         </p>
       ) : null}
 

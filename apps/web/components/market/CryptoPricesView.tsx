@@ -11,6 +11,7 @@ import {
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
+import { fill } from '@/components/locale/emphasise'
 import { Money } from '@/components/locale/Money'
 import { CryptoSummaryCards } from '@/components/market/CryptoSummaryCards'
 import { CryptoPeriodLinks, CryptoViewControls } from '@/components/market/CryptoViewControls'
@@ -238,27 +239,35 @@ async function CryptoHeader({
 }: {
   stats: Awaited<ReturnType<typeof getCryptoGlobalStats>>
 }) {
-  const fr = await getContent()
+  const [fr, t] = await Promise.all([getContent(), getPhrase()])
   return (
     <header className="mx-auto max-w-3xl space-y-4 text-center">
       <h1 className="display-xl text-ink">{fr.crypto.title}</h1>
 
       {stats.ok ? (
         <p className="text-base leading-relaxed text-ink-muted">
-          La capitalisation boursière mondiale des cryptomonnaies s’élève à{' '}
-          <strong className="tabular font-semibold text-ink">
-            <Money value={stats.data.totalMarketCap} from={stats.data.currency} compact />
-          </strong>
-          , soit une variation de{' '}
-          <strong
-            className={`tabular font-semibold ${
-              stats.data.marketCapChange24h >= 0 ? 'text-up' : 'text-down'
-            }`}
-          >
-            {stats.data.marketCapChange24h >= 0 ? '+' : ''}
-            {stats.data.marketCapChange24h.toFixed(2).replace('.', ',')} %
-          </strong>{' '}
-          sur les dernières 24 heures.
+          {fill(
+            t(
+              'La capitalisation boursière mondiale des cryptomonnaies s’élève à {capitalisation}, soit une variation de {variation} sur les dernières 24 heures.',
+            ),
+            {
+              capitalisation: (
+                <strong className="tabular font-semibold text-ink">
+                  <Money value={stats.data.totalMarketCap} from={stats.data.currency} compact />
+                </strong>
+              ),
+              variation: (
+                <strong
+                  className={`tabular font-semibold ${
+                    stats.data.marketCapChange24h >= 0 ? 'text-up' : 'text-down'
+                  }`}
+                >
+                  {stats.data.marketCapChange24h >= 0 ? '+' : ''}
+                  {stats.data.marketCapChange24h.toFixed(2).replace('.', ',')} %
+                </strong>
+              ),
+            },
+          )}
         </p>
       ) : (
         <p className="text-base leading-relaxed text-ink-muted">{fr.crypto.subtitle}</p>
@@ -275,7 +284,7 @@ async function CryptoHeader({
  * compte les valeurs manquantes et on le dit. La note disparaît quand tout est
  * renseigné, pour ne pas devenir un bruit permanent.
  */
-function PeriodFootnote({
+async function PeriodFootnote({
   period,
   assets,
 }: {
@@ -288,11 +297,18 @@ function PeriodFootnote({
   const missing = assets.filter((asset) => asset[meta.field] === undefined).length
   if (missing === 0) return null
 
+  const t = await getPhrase()
+
   return (
     <p className="text-xs text-ink-muted">
-      {missing} actif{missing > 1 ? 's' : ''} sur {assets.length} n’
-      {missing > 1 ? 'ont' : 'a'} pas de variation {meta.longLabel} publiée par la source —
-      leur cellule reste vide plutôt que d’afficher zéro.
+      {t(
+        missing > 1
+          ? '{manquants} actifs sur {total} n’ont pas de variation {periode} publiée par la source — leur cellule reste vide plutôt que d’afficher zéro.'
+          : '{manquants} actif sur {total} n’a pas de variation {periode} publiée par la source — leur cellule reste vide plutôt que d’afficher zéro.',
+      )
+        .replace('{manquants}', String(missing))
+        .replace('{total}', String(assets.length))
+        .replace('{periode}', t(meta.longLabel))}
     </p>
   )
 }

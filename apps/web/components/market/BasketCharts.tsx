@@ -337,11 +337,16 @@ function Composition({ basket }: { basket: MarketCapBasket }) {
           sortie de capitaux là où il n'y a qu'une lacune de données. */}
       {basket.dropped.length > 0 ? (
         <p className="mt-3 border-t border-border-subtle pt-3 text-xs leading-relaxed text-ink-muted">
-          Écarté{basket.dropped.length > 1 ? 's' : ''} de ce relevé :{' '}
-          {basket.dropped
-            .map((entry) => `${MEMBER_LABELS[entry.id] ?? entry.id} (${entry.reason})`)
-            .join(', ')}
-          . La somme est donc inférieure à ce qu’elle serait avec le panier complet.
+          {t(
+            basket.dropped.length > 1
+              ? 'Écartés de ce relevé : {liste}. La somme est donc inférieure à ce qu’elle serait avec le panier complet.'
+              : 'Écarté de ce relevé : {liste}. La somme est donc inférieure à ce qu’elle serait avec le panier complet.',
+          ).replace(
+            '{liste}',
+            basket.dropped
+              .map((entry) => `${MEMBER_LABELS[entry.id] ?? entry.id} (${entry.reason})`)
+              .join(', '),
+          )}
         </p>
       ) : null}
     </div>

@@ -85,8 +85,9 @@ export function AssetNewsRail({
           <Newspaper />
         </IconTile>
         <p className="text-xs leading-relaxed text-ink-muted">
-          Aucun de nos flux n’a écrit « {name} » récemment. Ce n’est pas la preuve qu’il ne
-          s’est rien passé — seulement qu’aucune de nos sources ne l’a nommé.
+          {t(
+            'Aucun de nos flux n’a écrit « {nom} » récemment. Ce n’est pas la preuve qu’il ne s’est rien passé — seulement qu’aucune de nos sources ne l’a nommé.',
+          ).replace('{nom}', name)}
         </p>
       </div>
     )

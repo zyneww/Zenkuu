@@ -1,6 +1,7 @@
 import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, formatCompact } from '@zenkuu/ui'
 
+import { weave } from '@/components/locale/emphasise'
 import { Link } from '@/i18n/navigation'
 import { getPhrase } from '@/lib/content'
 
@@ -97,21 +98,16 @@ export async function CategoryStatBand({ categories }: { categories: MarketCateg
       </div>
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
-        Ces chiffres décrivent le <strong className="text-ink">{t('jour')}</strong>, et pas autre
-        chose : la source ne publie aucun historique par secteur sur son palier gratuit, un
-        seul relevé à la fois. Il n’y a donc pas de courbe sectorielle sur cette page, et
-        n’en inventer aucune est préférable à en estimer une. Pour de la profondeur, voir la{' '}
-        <Link href="/graphiques" className="font-medium text-ink hover:underline">
-          {t('vue générale')}
-        </Link>{' '}
-        et son panier de capitalisations, qui remonte à douze mois — et la{' '}
-        <Link
-          href="/graphiques?vue=secteurs"
-          className="font-medium text-ink hover:underline"
-        >
-          {t('carte thermique')}
-        </Link>{' '}
-        pour voir ces mêmes secteurs en surfaces. Montants en dollars, tels que publiés.
+        {weave(
+          t(
+            'Ces chiffres décrivent le **jour**, et pas autre chose : la source ne publie aucun historique par secteur sur son palier gratuit, un seul relevé à la fois. Il n’y a donc pas de courbe sectorielle sur cette page, et n’en inventer aucune est préférable à en estimer une. Pour de la profondeur, voir la [vue générale](/graphiques) et son panier de capitalisations, qui remonte à douze mois — et la [carte thermique](/graphiques?vue=secteurs) pour voir ces mêmes secteurs en surfaces. Montants en dollars, tels que publiés.',
+          ),
+          (href, label, key) => (
+            <Link key={key} href={href} className="font-medium text-ink hover:underline">
+              {label}
+            </Link>
+          ),
+        )}
       </p>
     </div>
   )

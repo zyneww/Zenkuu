@@ -1,6 +1,7 @@
 import type { NewsItem } from '@zenkuu/data'
 
 import { NewsFeed } from '@/components/news/NewsFeed'
+import { getPhrase } from '@/lib/content'
 import { Panel } from '@/components/ui/Panel'
 import { mentioning } from '@/lib/mentions'
 
@@ -24,7 +25,7 @@ import { mentioning } from '@/lib/mentions'
  * sur une fiche d'actif suggère qu'il ne se passe rien, alors qu'il dit seulement
  * que nos vingt-neuf sources n'ont pas écrit ce nom récemment (§5).
  */
-export function AssetNewsPanel({
+export async function AssetNewsPanel({
   news,
   name,
   symbol,
@@ -38,6 +39,8 @@ export function AssetNewsPanel({
   /** Rendu de remplacement quand aucun article ne mentionne l'actif. */
   fallback?: React.ReactNode
 }) {
+  const t = await getPhrase()
+
   // La règle de sélection vit dans `lib/mentions.ts` — le rail chronologique de la
   // même fiche l'applique aussi, et deux listes censées être identiques ne peuvent pas
   // se permettre deux implémentations.
@@ -76,10 +79,11 @@ export function AssetNewsPanel({
     dit au lecteur sur quoi la liste est bornée.
   */
   return (
-    <Panel title={`Articles mentionnant ${name}`}>
+    <Panel title={t('Articles mentionnant {nom}').replace('{nom}', name)}>
       <p className="mb-3 text-[0.6875rem] leading-relaxed text-ink-muted">
-        Sélection par recherche du nom dans le titre et le chapeau, pas par classement
-        éditorial. Un article qui cite {name} en passant apparaît donc ici.
+        {t(
+          'Sélection par recherche du nom dans le titre et le chapeau, pas par classement éditorial. Un article qui cite {nom} en passant apparaît donc ici.',
+        ).replace('{nom}', name)}
       </p>
 
       <NewsFeed articles={matched} />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { emphasise } from '@/components/locale/emphasise'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Search } from 'lucide-react'
 
@@ -195,9 +196,13 @@ export function AssetMetricGrid({
           sache que le vide est une absence de donnée et non un défaut d'affichage.
         */}
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-          Six mesures portent une courbe sur douze mois. Trois sont publiées par la source —
-          cours, capitalisation, volume, toutes trois transportées par la même réponse — et
-          trois sont <strong className="font-medium text-ink">calculées</strong>{t('à partir d’elles. Les autres n’existent qu’à l’instant présent chez la source : leur carte donne la valeur et s’arrête là, plutôt que de tracer une ligne qui aurait l’air d’une histoire.')}</p>
+          {emphasise(
+            t(
+              'Six mesures portent une courbe sur douze mois. Trois sont publiées par la source — cours, capitalisation, volume, toutes trois transportées par la même réponse — et trois sont **calculées** à partir d’elles. Les autres n’existent qu’à l’instant présent chez la source : leur carte donne la valeur et s’arrête là, plutôt que de tracer une ligne qui aurait l’air d’une histoire.',
+            ),
+            'font-medium text-ink',
+          )}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
@@ -246,7 +251,7 @@ export function AssetMetricGrid({
         <div className="min-w-0 space-y-5">
           {sections.length === 0 ? (
             <p className="rounded-card border border-border-subtle bg-panel px-4 py-6 text-sm text-ink-muted">
-              Aucune métrique ne correspond à « {query} ».
+              {t('Aucune métrique ne correspond à « {requete} ».').replace('{requete}', query)}
             </p>
           ) : null}
 

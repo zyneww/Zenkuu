@@ -3,6 +3,7 @@
 import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react'
 import { Mail } from 'lucide-react'
 
+import { emphasise, fill } from '@/components/locale/emphasise'
 import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState, useTransition } from 'react'
 
@@ -257,16 +258,21 @@ export function LoginForm({
         */}
         {compact ? (
           <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-            Un compte n’est <strong className="font-medium text-ink">{t('pas nécessaire')}</strong> pour
-            suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre
-            appareil.
+            {emphasise(
+              t(
+                'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.',
+              ),
+              'font-medium text-ink',
+            )}
           </p>
         ) : (
           <p className="rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5 text-[0.6875rem] leading-relaxed text-ink-muted">
-            Un compte n’est <strong className="font-medium text-ink">{t('pas nécessaire')}</strong> pour
-            suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées
-            dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à
-            ce qu’un nettoyage du navigateur ne l’efface pas.
+            {emphasise(
+              t(
+                'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.',
+              ),
+              'font-medium text-ink',
+            )}
           </p>
         )}
       </form>
@@ -289,8 +295,9 @@ export function LoginForm({
           {t('Votre code')}
         </h2>
         <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
-          Envoyé à <span className="font-medium text-ink">{email}</span>. Il expire dans quinze
-          minutes.
+          {fill(t('Envoyé à {adresse}. Il expire dans quinze minutes.'), {
+            adresse: <span className="font-medium text-ink">{email}</span>,
+          })}
         </p>
       </div>
 

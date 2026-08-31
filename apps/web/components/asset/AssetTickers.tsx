@@ -200,16 +200,13 @@ export function AssetTickers({
     <section aria-labelledby="places-titre" className="space-y-3">
       <div className="space-y-1">
         <h2 id="places-titre" className="display-sm text-ink">
-          {title ?? `Où se négocie ${assetName}`}
+          {title ?? t('Où se négocie {nom}').replace('{nom}', assetName)}
         </h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          {description ?? (
-            <>
-              Les {tickers.length} places les plus actives, classées par volume. Les parts
-              affichées se rapportent à ces {tickers.length} places seulement, pas à
-              l’ensemble du marché.
-            </>
-          )}
+          {description ??
+            t(
+              'Les {n} places les plus actives, classées par volume. Les parts affichées se rapportent à ces {n} places seulement, pas à l’ensemble du marché.',
+            ).replaceAll('{n}', String(tickers.length))}
         </p>
       </div>
 

@@ -108,21 +108,28 @@ export function AssetTreasuries({
     <section aria-labelledby="tresorerie-titre" className="space-y-3">
       <div className="space-y-1">
         <h2 id="tresorerie-titre" className="display-sm text-ink">
-          {t('Trésoreries')} {assetName}
+          {t('Trésoreries {nom}').replace('{nom}', assetName)}
         </h2>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Les sociétés cotées qui déclarent détenir {assetName} à leur bilan
-          {report.totalHoldings > 0 ? (
-            <>
-              {' '}
-              — {formatCompact(report.totalHoldings)} {ticker} au total
-              {report.percentOfMarketCap !== undefined ? (
-                <>, soit {formatPercent(report.percentOfMarketCap)?.replace('+', '')} de sa
-                capitalisation</>
-              ) : null}
-            </>
-          ) : null}
-          .
+          {report.totalHoldings > 0
+            ? report.percentOfMarketCap !== undefined
+              ? t(
+                  'Les sociétés cotées qui déclarent détenir {nom} à leur bilan — {total} {ticker} au total, soit {part} de sa capitalisation.',
+                )
+                  .replace('{nom}', assetName)
+                  .replace('{total}', formatCompact(report.totalHoldings) ?? '—')
+                  .replace('{ticker}', ticker)
+                  .replace('{part}', formatPercent(report.percentOfMarketCap)?.replace('+', '') ?? '—')
+              : t(
+                  'Les sociétés cotées qui déclarent détenir {nom} à leur bilan — {total} {ticker} au total.',
+                )
+                  .replace('{nom}', assetName)
+                  .replace('{total}', formatCompact(report.totalHoldings) ?? '—')
+                  .replace('{ticker}', ticker)
+            : t('Les sociétés cotées qui déclarent détenir {nom} à leur bilan.').replace(
+                '{nom}',
+                assetName,
+              )}
         </p>
       </div>
 
@@ -131,7 +138,9 @@ export function AssetTreasuries({
             valeur du jour, qui servent à juger la plus-value latente, reviennent dès la
             première largeur supplémentaire. Même règle que la table des places. */}
         <Table className="border-collapse sm:min-w-[720px]">
-          <caption className="sr-only">Sociétés cotées détenant {assetName}</caption>
+          <caption className="sr-only">
+            {t('Sociétés cotées détenant {nom}').replace('{nom}', assetName)}
+          </caption>
           <TableHeader className="[&_tr]:border-b-0">
             <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-xs text-ink-muted">
               <th scope="col" className="w-10 px-3 py-2.5 text-right font-semibold">#</th>

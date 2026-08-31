@@ -55,9 +55,9 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
       <div className="space-y-1">
         <h2 className="display-sm text-ink">{t('Composition')}</h2>
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
-          Ce que {assetName} détient réellement, tel que l’émetteur le déclare. Les
-          pondérations datent du dernier inventaire publié et non du jour : un fonds
-          rééquilibre par trimestre, pas en continu.
+          {t(
+            'Ce que {nom} détient réellement, tel que l’émetteur le déclare. Les pondérations datent du dernier inventaire publié et non du jour : un fonds rééquilibre par trimestre, pas en continu.',
+          ).replace('{nom}', assetName)}
         </p>
       </div>
 
@@ -102,9 +102,9 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
             </ol>
 
             <p className="mt-3 border-t border-border-subtle pt-2 text-micro leading-relaxed text-ink-muted">
-              La source ne publie que les dix premières lignes. Les{' '}
-              {formatShare(Math.max(100 - topWeight, 0))} restants se répartissent entre des
-              positions qu’elle ne détaille pas.
+              {t(
+                'La source ne publie que les dix premières lignes. Les {part} restants se répartissent entre des positions qu’elle ne détaille pas.',
+              ).replace('{part}', formatShare(Math.max(100 - topWeight, 0)) ?? '—')}
             </p>
           </Panel>
         ) : null}
