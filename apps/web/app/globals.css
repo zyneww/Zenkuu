@@ -769,12 +769,30 @@
      par leur TON et non par une ombre : leur en donner une ferait de chaque page une
      pile de feuilles, quand une ombre unique, réservée à ce qui flotte vraiment, garde
      sa valeur de signal. */
-  /* Ombre des panneaux flottants — géométrie relevée chez OKX (`0 12px 60px` doublé
-     d'une ombre de contact `0 1px 2px`). Le très grand rayon de flou détache le
-     panneau sans dessiner de contour, et la seconde ombre, presque invisible, lui
-     donne l'épaisseur d'une feuille posée. Une ombre unique à 32px faisait les deux
-     à moitié : trop dure pour disparaître, trop diffuse pour poser le bord. */
-  --shadow-overlay: 0 12px 60px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.06);
+  /* ⚠️ CETTE GÉOMÉTRIE VENAIT D'OKX, PAS DE LA RÉFÉRENCE. La note qui tenait ici le
+     disait franchement — « géométrie relevée chez OKX (`0 12px 60px` doublé d'une
+     ombre de contact `0 1px 2px`) » — au même titre que la palette sombre venait de
+     Dropstab. C'est le dernier de ces emprunts encore visible à l'écran.
+
+     Relevé le 2026-08-31 sur leur menu de navigation déployé, les deux thèmes :
+
+       0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)
+
+     C'est `shadow-lg` de Tailwind, et LA VALEUR NE CHANGE PAS D'UN THÈME À L'AUTRE —
+     ni la géométrie, ni l'opacité. ZENKUU passait de 0,12 à 0,70 en thème sombre, avec
+     un flou de 60 px : un panneau y était posé sur un halo noir, quand le leur se
+     détache par son TON (moon-800 sur moon-900) et par son anneau.
+
+     C'est le même principe que leur champ de recherche et que leur pied de page :
+     délimiter par un filet, pas par un effet.
+
+     ── LE PIXEL QUI RESTE ────────────────────────────────────────────────────
+     Leur délimitation est un anneau de 2 px (`0 0 0 2px`) et non une bordure ; leurs
+     panneaux ont `border-width: 0`. Ici, vingt-et-un appelants posent déjà
+     `border border-border-subtle` à côté de `shadow-overlay`, dans la bonne couleur.
+     L'écart se réduit donc à UN pixel d'épaisseur, contre vingt-et-un fichiers à
+     toucher : l'anneau n'est pas repris, et l'ombre l'est. */
+  --shadow-overlay: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* ───────────────────────────────────────────────────────────────────────────
      Durées d'animation, relevées sur la référence.
@@ -2438,10 +2456,18 @@
      #27272a venait de la rampe `zinc` de Dropstab, comme `surface-muted` juste
      au-dessus ; ni l'un ni l'autre n'a jamais été mesuré chez la référence. */
   --color-overlay: #1b232d;
-  /* Ombre RENFORCÉE — sur un fond aussi sombre, une ombre à 0,6 n'a pas assez de noir
-     sous elle pour se voir. Elle le reste sous le canvas bleu-nuit, dont le canal le
-     plus clair vaut dix-huit : l'ordre de grandeur est inchangé. */
-  --shadow-overlay: 0 12px 60px rgb(0 0 0 / 0.7), 0 1px 2px rgb(0 0 0 / 0.4);
+  /* ⚠️ L'OMBRE N'EST PLUS RENFORCÉE EN SOMBRE, ET C'EST MESURÉ. La note qui tenait
+     ici raisonnait ainsi : « sur un fond aussi sombre, une ombre à 0,6 n'a pas assez
+     de noir sous elle pour se voir » — donc on la poussait à 0,70 sur 60 px de flou.
+
+     Le raisonnement se tient, mais la référence ne le suit pas : son menu déployé porte
+     EXACTEMENT la même ombre dans les deux thèmes, opacité 0,1 comprise. Elle ne
+     cherche pas à faire voir l'ombre sur le sombre — elle ne compte pas sur elle. Le
+     panneau se détache par son ton (moon-800 sur moon-900) et par son anneau, deux
+     choses qu'un fond noir ne mange pas.
+
+     Le jeton est donc identique au thème clair, et défini là-haut. Il n'est plus
+     redéclaré ici : la valeur unique EST le constat. */
 
   color-scheme: dark;
 }
