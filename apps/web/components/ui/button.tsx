@@ -27,7 +27,19 @@ const buttonVariants = cva(
         // (mesuré chez CoinGecko) donnerait ~31px. Voir DESIGN_SYSTEM.md pour la note.
         // Rembourrage vertical laissé en py-2 : sans effet réel puisque h-9 fixe la
         // hauteur, mais gardé pour que le code reste lisible en isolation (ex. flex-wrap).
-        default: "h-9 px-[var(--v2-space-4)] py-2 text-xs has-[>svg]:px-3",
+        /* ── LES TROIS VALEURS SONT MESURÉES ──────────────────────────────────
+           Relevé le 2026-08-31 sur le bouton d'action de la référence : 36 px de
+           haut, rembourrage 8px 16px, texte 14px/600, rayon 8px.
+
+           `h-9` valait déjà 36 px et `rounded-control` 8 px — les deux coïncidaient.
+           Ce qui ne coïncidait pas : le texte en `text-xs` (13 px chez ZENKUU) et le
+           rembourrage horizontal à `--v2-space-4` (10 px). Un bouton plus étroit de
+           douze pixels et d'un cran de corps se lit comme un bouton secondaire à côté
+           du leur.
+
+           `px-4` vaut les 16 px mesurés ; `text-sm` les 14. La graisse 600 vient déjà
+           de `font-semibold`, posé sur la base du composant. */
+        default: "h-9 px-4 py-2 text-sm has-[>svg]:px-3",
         xs: "h-6 gap-1 rounded-control px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 gap-1.5 rounded-control px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-control px-6 has-[>svg]:px-4",

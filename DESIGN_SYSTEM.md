@@ -374,20 +374,30 @@ indisponibles par l'API, à documenter comme tels plutôt qu'à simuler.
 
 ---
 
-## Divergence assumée — hauteur du bouton `default`
+## ~~Divergence assumée — hauteur du bouton `default`~~ — levée le 2026-08-31
 
-`apps/web/components/ui/button.tsx`, variante `size="default"`, applique la taille
-de texte mesurée (13px, `--text-xs`) et le rembourrage horizontal mesuré (10px,
-`--v2-space-4`), mais **conserve `h-9` (36px)** au lieu de suivre la hauteur
-implicite de CoinGecko. Chez la référence, 13px de texte + 6px de rembourrage
-vertical de chaque côté donnent environ **31px** de hauteur de bouton — sous les
-**32px de cible tactile minimum** que `DESIGN.md` pose comme non négociable (voir
-« Ce qui n'est pas négociable », point 4) et que `scripts/audit-responsive.mjs`
-fait respecter sur six formats. **Tranché : l'accessibilité l'emporte sur la
-fidélité à la mesure.** Le rembourrage vertical (`py-2`) reste sans effet réel sur
-la hauteur finale, imposée par `h-9`, mais est gardé dans le code pour la
-lisibilité (cohérence avec les autres tailles du composant). Ne pas « corriger »
-`h-9` vers une valeur plus proche de 31px sans revisiter d'abord cette contrainte.
+Cette section décrivait un arbitrage entre accessibilité et fidélité : la référence
+donnerait « environ 31 px » de hauteur de bouton, sous le plancher tactile, et ZENKUU
+gardait `h-9` (36 px) pour rester au-dessus. **Ni la prémisse ni le conflit n'existent.**
+
+Le bouton d'action de la référence, remesuré au navigateur : **36 px de haut,
+rembourrage 8px 16px, texte 14px/600, rayon 8px**. Exactement `h-9` et
+`rounded-control`. Les 31 px calculés venaient de « 13 px de texte + 6 px de
+rembourrage » — des valeurs relevées sur un bouton SECONDAIRE, pas sur le bouton
+d'action.
+
+Les deux écarts réels étaient ailleurs, et ils sont corrigés :
+
+  texte              `text-xs` (13 px) → `text-sm` (14 px)
+  rembourrage        `--v2-space-4` (10 px) → `px-4` (16 px)
+
+Un bouton plus étroit de douze pixels et d'un cran de corps se lit comme un bouton
+secondaire à côté du leur.
+
+⚠️ **LA LEÇON VAUT AU-DELÀ DE CE BOUTON.** Un arbitrage a été rendu — « l'accessibilité
+l'emporte sur la fidélité » — sur une mesure prise au mauvais endroit. Le raisonnement
+était juste, sa prémisse fausse, et personne ne l'aurait su sans remesurer. C'est le
+même motif que les notes qui citaient MEXC et Cryptorank comme « la référence ».
 
 ---
 
