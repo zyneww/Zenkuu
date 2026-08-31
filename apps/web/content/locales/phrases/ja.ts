@@ -2386,4 +2386,61 @@ export const jaPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n}日間',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': '市場を読む',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'どの銘柄ページでも目にする指標。',
+  'Lire un graphique': 'チャートを読む',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': '図が示すもの、そして示さないもの。',
+  'Contexte et indicateurs': '文脈と指標',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'ZENKUU が公表する集計指標と、その実際の射程。',
+  'Les classes d’actifs': '資産クラス',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'ZENKUU が追跡する各市場が、実際に値付けしているもの。',
+  'Lire une capitalisation, et connaître ses limites': '時価総額を読み、その限界を知る',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': '時価総額は価格に数量を掛けたもので、投じられた資金ではありません。',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': '出来高と流動性 ― 大きな変動が誤解を招く理由',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'ごくわずかな出来高での二桁の変動は、ほとんど何も語りません。',
+  'Offre en circulation, offre totale, offre maximale': '流通供給量・総供給量・最大供給量',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'しばしば混同される三つの異なる数字。意味するところも別々です。',
+  'Lire un graphique en chandeliers': 'ローソク足チャートを読む',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'ローソク一本につき四つの値 ― 始値、高値、安値、終値。',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': '移動平均が語ること、語らないこと',
+  'Un lissage du passé, calculé avec un retard structurel.': '過去をならしたもので、構造的な遅れを伴います。',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'ありもしないシグナルを読み込まずにチャートを見る',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': '人の目はノイズの中に形を見つけてしまいます。これが最大の落とし穴です。',
+  'Comment lire un indice de sentiment': 'センチメント指数の読み方',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': '空気感を合成した指標であって、価値の尺度ではありません。',
+  'La dominance : une part, pas une performance': 'ドミナンスは比率であって、成績ではない',
+  'Elle peut monter alors que l’actif baisse.': '資産が下がっていても上昇することがあります。',
+  'Pourquoi les conversions utilisent le taux BCE': '換算に ECB のレートを使う理由',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': '日次の参照レートで、安定していて検証可能です。市場価格ではありません。',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': '株式と ETF ― 保有しているものは同じではない',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': '一方は企業の持ち分、もう一方はバスケットの持ち分で、価格の決まり方も違います。',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': '指数が測るもの、そして加重がそれに語らせるもの',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': '同じ市場の二つの指数が、計算方法だけの違いで乖離することがあります。',
+  'Lire une paire de devises, et dans quel sens': '通貨ペアの読み方 ― そして、どちら向きに読むか',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD が 1.17 とは、1ユーロが 1.17 ドルと交換されるという意味です。三文字の並び順そのものが情報です。',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': '商品の価格は契約の価格であって、小麦一袋の価格ではない',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': '値がつくものには限月があり、その限月が長期の履歴の読み方を歪めます。',
+  'Une série macroéconomique n’est pas un cours': 'マクロ経済の系列は相場ではない',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': '年に一度、数か月遅れで、国ごとに異なる日付で公表され、その後改定されます。',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'レベル {niveau} · 編集部おすすめ',
+  'Voir les {n} fiches': '{n} 本すべてを見る',
+  'Débutant': '初級',
+  'Intermédiaire': '中級',
+  'Avancé': '上級',
+  'Aucun prérequis': '前提知識は不要',
+  'Vous lisez déjà des cours': '相場を読んだことがある方向け',
+  'Notions de valorisation': 'バリュエーションの基礎知識',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} 本',
+  '{n} fiches': '{n} 本',
+  ' de niveau {niveau}': '（{niveau}）',
+  ' correspondant à « {requete} »': '「{requete}」に一致',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'この記事は解説を目的としたもので、投資の推奨ではありません。[ZENKUU の立場についての注記](/aide/pas-de-conseil)をご覧ください。',
 }

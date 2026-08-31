@@ -2394,4 +2394,61 @@ export const dePhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} Tage',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Einen Markt lesen',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'Die Größen, die Ihnen auf jedem Wertblatt begegnen.',
+  'Lire un graphique': 'Ein Diagramm lesen',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'Was die Darstellungen zeigen — und was nicht.',
+  'Contexte et indicateurs': 'Kontext und Indikatoren',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'Die aggregierten Indikatoren, die ZENKUU veröffentlicht, und ihre tatsächliche Reichweite.',
+  'Les classes d’actifs': 'Die Anlageklassen',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'Was jeder von ZENKUU verfolgte Markt tatsächlich notiert.',
+  'Lire une capitalisation, et connaître ses limites': 'Eine Kapitalisierung lesen und ihre Grenzen kennen',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Die Kapitalisierung multipliziert einen Kurs mit einer Menge — sie ist kein investiertes Geld.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Volumen und Liquidität: warum eine starke Veränderung täuschen kann',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'Eine zweistellige Veränderung bei winzigem Volumen sagt fast nichts.',
+  'Offre en circulation, offre totale, offre maximale': 'Umlaufendes Angebot, Gesamtangebot, maximales Angebot',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Drei verschiedene Zahlen, oft verwechselt, mit unterschiedlichen Folgen.',
+  'Lire un graphique en chandeliers': 'Ein Kerzendiagramm lesen',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Vier Werte je Kerze: Eröffnung, Hoch, Tief, Schluss.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'Was ein gleitender Durchschnitt sagt, und was nicht',
+  'Un lissage du passé, calculé avec un retard structurel.': 'Eine Glättung der Vergangenheit, berechnet mit strukturellem Verzug.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Ein Diagramm lesen, ohne eingebildete Signale hineinzulesen',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'Das menschliche Auge findet Figuren im Rauschen. Das ist die Hauptfalle.',
+  'Comment lire un indice de sentiment': 'Wie man einen Stimmungsindex liest',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'Ein zusammengesetzter Stimmungsindikator, kein Wertmaß.',
+  'La dominance : une part, pas une performance': 'Die Dominanz: ein Anteil, keine Wertentwicklung',
+  'Elle peut monter alors que l’actif baisse.': 'Sie kann steigen, während der Wert fällt.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Warum die Umrechnungen den EZB-Kurs verwenden',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'Ein täglicher Referenzkurs, stabil und überprüfbar — kein Marktkurs.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'Eine Aktie, ein ETF: Was Sie halten, ist nicht dasselbe',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'Die eine ist ein Unternehmensanteil, die andere ein Korbanteil — und ihr Kurs bildet sich nicht gleich.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'Was ein Index misst, und was seine Gewichtung ihn sagen lässt',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Zwei Indizes desselben Marktes können allein durch ihre Berechnungsmethode auseinanderlaufen.',
+  'Lire une paire de devises, et dans quel sens': 'Ein Währungspaar lesen — und in welche Richtung',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD bei 1,17 bedeutet, dass ein Euro gegen 1,17 Dollar getauscht wird — die Reihenfolge der drei Buchstaben ist die Information.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'Der Kurs eines Rohstoffs ist der eines Kontrakts, nicht eines Sacks Weizen',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'Was notiert wird, trägt eine Fälligkeit, und diese Fälligkeit verzerrt die Lesart einer langen Historie.',
+  'Une série macroéconomique n’est pas un cours': 'Eine makroökonomische Reihe ist kein Kurs',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Einmal jährlich veröffentlicht, mit Monaten Verzug, je nach Land zu unterschiedlichen Terminen — und danach revidiert.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Niveau {niveau} · Redaktionsempfehlung',
+  'Voir les {n} fiches': 'Alle {n} Beiträge ansehen',
+  'Débutant': 'Einsteiger',
+  'Intermédiaire': 'Fortgeschritten',
+  'Avancé': 'Experte',
+  'Aucun prérequis': 'Keine Vorkenntnisse',
+  'Vous lisez déjà des cours': 'Sie lesen bereits Kurse',
+  'Notions de valorisation': 'Grundkenntnisse der Bewertung',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} Beitrag',
+  '{n} fiches': '{n} Beiträge',
+  ' de niveau {niveau}': ' auf Niveau {niveau}',
+  ' correspondant à « {requete} »': ' passend zu „{requete}“',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'Dieser Beitrag ist erklärend. Er stellt keine Anlageempfehlung dar — siehe den [Hinweis zum Rahmen von ZENKUU](/aide/pas-de-conseil).',
 }

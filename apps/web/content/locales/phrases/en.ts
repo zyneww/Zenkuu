@@ -2398,4 +2398,61 @@ export const enPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} days',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Reading a market',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'The measures you will meet on every asset page.',
+  'Lire un graphique': 'Reading a chart',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'What the visualisations show — and what they do not.',
+  'Contexte et indicateurs': 'Context and indicators',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'The aggregate indicators ZENKUU publishes, and what they actually cover.',
+  'Les classes d’actifs': 'Asset classes',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'What each market ZENKUU tracks actually quotes.',
+  'Lire une capitalisation, et connaître ses limites': 'Reading a capitalisation, and knowing its limits',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Capitalisation multiplies a price by a quantity — it is not money invested.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Volume and liquidity: why a big move can mislead',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'A double-digit move on a tiny volume says almost nothing.',
+  'Offre en circulation, offre totale, offre maximale': 'Circulating supply, total supply, maximum supply',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Three distinct numbers, often confused, with different implications.',
+  'Lire un graphique en chandeliers': 'Reading a candlestick chart',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Four values per candle: open, high, low, close.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'What a moving average says, and does not say',
+  'Un lissage du passé, calculé avec un retard structurel.': 'A smoothing of the past, computed with a built-in lag.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Reading a chart without projecting imaginary signals onto it',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'The human eye finds shapes in noise. That is the main trap.',
+  'Comment lire un indice de sentiment': 'How to read a sentiment index',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'A composite mood indicator, not a measure of value.',
+  'La dominance : une part, pas une performance': 'Dominance: a share, not a performance',
+  'Elle peut monter alors que l’actif baisse.': 'It can rise while the asset falls.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Why conversions use the ECB rate',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'A daily reference rate, stable and verifiable — not a market price.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'A share, an ETF: what you hold is not the same thing',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'One is a slice of a company, the other a slice of a basket — and their prices do not form the same way.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'What an index measures, and what its weighting makes it say',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Two indices on the same market can diverge for their calculation method alone.',
+  'Lire une paire de devises, et dans quel sens': 'Reading a currency pair, and in which direction',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD at 1.17 means one euro trades for 1.17 dollars — the order of the three letters is the information.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'A commodity’s price is a contract’s price, not a sack of wheat’s',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'What is quoted carries an expiry, and that expiry distorts the reading of a long history.',
+  'Une série macroéconomique n’est pas un cours': 'A macroeconomic series is not a price',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Published once a year, months late, on different dates from country to country — and revised afterwards.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Level {niveau} · editors’ pick',
+  'Voir les {n} fiches': 'See all {n} guides',
+  'Débutant': 'Beginner',
+  'Intermédiaire': 'Intermediate',
+  'Avancé': 'Advanced',
+  'Aucun prérequis': 'No prerequisites',
+  'Vous lisez déjà des cours': 'You already read prices',
+  'Notions de valorisation': 'Some valuation background',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} guide',
+  '{n} fiches': '{n} guides',
+  ' de niveau {niveau}': ' at {niveau} level',
+  ' correspondant à « {requete} »': ' matching “{requete}”',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'This guide is explanatory. It is not an investment recommendation — see the [note on ZENKUU’s remit](/aide/pas-de-conseil).',
 }

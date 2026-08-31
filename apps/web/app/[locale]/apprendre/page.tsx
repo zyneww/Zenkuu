@@ -4,6 +4,8 @@ import { Link } from '@/i18n/navigation'
 import { CoverArt } from '@/components/editorial/CoverArt'
 import { LessonBrowser } from '@/components/learn/LessonBrowser'
 import { LESSONS, LESSON_TOPICS, levelLabel } from '@/content/apprendre'
+import { getLocale } from 'next-intl/server'
+
 import { getContent, getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -137,7 +139,7 @@ export default async function ApprendrePage() {
             <li key={lesson.slug}>
               <Link href={`/apprendre/${lesson.slug}`} className="group flex h-full flex-col gap-2.5">
                 <span className="relative block overflow-hidden rounded-card">
-                  <CoverArt seed={lesson.slug} label={levelLabel(lesson.level)} />
+                  <CoverArt seed={lesson.slug} label={t(levelLabel(lesson.level))} />
                   {/* Le NUMÉRO D'ÉTAPE est ce qui distingue ce bloc de la bibliothèque
                       plus bas : ces trois fiches forment un parcours ORDONNÉ, et sans
                       lui rien ne dit qu'il faut les lire dans cet ordre. Posé sur la
@@ -150,9 +152,9 @@ export default async function ApprendrePage() {
                   </span>
                 </span>
                 <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
-                  {lesson.title}
+                  {t(lesson.title)}
                 </span>
-                <span className="text-xs leading-relaxed text-ink-muted">{lesson.summary}</span>
+                <span className="text-xs leading-relaxed text-ink-muted">{t(lesson.summary)}</span>
               </Link>
             </li>
           ))}
@@ -270,17 +272,20 @@ async function FeaturedLesson() {
         href={`/apprendre/${lesson.slug}`}
         className="group grid gap-5 overflow-hidden rounded-card border border-border-subtle bg-surface transition-colors hover:border-brand/40 sm:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
       >
-        <CoverArt seed={lesson.slug} label={levelLabel(lesson.level)} />
+        <CoverArt seed={lesson.slug} label={t(levelLabel(lesson.level))} />
         <div className="flex flex-col justify-center gap-2 px-5 pb-5 sm:py-6 sm:pl-0 sm:pr-6">
           <span className="text-micro font-semibold uppercase tracking-wide text-ink">
-            {lesson.topicTitle}
+            {t(lesson.topicTitle)}
           </span>
           <span className="display-sm leading-tight text-ink group-hover:text-brand">
-            {lesson.title}
+            {t(lesson.title)}
           </span>
-          <span className="text-sm leading-relaxed text-ink-muted">{lesson.summary}</span>
+          <span className="text-sm leading-relaxed text-ink-muted">{t(lesson.summary)}</span>
           <span className="text-xs text-ink-muted">
-            Niveau {levelLabel(lesson.level).toLowerCase()} · choix de la rédaction
+            {t('Niveau {niveau} · choix de la rédaction').replace(
+              '{niveau}',
+              t(levelLabel(lesson.level)).toLocaleLowerCase(await getLocale()),
+            )}
           </span>
         </div>
       </Link>
@@ -302,7 +307,9 @@ async function FeaturedLesson() {
  */
 const TOPIC_PREVIEW = 4
 
-function TopicSections() {
+async function TopicSections() {
+  const t = await getPhrase()
+
   return (
     <div className="space-y-8">
       {LESSON_TOPICS.map((topic) => {
@@ -313,14 +320,14 @@ function TopicSections() {
           <section key={topic.id} className="space-y-3" aria-labelledby={`sujet-${topic.id}`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id={`sujet-${topic.id}`} className="text-sm font-semibold text-ink">
-                {topic.title}
+                {t(topic.title)}
               </h2>
               {hidden > 0 ? (
                 <Link
                   href={`/apprendre#${topic.id}`}
                   className="text-xs font-medium text-ink hover:underline"
                 >
-                  Voir les {topic.lessons.length} fiches
+                  {t('Voir les {n} fiches').replace('{n}', String(topic.lessons.length))}
                 </Link>
               ) : null}
             </div>
@@ -332,11 +339,11 @@ function TopicSections() {
                     href={`/apprendre/${lesson.slug}`}
                     className="group flex h-full flex-col gap-2.5"
                   >
-                    <CoverArt seed={lesson.slug} label={levelLabel(lesson.level)} />
+                    <CoverArt seed={lesson.slug} label={t(levelLabel(lesson.level))} />
                     <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
-                      {lesson.title}
+                      {t(lesson.title)}
                     </span>
-                    <span className="text-xs leading-relaxed text-ink-muted">{lesson.summary}</span>
+                    <span className="text-xs leading-relaxed text-ink-muted">{t(lesson.summary)}</span>
                   </Link>
                 </li>
               ))}

@@ -2,6 +2,7 @@
 
 import { Link } from '@/i18n/navigation'
 import { Search } from 'lucide-react'
+import { useLocale } from 'next-intl'
 import { useMemo, useState } from 'react'
 
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -39,6 +40,7 @@ import { usePhrase } from '@/components/locale/ContentProvider'
  */
 export function LessonBrowser() {
   const t = usePhrase()
+  const locale = useLocale()
   const [level, setLevel] = useState<Level | 'tous'>('tous')
   const [query, setQuery] = useState('')
 
@@ -82,8 +84,8 @@ export function LessonBrowser() {
               key={entry.id}
               active={level === entry.id}
               onClick={() => setLevel(entry.id)}
-              label={entry.label}
-              hint={entry.hint}
+              label={t(entry.label)}
+              hint={t(entry.hint)}
             />
           ))}
         </div>
@@ -98,16 +100,24 @@ export function LessonBrowser() {
               href={`#${topic.id}`}
               className="rounded-card border border-border-subtle px-2.5 py-1 text-xs text-ink-muted transition-colors hover:border-brand hover:text-ink"
             >
-              {topic.title}
+              {t(topic.title)}
             </a>
           ))}
         </nav>
       ) : null}
 
+      {/* Un décompte se compose de trois morceaux qui ne s'ordonnent pas pareil
+          d'une langue à l'autre. Chacun est donc une phrase entière à trous, et non
+          un fragment recollé : le japonais met le nombre devant le classificateur,
+          l'allemand pousse le verbe au bout. */}
       <p className="text-xs text-ink-muted" aria-live="polite">
-        {total} fiche{total > 1 ? 's' : ''}
-        {level === 'tous' ? '' : ` de niveau ${levelLabel(level).toLowerCase()}`}
-        {needle ? ` correspondant à « ${query.trim()} »` : ''}
+        {[
+          t(total > 1 ? '{n} fiches' : '{n} fiche').replace('{n}', String(total)),
+          level === 'tous'
+            ? ''
+            : t(' de niveau {niveau}').replace('{niveau}', t(levelLabel(level)).toLocaleLowerCase(locale)),
+          needle ? t(' correspondant à « {requete} »').replace('{requete}', query.trim()) : '',
+        ].join('')}
       </p>
 
       {topics.length === 0 ? (
@@ -128,8 +138,8 @@ export function LessonBrowser() {
               className="scroll-mt-24 space-y-4 border-t border-border-subtle pt-7 first:border-0 first:pt-0"
             >
               <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-ink">{topic.title}</h2>
-                <p className="text-sm text-ink-muted">{topic.description}</p>
+                <h2 className="text-lg font-semibold text-ink">{t(topic.title)}</h2>
+                <p className="text-sm text-ink-muted">{t(topic.description)}</p>
               </div>
 
               <div className="grid gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
@@ -138,17 +148,17 @@ export function LessonBrowser() {
                     lire et moins hiérarchisée — dix repères visuels ne repèrent rien. */}
                 <Link href={`/apprendre/${lead.slug}`} className="group flex flex-col gap-3">
                   <span className="block overflow-hidden rounded-card">
-                    <CoverArt seed={lead.slug} label={levelLabel(lead.level)} ratio="16/10" />
+                    <CoverArt seed={lead.slug} label={t(levelLabel(lead.level))} ratio="16/10" />
                   </span>
                   <span className="space-y-1.5">
                     <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-ink">
-                      {levelLabel(lead.level)}
+                      {t(levelLabel(lead.level))}
                     </span>
                     <span className="block text-base font-semibold leading-snug text-ink group-hover:text-brand">
-                      {lead.title}
+                      {t(lead.title)}
                     </span>
                     <span className="block text-sm leading-relaxed text-ink-muted">
-                      {lead.summary}
+                      {t(lead.summary)}
                     </span>
                   </span>
                 </Link>
@@ -165,13 +175,13 @@ export function LessonBrowser() {
                           className="group flex flex-col gap-1 py-3.5"
                         >
                           <span className="text-[0.6875rem] font-medium uppercase tracking-wide text-ink-muted">
-                            {levelLabel(lesson.level)}
+                            {t(levelLabel(lesson.level))}
                           </span>
                           <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
-                            {lesson.title}
+                            {t(lesson.title)}
                           </span>
                           <span className="text-xs leading-relaxed text-ink-muted">
-                            {lesson.summary}
+                            {t(lesson.summary)}
                           </span>
                         </Link>
                       </li>

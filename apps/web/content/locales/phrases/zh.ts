@@ -2379,4 +2379,61 @@ export const zhPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} 天',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': '读懂一个市场',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': '你在每个资产页面上都会遇到的度量。',
+  'Lire un graphique': '读懂一张图表',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': '图形展示了什么——又没有展示什么。',
+  'Contexte et indicateurs': '背景与指标',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'ZENKUU 公布的汇总指标，以及它们真正的适用范围。',
+  'Les classes d’actifs': '资产类别',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'ZENKUU 追踪的每个市场究竟在为什么定价。',
+  'Lire une capitalisation, et connaître ses limites': '读懂市值，也知道它的边界',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': '市值是价格乘以数量——它不是投入的资金。',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': '成交量与流动性：为什么剧烈波动会误导人',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': '在极小的成交量上出现两位数波动，几乎说明不了什么。',
+  'Offre en circulation, offre totale, offre maximale': '流通供应量、总供应量、最大供应量',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': '三个不同的数字，常被混淆，含义各不相同。',
+  'Lire un graphique en chandeliers': '读懂蜡烛图',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': '每根蜡烛四个数值：开盘、最高、最低、收盘。',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': '移动平均说了什么，又没说什么',
+  'Un lissage du passé, calculé avec un retard structurel.': '对过去的平滑处理，天生带有滞后。',
+  'Lire un graphique sans y projeter de signaux imaginaires': '读图而不把想象中的信号投射上去',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': '人眼总能在噪声里看出图形。这正是最大的陷阱。',
+  'Comment lire un indice de sentiment': '如何读懂情绪指数',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': '一个综合性的情绪指标，而不是价值的度量。',
+  'La dominance : une part, pas une performance': '占比是份额，不是回报',
+  'Elle peut monter alors que l’actif baisse.': '资产在跌，它却可能在涨。',
+  'Pourquoi les conversions utilisent le taux BCE': '为什么换算采用欧洲央行汇率',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': '一个每日参考汇率，稳定且可核验——不是市场价格。',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': '股票与 ETF：你持有的并不是同一样东西',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': '一个是公司的一份，另一个是一篮子的一份——它们的价格形成方式也不同。',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': '指数衡量什么，而它的加权方式又让它说了什么',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': '同一市场上的两个指数，仅因计算方法不同就可能分道扬镳。',
+  'Lire une paire de devises, et dans quel sens': '读懂货币对，以及该往哪个方向读',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD 为 1.17，意思是 1 欧元换 1.17 美元——三个字母的顺序本身就是信息。',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': '大宗商品的价格是一份合约的价格，而不是一袋小麦的价格',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': '被报价的东西带着到期日，而这个到期日会扭曲对长期历史的解读。',
+  'Une série macroéconomique n’est pas un cours': '宏观经济序列不是行情',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': '一年公布一次，滞后数月，各国日期不同——之后还会被修订。',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': '{niveau}级 · 编辑推荐',
+  'Voir les {n} fiches': '查看全部 {n} 篇',
+  'Débutant': '入门',
+  'Intermédiaire': '进阶',
+  'Avancé': '高级',
+  'Aucun prérequis': '无需基础',
+  'Vous lisez déjà des cours': '你已经会看行情',
+  'Notions de valorisation': '了解估值概念',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} 篇',
+  '{n} fiches': '{n} 篇',
+  ' de niveau {niveau}': '（{niveau}级）',
+  ' correspondant à « {requete} »': '，匹配“{requete}”',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': '本文旨在解释说明，不构成投资建议——参见[关于 ZENKUU 立场的说明](/aide/pas-de-conseil)。',
 }

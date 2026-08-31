@@ -2386,4 +2386,61 @@ export const ruPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} дней',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Как читать рынок',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'Величины, которые встретятся на каждой странице актива.',
+  'Lire un graphique': 'Как читать график',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'Что показывают графики — и чего не показывают.',
+  'Contexte et indicateurs': 'Контекст и показатели',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'Сводные показатели, которые публикует ZENKUU, и их реальный охват.',
+  'Les classes d’actifs': 'Классы активов',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'Что на самом деле котирует каждый отслеживаемый ZENKUU рынок.',
+  'Lire une capitalisation, et connaître ses limites': 'Как читать капитализацию и знать её пределы',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Капитализация — это цена, умноженная на количество, а не вложенные деньги.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Объём и ликвидность: почему сильное движение может обмануть',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'Двузначное движение при мизерном объёме почти ничего не говорит.',
+  'Offre en circulation, offre totale, offre maximale': 'Предложение в обращении, общее предложение, максимальное предложение',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Три разных числа, которые часто путают, с разными следствиями.',
+  'Lire un graphique en chandeliers': 'Как читать свечной график',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Четыре значения на свечу: открытие, максимум, минимум, закрытие.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'Что говорит скользящая средняя — и чего не говорит',
+  'Un lissage du passé, calculé avec un retard structurel.': 'Сглаживание прошлого, рассчитанное с врождённым запаздыванием.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Как читать график, не вчитывая в него мнимые сигналы',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'Человеческий глаз находит фигуры в шуме. Это главная ловушка.',
+  'Comment lire un indice de sentiment': 'Как читать индекс настроений',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'Сводный индикатор настроения, а не мера стоимости.',
+  'La dominance : une part, pas une performance': 'Доминирование — это доля, а не доходность',
+  'Elle peut monter alors que l’actif baisse.': 'Она может расти, пока актив дешевеет.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Почему пересчёт использует курс ЕЦБ',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'Ежедневный справочный курс, устойчивый и проверяемый, — а не рыночная цена.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'Акция и ETF: то, чем вы владеете, — не одно и то же',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'Одно — доля в компании, другое — доля в корзине, и цена у них формируется по-разному.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'Что измеряет индекс и что заставляет его говорить весовая схема',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Два индекса одного рынка могут расходиться из-за одного лишь метода расчёта.',
+  'Lire une paire de devises, et dans quel sens': 'Как читать валютную пару — и в какую сторону',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD на уровне 1,17 значит, что один евро меняется на 1,17 доллара, — информация заключена в порядке трёх букв.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'Цена сырья — это цена контракта, а не мешка пшеницы',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'У котируемого есть срок исполнения, и он искажает чтение длинной истории.',
+  'Une série macroéconomique n’est pas un cours': 'Макроэкономический ряд — это не котировка',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Публикуется раз в год, с задержкой в несколько месяцев, в разные даты по странам — и затем пересматривается.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Уровень {niveau} · выбор редакции',
+  'Voir les {n} fiches': 'Смотреть все {n} материала',
+  'Débutant': 'Начальный',
+  'Intermédiaire': 'Средний',
+  'Avancé': 'Продвинутый',
+  'Aucun prérequis': 'Без предварительных знаний',
+  'Vous lisez déjà des cours': 'Вы уже читаете котировки',
+  'Notions de valorisation': 'Знакомство с оценкой стоимости',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} материал',
+  '{n} fiches': '{n} материалов',
+  ' de niveau {niveau}': ' уровня {niveau}',
+  ' correspondant à « {requete} »': ' по запросу «{requete}»',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'Этот материал носит пояснительный характер. Он не является инвестиционной рекомендацией — см. [заметку о рамках ZENKUU](/aide/pas-de-conseil).',
 }

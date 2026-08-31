@@ -2386,4 +2386,61 @@ export const nlPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} dagen',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Een markt lezen',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'De grootheden die u op elke actiefpagina tegenkomt.',
+  'Lire un graphique': 'Een grafiek lezen',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'Wat de weergaven tonen — en wat niet.',
+  'Contexte et indicateurs': 'Context en indicatoren',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'De geaggregeerde indicatoren die ZENKUU publiceert, en hun werkelijke reikwijdte.',
+  'Les classes d’actifs': 'De activaklassen',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'Wat elke markt die ZENKUU volgt werkelijk noteert.',
+  'Lire une capitalisation, et connaître ses limites': 'Een kapitalisatie lezen, en haar grenzen kennen',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Kapitalisatie vermenigvuldigt een koers met een hoeveelheid — het is geen geïnvesteerd geld.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Volume en liquiditeit: waarom een sterke beweging kan misleiden',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'Een dubbelcijferige beweging bij een piepklein volume zegt bijna niets.',
+  'Offre en circulation, offre totale, offre maximale': 'Circulerend aanbod, totaal aanbod, maximaal aanbod',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Drie verschillende getallen, vaak verward, met andere gevolgen.',
+  'Lire un graphique en chandeliers': 'Een kaarsgrafiek lezen',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Vier waarden per kaars: opening, hoogste, laagste, slot.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'Wat een voortschrijdend gemiddelde zegt, en niet zegt',
+  'Un lissage du passé, calculé avec un retard structurel.': 'Een effening van het verleden, berekend met een structurele vertraging.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Een grafiek lezen zonder er denkbeeldige signalen op te projecteren',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'Het menselijk oog vindt figuren in ruis. Dat is de grootste valkuil.',
+  'Comment lire un indice de sentiment': 'Hoe je een sentimentindex leest',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'Een samengestelde stemmingsindicator, geen waardemaatstaf.',
+  'La dominance : une part, pas une performance': 'Dominantie: een aandeel, geen rendement',
+  'Elle peut monter alors que l’actif baisse.': 'Ze kan stijgen terwijl het actief daalt.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Waarom omrekeningen de ECB-koers gebruiken',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'Een dagelijkse referentiekoers, stabiel en verifieerbaar — geen marktkoers.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'Een aandeel, een ETF: wat u bezit is niet hetzelfde',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'De ene is een stukje bedrijf, de andere een stukje mand — en hun koers ontstaat niet op dezelfde manier.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'Wat een index meet, en wat zijn weging hem laat zeggen',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Twee indices op dezelfde markt kunnen uiteenlopen door hun rekenmethode alleen.',
+  'Lire une paire de devises, et dans quel sens': 'Een valutapaar lezen, en in welke richting',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD op 1,17 betekent dat één euro wordt geruild tegen 1,17 dollar — de volgorde van de drie letters is de informatie.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'De koers van een grondstof is die van een contract, niet van een zak tarwe',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'Wat genoteerd wordt draagt een vervaldatum, en die vervormt het lezen van een lange historie.',
+  'Une série macroéconomique n’est pas un cours': 'Een macro-economische reeks is geen koers',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Eenmaal per jaar gepubliceerd, maanden later, op verschillende data per land — en daarna herzien.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Niveau {niveau} · keuze van de redactie',
+  'Voir les {n} fiches': 'Bekijk alle {n} kaarten',
+  'Débutant': 'Beginner',
+  'Intermédiaire': 'Gevorderd',
+  'Avancé': 'Expert',
+  'Aucun prérequis': 'Geen voorkennis',
+  'Vous lisez déjà des cours': 'U leest al koersen',
+  'Notions de valorisation': 'Basiskennis van waardering',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} kaart',
+  '{n} fiches': '{n} kaarten',
+  ' de niveau {niveau}': ' op niveau {niveau}',
+  ' correspondant à « {requete} »': ' die overeenkomen met “{requete}”',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'Deze kaart is verklarend. Ze vormt geen beleggingsaanbeveling — zie de [notitie over het kader van ZENKUU](/aide/pas-de-conseil).',
 }

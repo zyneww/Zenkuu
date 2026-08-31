@@ -2386,4 +2386,61 @@ export const plPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} dni',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Czytanie rynku',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'Wielkości, które spotkasz na każdej karcie aktywa.',
+  'Lire un graphique': 'Czytanie wykresu',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'Co pokazują wykresy — i czego nie pokazują.',
+  'Contexte et indicateurs': 'Kontekst i wskaźniki',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'Zagregowane wskaźniki publikowane przez ZENKUU i ich rzeczywisty zasięg.',
+  'Les classes d’actifs': 'Klasy aktywów',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'Co naprawdę notuje każdy rynek śledzony przez ZENKUU.',
+  'Lire une capitalisation, et connaître ses limites': 'Czytać kapitalizację i znać jej granice',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Kapitalizacja mnoży cenę przez ilość — to nie są zainwestowane pieniądze.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Wolumen i płynność: dlaczego duża zmiana może mylić',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'Dwucyfrowa zmiana przy znikomym wolumenie mówi prawie nic.',
+  'Offre en circulation, offre totale, offre maximale': 'Podaż w obiegu, podaż całkowita, podaż maksymalna',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Trzy różne liczby, często mylone, o odmiennych konsekwencjach.',
+  'Lire un graphique en chandeliers': 'Czytanie wykresu świecowego',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Cztery wartości na świecę: otwarcie, maksimum, minimum, zamknięcie.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'Co mówi średnia krocząca, a czego nie',
+  'Un lissage du passé, calculé avec un retard structurel.': 'Wygładzenie przeszłości, obliczane ze strukturalnym opóźnieniem.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Czytać wykres, nie rzutując nań wyimaginowanych sygnałów',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'Ludzkie oko znajduje kształty w szumie. To główna pułapka.',
+  'Comment lire un indice de sentiment': 'Jak czytać indeks nastrojów',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'Złożony wskaźnik nastroju, a nie miara wartości.',
+  'La dominance : une part, pas une performance': 'Dominacja: udział, a nie wynik',
+  'Elle peut monter alors que l’actif baisse.': 'Może rosnąć, gdy aktywo spada.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Dlaczego przeliczenia używają kursu EBC',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'Dzienny kurs referencyjny, stabilny i weryfikowalny — nie cena rynkowa.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'Akcja a ETF: to, co posiadasz, nie jest tym samym',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'Jedno to część przedsiębiorstwa, drugie część koszyka — a ich cena kształtuje się inaczej.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'Co mierzy indeks i co każe mu powiedzieć jego ważenie',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Dwa indeksy tego samego rynku mogą się rozejść wyłącznie przez metodę obliczeń.',
+  'Lire une paire de devises, et dans quel sens': 'Czytać parę walutową — i w którą stronę',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD na poziomie 1,17 oznacza, że jedno euro wymienia się na 1,17 dolara — informacją jest kolejność trzech liter.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'Cena surowca to cena kontraktu, a nie worka pszenicy',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'To, co jest notowane, ma termin wygaśnięcia, a on zniekształca odczyt długiej historii.',
+  'Une série macroéconomique n’est pas un cours': 'Szereg makroekonomiczny to nie kurs',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Publikowany raz w roku, z miesiącami opóźnienia, w różnych terminach zależnie od kraju — i potem korygowany.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Poziom {niveau} · wybór redakcji',
+  'Voir les {n} fiches': 'Zobacz wszystkie {n} materiały',
+  'Débutant': 'Początkujący',
+  'Intermédiaire': 'Średnio zaawansowany',
+  'Avancé': 'Zaawansowany',
+  'Aucun prérequis': 'Bez wymagań wstępnych',
+  'Vous lisez déjà des cours': 'Czytasz już notowania',
+  'Notions de valorisation': 'Podstawy wyceny',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} materiał',
+  '{n} fiches': '{n} materiałów',
+  ' de niveau {niveau}': ' na poziomie {niveau}',
+  ' correspondant à « {requete} »': ' pasujących do „{requete}”',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'Ten materiał ma charakter wyjaśniający. Nie stanowi rekomendacji inwestycyjnej — zob. [notę o ramach działania ZENKUU](/aide/pas-de-conseil).',
 }

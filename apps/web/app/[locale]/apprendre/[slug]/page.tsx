@@ -7,6 +7,7 @@ import { getLessonVideos } from '@zenkuu/data'
 import { SourceNote } from '@zenkuu/ui'
 
 import { ShareButtons } from '@/components/blog/ShareButtons'
+import { weave } from '@/components/locale/emphasise'
 import { CoverArt } from '@/components/editorial/CoverArt'
 import { LessonVideos } from '@/components/learn/LessonVideos'
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
@@ -62,13 +63,14 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
+  const t = await getPhrase()
   const { slug } = await params
   const lesson = findLesson(slug)
   if (!lesson) return {}
 
   return {
-    title: lesson.title,
-    description: lesson.summary,
+    title: t(lesson.title),
+    description: t(lesson.summary),
     alternates: { canonical: `/apprendre/${lesson.slug}` },
   }
 }
@@ -111,26 +113,28 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
         </Link>
         <span aria-hidden="true"> / </span>
         <Link href={`/apprendre#${lesson.topicId}`} className="hover:text-brand">
-          {lesson.topicTitle}
+          {t(lesson.topicTitle)}
         </Link>
       </nav>
 
       <header className="space-y-4">
-        <h1 className="display-xl text-ink">{lesson.title}</h1>
-        <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">{lesson.summary}</p>
+        <h1 className="display-xl text-ink">{t(lesson.title)}</h1>
+        <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">{t(lesson.summary)}</p>
         {/* Niveau et durée sur une seule ligne : ce sont les deux seules choses qu'un
             lecteur veut savoir avant de s'engager, et aucune n'est inventée — le
             niveau est déclaré par le corpus, la durée calculée sur le texte. */}
         <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
           <span className="rounded-card bg-brand-soft px-2 py-0.5 font-medium uppercase tracking-wide text-brand-strong">
-            {levelLabel(lesson.level)}
+            {t(levelLabel(lesson.level))}
           </span>
-          <span>{readingMinutes(lesson)} min de lecture</span>
+          <span>
+            {t('{n} min de lecture').replace('{n}', String(readingMinutes(lesson)))}
+          </span>
         </p>
       </header>
 
       <div className="mt-7 overflow-hidden rounded-card">
-        <CoverArt seed={lesson.slug} label={lesson.topicTitle} ratio="21/9" />
+        <CoverArt seed={lesson.slug} label={t(lesson.topicTitle)} ratio="21/9" />
       </div>
 
       <section
@@ -146,7 +150,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
               key={takeaway}
               className="border-l-2 border-brand pl-3 text-sm leading-relaxed text-ink-muted"
             >
-              {takeaway}
+              {t(takeaway)}
             </li>
           ))}
         </ul>
@@ -163,14 +167,14 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
             return (
               <section key={id} id={id} className="scroll-mt-24 space-y-3">
                 {section.title ? (
-                  <h2 className="display-sm text-ink">{section.title}</h2>
+                  <h2 className="display-sm text-ink">{t(section.title)}</h2>
                 ) : null}
                 {section.paragraphs.map((paragraph, paragraphIndex) => (
                   <p
                     key={paragraphIndex}
                     className="max-w-2xl text-base leading-relaxed text-ink-muted"
                   >
-                    {paragraph}
+                    {t(paragraph)}
                   </p>
                 ))}
               </section>
@@ -196,14 +200,18 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
           ) : null}
 
           <footer className="space-y-4 border-t border-border-subtle pt-6">
-            <ShareButtons title={lesson.title} path={`/apprendre/${lesson.slug}`} />
+            <ShareButtons title={t(lesson.title)} path={`/apprendre/${lesson.slug}`} />
             <p className="text-xs leading-relaxed text-ink-muted">
-              Cette fiche est explicative. Elle ne constitue pas une recommandation
-              d’investissement — voir la{' '}
-              <Link href="/aide/pas-de-conseil" className="underline underline-offset-2">
-                {t('note sur le cadre de ZENKUU')}
-              </Link>
-              .
+              {weave(
+                t(
+                  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).',
+                ),
+                (href, label, key) => (
+                  <Link key={key} href={href} className="underline underline-offset-2">
+                    {label}
+                  </Link>
+                ),
+              )}
             </p>
           </footer>
         </article>
@@ -228,7 +236,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                       href={`#${entry.id}`}
                       className="-ml-px block border-l border-transparent pl-3 text-sm leading-snug text-ink-muted transition-colors hover:border-brand hover:text-ink"
                     >
-                      {entry.section.title}
+                      {t(entry.section.title ?? '')}
                     </a>
                   </li>
                 ))}
@@ -256,12 +264,12 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
               <li key={entry.slug}>
                 <Link href={`/apprendre/${entry.slug}`} className="group flex h-full flex-col gap-2.5">
                   <span className="block overflow-hidden rounded-card">
-                    <CoverArt seed={entry.slug} label={levelLabel(entry.level)} />
+                    <CoverArt seed={entry.slug} label={t(levelLabel(entry.level))} />
                   </span>
                   <span className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
-                    {entry.title}
+                    {t(entry.title)}
                   </span>
-                  <span className="text-xs leading-relaxed text-ink-muted">{entry.summary}</span>
+                  <span className="text-xs leading-relaxed text-ink-muted">{t(entry.summary)}</span>
                 </Link>
               </li>
             ))}

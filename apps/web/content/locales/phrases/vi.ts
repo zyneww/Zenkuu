@@ -2386,4 +2386,61 @@ export const viPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} ngày',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Đọc một thị trường',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'Những đại lượng bạn sẽ gặp trên mọi trang tài sản.',
+  'Lire un graphique': 'Đọc một biểu đồ',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'Điều mà các biểu diễn cho thấy — và điều chúng không cho thấy.',
+  'Contexte et indicateurs': 'Bối cảnh và chỉ báo',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'Các chỉ báo tổng hợp mà ZENKUU công bố, và phạm vi thực của chúng.',
+  'Les classes d’actifs': 'Các lớp tài sản',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'Điều mà mỗi thị trường ZENKUU theo dõi thực sự đang niêm yết.',
+  'Lire une capitalisation, et connaître ses limites': 'Đọc vốn hóa, và biết giới hạn của nó',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Vốn hóa lấy giá nhân với số lượng — đó không phải tiền đã đầu tư.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Khối lượng và thanh khoản: vì sao một biến động mạnh có thể đánh lừa',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'Một biến động hai chữ số trên khối lượng tí hon gần như không nói lên điều gì.',
+  'Offre en circulation, offre totale, offre maximale': 'Nguồn cung lưu hành, nguồn cung tổng, nguồn cung tối đa',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Ba con số khác nhau, hay bị lẫn lộn, với hàm ý khác nhau.',
+  'Lire un graphique en chandeliers': 'Đọc biểu đồ nến',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Bốn giá trị mỗi nến: mở, cao nhất, thấp nhất, đóng.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'Đường trung bình động nói gì, và không nói gì',
+  'Un lissage du passé, calculé avec un retard structurel.': 'Một phép làm mượt quá khứ, tính kèm độ trễ cố hữu.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Đọc biểu đồ mà không phóng chiếu vào đó những tín hiệu tưởng tượng',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'Mắt người tìm ra hình dạng trong nhiễu. Đó là cái bẫy chính.',
+  'Comment lire un indice de sentiment': 'Cách đọc một chỉ số tâm lý',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'Một chỉ báo tổng hợp về tâm trạng, không phải thước đo giá trị.',
+  'La dominance : une part, pas une performance': 'Mức thống trị: một tỷ trọng, không phải một hiệu suất',
+  'Elle peut monter alors que l’actif baisse.': 'Nó có thể tăng trong khi tài sản giảm.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Vì sao việc quy đổi dùng tỷ giá ECB',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'Một tỷ giá tham chiếu hằng ngày, ổn định và kiểm chứng được — không phải giá thị trường.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'Một cổ phiếu, một ETF: thứ bạn nắm giữ không giống nhau',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'Một bên là phần của một doanh nghiệp, bên kia là phần của một rổ — và giá của chúng hình thành khác nhau.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'Chỉ số đo cái gì, và cách gán trọng số khiến nó nói điều gì',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Hai chỉ số trên cùng một thị trường có thể phân kỳ chỉ vì phương pháp tính.',
+  'Lire une paire de devises, et dans quel sens': 'Đọc một cặp tiền tệ, và theo chiều nào',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD ở mức 1,17 nghĩa là một euro đổi được 1,17 đô la — thông tin nằm ở thứ tự ba chữ cái.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'Giá một hàng hóa là giá của một hợp đồng, không phải của một bao lúa mì',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'Thứ được niêm yết có ngày đáo hạn, và ngày ấy làm méo cách đọc một chuỗi lịch sử dài.',
+  'Une série macroéconomique n’est pas un cours': 'Một chuỗi kinh tế vĩ mô không phải là một mức giá',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Công bố mỗi năm một lần, chậm vài tháng, vào những ngày khác nhau tùy nước — và sau đó còn được điều chỉnh.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Cấp độ {niveau} · lựa chọn của ban biên tập',
+  'Voir les {n} fiches': 'Xem cả {n} bài',
+  'Débutant': 'Cơ bản',
+  'Intermédiaire': 'Trung cấp',
+  'Avancé': 'Nâng cao',
+  'Aucun prérequis': 'Không cần kiến thức trước',
+  'Vous lisez déjà des cours': 'Bạn đã biết đọc giá',
+  'Notions de valorisation': 'Có khái niệm về định giá',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} bài',
+  '{n} fiches': '{n} bài',
+  ' de niveau {niveau}': ' ở cấp độ {niveau}',
+  ' correspondant à « {requete} »': ' khớp với « {requete} »',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'Bài này mang tính giải thích. Nó không phải khuyến nghị đầu tư — xem [ghi chú về phạm vi của ZENKUU](/aide/pas-de-conseil).',
 }

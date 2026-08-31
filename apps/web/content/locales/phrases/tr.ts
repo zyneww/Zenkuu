@@ -2386,4 +2386,61 @@ export const trPhrases: Phrases = {
 
   /* ── FENÊTRE DE GRAPHIQUE — ajouté le 2026-08-31 ── */
   '{n} jours': '{n} gün',
+
+  /* ── FICHES D'APPRENTISSAGE — titres et chapeaux — ajouté le 2026-08-31 ── */
+  'Lire un marché': 'Bir piyasayı okumak',
+  'Les grandeurs que vous croiserez sur chaque fiche d’actif.': 'Her varlık sayfasında karşılaşacağınız büyüklükler.',
+  'Lire un graphique': 'Bir grafiği okumak',
+  'Ce que les représentations montrent — et ce qu’elles ne montrent pas.': 'Gösterimlerin gösterdiği — ve göstermediği.',
+  'Contexte et indicateurs': 'Bağlam ve göstergeler',
+  'Les indicateurs agrégés que publie ZENKUU, et leur portée réelle.': 'ZENKUU’nun yayımladığı toplulaştırılmış göstergeler ve gerçek kapsamları.',
+  'Les classes d’actifs': 'Varlık sınıfları',
+  'Ce que chaque marché suivi par ZENKUU cote réellement.': 'ZENKUU’nun izlediği her piyasanın gerçekte neyi fiyatladığı.',
+  'Lire une capitalisation, et connaître ses limites': 'Bir piyasa değerini okumak ve sınırlarını bilmek',
+  'La capitalisation multiplie un cours par une quantité — ce n’est pas de l’argent investi.': 'Piyasa değeri, bir fiyatı bir miktarla çarpar — yatırılmış para değildir.',
+  'Volume et liquidité : pourquoi une forte variation peut tromper': 'Hacim ve likidite: güçlü bir değişim neden yanıltabilir',
+  'Une variation à deux chiffres sur un volume minuscule ne dit presque rien.': 'Çok küçük bir hacimde iki haneli bir değişim neredeyse hiçbir şey söylemez.',
+  'Offre en circulation, offre totale, offre maximale': 'Dolaşımdaki arz, toplam arz, azami arz',
+  'Trois nombres distincts, souvent confondus, aux implications différentes.': 'Sık karıştırılan, sonuçları farklı üç ayrı sayı.',
+  'Lire un graphique en chandeliers': 'Mum grafiği okumak',
+  'Quatre valeurs par bougie : ouverture, plus haut, plus bas, clôture.': 'Mum başına dört değer: açılış, en yüksek, en düşük, kapanış.',
+  'Ce qu’une moyenne mobile dit, et ne dit pas': 'Hareketli ortalama neyi söyler, neyi söylemez',
+  'Un lissage du passé, calculé avec un retard structurel.': 'Geçmişin, yapısal bir gecikmeyle hesaplanan yumuşatılmış hâli.',
+  'Lire un graphique sans y projeter de signaux imaginaires': 'Bir grafiği, ona hayali sinyaller yansıtmadan okumak',
+  'L’œil humain trouve des figures dans le bruit. C’est le piège principal.': 'İnsan gözü gürültünün içinde şekiller bulur. Asıl tuzak budur.',
+  'Comment lire un indice de sentiment': 'Bir duyarlılık endeksi nasıl okunur',
+  'Un indicateur composite d’ambiance, pas une mesure de valeur.': 'Bileşik bir ruh hali göstergesi; bir değer ölçüsü değil.',
+  'La dominance : une part, pas une performance': 'Baskınlık: bir pay, bir getiri değil',
+  'Elle peut monter alors que l’actif baisse.': 'Varlık düşerken bile yükselebilir.',
+  'Pourquoi les conversions utilisent le taux BCE': 'Dönüşümler neden ECB kurunu kullanır',
+  'Un taux de référence quotidien, stable et vérifiable — pas un cours de marché.': 'Günlük, istikrarlı ve doğrulanabilir bir referans kur — piyasa fiyatı değil.',
+  'Une action, un ETF : ce que vous détenez n’est pas la même chose': 'Bir hisse, bir ETF: elinizde tuttuğunuz şey aynı değildir',
+  'L’une est une part d’entreprise, l’autre une part de panier — et leur cours ne se forme pas pareil.': 'Biri bir şirketin payı, diğeri bir sepetin payıdır — ve fiyatları aynı biçimde oluşmaz.',
+  'Ce qu’un indice mesure, et ce que sa pondération lui fait dire': 'Bir endeks neyi ölçer ve ağırlıklandırması ona neyi söyletir',
+  'Deux indices sur le même marché peuvent diverger uniquement par leur méthode de calcul.': 'Aynı piyasaya ait iki endeks, yalnızca hesaplama yöntemleri yüzünden ayrışabilir.',
+  'Lire une paire de devises, et dans quel sens': 'Bir döviz paritesini okumak — ve hangi yönde',
+  'EUR/USD à 1,17 signifie qu’un euro s’échange contre 1,17 dollar — l’ordre des trois lettres est l’information.': 'EUR/USD’nin 1,17 olması, bir euronun 1,17 dolarla değiştiğini gösterir — bilgi, üç harfin sırasındadır.',
+  'Le cours d’une matière première est celui d’un contrat, pas d’un sac de blé': 'Bir emtianın fiyatı bir sözleşmenin fiyatıdır, bir çuval buğdayın değil',
+  'Ce qui est coté porte une échéance, et cette échéance déforme la lecture d’un historique long.': 'Kote edilen şeyin bir vadesi vardır ve bu vade, uzun bir geçmişin okunmasını çarpıtır.',
+  'Une série macroéconomique n’est pas un cours': 'Bir makroekonomik seri bir fiyat değildir',
+  'Publiée une fois par an, avec des mois de retard, à des dates différentes selon les pays — et révisée ensuite.': 'Yılda bir kez, aylarca gecikmeyle, ülkeden ülkeye farklı tarihlerde yayımlanır — ve sonradan revize edilir.',
+
+  /* ── FICHES D'APPRENTISSAGE — niveaux et repères — ajouté le 2026-08-31 ── */
+  'Niveau {niveau} · choix de la rédaction': 'Seviye {niveau} · editörün seçimi',
+  'Voir les {n} fiches': '{n} rehberin tümünü gör',
+  'Débutant': 'Başlangıç',
+  'Intermédiaire': 'Orta',
+  'Avancé': 'İleri',
+  'Aucun prérequis': 'Ön koşul yok',
+  'Vous lisez déjà des cours': 'Zaten fiyat okuyorsunuz',
+  'Notions de valorisation': 'Değerleme bilgisi',
+
+  /* ── FICHES D'APPRENTISSAGE — décompte — ajouté le 2026-08-31 ── */
+  '{n} fiche': '{n} rehber',
+  '{n} fiches': '{n} rehber',
+  ' de niveau {niveau}': ' {niveau} seviyesinde',
+  ' correspondant à « {requete} »': ' “{requete}” ile eşleşen',
+
+  /* ── FICHE D'APPRENTISSAGE — pied de page — ajouté le 2026-08-31 ── */
+  'Cette fiche est explicative. Elle ne constitue pas une recommandation d’investissement — voir la [note sur le cadre de ZENKUU](/aide/pas-de-conseil).': 'Bu rehber açıklayıcıdır. Bir yatırım tavsiyesi oluşturmaz — [ZENKUU’nun çerçevesine dair nota](/aide/pas-de-conseil) bakınız.',
 }
