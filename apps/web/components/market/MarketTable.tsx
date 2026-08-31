@@ -819,21 +819,62 @@ export function MarketTable({
 
             Le fond est OBLIGATOIRE et non décoratif : sans lui, les lignes défileraient
             visiblement sous un en-tête transparent.
+
+            ⚠️ CET EN-TÊTE COLLANT EST UNE DIVERGENCE ASSUMÉE : LA RÉFÉRENCE N'EN A PAS.
+
+            Relevé le 2026-08-31 sur leur accueil. Leur `thead` est en `position: static`
+            (avec un `top: -1px` résiduel qui ne sert à rien), et leurs `th` portent bien
+            `position: sticky` — mais avec `left: auto` et `top: auto`, donc sans ancrage :
+            la déclaration est morte. Vérifié par le comportement plutôt que par la
+            propriété, seul test qui tranche : après 2 500 px de défilement, leur en-tête
+            est à −1 992 px. Il sort de l'écran.
+
+            Leur `sticky` sur les `th` sert au figement HORIZONTAL des trois premières
+            colonnes (étoile, rang, nom) et ne s'arme que sous un point de rupture étroit,
+            où le tableau déborde. Deux mécaniques distinctes qu'il serait facile de
+            confondre : ce n'est pas un en-tête collant à moitié appliqué.
+
+            Le choix est gardé quand même. Sur cent lignes et quatorze colonnes, un
+            intitulé qu'on ne voit plus oblige à remonter pour savoir ce qu'on lit ; rien
+            dans la fidélité visuelle ne se perd puisque, tableau au repos, les deux sont
+            identiques au pixel. La reproduire ici reviendrait à recopier une déclaration
+            que la référence elle-même n'exécute pas.
           */}
           <TableHeader className="sticky top-[calc(var(--header-height)+1px)] z-10 bg-canvas [&_tr]:border-b-0">
-            {/* LA BANDE D'EN-TÊTE SE DÉTACHE DES LIGNES, et c'est ce que la référence
-                fait : un aplat léger sous les intitulés, des filets verticaux entre
-                eux (posés par `ColumnHeader`). Sans l'aplat, les filets flottent au-
-                dessus de rien et se lisent comme des traits perdus. L'opacité et non
-                un jeton plein : la bande doit rester en dessous des lignes qu'elle
-                surplombe quand le tableau défile, pas les concurrencer. */}
+            {/* ⚠️ L'APLAT A ÉTÉ RETIRÉ : LA RÉFÉRENCE N'EN POSE AUCUN, ET LA NOTE QUI
+                TENAIT ICI DISAIT LE CONTRAIRE.
+
+                Elle affirmait : « LA BANDE D'EN-TÊTE SE DÉTACHE DES LIGNES, et c'est ce
+                que la référence fait : un aplat léger sous les intitulés ». Mesuré le
+                2026-08-31 sur leur accueil, dans les deux thèmes, le fond de leur `th`
+                est le CANVAS EXACT — rgb(255, 255, 255) en clair, rgb(13, 18, 23) en
+                sombre. Pas de teinte, pas d'opacité intermédiaire.
+
+                Le `bg-canvas` du `TableHeader` juste au-dessus suffit donc, et il est
+                déjà là pour le défilement. Le reste du raisonnement tombe avec sa
+                prémisse : les filets verticaux de `ColumnHeader` se lisent très bien sur
+                le canvas, qui est le fond des lignes elles-mêmes.
+
+                Ce que la référence pose à la place, c'est un trait sous l'en-tête —
+                `box-shadow: 0 1px 0 0` sur le `thead`, et non une bordure. Cette parade
+                contourne un défaut connu des cellules `sticky`, dont les bordures ne
+                suivent pas au défilement dans plusieurs moteurs. Le `border-b` d'ici
+                dessine le même trait d'un pixel sans avoir besoin de la parade : la
+                bordure est portée par la rangée, qui n'est pas `sticky`. */}
             {/* 12 px et graisse 600 : la taille des en-têtes de colonne de la
                 référence. `text-xs` vaut 13 dans l'échelle ZENKUU, et
                 `--v2-text-2xs` est le seul cran à 12. `font-semibold` sur la rangée
                 plutôt que sur chaque cellule : un `<th>` sans graisse déclarée
                 retombe sur le gras du navigateur (700), ce qui laissait la colonne de
-                suivi en 700 quand toutes ses voisines étaient en 600. */}
-            <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
+                suivi en 700 quand toutes ses voisines étaient en 600.
+
+                `text-ink` ET NON `text-ink-muted`. Leurs quatorze en-têtes de colonne
+                partagent une seule et même couleur, et c'est l'encre PLEINE :
+                rgb(15, 23, 42) en clair, rgb(223, 229, 236) en sombre — les valeurs
+                exactes de `--color-ink` dans les deux thèmes. Un intitulé de colonne
+                n'est pas une mention secondaire chez eux : c'est une commande de tri,
+                et elle se lit comme telle. */}
+            <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink">
               {/* Le rang coûte quarante pixels pour redire ce que l'ORDRE des lignes
                   dit déjà. Il part le premier. */}
               {/* L'étoile a sa propre colonne, sans en-tête : un intitulé « Suivi »
