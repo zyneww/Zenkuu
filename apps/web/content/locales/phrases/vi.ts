@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 ngày',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'Chưa có cơ sở dữ liệu nào được cấu hình trên bản triển khai này.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Không áp dụng quy đổi tiền tệ: kết quả chỉ mang dấu thời gian của chính mức giá đó.',

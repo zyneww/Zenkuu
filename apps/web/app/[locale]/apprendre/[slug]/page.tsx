@@ -107,7 +107,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
 
       <nav aria-label={t('Fil d’Ariane')} className="mb-6 text-xs text-ink-muted">
         <Link href="/apprendre" className="hover:text-brand">
-          Apprendre
+          {t('Apprendre')}
         </Link>
         <span aria-hidden="true"> / </span>
         <Link href={`/apprendre#${lesson.topicId}`} className="hover:text-brand">
@@ -219,7 +219,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                 id="sommaire-titre"
                 className="text-xs font-semibold uppercase tracking-wide text-ink-muted"
               >
-                Sommaire
+                {t('Sommaire')}
               </h2>
               <ol className="space-y-1.5 border-l border-border-subtle">
                 {toc.map((entry) => (

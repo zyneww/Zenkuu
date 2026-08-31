@@ -8,6 +8,8 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 d',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'No hay ninguna base de datos configurada en esta instancia.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'No se aplica ninguna conversión de divisa: el resultado lleva únicamente la marca de tiempo de la cotización.',

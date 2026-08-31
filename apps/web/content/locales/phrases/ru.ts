@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 дн',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'На этом экземпляре база данных не настроена.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Конвертация валюты не применяется: результат несёт только отметку времени котировки.',

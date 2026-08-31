@@ -9,6 +9,8 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 Tage',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'Auf dieser Instanz ist keine Datenbank konfiguriert.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Es wird keine Währungsumrechnung vorgenommen: Das Ergebnis trägt allein den Zeitstempel des Kurses.',

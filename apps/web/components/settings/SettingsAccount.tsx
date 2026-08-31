@@ -149,7 +149,7 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
     <div className="space-y-4 rounded-card border border-border-subtle bg-surface p-4">
       <Field>
         <Label htmlFor="pseudonyme" className="text-xs font-medium text-ink">
-          Pseudonyme
+          {t('Pseudonyme')}
         </Label>
         <div className="flex gap-2">
           <Input

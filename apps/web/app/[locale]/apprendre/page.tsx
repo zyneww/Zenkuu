@@ -255,14 +255,15 @@ export default async function ApprendrePage() {
  * ancienneté. ZENKUU ne mesure pas l'audience de ses pages : prétendre afficher « la
  * plus lue » serait un chiffre inventé.
  */
-function FeaturedLesson() {
+async function FeaturedLesson() {
+  const t = await getPhrase()
   const lesson = LESSONS.find((entry) => entry.slug === FEATURED_SLUG)
   if (!lesson) return null
 
   return (
     <section aria-labelledby="a-la-une" className="space-y-3">
       <h2 id="a-la-une" className="text-sm font-semibold text-ink">
-        À la une
+        {t('À la une')}
       </h2>
 
       <Link

@@ -94,7 +94,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <nav aria-label={t('Fil d’Ariane')} className="mb-6 text-xs text-ink-muted">
         <Link href="/blog" className="hover:text-brand">
-          Blog
+          {t('Blog')}
         </Link>
         <span aria-hidden="true"> / </span>
         <span className="text-ink">{categoryLabel(article.category)}</span>
@@ -152,7 +152,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 id="sommaire-titre"
                 className="text-xs font-semibold uppercase tracking-wide text-ink-muted"
               >
-                Sommaire
+                {t('Sommaire')}
               </h2>
               <ol className="space-y-1.5 border-l border-border-subtle">
                 {toc.map((entry) => (

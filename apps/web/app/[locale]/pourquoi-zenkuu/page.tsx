@@ -197,7 +197,7 @@ export default async function PourquoiZenkuuPage() {
                   {t('Fonctionnement')}
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-center font-medium text-ink">
-                  ZENKUU
+                  {t('ZENKUU')}
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-center font-medium">
                   {t('Site mono-actif')}

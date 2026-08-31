@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 gün',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'Bu örnekte yapılandırılmış bir veritabanı yok.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Hiçbir para birimi dönüşümü uygulanmaz: sonuç yalnızca fiyatın zaman damgasını taşır.',

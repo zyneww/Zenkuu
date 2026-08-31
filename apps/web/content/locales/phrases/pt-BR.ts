@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 d',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'Nenhum banco de dados está configurado nesta instância.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Nenhuma conversão de moeda é aplicada: o resultado traz apenas o horário da cotação.',

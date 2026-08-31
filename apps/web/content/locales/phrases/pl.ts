@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 dni',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'W tej instancji nie skonfigurowano bazy danych.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Nie stosuje się żadnego przeliczenia walutowego: wynik nosi wyłącznie znacznik czasu kursu.',

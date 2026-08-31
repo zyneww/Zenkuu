@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7 g',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'Nessun database è configurato su questa istanza.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'Non viene applicata alcuna conversione di valuta: il risultato porta il solo orario del prezzo.',

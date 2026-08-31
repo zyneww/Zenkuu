@@ -192,10 +192,10 @@ export async function AssetVsTradFi({
                 {t('Cours')}
               </th>
               <th scope="col" className="border-l border-border-subtle/60 px-4 py-2.5 text-right font-semibold">
-                24 h
+                {t('24 h')}
               </th>
               <th scope="col" className="border-l border-border-subtle/60 px-4 py-2.5 text-right font-semibold">
-                7 j
+                {t('7 j')}
               </th>
               <th scope="col" className="border-l border-border-subtle/60 px-4 py-2.5 text-right font-semibold">
                 {t('Taille / écart')}

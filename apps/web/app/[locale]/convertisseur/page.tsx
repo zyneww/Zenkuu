@@ -267,7 +267,8 @@ function RelatedCard({
  * `<details>` natif, comme les autres FAQ du site : la réponse reste dans le HTML servi
  * même repliée, donc lue par les moteurs sans hydratation.
  */
-function ConverterFaq() {
+async function ConverterFaq() {
+  const t = await getPhrase()
   const entries: { question: string; answer: string[] }[] = [
     {
       question: 'Des frais s’appliquent-ils ?',
@@ -309,7 +310,7 @@ function ConverterFaq() {
   return (
     <section className="max-w-3xl space-y-4 border-t border-border-subtle pt-8" aria-labelledby="faq-convertisseur">
       <h2 id="faq-convertisseur" className="display-sm text-ink">
-        Questions fréquentes
+        {t('Questions fréquentes')}
       </h2>
 
       <div className="space-y-2">

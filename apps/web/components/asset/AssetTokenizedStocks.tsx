@@ -137,7 +137,7 @@ export function AssetTokenizedStocks({
                 <th scope="col" className="w-10 px-3 py-2.5 text-right font-semibold">#</th>
                 <th scope="col" className="px-3 py-2.5 font-semibold">{t('Jeton')}</th>
                 <th scope="col" className="hidden px-3 py-2.5 font-semibold sm:table-cell">
-                  Émetteur
+                  {t('Émetteur')}
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-right font-semibold">{t('Prix')}</th>
                 {reference !== undefined ? (
@@ -145,14 +145,14 @@ export function AssetTokenizedStocks({
                     scope="col"
                     className="hidden px-3 py-2.5 text-right font-semibold md:table-cell"
                   >
-                    Écart
+                    {t('Écart')}
                   </th>
                 ) : null}
                 <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold sm:table-cell">
                   {t('Capitalisation')}
                 </th>
                 <th scope="col" className="hidden px-3 py-2.5 text-right font-semibold lg:table-cell">
-                  Volume 24 h
+                  {t('Volume 24 h')}
                 </th>
               </tr>
             </TableHeader>

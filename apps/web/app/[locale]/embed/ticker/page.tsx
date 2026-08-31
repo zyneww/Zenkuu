@@ -78,7 +78,7 @@ export default async function EmbedTickerPage() {
           rel="noopener noreferrer"
           className="underline underline-offset-2"
         >
-          ZENKUU
+          {t('ZENKUU')}
         </a>
       </p>
     </div>

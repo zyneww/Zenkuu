@@ -214,7 +214,7 @@ export function ExchangeTickersTable({
                           scope="col"
                           className="hidden px-3 py-2.5 text-right font-medium lg:table-cell"
                         >
-                          Confiance
+                          {t('Confiance')}
                         </th>
                       ) : null}
                     </>

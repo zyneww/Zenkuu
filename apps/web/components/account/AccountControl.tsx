@@ -520,7 +520,7 @@ function SecurityRow({ onDone }: { onDone: () => void }) {
           Tout fermer
         </Button>
         <Button size="xs" variant="outline" className="flex-1" onClick={() => setArmed(false)}>
-          Annuler
+          {t('Annuler')}
         </Button>
       </div>
     </div>
@@ -589,7 +589,7 @@ function DangerRow() {
           Supprimer
         </Button>
         <Button size="xs" variant="outline" className="flex-1" onClick={() => setArmed(false)}>
-          Annuler
+          {t('Annuler')}
         </Button>
       </div>
     </div>

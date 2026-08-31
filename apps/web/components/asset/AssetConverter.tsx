@@ -55,7 +55,7 @@ export function AssetConverter({
   return (
     <section aria-labelledby="convertisseur-titre" className="space-y-2">
       <h2 id="convertisseur-titre" className="text-sm font-semibold text-ink">
-        Convertisseur
+        {t('Convertisseur')}
       </h2>
 
       <div className="flex items-stretch gap-2">

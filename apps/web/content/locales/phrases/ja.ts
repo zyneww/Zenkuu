@@ -2,6 +2,8 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7日',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'この環境にはデータベースが設定されていません。',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': '通貨換算は行いません。結果には価格そのものの時刻だけが付きます。',

@@ -13,6 +13,8 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
+  '7 j': '7d',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
   'Aucune base de données n’est configurée sur cette instance.': 'No database is configured on this instance.',
   'Aucune conversion de devise n’est appliquée : le résultat porte le seul horodatage du cours.': 'No currency conversion is applied: the result carries the price’s timestamp alone.',
