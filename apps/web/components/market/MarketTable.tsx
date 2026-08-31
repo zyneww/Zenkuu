@@ -829,10 +829,35 @@ export function MarketTable({
             propriété, seul test qui tranche : après 2 500 px de défilement, leur en-tête
             est à −1 992 px. Il sort de l'écran.
 
-            Leur `sticky` sur les `th` sert au figement HORIZONTAL des trois premières
-            colonnes (étoile, rang, nom) et ne s'arme que sous un point de rupture étroit,
-            où le tableau déborde. Deux mécaniques distinctes qu'il serait facile de
-            confondre : ce n'est pas un en-tête collant à moitié appliqué.
+            Leur `sticky` visait le figement HORIZONTAL des premières colonnes — étoile,
+            rang, nom — et NON un en-tête collant. Deux mécaniques distinctes qu'il serait
+            facile de confondre.
+
+            ⚠️ MAIS IL NE S'ARME À AUCUNE LARGEUR, ET LA CAUSE EST UNE VARIABLE MANQUANTE.
+            Leur feuille de style pose :
+
+              .gecko-sticky-table td.gecko-sticky, .gecko-sticky-table th.gecko-sticky {
+                left: calc(var(--gecko-prev-col-offset) + var(--gecko-sticky-offset));
+                position: sticky;
+              }
+
+            `--gecko-sticky-offset` existe bien : il vaut 0px sur la table, et leur script
+            l'ajuste en ligne par colonne (`--gecko-sticky-offset: -8px` sur « Coin »).
+            `--gecko-prev-col-offset`, LUI, N'EST DÉFINI NULLE PART — ni dans les
+            feuilles de style, ni en ligne. Un `calc()` dont une variable est absente est
+            invalide au calcul, et `left` retombe sur sa valeur initiale : `auto`. Or un
+            `position: sticky` sans ancrage ne fait rien.
+
+            Vérifié des deux côtés, le 2026-08-31 : les 303 cellules porteuses de
+            `.gecko-sticky` calculent toutes `left: auto` ; et en contraignant leur
+            conteneur à 360 px puis en défilant de 300 px à l'horizontale, les cinq
+            premières colonnes se déplacent de −300 px exactement, comme les autres. Rien
+            ne tient.
+
+            La fonctionnalité est donc entièrement construite chez eux — la classe est
+            posée sur 303 cellules, le conteneur a son `overflow-x: auto`, le script
+            renseigne une des deux variables — et elle ne produit rien. C'est un défaut de
+            leur côté, pas une intention de mise en page. Il n'y a rien à reproduire ici.
 
             Le choix est gardé quand même. Sur cent lignes et quatorze colonnes, un
             intitulé qu'on ne voit plus oblige à remonter pour savoir ce qu'on lit ; rien
