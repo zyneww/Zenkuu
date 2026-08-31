@@ -895,6 +895,15 @@ export interface GlobalMarketStats {
   /** Part de marché par symbole, ex. { btc: 54.2, eth: 12.8 }. */
   dominance: Record<string, number>
   activeAssets: number
+  /**
+   * Nombre de places de marché suivies.
+   *
+   * OPTIONNEL parce que toutes les sources ne le publient pas : la notion n'a même
+   * pas de sens hors de la crypto, où une action se traite sur une place identifiée
+   * une fois pour toutes. Les adaptateurs qui ne le fournissent pas laissent le
+   * repère absent plutôt que de compter à leur façon.
+   */
+  activeMarkets?: number
   currency: string
   lastUpdated: string
 }

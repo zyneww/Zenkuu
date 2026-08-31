@@ -1,3 +1,5 @@
+import { getLocale } from 'next-intl/server'
+
 import { getCryptoGlobalStats } from '@zenkuu/data'
 import { ChangeBadge } from '@zenkuu/ui'
 
@@ -34,17 +36,21 @@ import { getPhrase } from '@/lib/content'
  * de la référence : c'est celle de toutes les autres rangées du site, et deux
  * rangées du même en-tête ne peuvent pas commencer à deux abscisses différentes.
  *
- * ── DEUX DE LEURS SIX REPÈRES N'ONT PAS DE SOURCE ICI ──────────────────────
+ * ── UN SEUL DE LEURS SIX REPÈRES N'A PAS DE SOURCE ICI ─────────────────────
  *
  * Leur bandeau porte : monnaies, plateformes, capitalisation, volume 24 h,
- * dominance, prix du gaz Ethereum. `GlobalMarketStats` fournit les quatre premiers
- * — `activeAssets`, `totalMarketCap` avec sa variation, `totalVolume24h`,
- * `dominance` — mais NI le nombre de plateformes NI le prix du gaz.
+ * dominance, prix du gaz Ethereum.
  *
- * Ils sont donc absents plutôt qu'approchés. Compter les plateformes demanderait une
- * lecture que rien d'autre sur le site ne réclame, et le prix du gaz vient d'un nœud
- * Ethereum, pas d'une source de cotation. Les inventer serait de la fausse donnée,
- * ce que le projet interdit.
+ * ⚠️ LES PLATEFORMES ÉTAIENT LÀ DEPUIS LE DÉBUT, ET LA NOTE QUI TENAIT ICI SE
+ * TROMPAIT. Elle affirmait que « compter les plateformes demanderait une lecture que
+ * rien d'autre sur le site ne réclame ». Aucune lecture supplémentaire n'est
+ * nécessaire : `/global` renvoie `markets` dans la MÊME réponse que celle qui porte
+ * déjà `active_cryptocurrencies`. Seule l'interface TypeScript du client omettait le
+ * champ — il traversait donc le code sans que personne ne sache qu'il existait.
+ * Vérifié le 2026-08-31 : `markets: 1498`, le chiffre exact de leur bandeau.
+ *
+ * Reste le prix du gaz, qui vient d'un nœud Ethereum et non d'une source de
+ * cotation. Absent plutôt qu'approché : l'inventer serait de la fausse donnée.
  *
  * ── IL NE REND RIEN PLUTÔT QU'UNE LIGNE DE TIRETS ──────────────────────────
  *
@@ -54,12 +60,33 @@ import { getPhrase } from '@/lib/content'
  * regarde.
  */
 export async function GlobalTicker() {
-  const [t, stats] = await Promise.all([getPhrase(), getCryptoGlobalStats('eur')])
+  /*
+   * ⚠️ `toLocaleString('fr-FR')` ÉTAIT CODÉ EN DUR, et les deux comptes du bandeau
+   * s'écrivaient donc « 19 420 » et « 1 498 » — espace insécable étroite — même sur
+   * les pages anglaises, où l'on attend « 19,420 » et « 1,498 ». Ces deux nombres
+   * sont du TEXTE dans une phrase, pas une convention de marché : ils suivent la
+   * langue du lecteur, comme le veut la note en tête de `packages/ui/src/format.ts`.
+   *
+   * Le montant en devise passe déjà par `Money`, qui s'en charge de son côté.
+   */
+  const [t, stats, locale] = await Promise.all([
+    getPhrase(),
+    getCryptoGlobalStats('eur'),
+    getLocale(),
+  ])
+  const compte = (valeur: number) => new Intl.NumberFormat(locale).format(valeur)
 
   if (!stats.ok) return null
 
-  const { totalMarketCap, totalVolume24h, marketCapChange24h, dominance, activeAssets, currency } =
-    stats.data
+  const {
+    totalMarketCap,
+    totalVolume24h,
+    marketCapChange24h,
+    dominance,
+    activeAssets,
+    activeMarkets,
+    currency,
+  } = stats.data
 
   const btc = dominance?.btc
   const eth = dominance?.eth
@@ -73,10 +100,28 @@ export async function GlobalTicker() {
           `shell` reprend la gouttière et la largeur maximale du reste du site : le
           bandeau doit s'aligner sur la barre de navigation en dessous, sinon deux
           rangées du même en-tête commenceraient à deux abscisses différentes. */}
-      <div className="shell scrollbar-none flex items-center gap-5 overflow-x-auto py-[var(--v2-space-4)] text-[length:var(--v2-text-2xs)]">
+      {/* `min-h-[52px]` — LA RANGÉE FAISAIT 39 PIXELS AU LIEU DES 52 VISÉS.
+
+          Le rembourrage de 10 px était juste ; c'est la rangée elle-même qui était
+          trop courte. Chez eux, elle se décompose en 10 + 32 + 10, les 32 venant d'un
+          conteneur interne qui porte ses propres 8 px de part et d'autre d'un
+          interligne de 16. Plutôt que d'imbriquer un second conteneur pour reproduire
+          la somme, la hauteur minimale l'exprime directement : `box-sizing:
+          border-box` étant le réglage de Tailwind, ces 52 px INCLUENT le rembourrage
+          et laissent exactement 32 px à la ligne. */}
+      <div className="shell scrollbar-none flex min-h-[52px] items-center gap-5 overflow-x-auto py-[var(--v2-space-4)] text-[length:var(--v2-text-2xs)]">
         <Repere label={t('Actifs')} href="/crypto">
-          <span className="tabular font-semibold text-ink">{activeAssets.toLocaleString('fr-FR')}</span>
+          <span className="tabular font-semibold text-ink">{compte(activeAssets)}</span>
         </Repere>
+
+        {/* Le nombre de places, deuxième repère chez eux comme ici. Rendu seulement
+            s'il est présent : le type le donne optionnel, toutes les sources ne le
+            publiant pas. */}
+        {activeMarkets !== undefined ? (
+          <Repere label={t('Plateformes')} href="/places">
+            <span className="tabular font-semibold text-ink">{compte(activeMarkets)}</span>
+          </Repere>
+        ) : null}
 
         <Repere label={t('Capitalisation')} href="/graphiques">
           <span className="tabular font-semibold text-ink">

@@ -104,6 +104,10 @@ interface CoinGeckoMarket {
 interface CoinGeckoGlobal {
   data: {
     active_cryptocurrencies: number
+    /* Le nombre de PLACES suivies. Il voyageait dans cette réponse depuis toujours ;
+       seule l'interface l'ignorait, si bien que rien dans le code ne savait qu'il
+       était là. */
+    markets: number
     total_market_cap: Record<string, number>
     total_volume: Record<string, number>
     market_cap_percentage: Record<string, number>
@@ -1040,6 +1044,7 @@ export const coinGeckoProvider: MarketDataProvider = {
       marketCapChange24h: data.market_cap_change_percentage_24h_usd,
       dominance: data.market_cap_percentage ?? {},
       activeAssets: data.active_cryptocurrencies,
+      activeMarkets: data.markets,
       currency: currency.toUpperCase(),
       lastUpdated: new Date(data.updated_at * 1000).toISOString(),
     }
