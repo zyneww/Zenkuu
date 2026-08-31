@@ -1,3 +1,4 @@
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
 
 import type {
@@ -151,8 +152,9 @@ async function SentimentCard({ sentiment }: { sentiment: SentimentIndex }) {
  * donc ce qui est réellement sourcé : le nom, le rang et la variation.
  */
 function TrendingCard({ assets }: { assets: TrendingAsset[] }) {
+  const t = usePhrase()
   return (
-    <CardShell title="Tendance" badge="24 h" href="/crypto?vue=tendance">
+    <CardShell title={t('Tendance')} badge="24 h" href="/crypto?vue=tendance">
       <ul className="space-y-2.5">
         {assets.map((asset) => (
           <li key={asset.id} className="flex items-center justify-between gap-3">

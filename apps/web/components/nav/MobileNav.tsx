@@ -175,11 +175,11 @@ export function MobileNav() {
             s'annonce déjà de lui-même, et un titre « Navigation » au-dessus d'une
             navigation est du bruit. */}
         <DrawerHeader className="sr-only">
-          <DrawerTitle>Navigation principale</DrawerTitle>
+          <DrawerTitle>{t('Navigation principale')}</DrawerTitle>
         </DrawerHeader>
 
         <div className="flex min-h-0 flex-col overflow-y-auto overscroll-contain">
-            <nav aria-label="Navigation principale" className="safe-x flex-1 py-2">
+            <nav aria-label={t('Navigation principale')} className="safe-x flex-1 py-2">
               {/*
                 ── LES SECTIONS REPLIABLES PASSENT SUR `Accordion` ─────────────
 

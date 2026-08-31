@@ -223,7 +223,7 @@ export default async function ApprendrePage() {
         méthode derrière les chiffres, et l'aide sur le site lui-même.
       */}
       <section className="rounded-card bg-gradient-to-br from-brand to-brand-strong px-7 py-7">
-        <h2 className="display-sm text-on-brand">Et maintenant ?</h2>
+        <h2 className="display-sm text-on-brand">{t('Et maintenant ?')}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-on-brand/85">
           Ces fiches expliquent des notions de marché. Pour comprendre comment ZENKUU
           collecte et rafraîchit ses données, ou pour une question sur le site lui-même,

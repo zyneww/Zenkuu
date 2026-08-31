@@ -184,7 +184,7 @@ async function ComparatorBody() {
   if (assets.length < 2) {
     return (
       <EmptyState
-        title="Univers indisponible"
+        title={t('Univers indisponible')}
         description="Aucun marché n’a répondu : la comparaison a besoin d’au moins deux actifs."
         tone="warning"
       />

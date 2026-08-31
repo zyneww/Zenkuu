@@ -202,8 +202,8 @@ async function EarningsPanel({ earnings }: { earnings: NonNullable<AssetProfile[
           <table className="w-full text-xs">
             <thead>
               <tr className="text-ink-muted">
-                <th scope="col" className="pb-1.5 text-left font-medium">Trimestre</th>
-                <th scope="col" className="pb-1.5 text-right font-medium">Attendu</th>
+                <th scope="col" className="pb-1.5 text-left font-medium">{t('Trimestre')}</th>
+                <th scope="col" className="pb-1.5 text-right font-medium">{t('Attendu')}</th>
                 <th scope="col" className="pb-1.5 text-right font-medium">{t('Publié')}</th>
                 <th scope="col" className="pb-1.5 text-right font-medium">{t('Écart')}</th>
               </tr>
@@ -320,7 +320,7 @@ async function DividendPanel({
   if (rows.length === 0) return null
 
   return (
-    <Panel title="Dividende">
+    <Panel title={t('Dividende')}>
       <dl>
         {rows.map((row) => (
           <RowLine key={row.label} row={row} />

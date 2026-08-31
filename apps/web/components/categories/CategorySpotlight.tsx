@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import { Link } from '@/i18n/navigation'
 
 import type { MarketCategory } from '@zenkuu/data'
@@ -18,7 +19,7 @@ import { TopAssets } from '@/components/categories/CategoryExplorer'
  * fortes hausses » n'est pas « les plus importants ». Sans cette précision, quatre
  * cartes en tête de page passent pour un palmarès dont on ignore la règle.
  */
-export function CategorySpotlight({
+export async function CategorySpotlight({
   title,
   hint,
   categories,
@@ -27,6 +28,7 @@ export function CategorySpotlight({
   hint: string
   categories: MarketCategory[]
 }) {
+  const t = await getPhrase()
   if (categories.length === 0) return null
 
   return (
@@ -67,7 +69,7 @@ export function CategorySpotlight({
 
             <dl className="space-y-1 text-xs">
               <div className="flex items-baseline justify-between gap-2">
-                <dt className="text-ink-muted">Volume 24 h</dt>
+                <dt className="text-ink-muted">{t('Volume 24 h')}</dt>
                 <dd className="tabular text-ink-muted">
                   {formatCurrency(category.volume24h, 'USD', { compact: true }) ?? '—'}
                 </dd>

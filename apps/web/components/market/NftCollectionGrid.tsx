@@ -1,3 +1,4 @@
+import { getPhrase } from '@/lib/content'
 import type { NftCollection } from '@zenkuu/data'
 import { ChangeBadge, formatCompact } from '@zenkuu/ui'
 
@@ -20,7 +21,8 @@ import { ChangeBadge, formatCompact } from '@zenkuu/ui'
  * native en tête, parce que convertir seul ferait perdre le chiffre que tout le
  * monde retient.
  */
-export function NftCollectionGrid({ collections }: { collections: NftCollection[] }) {
+export async function NftCollectionGrid({ collections }: { collections: NftCollection[] }) {
+  const t = await getPhrase()
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {collections.map((collection) => (
@@ -61,7 +63,7 @@ export function NftCollectionGrid({ collections }: { collections: NftCollection[
 
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
             <div>
-              <dt className="text-ink-muted">Prix plancher</dt>
+              <dt className="text-ink-muted">{t('Prix plancher')}</dt>
               <dd className="tabular mt-0.5 font-medium text-ink">
                 {collection.floorPriceNative !== undefined
                   ? `${collection.floorPriceNative.toFixed(2).replace('.', ',')} ${collection.nativeSymbol ?? ''}`
@@ -75,14 +77,14 @@ export function NftCollectionGrid({ collections }: { collections: NftCollection[
             </div>
 
             <div>
-              <dt className="text-ink-muted">Plancher 24 h</dt>
+              <dt className="text-ink-muted">{t('Plancher 24 h')}</dt>
               <dd className="mt-0.5">
                 <ChangeBadge value={collection.floorChange24h} size="sm" />
               </dd>
             </div>
 
             <div>
-              <dt className="text-ink-muted">Capitalisation</dt>
+              <dt className="text-ink-muted">{t('Capitalisation')}</dt>
               <dd className="tabular mt-0.5 text-ink">
                 {collection.marketCapUsd !== undefined
                   ? `${formatCompact(collection.marketCapUsd)} $`
@@ -91,7 +93,7 @@ export function NftCollectionGrid({ collections }: { collections: NftCollection[
             </div>
 
             <div>
-              <dt className="text-ink-muted">Volume 24 h</dt>
+              <dt className="text-ink-muted">{t('Volume 24 h')}</dt>
               {/* Un volume à ZÉRO est affiché comme tel, et non remplacé par un tiret :
                   une collection sans vente sur vingt-quatre heures est une information,
                   pas une donnée manquante. */}

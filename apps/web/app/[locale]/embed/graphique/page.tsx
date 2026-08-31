@@ -58,7 +58,7 @@ export default async function Page({
     if (!basket.ok) return null
     return (
       <GlobalChartCard
-        title="Capitalisation du panier suivi"
+        title={t('Capitalisation du panier suivi')}
         format="money"
         currency={basket.data.currency}
         colorIndex={5}
@@ -86,7 +86,7 @@ export default async function Page({
     if (!history.ok) return null
     return (
       <GlobalChartCard
-        title="Indice de sentiment"
+        title={t('Indice de sentiment')}
         format="plain"
         colorIndex={2}
         points={history.data.map((point) => ({ t: point.timestamp, y: point.value }))}

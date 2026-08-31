@@ -73,7 +73,7 @@ export async function AssetOwnership({
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
         {hasBreakdown ? (
           <Panel
-            title="Structure"
+            title={t('Structure')}
             {...(ownership.institutionsCount !== undefined
               ? { subtitle: `${formatCompact(ownership.institutionsCount)} institutions déclarantes` }
               : {})}

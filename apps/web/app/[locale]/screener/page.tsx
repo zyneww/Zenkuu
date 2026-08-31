@@ -86,7 +86,7 @@ export default async function ScreenerPage({
   return (
     <div className="space-y-6">
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Screener</h1>
+        <h1 className="display-xl text-ink">{t('Screener')}</h1>
         <p className="text-lg leading-relaxed text-ink-muted">{t(market.lead)}</p>
       </header>
 
@@ -171,7 +171,7 @@ async function MarketSection({ market }: { market: ScreenerMarket }) {
   if (loaded.rows.length === 0) {
     return (
       <EmptyState
-        title="Population vide"
+        title={t('Population vide')}
         description={t('La source n’a renvoyé aucune ligne pour ce marché.')}
         compact
       />

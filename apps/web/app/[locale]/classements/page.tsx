@@ -170,7 +170,7 @@ export default async function RankingsPage({
           <RankingBoard assets={result.data} {...(scopeLabel ? { scopeLabel } : {})} />
 
           <section className="max-w-2xl space-y-2 border-t border-border-subtle pt-6">
-            <h2 className="text-sm font-semibold text-ink">Comment lire ces classements</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('Comment lire ces classements')}</h2>
 
             {assetClass === 'crypto' ? (
               <p className="text-sm leading-relaxed text-ink-muted">
@@ -189,7 +189,7 @@ export default async function RankingsPage({
             )}
 
             <p className="text-sm leading-relaxed text-ink-muted">
-              La <strong className="text-ink">rotation</strong> rapporte le volume de 24 heures
+              La <strong className="text-ink">{t('rotation')}</strong> rapporte le volume de 24 heures
               à la capitalisation. Une rotation élevée signale un actif très échangé au
               regard de sa taille — ce qui décrit une activité, jamais une direction.
               {/* Dit ici plutôt que laissé constater : les devises n'ont ni capitalisation

@@ -74,7 +74,7 @@ export function SettingsAccount() {
     return (
       <section className="space-y-4">
         <Heading
-          title="Compte"
+          title={t('Compte')}
           description={t('Vous n’êtes pas connecté. Ce n’est pas un obstacle : la liste de suivi et les écrans enregistrés fonctionnent sans compte, rangés dans ce navigateur.')}
         />
 
@@ -106,7 +106,7 @@ export function SettingsAccount() {
   return (
     <section className="space-y-4">
       <Heading
-        title="Compte"
+        title={t('Compte')}
         description={t('Ce que ZENKUU sait de vous tient en deux lignes : une adresse et un pseudonyme. Il n’y a ni mot de passe, ni profil, ni identité vérifiée.')}
       />
 
@@ -162,7 +162,7 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
               setDraft(event.target.value)
               setSaved(false)
             }}
-            aria-label="Pseudonyme"
+            aria-label={t('Pseudonyme')}
             className="w-full max-w-xs"
           />
           {/* La roue s'AJOUTE au libellé au lieu de le remplacer, et `shrink-0` fige
@@ -313,7 +313,7 @@ function DangerCard() {
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>{t('Annuler')}</AlertDialogCancel>
             {/*
               `asChild` sur l'action : `AlertDialogAction` ferme la fenêtre de
               lui-même au clic, et son bouton par défaut n'a ni la variante

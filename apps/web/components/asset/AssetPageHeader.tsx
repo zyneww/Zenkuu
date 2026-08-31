@@ -461,8 +461,8 @@ export async function AssetHeadline({
                         <li>
                           <DropdownMenu>
                             <DropdownMenuTrigger
-                              aria-label="Plus de liens"
-                              title="Plus de liens"
+                              aria-label={phrase('Plus de liens')}
+                              title={phrase('Plus de liens')}
                               className="flex size-7 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors hover:border-brand hover:text-brand data-[state=open]:border-brand data-[state=open]:text-brand-strong"
                             >
                               <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />

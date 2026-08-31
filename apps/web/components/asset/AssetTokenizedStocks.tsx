@@ -135,11 +135,11 @@ export function AssetTokenizedStocks({
             <TableHeader className="[&_tr]:border-b-0">
               <tr className="border-b border-border-subtle bg-surface-muted/35 text-left text-xs text-ink-muted">
                 <th scope="col" className="w-10 px-3 py-2.5 text-right font-semibold">#</th>
-                <th scope="col" className="px-3 py-2.5 font-semibold">Jeton</th>
+                <th scope="col" className="px-3 py-2.5 font-semibold">{t('Jeton')}</th>
                 <th scope="col" className="hidden px-3 py-2.5 font-semibold sm:table-cell">
                   Émetteur
                 </th>
-                <th scope="col" className="px-3 py-2.5 text-right font-semibold">Prix</th>
+                <th scope="col" className="px-3 py-2.5 text-right font-semibold">{t('Prix')}</th>
                 {reference !== undefined ? (
                   <th
                     scope="col"

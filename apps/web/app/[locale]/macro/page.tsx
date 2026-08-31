@@ -135,7 +135,7 @@ export default async function MacroPage({
           les quarante-cinq en boutons rendrait les cinq introuvables ; n'offrir que la
           recherche obligerait à taper pour atteindre l'inflation. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label="Indicateurs courants" className="flex flex-wrap gap-1.5">
+        <nav aria-label={t('Indicateurs courants')} className="flex flex-wrap gap-1.5">
           {FEATURED.map((id) => {
             const entry = MACRO_INDICATORS.find((candidate) => candidate.id === id)
             if (!entry) return null

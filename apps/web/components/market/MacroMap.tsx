@@ -213,7 +213,7 @@ export function MacroMap({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Ensemble de pays">
+      <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Ensemble de pays')}>
         {MACRO_GROUPS.map((entry) => (
           <button
             key={entry.id}

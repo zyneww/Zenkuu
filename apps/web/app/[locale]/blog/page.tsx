@@ -180,7 +180,7 @@ export default async function BlogPage() {
           description={t('Plutôt que de remplir cette page de billets de circonstance, elle reste vide jusqu’au premier vrai article. Les contenus explicatifs du site sont, eux, bien réels.')}
           action={
             <div className="flex flex-wrap justify-center gap-3">
-              <ButtonLink href="/apprendre">Fiches Apprendre</ButtonLink>
+              <ButtonLink href="/apprendre">{t('Fiches Apprendre')}</ButtonLink>
               {/* Le second est `secondary` : deux boutons pleins côte à côte ne disent
                   plus lequel est l'action principale. C'est la paire de shadcn/ui, et
                   elle remplace ici un filet écrit à la main. */}

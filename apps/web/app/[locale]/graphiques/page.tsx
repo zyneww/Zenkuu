@@ -301,7 +301,7 @@ async function GlobalView() {
 
         {btc.ok ? (
           <GlobalChartCard
-            title="Capitalisation de Bitcoin"
+            title={t('Capitalisation de Bitcoin')}
             hint="Publiée par la source, jour par jour."
             format="money"
             currency={btc.data.currency}
@@ -323,7 +323,7 @@ async function GlobalView() {
 
         {btc.ok ? (
           <GlobalChartCard
-            title="Volume 24 h de Bitcoin"
+            title={t('Volume 24 h de Bitcoin')}
             hint="Le volume échangé sur l’ensemble des places, tel que la source l’agrège."
             format="money"
             currency={btc.data.currency}
@@ -334,7 +334,7 @@ async function GlobalView() {
 
         {sentiment.ok && sentiment.data.length > 1 ? (
           <GlobalChartCard
-            title="Indice de sentiment"
+            title={t('Indice de sentiment')}
             hint="0 = peur extrême, 100 = avidité extrême."
             embedId="sentiment"
             format="plain"
@@ -371,7 +371,7 @@ async function GlobalView() {
 
       {!btc.ok && !eth.ok ? (
         <EmptyState
-          title="Courbes longues indisponibles"
+          title={t('Courbes longues indisponibles')}
           description={btc.ok ? null : btc.reason}
           tone="warning"
         />

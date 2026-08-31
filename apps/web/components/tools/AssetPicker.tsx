@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Check, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -114,6 +115,7 @@ export function AssetPicker({
   children,
   triggerClassName = 'flex w-full items-center gap-2 border border-border-subtle bg-surface px-3 py-2.5 text-left transition-colors hover:border-brand focus:border-brand focus:outline-none',
 }: Props) {
+  const t = usePhrase()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
 
@@ -213,8 +215,8 @@ export function AssetPicker({
             <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
             <ComboboxInput
               showTrigger={false}
-              placeholder="Rechercher un actif…"
-              aria-label="Rechercher un actif"
+              placeholder={t('Rechercher un actif…')}
+              aria-label={t('Rechercher un actif')}
               className="w-full border-0 bg-transparent py-1 text-sm text-ink shadow-none focus-visible:ring-0"
             />
           </div>

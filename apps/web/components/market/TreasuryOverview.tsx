@@ -175,10 +175,10 @@ export async function TreasuryOverview({
 
           <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
             {tiles.length} positions. Surface : valeur au cours du jour. Couleur :{' '}
-            <strong className="text-ink">plus-value latente</strong> — l’écart entre cette
+            <strong className="text-ink">{t('plus-value latente')}</strong> — l’écart entre cette
             valeur et le coût d’acquisition déclaré, rapporté à ce coût. Ce n’est ni un
             résultat réalisé ni une performance boursière : la position n’a pas été vendue.
-            Une tuile <strong className="text-ink">grise</strong> signale une société qui n’a
+            Une tuile <strong className="text-ink">{t('grise')}</strong> signale une société qui n’a
             pas communiqué son coût d’entrée — l’absence est affichée comme telle, jamais
             remplacée par zéro. Ce registre recense enfin des positions{' '}
             <strong className="text-ink">{t('déclarées')}</strong>, à la date de leur annonce : une

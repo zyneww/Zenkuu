@@ -142,7 +142,7 @@ export function RankingBoard({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Board
-          title="Plus fortes hausses"
+          title={t('Plus fortes hausses')}
           hint={meta.long}
           assets={boards.gainers}
           field={field}
@@ -150,7 +150,7 @@ export function RankingBoard({
           detail={{ type: 'hausses', period }}
         />
         <Board
-          title="Plus fortes baisses"
+          title={t('Plus fortes baisses')}
           hint={meta.long}
           assets={boards.losers}
           field={field}
@@ -296,7 +296,7 @@ function TurnoverBoard({
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="min-w-0 truncate text-xl font-bold text-ink">{t('Rotation la plus forte')}</h3>
         <span className="flex shrink-0 items-center gap-2">
-          <span className="text-xs text-ink-muted">volume / capitalisation</span>
+          <span className="text-xs text-ink-muted">{t('volume / capitalisation')}</span>
           <RankingDetailLink type="rotation" period={period} />
         </span>
       </div>

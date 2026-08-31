@@ -233,7 +233,7 @@ export function AssetMetricGrid({
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Rechercher…"
+                placeholder={t('Rechercher…')}
                 aria-label={t('Rechercher une métrique')}
               />
               <InputGroupAddon>

@@ -377,7 +377,7 @@ export function TreemapLegend({ tone = 'change' }: { tone?: 'change' | 'volatili
   if (tone === 'volatility') {
     return (
       <div className="flex items-center gap-2 text-micro text-ink-muted">
-        <span>Calme</span>
+        <span>{t('Calme')}</span>
         <span
           className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
           aria-hidden="true"

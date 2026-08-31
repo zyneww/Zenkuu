@@ -112,7 +112,7 @@ export async function NftOverview({ collections }: { collections: NftCollection[
 
         <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
           Surface : capitalisation de la collection. Couleur : variation du{' '}
-          <strong className="text-ink">prix plancher</strong> sur 24 heures — la seule
+          <strong className="text-ink">{t('prix plancher')}</strong> sur 24 heures — la seule
           variation que la source publie ici, et qui n’est pas celle de la capitalisation :
           le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent{' '}
           <strong className="text-ink">{t('notre sélection')}</strong>, pas le marché NFT : voir la

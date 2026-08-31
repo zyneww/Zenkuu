@@ -245,7 +245,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             l'on en est.
           */}
           {chosen.length >= max ? (
-            <p className="text-xs text-ink-muted">Maximum atteint</p>
+            <p className="text-xs text-ink-muted">{t('Maximum atteint')}</p>
           ) : null}
         </div>
 

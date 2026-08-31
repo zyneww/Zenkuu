@@ -73,7 +73,7 @@ export default async function Page({ params }: RouteParams) {
   if (!pool.ok) {
     return (
       <EmptyState
-        title="Pool indisponible"
+        title={t('Pool indisponible')}
         description={pool.reason}
         source={pool.source?.label ?? null}
         tone="warning"

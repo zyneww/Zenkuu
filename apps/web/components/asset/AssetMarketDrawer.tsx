@@ -289,7 +289,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
         <div className="min-h-0 flex-1 overflow-y-auto">
           {!searching ? (
             <Section
-              title="Tendances"
+              title={t('Tendances')}
               icon={<TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />}
             >
               {trendingShown.length > 0 ? (
@@ -315,7 +315,7 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
               )}
             </Section>
           ) : loading && !results ? (
-            <Empty>Recherche…</Empty>
+            <Empty>{t('Recherche…')}</Empty>
           ) : found.length > 0 ? (
             <Section title={`${found.length} résultat${found.length > 1 ? 's' : ''}`}>
               {found.map((item) => (

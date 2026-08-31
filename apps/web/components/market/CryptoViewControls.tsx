@@ -20,7 +20,7 @@ import {
  * `aria-current="page"` plutôt que `aria-pressed` : un lien vers la vue courante se
  * décrit comme la page en cours, pas comme un interrupteur enfoncé.
  */
-export function CryptoViewControls({
+export async function CryptoViewControls({
   basePath,
   view,
   period,
@@ -29,8 +29,9 @@ export function CryptoViewControls({
   view: CryptoView
   period: ChangePeriod
 }) {
+  const t = await getPhrase()
   return (
-    <nav aria-label="Vue du classement" className="flex flex-wrap items-center gap-1">
+    <nav aria-label={t('Vue du classement')} className="flex flex-wrap items-center gap-1">
       {CRYPTO_VIEWS.map((entry) => {
         const active = entry.key === view
 

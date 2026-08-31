@@ -192,7 +192,7 @@ export default async function Page({ params }: { params: Promise<{ terme: string
             trois émetteurs peuvent en sortir, et rien ne dit lequel correspond à la
             ligne cliquée. Le titre et la note le disent avant la liste, pas après.
           */}
-          <h2 className="display-sm text-ink">Actifs approchants</h2>
+          <h2 className="display-sm text-ink">{t('Actifs approchants')}</h2>
           <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
             Résultats d’une recherche élargie à «&nbsp;{fallback}&nbsp;». Ils portent un
             nom voisin, ce qui ne veut pas dire qu’ils désignent le même actif — plusieurs

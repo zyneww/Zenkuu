@@ -43,7 +43,7 @@ export function ShareButtons({ title, path }: { title: string; path: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium text-ink-muted">Partager</span>
+      <span className="text-xs font-medium text-ink-muted">{t('Partager')}</span>
 
       {/* `Button` de shadcn/ui, variante `outline` — le même dessin que les deux
           boutons bordés qu'il remplace, mais avec l'anneau de focus et l'état de

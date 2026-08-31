@@ -53,7 +53,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="display-sm text-ink">Composition</h2>
+        <h2 className="display-sm text-ink">{t('Composition')}</h2>
         <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
           Ce que {assetName} détient réellement, tel que l’émetteur le déclare. Les
           pondérations datent du dernier inventaire publié et non du jour : un fonds
@@ -64,7 +64,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {holdings.length > 0 ? (
           <Panel
-            title="Principales positions"
+            title={t('Principales positions')}
             subtitle={`${holdings.length} lignes publiées · ${formatShare(topWeight)} du fonds`}
           >
             <ol className="space-y-1.5">
@@ -114,7 +114,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
               en-tête. Aucune condition à écrire ici. */}
           {sectorParts.length > 0 ? (
             <ShareDonut
-              title="Exposition sectorielle"
+              title={t('Exposition sectorielle')}
               subtitle={t('Part de chaque secteur dans le portefeuille du fonds')}
               parts={sectorParts}
               restNoun="secteurs"

@@ -94,8 +94,8 @@ export async function AssetSentiment({ asset }: { asset: AssetDetail }) {
       </Meter>
 
       <div className="mt-2 flex items-baseline justify-between gap-3 text-[0.6875rem] text-ink-muted">
-        <span>Haussier</span>
-        <span>Baissier</span>
+        <span>{t('Haussier')}</span>
+        <span>{t('Baissier')}</span>
       </div>
 
       <p className="mt-3 text-[0.6875rem] leading-relaxed text-ink-muted">

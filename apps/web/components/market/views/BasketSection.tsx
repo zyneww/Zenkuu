@@ -73,7 +73,7 @@ export async function BasketSection({
     <div className="space-y-4">
       <GlobalChartCard
         large
-        title="Capitalisation du panier suivi"
+        title={t('Capitalisation du panier suivi')}
         hint="La somme de neuf grandes capitalisations, additionnées jour par jour — pas le marché entier."
         info="La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique."
         embedId="panier"

@@ -318,7 +318,7 @@ export function ScreenerView({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtres rapides">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t('Filtres rapides')}>
         {market.presets.map((entry) => (
           <button
             key={entry.id}
@@ -373,7 +373,7 @@ export function ScreenerView({
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filtrer…"
+              placeholder={t('Filtrer…')}
             />
             <InputGroupAddon>
               <Search />

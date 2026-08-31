@@ -106,7 +106,7 @@ export default async function ConverterPage() {
         demande pas de compte.
       */}
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">Convertisseur</h1>
+        <h1 className="display-xl text-ink">{t('Convertisseur')}</h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ink-muted">
           <span className="rounded-pill bg-up-soft px-2.5 py-0.5 text-xs font-semibold text-up">
             0 frais
@@ -195,7 +195,7 @@ export default async function ConverterPage() {
         </>
       ) : (
         <EmptyState
-          title="Cours indisponibles"
+          title={t('Cours indisponibles')}
           description={crypto.ok ? null : crypto.reason}
           tone="warning"
         />

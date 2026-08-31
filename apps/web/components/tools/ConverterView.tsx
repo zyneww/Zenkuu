@@ -426,9 +426,10 @@ function CurrencySelect({
   currencies: readonly SupportedCurrency[]
   rates: ExchangeRates | null
 }) {
+  const t = usePhrase()
   return (
     <NativeSelect
-      aria-label="Devise"
+      aria-label={t('Devise')}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className="h-9 w-auto rounded-pill border-0 bg-surface pl-3 pr-8 text-sm font-semibold text-ink"

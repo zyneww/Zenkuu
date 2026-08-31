@@ -110,7 +110,7 @@ export default async function BienDemarrerPage() {
       */}
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
         <nav
-          aria-label="Sommaire"
+          aria-label={t('Sommaire')}
           className="rounded-card border border-border-subtle bg-surface p-3 lg:sticky lg:top-20"
         >
           <p className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-ink-muted">{t('Les cinq étapes')}</p>

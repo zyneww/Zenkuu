@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { useState } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
@@ -100,6 +101,7 @@ export function ShareDonut({
   valueCurrency?: string
   valueHeader?: string
 }) {
+  const t = usePhrase()
   const [active, setActive] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
 
@@ -344,7 +346,7 @@ export function ShareDonut({
               affichées COUVRENT bien l'ensemble, y compris la ligne « Autres ». */}
           <tfoot>
             <tr className="border-t border-border-subtle">
-              <td className="pt-1.5 text-ink-muted">Total</td>
+              <td className="pt-1.5 text-ink-muted">{t('Total')}</td>
               {valueCurrency ? (
                 <td className="tabular pt-1.5 text-right text-ink">{<Money value={total} from={valueCurrency} compact />}</td>
               ) : null}

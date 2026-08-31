@@ -81,9 +81,9 @@ export async function PriceHistoryTable({
           </caption>
           <thead>
             <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
-              <th scope="col" className="px-3 py-2.5 font-medium">Date</th>
+              <th scope="col" className="px-3 py-2.5 font-medium">{t('Date')}</th>
               <th scope="col" className="px-3 py-2.5 text-right font-medium">{t('Clôture')}</th>
-              <th scope="col" className="px-3 py-2.5 text-right font-medium">Variation</th>
+              <th scope="col" className="px-3 py-2.5 text-right font-medium">{t('Variation')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border-subtle">

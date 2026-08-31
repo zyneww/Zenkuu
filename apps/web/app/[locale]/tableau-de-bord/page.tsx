@@ -109,7 +109,7 @@ export default async function DashboardPage() {
           <EmptyState title={t('Liste de suivi indisponible')} description={watchlistError} />
         ) : followed.length === 0 ? (
           <EmptyState
-            title="Aucun actif suivi"
+            title={t('Aucun actif suivi')}
             description={t('Ouvrez la fiche d’un actif et utilisez le bouton « Suivre » pour l’ajouter ici.')}
             action={
               <ButtonLink href="/crypto">{t('Parcourir les cryptomonnaies')}</ButtonLink>

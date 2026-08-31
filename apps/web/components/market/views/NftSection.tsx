@@ -12,7 +12,7 @@ export async function NftSection() {
   if (!collections.ok) {
     return (
       <EmptyState
-        title="Collections indisponibles"
+        title={t('Collections indisponibles')}
         description={collections.reason}
         source={collections.source?.label ?? null}
         tone="warning"

@@ -135,7 +135,7 @@ export async function AssetSectors({ asset }: { asset: AssetDetail }) {
         Les narratifs auxquels la source rattache {asset.name}, avec la taille de chacun et
         la part que l’actif y occupe. Un secteur peut en recouper un autre : les parts ne
         s’additionnent pas. Les montants sont{' '}
-        <strong className="font-medium text-ink">en dollars</strong> — la source ne publie
+        <strong className="font-medium text-ink">{t('en dollars')}</strong> — la source ne publie
         les agrégats sectoriels que dans cette devise, et les convertir mêlerait deux
         horodatages.
       </p>

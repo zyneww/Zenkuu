@@ -46,13 +46,13 @@ export async function CategoryCard({ category }: { category: MarketCategory }) {
 
       <dl className="space-y-1.5 text-xs">
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-ink-muted">Capitalisation</dt>
+          <dt className="text-ink-muted">{t('Capitalisation')}</dt>
           <dd className="tabular font-medium text-ink">
             {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-ink-muted">Volume 24 h</dt>
+          <dt className="text-ink-muted">{t('Volume 24 h')}</dt>
           <dd className="tabular text-ink-muted">
             {formatCurrency(category.volume24h, 'USD', { compact: true }) ?? '—'}
           </dd>

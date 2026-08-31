@@ -261,7 +261,7 @@ export function PreferenceOverlay({
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Rechercher…"
+              placeholder={t('Rechercher…')}
               aria-label={isCurrency ? 'Rechercher une devise' : 'Rechercher une langue'}
             />
             <InputGroupAddon>

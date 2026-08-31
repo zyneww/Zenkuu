@@ -210,7 +210,7 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
   if (!pending.history && !pending.candles && !points && !candles) {
     return (
       <EmptyState
-        title="Analyse indisponible"
+        title={t('Analyse indisponible')}
         description={t('La source n’a pas fourni d’historique suffisant pour calculer ces indicateurs.')}
         compact
       />
@@ -223,14 +223,14 @@ export function AssetAnalysis(props: AssetAnalysisProps) {
       {summary ? (
         <Panel title={t('Synthèse technique')} rule={false}>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <TechnicalGauge tally={summary.oscillators} title="Oscillateurs" />
+            <TechnicalGauge tally={summary.oscillators} title={t('Oscillateurs')} />
             <TechnicalGauge tally={summary.overall} title={t('Synthèse')} />
-            <TechnicalGauge tally={summary.movingAverages} title="Moyennes mobiles" />
+            <TechnicalGauge tally={summary.movingAverages} title={t('Moyennes mobiles')} />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <ReadingTable title="Oscillateurs" readings={summary.oscillatorReadings} />
-            <ReadingTable title="Moyennes mobiles" readings={summary.movingAverageReadings} />
+            <ReadingTable title={t('Oscillateurs')} readings={summary.oscillatorReadings} />
+            <ReadingTable title={t('Moyennes mobiles')} readings={summary.movingAverageReadings} />
           </div>
 
           <p className="mt-5 border-t border-border-subtle pt-3 text-[0.6875rem] leading-relaxed text-ink-muted">{t('Calculé sur les bougies quotidiennes des douze derniers mois. Les seuils de lecture (30/70 pour le RSI, ±100 pour le CCI, 20/80 pour le stochastique) sont des conventions d’usage, pas des règles universelles : deux sites peuvent afficher des verdicts différents sur le même actif. Ceci décrit le passé et ne constitue pas un conseil en investissement.')}</p>
@@ -497,7 +497,7 @@ function SeasonalityPanel({ points }: { points: SeriesPoint[] }) {
     returns.find((entry) => entry.year === year && entry.month === month)
 
   return (
-    <Panel title="Rendements mensuels">
+    <Panel title={t('Rendements mensuels')}>
       <div className="overflow-x-auto">
         {/* LE PLANCHER RESTE, contrairement à tous les autres tableaux du site.
             Ce n'est pas un tableau mais une GRILLE : treize colonnes de largeur égale

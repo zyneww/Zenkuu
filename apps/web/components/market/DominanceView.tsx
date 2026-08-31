@@ -102,7 +102,7 @@ export async function DominanceView({
                   className="h-2 w-2 shrink-0 rounded-pill bg-surface-muted"
                   aria-hidden="true"
                 />
-                <dt className="font-medium text-ink-muted">Autres</dt>
+                <dt className="font-medium text-ink-muted">{t('Autres')}</dt>
                 <dd className="tabular text-ink-muted">{others.toFixed(1).replace('.', ',')} %</dd>
               </div>
             ) : null}

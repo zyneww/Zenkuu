@@ -133,7 +133,7 @@ export default async function HeatmapPage() {
         </>
       ) : (
         <EmptyState
-          title="Carte indisponible"
+          title={t('Carte indisponible')}
           description={categories.ok ? null : categories.reason}
           tone="warning"
         />

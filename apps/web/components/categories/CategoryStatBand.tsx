@@ -97,7 +97,7 @@ export async function CategoryStatBand({ categories }: { categories: MarketCateg
       </div>
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
-        Ces chiffres décrivent le <strong className="text-ink">jour</strong>, et pas autre
+        Ces chiffres décrivent le <strong className="text-ink">{t('jour')}</strong>, et pas autre
         chose : la source ne publie aucun historique par secteur sur son palier gratuit, un
         seul relevé à la fois. Il n’y a donc pas de courbe sectorielle sur cette page, et
         n’en inventer aucune est préférable à en estimer une. Pour de la profondeur, voir la{' '}

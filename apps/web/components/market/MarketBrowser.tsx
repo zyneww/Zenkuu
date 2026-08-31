@@ -529,7 +529,7 @@ export function MarketBrowser({
    * et les vues y descendent — le sélecteur de lignes en tient le bord droit.
    */
   const quickViewGroup = quickViews && !boardTabs ? (
-    <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Vue rapide">
+    <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Vue rapide')}>
       {/*
         ── « FAVORIS » OUVRE LA RANGÉE ────────────────────────────────────
 

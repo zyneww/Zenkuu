@@ -1,3 +1,4 @@
+import { usePhrase } from '@/components/locale/ContentProvider'
 import type { Metadata } from 'next'
 import { Link } from '@/i18n/navigation'
 import { ButtonLink } from '@/components/ui/ButtonLink'
@@ -116,7 +117,7 @@ export default async function PourquoiZenkuuPage() {
           Centré, et seul à l'être. Voir l'en-tête du fichier : le centrage sert à
           POSER une position, il dessert tout ce qui se lit ensuite. */}
       <header className="mx-auto max-w-3xl space-y-5 text-center">
-        <h1 className="display-xl text-ink">Pourquoi ZENKUU</h1>
+        <h1 className="display-xl text-ink">{t('Pourquoi ZENKUU')}</h1>
         <p className="text-lg leading-relaxed text-ink-muted">{t('La plupart des plateformes de suivi de marché sont adossées à un service qu’elles cherchent à vous vendre. ZENKUU n’a rien à vous vendre : c’est un site d’information, et cela change ce qu’il peut se permettre d’afficher.')}</p>
 
         <div className="flex flex-wrap justify-center gap-3 pt-1">
@@ -259,17 +260,18 @@ export default async function PourquoiZenkuuPage() {
 
 /** Cellule de comparaison. L'information est portée par le texte, pas par la couleur seule (§9). */
 function Mark({ value }: { value: boolean }) {
+  const t = usePhrase()
   return (
     <td className="px-3 py-2.5 text-center">
       {value ? (
         <>
           <Check className="mx-auto h-4 w-4 text-up" aria-hidden="true" />
-          <span className="sr-only">Oui</span>
+          <span className="sr-only">{t('Oui')}</span>
         </>
       ) : (
         <>
           <Minus className="mx-auto h-4 w-4 text-ink-muted" aria-hidden="true" />
-          <span className="sr-only">Non</span>
+          <span className="sr-only">{t('Non')}</span>
         </>
       )}
     </td>

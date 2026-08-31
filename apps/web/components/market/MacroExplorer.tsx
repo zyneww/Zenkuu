@@ -959,7 +959,7 @@ function CountryPanel({
       {history.length > 1 && stats ? (
         <div className="space-y-1">
           <div className="flex items-baseline justify-between gap-2">
-            <p className="text-[0.6875rem] font-medium text-ink">Historique</p>
+            <p className="text-[0.6875rem] font-medium text-ink">{t('Historique')}</p>
             {/* LE DÉCOMPTE D'ANNÉES PUBLIÉES, et il varie énormément d'un pays à
                 l'autre : la Banque mondiale renseigne la France depuis 1960 et le
                 Soudan du Sud depuis 2011. Sans lui, une courbe courte se lirait comme
@@ -972,7 +972,7 @@ function CountryPanel({
           {/* Courbe en SVG brut plutôt qu'avec `AreaPlot` : celui-ci mesure sa largeur
               au montage pour placer ses axes, alors qu'on n'a besoin ici que d'une
               silhouette. Un `viewBox` étirable suffit et s'affiche sans hydratation. */}
-          <svg viewBox="0 0 100 40" className="h-16 w-full" role="img" aria-label="Historique">
+          <svg viewBox="0 0 100 40" className="h-16 w-full" role="img" aria-label={t('Historique')}>
             <polyline
               fill="none"
               stroke="var(--color-brand)"

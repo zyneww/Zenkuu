@@ -216,7 +216,7 @@ export function AssetTickers({
       {/* Le sélecteur de lignes qui accompagnait ces filtres est descendu dans la barre
           de pagination, où il rejoint le compteur et les numéros. Une taille de page se
           règle en regardant où l'on en est, pas avant d'avoir commencé à lire. */}
-      <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Devise de cotation">
+      <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('Devise de cotation')}>
         <FilterChip
           active={target === 'toutes'}
           onClick={() => {

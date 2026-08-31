@@ -115,7 +115,7 @@ export default async function SentimentPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Valeurs historiques" />
+          <CardHeader title={t('Valeurs historiques')} />
           {points.length > 1 ? (
             <SentimentHistoricalValues
               points={points}
@@ -131,7 +131,7 @@ export default async function SentimentPage() {
 
         <Card>
           <CardHeader title={t('Contexte de marché')} />
-          <MarketContext stats={stats} />
+          <MarketContext stats={stats} contextUnavailable={t('Contexte indisponible')} />
         </Card>
       </div>
 
@@ -202,12 +202,15 @@ function DialCard({ value, label }: { value: number; label: string }) {
  * publiée, et les deux autres s'affichent sans en inventer une.
  */
 function MarketContext({
+  contextUnavailable,
   stats,
 }: {
   stats: Awaited<ReturnType<typeof getCryptoGlobalStats>>
+  /* Traduit par l'appelant : ce composant est synchrone et n'appelle pas la table. */
+  contextUnavailable: string
 }) {
   if (!stats.ok) {
-    return <EmptyState title="Contexte indisponible" description={stats.reason} compact />
+    return <EmptyState title={contextUnavailable} description={stats.reason} compact />
   }
 
   const { totalMarketCap, totalVolume24h, marketCapChange24h, dominance } = stats.data

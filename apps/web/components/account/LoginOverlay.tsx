@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 import { LoginForm } from '@/components/account/LoginForm'
@@ -39,10 +40,11 @@ import { LoginForm } from '@/components/account/LoginForm'
  * ancrer un panneau flottant.
  */
 export function LoginOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = usePhrase()
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-w-sm border-border-subtle bg-overlay shadow-overlay sm:max-w-sm">
-        <DialogTitle className="sr-only">Connexion</DialogTitle>
+        <DialogTitle className="sr-only">{t('Connexion')}</DialogTitle>
         <LoginForm visible={open} />
       </DialogContent>
     </Dialog>

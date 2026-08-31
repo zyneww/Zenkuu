@@ -160,7 +160,7 @@ export async function AssetAnalystView({
       {analyst.targetMean !== undefined ? (
         <div className="mt-3 space-y-1">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs text-ink-muted">Objectif moyen</span>
+            <span className="text-xs text-ink-muted">{t('Objectif moyen')}</span>
             <span className="tabular text-xs font-medium text-ink">
               <Money value={analyst.targetMean} from={currency} />
             </span>
@@ -182,7 +182,7 @@ export async function AssetAnalystView({
 
           {analyst.targetLow !== undefined && analyst.targetHigh !== undefined ? (
             <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs text-ink-muted">Fourchette</span>
+              <span className="text-xs text-ink-muted">{t('Fourchette')}</span>
               <span className="tabular text-xs text-ink-muted">
                 <Money value={analyst.targetLow} from={currency} /> —{' '}
                 <Money value={analyst.targetHigh} from={currency} />
