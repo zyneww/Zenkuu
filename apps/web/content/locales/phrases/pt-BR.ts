@@ -2764,4 +2764,8 @@ export const ptBRPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Soma dos tokens indexados em circulação, registrada diariamente desde 2017. Ela mede o dinheiro estacionado na cripto, e não o preço dos ativos.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'A capitalização do mercado inteiro não é publicada gratuitamente em série. Esta curva soma nove grandes capitalizações, listadas sob o gráfico.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'As ações listadas replicadas em tokens na cadeia: seu emissor, seu preço, sua capitalização e o volume que negociam.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Máx. 52 sem.',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Diferença entre a cotação atual e a máxima das últimas 52 semanas',
 }

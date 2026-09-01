@@ -2764,4 +2764,8 @@ export const plPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Suma tokenów o stałym parytecie w obiegu, notowana codziennie od 2017 roku. Mierzy pieniądz zaparkowany w krypto, a nie cenę aktywów.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Kapitalizacja całego rynku nie jest publikowana za darmo w postaci szeregu. Ta krzywa sumuje dziewięć dużych kapitalizacji, wymienionych pod wykresem.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Notowane akcje odwzorowane jako tokeny w łańcuchu: ich emitent, cena, kapitalizacja i obracany wolumen.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Maks. 52 tyg.',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Różnica między bieżącym kursem a maksimum ostatnich 52 tygodni',
 }

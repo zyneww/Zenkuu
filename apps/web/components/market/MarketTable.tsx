@@ -1001,14 +1001,32 @@ export function MarketTable({
                   Le sommet, l'écart qui l'en sépare, sa date. L'ordre n'est pas
                   indifférent : l'écart est la RÉPONSE — « à combien du plus haut
                   sommes-nous ? » — et se lit donc contre le sommet qu'il commente,
-                  pas après une date qui l'en éloigne. */}
+                  pas après une date qui l'en éloigne.
+
+                  ⚠️ LE MÊME CHAMP NE PORTE PAS LA MÊME CHOSE SELON LA CLASSE, et
+                  l'intitulé doit le dire. `ath` est le plus haut de TOUS LES TEMPS pour
+                  une crypto ; pour une action, Yahoo ne le publie pas et le champ porte
+                  le plus haut des 52 SEMAINES — c'est écrit dans le type, et
+                  `AssetKeyStats` adaptait déjà son libellé pour cette raison.
+
+                  Cette grille ne s'affichait jusqu'ici que sur la crypto, alors la
+                  question ne se posait pas. Elle s'affiche maintenant sur les actions,
+                  et un « plus haut de tous les temps » posé sur un chiffre de douze mois
+                  serait le genre de faux qu'aucune source ne rattrape (§5). */}
               {shows.ath ? (
-                <ColumnHeader label={t('Sommet')} {...sortFor('ath')} />
+                <ColumnHeader
+                  label={assetClass === 'crypto' ? t('Sommet') : t('Haut 52 sem.')}
+                  {...sortFor('ath')}
+                />
               ) : null}
               {shows.ath ? (
                 <ColumnHeader
                   label={t('Écart au sommet')}
-                  hint={t('Écart entre le cours actuel et le plus haut de tous les temps')}
+                  hint={
+                    assetClass === 'crypto'
+                      ? t('Écart entre le cours actuel et le plus haut de tous les temps')
+                      : t('Écart entre le cours actuel et le plus haut des 52 dernières semaines')
+                  }
                 />
               ) : null}
               {shows.athDate ? (
@@ -1116,7 +1134,14 @@ export function MarketTable({
               const href = assetHref(asset.assetClass, asset.id)
 
               return (
-                <tr key={asset.id} className="group transition-colors hover:bg-surface-muted/60">
+                <tr
+                  key={asset.id}
+                  /* La courbe est écrite ICI et non laissée au défaut : le filet de
+                     sécurité de `globals.css` ne vise que ce qui reçoit un geste, et une
+                     rangée de tableau n'en fait pas partie. Elle en a pourtant le plus
+                     besoin — c'est la plus grande surface qui change au survol. */
+                  className="group transition-colors duration-150 ease-[var(--ease-standard)] hover:bg-surface-muted/60"
+                >
                   {/*
                     L'ÉTOILE OUVRE LA LIGNE, DEVANT LE RANG.
 

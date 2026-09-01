@@ -740,7 +740,29 @@ export function MarketBrowser({
               cette page seulement, ce qui décalerait l'alignement d'une page à l'autre.
             */
             columnSource={assets}
-            columnSet={swapped?.columnSet ?? columnSet}
+            /*
+              ── LES CINQ VUES ÉTAIENT MORTES SUR « ACTIONS » ET « DEVISES » ──────
+
+              La ligne valait `swapped?.columnSet ?? columnSet` : dès que l'univers
+              basculait, la grille de catalogue s'imposait et l'onglet choisi n'avait
+              PLUS AUCUN EFFET sur les colonnes. « Performance » et « Sommet historique »
+              rendaient exactement le même tableau qu'« Aperçu » — cinq onglets dont
+              trois ne faisaient rien, sans que rien ne le dise.
+
+              La substitution avait pourtant une raison juste, et elle vaut toujours :
+              une action n'a ni offre en circulation ni courbe de sept jours, et la
+              grille crypto lui alignerait des tirets. Mais cette raison ne vise QUE la
+              grille d'aperçu — celle que trois des cinq vues partagent (`cotations`).
+
+              Les deux autres portent leur propre grille et n'ont rien de crypto :
+              « Performance » aligne des fenêtres de variation, « Sommet historique » un
+              plus haut et sa date. Une action en a autant qu'un jeton. Elles passent
+              donc, et `has()` retire dans le tableau les colonnes que la source ne
+              publierait pas — c'est déjà son travail.
+            */
+            columnSet={
+              swapped && columnSet === 'cotations' ? swapped.columnSet : columnSet
+            }
             /*
               ── LE TRI PASSE PAR ICI, ET SEULEMENT QUAND LA LISTE EST ENTIÈRE ────
 

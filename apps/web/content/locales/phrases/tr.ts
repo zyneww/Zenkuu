@@ -2764,4 +2764,8 @@ export const trPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Dolaşımdaki sabitlenmiş jetonların toplamı, 2017\'den bu yana her gün kaydedilir. Varlıkların fiyatını değil, kriptoda park etmiş parayı ölçer.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Tüm piyasanın piyasa değeri, seri hâlinde ücretsiz yayımlanmaz. Bu eğri, grafiğin altında sıralanan dokuz büyük piyasa değerini toplar.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Borsada işlem gören hisselerin zincir üzerinde jeton olarak yansıtılmış hâli: ihraççıları, fiyatları, piyasa değerleri ve işlem hacimleri.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': '52 hf. yüksek',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Güncel fiyat ile son 52 haftanın en yükseği arasındaki fark',
 }

@@ -2772,4 +2772,8 @@ export const dePhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Summe der umlaufenden gebundenen Token, täglich erhoben seit 2017. Sie misst das in der Krypto geparkte Geld, nicht den Preis der Vermögenswerte.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Die Kapitalisierung des gesamten Marktes wird nicht kostenlos als Zeitreihe veröffentlicht. Diese Kurve addiert neun große Kapitalisierungen, die unter dem Diagramm aufgeführt sind.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Börsennotierte Aktien, als Token auf der Kette abgebildet: ihr Emittent, ihr Preis, ihre Kapitalisierung und das Volumen, das sie umsetzen.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Hoch 52 Wo.',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Abstand zwischen dem aktuellen Kurs und dem Hoch der letzten 52 Wochen',
 }

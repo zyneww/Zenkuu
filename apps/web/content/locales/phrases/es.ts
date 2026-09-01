@@ -2771,4 +2771,8 @@ export const esPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Suma de los tokens indexados en circulación, registrada cada día desde 2017. Mide el dinero estacionado en la cripto más que el precio de los activos.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'La capitalización del mercado entero no se publica gratuitamente en serie. Esta curva suma nueve grandes capitalizaciones, enumeradas bajo el gráfico.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Las acciones cotizadas replicadas en tokens en cadena: su emisor, su precio, su capitalización y el volumen que negocian.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Máx. 52 sem.',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Diferencia entre la cotización actual y el máximo de las últimas 52 semanas',
 }

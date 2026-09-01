@@ -2764,4 +2764,8 @@ export const ruPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Сумма обращающихся привязанных токенов, фиксируемая ежедневно с 2017 года. Она измеряет деньги, припаркованные в криптовалюте, а не цену активов.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Капитализация всего рынка не публикуется бесплатно в виде ряда. Эта кривая складывает девять крупных капитализаций, перечисленных под графиком.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Биржевые акции, воспроизведённые токенами в блокчейне: их эмитент, цена, капитализация и объём торгов.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Макс. 52 нед.',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Разрыв между текущей ценой и максимумом за последние 52 недели',
 }

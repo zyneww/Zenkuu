@@ -2764,4 +2764,8 @@ export const viPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Tổng lượng token neo giá đang lưu hành, ghi nhận hằng ngày từ năm 2017. Nó đo lượng tiền đang đậu trong crypto chứ không phải giá của các tài sản.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Vốn hóa của toàn thị trường không được công bố miễn phí dưới dạng chuỗi thời gian. Đường này cộng lại chín vốn hóa lớn, được liệt kê dưới biểu đồ.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Các cổ phiếu niêm yết được sao chép thành token trên chuỗi: tổ chức phát hành, giá, vốn hóa và khối lượng giao dịch của chúng.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Đỉnh 52 tuần',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Khoảng cách giữa giá hiện tại và đỉnh của 52 tuần gần nhất',
 }

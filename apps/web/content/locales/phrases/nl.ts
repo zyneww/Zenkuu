@@ -2764,4 +2764,8 @@ export const nlPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Som van de gekoppelde tokens in omloop, dagelijks opgetekend sinds 2017. Zij meet het geld dat in crypto geparkeerd staat, niet de prijs van de activa.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'De kapitalisatie van de hele markt wordt niet gratis als reeks gepubliceerd. Deze curve telt negen grote kapitalisaties op, opgesomd onder de grafiek.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Beursgenoteerde aandelen die als tokens op de keten zijn nagebootst: hun uitgever, hun prijs, hun kapitalisatie en het volume dat zij verhandelen.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': 'Hoog 52 wk',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Verschil tussen de huidige koers en de hoogste koers van de laatste 52 weken',
 }

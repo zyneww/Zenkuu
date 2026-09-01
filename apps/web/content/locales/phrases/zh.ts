@@ -2757,4 +2757,8 @@ export const zhPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': '流通中锚定型代币的总量，自 2017 年起每日记录。它衡量的是停泊在加密资产中的资金，而不是资产的价格。',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': '整个市场的总市值并没有免费的时间序列可用。这条曲线把九项大市值资产相加得出，它们列在图表下方。',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': '在链上以代币形式映射的上市股票：它们的发行方、价格、市值，以及成交量。',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': '52周最高',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': '当前价格与过去 52 周最高价之间的差距',
 }

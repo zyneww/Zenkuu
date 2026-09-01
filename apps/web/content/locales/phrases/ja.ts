@@ -2764,4 +2764,8 @@ export const jaPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': '流通しているペッグ型トークンの合計で、2017年から毎日記録しています。資産の価格ではなく、暗号資産に留め置かれている資金の量を測るものです。',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': '市場全体の時価総額は、時系列として無料では公表されていません。この曲線は、グラフの下に並べた大型銘柄九つの時価総額を足し合わせたものです。',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': '上場株式をチェーン上のトークンとして写したもの。発行体、価格、時価総額、そして取引されている出来高を示します。',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': '52週高値',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': '現在値と過去52週間の高値との差',
 }

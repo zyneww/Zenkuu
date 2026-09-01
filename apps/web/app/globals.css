@@ -2932,3 +2932,66 @@
 .thin-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: var(--color-ink-muted);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TOUT CE QUI RÉPOND AU GESTE RÉPOND EN DOUCEUR — LE FILET DE SÉCURITÉ
+
+   ── CE QUE CETTE RÈGLE CORRIGE ──────────────────────────────────────────────
+
+   Le projet a ses jetons de mouvement depuis longtemps — `--ease-standard`,
+   `--duration-state` —, et la plupart des composants les emploient : la rangée
+   d'onglets en porte neuf, le bandeau cinq. Mais l'application était MANUELLE, donc
+   inégale : un lien du panneau latéral, un nom d'actif dans le tableau et deux ou
+   trois autres changeaient de couleur d'une image à l'autre, au milieu d'éléments
+   voisins qui, eux, fondaient. L'à-coup ne se remarque pas isolément ; côte à côte,
+   il se lit comme une finition inachevée.
+
+   Cette règle pose le défaut UNE fois, pour tout ce qui reçoit un geste : liens,
+   boutons, éléments à rôle de bouton, en-têtes de `<details>`, champs de saisie.
+
+   ── CE QU'ELLE NE FAIT PAS ──────────────────────────────────────────────────
+
+   Elle ne touche QUE la couleur, la bordure et l'ombre — jamais la géométrie. Une
+   transition posée à l'aveugle sur `all` animerait aussi les largeurs, les hauteurs
+   et les positions, et ferait glisser des blocs entiers au moindre changement de
+   classe. C'est le piège classique de ce genre de règle, et c'est pourquoi les
+   propriétés sont énumérées.
+
+   Elle ne l'impose pas non plus : `transition-property` est une propriété comme une
+   autre, et toute classe utilitaire posée sur l'élément — `transition-transform`,
+   `duration-300` — la remplace. Les composants qui savent ce qu'ils veulent gardent
+   la main ; les autres cessent de sauter.
+
+   ── L'ARRÊT ─────────────────────────────────────────────────────────────────
+
+   `prefers-reduced-motion` la coupe, comme les autres. Un changement de couleur reste
+   alors instantané, ce qui est exactement le comportement demandé par ce réglage.
+   ───────────────────────────────────────────────────────────────────────────── */
+a,
+button,
+summary,
+input,
+select,
+textarea,
+[role='button'],
+[role='tab'],
+[role='option'] {
+  transition-property: color, background-color, border-color, text-decoration-color,
+    fill, stroke, box-shadow, opacity;
+  transition-timing-function: var(--ease-standard);
+  transition-duration: var(--duration-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  summary,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [role='tab'],
+  [role='option'] {
+    transition-duration: 0s;
+  }
+}

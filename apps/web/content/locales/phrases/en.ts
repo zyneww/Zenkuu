@@ -2776,4 +2776,8 @@ export const enPhrases: Phrases = {
   'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Sum of pegged tokens in circulation, recorded daily since 2017. It measures the money parked in crypto rather than the price of the assets.',
   'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'The capitalisation of the whole market is not published free of charge as a series. This curve adds up nine large capitalisations, listed beneath the chart.',
   'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Listed shares mirrored as on-chain tokens: their issuer, their price, their capitalisation and the volume they trade.',
+
+  // ── ONGLETS — sommet 52 semaines ──
+  'Haut 52 sem.': '52w high',
+  'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Gap between the current price and the high of the last 52 weeks',
 }
