@@ -73,10 +73,30 @@ describe('squarify', () => {
  */
 describe('heatTone', () => {
   it('distingue une absence de variation d’une variation nulle', () => {
-    // Une donnée absente prend la teinte neutre ; zéro reste sur l'échelle verte,
-    // puisque `0 >= 0`. Confondre les deux ferait passer une lacune pour une stabilité.
-    expect(heatTone(undefined)).toContain('surface-muted')
+    /*
+     * Une donnée absente prend la teinte neutre ; zéro reste sur l'échelle verte,
+     * puisque `0 >= 0`. Confondre les deux ferait passer une lacune pour une stabilité,
+     * ce qui est exactement le mensonge que le §5 interdit.
+     *
+     * ⚠️ CE TEST ATTENDAIT `surface-muted`, ET IL VERROUILLAIT UN DÉFAUT.
+     *
+     * C'est le même piège que celui décrit en tête de ce fichier pour `--color-up`, à
+     * un jeton près. `--color-surface-muted` BASCULE avec le thème : en thème clair il
+     * vaut un gris très pâle, et les étiquettes des tuiles sont en encre BLANCHE
+     * imposée. « USDT » en blanc sur blanc cassé, relevé au navigateur.
+     *
+     * `--color-heat-flat` ne bascule pas — il appartient à la famille `heat-*`, faite
+     * pour être un APLAT sous du texte blanc, et dont les contrastes sont mesurés dans
+     * `globals.css`. L'implémentation a été corrigée ; ce test était resté sur l'ancien
+     * jeton et échouait depuis.
+     *
+     * Ce qu'il vérifie ne change pas d'un iota : que l'absence et le zéro ne se peignent
+     * pas de la même couleur. Seul le nom du gris a bougé.
+     */
+    expect(heatTone(undefined)).toContain('heat-flat')
     expect(heatTone(0)).toContain('color-heat-up')
+    // Et surtout : les deux restent DISTINCTS, ce qui est le fond du test.
+    expect(heatTone(undefined)).not.toBe(heatTone(0))
   })
 
   it('sature au-delà du plafond, dans les deux sens', () => {

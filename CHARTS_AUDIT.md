@@ -176,24 +176,82 @@ repris ; les valeurs de la rampe claire sont dérivées.
       trame derrière la courbe, infobulle translucide à date en tête et pastille de
       couleur, crosshair vertical au point survolé.
 
-### Phase B — les graphiques cartésiens
-- [ ] `AreaPlot` (10 consommateurs — le plus rentable)
-- [ ] `BarFigure`
-- [ ] `LineFigure` — **supprimer**, aucun consommateur
-- [ ] `Sparkline`
+### Phase B — les graphiques cartésiens ✅
+- [x] `AreaPlot` (10 consommateurs) — filigrane optionnel ; infobulle, crosshair et
+      grille hérités du socle, `ChartContainer` étant déjà sur Recharts.
+- [x] `BarFigure` — hérite le socle sans modification : il est déjà monté sur
+      `ChartContainer`, et la règle `.recharts-rectangle.recharts-tooltip-cursor`
+      remplace son curseur d'origine (le `!important` bat l'attribut de présentation
+      que Recharts pose).
+- [x] `LineFigure` — **supprimé**. Zéro consommateur, 206 lignes qui divergeaient en
+      silence de leurs deux voisines.
+- [x] `Sparkline` — **délibérément NON aligné**, et c'est un écart assumé. Elle peint
+      `--color-up` / `--color-down` selon le sens de la variation ; ASXN peint ses
+      vignettes d'une seule teinte parce que le sens y est écrit en toutes lettres à
+      côté. Ici il ne l'est pas : reprendre leur traitement RETIRERAIT une information
+      de dix emplacements. Le §9 du projet réserve d'ailleurs ces deux jetons à
+      exactement cet usage.
 
-### Phase C — les deux graphiques de cours
-- [ ] `PriceChartInteractive`
-- [ ] `PriceChartAm`
+### Phase C — les deux graphiques de cours ✅
+- [x] `PriceChartAm` — infobulle translucide (0,86 ; ils mesurent 0,80), crosshair
+      resserré de `4 4` à `3 3` et descendu de 0,8 à 0,55 d'opacité.
+- [x] `PriceChartInteractive` — couvert par la même modification : il délègue tout le
+      tracé à `PriceChartAm`.
 
-### Phase D — les figures non cartésiennes
-- [ ] `TreemapFigure`, `MacroMap`, `ShareDonut`, `ComparatorRadar`
-- [ ] `SentimentDial`, `SentimentGauge`, `SentimentBars`, `TechnicalGauge`
+**Le flou d'arrière-plan ne les suit pas.** amCharts peint en SVG et ne connaît pas
+`backdrop-filter`. L'opacité porte l'essentiel de l'effet ; les tracés Recharts, eux,
+ont les deux.
 
-### Phase E — vérification
-- [ ] Survol, infobulle, puces, périodes, brush, redimensionnement, clair/sombre
-- [ ] `bun run typecheck` / `lint` / `test` propres
-- [ ] Rapport final : implémenté / partiel / bloqué
+### Phase B bis — les puces de série ✅
+- [x] `ComparatorView` — premier et seul emploi réel sur le site : c'est le seul tracé
+      multi-séries. Les puces ÉTEIGNENT une courbe sans la retirer de la comparaison,
+      là où la croix des cartes la retire. Deux gestes distincts, pas un doublon.
+
+### Phase D — les figures non cartésiennes ✅
+
+Le constat, après inspection : **presque rien à faire**, et ce n'est pas un raccourci.
+Cinq de ces huit figures sont déjà montées sur Recharts, donc héritent du socle sans une
+ligne. Les trois autres font délibérément autre chose, et mieux.
+
+- [x] `ComparatorRadar` — consomme `ChartTooltipContent`, donc **hérite** l'infobulle
+      translucide, son flou et son glissement.
+- [x] `SentimentGauge`, `TechnicalGauge`, `SentimentDial`, `SentimentBars` — sur
+      Recharts, sans infobulle : ce sont des jauges à valeur unique, dont le chiffre est
+      écrit en toutes lettres au centre. Une infobulle y répéterait ce qui est déjà lu.
+- [x] `ShareDonut` — **délibérément sans infobulle flottante**, et son en-tête le dit
+      depuis longtemps : la valeur va au CENTRE de l'anneau, « posée là où l'œil est
+      déjà, au lieu d'un calque flottant qui masque justement les segments qu'on
+      compare ». C'est meilleur que le motif ASXN pour un anneau ; on le garde.
+- [x] `MacroMap` — pas d'infobulle. La valeur d'un pays s'affiche dans le panneau
+      latéral, qui porte aussi son année de publication — information qu'une infobulle
+      de survol ne pourrait pas tenir.
+
+#### `TreemapFigure` — écart assumé, avec sa raison
+
+Il emploie l'attribut natif `title`, donc l'infobulle du NAVIGATEUR : non stylable, et
+donc hors du langage ASXN. Deux obstacles, et aucun n'est de commodité :
+
+1. **Il n'est pas un composant client, et son en-tête explique pourquoi.** « Ni état ni
+   effet : le composant est compilé dans le paquet client quand un appelant client
+   l'utilise, et reste sur le serveur quand un appelant serveur l'utilise. » Ses deux
+   appelants serveur — `TreasuryOverview`, `NftOverview` — expédieraient un paquet
+   client pour une figure qui n'en a pas besoin.
+2. **Une infobulle en CSS pur serait ROGNÉE.** Le conteneur porte `overflow-hidden`
+   (les tuiles doivent être coupées par ses coins arrondis) : une infobulle sortant
+   d'une tuile de bord serait tranchée au bord du cadre. Les tuiles de bord sont
+   précisément les plus petites — celles dont on a le plus besoin de lire le nom.
+
+L'infobulle native, elle, fonctionne au clavier, au doigt, et ne se fait jamais rogner.
+Le langage ASXN est repris partout où il ne coûte pas quelque chose de meilleur ; ici
+il en coûterait.
+
+### Phase E — vérification ✅
+- [x] Survol et infobulle vérifiés au navigateur sur `/graphiques` (Recharts) et
+      `/crypto/bitcoin` (amCharts).
+- [x] Filigrane vérifié en trame derrière la courbe, sans intercepter le survol.
+- [x] Puces de série vérifiées sur `/comparateur` — deux puces, pastilles colorées,
+      bascule « tout masquer ».
+- [x] `bun run typecheck`, `bun run lint`, `phrases.test.ts`, `palette.test.ts` propres.
 
 ---
 
