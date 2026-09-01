@@ -2780,4 +2780,8 @@ export const enPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': '52w high',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Gap between the current price and the high of the last 52 weeks',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Show all',
+  'Tout masquer': 'Hide all',
 }

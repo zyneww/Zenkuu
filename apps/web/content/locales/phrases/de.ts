@@ -2776,4 +2776,8 @@ export const dePhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': 'Hoch 52 Wo.',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Abstand zwischen dem aktuellen Kurs und dem Hoch der letzten 52 Wochen',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Alle anzeigen',
+  'Tout masquer': 'Alle ausblenden',
 }

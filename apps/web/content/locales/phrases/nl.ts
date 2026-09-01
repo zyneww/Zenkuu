@@ -2768,4 +2768,8 @@ export const nlPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': 'Hoog 52 wk',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Verschil tussen de huidige koers en de hoogste koers van de laatste 52 weken',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Alles tonen',
+  'Tout masquer': 'Alles verbergen',
 }

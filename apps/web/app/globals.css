@@ -494,6 +494,89 @@
   --color-data-6: #4d7c0f;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     LA RAMPE D'EMPILEMENT — RELEVÉE SUR ASXN HYPERSCREENER, ET DISTINCTE DE
+     LA PALETTE CI-DESSUS
+
+     ── DEUX PALETTES PARCE QUE DEUX MÉTIERS ──────────────────────────────────
+
+     `--color-data-*` est CATÉGORIELLE : six teintes ordonnées par distance
+     perceptuelle, pour que deux actifs comparés ne se confondent jamais. Rien n'y
+     signifie « plus » ou « moins » — c'est écrit dans sa note, et c'est ce qui la rend
+     juste pour son emploi.
+
+     Une rampe d'EMPILEMENT fait l'inverse. Les segments d'une barre empilée sont les
+     parts d'un même tout : ils doivent se lire comme une progression, pas comme six
+     sujets sans rapport. Une barre BTC/ETH/SOL/Others peinte en violet, orange, rose et
+     turquoise se lit comme quatre graphiques superposés.
+
+     Les valeurs viennent du relevé du 2026-09-02 sur hyperscreener.asxn.xyz — leurs
+     `--chart-dark-green`, `--chart-green-alt`, `--chart-grey`, `--chart-grey-light`,
+     `--chart-white`, dans cet ordre.
+
+     ⚠️ CE JEU-CI EST DÉRIVÉ, ET C'EST LE SEUL ENDROIT OÙ LA FIDÉLITÉ CÈDE. Le langage
+     d'ASXN est SOMBRE : sa rampe monte vers le blanc, ce qui suppose un fond noir. Sur
+     le canvas blanc de ZENKUU, le dernier segment disparaîtrait purement et simplement.
+     La rampe claire descend donc vers un gris SOUTENU au lieu de monter vers le blanc.
+     La progression est la même, le sens de lecture est le même ; seule la borne haute
+     change, parce que la borne haute d'ASXN est le fond d'ici.
+
+     Le thème sombre, lui, reprend les valeurs telles quelles — voir plus bas.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --chart-stack-1: #1b5548;
+  --chart-stack-2: #4a7b70;
+  --chart-stack-3: #7d8b89;
+  --chart-stack-4: #a3aaa9;
+  --chart-stack-5: #c4c9c8;
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     LA COURBE SUPERPOSÉE — LA SEULE COULEUR CHAUDE
+
+     `rgba(255, 140, 0, 1)` chez ASXN, sur leur seul tracé superposé aux barres (le
+     volume cumulé). C'est un choix de FONCTION et non de goût : la rampe d'empilement
+     est entièrement froide, du vert au gris, donc une courbe orange ne peut se
+     confondre avec aucun de ses segments, quel que soit leur nombre.
+
+     Assombri ici de #ff8c00 à #d97400 : l'orange vif tombe à 2,3:1 sur blanc, sous le
+     seuil de 3:1 des éléments graphiques que `app/palette.test.ts` fait respecter au
+     reste de la palette. La teinte est conservée, la luminosité descend.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --chart-overlay: #d97400;
+
+  /* ───────────────────────────────────────────────────────────────────────────
+     L'INFOBULLE ET SON MOUVEMENT — MESURÉS AU SURVOL
+
+     Relevé calculé sur leur infobulle en vie : `rgba(11, 11, 13, 0.8)`,
+     `backdrop-filter: blur(40px)`, bordure `1.11px oklch(1 0 0 / 0.1)`, rayon 4px,
+     rembourrage `4px 8px`.
+
+     ⚠️ LA TRANSITION EST L'ESSENTIEL, et c'est ce qu'on copierait le moins
+     spontanément : `transform 0.25s cubic-bezier(0.3, 1, 0.8, 1)`. Sans elle,
+     l'infobulle SAUTE d'un point de donnée au suivant ; avec elle, elle GLISSE en
+     suivant le curseur. La courbe sort vite puis se pose — elle rattrape le curseur
+     sans jamais le dépasser.
+
+     Le fond clair est l'inverse du leur, à la même opacité : un noir translucide posé
+     sur le canvas blanc de ZENKUU serait un rectangle noir au milieu d'une page claire.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --chart-tooltip-bg: rgb(255 255 255 / 0.86);
+  --chart-tooltip-border: rgb(15 23 42 / 0.12);
+  --chart-tooltip-blur: 40px;
+  --chart-tooltip-ease: cubic-bezier(0.3, 1, 0.8, 1);
+  --chart-tooltip-duration: 250ms;
+
+  /* Le crosshair : deux traits POINTILLÉS, l'un vertical l'autre horizontal, avec un
+     point d'ancrage sur la courbe. Le pointillé plutôt que le plein pour la même raison
+     que la grille — un trait plein qui traverse le cadre entre en concurrence avec la
+     courbe qu'il sert à lire. */
+  --chart-crosshair: color-mix(in srgb, var(--color-ink) 32%, transparent);
+  --chart-crosshair-dash: 3 3;
+
+  /* Le filigrane derrière le tracé. `oklab(0.708 0 0 / 0.2)` chez eux — un gris à 20 %.
+     Ici l'encre du thème à 7 % : le fond clair est plus impitoyable qu'un fond noir, et
+     20 % y donnerait un mot lisible au milieu du graphique au lieu d'une trame. */
+  --chart-watermark: color-mix(in srgb, var(--color-ink) 7%, transparent);
+
+  /* ───────────────────────────────────────────────────────────────────────────
      RAYON — second pilier de la grammaire, avec l'élévation.
 
      Choix RENVERSÉ, et il faut le dire nettement parce que ce bloc soutenait
@@ -2362,6 +2445,24 @@
   --color-data-5: #60a5fa;
   --color-data-6: #a3e635;
 
+  /* La rampe d'empilement, aux valeurs D'ORIGINE cette fois : le thème sombre de ZENKUU
+     est le terrain pour lequel ASXN a choisi ces teintes, et la borne haute peut donc
+     monter jusqu'au blanc cassé sans rien perdre. Voir la note du thème clair, qui
+     explique pourquoi celle-ci s'arrête plus tôt. */
+  --chart-stack-1: #226b59;
+  --chart-stack-2: #5e9286;
+  --chart-stack-3: #a49e9e;
+  --chart-stack-4: #c5c4c4;
+  --chart-stack-5: #f2f1f1;
+
+  /* L'orange d'origine : sur fond sombre il passe largement, et c'est la valeur
+     exacte relevée sur leur courbe cumulée. */
+  --chart-overlay: #ff8c00;
+
+  /* L'infobulle telle qu'ils la servent, à la valeur près. */
+  --chart-tooltip-bg: rgb(11 11 13 / 0.8);
+  --chart-tooltip-border: rgb(255 255 255 / 0.1);
+
   /* Hausse et baisse — valeurs EXACTES de CoinGecko, sombre. `.gecko-up` mesure
      rgb(50, 202, 91), `.gecko-down` rgb(255, 58, 51) (identique au clair, voir le
      bloc `@theme`). Les deux passent confortablement sur ce canvas : 8,72:1 et
@@ -2994,4 +3095,114 @@ textarea,
   [role='option'] {
     transition-duration: 0s;
   }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   LES GRAPHIQUES — LANGAGE VISUEL RELEVÉ SUR ASXN HYPERSCREENER
+
+   Référence : hyperscreener.asxn.xyz/home, relevée au navigateur le 2026-09-02.
+   Bibliothèque identique des deux côtés — Recharts —, ce qui rend ces règles
+   directement applicables : ce sont les classes que Recharts pose lui-même.
+
+   Le détail complet du relevé vit dans `CHARTS_AUDIT.md`.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   L'INFOBULLE GLISSE, ELLE NE SAUTE PAS
+
+   C'est la mesure la moins évidente du relevé, et celle qui fait le plus de
+   différence à l'usage : `transform 0.25s cubic-bezier(0.3, 1, 0.8, 1)` sur le
+   conteneur que Recharts déplace.
+
+   Sans elle, l'infobulle se téléporte d'un point de donnée au suivant, et sur une
+   série dense le mouvement se lit comme un clignotement. Avec elle, elle suit le
+   curseur d'un mouvement continu. La courbe sort vite puis se pose — elle rattrape
+   le curseur sans jamais le dépasser, ce qu'un `ease-out` ordinaire ne fait pas.
+
+   Recharts pose ce conteneur en position absolue et met à jour son `transform` à
+   chaque mouvement : la transition n'a donc rien à déclencher, elle interpole ce qui
+   changeait déjà.
+   ───────────────────────────────────────────────────────────────────────────── */
+.recharts-tooltip-wrapper {
+  transition: transform var(--chart-tooltip-duration) var(--chart-tooltip-ease);
+  pointer-events: none;
+}
+
+/* Un curseur qui se déplace à la main mérite qu'on n'anime pas son retard. */
+@media (prefers-reduced-motion: reduce) {
+  .recharts-tooltip-wrapper {
+    transition: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE CROSSHAIR — DEUX TRAITS POINTILLÉS
+
+   Vertical au point survolé, horizontal à sa valeur. Pointillés et non pleins, pour
+   la même raison que la grille : un trait plein qui traverse le cadre se lit comme
+   une ligne DU graphique et entre en concurrence avec la courbe qu'il sert à lire.
+
+   `!important` sur le trait : Recharts écrit `stroke` en attribut de présentation
+   sur ce nœud, et un attribut de présentation l'emporte sur une feuille de style
+   d'auteur pour les propriétés SVG. C'est le seul endroit du fichier où il se
+   justifie, et il est cantonné à une classe que la bibliothèque possède.
+   ───────────────────────────────────────────────────────────────────────────── */
+.recharts-tooltip-cursor {
+  stroke: var(--chart-crosshair) !important;
+  stroke-dasharray: var(--chart-crosshair-dash);
+  stroke-width: 1;
+}
+
+/* Le curseur des graphiques à BARRES est un rectangle et non un trait : Recharts
+   peint la colonne survolée. Un aplat à 6 % la désigne sans la repeindre. */
+.recharts-rectangle.recharts-tooltip-cursor {
+  fill: color-mix(in srgb, var(--color-ink) 6%, transparent) !important;
+  stroke: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE POINT D'ANCRAGE sur la courbe survolée — petit, cerclé du fond.
+
+   Le cerne est ce qui le détache : posé nu sur une courbe de sa propre couleur, il
+   disparaîtrait dans le trait. Deux pixels du fond de la carte suffisent.
+   ───────────────────────────────────────────────────────────────────────────── */
+.recharts-active-dot circle {
+  stroke: var(--color-canvas);
+  stroke-width: 2;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LA GRILLE — l'encre à 8 %, en pointillé.
+
+   Même valeur que `GRID_STROKE` de `chart-theme.ts`, posée ici pour les tracés qui
+   laissent Recharts peindre sa grille par défaut plutôt que de la configurer.
+   ───────────────────────────────────────────────────────────────────────────── */
+.recharts-cartesian-grid line {
+  stroke: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  stroke-dasharray: 4 4;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE FILIGRANE derrière le tracé.
+
+   ASXN pose « ASXN » au centre de chaque graphique, à 20 % sur fond noir. Ici c'est
+   « ZENKUU », et à 7 % : un fond clair est plus impitoyable qu'un fond noir, et 20 %
+   y donnerait un mot LISIBLE au milieu du graphique — donc un élément de plus à
+   regarder — au lieu d'une trame qu'on ne remarque pas.
+
+   `select-none` et `pointer-events-none` : il ne doit ni se sélectionner à la souris
+   ni intercepter le survol qui nourrit l'infobulle.
+   ───────────────────────────────────────────────────────────────────────────── */
+.chart-filigrane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--chart-watermark);
+  font-size: clamp(2rem, 8cqw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: 0.4px;
+  user-select: none;
+  pointer-events: none;
 }

@@ -2768,4 +2768,8 @@ export const ptBRPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': 'Máx. 52 sem.',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Diferença entre a cotação atual e a máxima das últimas 52 semanas',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Mostrar tudo',
+  'Tout masquer': 'Ocultar tudo',
 }

@@ -238,6 +238,7 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
               <AreaPlot
                 series={series}
                 height={320}
+                watermark
                 /* Le dégradé n'est posé QUE sur un tracé unique. Superposés, quatre
                    aplats translucides se mélangent en une bouillie dont aucune teinte
                    ne correspond plus à sa légende. */

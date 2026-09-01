@@ -2775,4 +2775,8 @@ export const esPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': 'Máx. 52 sem.',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Diferencia entre la cotización actual y el máximo de las últimas 52 semanas',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Mostrar todo',
+  'Tout masquer': 'Ocultar todo',
 }

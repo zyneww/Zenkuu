@@ -190,8 +190,43 @@ function ChartTooltipContent({
 
   return (
     <div
+      /* ══════════════════════════════════════════════════════════════════════
+         L'INFOBULLE SUIT LE LANGAGE ASXN — MESURÉ, PAS APPROCHÉ
+
+         Relevé le 2026-09-02 sur hyperscreener.asxn.xyz, styles calculés sur leur
+         infobulle EN VIE (un sondage qui la capture à l'instant où elle se monte,
+         l'état de survol ne survivant pas entre deux appels d'outil) :
+
+             background   rgba(11, 11, 13, 0.8)
+             backdrop     blur(40px)
+             border       1.11px solid oklch(1 0 0 / 0.1)
+             radius       4px
+             padding      4px 8px
+
+         Ce qui change ici : le fond OPAQUE devient translucide et flouté, le rayon
+         descend de `lg` à 4px, le rembourrage se resserre, et l'ombre portée cède la
+         place au flou d'arrière-plan. Une infobulle opaque est une carte posée sur le
+         graphique ; une infobulle floutée est une loupe — on voit à travers ce qu'elle
+         couvre, ce qui compte quand elle se pose sur la courbe qu'on lit.
+
+         Les valeurs vivent dans les jetons `--chart-tooltip-*` de `globals.css`, avec
+         leurs deux thèmes : le noir translucide d'ASXN sur fond sombre, son inverse
+         blanc à la même opacité sur le canvas clair. Un noir translucide posé sur une
+         page blanche serait un rectangle noir.
+
+         ⚠️ LE GLISSEMENT EST DANS `chart.css`, PAS ICI. `transform 0.25s
+         cubic-bezier(0.3, 1, 0.8, 1)` est ce qui distingue une infobulle qui GLISSE en
+         suivant le curseur d'une qui SAUTE d'un point au suivant — et c'est le
+         `.recharts-tooltip-wrapper` qui se déplace, pas ce nœud-ci.
+         ══════════════════════════════════════════════════════════════════════ */
+      style={{
+        background: 'var(--chart-tooltip-bg)',
+        borderColor: 'var(--chart-tooltip-border)',
+        backdropFilter: 'blur(var(--chart-tooltip-blur))',
+        WebkitBackdropFilter: 'blur(var(--chart-tooltip-blur))',
+      }}
       className={cn(
-        "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+        "grid min-w-[8rem] items-start gap-1.5 rounded-[4px] border px-2 py-1 text-xs",
         className
       )}
     >

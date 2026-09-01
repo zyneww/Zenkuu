@@ -2768,4 +2768,8 @@ export const trPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': '52 hf. yüksek',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Güncel fiyat ile son 52 haftanın en yükseği arasındaki fark',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Tümünü göster',
+  'Tout masquer': 'Tümünü gizle',
 }

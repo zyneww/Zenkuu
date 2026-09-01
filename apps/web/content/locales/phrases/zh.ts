@@ -2761,4 +2761,8 @@ export const zhPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': '52周最高',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': '当前价格与过去 52 周最高价之间的差距',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': '全部显示',
+  'Tout masquer': '全部隐藏',
 }

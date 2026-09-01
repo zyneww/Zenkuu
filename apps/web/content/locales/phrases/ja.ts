@@ -2768,4 +2768,8 @@ export const jaPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': '52週高値',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': '現在値と過去52週間の高値との差',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'すべて表示',
+  'Tout masquer': 'すべて非表示',
 }

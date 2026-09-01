@@ -14,6 +14,7 @@ import { GRID_DASH, GRID_STROKE } from '@/components/charts/chart-theme'
 import { useReducedMotion } from '@/components/charts/useReducedMotion'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ChartWatermark } from '@/components/charts/asxn'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -122,6 +123,20 @@ export interface AreaPlotProps {
   grid?: boolean
   formatX?: (x: number) => string
   formatY?: (y: number) => string
+  /**
+   * Filigrane « ZENKUU » derrière le tracé.
+   *
+   * ── POURQUOI IL EST OPTIONNEL, ET FAUX PAR DÉFAUT ─────────────────────────
+   *
+   * ASXN en pose un sur CHACUN de ses graphiques, et sur les leurs c'est juste : ce
+   * sont tous de grandes figures, seules dans leur carte. `AreaPlot` sert aussi de
+   * vignette — une courbe de trente pixels de haut dans une ligne de tableau — et un
+   * mot posé derrière une vignette de cette taille n'est pas une trame, c'est du
+   * bruit qui recouvre la donnée.
+   *
+   * L'appelant décide donc, parce que lui seul sait la taille qu'il donne au tracé.
+   */
+  watermark?: boolean
   /** Titre de l'infobulle — la date, en général. */
   formatTooltipX?: (x: number) => string
   formatTooltipY?: (y: number, series: PlotSeries) => string
@@ -196,6 +211,7 @@ export function AreaPlot({
   grid = false,
   formatX,
   formatY,
+  watermark = false,
   formatTooltipX,
   formatTooltipY,
   ariaLabel,
@@ -294,7 +310,7 @@ export function AreaPlot({
     )
   }
 
-  return (
+  const tracé = (
     <ChartContainer
       config={{}}
       {...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': true })}
@@ -448,5 +464,23 @@ export function AreaPlot({
         ))}
       </AreaChart>
     </ChartContainer>
+  )
+
+  if (!watermark) return tracé
+
+  /* Le filigrane passe SOUS le tracé et non par-dessus : `ChartContainer` est monté
+     après lui dans le flux, donc au-dessus sans qu'aucun `z-index` n'ait à le dire.
+     Un filigrane posé devant intercepterait le survol qui nourrit l'infobulle — ce
+     que `pointer-events-none` empêcherait, mais mieux vaut ne pas avoir à y penser.
+
+     `@container` : la taille du filigrane suit la largeur du CONTENEUR et non celle de
+     la fenêtre (`8cqw` dans `.chart-filigrane`). Sans lui, l'unité n'a pas de
+     référence et le mot garde la même taille dans une carte pleine largeur et dans un
+     panneau de trois cents pixels. */
+  return (
+    <div className="relative size-full @container" style={{ height: height === 'fill' ? '100%' : height }}>
+      <ChartWatermark />
+      {tracé}
+    </div>
   )
 }

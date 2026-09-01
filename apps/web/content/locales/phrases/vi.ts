@@ -2768,4 +2768,8 @@ export const viPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': 'Đỉnh 52 tuần',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Khoảng cách giữa giá hiện tại và đỉnh của 52 tuần gần nhất',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Hiện tất cả',
+  'Tout masquer': 'Ẩn tất cả',
 }

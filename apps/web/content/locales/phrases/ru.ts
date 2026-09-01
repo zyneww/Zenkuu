@@ -2768,4 +2768,8 @@ export const ruPhrases: Phrases = {
   // ── ONGLETS — sommet 52 semaines ──
   'Haut 52 sem.': 'Макс. 52 нед.',
   'Écart entre le cours actuel et le plus haut des 52 dernières semaines': 'Разрыв между текущей ценой и максимумом за последние 52 недели',
+
+  // ── GRAPHIQUES — contrôles ASXN ──
+  'Tout afficher': 'Показать всё',
+  'Tout masquer': 'Скрыть всё',
 }

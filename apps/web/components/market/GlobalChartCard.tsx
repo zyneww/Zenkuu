@@ -295,7 +295,11 @@ export function GlobalChartCard({
 
       <div className="mt-3">
         <AreaPlot
+          /* Le filigrane suit la TAILLE et non la carte : la même figure sert de
+             grande vignette (320) et de petite (200), et un mot posé derrière deux
+             cents pixels recouvre la courbe au lieu de la tramer. */
           height={large ? 320 : 200}
+          watermark={large}
           fill
           axes
           grid

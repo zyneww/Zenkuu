@@ -290,6 +290,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
           <AreaPlot
             series={plotSeries}
             height={320}
+            watermark
             axes
             grid
             yDomain={domain}
