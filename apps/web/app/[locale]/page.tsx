@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 
 import { CryptoBoard } from '@/components/home/CryptoBoard'
+import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { MarketRibbon } from '@/components/home/MarketRibbon'
 import { MarketWidgets } from '@/components/home/MarketWidgets'
 import { HomeNewsGrid } from '@/components/home/HomeNewsGrid'
@@ -171,6 +172,23 @@ export default async function HomePage() {
           valent 0. Une hauteur écrite à la main n'est juste que le jour où on la
           mesure : celle-ci l'a été, et un changement de contenu du ruban la
           rendrait fausse à nouveau. */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          L'ACCUEIL SE RAFRAÎCHIT SEUL, COMME LES FICHES
+
+          Il ne le faisait pas. Le bandeau de cours, le tableau, les trois palmarès et
+          les agrégats de tête étaient figés à l'instant du rendu et le RESTAIENT :
+          l'onglet laissé ouvert affichait des cours d'il y a une heure avec la même
+          autorité qu'un chiffre juste, et rien ne disait lequel des deux on lisait.
+
+          C'est le même défaut que les fiches d'actif ont déjà corrigé, et c'est le même
+          composant qui le corrige — sa cadence est celle de `CACHE_TTL_SECONDS`, donc
+          celle du cache : en deçà, il n'y aurait rien de neuf à chercher. Il ne réveille
+          rien quand l'onglet est caché, et rafraîchit au retour dessus.
+
+          Voir `AssetLiveRefresh`, dont l'en-tête porte le raisonnement complet.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <AssetLiveRefresh />
+
       <Suspense fallback={<BlockSkeleton height="h-[149px]" />}>
         <MarketRibbon />
       </Suspense>
