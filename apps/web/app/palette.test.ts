@@ -38,17 +38,25 @@ import { describe, expect, it } from 'vitest'
  * l'exploitant prise le 2026-08-30 : ce sont les teintes de CoinGecko elles-mêmes,
  * relevées sur leur site en direct, et le mandat du projet est la fidélité.
  *
- *   --color-brand / --color-canvas    2,11:1   vert de survol sur le canevas
- *   --color-brand / --color-surface   2,02:1   le même, sur la surface
+ *   --color-brand / --color-canvas    1,61:1   azur de survol sur le canevas
+ *   --color-brand / --color-surface   1,54:1   le même, sur la surface
  *   --color-up    / --color-canvas    3,15:1   rgb(0, 168, 62)  — 310 occurrences
  *   --color-down  / --color-canvas    3,56:1   rgb(255, 58, 51) —  90 occurrences
- *   --color-on-brand / --color-brand  2,11:1   texte BLANC sur le bouton vert
  *
- * Le dernier a été ajouté le 2026-08-30, après remesure. Il valait auparavant
- * 9,94:1 parce que le jeton était noir — mais ce noir était un ARTEFACT : l'outil
- * lisait la couleur du `<button>`, qui n'a pas de texte en propre, au lieu de son
- * enfant porteur. CoinGecko pose bien du texte BLANC sur ses boutons verts, vérifié
- * sur cinq boutons distincts. Le thème sombre, lui, passe à 4,70:1.
+ * ── LE COUPLE QUI EST SORTI D'ICI ───────────────────────────────────────────
+ *
+ * `--color-on-brand / --color-brand` figurait dans cette liste à 2,11:1 : du BLANC
+ * sur le vert de CoinGecko, leur propre défaut d'accessibilité, repris par fidélité.
+ * L'exploitant a demandé le 2026-09-01 de remplacer ce vert par l'azur #91d7e3.
+ * Cet azur est PLUS CLAIR que le vert : le même blanc y serait tombé à 1,6:1, sur
+ * les appels à l'action les plus visibles du site. La fidélité n'est plus en jeu —
+ * la teinte n'est plus celle de CoinGecko —, donc rien ne justifiait de traîner
+ * l'écart. `--color-on-brand` est passé à l'encre sombre #0a2429 : 10,05:1, et le
+ * couple est retourné dans `PAIRS`, où le test l'exige désormais au-dessus de 4,5:1.
+ *
+ * Les deux premiers couples, eux, restent des écarts : la marque sert encore de
+ * texte de SURVOL sur le canevas, et l'azur y est plus faible que le vert ne l'était.
+ * Leur plancher a été réajusté sur la mesure du jour, pas relevé.
  *
  * CE N'EST PAS UNE DÉROGATION SILENCIEUSE, et le seuil AA n'est pas abaissé d'un
  * dixième. Ces couples QUITTENT `PAIRS` pour `ECARTS`, où leur ratio mesuré est
@@ -137,11 +145,10 @@ const PAIRS: readonly [foreground: string, background: string, minimum: number][
    repère de non-régression. Voir « LES ÉCARTS ASSUMÉS » en tête de fichier. */
 const ECARTS: Record<string, readonly [foreground: string, background: string, plancher: number][]> = {
   'thème clair': [
-    ['--color-brand', '--color-canvas', 2.11],
-    ['--color-brand', '--color-surface', 2.02],
+    ['--color-brand', '--color-canvas', 1.61],
+    ['--color-brand', '--color-surface', 1.54],
     ['--color-up', '--color-canvas', 3.15],
     ['--color-down', '--color-canvas', 3.56],
-    ['--color-on-brand', '--color-brand', 2.11],
   ],
   'thème sombre': [],
 }

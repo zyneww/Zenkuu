@@ -192,49 +192,65 @@
 
      ⚠️ AUCUNE DES DEUX TEINTES NE PASSE 4,5:1 EN TEXTE SUR LE CANVAS CLAIR. La
      plus favorable (53, 175, 0) plafonne à 2,88:1 ; celle retenue tombe à 2,11:1.
-     CoinGecko elle-même ne pose jamais ce vert EN TEXTE sur blanc — son bouton
-     d'action porte du texte NOIR par-dessus (`couleur: rgb(0, 0, 0)`, mesuré sur
-     `#use-app-btn button` dans les deux thèmes), jamais du vert sur blanc.
-     `--color-on-brand` reprend donc ce noir mesuré, dans les deux thèmes — il
-     passe largement (9,94:1 clair, 12,64:1 sombre). C'est l'usage ZENKUU du
-     jeton comme texte de LIEN sur le canvas (`--color-brand` / `--color-canvas`,
-     vérifié par `app/palette.test.ts`) qui échoue : CoinGecko ne mesure aucun cas
-     où ce vert porte du texte sur un fond aussi clair. Voir le rapport de tâche. */
-  --color-brand: #4bcc00;
-  /* MESURÉ le 2026-08-30 — c'est `tw-text-primary-600` de CoinGecko, résolu en
-     posant la classe sur une sonde injectée dans leur page : rgb(53, 175, 0). La
-     valeur précédente (#3da000) était dérivée à la main et ne correspondait à
-     aucune teinte de leur palette.
+     ⚠️ CE JETON N'EST PLUS CELUI DE COINGECKO — DEMANDE DE L'EXPLOITANT.
 
-     ⚠️ CE JETON NE PORTE PAS LE SURVOL. Le même relevé montre que CoinGecko
-     survole son texte vers `primary-500` — c'est-à-dire `--color-brand`, pas
-     cette teinte-ci : 40 éléments portent `tw-text-slate-700` au repos et
+     Il a valu #4bcc00 : le vert mesuré sur leur site, repris par fidélité au
+     mandat. L'exploitant a demandé le 2026-09-01 de remplacer ce vert par l'azur
+     ci-dessous dans toute la palette. La fidélité cède ici sur un point nommé, et
+     l'écart est CONSCIENT — il n'est pas le produit d'une dérive.
+
+     Le changement ne touche QUE la marque. `--color-up` et `--color-down` gardent
+     leur vert et leur rouge : ils ne décorent pas, ils disent le sens d'une
+     variation, et un azur de hausse en face d'un rouge de baisse ne se lirait plus.
+
+     Conséquence à connaître : l'azur est PLUS CLAIR que le vert, donc plus faible
+     encore en texte sur le canvas — 1,61:1 contre 2,11:1. Cet emploi reste un écart
+     assumé, épinglé dans `app/palette.test.ts`. C'est `--color-brand-strong` qui
+     porte le texte de lien, et lui passe AA. */
+  --color-brand: #91d7e3;
+  /* DÉRIVÉ de l'azur, et non plus mesuré : c'est l'azur assombri jusqu'à porter du
+     texte sur le canvas clair — 5,01:1, au-dessus de 4,5:1. Il a valu #35af00, le
+     `tw-text-primary-600` de CoinGecko, tant que la marque était leur vert.
+
+     LE SEUIL EST LA RAISON DE SA VALEUR. `--link` pointe ici, et un lien est du
+     texte : il ne pouvait pas rester à l'azur clair, qui donne 1,61:1. La teinte a
+     donc été descendue dans la même famille jusqu'à passer AA, pas choisie à l'œil.
+
+     ⚠️ CE JETON NE PORTE PAS LE SURVOL. Le relevé du 2026-08-30 montre que
+     CoinGecko survole son texte vers `primary-500` — c'est-à-dire `--color-brand`,
+     pas cette teinte-ci : 40 éléments portent `tw-text-slate-700` au repos et
      `hover:tw-text-primary-500` au survol. Les 109 `hover:text-brand-strong` de
      ZENKUU ont été ramenés à `hover:text-brand` pour cette raison. Il ne reste
      ici que l'emphase et `--link`. Non couvert par `app/palette.test.ts`. */
-  --color-brand-strong: #35af00;
+  --color-brand-strong: #1c7a89;
   /* Dérivé, NON MESURÉ — aplat teinté pour pastille active / état vide, jamais
-     support de texte à lui seul. Non couvert par `app/palette.test.ts`. */
-  --color-brand-soft: #eafbe0;
+     support de texte à lui seul. Suit la marque : azurin depuis le 2026-09-01, il
+     valait le vert pâle #eafbe0. Non couvert par `app/palette.test.ts`. */
+  --color-brand-soft: #e7f7fa;
 
-  /* Couleur du TEXTE posé SUR un aplat de marque — REMESURÉE le 2026-08-30.
-     CoinGecko pose du texte BLANC sur ses boutons verts en thème clair. Vérifié
-     sur cinq boutons distincts d'une même page (« S'inscrire », « Utiliser
-     l'app », « Créer un compte », « Télécharger l'app », « Sans publicité ») :
-     tous rendent `rgb(255, 255, 255)` sur `rgb(75, 204, 0)`.
+  /* Couleur du TEXTE posé SUR un aplat de marque — ENCRE SOMBRE, dans les deux
+     thèmes, et c'est un changement du 2026-09-01.
 
-     ⚠️ CE JETON VALAIT #000000, ET C'ÉTAIT UN ARTEFACT DE MESURE. L'ancien outil
-     lisait la couleur sur le `<button>`, qui ne possède aucun nœud texte en
-     propre : sa `color` calculée retombait sur le noir par défaut du navigateur.
-     Le texte visible vit dans un `<div>` enfant, et il est blanc. Même défaut que
-     les 84 relevés à `rgb(0, 0, 238)` — voir `indexPorteurDuTexte` dans
-     `scripts/audit-coingecko-page.mjs`.
+     ── CE QU'ELLE VALAIT, ET POURQUOI ELLE A CHANGÉ ───────────────────────────
 
-     ⚠️ BLANC SUR CE VERT DONNE 2,11:1, TRÈS EN DESSOUS DE 4,5:1. C'est un défaut
-     d'accessibilité de CoinGecko, sur ses appels à l'action les plus visibles.
-     Le noir aurait donné 9,94:1. La fidélité l'emporte par décision de
-     l'exploitant, et l'écart est épinglé dans `ECARTS` — pas masqué. */
-  --color-on-brand: #ffffff;
+     Elle valait #ffffff : du BLANC, mesuré sur cinq boutons verts distincts de
+     CoinGecko (« S'inscrire », « Utiliser l'app », « Créer un compte »,
+     « Télécharger l'app », « Sans publicité »), tous rendant `rgb(255, 255, 255)`
+     sur `rgb(75, 204, 0)`. Ce blanc donnait 2,11:1 — très en dessous de 4,5:1. On
+     l'a gardé quand même, parce que c'était le défaut d'accessibilité de CoinGecko
+     et que le mandat était la fidélité ; l'écart était épinglé dans `ECARTS`.
+
+     LA MARQUE N'EST PLUS LEUR VERT. L'exploitant a demandé l'azur #91d7e3, qui est
+     PLUS CLAIR : le même blanc y serait tombé à 1,6:1, sur les appels à l'action
+     les plus visibles du site. Et il n'y avait plus rien à quoi être fidèle — la
+     teinte du dessous n'est plus celle de la référence.
+
+     L'encre #0a2429 donne 10,05:1 sur l'azur. Le couple a donc QUITTÉ `ECARTS`
+     pour revenir dans `PAIRS`, où `app/palette.test.ts` l'exige au-dessus de 4,5:1.
+
+     Une valeur unique sert les deux thèmes, parce que l'azur est le même des deux
+     côtés — ce que le vert n'était pas. */
+  --color-on-brand: #0a2429;
 
   /* ── LA LUEUR DES ÉTATS ACTIFS ────────────────────────────────────────────
      Une ombre portée SANS décalage ni flou étendu : c'est la diffusion d'un
@@ -242,10 +258,11 @@
      n'est plus une couleur, et elle ne doit apparaître que sur ce que le lecteur
      a choisi ou survole — jamais en décoration.
 
-     La teinte suit `--color-brand` : verte désormais, et non plus cyan. Deux
-     valeurs parce que la lumière ne se comporte pas pareil des deux côtés : sur
-     fond sombre elle rayonne, sur fond clair elle ne peut que densifier. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(75 204 0 / 0.24);
+     La teinte suit `--color-brand` : azurine depuis le 2026-09-01, après un vert
+     qui avait lui-même remplacé un cyan. Deux valeurs parce que la lumière ne se
+     comporte pas pareil des deux côtés : sur fond sombre elle rayonne, sur fond
+     clair elle ne peut que densifier. */
+  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(145 215 227 / 0.24);
 
   /* ── L'OR RESTE, PARCE QU'IL SIGNIFIE ─────────────────────────────────────
      La doctrine de l'accent réserve la couleur à ce que le site mesure. L'or n'y
@@ -2305,12 +2322,12 @@
      pas une erreur de recopie : CoinGecko emploie `primary-600` en clair et
      `primary-400` en sombre pour son vert d'emphase, et `primary-400` sert aussi
      d'aplat de bouton en sombre. Les deux rôles coïncident de ce côté. */
-  --color-brand: #80e038;
-  --color-brand-strong: #80e038;
-  --color-brand-soft: #21311c;
+  --color-brand: #91d7e3;
+  --color-brand-strong: #91d7e3;
+  --color-brand-soft: #152b30;
   /* Sur fond sombre la lueur RAYONNE : portée plus large. La teinte suit
-     `--color-brand`, verte désormais. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(128 224 56 / 0.38);
+     `--color-brand`, azurine depuis le 2026-09-01. */
+  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(145 215 227 / 0.38);
 
   /* Vert TRÈS FONCÉ sur le vert clair — REMESURÉ le 2026-08-30 : `#use-app-btn
      button` rend `rgb(11, 97, 0)` sur `rgb(128, 224, 56)` en thème sombre. La
@@ -2319,7 +2336,7 @@
 
      Contrairement au thème clair, celui-ci PASSE : 4,70:1, au-dessus de 4,5:1.
      Le thème sombre de CoinGecko est ici plus accessible que son thème clair. */
-  --color-on-brand: #0b6100;
+  --color-on-brand: #0a2429;
 
   --color-gold: #fbbf24;
   --color-gold-strong: #fcd34d;

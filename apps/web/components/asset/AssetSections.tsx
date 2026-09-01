@@ -82,6 +82,7 @@ export function AssetSections({
   rail,
   identity,
   aside,
+  headline,
 }: {
   tabs: AssetTab[]
   /**
@@ -100,6 +101,14 @@ export function AssetSections({
   rail: React.ReactNode
   /** Colonne d'actualités, transmise telle quelle au cadre. */
   aside?: React.ReactNode
+  /**
+   * Bande d'identité, transmise telle quelle au cadre.
+   *
+   * Elle traverse ce composant sans être lue, comme le rail : c'est le cadre qui place
+   * les colonnes, et c'est lui qui sait que cette bande ouvre la colonne principale
+   * pour que la colonne d'actualités commence à sa hauteur.
+   */
+  headline?: React.ReactNode
 }) {
   const sectionRefs = useRef(new Map<string, HTMLElement>())
 
@@ -282,7 +291,7 @@ export function AssetSections({
   ))
 
   return (
-    <AssetLayoutFrame identity={identity} rail={rail} aside={aside}>
+    <AssetLayoutFrame identity={identity} rail={rail} aside={aside} headline={headline}>
       {/* `space-y-12` : les sections ne sont plus séparées par un changement d'écran,
           c'est donc le blanc qui doit dire où l'une finit et où l'autre commence.
 

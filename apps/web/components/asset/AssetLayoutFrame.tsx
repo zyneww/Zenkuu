@@ -107,6 +107,7 @@ export function AssetLayoutFrame({
   rail,
   identity,
   aside,
+  headline,
   children,
 }: {
   rail: React.ReactNode
@@ -162,6 +163,26 @@ export function AssetLayoutFrame({
    * qu'on descend vers « Places », c'est-à-dire au moment où l'on continue de lire.
    */
   aside?: React.ReactNode
+  /**
+   * La bande d'identité — fil d'Ariane, nom, code, étiquettes.
+   *
+   * ── POURQUOI ELLE ENTRE DANS LE CADRE PLUTÔT QUE DE LE PRÉCÉDER ─────────
+   *
+   * Elle était rendue AU-DESSUS de ce composant, sur toute la largeur. La colonne
+   * d'actualités commençait donc sous elle, et la fiche s'ouvrait sur deux cents
+   * pixels de vide en haut à droite — la place exacte de la bande, à côté d'elle.
+   *
+   * Passée ici, elle est le premier enfant de la colonne PRINCIPALE. La colonne
+   * d'actualités est la sœur de celle-ci dans la même rangée `flex` : leurs deux
+   * hauts s'alignent donc d'eux-mêmes, sans décalage négatif ni hauteur recopiée.
+   * La première actualité monte au niveau du nom de l'actif, et le vide disparaît.
+   *
+   * Le filet qui la souligne s'arrête désormais au bord de la colonne principale au
+   * lieu de traverser la page. C'est la conséquence voulue : il sépare l'identité du
+   * graphique qui la suit, et il n'a rien à séparer sous la colonne d'actualités,
+   * qui commence à sa hauteur.
+   */
+  headline?: React.ReactNode
   children: React.ReactNode
 }) {
   /* Déstructuré ICI, et non lu par `stuck.xxx` au fil du rendu : le compilateur React
@@ -172,13 +193,6 @@ export function AssetLayoutFrame({
 
   return (
     <>
-      {/* La SENTINELLE de la rangée collante — voir l'en-tête. Un pixel de haut, dans
-          le flux, juste avant elle : c'est sa sortie de l'écran qui dit que la rangée
-          s'est collée. `col-span-full` n'est pas nécessaire ici (ce conteneur n'est pas
-          une grille), et son absence est délibérée : la sentinelle ne doit pas être
-          confondue avec celle, plus délicate, que portait `AssetStickyBar`. */}
-      <div ref={sentinelRef} aria-hidden="true" className="h-px" />
-
       {/* ══════════════════════════════════════════════════════════════════════
           LA BANDE D'ACCOMPAGNEMENT — HAUTEUR NULLE DANS LE FLUX
 
@@ -331,6 +345,23 @@ export function AssetLayoutFrame({
           dépasseraient leur colonne au lieu de défiler.
         */}
         <div className="min-w-0 flex-1 [display:flow-root]">
+          {/* La bande d'identité — voir la note de la prop `headline`. Elle occupe la
+              colonne principale entière : le rail flotte SOUS elle, pas à côté. */}
+          {headline}
+
+          {/* La SENTINELLE de la rangée collante — voir l'en-tête. Un pixel de haut,
+              dans le flux, JUSTE APRÈS la bande d'identité : c'est sa sortie de l'écran
+              qui dit que la rangée s'est collée, et la rangée reprend précisément ce que
+              la bande vient d'emporter. Elle vivait plus haut, avant la rangée à trois
+              colonnes ; la bande étant montée dans cette colonne, la sentinelle l'a
+              suivie pour garder le même seuil. Sa position dans le flux est TOUT ce que
+              `useStuck` observe.
+
+              `col-span-full` n'est pas nécessaire ici (ce conteneur n'est pas une
+              grille), et son absence est délibérée : la sentinelle ne doit pas être
+              confondue avec celle, plus délicate, que portait `AssetStickyBar`. */}
+          <div ref={sentinelRef} aria-hidden="true" className="h-px" />
+
           <div className="asset-rail min-w-0">{rail}</div>
 
           {/*

@@ -1340,28 +1340,42 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           des deux côtés, sans quoi il se lit comme le soulignement de la ligne de
           liens plutôt que comme une frontière.
           ══════════════════════════════════════════════════════════════════════ */}
-      <div className="mb-5 border-b border-border-subtle pb-5">
-        <AssetHeadline
-          asset={data}
-          assetClass={assetClass}
-          rankLabel={fr.asset.stats.rank}
-          watchAction={
-            <WatchlistStar
-              assetClass={assetClass}
-              assetId={data.id}
-              label={data.name}
-              {...(data.symbol ? { symbol: data.symbol } : {})}
-              path={assetHref(assetClass, data.id)}
-              initialFollowing={watchlist.following}
-              available={watchlist.available}
-            />
-          }
-        />
-      </div>
-
       <AssetSections
         tabs={tabs}
         aside={newsAside}
+        /* LA BANDE D'IDENTITÉ ENTRE DANS LE CADRE — voir la prop `headline` de
+           `AssetLayoutFrame`.
+
+           Elle était rendue juste au-dessus de cet appel, sur toute la largeur de la
+           page. La colonne d'actualités, elle, naît DANS le cadre : elle commençait donc
+           sous la bande, et la fiche s'ouvrait sur la hauteur de cette bande en vide,
+           en haut à droite.
+
+           Passée en prop, elle devient le premier enfant de la colonne principale, dont
+           la colonne d'actualités est la sœur dans la même rangée. Les deux hauts
+           s'alignent d'eux-mêmes : la première actualité arrive au niveau du nom de
+           l'actif. Aucune hauteur n'est recopiée, aucun décalage négatif n'est posé —
+           c'est la rangée qui aligne, comme elle le fait déjà pour le rail. */
+        headline={
+          <div className="mb-5 border-b border-border-subtle pb-5">
+            <AssetHeadline
+              asset={data}
+              assetClass={assetClass}
+              rankLabel={fr.asset.stats.rank}
+              watchAction={
+                <WatchlistStar
+                  assetClass={assetClass}
+                  assetId={data.id}
+                  label={data.name}
+                  {...(data.symbol ? { symbol: data.symbol } : {})}
+                  path={assetHref(assetClass, data.id)}
+                  initialFollowing={watchlist.following}
+                  available={watchlist.available}
+                />
+              }
+            />
+          </div>
+        }
         /* L'IDENTITÉ COMPACTE EST LE SEUL CONTENU DE LA BANDE D'ACCOMPAGNEMENT.
 
            Elle vivait dans le rail, où sa sentinelle — son premier enfant — définissait
