@@ -2743,4 +2743,18 @@ export const zhPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': '站点有哪些变化，以及背后的取舍。',
   'Lectures de fond sur le fonctionnement des marchés suivis.': '关于所追踪市场运作方式的深度读物。',
   'Décisions techniques et limites assumées.': '技术决策，以及我们主动承担的局限。',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': '博客没有固定的更新频率：有话可说时才发一篇，绝不为了填满日程表而写。',
+  'Classements calculés sur les {n} plus grandes capitalisations.': '基于市值最大的 {n} 项资产计算的排行。',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': '**{actif}** 的价格，取自 {date}，数据源以欧元报价。',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': '按 {date} 的欧洲中央银行汇率换算——因此结果是把即时行情与每个工作日仅公布一次的汇率相结合。换算后的金额并不是市场上的报价。',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': '按欧洲中央银行汇率换算——因此结果是把即时行情与每个工作日仅公布一次的汇率相结合。换算后的金额并不是市场上的报价。',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': '颜色刻度：−{clamp} % 及以下为红色，+{clamp} % 及以上为绿色。',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': '一条在各处都遵守的规则：没有出处的内容一律不展示。数据提供方未发布的数值，会留下一个破折号，或者整列消失，绝不会填上零或估算值。[关于](/a-propos) 页面详细说明了这一承诺，每张表格的来源就标在表格正下方。ZENKUU 发布数字，不作任何推荐，也不提供任何买入或卖出功能。',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': '流通中锚定型代币的总量，自 2017 年起每日记录。它衡量的是停泊在加密资产中的资金，而不是资产的价格。',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': '整个市场的总市值并没有免费的时间序列可用。这条曲线把九项大市值资产相加得出，它们列在图表下方。',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': '在链上以代币形式映射的上市股票：它们的发行方、价格、市值，以及成交量。',
 }

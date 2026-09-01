@@ -376,10 +376,13 @@ export function TreemapLegend({
   tone = 'change',
   calmLabel = 'Calme',
   choppyLabel = 'Agité',
+  scaleLabel,
 }: {
   tone?: 'change' | 'volatility'
   calmLabel?: string
   choppyLabel?: string
+  /** Phrase pour lecteurs d'écran, déjà traduite et ses bornes déjà écrites. */
+  scaleLabel?: string
 } = {}) {
   /* La légende d'INTENSITÉ ne porte pas de bornes chiffrées, et ne peut pas en
      porter : l'échelle est relative au lot affiché (voir `volatilityTone`). Elle
@@ -436,9 +439,20 @@ export function TreemapLegend({
           </span>
         )
       })}
+      {/* ⚠️ CETTE PHRASE EST LA SEULE QUE CERTAINS LECTEURS ENTENDENT, et elle sortait
+          en français dans les douze autres langues.
+
+          Elle était écrite en JSX, coupée en trois par les deux `{HEATMAP_CLAMP}` : sous
+          cette forme elle n'a aucune clé possible dans la table. Elle arrive donc en
+          propriété, déjà traduite et ses trous déjà remplis, comme `calmLabel` et
+          `choppyLabel` — et pour la même raison qu'eux, notée juste au-dessus : cette
+          légende est rendue depuis un composant client ET depuis deux composants
+          serveur, et aucun crochet ne traverse les deux.
+
+          Le défaut reste le français, comme partout ailleurs dans le projet. */}
       <span className="sr-only">
-        Échelle de couleur : du rouge à −{HEATMAP_CLAMP} % ou moins, au vert à +
-        {HEATMAP_CLAMP} % ou plus.
+        {scaleLabel ??
+          `Échelle de couleur : du rouge à −${HEATMAP_CLAMP} % ou moins, au vert à +${HEATMAP_CLAMP} % ou plus.`}
       </span>
     </div>
   )

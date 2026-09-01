@@ -15,6 +15,7 @@ import { MacroExplorer } from '@/components/market/MacroExplorer'
 import { MacroIndicatorSearch } from '@/components/market/MacroIndicatorSearch'
 import { MacroMap, type MacroTone } from '@/components/market/MacroMap'
 import { emphasise } from '@/components/locale/emphasise'
+import { getLocale } from 'next-intl/server'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /** Les cinq séries gardées en accès direct — voir la note sur la rangée de raccourcis. */
@@ -106,7 +107,10 @@ export default async function MacroPage({
    * le cache applicatif la garde six heures, et la clé distingue cette profondeur de
    * l'instantané que demande l'aperçu de l'accueil. Voir `macroHistoryYears`.
    */
-  const result = await getMacroIndicator(indicator.code, macroHistoryYears())
+  /* Le locale affiché descend jusqu'à la source : les noms de pays et de région sont
+     SES libellés, et elle les publie dans onze de nos douze langues. Sans lui, la carte
+     allemande affichait « Asie de l'Est et Pacifique ». */
+  const result = await getMacroIndicator(indicator.code, macroHistoryYears(), await getLocale())
 
   return (
     <div className="space-y-6 py-6">

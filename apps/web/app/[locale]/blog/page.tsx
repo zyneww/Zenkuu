@@ -107,10 +107,10 @@ export default async function BlogPage() {
             <a
               key={entry.id}
               href="#flux"
-              title={entry.description}
+              title={t(entry.description)}
               className="text-xs font-medium text-ink-muted transition-colors hover:text-ink"
             >
-              {entry.label}
+              {t(entry.label)}
             </a>
           ))}
         </nav>
@@ -207,15 +207,17 @@ export default async function BlogPage() {
           <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2">
             {BLOG_CATEGORIES.map((entry) => (
               <li key={entry.id} className="text-sm">
-                <span className="font-medium text-ink">{entry.label}</span>
-                <span className="text-ink-muted"> — {entry.description}</span>
+                <span className="font-medium text-ink">{t(entry.label)}</span>
+                <span className="text-ink-muted"> — {t(entry.description)}</span>
               </li>
             ))}
           </ul>
 
           <p className="pt-2 text-xs leading-relaxed text-ink-muted">
-            Le blog paraît sans périodicité fixe : un article quand il y a quelque chose
-            à dire, jamais pour tenir un calendrier.{' '}
+            {/* La phrase entière est UNE clé, et non deux lignes de JSX : coupée par le
+                retour à la ligne, elle n'aurait aucune entrée dans la table et sortirait
+                en français partout ailleurs qu'en /fr. */}
+            {t('Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.')}{' '}
             <Link
               href="/blog/rss.xml"
               className="underline underline-offset-2 hover:text-brand"

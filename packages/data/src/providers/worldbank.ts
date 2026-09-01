@@ -53,7 +53,12 @@ export const WORLDBANK_SOURCE = {
  */
 const http = createHttpClient({
   providerId: PROVIDER_ID,
-  baseUrl: 'https://api.worldbank.org/v2/fr',
+  /* La LANGUE A QUITTÉ CETTE BASE pour entrer dans les chemins — voir `LANGUE_SOURCE`.
+     Elle valait `/v2/fr` en dur, et servait donc des noms de pays et de région français
+     à un lecteur allemand ou japonais. La Banque mondiale publie ces libellés dans
+     vingt-trois langues : les prendre chez elle vaut mieux que les retraduire chez nous,
+     et c'est aussi ce que le §5 demande — le libellé reste celui de la source. */
+  baseUrl: 'https://api.worldbank.org/v2',
   /*
    * La Banque mondiale ne publie AUCUN quota, et le débit obtenu en pratique est
    * confortable. Le plafond posé ici n'est donc pas une contrainte de la source mais
@@ -816,9 +821,46 @@ interface RawObservation {
  * différence d'une liste de codes écrite à la main qui se périmerait au premier
  * ensemble ajouté.
  */
-async function fetchCountries(): Promise<Map<string, { name: string; region: string }>> {
+/**
+ * Langue à demander à la Banque mondiale pour un locale affiché.
+ *
+ * ── POURQUOI UNE TABLE, ET PAS LE CODE TEL QUEL ─────────────────────────────
+ *
+ * La source publie vingt-trois langues, et couvre onze des douze du site : l'italien et
+ * le néerlandais lui manquent. Leur envoyer `it` ou `nl` ne rend pas une erreur — elle
+ * retombe silencieusement sur l'anglais. Le repli est donc écrit ICI plutôt que subi :
+ * on sait quelles langues elle sert, et un lecteur italien reçoit de l'anglais parce que
+ * c'est le choix fait, pas parce qu'une requête a échoué sans le dire.
+ *
+ * `pt-BR` est ramené à `pt` : la source ne distingue pas les deux portugais.
+ */
+const LANGUES_SOURCE: Record<string, string> = {
+  fr: 'fr',
+  en: 'en',
+  de: 'de',
+  es: 'es',
+  ja: 'ja',
+  pl: 'pl',
+  'pt-BR': 'pt',
+  ru: 'ru',
+  tr: 'tr',
+  vi: 'vi',
+  zh: 'zh',
+  // Non publiées par la Banque mondiale — l'anglais plutôt qu'un français inattendu.
+  it: 'en',
+  nl: 'en',
+}
+
+/** Le code de langue que la source comprend, pour un locale affiché. */
+export function langueSource(locale: string): string {
+  return LANGUES_SOURCE[locale] ?? 'en'
+}
+
+async function fetchCountries(
+  langue: string,
+): Promise<Map<string, { name: string; region: string }>> {
   const body = await http.getJson<[unknown, RawCountry[] | null]>(
-    '/country?format=json&per_page=400',
+    `/${langue}/country?format=json&per_page=400`,
   )
 
   const rows = body?.[1]
@@ -908,6 +950,11 @@ export async function fetchMacroIndicator(
    * n'ont besoin que du dernier point ne paient pas le surcoût.
    */
   years = 1,
+  /**
+   * Langue des LIBELLÉS de pays et de région. Les valeurs, elles, sont des nombres :
+   * seul l'appel au catalogue en dépend.
+   */
+  langue = 'fr',
 ): Promise<MacroObservation[]> {
   /* `per_page` suit la profondeur : à quinze ans, 400 lignes ne couvriraient que
      vingt-six pays, et la source paginerait en silence — on obtiendrait une carte
@@ -915,9 +962,9 @@ export async function fetchMacroIndicator(
   const perPage = Math.max(400, years * 400)
 
   const [countries, body] = await Promise.all([
-    fetchCountries(),
+    fetchCountries(langue),
     http.getJson<[unknown, RawObservation[] | null]>(
-      `/country/all/indicator/${encodeURIComponent(code)}?format=json&mrv=${years}&per_page=${perPage}`,
+      `/${langue}/country/all/indicator/${encodeURIComponent(code)}?format=json&mrv=${years}&per_page=${perPage}`,
     ),
   ])
 

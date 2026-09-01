@@ -2750,4 +2750,18 @@ export const ruPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'Что меняется на сайте и какие компромиссы за этим стоят.',
   'Lectures de fond sur le fonctionnement des marchés suivis.': 'Обстоятельные материалы о том, как устроены отслеживаемые рынки.',
   'Décisions techniques et limites assumées.': 'Технические решения и осознанно принятые ограничения.',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'Блог выходит без фиксированной периодичности: статья появляется, когда есть что сказать, и никогда — чтобы соблюсти график.',
+  'Classements calculés sur les {n} plus grandes capitalisations.': 'Рейтинги рассчитаны по {n} крупнейшим капитализациям.',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': 'Цена **{actif}**, снятая {date}, котируется источником в евро.',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Пересчитано по курсу Европейского центрального банка от {date} — результат сочетает цену текущего момента с курсом, который публикуется раз в рабочий день. Пересчитанная сумма — не биржевая котировка.',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Пересчитано по курсу Европейского центрального банка — результат сочетает цену текущего момента с курсом, который публикуется раз в рабочий день. Пересчитанная сумма — не биржевая котировка.',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': 'Цветовая шкала: от красного при −{clamp} % и ниже до зелёного при +{clamp} % и выше.',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'Правило, которое соблюдается везде: не показывается ничего без источника. Показатель, который поставщик не публикует, оставляет прочерк или убирает свой столбец — никогда ноль и никогда оценку. Страница [о проекте](/a-propos) раскрывает это обязательство, а источник каждой таблицы назван прямо под ней. ZENKUU публикует цифры, ничего не рекомендует и не предлагает никакой функции покупки или продажи.',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Сумма обращающихся привязанных токенов, фиксируемая ежедневно с 2017 года. Она измеряет деньги, припаркованные в криптовалюте, а не цену активов.',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Капитализация всего рынка не публикуется бесплатно в виде ряда. Эта кривая складывает девять крупных капитализаций, перечисленных под графиком.',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Биржевые акции, воспроизведённые токенами в блокчейне: их эмитент, цена, капитализация и объём торгов.',
 }

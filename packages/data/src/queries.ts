@@ -34,6 +34,7 @@ import { NEWS_SOURCES, fetchNews, fetchSymbolNews } from './providers/news'
 import {
   WORLDBANK_SOURCE,
   fetchMacroIndicator,
+  langueSource,
   type MacroObservation,
 } from './providers/worldbank'
 import { fetchAssetProfile, type AssetProfile } from './providers/yahoo-profile'
@@ -2557,15 +2558,27 @@ export function getMacroIndicator(
    * et son curseur n'aurait qu'une position.
    */
   years = 1,
+  /**
+   * Locale AFFICHÉ, pas le code que la source attend : `langueSource` fait la
+   * correspondance, et sait laquelle des douze la Banque mondiale ne publie pas.
+   */
+  locale = 'fr',
 ): Promise<DataResult<MacroObservation[]>> {
+  const langue = langueSource(locale)
+
   return runStandalone(
-    /* `fr` dans la clé : les libellés viennent de la source, dans sa version
-       française. Le jour où une seconde langue est servie, les deux jeux ne doivent
-       pas se marcher dessus dans le cache — et un changement de langue ne doit pas
-       laisser six heures de noms anglais derrière lui. */
-    `macro:fr:${code}:${years}`,
+    /* CE JOUR EST ARRIVÉ. La clé portait `fr` en dur, avec une note disant que le jour
+       où une seconde langue serait servie, les deux jeux ne devraient pas se marcher
+       dessus dans le cache. Elle porte désormais la langue réellement demandée : chaque
+       langue a son entrée, et un lecteur allemand ne reçoit plus six heures de noms de
+       pays français mémorisés par le passage d'un lecteur francophone.
+
+       C'est la LANGUE SOURCE et non le locale qui entre dans la clé : l'italien et le
+       néerlandais reçoivent tous deux l'anglais, et il n'y a aucune raison d'en garder
+       trois copies identiques. */
+    `macro:${langue}:${code}:${years}`,
     WORLDBANK_SOURCE,
-    () => fetchMacroIndicator(code, years),
+    () => fetchMacroIndicator(code, years, langue),
     MACRO_TTL_SECONDS,
   )
 }

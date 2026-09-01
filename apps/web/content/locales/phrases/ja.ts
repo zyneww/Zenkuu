@@ -2750,4 +2750,18 @@ export const jaPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'サイトで何が変わるのか、そしてその裏にある取捨選択。',
   'Lectures de fond sur le fonctionnement des marchés suivis.': '扱っている市場の仕組みを掘り下げた読みもの。',
   'Décisions techniques et limites assumées.': '技術上の判断と、引き受けている限界。',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'ブログの更新に決まった間隔はありません。書くべきことがあるときに記事を出すだけで、予定表を埋めるために書くことはありません。',
+  'Classements calculés sur les {n} plus grandes capitalisations.': '時価総額上位 {n} 銘柄を対象に算出したランキングです。',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': '**{actif}** の価格、{date} 時点。情報源はユーロ建てで公表しています。',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': '{date} の欧州中央銀行の基準レートで換算しています。したがって結果は、その瞬間の相場と、営業日ごとに一度だけ公表されるレートを組み合わせたものです。換算後の金額は、市場でついた値ではありません。',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': '欧州中央銀行の基準レートで換算しています。したがって結果は、その瞬間の相場と、営業日ごとに一度だけ公表されるレートを組み合わせたものです。換算後の金額は、市場でついた値ではありません。',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': '色の目盛り：−{clamp} % 以下が赤、+{clamp} % 以上が緑です。',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'どこでも守っている原則があります。出典のないものは表示しません。提供元が公表していない値は、ダッシュを残すか列ごと消えるかであって、ゼロや推計で埋めることはありません。この約束は [ZENKUU について](/a-propos) のページで詳しく述べており、各表の出典はそのすぐ下に明記しています。ZENKUU が公表するのは数字であり、何かを推奨することはなく、売買の機能も一切ありません。',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': '流通しているペッグ型トークンの合計で、2017年から毎日記録しています。資産の価格ではなく、暗号資産に留め置かれている資金の量を測るものです。',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': '市場全体の時価総額は、時系列として無料では公表されていません。この曲線は、グラフの下に並べた大型銘柄九つの時価総額を足し合わせたものです。',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': '上場株式をチェーン上のトークンとして写したもの。発行体、価格、時価総額、そして取引されている出来高を示します。',
 }

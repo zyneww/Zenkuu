@@ -2750,4 +2750,18 @@ export const nlPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'Wat er op de site verandert, en de afwegingen daarachter.',
   'Lectures de fond sur le fonctionnement des marchés suivis.': 'Verdiepende lectuur over de werking van de gevolgde markten.',
   'Décisions techniques et limites assumées.': 'Technische beslissingen en bewust aanvaarde grenzen.',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'De blog verschijnt zonder vaste frequentie: een artikel wanneer er iets te zeggen valt, nooit om een kalender te vullen.',
+  'Classements calculés sur les {n} plus grandes capitalisations.': 'Klassementen berekend op de {n} grootste kapitalisaties.',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': 'Koers van **{actif}** opgetekend op {date}, door de bron genoteerd in euro.',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Omgerekend tegen de ECB-koers van {date} — het resultaat combineert dus een koers van het moment met een koers die eenmaal per werkdag wordt gepubliceerd. Een omgerekend bedrag is geen genoteerde koers.',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Omgerekend tegen de ECB-koers — het resultaat combineert dus een koers van het moment met een koers die eenmaal per werkdag wordt gepubliceerd. Een omgerekend bedrag is geen genoteerde koers.',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': 'Kleurschaal: van rood bij −{clamp} % of minder tot groen bij +{clamp} % of meer.',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'Eén regel die overal geldt: er wordt niets getoond dat geen bron heeft. Een gegeven dat de leverancier niet publiceert laat een streepje achter of laat zijn kolom verdwijnen — nooit een nul en nooit een schatting. De pagina [over ons](/a-propos) werkt deze belofte uit, en de bron van elke tabel staat er vlak onder vermeld. ZENKUU publiceert cijfers, beveelt niets aan en biedt geen enkele koop- of verkoopfunctie.',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Som van de gekoppelde tokens in omloop, dagelijks opgetekend sinds 2017. Zij meet het geld dat in crypto geparkeerd staat, niet de prijs van de activa.',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'De kapitalisatie van de hele markt wordt niet gratis als reeks gepubliceerd. Deze curve telt negen grote kapitalisaties op, opgesomd onder de grafiek.',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Beursgenoteerde aandelen die als tokens op de keten zijn nagebootst: hun uitgever, hun prijs, hun kapitalisatie en het volume dat zij verhandelen.',
 }

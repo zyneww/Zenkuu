@@ -1,11 +1,13 @@
 'use client'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useLocale } from 'next-intl'
 import { ArrowUpDown, BookmarkPlus, ChevronDown, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import type { ExchangeRates, MarketAsset, SupportedCurrency } from '@zenkuu/data'
 
+import { emphasise } from '@/components/locale/emphasise'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { AssetPicker } from '@/components/tools/AssetPicker'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
@@ -88,6 +90,7 @@ export function ConverterView({
   currencies: readonly SupportedCurrency[]
 }) {
   const t = usePhrase()
+  const locale = useLocale()
   const [amount, setAmount] = useState('1')
   const [assetId, setAssetId] = useState(assets[0]?.id ?? '')
   const [currency, setCurrency] = useState<string>('EUR')
@@ -272,23 +275,40 @@ export function ConverterView({
 
       <LocalHistory history={history} onClear={() => persist([])} />
 
+      {/* ── LES DEUX MENTIONS DE BAS DE PAGE PASSENT PAR LA TABLE ──────────────
+
+          Elles étaient écrites en JSX brut, coupées par les retours à la ligne, et
+          sortaient donc en français dans les douze autres langues. Chacune est désormais
+          UNE clé, avec ses trous nommés remplis après traduction — `emphasise` porte le
+          gras du nom de l'actif, qui ne peut pas voyager dans une chaîne.
+
+          Les dates suivaient `'fr-FR'` en dur : un lecteur allemand voyait « 1 sept. »
+          au milieu d'une phrase allemande. Elles suivent maintenant le locale affiché. */}
       <div className="mx-auto max-w-md text-xs leading-relaxed text-ink-muted">
         <p>
-          Cours de <strong className="text-ink">{asset.name}</strong> relevé le{' '}
-          {new Date(asset.lastUpdated).toLocaleString('fr-FR', {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-          , coté en euros par la source.
+          {emphasise(
+            t('Cours de **{actif}** relevé le {date}, coté en euros par la source.')
+              .replace('{actif}', asset.name)
+              .replace(
+                '{date}',
+                new Date(asset.lastUpdated).toLocaleString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              ),
+          )}
         </p>
         {currency !== 'EUR' ? (
           <p className="mt-1">
-            Converti au taux BCE{' '}
-            {rates?.date ? `du ${new Date(rates.date).toLocaleDateString('fr-FR')}` : ''} — le
-            résultat combine donc un cours de l’instant et un taux publié une fois par jour
-            ouvré. Un montant converti n’est pas un cours coté.
+            {(rates?.date
+              ? t(
+                  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.',
+                ).replace('{date}', new Date(rates.date).toLocaleDateString(locale))
+              : t(
+                  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.',
+                ))}
           </p>
         ) : (
           <p className="mt-1">

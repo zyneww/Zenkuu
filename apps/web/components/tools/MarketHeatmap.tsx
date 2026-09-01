@@ -493,7 +493,12 @@ export function MarketHeatmap({
       {/* La légende passe SOUS la carte, comme chez TradingView. Elle était posée en
           haut à droite, au bout de la rangée de commandes, où elle se lisait comme un
           contrôle de plus. Sa place est contre la figure qu'elle explique. */}
-      <TreemapLegend tone={period === 'volatilite' ? 'volatility' : 'change'} />
+      <TreemapLegend
+        tone={period === 'volatilite' ? 'volatility' : 'change'}
+        scaleLabel={t(
+                'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.',
+        ).replaceAll('{clamp}', String(HEATMAP_CLAMP))}
+      />
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
         {/* La phrase SUIT le sélecteur de taille. Elle disait « capitalisation » en dur,

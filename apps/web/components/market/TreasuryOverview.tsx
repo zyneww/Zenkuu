@@ -8,6 +8,7 @@ import {
   TreemapLegend,
   type TreemapTile,
 } from '@/components/tools/TreemapFigure'
+import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -159,7 +160,11 @@ export async function TreasuryOverview({
         <div className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="display-sm text-ink">{t('Répartition par détenteur')}</h2>
-            <TreemapLegend />
+            <TreemapLegend
+              scaleLabel={t(
+                'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.',
+              ).replaceAll('{clamp}', String(HEATMAP_CLAMP))}
+            />
           </div>
 
           {/* LA MÊME HAUTEUR que la carte des collections et celle du marché : ces trois

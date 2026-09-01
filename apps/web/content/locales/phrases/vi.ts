@@ -2750,4 +2750,18 @@ export const viPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'Điều gì thay đổi trên trang, và những đánh đổi phía sau.',
   'Lectures de fond sur le fonctionnement des marchés suivis.': 'Những bài đọc chuyên sâu về cách vận hành của các thị trường được theo dõi.',
   'Décisions techniques et limites assumées.': 'Các quyết định kỹ thuật và những giới hạn được chấp nhận.',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'Blog ra bài không theo định kỳ cố định: một bài khi có điều đáng nói, không bao giờ chỉ để giữ đúng lịch.',
+  'Classements calculés sur les {n} plus grandes capitalisations.': 'Bảng xếp hạng tính trên {n} vốn hóa lớn nhất.',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': 'Giá của **{actif}** ghi nhận lúc {date}, được nguồn niêm yết bằng euro.',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Quy đổi theo tỷ giá của Ngân hàng Trung ương châu Âu ngày {date} — do đó kết quả kết hợp một mức giá tức thời với một tỷ giá chỉ công bố mỗi ngày làm việc một lần. Một số tiền đã quy đổi không phải là một mức giá niêm yết.',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Quy đổi theo tỷ giá của Ngân hàng Trung ương châu Âu — do đó kết quả kết hợp một mức giá tức thời với một tỷ giá chỉ công bố mỗi ngày làm việc một lần. Một số tiền đã quy đổi không phải là một mức giá niêm yết.',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': 'Thang màu: từ đỏ ở mức −{clamp} % trở xuống đến xanh ở mức +{clamp} % trở lên.',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'Một nguyên tắc được giữ ở mọi nơi: không hiển thị bất cứ gì không có nguồn. Một dữ liệu mà nhà cung cấp không công bố sẽ để lại một dấu gạch hoặc làm biến mất cột của nó — không bao giờ là số không, cũng không bao giờ là ước lượng. Trang [giới thiệu](/a-propos) nói rõ cam kết này, và nguồn của mỗi bảng được ghi ngay bên dưới bảng. ZENKUU công bố các con số, không khuyến nghị điều gì, và không có bất kỳ chức năng mua hay bán nào.',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Tổng lượng token neo giá đang lưu hành, ghi nhận hằng ngày từ năm 2017. Nó đo lượng tiền đang đậu trong crypto chứ không phải giá của các tài sản.',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Vốn hóa của toàn thị trường không được công bố miễn phí dưới dạng chuỗi thời gian. Đường này cộng lại chín vốn hóa lớn, được liệt kê dưới biểu đồ.',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Các cổ phiếu niêm yết được sao chép thành token trên chuỗi: tổ chức phát hành, giá, vốn hóa và khối lượng giao dịch của chúng.',
 }

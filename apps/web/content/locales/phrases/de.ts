@@ -2758,4 +2758,18 @@ export const dePhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'Was sich auf der Website ändert, und die Abwägungen dahinter.',
   'Lectures de fond sur le fonctionnement des marchés suivis.': 'Vertiefende Lektüren zur Funktionsweise der beobachteten Märkte.',
   'Décisions techniques et limites assumées.': 'Technische Entscheidungen und bewusst hingenommene Grenzen.',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'Das Blog erscheint ohne festen Rhythmus: ein Artikel, wenn es etwas zu sagen gibt, nie um einen Kalender zu füllen.',
+  'Classements calculés sur les {n} plus grandes capitalisations.': 'Ranglisten berechnet auf den {n} größten Kapitalisierungen.',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': 'Kurs von **{actif}**, erhoben am {date}, von der Quelle in Euro notiert.',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Umgerechnet zum EZB-Kurs vom {date} — das Ergebnis verbindet also einen Kurs des Augenblicks mit einem Kurs, der einmal je Geschäftstag veröffentlicht wird. Ein umgerechneter Betrag ist kein notierter Kurs.',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Umgerechnet zum EZB-Kurs — das Ergebnis verbindet also einen Kurs des Augenblicks mit einem Kurs, der einmal je Geschäftstag veröffentlicht wird. Ein umgerechneter Betrag ist kein notierter Kurs.',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': 'Farbskala: von Rot bei −{clamp} % oder weniger bis Grün bei +{clamp} % oder mehr.',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'Eine überall eingehaltene Regel: Nichts wird angezeigt, was keine Quelle hat. Ein Wert, den der Anbieter nicht veröffentlicht, hinterlässt einen Strich oder lässt seine Spalte verschwinden — nie eine Null und nie eine Schätzung. Die Seite [Über uns](/a-propos) führt diese Verpflichtung aus, und die Quelle jeder Tabelle steht direkt darunter. ZENKUU veröffentlicht Zahlen, empfiehlt nichts und bietet keinerlei Kauf- oder Verkaufsfunktion.',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Summe der umlaufenden gebundenen Token, täglich erhoben seit 2017. Sie misst das in der Krypto geparkte Geld, nicht den Preis der Vermögenswerte.',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Die Kapitalisierung des gesamten Marktes wird nicht kostenlos als Zeitreihe veröffentlicht. Diese Kurve addiert neun große Kapitalisierungen, die unter dem Diagramm aufgeführt sind.',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Börsennotierte Aktien, als Token auf der Kette abgebildet: ihr Emittent, ihr Preis, ihre Kapitalisierung und das Volumen, das sie umsetzen.',
 }

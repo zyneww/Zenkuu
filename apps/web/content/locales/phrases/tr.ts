@@ -2750,4 +2750,18 @@ export const trPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'Sitede neyin değiştiği ve bunun arkasındaki tercihler.',
   'Lectures de fond sur le fonctionnement des marchés suivis.': 'İzlenen piyasaların nasıl işlediğine dair derinlemesine okumalar.',
   'Décisions techniques et limites assumées.': 'Teknik kararlar ve üstlenilen sınırlar.',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'Blog sabit bir sıklıkla çıkmaz: söylenecek bir şey olduğunda bir yazı gelir, asla bir takvimi doldurmak için değil.',
+  'Classements calculés sur les {n} plus grandes capitalisations.': 'En büyük {n} piyasa değeri üzerinden hesaplanan sıralamalar.',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': '**{actif}** fiyatı, {date} tarihinde alındı; kaynak avro cinsinden fiyatlıyor.',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': '{date} tarihli Avrupa Merkez Bankası kuruyla çevrildi — sonuç, dolayısıyla anlık bir fiyatla iş günü başına bir kez yayımlanan bir kuru birleştirir. Çevrilmiş bir tutar, piyasada oluşmuş bir fiyat değildir.',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Avrupa Merkez Bankası kuruyla çevrildi — sonuç, dolayısıyla anlık bir fiyatla iş günü başına bir kez yayımlanan bir kuru birleştirir. Çevrilmiş bir tutar, piyasada oluşmuş bir fiyat değildir.',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': 'Renk ölçeği: −{clamp} % ve altında kırmızıdan, +{clamp} % ve üstünde yeşile.',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'Her yerde tutulan bir kural: kaynağı olmayan hiçbir şey gösterilmez. Sağlayıcının yayımlamadığı bir veri, bir tire bırakır ya da sütununu ortadan kaldırır; asla bir sıfır, asla bir tahmin. [Hakkında](/a-propos) sayfası bu taahhüdü ayrıntılandırır ve her tablonun kaynağı hemen altında belirtilir. ZENKUU rakam yayımlar, hiçbir şey önermez ve hiçbir alım ya da satım işlevi sunmaz.',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Dolaşımdaki sabitlenmiş jetonların toplamı, 2017\'den bu yana her gün kaydedilir. Varlıkların fiyatını değil, kriptoda park etmiş parayı ölçer.',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'Tüm piyasanın piyasa değeri, seri hâlinde ücretsiz yayımlanmaz. Bu eğri, grafiğin altında sıralanan dokuz büyük piyasa değerini toplar.',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Borsada işlem gören hisselerin zincir üzerinde jeton olarak yansıtılmış hâli: ihraççıları, fiyatları, piyasa değerleri ve işlem hacimleri.',
 }

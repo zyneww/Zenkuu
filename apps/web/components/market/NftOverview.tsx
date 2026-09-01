@@ -4,6 +4,7 @@ import { formatCompact, formatShare } from '@zenkuu/ui'
 import { emphasise } from '@/components/locale/emphasise'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
+import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -93,7 +94,11 @@ export async function NftOverview({ collections }: { collections: NftCollection[
       <div className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="display-sm text-ink">{t('Carte des collections')}</h2>
-          <TreemapLegend />
+          <TreemapLegend
+            scaleLabel={t(
+                'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.',
+            ).replaceAll('{clamp}', String(HEATMAP_CLAMP))}
+          />
         </div>
 
         {/* Même cadre que la carte du marché : une figure de tuiles est la seule du

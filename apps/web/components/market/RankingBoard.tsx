@@ -111,7 +111,14 @@ export function RankingBoard({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
-          {scopeLabel ?? `Classements calculés sur les ${assets.length} plus grandes capitalisations.`}
+          {/* `scopeLabel` arrive DÉJÀ traduit — l'appelant le passe par sa propre table.
+              Le défaut, lui, était un gabarit littéral : il sortait en français dans les
+              douze autres langues. Il devient une clé à trou, remplie après traduction. */}
+          {scopeLabel ??
+            t('Classements calculés sur les {n} plus grandes capitalisations.').replace(
+              '{n}',
+              String(assets.length),
+            )}
         </p>
 
         {/* `ToggleGroup` de shadcn/ui — le contrôle segmenté du système, monté sur celui

@@ -2762,4 +2762,18 @@ export const enPhrases: Phrases = {
   'Ce qui change sur le site, et les arbitrages derrière.': 'What changes on the site, and the trade-offs behind it.',
   'Lectures de fond sur le fonctionnement des marchés suivis.': 'In-depth reading on how the markets we track actually work.',
   'Décisions techniques et limites assumées.': 'Technical decisions and limits we accept.',
+
+  // ── RESTES — blog, classements, convertisseur ──
+  'Le blog paraît sans périodicité fixe : un article quand il y a quelque chose à dire, jamais pour tenir un calendrier.': 'The blog appears on no fixed schedule: an article when there is something to say, never to keep to a calendar.',
+  'Classements calculés sur les {n} plus grandes capitalisations.': 'Rankings computed on the {n} largest capitalisations.',
+  'Cours de **{actif}** relevé le {date}, coté en euros par la source.': 'Price of **{actif}** recorded on {date}, quoted in euros by the source.',
+  'Converti au taux BCE du {date} — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Converted at the ECB rate of {date} — the result therefore combines a price of the moment with a rate published once per business day. A converted amount is not a quoted price.',
+  'Converti au taux BCE — le résultat combine donc un cours de l’instant et un taux publié une fois par jour ouvré. Un montant converti n’est pas un cours coté.': 'Converted at the ECB rate — the result therefore combines a price of the moment with a rate published once per business day. A converted amount is not a quoted price.',
+
+  // ── RESTES — heatmap, FAQ marché, graphiques ──
+  'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.': 'Colour scale: from red at −{clamp} % or less to green at +{clamp} % or more.',
+  'Une règle tenue partout : rien n’est affiché qui ne soit sourcé. Une donnée que le fournisseur ne publie pas laisse un tiret ou fait disparaître sa colonne, jamais un zéro ni une estimation. La page [à propos](/a-propos) détaille cet engagement, et la source de chaque tableau est nommée juste en dessous de lui. ZENKUU publie des chiffres, ne recommande rien, et ne propose aucune fonction d’achat ou de vente.': 'One rule kept everywhere: nothing is displayed that is not sourced. A figure the provider does not publish leaves a dash or removes its column — never a zero, never an estimate. The [about](/a-propos) page sets out this commitment, and the source of every table is named just beneath it. ZENKUU publishes figures, recommends nothing, and offers no buy or sell function.',
+  'Somme des jetons indexés en circulation, relevée chaque jour depuis 2017. Elle mesure l’argent stationné dans la crypto plutôt que le prix des actifs.': 'Sum of pegged tokens in circulation, recorded daily since 2017. It measures the money parked in crypto rather than the price of the assets.',
+  'La capitalisation du marché entier n’est pas publiée gratuitement en série. Cette courbe additionne neuf grandes capitalisations, listées sous le graphique.': 'The capitalisation of the whole market is not published free of charge as a series. This curve adds up nine large capitalisations, listed beneath the chart.',
+  'Les actions cotées répliquées en jetons sur chaîne : leur émetteur, leur prix, leur capitalisation et le volume qu’elles échangent.': 'Listed shares mirrored as on-chain tokens: their issuer, their price, their capitalisation and the volume they trade.',
 }
