@@ -2772,4 +2772,9 @@ export const itPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Mostra tutto',
   'Tout masquer': 'Nascondi tutto',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Strumenti',
+  'Vues': 'Viste',
+  'Le site': 'Il sito',
 }

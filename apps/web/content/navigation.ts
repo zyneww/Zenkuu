@@ -124,22 +124,61 @@ export const NAV_MENUS: NavMenu[] = [
    */
   {
     label: 'Cryptomonnaies',
+    /* ══════════════════════════════════════════════════════════════════════
+       LES INTITULÉS DE SECTION NOMMENT UN TYPE DE CONTENU, TOUS DE LA MÊME FAÇON
+
+       ── CE QU'ILS ÉTAIENT ───────────────────────────────────────────────────
+
+       Six intitulés, cinq grammaires : « Classements » (nom pluriel), « Explorer »
+       (verbe), « Outils » (nom pluriel), « Outils » À NOUVEAU dans un autre menu,
+       « Contexte » (nom abstrait au singulier), « ZENKUU » (une marque).
+
+       Le doublon était le plus visible : deux sections du même nom, dans deux menus
+       différents, avec des contenus différents. Le lecteur qui cherche le screener sous
+       « Outils » du menu Cryptomonnaies ne l'y trouve pas — il est sous « Outils » du
+       menu Plus. Un intitulé qui ne distingue pas ne guide pas.
+
+       ── LA RÈGLE RETENUE ────────────────────────────────────────────────────
+
+       Un intitulé répond à « quel TYPE de chose y a-t-il là-dedans ? », en nom pluriel,
+       et deux sections ne portent jamais le même. Ce n'est pas une préférence de style :
+       c'est ce qui permet de choisir sa section sans l'ouvrir.
+
+           Classements  · des listes ordonnées
+           Secteurs     · des regroupements d'actifs
+           Instruments  · des outils qu'on manipule sur un actif
+           Vues         · des lectures du marché entier
+           Indicateurs  · des mesures publiées par des tiers
+           Le site      · ZENKUU lui-même
+
+       « Le site » n'est pas un pluriel, et c'est le seul écart : il désigne un objet
+       unique, et le mettre au pluriel serait faux pour tenir une symétrie.
+       ══════════════════════════════════════════════════════════════════════ */
     sections: [
       {
         label: 'Classements',
+        /* ── L'ORDRE SUIT L'USAGE, PUIS REGROUPE CE QUI DÉPASSE ────────────────
+
+           Il était celui de la référence, et il mélangeait deux choses. Les cinq
+           premières entrées sont des LISTES ORDONNÉES d'actifs ; les deux dernières
+           sont des pages BITCOIN — `/crypto/bitcoin/halving` et
+           `/crypto/bitcoin/historique`. Ni l'une ni l'autre n'est un classement.
+
+           Elles restent dans cette section faute d'une meilleure — ce sont bien des
+           pages crypto — mais elles la FERMENT, l'une à côté de l'autre, au lieu d'être
+           semées entre les listes. Un lecteur qui parcourt « Classements » lit d'abord
+           cinq classements, puis deux pages qui n'en sont pas et qui se signalent
+           d'elles-mêmes par leur voisinage.
+
+           Les cinq listes, elles, vont de la plus consultée à la plus spécifique :
+           l'ensemble du marché, ses deux extrémités, la vue d'ensemble, l'écart au
+           sommet, les dernières arrivées. */
         items: [
           {
             label: 'Par capitalisation',
             description: 'Les premières capitalisations, page par page',
             icon: Coins,
             href: '/crypto',
-            ready: true,
-          },
-          {
-            label: 'Points forts',
-            description: 'Hausses, baisses, volumes et rotation, au même endroit',
-            icon: Trophy,
-            href: '/classements',
             ready: true,
           },
           {
@@ -150,10 +189,10 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
-            label: 'Nouvelles cotations',
-            description: 'Les actifs référencés le plus récemment',
-            icon: Sprout,
-            href: '/nouvelles-cotations',
+            label: 'Points forts',
+            description: 'Hausses, baisses, volumes et rotation, au même endroit',
+            icon: Trophy,
+            href: '/classements',
             ready: true,
           },
           {
@@ -164,10 +203,10 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
-            label: 'Halving du bitcoin',
-            description: 'Le calendrier des divisions par deux de la récompense de bloc',
-            icon: Recycle,
-            href: '/crypto/bitcoin/halving',
+            label: 'Nouvelles cotations',
+            description: 'Les actifs référencés le plus récemment',
+            icon: Sprout,
+            href: '/nouvelles-cotations',
             ready: true,
           },
           {
@@ -181,10 +220,17 @@ export const NAV_MENUS: NavMenu[] = [
             href: '/crypto/bitcoin/historique',
             ready: true,
           },
+          {
+            label: 'Halving du bitcoin',
+            description: 'Le calendrier des divisions par deux de la récompense de bloc',
+            icon: Recycle,
+            href: '/crypto/bitcoin/halving',
+            ready: true,
+          },
         ],
       },
       {
-        label: 'Explorer',
+        label: 'Secteurs',
         items: [
           {
             label: 'Toutes les catégories',
@@ -217,7 +263,7 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'Outils',
+        label: 'Instruments',
         items: [
           {
             label: 'Comparateur',
@@ -449,7 +495,7 @@ export const NAV_MENUS: NavMenu[] = [
     label: 'Plus',
     sections: [
       {
-        label: 'Outils',
+        label: 'Vues',
         items: [
           {
             label: 'Carte thermique',
@@ -475,7 +521,7 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'Contexte',
+        label: 'Indicateurs',
         items: [
           {
             label: 'Macroéconomie',
@@ -494,7 +540,7 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'ZENKUU',
+        label: 'Le site',
         items: [
           {
             label: 'Centre d’aide',

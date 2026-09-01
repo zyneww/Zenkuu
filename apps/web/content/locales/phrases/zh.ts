@@ -2765,4 +2765,9 @@ export const zhPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': '全部显示',
   'Tout masquer': '全部隐藏',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': '工具',
+  'Vues': '视图',
+  'Le site': '本站',
 }

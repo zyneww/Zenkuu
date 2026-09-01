@@ -2772,4 +2772,9 @@ export const viPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Hiện tất cả',
   'Tout masquer': 'Ẩn tất cả',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Công cụ',
+  'Vues': 'Góc nhìn',
+  'Le site': 'Trang này',
 }

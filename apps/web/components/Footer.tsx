@@ -1,10 +1,7 @@
-import { getMarketCapSeriesState } from '@zenkuu/data'
-
 import { ZenkuuWordmark } from '@/components/BrandMark'
-import { RelativeTime } from '@/components/home/RelativeTime'
 import { Link } from '@/i18n/navigation'
 
-import { DATA_SOURCES, FOOTER_COLUMNS, LEGAL_LINKS, SOCIAL_LINKS } from '@/content/footer'
+import { FOOTER_COLUMNS, SOCIAL_LINKS } from '@/content/footer'
 import { getContent, getPhrase } from '@/lib/content'
 
 /**
@@ -56,10 +53,6 @@ import { getContent, getPhrase } from '@/lib/content'
 export async function Footer() {
   const fr = await getContent()
   const t = await getPhrase()
-  const year = new Date().getFullYear()
-
-  const series = getMarketCapSeriesState('EUR')
-  const lastReading = series.points[series.points.length - 1]?.timestamp
 
   return (
     /* ── LE PIED NE SE DÉTACHE PAS DU FOND ────────────────────────────────
@@ -202,118 +195,6 @@ export async function Footer() {
         ))}
       </div>
 
-      {/* ── LA BARRE LÉGALE ──────────────────────────────────────────────────
-          Séparée par un filet et non fondue dans le corps : ce sont des textes qu'on
-          lit une fois, quand on les cherche. Droits à gauche, mentions à droite —
-          la disposition du modèle. */}
-      <div className="border-t border-border-subtle">
-        <div className="shell flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3 text-micro leading-relaxed text-ink-muted">
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span>{fr.footer.rights(year)}</span>
-
-            <span className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                  lastReading === undefined ? 'bg-ink-muted' : 'bg-status'
-                }`}
-              />
-              {lastReading === undefined ? (
-                t('Premier relevé en cours')
-              ) : (
-                <>
-                  {t('Marché relevé')} <RelativeTime iso={new Date(lastReading).toISOString()} />
-                </>
-              )}
-            </span>
-          </span>
-
-          <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="flex flex-wrap items-center gap-x-2">
-              <span>{t('Sources')}</span>
-              {DATA_SOURCES.map((source) => (
-                <a
-                  key={source.href}
-                  href={source.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 transition-colors duration-150 hover:text-ink"
-                >
-                  {source.label}
-                </a>
-              ))}
-            </span>
-
-            {/*
-              `text-xs` (12 px) et non le `text-micro` (11 px) de la ligne : l'attribution
-              CoinGecko doit rester lisible dans une police d'au moins 10 px selon ses
-              CGU, et l'on garde une marge au-dessus du minimum. Aucun palier n'autorise
-              son retrait.
-            */}
-            <a
-              href="https://www.coingecko.com/en/api"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs underline underline-offset-2 transition-colors duration-150 hover:text-ink"
-            >
-              {fr.footer.poweredByCoinGecko}
-            </a>
-
-            {LEGAL_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="transition-colors duration-150 hover:text-ink"
-              >
-                {t(link.label)}
-              </Link>
-            ))}
-          </span>
-        </div>
-      </div>
-
-      {/*
-        ══════════════════════════════════════════════════════════════════════
-        LE GRAND MOT — repris du bloc « Footer With Big Text » d'Aceternity
-        ══════════════════════════════════════════════════════════════════════
-
-        ── CE QU'IL FAIT, ET CE QU'IL NE DOIT PAS FAIRE ──────────────────────
-
-        Il signe la page sans rien y ajouter à lire. D'où trois contraintes, qui
-        expliquent chacune un attribut ci-dessous :
-
-          · `aria-hidden` ET une valeur de contraste très basse. Ce n'est PAS un
-            titre : le nom du site est déjà donné par la marque au-dessus et par
-            l'en-tête. Annoncé une troisième fois à la synthèse vocale, il
-            deviendrait du bruit en fin de chaque page.
-          · `select-none` : un mot de cette taille se retrouve sinon dans toute
-            copie de la page faite au clavier depuis le bas.
-          · `overflow-hidden` sur le conteneur, et une marge basse NÉGATIVE sur le
-            mot. C'est ce qui produit la coupe de la référence — les lettres sortent
-            par le bas du cadre au lieu de s'y poser. Sans elle, le mot flotterait
-            au-dessus d'un vide, et le pied de page aurait l'air inachevé.
-
-        ── LA TAILLE EST UNE FONCTION DE LA LARGEUR, ET NON UNE ÉCHELLE ──────
-
-        `clamp()` plutôt qu'une suite de paliers : six lettres capitales doivent
-        remplir la fenêtre à toute largeur, et une taille par point de rupture
-        laisserait le mot trop court juste avant chacun d'eux. Le plafond de 15 rem
-        évite qu'il ne dépasse la hauteur d'un écran d'ordinateur portable.
-
-        La couleur est `text-ink` à faible opacité, et non un gris posé à la main :
-        c'est ce qui la fait suivre les deux thèmes sans qu'un second jeton existe.
-      */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none select-none overflow-hidden px-4"
-      >
-        {/* `uppercase` en CSS et non « ZENKUU » écrit en dur : le nom reste lu dans
-            `content/fr.ts`, où il s'écrit « Zenkuu ». Deux orthographes du même nom
-            dans le code finiraient par diverger. */}
-        <p className="-mb-[0.22em] text-center text-[clamp(2.75rem,25vw,22rem)] font-bold uppercase leading-none tracking-tighter text-ink/10">
-          {fr.site.name}
-        </p>
-      </div>
     </footer>
   )
 }

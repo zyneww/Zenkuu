@@ -6,8 +6,6 @@ import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 import { CryptoBoard } from '@/components/home/CryptoBoard'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { MarketRibbon } from '@/components/home/MarketRibbon'
-import { MarketWidgets } from '@/components/home/MarketWidgets'
-import { HomeNewsGrid } from '@/components/home/HomeNewsGrid'
 import { NewsSidebar } from '@/components/home/NewsSidebar'
 import { PriceHeader } from '@/components/home/PriceHeader'
 import { getContent } from '@/lib/content'
@@ -200,30 +198,26 @@ export default async function HomePage() {
         </div>
       </Suspense>
 
-      {/* ── LES BLOCS DU BAS ────────────────────────────────────────────────
-          `MarketPanorama` et la section « Analyses » qui portait `GlobalAnalyses`
-          tenaient cette place. Les deux sont remplacés par une seule grappe, dont
-          l'ordre et la densité reprennent ceux de la référence — voir l'en-tête de
-          `MarketWidgets`, où chaque substitution de source est justifiée.
+      {/* ⚠️ TOUT CE QUI SUIVAIT LE TABLEAU A ÉTÉ RETIRÉ, SAUF LE PANNEAU D'ACTUALITÉS.
 
-          UN SEUL `<Suspense>` pour la grappe entière, et non un par bloc : ses huit
-          lectures partent ensemble dans un `Promise.all`, si bien que découper la
-          frontière ne ferait apparaître aucun bloc plus tôt — seulement huit
-          substituts qui s'éteindraient à la même seconde. */}
-      {/* 3700 px et non 1200 : la grappe en rend 3728, mesuré au même passage. Elle
-          vit SOUS la ligne de flottaison, donc son écart ne comptait pas dans le CLS
-          — mais un substitut trois fois trop court fait sauter la barre de
-          défilement au moment où le contenu arrive, ce qui se voit sur une page
-          qu'on est en train de parcourir. */}
-      <Suspense fallback={<BlockSkeleton height="h-[3700px]" />}>
-        <MarketWidgets />
-      </Suspense>
+          Deux blocs occupaient cette place :
 
-        {/* La grille ferme la colonne principale. Elle ne fait PAS double emploi
-            avec le panneau de droite : le panneau porte un fil court qu'on lit en
-            regardant le tableau, la grille développe les mêmes sujets en cartes une
-            fois le classement parcouru. La référence a exactement ces deux-là. */}
-        <HomeNewsGrid news={news} />
+            · `MarketWidgets` — une grappe de huit lectures, 3 728 pixels mesurés, dont
+              la note disait qu'elle « reprend l'ordre et la densité de la référence ».
+              C'était vrai, et c'était le problème : la page reproduisait la longueur de
+              CoinGecko sans en avoir la matière.
+            · `HomeNewsGrid` — la même actualité que le panneau de droite, développée en
+              cartes. Sa note assumait le doublon en le justifiant par deux moments de
+              lecture différents ; à l'usage, ce sont les mêmes titres deux fois sur la
+              même page.
+
+          Ce qui reste : le bandeau, le tableau, et `NewsSidebar` — le fil court qu'on
+          lit en regardant le classement. Une page d'accueil qui se termine quand elle a
+          fini de dire ce qu'elle sait.
+
+          Les composants ne sont pas supprimés : `MarketWidgets` et `HomeNewsGrid`
+          restent dans l'arborescence, leurs sources et leur travail intacts, prêts pour
+          les pages qui les emploieraient. Seule leur place ICI a disparu. */}
       </div>
 
       <NewsSidebar news={news} />

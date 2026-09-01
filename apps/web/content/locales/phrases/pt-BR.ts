@@ -2772,4 +2772,9 @@ export const ptBRPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Mostrar tudo',
   'Tout masquer': 'Ocultar tudo',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Instrumentos',
+  'Vues': 'Visões',
+  'Le site': 'O site',
 }

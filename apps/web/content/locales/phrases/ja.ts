@@ -2772,4 +2772,9 @@ export const jaPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'すべて表示',
   'Tout masquer': 'すべて非表示',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'ツール',
+  'Vues': 'ビュー',
+  'Le site': 'このサイト',
 }

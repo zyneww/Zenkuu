@@ -2772,4 +2772,9 @@ export const trPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Tümünü göster',
   'Tout masquer': 'Tümünü gizle',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Araçlar',
+  'Vues': 'Görünümler',
+  'Le site': 'Site',
 }

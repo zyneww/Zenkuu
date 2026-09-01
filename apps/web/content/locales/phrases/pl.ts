@@ -2772,4 +2772,9 @@ export const plPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Pokaż wszystko',
   'Tout masquer': 'Ukryj wszystko',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Narzędzia',
+  'Vues': 'Widoki',
+  'Le site': 'Serwis',
 }

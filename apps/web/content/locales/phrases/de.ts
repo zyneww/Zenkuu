@@ -2780,4 +2780,9 @@ export const dePhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Alle anzeigen',
   'Tout masquer': 'Alle ausblenden',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Werkzeuge',
+  'Vues': 'Ansichten',
+  'Le site': 'Die Website',
 }

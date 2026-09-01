@@ -2779,4 +2779,9 @@ export const esPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Mostrar todo',
   'Tout masquer': 'Ocultar todo',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Instrumentos',
+  'Vues': 'Vistas',
+  'Le site': 'El sitio',
 }

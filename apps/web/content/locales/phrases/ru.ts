@@ -2772,4 +2772,9 @@ export const ruPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Показать всё',
   'Tout masquer': 'Скрыть всё',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Инструменты',
+  'Vues': 'Виды',
+  'Le site': 'О сайте',
 }

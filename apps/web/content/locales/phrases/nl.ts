@@ -2772,4 +2772,9 @@ export const nlPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Alles tonen',
   'Tout masquer': 'Alles verbergen',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Instrumenten',
+  'Vues': 'Weergaven',
+  'Le site': 'De site',
 }

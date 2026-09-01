@@ -2784,4 +2784,9 @@ export const enPhrases: Phrases = {
   // ── GRAPHIQUES — contrôles ASXN ──
   'Tout afficher': 'Show all',
   'Tout masquer': 'Hide all',
+
+  // ── NAVIGATION — intitulés de section ──
+  'Instruments': 'Instruments',
+  'Vues': 'Views',
+  'Le site': 'The site',
 }
