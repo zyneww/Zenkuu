@@ -590,10 +590,15 @@ export function PriceChartAm({
      */
     chart.set('maxTooltipDistance', 0)
     cursor.lineY.set('visible', false)
+    /* Le trait suit le relevé ASXN : un pointillé plus SERRÉ (3 3 et non 4 4) et plus
+       discret (0,55 et non 0,8). Le crosshair désigne un instant, il ne le souligne
+       pas — à 0,8 il tenait la même présence que la courbe qu'il sert à lire. Même
+       cadence de tirets que `--chart-crosshair-dash`, pour que les tracés Recharts du
+       site et celui-ci ne montrent pas deux pointillés différents. */
     cursor.lineX.setAll({
       stroke: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
-      strokeDasharray: [4, 4],
-      strokeOpacity: 0.8,
+      strokeDasharray: [3, 3],
+      strokeOpacity: 0.55,
     })
 
     /* ── LE POINT DE SURVOL ─────────────────────────────────────────────────
@@ -810,15 +815,39 @@ export function PriceChartAm({
   )
 }
 
-/** Les jetons de couche flottante du site, appliqués à l'infobulle d'amCharts. */
+/**
+ * L'infobulle d'amCharts, alignée sur le langage relevé chez ASXN HyperScreener.
+ *
+ * ── CE QUI CHANGE, ET POURQUOI ────────────────────────────────────────────────
+ *
+ * Elle était OPAQUE — `fillOpacity: 1` sur la couche flottante du site. Une infobulle
+ * opaque est une carte posée SUR le graphique : elle cache le morceau de courbe qu'on
+ * était précisément en train de lire, à l'instant où on le lit.
+ *
+ * Le relevé du 2026-09-02 (voir `CHARTS_AUDIT.md`) mesure chez eux un fond à 80 %
+ * d'opacité, floutée par-dessous. Le résultat n'est plus une carte mais une loupe : on
+ * voit à travers, la courbe reste lisible sous le chiffre qui la commente.
+ *
+ * ⚠️ LE FLOU NE PASSE PAS PAR ICI. amCharts peint en SVG et ne connaît pas
+ * `backdrop-filter` ; le fond translucide, lui, est natif. C'est déjà l'essentiel de
+ * l'effet — le flou sépare deux textes superposés, l'opacité fait le reste. Le reste du
+ * site (les tracés Recharts) l'obtient par `--chart-tooltip-blur` dans `chart.tsx`.
+ *
+ * Le rayon suit les 4 px du relevé, et non les 8 des cartes du site : une infobulle
+ * n'est pas une carte, et c'est justement ce qu'on cherche à ne plus lui faire dire.
+ */
 function styleTooltip(root: am5.Root, tooltip: am5.Tooltip | undefined): void {
   if (!tooltip) return
 
   tooltip.get('background')?.setAll({
     fill: am5.color(readToken('--color-overlay', '#1a1a1a')),
-    fillOpacity: 1,
+    /* 0,86 en clair, 0,8 en sombre chez eux. Une seule valeur ici : l'écart de six
+       centièmes ne se voit pas, et deux valeurs demanderaient de lire le thème en
+       JavaScript puis de re-peindre à chaque bascule — ce que ce fichier évite
+       partout ailleurs. */
+    fillOpacity: 0.86,
     stroke: am5.color(readToken('--color-border-subtle', '#383838')),
-    strokeOpacity: 1,
+    strokeOpacity: 0.5,
   })
   tooltip.label.setAll({
     fill: am5.color(readToken('--color-ink', '#f4f4f4')),
