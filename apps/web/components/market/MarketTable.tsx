@@ -792,9 +792,34 @@ export function MarketTable({
           écraser. Sous ce seuil le collage cesse d'opérer, et c'est là qu'il ne coûte
           rien : sur un téléphone on défile la page, pas une grille de onze colonnes.
         */}
+        {/* ══════════════════════════════════════════════════════════════════════
+            `table-fixed` — LE TABLEAU CESSE DE SAUTER AU CLIC
+
+            Il était en disposition AUTOMATIQUE, celle du navigateur par défaut : chaque
+            colonne se mesure alors sur son contenu, en parcourant toutes les lignes.
+            Trier par « Variation (24 h) » remonte les extrêmes — « +1 876,98 % » là où
+            se trouvait « 0,00 % » —, donc remesure les onze colonnes, donc décale la
+            grille ENTIÈRE sous les yeux, au moment précis du clic. L'en-tête bougeait
+            avec elle, et « Variation (24 h) » se repliait en deux lignes en changeant la
+            hauteur de la rangée.
+
+            En disposition FIXE, les largeurs se lisent sur la première rangée — les
+            en-têtes — et le corps ne peut plus les faire bouger. Le tri réordonne les
+            lignes sans toucher à la grille.
+
+            Les largeurs viennent du relevé de la référence noté plus haut (étoile 49 ·
+            # 66 · Coin 360 · Price 130 · 1h 99 · 24h 106 · 7d 110 · Volume 208 ·
+            Market Cap 208), ramenées à l'échelle d'ici. Les colonnes qui n'en déclarent
+            pas se partagent ce qui reste.
+
+            `min-w-[980px]` et non 640 : en disposition fixe, une colonne trop étroite ne
+            s'élargit plus pour son contenu — elle le tronque. Le seuil monte donc à la
+            largeur que les onze colonnes demandent vraiment, et en dessous le conteneur
+            défile, ce qu'il faisait déjà.
+            ══════════════════════════════════════════════════════════════════════ */}
         <Table
           containerClassName="overflow-visible @max-[789px]:overflow-x-auto"
-          className="border-collapse @min-[640px]:min-w-[640px]"
+          className="table-fixed border-collapse @min-[640px]:min-w-[980px]"
         >
           <caption className="sr-only">{fr.assetClass[assetClass]}</caption>
 
@@ -917,11 +942,17 @@ export function MarketTable({
                   label={fr.market.columns.rank}
                   {...sortFor('rank')}
                   align="left"
+                  width="w-[64px]"
                   className="hidden @min-[790px]:table-cell"
                 />
               ) : null}
-              <ColumnHeader label={fr.market.columns.name} {...sortFor('name')} align="left" />
-              <ColumnHeader label={fr.market.columns.price} {...sortFor('price')} />
+              <ColumnHeader
+                label={fr.market.columns.name}
+                {...sortFor('name')}
+                align="left"
+                width="w-[240px]"
+              />
+              <ColumnHeader label={fr.market.columns.price} {...sortFor('price')} width="w-[120px]" />
               {shows.change24h ? (
                 <ColumnHeader
                   label={
@@ -930,12 +961,14 @@ export function MarketTable({
                       : fr.market.columns.change24h
                   }
                   {...sortFor(mainChangeField)}
+                  width="w-[124px]"
                 />
               ) : null}
               {shows.change7d ? (
                 <ColumnHeader
                   label={fr.market.columns.change7d}
                   {...sortFor('change7d')}
+                  width="w-[92px]"
                   className="hidden @min-[790px]:table-cell"
                 />
               ) : null}
@@ -947,6 +980,7 @@ export function MarketTable({
                 <ColumnHeader
                   label={period30d.label}
                   {...sortFor(period30d.field)}
+                  width="w-[92px]"
                   className={extraClass}
                 />
               ) : null}
@@ -958,6 +992,7 @@ export function MarketTable({
                   key={entry.key}
                   label={entry.label}
                   {...sortFor(entry.field)}
+                  width="w-[92px]"
                   className={extraClass}
                 />
               ))}
@@ -1019,6 +1054,7 @@ export function MarketTable({
                   label={aggregateMeta[key].label}
                   {...sortFor(aggregateMeta[key].field)}
                   hint={aggregateMeta[key].hint}
+                  width="w-[140px]"
                   className={aggregateMeta[key].className}
                 />
               ))}

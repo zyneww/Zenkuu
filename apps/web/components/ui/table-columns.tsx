@@ -185,6 +185,7 @@ export function ColumnHeader({
   align = 'right',
   className = '',
   hint,
+  width = '',
 }: {
   label: string
   /**
@@ -206,6 +207,20 @@ export function ColumnHeader({
   className?: string
   /** Précision affichée en infobulle — d'où vient le chiffre, ce qu'il couvre. */
   hint?: string
+  /**
+   * Largeur de la colonne, en classe utilitaire (`w-32`, `w-[110px]`…).
+   *
+   * ── ELLE N'EST PAS COSMÉTIQUE : ELLE EMPÊCHE LE TABLEAU DE SAUTER ──────────
+   *
+   * Le `<table>` est en `table-fixed`, et dans ce mode les largeurs de colonne se
+   * lisent SUR LA PREMIÈRE RANGÉE — celle-ci — et jamais dans le corps. C'est
+   * exactement ce qu'il faut ici : sans cela, chaque tri remesurait les onze colonnes
+   * sur leur contenu, et la grille entière se décalait sous les yeux au moment du clic
+   * — « +1 876,98 % » n'occupe pas la place de « 0,00 % ».
+   *
+   * Absente, la colonne prend sa part de ce qui reste.
+   */
+  width?: string
 }) {
   const isActive = sortKey !== undefined && sort?.key === sortKey
   const sortable = sortKey !== undefined && onSort !== undefined
@@ -236,7 +251,10 @@ export function ColumnHeader({
       /* 12 px et non 13 : les en-têtes de colonne de la référence sont en
          12px/600, contre 13px ici — `text-xs` vaut 13 dans l'échelle ZENKUU, et
          `--v2-text-2xs` est le seul cran à 12. La graisse, elle, coïncidait déjà. */
-      className={`border-l border-border-subtle/60 px-3 py-2.5 text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}
+      /* `whitespace-nowrap` : « Variation (24 h) » se cassait en deux lignes, et une
+         seule colonne pliée suffisait à doubler la hauteur de toute la rangée. Un
+         intitulé de colonne se lit d'un bloc ou il ne se lit pas. */
+      className={`whitespace-nowrap border-l border-border-subtle/60 px-3 py-2.5 text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${width} ${className}`}
       aria-sort={
         isActive ? (sort?.direction === 'desc' ? 'descending' : 'ascending') : 'none'
       }
