@@ -1,4 +1,3 @@
-import { usePhrase } from '@/components/locale/ContentProvider'
 import { formatCompact, formatPercent } from '@zenkuu/ui'
 
 import {

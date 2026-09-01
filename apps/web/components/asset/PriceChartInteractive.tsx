@@ -586,6 +586,7 @@ export function PriceChartInteractive({
       showTooltipMarketCap,
       showTooltipChange,
       anchorPrice,
+      t,
     ],
   )
 
@@ -645,7 +646,7 @@ export function PriceChartInteractive({
     }
 
     return lines
-  }, [showPriceLines, rows, referenceLines, rate, indexed])
+  }, [showPriceLines, rows, referenceLines, rate, indexed, t])
 
   /*
    * ══════════════════════════════════════════════════════════════════════════

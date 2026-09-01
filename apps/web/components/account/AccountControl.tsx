@@ -9,7 +9,6 @@ import {
   LogOut,
   Settings,
   Shield,
-  Star,
   Trash2,
   User,
   UserRound,

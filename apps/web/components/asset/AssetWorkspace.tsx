@@ -1133,7 +1133,7 @@ export function AssetWorkspace({
     }
 
     return rows
-  }, [compareIds, compareSeries, comparable, compareMetrics, history])
+  }, [compareIds, compareSeries, comparable, compareMetrics, history, t])
 
   /**
    * Choix d'un palier de période.
