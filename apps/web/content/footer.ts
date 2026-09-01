@@ -122,12 +122,24 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
              figurent déjà dans la colonne. */
           { label: 'Indice de sentiment', href: '/sentiment' },
           { label: 'Macroéconomie', href: '/macro' },
+          /* `/classements` existe et ne figurait dans aucune colonne, alors qu'une note
+             plus haut l'invoquait comme « figurant déjà » — il n'y figurait pas. */
+          { label: 'Classements', href: '/classements' },
         ],
       },
     ],
   },
   {
-    label: 'Outils',
+    /* ── « OUTILS » DEVIENT « SUIVRE » ────────────────────────────────────────
+       Le mot décrivait la nature des pages ; celui-ci décrit ce qu'on y fait. Le
+       modèle repris (OpenRouter) nomme ses colonnes par l'intention du lecteur —
+       « Product », « Company » — et non par la catégorie technique.
+
+       ⚠️ « Ma sélection » N'Y FIGURE PAS, et ce n'est pas un oubli. Elle viserait
+       `/suivi`, supprimée — voir la note du groupe « Mon espace », plus bas. La liste
+       des actifs suivis vit dans `/tableau-de-bord`, page de compte, qui n'a pas sa
+       place dans un annuaire public. */
+    label: 'Suivre',
     groups: [
       {
         title: 'Outils',
@@ -135,6 +147,11 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
           { label: 'Screener', href: '/screener' },
           { label: 'Comparateur', href: '/comparateur' },
           { label: 'Convertisseur', href: '/convertisseur' },
+          /* La seule chose que le site donne à emporter AILLEURS. Elle n'était nommée
+             nulle part, alors que la page existe et se sert telle quelle dans une
+             iframe. C'est ce qui tient lieu, ici, de colonne « Developer » chez la
+             référence : ZENKUU n'expose pas d'API publique. */
+          { label: 'Widget bandeau', href: '/embed/ticker' },
           /* « Widgets à intégrer » est parti avec la page `/widgets`, supprimée sur
              demande explicite en même temps que `/methodologie` et `/developpeurs`. */
         ],
@@ -163,6 +180,8 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
              chez elles — voir `DATA_SOURCES` plus bas. */
           { label: 'Apprendre', href: '/apprendre' },
           { label: 'Bien démarrer', href: '/bien-demarrer' },
+          /* Existe depuis longtemps et ne figurait dans aucune colonne. */
+          { label: 'Glossaire', href: '/glossaire' },
         ],
       },
       {

@@ -80,43 +80,39 @@ export async function Footer() {
           `lg:flex-row` et non une grille commune : les deux blocs n'ont pas de largeur
           partagée — l'identité est un pavé de texte, l'annuaire une grille — et sous
           `lg` ils doivent s'empiler dans l'ordre du document. */}
-      <div className="shell flex flex-col gap-10 py-12 lg:flex-row lg:justify-between lg:gap-16">
-        {/* ── L'ANNUAIRE ─────────────────────────────────────────────────
-            Deux colonnes sur téléphone, quatre dès `sm`. Les titres ne sont plus
-            muets : ce sont eux qui permettent de choisir la colonne où chercher. */}
-        <nav
-          aria-label={t('Plan du site')}
-          className="grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-4 lg:gap-x-14"
-        >
-          {FOOTER_COLUMNS.map((column) => (
-            <div key={column.label}>
-              <h2 className="text-xs font-medium text-ink-muted">{t(column.label)}</h2>
-              <ul className="mt-4 flex flex-col gap-2.5">
-                {/* Les groupes sont fondus — voir l'en-tête. `flatMap` plutôt qu'une
-                    double boucle : le niveau intermédiaire n'a plus de rendu, et le
-                    conserver dans le balisage produirait des `<div>` vides. */}
-                {column.groups
-                  .flatMap((group) => group.links)
-                  .map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="text-xs text-ink transition-colors duration-150 hover:text-brand"
-                      >
-                        {t(link.label)}
-                      </Link>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+      {/* ══════════════════════════════════════════════════════════════════════
+          UNE SEULE GRILLE À CINQ COLONNES — L'IDENTITÉ EN EST LA PREMIÈRE
 
-        {/* ── L'IDENTITÉ ─────────────────────────────────────────────────
-            `max-w-md` : la phrase est du TEXTE COURANT, et au-delà d'une mesure
-            l'œil ne retrouve plus le début de la ligne suivante. C'est la même
-            contrainte que `.prose-measure`, en plus serré parce qu'on est en 12 px. */}
-        <div className="max-w-md shrink-0 lg:max-w-xs">
+          ── CE QUE CELA REMPLACE ────────────────────────────────────────────
+
+          Deux blocs côte à côte en `flex` : l'annuaire à gauche, un pavé d'identité à
+          droite. Sa note disait « les deux blocs n'ont pas de largeur partagée », et
+          c'était vrai — mais c'était aussi le défaut. Les colonnes de liens se
+          partageaient l'espace restant après le pavé, donc leur largeur dépendait de la
+          longueur d'un texte qui n'a rien à voir avec elles.
+
+          ── LA MESURE ───────────────────────────────────────────────────────
+
+          Relevé au navigateur sur openrouter.ai le 2026-09-02 : leur pied est UNE grille
+          de cinq pistes égales de 230,4 px, `gap: 32px`. La première porte le logo et le
+          copyright ; les quatre autres, les liens. Chaque colonne est un `flex` vertical
+          à `gap: 12px`, et l'écart mesuré entre deux liens — 34,7 px — se retrouve
+          exactement : 22,75 px d'interligne plus 12 de gouttière.
+
+          `grid-cols-5` reproduit donc la géométrie, et l'identité cesse d'être un pavé
+          à part pour devenir une colonne comme les autres.
+
+          Sous `sm` : deux colonnes, l'identité prenant les deux — un logo à moitié de
+          largeur d'écran ne se lit pas mieux qu'un logo entier.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="shell grid grid-cols-2 gap-8 py-12 sm:grid-cols-3 lg:grid-cols-5">
+        {/* ── L'IDENTITÉ, PREMIÈRE COLONNE ───────────────────────────────
+            Elle OUVRE le pied et ne le referme plus. C'est l'ordre du modèle, et c'est
+            aussi l'ordre de lecture : on reconnaît le site avant de chercher une page.
+
+            `col-span-2` sous `sm` : la phrase de non-conseil est du texte courant, et
+            une colonne de moitié d'écran la couperait tous les trois mots. */}
+        <div className="col-span-2 sm:col-span-3 lg:col-span-1">
           <ZenkuuWordmark className="h-5 w-auto text-ink" />
           <p className="mt-4 text-xs leading-relaxed text-ink-muted">{fr.footer.disclaimer}</p>
 
@@ -155,6 +151,55 @@ export async function Footer() {
             </ul>
           ) : null}
         </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            LES QUATRE COLONNES DE LIENS
+
+            ── LA HIÉRARCHIE TIENT EN UNE OPACITÉ ──────────────────────────
+
+            Mesuré chez la référence : le TITRE de colonne est à l'encre pleine
+            (`rgb(252, 252, 254)`), les LIENS à la même encre mais à 62,7 %. Pas deux
+            couleurs — une couleur et sa dilution. C'est ce qui fait qu'on lit d'abord
+            les quatre titres, puis la colonne choisie, au lieu de lire trente liens.
+
+            `text-ink` / `text-ink-muted` portent exactement ce rapport dans les deux
+            thèmes du site, et le portaient déjà : l'ancien pied les avait juste posés à
+            l'envers — titres en `ink-muted`, liens en `ink` —, ce qui donnait quatre
+            en-têtes plus pâles que leur contenu.
+
+            ── LES AUTRES MESURES ──────────────────────────────────────────
+
+            Taille 14 px des deux côtés (`text-sm`), graisse 500 sur le titre, 450 sur
+            les liens — ramenée à `font-normal` ici, 450 n'ayant pas de cran dans
+            l'échelle du projet et la fonte du site n'étant pas variable.
+
+            `gap-3` = 12 px, la gouttière relevée dans leurs colonnes.
+
+            ⚠️ LEUR TRANSITION EST DÉJÀ LA NÔTRE. `color 0.15s cubic-bezier(0.4, 0, 0.2,
+            1)` mesuré sur leurs liens, c'est `--duration-state` et `--ease-standard` au
+            centième près — la même valeur qu'ASXN, relevée la veille. Le filet de
+            sécurité de `globals.css` la pose déjà sur tout `<a>` : rien à écrire ici.
+            ══════════════════════════════════════════════════════════════════ */}
+        {FOOTER_COLUMNS.map((column) => (
+          <nav key={column.label} aria-label={t(column.label)} className="flex flex-col gap-3">
+            <h2 className="text-sm font-medium text-ink">{t(column.label)}</h2>
+
+            {/* Les groupes sont fondus — voir l'en-tête. `flatMap` plutôt qu'une double
+                boucle : le niveau intermédiaire n'a plus de rendu, et le conserver dans
+                le balisage produirait des `<div>` vides. */}
+            <ul className="flex flex-col gap-3">
+              {column.groups
+                .flatMap((group) => group.links)
+                .map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-sm text-ink-muted hover:text-ink">
+                      {t(link.label)}
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </nav>
+        ))}
       </div>
 
       {/* ── LA BARRE LÉGALE ──────────────────────────────────────────────────

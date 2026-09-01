@@ -812,14 +812,30 @@ export function MarketTable({
             Market Cap 208), ramenées à l'échelle d'ici. Les colonnes qui n'en déclarent
             pas se partagent ce qui reste.
 
-            `min-w-[980px]` et non 640 : en disposition fixe, une colonne trop étroite ne
-            s'élargit plus pour son contenu — elle le tronque. Le seuil monte donc à la
-            largeur que les onze colonnes demandent vraiment, et en dessous le conteneur
-            défile, ce qu'il faisait déjà.
+            ⚠️ LE CONTENEUR DÉFILE TOUJOURS, ET C'EST LA CONTREPARTIE DE `table-fixed`.
+
+            Il portait `overflow-visible` au-dessus de 789 px, ce qui était juste tant
+            que le tableau était en disposition AUTOMATIQUE : les colonnes se
+            resserraient alors pour tenir, quitte à être à l'étroit.
+
+            En disposition fixe elles ne se resserrent plus. Avec une largeur minimale
+            posée et aucun défilement, le tableau DÉBORDAIT en silence : relevé à
+            l'écran, la capitalisation, la valorisation diluée et son ratio se peignaient
+            les unes SUR les autres — « €251B » par-dessus « 251B » par-dessus « 100 % ».
+
+            `overflow-x-auto` sans condition règle les deux cas : la gouttière
+            n'apparaît que si le tableau dépasse, ce qui est exactement la question
+            posée.
+
+            `min-w-[1180px]` est la SOMME des largeurs déclarées, pas un chiffre rond.
+            Les treize colonnes de l'aperçu demandent : étoile 32 · rang 64 · nom 240 ·
+            prix 120 · variation 124 · trois fenêtres 92 · volume 140 · capitalisation
+            140 · diluée 120 · ratio 92 · courbe 120. En dessous, une colonne sans
+            largeur déclarée se partageait un reste négatif.
             ══════════════════════════════════════════════════════════════════════ */}
         <Table
-          containerClassName="overflow-visible @max-[789px]:overflow-x-auto"
-          className="table-fixed border-collapse @min-[640px]:min-w-[980px]"
+          containerClassName="overflow-x-auto"
+          className="table-fixed border-collapse @min-[640px]:min-w-[1180px]"
         >
           <caption className="sr-only">{fr.assetClass[assetClass]}</caption>
 
@@ -1062,6 +1078,7 @@ export function MarketTable({
               {shows.chartInline ? (
                 <ColumnHeader
                   label={fr.market.columns.chart}
+                  width="w-[120px]"
                   align="left"
                   className="hidden @min-[1240px]:table-cell"
                 />
@@ -1085,6 +1102,7 @@ export function MarketTable({
               {showFdv ? (
                 <ColumnHeader
                   label={t('Valorisation diluée')}
+                  width="w-[120px]"
                   hint={t('Capitalisation appliquée à l’offre maximale — ou totale, faute de plafond publié')}
                   className={supplyClass}
                 />
@@ -1092,6 +1110,7 @@ export function MarketTable({
               {showFdvRatio ? (
                 <ColumnHeader
                   label={t('Cap. / FDV')}
+                  width="w-[92px]"
                   hint={t('Part de la valorisation diluée déjà comptée dans la capitalisation')}
                   className={supplyClass}
                 />
@@ -1102,6 +1121,7 @@ export function MarketTable({
               {shows.supply ? (
                 <ColumnHeader
                   label={t('Offre en circulation')}
+                  width="w-[132px]"
                   hint={t('Nombre de jetons effectivement en circulation, hors réserves verrouillées')}
                   {...sortFor('circulatingSupply')}
                   className={supplyClass}
@@ -1116,6 +1136,7 @@ export function MarketTable({
               {shows.chartAtEnd ? (
                 <ColumnHeader
                   label={fr.market.columns.chart}
+                  width="w-[120px]"
                   className="hidden @min-[1240px]:table-cell"
                 />
               ) : null}
