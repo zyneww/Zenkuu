@@ -27,9 +27,15 @@ export async function generateMetadata({
   const article = findHelpArticle(slug)
   if (!article) return {}
 
+  /* Le titre d'onglet passe par la table AUSSI. Il n'y passait pas, et c'est lui qui
+     restait en français dans le `<title>` des vingt-trois pages du centre d'aide une
+     fois leur corps traduit — invisible dans la page, bien visible dans l'onglet, et
+     c'est ce que les moteurs de recherche indexent. */
+  const t = await getPhrase()
+
   return {
-    title: article.title,
-    description: article.summary,
+    title: t(article.title),
+    description: t(article.summary),
     alternates: { canonical: `/aide/${article.slug}` },
   }
 }
@@ -60,17 +66,29 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {t('Centre d’aide')}
         </Link>
         <span aria-hidden="true"> / </span>
-        <span className="text-ink">{article.categoryTitle}</span>
+        <span className="text-ink">{t(article.categoryTitle)}</span>
       </nav>
 
+      {/* ⚠️ LE CORPS DE L'ARTICLE PASSE PAR `t()`, ET IL NE LE FAISAIT PAS.
+
+          `content/aide.ts` est écrit en français, comme toute la source du site : c'est
+          la TABLE DE PHRASES qui porte les douze autres langues, et rien n'y arrive sans
+          un `t()`. Seuls le fil d'Ariane et le lien de retour en avaient un ici. Le
+          titre, le résumé, la rubrique et les paragraphes sortaient donc en français sur
+          /de, /ja, /zh — sur les vingt-trois pages du centre d'aide.
+
+          Le défaut ne se voyait dans aucun test : les chaînes SONT des clés de la table,
+          traduites et vérifiées par `phrases.test.ts`. Elles n'étaient simplement jamais
+          consultées. C'est le relevé au navigateur, page rendue en allemand, qui l'a
+          montré — et c'est la deuxième fois que ce même angle mort remonte. */}
       <header className="space-y-3">
-        <h1 className="display-xl text-ink">{article.title}</h1>
-        <p className="text-sm leading-relaxed text-ink-muted">{article.summary}</p>
+        <h1 className="display-xl text-ink">{t(article.title)}</h1>
+        <p className="text-sm leading-relaxed text-ink-muted">{t(article.summary)}</p>
       </header>
 
       <div className="space-y-4 text-sm leading-relaxed text-ink-muted">
         {article.body.map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
+          <p key={index}>{t(paragraph)}</p>
         ))}
       </div>
 

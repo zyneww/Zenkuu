@@ -2720,4 +2720,34 @@ export const jaPhrases: Phrases = {
   'Chaque liste porte ses actions en en-tête : un bouton d’export, un crayon pour la renommer, et une corbeille dès qu’une seconde liste existe. Supprimer la dernière liste ne supprimerait rien de plus que la vider.': '各リストの見出しには操作が並びます。書き出しボタン、名前を変える鉛筆、そして二つ目のリストがある場合のごみ箱です。最後の一つを削除しても、それは中身を空にするのと変わりません。',
   'Un actif se déplace par un sélecteur en bout de ligne, qui propose aussi « Nouvelle liste… ». Un glisser-déposer aurait été plus flatteur en démonstration et inutilisable au clavier, au lecteur d’écran et au doigt.': '銘柄は行末のセレクターで移動できます。そこには「新しいリスト…」も並びます。ドラッグ＆ドロップは実演では見栄えがしますが、キーボード、スクリーンリーダー、指のいずれでも使えなくなります。',
   'L’export produit un fichier reprenant l’actif, son code, sa classe, son identifiant et sa date d’ajout — ce que la liste contient, pas des cours qui seraient périmés à l’ouverture du fichier.': '書き出すと、銘柄、ティッカー、資産クラス、識別子、追加日を並べたファイルができます。リストが持っている情報であって、ファイルを開く頃には古びている相場ではありません。',
+
+  // ── AIDE — comptes et connexion ──
+  'Par un code reçu par courriel, ou par un fournisseur d’identité.': 'メールで受け取るコード、または外部の認証サービスを使います。',
+  'La connexion se fait en deux temps : vous saisissez votre adresse électronique, puis le code à usage unique qui vous est envoyé. Il n’y a pas de mot de passe à choisir, donc pas de mot de passe à perdre ni à réutiliser ailleurs.': 'ログインは二段階です。メールアドレスを入力し、送られてくる使い捨てのコードを入れます。パスワードを決める必要がないので、なくす心配も、ほかで使い回す心配もありません。',
+  'Le même chemin sert à créer un compte et à en retrouver un : le code reçu vaut vérification dans les deux cas, et il n’y a donc pas d’écran d’inscription séparé.': 'アカウントの新規作成も、既存アカウントへの再ログインも、同じ流れです。受け取ったコードがどちらの場合も本人確認になるため、登録専用の画面はありません。',
+  'Selon la configuration de l’instance, la connexion par Google, X ou Apple peut être proposée à côté du champ d’adresse. Seuls les fournisseurs réellement configurés apparaissent — un bouton qui mènerait à une erreur ne vaut pas mieux que pas de bouton.': 'インスタンスの設定によっては、アドレス入力欄の横に Google、X、Apple でのログインが並ぶことがあります。実際に設定されている提供元だけが表示されます。押すとエラーになるボタンは、ボタンがないのと変わらないからです。',
+  'À retrouver vos préférences — jamais à détenir des fonds.': '設定を引き継ぐためのものであり、資金を預かるためのものでは決してありません。',
+  'Un compte ZENKUU sert à conserver une liste de suivi et des préférences d’affichage d’un appareil à l’autre.': 'ZENKUU のアカウントは、ウォッチリストと表示設定を端末をまたいで保つためのものです。',
+  'Il ne donne accès à aucune fonction financière. ZENKUU ne détient pas de fonds, ne connecte aucun portefeuille et n’exécute aucun ordre — un compte ne change rien à cela.': '金融的な機能は一切使えません。ZENKUU は資金を預からず、ウォレットにも接続せず、注文も執行しません。アカウントがあってもそれは変わりません。',
+  'Consulter l’intégralité des cours, des classements et des graphiques ne demande aucun compte, et cela restera le cas.': '相場、ランキング、チャートのすべてを見るのにアカウントは不要で、今後もそのままです。',
+  'Aucun formulaire du site ne collecte de coordonnées de paiement.': 'サイト上のどのフォームも、支払い情報を収集しません。',
+  'Aucune page de ZENKUU ne demande de numéro de carte, de coordonnées bancaires ni de clé d’accès à une plateforme d’échange.': 'ZENKUU のどのページも、カード番号、銀行口座情報、取引所のアクセスキーを求めることはありません。',
+
+  // ── AIDE — lecture seule et absence de conseil ──
+  'Si une page se présentant comme ZENKUU vous demande ces informations, elle n’est pas la nôtre.': 'ZENKUU を名乗るページがこれらの情報を求めてきた場合、それは当サイトのものではありません。',
+  'Nous ne demandons jamais non plus de clé d’API d’un exchange, ni d’accès en lecture à un portefeuille : ZENKUU n’a aucun usage de ces informations.': '取引所の API キーや、ウォレットの読み取りアクセスを求めることもありません。ZENKUU にはそれらの情報の使い道がないからです。',
+  'C’est un choix de positionnement, pas une fonctionnalité en retard.': 'これは立ち位置として選んだことであり、機能の実装が遅れているわけではありません。',
+  'ZENKUU est une plateforme d’information en lecture seule. Il n’y a nulle part de bouton d’achat, de vente, de dépôt, de retrait ou de connexion à un portefeuille.': 'ZENKUU は閲覧専用の情報プラットフォームです。購入、売却、入金、出金、ウォレット接続のボタンはどこにもありません。',
+  'Exécuter des ordres ou conserver des fonds relève d’activités réglementées, soumises à agrément et à des obligations qui n’ont rien à voir avec l’affichage de cours.': '注文の執行や資金の預かりは規制された業務であり、免許と、相場の表示とは無関係な数々の義務を伴います。',
+  'Rester du côté information permet de couvrir toutes les classes d’actifs au même endroit, gratuitement, sans que le site ait un intérêt quelconque à ce que vous passiez un ordre plutôt qu’un autre.': '情報の側にとどまることで、すべての資産クラスを一つの場所で、無料で扱えます。しかも当サイトには、あなたがどの注文を出すかについて何の利害もありません。',
+  'Les indicateurs affichés sont descriptifs, pas prescriptifs.': '表示される指標は、状態を述べるものであって、行動を指図するものではありません。',
+  'Rien de ce qui est affiché sur ZENKUU ne constitue une recommandation personnalisée d’achat, de vente ou de conservation.': 'ZENKUU に表示されているもののうち、購入・売却・保有を個別に勧めるものは一つもありません。',
+  'Les indicateurs présentés — variations, moyennes mobiles, indice de sentiment — décrivent des données passées. Ils ne prédisent rien, et le site ne les assortit d’aucun signal du type « acheter » ou « vendre ».': '示される指標——変動率、移動平均、センチメント指数——は、過去のデータを述べたものです。何かを予測するものではなく、当サイトが「買い」「売り」といった合図を添えることもありません。',
+  'Pour une recommandation tenant compte de votre situation, adressez-vous à un conseiller en investissement financier agréé.': 'ご自身の状況を踏まえた助言が必要な場合は、認可を受けた投資助言業者にご相談ください。',
+
+  // ── BLOG — rubriques ──
+  'Comment les chiffres sont collectés, vérifiés et affichés.': '数字がどのように集められ、検証され、表示されるのか。',
+  'Ce qui change sur le site, et les arbitrages derrière.': 'サイトで何が変わるのか、そしてその裏にある取捨選択。',
+  'Lectures de fond sur le fonctionnement des marchés suivis.': '扱っている市場の仕組みを掘り下げた読みもの。',
+  'Décisions techniques et limites assumées.': '技術上の判断と、引き受けている限界。',
 }

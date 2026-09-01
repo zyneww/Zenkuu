@@ -2713,4 +2713,34 @@ export const zhPhrases: Phrases = {
   'Chaque liste porte ses actions en en-tête : un bouton d’export, un crayon pour la renommer, et une corbeille dès qu’une seconde liste existe. Supprimer la dernière liste ne supprimerait rien de plus que la vider.': '每个列表的标题栏上都带着自己的操作：一个导出按钮、一支用于重命名的铅笔，以及在存在第二个列表时才出现的垃圾桶。删除最后一个列表，效果与清空它并无二致。',
   'Un actif se déplace par un sélecteur en bout de ligne, qui propose aussi « Nouvelle liste… ». Un glisser-déposer aurait été plus flatteur en démonstration et inutilisable au clavier, au lecteur d’écran et au doigt.': '移动资产要用行尾的下拉选择器，其中也提供「新建列表…」。拖放在演示时更好看，却在键盘、读屏软件和手指操作下统统失效。',
   'L’export produit un fichier reprenant l’actif, son code, sa classe, son identifiant et sa date d’ajout — ce que la liste contient, pas des cours qui seraient périmés à l’ouverture du fichier.': '导出会生成一个文件，内含资产、代码、类别、标识符和加入日期——也就是列表本身所包含的内容，而不是打开文件时就已过期的行情。',
+
+  // ── AIDE — comptes et connexion ──
+  'Par un code reçu par courriel, ou par un fournisseur d’identité.': '通过邮件收到的验证码，或通过第三方身份提供方。',
+  'La connexion se fait en deux temps : vous saisissez votre adresse électronique, puis le code à usage unique qui vous est envoyé. Il n’y a pas de mot de passe à choisir, donc pas de mot de passe à perdre ni à réutiliser ailleurs.': '登录分两步：先填写你的电子邮箱地址，再输入发送给你的一次性验证码。无需设置密码，也就没有密码可丢失或在别处重复使用。',
+  'Le même chemin sert à créer un compte et à en retrouver un : le code reçu vaut vérification dans les deux cas, et il n’y a donc pas d’écran d’inscription séparé.': '创建账户和找回账户走的是同一条路径：收到的验证码在两种情形下都用作验证，因此没有单独的注册页面。',
+  'Selon la configuration de l’instance, la connexion par Google, X ou Apple peut être proposée à côté du champ d’adresse. Seuls les fournisseurs réellement configurés apparaissent — un bouton qui mènerait à une erreur ne vaut pas mieux que pas de bouton.': '视该实例的配置而定，地址输入框旁可能会提供 Google、X 或 Apple 登录。只有真正配置好的提供方才会出现——一个点下去只会报错的按钮，并不比没有按钮更好。',
+  'À retrouver vos préférences — jamais à détenir des fonds.': '用来找回你的偏好设置——绝不用来保管资金。',
+  'Un compte ZENKUU sert à conserver une liste de suivi et des préférences d’affichage d’un appareil à l’autre.': 'ZENKUU 账户的用途，是把自选列表和显示偏好在不同设备之间保留下来。',
+  'Il ne donne accès à aucune fonction financière. ZENKUU ne détient pas de fonds, ne connecte aucun portefeuille et n’exécute aucun ordre — un compte ne change rien à cela.': '它不会开启任何金融功能。ZENKUU 不持有资金、不连接任何钱包、不执行任何委托——有没有账户都一样。',
+  'Consulter l’intégralité des cours, des classements et des graphiques ne demande aucun compte, et cela restera le cas.': '查看全部行情、排行和图表都无需账户，今后也是如此。',
+  'Aucun formulaire du site ne collecte de coordonnées de paiement.': '本站没有任何表单会收集支付信息。',
+  'Aucune page de ZENKUU ne demande de numéro de carte, de coordonnées bancaires ni de clé d’accès à une plateforme d’échange.': 'ZENKUU 的任何页面都不会索取卡号、银行账户信息或交易平台的访问密钥。',
+
+  // ── AIDE — lecture seule et absence de conseil ──
+  'Si une page se présentant comme ZENKUU vous demande ces informations, elle n’est pas la nôtre.': '若有页面自称是 ZENKUU 并向你索取这些信息，那它不是我们的页面。',
+  'Nous ne demandons jamais non plus de clé d’API d’un exchange, ni d’accès en lecture à un portefeuille : ZENKUU n’a aucun usage de ces informations.': '我们同样从不索取交易所的 API 密钥，也不索取钱包的只读权限：这些信息对 ZENKUU 毫无用处。',
+  'C’est un choix de positionnement, pas une fonctionnalité en retard.': '这是定位上的选择，而不是某项功能还没做出来。',
+  'ZENKUU est une plateforme d’information en lecture seule. Il n’y a nulle part de bouton d’achat, de vente, de dépôt, de retrait ou de connexion à un portefeuille.': 'ZENKUU 是一个只读的信息平台。站内没有任何买入、卖出、充值、提现或连接钱包的按钮。',
+  'Exécuter des ordres ou conserver des fonds relève d’activités réglementées, soumises à agrément et à des obligations qui n’ont rien à voir avec l’affichage de cours.': '执行委托或保管资金属于受监管的业务，需要牌照，并伴随一系列与展示行情毫无关系的义务。',
+  'Rester du côté information permet de couvrir toutes les classes d’actifs au même endroit, gratuitement, sans que le site ait un intérêt quelconque à ce que vous passiez un ordre plutôt qu’un autre.': '站在信息这一侧，才能在同一个地方免费覆盖所有资产类别，而且本站对你下哪一笔委托毫无利害关系。',
+  'Les indicateurs affichés sont descriptifs, pas prescriptifs.': '所展示的指标是描述性的，而不是指令性的。',
+  'Rien de ce qui est affiché sur ZENKUU ne constitue une recommandation personnalisée d’achat, de vente ou de conservation.': 'ZENKUU 上展示的任何内容，都不构成针对个人的买入、卖出或持有建议。',
+  'Les indicateurs présentés — variations, moyennes mobiles, indice de sentiment — décrivent des données passées. Ils ne prédisent rien, et le site ne les assortit d’aucun signal du type « acheter » ou « vendre ».': '所呈现的指标——涨跌幅、移动平均线、情绪指数——描述的是过去的数据。它们不预测任何事，本站也不会给它们附上「买入」或「卖出」之类的信号。',
+  'Pour une recommandation tenant compte de votre situation, adressez-vous à un conseiller en investissement financier agréé.': '若需要结合你自身情况的建议，请咨询持牌的投资顾问。',
+
+  // ── BLOG — rubriques ──
+  'Comment les chiffres sont collectés, vérifiés et affichés.': '这些数字是如何采集、核验并展示的。',
+  'Ce qui change sur le site, et les arbitrages derrière.': '站点有哪些变化，以及背后的取舍。',
+  'Lectures de fond sur le fonctionnement des marchés suivis.': '关于所追踪市场运作方式的深度读物。',
+  'Décisions techniques et limites assumées.': '技术决策，以及我们主动承担的局限。',
 }

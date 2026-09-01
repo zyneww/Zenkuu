@@ -26,9 +26,13 @@ export async function generateMetadata({
   const category = HELP_CATEGORIES.find((entry) => entry.id === id)
   if (!category) return {}
 
+  /* Le titre d'onglet passe par la table AUSSI — voir la note jumelle sur la page
+     d'article. */
+  const t = await getPhrase()
+
   return {
-    title: category.title,
-    description: category.description,
+    title: t(category.title),
+    description: t(category.description),
     alternates: { canonical: `/aide/rubrique/${category.id}` },
   }
 }
@@ -54,12 +58,12 @@ export default async function RubriquePage({ params }: { params: Promise<{ id: s
           {t('Centre d’aide')}
         </Link>
         <span aria-hidden="true"> / </span>
-        <span className="text-ink">{category.title}</span>
+        <span className="text-ink">{t(category.title)}</span>
       </nav>
 
       <header className="space-y-2">
-        <h1 className="display-xl text-ink">{category.title}</h1>
-        <p className="text-sm leading-relaxed text-ink-muted">{category.description}</p>
+        <h1 className="display-xl text-ink">{t(category.title)}</h1>
+        <p className="text-sm leading-relaxed text-ink-muted">{t(category.description)}</p>
       </header>
 
       <ul className="space-y-2">
@@ -69,9 +73,9 @@ export default async function RubriquePage({ params }: { params: Promise<{ id: s
               href={`/aide/${article.slug}`}
               className="block rounded-card border border-border-subtle bg-surface p-4 transition-colors hover:border-brand"
             >
-              <span className="block text-sm font-medium text-ink">{article.title}</span>
+              <span className="block text-sm font-medium text-ink">{t(article.title)}</span>
               <span className="mt-0.5 block text-xs leading-relaxed text-ink-muted">
-                {article.summary}
+                {t(article.summary)}
               </span>
             </Link>
           </li>
