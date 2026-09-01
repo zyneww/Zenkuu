@@ -13,6 +13,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { COMPARE_LIMIT } from '@/lib/limits'
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { dataColor } from '@/components/charts/chart-theme'
+import { ChipToggleAll, SeriesChip } from '@/components/charts/asxn'
 import { emphasise } from '@/components/locale/emphasise'
 import { Money } from '@/components/locale/Money'
 import { ComparatorRadar } from '@/components/tools/ComparatorRadar'
@@ -183,16 +184,58 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
      la série manque ne sort pas du graphique en décalant la teinte de ses voisins. */
   const colorOf = (id: string) => dataColor(selected.indexOf(id))
 
+  /*
+   * ── MASQUER N'EST PAS RETIRER, ET LES DEUX GESTES COEXISTENT ────────────────
+   *
+   * Les cartes du haut portent l'IDENTITÉ d'un actif comparé, et leur croix le RETIRE
+   * de la comparaison — il quitte la sélection, l'URL, et sa teinte se libère.
+   *
+   * Ce que les cartes ne savaient pas faire : éteindre une courbe SANS la perdre.
+   * C'est pourtant le geste courant quand on compare — six courbes qui se croisent, on
+   * en écarte deux pour lire les quatre autres, puis on les rallume. Le faire avec la
+   * croix obligeait à retrouver l'actif dans le sélecteur et à le rajouter, ce qui lui
+   * redonnait au passage une autre couleur.
+   *
+   * Les puces sont donc un SECOND contrôle et non un doublon : elles ne touchent qu'à
+   * l'affichage. C'est le motif relevé chez ASXN, dont les graphiques multi-séries se
+   * pilotent tous ainsi (voir `CHARTS_AUDIT.md`).
+   *
+   * L'état ne vit pas dans l'URL : une courbe éteinte est une commodité de lecture du
+   * moment, pas un état à partager. La sélection, elle, y est déjà.
+   */
+  const [hidden, setHidden] = useState<Set<string>>(() => new Set())
+
+  const toggleSeries = (id: string) =>
+    setHidden((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  /* Une seule série visible ne se masque plus : un graphique vide n'apprend rien, et
+     la bascule « tout afficher » est alors le seul chemin de retour. On la propose donc
+     dès qu'il ne reste rien — c'est ce que `ChipToggleAll` lit dans `allOff`. */
+  const allOff = (alignment?.series ?? []).length > 0
+    && (alignment?.series ?? []).every((entry) => hidden.has(entry.id))
+
+  const toggleAll = () =>
+    setHidden((current) =>
+      current.size === 0 ? new Set((alignment?.series ?? []).map((e) => e.id)) : new Set(),
+    )
+
   const plotSeries = useMemo(
     () =>
-      (alignment?.series ?? []).map((entry) => ({
-        id: entry.id,
-        label: chosen.find((asset) => asset.id === entry.id)?.name ?? entry.id,
-        color: colorOf(entry.id),
-        points: entry.points,
-      })),
+      (alignment?.series ?? [])
+        .filter((entry) => !hidden.has(entry.id))
+        .map((entry) => ({
+          id: entry.id,
+          label: chosen.find((asset) => asset.id === entry.id)?.name ?? entry.id,
+          color: colorOf(entry.id),
+          points: entry.points,
+        })),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `colorOf` se recalcule avec `selected`
-    [alignment, chosen, selected],
+    [alignment, chosen, selected, hidden],
   )
 
   function add(asset: MarketAsset) {
@@ -285,6 +328,26 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
 
       {alignment ? (
         <div className="rounded-card border border-border-subtle bg-surface p-3">
+          {/* La rangée de puces ouvre la carte, comme chez la référence : elle se lit
+              avant le tracé qu'elle commande, et non après. Voir la note de `hidden`
+              pour ce qui la distingue des cartes du haut. */}
+          {alignment.series.length > 1 ? (
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
+              {alignment.series.map((entry) => (
+                <SeriesChip
+                  key={entry.id}
+                  label={chosen.find((asset) => asset.id === entry.id)?.symbol?.toUpperCase()
+                    ?? chosen.find((asset) => asset.id === entry.id)?.name
+                    ?? entry.id}
+                  color={colorOf(entry.id)}
+                  active={!hidden.has(entry.id)}
+                  onToggle={() => toggleSeries(entry.id)}
+                />
+              ))}
+              <ChipToggleAll allOff={allOff} onToggleAll={toggleAll} />
+            </div>
+          ) : null}
+
           {/* Repère à 100 : la ligne de départ commune. Sans elle, on lit des courbes
               sans savoir de quel côté de la référence elles passent. */}
           <AreaPlot
