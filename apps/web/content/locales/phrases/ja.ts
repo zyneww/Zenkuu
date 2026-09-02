@@ -2826,6 +2826,4 @@ export const jaPhrases: Phrases = {
   Screener: 'スクリーナー',
   Apprendre: '学ぶ',
   'Cryptomonnaies': '暗号資産',
-  'Vue du marché': 'マーケットの概況',
-  'Comparaison des variations depuis l’ouverture': '期間開始時点からの変化率の比較',
 }

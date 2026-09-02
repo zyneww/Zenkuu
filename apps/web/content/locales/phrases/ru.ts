@@ -2826,6 +2826,4 @@ export const ruPhrases: Phrases = {
   Screener: 'Скринер',
   Apprendre: 'Обучение',
   'Cryptomonnaies': 'Криптовалюты',
-  'Vue du marché': 'Обзор рынка',
-  'Comparaison des variations depuis l’ouverture': 'Сравнение изменений с начала периода',
 }

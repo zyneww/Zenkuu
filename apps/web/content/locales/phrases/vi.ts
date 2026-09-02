@@ -2826,6 +2826,4 @@ export const viPhrases: Phrases = {
   Screener: 'Bộ lọc',
   Apprendre: 'Học',
   'Cryptomonnaies': 'Tiền mã hóa',
-  'Vue du marché': 'Toàn cảnh thị trường',
-  'Comparaison des variations depuis l’ouverture': 'So sánh mức biến động từ đầu kỳ',
 }

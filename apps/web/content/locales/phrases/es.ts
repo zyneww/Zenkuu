@@ -2833,6 +2833,4 @@ export const esPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Aprender',
   'Cryptomonnaies': 'Criptomonedas',
-  'Vue du marché': 'Panorama del mercado',
-  'Comparaison des variations depuis l’ouverture': 'Comparación de las variaciones desde el inicio del periodo',
 }

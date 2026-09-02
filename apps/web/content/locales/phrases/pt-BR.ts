@@ -2826,6 +2826,4 @@ export const ptBRPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Aprender',
   'Cryptomonnaies': 'Criptomoedas',
-  'Vue du marché': 'Panorama do mercado',
-  'Comparaison des variations depuis l’ouverture': 'Comparação das variações desde o início do período',
 }

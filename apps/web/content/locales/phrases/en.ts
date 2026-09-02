@@ -2838,6 +2838,4 @@ export const enPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Learn',
   'Cryptomonnaies': 'Cryptocurrencies',
-  'Vue du marché': 'Market overview',
-  'Comparaison des variations depuis l’ouverture': 'Comparison of changes since the start of the window',
 }

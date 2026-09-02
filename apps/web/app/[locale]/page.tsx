@@ -1,19 +1,13 @@
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 
-import {
-  CACHE_TTL_SECONDS,
-  getAssetHistory,
-  getCryptoGlobalStats,
-  getNews,
-  getRanking,
-} from '@zenkuu/data'
+import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 
 import { CryptoBoard } from '@/components/home/CryptoBoard'
 import { HomeNewsGrid } from '@/components/home/HomeNewsGrid'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
+import { MarketRibbon } from '@/components/home/MarketRibbon'
 import { NewsSidebar } from '@/components/home/NewsSidebar'
-import { MarketOverview } from '@/components/home/MarketOverview'
 import { PriceHeader } from '@/components/home/PriceHeader'
 import { getContent } from '@/lib/content'
 
@@ -125,42 +119,7 @@ export async function generateMetadata() {
  * C'est aussi la raison pour laquelle le tableau pagine CÔTÉ CLIENT — voir `CryptoBoard`.
  */
 export default async function HomePage() {
-  /*
-   * ── LES TROIS SÉRIES DU PANNEAU D'OUVERTURE ────────────────────────────────
-   *
-   * Bitcoin pour la crypto, SPY pour les actions américaines, GLD pour l'or : trois
-   * marchés qui ne bougent pas ensemble, ce qui est tout l'intérêt de les superposer.
-   * Backpack compare SPY, QQQ et BTC — deux indices actions sur trois courbes, dont
-   * les deux premières se suivent de près. L'or dit quelque chose de plus.
-   *
-   * ⚠️ SEPT JOURS ET NON UN. La référence trace la séance du jour, ce que Yahoo sert
-   * en intrajournalier. Mais nos trois séries ne vivent pas au même rythme : Bitcoin
-   * cote sans interruption quand SPY et GLD s'arrêtent le soir et le week-end. Sur une
-   * seule journée, un dimanche, deux des trois courbes seraient des points isolés.
-   *
-   * Sept jours donnent à chacune de quoi tracer, quel que soit le jour où l'on
-   * regarde. C'est un écart assumé à la référence, et il vient d'une contrainte
-   * réelle de nos sources — pas d'un raccourci.
-   */
-  const [news, globals, btc, spy, gld, repères] = await Promise.all([
-    getNews(14),
-    getCryptoGlobalStats('eur'),
-    getAssetHistory('bitcoin', 'crypto', 7, 'eur'),
-    getAssetHistory('spy', 'etf', 7, 'eur'),
-    getAssetHistory('gld', 'etf', 7, 'eur'),
-    getRanking({ assetClass: 'crypto', perPage: 5, currency: 'eur' }),
-  ])
-
-  /* Une série qui n'a pas répondu est ÉCARTÉE, pas tracée à plat : une courbe
-     horizontale se lirait « ça n'a pas bougé » là où la vérité est « on ne sait
-     pas » (§5). */
-  const séries = [
-    { id: 'btc', symbol: 'BTC', name: 'Bitcoin', color: 'var(--color-data-1)', résultat: btc },
-    { id: 'spy', symbol: 'SPY', name: 'S&P 500', color: 'var(--color-data-3)', résultat: spy },
-    { id: 'gld', symbol: 'GLD', name: 'Or', color: 'var(--color-data-5)', résultat: gld },
-  ]
-    .filter((s) => s.résultat.ok)
-    .map(({ résultat, ...reste }) => ({ ...reste, points: résultat.ok ? résultat.data.points : [] }))
+  const [news, globals] = await Promise.all([getNews(14), getCryptoGlobalStats('eur')])
 
   return (
     /*
@@ -196,18 +155,7 @@ export default async function HomePage() {
           large — le tableau — et la page défilerait horizontalement au lieu de
           laisser le tableau rétrécir. */}
       <div className="flex min-w-0 flex-col gap-8">
-        {/* Le panneau d'ouverture, façon Backpack — voir sa propre note pour ce
-            qu'il remplace et pourquoi. `PriceHeader` reste en repli : si aucune série
-            ne répond, la page garde son titre et ses agrégats plutôt que de s'ouvrir
-            sur du vide. */}
-        {séries.length > 0 ? (
-          <MarketOverview
-            series={séries}
-            footer={repères.ok ? repères.data.slice(0, 5) : []}
-          />
-        ) : (
-          <PriceHeader globals={globals} />
-        )}
+        <PriceHeader globals={globals} />
 
       {/* ── LA HAUTEUR DU SUBSTITUT EST MESURÉE, PLUS DEVINÉE ───────────────
           Elle valait 210 px, avec cette note : « un substitut plus haut que ce qu'il
@@ -240,17 +188,9 @@ export default async function HomePage() {
           ══════════════════════════════════════════════════════════════════════ */}
       <AssetLiveRefresh />
 
-      {/* ── LE RUBAN A ÉTÉ RETIRÉ AVEC LE RESTE DU BLOC DE TÊTE ───────────────
-
-          Il faisait partie de ce que `MarketOverview` remplace : un ticker défilant de
-          cours, plus trois cartes de synthèse. Le laisser sous le nouveau panneau
-          aurait redit ce que celui-ci montre déjà — sa propre rangée de repères porte
-          les mêmes actifs, en fixe et donc lisibles.
-
-          Un ruban qui défile ne se lit pas, il se regarde passer : la valeur qu'on
-          cherche est celle qui vient de sortir de l'écran. C'est acceptable en
-          décoration d'ambiance, pas en doublon d'une figure qui dit mieux la même
-          chose. */}
+      <Suspense fallback={<BlockSkeleton height="h-[149px]" />}>
+        <MarketRibbon />
+      </Suspense>
 
       {/* Le filet de section sépare le bloc de tête du classement. */}
       <Suspense fallback={<BoardSkeleton />}>
