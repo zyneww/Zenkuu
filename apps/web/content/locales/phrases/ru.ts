@@ -2797,4 +2797,12 @@ export const ruPhrases: Phrases = {
   '{n} actifs suivis': '{n} отслеживаемых активов',
   '{n} marchés': '{n} рынков',
   'Les plus grandes capitalisations': 'Крупнейшие капитализации',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Хранится в казначействах',
+  'Part de la capitalisation': 'Доля капитализации',
+  '{n} détenteurs': '{n} держателей',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} в наличии',
 }

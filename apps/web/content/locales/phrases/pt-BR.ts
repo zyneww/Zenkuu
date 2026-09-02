@@ -2797,4 +2797,12 @@ export const ptBRPhrases: Phrases = {
   '{n} actifs suivis': '{n} ativos acompanhados',
   '{n} marchés': '{n} mercados',
   'Les plus grandes capitalisations': 'As maiores capitalizações',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Mantido em tesouraria',
+  'Part de la capitalisation': 'Parcela da capitalização',
+  '{n} détenteurs': '{n} detentores',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} detidos',
 }

@@ -2797,4 +2797,12 @@ export const trPhrases: Phrases = {
   '{n} actifs suivis': '{n} varlık izleniyor',
   '{n} marchés': '{n} piyasa',
   'Les plus grandes capitalisations': 'En büyük piyasa değerleri',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Hazinede tutulan',
+  'Part de la capitalisation': 'Piyasa değerindeki pay',
+  '{n} détenteurs': '{n} sahip',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} tutuluyor',
 }

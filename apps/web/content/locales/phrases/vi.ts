@@ -2797,4 +2797,12 @@ export const viPhrases: Phrases = {
   '{n} actifs suivis': '{n} tài sản được theo dõi',
   '{n} marchés': '{n} thị trường',
   'Les plus grandes capitalisations': 'Những vốn hóa lớn nhất',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Nắm giữ trong ngân quỹ',
+  'Part de la capitalisation': 'Phần trong vốn hóa',
+  '{n} détenteurs': '{n} bên nắm giữ',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} đang nắm giữ',
 }

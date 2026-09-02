@@ -2809,4 +2809,12 @@ export const enPhrases: Phrases = {
   '{n} actifs suivis': '{n} assets tracked',
   '{n} marchés': '{n} markets',
   'Les plus grandes capitalisations': 'The largest capitalisations',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Held in treasury',
+  'Part de la capitalisation': 'Share of capitalisation',
+  '{n} détenteurs': '{n} holders',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} held',
 }

@@ -2790,4 +2790,12 @@ export const zhPhrases: Phrases = {
   '{n} actifs suivis': '已追踪 {n} 项资产',
   '{n} marchés': '{n} 个市场',
   'Les plus grandes capitalisations': '市值最大的资产',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': '企业金库持有量',
+  'Part de la capitalisation': '占市值的比重',
+  '{n} détenteurs': '{n} 个持有方',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '持有 {unit}',
 }

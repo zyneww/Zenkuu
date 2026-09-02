@@ -2805,4 +2805,12 @@ export const dePhrases: Phrases = {
   '{n} actifs suivis': '{n} erfasste Werte',
   '{n} marchés': '{n} Märkte',
   'Les plus grandes capitalisations': 'Die größten Kapitalisierungen',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'In Unternehmenskassen gehalten',
+  'Part de la capitalisation': 'Anteil an der Kapitalisierung',
+  '{n} détenteurs': '{n} Halter',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} gehalten',
 }

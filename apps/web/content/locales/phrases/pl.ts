@@ -2797,4 +2797,12 @@ export const plPhrases: Phrases = {
   '{n} actifs suivis': '{n} śledzonych aktywów',
   '{n} marchés': '{n} rynków',
   'Les plus grandes capitalisations': 'Największe kapitalizacje',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Trzymane w skarbcu',
+  'Part de la capitalisation': 'Udział w kapitalizacji',
+  '{n} détenteurs': '{n} posiadaczy',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} w posiadaniu',
 }

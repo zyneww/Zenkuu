@@ -2797,4 +2797,12 @@ export const jaPhrases: Phrases = {
   '{n} actifs suivis': '追跡中の銘柄 {n} 件',
   '{n} marchés': '{n} の市場',
   'Les plus grandes capitalisations': '時価総額の上位銘柄',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': '企業が保有する量',
+  'Part de la capitalisation': '時価総額に占める割合',
+  '{n} détenteurs': '保有者 {n} 社',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '保有 {unit}',
 }

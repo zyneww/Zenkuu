@@ -76,14 +76,23 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
   /* « Société » et « détenus » sont verrouillées : sans le nom ni la quantité, un
      registre de détenteurs ne détient plus rien. Tout le reste est dérivable ou
      secondaire, donc retirable. */
+  /* ⚠️ CES SEPT LIBELLÉS SONT AFFICHÉS, et six d'entre eux sortaient en français.
+
+     Ils ne servent pas qu'à identifier une colonne dans le code : le sélecteur
+     « Personnaliser » les rend en toutes lettres, un par ligne, avec un champ de
+     recherche qui filtre dessus. Un lecteur allemand ouvrait donc une liste de sept
+     entrées françaises pour choisir ses colonnes.
+
+     Le défaut ne se voyait pas au relevé automatique : ce sont des chaînes passées en
+     PROPRIÉTÉ à un crochet, pas du texte écrit dans du JSX. */
   const prefs = useColumnPreferences('tresoreries', [
-    { id: 'rank', label: 'Rang' },
-    { id: 'name', label: 'Société', locked: true },
-    { id: 'holdings', label: `${unit} détenus`, locked: true },
-    { id: 'currentValue', label: 'Valeur actuelle' },
-    { id: 'entryValue', label: 'Coût d’entrée' },
-    { id: 'gain', label: 'Plus-value latente' },
-    { id: 'supply', label: '% de l’offre' },
+    { id: 'rank', label: t('Rang') },
+    { id: 'name', label: t('Société'), locked: true },
+    { id: 'holdings', label: t('{unit} détenus').replace('{unit}', unit), locked: true },
+    { id: 'currentValue', label: t('Valeur actuelle') },
+    { id: 'entryValue', label: t('Coût d’entrée') },
+    { id: 'gain', label: t('Plus-value latente') },
+    { id: 'supply', label: t('% de l’offre') },
   ])
 
   return (
@@ -113,7 +122,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                 columnPrefs={prefs}
               />
               <SortableHeader
-                label={`${unit} détenus`}
+                label={t('{unit} détenus').replace('{unit}', unit)}
                 sortKey="holdings"
                 sort={sort}
                 onToggle={toggle}

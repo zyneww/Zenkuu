@@ -2797,4 +2797,12 @@ export const nlPhrases: Phrases = {
   '{n} actifs suivis': '{n} gevolgde activa',
   '{n} marchés': '{n} markten',
   'Les plus grandes capitalisations': 'De grootste kapitalisaties',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'In kas gehouden',
+  'Part de la capitalisation': 'Aandeel van de kapitalisatie',
+  '{n} détenteurs': '{n} houders',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} aangehouden',
 }

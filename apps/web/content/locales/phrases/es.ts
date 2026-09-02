@@ -2804,4 +2804,12 @@ export const esPhrases: Phrases = {
   '{n} actifs suivis': '{n} activos seguidos',
   '{n} marchés': '{n} mercados',
   'Les plus grandes capitalisations': 'Las mayores capitalizaciones',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Mantenido en tesorería',
+  'Part de la capitalisation': 'Parte de la capitalización',
+  '{n} détenteurs': '{n} tenedores',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} en cartera',
 }

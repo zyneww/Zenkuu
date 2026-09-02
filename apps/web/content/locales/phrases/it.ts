@@ -2797,4 +2797,12 @@ export const itPhrases: Phrases = {
   '{n} actifs suivis': '{n} attivi seguiti',
   '{n} marchés': '{n} mercati',
   'Les plus grandes capitalisations': 'Le maggiori capitalizzazioni',
+
+  // ── TRÉSORERIES — bande ──
+  'Détenu en trésorerie': 'Detenuto in tesoreria',
+  'Part de la capitalisation': 'Quota della capitalizzazione',
+  '{n} détenteurs': '{n} detentori',
+
+  // ── TRÉSORERIES — colonne ──
+  '{unit} détenus': '{unit} detenuti',
 }
