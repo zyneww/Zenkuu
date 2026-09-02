@@ -446,13 +446,10 @@ export const ruPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'Коллекции и их минимальные цены',
   'Deux actifs en regard, chiffre par chiffre': 'Два актива рядом, показатель за показателем',
   'Un montant d’un actif vers une devise': 'Количество актива в валюту',
-  'Graphique global': 'Общий график',
   'Capitalisation, volume et dominance dans le temps': 'Капитализация, объём и доминирование во времени',
-  'Plateformes': 'Биржи',
   'Où les actifs se négocient, et à quel volume': 'Где торгуются активы и с каким объёмом',
   'Contrats à terme et perpétuels, par place': 'Фьючерсы и бессрочные контракты по площадкам',
   'Les plateformes spécialisées dans les perpétuels': 'Площадки, специализирующиеся на бессрочных контрактах',
-  'Actifs réels': 'Реальные активы',
   'Les actifs du monde réel portés par une chaîne': 'Активы реального мира, размещённые на блокчейне',
   'Les valeurs cotées, cours et capitalisation': 'Котируемые бумаги, цены и капитализация',
   'Métaux, énergie et denrées': 'Металлы, энергоносители и продовольствие',
@@ -465,7 +462,6 @@ export const ruPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'Что происходит и у какого издания',
   'Nos analyses de fond': 'Наши углублённые разборы',
   'Le vocabulaire du marché, défini terme par terme': 'Словарь рынка — термин за термином',
-  'Portefeuille': 'Портфель',
   'Le marché en une figure, par taille et variation': 'Весь рынок одной картиной — по размеру и изменению',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'Что измеряет настроение рынка, а что нет',
   'Filtrer le marché sur vos propres critères': 'Фильтрация рынка по вашим критериям',
@@ -505,10 +501,8 @@ export const ruPhrases: Phrases = {
   Données: 'Данные',
   Analyse: 'Анализ',
   Actualités: 'Новости',
-  Plus: 'Ещё',
 
   Palmarès: 'Рейтинги',
-  Classements: 'Рейтинги',
   'Le classement complet, page par page': 'Полный рейтинг, страница за страницей',
   'Nouvelles cryptomonnaies': 'Новые криптовалюты',
   'Les actifs référencés le plus récemment': 'Недавно добавленные активы',
@@ -534,7 +528,6 @@ export const ruPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Инфляция, безработица, долг: состояние экономик',
   Outils: 'Инструменты',
-  Screener: 'Скринер',
   'Filtrer le marché sur vos critères': 'Фильтрация рынка по вашим критериям',
   Comparateur: 'Сравнение',
   'Deux à quatre actifs côte à côte': 'От двух до четырёх активов рядом',
@@ -556,7 +549,6 @@ export const ruPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'Список наблюдения, оповещения и фильтры — доступны везде',
 
-  Apprendre: 'Обучение',
   'Comprendre les marchés, pas à pas': 'Понять рынки шаг за шагом',
   'Bien démarrer': 'С чего начать',
   'Prendre en main ZENKUU en cinq minutes': 'Освоить ZENKUU за пять минут',
@@ -979,7 +971,6 @@ export const ruPhrases: Phrases = {
   'Tous les sujets': 'Все темы',
   'Tout réafficher': 'Показать всё снова',
   'Toute prévision.': 'Любой прогноз.',
-  'Toutes les catégories': 'Все категории',
   'Toutes les cotations récentes': 'Все недавние листинги',
   'Toutes les langues': 'Все языки',
   'Toutes les métriques': 'Все показатели',
@@ -1601,7 +1592,6 @@ export const ruPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Результаты фильтра — колонки «{set}»',
   'Trier par {column}': 'Сортировать по: {column}',
   'Données & analyse': 'Данные и анализ',
-  'Cryptomonnaies': 'Криптовалюты',
   'Actions': 'Акции',
   'ETF': 'ETF',
   'Indices': 'Индексы',
@@ -2774,8 +2764,6 @@ export const ruPhrases: Phrases = {
   'Tout masquer': 'Скрыть всё',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Инструменты',
-  'Vues': 'Виды',
   'Le site': 'О сайте',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2784,13 +2772,9 @@ export const ruPhrases: Phrases = {
   'Actualités suivantes': 'Следующие новости',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'Все криптовалюты',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Девятнадцать тысяч отслеживаемых токенов, упорядоченных по капитализации',
-  'Tous les classements': 'Все рейтинги',
   'Écart au plus haut': 'Разрыв с максимумом',
-  'Plateformes au comptant': 'Спотовые площадки',
   'Contrats dérivés': 'Производные контракты',
-  'Plateformes de dérivés': 'Площадки деривативов',
   'Fiches thématiques': 'Тематические карточки',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2824,4 +2808,22 @@ export const ruPhrases: Phrases = {
   'Aujourd’hui': 'Сегодня',
   'Le marché dans le temps': 'Рынок во времени',
   'Climat et rotation': 'Настроение и ротация',
+  'Cryptoactifs': 'Крипто',
+  'Places de marché': 'Торговые площадки',
+  'Marchés traditionnels': 'Традиционные рынки',
+  'Comprendre': 'Разобраться',
+  'Mon suivi': 'Моё наблюдение',
+  'Plus loin': 'Глубже',
+  'Autres vues': 'Другие виды',
+  'Tout le marché': 'Весь рынок',
+  'Tous les palmarès': 'Все рейтинги',
+  'Recherche filtrée': 'Поиск с фильтрами',
+  'Au comptant': 'Спот',
+  'Plateformes': 'Биржи',
+  'Portefeuille': 'Портфель',
+  Plus: 'Ещё',
+  Classements: 'Рейтинги',
+  Screener: 'Скринер',
+  Apprendre: 'Обучение',
+  'Cryptomonnaies': 'Криптовалюты',
 }

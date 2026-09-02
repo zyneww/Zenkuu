@@ -446,13 +446,10 @@ export const nlPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'De collecties en hun bodemprijzen',
   'Deux actifs en regard, chiffre par chiffre': 'Twee activa naast elkaar, cijfer voor cijfer',
   'Un montant d’un actif vers une devise': 'Een bedrag van een activum naar een valuta',
-  'Graphique global': 'Totaalgrafiek',
   'Capitalisation, volume et dominance dans le temps': 'Marktkapitalisatie, volume en dominantie in de tijd',
-  'Plateformes': 'Handelsplatformen',
   'Où les actifs se négocient, et à quel volume': 'Waar activa worden verhandeld, en met welk volume',
   'Contrats à terme et perpétuels, par place': 'Futures en perpetuals, per platform',
   'Les plateformes spécialisées dans les perpétuels': 'De platformen gespecialiseerd in perpetuals',
-  'Actifs réels': 'Reële activa',
   'Les actifs du monde réel portés par une chaîne': 'Reële activa die op een chain worden gedragen',
   'Les valeurs cotées, cours et capitalisation': 'Beursgenoteerde aandelen, koersen en marktkapitalisatie',
   'Métaux, énergie et denrées': 'Metalen, energie en landbouwgoederen',
@@ -465,7 +462,6 @@ export const nlPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'Wat er beweegt, en bij welke uitgever',
   'Nos analyses de fond': 'Onze diepgaande analyses',
   'Le vocabulaire du marché, défini terme par terme': 'Het vocabulaire van de markt, term voor term gedefinieerd',
-  'Portefeuille': 'Portefeuille',
   'Le marché en une figure, par taille et variation': 'De markt in één figuur, op omvang en verandering',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'Wat het marktsentiment meet, en wat niet',
   'Filtrer le marché sur vos propres critères': 'De markt filteren op je eigen criteria',
@@ -505,10 +501,8 @@ export const nlPhrases: Phrases = {
   Données: 'Gegevens',
   Analyse: 'Analyse',
   Actualités: 'Nieuws',
-  Plus: 'Meer',
 
   Palmarès: 'Ranglijsten',
-  Classements: 'Ranglijsten',
   'Le classement complet, page par page': 'De volledige ranglijst, pagina voor pagina',
   'Nouvelles cryptomonnaies': 'Nieuwe cryptomunten',
   'Les actifs référencés le plus récemment': 'De meest recent opgenomen activa',
@@ -534,7 +528,6 @@ export const nlPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Inflatie, werkloosheid, schuld: de staat van de economieën',
   Outils: 'Hulpmiddelen',
-  Screener: 'Screener',
   'Filtrer le marché sur vos critères': 'De markt filteren op uw criteria',
   Comparateur: 'Vergelijker',
   'Deux à quatre actifs côte à côte': 'Twee tot vier activa naast elkaar',
@@ -556,7 +549,6 @@ export const nlPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'Volglijst, meldingen en filters, overal terug te vinden',
 
-  Apprendre: 'Leren',
   'Comprendre les marchés, pas à pas': 'Markten begrijpen, stap voor stap',
   'Bien démarrer': 'Aan de slag',
   'Prendre en main ZENKUU en cinq minutes': 'ZENKUU in vijf minuten onder de knie',
@@ -979,7 +971,6 @@ export const nlPhrases: Phrases = {
   'Tous les sujets': 'Alle onderwerpen',
   'Tout réafficher': 'Alles weer tonen',
   'Toute prévision.': 'Elke voorspelling.',
-  'Toutes les catégories': 'Alle categorieën',
   'Toutes les cotations récentes': 'Alle recente noteringen',
   'Toutes les langues': 'Alle talen',
   'Toutes les métriques': 'Alle maatstaven',
@@ -1601,7 +1592,6 @@ export const nlPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Filterresultaten — kolommen “{set}”',
   'Trier par {column}': 'Sorteren op {column}',
   'Données & analyse': 'Data & analyse',
-  'Cryptomonnaies': "Cryptovaluta's",
   'Actions': 'Aandelen',
   'ETF': "ETF's",
   'Indices': 'Indices',
@@ -2774,8 +2764,6 @@ export const nlPhrases: Phrases = {
   'Tout masquer': 'Alles verbergen',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Instrumenten',
-  'Vues': 'Weergaven',
   'Le site': 'De site',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2784,13 +2772,9 @@ export const nlPhrases: Phrases = {
   'Actualités suivantes': 'Volgend nieuws',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'Alle cryptomunten',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'De negentienduizend gevolgde tokens, gerangschikt op kapitalisatie',
-  'Tous les classements': 'Alle klassementen',
   'Écart au plus haut': 'Afstand tot de piek',
-  'Plateformes au comptant': 'Spotplatforms',
   'Contrats dérivés': 'Derivatencontracten',
-  'Plateformes de dérivés': 'Derivatenplatforms',
   'Fiches thématiques': 'Themafiches',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2824,4 +2808,22 @@ export const nlPhrases: Phrases = {
   'Aujourd’hui': 'Vandaag',
   'Le marché dans le temps': 'De markt door de tijd heen',
   'Climat et rotation': 'Stemming en rotatie',
+  'Cryptoactifs': 'Crypto',
+  'Places de marché': 'Handelsplaatsen',
+  'Marchés traditionnels': 'Traditionele markten',
+  'Comprendre': 'Begrijpen',
+  'Mon suivi': 'Mijn overzicht',
+  'Plus loin': 'Verder kijken',
+  'Autres vues': 'Andere weergaven',
+  'Tout le marché': 'De hele markt',
+  'Tous les palmarès': 'Alle ranglijsten',
+  'Recherche filtrée': 'Gefilterd zoeken',
+  'Au comptant': 'Contant',
+  'Plateformes': 'Handelsplatformen',
+  'Portefeuille': 'Portefeuille',
+  Plus: 'Meer',
+  Classements: 'Ranglijsten',
+  Screener: 'Screener',
+  Apprendre: 'Leren',
+  'Cryptomonnaies': "Cryptovaluta's",
 }

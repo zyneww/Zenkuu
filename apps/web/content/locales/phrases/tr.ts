@@ -446,13 +446,10 @@ export const trPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'Koleksiyonlar ve taban fiyatları',
   'Deux actifs en regard, chiffre par chiffre': 'İki varlık yan yana, rakam rakam',
   'Un montant d’un actif vers une devise': 'Bir varlığın tutarını bir para birimine',
-  'Graphique global': 'Genel grafik',
   'Capitalisation, volume et dominance dans le temps': 'Zaman içinde piyasa değeri, hacim ve baskınlık',
-  'Plateformes': 'Borsalar',
   'Où les actifs se négocient, et à quel volume': 'Varlıkların nerede ve hangi hacimle işlem gördüğü',
   'Contrats à terme et perpétuels, par place': 'Vadeli ve süresiz sözleşmeler, borsa bazında',
   'Les plateformes spécialisées dans les perpétuels': 'Süresiz sözleşmelerde uzmanlaşmış borsalar',
-  'Actifs réels': 'Gerçek varlıklar',
   'Les actifs du monde réel portés par une chaîne': 'Bir zincir üzerinde taşınan gerçek dünya varlıkları',
   'Les valeurs cotées, cours et capitalisation': 'Borsada işlem gören hisseler, fiyatlar ve piyasa değeri',
   'Métaux, énergie et denrées': 'Metaller, enerji ve tarım ürünleri',
@@ -465,7 +462,6 @@ export const trPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'Ne hareketleniyor, hangi yayında',
   'Nos analyses de fond': 'Derinlemesine analizlerimiz',
   'Le vocabulaire du marché, défini terme par terme': 'Piyasanın sözcükleri, terim terim tanımlı',
-  'Portefeuille': 'Portföy',
   'Le marché en une figure, par taille et variation': 'Piyasa tek bir görselde, büyüklük ve değişime göre',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'Piyasa duyarlılığının ölçtüğü ve ölçmediği şeyler',
   'Filtrer le marché sur vos propres critères': 'Piyasayı kendi ölçütlerinize göre süzün',
@@ -505,10 +501,8 @@ export const trPhrases: Phrases = {
   Données: 'Veriler',
   Analyse: 'Analiz',
   Actualités: 'Haberler',
-  Plus: 'Daha fazla',
 
   Palmarès: 'Sıralamalar',
-  Classements: 'Sıralamalar',
   'Le classement complet, page par page': 'Sayfa sayfa tam sıralama',
   'Nouvelles cryptomonnaies': 'Yeni kripto paralar',
   'Les actifs référencés le plus récemment': 'En son eklenen varlıklar',
@@ -534,7 +528,6 @@ export const trPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Enflasyon, işsizlik, borç: ekonomilerin durumu',
   Outils: 'Araçlar',
-  Screener: 'Tarayıcı',
   'Filtrer le marché sur vos critères': 'Piyasayı kendi ölçütlerinize göre süzün',
   Comparateur: 'Karşılaştırıcı',
   'Deux à quatre actifs côte à côte': 'Yan yana iki ile dört varlık',
@@ -556,7 +549,6 @@ export const trPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'İzleme listesi, uyarılar ve filtreler — her yerde erişilebilir',
 
-  Apprendre: 'Öğren',
   'Comprendre les marchés, pas à pas': 'Piyasaları adım adım anlamak',
   'Bien démarrer': 'Başlarken',
   'Prendre en main ZENKUU en cinq minutes': 'Beş dakikada ZENKUU’yu kavrayın',
@@ -979,7 +971,6 @@ export const trPhrases: Phrases = {
   'Tous les sujets': 'Tüm konular',
   'Tout réafficher': 'Hepsini yeniden göster',
   'Toute prévision.': 'Her türlü tahmin.',
-  'Toutes les catégories': 'Tüm kategoriler',
   'Toutes les cotations récentes': 'Tüm yeni listelemeler',
   'Toutes les langues': 'Tüm diller',
   'Toutes les métriques': 'Tüm ölçütler',
@@ -1601,7 +1592,6 @@ export const trPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Süzme sonuçları — “{set}” sütunları',
   'Trier par {column}': '{column} ölçütüne göre sırala',
   'Données & analyse': 'Veri ve analiz',
-  'Cryptomonnaies': 'Kripto paralar',
   'Actions': 'Hisseler',
   'ETF': "ETF'ler",
   'Indices': 'Endeksler',
@@ -2774,8 +2764,6 @@ export const trPhrases: Phrases = {
   'Tout masquer': 'Tümünü gizle',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Araçlar',
-  'Vues': 'Görünümler',
   'Le site': 'Site',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2784,13 +2772,9 @@ export const trPhrases: Phrases = {
   'Actualités suivantes': 'Sonraki haberler',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'Tüm kripto paralar',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'İzlenen on dokuz bin jeton, piyasa değerine göre sıralanmış',
-  'Tous les classements': 'Tüm sıralamalar',
   'Écart au plus haut': 'Zirveye uzaklık',
-  'Plateformes au comptant': 'Spot platformlar',
   'Contrats dérivés': 'Türev sözleşmeler',
-  'Plateformes de dérivés': 'Türev platformlar',
   'Fiches thématiques': 'Konu kartları',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2824,4 +2808,22 @@ export const trPhrases: Phrases = {
   'Aujourd’hui': 'Bugün',
   'Le marché dans le temps': 'Zaman içinde piyasa',
   'Climat et rotation': 'Hava ve rotasyon',
+  'Cryptoactifs': 'Kripto',
+  'Places de marché': 'İşlem yerleri',
+  'Marchés traditionnels': 'Geleneksel piyasalar',
+  'Comprendre': 'Anlamak',
+  'Mon suivi': 'Takibim',
+  'Plus loin': 'Daha ileri',
+  'Autres vues': 'Diğer görünümler',
+  'Tout le marché': 'Tüm piyasa',
+  'Tous les palmarès': 'Tüm sıralamalar',
+  'Recherche filtrée': 'Filtreli arama',
+  'Au comptant': 'Spot',
+  'Plateformes': 'Borsalar',
+  'Portefeuille': 'Portföy',
+  Plus: 'Daha fazla',
+  Classements: 'Sıralamalar',
+  Screener: 'Tarayıcı',
+  Apprendre: 'Öğren',
+  'Cryptomonnaies': 'Kripto paralar',
 }

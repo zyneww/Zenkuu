@@ -446,13 +446,10 @@ export const viPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'Các bộ sưu tập và giá sàn của chúng',
   'Deux actifs en regard, chiffre par chiffre': 'Hai tài sản đặt cạnh nhau, từng con số',
   'Un montant d’un actif vers une devise': 'Một lượng tài sản sang một loại tiền',
-  'Graphique global': 'Biểu đồ toàn thị trường',
   'Capitalisation, volume et dominance dans le temps': 'Vốn hóa, khối lượng và mức thống trị theo thời gian',
-  'Plateformes': 'Sàn giao dịch',
   'Où les actifs se négocient, et à quel volume': 'Tài sản được giao dịch ở đâu và với khối lượng nào',
   'Contrats à terme et perpétuels, par place': 'Hợp đồng tương lai và vĩnh cửu, theo sàn',
   'Les plateformes spécialisées dans les perpétuels': 'Các sàn chuyên về hợp đồng vĩnh cửu',
-  'Actifs réels': 'Tài sản thực',
   'Les actifs du monde réel portés par une chaîne': 'Tài sản thực được đưa lên chuỗi',
   'Les valeurs cotées, cours et capitalisation': 'Cổ phiếu niêm yết, giá và vốn hóa',
   'Métaux, énergie et denrées': 'Kim loại, năng lượng và nông sản',
@@ -465,7 +462,6 @@ export const viPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'Điều gì đang diễn ra, và ở đơn vị nào',
   'Nos analyses de fond': 'Các phân tích chuyên sâu của chúng tôi',
   'Le vocabulaire du marché, défini terme par terme': 'Từ vựng thị trường, định nghĩa từng thuật ngữ',
-  'Portefeuille': 'Danh mục',
   'Le marché en une figure, par taille et variation': 'Toàn thị trường trong một hình, theo quy mô và biến động',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'Tâm lý thị trường đo được gì, và không đo được gì',
   'Filtrer le marché sur vos propres critères': 'Lọc thị trường theo tiêu chí của bạn',
@@ -505,10 +501,8 @@ export const viPhrases: Phrases = {
   Données: 'Dữ liệu',
   Analyse: 'Phân tích',
   Actualités: 'Tin tức',
-  Plus: 'Thêm',
 
   Palmarès: 'Bảng xếp hạng',
-  Classements: 'Bảng xếp hạng',
   'Le classement complet, page par page': 'Bảng xếp hạng đầy đủ, từng trang một',
   'Nouvelles cryptomonnaies': 'Tiền mã hoá mới',
   'Les actifs référencés le plus récemment': 'Những tài sản được thêm gần đây nhất',
@@ -534,7 +528,6 @@ export const viPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Lạm phát, thất nghiệp, nợ công: tình trạng các nền kinh tế',
   Outils: 'Công cụ',
-  Screener: 'Bộ lọc',
   'Filtrer le marché sur vos critères': 'Lọc thị trường theo tiêu chí của bạn',
   Comparateur: 'So sánh',
   'Deux à quatre actifs côte à côte': 'Từ hai đến bốn tài sản cạnh nhau',
@@ -556,7 +549,6 @@ export const viPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'Danh sách theo dõi, cảnh báo và bộ lọc — có mặt ở mọi nơi',
 
-  Apprendre: 'Học',
   'Comprendre les marchés, pas à pas': 'Hiểu thị trường, từng bước một',
   'Bien démarrer': 'Bắt đầu',
   'Prendre en main ZENKUU en cinq minutes': 'Làm quen với ZENKUU trong năm phút',
@@ -979,7 +971,6 @@ export const viPhrases: Phrases = {
   'Tous les sujets': 'Tất cả chủ đề',
   'Tout réafficher': 'Hiện lại tất cả',
   'Toute prévision.': 'Mọi dự báo.',
-  'Toutes les catégories': 'Tất cả nhóm ngành',
   'Toutes les cotations récentes': 'Tất cả niêm yết gần đây',
   'Toutes les langues': 'Tất cả ngôn ngữ',
   'Toutes les métriques': 'Tất cả chỉ số',
@@ -1601,7 +1592,6 @@ export const viPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Kết quả lọc — cột “{set}”',
   'Trier par {column}': 'Sắp xếp theo {column}',
   'Données & analyse': 'Dữ liệu và phân tích',
-  'Cryptomonnaies': 'Tiền mã hóa',
   'Actions': 'Cổ phiếu',
   'ETF': 'ETF',
   'Indices': 'Chỉ số',
@@ -2774,8 +2764,6 @@ export const viPhrases: Phrases = {
   'Tout masquer': 'Ẩn tất cả',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Công cụ',
-  'Vues': 'Góc nhìn',
   'Le site': 'Trang này',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2784,13 +2772,9 @@ export const viPhrases: Phrases = {
   'Actualités suivantes': 'Tin tiếp theo',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'Tất cả tiền mã hóa',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Mười chín nghìn token được theo dõi, xếp theo vốn hóa',
-  'Tous les classements': 'Tất cả bảng xếp hạng',
   'Écart au plus haut': 'Khoảng cách tới đỉnh',
-  'Plateformes au comptant': 'Sàn giao ngay',
   'Contrats dérivés': 'Hợp đồng phái sinh',
-  'Plateformes de dérivés': 'Sàn phái sinh',
   'Fiches thématiques': 'Phiếu chuyên đề',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2824,4 +2808,22 @@ export const viPhrases: Phrases = {
   'Aujourd’hui': 'Hôm nay',
   'Le marché dans le temps': 'Thị trường theo thời gian',
   'Climat et rotation': 'Tâm lý và sự luân chuyển',
+  'Cryptoactifs': 'Tiền mã hóa',
+  'Places de marché': 'Nơi giao dịch',
+  'Marchés traditionnels': 'Thị trường truyền thống',
+  'Comprendre': 'Tìm hiểu',
+  'Mon suivi': 'Theo dõi của tôi',
+  'Plus loin': 'Đi xa hơn',
+  'Autres vues': 'Các dạng xem khác',
+  'Tout le marché': 'Toàn bộ thị trường',
+  'Tous les palmarès': 'Tất cả bảng xếp hạng',
+  'Recherche filtrée': 'Tìm kiếm có lọc',
+  'Au comptant': 'Giao ngay',
+  'Plateformes': 'Sàn giao dịch',
+  'Portefeuille': 'Danh mục',
+  Plus: 'Thêm',
+  Classements: 'Bảng xếp hạng',
+  Screener: 'Bộ lọc',
+  Apprendre: 'Học',
+  'Cryptomonnaies': 'Tiền mã hóa',
 }

@@ -457,13 +457,10 @@ export const enPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'Collections and their floor prices',
   'Deux actifs en regard, chiffre par chiffre': 'Two assets side by side, figure by figure',
   'Un montant d’un actif vers une devise': 'An amount of one asset into a currency',
-  'Graphique global': 'Global chart',
   'Capitalisation, volume et dominance dans le temps': 'Market cap, volume and dominance over time',
-  'Plateformes': 'Exchanges',
   'Où les actifs se négocient, et à quel volume': 'Where assets trade, and at what volume',
   'Contrats à terme et perpétuels, par place': 'Futures and perpetuals, by venue',
   'Les plateformes spécialisées dans les perpétuels': 'The venues specialised in perpetuals',
-  'Actifs réels': 'Real-world assets',
   'Les actifs du monde réel portés par une chaîne': 'Real-world assets carried on a chain',
   'Les valeurs cotées, cours et capitalisation': 'Listed equities, prices and market caps',
   'Métaux, énergie et denrées': 'Metals, energy and agricultural goods',
@@ -476,7 +473,6 @@ export const enPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'What is moving, and from which publisher',
   'Nos analyses de fond': 'Our in-depth analysis',
   'Le vocabulaire du marché, défini terme par terme': 'The market’s vocabulary, defined term by term',
-  'Portefeuille': 'Portfolio',
   'Le marché en une figure, par taille et variation': 'The market in one figure, by size and change',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'What market sentiment measures, and what it does not',
   'Filtrer le marché sur vos propres critères': 'Filter the market on your own criteria',
@@ -517,10 +513,8 @@ export const enPhrases: Phrases = {
   Données: 'Data',
   Analyse: 'Analysis',
   Actualités: 'News',
-  Plus: 'More',
 
   Palmarès: 'Rankings',
-  Classements: 'Rankings',
   'Le classement complet, page par page': 'The full ranking, page by page',
   'Nouvelles cryptomonnaies': 'New cryptocurrencies',
   'Les actifs référencés le plus récemment': 'The most recently listed assets',
@@ -546,7 +540,6 @@ export const enPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Inflation, unemployment, debt: the state of economies',
   Outils: 'Tools',
-  Screener: 'Screener',
   'Filtrer le marché sur vos critères': 'Filter the market on your own criteria',
   Comparateur: 'Comparator',
   'Deux à quatre actifs côte à côte': 'Two to four assets side by side',
@@ -568,7 +561,6 @@ export const enPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'Watchlist, alerts and screens, found everywhere',
 
-  Apprendre: 'Learn',
   'Comprendre les marchés, pas à pas': 'Understanding markets, step by step',
   'Bien démarrer': 'Getting started',
   'Prendre en main ZENKUU en cinq minutes': 'Get to grips with ZENKUU in five minutes',
@@ -991,7 +983,6 @@ export const enPhrases: Phrases = {
   'Tous les sujets': 'All topics',
   'Tout réafficher': 'Show everything again',
   'Toute prévision.': 'Any forecast.',
-  'Toutes les catégories': 'All categories',
   'Toutes les cotations récentes': 'All recent listings',
   'Toutes les langues': 'All languages',
   'Toutes les métriques': 'All metrics',
@@ -1613,7 +1604,6 @@ export const enPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Filter results — “{set}” columns',
   'Trier par {column}': 'Sort by {column}',
   'Données & analyse': 'Data & analysis',
-  'Cryptomonnaies': 'Cryptocurrencies',
   'Actions': 'Stocks',
   'ETF': 'ETFs',
   'Indices': 'Indices',
@@ -2786,8 +2776,6 @@ export const enPhrases: Phrases = {
   'Tout masquer': 'Hide all',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Instruments',
-  'Vues': 'Views',
   'Le site': 'The site',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2796,13 +2784,9 @@ export const enPhrases: Phrases = {
   'Actualités suivantes': 'Next news',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'All cryptocurrencies',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'The nineteen thousand tokens tracked, ranked by capitalisation',
-  'Tous les classements': 'All rankings',
   'Écart au plus haut': 'Gap to the high',
-  'Plateformes au comptant': 'Spot venues',
   'Contrats dérivés': 'Derivative contracts',
-  'Plateformes de dérivés': 'Derivative venues',
   'Fiches thématiques': 'Topic guides',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2836,4 +2820,22 @@ export const enPhrases: Phrases = {
   'Aujourd’hui': 'Today',
   'Le marché dans le temps': 'The market over time',
   'Climat et rotation': 'Mood and rotation',
+  'Cryptoactifs': 'Crypto',
+  'Places de marché': 'Trading venues',
+  'Marchés traditionnels': 'Traditional markets',
+  'Comprendre': 'Understand',
+  'Mon suivi': 'My tracking',
+  'Plus loin': 'Going further',
+  'Autres vues': 'Other views',
+  'Tout le marché': 'The whole market',
+  'Tous les palmarès': 'All leaderboards',
+  'Recherche filtrée': 'Filtered search',
+  'Au comptant': 'Spot',
+  'Plateformes': 'Exchanges',
+  'Portefeuille': 'Portfolio',
+  Plus: 'More',
+  Classements: 'Rankings',
+  Screener: 'Screener',
+  Apprendre: 'Learn',
+  'Cryptomonnaies': 'Cryptocurrencies',
 }

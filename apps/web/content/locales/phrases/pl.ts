@@ -446,13 +446,10 @@ export const plPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'Kolekcje i ich ceny minimalne',
   'Deux actifs en regard, chiffre par chiffre': 'Dwa aktywa obok siebie, liczba po liczbie',
   'Un montant d’un actif vers une devise': 'Kwota jednego aktywa na walutę',
-  'Graphique global': 'Wykres globalny',
   'Capitalisation, volume et dominance dans le temps': 'Kapitalizacja, wolumen i dominacja w czasie',
-  'Plateformes': 'Giełdy',
   'Où les actifs se négocient, et à quel volume': 'Gdzie handluje się aktywami i z jakim wolumenem',
   'Contrats à terme et perpétuels, par place': 'Kontrakty terminowe i wieczyste, według giełdy',
   'Les plateformes spécialisées dans les perpétuels': 'Giełdy wyspecjalizowane w kontraktach wieczystych',
-  'Actifs réels': 'Aktywa rzeczywiste',
   'Les actifs du monde réel portés par une chaîne': 'Aktywa świata rzeczywistego zapisane na łańcuchu',
   'Les valeurs cotées, cours et capitalisation': 'Spółki giełdowe, kursy i kapitalizacja',
   'Métaux, énergie et denrées': 'Metale, energia i płody rolne',
@@ -465,7 +462,6 @@ export const plPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'Co się dzieje i u którego wydawcy',
   'Nos analyses de fond': 'Nasze analizy pogłębione',
   'Le vocabulaire du marché, défini terme par terme': 'Słownictwo rynku, zdefiniowane termin po terminie',
-  'Portefeuille': 'Portfel',
   'Le marché en une figure, par taille et variation': 'Rynek na jednym obrazie, według wielkości i zmiany',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'Co mierzy nastrój rynku, a czego nie',
   'Filtrer le marché sur vos propres critères': 'Filtruj rynek według własnych kryteriów',
@@ -505,10 +501,8 @@ export const plPhrases: Phrases = {
   Données: 'Dane',
   Analyse: 'Analiza',
   Actualités: 'Aktualności',
-  Plus: 'Więcej',
 
   Palmarès: 'Rankingi',
-  Classements: 'Rankingi',
   'Le classement complet, page par page': 'Pełny ranking, strona po stronie',
   'Nouvelles cryptomonnaies': 'Nowe kryptowaluty',
   'Les actifs référencés le plus récemment': 'Najnowsze notowane aktywa',
@@ -534,7 +528,6 @@ export const plPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Inflacja, bezrobocie, dług: stan gospodarek',
   Outils: 'Narzędzia',
-  Screener: 'Skaner',
   'Filtrer le marché sur vos critères': 'Filtrowanie rynku według własnych kryteriów',
   Comparateur: 'Porównywarka',
   'Deux à quatre actifs côte à côte': 'Od dwóch do czterech aktywów obok siebie',
@@ -556,7 +549,6 @@ export const plPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'Lista obserwowanych, alerty i filtry — dostępne wszędzie',
 
-  Apprendre: 'Nauka',
   'Comprendre les marchés, pas à pas': 'Zrozumieć rynki, krok po kroku',
   'Bien démarrer': 'Pierwsze kroki',
   'Prendre en main ZENKUU en cinq minutes': 'Poznaj ZENKUU w pięć minut',
@@ -979,7 +971,6 @@ export const plPhrases: Phrases = {
   'Tous les sujets': 'Wszystkie tematy',
   'Tout réafficher': 'Pokaż znów wszystko',
   'Toute prévision.': 'Wszelkie prognozy.',
-  'Toutes les catégories': 'Wszystkie kategorie',
   'Toutes les cotations récentes': 'Wszystkie najnowsze notowania',
   'Toutes les langues': 'Wszystkie języki',
   'Toutes les métriques': 'Wszystkie wskaźniki',
@@ -1601,7 +1592,6 @@ export const plPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Wyniki filtra — kolumny „{set}”',
   'Trier par {column}': 'Sortuj według {column}',
   'Données & analyse': 'Dane i analiza',
-  'Cryptomonnaies': 'Kryptowaluty',
   'Actions': 'Akcje',
   'ETF': 'ETF-y',
   'Indices': 'Indeksy',
@@ -2774,8 +2764,6 @@ export const plPhrases: Phrases = {
   'Tout masquer': 'Ukryj wszystko',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Narzędzia',
-  'Vues': 'Widoki',
   'Le site': 'Serwis',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2784,13 +2772,9 @@ export const plPhrases: Phrases = {
   'Actualités suivantes': 'Następne wiadomości',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'Wszystkie kryptowaluty',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Dziewiętnaście tysięcy śledzonych tokenów, uszeregowanych według kapitalizacji',
-  'Tous les classements': 'Wszystkie rankingi',
   'Écart au plus haut': 'Odległość od maksimum',
-  'Plateformes au comptant': 'Platformy spot',
   'Contrats dérivés': 'Kontrakty pochodne',
-  'Plateformes de dérivés': 'Platformy instrumentów pochodnych',
   'Fiches thématiques': 'Karty tematyczne',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2824,4 +2808,22 @@ export const plPhrases: Phrases = {
   'Aujourd’hui': 'Dzisiaj',
   'Le marché dans le temps': 'Rynek w czasie',
   'Climat et rotation': 'Nastroje i rotacja',
+  'Cryptoactifs': 'Krypto',
+  'Places de marché': 'Miejsca obrotu',
+  'Marchés traditionnels': 'Rynki tradycyjne',
+  'Comprendre': 'Zrozumieć',
+  'Mon suivi': 'Moje obserwacje',
+  'Plus loin': 'Dalej',
+  'Autres vues': 'Inne widoki',
+  'Tout le marché': 'Cały rynek',
+  'Tous les palmarès': 'Wszystkie rankingi',
+  'Recherche filtrée': 'Wyszukiwanie z filtrami',
+  'Au comptant': 'Kasowy',
+  'Plateformes': 'Giełdy',
+  'Portefeuille': 'Portfel',
+  Plus: 'Więcej',
+  Classements: 'Rankingi',
+  Screener: 'Skaner',
+  Apprendre: 'Nauka',
+  'Cryptomonnaies': 'Kryptowaluty',
 }

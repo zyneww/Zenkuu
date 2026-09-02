@@ -452,13 +452,10 @@ export const esPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'Las colecciones y sus precios mínimos',
   'Deux actifs en regard, chiffre par chiffre': 'Dos activos frente a frente, cifra por cifra',
   'Un montant d’un actif vers une devise': 'Un importe de un activo a una divisa',
-  'Graphique global': 'Gráfico global',
   'Capitalisation, volume et dominance dans le temps': 'Capitalización, volumen y dominancia a lo largo del tiempo',
-  'Plateformes': 'Plataformas',
   'Où les actifs se négocient, et à quel volume': 'Dónde se negocian los activos, y con qué volumen',
   'Contrats à terme et perpétuels, par place': 'Futuros y perpetuos, por plataforma',
   'Les plateformes spécialisées dans les perpétuels': 'Las plataformas especializadas en perpetuos',
-  'Actifs réels': 'Activos reales',
   'Les actifs du monde réel portés par une chaîne': 'Los activos del mundo real soportados por una cadena',
   'Les valeurs cotées, cours et capitalisation': 'Los valores cotizados, cotizaciones y capitalización',
   'Métaux, énergie et denrées': 'Metales, energía y productos agrícolas',
@@ -471,7 +468,6 @@ export const esPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': 'Lo que se mueve, y en qué medio',
   'Nos analyses de fond': 'Nuestros análisis de fondo',
   'Le vocabulaire du marché, défini terme par terme': 'El vocabulario del mercado, definido término a término',
-  'Portefeuille': 'Cartera',
   'Le marché en une figure, par taille et variation': 'El mercado en una figura, por tamaño y variación',
   'Ce que l’humeur du marché mesure, et ne mesure pas': 'Lo que mide el ánimo del mercado, y lo que no mide',
   'Filtrer le marché sur vos propres critères': 'Filtrar el mercado según tus propios criterios',
@@ -512,10 +508,8 @@ export const esPhrases: Phrases = {
   Données: 'Datos',
   Analyse: 'Análisis',
   Actualités: 'Noticias',
-  Plus: 'Más',
 
   Palmarès: 'Clasificaciones',
-  Classements: 'Clasificaciones',
   'Le classement complet, page par page': 'La clasificación completa, página a página',
   'Nouvelles cryptomonnaies': 'Nuevas criptomonedas',
   'Les actifs référencés le plus récemment': 'Los activos incorporados más recientemente',
@@ -541,7 +535,6 @@ export const esPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'Inflación, desempleo, deuda: el estado de las economías',
   Outils: 'Herramientas',
-  Screener: 'Screener',
   'Filtrer le marché sur vos critères': 'Filtrar el mercado según sus criterios',
   Comparateur: 'Comparador',
   'Deux à quatre actifs côte à côte': 'De dos a cuatro activos uno al lado del otro',
@@ -563,7 +556,6 @@ export const esPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'Lista de seguimiento, alertas y pantallas, disponibles en todas partes',
 
-  Apprendre: 'Aprender',
   'Comprendre les marchés, pas à pas': 'Entender los mercados, paso a paso',
   'Bien démarrer': 'Primeros pasos',
   'Prendre en main ZENKUU en cinq minutes': 'Familiarizarse con ZENKUU en cinco minutos',
@@ -986,7 +978,6 @@ export const esPhrases: Phrases = {
   'Tous les sujets': 'Todos los temas',
   'Tout réafficher': 'Volver a mostrar todo',
   'Toute prévision.': 'Cualquier previsión.',
-  'Toutes les catégories': 'Todas las categorías',
   'Toutes les cotations récentes': 'Todas las cotizaciones recientes',
   'Toutes les langues': 'Todos los idiomas',
   'Toutes les métriques': 'Todas las métricas',
@@ -1608,7 +1599,6 @@ export const esPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': 'Resultados del filtro — columnas «{set}»',
   'Trier par {column}': 'Ordenar por {column}',
   'Données & analyse': 'Datos y análisis',
-  'Cryptomonnaies': 'Criptomonedas',
   'Actions': 'Acciones',
   'ETF': 'ETF',
   'Indices': 'Índices',
@@ -2781,8 +2771,6 @@ export const esPhrases: Phrases = {
   'Tout masquer': 'Ocultar todo',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'Instrumentos',
-  'Vues': 'Vistas',
   'Le site': 'El sitio',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2791,13 +2779,9 @@ export const esPhrases: Phrases = {
   'Actualités suivantes': 'Noticias siguientes',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'Todas las criptomonedas',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Los diecinueve mil tokens seguidos, ordenados por capitalización',
-  'Tous les classements': 'Todas las clasificaciones',
   'Écart au plus haut': 'Diferencia con el máximo',
-  'Plateformes au comptant': 'Plataformas al contado',
   'Contrats dérivés': 'Contratos derivados',
-  'Plateformes de dérivés': 'Plataformas de derivados',
   'Fiches thématiques': 'Fichas temáticas',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2831,4 +2815,22 @@ export const esPhrases: Phrases = {
   'Aujourd’hui': 'Hoy',
   'Le marché dans le temps': 'El mercado a lo largo del tiempo',
   'Climat et rotation': 'Clima y rotación',
+  'Cryptoactifs': 'Cripto',
+  'Places de marché': 'Plazas de mercado',
+  'Marchés traditionnels': 'Mercados tradicionales',
+  'Comprendre': 'Entender',
+  'Mon suivi': 'Mi seguimiento',
+  'Plus loin': 'Ir más lejos',
+  'Autres vues': 'Otras vistas',
+  'Tout le marché': 'Todo el mercado',
+  'Tous les palmarès': 'Todas las clasificaciones',
+  'Recherche filtrée': 'Búsqueda filtrada',
+  'Au comptant': 'Al contado',
+  'Plateformes': 'Plataformas',
+  'Portefeuille': 'Cartera',
+  Plus: 'Más',
+  Classements: 'Clasificaciones',
+  Screener: 'Screener',
+  Apprendre: 'Aprender',
+  'Cryptomonnaies': 'Criptomonedas',
 }

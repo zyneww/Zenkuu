@@ -123,7 +123,7 @@ export const NAV_MENUS: NavMenu[] = [
    * adresse. La structure de la référence leur donne une place.
    */
   {
-    label: 'Cryptomonnaies',
+    label: 'Cryptoactifs',
     /* ══════════════════════════════════════════════════════════════════════
        LES INTITULÉS DE SECTION NOMMENT UN TYPE DE CONTENU, TOUS DE LA MÊME FAÇON
 
@@ -156,7 +156,7 @@ export const NAV_MENUS: NavMenu[] = [
        ══════════════════════════════════════════════════════════════════════ */
     sections: [
       {
-        label: 'Classements',
+        label: 'Palmarès',
         /* ── L'ORDRE SUIT L'USAGE, PUIS REGROUPE CE QUI DÉPASSE ────────────────
 
            Il était celui de la référence, et il mélangeait deux choses. Les cinq
@@ -178,7 +178,7 @@ export const NAV_MENUS: NavMenu[] = [
             /* « Par capitalisation » nommait un TRI, pas un contenu — et le MÊME
                libellé servait dans le menu « Actifs réels » pour une page sans rapport.
                Deux entrées de même nom menant à deux endroits différents. */
-            label: 'Toutes les cryptomonnaies',
+            label: 'Tout le marché',
             description: 'Les dix-neuf mille jetons suivis, classés par capitalisation',
             icon: Coins,
             href: '/crypto',
@@ -194,7 +194,7 @@ export const NAV_MENUS: NavMenu[] = [
           {
             /* La page s'intitule « Classements crypto » et réunit les quatre
                palmarès. « Points forts » ne disait ni l'un ni l'autre. */
-            label: 'Tous les classements',
+            label: 'Tous les palmarès',
             description: 'Hausses, baisses, volumes et rotation, au même endroit',
             icon: Trophy,
             href: '/classements',
@@ -238,7 +238,7 @@ export const NAV_MENUS: NavMenu[] = [
         label: 'Secteurs',
         items: [
           {
-            label: 'Toutes les catégories',
+            label: 'Tous les secteurs',
             description: 'Les secteurs du marché, classés par capitalisation',
             icon: Layers,
             href: '/categories',
@@ -268,7 +268,7 @@ export const NAV_MENUS: NavMenu[] = [
         ],
       },
       {
-        label: 'Instruments',
+        label: 'Outils',
         items: [
           {
             /* ── LE SCREENER A CHANGÉ DE MENU ──────────────────────────────────
@@ -280,7 +280,7 @@ export const NAV_MENUS: NavMenu[] = [
                partage ce métier, et quitte un menu fourre-tout où personne ne pense à
                le chercher. Il ouvre la section : des trois, c'est celui qu'on ouvre le
                plus souvent. */
-            label: 'Screener',
+            label: 'Recherche filtrée',
             description: 'Filtrer le marché sur vos propres critères',
             icon: Filter,
             href: '/screener',
@@ -301,7 +301,7 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
-            label: 'Graphique global',
+            label: 'Vue d’ensemble',
             description: 'Capitalisation, volume et dominance dans le temps',
             icon: LineChart,
             href: '/graphiques',
@@ -311,72 +311,8 @@ export const NAV_MENUS: NavMenu[] = [
       },
     ],
   },
-
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * « PLATEFORMES » — LEUR DEUXIÈME RUBRIQUE
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * Leur panneau : Crypto Exchanges, Decentralized Exchanges, Derivatives, Perp
-   * DEXs. Trois sur quatre ont un équivalent ; ZENKUU n'a pas de liste de places
-   * décentralisées — `/pool/[network]/[address]` décrit UNE réserve, pas un
-   * classement de plateformes.
-   *
-   * Quatre entrées ne remplissent pas trois colonnes : la section n'a donc pas de
-   * libellé, comme chez eux, où ce panneau est une liste simple.
-   */
   {
-    label: 'Plateformes',
-    sections: [
-      {
-        items: [
-          {
-            /* Les trois entrées de ce menu portaient des noms qu'on ne pouvait pas
-               distinguer : « Dérivés » et « Places de dérivés » l'un sous l'autre.
-               Elles disent maintenant ce qu'elles LISTENT — des plateformes ou des
-               contrats —, ce que leurs pages annoncent déjà en titre. */
-            label: 'Plateformes au comptant',
-            description: 'Où les actifs se négocient, et à quel volume',
-            icon: Landmark,
-            href: '/places',
-            ready: true,
-          },
-          {
-            label: 'Contrats dérivés',
-            description: 'Contrats à terme et perpétuels, par place',
-            icon: CandlestickChart,
-            href: '/derives',
-            ready: true,
-          },
-          {
-            label: 'Plateformes de dérivés',
-            description: 'Les plateformes spécialisées dans les perpétuels',
-            icon: Building2,
-            href: '/perpetuels',
-            ready: true,
-          },
-        ],
-      },
-    ],
-  },
-
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * « ACTIFS RÉELS » — C'EST LEUR RUBRIQUE « RWA », ET ELLE ABSORBE TRADFI
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * Découverte du relevé : chez eux, les actions, les matières premières et les ETF
-   * ne forment PAS une rubrique séparée. Ils vivent sous « RWA » — By Market Cap,
-   * Stocks, Commodities, ETFs, Global Chart — parce que ce sont des actifs du monde
-   * réel tokenisés.
-   *
-   * Le menu « TradFi » de ZENKUU disparaît donc, et ses cinq classes le rejoignent.
-   * Indices et devises s'y ajoutent : ils n'ont pas d'entrée chez la référence, mais
-   * ce sont des pages construites qui relèvent de la même famille, et les laisser
-   * hors du menu les rendrait inatteignables.
-   */
-  {
-    label: 'Actifs réels',
+    label: 'Marchés traditionnels',
     sections: [
       {
         items: [
@@ -432,24 +368,47 @@ export const NAV_MENUS: NavMenu[] = [
       },
     ],
   },
-
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * « APPRENDRE » — LEUR RUBRIQUE « LEARN »
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * Leur panneau : Learn Crypto, Research Insights, News, Reports, Learn & Earn,
-   * Videos, Newsletter, Glossary. Quatre sur huit ont un équivalent. Les quatre
-   * autres sont des produits — un programme de récompenses, une chaîne vidéo, une
-   * lettre d'information, un cabinet de recherche — pas des pages de données.
-   *
-   * Le glossaire A une entrée depuis le 2026-08-31. Cette note disait le contraire —
-   * « pas d'index : `/resoudre/[terme]` définit UN terme, sans page qui les liste » —
-   * et c'était vrai : les 32 définitions vivaient en SECTION de `/apprendre`. Elles
-   * ont leur propre route, comme le `/glossary` de la référence.
-   */
   {
-    label: 'Apprendre',
+    label: 'Places de marché',
+    sections: [
+      {
+        items: [
+          {
+            /* Les trois entrées de ce menu portaient des noms qu'on ne pouvait pas
+               distinguer : « Dérivés » et « Places de dérivés » l'un sous l'autre.
+               Elles disent maintenant ce qu'elles LISTENT — des plateformes ou des
+               contrats —, ce que leurs pages annoncent déjà en titre. */
+            label: 'Au comptant',
+            description: 'Où les actifs se négocient, et à quel volume',
+            icon: Landmark,
+            href: '/places',
+            ready: true,
+          },
+          {
+            label: 'Contrats dérivés',
+            description: 'Contrats à terme et perpétuels, par place',
+            icon: CandlestickChart,
+            href: '/derives',
+            ready: true,
+          },
+          {
+            label: 'Places de dérivés',
+            description: 'Les plateformes spécialisées dans les perpétuels',
+            icon: Building2,
+            href: '/perpetuels',
+            ready: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Mon suivi',
+    href: '/tableau-de-bord',
+    sections: [],
+  },
+  {
+    label: 'Comprendre',
     sections: [
       {
         items: [
@@ -494,41 +453,11 @@ export const NAV_MENUS: NavMenu[] = [
       },
     ],
   },
-
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * « PORTEFEUILLE » — UN LIEN, PAS UN PANNEAU
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * Leur rubrique « Portfolio » déroule My Coins / My NFTs / Overview. Ici, une
-   * seule page porte les trois : dérouler un panneau d'une entrée ferait choisir
-   * pour ne rien choisir. `href` sans `sections` — voir la note du type.
-   */
   {
-    label: 'Portefeuille',
-    href: '/tableau-de-bord',
-    sections: [],
-  },
-
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * « PLUS » — CE QUE ZENKUU A ET QUE LA RÉFÉRENCE N'A PAS
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * La référence a une rubrique de produits (application, publicité, widget,
-   * GeckoTerminal) : cette place existe donc dans sa structure. On y range ce qui
-   * n'a pas d'équivalent chez elle plutôt que de le retirer du menu.
-   *
-   * ⚠️ CE N'EST PAS UN FOURRE-TOUT PAR DÉFAUT. Chaque entrée mène à une page
-   * CONSTRUITE que la nouvelle structure laisserait autrement inatteignable : carte
-   * thermique, indice de sentiment, screener, macroéconomie, rachats. Les orpheliner
-   * pour gagner une rubrique coûterait plus qu'une sixième entrée dans la barre.
-   */
-  {
-    label: 'Plus',
+    label: 'Plus loin',
     sections: [
       {
-        label: 'Vues',
+        label: 'Autres vues',
         items: [
           {
             label: 'Carte thermique',

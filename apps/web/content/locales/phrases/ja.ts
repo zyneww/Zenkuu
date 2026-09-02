@@ -446,13 +446,10 @@ export const jaPhrases: Phrases = {
   'Les collections et leurs prix planchers': 'コレクションとそのフロア価格',
   'Deux actifs en regard, chiffre par chiffre': '2つの銘柄を、数字ごとに並べて',
   'Un montant d’un actif vers une devise': 'ある銘柄の数量を通貨に',
-  'Graphique global': '全体チャート',
   'Capitalisation, volume et dominance dans le temps': '時価総額・出来高・ドミナンスの推移',
-  'Plateformes': '取引所',
   'Où les actifs se négocient, et à quel volume': 'どこで、どれだけ取引されているか',
   'Contrats à terme et perpétuels, par place': '先物と無期限契約を、取引所ごとに',
   'Les plateformes spécialisées dans les perpétuels': '無期限契約に特化した取引所',
-  'Actifs réels': '実物資産',
   'Les actifs du monde réel portés par une chaîne': 'チェーン上に載った実物資産',
   'Les valeurs cotées, cours et capitalisation': '上場銘柄の株価と時価総額',
   'Métaux, énergie et denrées': '金属・エネルギー・農産物',
@@ -465,7 +462,6 @@ export const jaPhrases: Phrases = {
   'Ce qui bouge, et chez quel éditeur': '何が動いているか、どの媒体で',
   'Nos analyses de fond': '掘り下げた分析',
   'Le vocabulaire du marché, défini terme par terme': '市場の用語を、ひとつずつ定義',
-  'Portefeuille': 'ポートフォリオ',
   'Le marché en une figure, par taille et variation': '規模と変動で見る、市場全体の図',
   'Ce que l’humeur du marché mesure, et ne mesure pas': '市場心理が測るもの、測らないもの',
   'Filtrer le marché sur vos propres critères': '自分の条件で市場を絞り込む',
@@ -505,10 +501,8 @@ export const jaPhrases: Phrases = {
   Données: 'データ',
   Analyse: '分析',
   Actualités: 'ニュース',
-  Plus: 'その他',
 
   Palmarès: 'ランキング',
-  Classements: 'ランキング',
   'Le classement complet, page par page': '全銘柄のランキングをページごとに',
   'Nouvelles cryptomonnaies': '新しい暗号資産',
   'Les actifs référencés le plus récemment': '直近に掲載された銘柄',
@@ -534,7 +528,6 @@ export const jaPhrases: Phrases = {
   'Inflation, chômage, dette : l’état des économies':
     'インフレ、失業、債務 — 各国経済の状態',
   Outils: 'ツール',
-  Screener: 'スクリーナー',
   'Filtrer le marché sur vos critères': '自分の条件で市場を絞り込む',
   Comparateur: '比較',
   'Deux à quatre actifs côte à côte': '2〜4 銘柄を並べて比較',
@@ -556,7 +549,6 @@ export const jaPhrases: Phrases = {
   'Liste de suivi, alertes et écrans, retrouvés partout':
     'ウォッチリスト、アラート、絞り込み条件をどこからでも',
 
-  Apprendre: '学ぶ',
   'Comprendre les marchés, pas à pas': '市場を一歩ずつ理解する',
   'Bien démarrer': 'はじめかた',
   'Prendre en main ZENKUU en cinq minutes': '5 分でわかる ZENKUU',
@@ -979,7 +971,6 @@ export const jaPhrases: Phrases = {
   'Tous les sujets': 'すべての話題',
   'Tout réafficher': 'すべて再表示',
   'Toute prévision.': 'あらゆる予測。',
-  'Toutes les catégories': 'すべてのカテゴリー',
   'Toutes les cotations récentes': '最近の上場すべて',
   'Toutes les langues': 'すべての言語',
   'Toutes les métriques': 'すべての指標',
@@ -1601,7 +1592,6 @@ export const jaPhrases: Phrases = {
   'Résultats du filtre — colonnes « {set} »': '絞り込み結果 — 列「{set}」',
   'Trier par {column}': '{column} で並べ替え',
   'Données & analyse': 'データと分析',
-  'Cryptomonnaies': '暗号資産',
   'Actions': '株式',
   'ETF': 'ETF',
   'Indices': '指数',
@@ -2774,8 +2764,6 @@ export const jaPhrases: Phrases = {
   'Tout masquer': 'すべて非表示',
 
   // ── NAVIGATION — intitulés de section ──
-  'Instruments': 'ツール',
-  'Vues': 'ビュー',
   'Le site': 'このサイト',
 
   // ── RAIL D'ACTUALITÉS ──
@@ -2784,13 +2772,9 @@ export const jaPhrases: Phrases = {
   'Actualités suivantes': '次のニュース',
 
   // ── NAVIGATION — libellés d'entrées ──
-  'Toutes les cryptomonnaies': 'すべての暗号資産',
   'Les dix-neuf mille jetons suivis, classés par capitalisation': '追跡している一万九千の銘柄を、時価総額順に並べたもの',
-  'Tous les classements': 'すべてのランキング',
   'Écart au plus haut': '高値との差',
-  'Plateformes au comptant': '現物取引所',
   'Contrats dérivés': 'デリバティブ契約',
-  'Plateformes de dérivés': 'デリバティブ取引所',
   'Fiches thématiques': 'テーマ別ガイド',
 
   // ── GRAPHIQUES — bande d'agrégats ──
@@ -2824,4 +2808,22 @@ export const jaPhrases: Phrases = {
   'Aujourd’hui': '本日',
   'Le marché dans le temps': '時間の流れで見る市場',
   'Climat et rotation': '市場心理と資金の移動',
+  'Cryptoactifs': '暗号資産',
+  'Places de marché': '取引の場',
+  'Marchés traditionnels': '伝統的市場',
+  'Comprendre': '仕組みを知る',
+  'Mon suivi': 'マイ・ウォッチ',
+  'Plus loin': 'さらに詳しく',
+  'Autres vues': 'その他の表示',
+  'Tout le marché': '市場全体',
+  'Tous les palmarès': 'すべてのランキング',
+  'Recherche filtrée': '条件で絞り込む',
+  'Au comptant': '現物',
+  'Plateformes': '取引所',
+  'Portefeuille': 'ポートフォリオ',
+  Plus: 'その他',
+  Classements: 'ランキング',
+  Screener: 'スクリーナー',
+  Apprendre: '学ぶ',
+  'Cryptomonnaies': '暗号資産',
 }
