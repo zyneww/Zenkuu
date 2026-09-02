@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
+import { RailFade } from '@/components/home/RailFade'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -67,9 +68,17 @@ export function NewsRail({
         aria-label={previousLabel}
       />
 
-      {/* `-ml-5` compense le `pl-5` de chaque élément : la gouttière de 20 px vit entre
+      {/* ── LE FONDU DE BORD ENVELOPPE LE RAIL ────────────────────────────────
+
+          `RailFade` doit être DANS `Carousel` et non autour : il lit `canScrollPrev`
+          et `canScrollNext` dans le contexte d'embla, pour n'effacer que le côté où il
+          reste des cartes. Voir sa note.
+
+          `-ml-5` compense le `pl-5` de chaque élément : la gouttière de 20 px vit entre
           les cartes et non avant la première, qui doit rester alignée sur le titre. */}
-      <CarouselContent className="-ml-5 min-w-0 flex-1">{children}</CarouselContent>
+      <RailFade>
+        <CarouselContent className="-ml-5">{children}</CarouselContent>
+      </RailFade>
 
       <CarouselNext
         variant="outline"
