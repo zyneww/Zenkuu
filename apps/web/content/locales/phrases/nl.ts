@@ -2826,4 +2826,6 @@ export const nlPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Leren',
   'Cryptomonnaies': "Cryptovaluta's",
+  'Portée de la recherche': 'Zoekbereik',
+  '{n} résultats': '{n} resultaten',
 }

@@ -11,6 +11,7 @@ import {
 import { Kbd } from '@/components/ui/kbd'
 import { useContent } from '@/components/locale/ContentProvider'
 import { SearchResults } from '@/components/search/SearchResults'
+import { SearchScopes, useSearchScopes } from '@/components/search/SearchScopes'
 import { useAssetSearch } from '@/components/search/useAssetSearch'
 
 interface SearchOverlayProps {
@@ -50,6 +51,10 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const search = useAssetSearch({ active: open })
   const { reset } = search
 
+  /* Portée, décomptes et correction : tout vient du crochet partagé avec
+     `HeaderSearch`. Voir sa note pour la raison de la dérivation. */
+  const portee = useSearchScopes(search.found)
+
   /*
    * Remise à zéro à la FERMETURE : rouvrir la recherche doit repartir d'un champ
    * vide, pas de la requête précédente.
@@ -68,7 +73,14 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   return (
     <CommandDialog
       open={open}
-      onOpenChange={(next) => !next && onClose()}
+      onOpenChange={(next) => {
+        if (next) return
+        /* Remise à zéro dans le GESTIONNAIRE d'événement et non dans un effet : c'est
+           là que React l'attend, et toutes les fermetures passent ici — Échap, clic
+           extérieur, bouton. */
+        portee.setScope('all')
+        onClose()
+      }}
       title={fr.search.title}
       description={fr.search.placeholder}
       shouldFilter={false}
@@ -81,8 +93,19 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         className="text-sm"
       />
 
+      {/* Les onglets sont HORS de `CommandList`, et c'est délibéré : cmdk compte les
+          descendants de la liste comme des options navigables à la flèche. Des boutons
+          posés dedans s'intercaleraient entre les résultats, et la flèche bas
+          traverserait la barre d'onglets avant d'atteindre le premier actif. */}
+      <SearchScopes
+        scopes={portee.scopes}
+        active={portee.active}
+        onSelect={portee.setScope}
+        counts={portee.counts}
+      />
+
       <CommandList className="max-h-[60vh] p-2">
-        <SearchResults search={search} onNavigate={onClose} />
+        <SearchResults search={search} scope={portee.active} onNavigate={onClose} />
       </CommandList>
 
       <div className="flex items-center justify-between gap-4 border-t border-border-subtle px-4 py-2 text-[0.6875rem] text-ink-muted">

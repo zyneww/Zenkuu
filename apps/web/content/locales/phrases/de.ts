@@ -2834,4 +2834,6 @@ export const dePhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Lernen',
   'Cryptomonnaies': 'Kryptowährungen',
+  'Portée de la recherche': 'Suchbereich',
+  '{n} résultats': '{n} Treffer',
 }

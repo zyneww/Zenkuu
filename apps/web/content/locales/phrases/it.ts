@@ -2826,4 +2826,6 @@ export const itPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Imparare',
   'Cryptomonnaies': 'Criptovalute',
+  'Portée de la recherche': 'Ambito della ricerca',
+  '{n} résultats': '{n} risultati',
 }

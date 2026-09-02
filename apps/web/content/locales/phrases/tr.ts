@@ -2826,4 +2826,6 @@ export const trPhrases: Phrases = {
   Screener: 'Tarayıcı',
   Apprendre: 'Öğren',
   'Cryptomonnaies': 'Kripto paralar',
+  'Portée de la recherche': 'Arama kapsamı',
+  '{n} résultats': '{n} sonuç',
 }

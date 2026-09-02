@@ -2819,4 +2819,6 @@ export const zhPhrases: Phrases = {
   Screener: '筛选器',
   Apprendre: '学习',
   'Cryptomonnaies': '加密货币',
+  'Portée de la recherche': '搜索范围',
+  '{n} résultats': '{n} 条结果',
 }

@@ -2826,4 +2826,6 @@ export const plPhrases: Phrases = {
   Screener: 'Skaner',
   Apprendre: 'Nauka',
   'Cryptomonnaies': 'Kryptowaluty',
+  'Portée de la recherche': 'Zakres wyszukiwania',
+  '{n} résultats': 'Wyników: {n}',
 }

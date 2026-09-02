@@ -2833,4 +2833,6 @@ export const esPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Aprender',
   'Cryptomonnaies': 'Criptomonedas',
+  'Portée de la recherche': 'Alcance de la búsqueda',
+  '{n} résultats': '{n} resultados',
 }

@@ -2826,4 +2826,6 @@ export const viPhrases: Phrases = {
   Screener: 'Bộ lọc',
   Apprendre: 'Học',
   'Cryptomonnaies': 'Tiền mã hóa',
+  'Portée de la recherche': 'Phạm vi tìm kiếm',
+  '{n} résultats': '{n} kết quả',
 }

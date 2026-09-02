@@ -11,6 +11,7 @@ import { SearchShortcuts } from '@/components/search/SearchShortcuts'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useContent } from '@/components/locale/ContentProvider'
 import { SearchResults } from '@/components/search/SearchResults'
+import { SearchScopes, useSearchScopes } from '@/components/search/SearchScopes'
 import { useAssetSearch } from '@/components/search/useAssetSearch'
 import { cn } from '@/lib/utils'
 
@@ -69,6 +70,11 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const search = useAssetSearch({ active: focused })
+
+  /* La même portée que la fenêtre de téléphone, par le même crochet : les deux surfaces
+     partagent déjà données et rendu, elles partagent aussi ceci. Voir `useSearchScopes`
+     pour la raison de la dérivation plutôt que d'un effet. */
+  const portee = useSearchScopes(search.found)
 
   const close = useCallback(() => {
     setFocused(false)
@@ -240,8 +246,19 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
             onOpenAutoFocus={(event) => event.preventDefault()}
             className="w-[26rem] border-border-subtle bg-overlay p-1.5 shadow-overlay"
           >
+            {/* HORS de `CommandList`, comme la rangée de légendes plus bas et pour la
+                même raison : cmdk traite ses enfants comme des éléments navigables au
+                clavier, et la flèche bas traverserait la barre d'onglets avant
+                d'atteindre le premier résultat. */}
+            <SearchScopes
+              scopes={portee.scopes}
+              active={portee.active}
+              onSelect={portee.setScope}
+              counts={portee.counts}
+            />
+
             <CommandList className="max-h-[70vh] overscroll-contain">
-              <SearchResults search={search} onNavigate={close} />
+              <SearchResults search={search} scope={portee.active} onNavigate={close} />
             </CommandList>
 
             {/* HORS de `CommandList`, et l'endroit compte : cmdk traite ses enfants

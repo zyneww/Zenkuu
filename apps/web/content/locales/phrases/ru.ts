@@ -2826,4 +2826,6 @@ export const ruPhrases: Phrases = {
   Screener: 'Скринер',
   Apprendre: 'Обучение',
   'Cryptomonnaies': 'Криптовалюты',
+  'Portée de la recherche': 'Область поиска',
+  '{n} résultats': 'Результатов: {n}',
 }

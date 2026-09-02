@@ -2826,4 +2826,6 @@ export const jaPhrases: Phrases = {
   Screener: 'スクリーナー',
   Apprendre: '学ぶ',
   'Cryptomonnaies': '暗号資産',
+  'Portée de la recherche': '検索の範囲',
+  '{n} résultats': '{n} 件',
 }

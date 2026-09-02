@@ -9,7 +9,12 @@ import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
+import type { AssetClass } from '@zenkuu/data'
+import { useMemo } from 'react'
+
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
+import { HighlightMatch } from '@/components/search/HighlightMatch'
+import type { SearchScope } from '@/components/search/SearchScopes'
 import { Spinner } from '@/components/ui/spinner'
 import { assetHref } from '@/lib/asset-routes'
 import type { useAssetSearch } from '@/components/search/useAssetSearch'
@@ -56,15 +61,51 @@ import type { useAssetSearch } from '@/components/search/useAssetSearch'
  * message d'absence à chaque frappe.
  */
 export function SearchResults({
+  scope = 'all',
   search,
   onNavigate,
 }: {
   search: ReturnType<typeof useAssetSearch>
+  /** La portée choisie aux onglets. `'all'` par défaut : sans onglets, tout s'affiche. */
+  scope?: SearchScope
   onNavigate: () => void
 }) {
   const fr = useContent()
   const t = usePhrase()
-  const { results, loading, trending, showTrending, found, query } = search
+  const { results, loading, trending, showTrending, found: tous, query } = search
+  const term = query.trim()
+
+  /* La portée retranche, elle ne cherche pas : le serveur a déjà répondu, et restreindre
+     ici évite un aller-retour à chaque changement d'onglet. */
+  const found = scope === 'all' ? tous : tous.filter((item) => item.assetClass === scope)
+
+  /*
+   * ── LES GROUPES SE DÉDUISENT DES RÉSULTATS, ILS NE SONT PAS DÉCLARÉS ──────
+   *
+   * L'ordre est FIXE et écrit ici. Il suit la façon dont le site se présente —
+   * cryptomonnaies d'abord, puis les marchés traditionnels dans l'ordre du menu — et
+   * non le nombre de résultats de chaque famille.
+   *
+   * Un ordre par décompte se réarrangerait à chaque frappe : taper « bi » puis « bit »
+   * ferait glisser le bloc qu'on visait sous le curseur. Un ordre stable se mémorise.
+   *
+   * ⚠️ UNE FAMILLE VIDE NE PRODUIT PAS DE GROUPE — d'où le `filter` final. Sans lui,
+   * `CommandGroup` rendrait un intitulé suivi de rien, ce qui se lit comme une panne.
+   */
+  const groupes = useMemo(() => {
+    const ordre: AssetClass[] = ['crypto', 'stock', 'etf', 'index', 'forex', 'commodity', 'nft']
+    const parClasse = new Map<AssetClass, typeof found>()
+
+    for (const item of found) {
+      const liste = parClasse.get(item.assetClass)
+      if (liste) liste.push(item)
+      else parClasse.set(item.assetClass, [item])
+    }
+
+    return ordre
+      .map((classe) => ({ classe, items: parClasse.get(classe) ?? [] }))
+      .filter((groupe) => groupe.items.length > 0)
+  }, [found])
 
   if (showTrending) {
     return (
@@ -106,36 +147,41 @@ export function SearchResults({
   if (found.length > 0 && results) {
     return (
       <>
-        {results.crypto.length > 0 ? (
-          <CommandGroup heading={<GroupHeading title={fr.assetClass.crypto} />}>
-            {results.crypto.map((item) => (
+        {/* ══════════════════════════════════════════════════════════════════
+            UN GROUPE PAR CLASSE D'ACTIF, ET NON « CRYPTO » PUIS « LE RESTE »
+
+            La liste portait deux blocs : les cryptomonnaies, puis un fourre-tout
+            intitulé « autres actifs » où actions, ETF, indices, devises et matières
+            premières se mêlaient — chacun réduit à une pastille de classe collée à son
+            nom.
+
+            Backpack groupe par TYPE, un intitulé par famille : STOCKS, FUTURES, SPOT,
+            EARN. C'est ce qui permet de balayer la liste sans lire : on saute au bloc
+            qui nous intéresse, au lieu de trier des pastilles à l'œil.
+
+            ⚠️ L'ORDRE DES GROUPES EST FIXE, PAS DÉCROISSANT PAR NOMBRE. Un ordre qui
+            suivrait le décompte changerait à chaque frappe : le bloc qu'on visait se
+            déplacerait sous le curseur entre deux lettres. Un ordre stable se mémorise
+            et rend la liste prévisible.
+
+            La pastille de classe disparaît des lignes : l'intitulé du groupe le dit
+            déjà, et le répéter sur chaque ligne était du bruit. */}
+        {groupes.map(({ classe, items }) => (
+          <CommandGroup key={classe} heading={<GroupHeading title={fr.assetClass[classe]} />}>
+            {items.map((item) => (
               <ResultRow
-                key={`c-${item.id}`}
+                key={`${classe}-${item.id}`}
                 href={assetHref(item.assetClass, item.id)}
                 name={item.name}
                 symbol={item.symbol}
                 image={item.image}
                 rank={item.rank}
+                query={term}
                 onNavigate={onNavigate}
               />
             ))}
           </CommandGroup>
-        ) : null}
-
-        {results.autres.length > 0 ? (
-          <CommandGroup heading={<GroupHeading title={fr.search.otherAssets} />}>
-            {results.autres.map((item) => (
-              <ResultRow
-                key={`a-${item.id}`}
-                href={assetHref(item.assetClass, item.id)}
-                name={item.name}
-                symbol={item.symbol}
-                badge={fr.assetClass[item.assetClass]}
-                onNavigate={onNavigate}
-              />
-            ))}
-          </CommandGroup>
-        ) : null}
+        ))}
 
         {/* Panne de la source crypto : on le dit au lieu de laisser croire qu'aucune
             cryptomonnaie ne correspond à la recherche (§5). */}
@@ -190,6 +236,7 @@ function ResultRow({
   price,
   currency,
   change24h,
+  query,
   onNavigate,
 }: {
   href: string
@@ -207,6 +254,13 @@ function ResultRow({
   price?: number
   currency?: string
   change24h?: number
+  /**
+   * Ce qui a été tapé, pour surligner la part correspondante du nom et du symbole.
+   *
+   * Optionnelle : la rangée des tendances s'affiche AVANT toute frappe, et n'a donc
+   * rien à surligner. Absente, la ligne se rend en texte plein.
+   */
+  query?: string
   onNavigate: () => void
 }) {
   return (
@@ -277,7 +331,13 @@ function ResultRow({
         */}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex items-center gap-1.5">
-            <span className="truncate text-sm font-semibold uppercase text-ink">{symbol}</span>
+            {/* 13 px et graisse 500, mesurés chez Backpack — au lieu de 14 px en
+                600. Le symbole reste la voix la plus forte de la ligne, mais dans une
+                liste dense un demi-gras suffit à le détacher : la casse en capitales
+                fait déjà la moitié du travail. */}
+            <span className="truncate text-[13px] font-medium uppercase text-ink">
+              <HighlightMatch text={symbol} query={query ?? ''} />
+            </span>
 
             {rank !== undefined ? (
               <span className="tabular shrink-0 rounded-[4px] bg-surface-muted px-1 text-micro leading-4 text-ink-muted">
@@ -290,7 +350,11 @@ function ResultRow({
             ) : null}
           </span>
 
-          <span className="truncate text-xs text-ink-muted">{name}</span>
+          {/* 11 px, mesuré. Le nom est la SECONDE voix : on l'a déjà reconnu par son
+              symbole, il ne sert qu'à lever un doute. */}
+          <span className="truncate text-[11px] text-ink-muted">
+            <HighlightMatch text={name} query={query ?? ''} />
+          </span>
         </span>
 
         {/* Le cours n'apparaît que si la ligne le porte — voir la note des props. Le

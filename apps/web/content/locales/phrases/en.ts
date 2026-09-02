@@ -2838,4 +2838,6 @@ export const enPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Learn',
   'Cryptomonnaies': 'Cryptocurrencies',
+  'Portée de la recherche': 'Search scope',
+  '{n} résultats': '{n} results',
 }

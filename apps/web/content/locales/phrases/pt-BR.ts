@@ -2826,4 +2826,6 @@ export const ptBRPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Aprender',
   'Cryptomonnaies': 'Criptomoedas',
+  'Portée de la recherche': 'Escopo da busca',
+  '{n} résultats': '{n} resultados',
 }
