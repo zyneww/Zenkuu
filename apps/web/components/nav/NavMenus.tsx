@@ -256,13 +256,24 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
            */
           menu.href && menu.sections.length === 0 ? (
             <NavigationMenuItem key={menu.label}>
-              <NavigationMenuLink asChild className="px-3 py-2 text-sm font-semibold text-ink-muted hover:text-ink">
+              {/* ── 13 PX ET GRAISSE NORMALE, MESURÉS CHEZ COINGECKO ──────────────
+
+                Nos liens faisaient 14 px en demi-gras (600). Les leurs font 13 px en
+                graisse normale (400), relevé le 2026-09-02.
+
+                L'écart paraît minime écrit ainsi ; à l'écran il change le POIDS de la
+                barre. Six intitulés en demi-gras se disputent l'attention avec le
+                logotype et le contenu de la page. En graisse normale, ils redeviennent
+                ce qu'une barre de navigation doit être : disponible sans être
+                insistante. C'est la même logique que les intitulés de section des
+                pages de graphiques, corrigés pour la même raison. */}
+            <NavigationMenuLink asChild className="px-3 py-2 text-[13px] font-normal text-ink-muted hover:text-ink">
                 <Link href={menu.href}>{t(menu.label)}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
           ) : (
             <NavigationMenuItem key={menu.label} value={menu.label}>
-              <NavigationMenuTrigger className="bg-transparent px-3 py-2 text-sm font-semibold text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
+              <NavigationMenuTrigger className="bg-transparent px-3 py-2 text-[13px] font-normal text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
                 {t(menu.label)}
               </NavigationMenuTrigger>
 

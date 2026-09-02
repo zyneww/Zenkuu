@@ -206,7 +206,16 @@ export function NavBar({
               La hauteur seule est fixée : la largeur découle du `viewBox`, ce qui
               interdit toute déformation. Voir components/BrandMark.tsx.
             */}
-            <ZenkuuWordmark className="h-7 w-auto shrink-0" />
+            {/* `h-8` et non `h-7` : le logo de CoinGecko fait 32 px de haut, mesuré le
+                2026-09-02, et le nôtre en faisait 28.
+
+                ⚠️ SEULE LA HAUTEUR EST REPRISE, PAS LA LARGEUR. Le leur fait 146 px ;
+                le nôtre en fera 176, parce que son `viewBox` (549.86 × 100) impose son
+                rapport et que `w-auto` le respecte. Forcer 146 px écraserait le dessin
+                — c'est exactement ce que la note de `BrandMark` interdit. Deux
+                logotypes de même hauteur se lisent comme deux logotypes de même
+                importance, quelle que soit la longueur du mot. */}
+            <ZenkuuWordmark className="h-8 w-auto shrink-0" />
           </Link>
 
           {/*

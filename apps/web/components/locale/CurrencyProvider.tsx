@@ -65,10 +65,33 @@ const CurrencyContext = createContext<CurrencyContextValue | null>(null)
 export function CurrencyProvider({
   children,
   rates,
+  suggested,
 }: {
   children: ReactNode
   rates: ExchangeRates | null
+  /**
+   * La devise déduite de l'en-tête `Accept-Language` du visiteur, lue côté serveur.
+   *
+   * ── ELLE NE FAIT QUE SUGGÉRER, ET LE MOT EST CHOISI ──────────────────────
+   *
+   * Elle sert de point de départ à qui n'a jamais rien réglé. Dès qu'un choix
+   * explicite existe en stockage local, il gagne : un réglage qu'on a pris la peine
+   * d'exprimer ne doit jamais être écrasé par une déduction, si bonne soit-elle.
+   * C'est la règle que l'effet ci-dessous applique.
+   */
+  suggested?: string | undefined
 }) {
+  /* ⚠️ L'ÉTAT INITIAL RESTE `BASE_CURRENCY`, MÊME QUAND UNE DEVISE EST SUGGÉRÉE.
+
+     La tentation est d'écrire `useState(suggested ?? BASE_CURRENCY)` : ce serait plus
+     court, et faux. Le serveur rendrait alors les montants en dollars pour un visiteur
+     américain, mais la page est mise en CACHE — le visiteur suivant, européen,
+     recevrait ce même HTML en dollars avant que son navigateur ne corrige. Pire, le
+     HTML servi et l'arbre attendu par React divergeraient à l'hydratation.
+
+     La devise suggérée s'applique donc APRÈS le montage, comme la préférence stockée,
+     et par le même effet. Un bref instant en euros, puis la bonne devise — contre un
+     cache empoisonné et un écart d'hydratation. */
   const [currency, setCurrencyState] = useState(BASE_CURRENCY)
 
   // Préférence relue au montage, pas au premier rendu : le serveur ne connaît pas
@@ -77,12 +100,22 @@ export function CurrencyProvider({
   useEffect(() => {
     try {
       const stored = localStorage.getItem(CURRENCY_STORAGE_KEY)
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- voir commentaire ci-dessus
-      if (stored && rates?.rates[stored]) setCurrencyState(stored)
+      if (stored && rates?.rates[stored]) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- voir commentaire ci-dessus
+        setCurrencyState(stored)
+        return
+      }
     } catch {
-      /* Stockage refusé : on reste sur la devise de référence. */
+      /* Stockage refusé : la suggestion reste utilisable, elle ne dépend de rien. */
     }
-  }, [rates])
+
+    /* Aucun choix exprimé : la suggestion du navigateur s'applique, à condition que le
+       convertisseur sache traiter cette devise. Sans ce garde-fou, un visiteur d'un
+       pays dont la devise a été retirée de la table verrait des montants vides. */
+    if (suggested !== undefined && suggested !== BASE_CURRENCY && rates?.rates[suggested]) {
+      setCurrencyState(suggested)
+    }
+  }, [rates, suggested])
 
   const setCurrency = useCallback((code: string) => {
     setCurrencyState(code)

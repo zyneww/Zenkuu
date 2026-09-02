@@ -36,6 +36,55 @@ import { routing } from '@/i18n/routing'
 const intlMiddleware = createIntlMiddleware(routing)
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA MÊME CHAÎNE, MAIS SANS DÉTECTION — POUR LES ROBOTS D'INDEXATION
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * `routing.localeDetection` est passé à `true` : un visiteur dont le navigateur
+ * annonce l'allemand est redirigé vers `/de`. C'est ce qu'on veut d'un humain.
+ *
+ * D'un ROBOT, c'est exactement ce qu'on ne veut pas. Le robot de Google explore depuis
+ * des adresses américaines et annonce l'anglais : la détection le redirigerait de
+ * chaque adresse française vers son équivalent anglais, et il finirait par n'indexer
+ * qu'une seule langue — celle de ses serveurs. La note de `routing.ts` décrivait ce
+ * risque, et c'est pour lui que la détection était restée éteinte.
+ *
+ * ── CE N'EST PAS DU CAMOUFLAGE, ET LA DISTINCTION EST NETTE ────────────────
+ *
+ * Le camouflage consiste à servir au robot un CONTENU différent de celui que voit
+ * l'humain, pour la même adresse. Ici, le contenu de chaque adresse est identique pour
+ * tous : `/de/heatmap` rend l'allemand au robot comme au visiteur. Seule la
+ * REDIRECTION depuis une adresse sans langue est suspendue, et une redirection n'est
+ * pas un contenu.
+ *
+ * Un humain qui saisit `/heatmap` obtient sa langue ; un robot qui l'explore obtient
+ * le français, qui est ce que cette adresse désigne. Les deux voient la vérité.
+ */
+const intlMiddlewareSansDetection = createIntlMiddleware({
+  ...routing,
+  localeDetection: false,
+})
+
+/**
+ * Les robots que l'on reconnaît, et pourquoi cette liste-ci.
+ *
+ * Elle ne cherche pas l'exhaustivité — c'est impossible, et un robot inconnu qui subit
+ * la redirection ne casse rien de grave. Elle couvre les moteurs et les aperçus de
+ * lien dont dépend réellement la visibilité du site : les quatre moteurs, les trois
+ * réseaux qui dépliaient les cartes de partage, et les robots des modèles de langue,
+ * qui sont devenus une source de trafic à part entière.
+ *
+ * `bot`, `crawler` et `spider` en fin de liste attrapent le tout-venant : la plupart
+ * des robots se nomment ainsi, par convention plus que par obligation.
+ */
+const ROBOTS =
+  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|applebot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|gptbot|oai-searchbot|chatgpt-user|claudebot|anthropic-ai|perplexitybot|ccbot|bot\b|crawler|spider/i
+
+function estRobot(request: NextRequest): boolean {
+  return ROBOTS.test(request.headers.get('user-agent') ?? '')
+}
+
+/**
  * Chemins hors du périmètre de la langue.
  *
  * ── `/api` ET `/trpc` ────────────────────────────────────────────────────────
@@ -123,7 +172,9 @@ export function proxy(request: NextRequest): NextResponse {
     }
   }
 
-  return intlMiddleware(request)
+  /* Un robot traverse la chaîne SANS détection : chaque adresse garde alors le
+     contenu qu'il a indexé, dans la langue que cette adresse désigne. */
+  return estRobot(request) ? intlMiddlewareSansDetection(request) : intlMiddleware(request)
 }
 
 export const config = {

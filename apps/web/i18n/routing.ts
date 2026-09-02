@@ -35,16 +35,31 @@ export const routing = defineRouting({
   localePrefix: 'as-needed',
 
   /**
-   * Pas de détection automatique par l'en-tête `Accept-Language`.
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA DÉTECTION PAR `Accept-Language` EST ACTIVE — ET SA CONTREPARTIE AUSSI
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * Un visiteur allemand arrivant sur un résultat de recherche français serait
-   * redirigé vers l'anglais, c'est-à-dire vers une page qui n'est PAS celle que
-   * Google lui a montrée. Le taux de rebond que cela produit est bien réel, et la
-   * redirection perturbe aussi l'indexation : le robot de Google explore depuis des
-   * adresses IP américaines et ne verrait plus jamais le français.
+   * Elle était désactivée, et la raison écrite ici était juste : un visiteur allemand
+   * arrivant d'une recherche Google sur une page française serait redirigé ailleurs
+   * que là où Google l'a envoyé, et le robot d'indexation — qui explore depuis des
+   * adresses américaines — ne verrait plus jamais le français.
    *
-   * Le choix reste donc explicite — par le sélecteur — et mémorisé par next-intl
-   * dans un cookie une fois exprimé.
+   * ── CE QUI REND L'ACTIVATION TENABLE ────────────────────────────────────
+   *
+   * Le risque ne vient pas de la détection : il vient de la REDIRECTION DES ROBOTS.
+   * `middleware.ts` les reconnaît à leur `User-Agent` et les laisse passer sans
+   * redirection, si bien que chaque adresse traduite garde exactement le contenu que
+   * le moteur a indexé.
+   *
+   * Ce n'est pas du camouflage : le contenu servi au robot pour une adresse donnée est
+   * celui que n'importe quel visiteur obtient en saisissant cette même adresse. Seule
+   * la redirection depuis une adresse SANS langue explicite est suspendue.
+   *
+   * ── ET LE CHOIX EXPLICITE PRIME TOUJOURS ────────────────────────────────
+   *
+   * next-intl mémorise en cookie la langue choisie au sélecteur, et ce cookie gagne
+   * contre l'en-tête. Un visiteur qui a demandé le français le garde, quel que soit le
+   * réglage de son système.
    */
-  localeDetection: false,
+  localeDetection: true,
 })

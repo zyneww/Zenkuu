@@ -3206,3 +3206,82 @@ textarea,
   user-select: none;
   pointer-events: none;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   L'ASCENSEUR DE LA PAGE — LE MÊME LANGAGE QUE CELUI DES PANNEAUX
+
+   `.thin-scrollbar` habillait déjà les listes qui vivent dans un cadre. Celui de la
+   PAGE restait natif : quinze pixels, une piste grise pleine hauteur et un pouce
+   rectangulaire, dessinés par le système et non par le site. Sur une page sombre, la
+   bande claire du bord droit était la seule chose qui trahissait le système
+   d'exploitation.
+
+   ── CE QUI EST REPRIS DE LA RÈGLE EXISTANTE, ET CE QUI CHANGE ──────────────
+
+   Repris : les deux syntaxes (Firefox lit `scrollbar-color`, WebKit et Blink lisent
+   les pseudo-éléments, aucun ne comprend l'autre), la piste transparente, le pouce
+   arrondi qui suit un jeton de thème.
+
+   Changé : DIX pixels au lieu de six. Un ascenseur de panneau n'a qu'à se signaler ;
+   celui de la page doit aussi s'ATTRAPER à la souris, et six pixels sont une cible
+   trop fine pour un geste rapide. Dix reste discret et se saisit sans viser.
+
+   ── LE POUCE S'ASSOMBRIT AU SURVOL, ET LA PISTE N'EXISTE PAS ───────────────
+
+   `--color-border` au repos, `--color-ink-muted` au survol : le pouce se voit
+   toujours, et il RÉPOND quand la main s'en approche. Une piste peinte redessinerait
+   la bande verticale qu'on cherche justement à faire disparaître.
+
+   ⚠️ `scrollbar-gutter: stable` SUR L'ÉLÉMENT RACINE. Sans lui, une page qui passe
+   de « avec ascenseur » à « sans » — un filtre qui raccourcit un tableau, un menu
+   qui se ferme — voit sa largeur utile changer de dix pixels, et tout son contenu
+   centré se décale d'un coup. Le sillon est réservé en permanence : la page ne
+   sautille plus.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 999px;
+  /* La bordure transparente amincit le pouce SANS amincir la zone cliquable : le fond
+     s'arrête au bord intérieur (`background-clip: padding-box`), mais les dix pixels
+     restent saisissables. C'est le même procédé que l'écart entre les tuiles de la
+     carte thermique, employé ici pour la raison inverse — y séparer, ici épaissir. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-muted);
+}
+
+/* Le coin où les deux ascenseurs se rencontrent : natif, il reste gris. */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ⚠️ `prefers-reduced-motion` NE COUVRE PAS CE CAS, mais l'accessibilité si : un
+   utilisateur qui a demandé un contraste élevé attend un ascenseur VISIBLE, pas
+   discret. La règle lui rend l'encre pleine. */
+@media (prefers-contrast: more) {
+  :root {
+    scrollbar-color: var(--color-ink) transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink);
+  }
+}

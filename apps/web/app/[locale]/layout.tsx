@@ -11,10 +11,12 @@ import { getExchangeRates } from '@zenkuu/data'
 
 import { BackToTop } from '@/components/BackToTop'
 import { ContentProvider } from '@/components/locale/ContentProvider'
+import { headers } from 'next/headers'
+
 import { CurrencyProvider } from '@/components/locale/CurrencyProvider'
+import { currencyFromAcceptLanguage } from '@/lib/accept-language'
 import { stripFunctions } from '@/content/locales'
 import { Footer } from '@/components/Footer'
-import { GlobalTicker } from '@/components/nav/GlobalTicker'
 import { NavBar } from '@/components/NavBar'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import { ThemeScript } from '@/components/ThemeScript'
@@ -244,6 +246,17 @@ export default async function RootLayout({
   // bénéfice de `generateStaticParams` ci-dessus.
   setRequestLocale(locale)
 
+  /* ⚠️ `headers()` REND CETTE MISE EN PAGE DYNAMIQUE, et c'est le prix à payer.
+
+     Lire un en-tête de requête interdit à Next.js de rendre la coque une fois pour
+     toutes : chaque visite la reconstruit. Le coût est réel mais borné — les PAGES
+     gardent leur `revalidate`, seule l'enveloppe est recalculée, et son unique
+     chargement (les taux de change) reste en cache une heure.
+
+     C'est la seule façon d'avoir la devise du visiteur sans service de géolocalisation
+     ni requête supplémentaire côté client. */
+  const deviseSuggeree = currencyFromAcceptLanguage((await headers()).get('accept-language'))
+
   const [rates, messages, content] = await Promise.all([
     // Les taux de change sont le SEUL chargement de données du layout, et c'est
     // assumé : la devise d'affichage vaut pour tout le site, il faut donc les
@@ -291,7 +304,13 @@ export default async function RootLayout({
               retire donc en amont. `useContent` les rétablit depuis le français.
               Voir `content/locales/index.ts`. */}
           <ContentProvider content={stripFunctions(content)}>
-            <CurrencyProvider rates={rates.ok ? rates.data : null}>
+            {/* La devise suggérée par le navigateur — voir `accept-language.ts` pour
+                ce que l'en-tête porte, et `CurrencyProvider` pour la règle qui la fait
+                céder devant tout choix explicite. */}
+            <CurrencyProvider
+              rates={rates.ok ? rates.data : null}
+              suggested={deviseSuggeree}
+            >
               {/*
                 ── UN SEUL FOURNISSEUR D'INFOBULLES POUR TOUT LE SITE ──────────
 
@@ -341,11 +360,16 @@ export default async function RootLayout({
                 prop : ce sont des lectures de variables d'environnement, qui ne
                 rendent rien dynamique.
               */}
-              {/* Le bandeau de repères précède la barre de navigation, comme sur la
-                  référence : sa première rangée porte l'état du marché, la seconde la
-                  navigation. Il est rendu ICI et non dans `NavBar` parce qu'il lit des
-                  données — `NavBar` est un composant client. */}
-              <GlobalTicker />
+              {/* ── LE BANDEAU DE REPÈRES A ÉTÉ RETIRÉ ────────────────────────────
+
+                  Il portait « Actifs · Plateformes · Capitalisation · Volume 24 h ·
+                  Dominance » au-dessus de la barre de navigation, exactement comme la
+                  référence.
+
+                  Ces cinq chiffres n'ont pas disparu du site : ils sont sur
+                  `/graphiques`, en grand et avec leurs courbes, où on les consulte
+                  quand on les cherche. En haut de CHAQUE page, ils occupaient une
+                  rangée entière pour des valeurs qu'on ne lit pas en passant. */}
 
               <NavBar accountsEnabled={ACCOUNTS_ENABLED} socialProviders={CONFIGURED_PROVIDERS} />
 

@@ -403,11 +403,6 @@ export const NAV_MENUS: NavMenu[] = [
     ],
   },
   {
-    label: 'Mon suivi',
-    href: '/tableau-de-bord',
-    sections: [],
-  },
-  {
     label: 'Comprendre',
     sections: [
       {
