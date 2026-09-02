@@ -57,7 +57,19 @@ export function StatCard({
     /* `relative` et `overflow-hidden` : la courbe de fond est posée en absolu et doit
        être coupée par les coins arrondis de la carte, sans quoi elle dépasse aux
        quatre angles. */
-    <div className="relative overflow-hidden rounded-[14px] border border-border-subtle bg-surface p-5">
+      /* ── LE FOND EST TRANSPARENT, ET C'EST MESURÉ ──────────────────────────
+
+          ASXN, relevé le 2026-09-02 : `background-color: rgba(0, 0, 0, 0)`. Leurs
+          cartes n'ont AUCUN fond — seulement une bordure à 10 % d'encre. La figure
+          flotte sur le fond de page.
+
+          ZENKUU peignait un `bg-surface`, soit #1b232d sur un fond #0d1217. Six cartes
+          de cette teinte font six panneaux SURÉLEVÉS, et le regard les compte avant de
+          lire ce qu'elles contiennent. La bordure seule fait l'inverse : elle délimite
+          sans séparer, et ce qui ressort est le tracé.
+
+          C'est la « transparence » qui manquait, et elle tient en un mot retiré. */
+    <div className="relative overflow-hidden rounded-[14px] border border-border-subtle p-5">
       {children ? (
         /* La courbe passe SOUS le texte et n'intercepte rien. Elle est de l'ambiance,
            pas une figure : on ne la survole pas, on ne la lit pas — elle dit

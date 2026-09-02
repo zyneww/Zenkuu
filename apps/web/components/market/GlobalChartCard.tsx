@@ -258,7 +258,19 @@ export function GlobalChartCard({
        Deux pixels de rayon et quatre de rembourrage ne se voient pas isolément. Sur
        une page qui en aligne six à côté des bandes de `StatCard`, la
        différence se lit comme deux familles de cartes au lieu d'une. */
-    <section className="flex flex-col gap-2 rounded-[14px] border border-border-subtle bg-surface p-5">
+      /* ── LE FOND EST TRANSPARENT, ET C'EST MESURÉ ──────────────────────────
+
+          ASXN, relevé le 2026-09-02 : `background-color: rgba(0, 0, 0, 0)`. Leurs
+          cartes n'ont AUCUN fond — seulement une bordure à 10 % d'encre. La figure
+          flotte sur le fond de page.
+
+          ZENKUU peignait un `bg-surface`, soit #1b232d sur un fond #0d1217. Six cartes
+          de cette teinte font six panneaux SURÉLEVÉS, et le regard les compte avant de
+          lire ce qu'elles contiennent. La bordure seule fait l'inverse : elle délimite
+          sans séparer, et ce qui ressort est le tracé.
+
+          C'est la « transparence » qui manquait, et elle tient en un mot retiré. */
+    <section className="flex flex-col gap-2 rounded-[14px] border border-border-subtle p-5">
       {/* ── EN-TÊTE : LE TITRE À GAUCHE, LES PALIERS À DROITE ────────────────
           C'est la disposition de la référence, et elle tient parce que les paliers
           n'appartiennent qu'à CE cadre : les poser ailleurs ferait croire qu'ils
