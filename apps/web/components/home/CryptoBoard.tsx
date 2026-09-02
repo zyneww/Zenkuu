@@ -183,13 +183,22 @@ export async function CryptoBoard() {
              ce qui convient aux classes sans capitalisation, pas à celle-ci. */
           chartPosition="end"
           /* ── LES QUATRE AJOUTS DE LA REFONTE ────────────────────────────────
-             Onglets à la place des vues rapides, champ de filtre, bascule de devise,
-             et le nombre total d'actifs du catalogue — c'est lui qui autorise le
-             tableau à dépasser les lignes reçues, en allant chercher les suivantes
-             sur `/api/cotations`. Voir `MarketBrowser`. */
+             Onglets à la place des vues rapides, champ de filtre, et le nombre total
+             d'actifs du catalogue — c'est lui qui autorise le tableau à dépasser les
+             lignes reçues, en allant chercher les suivantes sur `/api/cotations`.
+             Voir `MarketBrowser`.
+
+             ⚠️ `currencyPicker` A ÉTÉ RETIRÉ. Il posait un second sélecteur de devise
+             au-dessus du tableau, alors que la devise est un réglage GLOBAL du site :
+             elle vit dans la roue dentée de l'en-tête, s'applique à toutes les pages et
+             se retient d'une visite à l'autre. Deux commandes pour un même réglage, à
+             cinquante pixels l'une de l'autre, posent la question de savoir laquelle
+             gagne — alors qu'il n'y en a qu'une.
+
+             La propriété reste dans `MarketBrowser` : elle n'a plus d'appelant, mais
+             c'est le composant qui décide de la rendre, et rien n'y est cassé. */
           boardTabs
           searchable
-          currencyPicker
           otherUniverses={otherUniverses}
           {...(catalogue !== undefined ? { remoteTotal: catalogue } : {})}
         />

@@ -2784,4 +2784,9 @@ export const esPhrases: Phrases = {
   'Instruments': 'Instrumentos',
   'Vues': 'Vistas',
   'Le site': 'El sitio',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Ver todas las noticias',
+  'Actualités précédentes': 'Noticias anteriores',
+  'Actualités suivantes': 'Noticias siguientes',
 }

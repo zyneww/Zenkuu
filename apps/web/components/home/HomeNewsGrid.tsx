@@ -1,8 +1,11 @@
 import type { DataResult, NewsItem } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
+import { NewsRail } from '@/components/home/NewsRail'
 import { ArticleCard } from '@/components/news/NewsFeed'
-import { getContent } from '@/lib/content'
+import { CarouselItem } from '@/components/ui/carousel'
+import { Link } from '@/i18n/navigation'
+import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -51,6 +54,7 @@ import { getContent } from '@/lib/content'
  */
 export async function HomeNewsGrid({ news }: { news: DataResult<NewsItem[]> }) {
   const fr = await getContent()
+  const t = await getPhrase()
 
   if (!news.ok || news.data.length === 0) {
     return (
@@ -64,11 +68,22 @@ export async function HomeNewsGrid({ news }: { news: DataResult<NewsItem[]> }) {
     )
   }
 
-  /* Quatre articles, soit exactement une rangée pleine. La référence n'en montre pas
-     davantage sur son accueil : le reste vit sur la page d'actualités, où le filtrage
-     existe. Une deuxième rangée ici allongerait une page déjà longue de cent lignes
-     de tableau, sans ajouter de moyen de s'y retrouver. */
-  const articles = news.data.slice(0, 4)
+  /*
+   * ── DOUZE ARTICLES, ET NON QUATRE ─────────────────────────────────────────
+   *
+   * Quatre était le compte d'une RANGÉE pleine, et la note d'alors le justifiait par
+   * la longueur de la page : « une deuxième rangée allongerait une page déjà longue de
+   * cent lignes de tableau, sans ajouter de moyen de s'y retrouver ».
+   *
+   * L'argument portait sur la HAUTEUR, et il tombe avec elle : un rail qui défile
+   * horizontalement occupe la hauteur d'une seule rangée quel que soit le nombre
+   * d'articles. Et le « moyen de s'y retrouver » qui manquait, ce sont précisément les
+   * deux flèches et le lien de sortie ajoutés ici.
+   *
+   * Douze plutôt que le flux entier : au-delà, le rail devient un second site
+   * d'actualités, et c'est la page dédiée qui doit prendre le relais.
+   */
+  const articles = news.data.slice(0, 12)
 
   return (
     <section aria-labelledby="accueil-actualites" className="flex flex-col gap-4">
@@ -77,15 +92,34 @@ export async function HomeNewsGrid({ news }: { news: DataResult<NewsItem[]> }) {
           700, interlettrage normal. `text-2xl` vaut 28 px dans l'échelle ZENKUU, qui
           ne possède pas de cran à 24. Le nom du cran dit « titre de page » ; ce qu'il
           encode est le traitement mesuré, et il est le même ici. */}
-      <h2 id="accueil-actualites" className="display-xl text-ink">
-        {fr.home.newsTitle}
-      </h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="accueil-actualites" className="display-xl text-ink">
+          {fr.home.newsTitle}
+        </h2>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {articles.map((article) => (
-          <ArticleCard key={article.url} article={article} />
-        ))}
+        {/* LE LIEN DE SORTIE EST DANS L'EN-TÊTE, et non après les cartes. Posé à la fin
+            d'un rail qui défile, il ne serait atteignable qu'après avoir poussé douze
+            articles — c'est-à-dire au moment précis où l'on n'en a plus besoin. */}
+        <Link href="/actualites" className="text-sm font-medium text-ink-muted hover:text-ink">
+          {t('Voir toutes les actualités')} ›
+        </Link>
       </div>
+
+      {/* `basis-[min(320px,80vw)]` : une largeur POSÉE, et non `basis-auto`. Sans elle,
+          embla étire chaque carte à la largeur du rail et n'en montre qu'une — le piège
+          déjà documenté dans `CategoryRail`. Le `min()` garde la carte lisible sur un
+          téléphone, où 320 px dépasseraient l'écran. */}
+      <NewsRail
+        label={fr.home.newsTitle}
+        previousLabel={t('Actualités précédentes')}
+        nextLabel={t('Actualités suivantes')}
+      >
+        {articles.map((article) => (
+          <CarouselItem key={article.url} className="basis-[min(320px,80vw)] pl-5">
+            <ArticleCard article={article} />
+          </CarouselItem>
+        ))}
+      </NewsRail>
     </section>
   )
 }

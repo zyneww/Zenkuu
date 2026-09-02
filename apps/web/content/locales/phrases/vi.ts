@@ -2777,4 +2777,9 @@ export const viPhrases: Phrases = {
   'Instruments': 'Công cụ',
   'Vues': 'Góc nhìn',
   'Le site': 'Trang này',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Xem tất cả tin tức',
+  'Actualités précédentes': 'Tin trước',
+  'Actualités suivantes': 'Tin tiếp theo',
 }

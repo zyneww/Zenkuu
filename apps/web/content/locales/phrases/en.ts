@@ -2789,4 +2789,9 @@ export const enPhrases: Phrases = {
   'Instruments': 'Instruments',
   'Vues': 'Views',
   'Le site': 'The site',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'See all news',
+  'Actualités précédentes': 'Previous news',
+  'Actualités suivantes': 'Next news',
 }

@@ -2777,4 +2777,9 @@ export const nlPhrases: Phrases = {
   'Instruments': 'Instrumenten',
   'Vues': 'Weergaven',
   'Le site': 'De site',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Alle nieuws bekijken',
+  'Actualités précédentes': 'Vorig nieuws',
+  'Actualités suivantes': 'Volgend nieuws',
 }

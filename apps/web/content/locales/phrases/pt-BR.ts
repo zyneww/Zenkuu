@@ -2777,4 +2777,9 @@ export const ptBRPhrases: Phrases = {
   'Instruments': 'Instrumentos',
   'Vues': 'Visões',
   'Le site': 'O site',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Ver todas as notícias',
+  'Actualités précédentes': 'Notícias anteriores',
+  'Actualités suivantes': 'Notícias seguintes',
 }

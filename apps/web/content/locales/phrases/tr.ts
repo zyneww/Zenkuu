@@ -2777,4 +2777,9 @@ export const trPhrases: Phrases = {
   'Instruments': 'Araçlar',
   'Vues': 'Görünümler',
   'Le site': 'Site',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Tüm haberleri gör',
+  'Actualités précédentes': 'Önceki haberler',
+  'Actualités suivantes': 'Sonraki haberler',
 }

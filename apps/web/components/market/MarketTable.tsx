@@ -812,30 +812,46 @@ export function MarketTable({
             Market Cap 208), ramenées à l'échelle d'ici. Les colonnes qui n'en déclarent
             pas se partagent ce qui reste.
 
-            ⚠️ LE CONTENEUR DÉFILE TOUJOURS, ET C'EST LA CONTREPARTIE DE `table-fixed`.
+            ══════════════════════════════════════════════════════════════════════
+            ⚠️ DISPOSITION AUTOMATIQUE, ET NON `table-fixed` — DEUX ESSAIS RATÉS
 
-            Il portait `overflow-visible` au-dessus de 789 px, ce qui était juste tant
-            que le tableau était en disposition AUTOMATIQUE : les colonnes se
-            resserraient alors pour tenir, quitte à être à l'étroit.
+            `table-fixed` a été posé ici pour empêcher la grille de sauter au tri, puis
+            RETIRÉ. Les deux étapes valent d'être écrites, parce que le raisonnement qui
+            menait à lui était juste et que sa conclusion ne l'était pas.
 
-            En disposition fixe elles ne se resserrent plus. Avec une largeur minimale
-            posée et aucun défilement, le tableau DÉBORDAIT en silence : relevé à
-            l'écran, la capitalisation, la valorisation diluée et son ratio se peignaient
-            les unes SUR les autres — « €251B » par-dessus « 251B » par-dessus « 100 % ».
+            Ce qu'il réglait, réellement : en disposition automatique, chaque colonne se
+            mesure sur son contenu. Trier par « Variation (24 h) » remonte les extrêmes,
+            donc remesure les colonnes, donc décale la grille au moment du clic.
 
-            `overflow-x-auto` sans condition règle les deux cas : la gouttière
-            n'apparaît que si le tableau dépasse, ce qui est exactement la question
-            posée.
+            Ce qu'il a cassé, en deux temps :
 
-            `min-w-[1180px]` est la SOMME des largeurs déclarées, pas un chiffre rond.
-            Les treize colonnes de l'aperçu demandent : étoile 32 · rang 64 · nom 240 ·
-            prix 120 · variation 124 · trois fenêtres 92 · volume 140 · capitalisation
-            140 · diluée 120 · ratio 92 · courbe 120. En dessous, une colonne sans
-            largeur déclarée se partageait un reste négatif.
+            1. En disposition fixe, une colonne sans largeur déclarée se partage ce qui
+               reste — et cinq n'en déclaraient pas. Le reste était NÉGATIF :
+               capitalisation, valorisation diluée et ratio se peignaient les unes SUR
+               les autres. Corrigé en déclarant les cinq largeurs manquantes.
+
+            2. Le correctif du débordement demandait `overflow-x-auto` sur le conteneur.
+               Or `overflow-x: auto` force `overflow-y` à `auto` : le conteneur devient
+               DÉFILANT, et le `position: sticky` de l'en-tête se met à référencer ce
+               conteneur au lieu de la page. Mesuré à l'écran : en-tête à 378 px, ligne 1
+               à 355 — la première ligne commençait vingt-trois pixels AU-DESSUS de
+               l'en-tête, et son sommet (étoile, logo, chiffres) affleurait en bande
+               fantôme. La note ci-dessous le disait déjà : « l'ancêtre défilant redevient
+               la PAGE, et `sticky` fonctionne ».
+
+            Les deux besoins sont donc incompatibles ICI : une disposition fixe exige un
+            conteneur défilant, un en-tête collant exige qu'il ne le soit pas.
+
+            LA DISPOSITION AUTOMATIQUE REVIENT, et ce qui reste du correctif suffit :
+            `whitespace-nowrap` sur les intitulés empêche le repli qui doublait la
+            hauteur de la rangée — le symptôme le plus visible —, et les largeurs
+            déclarées sur les en-têtes agissent en disposition automatique comme des
+            largeurs PRÉFÉRÉES : le navigateur les honore tant qu'il a la place, et les
+            resserre quand il ne l'a pas, au lieu de faire déborder.
             ══════════════════════════════════════════════════════════════════════ */}
         <Table
-          containerClassName="overflow-x-auto"
-          className="table-fixed border-collapse @min-[640px]:min-w-[1180px]"
+          containerClassName="overflow-visible @max-[789px]:overflow-x-auto"
+          className="border-collapse @min-[640px]:min-w-[640px]"
         >
           <caption className="sr-only">{fr.assetClass[assetClass]}</caption>
 
@@ -947,8 +963,12 @@ export function MarketTable({
                   sur trente pixels serait tronqué, et la forme de l'étoile dit déjà ce
                   que la colonne fait. Le libellé vit dans le `aria-label` de chaque
                   bouton, où il est nominatif — « Suivre Bitcoin » plutôt que « Suivi ». */}
+              {/* `bg-canvas` sur la cellule ci-dessous comme sur ses voisines : elle n'est
+                  pas rendue par `ColumnHeader` (elle n'a pas d'intitulé à trier), et sans
+                  le fond elle aurait laissé une fenêtre de trente-deux pixels par où la
+                  ligne qui défile serait remontée dans l'en-tête. Voir `ColumnHeader`. */}
               {watchlist ? (
-                <th scope="col" className="w-8 px-1 py-2.5 font-semibold">
+                <th scope="col" className="w-8 bg-canvas px-1 py-2.5 font-semibold">
                   <span className="sr-only">{fr.market.columns.watch}</span>
                 </th>
               ) : null}

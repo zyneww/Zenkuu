@@ -2777,4 +2777,9 @@ export const plPhrases: Phrases = {
   'Instruments': 'Narzędzia',
   'Vues': 'Widoki',
   'Le site': 'Serwis',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Zobacz wszystkie wiadomości',
+  'Actualités précédentes': 'Poprzednie wiadomości',
+  'Actualités suivantes': 'Następne wiadomości',
 }

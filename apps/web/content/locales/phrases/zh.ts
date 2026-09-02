@@ -2770,4 +2770,9 @@ export const zhPhrases: Phrases = {
   'Instruments': '工具',
   'Vues': '视图',
   'Le site': '本站',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': '查看全部新闻',
+  'Actualités précédentes': '上一批新闻',
+  'Actualités suivantes': '下一批新闻',
 }

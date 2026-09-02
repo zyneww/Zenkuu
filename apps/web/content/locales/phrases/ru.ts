@@ -2777,4 +2777,9 @@ export const ruPhrases: Phrases = {
   'Instruments': 'Инструменты',
   'Vues': 'Виды',
   'Le site': 'О сайте',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Все новости',
+  'Actualités précédentes': 'Предыдущие новости',
+  'Actualités suivantes': 'Следующие новости',
 }

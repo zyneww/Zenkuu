@@ -2,6 +2,7 @@ import { getCryptoOverview, getNewListings, type MarketAsset, type NewListing } 
 import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
+import { Reveal } from '@/components/motion/Reveal'
 import { ROWS } from '@/components/home/overview-rows'
 import { Money } from '@/components/locale/Money'
 import { Link } from '@/i18n/navigation'
@@ -113,7 +114,16 @@ export async function MarketRibbon() {
         En dessous de `xl`, deux colonnes puis une : la troisième carte passe alors en
         pleine largeur plutôt que de comprimer les deux autres.
       */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {/* Les trois cartes arrivent en CASCADE, à 70 ms d'intervalle — voir
+          `useReveal`, dont l'en-tête explique pourquoi ce seul mouvement du site passe
+          par une librairie plutôt que par une transition CSS : c'est le DÉCALAGE entre
+          plusieurs éléments qui ne s'écrit pas en CSS sans coder à la main un délai par
+          carte, lequel se désaccorde dès qu'on en ajoute une.
+
+          `Reveal` REMPLACE le conteneur, il ne s'y ajoute pas : la grille est passée en
+          `className`, faute de quoi on empilerait deux boîtes et la grille intérieure ne
+          verrait plus la largeur de l'extérieure. */}
+      <Reveal delay={70} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Card
           title={t('Les plus échangées')}
           linkLabel={t('Tout voir')}
@@ -159,7 +169,7 @@ export async function MarketRibbon() {
             <ListingRow key={listing.id} listing={listing} index={index} />
           ))}
         </Card>
-      </div>
+      </Reveal>
     </section>
   )
 }

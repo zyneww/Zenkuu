@@ -253,8 +253,26 @@ export function ColumnHeader({
          `--v2-text-2xs` est le seul cran à 12. La graisse, elle, coïncidait déjà. */
       /* `whitespace-nowrap` : « Variation (24 h) » se cassait en deux lignes, et une
          seule colonne pliée suffisait à doubler la hauteur de toute la rangée. Un
-         intitulé de colonne se lit d'un bloc ou il ne se lit pas. */
-      className={`whitespace-nowrap border-l border-border-subtle/60 px-3 py-2.5 text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${width} ${className}`}
+         intitulé de colonne se lit d'un bloc ou il ne se lit pas.
+
+         ══════════════════════════════════════════════════════════════════════
+         ⚠️ `bg-canvas` EST SUR LA CELLULE, ET C'EST LÀ QU'IL DOIT ÊTRE
+
+         L'en-tête collant le portait sur le `<thead>`. C'est le réflexe, et il ne
+         marche pas : dans l'ordre de peinture d'un tableau, le fond d'un GROUPE DE
+         LIGNES est peint sous les lignes, et les lignes du corps qui défilent sous
+         l'en-tête traversaient donc son fond.
+
+         Le résultat se voyait sur toutes les pages à tableau : au défilement, une
+         bande fantôme apparaissait au-dessus des intitulés — le haut de la première
+         ligne, logo et étoile compris, qui affleurait dans le rembourrage vertical des
+         cellules. Sur l'accueil, la ligne 1 (Bitcoin) semblait purement absente.
+
+         Un fond posé sur la CELLULE est peint avec elle, donc au-dessus de tout ce qui
+         passe dessous. C'est le correctif connu de ce défaut, et il vaut ici pour les
+         quinze tableaux du site d'un coup : ils partagent tous cet en-tête.
+         ══════════════════════════════════════════════════════════════════════ */
+      className={`whitespace-nowrap border-l border-border-subtle/60 bg-canvas px-3 py-2.5 text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted first:border-l-0 ${align === 'right' ? 'text-right' : 'text-left'} ${width} ${className}`}
       aria-sort={
         isActive ? (sort?.direction === 'desc' ? 'descending' : 'ascending') : 'none'
       }

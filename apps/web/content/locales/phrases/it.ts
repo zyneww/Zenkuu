@@ -2777,4 +2777,9 @@ export const itPhrases: Phrases = {
   'Instruments': 'Strumenti',
   'Vues': 'Viste',
   'Le site': 'Il sito',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Vedi tutte le notizie',
+  'Actualités précédentes': 'Notizie precedenti',
+  'Actualités suivantes': 'Notizie successive',
 }

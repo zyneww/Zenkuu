@@ -2777,4 +2777,9 @@ export const jaPhrases: Phrases = {
   'Instruments': 'ツール',
   'Vues': 'ビュー',
   'Le site': 'このサイト',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'ニュースをすべて見る',
+  'Actualités précédentes': '前のニュース',
+  'Actualités suivantes': '次のニュース',
 }

@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CACHE_TTL_SECONDS, getCryptoGlobalStats, getNews } from '@zenkuu/data'
 
 import { CryptoBoard } from '@/components/home/CryptoBoard'
+import { HomeNewsGrid } from '@/components/home/HomeNewsGrid'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { MarketRibbon } from '@/components/home/MarketRibbon'
 import { NewsSidebar } from '@/components/home/NewsSidebar'
@@ -198,26 +199,21 @@ export default async function HomePage() {
         </div>
       </Suspense>
 
-      {/* ⚠️ TOUT CE QUI SUIVAIT LE TABLEAU A ÉTÉ RETIRÉ, SAUF LE PANNEAU D'ACTUALITÉS.
+      {/* ⚠️ `MarketWidgets` A ÉTÉ RETIRÉ D'ICI, ET LES ACTUALITÉS SONT RESTÉES.
 
-          Deux blocs occupaient cette place :
+          La grappe occupait cette place : huit lectures, 3 728 pixels mesurés, dont la
+          note disait qu'elle « reprend l'ordre et la densité de la référence ». C'était
+          vrai, et c'était le problème — la page reproduisait la longueur de CoinGecko
+          sans en avoir la matière. Le composant n'est pas supprimé : sa place ici a
+          disparu, pas son code.
 
-            · `MarketWidgets` — une grappe de huit lectures, 3 728 pixels mesurés, dont
-              la note disait qu'elle « reprend l'ordre et la densité de la référence ».
-              C'était vrai, et c'était le problème : la page reproduisait la longueur de
-              CoinGecko sans en avoir la matière.
-            · `HomeNewsGrid` — la même actualité que le panneau de droite, développée en
-              cartes. Sa note assumait le doublon en le justifiant par deux moments de
-              lecture différents ; à l'usage, ce sont les mêmes titres deux fois sur la
-              même page.
-
-          Ce qui reste : le bandeau, le tableau, et `NewsSidebar` — le fil court qu'on
-          lit en regardant le classement. Une page d'accueil qui se termine quand elle a
-          fini de dire ce qu'elle sait.
-
-          Les composants ne sont pas supprimés : `MarketWidgets` et `HomeNewsGrid`
-          restent dans l'arborescence, leurs sources et leur travail intacts, prêts pour
-          les pages qui les emploieraient. Seule leur place ICI a disparu. */}
+          `HomeNewsGrid` reste, et n'est plus une grille : c'est un RAIL qui défile, avec
+          ses deux flèches et son lien de sortie. Ce qui justifiait de le retirer — le
+          doublon avec le panneau de droite — tenait à ce que les deux blocs montraient
+          les MÊMES quatre titres. Le rail en porte douze et se parcourt ; le panneau en
+          porte quelques-uns qu'on lit du coin de l'œil en regardant le tableau. Les
+          deux ne se répètent plus. */}
+      <HomeNewsGrid news={news} />
       </div>
 
       <NewsSidebar news={news} />

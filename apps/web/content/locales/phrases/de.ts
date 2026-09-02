@@ -2785,4 +2785,9 @@ export const dePhrases: Phrases = {
   'Instruments': 'Werkzeuge',
   'Vues': 'Ansichten',
   'Le site': 'Die Website',
+
+  // ── RAIL D'ACTUALITÉS ──
+  'Voir toutes les actualités': 'Alle Nachrichten ansehen',
+  'Actualités précédentes': 'Vorherige Nachrichten',
+  'Actualités suivantes': 'Nächste Nachrichten',
 }
