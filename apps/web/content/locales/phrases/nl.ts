@@ -2828,4 +2828,7 @@ export const nlPhrases: Phrases = {
   'Cryptomonnaies': "Cryptovaluta's",
   'Portée de la recherche': 'Zoekbereik',
   '{n} résultats': '{n} resultaten',
+  'Marchés crypto': 'Cryptomarkten',
+  'Analyses': 'Marktanalyse',
+  'Widget bandeau': 'Bannerwidget',
 }

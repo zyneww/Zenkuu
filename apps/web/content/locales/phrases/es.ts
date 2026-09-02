@@ -2835,4 +2835,7 @@ export const esPhrases: Phrases = {
   'Cryptomonnaies': 'Criptomonedas',
   'Portée de la recherche': 'Alcance de la búsqueda',
   '{n} résultats': '{n} resultados',
+  'Marchés crypto': 'Mercados cripto',
+  'Analyses': 'Análisis',
+  'Widget bandeau': 'Widget de banda',
 }

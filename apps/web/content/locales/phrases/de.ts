@@ -2836,4 +2836,7 @@ export const dePhrases: Phrases = {
   'Cryptomonnaies': 'Kryptowährungen',
   'Portée de la recherche': 'Suchbereich',
   '{n} résultats': '{n} Treffer',
+  'Marchés crypto': 'Kryptomärkte',
+  'Analyses': 'Analysen',
+  'Widget bandeau': 'Banner-Widget',
 }

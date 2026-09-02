@@ -2828,4 +2828,7 @@ export const viPhrases: Phrases = {
   'Cryptomonnaies': 'Tiền mã hóa',
   'Portée de la recherche': 'Phạm vi tìm kiếm',
   '{n} résultats': '{n} kết quả',
+  'Marchés crypto': 'Thị trường tiền mã hóa',
+  'Analyses': 'Phân tích',
+  'Widget bandeau': 'Tiện ích dải băng',
 }

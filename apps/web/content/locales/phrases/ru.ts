@@ -2828,4 +2828,7 @@ export const ruPhrases: Phrases = {
   'Cryptomonnaies': 'Криптовалюты',
   'Portée de la recherche': 'Область поиска',
   '{n} résultats': 'Результатов: {n}',
+  'Marchés crypto': 'Крипторынки',
+  'Analyses': 'Аналитика',
+  'Widget bandeau': 'Виджет-лента',
 }

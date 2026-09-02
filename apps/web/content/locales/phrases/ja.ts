@@ -2828,4 +2828,7 @@ export const jaPhrases: Phrases = {
   'Cryptomonnaies': '暗号資産',
   'Portée de la recherche': '検索の範囲',
   '{n} résultats': '{n} 件',
+  'Marchés crypto': '暗号資産市場',
+  'Analyses': '分析',
+  'Widget bandeau': 'ティッカー・ウィジェット',
 }

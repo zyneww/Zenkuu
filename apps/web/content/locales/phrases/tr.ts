@@ -2828,4 +2828,7 @@ export const trPhrases: Phrases = {
   'Cryptomonnaies': 'Kripto paralar',
   'Portée de la recherche': 'Arama kapsamı',
   '{n} résultats': '{n} sonuç',
+  'Marchés crypto': 'Kripto piyasaları',
+  'Analyses': 'Analizler',
+  'Widget bandeau': 'Şerit bileşeni',
 }

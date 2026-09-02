@@ -2821,4 +2821,7 @@ export const zhPhrases: Phrases = {
   'Cryptomonnaies': '加密货币',
   'Portée de la recherche': '搜索范围',
   '{n} résultats': '{n} 条结果',
+  'Marchés crypto': '加密市场',
+  'Analyses': '分析',
+  'Widget bandeau': '横幅组件',
 }

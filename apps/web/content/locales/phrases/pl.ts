@@ -2828,4 +2828,7 @@ export const plPhrases: Phrases = {
   'Cryptomonnaies': 'Kryptowaluty',
   'Portée de la recherche': 'Zakres wyszukiwania',
   '{n} résultats': 'Wyników: {n}',
+  'Marchés crypto': 'Rynki kryptowalut',
+  'Analyses': 'Analizy',
+  'Widget bandeau': 'Widżet paska',
 }

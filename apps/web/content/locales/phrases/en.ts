@@ -2840,4 +2840,7 @@ export const enPhrases: Phrases = {
   'Cryptomonnaies': 'Cryptocurrencies',
   'Portée de la recherche': 'Search scope',
   '{n} résultats': '{n} results',
+  'Marchés crypto': 'Crypto markets',
+  'Analyses': 'Analysis',
+  'Widget bandeau': 'Ticker widget',
 }

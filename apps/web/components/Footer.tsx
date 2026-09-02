@@ -98,51 +98,24 @@ export async function Footer() {
           Sous `sm` : deux colonnes, l'identité prenant les deux — un logo à moitié de
           largeur d'écran ne se lit pas mieux qu'un logo entier.
           ══════════════════════════════════════════════════════════════════════ */}
-      <div className="shell grid grid-cols-2 gap-8 py-12 sm:grid-cols-3 lg:grid-cols-5">
+      {/* SEPT pistes sous `xl` : l'identité, puis les six colonnes de Backpack. Sous
+          `lg`, trois colonnes ; sous `sm`, deux — un annuaire de six colonnes sur un
+          téléphone donne des libellés coupés en trois lignes. */}
+      <div className="shell grid grid-cols-2 gap-8 py-12 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         {/* ── L'IDENTITÉ, PREMIÈRE COLONNE ───────────────────────────────
-            Elle OUVRE le pied et ne le referme plus. C'est l'ordre du modèle, et c'est
-            aussi l'ordre de lecture : on reconnaît le site avant de chercher une page.
 
-            `col-span-2` sous `sm` : la phrase de non-conseil est du texte courant, et
-            une colonne de moitié d'écran la couperait tous les trois mots. */}
-        <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+            Le logo, et RIEN D'AUTRE. Elle portait aussi la mention de non-conseil et
+            les icônes sociales ; les deux sont descendues dans la barre inférieure,
+            où la référence les met — et où elles ont plus de sens : le haut du pied
+            sert à atteindre une page, le bas à savoir qui parle.
+
+            Cette colonne cesse donc d'être un pavé de texte à côté d'un annuaire, et
+            redevient ce qu'elle est : une signature.
+
+            `col-span-2` sous `sm` : un logo à moitié de largeur d'écran ne se lit pas
+            mieux qu'un logo entier. */}
+        <div className="col-span-2 sm:col-span-3 lg:col-span-4 xl:col-span-1">
           <ZenkuuWordmark className="h-5 w-auto text-ink" />
-          <p className="mt-4 text-xs leading-relaxed text-ink-muted">{fr.footer.disclaimer}</p>
-
-          {/*
-            LES COMPTES SOCIAUX REDEVIENNENT DES ICÔNES, ET REJOIGNENT LA MARQUE.
-
-            Ils terminaient la dernière colonne de l'annuaire, en liens nommés, au
-            motif qu'un nom se lit là où un glyphe se devine. Le modèle repris les
-            groupe sous la marque, en rangée d'icônes — et l'argument tombe ici parce
-            que le nom reste lisible : il est porté par `aria-label` pour la synthèse
-            vocale et par l'infobulle pour l'œil qui hésite.
-
-            La rangée disparaît entièrement si aucun compte n'est ouvert. On
-            n'affiche PAS d'icône vers un réseau où le site n'existe pas.
-          */}
-          {SOCIAL_LINKS.length > 0 ? (
-            <ul className="mt-5 flex items-center gap-2">
-              {SOCIAL_LINKS.map((link) => {
-                const Glyph = link.icon
-
-                return (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${t(link.label)} — ${link.handle}`}
-                      title={`${t(link.label)} · ${link.handle}`}
-                      className="flex size-9 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand"
-                    >
-                      <Glyph className="h-4 w-4" />
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          ) : null}
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
@@ -173,26 +146,108 @@ export async function Footer() {
             centième près — la même valeur qu'ASXN, relevée la veille. Le filet de
             sécurité de `globals.css` la pose déjà sur tout `<a>` : rien à écrire ici.
             ══════════════════════════════════════════════════════════════════ */}
-        {FOOTER_COLUMNS.map((column) => (
-          <nav key={column.label} aria-label={t(column.label)} className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-ink">{t(column.label)}</h2>
+        {/* ══════════════════════════════════════════════════════════════════
+            LE TITRE ET LES LIENS ONT LA MÊME TAILLE ET LA MÊME GRAISSE
 
-            {/* Les groupes sont fondus — voir l'en-tête. `flatMap` plutôt qu'une double
-                boucle : le niveau intermédiaire n'a plus de rendu, et le conserver dans
-                le balisage produirait des `<div>` vides. */}
-            <ul className="flex flex-col gap-3">
-              {column.groups
-                .flatMap((group) => group.links)
-                .map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-ink-muted hover:text-ink">
-                      {t(link.label)}
-                    </Link>
-                  </li>
-                ))}
+            Mesuré chez Backpack le 2026-09-02, et c'est le relevé qui m'a surpris :
+            titre 12 px graisse 400 en encre pleine, lien 12 px graisse 400 en gris.
+            SEULE LA COULEUR les distingue.
+
+            Mon réflexe — et l'état précédent de ce fichier — mettait le titre en
+            demi-gras et une taille au-dessus. C'est le choix par défaut, et il est
+            plus lourd qu'il n'y paraît : six titres en demi-gras dans un pied de page
+            forment six ancres visuelles qui se disputent l'attention avec le contenu
+            au-dessus.
+
+            L'encre pleine suffit à dire « ceci est un titre ». Le pied redevient ce
+            qu'il doit être — un annuaire qu'on consulte, pas une section qu'on lit.
+            ══════════════════════════════════════════════════════════════════ */}
+        {FOOTER_COLUMNS.map((column) => (
+          <nav key={column.label} aria-label={t(column.label)} className="flex flex-col gap-2.5">
+            {/* `<h2>` malgré l'apparence discrète : la synthèse vocale s'en sert pour
+                sauter d'une colonne à l'autre, et un texte en encre pleine n'est pas
+                une structure. La graisse n'a jamais fait le titre — la balise si. */}
+            <h2 className="text-xs font-normal text-ink">{t(column.label)}</h2>
+
+            {/* `gap-2.5` = 10 px, l'écart mesuré entre deux de leurs liens. */}
+            <ul className="flex flex-col gap-2.5">
+              {column.links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-xs text-ink-muted hover:text-ink">
+                    {t(link.label)}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
         ))}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          LA BARRE INFÉRIEURE — COPYRIGHT À GAUCHE, RÉSEAUX À DROITE
+
+          Relevé chez Backpack le 2026-09-02 : « Backpack Exchange © 2026 » en 12 px
+          encre pleine, les liens légaux à sa suite, la mention légale sur une seconde
+          ligne en gris, et les icônes sociales à l'opposé.
+
+          ── CE QUI N'Y FIGURE PAS, ET POURQUOI ─────────────────────────────
+
+          ⚠️ PAS DE LIENS « MENTIONS LÉGALES » NI « CONFIDENTIALITÉ ». Le brief les
+          demande, la référence en porte deux — mais ces pages N'EXISTENT PAS dans
+          `app/[locale]/`, vérifié route par route. Les écrire produirait deux liens
+          morts dans le bloc le plus visité du site, et un 404 depuis le pied de page
+          est le pire endroit où en avoir un : c'est là qu'on va quand on cherche
+          justement les conditions.
+
+          Le jour où ces pages existent, elles se posent ici en trois lignes.
+
+          ── LES ICÔNES DESCENDENT DE LA COLONNE D'IDENTITÉ ─────────────────
+
+          Elles vivaient sous le logo. La référence les met ici, et c'est mieux : le
+          haut du pied sert à ATTEINDRE une page, le bas à savoir qui parle. Un compte
+          social ne mène pas à une page du site — il n'a rien à faire dans l'annuaire.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="border-t border-border-subtle">
+        <div className="shell flex flex-col gap-4 py-6 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs text-ink">
+              {t('ZENKUU © {annee}').replace('{annee}', String(new Date().getFullYear()))}
+            </p>
+            {/* La mention de non-conseil descend ici avec le copyright : les deux
+                disent qui parle et à quel titre, elles se lisent ensemble. */}
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-ink-muted">
+              {fr.footer.disclaimer}
+            </p>
+          </div>
+
+          {/* La rangée disparaît entièrement si aucun compte n'est ouvert : on
+              n'affiche pas d'icône vers un réseau où le site n'existe pas. */}
+          {SOCIAL_LINKS.length > 0 ? (
+            <ul className="flex shrink-0 items-center gap-2">
+              {SOCIAL_LINKS.map((link) => {
+                const Glyph = link.icon
+
+                return (
+                  <li key={link.href}>
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      /* Le PSEUDO accompagne le nom du réseau : « Instagram —
+                         @getzenkuu ». On sait alors vers quel compte on part avant de
+                         cliquer, ce qu'un simple « Instagram » ne dit pas. */
+                      aria-label={`${t(link.label)} — ${link.handle}`}
+                      title={`${t(link.label)} · ${link.handle}`}
+                      className="flex size-9 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand"
+                    >
+                      <Glyph className="h-4 w-4" />
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null}
+        </div>
       </div>
 
     </footer>

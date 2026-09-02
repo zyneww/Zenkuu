@@ -2828,4 +2828,7 @@ export const ptBRPhrases: Phrases = {
   'Cryptomonnaies': 'Criptomoedas',
   'Portée de la recherche': 'Escopo da busca',
   '{n} résultats': '{n} resultados',
+  'Marchés crypto': 'Mercados cripto',
+  'Analyses': 'Análises',
+  'Widget bandeau': 'Widget de faixa',
 }

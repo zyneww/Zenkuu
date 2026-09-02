@@ -2828,4 +2828,7 @@ export const itPhrases: Phrases = {
   'Cryptomonnaies': 'Criptovalute',
   'Portée de la recherche': 'Ambito della ricerca',
   '{n} résultats': '{n} risultati',
+  'Marchés crypto': 'Mercati cripto',
+  'Analyses': 'Analisi',
+  'Widget bandeau': 'Widget a nastro',
 }

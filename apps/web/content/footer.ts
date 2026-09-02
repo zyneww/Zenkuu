@@ -28,11 +28,6 @@ export interface SocialLink extends FooterLink {
   handle: string
 }
 
-/** Un intertitre et les liens qu'il coiffe. */
-export interface FooterGroup {
-  title: string
-  links: FooterLink[]
-}
 
 export interface FooterColumn {
   /**
@@ -45,7 +40,20 @@ export interface FooterColumn {
    * fondus, et c'est ce libellé qui coiffe la liste.
    */
   label: string
-  groups: FooterGroup[]
+  /*
+   * ⚠️ LES LIENS SONT DIRECTS, PLUS DE `groups` INTERMÉDIAIRE.
+   *
+   * Une colonne portait des GROUPES, chacun avec son propre titre : « Marchés »
+   * contenait « Classes d'actifs » puis « Places ». Deux niveaux de titre dans un pied
+   * de page.
+   *
+   * Le pied est passé à la forme plate de Backpack — un intitulé par colonne, une liste
+   * dessous. Le niveau intermédiaire n'a alors plus rien à porter, et le garder aurait
+   * demandé d'inventer un titre par groupe pour satisfaire le type, titre que personne
+   * n'afficherait. Un champ obligatoire jamais lu finit toujours par être rempli
+   * n'importe comment.
+   */
+  links: FooterLink[]
 }
 
 /**
@@ -79,128 +87,87 @@ export interface FooterColumn {
  * paie le plus cher, à chaque clic et pour chaque robot.
  */
 export const FOOTER_COLUMNS: FooterColumn[] = [
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * SIX COLONNES PLATES — LA FORME DE BACKPACK, PAS CELLE D'OPENROUTER
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Le pied portait QUATRE colonnes, chacune découpée en deux ou trois sections
+   * titrées : « Marchés » contenait « Classes d'actifs » puis « Places », « Analyse »
+   * contenait « Lectures de marché » puis « Indicateurs ». Deux niveaux de titre.
+   *
+   * Backpack n'en a qu'un : six colonnes, un intitulé chacune, une liste dessous.
+   * Relevé le 2026-09-02 — Company, Help & Support, Products, Crypto Markets, Token
+   * Prices, Stock Prices.
+   *
+   * ── POURQUOI UN SEUL NIVEAU VAUT MIEUX ICI ─────────────────────────────
+   *
+   * Un pied de page se PARCOURT, il ne se lit pas. Deux niveaux obligent à comprendre
+   * la hiérarchie avant de trouver le lien : on lit « Marchés », puis « Classes
+   * d'actifs », puis « Actions ». Trois lectures pour un clic. À plat, l'intitulé de
+   * colonne suffit à situer, et l'œil descend directement à la ligne voulue.
+   *
+   * ⚠️ AUCUNE ADRESSE N'EST INVENTÉE. Chaque `href` ci-dessous existe dans
+   * `app/[locale]/` — vérifié route par route. Un pied de page est le plus gros
+   * émetteur de liens internes du site : un lien mort s'y paie à chaque visite et
+   * pour chaque robot.
+   */
   {
-    label: 'Marchés',
-    groups: [
-      {
-        title: 'Classes d’actifs',
-        links: [
-          { label: 'Cryptomonnaies', href: '/crypto' },
-          { label: 'Actions', href: '/actions' },
-          { label: 'ETF', href: '/etf' },
-          { label: 'Indices', href: '/indices' },
-          { label: 'Devises', href: '/devises' },
-          { label: 'Matières premières', href: '/matieres-premieres' },
-        ],
-      },
-      {
-        title: 'Places',
-        links: [
-          { label: 'Places de cotation', href: '/places' },
-          { label: 'Places de dérivés', href: '/perpetuels' },
-        ],
-      },
+    label: 'La société',
+    links: [
+      { label: 'À propos', href: '/a-propos' },
+      { label: 'Pourquoi Zenkuu', href: '/pourquoi-zenkuu' },
+      { label: 'Nouveautés', href: '/nouveautes' },
+      { label: 'Centre d’aide', href: '/aide' },
     ],
   },
   {
-    label: 'Analyse',
-    groups: [
-      {
-        title: 'Lectures de marché',
-        links: [
-          { label: 'Graphiques globaux', href: '/graphiques' },
-          { label: 'Catégories & secteurs', href: '/categories' },
-          { label: 'Heatmap sectorielle', href: '/heatmap' },
-        ],
-      },
-      {
-        title: 'Indicateurs',
-        links: [
-          /* « Points marquants » et « Données de trading » ont été retirés de ces
-             deux groupes avec les pages `/points-marquants` et `/mouvements`, supprimées
-             sur demande explicite. Aucun remplaçant : `/classements` et `/heatmap`
-             figurent déjà dans la colonne. */
-          { label: 'Indice de sentiment', href: '/sentiment' },
-          { label: 'Macroéconomie', href: '/macro' },
-          /* `/classements` existe et ne figurait dans aucune colonne, alors qu'une note
-             plus haut l'invoquait comme « figurant déjà » — il n'y figurait pas. */
-          { label: 'Classements', href: '/classements' },
-        ],
-      },
+    label: 'Apprendre',
+    links: [
+      { label: 'Fiches thématiques', href: '/apprendre' },
+      { label: 'Bien démarrer', href: '/bien-demarrer' },
+      { label: 'Glossaire', href: '/glossaire' },
+      { label: 'Actualités', href: '/actualites' },
+      { label: 'Blog', href: '/blog' },
     ],
   },
   {
-    /* ── « OUTILS » DEVIENT « SUIVRE » ────────────────────────────────────────
-       Le mot décrivait la nature des pages ; celui-ci décrit ce qu'on y fait. Le
-       modèle repris (OpenRouter) nomme ses colonnes par l'intention du lecteur —
-       « Product », « Company » — et non par la catégorie technique.
-
-       ⚠️ « Ma sélection » N'Y FIGURE PAS, et ce n'est pas un oubli. Elle viserait
-       `/suivi`, supprimée — voir la note du groupe « Mon espace », plus bas. La liste
-       des actifs suivis vit dans `/tableau-de-bord`, page de compte, qui n'a pas sa
-       place dans un annuaire public. */
-    label: 'Suivre',
-    groups: [
-      {
-        title: 'Outils',
-        links: [
-          { label: 'Screener', href: '/screener' },
-          { label: 'Comparateur', href: '/comparateur' },
-          { label: 'Convertisseur', href: '/convertisseur' },
-          /* La seule chose que le site donne à emporter AILLEURS. Elle n'était nommée
-             nulle part, alors que la page existe et se sert telle quelle dans une
-             iframe. C'est ce qui tient lieu, ici, de colonne « Developer » chez la
-             référence : ZENKUU n'expose pas d'API publique. */
-          { label: 'Widget bandeau', href: '/embed/ticker' },
-          /* « Widgets à intégrer » est parti avec la page `/widgets`, supprimée sur
-             demande explicite en même temps que `/methodologie` et `/developpeurs`. */
-        ],
-      },
-      /* ⚠️ LE GROUPE « MON ESPACE » A DISPARU EN ENTIER, ET SES DEUX LIENS AVEC LUI.
-
-         « Mes alertes » pointait déjà sur un 404 : la page `/alertes`, la tâche
-         planifiée et la table `price_alerts` avaient été supprimées avec la
-         fonctionnalité. « Ma sélection » visait `/suivi`, supprimée à son tour.
-
-         Rien ne les remplace ici : la liste des actifs suivis vit dans
-         `/tableau-de-bord`, qui figure déjà dans le menu de compte de l'en-tête. Un
-         groupe à un seul lien vers une page de compte n'a pas sa place dans un
-         annuaire public. */
+    label: 'Outils',
+    links: [
+      { label: 'Recherche filtrée', href: '/screener' },
+      { label: 'Comparateur', href: '/comparateur' },
+      { label: 'Convertisseur', href: '/convertisseur' },
+      { label: 'Widget bandeau', href: '/embed/ticker' },
     ],
   },
   {
-    label: 'Zenkuu',
-    groups: [
-      {
-        title: 'Ressources',
-        links: [
-          /* « Méthodologie & sources » et « API & développeurs » ont été retirés avec
-             leurs pages (demande explicite). Ce qui subsiste de la transparence sur
-             les sources est la ligne de la barre légale, qui les NOMME et renvoie
-             chez elles — voir `DATA_SOURCES` plus bas. */
-          { label: 'Apprendre', href: '/apprendre' },
-          { label: 'Bien démarrer', href: '/bien-demarrer' },
-          /* Existe depuis longtemps et ne figurait dans aucune colonne. */
-          { label: 'Glossaire', href: '/glossaire' },
-        ],
-      },
-      {
-        title: 'Publications',
-        links: [
-          { label: 'Actualités', href: '/actualites' },
-          { label: 'Nouvelles cryptomonnaies', href: '/nouvelles-cotations' },
-          { label: 'Blog', href: '/blog' },
-        ],
-      },
-      {
-        title: 'La société',
-        links: [
-          { label: 'À propos', href: '/a-propos' },
-          { label: 'Pourquoi Zenkuu', href: '/pourquoi-zenkuu' },
-          { label: 'Nouveautés', href: '/nouveautes' },
-          { label: 'Centre d’aide', href: '/aide' },
-        ],
-      },
+    label: 'Marchés crypto',
+    links: [
+      { label: 'Cryptomonnaies', href: '/crypto' },
+      { label: 'Catégories & secteurs', href: '/categories' },
+      { label: 'Nouvelles cotations', href: '/nouvelles-cotations' },
+      { label: 'Places de cotation', href: '/places' },
+      { label: 'Places de dérivés', href: '/perpetuels' },
+    ],
+  },
+  {
+    label: 'Marchés traditionnels',
+    links: [
+      { label: 'Actions', href: '/actions' },
+      { label: 'ETF', href: '/etf' },
+      { label: 'Indices', href: '/indices' },
+      { label: 'Devises', href: '/devises' },
+      { label: 'Matières premières', href: '/matieres-premieres' },
+    ],
+  },
+  {
+    label: 'Analyses',
+    links: [
+      { label: 'Graphiques globaux', href: '/graphiques' },
+      { label: 'Carte thermique', href: '/heatmap' },
+      { label: 'Indice de sentiment', href: '/sentiment' },
+      { label: 'Macroéconomie', href: '/macro' },
+      { label: 'Tous les palmarès', href: '/classements' },
     ],
   },
 ]
