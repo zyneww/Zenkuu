@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Combobox as ComboboxPrimitive } from "@base-ui/react"
-import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, Search, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -79,6 +79,16 @@ function ComboboxInput({
 }) {
   return (
     <InputGroup className={cn("w-auto", className)}>
+      {/* ── LA LOUPE OUVRE LE CHAMP ────────────────────────────────────────
+          Relevé sur la référence : un champ de filtre porte une loupe à gauche et un
+          chevron à droite. Les deux disent des choses différentes — la loupe dit « on
+          tape ici », le chevron « il y a une liste dessous » — et l'un ne remplace pas
+          l'autre. Le champ n'avait que le second : on pouvait le prendre pour un menu
+          déroulant ordinaire, dans lequel on ne pense pas à écrire. */}
+      <InputGroupAddon>
+        <Search className="size-3.5" aria-hidden="true" />
+      </InputGroupAddon>
+
       <ComboboxPrimitive.Input
         render={<InputGroupInput disabled={disabled} />}
         {...props}
@@ -145,7 +155,11 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        "max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto p-1 data-empty:p-0",
+        /* `thin-scrollbar` : la liste défile dans une boîte de trois cents pixels de
+           large, et l'ascenseur natif de quinze pixels y mange le cinquième droit des
+           libellés — un nom d'actif se tronque alors que la place existe. Voir la
+           règle dans globals.css, posée pour ce cas précis. */
+        "thin-scrollbar max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto p-1 data-empty:p-0",
         className
       )}
       {...props}

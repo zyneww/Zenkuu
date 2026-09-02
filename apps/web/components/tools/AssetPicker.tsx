@@ -1,7 +1,7 @@
 'use client'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
-import { Check, Search } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
@@ -211,8 +211,16 @@ export function AssetPicker({
 
             Le chevron ne manque à personne : la carte d'ajout porte déjà le sien.
           */}
+          {/* ⚠️ LA LOUPE A ÉTÉ RETIRÉE D'ICI, PAS AJOUTÉE AILLEURS.
+
+              `ComboboxInput` porte désormais la sienne — c'est le champ de filtre du
+              site, et la loupe appartient au composant partagé plutôt qu'à chacun de
+              ses appelants. Celle-ci faisait donc DOUBLE EMPLOI, vu à l'écran : deux
+              loupes côte à côte dans le même champ.
+
+              Le composant partagé est le bon endroit : le prochain appelant l'aura
+              sans y penser, et aucun n'aura à se demander s'il doit la poser. */}
           <div className="flex items-center gap-2 border-b border-border-subtle px-3 py-2">
-            <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
             <ComboboxInput
               showTrigger={false}
               placeholder={t('Rechercher un actif…')}
