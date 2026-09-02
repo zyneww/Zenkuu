@@ -163,7 +163,10 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
           <PopoverAnchor asChild>
             <div
               className={cn(
-                'flex h-9 items-center gap-2 rounded-control border bg-canvas pl-2.5 pr-1.5 transition-colors duration-150',
+                /* `rounded-full` : un champ de recherche est MANIPULABLE, donc il
+                   appartient au pôle très arrondi de l'échelle à deux pôles. À 8 px il
+                   avait le rayon d'une carte, c'est-à-dire d'un contenant. */
+                'flex h-9 items-center gap-2 rounded-full border bg-surface-muted pl-3 pr-1.5 transition-colors duration-150',
                 focused ? 'border-brand' : 'border-border-subtle hover:border-brand/60',
               )}
             >

@@ -133,7 +133,28 @@ export function NavBar({
           et la barre se glisserait alors silencieusement sous la navigation. */}
       <header
         data-site-header
-        className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/95 backdrop-blur"
+        /* ── PHASE 3 : `bg-canvas/80 backdrop-blur-md`, LES VALEURS DU DOCUMENT ─────
+
+            À 95 % d'opacité, le flou ne servait à rien : il n'y avait presque rien à
+            travers quoi flouter. À 80 %, le contenu défile visiblement sous la barre et
+            le flou devient ce qu'il doit être — une matière, pas un réglage.
+
+            ── CE QUE JE N'APPLIQUE PAS DE LA PHASE 3, ET POURQUOI ────────────
+
+            ⚠️ PAS DE PILULE DE NAVIGATION FLOTTANTE. Le document décrit une barre
+            aérienne où les menus vivent dans une pilule centrale à fond translucide.
+            C'est une belle forme, et elle DÉFERAIT un travail demandé explicitement :
+            l'en-tête a été calé sur les mesures de CoinGecko — logo 32 px, liens 13 px
+            en graisse 400, hauteur 64 px, conteneur 1 680 px — et l'alignement des
+            menus sur la première lettre de leur intitulé a été vérifié à ZÉRO PIXEL
+            d'écart.
+
+            Une pilule centrale recentre les menus et casse cet alignement. Entre une
+            consigne précise, exécutée et mesurée, et une suggestion générale d'un
+            document de style, je garde la première. Le jour où la pilule est voulue
+            malgré cela, c'est une décision à prendre en connaissance de ce qu'elle
+            coûte. */
+        className="sticky top-0 z-50 border-b border-border-subtle bg-canvas/80 backdrop-blur-md"
       >
         {/* `gap-4` sur grand écran, `gap-2` en dessous : à 393 px, quatre écarts de
             seize pixels coûtent un huitième de la largeur à des éléments déjà serrés. */}
