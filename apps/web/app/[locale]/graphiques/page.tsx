@@ -172,6 +172,23 @@ async function GlobalView() {
           rendre lisible une page qui, sans elles, se lit comme une liste. */}
       <SectionRule>{t('Aujourd’hui')}</SectionRule>
 
+      {/* ⚠️ CES TROIS CARTES NE PORTENT PAS DE COURBE D'AMBIANCE, ET C'EST VOULU.
+
+          Chez ASXN, chaque petite carte a sa courbe derrière le chiffre — et
+          `StatCard` sait en afficher une, par sa propriété `children`. La tentation est
+          donc de lui passer le panier de capitalisations, qui est déjà chargé plus bas
+          sur cette page.
+
+          NE PAS LE FAIRE. Le panier est la somme de NEUF actifs, pas la capitalisation
+          du marché : sa propre carte le dit en toutes lettres. Une courbe posée derrière
+          « capitalisation totale » affirme qu'elle est l'histoire de ce nombre, et ce
+          serait faux. Même chose pour le volume, où la seule série disponible est celle
+          de Bitcoin seul.
+
+          Le projet n'a que trois sources d'historique — par actif, stablecoins,
+          sentiment. Aucune ne couvre un agrégat global. ASXN en affiche parce que sa
+          source les publie ; la nôtre ne les publie pas, donc la courbe est absente
+          plutôt que remplacée par une approchante (§5). */}
       {stats ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
