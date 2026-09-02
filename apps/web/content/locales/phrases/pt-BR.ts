@@ -1380,7 +1380,7 @@ export const ptBRPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Classificação feita sobre os {n} setores considerados — os que pesam ao menos US$ 10 mi — e não sobre o mercado inteiro.',
   'Courbes longues': 'Curvas longas',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Preço, capitalização e volume vêm de uma mesma leitura da fonte — três leituras de um mesmo instante, nunca recalculadas uma a partir da outra.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Área: {size}. Cor: variação em {period}, por faixas e saturada além de ±{clamp} % para que um bloco minúsculo e muito volátil não achate a escala.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Área: {size}. Cor: variação em {period}, em tons contínuos e saturada além de ±{clamp} % para que um bloco minúsculo e muito volátil não achate a escala.',
   'capitalisation': 'capitalização',
   'volume sur 24 heures': 'volume de 24 horas',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'As áreas repartem um todo: são as {n} maiores capitalizações, cada uma contada uma só vez.',

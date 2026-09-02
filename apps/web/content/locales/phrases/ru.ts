@@ -1380,7 +1380,7 @@ export const ruPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Рейтинг построен по {n} секторам, отобранным для него, — тем, что весят не менее 10 млн $, — а не по всему рынку.',
   'Courbes longues': 'Длинные кривые',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Цена, капитализация и объём взяты из одного и того же считывания источника — три показания одного мгновения, ни одно не пересчитано из другого.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Площадь: {size}. Цвет: изменение за {period}, ступенями и с отсечкой за пределами ±{clamp} %, чтобы крохотная и очень волатильная плитка не задавила шкалу.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Площадь: {size}. Цвет: изменение за {period}, непрерывными оттенками и с отсечкой за пределами ±{clamp} %, чтобы крохотная и очень волатильная плитка не задавила шкалу.',
   'capitalisation': 'капитализация',
   'volume sur 24 heures': 'объём за 24 часа',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Площади делят единое целое: это {n} крупнейших капитализаций, каждая посчитана один раз.',

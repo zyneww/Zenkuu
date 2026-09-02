@@ -1380,7 +1380,7 @@ export const plPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Ranking sporządzony na {n} sektorach wziętych pod uwagę — tych o wartości co najmniej 10 mln $ — a nie na całym rynku.',
   'Courbes longues': 'Długie krzywe',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Kurs, kapitalizacja i wolumen pochodzą z tego samego odczytu źródła — trzy odczyty jednej chwili, nigdy przeliczane jedno z drugiego.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Powierzchnia: {size}. Kolor: zmiana w {period}, stopniowana i przycięta powyżej ±{clamp} %, żeby jeden maleńki, bardzo zmienny kafelek nie zgniótł skali.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Powierzchnia: {size}. Kolor: zmiana w {period}, o płynnych odcieniach i przycięta powyżej ±{clamp} %, żeby jeden maleńki, bardzo zmienny kafelek nie zgniótł skali.',
   'capitalisation': 'kapitalizacja',
   'volume sur 24 heures': 'wolumen z 24 godzin',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Powierzchnie dzielą jedną całość: to {n} największych kapitalizacji, każda liczona raz.',

@@ -1373,7 +1373,7 @@ export const zhPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': '该排名基于纳入统计的 {n} 个板块（市值至少一千万美元），而非整个市场。',
   'Courbes longues': '长周期曲线',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': '价格、市值与成交量取自数据源的同一次读取——同一时刻的三个读数，绝不会由其中之一推算出另一个。',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': '面积：{size}。颜色：{period}涨跌幅，分档呈现，超出 ±{clamp} % 后饱和，以免一块极小而剧烈波动的方块压垮整个色阶。',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': '面积：{size}。颜色：{period}涨跌幅，以连续色阶呈现，超出 ±{clamp} % 后饱和，以免一块极小而剧烈波动的方块压垮整个色阶。',
   'capitalisation': '市值',
   'volume sur 24 heures': '24 小时成交量',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': '各面积共分一个整体：这是市值最高的 {n} 项，每项只计一次。',

@@ -20,7 +20,7 @@ import {
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
-import { HEATMAP_CLAMP } from '@/components/tools/treemap'
+import { BACKPACK_CLAMP } from '@/components/tools/treemap'
 import { STABLECOIN_IDS } from '@/lib/altcoin-season'
 import { fullyDilutedValuation } from '@/lib/heatmap-metrics'
 
@@ -497,7 +497,7 @@ export function MarketHeatmap({
         tone={period === 'volatilite' ? 'volatility' : 'change'}
         scaleLabel={t(
                 'Échelle de couleur : du rouge à −{clamp} % ou moins, au vert à +{clamp} % ou plus.',
-        ).replaceAll('{clamp}', String(HEATMAP_CLAMP))}
+        ).replaceAll('{clamp}', String(BACKPACK_CLAMP))}
       />
 
       <p className="max-w-4xl text-xs leading-relaxed text-ink-muted">
@@ -513,7 +513,7 @@ export function MarketHeatmap({
               'Surface : {size}. Couleur : volatilité sur 7 jours — l’écart-type des variations de la courbe publiée par la source. Elle n’a pas de sens de hausse ou de baisse : la rampe va du calme à l’agité, et son sommet est le plus agité des actifs AFFICHÉS. Les couleurs de cette vue classent donc le lot du jour ; elles ne se comparent pas d’un jour à l’autre.',
             )
           : t(
-              'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.',
+              'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.',
             )
         )
           .replace(
@@ -529,7 +529,7 @@ export function MarketHeatmap({
                     : t('aucune — toutes les tuiles ont la même taille'),
           )
           .replace('{period}', periodWord)
-          .replace('{clamp}', String(HEATMAP_CLAMP))}{' '}
+          .replace('{clamp}', String(BACKPACK_CLAMP))}{' '}
         {mode === 'coins'
           ? t(
               'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.',

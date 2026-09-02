@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { HEATMAP_CLAMP, TILE_INK, heatTone, squarify } from './treemap'
+import { BACKPACK_CLAMP, HEATMAP_CLAMP, TILE_INK, backpackTone, heatTone, squarify } from './treemap'
 
 /**
  * Le pavage est désormais partagé par deux cartes thermiques, et il est purement
@@ -143,20 +143,70 @@ describe('heatTone', () => {
  */
 describe('TILE_INK', () => {
   it('pose du blanc sur les aplats saturés', () => {
-    expect(TILE_INK.label).toBe('text-white')
+    expect(TILE_INK.label).toContain('text-white')
     expect(TILE_INK.value).toContain('text-white')
   })
 
   /*
-   * LE test que la seconde mesure a rendu nécessaire. `--color-heat-up` pur ne tient que
-   * 5,02:1 avec du blanc PLEIN : il ne reste aucune marge pour une transparence. 80 %
-   * donnait 3,82:1, et même 90 % échouait à 4,41:1. Une opacité ici est donc toujours un
-   * défaut, quelle que soit sa valeur — d'où une assertion sur l'ABSENCE de suffixe et
-   * non sur un seuil.
+   * ══════════════════════════════════════════════════════════════════════════
+   * CE TEST MESURE LE CONTRASTE, IL NE LIT PLUS UNE CHAÎNE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Sa version précédente interdisait TOUTE opacité — `expect(...).not.toContain('/')`
+   * — et sa raison était juste : sur la rampe de CoinGecko, `--color-heat-up` pur ne
+   * tenait que 5,02:1 avec du blanc PLEIN, donc aucune transparence n'avait de marge.
+   *
+   * `backpackTone` est plus sombre, et cette prémisse est tombée avec elle : le même
+   * blanc y tient 6,75:1, ce qui laisse de quoi descendre. L'assertion sur la chaîne
+   * aurait alors interdit une opacité désormais valide, tout en laissant passer un
+   * `text-white` sur une rampe qu'on aurait éclaircie.
+   *
+   * Elle mesure donc ce qui compte VRAIMENT — le rapport de contraste réel, calculé sur
+   * les teintes que la rampe produit aux deux extrémités et au centre. Elle survit à un
+   * changement de rampe comme à un changement d'opacité, parce qu'elle ne parle plus de
+   * l'une ni de l'autre mais de ce qu'elles font ensemble.
    */
-  it('n’applique aucune opacité', () => {
-    expect(TILE_INK.label).not.toContain('/')
-    expect(TILE_INK.value).not.toContain('/')
+  const luminance = (rgb: [number, number, number]) => {
+    const canal = (v: number) => {
+      const x = v / 255
+      return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4
+    }
+    return 0.2126 * canal(rgb[0]) + 0.7152 * canal(rgb[1]) + 0.0722 * canal(rgb[2])
+  }
+
+  const contraste = (a: [number, number, number], b: [number, number, number]) => {
+    const [haut, bas] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+    return ((haut as number) + 0.05) / ((bas as number) + 0.05)
+  }
+
+  /** Le blanc à `alpha` posé sur `fond`, aplati — ce que l'œil voit réellement. */
+  const blancSur = (alpha: number, fond: [number, number, number]) =>
+    fond.map((c) => Math.round(alpha * 255 + (1 - alpha) * c)) as [number, number, number]
+
+  const teinte = (change: number) =>
+    backpackTone(change).match(/\d+/g)!.map(Number) as [number, number, number]
+
+  const OPACITE = (classe: string) => {
+    const suffixe = classe.split('/')[1]
+    return suffixe === undefined ? 1 : Number(suffixe) / 100
+  }
+
+  it('garde 4,5:1 partout sur la rampe, opacité comprise', () => {
+    // Les trois teintes extrêmes : le vert et le rouge saturés, et le neutre.
+    const fonds: [number, number, number][] = [
+      teinte(BACKPACK_CLAMP),
+      teinte(-BACKPACK_CLAMP),
+      teinte(0),
+    ]
+
+    for (const classe of [TILE_INK.label, TILE_INK.value]) {
+      for (const fond of fonds) {
+        const ratio = contraste(blancSur(OPACITE(classe), fond), fond)
+        // 4,5:1 et non 3:1 : les étiquettes descendent à sept pixels, donc la
+        // tolérance « grand texte » ne s'applique jamais sur cette figure.
+        expect(ratio).toBeGreaterThanOrEqual(4.5)
+      }
+    }
   })
 
   /*

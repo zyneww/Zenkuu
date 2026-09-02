@@ -1387,7 +1387,7 @@ export const esPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Clasificación establecida sobre los {n} sectores retenidos —los que pesan al menos 10 M$— y no sobre el conjunto del mercado.',
   'Courbes longues': 'Curvas largas',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Precio, capitalización y volumen proceden de una misma lectura de la fuente: tres lecturas de un mismo instante, nunca recalculadas una a partir de otra.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Superficie: {size}. Color: variación en {period}, por tramos y saturada más allá de ±{clamp} % para que una celda minúscula y muy volátil no aplaste la escala.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Superficie: {size}. Color: variación en {period}, en matices continuos y saturada más allá de ±{clamp} % para que una celda minúscula y muy volátil no aplaste la escala.',
   'capitalisation': 'capitalización',
   'volume sur 24 heures': 'volumen de 24 horas',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Las superficies se reparten un todo: son las {n} mayores capitalizaciones, cada una contada una sola vez.',

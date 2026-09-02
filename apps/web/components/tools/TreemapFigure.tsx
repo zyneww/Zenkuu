@@ -1,10 +1,9 @@
 import { formatCompact, formatPercent } from '@zenkuu/ui'
 
 import {
-  HEATMAP_CLAMP,
   TILE_INK,
-  heatScaleSwatches,
-  heatTone,
+  BACKPACK_CLAMP,
+  backpackTone,
   squarify,
   volatilityScaleSwatches,
   volatilityTone,
@@ -105,8 +104,37 @@ export interface TreemapTile {
  * pourcentages de deux axes différents (voir la note sur `cqmin` plus bas, et
  * `globals.css` pour les règles).
  */
+/*
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ LE PAVAGE CHANGE DE RÉFÉRENCE : BACKPACK, ET NON PLUS COINGECKO
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * La note ci-dessus décrit le pavage de CoinGecko — tuiles JOINTIVES, sans arrondi.
+ * Elle reste vraie de CoinGecko. Elle n'est plus ce que cette figure dessine.
+ *
+ * Backpack, relevé le 2026-09-02 : rayon 5 px et 4 px d'écart entre voisines. Le fond
+ * de la carte passe donc entre les tuiles, et chacune se lit comme un objet posé
+ * plutôt que comme une case d'un damier.
+ *
+ * ── L'ÉCART SE FAIT PAR UNE BORDURE, ET C'EST LE SEUL MOYEN ICI ────────────
+ *
+ * Chez eux, les tuiles sont placées en PIXELS et l'écart est soustrait du calcul :
+ * `left: 8px; width: 325.702px`. Les nôtres sont placées en POURCENTAGE, et on ne peut
+ * pas retrancher quatre pixels d'un pourcentage.
+ *
+ * `border-2 border-transparent` avec `bg-clip-padding` résout cela sans toucher au
+ * pavage : le fond s'arrête au bord intérieur, la bordure laisse voir le conteneur, et
+ * deux voisines montrent donc 2 + 2 = 4 px de fond entre elles. Exactement leur écart,
+ * obtenu par une propriété au lieu d'un moteur de placement réécrit.
+ *
+ * ⚠️ CE PROCÉDÉ A UNE LIMITE, ET ELLE EST CONNUE. Quatre pixels pris sur une tuile de
+ * dix, c'est 40 % de sa surface — le reproche exact que la note du dessus adressait aux
+ * bordures. Il ne s'applique pas ici parce que la carte plafonne à cent tuiles, ce qui
+ * laisse aux plus petites une trentaine de pixels. Au-delà, il faudrait repasser au
+ * placement en pixels.
+ */
 const TILE_CLASS =
-  'heat-tile absolute flex flex-col items-center justify-center overflow-hidden px-1 text-center'
+  'heat-tile absolute flex flex-col items-center justify-center overflow-hidden rounded-[5px] border-[2px] border-transparent bg-clip-padding px-1 text-center'
 
 export function TreemapFigure({
   tiles,
@@ -143,7 +171,6 @@ export function TreemapFigure({
   /* Dénominateur des parts. Calculé sur les tuiles RETENUES, donc sur ce que la figure
      montre réellement — un appelant qui n'en passe que soixante sur deux cents ne doit
      pas afficher des parts rapportées à un total invisible. */
-  const total = usable.reduce((sum, tile) => sum + tile.value, 0)
 
   /*
    * LA LIGNE DE VARIATION EXISTE OU N'EXISTE PAS POUR TOUTE LA FIGURE.
@@ -175,7 +202,15 @@ export function TreemapFigure({
        Le CADRE garde son arrondi et sa bordure — c'est un bloc de la page. Ce sont les
        TUILES qui les perdent, voir `TILE_CLASS`. */
     <div
-      className="relative w-full overflow-hidden rounded-card border border-border-subtle bg-surface"
+      /* ── LE FOND DE LA CARTE EST SOMBRE DANS LES DEUX THÈMES ──────────────
+
+         Il l'est parce que les TUILES le sont : leur rampe ne bascule pas avec le
+         thème, puisque leur encre est blanche des deux côtés. Un conteneur clair
+         montrerait donc quatre pixels de blanc entre des tuiles sombres — un
+         quadrillage, là où l'écart doit se lire comme du fond.
+
+         `#14151b`, mesuré chez eux, et leur rayon de 12 px. */
+      className="relative w-full overflow-hidden rounded-[12px] border border-border-subtle bg-[#14151b] p-2"
       style={{ height }}
     >
       {boxes.map((box) => {
@@ -193,11 +228,12 @@ export function TreemapFigure({
           top: `${box.y}%`,
           width: `${box.width}%`,
           height: `${box.height}%`,
+          /* `backpackTone` et non `heatTone` : rampe CONTINUE bornée à ±3 %, sombre et
+             désaturée. La différence et ses trois raisons sont dans sa note. */
           backgroundColor:
-            tone === 'volatility' ? volatilityTone(tile.change, peak) : heatTone(tile.change),
+            tone === 'volatility' ? volatilityTone(tile.change, peak) : backpackTone(tile.change),
         }
 
-        const share = total > 0 ? (tile.value / total) * 100 : 0
 
         /*
           ══════════════════════════════════════════════════════════════════════
@@ -303,12 +339,40 @@ export function TreemapFigure({
               de place que le nom seul, et n'apparaît donc qu'au-dessus d'une tuile plus
               grande — voir `globals.css`.
             */}
-            <span className={`tile-value tabular block truncate leading-tight ${INK.value}`}>
-              {formatCompact(tile.value)}
-              {valueUnit}
-              {share >= 0.1 ? ` (${share.toFixed(1).replace('.', ',')} %)` : ''}
-              {hasChange && tile.change !== undefined ? ` · ${formatPercent(tile.change)}` : ''}
-            </span>
+            {/*
+              ══════════════════════════════════════════════════════════════════
+              ⚠️ LA VARIATION SEULE — LE MONTANT ET LA PART SONT RETIRÉS
+              ══════════════════════════════════════════════════════════════════
+
+              Cette ligne portait « 158 Md € (7,0 %) · −1,28 % », et la note ci-dessus
+              défendait chacun des trois : le montant situe, la part le situe encore
+              mieux, la variation colore.
+
+              Backpack n'affiche que le ticker et la variation. C'est ce que la capture
+              de référence montre, et c'est ce que cette figure dessine désormais.
+
+              ── ET CE N'EST PAS QU'UNE QUESTION DE FIDÉLITÉ ──────────────────
+
+              Le montant et la part sont déjà dans la figure : c'est L'AIRE de la tuile
+              qui les porte, et c'est toute la raison d'être d'un pavage proportionnel.
+              Les réécrire en chiffres au centre de chaque tuile, c'est dire deux fois
+              la même chose — une fois par la géométrie, une fois par le texte — et
+              allonger la ligne au point qu'elle se tronque sur les tuiles moyennes.
+
+              La variation, elle, n'est PAS dans la géométrie : elle est dans la
+              couleur, qu'un œil lit en gros mais pas au dixième près. Elle est donc la
+              seule des trois que le texte apporte vraiment.
+
+              ⚠️ LES CHIFFRES NE SONT PAS PERDUS POUR AUTANT : ils restent dans le
+              `title` de la tuile — voir `caption` plus haut — donc au survol et pour
+              les lecteurs d'écran. C'est l'affichage permanent qui disparaît, pas la
+              donnée.
+            */}
+            {hasChange && tile.change !== undefined ? (
+              <span className={`tile-value tabular block truncate leading-tight ${INK.value}`}>
+                {formatPercent(tile.change)}
+              </span>
+            ) : null}
           </>
         )
 
@@ -406,53 +470,47 @@ export function TreemapLegend({
   }
 
   /*
-   * ── LA LÉGENDE EST SEGMENTÉE ET CHIFFRÉE, COMME CELLE DE LA RÉFÉRENCE ─────
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⚠️ LA LÉGENDE REDEVIENT UN RUBAN, ET C'EST SA PROPRE NOTE QUI L'EXIGE
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * Elle était un ruban de 128 px portant ses deux bornes, posé au bout de la rangée
-   * de commandes — où il se lisait comme un contrôle de plus. TradingView pose la
-   * sienne SOUS la carte : sept pastilles distinctes, chacune sous sa valeur.
+   * Sa version précédente était SEGMENTÉE — sept pastilles chiffrées, à la manière de
+   * TradingView — et sa raison était explicite : « l'échelle de cette carte procède par
+   * PALIERS, un ruban continu promet un dégradé que la figure ne dessine pas ».
    *
-   * La différence n'est pas décorative. L'échelle de cette carte procède par PALIERS
-   * (voir `heatTone`) : un ruban continu promet un dégradé que la figure ne dessine
-   * pas, et un lecteur qui cherche à quel palier appartient une tuile ne peut pas le
-   * retrouver dessus. Des pastilles séparées montrent exactement les teintes qu'il
-   * verra, et les nombres disent où chacune commence.
+   * L'argument était juste, et il se retourne mot pour mot. `backpackTone` est
+   * CONTINUE : chaque dixième de pour cent a sa nuance. Ce sont les pastilles qui
+   * mentiraient maintenant, en promettant sept teintes là où la figure en dessine mille.
+   *
+   * Le ruban est donc rendu par le MÊME code que les tuiles — vingt-cinq arrêts pris
+   * sur `backpackTone` elle-même, et non un dégradé CSS écrit à la main. Une légende
+   * qui recopierait ses couleurs pourrait diverger de la figure sans que rien ne le
+   * signale ; celle-ci ne le peut pas.
+   *
+   * Relevé chez Backpack : bornes à gauche et à droite du ruban, en minuscules.
    */
-  const swatches = heatScaleSwatches()
-  const step = (HEATMAP_CLAMP * 2) / (swatches.length - 1)
+  const ARRETS = 25
+  const ruban = Array.from({ length: ARRETS }, (_, i) => {
+    const change = -BACKPACK_CLAMP + (i / (ARRETS - 1)) * BACKPACK_CLAMP * 2
+    return backpackTone(change)
+  })
 
   return (
-    <div className="flex flex-wrap items-end gap-x-1 gap-y-2 text-micro text-ink-muted">
-      {swatches.map((swatch, index) => {
-        const bound = -HEATMAP_CLAMP + index * step
-        return (
-          <span key={index} className="flex flex-col items-center gap-1">
-            <span
-              aria-hidden="true"
-              className="block h-2.5 w-9 rounded-[2px]"
-              style={{ backgroundColor: swatch }}
-            />
-            <span className="tabular">
-              {bound > 0 ? '+' : bound < 0 ? '−' : ''}
-              {Math.abs(Math.round(bound))} %
-            </span>
-          </span>
-        )
-      })}
-      {/* ⚠️ CETTE PHRASE EST LA SEULE QUE CERTAINS LECTEURS ENTENDENT, et elle sortait
-          en français dans les douze autres langues.
+    <div className="flex items-center gap-2 text-micro text-ink-muted">
+      <span className="tabular">−{BACKPACK_CLAMP} %</span>
+      <span
+        aria-hidden="true"
+        className="flex h-2 w-28 overflow-hidden rounded-[2px]"
+      >
+        {ruban.map((teinte, index) => (
+          <span key={index} className="flex-1" style={{ backgroundColor: teinte }} />
+        ))}
+      </span>
+      <span className="tabular">+{BACKPACK_CLAMP} %</span>
 
-          Elle était écrite en JSX, coupée en trois par les deux `{HEATMAP_CLAMP}` : sous
-          cette forme elle n'a aucune clé possible dans la table. Elle arrive donc en
-          propriété, déjà traduite et ses trous déjà remplis, comme `calmLabel` et
-          `choppyLabel` — et pour la même raison qu'eux, notée juste au-dessus : cette
-          légende est rendue depuis un composant client ET depuis deux composants
-          serveur, et aucun crochet ne traverse les deux.
-
-          Le défaut reste le français, comme partout ailleurs dans le projet. */}
       <span className="sr-only">
         {scaleLabel ??
-          `Échelle de couleur : du rouge à −${HEATMAP_CLAMP} % ou moins, au vert à +${HEATMAP_CLAMP} % ou plus.`}
+          `Échelle de couleur : du rouge à −${BACKPACK_CLAMP} % ou moins, au vert à +${BACKPACK_CLAMP} % ou plus.`}
       </span>
     </div>
   )

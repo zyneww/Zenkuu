@@ -1380,7 +1380,7 @@ export const itPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': "Classifica costruita sui {n} settori considerati — quelli che pesano almeno 10 M$ — e non sull'insieme del mercato.",
   'Courbes longues': 'Curve lunghe',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': "Prezzo, capitalizzazione e volume provengono da una stessa rilevazione della fonte: tre letture di un medesimo istante, mai ricalcolate l'una dall'altra.",
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Superficie: {size}. Colore: variazione su {period}, a scaglioni e saturata oltre ±{clamp} % perché una tessera minuscola e molto volatile non schiacci la scala.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Superficie: {size}. Colore: variazione su {period}, in sfumature continue e saturata oltre ±{clamp} % perché una tessera minuscola e molto volatile non schiacci la scala.',
   'capitalisation': 'capitalizzazione',
   'volume sur 24 heures': 'volume su 24 ore',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Le superfici si spartiscono un tutto: sono le prime {n} capitalizzazioni, ciascuna contata una sola volta.',

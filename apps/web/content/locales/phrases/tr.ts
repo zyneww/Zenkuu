@@ -1380,7 +1380,7 @@ export const trPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Sıralama, listeye alınan {n} sektör üzerinden yapılmıştır — en az 10 milyon dolar ağırlığındakiler — piyasanın tamamı üzerinden değil.',
   'Courbes longues': 'Uzun eğriler',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Fiyat, piyasa değeri ve hacim kaynağın aynı okumasından gelir — tek bir anın üç okuması; hiçbiri ötekinden yeniden hesaplanmaz.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': "Alan: {size}. Renk: {period} değişimi; kademeli ve ±{clamp} %'nin ötesinde doyurulmuş, ki minicik ve çok oynak bir karo ölçeği ezmesin.",
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': "Alan: {size}. Renk: {period} değişimi; kesintisiz tonlarla ve ±{clamp} %'nin ötesinde doyurulmuş, ki minicik ve çok oynak bir karo ölçeği ezmesin.",
   'capitalisation': 'piyasa değeri',
   'volume sur 24 heures': '24 saatlik hacim',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Yüzeyler bir bütünü paylaşır: bunlar en büyük {n} piyasa değeridir; her biri bir kez sayılmıştır.',

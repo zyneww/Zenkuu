@@ -1392,7 +1392,7 @@ export const enPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Ranked over the {n} sectors kept for the ranking — those worth at least $10M — and not over the whole market.',
   'Courbes longues': 'Long curves',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Price, market cap and volume come from a single reading of the source — three readings of one instant, never recomputed one from another.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Area: {size}. Colour: change over {period}, in steps and clamped beyond ±{clamp}% so that one tiny, very volatile tile does not crush the scale.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Area: {size}. Colour: change over {period}, in continuous shades and clamped beyond ±{clamp}% so that one tiny, very volatile tile does not crush the scale.',
   'capitalisation': 'market cap',
   'volume sur 24 heures': '24-hour volume',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'The areas share one whole: these are the top {n} market caps, each counted once.',

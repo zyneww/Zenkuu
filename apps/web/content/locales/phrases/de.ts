@@ -1388,7 +1388,7 @@ export const dePhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Gereiht über die {n} für die Rangliste berücksichtigten Sektoren — jene mit mindestens 10 Mio. $ — und nicht über den gesamten Markt.',
   'Courbes longues': 'Lange Kurven',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Kurs, Marktkapitalisierung und Volumen stammen aus derselben Abfrage der Quelle — drei Ablesungen desselben Augenblicks, nie eine aus der anderen berechnet.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Fläche: {size}. Farbe: Veränderung über {period}, in Stufen und jenseits von ±{clamp} % gekappt, damit eine winzige, sehr schwankungsfreudige Kachel die Skala nicht erdrückt.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Fläche: {size}. Farbe: Veränderung über {period}, in stufenlosen Abstufungen und jenseits von ±{clamp} % gekappt, damit eine winzige, sehr schwankungsfreudige Kachel die Skala nicht erdrückt.',
   'capitalisation': 'Marktkapitalisierung',
   'volume sur 24 heures': '24-Stunden-Volumen',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Die Flächen teilen sich ein Ganzes: Es sind die {n} größten Marktkapitalisierungen, jede einmal gezählt.',

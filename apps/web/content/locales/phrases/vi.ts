@@ -1380,7 +1380,7 @@ export const viPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Xếp hạng dựa trên {n} ngành được đưa vào — những ngành có quy mô ít nhất 10 triệu đô la — chứ không phải toàn bộ thị trường.',
   'Courbes longues': 'Đường dài hạn',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Giá, vốn hóa và khối lượng đều đến từ cùng một lần đọc dữ liệu của nguồn — ba số đọc của cùng một thời điểm, không cái nào được tính lại từ cái kia.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Diện tích: {size}. Màu: biến động trong {period}, theo bậc và bão hòa ngoài ngưỡng ±{clamp} % để một ô nhỏ xíu nhưng biến động mạnh không bóp méo thang màu.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Diện tích: {size}. Màu: biến động trong {period}, bằng các sắc độ liên tục và bão hòa ngoài ngưỡng ±{clamp} % để một ô nhỏ xíu nhưng biến động mạnh không bóp méo thang màu.',
   'capitalisation': 'vốn hóa',
   'volume sur 24 heures': 'khối lượng 24 giờ',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'Các mảng chia nhau một tổng thể: đây là {n} mức vốn hóa lớn nhất, mỗi mức chỉ tính một lần.',

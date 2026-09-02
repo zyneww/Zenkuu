@@ -346,4 +346,107 @@ export function heatScaleSwatches(): string[] {
  * ⚠️ Trois valeurs visibles sur une page donnaient « 90 % suffit » (5,07:1). C'est un
  * échantillon, pas une borne : le pire palier n'était simplement pas à l'écran.
  */
-export const TILE_INK = { label: 'text-white', value: 'text-white' } as const
+/*
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ L'OPACITÉ REVIENT, PARCE QUE LA RAMPE A CHANGÉ SOUS ELLE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Le tableau ci-dessus conclut « aucune opacité ne convient », et il avait raison
+ * CONTRE LA RAMPE QU'IL MESURAIT — celle de CoinGecko, saturée et donc claire.
+ *
+ * `backpackTone` est nettement plus sombre : son vert à fond est `rgb(24, 104, 72)`
+ * quand l'ancien était un vert franc. Du blanc y gagne du contraste, et la conclusion
+ * se renverse. Remesuré sur les trois teintes extrêmes de la NOUVELLE rampe :
+ *
+ * | opacité |  vert +3 % | rouge −3 % | neutre 0 % |
+ * | ------- | ---------- | ---------- | ---------- |
+ * | 100 %   |    6,75:1  |    9,40:1  |   16,88:1  |
+ * | 90 %    |    5,82:1  |    7,94:1  |   13,79:1  |
+ * | 80 %    |    4,98:1  |    6,62:1  |   11,15:1  |
+ * | 75 %    |    4,57:1  |    6,04:1  |    9,90:1  |
+ * | 70 %    |    4,22:1 ✗|    5,45:1  |    8,79:1  |
+ * | 60 %    |    3,55:1 ✗|    4,44:1 ✗|    6,83:1  |
+ *
+ * ── CE QUI EST COPIÉ, ET LE SEUL POINT QUI NE L'EST PAS ────────────────────
+ *
+ * Backpack met son ticker à 90 % et sa variation à 60 %. Le ticker est donc repris TEL
+ * QUEL : 5,82:1, largement au-dessus du seuil.
+ *
+ * Leur 60 % pour la variation donne 3,55:1 sur leur propre vert — sous les 4,5:1
+ * qu'exige un texte de sept pixels. Je ne le reproduis pas. La valeur retenue est 75 %,
+ * le plancher qui passe (4,57:1) : c'est la nuance la plus proche de la leur qui reste
+ * lisible.
+ *
+ * L'écart se voit à peine — quinze points d'opacité sur du blanc — et il porte sur le
+ * seul point où la fidélité coûterait la lisibilité aux petites tuiles, c'est-à-dire
+ * précisément là où cette carte en a le plus besoin.
+ */
+export const TILE_INK = { label: 'text-white/90', value: 'text-white/75' } as const
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA RAMPE DE BACKPACK — CONTINUE, SOMBRE, BORNÉE À ±3 %
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Relevée sur backpack.exchange/markets le 2026-09-02, tuile par tuile, puis vérifiée
+ * par le calcul : à +1,13 % la formule redonne `rgb(25, 57, 49)`, exactement la valeur
+ * mesurée à l'écran. Ce n'est donc pas un à-peu-près, c'est leur rampe.
+ *
+ * ── EN QUOI ELLE DIFFÈRE DE `heatTone` ──────────────────────────────────────
+ *
+ * `heatTone` est la rampe de CoinGecko : CINQ PALIERS discrets, des verts et des rouges
+ * FRANCS, bornés à ±10 %. Celle-ci est son contraire sur les trois points.
+ *
+ *   1. CONTINUE. Pas de palier : chaque dixième de pour cent a sa nuance. Deux tuiles
+ *      voisines à +1,1 % et +1,2 % se distinguent, là où les paliers les confondaient.
+ *
+ *   2. SOMBRE ET DÉSATURÉE. Leur vert à fond est `rgb(24, 104, 72)` — un vert de
+ *      forêt, pas un vert de feu. Toute la carte reste dans les tons de la page au lieu
+ *      de lui sauter au visage, et c'est ce qui la fait lire comme une SURFACE plutôt
+ *      que comme une alarme.
+ *
+ *   3. BORNÉE À ±3 %. Dix fois plus serré que CoinGecko. Sur une séance ordinaire les
+ *      actifs vivent entre −2 % et +2 %, et un plafond à 10 % les tasserait tous dans
+ *      le quart pâle de la rampe. À ±3 %, la même séance occupe toute l'étendue.
+ *
+ * ── LE CENTRE N'EST PAS UN GRIS, C'EST UNE ARDOISE ─────────────────────────
+ *
+ * `rgb(26, 29, 35)` — bleuté, sombre, exactement le fond de leurs cartes. Une variation
+ * nulle ne s'y distingue donc pas du fond : c'est voulu, un actif qui n'a pas bougé
+ * n'a rien à signaler.
+ *
+ * ⚠️ CETTE RAMPE NE BASCULE PAS AVEC LE THÈME, et c'est délibéré comme pour
+ * `--color-heat-*` : l'encre des tuiles est BLANCHE dans les deux thèmes, donc leur fond
+ * doit rester sombre dans les deux. Une rampe qui s'éclaircirait en thème clair
+ * donnerait du blanc sur blanc.
+ */
+const BACKPACK_NEUTRAL = [26, 29, 35] as const
+const BACKPACK_UP = [24, 104, 72] as const
+const BACKPACK_DOWN = [120, 46, 49] as const
+
+/** Le plafond de la rampe, en points de pourcentage. Mesuré : leur légende dit ±3 %. */
+export const BACKPACK_CLAMP = 3
+
+export function backpackTone(change: number | undefined): string {
+  /* Une donnée absente prend le neutre exact : elle n'est ni en hausse ni en baisse, et
+     la teinte ne doit rien affirmer. C'est la même règle que `heat-flat` chez nous. */
+  if (change === undefined) {
+    return `rgb(${BACKPACK_NEUTRAL.join(' ')})`
+  }
+
+  /* `t` va de 0 (neutre) à 1 (saturé), en valeur ABSOLUE — le signe choisit seulement
+     vers quelle extrémité on interpole. */
+  const t = Math.min(Math.abs(change), BACKPACK_CLAMP) / BACKPACK_CLAMP
+  const cible = change >= 0 ? BACKPACK_UP : BACKPACK_DOWN
+
+  /* Interpolation LINÉAIRE en RVB, et non en OKLCH.
+
+     Un espace perceptuel donnerait une progression plus régulière à l'œil, et serait le
+     choix par défaut si j'inventais cette rampe. Mais je la reproduis : eux
+     interpolent en RVB, la vérification par le calcul le confirme au pixel près, et
+     changer d'espace donnerait des nuances intermédiaires différentes des leurs. */
+  const canal = (i: 0 | 1 | 2) =>
+    Math.round(BACKPACK_NEUTRAL[i] + (cible[i] - BACKPACK_NEUTRAL[i]) * t)
+
+  return `rgb(${canal(0)} ${canal(1)} ${canal(2)})`
+}

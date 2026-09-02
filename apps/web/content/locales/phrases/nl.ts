@@ -1380,7 +1380,7 @@ export const nlPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'Rangschikking op basis van de {n} sectoren die voor de ranglijst zijn meegenomen — die van minstens 10 M$ — en niet op de hele markt.',
   'Courbes longues': 'Lange curven',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': 'Koers, marktkapitalisatie en volume komen uit één en dezelfde uitlezing van de bron — drie aflezingen van hetzelfde moment, nooit de een uit de ander herberekend.',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Oppervlak: {size}. Kleur: verandering over {period}, in stappen en begrensd voorbij ±{clamp} % zodat één piepklein, zeer beweeglijk vlak de schaal niet verplettert.',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': 'Oppervlak: {size}. Kleur: verandering over {period}, in vloeiende tinten en begrensd voorbij ±{clamp} % zodat één piepklein, zeer beweeglijk vlak de schaal niet verplettert.',
   'capitalisation': 'marktkapitalisatie',
   'volume sur 24 heures': 'volume over 24 uur',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': 'De vlakken delen één geheel: dit zijn de {n} grootste marktkapitalisaties, elk één keer geteld.',

@@ -1380,7 +1380,7 @@ export const jaPhrases: Phrases = {
   'Classement établi sur les {n} secteurs retenus pour le classement — ceux qui pèsent au moins 10 M$ — et non sur l’ensemble du marché.': 'この順位は、対象とした{n}セクター（時価総額1000万ドル以上）に基づくものであり、市場全体に基づくものではありません。',
   'Courbes longues': '長期の推移',
   'Cours, capitalisation et volume proviennent d’un même relevé de la source — trois lectures d’un même instant, jamais recalculées l’une depuis l’autre.': '価格・時価総額・出来高は、ソースの同一の取得結果に由来します。同じ瞬間の3つの読み取りであり、一方から他方を計算し直すことはありません。',
-  'Surface : {size}. Couleur : variation sur {period}, par paliers et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': '面積：{size}。色：{period}の変化率。段階表示とし、±{clamp} % を超える分は頭打ちにしています。極小で値動きの激しいタイルが目盛りを潰さないためです。',
+  'Surface : {size}. Couleur : variation sur {period}, en nuances continues et saturée au-delà de ±{clamp} % pour qu’une tuile minuscule et très volatile n’écrase pas l’échelle.': '面積：{size}。色：{period}の変化率。連続的な濃淡とし、±{clamp} % を超える分は頭打ちにしています。極小で値動きの激しいタイルが目盛りを潰さないためです。',
   'capitalisation': '時価総額',
   'volume sur 24 heures': '24時間出来高',
   'Les surfaces se partagent un tout : ce sont les {n} premières capitalisations, chacune comptée une seule fois.': '面積はひとつの全体を分け合っています。時価総額の上位{n}銘柄を、それぞれ一度だけ数えたものです。',
