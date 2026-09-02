@@ -968,7 +968,7 @@ export function MarketTable({
                   le fond elle aurait laissé une fenêtre de trente-deux pixels par où la
                   ligne qui défile serait remontée dans l'en-tête. Voir `ColumnHeader`. */}
               {watchlist ? (
-                <th scope="col" className="w-8 bg-canvas px-1 py-2.5 font-semibold">
+                <th scope="col" className="w-8 bg-canvas px-1 py-2 font-semibold">
                   <span className="sr-only">{fr.market.columns.watch}</span>
                 </th>
               ) : null}
@@ -1181,7 +1181,7 @@ export function MarketTable({
                      sécurité de `globals.css` ne vise que ce qui reçoit un geste, et une
                      rangée de tableau n'en fait pas partie. Elle en a pourtant le plus
                      besoin — c'est la plus grande surface qui change au survol. */
-                  className="group transition-colors duration-150 ease-[var(--ease-standard)] hover:bg-surface-muted/60"
+                  className="group transition-colors duration-150 ease-[var(--ease-standard)] hover:bg-surface-hover"
                 >
                   {/*
                     L'ÉTOILE OUVRE LA LIGNE, DEVANT LE RANG.
@@ -1197,7 +1197,7 @@ export function MarketTable({
                     téléphone retirerait la fonction plutôt qu'une information.
                   */}
                   {watchlist ? (
-                    <td className="px-1 py-2.5">
+                    <td className="px-1 py-2">
                       <WatchlistStar
                         assetClass={asset.assetClass}
                         assetId={asset.id}
@@ -1211,12 +1211,12 @@ export function MarketTable({
                   ) : null}
 
                   {shows.rank ? (
-                    <td className="tabular hidden px-2 py-2.5 @min-[790px]:px-3 text-xs text-ink-muted @min-[790px]:table-cell">
+                    <td className="tabular hidden px-2 py-2 @min-[790px]:px-3 text-xs text-ink-muted @min-[790px]:table-cell">
                       {asset.rank ?? '—'}
                     </td>
                   ) : null}
 
-                  <th scope="row" className="px-2 py-2.5 @min-[790px]:px-3 text-left font-normal">
+                  <th scope="row" className="px-2 py-2 @min-[790px]:px-3 text-left font-normal">
                     {/* Le lien porte sur le nom plutôt que sur la ligne entière : une
                         ligne cliquable empêche de sélectionner un chiffre à la souris
                         et n'est pas atteignable proprement au clavier.
@@ -1274,12 +1274,12 @@ export function MarketTable({
                   {/* Graisse 400 et non 500 : toutes les cellules de DONNÉES de la
                       référence sont en 14px/400 — cours, variations, volume,
                       capitalisation, FDV. Seul le nom monte à 600. */}
-                  <td className="tabular px-2 py-2.5 @min-[790px]:px-3 text-right font-normal text-ink">
+                  <td className="tabular px-2 py-2 @min-[790px]:px-3 text-right font-normal text-ink">
                     <Money value={asset.price} from={asset.currency} asRate={isForex} />
                   </td>
 
                   {shows.change24h ? (
-                  <td className="px-2 py-2.5 @min-[790px]:px-3 text-right">
+                  <td className="px-2 py-2 @min-[790px]:px-3 text-right">
                     <ChangeBadge
                       value={selected ? asset[selected.field] : asset.change24h}
                       // Hors sélecteur, la source peut déclarer couvrir autre chose
@@ -1292,13 +1292,13 @@ export function MarketTable({
                   ) : null}
 
                   {shows.change7d ? (
-                    <td className="hidden px-2 py-2.5 @min-[790px]:px-3 text-right @min-[790px]:table-cell">
+                    <td className="hidden px-2 py-2 @min-[790px]:px-3 text-right @min-[790px]:table-cell">
                       <ChangeBadge value={asset.change7d} periodLabel="sur 7 jours" />
                     </td>
                   ) : null}
 
                   {shows30d ? (
-                    <td className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${extraClass}`}>
+                    <td className={`px-2 py-2 @min-[790px]:px-3 text-right ${extraClass}`}>
                       <ChangeBadge
                         value={asset.change30d}
                         periodLabel={period30d.longLabel}
@@ -1308,7 +1308,7 @@ export function MarketTable({
                   ) : null}
 
                   {visibleExtras.map((entry) => (
-                    <td key={entry.key} className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${extraClass}`}>
+                    <td key={entry.key} className={`px-2 py-2 @min-[790px]:px-3 text-right ${extraClass}`}>
                       {/* `periodLabel` vient de la table, pas d'une chaîne recopiée : c'est
                           lui que lisent les lecteurs d'écran (« en hausse de 3 % sur 30
                           jours »), et une fenêtre mal nommée y serait invisible à l'œil. */}
@@ -1321,13 +1321,13 @@ export function MarketTable({
                   ))}
 
                   {shows.ath ? (
-                    <td className="tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink">
+                    <td className="tabular px-2 py-2 @min-[790px]:px-3 text-right text-ink">
                       <Money value={asset.ath} from={asset.currency} asRate={isForex} />
                     </td>
                   ) : null}
 
                   {shows.ath ? (
-                    <td className="px-2 py-2.5 @min-[790px]:px-3 text-right">
+                    <td className="px-2 py-2 @min-[790px]:px-3 text-right">
                       {/*
                         `ChangeBadge` et non un pourcentage nu : l'écart au sommet est
                         une variation — négative dans l'immense majorité des cas — et
@@ -1347,7 +1347,7 @@ export function MarketTable({
                   ) : null}
 
                   {shows.athDate ? (
-                    <td className="tabular hidden px-2 py-2.5 @min-[790px]:px-3 text-right text-xs text-ink-muted @min-[1100px]:table-cell">
+                    <td className="tabular hidden px-2 py-2 @min-[790px]:px-3 text-right text-xs text-ink-muted @min-[1100px]:table-cell">
                       {asset.athDate ? (
                         <time dateTime={asset.athDate}>{monthYear(asset.athDate)}</time>
                       ) : (
@@ -1361,7 +1361,7 @@ export function MarketTable({
                       grisier les ferait passer pour des métadonnées. La référence les
                       pose dans la même encre que le prix. */}
                   {shows.high24h ? (
-                    <td className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink ${rangeClass}`}>
+                    <td className={`tabular px-2 py-2 @min-[790px]:px-3 text-right text-ink ${rangeClass}`}>
                       {asset.high24h !== undefined ? (
                         <Money value={asset.high24h} from={asset.currency} asRate={isForex} />
                       ) : (
@@ -1371,7 +1371,7 @@ export function MarketTable({
                   ) : null}
 
                   {shows.low24h ? (
-                    <td className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink ${rangeClass}`}>
+                    <td className={`tabular px-2 py-2 @min-[790px]:px-3 text-right text-ink ${rangeClass}`}>
                       {asset.low24h !== undefined ? (
                         <Money value={asset.low24h} from={asset.currency} asRate={isForex} />
                       ) : (
@@ -1381,7 +1381,7 @@ export function MarketTable({
                   ) : null}
 
                   {shows.chartInline ? (
-                    <td className="hidden px-2 py-2.5 @min-[790px]:px-3 @min-[1240px]:table-cell">
+                    <td className="hidden px-2 py-2 @min-[790px]:px-3 @min-[1240px]:table-cell">
                       <Sparkline values={asset.sparkline7d} label={`Évolution de ${asset.name}`} />
                     </td>
                   ) : null}
@@ -1389,7 +1389,7 @@ export function MarketTable({
                   {aggregates.map((key) => (
                     <td
                       key={key}
-                      className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right ${aggregateMeta[key].tone} ${aggregateMeta[key].className}`}
+                      className={`tabular px-2 py-2 @min-[790px]:px-3 text-right ${aggregateMeta[key].tone} ${aggregateMeta[key].className}`}
                     >
                       <Money value={asset[aggregateMeta[key].field]} from={asset.currency} compact />
                     </td>
@@ -1401,7 +1401,7 @@ export function MarketTable({
                       rend un nombre brut dans la devise de l'actif, comme la
                       capitalisation et le volume juste au-dessus. */}
                   {showFdv ? (
-                    <td className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right ${supplyClass}`}>
+                    <td className={`tabular px-2 py-2 @min-[790px]:px-3 text-right ${supplyClass}`}>
                       {fullyDilutedValuation(asset) !== undefined ? (
                         <Money value={fullyDilutedValuation(asset)} from={asset.currency} compact />
                       ) : (
@@ -1413,7 +1413,7 @@ export function MarketTable({
                   {/* Hérite l'indéfini de la FDV — voir `marketCapToFdvShare`. */}
                   {showFdvRatio ? (
                     <td
-                      className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
+                      className={`tabular px-2 py-2 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
                     >
                       {formatShare(marketCapToFdvShare(asset)) ?? '—'}
                     </td>
@@ -1425,7 +1425,7 @@ export function MarketTable({
                       compte les unités. */}
                   {shows.supply ? (
                     <td
-                      className={`tabular px-2 py-2.5 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
+                      className={`tabular px-2 py-2 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
                     >
                       {asset.circulatingSupply !== undefined ? (
                         <>
@@ -1439,7 +1439,7 @@ export function MarketTable({
                   ) : null}
 
                   {shows.dayRange ? (
-                    <td className="tabular hidden px-2 py-2.5 @min-[790px]:px-3 text-right text-xs text-ink-muted @min-[1100px]:table-cell">
+                    <td className="tabular hidden px-2 py-2 @min-[790px]:px-3 text-right text-xs text-ink-muted @min-[1100px]:table-cell">
                       {asset.low24h !== undefined && asset.high24h !== undefined ? (
                         <>
                           <Money value={asset.low24h} from={asset.currency} asRate={isForex} />
@@ -1453,7 +1453,7 @@ export function MarketTable({
                   ) : null}
 
                   {shows.chartAtEnd ? (
-                    <td className="hidden px-2 py-2.5 @min-[790px]:px-3 text-right @min-[1240px]:table-cell">
+                    <td className="hidden px-2 py-2 @min-[790px]:px-3 text-right @min-[1240px]:table-cell">
                       <span className="inline-flex justify-end">
                         <Sparkline
                           values={asset.sparkline7d}
@@ -1482,7 +1482,7 @@ export function MarketTable({
                     la colonne l'est, `aria-label` porte la version complète.
                   */}
                   {shows.action ? (
-                    <td className={`px-2 py-2.5 @min-[790px]:px-3 text-right ${actionClass}`}>
+                    <td className={`px-2 py-2 @min-[790px]:px-3 text-right ${actionClass}`}>
                       <Link
                         href={href}
                         prefetch={false}
