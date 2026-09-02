@@ -2834,4 +2834,6 @@ export const dePhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Lernen',
   'Cryptomonnaies': 'Kryptowährungen',
+  'Vue du marché': 'Marktüberblick',
+  'Comparaison des variations depuis l’ouverture': 'Vergleich der Veränderungen seit Beginn des Zeitraums',
 }

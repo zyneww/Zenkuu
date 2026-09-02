@@ -2826,4 +2826,6 @@ export const plPhrases: Phrases = {
   Screener: 'Skaner',
   Apprendre: 'Nauka',
   'Cryptomonnaies': 'Kryptowaluty',
+  'Vue du marché': 'Przegląd rynku',
+  'Comparaison des variations depuis l’ouverture': 'Porównanie zmian od początku okresu',
 }

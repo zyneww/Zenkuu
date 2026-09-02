@@ -2826,4 +2826,6 @@ export const nlPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Leren',
   'Cryptomonnaies': "Cryptovaluta's",
+  'Vue du marché': 'Marktoverzicht',
+  'Comparaison des variations depuis l’ouverture': 'Vergelijking van de veranderingen sinds het begin van de periode',
 }

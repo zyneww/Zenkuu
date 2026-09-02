@@ -2826,4 +2826,6 @@ export const itPhrases: Phrases = {
   Screener: 'Screener',
   Apprendre: 'Imparare',
   'Cryptomonnaies': 'Criptovalute',
+  'Vue du marché': 'Quadro di mercato',
+  'Comparaison des variations depuis l’ouverture': 'Confronto delle variazioni dall’inizio del periodo',
 }

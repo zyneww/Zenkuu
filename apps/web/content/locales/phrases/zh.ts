@@ -2819,4 +2819,6 @@ export const zhPhrases: Phrases = {
   Screener: '筛选器',
   Apprendre: '学习',
   'Cryptomonnaies': '加密货币',
+  'Vue du marché': '市场概览',
+  'Comparaison des variations depuis l’ouverture': '自区间起点以来的涨跌对比',
 }

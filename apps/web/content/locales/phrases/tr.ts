@@ -2826,4 +2826,6 @@ export const trPhrases: Phrases = {
   Screener: 'Tarayıcı',
   Apprendre: 'Öğren',
   'Cryptomonnaies': 'Kripto paralar',
+  'Vue du marché': 'Piyasa görünümü',
+  'Comparaison des variations depuis l’ouverture': 'Dönem başından bu yana değişimlerin karşılaştırması',
 }
