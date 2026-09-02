@@ -726,7 +726,15 @@ export function ChartToolbar(props: ChartToolbarProps) {
               aria-pressed={entry.key === props.metric}
               className={`flex h-7 items-center justify-center whitespace-nowrap rounded-[6px] px-2.5 text-xs font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-ink-muted ${
                 entry.key === props.metric
-                  ? 'bg-overlay text-ink shadow-sm'
+                  /* ⚠️ `bg-surface-active` (L4) ET NON `bg-overlay`. Les deux jetons se valaient
+                     tant que `overlay` était #1b232d, un cran au-dessus des cartes ; il vaut
+                     désormais #14151b, EXACTEMENT le ton de la surface qui porte cette barre —
+                     la pastille active devenait donc invisible.
+
+                     DESIGN_BACKPACK.md range précisément cet état sur L4, « onglets actifs et
+                     boutons segmentés » : #383a45. C'est aussi ce que fait Dropstab, mesuré sur
+                     leur fiche Bitcoin — rgb(63, 63, 70) sur un fond nettement plus sombre. */
+                  ? 'bg-surface-active text-ink shadow-sm'
                   : 'text-ink-muted hover:text-ink'
               }`}
             >
@@ -1172,7 +1180,15 @@ export function ChartToolbar(props: ChartToolbarProps) {
                  suffit à la faire rentrer. Voir la note de la pastille. */
               className={`flex h-6 items-center justify-center rounded-[6px] px-2 text-xs font-medium transition-colors duration-150 ${
                 active
-                  ? 'bg-overlay text-ink shadow-sm'
+                  /* ⚠️ `bg-surface-active` (L4) ET NON `bg-overlay`. Les deux jetons se valaient
+                     tant que `overlay` était #1b232d, un cran au-dessus des cartes ; il vaut
+                     désormais #14151b, EXACTEMENT le ton de la surface qui porte cette barre —
+                     la pastille active devenait donc invisible.
+
+                     DESIGN_BACKPACK.md range précisément cet état sur L4, « onglets actifs et
+                     boutons segmentés » : #383a45. C'est aussi ce que fait Dropstab, mesuré sur
+                     leur fiche Bitcoin — rgb(63, 63, 70) sur un fond nettement plus sombre. */
+                  ? 'bg-surface-active text-ink shadow-sm'
                   : 'text-ink-muted hover:text-ink'
               }`}
             >

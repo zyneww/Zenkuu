@@ -308,7 +308,12 @@ function SelfRow({ asset, rank }: { asset: AssetDetail; rank: number }) {
 
       <td className="border-l border-border-subtle/60 px-4 py-3">
         <span className="flex items-center justify-end gap-2">
-          <span className="tabular rounded-control bg-overlay px-2 py-1 text-xs font-medium text-ink">
+          {/* ⚠️ `bg-surface-active` (L4) et non `bg-overlay` : ce n'est pas une surface
+              volante mais une pastille POSÉE dans une cellule de tableau. Depuis que
+              `overlay` vaut L1, elle avait exactement le ton de la carte qui la porte et
+              ne se voyait plus. L4 est le niveau que la spécification donne aux jetons
+              détachés de leur fond. */}
+          <span className="tabular rounded-control bg-surface-active px-2 py-1 text-xs font-medium text-ink">
             {formatCurrency(asset.marketCap, asset.currency, { compact: true }) ?? '—'}
           </span>
           <span className="w-12 text-right text-ink-muted/60">—</span>
