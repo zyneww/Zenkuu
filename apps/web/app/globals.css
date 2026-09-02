@@ -2527,8 +2527,16 @@
      exacte relevée sur leur courbe cumulée. */
   --chart-overlay: #ff8c00;
 
-  /* L'infobulle telle qu'ils la servent, à la valeur près. */
-  --chart-tooltip-bg: rgb(11 11 13 / 0.8);
+  /* ⚠️ LA VALEUR EST CELLE DE DESIGN_BACKPACK.md (§ infobulle de graphique), PLUS
+     CELLE DE COINGECKO. La note qui tenait ici disait « telle qu'ils la servent, à la
+     valeur près » — et rgb(11 11 13) était bien leur mesure. Mais ce noir-là ne
+     provient d'aucun niveau de l'obsidienne étagée : c'est un gris neutre plus sombre
+     que le canvas, adopté avant que la palette ne change de référence.
+
+     La spécification demande le canvas lui-même à 85 % — #0e0f14 — sous un flou
+     d'arrière-plan. Une infobulle n'a pas à inventer un noir : elle reprend le fond de
+     la page et laisse le flou faire la séparation. */
+  --chart-tooltip-bg: rgb(14 15 20 / 0.85);
   --chart-tooltip-border: rgb(255 255 255 / 0.1);
 
   /* Hausse et baisse — valeurs EXACTES de CoinGecko, sombre. `.gecko-up` mesure
@@ -2571,7 +2579,22 @@
 
      #27272a venait de la rampe `zinc` de Dropstab, comme `surface-muted` juste
      au-dessus ; ni l'un ni l'autre n'a jamais été mesuré chez la référence. */
-  --color-overlay: #1b232d;
+  /* ⚠️ #14151b, ET NON PLUS #1b232d — DESIGN_BACKPACK.md, tableau des surfaces.
+
+     La valeur précédente venait d'un relevé fait chez CoinGecko : leurs panneaux
+     flottants sont en `moon-800`, un cran au-dessus de leur canvas. Le raisonnement
+     était bon pour eux ; il ne l'est plus depuis que la palette de ce site est
+     l'obsidienne étagée de Backpack.
+
+     #1b232d n'appartient à aucun de ses cinq niveaux : c'est un bleu ardoise, plus
+     clair et surtout plus FROID que L1. Il se voyait — sur les captures fournies, le
+     panneau de la recherche et le calendrier avaient visiblement un autre fond que
+     les cartes de la même page.
+
+     La spécification range « menus volants, tiroirs, modales » sur L1, le niveau des
+     cartes : #14151b en sombre, #ffffff en clair. Une surface qui flotte n'a pas
+     besoin d'une teinte à elle — elle se détache par son ombre et son filet. */
+  --color-overlay: #14151b;
   /* ⚠️ L'OMBRE N'EST PLUS RENFORCÉE EN SOMBRE, ET C'EST MESURÉ. La note qui tenait
      ici raisonnait ainsi : « sur un fond aussi sombre, une ombre à 0,6 n'a pas assez
      de noir sous elle pour se voir » — donc on la poussait à 0,70 sur 60 px de flou.

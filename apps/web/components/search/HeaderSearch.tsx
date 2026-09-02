@@ -163,10 +163,18 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
           <PopoverAnchor asChild>
             <div
               className={cn(
-                /* `rounded-full` : un champ de recherche est MANIPULABLE, donc il
-                   appartient au pôle très arrondi de l'échelle à deux pôles. À 8 px il
-                   avait le rayon d'une carte, c'est-à-dire d'un contenant. */
-                'flex h-9 items-center gap-2 rounded-full border bg-surface-muted pl-3 pr-1.5 transition-colors duration-150',
+                /* `rounded-sm` — 4 px, presque carré (demande explicite).
+
+                   Le champ était passé à `rounded-full` au nom d'une échelle à deux
+                   pôles où tout ce qui se manipule est très arrondi. Vu en place, la
+                   pastille lisait comme un bouton posé dans l'en-tête plutôt que comme
+                   un CHAMP où l'on écrit : l'arrondi total efface les angles qui
+                   signalent une zone de saisie.
+
+                   4 px suffit à retirer la dureté du coin vif sans rien promettre
+                   d'autre. C'est la même valeur que le panneau de résultats qui
+                   s'ouvre dessous — les deux moitiés d'un même objet. */
+                'flex h-9 items-center gap-2 rounded-sm border bg-surface-muted pl-3 pr-1.5 transition-colors duration-150',
                 focused ? 'border-brand' : 'border-border-subtle hover:border-brand/60',
               )}
             >

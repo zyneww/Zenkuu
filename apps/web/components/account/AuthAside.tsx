@@ -91,8 +91,18 @@ export function AuthAside({
       Le fond est écrit EN DUR et ne bascule pas avec le thème. Ce panneau est nocturne
       par nature : un ciel étoilé sur fond crème n'est pas un ciel. C'est le même
       raisonnement que les jetons `heat-*`, qui portent leur propre contraste.
+
+      ⚠️ #0e0f14, ET NON PLUS #05070d. La valeur écrite en dur restait ; c'est la
+      TEINTE qui posait problème : #05070d n'appartient à aucun des cinq niveaux de
+      l'obsidienne étagée, il tombait sous le plancher de la rampe. La différence est
+      invisible sur un ciel étoilé, mais elle faisait de ce panneau la seule surface du
+      site dont le noir ne venait de nulle part.
+
+      L0 EST déjà ce noir-là, et il est nocturne : on le pose littéralement plutôt que
+      par `bg-canvas`, qui basculerait au crème en thème clair — ce qui est exactement
+      ce que ce panneau refuse.
     */
-    <aside className="relative hidden overflow-hidden bg-[#05070d] lg:flex lg:flex-col lg:justify-between lg:p-12">
+    <aside className="relative hidden overflow-hidden bg-[#0e0f14] lg:flex lg:flex-col lg:justify-between lg:p-12">
       <svg
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 h-full w-full"
