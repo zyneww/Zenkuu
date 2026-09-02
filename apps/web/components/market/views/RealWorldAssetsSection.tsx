@@ -91,7 +91,7 @@ export async function RealWorldAssetsSection() {
 
       <SourceNote
         strings={{ source: t('Source :'), dated: t('données du {date}') }}
-        label={`${tokens.source.label} · montants en USD`}
+        label={t('{source} · montants en USD').replace('{source}', `${tokens.source.label}`)}
         href={tokens.source.attributionUrl}
       />
     </div>

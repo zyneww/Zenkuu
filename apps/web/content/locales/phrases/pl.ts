@@ -2810,4 +2810,13 @@ export const plPhrases: Phrases = {
   'Dominance d’Ethereum': 'Dominacja Ethereum',
   'Reste du marché': 'Reszta rynku',
   'Toutes les autres cryptomonnaies réunies': 'Wszystkie pozostałe kryptowaluty razem',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · kwoty w USD',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Aktywo może należeć do kilku',
+  'Premier secteur': 'Największy sektor',
+  'Sa part du marché': 'Jego udział w rynku',
+  'Rapportée à la capitalisation totale': 'W odniesieniu do łącznej kapitalizacji',
 }

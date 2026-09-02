@@ -2810,4 +2810,13 @@ export const trPhrases: Phrases = {
   'Dominance d’Ethereum': 'Ethereum baskınlığı',
   'Reste du marché': 'Piyasanın geri kalanı',
   'Toutes les autres cryptomonnaies réunies': 'Diğer bütün kripto paralar birlikte',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · tutarlar USD cinsinden',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Bir varlık birkaçına birden ait olabilir',
+  'Premier secteur': 'En büyük sektör',
+  'Sa part du marché': 'Piyasadaki payı',
+  'Rapportée à la capitalisation totale': 'Toplam piyasa değerine oranla',
 }

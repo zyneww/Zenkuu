@@ -5,7 +5,10 @@ import {
   getCategories,
   getCryptoGlobalStats,
 } from '@zenkuu/data'
-import { EmptyState, SourceNote } from '@zenkuu/ui'
+import { EmptyState, SourceNote, formatCurrency, formatShare } from '@zenkuu/ui'
+import { getLocale } from 'next-intl/server'
+
+import { StatCard } from '@/components/charts/StatCard'
 
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
 import { getContent } from '@/lib/content'
@@ -93,6 +96,11 @@ export default async function CategoriesPage() {
      des étiquettes de taxonomie ne portant aucun actif valorisé. */
   const listed = categories.data.filter((category) => (category.marketCap ?? 0) > 0)
 
+  /* Le secteur de tête, tel que le tableau l'ordonne — donc par capitalisation. Il
+     n'est pas choisi ici : c'est la première ligne de ce qui s'affiche en dessous. */
+  const premier = listed[0]
+  const locale = await getLocale()
+
   return (
     <div className="space-y-8">
       <CategoriesHeading
@@ -104,6 +112,48 @@ export default async function CategoriesPage() {
           '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
         ).replace('{n}', String(listed.length))}
       />
+
+      {/* ── LA BANDE DE TÊTE ────────────────────────────────────────────────
+          Le motif d'ASXN, déjà posé sur /graphiques, /graphiques/actifs-reels,
+          /graphiques/tresoreries et /graphiques/dominance (voir `StatCard`).
+
+          Les trois chiffres viennent de la page elle-même : le nombre de secteurs est
+          déjà écrit sous le titre, la capitalisation du plus gros et sa part sont déjà
+          la première ligne du tableau. Ils passent devant parce que ce sont les
+          réponses qu'on vient chercher — et parce qu'un tableau de 367 lignes ne dit
+          rien tant qu'on n'a pas lu sa première.
+
+          ⚠️ AUCUN TOTAL DE CAPITALISATION ICI, et la note du titre dit pourquoi : un
+          actif relève de PLUSIEURS catégories — Bitcoin est « Layer 1 » ET « Proof of
+          Work » — donc les capitalisations de ce tableau ne s'additionnent pas. Une
+          somme serait un chiffre faux présenté comme un agrégat (§5). */}
+      {premier ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatCard
+            label={t('Secteurs cotés')}
+            value={String(listed.length)}
+            note={t('Chaque actif peut relever de plusieurs')}
+          />
+          <StatCard
+            label={t('Premier secteur')}
+            value={premier.name}
+            change24h={premier.marketCapChange24h}
+            note={formatCurrency(premier.marketCap, 'USD', { compact: true }) ?? undefined}
+          />
+          {globalStats.ok && premier.marketCap ? (
+            <StatCard
+              label={t('Sa part du marché')}
+              value={
+                formatShare(
+                  (premier.marketCap / globalStats.data.totalMarketCap) * 100,
+                  locale,
+                ) ?? '—'
+              }
+              note={t('Rapportée à la capitalisation totale')}
+            />
+          ) : null}
+        </div>
+      ) : null}
 
       <CategoryExplorer
         categories={listed}

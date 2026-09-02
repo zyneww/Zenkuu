@@ -47,7 +47,7 @@ export async function NftSection() {
 
       <SourceNote
         strings={{ source: t('Source :'), dated: t('données du {date}') }}
-        label={`${collections.source.label} · montants en USD`}
+        label={t('{source} · montants en USD').replace('{source}', `${collections.source.label}`)}
         href={collections.source.attributionUrl}
       />
     </div>

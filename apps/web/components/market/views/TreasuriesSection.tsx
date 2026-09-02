@@ -119,7 +119,7 @@ export async function TreasuriesSection() {
 
       <SourceNote
         strings={{ source: t('Source :'), dated: t('données du {date}') }}
-        label={`${(bitcoin.ok ? bitcoin.source : ethereum.source)?.label ?? ''} · montants en USD`}
+        label={t('{source} · montants en USD').replace('{source}', `${(bitcoin.ok ? bitcoin.source : ethereum.source)?.label ?? ''}`)}
         href={(bitcoin.ok ? bitcoin.source : ethereum.source)?.attributionUrl ?? '#'}
       />
     </div>

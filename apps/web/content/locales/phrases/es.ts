@@ -2817,4 +2817,13 @@ export const esPhrases: Phrases = {
   'Dominance d’Ethereum': 'Dominancia de Ethereum',
   'Reste du marché': 'Resto del mercado',
   'Toutes les autres cryptomonnaies réunies': 'Todas las demás criptomonedas juntas',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · importes en USD',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Un activo puede pertenecer a varios',
+  'Premier secteur': 'Primer sector',
+  'Sa part du marché': 'Su parte del mercado',
+  'Rapportée à la capitalisation totale': 'Referida a la capitalización total',
 }

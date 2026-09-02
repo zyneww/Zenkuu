@@ -2803,4 +2803,13 @@ export const zhPhrases: Phrases = {
   'Dominance d’Ethereum': '以太坊占比',
   'Reste du marché': '市场其余部分',
   'Toutes les autres cryptomonnaies réunies': '其余所有加密货币的总和',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · 金额以美元计',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': '一项资产可同时属于多个板块',
+  'Premier secteur': '最大的板块',
+  'Sa part du marché': '它的市场份额',
+  'Rapportée à la capitalisation totale': '相对于总市值',
 }

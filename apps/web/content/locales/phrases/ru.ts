@@ -2810,4 +2810,13 @@ export const ruPhrases: Phrases = {
   'Dominance d’Ethereum': 'Доминирование Ethereum',
   'Reste du marché': 'Остальной рынок',
   'Toutes les autres cryptomonnaies réunies': 'Все остальные криптовалюты вместе',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · суммы в долларах США',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Актив может относиться сразу к нескольким',
+  'Premier secteur': 'Крупнейший сектор',
+  'Sa part du marché': 'Его доля рынка',
+  'Rapportée à la capitalisation totale': 'По отношению к общей капитализации',
 }

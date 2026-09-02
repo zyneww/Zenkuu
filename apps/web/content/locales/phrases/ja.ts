@@ -2810,4 +2810,13 @@ export const jaPhrases: Phrases = {
   'Dominance d’Ethereum': 'イーサリアムのドミナンス',
   'Reste du marché': '市場のその他',
   'Toutes les autres cryptomonnaies réunies': 'その他すべての暗号資産の合計',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · 金額は米ドル建て',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': '一つの銘柄が複数に属することがあります',
+  'Premier secteur': '首位のセクター',
+  'Sa part du marché': 'その市場シェア',
+  'Rapportée à la capitalisation totale': '時価総額全体に対する比率',
 }

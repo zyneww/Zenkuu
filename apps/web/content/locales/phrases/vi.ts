@@ -2810,4 +2810,13 @@ export const viPhrases: Phrases = {
   'Dominance d’Ethereum': 'Tỷ trọng của Ethereum',
   'Reste du marché': 'Phần còn lại của thị trường',
   'Toutes les autres cryptomonnaies réunies': 'Tất cả các tiền mã hóa còn lại cộng lại',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · số tiền tính bằng USD',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Một tài sản có thể thuộc nhiều ngành',
+  'Premier secteur': 'Ngành lớn nhất',
+  'Sa part du marché': 'Thị phần của ngành đó',
+  'Rapportée à la capitalisation totale': 'So với tổng vốn hóa',
 }

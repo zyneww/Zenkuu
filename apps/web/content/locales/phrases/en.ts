@@ -2822,4 +2822,13 @@ export const enPhrases: Phrases = {
   'Dominance d’Ethereum': 'Ethereum dominance',
   'Reste du marché': 'Rest of the market',
   'Toutes les autres cryptomonnaies réunies': 'All other cryptocurrencies combined',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · amounts in USD',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'An asset can belong to several',
+  'Premier secteur': 'Largest sector',
+  'Sa part du marché': 'Its share of the market',
+  'Rapportée à la capitalisation totale': 'Relative to the total capitalisation',
 }

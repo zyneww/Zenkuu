@@ -108,7 +108,7 @@ export default async function EcosystemsPage() {
 
           <SourceNote
             strings={{ source: t('Source :'), dated: t('données du {date}') }}
-            label={`${categories.source.label} · montants en USD`}
+            label={t('{source} · montants en USD').replace('{source}', `${categories.source.label}`)}
             href={categories.source.attributionUrl}
           />
         </>

@@ -127,7 +127,7 @@ export default async function NewListingsPage() {
           <NewListingsTable listings={listings.data} index={index} />
           <SourceNote
             strings={{ source: t('Source :'), dated: t('données du {date}') }}
-            label={`${listings.source.label} · montants en USD`}
+            label={t('{source} · montants en USD').replace('{source}', `${listings.source.label}`)}
             href={listings.source.attributionUrl}
             updatedAt={listings.data[0]?.lastUpdated}
           />

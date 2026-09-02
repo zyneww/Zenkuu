@@ -2810,4 +2810,13 @@ export const ptBRPhrases: Phrases = {
   'Dominance d’Ethereum': 'Dominância do Ethereum',
   'Reste du marché': 'Resto do mercado',
   'Toutes les autres cryptomonnaies réunies': 'Todas as outras criptomoedas somadas',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · valores em USD',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Um ativo pode pertencer a vários',
+  'Premier secteur': 'Maior setor',
+  'Sa part du marché': 'Sua fatia do mercado',
+  'Rapportée à la capitalisation totale': 'Em relação à capitalização total',
 }

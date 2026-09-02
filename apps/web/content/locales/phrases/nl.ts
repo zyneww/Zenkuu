@@ -2810,4 +2810,13 @@ export const nlPhrases: Phrases = {
   'Dominance d’Ethereum': 'Dominantie van Ethereum',
   'Reste du marché': 'Rest van de markt',
   'Toutes les autres cryptomonnaies réunies': 'Alle overige cryptomunten samen',
+
+  // ── SOURCES — montants en USD ──
+  '{source} · montants en USD': '{source} · bedragen in USD',
+
+  // ── CATÉGORIES — bande ──
+  'Chaque actif peut relever de plusieurs': 'Een activum kan tot meerdere behoren',
+  'Premier secteur': 'Grootste sector',
+  'Sa part du marché': 'Zijn marktaandeel',
+  'Rapportée à la capitalisation totale': 'Ten opzichte van de totale kapitalisatie',
 }
