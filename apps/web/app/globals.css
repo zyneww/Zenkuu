@@ -135,26 +135,60 @@
      `surface` (repos) reprend la même valeur que `surface-hover`, par symétrie
      avec ce que le clair fait déjà : CoinGecko ne mesure pas de troisième plan
      gris distinct de ce delta de survol, dans aucun des deux thèmes. */
-  --color-canvas: #ffffff;
-  --color-surface: #f8fafc;
-  --color-panel: #ffffff;
+  /* ══════════════════════════════════════════════════════════════════════════
+     PHASE 1 — LES SURFACES PASSENT À L'ÉCHELLE ÉTAGÉE DE BACKPACK (L0 → L4)
+
+     Relevé dans DESIGN_BACKPACK.md, lui-même mesuré sur backpack.exchange. Cinq
+     niveaux de profondeur au lieu de trois valeurs qui se répétaient : `surface`,
+     `surface-hover` et `surface-muted` portaient TOUTES LES TROIS `#f8fafc`, si bien
+     qu'un survol de ligne ne se voyait pas et qu'une carte encastrée ne se
+     distinguait pas de celle qui la contenait.
+
+     L0 fond de page · L1 cartes · L2 encastré · L3 survol · L4 actif.
+
+     ⚠️ LE CANVAS N'EST PLUS BLANC PUR, et cela a un coût mesuré : la couleur de
+     marque perd un peu de contraste dessus (1,61 → 1,52). Elle est déjà bien en
+     dessous du seuil AA — c'est un écart assumé de longue date, réservé aux
+     aplats et jamais au texte courant — donc le coût est nul en lisibilité. Il est
+     consigné dans `palette.test.ts`, dont les planchers suivent.
+     ══════════════════════════════════════════════════════════════════════════ */
+  --color-canvas: #f8f8f9;
+  --color-surface: #eeeff1;
+  --color-panel: #f8f8f9;
   /* Delta de survol — `.gecko-homepage-coin-table tbody tr:first-child`, accueil,
      thème clair (DESIGN_SYSTEM.md §9). Coïncidence exacte avec l'ancien jeton
      ZENKUU (#f8fafc) : la valeur ne change pas, seule sa provenance change. */
-  --color-surface-hover: #f8fafc;
+  --color-surface-hover: #e6e7ed;
   /* NON REPRIS DE COINGECKO — jeton interne, ajusté ici pour rester lisible.
      CoinGecko ne mesure aucune troisième teinte grise en clair : ce jeton restait
      à l'ancienne valeur ZENKUU (#f1f5f9), qui ne passe plus qu'à 4,34:1 avec la
      nouvelle encre atténuée mesurée plus bas (rgb(100, 116, 139)) — sous le seuil
      de 4,5:1. Remonté à la valeur de `--color-surface` (#f8fafc, 4,55:1), qui est
      de toute façon la seule teinte secondaire que CoinGecko expose en clair. */
-  --color-surface-muted: #f8fafc;
+  --color-surface-muted: #eaecf4;
+  /* L4 — onglets actifs et boutons segmentés. Nouveau : rien ne portait ce rôle,
+     et un onglet sélectionné se signalait donc par sa seule graisse.
+
+     ⚠️ CE JETON EST ÉLAGUÉ TANT QU'AUCUNE CLASSE NE L'EMPLOIE, et je l'ai constaté
+     au navigateur : `getPropertyValue('--color-surface-active')` rendait une chaîne
+     VIDE en thème clair, alors que la déclaration est bien ici.
+
+     Tailwind 4 n'émet un jeton de `@theme` que s'il est référencé par un utilitaire
+     compilé. Le thème sombre l'affichait pourtant, parce que sa valeur vit dans un
+     bloc `.dark` ordinaire — que Tailwind recopie tel quel. D'où une asymétrie qui
+     ne se voit qu'en basculant de thème.
+
+     Ce n'est pas un défaut à corriger ici : il se résout de lui-même dès le premier
+     `bg-surface-active`, en Phase 2 avec les contrôles segmentés. La note existe
+     pour que le prochain qui lise une chaîne vide ne cherche pas la déclaration
+     manquante — elle est là, c'est le consommateur qui manque. */
+  --color-surface-active: #cacfd9;
   /* Filet — rgb(229, 231, 235), IDENTIQUE dans les deux thèmes chez CoinGecko,
      toutes pages, 648 occurrences au total (DESIGN_SYSTEM.md §9). Coïncidence
      exacte avec l'ancien jeton ZENKUU en thème clair (#e5e7eb) ; le thème sombre
      est traité séparément dans le bloc `.dark`, voir la réserve à ce sujet dans
      le rapport de tâche. */
-  --color-border-subtle: #e5e7eb;
+  --color-border-subtle: #e6e7ed;
 
   /* Encre — `h1` et texte de cellule (DESIGN_SYSTEM.md §9). rgb(15, 23, 42)
      clair, 65 occurrences ; rgb(223, 229, 236) sombre, 65 occurrences (bloc
@@ -167,7 +201,13 @@
      Contraste sur le canvas clair : ink 17,85:1 · ink-muted 4,76:1 — au-dessus du
      seuil AA de 4,5:1. Mesures rejouées par `app/palette.test.ts`. */
   --color-ink: #0f172a;
-  --color-ink-muted: #64748b;
+  /* ⚠️ ASSOMBRI DE #64748b À #5d606f, ET C'EST LE CANVAS QUI L'IMPOSE.
+     Les surfaces claires de Backpack sont plus sombres que notre blanc : le gris
+     atténué y tombait à 3,86:1 sur `surface-hover`, sous le seuil AA de 4,5.
+     Simulé avant d'écrire une ligne, sur les quatre surfaces à la fois.
+     La valeur retenue est celle de la référence, qui passe avec plus de marge
+     (5,05 au pire) que ce que mon propre calcul proposait (4,52). */
+  --color-ink-muted: #5d606f;
 
   /* ───────────────────────────────────────────────────────────────────────────
      L'ACCENT DEVIENT LE VERT DE COINGECKO — le seul rôle que §9 laissait vide.
@@ -316,9 +356,13 @@
      existantes : ils ne font partie d'aucun des dix rôles mesurés pour cette
      tâche, et ne sont couverts par aucune paire de `app/palette.test.ts`.
      ─────────────────────────────────────────────────────────────────────────── */
-  --color-up: #00a83e;
+  /* Vert et rouge de marché de Backpack. Le gain est réel et mesuré : sur le
+     canvas clair, la hausse passe de 3,15:1 à 5,16:1 et la baisse de 3,56 à 5,23.
+     Les deux étaient des ÉCARTS ASSUMÉS sous le seuil AA ; ils franchissent
+     désormais 4,5 et quittent la liste des dérogations. */
+  --color-up: #00794b;
   --color-up-soft: #d9f7e7;
-  --color-down: #ff3a33;
+  --color-down: #d20032;
   --color-down-soft: #fdeaec;
 
   /* ───────────────────────────────────────────────────────────────────────────
@@ -2377,18 +2421,21 @@
      ce que `--color-muted` sert ici. Le contraste avec `--color-ink-muted` y gagne
      au passage — 7,16:1 contre 5,51:1.
      ══════════════════════════════════════════════════════════════════════════ */
-  --color-canvas: #0d1217;
-  --color-surface: #1b232d;
-  --color-panel: #0d1217;
+  --color-canvas: #0e0f14;
+  --color-surface: #14151b;
+  --color-panel: #0e0f14;
   /* Delta de survol dominant — 6 occurrences dans les deltas de survol de
      plusieurs pages, contre 1 seule (le focus d'un unique bouton de connexion sur
      l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9. */
-  --color-surface-hover: #1b232d;
-  --color-surface-muted: #1b232d;
-  --color-border-subtle: #212d3b;
+  --color-surface-hover: #202127;
+  --color-surface-muted: #191a20;
+  --color-surface-active: #383a45;
+  --color-border-subtle: #1c1e26;
 
   --color-ink: #dfe5ec;
-  --color-ink-muted: #9eb0c7;
+  /* Le gris neutre froid de Backpack. Il tient 6,02:1 au pire (sur L3), très
+     au-dessus du seuil : le thème sombre n'avait aucune correction à subir. */
+  --color-ink-muted: #969faf;
 
   /* VERT COINGECKO, sombre — rgb(128, 224, 56), mesuré à la fois comme fond du
      bouton d'action (`#use-app-btn button`) et comme texte de l'onglet
@@ -2469,9 +2516,9 @@
      5,29:1 — contrairement au clair, où les deux mêmes rôles échouent (voir la
      réserve dans `@theme`).
      `-soft` restent aux valeurs ZENKUU existantes, hors des dix rôles mesurés. */
-  --color-up: #32ca5b;
+  --color-up: #00c278;
   --color-up-soft: #0c2e22;
-  --color-down: #ff3a33;
+  --color-down: #ea383b;
   --color-down-soft: #3a1620;
 
   /* Teinte de statut — voir le thème clair. C'est un CYAN et non un vert : décalé
@@ -3283,5 +3330,104 @@ textarea,
 
   ::-webkit-scrollbar-thumb {
     background-color: var(--color-ink);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LES EFFETS DE MATIÈRE — LUEUR ET BRILLANCE
+
+   Phase 1 de DESIGN_BACKPACK.md. Trois classes, et pas une de plus : ce sont les
+   seuls effets que la référence emploie réellement, et chacun corrige un défaut
+   précis d'une interface très sombre.
+
+   ── POURQUOI DES CLASSES ET NON DES UTILITAIRES TAILWIND ────────────────────
+
+   Les trois portent des dégradés à plusieurs arrêts, dont un `radial-gradient` avec
+   `color-mix`. Écrits en classes arbitraires, ils feraient des chaînes de quatre-vingts
+   caractères recopiées à chaque emploi — et la première faute de frappe passerait
+   inaperçue, un dégradé invalide ne levant rien.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── LA LUEUR D'ARRIÈRE-PLAN ──────────────────────────────────────────────────
+
+   Une ellipse très diffuse posée derrière une section d'ouverture. Elle réchauffe
+   l'obsidienne sans rien éclairer : à 7 % d'opacité et 64 px de flou, elle se voit
+   comme une nuance et jamais comme une forme.
+
+   ⚠️ `pointer-events: none` EST OBLIGATOIRE. Cet élément couvre toute la section ;
+   sans lui, il intercepte les clics des liens qu'il recouvre — un défaut qui ne se
+   voit pas à l'œil et casse toute la zone. */
+.glow-brand {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.glow-brand::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  width: min(900px, 120%);
+  height: 600px;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  filter: blur(64px);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--color-brand) 7%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+/* ── LE FILET DE BRILLANCE ────────────────────────────────────────────────────
+
+   Un trait d'un pixel sur l'arête supérieure d'une carte, plus lumineux au centre
+   qu'aux angles. Il imite la réfraction sur une tranche de verre.
+
+   Son intérêt n'est pas décoratif : sur un fond très sombre, une carte à peine plus
+   claire que la page se perd. Le filet redonne un BORD SUPÉRIEUR à ce qui n'avait
+   qu'une bordure uniforme, et la carte cesse de flotter.
+
+   `::after` et non `::before` : `.glow-brand` occupe déjà `::before`, et les deux
+   peuvent se poser sur le même élément. */
+.card-sheen {
+  position: relative;
+}
+
+.card-sheen::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-ink) 12%, transparent) 50%,
+    transparent 100%
+  );
+}
+
+/* En thème CLAIR, la brillance s'inverse : ce n'est plus la lumière qui frappe une
+   arête sombre, c'est le blanc qui borde une surface grise. L'encre y produirait un
+   trait sale au lieu d'un reflet. */
+:root:not(.dark) .card-sheen::after {
+  background: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.8) 50%, transparent 100%);
+}
+
+/* ── LES DEUX EFFETS DISPARAISSENT SI ON DEMANDE MOINS DE FIORITURES ─────────
+
+   `prefers-reduced-transparency` est le réglage système que cochent les personnes
+   que les surfaces translucides gênent — et ces deux effets sont exactement cela.
+   Ils s'effacent alors, sans que rien d'autre ne bouge : la carte garde sa bordure,
+   la section garde son fond. */
+@media (prefers-reduced-transparency: reduce) {
+  .glow-brand::before,
+  .card-sheen::after {
+    display: none;
   }
 }

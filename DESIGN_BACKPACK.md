@@ -31,7 +31,7 @@ Backpack ne ressemble ni à un tableur froid (façon Bloomberg), ni à une appli
 
 ### 1.2 Respect des règles Zenkuu
 * **Zéro donnée inventée** : Aucune fioriture décorative ne doit simuler un statut, une liquidité ou un chiffre.
-* **Marque préservée** : Les surfaces, bordures et boutons adoptent la grammaire de Backpack ; la teinte d'accentuation de Zenkuu demeure le **cyan/menthe** (`#5eead4` / `#0d9488`), tandis que le vert (`#00c278`) et le rouge (`#ea383b`) restent cantonnés aux variations de marché.
+* **Marque préservée** : Les surfaces, bordures et boutons adoptent la grammaire de Backpack ; la teinte d'accentuation de Zenkuu demeure l'**azur ZENKUU** (`#91d7e3` / `#1c7a89`), tandis que le vert (`#00c278`) et le rouge (`#ea383b`) restent cantonnés aux variations de marché.
 
 ---
 
@@ -77,8 +77,8 @@ Les jetons ci-dessous traduisent fidèlement les valeurs relevées sur `backpack
 | **Baisse (Down Text)** | `#ea383b` | `#d20032` |
 | **Baisse (Fond transparent)** | `rgba(234, 56, 59, 0.10)` (`#ea383b1f`) | `rgba(210, 0, 50, 0.08)` |
 | **Baisse (Bordure / Filet)** | `rgba(234, 56, 59, 0.30)` | `rgba(210, 0, 50, 0.2)` |
-| **Marque Zenkuu (Accent)** | `#5eead4` (Menthe/Cyan vif) | `#0d9488` |
-| **Glow Marque Zenkuu** | `rgba(94, 234, 212, 0.07)` | `rgba(13, 148, 136, 0.05)` |
+| **Marque Zenkuu (Accent)** | `#91d7e3` (Azur pâle) | `#1c7a89` |
+| **Glow Marque Zenkuu** | `rgba(145, 215, 227, 0.07)` | `rgba(28, 122, 137, 0.05)` |
 
 ---
 
@@ -321,7 +321,7 @@ Alignement sur l'audit [CHARTS_AUDIT.md](file:///home/ok/Documents/zenkuu/CHARTS
 
 ### Phase 1 : Rénovation des jetons dans `globals.css`
 - [ ] Remplacer les valeurs de `@theme` par la palette d'obsidienne étagée (`L0` à `L4`).
-- [ ] Configurer les variables d'accentuation (Cyan Zenkuu `#5eead4` + Vert Backpack `#00c278` + Rouge Backpack `#ea383b`).
+- [ ] Configurer les variables d'accentuation (Azur Zenkuu `#91d7e3` + Vert Backpack `#00c278` + Rouge Backpack `#ea383b`).
 - [ ] Ajouter les classes utilitaires de lueur (`glow-brand`, `glow-subtle`) et de brillance (`card-sheen`).
 
 ### Phase 2 : Refonte des composants de base (`packages/ui` et `components/ui`)

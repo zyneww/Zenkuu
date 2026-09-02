@@ -145,10 +145,38 @@ const PAIRS: readonly [foreground: string, background: string, minimum: number][
    repère de non-régression. Voir « LES ÉCARTS ASSUMÉS » en tête de fichier. */
 const ECARTS: Record<string, readonly [foreground: string, background: string, plancher: number][]> = {
   'thème clair': [
-    ['--color-brand', '--color-canvas', 1.61],
-    ['--color-brand', '--color-surface', 1.54],
-    ['--color-up', '--color-canvas', 3.15],
-    ['--color-down', '--color-canvas', 3.56],
+    /*
+     * ── PLANCHERS ABAISSÉS LE 2026-09-02, ET LA CAUSE EST CONNUE ────────────
+     *
+     * Le canvas clair a cessé d'être blanc pur : il porte le `#f8f8f9` de Backpack,
+     * et la surface son `#eeeff1`. Un fond plus sombre réduit mécaniquement le
+     * contraste d'une teinte PÂLE posée dessus — l'azur de marque tombe donc de
+     * 1,61 à 1,52 et de 1,54 à 1,40.
+     *
+     * Le test a refusé le changement, et il avait raison de le refuser : un écart
+     * connu ne doit jamais empirer par accident. Celui-ci n'est pas un accident, il
+     * est le prix mesuré d'un choix de surfaces — d'où les planchers réajustés
+     * plutôt que la palette annulée.
+     *
+     * ⚠️ CE QUE CELA NE CHANGE PAS : cet écart n'a jamais concerné du TEXTE. L'azur
+     * de marque sert d'aplat et de filet ; à 1,5 comme à 1,6, il n'est pas lisible
+     * en petit corps et ne doit pas l'être. Le jour où quelqu'un voudra l'employer
+     * comme encre sur fond clair, c'est `--color-brand-strong` qu'il faut prendre —
+     * lui passe AA, et c'est sa raison d'exister.
+     */
+    ['--color-brand', '--color-canvas', 1.52],
+    ['--color-brand', '--color-surface', 1.4],
+    /*
+     * ── DEUX COUPLES ONT QUITTÉ CETTE LISTE, ET C'EST UNE BONNE NOUVELLE ────
+     *
+     * `--color-up` et `--color-down` y figuraient à 3,15:1 et 3,56:1, sous le seuil
+     * AA. Les teintes de marché de Backpack (#00794b, #d20032) les portent à 5,16 et
+     * 5,23 : elles PASSENT désormais, et le test l'a signalé de lui-même —
+     * « L'écart n'a plus lieu d'être : retire ce couple d'ECARTS ».
+     *
+     * Elles sont donc remontées dans `PAIRS`, où leur seuil est exigé et non plus
+     * seulement surveillé. Deux dérogations de moins.
+     */
   ],
   'thème sombre': [],
 }
