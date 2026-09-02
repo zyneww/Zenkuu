@@ -3,8 +3,9 @@
 import { useId, useMemo } from 'react'
 import {
   Area,
-  AreaChart,
+  Bar,
   CartesianGrid,
+  ComposedChart,
   ReferenceLine,
   XAxis,
   YAxis,
@@ -114,6 +115,22 @@ export interface AreaPlotProps {
   height?: number | 'fill'
   /** Dégradé sous la courbe. Réservé au tracé unique : superposés, ils se salissent. */
   fill?: boolean
+  /**
+   * Tracé en BARRES plutôt qu'en aire.
+   *
+   * ── POURQUOI CE MODE EXISTE ────────────────────────────────────────────────
+   *
+   * C'est le tracé d'ASXN HyperScreener, mesuré le 2026-09-02 : leurs figures de
+   * volume et de revenu sont des barres en aplat teal, pas des courbes. Et ce n'est
+   * pas un choix d'apparence — une aire relie visuellement deux points par une pente,
+   * ce qui suggère un CONTINUUM. Un volume quotidien n'en est pas un : chaque jour est
+   * une quantité indépendante, et la pente entre deux barres n'existe pas.
+   *
+   * L'aire reste juste pour un cours ou une capitalisation, qui existent à chaque
+   * instant. Les deux tracés disent des choses différentes, et le choix appartient
+   * donc à l'appelant, qui sait ce que sa série mesure.
+   */
+  bars?: boolean
   /** Bornes imposées. Absentes, elles sont déduites des données avec une marge. */
   yDomain?: [number, number]
   yTicks?: number[]
@@ -211,6 +228,7 @@ export function AreaPlot({
   grid = false,
   formatX,
   formatY,
+  bars = false,
   watermark = false,
   formatTooltipX,
   formatTooltipY,
@@ -319,7 +337,10 @@ export function AreaPlot({
       className="aspect-auto w-full"
       style={{ height: height === 'fill' ? '100%' : height }}
     >
-      <AreaChart data={rows} margin={axes ? MARGIN_WITH_AXES : MARGIN_BARE}>
+      {/* `ComposedChart` et non `AreaChart` : il accepte les DEUX éléments, ce qui
+          permet à `bars` de basculer le tracé sans dupliquer tout le cadre — axes,
+          grille, infobulle et lignes de repère sont partagés. */}
+      <ComposedChart data={rows} margin={axes ? MARGIN_WITH_AXES : MARGIN_BARE}>
         {fill ? (
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -434,6 +455,29 @@ export function AreaPlot({
         ) : null}
 
         {series.map((entry, index) => (
+          bars ? (
+            /* ── LES BARRES, MESURÉES CHEZ ASXN ────────────────────────────────
+               `fill` plein et `fillOpacity` à 1 : leur transparence vient de la TEINTE
+               elle-même (#51a691, un teal déjà désaturé), pas d'un canal alpha. Une
+               opacité réduite sur une barre la ferait pâlir sur le fond au lieu de la
+               poser dessus — et deux barres voisines se chevaucheraient visuellement.
+
+               `radius` en haut seulement : le bas d'une barre repose sur l'axe zéro,
+               qui est une ligne droite. L'arrondir décollerait la barre de sa base.
+
+               `maxBarSize` : sans lui, une série de dix points étale dix barres de
+               cent pixels de large, et la figure se lit comme un aplat. */
+            <Bar
+              key={entry.id}
+              dataKey={entry.id}
+              name={entry.id}
+              fill={entry.color}
+              fillOpacity={1}
+              radius={[2, 2, 0, 0]}
+              maxBarSize={28}
+              isAnimationActive={!reduced}
+            />
+          ) : (
           <Area
             key={entry.id}
             type="linear"
@@ -461,8 +505,9 @@ export function AreaPlot({
             isAnimationActive={!reduced}
             connectNulls
           />
+          )
         ))}
-      </AreaChart>
+      </ComposedChart>
     </ChartContainer>
   )
 

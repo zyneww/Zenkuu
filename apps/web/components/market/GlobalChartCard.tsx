@@ -7,7 +7,7 @@ import { useLocale } from 'next-intl'
 import { ChangeBadge, formatCompact, formatCurrency } from '@zenkuu/ui'
 
 import { AreaPlot } from '@/components/charts/AreaPlot'
-import { dataColor } from '@/components/charts/chart-theme'
+import { AGGREGATE_TONE } from '@/components/charts/chart-theme'
 import { CopyButton } from '@/components/asset/CopyButton'
 import { IconButton } from '@/components/ui/IconButton'
 import { InfoTip } from '@/components/ui/InfoTip'
@@ -81,6 +81,7 @@ export function GlobalChartCard({
   format,
   currency = 'EUR',
   colorIndex = 5,
+  bars = false,
   footer,
   note,
   defaultRange = 'max',
@@ -97,6 +98,14 @@ export function GlobalChartCard({
   currency?: string
   /** Rang dans la palette de données — voir `chart-theme`. */
   colorIndex?: number
+  /**
+   * Tracé en BARRES plutôt qu'en aire — voir la note de `bars` dans `AreaPlot`.
+   *
+   * À réserver aux séries qui mesurent une QUANTITÉ PAR PÉRIODE : un volume quotidien,
+   * un revenu mensuel. Une aire y relierait deux jours par une pente qui n'existe pas.
+   * Un cours ou une capitalisation, qui existent à chaque instant, gardent l'aire.
+   */
+  bars?: boolean
   /** Ligne de totaux sous la courbe, à la manière de la référence. */
   footer?: React.ReactNode
   /** Mention de provenance ou de méthode, en petit sous le cadre. */
@@ -205,7 +214,21 @@ export function GlobalChartCard({
           ? (formatCurrency(last, currency, { compact: true }) ?? '—')
           : (formatCompact(last) ?? '—')
 
-  const color = dataColor(colorIndex)
+  /* ── UNE SEULE TEINTE POUR TOUTES LES FIGURES D'AGRÉGAT ────────────────────
+
+     `colorIndex` distribuait six couleurs — violet pour la capitalisation, orange pour
+     le volume, rose pour la dominance. Six teintes sur six cartes qui portent chacune
+     UNE série : la couleur ne distinguait donc rien que le cadre et le titre ne
+     disaient déjà, et la page se lisait comme six catégories qui n'en sont pas.
+
+     ASXN emploie la MÊME teinte partout (voir `AGGREGATE_TONE`). C'est ce qui donne à
+     leur tableau de bord son unité, et c'est ce qui manquait ici.
+
+     `colorIndex` reste accepté et ignoré : une quinzaine d'appelants le passent, et le
+     retirer partout ne changerait rien à l'écran. Il documente encore quelle carte est
+     laquelle à la lecture. */
+  void colorIndex
+  const color = AGGREGATE_TONE
 
   /* Bornes imposées quand la série est entièrement positive — voir la note sur
      `yDomain` plus bas. Le plafond garde une marge de 6 %, pour que le sommet de la
@@ -318,7 +341,11 @@ export function GlobalChartCard({
              cents pixels recouvre la courbe au lieu de la tramer. */
           height={large ? 320 : 200}
           watermark={large}
-          fill
+          {...(bars ? { bars: true } : {})}
+          /* Le dégradé n'a de sens que sous une AIRE : il prolonge la courbe vers le
+             bas. Sous des barres, il peindrait un voile derrière elles sans rien
+             ajouter — leur aplat porte déjà toute la surface. */
+          fill={!bars}
           axes
           grid
           /* ⚠️ PAS DE GRADUATION NÉGATIVE SOUS UNE SÉRIE QUI NE PEUT PAS L'ÊTRE.

@@ -119,3 +119,35 @@ export function axisDigits(values: number[]): number {
     Math.max(AXIS_DIGITS_MIN, Math.ceil(-Math.log10(spread / magnitude)) + 1),
   )
 }
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA TEINTE DES FIGURES D'AGRÉGAT — UNE SEULE, ET C'EST LE POINT
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Relevé sur hyperscreener.asxn.xyz le 2026-09-02 : TOUTES leurs figures d'agrégat
+ * sont du même teal — `#51a691` pour les barres, la même famille pour les aires. Une
+ * seule exception, la courbe cumulée superposée, en orange (voir `--chart-overlay`).
+ *
+ * ── POURQUOI CETTE UNIFORMITÉ EST UN CHOIX, ET NON UNE PARESSE ─────────────
+ *
+ * `dataColor(n)` distribue six teintes éloignées, et c'est juste pour ce qu'elle sert :
+ * comparer plusieurs actifs sur UNE figure, où deux séries voisines ne doivent pas se
+ * confondre.
+ *
+ * Mais les pages de graphiques n'ont qu'UNE série par figure. Leur donner six couleurs
+ * différentes ne distingue donc rien — chaque carte est déjà séparée par son cadre et
+ * son titre. Cela produit seulement une page bariolée, où le violet de la capitalisation
+ * et l'orange du volume se lisent comme deux CATÉGORIES alors qu'ils ne le sont pas.
+ *
+ * Une teinte unique fait l'inverse : la couleur cesse de porter du sens, et redevient
+ * ce qu'elle doit être sur une figure à série unique — de l'encre.
+ *
+ * ── ELLE SUIT LA MARQUE, ET NON UNE VALEUR FIGÉE ──────────────────────────
+ *
+ * `--color-brand-strong` est l'azur du site, assombri jusqu'à passer AA. Reprendre
+ * `#51a691` tel quel poserait un teal étranger à la palette au milieu de pages qui
+ * emploient l'azur partout ailleurs — on aurait copié la couleur en perdant la raison
+ * qui la rend juste chez eux : c'est LEUR couleur d'accent.
+ */
+export const AGGREGATE_TONE = 'var(--color-brand-strong)'

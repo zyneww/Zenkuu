@@ -407,6 +407,7 @@ async function GlobalView() {
 
         {btc.ok ? (
           <GlobalChartCard
+            bars
             title={t('Volume 24 h de Bitcoin')}
             hint="Le volume échangé sur l’ensemble des places, tel que la source l’agrège."
             format="money"
