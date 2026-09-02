@@ -2827,4 +2827,9 @@ export const dePhrases: Phrases = {
   'Premier secteur': 'Größter Sektor',
   'Sa part du marché': 'Sein Marktanteil',
   'Rapportée à la capitalisation totale': 'Bezogen auf die Gesamtkapitalisierung',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Heute',
+  'Le marché dans le temps': 'Der Markt im Zeitverlauf',
+  'Climat et rotation': 'Stimmung und Umschichtung',
 }

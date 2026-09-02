@@ -57,7 +57,7 @@ export function StatCard({
     /* `relative` et `overflow-hidden` : la courbe de fond est posée en absolu et doit
        être coupée par les coins arrondis de la carte, sans quoi elle dépasse aux
        quatre angles. */
-    <div className="relative overflow-hidden rounded-card border border-border-subtle bg-surface p-4">
+    <div className="relative overflow-hidden rounded-[14px] border border-border-subtle bg-surface p-5">
       {children ? (
         /* La courbe passe SOUS le texte et n'intercepte rien. Elle est de l'ambiance,
            pas une figure : on ne la survole pas, on ne la lit pas — elle dit
@@ -68,14 +68,19 @@ export function StatCard({
       ) : null}
 
       <div className="relative">
-        <p className="text-[length:var(--v2-text-2xs)] font-medium uppercase tracking-wide text-ink-muted">
-          {label}
-        </p>
+        {/* ⚠️ NI CAPITALES NI GRAISSE — même correction que `SectionRule`, et pour la
+            même raison. Mesuré chez eux : 12 px, poids 400, casse normale.
+
+            Des capitales espacées font un intitulé qu'on LIT. Or celui-ci n'est là que
+            pour confirmer, après coup, ce que le grand chiffre veut dire. Il doit se
+            faire oublier au profit de la valeur — c'est tout le rapport de un à deux et
+            demi entre les deux tailles. */}
+        <p className="text-[length:var(--v2-text-2xs)] font-normal text-ink-muted">{label}</p>
 
         {/* `tabular` : les chiffres gardent la même chasse d'un rafraîchissement à
             l'autre. Sans lui, « $2,617B » et « $2,618B » n'ont pas la même largeur et
             la carte tremble toutes les trois minutes. */}
-        <p className="tabular mt-1 text-2xl font-bold leading-none text-ink">{value}</p>
+        <p className="tabular mt-1 text-2xl font-semibold leading-tight text-ink">{value}</p>
 
         {change24h !== undefined || change30d !== undefined ? (
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[length:var(--v2-text-2xs)]">
@@ -116,10 +121,69 @@ export function StatCard({
 export function SectionRule({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center gap-3">
-      <h2 className="shrink-0 text-[length:var(--v2-text-2xs)] font-medium uppercase tracking-wide text-ink-muted">
+      {/* ⚠️ NI CAPITALES NI GRAISSE, et je l'avais écrit avec les deux.
+
+          Mesuré chez eux : 12 px, poids 400, casse NORMALE, gris `rgb(136, 136, 136)`.
+          Des capitales espacées en demi-gras font une étiquette de section — quelque
+          chose qu'on lit. Or cette bande n'est pas là pour être lue : elle est là pour
+          que le regard sache qu'il a changé de sujet en la franchissant. C'est
+          exactement pour cela qu'elle est en casse normale et sans graisse. */}
+      <h2 className="shrink-0 text-[length:var(--v2-text-2xs)] font-normal text-ink-muted">
         {children}
       </h2>
       <span aria-hidden="true" className="h-px flex-1 bg-border-subtle" />
     </div>
+  )
+}
+
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA RANGÉE DE CHIFFRES — SANS CARTES, SÉPARÉE PAR DES FILETS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * C'est la bande « All-Time » d'ASXN : quatre valeurs alignées, chacune avec son
+ * intitulé au-dessus, séparées par un filet vertical. Aucun cadre, aucun fond.
+ *
+ * ── POURQUOI PAS DES CARTES, PUISQUE `StatCard` EXISTE ──────────────────────
+ *
+ * Parce que ces chiffres-là ne bougent pas. Une carte est une SURFACE : elle dit
+ * « ceci est un objet à part, avec sa propre vie ». C'est juste pour une capitalisation
+ * qui tique toutes les trois minutes ; c'est faux pour un cumul depuis l'origine, qui
+ * est un fait posé.
+ *
+ * La différence se voit à l'usage : quatre cartes attirent l'œil autant que la figure
+ * au-dessus, quatre chiffres nus se lisent au passage et laissent la figure gagner.
+ *
+ * Le filet est en `divide-x` sur le conteneur plutôt qu'en bordure sur chaque cellule :
+ * il ne se pose alors qu'ENTRE les éléments, jamais avant le premier ni après le
+ * dernier — ce qu'une bordure gauche par cellule obligerait à corriger au `first:`.
+ */
+export function StatRow({
+  items,
+}: {
+  items: { label: string; value: string; note?: string }[]
+}) {
+  if (items.length === 0) return null
+
+  return (
+    <dl className="grid gap-y-6 divide-border-subtle sm:grid-cols-2 sm:divide-x lg:grid-cols-4">
+      {items.map((item) => (
+        /* `px-6 first:pl-0` : le rembourrage crée la respiration autour du filet, et
+           le premier ne doit pas être décalé du bord gauche du bloc — il s'aligne sur
+           le titre de section au-dessus. */
+        <div key={item.label} className="px-6 first:pl-0">
+          <dt className="text-[length:var(--v2-text-2xs)] font-normal text-ink-muted">
+            {item.label}
+          </dt>
+          <dd className="tabular mt-1 text-2xl font-semibold leading-tight text-ink">
+            {item.value}
+          </dd>
+          {item.note ? (
+            <p className="mt-1 text-[length:var(--v2-text-2xs)] text-ink-muted">{item.note}</p>
+          ) : null}
+        </div>
+      ))}
+    </dl>
   )
 }

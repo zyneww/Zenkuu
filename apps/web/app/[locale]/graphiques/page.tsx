@@ -160,6 +160,18 @@ async function GlobalView() {
           absente ici plutôt que dérivée d'un calcul maison (§5). Les cartes n'en
           affichent qu'une, ce que `StatCard` prévoit.
           ══════════════════════════════════════════════════════════════════ */}
+      {/* ── LES BANDES DE SECTION NOMMENT LES GROUPES ────────────────────────
+
+          Relevé chez ASXN : leur page est découpée par des bandes minuscules et grises
+          — « Today », « All-Time », « Volume & Open Interest » — suivies d'un filet qui
+          court jusqu'au bord. Le regard les franchit sans s'arrêter, mais il SAIT qu'il
+          a changé de sujet.
+
+          C'est ce qui manquait le plus ici : la page enchaînait onze blocs sans jamais
+          dire lesquels vont ensemble. Une bande tous les trois ou quatre blocs suffit à
+          rendre lisible une page qui, sans elles, se lit comme une liste. */}
+      <SectionRule>{t('Aujourd’hui')}</SectionRule>
+
       {stats ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
@@ -282,6 +294,8 @@ async function GlobalView() {
         cent cinquante. Écrire « total » ferait passer notre plafond pour son
         inventaire (§5). Les deux autres chiffres, eux, sont bien des totaux publiés.
       */}
+      <SectionRule>{t('Le marché dans le temps')}</SectionRule>
+
       <Suspense fallback={<LoadingNote label={t('Assemblage du panier de capitalisations…')} />}>
         <BasketSection
           stats={stats}
@@ -320,6 +334,8 @@ async function GlobalView() {
         RÉELLEMENT sur un an — la référence y met les siennes (DeFi, stablecoins),
         que nous n'avons qu'en valeur courante, jamais en série.
       */}
+      <SectionRule>{t('Climat et rotation')}</SectionRule>
+
       <div className="grid gap-4 lg:grid-cols-2">
         {/* La DOMINANCE ouvre la grille, comme sur la référence — c'est la première
             question qu'on se pose après avoir vu la capitalisation. */}

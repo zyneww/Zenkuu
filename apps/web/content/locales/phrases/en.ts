@@ -2831,4 +2831,9 @@ export const enPhrases: Phrases = {
   'Premier secteur': 'Largest sector',
   'Sa part du marché': 'Its share of the market',
   'Rapportée à la capitalisation totale': 'Relative to the total capitalisation',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Today',
+  'Le marché dans le temps': 'The market over time',
+  'Climat et rotation': 'Mood and rotation',
 }

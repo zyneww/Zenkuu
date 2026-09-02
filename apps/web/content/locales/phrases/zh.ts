@@ -2812,4 +2812,9 @@ export const zhPhrases: Phrases = {
   'Premier secteur': '最大的板块',
   'Sa part du marché': '它的市场份额',
   'Rapportée à la capitalisation totale': '相对于总市值',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': '今天',
+  'Le marché dans le temps': '市场的时间演变',
+  'Climat et rotation': '情绪与资金轮动',
 }

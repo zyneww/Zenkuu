@@ -222,7 +222,20 @@ export function GlobalChartCard({
   const ceiling = highest > 0 ? highest * 1.06 : 1
 
   return (
-    <section className="rounded-card border border-border-subtle bg-surface p-4">
+    /* ── LES TROIS MESURES D'ASXN, ET RIEN DE PLUS ───────────────────────────
+
+       Cette carte portait DÉJÀ leur structure — titre et périodes sur une ligne,
+       valeur et variation sur la suivante, graphique en dessous. Ce sont les trois
+       rangées relevées chez eux, et elles étaient là avant le relevé.
+
+       Trois valeurs seulement diffèrent, mesurées sur leur grande carte le
+       2026-09-02 : rayon 14 px (contre 12 pour `rounded-card`), rembourrage 20 px
+       (contre 16), gouttière 8 px entre les rangées.
+
+       Deux pixels de rayon et quatre de rembourrage ne se voient pas isolément. Sur
+       une page qui en aligne six à côté des bandes de `StatCard`, la
+       différence se lit comme deux familles de cartes au lieu d'une. */
+    <section className="flex flex-col gap-2 rounded-[14px] border border-border-subtle bg-surface p-5">
       {/* ── EN-TÊTE : LE TITRE À GAUCHE, LES PALIERS À DROITE ────────────────
           C'est la disposition de la référence, et elle tient parce que les paliers
           n'appartiennent qu'à CE cadre : les poser ailleurs ferait croire qu'ils
@@ -282,8 +295,13 @@ export function GlobalChartCard({
       {/* La VALEUR COURANTE et la variation SUR LA FENÊTRE choisie. La seconde suit le
           palier — c'est ce qui rend les boutons utiles au-delà du tracé : « +12 % sur
           trois mois » se lit sans mesurer la pente à l'œil. */}
-      <div className="mt-2 flex items-baseline gap-2">
-        <p className="figure text-2xl font-bold text-ink">{value}</p>
+      {/* Plus de `mt-2` : la gouttière de 8 px du conteneur flex l'a remplacée.
+          Deux mécanismes d'espacement sur la même pile finissent par diverger. */}
+      <div className="flex items-baseline gap-2">
+        {/* 3xl (30 px) et non 2xl (28) : la valeur mesurée chez eux fait 30 px en
+            graisse 600. C'est ce rapport d'un à deux et demi avec l'intitulé qui fait
+            qu'on lit le chiffre AVANT de savoir ce qu'il mesure. */}
+        <p className="figure text-3xl font-semibold leading-tight text-ink">{value}</p>
         {multiple !== undefined ? (
           <span className="tabular text-sm font-medium text-up">
             ×{new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(multiple)}
@@ -293,7 +311,7 @@ export function GlobalChartCard({
         ) : null}
       </div>
 
-      <div className="mt-3">
+      <div className="mt-1">
         <AreaPlot
           /* Le filigrane suit la TAILLE et non la carte : la même figure sert de
              grande vignette (320) et de petite (200), et un mot posé derrière deux

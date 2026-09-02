@@ -2819,4 +2819,9 @@ export const nlPhrases: Phrases = {
   'Premier secteur': 'Grootste sector',
   'Sa part du marché': 'Zijn marktaandeel',
   'Rapportée à la capitalisation totale': 'Ten opzichte van de totale kapitalisatie',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Vandaag',
+  'Le marché dans le temps': 'De markt door de tijd heen',
+  'Climat et rotation': 'Stemming en rotatie',
 }

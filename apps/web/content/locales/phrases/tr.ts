@@ -2819,4 +2819,9 @@ export const trPhrases: Phrases = {
   'Premier secteur': 'En büyük sektör',
   'Sa part du marché': 'Piyasadaki payı',
   'Rapportée à la capitalisation totale': 'Toplam piyasa değerine oranla',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Bugün',
+  'Le marché dans le temps': 'Zaman içinde piyasa',
+  'Climat et rotation': 'Hava ve rotasyon',
 }

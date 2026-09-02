@@ -2819,4 +2819,9 @@ export const ruPhrases: Phrases = {
   'Premier secteur': 'Крупнейший сектор',
   'Sa part du marché': 'Его доля рынка',
   'Rapportée à la capitalisation totale': 'По отношению к общей капитализации',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Сегодня',
+  'Le marché dans le temps': 'Рынок во времени',
+  'Climat et rotation': 'Настроение и ротация',
 }

@@ -2819,4 +2819,9 @@ export const itPhrases: Phrases = {
   'Premier secteur': 'Primo settore',
   'Sa part du marché': 'La sua quota di mercato',
   'Rapportée à la capitalisation totale': 'Rapportata alla capitalizzazione totale',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Oggi',
+  'Le marché dans le temps': 'Il mercato nel tempo',
+  'Climat et rotation': 'Clima e rotazione',
 }

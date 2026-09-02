@@ -2819,4 +2819,9 @@ export const jaPhrases: Phrases = {
   'Premier secteur': '首位のセクター',
   'Sa part du marché': 'その市場シェア',
   'Rapportée à la capitalisation totale': '時価総額全体に対する比率',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': '本日',
+  'Le marché dans le temps': '時間の流れで見る市場',
+  'Climat et rotation': '市場心理と資金の移動',
 }

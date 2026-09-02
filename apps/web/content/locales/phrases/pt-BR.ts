@@ -2819,4 +2819,9 @@ export const ptBRPhrases: Phrases = {
   'Premier secteur': 'Maior setor',
   'Sa part du marché': 'Sua fatia do mercado',
   'Rapportée à la capitalisation totale': 'Em relação à capitalização total',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Hoje',
+  'Le marché dans le temps': 'O mercado ao longo do tempo',
+  'Climat et rotation': 'Clima e rotação',
 }

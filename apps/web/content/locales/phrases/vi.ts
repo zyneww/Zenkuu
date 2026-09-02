@@ -2819,4 +2819,9 @@ export const viPhrases: Phrases = {
   'Premier secteur': 'Ngành lớn nhất',
   'Sa part du marché': 'Thị phần của ngành đó',
   'Rapportée à la capitalisation totale': 'So với tổng vốn hóa',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Hôm nay',
+  'Le marché dans le temps': 'Thị trường theo thời gian',
+  'Climat et rotation': 'Tâm lý và sự luân chuyển',
 }

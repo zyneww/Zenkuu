@@ -2826,4 +2826,9 @@ export const esPhrases: Phrases = {
   'Premier secteur': 'Primer sector',
   'Sa part du marché': 'Su parte del mercado',
   'Rapportée à la capitalisation totale': 'Referida a la capitalización total',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Hoy',
+  'Le marché dans le temps': 'El mercado a lo largo del tiempo',
+  'Climat et rotation': 'Clima y rotación',
 }

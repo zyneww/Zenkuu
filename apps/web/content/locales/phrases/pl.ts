@@ -2819,4 +2819,9 @@ export const plPhrases: Phrases = {
   'Premier secteur': 'Największy sektor',
   'Sa part du marché': 'Jego udział w rynku',
   'Rapportée à la capitalisation totale': 'W odniesieniu do łącznej kapitalizacji',
+
+  // ── GRAPHIQUES — bandes de section ──
+  'Aujourd’hui': 'Dzisiaj',
+  'Le marché dans le temps': 'Rynek w czasie',
+  'Climat et rotation': 'Nastroje i rotacja',
 }
