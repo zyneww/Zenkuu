@@ -347,7 +347,20 @@ export function AssetLayoutFrame({
         <div className="min-w-0 flex-1 [display:flow-root]">
           {/* La bande d'identité — voir la note de la prop `headline`. Elle occupe la
               colonne principale entière : le rail flotte SOUS elle, pas à côté. */}
-          {headline}
+          {/* ⚠️ ENVELOPPÉ, POUR LA MÊME RAISON QUE LA COLONNE D'ACTUALITÉS.
+
+              Trois des quatre éléments reçus en prop étaient déjà enveloppés —
+              `identity`, `rail`, `aside`. Celui-ci était resté nu, et c'est le dernier
+              émetteur de l'avertissement de clé manquante que l'audit relève encore sur
+              les fiches d'actif : `/crypto/bitcoin`, `/actions/aapl`.
+
+              Le mécanisme est celui décrit plus bas : le compilateur React, actif sur
+              ce projet, regroupe les enfants dynamiques d'un même parent en TABLEAU
+              lorsqu'il les mémoïse, et un élément reçu en prop n'a pas de clé à lui.
+
+              `contents` retire la boîte de la mise en page : l'enfant se pose
+              exactement comme avant, sans nœud visible ni règle de style à reprendre. */}
+          <div className="contents">{headline}</div>
 
           {/* La SENTINELLE de la rangée collante — voir l'en-tête. Un pixel de haut,
               dans le flux, JUSTE APRÈS la bande d'identité : c'est sa sortie de l'écran
