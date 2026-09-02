@@ -2838,4 +2838,9 @@ export const esPhrases: Phrases = {
   'Marchés crypto': 'Mercados cripto',
   'Analyses': 'Análisis',
   'Widget bandeau': 'Widget de banda',
+  'Événements': 'Eventos',
+  'Hausses du jour': 'Alzas del día',
+  'Plus de 5 % sur vingt-quatre heures': 'Más del 5 % en veinticuatro horas',
+  'Volume inhabituel': 'Volumen inusual',
+  'Rotation supérieure au quart de la capitalisation': 'Rotación superior a la cuarta parte de la capitalización',
 }

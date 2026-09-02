@@ -499,6 +499,48 @@ const CRYPTO: ScreenerMarket = {
       hint: 'Rotation supérieure à 10 % de la capitalisation',
       thresholds: { turnover: 10 },
     },
+    /*
+     * ══════════════════════════════════════════════════════════════════════
+     * DEUX MODÈLES DE PLUS, ET CE QUE LES NEUF DE BACKPACK NE PERMETTENT PAS
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * Leur écran propose neuf modèles : Daily gainers, Daily dips, New 52-week
+     * highs, New 52-week lows, Momentum leaders, Unusual volume, Low P/E, Tech
+     * titans, Semis & memory.
+     *
+     * ── CE QUI PASSE ICI ────────────────────────────────────────────────
+     *
+     * « Daily gainers » devient « Hausses du jour » et « Unusual volume » devient
+     * « Volume inhabituel » : les deux s'expriment avec les filtres existants.
+     *
+     * ── CE QUI NE PASSE PAS, ET POURQUOI ────────────────────────────────
+     *
+     * ⚠️ « DAILY DIPS » EST INEXPRIMABLE, et le motif est structurel : nos filtres
+     * portent UN seuil et une direction. `change24h` est déclaré en direction
+     * « minimale » — le régler à −5 retient « au moins −5 % », c'est-à-dire tout ce
+     * qui baisse PEU. Retenir ce qui baisse BEAUCOUP demanderait la direction
+     * inverse sur la même clé, et deux filtres de même clé se marcheraient dessus.
+     *
+     * C'est la fourchette min–max de Backpack qui manque, pas le modèle. Le jour où
+     * les filtres portent deux bornes, « Daily dips » tient en une ligne.
+     *
+     * « Tech titans » et « Semis & memory » demandent un filtre par SECTEUR et par
+     * INDUSTRIE, que le site n'expose pas encore comme critère — la catégorie
+     * « Classement » est prête à les recevoir. Les trois autres sont des variantes
+     * de fenêtre sur des grandeurs que la crypto n'a pas (52 semaines).
+     */
+    {
+      id: 'hausses-du-jour',
+      label: 'Hausses du jour',
+      hint: 'Plus de 5 % sur vingt-quatre heures',
+      thresholds: { change24h: 5 },
+    },
+    {
+      id: 'volume-inhabituel',
+      label: 'Volume inhabituel',
+      hint: 'Rotation supérieure au quart de la capitalisation',
+      thresholds: { turnover: 25 },
+    },
   ],
 }
 

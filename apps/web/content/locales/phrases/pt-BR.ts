@@ -2831,4 +2831,9 @@ export const ptBRPhrases: Phrases = {
   'Marchés crypto': 'Mercados cripto',
   'Analyses': 'Análises',
   'Widget bandeau': 'Widget de faixa',
+  'Événements': 'Eventos',
+  'Hausses du jour': 'Altas do dia',
+  'Plus de 5 % sur vingt-quatre heures': 'Mais de 5 % em vinte e quatro horas',
+  'Volume inhabituel': 'Volume incomum',
+  'Rotation supérieure au quart de la capitalisation': 'Giro acima de um quarto da capitalização',
 }

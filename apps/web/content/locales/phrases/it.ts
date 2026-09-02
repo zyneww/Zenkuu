@@ -2831,4 +2831,9 @@ export const itPhrases: Phrases = {
   'Marchés crypto': 'Mercati cripto',
   'Analyses': 'Analisi',
   'Widget bandeau': 'Widget a nastro',
+  'Événements': 'Eventi',
+  'Hausses du jour': 'Rialzi del giorno',
+  'Plus de 5 % sur vingt-quatre heures': 'Oltre il 5 % in ventiquattro ore',
+  'Volume inhabituel': 'Volume insolito',
+  'Rotation supérieure au quart de la capitalisation': 'Rotazione superiore a un quarto della capitalizzazione',
 }

@@ -2831,4 +2831,9 @@ export const trPhrases: Phrases = {
   'Marchés crypto': 'Kripto piyasaları',
   'Analyses': 'Analizler',
   'Widget bandeau': 'Şerit bileşeni',
+  'Événements': 'Olaylar',
+  'Hausses du jour': 'Günün yükselenleri',
+  'Plus de 5 % sur vingt-quatre heures': 'Yirmi dört saatte %5’ten fazla',
+  'Volume inhabituel': 'Olağan dışı hacim',
+  'Rotation supérieure au quart de la capitalisation': 'Piyasa değerinin dörtte birinden fazla devir',
 }

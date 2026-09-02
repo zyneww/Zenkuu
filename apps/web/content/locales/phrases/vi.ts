@@ -2831,4 +2831,9 @@ export const viPhrases: Phrases = {
   'Marchés crypto': 'Thị trường tiền mã hóa',
   'Analyses': 'Phân tích',
   'Widget bandeau': 'Tiện ích dải băng',
+  'Événements': 'Sự kiện',
+  'Hausses du jour': 'Tăng trong ngày',
+  'Plus de 5 % sur vingt-quatre heures': 'Hơn 5 % trong hai mươi tư giờ',
+  'Volume inhabituel': 'Khối lượng bất thường',
+  'Rotation supérieure au quart de la capitalisation': 'Vòng quay vượt một phần tư vốn hóa',
 }

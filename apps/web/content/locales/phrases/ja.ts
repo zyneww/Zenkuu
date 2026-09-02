@@ -2831,4 +2831,9 @@ export const jaPhrases: Phrases = {
   'Marchés crypto': '暗号資産市場',
   'Analyses': '分析',
   'Widget bandeau': 'ティッカー・ウィジェット',
+  'Événements': 'イベント',
+  'Hausses du jour': '本日の上昇',
+  'Plus de 5 % sur vingt-quatre heures': '24 時間で 5 % 超',
+  'Volume inhabituel': '異例の出来高',
+  'Rotation supérieure au quart de la capitalisation': '時価総額の四分の一を超える回転',
 }

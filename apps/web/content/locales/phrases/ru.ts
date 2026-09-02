@@ -2831,4 +2831,9 @@ export const ruPhrases: Phrases = {
   'Marchés crypto': 'Крипторынки',
   'Analyses': 'Аналитика',
   'Widget bandeau': 'Виджет-лента',
+  'Événements': 'События',
+  'Hausses du jour': 'Рост за день',
+  'Plus de 5 % sur vingt-quatre heures': 'Более 5 % за двадцать четыре часа',
+  'Volume inhabituel': 'Необычный объём',
+  'Rotation supérieure au quart de la capitalisation': 'Оборот выше четверти капитализации',
 }

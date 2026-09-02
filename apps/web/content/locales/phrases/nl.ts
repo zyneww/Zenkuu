@@ -2831,4 +2831,9 @@ export const nlPhrases: Phrases = {
   'Marchés crypto': 'Cryptomarkten',
   'Analyses': 'Marktanalyse',
   'Widget bandeau': 'Bannerwidget',
+  'Événements': 'Gebeurtenissen',
+  'Hausses du jour': 'Stijgers van vandaag',
+  'Plus de 5 % sur vingt-quatre heures': 'Meer dan 5 % in vierentwintig uur',
+  'Volume inhabituel': 'Ongewoon volume',
+  'Rotation supérieure au quart de la capitalisation': 'Omzet boven een kwart van de marktkapitalisatie',
 }

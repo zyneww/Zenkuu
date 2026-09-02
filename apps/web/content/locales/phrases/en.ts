@@ -2843,4 +2843,9 @@ export const enPhrases: Phrases = {
   'Marchés crypto': 'Crypto markets',
   'Analyses': 'Analysis',
   'Widget bandeau': 'Ticker widget',
+  'Événements': 'Events',
+  'Hausses du jour': 'Daily gainers',
+  'Plus de 5 % sur vingt-quatre heures': 'More than 5% over twenty-four hours',
+  'Volume inhabituel': 'Unusual volume',
+  'Rotation supérieure au quart de la capitalisation': 'Turnover above a quarter of market cap',
 }

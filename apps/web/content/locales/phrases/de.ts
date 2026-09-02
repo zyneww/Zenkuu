@@ -2839,4 +2839,9 @@ export const dePhrases: Phrases = {
   'Marchés crypto': 'Kryptomärkte',
   'Analyses': 'Analysen',
   'Widget bandeau': 'Banner-Widget',
+  'Événements': 'Ereignisse',
+  'Hausses du jour': 'Tagesgewinner',
+  'Plus de 5 % sur vingt-quatre heures': 'Mehr als 5 % in vierundzwanzig Stunden',
+  'Volume inhabituel': 'Ungewöhnliches Volumen',
+  'Rotation supérieure au quart de la capitalisation': 'Umschlag über einem Viertel der Marktkapitalisierung',
 }

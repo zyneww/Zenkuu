@@ -2824,4 +2824,9 @@ export const zhPhrases: Phrases = {
   'Marchés crypto': '加密市场',
   'Analyses': '分析',
   'Widget bandeau': '横幅组件',
+  'Événements': '事件',
+  'Hausses du jour': '当日上涨',
+  'Plus de 5 % sur vingt-quatre heures': '24 小时内涨幅超过 5 %',
+  'Volume inhabituel': '异常成交量',
+  'Rotation supérieure au quart de la capitalisation': '换手超过市值的四分之一',
 }
