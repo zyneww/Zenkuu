@@ -26,6 +26,7 @@ import type {
 import { TablePagination } from '@/components/ui/TablePagination'
 import type { ScreenCriteria } from '@/lib/screen-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { ScreenerFilterPanel } from '@/components/tools/ScreenerFilterPanel'
 import { emphasise } from '@/components/locale/emphasise'
 
 /**
@@ -125,6 +126,7 @@ export function ScreenerView({
   const [preset, setPreset] = useState('tout')
   const [query, setQuery] = useState('')
 
+
   /* La devise du site sert DEUX fois : à écrire les seuils monétaires, et à les
      comparer. Les deux doivent passer par la même conversion, sinon le curseur
      annonce une échelle et le filtre en applique une autre. */
@@ -163,6 +165,18 @@ export function ScreenerView({
   function thresholdOf(filter: ScreenerFilter): number {
     return thresholds[filter.key] ?? neutralOf(filter)
   }
+
+  /* Les clés dont le seuil filtre RÉELLEMENT. Elles ouvrent leur groupe dans le
+     panneau et y affichent un compte : un filtre qui agit sans se voir est le pire cas
+     — la liste est réduite et rien à l'écran ne dit pourquoi. */
+  const filtresActifs = useMemo(
+    () =>
+      new Set(
+        market.filters.filter((f) => isActive(f, thresholdOf(f))).map((f) => f.key),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `thresholdOf` lit `thresholds`
+    [market.filters, thresholds],
+  )
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -344,23 +358,15 @@ export function ScreenerView({
       */}
       <SavedScreens criteria={criteria} onApply={applySaved} />
 
-      <div className="grid gap-4 rounded-card border border-border-subtle bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
-        {market.filters.map((filter) => (
-          <FilterSlider
-            key={filter.key}
-            filter={filter}
-            currency={currency}
-            value={thresholdOf(filter)}
-            onChange={(value) => {
-              /* Toucher un curseur ÉTEINT le préréglage : celui-ci a posé des seuils,
-                 et les modifier signifie qu'on ne regarde plus sa population. Laisser
-                 la pastille allumée annoncerait un filtre qui n'est plus celui-là. */
-              setPreset('libre')
-              setThresholds((current) => ({ ...current, [filter.key]: value }))
-            }}
-          />
-        ))}
+      {/* ══════════════════════════════════════════════════════════════════
+          LE CHAMP DE NOM RESTE AU-DESSUS DU TABLEAU
 
+          Il n'a rejoint aucune des sept catégories, et c'est délibéré : ce n'est pas un
+          filtre de GRANDEUR mais une recherche par identité. On y tape « bit » pour
+          trouver Bitcoin, pas pour restreindre une population — et une recherche se
+          place là où le regard commence, pas au fond d'un groupe replié.
+          ══════════════════════════════════════════════════════════════════ */}
+      <div className="max-w-sm">
         {/* `Field` porte l'intitulé, `FieldLabel` le lie au champ par `htmlFor`. Un
             `<label>` écrit autour d'un `<input>` nu tient tant que la balise ne bouge
             pas ; celui-ci désigne le contrôle par son identifiant, et survit donc au
@@ -382,6 +388,24 @@ export function ScreenerView({
         </Field>
       </div>
 
+      {/* ══════════════════════════════════════════════════════════════════
+          DEUX COLONNES — LE TABLEAU À GAUCHE, LES FILTRES À DROITE
+
+          C'est la disposition de la référence, et elle règle un défaut mécanique : le
+          bandeau de filtres poussait le tableau vers le bas, si bien qu'on filtrait une
+          liste qu'on ne voyait plus. Côte à côte, on voit l'effet de chaque réglage au
+          moment où on le fait.
+
+          `min-w-0` sur la colonne de gauche est OBLIGATOIRE : sans lui, la largeur
+          minimale d'une piste de grille est celle de son contenu, et un tableau large
+          pousserait le panneau hors de l'écran au lieu de défiler dans sa propre boîte.
+
+          Sous `xl`, le panneau repasse AU-DESSUS du tableau plutôt qu'à côté : une
+          colonne de 288 px et un tableau de dix colonnes ne tiennent pas ensemble sur
+          un ordinateur portable.
+          ══════════════════════════════════════════════════════════════════ */}
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_288px]">
+        <div className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="tabular text-sm text-ink-muted" aria-live="polite">
           {/* Une PHRASE par unité, et non « {n} sur {total} » suivi d'un nom : le
@@ -594,6 +618,42 @@ export function ScreenerView({
           }}
         />
       ) : null}
+        </div>
+
+        {/* ⚠️ PAS DE `order` ICI, ET J'EN AVAIS MIS UN.
+
+            J'avais posé `xl:order-1` sur la colonne du tableau en croyant faire
+            diverger l'ordre de lecture et l'ordre visuel. C'était doublement inutile :
+            l'ordre voulu est le MÊME pour les deux — le tableau d'abord dans le
+            balisage, à gauche à l'écran — et le balisage le donne déjà.
+
+            Le résultat à l'écran était l'inverse de l'intention : `order-1` sur le
+            premier enfant le fait passer APRÈS le second, qui reste à 0. Le tableau
+            atterrissait donc dans la piste de 288 px et le panneau dans celle qui
+            s'étire. Vu à l'écran, pas déduit. */}
+        <ScreenerFilterPanel
+          filters={market.filters}
+          actives={filtresActifs}
+          onReset={() => {
+            setPreset('libre')
+            setThresholds({})
+          }}
+          resetLabel={t('Tout effacer')}
+          renderFilter={(filter) => (
+            <FilterSlider
+              filter={filter}
+              currency={currency}
+              value={thresholdOf(filter)}
+              onChange={(value) => {
+                /* Toucher un curseur ÉTEINT le préréglage : celui-ci a posé des seuils,
+                   et les modifier signifie qu'on ne regarde plus sa population. */
+                setPreset('libre')
+                setThresholds((current) => ({ ...current, [filter.key]: value }))
+              }}
+            />
+          )}
+        />
+      </div>
     </div>
   )
 }
