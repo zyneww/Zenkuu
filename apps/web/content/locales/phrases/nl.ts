@@ -2836,4 +2836,6 @@ export const nlPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Meer dan 5 % in vierentwintig uur',
   'Volume inhabituel': 'Ongewoon volume',
   'Rotation supérieure au quart de la capitalisation': 'Omzet boven een kwart van de marktkapitalisatie',
+  'Un seul article': '1 artikel',
+  '{n} articles': '{n} artikelen',
 }

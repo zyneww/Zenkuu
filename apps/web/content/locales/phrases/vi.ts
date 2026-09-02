@@ -2836,4 +2836,6 @@ export const viPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Hơn 5 % trong hai mươi tư giờ',
   'Volume inhabituel': 'Khối lượng bất thường',
   'Rotation supérieure au quart de la capitalisation': 'Vòng quay vượt một phần tư vốn hóa',
+  'Un seul article': '1 bài viết',
+  '{n} articles': '{n} bài viết',
 }

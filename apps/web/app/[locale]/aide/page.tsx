@@ -75,7 +75,18 @@ export default async function AidePage() {
       {/* ══ 1. LE BANDEAU DE RECHERCHE ══════════════════════════════════════ */}
       <section className="bleed bg-surface-muted">
         <div className="shell flex flex-col items-center gap-6 py-14 text-center">
-          <h1 className="display-xl max-w-2xl text-ink">
+          {/* ── LE HÉROS EST CENTRÉ, COMME CELUI DE LA RÉFÉRENCE ──────────────
+
+              Kraken centre son titre, sa phrase et sa grande barre de recherche sur
+              l'axe de la page. Ce n'est pas de l'esthétique : sur une page d'aide,
+              l'action attendue est de CHERCHER, et un champ centré sous un titre
+              centré est la seule chose que l'œil rencontre. Aligné à gauche, il
+              partage l'attention avec la marge droite vide.
+
+              Leur titre fait 58 px ; `display-xl` en fait 40. Je garde le nôtre —
+              58 px sur un titre d'un mot passe la moitié de la hauteur d'écran à dire
+              « Aide », et notre page a du contenu à montrer juste dessous. */}
+          <h1 className="display-xl text-ink">
             {t('Comment pouvons-nous vous aider ?')}
           </h1>
 

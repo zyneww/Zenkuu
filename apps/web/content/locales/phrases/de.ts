@@ -2844,4 +2844,6 @@ export const dePhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Mehr als 5 % in vierundzwanzig Stunden',
   'Volume inhabituel': 'Ungewöhnliches Volumen',
   'Rotation supérieure au quart de la capitalisation': 'Umschlag über einem Viertel der Marktkapitalisierung',
+  'Un seul article': '1 Artikel',
+  '{n} articles': '{n} Artikel',
 }

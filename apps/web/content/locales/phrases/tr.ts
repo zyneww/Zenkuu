@@ -2836,4 +2836,6 @@ export const trPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Yirmi dört saatte %5’ten fazla',
   'Volume inhabituel': 'Olağan dışı hacim',
   'Rotation supérieure au quart de la capitalisation': 'Piyasa değerinin dörtte birinden fazla devir',
+  'Un seul article': '1 makale',
+  '{n} articles': '{n} makale',
 }

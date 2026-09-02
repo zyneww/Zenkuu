@@ -2829,4 +2829,6 @@ export const zhPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': '24 小时内涨幅超过 5 %',
   'Volume inhabituel': '异常成交量',
   'Rotation supérieure au quart de la capitalisation': '换手超过市值的四分之一',
+  'Un seul article': '1 篇文章',
+  '{n} articles': '{n} 篇文章',
 }

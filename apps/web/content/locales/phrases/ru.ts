@@ -2836,4 +2836,6 @@ export const ruPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Более 5 % за двадцать четыре часа',
   'Volume inhabituel': 'Необычный объём',
   'Rotation supérieure au quart de la capitalisation': 'Оборот выше четверти капитализации',
+  'Un seul article': '1 статья',
+  '{n} articles': 'Статей: {n}',
 }

@@ -2836,4 +2836,6 @@ export const itPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Oltre il 5 % in ventiquattro ore',
   'Volume inhabituel': 'Volume insolito',
   'Rotation supérieure au quart de la capitalisation': 'Rotazione superiore a un quarto della capitalizzazione',
+  'Un seul article': '1 articolo',
+  '{n} articles': '{n} articoli',
 }

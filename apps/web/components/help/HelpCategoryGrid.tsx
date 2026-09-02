@@ -91,6 +91,30 @@ export function HelpCategoryGrid() {
                 {t(category.title)}
               </h3>
 
+              {/* ══════════════════════════════════════════════════════════════
+                  LE COMPTEUR D'ARTICLES — RELEVÉ CHEZ KRAKEN
+
+                  Leur grille écrit « Getting Started · 107 articles », en 14 px gris
+                  sous le titre. Le nombre fait deux choses qu'un titre seul ne fait
+                  pas : il dit si la rubrique VAUT le clic, et il situe l'effort — on
+                  n'aborde pas de la même façon trois articles et trois cents.
+
+                  ⚠️ IL EST CALCULÉ, JAMAIS ÉCRIT À LA MAIN. `category.articles.length`
+                  suit la réalité du contenu : ajouter un article met le compteur à
+                  jour, et il ne peut pas mentir. Un nombre saisi en dur dériverait au
+                  premier ajout, et personne ne le vérifierait.
+
+                  ⚠️ ET NOS NOMBRES SONT PETITS. Kraken affiche 107, 210, 314 ; nos
+                  rubriques en portent trois ou quatre. C'est ce qu'il y a, et
+                  l'afficher est plus honnête que de le cacher — un compteur absent
+                  laisserait imaginer une profondeur que le site n'a pas (§5).
+                  ══════════════════════════════════════════════════════════════ */}
+              <p className="mt-0.5 text-sm text-ink-muted">
+                {category.articles.length === 1
+                  ? t('Un seul article')
+                  : t('{n} articles').replace('{n}', String(category.articles.length))}
+              </p>
+
               <ul className="mt-4 space-y-2.5">
                 {/* Cinq au plus : au-delà, la colonne cesse d'être un aperçu et
                     devient la page de rubrique, que le bouton du dessous atteint

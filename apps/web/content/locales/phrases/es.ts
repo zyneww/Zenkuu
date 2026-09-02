@@ -2843,4 +2843,6 @@ export const esPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Más del 5 % en veinticuatro horas',
   'Volume inhabituel': 'Volumen inusual',
   'Rotation supérieure au quart de la capitalisation': 'Rotación superior a la cuarta parte de la capitalización',
+  'Un seul article': '1 artículo',
+  '{n} articles': '{n} artículos',
 }

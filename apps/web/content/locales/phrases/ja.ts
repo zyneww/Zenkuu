@@ -2836,4 +2836,6 @@ export const jaPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': '24 時間で 5 % 超',
   'Volume inhabituel': '異例の出来高',
   'Rotation supérieure au quart de la capitalisation': '時価総額の四分の一を超える回転',
+  'Un seul article': '記事 1 本',
+  '{n} articles': '記事 {n} 本',
 }

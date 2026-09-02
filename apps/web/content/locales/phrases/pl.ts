@@ -2836,4 +2836,6 @@ export const plPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Ponad 5 % w ciągu dwudziestu czterech godzin',
   'Volume inhabituel': 'Nietypowy wolumen',
   'Rotation supérieure au quart de la capitalisation': 'Obrót powyżej jednej czwartej kapitalizacji',
+  'Un seul article': '1 artykuł',
+  '{n} articles': 'Artykułów: {n}',
 }

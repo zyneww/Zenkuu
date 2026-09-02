@@ -2836,4 +2836,6 @@ export const ptBRPhrases: Phrases = {
   'Plus de 5 % sur vingt-quatre heures': 'Mais de 5 % em vinte e quatro horas',
   'Volume inhabituel': 'Volume incomum',
   'Rotation supérieure au quart de la capitalisation': 'Giro acima de um quarto da capitalização',
+  'Un seul article': '1 artigo',
+  '{n} articles': '{n} artigos',
 }
