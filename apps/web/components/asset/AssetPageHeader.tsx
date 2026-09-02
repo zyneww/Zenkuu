@@ -612,10 +612,34 @@ export async function AssetPriceCard({
       qui n'a que deux bornes à porter — s'étalerait au point de ne plus se lire
       comme une échelle. C'est la proportion de la référence.
     */
-    <section className="max-w-md space-y-2 rounded-card border border-border-subtle bg-panel p-4">
+    /*
+      ══════════════════════════════════════════════════════════════════════════
+      LA CARTE PREND SA LARGEUR, ET L'AMPLITUDE PASSE EN FACE DU COURS
+      ══════════════════════════════════════════════════════════════════════════
+
+      Elle était bornée à `max-w-md` (448 px), et l'amplitude fermait donc la carte
+      SOUS le cours, sur toute sa largeur. La note qui défendait ce choix disait vrai
+      de cette géométrie : « c'est une barre avec ses deux bornes, et la couper en deux
+      la briserait ».
+
+      La référence pose les deux côte à côte — cours à gauche, amplitude à droite, la
+      barre d'outils dessous sur toute la largeur. Cela demande une carte large, et
+      c'est le seul changement : la barre n'est pas coupée, elle est DÉPLACÉE dans
+      l'espace que la carte n'occupait pas.
+
+      ⚠️ SOUS `sm`, ELLES SE REMETTENT L'UNE SOUS L'AUTRE. Une amplitude de 200 px à
+      côté d'un cours de 200 px sur un téléphone donnerait deux colonnes illisibles ;
+      `flex-col` par défaut, `sm:flex-row` ensuite.
+      ══════════════════════════════════════════════════════════════════════════ */
+    <section className="space-y-2 rounded-card border border-border-subtle bg-panel p-4">
       {/* L'INTITULÉ PORTE LE LOGO ET LE NOM, comme sur la référence. Il dit de quoi
           ce nombre est le cours — utile dès qu'on arrive par un lien profond, et
           nécessaire une fois que l'en-tête est sorti de l'écran. */}
+      {/* La rangée de tête : le titre à gauche, l'amplitude à l'opposé. C'est la
+          disposition de la référence — et elle rend à l'amplitude une place qu'elle
+          n'avait pas, au lieu de la faire descendre sous tout le reste. */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1 space-y-2">
       <div className="flex items-center gap-2">
         <AssetLogo asset={asset} size={18} />
         <h2 className="text-sm font-semibold text-ink">
@@ -676,11 +700,17 @@ export async function AssetPriceCard({
             l'horodatage et lui disent tous les trois « voici le même cours sous un
             autre angle ». Ils se lisent en enfilade, en gris, après le chiffre. */}
         <AssetBenchmarkRatio asset={asset} />
-      </p>
+        </p>
+        </div>
 
-      {/* L'amplitude 24 h ferme la carte, sur toute sa largeur : c'est une barre
-          avec ses deux bornes, et la couper en deux la briserait. */}
-      <AssetRangeBar asset={asset} isRate={isForex} />
+        {/* `sm:w-56` : une largeur FIXE et non une fraction. La barre porte deux
+            montants dont la longueur varie d'un actif à l'autre — « $1.34 » et
+            « $124,651.06 » — et une largeur en pourcentage la ferait respirer
+            différemment sur chaque page. */}
+        <div className="sm:w-56 sm:shrink-0">
+          <AssetRangeBar asset={asset} isRate={isForex} />
+        </div>
+      </div>
     </section>
   )
 }
