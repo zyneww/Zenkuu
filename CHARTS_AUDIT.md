@@ -266,3 +266,66 @@ il en coûterait.
 
 Aucun placeholder n'est employé. Une série absente laisse son état vide, comme partout
 ailleurs sur le site (§5).
+
+
+---
+
+## 6. T3 — les pages de la barre latérale
+
+Neuf pages, refondues sur le motif de tête d'ASXN : intitulé discret, **grande** valeur,
+variations colorées. Le composant partagé est `components/charts/StatCard.tsx`.
+
+| Page | Bande | Ce qui a été fait |
+| --- | :---: | --- |
+| Market overview | ✅ | capitalisation totale, volume 24 h, dominance |
+| Bitcoin dominance | ✅ | BTC, ETH, reste du marché |
+| Heatmap | — | figure pleine largeur, voir plus bas |
+| Real-world assets | ✅ | bande maison remplacée par la partagée |
+| Categories | ✅ | secteurs cotés, premier secteur, sa part |
+| Treasuries | ✅ | détenu, part de capitalisation |
+| NFTs | — | liste non exhaustive, voir plus bas |
+| Sentiment index | — | porte déjà le motif |
+| Altcoin season | — | porte déjà le motif |
+
+### Les quatre pages sans bande, et pourquoi
+
+Ce ne sont pas des oublis : chacune a été **ouverte au navigateur** avant décision.
+
+- **Sentiment** porte déjà un cadran, trois valeurs historiques, un bloc de contexte,
+  des barres colorées, des sélecteurs de période et une bande min/moyenne/max. Elle
+  tient le motif mieux que ce qu'on y ajouterait.
+- **Altcoin season** ouvre sur « 31 /100 » en grand, avec sa jauge et deux colonnes
+  d'écarts. Même constat.
+- **Heatmap** est une figure pleine largeur. Une bande au-dessus la repousserait sous la
+  ligne de flottaison pour redire ce que ses tuiles montrent déjà.
+- **NFT** ne reçoit rien parce que sa liste est explicitement une **sélection** et non un
+  classement — son propre avertissement le dit, la source réservant son classement à son
+  offre payante. Un total en tête d'une liste non exhaustive serait faux (§5).
+
+### Ce qui n'a pas été inventé
+
+- Les agrégats globaux n'ont **pas** d'équivalent à trente jours : la seconde variation
+  d'ASXN est absente plutôt que dérivée d'un calcul maison.
+- Les actifs réels n'ont aucune variation publiée : leur bande n'en affiche pas.
+- Les catégories ne reçoivent **aucun total** : un actif relève de plusieurs d'entre
+  elles, donc leurs capitalisations ne s'additionnent pas.
+- « Reste du marché » sur la dominance est le seul calcul de toutes les bandes — cent
+  moins les deux premières parts, affichées juste en dessous, et il porte un nom qui dit
+  exactement ce qu'il est.
+
+### Ce que la refonte a révélé, et qui n'était pas dans son périmètre
+
+Le travail a mis au jour un angle mort d'internationalisation que trois passes
+antérieures avaient manqué : **des libellés passés en propriété**, jamais traversés par
+`t()`.
+
+- 37 libellés de colonne et de carte, dont **36 avaient déjà leur traduction** en table ;
+- 6 mentions de source (« · montants en USD ») ;
+- 3 libellés du bloc de contexte de `/sentiment` ;
+- 7 libellés de colonne des trésoreries, dont 6 déjà traduits ;
+- un formatage de nombre figé en `'fr-FR'`.
+
+Aucun relevé automatique ne pouvait les voir : les détecteurs de texte cherchent des
+**phrases**, et « Prix » ou « 7 jours » ressemblent à des identifiants techniques.
+
+Il n'en reste **zéro** dans `app/` et `components/`.
