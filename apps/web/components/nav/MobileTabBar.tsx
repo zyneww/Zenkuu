@@ -75,7 +75,10 @@ export function MobileTabBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
           const actif = entree.href === '/' ? chemin === '/' : chemin.startsWith(entree.href)
 
           return (
-            <li key={entree.href} className="flex-1">
+            /* `min-w-0` : sans lui, la largeur minimale d'une piste flexible est
+               celle de son CONTENU, et quatre mots entiers refusent de se comprimer
+               sous 320 px — la barre déborde alors de la fenêtre. */
+            <li key={entree.href} className="min-w-0 flex-1">
               <Link
                 href={entree.href}
                 aria-current={actif ? 'page' : undefined}
@@ -88,7 +91,7 @@ export function MobileTabBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
                 <Icone className="size-5 shrink-0" aria-hidden="true" />
                 {/* `text-micro` (11 px) : le mot entier plutôt qu'une abréviation.
                     Une icône seule se devine ; accompagnée de son mot, elle se lit. */}
-                <span className="text-micro leading-none">{t(entree.label)}</span>
+                <span className="max-w-full truncate text-micro leading-none">{t(entree.label)}</span>
               </Link>
             </li>
           )
@@ -97,14 +100,14 @@ export function MobileTabBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
         {/* Le menu est un BOUTON et non un lien : il ouvre le tiroir existant plutôt
             que de mener à une page. Le rendre semblable aux trois autres serait
             mentir sur ce qu'il fait. */}
-        <li className="flex-1">
+        <li className="min-w-0 flex-1">
           <button
             type="button"
             onClick={onOpenMenu}
             className="flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 text-ink-muted transition-colors"
           >
             <Menu className="size-5 shrink-0" aria-hidden="true" />
-            <span className="text-micro leading-none">{t('Menu')}</span>
+            <span className="max-w-full truncate text-micro leading-none">{t('Menu')}</span>
           </button>
         </li>
       </ul>

@@ -111,9 +111,19 @@ export function DashboardPreferences() {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3">
+    /* ⚠️ `flex-wrap` ET `min-w-0` : SANS EUX LA RANGÉE DÉBORDE À 320 px.
+
+       Relevé par `audit-responsive` sur iPhone SE : le libellé « Thème », la gouttière
+       de 16 px et le groupe segmenté à trois boutons (221 px) font 5 px de plus que la
+       largeur utile. La page défilait alors horizontalement — le seul débordement des
+       26 routes auditées.
+
+       `flex-wrap` laisse le contrôle passer sous son libellé quand la place manque ;
+       `min-w-0` autorise le second à rétrécir avant d'y venir. Au-dessus de cette
+       largeur, rien ne change : la rangée reste sur une ligne. */
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
       <dt className="text-sm text-ink">{label}</dt>
-      <dd>{children}</dd>
+      <dd className="min-w-0">{children}</dd>
     </div>
   )
 }
