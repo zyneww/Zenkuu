@@ -77,7 +77,30 @@ export function Slider({
     >
       <HeroSlider.Track>
         <HeroSlider.Fill />
-        <HeroSlider.Thumb />
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          UNE POIGNÉE PAR VALEUR — CE QUI REND LA FOURCHETTE POSSIBLE
+
+          Le curseur n'en rendait qu'une, ce qui suffit à un seuil (« au moins X »).
+          Une FOURCHETTE en demande deux, et HeroUI les distingue par leur `index`.
+
+          Le nombre de poignées se déduit donc de la VALEUR reçue plutôt que d'un
+          drapeau : un appelant qui passe `[10, 90]` obtient deux poignées sans avoir
+          à le déclarer, et il ne peut pas se tromper en déclarant deux poignées pour
+          une seule valeur.
+
+          `defaultValue` sert de repli pour le cas non contrôlé, où `value` est absent.
+          ══════════════════════════════════════════════════════════════════════ */}
+        {/* `value` et `defaultValue` acceptent un nombre OU un tableau côté HeroUI ;
+            on normalise pour compter les poignées sans que l'appelant ait à choisir. */}
+        {(Array.isArray(value)
+          ? value
+          : Array.isArray(defaultValue)
+            ? defaultValue
+            : [0]
+        ).map((_: number, index: number) => (
+          <HeroSlider.Thumb key={index} index={index} />
+        ))}
       </HeroSlider.Track>
     </HeroSlider>
   )

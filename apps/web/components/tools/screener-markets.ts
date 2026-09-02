@@ -155,7 +155,23 @@ export interface ScreenerFilter {
    */
   currency?: boolean
   /** Sens de la comparaison. `min` par défaut. */
-  direction?: 'min' | 'max'
+  /**
+   * `min` retient « au moins ce seuil », `max` « au plus », `range` les deux à la fois.
+   *
+   * ── POURQUOI `range` A ÉTÉ AJOUTÉ ────────────────────────────────────────
+   *
+   * Avec un seul seuil et une direction, certains critères sont INEXPRIMABLES, et pas
+   * par maladresse : « ce qui baisse fortement » demande une borne haute sur une
+   * grandeur dont on veut aussi une borne basse. Le modèle à un seuil obligeait à
+   * choisir, et « Daily dips » — l'un des neuf écrans de Backpack — n'entrait dans
+   * aucune des deux directions.
+   *
+   * ⚠️ UN FILTRE `range` PORTE DEUX VALEURS, ET LE RESTE DU CODE LE VOIT. Le seuil
+   * cesse d'être un `number` pour devenir `number | [number, number]` — dans l'état de
+   * la vue, dans les préréglages, et dans les écrans sauvegardés, qui valident ce
+   * qu'ils relisent. C'est le prix d'un modèle qui dit ce qu'il faut dire.
+   */
+  direction?: 'min' | 'max' | 'range'
 }
 
 /**
@@ -171,7 +187,16 @@ export interface ScreenerPreset {
   id: string
   label: string
   hint: string
-  thresholds: Record<string, number>
+  /**
+   * Les seuils que le préréglage pose : un nombre, ou une PAIRE pour un filtre en
+   * fourchette.
+   *
+   * Le type a suivi celui des filtres, et le compilateur l'a exigé de lui-même —
+   * `{ change24h: [-100, -5] }` ne rentrait pas dans `Record<string, number>`. C'est
+   * exactement ce qu'on attend d'un garde-fou : le modèle change à un endroit, et
+   * tout ce qui en dépend refuse de compiler jusqu'à ce qu'on l'ait accordé.
+   */
+  thresholds: Record<string, number | [number, number]>
 }
 
 export interface ScreenerMarket {
@@ -475,7 +500,27 @@ const CRYPTO: ScreenerMarket = {
   filters: [
     { key: 'marketCap', label: 'Capitalisation minimale', steps: CAP_STEPS, currency: true },
     { key: 'volume24h', label: 'Volume 24 h minimal', steps: VOLUME_STEPS, currency: true },
-    { key: 'change24h', label: 'Variation 24 h minimale', min: -100, max: 50, step: 5, unit: '%' },
+    {
+      /*
+       * ⚠️ CE FILTRE EST PASSÉ DE SEUIL À FOURCHETTE, ET C'EST CE QUI DÉBLOQUE
+       * « DAILY DIPS ».
+       *
+       * Il portait « variation 24 h MINIMALE » : le régler à −5 retenait « au moins
+       * −5 % », c'est-à-dire tout ce qui baisse peu ET tout ce qui monte. Retenir ce
+       * qui baisse fortement était impossible — le commit précédent en faisait
+       * l'inventaire, faute de pouvoir le corriger.
+       *
+       * En fourchette, « entre −100 et −5 % » dit exactement cela, et « entre 5 et
+       * 100 % » dit son contraire. Un seul contrôle, deux poignées, les deux critères.
+       */
+      key: 'change24h',
+      label: 'Variation 24 h',
+      direction: 'range',
+      min: -100,
+      max: 100,
+      step: 5,
+      unit: '%',
+    },
     { key: 'change7d', label: 'Variation 7 j minimale', min: -100, max: 100, step: 10, unit: '%' },
     { key: 'turnover', label: 'Rotation minimale', min: 0, max: 100, step: 5, unit: '%' },
   ],
@@ -491,7 +536,9 @@ const CRYPTO: ScreenerMarket = {
       id: 'momentum',
       label: 'En hausse sur 7 jours',
       hint: 'Progression sur 24 h et sur 7 j',
-      thresholds: { change24h: 0, change7d: 0 },
+      /* La fourchette remplace le seuil : « de 0 à +100 % » dit ce que
+         « au moins 0 » disait, sans ambiguïté sur la borne haute. */
+      thresholds: { change24h: [0, 100], change7d: 0 },
     },
     {
       id: 'liquides',
@@ -533,7 +580,13 @@ const CRYPTO: ScreenerMarket = {
       id: 'hausses-du-jour',
       label: 'Hausses du jour',
       hint: 'Plus de 5 % sur vingt-quatre heures',
-      thresholds: { change24h: 5 },
+      thresholds: { change24h: [5, 100] },
+    },
+    {
+      id: 'baisses-du-jour',
+      label: 'Baisses du jour',
+      hint: 'Recul de plus de 5 % sur vingt-quatre heures',
+      thresholds: { change24h: [-100, -5] },
     },
     {
       id: 'volume-inhabituel',

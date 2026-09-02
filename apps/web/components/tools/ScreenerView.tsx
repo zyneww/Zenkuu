@@ -67,14 +67,26 @@ function clampIndex(value: number, max: number): number {
 }
 
 /** Seuil neutre d'un filtre — celui qui ne retient rien. */
-function neutralOf(filter: ScreenerFilter): number {
+/** Le seuil d'un filtre : un nombre, ou une paire pour une fourchette. */
+type Seuil = number | [number, number]
+
+function neutralOf(filter: ScreenerFilter): Seuil {
+  /* Le neutre d'une FOURCHETTE, ce sont ses deux bornes : elle ne retient rien tant
+     qu'elle couvre toute l'étendue. */
+  if (filter.direction === 'range') return [filter.min ?? 0, filter.max ?? 0]
   if (filter.steps) return 0
   return filter.direction === 'max' ? (filter.max ?? 0) : (filter.min ?? 0)
 }
 
 /** Le seuil courant filtre-t-il réellement quelque chose ? */
-function isActive(filter: ScreenerFilter, value: number): boolean {
-  return value !== neutralOf(filter)
+function isActive(filter: ScreenerFilter, value: Seuil): boolean {
+  const neutre = neutralOf(filter)
+  /* Une fourchette est active dès qu'UNE de ses bornes a bougé : resserrer par le bas
+     filtre autant que resserrer par le haut. */
+  if (Array.isArray(value) && Array.isArray(neutre)) {
+    return value[0] !== neutre[0] || value[1] !== neutre[1]
+  }
+  return value !== neutre
 }
 
 function compactAmount(value: number): string {
@@ -90,10 +102,19 @@ function compactAmount(value: number): string {
  */
 function displayThreshold(
   filter: ScreenerFilter,
-  value: number,
+  value: Seuil,
   currency: string,
 ): string {
   if (!isActive(filter, value)) return 'aucun'
+
+  /* Une FOURCHETTE s'annonce par ses deux bornes, séparées d'un tiret demi-cadratin :
+     « −10 % – −2 % ». Chaque borne est mise en forme par le même code que le seuil
+     simple, en réentrant ici — sinon les deux affichages divergeraient au premier
+     changement d'unité ou de devise. */
+  if (Array.isArray(value)) {
+    const borne = (n: number) => displayThreshold(filter, n, currency)
+    return `${borne(value[0])} – ${borne(value[1])}`
+  }
 
   const prefix = filter.direction === 'max' ? '≤ ' : ''
 
@@ -143,7 +164,9 @@ export function ScreenerView({
    * un écran enregistré de survivre à un changement de barème : ajouter un cran
    * déplacerait tous les indices, jamais les montants.
    */
-  const [thresholds, setThresholds] = useState<Record<string, number>>({})
+  /* `Seuil` et non `number` : un filtre en fourchette en porte DEUX. Le type dit ce
+     que la table contient réellement, plutôt que de laisser chaque lecteur deviner. */
+  const [thresholds, setThresholds] = useState<Record<string, Seuil>>({})
 
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(50)
@@ -162,7 +185,7 @@ export function ScreenerView({
   const columnSet =
     market.columnSets.find((entry) => entry.id === columnSetId) ?? market.columnSets[0]!
 
-  function thresholdOf(filter: ScreenerFilter): number {
+  function thresholdOf(filter: ScreenerFilter): Seuil {
     return thresholds[filter.key] ?? neutralOf(filter)
   }
 
@@ -205,7 +228,12 @@ export function ScreenerView({
            écarterait toute la cote de Tokyo. */
         const value = filter.currency ? convert(raw, row.currency) : raw
 
-        if (filter.direction === 'max') {
+        if (Array.isArray(threshold)) {
+          /* Les deux bornes sont INCLUSIVES : « entre −10 et −2 % » retient une ligne à
+             exactement −10. Un lecteur qui pose une borne s'attend à ce qu'elle
+             appartienne à ce qu'il a demandé. */
+          if (value < threshold[0] || value > threshold[1]) return false
+        } else if (filter.direction === 'max') {
           if (value > threshold) return false
         } else if (value < threshold) return false
       }
@@ -806,12 +834,29 @@ function FilterSlider({
   filter: ScreenerFilter
   /** Devise du site — celle dans laquelle un seuil monétaire s'écrit et se compare. */
   currency: string
-  value: number
-  onChange: (value: number) => void
+  value: Seuil
+  onChange: (value: Seuil) => void
 }) {
   const t = usePhrase()
   const steps = filter.steps
-  const index = steps ? Math.max(0, steps.indexOf(value)) : 0
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * DEUX POIGNÉES OU UNE, SELON CE QUE LE FILTRE DÉCLARE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Le contrôle est le MÊME : c'est le nombre de valeurs qui change ce qu'il rend.
+   * Un filtre `range` livre une paire, `Slider` en déduit deux poignées, et
+   * `onValueChange` rend une paire. Rien à brancher de plus.
+   *
+   * ⚠️ LA FOURCHETTE N'EST PAS COMPATIBLE AVEC `steps`. Un barème par crans est une
+   * ÉCHELLE NON LINÉAIRE — les capitalisations vont de un million à mille milliards
+   * par sauts choisis — et deux poignées sur une telle échelle demanderaient de
+   * décider ce que « entre le cran 3 et le cran 6 » veut dire à l'affichage. Aucun
+   * filtre du site n'en a besoin ; le cas est écarté plutôt que deviné.
+   */
+  const estFourchette = Array.isArray(value)
+  const index = steps && !estFourchette ? Math.max(0, steps.indexOf(value)) : 0
 
   return (
     <label className="block">
@@ -828,9 +873,17 @@ function FilterSlider({
         min={steps ? 0 : (filter.min ?? 0)}
         max={steps ? steps.length - 1 : (filter.max ?? 100)}
         step={steps ? 1 : (filter.step ?? 1)}
-        value={[steps ? index : value]}
-        onValueChange={([next]) => {
-          const raw = Number(next)
+        value={estFourchette ? value : [steps ? index : value]}
+        onValueChange={(next) => {
+          if (estFourchette) {
+            /* Les bornes sont RÉORDONNÉES : HeroUI laisse la poignée haute passer sous
+               la basse, et une paire inversée retiendrait zéro ligne sans que rien ne
+               dise pourquoi. */
+            const paire = [Number(next[0]), Number(next[1])].sort((a, b) => a - b)
+            onChange([paire[0] as number, paire[1] as number])
+            return
+          }
+          const raw = Number(next[0])
           onChange(steps ? (steps[clampIndex(raw, steps.length - 1)] ?? 0) : raw)
         }}
       />

@@ -55,7 +55,15 @@ export interface ScreenCriteria {
   preset: string
   query: string
   /** Seuil par clé de filtre, exprimé dans l'unité de la grandeur. */
-  thresholds: Record<string, number>
+  /**
+   * Le seuil d'un filtre : un nombre, ou une PAIRE pour une fourchette.
+   *
+   * ⚠️ CE TYPE EST RELU DEPUIS UN STOCKAGE, DONC IL EST VALIDÉ. Un écran sauvegardé
+   * survit aux versions du site : une paire écrite aujourd'hui doit être reconnue
+   * demain, et un nombre écrit hier doit rester lisible. La validation plus bas
+   * accepte les deux formes et refuse tout le reste.
+   */
+  thresholds: Record<string, number | [number, number]>
 }
 
 export type ScreenActionResult =
@@ -96,11 +104,22 @@ function parseCriteria(raw: string): ScreenCriteria | null {
     const preset = typeof source['preset'] === 'string' ? source['preset'] : 'tout'
     const query = typeof source['query'] === 'string' ? source['query'] : ''
 
-    const thresholds: Record<string, number> = {}
+    const thresholds: Record<string, number | [number, number]> = {}
     const table = source['thresholds']
     if (typeof table === 'object' && table !== null) {
       for (const [key, value] of Object.entries(table as Record<string, unknown>)) {
-        if (typeof value === 'number' && Number.isFinite(value)) thresholds[key] = value
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          thresholds[key] = value
+        } else if (
+          /* Une FOURCHETTE : exactement deux nombres finis, dans cet ordre. Un tableau
+             de trois valeurs ou contenant `null` vient d'un stockage corrompu ou d'une
+             autre version — on le laisse tomber plutôt que de le charger à moitié. */
+          Array.isArray(value) &&
+          value.length === 2 &&
+          value.every((n) => typeof n === 'number' && Number.isFinite(n))
+        ) {
+          thresholds[key] = [value[0] as number, value[1] as number]
+        }
       }
 
       return {
