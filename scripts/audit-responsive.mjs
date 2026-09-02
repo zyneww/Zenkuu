@@ -88,6 +88,24 @@ const VIEWPORTS = [
  * responsive casse, jamais sur la variante vide.
  */
 const ROUTES = [
+  /*
+   * ⚠️ TOUTES CES ROUTES RÉPONDENT 200, ET C'EST À VÉRIFIER QUAND ON ÉTEND LA LISTE.
+   *
+   * Elle en portait DIX qui répondaient 404 — sondées une par une contre le serveur.
+   * Deux venaient d'être supprimées (`/blog`, `/apprendre`), les huit autres n'ont
+   * jamais été construites : `/crypto/mouvements`, `/crypto/highlights`, `/suivi`,
+   * `/alertes`, `/tarifs`, `/methodologie`, `/developpeurs`, `/widgets`.
+   *
+   * L'audit les visitait, recevait un 404, et rapportait « 1 erreur console » sur
+   * chacune. Le coût n'est pas le temps perdu : c'est que dix lignes de bruit rendent
+   * le rapport illisible, et qu'on finit par ne plus le lire du tout. Un audit auquel
+   * on ne croit plus ne sert à rien.
+   *
+   * ⚠️ ET LE DISQUE NE SUFFIT PAS À LE VÉRIFIER. J'ai d'abord testé l'existence d'un
+   * dossier sous `app/[locale]/` : cela écarte à tort `/crypto/bitcoin` et
+   * `/actions/aapl`, qui passent par un segment dynamique `[id]`. Seul le SERVEUR sait
+   * ce qui répond.
+   */
   '/',
   '/marches',
   '/marches?vue=derives',
@@ -95,8 +113,6 @@ const ROUTES = [
   '/crypto/bitcoin',
   '/crypto/bitcoin?onglet=places',
   '/crypto/all-coins',
-  '/crypto/mouvements',
-  '/crypto/highlights',
   '/crypto/graphiques',
   '/crypto/nouvelles',
   '/actions',
@@ -108,22 +124,14 @@ const ROUTES = [
   '/actualites',
   '/heatmap',
   '/sentiment',
-  '/suivi',
   '/tableau-de-bord',
-  '/alertes',
-  '/tarifs',
   '/aide',
   '/bien-demarrer',
   '/pourquoi-zenkuu',
   '/a-propos',
-  '/blog',
-  '/apprendre',
-  '/methodologie',
-  '/developpeurs',
   '/nouveautes',
   '/parametres',
   '/connexion',
-  '/widgets',
 ]
 
 /** Sonde exécutée DANS la page. Elle ne voit que le DOM, jamais notre code. */
