@@ -150,8 +150,8 @@ export default async function Page({ params }: RouteParams) {
       <Panel title={t('Mesures du pool')}>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
           <Measure label={t('Réserve')} value={data.liquidityUsd} />
-          <Measure label="Volume 24 h" value={data.volume24hUsd} />
-          <Measure label="Capitalisation" value={data.marketCapUsd} />
+          <Measure label={t('Volume 24 h')} value={data.volume24hUsd} />
+          <Measure label={t('Capitalisation')} value={data.marketCapUsd} />
           <Measure label={t('Valorisation diluée')} value={data.fdvUsd} />
         </dl>
       </Panel>

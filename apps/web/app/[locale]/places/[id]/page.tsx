@@ -187,7 +187,7 @@ export default async function ExchangePage({ params }: RouteProps) {
               hint={t('positions non dénouées')}
             />
             <Stat
-              label="Volume 24 h"
+              label={t('Volume 24 h')}
               value={place.volume24hBtc !== undefined ? `${formatCompact(place.volume24hBtc)} ₿` : '—'}
               hint={t('en bitcoin, unité de la source')}
             />
@@ -214,7 +214,7 @@ export default async function ExchangePage({ params }: RouteProps) {
               }
             />
             <Stat
-              label="Volume 24 h"
+              label={t('Volume 24 h')}
               value={place.volume24hBtc !== undefined ? `${formatCompact(place.volume24hBtc)} ₿` : '—'}
               hint={t('en bitcoin, unité de la source')}
             />
@@ -224,7 +224,7 @@ export default async function ExchangePage({ params }: RouteProps) {
               hint={t('référencés par la source')}
             />
             <Stat
-              label="Paires"
+              label={t('Paires')}
               value={place.pairs !== undefined ? String(place.pairs) : '—'}
               hint={t('couples cotés')}
             />

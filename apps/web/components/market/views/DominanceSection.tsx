@@ -1,7 +1,10 @@
 import { Suspense } from 'react'
 
 import { getCryptoGlobalStats, getMarketCapSeriesState } from '@zenkuu/data'
-import { SourceNote } from '@zenkuu/ui'
+import { SourceNote, formatShare } from '@zenkuu/ui'
+import { getLocale } from 'next-intl/server'
+
+import { StatCard } from '@/components/charts/StatCard'
 
 import { DominanceView } from '@/components/market/DominanceView'
 import { LoadingNote } from '@/components/market/ChartsShell'
@@ -22,11 +25,52 @@ import { getPhrase } from '@/lib/content'
  */
 export async function DominanceSection() {
   const t = await getPhrase()
+  const locale = await getLocale()
   const globalStats = await getCryptoGlobalStats('eur')
   const series = getMarketCapSeriesState('EUR')
 
+  const stats = globalStats.ok ? globalStats.data : null
+
   return (
     <div className="space-y-10">
+      {/* ── LA BANDE DE TÊTE ────────────────────────────────────────────────
+          Trois parts, la valeur en grand — le motif d'ASXN, déjà posé sur
+          /graphiques et /graphiques/actifs-reels (voir `StatCard`).
+
+          La page ouvrait directement sur la barre empilée. Elle est bonne — une
+          dominance EST une répartition, et une part se lit mieux comme une longueur —
+          mais elle ne DONNE PAS le chiffre : il fallait survoler ou lire la légende.
+          Les trois premières parts passent devant, en toutes lettres.
+
+          « Reste » est calculé, et c'est le seul de la bande : cent moins les deux
+          premières. Ce n'est pas une donnée inventée mais une soustraction sur des
+          parts qui sont affichées juste en dessous — et il porte son nom, qui dit
+          exactement ce qu'il est. */}
+      {stats && stats.dominance['btc'] !== undefined ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatCard
+            label={t('Dominance de Bitcoin')}
+            value={formatShare(stats.dominance['btc'], locale) ?? '—'}
+          />
+          {stats.dominance['eth'] !== undefined ? (
+            <StatCard
+              label={t('Dominance d’Ethereum')}
+              value={formatShare(stats.dominance['eth'], locale) ?? '—'}
+            />
+          ) : null}
+          <StatCard
+            label={t('Reste du marché')}
+            value={
+              formatShare(
+                100 - stats.dominance['btc'] - (stats.dominance['eth'] ?? 0),
+                locale,
+              ) ?? '—'
+            }
+            note={t('Toutes les autres cryptomonnaies réunies')}
+          />
+        </div>
+      ) : null}
+
       <div className="space-y-6">
         <DominanceView
           series={series}

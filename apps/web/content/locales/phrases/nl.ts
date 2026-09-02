@@ -2805,4 +2805,9 @@ export const nlPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} aangehouden',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Dominantie van Ethereum',
+  'Reste du marché': 'Rest van de markt',
+  'Toutes les autres cryptomonnaies réunies': 'Alle overige cryptomunten samen',
 }

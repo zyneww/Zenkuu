@@ -2805,4 +2805,9 @@ export const trPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} tutuluyor',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Ethereum baskınlığı',
+  'Reste du marché': 'Piyasanın geri kalanı',
+  'Toutes les autres cryptomonnaies réunies': 'Diğer bütün kripto paralar birlikte',
 }

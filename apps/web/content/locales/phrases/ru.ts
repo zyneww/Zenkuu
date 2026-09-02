@@ -2805,4 +2805,9 @@ export const ruPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} в наличии',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Доминирование Ethereum',
+  'Reste du marché': 'Остальной рынок',
+  'Toutes les autres cryptomonnaies réunies': 'Все остальные криптовалюты вместе',
 }

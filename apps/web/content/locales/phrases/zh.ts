@@ -2798,4 +2798,9 @@ export const zhPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '持有 {unit}',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': '以太坊占比',
+  'Reste du marché': '市场其余部分',
+  'Toutes les autres cryptomonnaies réunies': '其余所有加密货币的总和',
 }

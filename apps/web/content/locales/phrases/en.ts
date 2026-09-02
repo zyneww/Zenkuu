@@ -2817,4 +2817,9 @@ export const enPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} held',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Ethereum dominance',
+  'Reste du marché': 'Rest of the market',
+  'Toutes les autres cryptomonnaies réunies': 'All other cryptocurrencies combined',
 }

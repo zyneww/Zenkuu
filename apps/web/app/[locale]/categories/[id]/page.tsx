@@ -104,7 +104,7 @@ export default async function CategoryPage({
             value={formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
           />
           <Stat
-            label="Volume 24 h"
+            label={t('Volume 24 h')}
             value={formatCurrency(category.volume24h, 'USD', { compact: true }) ?? '—'}
           />
           <Stat

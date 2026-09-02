@@ -2805,4 +2805,9 @@ export const viPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} đang nắm giữ',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Tỷ trọng của Ethereum',
+  'Reste du marché': 'Phần còn lại của thị trường',
+  'Toutes les autres cryptomonnaies réunies': 'Tất cả các tiền mã hóa còn lại cộng lại',
 }

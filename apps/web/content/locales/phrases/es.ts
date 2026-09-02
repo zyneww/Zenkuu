@@ -2812,4 +2812,9 @@ export const esPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} en cartera',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Dominancia de Ethereum',
+  'Reste du marché': 'Resto del mercado',
+  'Toutes les autres cryptomonnaies réunies': 'Todas las demás criptomonedas juntas',
 }

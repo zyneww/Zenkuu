@@ -131,7 +131,15 @@ export default async function SentimentPage() {
 
         <Card>
           <CardHeader title={t('Contexte de marché')} />
-          <MarketContext stats={stats} contextUnavailable={t('Contexte indisponible')} />
+          <MarketContext
+            stats={stats}
+            contextUnavailable={t('Contexte indisponible')}
+            labels={{
+              marketCap: t('Capitalisation totale'),
+              volume: t('Volume 24 h'),
+              dominance: t('Dominance BTC'),
+            }}
+          />
         </Card>
       </div>
 
@@ -205,11 +213,20 @@ function DialCard({ value, label }: { value: number; label: string }) {
  */
 function MarketContext({
   contextUnavailable,
+  labels,
   stats,
 }: {
   stats: Awaited<ReturnType<typeof getCryptoGlobalStats>>
   /* Traduit par l'appelant : ce composant est synchrone et n'appelle pas la table. */
   contextUnavailable: string
+  /* ⚠️ LES TROIS LIBELLÉS AUSSI, ET ILS NE L'ÉTAIENT PAS. Ils étaient écrits en dur
+     dans le JSX — « Capitalisation totale », « Volume 24 h », « Dominance BTC » —,
+     donc en français sur /en, /de, /ja. Vu à l'écran sur la page anglaise, au milieu
+     d'un bloc par ailleurs entièrement traduit.
+
+     Ils suivent le chemin que `contextUnavailable` ouvrait déjà : traduits par
+     l'appelant, qui est asynchrone et a la table sous la main. */
+  labels: { marketCap: string; volume: string; dominance: string }
 }) {
   if (!stats.ok) {
     return <EmptyState title={contextUnavailable} description={stats.reason} compact />
@@ -223,16 +240,16 @@ function MarketContext({
      liste, alors que ce sont trois mesures indépendantes. */
   return (
     <dl className="space-y-2">
-      <StatBox label="Capitalisation totale" change={marketCapChange24h}>
+      <StatBox label={labels.marketCap} change={marketCapChange24h}>
         <Money value={totalMarketCap} from="USD" compact />
       </StatBox>
 
-      <StatBox label="Volume 24 h">
+      <StatBox label={labels.volume}>
         <Money value={totalVolume24h} from="USD" compact />
       </StatBox>
 
       {btc !== undefined ? (
-        <StatBox label="Dominance BTC">{btc.toFixed(2)} %</StatBox>
+        <StatBox label={labels.dominance}>{btc.toFixed(2)} %</StatBox>
       ) : null}
     </dl>
   )

@@ -2805,4 +2805,9 @@ export const ptBRPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} detidos',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Dominância do Ethereum',
+  'Reste du marché': 'Resto do mercado',
+  'Toutes les autres cryptomonnaies réunies': 'Todas as outras criptomoedas somadas',
 }

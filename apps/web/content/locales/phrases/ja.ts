@@ -2805,4 +2805,9 @@ export const jaPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '保有 {unit}',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'イーサリアムのドミナンス',
+  'Reste du marché': '市場のその他',
+  'Toutes les autres cryptomonnaies réunies': 'その他すべての暗号資産の合計',
 }

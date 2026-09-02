@@ -2805,4 +2805,9 @@ export const itPhrases: Phrases = {
 
   // ── TRÉSORERIES — colonne ──
   '{unit} détenus': '{unit} detenuti',
+
+  // ── DOMINANCE — bande ──
+  'Dominance d’Ethereum': 'Dominanza di Ethereum',
+  'Reste du marché': 'Resto del mercato',
+  'Toutes les autres cryptomonnaies réunies': 'Tutte le altre criptovalute insieme',
 }
