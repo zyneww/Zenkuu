@@ -102,7 +102,7 @@ export async function AssetSupply({ asset }: { asset: AssetDetail }) {
       {pending !== undefined && pending > 0 ? (
         <div className="mt-4 flex items-baseline justify-between gap-2 border-t border-border-subtle pt-3">
           <span className="text-xs text-ink-muted">
-            {maxSupply !== undefined ? 'Reste à émettre' : 'Émis mais hors circulation'}
+            {maxSupply !== undefined ? t('Reste à émettre') : t('Émis mais hors circulation')}
           </span>
           <span className="tabular text-xs font-medium text-ink">
             {formatCompact(pending)} {symbol}

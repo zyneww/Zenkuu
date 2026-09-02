@@ -671,6 +671,12 @@
      entre « ceci se clique » et « ceci contient » ne passait plus que par la taille.
      Quatre pixels d'écart la rendent lisible d'un coup d'œil. */
   --radius-card: 16px;
+  /* 12 px — le cran EN DESSOUS des cartes, pour ce qui vit à l'intérieur d'elles :
+     tuiles de métriques, champs groupés, sous-panneaux. L'échelle du document en
+     compte six ; celui-ci manquait, et les sous-cartes empruntaient donc soit le
+     rayon des cartes (elles se confondaient avec leur contenant), soit celui des
+     contrôles (elles avaient l'air cliquables). */
+  --radius-nested: 12px;
   --radius-panel: 16px;
 
   /* CONTRÔLES — boutons, champs, puces de filtre, cases à cocher. Tout ce qu'on

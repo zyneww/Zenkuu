@@ -144,11 +144,33 @@ export async function AssetKeyStats({
   if (cells.length === 0) return null
 
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-4">
+    /*
+      ══════════════════════════════════════════════════════════════════════════
+      PHASE 5 — DES TUILES IMBRIQUÉES, PLUS UNE GRILLE À FILETS
+
+      Les quatre chiffres vivaient dans UNE carte découpée par des filets d'un pixel :
+      `gap-px` sur un fond `bg-border-subtle`, chaque cellule repeinte par-dessus. Le
+      procédé est astucieux — les filets sont le fond qui transparaît — mais il produit
+      un tableau, et un tableau se LIT ligne à ligne.
+
+      La référence en fait quatre TUILES posées côte à côte, chacune sur la surface
+      encastrée L2. On n'y lit pas une suite : on va directement à celle qu'on cherche.
+
+      ⚠️ CE CHANGEMENT N'ÉTAIT PAS POSSIBLE AVANT LA PHASE 1. Une tuile encastrée n'a
+      de sens que si sa surface diffère de celle qui la porte ; tant que `surface` et
+      `surface-muted` valaient la même chose, les tuiles auraient été invisibles et le
+      découpage par filets restait le seul moyen de les séparer.
+      ══════════════════════════════════════════════════════════════════════════ */
+    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {cells.map((cell) => (
-        <div key={cell.label} className="bg-surface px-3 py-2.5">
+        <div
+          key={cell.label}
+          className="rounded-nested border border-border-subtle bg-surface-muted px-3.5 py-3"
+        >
           <dt className="text-[0.6875rem] text-ink-muted">{cell.label}</dt>
-          <dd className="tabular mt-0.5 text-sm font-semibold text-ink">{cell.node}</dd>
+          {/* 15 px et non 14 : la valeur est ce qu'on vient chercher, et la tuile lui
+              donne enfin la place de le montrer. */}
+          <dd className="tabular mt-1 text-[0.9375rem] font-semibold text-ink">{cell.node}</dd>
         </div>
       ))}
     </dl>
