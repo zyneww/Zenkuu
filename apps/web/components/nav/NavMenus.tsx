@@ -163,14 +163,35 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
 
     const rootLeft = root.getBoundingClientRect().left
     const triggerRect = trigger.getBoundingClientRect()
-    const half = PANEL_TOTAL_WIDTH / 2
     const GUTTER = 16
 
-    const desired = triggerRect.left + triggerRect.width / 2 - rootLeft
-    const min = GUTTER + half - rootLeft
-    const max = window.innerWidth - GUTTER - half - rootLeft
+    /*
+     * ══════════════════════════════════════════════════════════════════════
+     * LE PANNEAU S'ALIGNE SUR LA PREMIÈRE LETTRE, PLUS SUR LE CENTRE
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * Il se centrait sur le bouton : `triggerRect.left + width / 2`. Un panneau de
+     * 640 px centré sur un intitulé de 90 px déborde alors de 275 px de chaque côté,
+     * et le lien de gauche du panneau se retrouve à gauche du mot qui l'a ouvert.
+     *
+     * Rien ne relie plus visuellement le menu à son déclencheur : on a cliqué sur
+     * « Outils » et le panneau commence sous « Crypto ». L'œil doit refaire le lien à
+     * chaque ouverture.
+     *
+     * Aligné sur le BORD GAUCHE du bouton, le premier lien du panneau tombe sous la
+     * première lettre de l'intitulé. Le lien est immédiat et ne demande aucun effort.
+     *
+     * ⚠️ LE PANNEAU EST BORNÉ À LA FENÊTRE, ET C'EST LE CAS DU DERNIER MENU.
+     * « Plus loin » est le sixième intitulé : aligné à gauche, son panneau de 640 px
+     * sortirait de l'écran par la droite sur une fenêtre de 1 280 px. Le maximum le
+     * ramène alors contre le bord — il perd son alignement exact, ce qui est le
+     * moindre mal comparé à un panneau qu'on ne peut pas lire.
+     */
+    const desired = triggerRect.left - rootLeft
+    const min = GUTTER - rootLeft
+    const max = window.innerWidth - GUTTER - PANEL_TOTAL_WIDTH - rootLeft
 
-    setCenter(max < min ? (min + max) / 2 : Math.min(Math.max(desired, min), max))
+    setCenter(max < min ? min : Math.min(Math.max(desired, min), max))
   }, [value, menus])
 
   return (

@@ -126,13 +126,17 @@ function NavigationMenuViewport({
         au même endroit pour tous les menus, donc sous le troisième bouton quel que soit
         celui qu'on survolait.
 
-        Le point d'ancrage vient maintenant de `NavMenus`, qui publie le centre du
-        bouton OUVERT dans `--nav-viewport-center` — déjà borné à la fenêtre là-bas.
-        `50%` reste le repli tant qu'aucun menu n'a été ouvert, et `-translate-x-1/2`
-        continue de faire grandir le panneau symétriquement quand il change de largeur.
+        Le point d'ancrage vient de `NavMenus`, qui publie le BORD GAUCHE du bouton
+        ouvert dans `--nav-viewport-center` — déjà borné à la fenêtre là-bas.
+
+        ⚠️ PLUS DE `-translate-x-1/2`. Il servait à centrer le panneau sur ce point ;
+        la variable porte désormais un bord gauche, et le décalage de moitié
+        ramènerait le panneau 320 px à gauche du bouton. Le nom de la variable est
+        resté par compatibilité — le renommer imposerait de toucher les deux fichiers
+        pour un gain nul.
       */
       className={cn(
-        "absolute top-full left-[var(--nav-viewport-center,50%)] isolate z-50 flex -translate-x-1/2 justify-center"
+        "absolute top-full left-[var(--nav-viewport-center,50%)] isolate z-50 flex justify-start"
       )}
     >
       <NavigationMenuPrimitive.Viewport
@@ -141,9 +145,29 @@ function NavigationMenuViewport({
           /* ── TROIS ÉCARTS AVEC LA RÉFÉRENCE, CORRIGÉS ICI ──────────────────────
            Relevé le 2026-08-31 sur leur menu de navigation déployé.
 
-           · PLUS D'ANIMATION. `zoom-in-90` + `animate-in` jouaient l'entrée en 150 ms.
-             Les leurs apparaissent d'un coup : 15 panneaux flottants mesurés sur leur
-             accueil, tous à `transition-duration: 0s` et `animation-name: none`.
+           · L'ANIMATION EST REVENUE, PARCE QUE LA RÉFÉRENCE A CHANGÉ.
+
+             Cette note disait « PLUS D'ANIMATION », et elle avait raison CONTRE
+             COINGECKO : 15 panneaux flottants mesurés sur leur accueil, tous à
+             `transition-duration: 0s` et `animation-name: none`. Ils apparaissent
+             d'un coup.
+
+             La référence des menus est désormais ASXN / Blockworks, dont l'ouverture
+             est douce. Le constat de 2026-08-31 reste vrai de CoinGecko ; il ne
+             décrit plus ce que ce panneau doit faire.
+
+             ⚠️ CE N'EST PAS LE `zoom-in-90` RETIRÉ À L'ÉPOQUE. Un agrandissement fait
+             GRANDIR la boîte pendant l'entrée, ce qui déplace le texte sous le
+             curseur — on vise un lien, il bouge, on clique à côté. Le geste retenu est
+             une opacité plus une translation verticale de 4 px : le panneau glisse
+             depuis le bouton, sa largeur ne varie jamais.
+
+             ⚠️ ET LES DEUX RÉFÉRENCES N'ONT PAS PU ÊTRE MESURÉES. Leurs menus ne
+             s'ouvrent sous aucune automatisation — quatre tentatives, deux sites. La
+             durée et la courbe sont donc celles du PROJET (`--duration-state`,
+             `--ease-standard`), dont le pied de page a déjà établi qu'elles valent le
+             `0.15s cubic-bezier(0.4, 0, 0.2, 1)` relevé chez ASXN. C'est une
+             correspondance vérifiée ailleurs, pas un relevé de ce panneau-ci.
            · `shadow-overlay` ET NON `shadow`. Le `shadow` de shadcn ne résout aucune
              valeur dans cette configuration — le panneau était mesuré à
              `rgba(0, 0, 0, 0) 0px 0px 0px 0px`, c'est-à-dire SANS ombre du tout. Le
@@ -154,7 +178,12 @@ function NavigationMenuViewport({
 
            Le geste retiré venait d'OKX, comme la palette sombre venait de Dropstab et
            l'ombre des panneaux flottants — dernier de la série. */
-        "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-overlay md:w-[var(--radix-navigation-menu-viewport-width)]",
+        "origin-top-left relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-overlay md:w-[var(--radix-navigation-menu-viewport-width)]",
+          /* L'entrée : opacité et 4 px de glissement vertical, jamais la taille.
+             `motion-reduce:animate-none` — un panneau qui glisse est exactement ce
+             qu'un utilisateur sensible au mouvement demande à ne pas voir, et il n'a
+             rien à y perdre : le panneau apparaît, simplement. */
+          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:duration-150 data-[state=closed]:duration-100 motion-reduce:animate-none",
           className
         )}
         {...props}
