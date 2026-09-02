@@ -81,14 +81,35 @@ export default async function SettingsPage({
                 <Link
                   href={`/parametres?rubrique=${section.id}`}
                   aria-current={active === section.id ? 'page' : undefined}
-                  className={`block whitespace-nowrap px-3 py-2.5 transition-colors duration-150 ${
+                  title={t(section.hint)}
+                  /* ══════════════════════════════════════════════════════════
+                     LA PILULE DE KRAKEN — UN CADRE, PAS UN APLAT
+
+                     Relevé sur leur page de compte : l'entrée active porte une pilule
+                     BORDÉE en encre pleine, pas un fond teinté. La différence tient au
+                     rôle : un aplat de couleur dit « ceci est signalé », un cadre dit
+                     « vous êtes ici ». Sur une barre de navigation où une seule entrée
+                     peut être active, c'est la seconde chose qu'il faut dire.
+
+                     `rounded-full` : c'est le pôle « manipulable » de l'échelle à deux
+                     pôles du projet, et une entrée de menu se clique. */
+                  className={`block whitespace-nowrap rounded-full border px-3.5 py-2 transition-colors duration-150 ${
                     active === section.id
-                      ? 'bg-brand-soft text-brand-strong'
-                      : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                      ? 'border-border-subtle bg-surface-muted text-ink'
+                      : 'border-transparent text-ink-muted hover:text-ink'
                   }`}
                 >
                   <span className="block text-sm font-medium">{t(section.label)}</span>
-                  <span className="hidden text-xs opacity-80 lg:block">{t(section.hint)}</span>
+                  {/* ⚠️ LA PRÉCISION DISPARAÎT DE LA BARRE.
+
+                      Chaque entrée portait une seconde ligne — « Langue, devise,
+                      thème » sous « Préférences ». Dans une pilule, deux lignes de
+                      hauteurs différentes donnent des pilules de hauteurs différentes,
+                      et la colonne cesse d'être une colonne.
+
+                      Elle ne manque pas : le contenu de la rubrique est à droite, et
+                      il dit ce qu'elle contient mieux qu'un résumé de trois mots. Elle
+                      reste dans le `title`, pour qui hésite avant de cliquer. */}
                 </Link>
               </li>
             ))}
