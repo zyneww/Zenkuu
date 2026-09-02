@@ -45,16 +45,36 @@ export async function ChartsShell({
       son contenu — un tableau large y pousserait le rail hors de l'écran au lieu de
       défiler dans sa propre boîte.
     */
-    <div className="flex gap-8">
+    /* `gap-6` et non `gap-8` : la barre porte désormais un filet à droite, et
+       trente-deux pixels entre un filet et le contenu font un couloir vide. */
+    <div className="flex gap-6">
       <ChartsSidebar current={current} />
 
-      <div className="min-w-0 flex-1 space-y-8">
-        <ChartsTabs current={current} />
+      {/* `space-y-5` : Blockworks resserre. Son titre, ses onglets et sa première
+          carte tiennent dans les deux cents premiers pixels — ce qui compte sur une
+          page dont l'objet est de MONTRER des figures, pas de les annoncer. */}
+      <div className="min-w-0 flex-1 space-y-5">
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          LE TITRE PASSE AVANT LES ONGLETS, ET RÉTRÉCIT
 
-        <header className="max-w-3xl space-y-3">
-          <h1 className="display-xl text-ink">{t(title)}</h1>
-          <p className="text-lg leading-relaxed text-ink-muted">{t(lead)}</p>
+          Il venait APRÈS eux, en `display-xl` — c'est-à-dire qu'on lisait une rangée
+          d'onglets avant de savoir de quelle page ils sont les onglets.
+
+          Blockworks pose le titre en tête à 22 px graisse 600, la phrase de résumé
+          juste dessous en petit, puis les onglets. L'ordre est celui de la question
+          qu'on se pose : où suis-je, de quoi s'agit-il, que puis-je voir d'autre.
+
+          `display-xl` faisait 40 px et prenait deux lignes sur les titres longs. À
+          22 px le titre tient sur une ligne et cesse de repousser la première figure
+          sous la ligne de flottaison.
+          ══════════════════════════════════════════════════════════════════════ */}
+        <header className="space-y-1">
+          <h1 className="text-[1.375rem] font-semibold leading-tight text-ink">{t(title)}</h1>
+          <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">{t(lead)}</p>
         </header>
+
+        <ChartsTabs current={current} />
 
         {children}
       </div>

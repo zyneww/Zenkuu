@@ -42,12 +42,15 @@ export interface LinkTab {
 }
 
 export function LinkTabs({
+  variant = 'underline',
   tabs,
   active,
 }: {
   tabs: LinkTab[]
   /** `id` de l'onglet actif, décidé par l'appelant. */
   active: string
+  /** `pill` : les onglets de Blockworks. `underline` : le style historique. */
+  variant?: 'underline' | 'pill'
 }) {
   const listRef = useRef<HTMLDivElement>(null)
   const linkRefs = useRef(new Map<string, HTMLAnchorElement>())
@@ -132,9 +135,22 @@ export function LinkTabs({
             }}
             href={tab.href}
             aria-current={selected ? 'page' : undefined}
-            className={`whitespace-nowrap px-3 pb-3 pt-2.5 text-sm font-medium transition-colors duration-150 ${
-              selected ? 'text-ink' : 'text-ink-muted hover:text-ink'
-            }`}
+            className={
+              variant === 'pill'
+                ? /* ── LA PILULE DE BLOCKWORKS ──────────────────────────────
+                     Mesuré le 2026-09-02 : 12 px graisse 700, rembourrage
+                     horizontal de 10 px, rayon 6 px, fond #202020 — c'est-à-dire
+                     notre L2. L'actif se distingue par son ENCRE et sa bordure, pas
+                     par un souligné : ces onglets n'ont pas de filet sous eux. */
+                  `whitespace-nowrap rounded-[6px] border px-2.5 py-1.5 text-xs font-bold transition-colors duration-150 ${
+                    selected
+                      ? 'border-border-subtle bg-surface-muted text-ink'
+                      : 'border-transparent text-ink-muted hover:text-ink'
+                  }`
+                : `whitespace-nowrap px-3 pb-3 pt-2.5 text-sm font-medium transition-colors duration-150 ${
+                    selected ? 'text-ink' : 'text-ink-muted hover:text-ink'
+                  }`
+            }
           >
             {tab.label}
           </Link>
@@ -143,7 +159,10 @@ export function LinkTabs({
 
       {/* Décoratif : le lecteur d'écran connaît déjà l'onglet actif par `aria-current`,
           et un second signal n'ajouterait qu'un bruit. */}
-      {indicator !== null ? (
+      {/* ⚠️ PAS D'INDICATEUR COULISSANT EN VARIANTE PILULE. Le trait glisse SOUS les
+          onglets ; des pilules n'ont pas de filet sous elles, il flotterait donc dans
+          le vide. Leur état actif tient dans leur propre fond. */}
+      {indicator !== null && variant !== 'pill' ? (
         <span
           aria-hidden="true"
           className="tab-indicator"
@@ -167,15 +186,21 @@ export function TabsBar({
   lead,
   ariaLabel,
   center = false,
+  variant = 'underline',
 }: {
   children: React.ReactNode
   lead?: React.ReactNode
   ariaLabel: string
   /** Centre l'ensemble « intitulé + onglets » dès que la place le permet. */
   center?: boolean
+  /** `pill` retire le filet inférieur : les pilules se suffisent à elles-mêmes. */
+  variant?: 'underline' | 'pill'
 }) {
   return (
-    <nav aria-label={ariaLabel} className="border-b border-border-subtle">
+    <nav
+      aria-label={ariaLabel}
+      className={variant === 'pill' ? '' : 'border-b border-border-subtle'}
+    >
       {/*
         Le centrage n'est demandé qu'à partir de `sm`. Sous cette largeur la rangée
         déborde et doit défiler : `justify-center` centrerait alors un contenu plus

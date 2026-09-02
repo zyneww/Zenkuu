@@ -1,154 +1,179 @@
-import {
-  ChartNoAxesCombined,
-  ChevronDown,
-  Flame,
-  Gauge,
-  Globe,
-  Image as ImageIcon,
-  Landmark,
-  LineChart,
-  Network,
-  PieChart,
-  Sprout,
-} from 'lucide-react'
+'use client'
+
+import { useMemo, useState } from 'react'
+import { ChevronDown, Search } from 'lucide-react'
 
 import { Link } from '@/i18n/navigation'
-import {
-  CHART_GROUPS,
-  CHART_INDICATORS,
-  CHART_LINKS,
-  type ChartNavEntry,
-  type ChartNavIcon,
-} from '@/components/market/charts-nav'
-import { getPhrase } from '@/lib/content'
-
-const ICONS: Record<ChartNavIcon, typeof LineChart> = {
-  coins: ChartNoAxesCombined,
-  dominance: PieChart,
-  heatmap: Flame,
-  rwa: Globe,
-  categories: Network,
-  treasuries: Landmark,
-  nft: ImageIcon,
-  sentiment: Gauge,
-  altseason: Sprout,
-}
+import { usePhrase } from '@/components/locale/ContentProvider'
+import { CHART_GROUPS, CHART_INDICATORS, CHART_LINKS } from '@/components/market/charts-nav'
+import { matchRange } from '@/components/search/match-range'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * LA COLONNE DE GAUCHE DES GRAPHIQUES GLOBAUX
+ * LA BARRE LATÉRALE DES ANALYSES — RÉÉCRITE SUR BLOCKWORKS
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * Reprise de `coingecko.com/en/charts` : un rail étroit, collant, encadré, où un
- * groupe déplié — « Cryptomonnaies » — précède quatre entrées de premier niveau
- * portant chacune son pictogramme. L'entrée courante est marquée par un APLAT et non
- * par un trait : dans une colonne de dix lignes, un simple gras se perd.
+ * Relevé sur blockworks.com/analytics le 2026-09-02 : 187 px de large, fond
+ * transparent, un filet à droite (#282a2f), un champ de recherche en tête, puis des
+ * groupes repliables — intitulé 14 px graisse 600 en blanc, entrées 14 px graisse 500
+ * en gris.
  *
- * ── ELLE DISPARAÎT SOUS `lg` ────────────────────────────────────────────────
+ * ── CE QUE LA VERSION PRÉCÉDENTE FAISAIT, ET CE QUI CHANGE ─────────────────
  *
- * Un rail de 208 pixels sur un écran de 390 en consomme la moitié. Sous `lg`, la
- * page retombe sur la rangée d'onglets, qui ne montre que le groupe COURANT.
+ * Elle listait neuf entrées réparties en trois blocs, chacune précédée d'un
+ * pictogramme, sans champ de recherche et sans repli. À neuf entrées cela tenait ;
+ * c'est justement ce qui la rendait fragile — la dixième ou la quinzième auraient
+ * allongé la colonne sans que rien ne s'y oppose.
  *
- * ── POURQUOI CE COMPOSANT EST SERVEUR ───────────────────────────────────────
+ * Blockworks en affiche une trentaine dans la même hauteur, et y arrive par deux
+ * moyens : les groupes se replient, et un champ filtre l'ensemble. Les deux sont
+ * repris ici, non parce que neuf entrées le demandent, mais parce que c'est ce qui
+ * rend la barre indifférente à leur nombre.
  *
- * Il ne porte aucun état : le chemin courant lui est passé, et chaque entrée est un
- * VRAI lien. C'est ce qui la rend ouvrable dans un nouvel onglet, partageable, et
- * atteignable sans JavaScript.
+ * ── LE CHAMP CHERCHE DANS TOUTES LES ENTRÉES, GROUPES REPLIÉS COMPRIS ──────
+ *
+ * C'est sa raison d'être : une entrée qu'on ne trouve pas parce que son groupe est
+ * fermé serait pire que pas de champ du tout. Pendant une recherche, les groupes qui
+ * portent un résultat s'ouvrent, et ceux qui n'en portent aucun disparaissent.
+ *
+ * ── LES PICTOGRAMMES ONT ÉTÉ RETIRÉS ──────────────────────────────────────
+ *
+ * Neuf pictogrammes différents dans une colonne de 187 px, c'est neuf formes à
+ * apprendre pour distinguer neuf mots déjà écrits à côté. La référence n'en a aucun,
+ * et sa colonne se lit plus vite. Ce qui reste — l'indentation sous un intitulé de
+ * groupe — dit tout ce que l'œil a besoin de savoir.
  */
-export async function ChartsSidebar({ current }: { current: string }) {
-  const t = await getPhrase()
+
+type Entree = { label: string; href: string }
+type Groupe = { titre: string; entrees: Entree[] }
+
+export function ChartsSidebar({ current }: { current: string }) {
+  const t = usePhrase()
+  const [requete, setRequete] = useState('')
+
+  /* Les trois groupes, construits une fois depuis la navigation existante. Le
+     découpage ne change pas — c'est sa PRÉSENTATION qui est réécrite. */
+  const groupes: Groupe[] = useMemo(
+    () => [
+      { titre: 'Marchés', entrees: CHART_GROUPS[0]?.entries ?? [] },
+      { titre: 'Secteurs', entrees: CHART_LINKS },
+      { titre: 'Indicateurs', entrees: CHART_INDICATORS },
+    ],
+    [],
+  )
+
+  const terme = requete.trim()
+
+  /* La recherche compare sur les libellés TRADUITS, pas sur les clés françaises : un
+     lecteur anglophone tape « heat », pas « thermique ». `matchRange` ignore la casse
+     et les accents — c'est le même code que la recherche du site, déjà sous test. */
+  const filtres = useMemo(
+    () =>
+      groupes
+        .map((groupe) => ({
+          ...groupe,
+          entrees: groupe.entrees.filter(
+            (e) => terme === '' || matchRange(t(e.label), terme) !== null,
+          ),
+        }))
+        .filter((groupe) => groupe.entrees.length > 0),
+    [groupes, terme, t],
+  )
 
   return (
-    <nav
-      aria-label={t('Vues du marché')}
-      /* `sticky` calé sous l'en-tête : la colonne suit la lecture d'un tableau de
-         trois cents lignes au lieu de disparaître au premier défilement.
-         `--header-height` et non une valeur en dur — voir globals.css. */
-      className="sticky top-[calc(var(--header-height)+1rem)] hidden w-52 shrink-0 self-start lg:block"
+    /* 187 px mesurés, `shrink-0` pour que la colonne ne se comprime pas quand le
+       contenu de droite est large. Elle disparaît sous `lg` : à 187 px sur un
+       téléphone il ne resterait rien pour le contenu, et `ChartsTabs` prend le relais. */
+    <aside
+      aria-label={t('Analyses')}
+      className="hidden w-[187px] shrink-0 border-r border-border-subtle pr-4 lg:block"
     >
-      <div className="space-y-1 rounded-card border border-border-subtle bg-surface p-2">
-        {CHART_GROUPS.map((group) => {
-          const Icon = ICONS[group.icon]
-          return (
-            <div key={group.id}>
-              {/* Le chevron de la référence, en `details` NATIF plutôt qu'en état
-                  React : ce rail est un composant serveur, et le rendre client pour
-                  un repli coûterait son rendu sans JavaScript. `open` par défaut —
-                  le groupe courant est celui qu'on consulte. */}
-              <details open className="group/coins">
-                <summary className="flex cursor-pointer list-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium text-ink hover:bg-surface-muted [&::-webkit-details-marker]:hidden">
-                  <Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
-                  <span className="flex-1">{t(group.label)}</span>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="size-3.5 shrink-0 text-ink-muted transition-transform duration-200 group-open/coins:rotate-180"
-                  />
-                </summary>
+      <div className="sticky top-[calc(var(--header-height)+1rem)] space-y-4">
+        <label className="relative block">
+          <span className="sr-only">{t('Filtrer les analyses')}</span>
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-ink-muted"
+          />
+          <input
+            type="search"
+            value={requete}
+            onChange={(event) => setRequete(event.target.value)}
+            placeholder={t('Rechercher')}
+            className="w-full rounded-control border border-border-subtle bg-surface-muted py-1.5 pl-8 pr-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+          />
+        </label>
 
-                <ul className="space-y-0.5">
-                  {group.entries.map((entry) => (
-                    <li key={entry.href}>
-                      <SidebarLink entry={entry} current={current} indented label={t(entry.label)} />
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            </div>
-          )
-        })}
+        {filtres.length === 0 ? (
+          <p className="px-1 text-xs text-ink-muted">{t('Aucune analyse ne correspond')}</p>
+        ) : null}
 
-        <ul className="space-y-0.5 pt-1">
-          {CHART_LINKS.map((entry) => (
-            <li key={entry.href}>
-              <SidebarLink entry={entry} current={current} label={t(entry.label)} />
-            </li>
-          ))}
-        </ul>
-
-        {/* Un filet sépare les indicateurs des vues de marché : ils ne répondent pas
-            à la même question — « à quoi ressemble le marché » d'un côté, « dans quel
-            état d'esprit est-il » de l'autre. */}
-        <ul className="space-y-0.5 border-t border-border-subtle pt-2">
-          {CHART_INDICATORS.map((entry) => (
-            <li key={entry.href}>
-              <SidebarLink entry={entry} current={current} label={t(entry.label)} />
-            </li>
-          ))}
-        </ul>
+        {filtres.map((groupe) => (
+          <GroupeVue
+            key={groupe.titre}
+            titre={t(groupe.titre)}
+            entrees={groupe.entrees}
+            current={current}
+            /* Pendant une recherche les groupes s'ouvrent : un résultat caché dans un
+               groupe replié ne serait pas un résultat. */
+            ouvert={terme !== '' || groupe.entrees.some((e) => e.href === current)}
+            t={t}
+          />
+        ))}
       </div>
-    </nav>
+    </aside>
   )
 }
 
-function SidebarLink({
-  entry,
+function GroupeVue({
+  titre,
+  entrees,
   current,
-  label,
-  indented = false,
+  ouvert,
+  t,
 }: {
-  entry: ChartNavEntry
+  titre: string
+  entrees: Entree[]
   current: string
-  label: string
-  /** Les vues d'un groupe s'alignent sous le NOM du groupe, pas sous son pictogramme. */
-  indented?: boolean
+  ouvert: boolean
+  t: (text: string) => string
 }) {
-  const active = entry.href === current
-  const Icon = entry.icon ? ICONS[entry.icon] : null
-
   return (
-    <Link
-      href={entry.href}
-      aria-current={active ? 'page' : undefined}
-      className={`flex items-center gap-2 rounded-sm py-1.5 pr-2 text-sm transition-colors duration-150 ${
-        indented ? 'pl-8' : 'pl-2'
-      } ${
-        active
-          ? 'bg-brand-soft font-medium text-brand-strong'
-          : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-      }`}
-    >
-      {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
-      {label}
-    </Link>
+    /* `key={String(ouvert)}` force `<details>` à reprendre son état de départ quand la
+       recherche change. Sans lui, un groupe que l'utilisateur a fermé resterait fermé
+       alors qu'il porte désormais un résultat — `open` n'est qu'une valeur INITIALE sur
+       un élément non contrôlé. */
+    <details key={String(ouvert)} open={ouvert} className="group">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+        {titre}
+        <ChevronDown
+          aria-hidden="true"
+          className="size-3.5 text-ink-muted transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none"
+        />
+      </summary>
+
+      <ul className="mt-1 space-y-0.5">
+        {entrees.map((entree) => {
+          const actif = entree.href === current
+
+          return (
+            <li key={entree.href}>
+              {/* 14 px graisse 500, mesuré. L'entrée active passe en encre pleine sur
+                  la surface de survol — pas de filet latéral ni de gras : la colonne
+                  est étroite, et un filet y mangerait de la largeur utile. */}
+              <Link
+                href={entree.href}
+                aria-current={actif ? 'page' : undefined}
+                className={`block rounded-control px-2 py-1.5 text-sm font-medium transition-colors ${
+                  actif ? 'bg-surface-hover text-ink' : 'text-ink-muted hover:text-ink'
+                }`}
+              >
+                {t(entree.label)}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </details>
   )
 }

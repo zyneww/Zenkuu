@@ -37,8 +37,8 @@ export async function ChartsTabs({ current }: { current: string }) {
   if (tabs.length === 0) return null
 
   return (
-    <TabsBar ariaLabel={t(inGroup ? (group?.label ?? '') : 'Vues du marché')}>
-      <LinkTabs tabs={tabs} active={current} />
+    <TabsBar variant="pill" ariaLabel={t(inGroup ? (group?.label ?? '') : 'Vues du marché')}>
+      <LinkTabs variant="pill" tabs={tabs} active={current} />
     </TabsBar>
   )
 }
