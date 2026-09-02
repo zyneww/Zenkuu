@@ -2789,4 +2789,14 @@ export const esPhrases: Phrases = {
   'Voir toutes les actualités': 'Ver todas las noticias',
   'Actualités précédentes': 'Noticias anteriores',
   'Actualités suivantes': 'Noticias siguientes',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Todas las criptomonedas',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Los diecinueve mil tokens seguidos, ordenados por capitalización',
+  'Tous les classements': 'Todas las clasificaciones',
+  'Écart au plus haut': 'Diferencia con el máximo',
+  'Plateformes au comptant': 'Plataformas al contado',
+  'Contrats dérivés': 'Contratos derivados',
+  'Plateformes de dérivés': 'Plataformas de derivados',
+  'Fiches thématiques': 'Fichas temáticas',
 }

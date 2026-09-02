@@ -175,8 +175,11 @@ export const NAV_MENUS: NavMenu[] = [
            sommet, les dernières arrivées. */
         items: [
           {
-            label: 'Par capitalisation',
-            description: 'Les premières capitalisations, page par page',
+            /* « Par capitalisation » nommait un TRI, pas un contenu — et le MÊME
+               libellé servait dans le menu « Actifs réels » pour une page sans rapport.
+               Deux entrées de même nom menant à deux endroits différents. */
+            label: 'Toutes les cryptomonnaies',
+            description: 'Les dix-neuf mille jetons suivis, classés par capitalisation',
             icon: Coins,
             href: '/crypto',
             ready: true,
@@ -189,14 +192,16 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
-            label: 'Points forts',
+            /* La page s'intitule « Classements crypto » et réunit les quatre
+               palmarès. « Points forts » ne disait ni l'un ni l'autre. */
+            label: 'Tous les classements',
             description: 'Hausses, baisses, volumes et rotation, au même endroit',
             icon: Trophy,
             href: '/classements',
             ready: true,
           },
           {
-            label: 'Écart au sommet',
+            label: 'Écart au plus haut',
             description: 'Ce qui sépare chaque actif de son plus haut historique',
             icon: Trophy,
             href: '/classements/sommet',
@@ -266,6 +271,22 @@ export const NAV_MENUS: NavMenu[] = [
         label: 'Instruments',
         items: [
           {
+            /* ── LE SCREENER A CHANGÉ DE MENU ──────────────────────────────────
+               Il vivait sous « Vues » dans le menu « Plus », entre la carte thermique
+               et l'indice de sentiment. Ces deux-là sont des LECTURES — on les regarde.
+               Un screener est un INSTRUMENT — on s'en sert, on y pose des critères.
+
+               Il rejoint donc le comparateur et le convertisseur, avec lesquels il
+               partage ce métier, et quitte un menu fourre-tout où personne ne pense à
+               le chercher. Il ouvre la section : des trois, c'est celui qu'on ouvre le
+               plus souvent. */
+            label: 'Screener',
+            description: 'Filtrer le marché sur vos propres critères',
+            icon: Filter,
+            href: '/screener',
+            ready: true,
+          },
+          {
             label: 'Comparateur',
             description: 'Deux actifs en regard, chiffre par chiffre',
             icon: GitCompareArrows,
@@ -310,21 +331,25 @@ export const NAV_MENUS: NavMenu[] = [
       {
         items: [
           {
-            label: 'Places de cotation',
+            /* Les trois entrées de ce menu portaient des noms qu'on ne pouvait pas
+               distinguer : « Dérivés » et « Places de dérivés » l'un sous l'autre.
+               Elles disent maintenant ce qu'elles LISTENT — des plateformes ou des
+               contrats —, ce que leurs pages annoncent déjà en titre. */
+            label: 'Plateformes au comptant',
             description: 'Où les actifs se négocient, et à quel volume',
             icon: Landmark,
             href: '/places',
             ready: true,
           },
           {
-            label: 'Dérivés',
+            label: 'Contrats dérivés',
             description: 'Contrats à terme et perpétuels, par place',
             icon: CandlestickChart,
             href: '/derives',
             ready: true,
           },
           {
-            label: 'Places de dérivés',
+            label: 'Plateformes de dérivés',
             description: 'Les plateformes spécialisées dans les perpétuels',
             icon: Building2,
             href: '/perpetuels',
@@ -355,13 +380,6 @@ export const NAV_MENUS: NavMenu[] = [
     sections: [
       {
         items: [
-          {
-            label: 'Par capitalisation',
-            description: 'Les actifs du monde réel portés par une chaîne',
-            icon: Landmark,
-            href: '/graphiques/actifs-reels',
-            ready: true,
-          },
           {
             label: 'Actions',
             description: 'Les valeurs cotées, cours et capitalisation',
@@ -397,6 +415,19 @@ export const NAV_MENUS: NavMenu[] = [
             href: '/devises',
             ready: true,
           },
+          {
+            /* EN DERNIER, et non en premier comme avant. C'est une page de NICHE — des
+               actions répliquées en jetons sur chaîne — et elle ouvrait un menu dont
+               les cinq autres entrées sont les grandes classes d'actifs. Un lecteur
+               qui cherche « Actions » tombait d'abord sur « Actions tokenisées ».
+
+               Elle reste dans ce menu : ce sont bien des actifs réels. Elle le ferme. */
+            label: 'Actions tokenisées',
+            description: 'Les actifs du monde réel portés par une chaîne',
+            icon: Landmark,
+            href: '/graphiques/actifs-reels',
+            ready: true,
+          },
         ],
       },
     ],
@@ -423,7 +454,9 @@ export const NAV_MENUS: NavMenu[] = [
       {
         items: [
           {
-            label: 'Apprendre',
+            /* Le menu s'appelle « Apprendre » et son entrée aussi : deux fois le
+               même mot, sans dire ce qu'on y trouve. La page porte des FICHES. */
+            label: 'Fiches thématiques',
             description: 'Les notions du marché, expliquées',
             icon: GraduationCap,
             href: '/apprendre',
@@ -437,7 +470,7 @@ export const NAV_MENUS: NavMenu[] = [
             ready: true,
           },
           {
-            label: 'Actualité',
+            label: 'Actualités',
             description: 'Ce qui bouge, et chez quel éditeur',
             icon: Newspaper,
             href: '/actualites',
@@ -509,13 +542,6 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Ce que l’humeur du marché mesure, et ne mesure pas',
             icon: Gauge,
             href: '/sentiment',
-            ready: true,
-          },
-          {
-            label: 'Screener',
-            description: 'Filtrer le marché sur vos propres critères',
-            icon: Filter,
-            href: '/screener',
             ready: true,
           },
         ],

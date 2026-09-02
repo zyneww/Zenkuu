@@ -2782,4 +2782,14 @@ export const trPhrases: Phrases = {
   'Voir toutes les actualités': 'Tüm haberleri gör',
   'Actualités précédentes': 'Önceki haberler',
   'Actualités suivantes': 'Sonraki haberler',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Tüm kripto paralar',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'İzlenen on dokuz bin jeton, piyasa değerine göre sıralanmış',
+  'Tous les classements': 'Tüm sıralamalar',
+  'Écart au plus haut': 'Zirveye uzaklık',
+  'Plateformes au comptant': 'Spot platformlar',
+  'Contrats dérivés': 'Türev sözleşmeler',
+  'Plateformes de dérivés': 'Türev platformlar',
+  'Fiches thématiques': 'Konu kartları',
 }

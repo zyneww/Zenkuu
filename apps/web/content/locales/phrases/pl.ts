@@ -2782,4 +2782,14 @@ export const plPhrases: Phrases = {
   'Voir toutes les actualités': 'Zobacz wszystkie wiadomości',
   'Actualités précédentes': 'Poprzednie wiadomości',
   'Actualités suivantes': 'Następne wiadomości',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Wszystkie kryptowaluty',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Dziewiętnaście tysięcy śledzonych tokenów, uszeregowanych według kapitalizacji',
+  'Tous les classements': 'Wszystkie rankingi',
+  'Écart au plus haut': 'Odległość od maksimum',
+  'Plateformes au comptant': 'Platformy spot',
+  'Contrats dérivés': 'Kontrakty pochodne',
+  'Plateformes de dérivés': 'Platformy instrumentów pochodnych',
+  'Fiches thématiques': 'Karty tematyczne',
 }

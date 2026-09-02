@@ -2782,4 +2782,14 @@ export const ruPhrases: Phrases = {
   'Voir toutes les actualités': 'Все новости',
   'Actualités précédentes': 'Предыдущие новости',
   'Actualités suivantes': 'Следующие новости',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Все криптовалюты',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Девятнадцать тысяч отслеживаемых токенов, упорядоченных по капитализации',
+  'Tous les classements': 'Все рейтинги',
+  'Écart au plus haut': 'Разрыв с максимумом',
+  'Plateformes au comptant': 'Спотовые площадки',
+  'Contrats dérivés': 'Производные контракты',
+  'Plateformes de dérivés': 'Площадки деривативов',
+  'Fiches thématiques': 'Тематические карточки',
 }

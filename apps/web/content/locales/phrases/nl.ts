@@ -2782,4 +2782,14 @@ export const nlPhrases: Phrases = {
   'Voir toutes les actualités': 'Alle nieuws bekijken',
   'Actualités précédentes': 'Vorig nieuws',
   'Actualités suivantes': 'Volgend nieuws',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Alle cryptomunten',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'De negentienduizend gevolgde tokens, gerangschikt op kapitalisatie',
+  'Tous les classements': 'Alle klassementen',
+  'Écart au plus haut': 'Afstand tot de piek',
+  'Plateformes au comptant': 'Spotplatforms',
+  'Contrats dérivés': 'Derivatencontracten',
+  'Plateformes de dérivés': 'Derivatenplatforms',
+  'Fiches thématiques': 'Themafiches',
 }

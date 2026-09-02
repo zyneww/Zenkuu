@@ -2775,4 +2775,14 @@ export const zhPhrases: Phrases = {
   'Voir toutes les actualités': '查看全部新闻',
   'Actualités précédentes': '上一批新闻',
   'Actualités suivantes': '下一批新闻',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': '全部加密货币',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': '所追踪的一万九千种代币，按市值排序',
+  'Tous les classements': '全部排行榜',
+  'Écart au plus haut': '距最高点的差距',
+  'Plateformes au comptant': '现货交易平台',
+  'Contrats dérivés': '衍生品合约',
+  'Plateformes de dérivés': '衍生品交易平台',
+  'Fiches thématiques': '专题指南',
 }

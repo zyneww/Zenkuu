@@ -2782,4 +2782,14 @@ export const ptBRPhrases: Phrases = {
   'Voir toutes les actualités': 'Ver todas as notícias',
   'Actualités précédentes': 'Notícias anteriores',
   'Actualités suivantes': 'Notícias seguintes',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Todas as criptomoedas',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Os dezenove mil tokens acompanhados, ordenados por capitalização',
+  'Tous les classements': 'Todos os rankings',
+  'Écart au plus haut': 'Distância da máxima',
+  'Plateformes au comptant': 'Plataformas à vista',
+  'Contrats dérivés': 'Contratos derivativos',
+  'Plateformes de dérivés': 'Plataformas de derivativos',
+  'Fiches thématiques': 'Fichas temáticas',
 }

@@ -2782,4 +2782,14 @@ export const jaPhrases: Phrases = {
   'Voir toutes les actualités': 'ニュースをすべて見る',
   'Actualités précédentes': '前のニュース',
   'Actualités suivantes': '次のニュース',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'すべての暗号資産',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': '追跡している一万九千の銘柄を、時価総額順に並べたもの',
+  'Tous les classements': 'すべてのランキング',
+  'Écart au plus haut': '高値との差',
+  'Plateformes au comptant': '現物取引所',
+  'Contrats dérivés': 'デリバティブ契約',
+  'Plateformes de dérivés': 'デリバティブ取引所',
+  'Fiches thématiques': 'テーマ別ガイド',
 }

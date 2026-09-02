@@ -2782,4 +2782,14 @@ export const viPhrases: Phrases = {
   'Voir toutes les actualités': 'Xem tất cả tin tức',
   'Actualités précédentes': 'Tin trước',
   'Actualités suivantes': 'Tin tiếp theo',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Tất cả tiền mã hóa',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Mười chín nghìn token được theo dõi, xếp theo vốn hóa',
+  'Tous les classements': 'Tất cả bảng xếp hạng',
+  'Écart au plus haut': 'Khoảng cách tới đỉnh',
+  'Plateformes au comptant': 'Sàn giao ngay',
+  'Contrats dérivés': 'Hợp đồng phái sinh',
+  'Plateformes de dérivés': 'Sàn phái sinh',
+  'Fiches thématiques': 'Phiếu chuyên đề',
 }

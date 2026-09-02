@@ -2790,4 +2790,14 @@ export const dePhrases: Phrases = {
   'Voir toutes les actualités': 'Alle Nachrichten ansehen',
   'Actualités précédentes': 'Vorherige Nachrichten',
   'Actualités suivantes': 'Nächste Nachrichten',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'Alle Kryptowährungen',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'Die neunzehntausend erfassten Token, nach Kapitalisierung geordnet',
+  'Tous les classements': 'Alle Ranglisten',
+  'Écart au plus haut': 'Abstand zum Höchststand',
+  'Plateformes au comptant': 'Spot-Handelsplätze',
+  'Contrats dérivés': 'Derivatekontrakte',
+  'Plateformes de dérivés': 'Derivate-Handelsplätze',
+  'Fiches thématiques': 'Themenblätter',
 }

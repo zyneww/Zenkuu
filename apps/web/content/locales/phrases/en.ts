@@ -2794,4 +2794,14 @@ export const enPhrases: Phrases = {
   'Voir toutes les actualités': 'See all news',
   'Actualités précédentes': 'Previous news',
   'Actualités suivantes': 'Next news',
+
+  // ── NAVIGATION — libellés d'entrées ──
+  'Toutes les cryptomonnaies': 'All cryptocurrencies',
+  'Les dix-neuf mille jetons suivis, classés par capitalisation': 'The nineteen thousand tokens tracked, ranked by capitalisation',
+  'Tous les classements': 'All rankings',
+  'Écart au plus haut': 'Gap to the high',
+  'Plateformes au comptant': 'Spot venues',
+  'Contrats dérivés': 'Derivative contracts',
+  'Plateformes de dérivés': 'Derivative venues',
+  'Fiches thématiques': 'Topic guides',
 }
