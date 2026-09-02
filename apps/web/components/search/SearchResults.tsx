@@ -14,6 +14,7 @@ import { useMemo } from 'react'
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
 import { HighlightMatch } from '@/components/search/HighlightMatch'
+import { ResultPill } from '@/components/search/ResultPill'
 import type { SearchScope } from '@/components/search/SearchScopes'
 import { Spinner } from '@/components/ui/spinner'
 import { assetHref } from '@/lib/asset-routes'
@@ -110,21 +111,37 @@ export function SearchResults({
   if (showTrending) {
     return (
       <CommandGroup heading={<GroupHeading title={fr.search.trendingTitle} hint={fr.search.trendingHint} icon={<TrendingUp className="size-3.5" aria-hidden="true" />} />}>
+        {/* ══════════════════════════════════════════════════════════════════
+            LES TENDANCES S'AFFICHENT EN PASTILLES, LES RÉSULTATS EN LIGNES
+
+            Relevé chez Backpack : leur panneau a DEUX rendus, et ce n'est pas une
+            inconséquence. Champ vide → pastilles, trois par rangée. Champ rempli →
+            lignes pleine largeur.
+
+            Une pastille tient sur une demi-ligne : on en voit vingt d'un coup, ce
+            qu'il faut pour PARCOURIR une sélection qu'on n'a pas demandée. Une ligne
+            porte plus mais n'en montre que huit : ce qu'il faut pour COMPARER des
+            résultats qu'on a cherchés.
+
+            ⚠️ `flex-wrap` SUR LE GROUPE, ET NON SUR CHAQUE PASTILLE. cmdk empile ses
+            enfants en colonne par défaut ; sans cette classe sur le conteneur, vingt
+            pastilles feraient vingt rangées d'une pastille — c'est-à-dire des lignes
+            étroites, le pire des deux formes.
+            ══════════════════════════════════════════════════════════════════ */}
         {trending.length > 0 ? (
-          trending.map((asset) => (
-            <ResultRow
-              key={asset.id}
-              href={assetHref(asset.assetClass, asset.id)}
-              name={asset.name}
-              symbol={asset.symbol}
-              image={asset.image}
-              rank={asset.rank}
-              price={asset.price}
-              currency={asset.currency}
-              change24h={asset.change24h}
-              onNavigate={onNavigate}
-            />
-          ))
+          <div className="flex flex-wrap gap-1.5 px-1 py-1">
+            {trending.map((asset) => (
+              <ResultPill
+                key={asset.id}
+                href={assetHref(asset.assetClass, asset.id)}
+                name={asset.name}
+                symbol={asset.symbol}
+                image={asset.image}
+                change24h={asset.change24h}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
         ) : (
           <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
         )}
