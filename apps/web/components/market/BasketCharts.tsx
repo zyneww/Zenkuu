@@ -216,7 +216,7 @@ export function BasketCharts({ basket }: { basket: MarketCapBasket }) {
 
       <div className="rounded-card border border-border-subtle bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle p-3">
-          <ChipGroup label="Vue" value={view} onChange={setView}>
+          <ChipGroup label={t('Vue')} value={view} onChange={setView}>
             {VIEWS.map((entry) => (
               <Chip key={entry.id} id={entry.id} label={t(entry.label)} />
             ))}

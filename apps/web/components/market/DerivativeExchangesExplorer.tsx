@@ -116,15 +116,16 @@ export function DerivativeExchangesExplorer({
     onSortChange: () => setPage(1),
   })
 
+  /* ⚠️ CES LIBELLÉS SONT AFFICHÉS — voir la note jumelle dans `TreasuryTable`. */
   const prefs = useColumnPreferences('perpetuels', [
-    { id: 'rank', label: 'Rang' },
-    { id: 'name', label: 'Place', locked: true },
-    { id: 'kind', label: 'Nature' },
-    { id: 'openInterest', label: 'Intérêt ouvert', locked: true },
-    { id: 'volume', label: 'Volume 24 h' },
-    { id: 'turnover', label: 'Rotation' },
-    { id: 'perpetual', label: 'Contrats' },
-    { id: 'year', label: 'Depuis' },
+    { id: 'rank', label: t('Rang') },
+    { id: 'name', label: t('Place'), locked: true },
+    { id: 'kind', label: t('Nature') },
+    { id: 'openInterest', label: t('Intérêt ouvert'), locked: true },
+    { id: 'volume', label: t('Volume 24 h') },
+    { id: 'turnover', label: t('Rotation') },
+    { id: 'perpetual', label: t('Contrats') },
+    { id: 'year', label: t('Depuis') },
   ])
 
   const visible = rows.slice((page - 1) * perPage, page * perPage)
@@ -218,7 +219,7 @@ export function DerivativeExchangesExplorer({
                     </th>
                   ) : null}
                   <SortableHeader
-                    label="Place"
+                    label={t('Place')}
                     sortKey="name"
                     align="left"
                     sort={sort}
@@ -253,7 +254,7 @@ export function DerivativeExchangesExplorer({
                   ) : null}
                   {prefs.isVisible('turnover') ? (
                     <SortableHeader
-                      label="Rotation"
+                      label={t('Rotation')}
                       sortKey="turnover"
                       className="hidden lg:table-cell"
                       sort={sort}
@@ -275,7 +276,7 @@ export function DerivativeExchangesExplorer({
                   ) : null}
                   {prefs.isVisible('year') ? (
                     <SortableHeader
-                      label="Depuis"
+                      label={t('Depuis')}
                       sortKey="year"
                       className="hidden lg:table-cell"
                       sort={sort}

@@ -6,6 +6,7 @@ import type { MarketAsset } from '@zenkuu/data'
 import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Money } from '@/components/locale/Money'
 import { Link } from '@/i18n/navigation'
 import { TablePagination } from '@/components/ui/TablePagination'
@@ -83,18 +84,25 @@ export function RankingDetailTable({
     setPage(1)
   }
 
+  const t = usePhrase()
   /* Aucune de ces colonnes n'est triable ici, et c'est délibéré (voir l'en-tête) : le
      classement est CELUI QU'ON A DEMANDÉ en arrivant. Leur menu ne porte donc que le
      masquage, ce qui reste utile — on vient parfois voir un palmarès sans vouloir de
      sa capitalisation. */
+  /* ⚠️ CES LIBELLÉS SONT AFFICHÉS — voir la note jumelle dans `TreasuryTable`.
+
+     Le sélecteur « Personnaliser » les rend en toutes lettres, avec une recherche qui
+     filtre dessus. Sans `t()`, la liste sortait en français dans les douze autres
+     langues. `periodLabel` arrive DÉJÀ traduit de l'appelant : le repasser par la
+     table chercherait une clé qui n'existe pas. */
   const prefs = useColumnPreferences('palmares', [
-    { id: 'rank', label: 'Rang' },
-    { id: 'name', label: 'Actif', locked: true },
-    { id: 'price', label: 'Prix', locked: true },
+    { id: 'rank', label: t('Rang') },
+    { id: 'name', label: t('Actif'), locked: true },
+    { id: 'price', label: t('Prix'), locked: true },
     { id: 'change', label: periodLabel },
-    { id: 'metric', label: metric === 'turnover' ? 'Rotation' : 'Volume 24 h' },
-    { id: 'marketCap', label: 'Capitalisation' },
-    { id: 'chart', label: '7 jours' },
+    { id: 'metric', label: metric === 'turnover' ? t('Rotation') : t('Volume 24 h') },
+    { id: 'marketCap', label: t('Capitalisation') },
+    { id: 'chart', label: t('7 jours') },
   ])
 
   return (
@@ -118,8 +126,8 @@ export function RankingDetailTable({
                   className="hidden sm:table-cell"
                 />
               ) : null}
-              <ColumnHeader label="Actif" columnId="name" columnPrefs={prefs} align="left" />
-              <ColumnHeader label="Prix" columnId="price" columnPrefs={prefs} />
+              <ColumnHeader label={t('Actif')} columnId="name" columnPrefs={prefs} align="left" />
+              <ColumnHeader label={t('Prix')} columnId="price" columnPrefs={prefs} />
               {prefs.isVisible('change') ? (
                 <ColumnHeader label={periodLabel} columnId="change" columnPrefs={prefs} />
               ) : null}
@@ -133,7 +141,7 @@ export function RankingDetailTable({
               ) : null}
               {prefs.isVisible('marketCap') ? (
                 <ColumnHeader
-                  label="Capitalisation"
+                  label={t('Capitalisation')}
                   columnId="marketCap"
                   columnPrefs={prefs}
                   className="hidden md:table-cell"
@@ -141,7 +149,7 @@ export function RankingDetailTable({
               ) : null}
               {showAthDate ? (
                 <ColumnHeader
-                  label="Date du sommet"
+                  label={t('Date du sommet')}
                   columnId="athDate"
                   columnPrefs={prefs}
                   className="hidden md:table-cell"
@@ -149,7 +157,7 @@ export function RankingDetailTable({
               ) : null}
               {prefs.isVisible('chart') ? (
                 <ColumnHeader
-                  label="7 jours"
+                  label={t('7 jours')}
                   columnId="chart"
                   columnPrefs={prefs}
                   className="hidden lg:table-cell"

@@ -6,6 +6,7 @@ import { useState, useTransition } from 'react'
 import { IconButton } from '@/components/ui/IconButton'
 import { WATCHLIST_ASSET_LIMIT } from '@/lib/limits'
 import { toggleWatchlist } from '@/lib/watchlist-actions'
+import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
  * Étoile de suivi d'une LIGNE de tableau.
@@ -41,6 +42,7 @@ export function WatchlistStar({
   /** Le suivi est-il utilisable ? Faux sans base configurée — le compte, lui, est facultatif. */
   available: boolean
 }) {
+  const t = usePhrase()
   const [following, setFollowing] = useState(initialFollowing)
   const [capped, setCapped] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -54,7 +56,7 @@ export function WatchlistStar({
         size="icon-sm"
         variant="ghost"
         disabled
-        label="Le suivi n’est pas disponible sur cette instance"
+        label={t('Le suivi n’est pas disponible sur cette instance')}
         icon={Star}
       />
     )

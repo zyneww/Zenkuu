@@ -62,7 +62,7 @@ export function BlogBrowser({ articles }: { articles: Article[] }) {
           <CategoryChip
             active={category === 'toutes'}
             onClick={() => setCategory('toutes')}
-            label="Toutes"
+            label={t('Toutes')}
           />
           {BLOG_CATEGORIES.map((entry) => (
             <CategoryChip

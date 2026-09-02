@@ -220,7 +220,7 @@ export function AssetTickers({
             setTarget('toutes')
             setPage(1)
           }}
-          label="Toutes"
+          label={t('Toutes')}
         />
         {targets.map((code) => (
           <FilterChip

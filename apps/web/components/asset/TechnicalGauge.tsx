@@ -1,5 +1,6 @@
 'use client'
 
+import { usePhrase } from '@/components/locale/ContentProvider'
 import { Cell, Customized, Pie, PieChart } from 'recharts'
 
 import { ChartContainer } from '@/components/ui/chart'
@@ -90,6 +91,7 @@ const THICKNESS = 12
 const DIAL = SEGMENTS.map((segment) => ({ ...segment, weight: 1 }))
 
 export function TechnicalGauge({ tally, title }: { tally: Tally; title: string }) {
+  const t = usePhrase()
   const total = tally.buy + tally.neutral + tally.sell
   const score = total === 0 ? 0 : (tally.buy - tally.sell) / total
 
@@ -151,9 +153,9 @@ export function TechnicalGauge({ tally, title }: { tally: Tally; title: string }
       </p>
 
       <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-ink-muted">
-        <Count label="Vente" value={tally.sell} tone="text-down" />
-        <Count label="Neutre" value={tally.neutral} />
-        <Count label="Achat" value={tally.buy} tone="text-up" />
+        <Count label={t('Vente')} value={tally.sell} tone="text-down" />
+        <Count label={t('Neutre')} value={tally.neutral} />
+        <Count label={t('Achat')} value={tally.buy} tone="text-up" />
       </div>
     </div>
   )

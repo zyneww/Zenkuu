@@ -155,13 +155,13 @@ export function ExchangeTickersTable({
               <thead>
                 <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
                   <SortableHeader
-                    label="Paire"
+                    label={t('Paire')}
                     sortKey="pair"
                     align="left"
                     sort={sort}
                     onToggle={toggle}
                   />
-                  <SortableHeader label="Prix" sortKey="price" sort={sort} onToggle={toggle} />
+                  <SortableHeader label={t('Prix')} sortKey="price" sort={sort} onToggle={toggle} />
 
                   {derivatives ? (
                     <>
@@ -222,7 +222,7 @@ export function ExchangeTickersTable({
                   )}
 
                   <SortableHeader
-                    label="Volume 24 h"
+                    label={t('Volume 24 h')}
                     sortKey="volume"
                     className="hidden sm:table-cell"
                     sort={sort}

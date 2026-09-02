@@ -140,7 +140,7 @@ export async function AssetTechSheet({ asset }: { asset: AssetDetail }) {
 
         {explorers.length > 0 ? (
           <SheetRow
-            label="Explorateurs"
+            label={t('Explorateurs')}
             links={explorers.map((url) => ({ label: hostLabel(url), url }))}
           />
         ) : null}

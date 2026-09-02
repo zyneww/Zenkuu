@@ -516,7 +516,7 @@ function ColumnDialog({
     /*
       ── LA COQUE EST UN `Dialog`, ET LE VOILE CESSE D'ÊTRE UN BOUTON ──────────
 
-      Le voile était un `<button aria-label="Fermer">` couvrant tout l'écran : annoncé
+      Le voile était un `<button aria-label={t('Fermer')}>` couvrant tout l'écran : annoncé
       comme une cible par la synthèse vocale, et atteignable à la tabulation avant le
       contenu de la fenêtre. Radix écoute le pointeur sans créer d'élément interactif,
       et ajoute ce que ce montage n'avait pas — le piège à focus, l'`aria-hidden` sur

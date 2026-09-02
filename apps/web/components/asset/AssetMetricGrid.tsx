@@ -218,7 +218,7 @@ export function AssetMetricGrid({
             <FilterButton
               active={group === null}
               onClick={() => setGroup(null)}
-              label="Toutes"
+              label={t('Toutes')}
               count={all.length}
             />
             {groups.map((key) => (

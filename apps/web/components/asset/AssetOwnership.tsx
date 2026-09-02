@@ -80,14 +80,14 @@ export async function AssetOwnership({
               : {})}
           >
             <dl>
-              <Line label="Institutions" value={formatShare(ownership.institutionsPercent)} />
+              <Line label={t('Institutions')} value={formatShare(ownership.institutionsPercent)} />
               <Line
                 label={t('Initiés')}
                 value={formatShare(ownership.insidersPercent)}
-                hint="dirigeants et administrateurs"
+                hint={t('dirigeants et administrateurs')}
               />
               <Line
-                label="Public"
+                label={t('Public')}
                 value={formatShare(publicShare)}
                 hint={t('par différence, non déclaré comme tel')}
               />

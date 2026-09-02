@@ -126,7 +126,7 @@ export function SpotExchangesTable({
           <thead>
             <tr className="border-b border-border-subtle text-left">
               <HeadCell
-                label="Place"
+                label={t('Place')}
                 sortKey="name"
                 align="left"
                 sort={sort}
@@ -146,14 +146,14 @@ export function SpotExchangesTable({
                 onToggle={onToggleSort}
               />
               <HeadCell
-                label="Confiance"
+                label={t('Confiance')}
                 sortKey="trust"
                 className="hidden sm:table-cell"
                 sort={sort}
                 onToggle={onToggleSort}
               />
               <HeadCell
-                label="Pays"
+                label={t('Pays')}
                 sortKey="country"
                 className="hidden lg:table-cell"
                 sort={sort}

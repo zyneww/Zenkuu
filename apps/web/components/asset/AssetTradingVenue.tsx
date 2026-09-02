@@ -81,7 +81,7 @@ export async function AssetTradingVenue({
         />
         <Cell
           icon={<Globe className="h-3.5 w-3.5" aria-hidden="true" />}
-          label="Devise de cotation"
+          label={t('Devise de cotation')}
           value={asset.currency.toUpperCase()}
         />
         <Cell

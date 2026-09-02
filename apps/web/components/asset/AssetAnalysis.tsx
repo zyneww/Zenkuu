@@ -335,7 +335,7 @@ function RiskPanel({
 
         {drawdown ? (
           <Row
-            label="Perte maximale"
+            label={t('Perte maximale')}
             hint={`Du ${formatDay(drawdown.peakAt)} au ${formatDay(drawdown.troughAt)}`}
             value={`−${formatShare(drawdown.depthPercent)}`}
             tone="text-down"
@@ -344,7 +344,7 @@ function RiskPanel({
 
         {range7 ? (
           <Row
-            label="Amplitude 7 jours"
+            label={t('Amplitude 7 jours')}
             value={
               <>
                 <Money value={range7.low} from={currency} /> –{' '}
@@ -356,7 +356,7 @@ function RiskPanel({
 
         {range30 ? (
           <Row
-            label="Amplitude 30 jours"
+            label={t('Amplitude 30 jours')}
             value={
               <>
                 <Money value={range30.low} from={currency} /> –{' '}
@@ -368,7 +368,7 @@ function RiskPanel({
 
         {ath !== undefined ? (
           <Row
-            label="Plus haut historique"
+            label={t('Plus haut historique')}
             hint={athDate ? relativeDay(athDate) : undefined}
             value={<Money value={ath} from={currency} />}
           />
@@ -376,7 +376,7 @@ function RiskPanel({
 
         {atl !== undefined ? (
           <Row
-            label="Plus bas historique"
+            label={t('Plus bas historique')}
             hint={atlDate ? relativeDay(atlDate) : undefined}
             value={<Money value={atl} from={currency} />}
           />

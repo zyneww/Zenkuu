@@ -54,7 +54,7 @@ export function SettingsPreferences() {
 
       <div className="divide-y divide-border-subtle rounded-card border border-border-subtle">
         <Row
-          label="Langue"
+          label={t('Langue')}
           /* Le texte affirmait « seul le français est traduit », ce qui est faux depuis
              que treize langues le sont. Il ne parle donc plus d'un nombre — qui se
              périmerait à nouveau au prochain ajout — mais de la RÈGLE : une langue

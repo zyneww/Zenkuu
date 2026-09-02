@@ -60,19 +60,19 @@ export function DashboardPreferences() {
         {/* `variant="link"` : le bouton de shadcn/ui dans sa variante lien —
             sans fond ni bordure, souligné au survol. C'est exactement ce que ces deux
             valeurs étaient, écrit à la main. */}
-        <Row label="Langue">
+        <Row label={t('Langue')}>
           <Button size="sm" variant="link" onClick={() => setTab('language')}>
             {LANGUAGE_LABELS[language] ?? 'Français'}
           </Button>
         </Row>
 
-        <Row label="Devise d’affichage">
+        <Row label={t('Devise d’affichage')}>
           <Button size="sm" variant="link" onClick={() => setTab('currency')}>
             {currency}
           </Button>
         </Row>
 
-        <Row label="Thème">
+        <Row label={t('Thème')}>
           {/* Même contrôle segmenté qu'à la page de réglages — voir
               `SettingsPreferences` pour ce que `ButtonGroup` apporte au clavier. Le
               doublon de RENDU disparaît ici : les deux pages partagent désormais le
