@@ -2850,4 +2850,6 @@ export const enPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Turnover above a quarter of market cap',
   'Un seul article': '1 article',
   '{n} articles': '{n} articles',
+  'Recherche': 'Search',
+  'Menu': 'Menu',
 }

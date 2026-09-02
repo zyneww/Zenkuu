@@ -2838,4 +2838,6 @@ export const ruPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Оборот выше четверти капитализации',
   'Un seul article': '1 статья',
   '{n} articles': 'Статей: {n}',
+  'Recherche': 'Поиск',
+  'Menu': 'Меню',
 }

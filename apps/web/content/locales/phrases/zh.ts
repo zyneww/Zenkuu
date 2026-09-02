@@ -2831,4 +2831,6 @@ export const zhPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': '换手超过市值的四分之一',
   'Un seul article': '1 篇文章',
   '{n} articles': '{n} 篇文章',
+  'Recherche': '搜索',
+  'Menu': '菜单',
 }

@@ -2838,4 +2838,6 @@ export const trPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Piyasa değerinin dörtte birinden fazla devir',
   'Un seul article': '1 makale',
   '{n} articles': '{n} makale',
+  'Recherche': 'Ara',
+  'Menu': 'Menü',
 }

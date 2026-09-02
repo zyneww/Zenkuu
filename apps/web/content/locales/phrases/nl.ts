@@ -2838,4 +2838,6 @@ export const nlPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Omzet boven een kwart van de marktkapitalisatie',
   'Un seul article': '1 artikel',
   '{n} articles': '{n} artikelen',
+  'Recherche': 'Zoeken',
+  'Menu': 'Menu',
 }

@@ -2838,4 +2838,6 @@ export const itPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Rotazione superiore a un quarto della capitalizzazione',
   'Un seul article': '1 articolo',
   '{n} articles': '{n} articoli',
+  'Recherche': 'Cerca',
+  'Menu': 'Menu',
 }

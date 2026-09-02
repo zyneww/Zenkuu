@@ -2845,4 +2845,6 @@ export const esPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Rotación superior a la cuarta parte de la capitalización',
   'Un seul article': '1 artículo',
   '{n} articles': '{n} artículos',
+  'Recherche': 'Buscar',
+  'Menu': 'Menú',
 }

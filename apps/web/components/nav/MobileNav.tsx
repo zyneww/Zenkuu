@@ -49,13 +49,42 @@ import { useContent, usePhrase } from '@/components/locale/ContentProvider'
  * La section correspondant à la page COURANTE s'ouvre d'emblée : on arrive dans le
  * menu en sachant où l'on est, ce qu'un tiroir entièrement replié ne dit pas.
  */
-export function MobileNav() {
+export function MobileNav({
+  open: openControle,
+  onOpenChange,
+}: {
+  /**
+   * État d'ouverture imposé de l'extérieur.
+   *
+   * ── POURQUOI CE COMPOSANT DEVIENT CONTRÔLABLE ────────────────────────────
+   *
+   * Le tiroir tenait son propre état et son propre bouton. La barre d'onglets du bas
+   * porte désormais une entrée « Menu » qui doit ouvrir CE tiroir — pas un second.
+   *
+   * Deux tiroirs identiques, chacun avec son état, se répondraient mal : fermer l'un
+   * laisserait l'autre ouvert, et le contenu serait monté deux fois.
+   *
+   * Le composant accepte donc l'état de l'extérieur QUAND on le lui donne, et garde le
+   * sien sinon — un appelant qui n'a rien à piloter n'a rien à écrire.
+   */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+} = {}) {
   const fr = useContent()
   const t = usePhrase()
   const pathname = usePathname()
   const panelId = useId()
 
-  const [open, setOpen] = useState(false)
+  const [openInterne, setOpenInterne] = useState(false)
+
+  /* L'état vient de l'extérieur s'il est fourni, du composant sinon. `setOpen` prévient
+     les deux : l'appelant contrôlant doit savoir que le tiroir s'est fermé tout seul —
+     à la navigation, à Échap, au clic extérieur — sans quoi son propre état mentirait. */
+  const open = openControle ?? openInterne
+  const setOpen = (next: boolean) => {
+    setOpenInterne(next)
+    onOpenChange?.(next)
+  }
 
   /*
    * SECTIONS DÉPLIÉES, amorcées sur la page courante.

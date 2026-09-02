@@ -2838,4 +2838,6 @@ export const jaPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': '時価総額の四分の一を超える回転',
   'Un seul article': '記事 1 本',
   '{n} articles': '記事 {n} 本',
+  'Recherche': '検索',
+  'Menu': 'メニュー',
 }

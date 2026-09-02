@@ -8,6 +8,7 @@ import { ZenkuuWordmark } from '@/components/BrandMark'
 import { useContent } from '@/components/locale/ContentProvider'
 import { AccountControl } from '@/components/account/AccountControl'
 import { MobileNav } from '@/components/nav/MobileNav'
+import { MobileTabBar } from '@/components/nav/MobileTabBar'
 import { NavMenus } from '@/components/nav/NavMenus'
 import { PreferenceOverlay, type PreferenceTab } from '@/components/settings/PreferenceOverlay'
 import { ThemeSync } from '@/components/settings/ThemeSync'
@@ -63,6 +64,11 @@ export function NavBar({
    */
   socialProviders: readonly string[]
 }) {
+  /* L'ouverture du tiroir est tenue ICI, parce que DEUX contrôles la commandent : le
+     bouton de l'en-tête et l'entrée « Menu » de la barre du bas. Deux tiroirs, chacun
+     avec son état, se répondraient mal — fermer l'un laisserait l'autre ouvert. */
+  const [menuOuvert, setMenuOuvert] = useState(false)
+
   const fr = useContent()
   const [searchOpen, setSearchOpen] = useState(false)
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
@@ -183,7 +189,7 @@ export function NavBar({
             les actions de compte. Il disparaît de lui-même au-dessus de `lg`, là où la
             barre de menus reprend le relais.
           */}
-          <MobileNav />
+          <MobileNav open={menuOuvert} onOpenChange={setMenuOuvert} />
 
           {/*
             ── DEUX ZONES, ET LA NAVIGATION APPARTIENT À CELLE DE GAUCHE ───────
@@ -365,6 +371,16 @@ export function NavBar({
         onClose={() => setAuthMode(null)}
         socialProviders={socialProviders}
       />
+      {/* ── LA BARRE D'ONGLETS DU BAS ────────────────────────────────────────
+
+          Hors du `<header>` : elle est fixée au BAS de l'écran, et la loger dans un
+          en-tête `sticky top-0` la ferait hériter d'un contexte d'empilement dont elle
+          n'a que faire.
+
+          Elle partage l'état du tiroir avec le bouton du haut — voir la note plus
+          haut. */}
+      <MobileTabBar onOpenMenu={() => setMenuOuvert(true)} />
+
     </>
   )
 }

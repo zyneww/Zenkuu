@@ -2838,4 +2838,6 @@ export const ptBRPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Giro acima de um quarto da capitalização',
   'Un seul article': '1 artigo',
   '{n} articles': '{n} artigos',
+  'Recherche': 'Buscar',
+  'Menu': 'Menu',
 }

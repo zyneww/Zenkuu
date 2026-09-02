@@ -395,6 +395,21 @@ export default async function RootLayout({
 
               <Footer />
 
+              {/* ⚠️ LA MARGE QUI ÉVITE QUE LA BARRE MANGE LA FIN DE LA PAGE.
+
+                  La barre d'onglets est `fixed` : elle ne pousse rien et recouvre donc
+                  les derniers 56 px du document. Sur le pied de page, cela cache la
+                  dernière rangée de liens ; sur un tableau, la dernière ligne — et
+                  rien à l'écran ne dit qu'il y a quelque chose dessous.
+
+                  Un espace de la hauteur de la barre, plus la zone de sécurité de
+                  l'appareil, rend cette fin de page atteignable. Il disparaît sous
+                  `lg`, où la barre n'existe pas. */}
+              <div
+                aria-hidden="true"
+                className="h-[calc(3.5rem+env(safe-area-inset-bottom))] lg:hidden"
+              />
+
               {/* Hors du `main` : il flotte au-dessus de la page entière, pied de page
                   compris, et n'appartient donc à aucun de ses étages. */}
               <BackToTop />

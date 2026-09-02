@@ -2838,4 +2838,6 @@ export const plPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Obrót powyżej jednej czwartej kapitalizacji',
   'Un seul article': '1 artykuł',
   '{n} articles': 'Artykułów: {n}',
+  'Recherche': 'Szukaj',
+  'Menu': 'Menu',
 }

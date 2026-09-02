@@ -2838,4 +2838,6 @@ export const viPhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Vòng quay vượt một phần tư vốn hóa',
   'Un seul article': '1 bài viết',
   '{n} articles': '{n} bài viết',
+  'Recherche': 'Tìm kiếm',
+  'Menu': 'Menu',
 }

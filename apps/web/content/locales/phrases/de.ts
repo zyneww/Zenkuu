@@ -2846,4 +2846,6 @@ export const dePhrases: Phrases = {
   'Rotation supérieure au quart de la capitalisation': 'Umschlag über einem Viertel der Marktkapitalisierung',
   'Un seul article': '1 Artikel',
   '{n} articles': '{n} Artikel',
+  'Recherche': 'Suche',
+  'Menu': 'Menü',
 }
