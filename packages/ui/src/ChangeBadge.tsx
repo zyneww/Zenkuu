@@ -55,14 +55,23 @@ export function ChangeBadge({
   const tone =
     direction === 'up'
       ? filled
-        ? 'bg-up-soft text-up'
+        ? 'bg-up-soft text-up ring-1 ring-up-line'
         : 'text-up'
       : direction === 'down'
         ? filled
-          ? 'bg-down-soft text-down'
+          ? 'bg-down-soft text-down ring-1 ring-down-line'
           : 'text-down'
         : 'text-ink-muted'
 
+  /* ⚠️ `ring` ET NON `border`, ET LA DIFFÉRENCE EST MESURABLE.
+
+     Une bordure occupe de la place : ajouter 1 px de chaque côté élargit le badge de
+     2 px et pousse tout ce qui le suit sur la ligne. Dans un tableau où le badge
+     n'apparaît que sur les valeurs renseignées, les colonnes ne s'aligneraient plus
+     d'une ligne à l'autre.
+
+     `ring` est une ombre portée : elle se dessine SANS occuper de place, donc un
+     badge cerclé et un badge nu font exactement la même largeur. */
   const spacing = filled ? 'rounded-md px-1.5 py-0.5' : ''
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm'
 
@@ -79,7 +88,7 @@ export function ChangeBadge({
          (1 h, 24 h, 7 j, 30 j) sont rendues en 14px/400, exactement comme le cours et
          le volume : rien ne les épaissit. Elles se distinguent par la COULEUR, qui
          suffit — les épaissir en plus disait deux fois la même chose. */
-      className={`tabular inline-flex items-center gap-1 whitespace-nowrap font-normal ${textSize} ${tone} ${spacing}`}
+      className={`tabular inline-flex items-center gap-1 whitespace-nowrap font-medium ${textSize} ${tone} ${spacing}`}
       aria-label={readable}
       title={periodLabel ? `Variation ${periodLabel}` : 'Variation sur 24 heures'}
     >

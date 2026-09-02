@@ -361,9 +361,15 @@
      Les deux étaient des ÉCARTS ASSUMÉS sous le seuil AA ; ils franchissent
      désormais 4,5 et quittent la liste des dérogations. */
   --color-up: #00794b;
-  --color-up-soft: #d9f7e7;
+  /* Fond translucide de Backpack : la couleur de marché à 8 %, et non une teinte
+     pastel opaque. La différence compte sur une carte encastrée — un pastel
+     plein masque la surface qui le porte, une transparence la laisse voir et le
+     badge appartient alors à sa ligne. */
+  --color-up-soft: rgb(0 121 75 / 0.08);
+  --color-up-line: rgb(0 121 75 / 0.20);
   --color-down: #d20032;
-  --color-down-soft: #fdeaec;
+  --color-down-soft: rgb(210 0 50 / 0.08);
+  --color-down-line: rgb(210 0 50 / 0.20);
 
   /* ───────────────────────────────────────────────────────────────────────────
      REMPLISSAGE DES CARTES THERMIQUES — deux jetons de plus, et il en faut deux.
@@ -655,7 +661,16 @@
      ─────────────────────────────────────────────────────────────────────────── */
 
   /* CARTES ET PANNEAUX — objets posés sur la page, qu'on prend en entier. */
-  --radius-card: 12px;
+  /* ⚠️ 16 px ET NON 12, PHASE 2 DE DESIGN_BACKPACK.
+
+     L'échelle de la référence est à DEUX PÔLES : très arrondi pour ce qu'on
+     manipule (pilules, boutons), modérément arrondi pour ce qui contient (cartes à
+     16 px), strictement carré pour ce qui coule (tableaux, carnets).
+
+     À 12 px, cartes et boutons partageaient presque le même rayon, et la distinction
+     entre « ceci se clique » et « ceci contient » ne passait plus que par la taille.
+     Quatre pixels d'écart la rendent lisible d'un coup d'œil. */
+  --radius-card: 16px;
   --radius-panel: 16px;
 
   /* CONTRÔLES — boutons, champs, puces de filtre, cases à cocher. Tout ce qu'on
@@ -2517,9 +2532,11 @@
      réserve dans `@theme`).
      `-soft` restent aux valeurs ZENKUU existantes, hors des dix rôles mesurés. */
   --color-up: #00c278;
-  --color-up-soft: #0c2e22;
+  --color-up-soft: rgb(0 194 120 / 0.10);
+  --color-up-line: rgb(0 194 120 / 0.25);
   --color-down: #ea383b;
-  --color-down-soft: #3a1620;
+  --color-down-soft: rgb(234 56 59 / 0.10);
+  --color-down-line: rgb(234 56 59 / 0.30);
 
   /* Teinte de statut — voir le thème clair. C'est un CYAN et non un vert : décalé
      franchement par rapport au vert de hausse voisin, pour que les deux ne se

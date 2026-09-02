@@ -10,6 +10,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        /*
+         * ── LA PILULE — L'APPEL À L'ACTION DE BACKPACK ─────────────────────
+         *
+         * Arrondi complet, encre pleine sur fond clair (ou l'inverse en sombre),
+         * graisse 600. C'est le pôle « manipulable » de l'échelle à deux pôles : rien
+         * d'autre sur la page n'est aussi arrondi, donc rien ne se confond avec.
+         *
+         * `active:scale-[0.98]` : l'enfoncement au clic, relevé chez eux. Deux pour
+         * cent, c'est-à-dire invisible à l'arrêt et sensible sous le doigt — le
+         * bouton RÉPOND, sans que le texte devienne illisible pendant la pression.
+         *
+         * ⚠️ `motion-reduce:active:scale-100` : l'enfoncement est un mouvement, et
+         * quelqu'un qui demande moins de mouvement le demande aussi ici. Il perd le
+         * geste, pas le bouton — la couleur de survol reste.
+         */
+        pill: "rounded-full bg-ink px-5 font-semibold text-canvas transition-all hover:opacity-90 active:scale-[0.98] motion-reduce:active:scale-100",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
         outline:

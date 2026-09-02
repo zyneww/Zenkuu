@@ -25,7 +25,10 @@ export function Card({
 }: CardProps) {
   return (
     <section
-      className={`rounded-card border border-border-subtle bg-surface ${graduated ? 'graduated' : ''} ${flush ? '' : 'p-4'} ${className}`}
+      /* `card-sheen` : un filet lumineux d'un pixel sur l'arête supérieure. Sur un fond
+         très sombre, une carte à peine plus claire que la page se perd — le filet lui
+         redonne un BORD et elle cesse de flotter. Voir sa note dans globals.css. */
+      className={`card-sheen rounded-card border border-border-subtle bg-surface ${graduated ? 'graduated' : ''} ${flush ? '' : 'p-4'} ${className}`}
     >
       {children}
     </section>
