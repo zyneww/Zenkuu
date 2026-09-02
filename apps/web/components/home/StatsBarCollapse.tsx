@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -30,6 +31,38 @@ export function StatsBarCollapse({
   const t = usePhrase()
   const { statsBarCollapsed, setStatsBarCollapsed } = useSettings()
 
+  /*
+   * ── LA HAUTEUR EST MESURÉE, PAS DEVINÉE ──────────────────────────────────
+   *
+   * `scrollHeight` donne la hauteur que le contenu OCCUPERAIT sans le rognage. On la
+   * pose en pixels, et la transition interpole entre deux longueurs — ce que tout
+   * moteur anime, contrairement aux quatre formes essayées avant (voir la note de
+   * `.collapse-height` dans globals.css).
+   *
+   * ⚠️ `undefined` TANT QU'ON N'A PAS MESURÉ, et non zéro. Au premier rendu serveur il
+   * n'y a pas de DOM : une hauteur à zéro replierait le bandeau pour tout le monde
+   * jusqu'à l'hydratation, y compris pour qui ne l'a jamais replié. `undefined` laisse
+   * la hauteur à `auto`, donc déplié — le bon défaut.
+   */
+  const boite = useRef<HTMLDivElement>(null)
+  const [hauteur, setHauteur] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    const element = boite.current
+    if (!element) return
+
+    const mesurer = () => setHauteur(element.scrollHeight)
+    mesurer()
+
+    /* Le contenu du bandeau change — les courbes arrivent après le premier rendu, les
+       montants se rafraîchissent toutes les trois minutes. Sans observateur, la
+       hauteur mesurée au montage deviendrait fausse au premier rafraîchissement, et le
+       bandeau se rognerait ou laisserait un vide. */
+    const observateur = new ResizeObserver(mesurer)
+    observateur.observe(element)
+    return () => observateur.disconnect()
+  }, [])
+
   return (
     <div>
       <div className="flex justify-end pb-1">
@@ -45,7 +78,10 @@ export function StatsBarCollapse({
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-card text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
         >
           <ChevronDown
-            className={`h-4 w-4 transition-transform duration-150 ${
+            /* MÊME durée que le bandeau, et non 150 ms. Deux gestes simultanés qui
+               ne durent pas pareil se lisent comme un défaut : le chevron finissait
+               sa rotation quand le bandeau était encore à mi-course. */
+            className={`h-4 w-4 transition-transform duration-300 ease-[var(--ease-standard)] motion-reduce:transition-none ${
               statsBarCollapsed ? '-rotate-90' : ''
             }`}
             aria-hidden="true"
@@ -53,7 +89,22 @@ export function StatsBarCollapse({
         </button>
       </div>
 
-      {statsBarCollapsed ? null : children}
+      {/* Le dépliage s'anime vers la hauteur RÉELLE du contenu — voir
+          `.collapse-height` dans globals.css, qui porte les trois tentatives qu'il a
+          fallu pour y arriver et pourquoi les deux premières échouaient.
+
+          `aria-hidden` quand c'est replié : la boîte fait zéro pixel mais le contenu
+          reste dans le DOM, et un lecteur d'écran l'annoncerait encore. */}
+      <div
+        className="collapse-height"
+        data-collapsed={statsBarCollapsed}
+        aria-hidden={statsBarCollapsed}
+        /* Replié : zéro. Déplié : la hauteur mesurée, ou `auto` tant qu'on ne l'a pas
+           encore — voir la note ci-dessus sur le premier rendu. */
+        style={{ height: statsBarCollapsed ? 0 : hauteur }}
+      >
+        <div ref={boite}>{children}</div>
+      </div>
     </div>
   )
 }

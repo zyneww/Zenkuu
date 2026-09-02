@@ -3454,3 +3454,56 @@ textarea,
     display: none;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LE DÉPLIAGE ANIMÉ — VERS UNE HAUTEUR MESURÉE, EN PIXELS
+
+   ── QUATRE TENTATIVES, ET CE QUE CHACUNE A APPRIS ──────────────────────────
+
+   1. `grid-template-rows: 0fr → 1fr` en CLASSE Tailwind. La classe était sur
+      l'élément, et Tailwind n'avait généré AUCUNE règle pour elle. Invisible dans le
+      code, visible à l'écran seulement.
+
+   2. La même en style EN LIGNE. Elle s'appliquait — mais `0fr` ne replie rien : `fr`
+      distribue l'espace LIBRE et la piste garde son minimum AUTOMATIQUE, égal à la
+      hauteur du contenu.
+
+   3. `minmax(0, 0fr)`, qui supprime ce minimum. Elle replie — MAIS PAS AVEC UNE
+      TRANSITION POSÉE DESSUS. Mesuré : valeur calculée à 66,46 px après 550 ms sur
+      une transition de 300. Retirer la transition donne 0 px instantanément.
+
+   4. `height: auto → 0` avec `interpolate-size: allow-keywords`. Chrome 152 le déclare
+      pris en charge, et le comportement est le même que la tentative 3 : figé à 66 px
+      avec la transition, 0 px sans elle.
+
+   ── D'OÙ CETTE CINQUIÈME FORME, QUI NE DEMANDE RIEN AU NAVIGATEUR ──────────
+
+   Les quatre premières demandaient d'interpoler vers une valeur que le navigateur doit
+   DÉDUIRE — une fraction d'espace libre, un mot-clé. Celle-ci interpole entre deux
+   longueurs en PIXELS, ce que tout moteur anime depuis toujours.
+
+   La hauteur est mesurée en JavaScript (`scrollHeight`) et posée en style. Le coût est
+   une mesure au montage et à chaque changement de contenu ; le gain est que ça marche.
+
+   ── LE REPLI EST L'ANCIEN COMPORTEMENT ─────────────────────────────────────
+
+   Sans JavaScript, la hauteur reste `auto` et le bandeau s'affiche déplié : c'est ce
+   qu'il faisait avant, et c'est le bon défaut — mieux vaut montrer que cacher.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.collapse-height {
+  overflow: hidden;
+  transition:
+    height 300ms var(--ease-standard),
+    opacity 300ms var(--ease-standard);
+}
+
+.collapse-height[data-collapsed='true'] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapse-height {
+    transition: none;
+  }
+}
