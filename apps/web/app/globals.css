@@ -3314,6 +3314,64 @@ textarea,
   scrollbar-color: var(--color-border) transparent;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   LE DÉCALAGE D'UN PIXEL PRÈS À L'OUVERTURE DE TOUT MENU — LA CAUSE ET SA RACINE
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Symptôme signalé : au clic sur un sélecteur — celui des lignes par page de
+   l'accueil, mais aussi n'importe quel menu, dialogue ou popover — TOUTE la page
+   glissait légèrement, puis revenait à sa place à la fermeture.
+
+   ── CE QUI A ÉTÉ MESURÉ ────────────────────────────────────────────────────
+
+   Un observateur de mutations posé sur `<body>`, puis le menu ouvert au clavier :
+
+       fermé   → bord droit de l'en-tête à 2546,67 px
+       ouvert  → bord droit de l'en-tête à 2532,67 px      soit −14 px
+
+   La largeur de la FENÊTRE, elle, ne bouge pas : `documentElement.clientWidth`
+   vaut 2546 dans les deux états. Ce n'est donc pas la page qui rétrécit, c'est
+   quelque chose qui lui ajoute 14 px de vide à droite.
+
+   Ces 14 px viennent d'une règle injectée à l'exécution par `react-remove-scroll-bar`,
+   la dépendance de verrouillage de défilement de Radix :
+
+       body[data-scroll-locked] { margin-right: 14px !important; }
+
+   ── POURQUOI ELLE EXISTE, ET POURQUOI ELLE EST FAUSSE ICI ──────────────────
+
+   Son raisonnement est juste dans le cas général : verrouiller le défilement pose
+   `overflow: hidden` sur le corps, l'ascenseur disparaît, ses 14 px sont rendus au
+   contenu qui s'ÉLARGIT — la marge compense cet élargissement.
+
+   ⚠️ MAIS SUR CE SITE L'ASCENSEUR NE DISPARAÎT JAMAIS. La règle juste au-dessus
+   réserve son sillon en permanence sur l'élément racine, précisément pour que la
+   largeur utile ne change pas. La compensation n'annule donc rien : elle AJOUTE
+   14 px là où il n'en manquait aucun. Les deux corrections se combattent, et c'est
+   la page qui bouge.
+
+   ── LA RÉPARATION, GLOBALE ET NON PAR COMPOSANT ────────────────────────────
+
+   On neutralise la compensation, pas le verrou : `overflow: hidden` reste, le
+   fond ne défile toujours pas derrière un menu ouvert. Seuls les décalages
+   partent.
+
+   `--removed-body-scroll-bar-size` est remis à zéro dans la même règle : la
+   bibliothèque s'en sert pour compenser AUSSI les éléments fixés qu'on lui
+   désigne. Corriger la marge sans la variable laisserait la moitié du problème.
+
+   ⚠️ LE SÉLECTEUR COMMENCE PAR `html` À DESSEIN. La règle de la bibliothèque
+   porte déjà `!important` et s'injecte dans `<head>` À L'EXÉCUTION, donc APRÈS
+   cette feuille : à spécificité égale, elle gagnerait par l'ordre. `html body[…]`
+   pèse (0,1,2) contre (0,1,1) — la spécificité tranche avant l'ordre, et notre
+   règle l'emporte quel que soit le moment de l'injection.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html body[data-scroll-locked] {
+  --removed-body-scroll-bar-size: 0px;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
