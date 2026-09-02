@@ -422,12 +422,31 @@ export function PriceChartInteractive({
     return (last - first) / 86_400_000
   }, [rows, days])
 
-  const rising = trendIsUp(rows)
-  const trendColor = indexed
-    ? 'var(--color-brand)'
-    : rising
-      ? 'var(--color-up)'
-      : 'var(--color-down)'
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE TRACÉ EST BLEU, QUELLE QUE SOIT LA TENDANCE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Il prenait le vert quand la période finissait plus haut qu'elle n'avait commencé,
+   * le rouge sinon. La couleur du tracé était donc une SIXIÈME façon de dire ce que
+   * disent déjà le signe, la flèche, le badge de variation, la couleur de ce badge et
+   * la pente de la courbe elle-même.
+   *
+   * ── ET ELLE DISAIT PARFOIS LE CONTRAIRE DE CE QU'ON REGARDE ─────────────
+   *
+   * Le pire cas n'est pas la redondance, c'est la CONTRADICTION. Sur une fenêtre d'un
+   * an où l'actif finit en hausse, le tracé est vert — y compris sur les six mois de
+   * chute qu'il traverse au milieu. On lit une descente peinte en vert.
+   *
+   * En bleu, la courbe ne prétend plus rien : elle montre. La hausse et la baisse
+   * restent dites par ce qui est fait pour cela — le badge de variation, qui garde
+   * son vert et son rouge.
+   *
+   * `--color-brand-strong` et non `--color-brand` : l'azur pâle de la marque tient
+   * 1,5:1 sur le canvas clair, ce qui suffit à un aplat mais pas à un TRAIT d'un
+   * pixel et demi. Sa déclinaison assombrie passe AA et reste la même couleur.
+   */
+  const trendColor = 'var(--color-brand-strong)'
 
   /**
    * Formateur de l'ÉCHELLE — et il porte désormais l'UNITÉ.
@@ -1054,9 +1073,6 @@ function readRow(rows: Row[], index: number, days: number): LegendState {
 
 /* ── Calculs ───────────────────────────────────────────────────────────────── */
 
-function trendIsUp(rows: Row[]): boolean {
-  return (rows[rows.length - 1]?.price ?? 0) >= (rows[0]?.price ?? 0)
-}
 
 
 
