@@ -131,6 +131,25 @@ export interface AreaPlotProps {
    * donc à l'appelant, qui sait ce que sa série mesure.
    */
   bars?: boolean
+  /**
+   * Légende à DROITE du tracé, façon Blockworks.
+   *
+   * ── ELLE NE S'AFFICHE QUE SI DEUX SÉRIES OU PLUS LA JUSTIFIENT ──────────
+   *
+   * Relevé sur blockworks.com/analytics le 2026-09-02 : leurs figures portent une
+   * colonne de légende à droite, pastille de couleur puis nom, en 12 px gris. Elle
+   * est indispensable chez eux — quatorze chaînes empilées dans le même graphique.
+   *
+   * ⚠️ SUR UNE SÉRIE UNIQUE ELLE SERAIT UNE COLONNE VIDE DE SENS. Une légende répond
+   * à « laquelle est laquelle ? », question qui ne se pose pas quand il n'y en a
+   * qu'une — et elle coûterait alors 130 px pris sur la largeur du tracé, c'est-à-dire
+   * sur la seule chose qu'on regarde.
+   *
+   * La plupart des figures de ZENKUU sont à série unique. Le drapeau est donc
+   * OPT-IN et son rendu conditionné au nombre réel de séries : demander la légende
+   * sur un tracé qui n'en a qu'une ne produit rien plutôt qu'un cadre vide.
+   */
+  legend?: boolean
   /** Bornes imposées. Absentes, elles sont déduites des données avec une marge. */
   yDomain?: [number, number]
   yTicks?: number[]
@@ -229,6 +248,7 @@ export function AreaPlot({
   formatX,
   formatY,
   bars = false,
+  legend = false,
   watermark = false,
   formatTooltipX,
   formatTooltipY,
@@ -511,7 +531,54 @@ export function AreaPlot({
     </ChartContainer>
   )
 
-  if (!watermark) return tracé
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA LÉGENDE DE BLOCKWORKS — UNE COLONNE À DROITE, PAS UNE RANGÉE DESSOUS
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Relevé le 2026-09-02 : pastille carrée, nom en 12 px graisse 400 gris, empilés
+   * verticalement à droite du tracé.
+   *
+   * ── POURQUOI À DROITE PLUTÔT QUE DESSOUS ─────────────────────────────────
+   *
+   * Une rangée sous le graphique s'enroule dès qu'il y a plus de cinq séries, et
+   * chaque retour à la ligne repousse le tracé vers le haut ou raccourcit sa hauteur.
+   * Une colonne prend une largeur FIXE quelle que soit la longueur de la liste : la
+   * figure garde exactement la même hauteur avec deux séries ou avec quatorze.
+   *
+   * ── ELLE DISPARAÎT SOUS `sm` ─────────────────────────────────────────────
+   *
+   * 130 px de légende sur un écran de 375 laissent 245 px de tracé, soit une figure
+   * plus étroite que haute. Sur téléphone la légende passe donc SOUS le graphique, en
+   * rangée — c'est le seul cas où l'enroulement est le moindre mal.
+   */
+  const avecLegende = legend && series.length > 1
+
+  const habille = avecLegende ? (
+    <div className="flex h-full flex-col gap-3 sm:flex-row">
+      <div className="min-h-0 min-w-0 flex-1">{tracé}</div>
+
+      <ul className="flex flex-wrap gap-x-3 gap-y-1.5 sm:w-[130px] sm:shrink-0 sm:flex-col sm:flex-nowrap sm:self-start">
+        {series.map((entry) => (
+          <li key={entry.id} className="flex items-center gap-2 text-xs text-ink-muted">
+            {/* Pastille CARRÉE et non ronde : c'est la forme de la référence, et elle
+                se distingue mieux de la pastille ronde qui marque un point survolé sur
+                le tracé — deux signaux différents ne doivent pas se ressembler. */}
+            <span
+              aria-hidden="true"
+              className="size-2.5 shrink-0 rounded-[2px]"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="truncate">{entry.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ) : (
+    tracé
+  )
+
+  if (!watermark) return habille
 
   /* Le filigrane passe SOUS le tracé et non par-dessus : `ChartContainer` est monté
      après lui dans le flux, donc au-dessus sans qu'aucun `z-index` n'ait à le dire.
@@ -525,7 +592,7 @@ export function AreaPlot({
   return (
     <div className="relative size-full @container" style={{ height: height === 'fill' ? '100%' : height }}>
       <ChartWatermark />
-      {tracé}
+      {habille}
     </div>
   )
 }
