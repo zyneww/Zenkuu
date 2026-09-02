@@ -1,6 +1,7 @@
 import { getAllTokenizedStocks, type TokenizedStock } from '@zenkuu/data'
 import { EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
+import { StatCard } from '@/components/charts/StatCard'
 import { Link } from '@/i18n/navigation'
 import { getPhrase } from '@/lib/content'
 
@@ -52,17 +53,31 @@ export async function RealWorldAssetsSection() {
 
   return (
     <div className="space-y-8">
-      <dl className="grid gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-3">
-        <Stat label={t('Jetons cotés')} value={String(listed.length)} />
-        <Stat
+      {/* ── LA BANDE PASSE SUR `StatCard`, COMME LES AUTRES PAGES ──────────────
+
+          Elle était une `<dl>` maison : trois cases séparées par un filet d'un pixel,
+          avec sa propre taille de valeur et son propre intitulé. Correcte en soi, et
+          différente de la bande de `/graphiques` à deux clics de là — deux grammaires
+          pour un même objet, sur deux pages de la même barre latérale.
+
+          `StatCard` porte le motif relevé chez ASXN (voir son en-tête) : intitulé
+          discret, grande valeur, variations colorées. Les trois chiffres ne changent
+          pas — ce sont les mêmes sommes, calculées au-dessus.
+
+          Aucune variation ici : la source publie une capitalisation et un volume par
+          jeton, jamais leur évolution. Une variation cumulée serait un calcul maison
+          présenté comme une donnée (§5). `StatCard` prévoit leur absence. */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <StatCard label={t('Jetons cotés')} value={String(listed.length)} />
+        <StatCard
           label={t('Capitalisation cumulée')}
           value={formatCurrency(totalCap, 'USD', { compact: true }) ?? '—'}
         />
-        <Stat
+        <StatCard
           label={t('Volume 24 h cumulé')}
           value={formatCurrency(totalVolume, 'USD', { compact: true }) ?? '—'}
         />
-      </dl>
+      </div>
 
       <TokenTable tokens={listed} />
 
@@ -79,15 +94,6 @@ export async function RealWorldAssetsSection() {
         label={`${tokens.source.label} · montants en USD`}
         href={tokens.source.attributionUrl}
       />
-    </div>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-surface px-4 py-3">
-      <dt className="text-xs text-ink-muted">{label}</dt>
-      <dd className="tabular mt-1 text-xl font-semibold text-ink">{value}</dd>
     </div>
   )
 }

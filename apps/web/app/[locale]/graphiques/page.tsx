@@ -15,13 +15,14 @@ import {
   getStablecoinHistory,
   type PriceHistory,
 } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatCompact, formatCurrency, formatPercent } from '@zenkuu/ui'
+import { EmptyState, SourceNote, formatCompact, formatCurrency, formatPercent, formatShare } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { fill, weave } from '@/components/locale/emphasise'
 import { FearGreedDial } from '@/components/market/FearGreedDial'
 import { MarketPulseCards } from '@/components/market/MarketPulseCards'
 import { ChartsShell, LoadingNote } from '@/components/market/ChartsShell'
+import { SectionRule, StatCard } from '@/components/charts/StatCard'
 import { GlobalChartCard } from '@/components/market/GlobalChartCard'
 import { AltseasonCard } from '@/components/market/views/AltseasonSection'
 import { BasketSection } from '@/components/market/views/BasketSection'
@@ -133,6 +134,73 @@ async function GlobalView() {
 
   return (
     <div className="space-y-6">
+      {/* ══════════════════════════════════════════════════════════════════
+          LA BANDE D'AGRÉGATS — LE MOTIF DE TÊTE D'ASXN HYPERSCREENER
+
+          Relevé le 2026-09-02 : leur page s'ouvre sur des cartes de STATISTIQUE —
+          intitulé discret, grande valeur, deux variations colorées — avant tout
+          graphique. C'est ce qui répond en une seconde à « où en est le marché ? »,
+          question qu'on se pose avant de vouloir une courbe.
+
+          ── CE QU'ELLE APPORTE, ET QUI MANQUAIT ─────────────────────────────
+
+          La page s'ouvrait sur les cinq premières capitalisations (`MarketPulseCards`,
+          conservé plus bas). C'est utile, mais ce sont des ACTIFS : la capitalisation
+          totale, le volume et la dominance — ce que la page raconte ensuite en
+          graphiques — n'apparaissaient qu'en prose, dans le paragraphe qui suit.
+
+          Les trois chiffres passent donc devant, dans la forme où on les lit d'un
+          mètre. Le paragraphe reste : il les met en phrase pour les moteurs de
+          recherche, et dit ce qu'un chiffre seul ne dit pas.
+
+          ── AUCUNE DONNÉE N'EST INVENTÉE ────────────────────────────────────
+
+          `marketCapChange24h` vient de la source ; il n'y a PAS d'équivalent à trente
+          jours pour ces agrégats, et la seconde variation d'ASXN est donc simplement
+          absente ici plutôt que dérivée d'un calcul maison (§5). Les cartes n'en
+          affichent qu'une, ce que `StatCard` prévoit.
+          ══════════════════════════════════════════════════════════════════ */}
+      {stats ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            label={t('Capitalisation totale')}
+            value={formatCurrency(stats.totalMarketCap, stats.currency, { compact: true }) ?? '—'}
+            change24h={stats.marketCapChange24h}
+            note={t('{n} actifs suivis').replace('{n}', formatCompact(stats.activeAssets) ?? '—')}
+          />
+
+          <StatCard
+            label={t('Volume sur 24 heures')}
+            value={formatCurrency(stats.totalVolume24h, stats.currency, { compact: true }) ?? '—'}
+            note={
+              stats.activeMarkets !== undefined
+                ? t('{n} marchés').replace('{n}', formatCompact(stats.activeMarkets) ?? '—')
+                : undefined
+            }
+          />
+
+          {/* La dominance est une PART, pas un montant : elle se lit en pourcentage et
+              n'a pas de variation propre publiée. Les deux premières valeurs de la
+              table suffisent — au-delà, ce n'est plus une dominance mais un
+              classement, et c'est ce que la page /graphiques/dominance montre. */}
+          <StatCard
+            label={t('Dominance')}
+            value={
+              stats.dominance['btc'] !== undefined
+                ? `${formatShare(stats.dominance['btc']) ?? '—'} BTC`
+                : '—'
+            }
+            note={
+              stats.dominance['eth'] !== undefined
+                ? `${formatShare(stats.dominance['eth']) ?? '—'} ETH`
+                : undefined
+            }
+          />
+        </div>
+      ) : null}
+
+      <SectionRule>{t('Les plus grandes capitalisations')}</SectionRule>
+
       {/* ── LA RANGÉE DE TÊTE ────────────────────────────────────────────
           Les cinq premières capitalisations, dans l'ordre où la source les classe —
           et non une liste arrêtée à la main : un classement figé finirait par citer

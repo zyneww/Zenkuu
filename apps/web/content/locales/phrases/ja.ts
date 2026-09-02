@@ -2792,4 +2792,9 @@ export const jaPhrases: Phrases = {
   'Contrats dérivés': 'デリバティブ契約',
   'Plateformes de dérivés': 'デリバティブ取引所',
   'Fiches thématiques': 'テーマ別ガイド',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '追跡中の銘柄 {n} 件',
+  '{n} marchés': '{n} の市場',
+  'Les plus grandes capitalisations': '時価総額の上位銘柄',
 }

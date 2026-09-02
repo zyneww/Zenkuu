@@ -2800,4 +2800,9 @@ export const dePhrases: Phrases = {
   'Contrats dérivés': 'Derivatekontrakte',
   'Plateformes de dérivés': 'Derivate-Handelsplätze',
   'Fiches thématiques': 'Themenblätter',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} erfasste Werte',
+  '{n} marchés': '{n} Märkte',
+  'Les plus grandes capitalisations': 'Die größten Kapitalisierungen',
 }

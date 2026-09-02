@@ -2792,4 +2792,9 @@ export const trPhrases: Phrases = {
   'Contrats dérivés': 'Türev sözleşmeler',
   'Plateformes de dérivés': 'Türev platformlar',
   'Fiches thématiques': 'Konu kartları',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} varlık izleniyor',
+  '{n} marchés': '{n} piyasa',
+  'Les plus grandes capitalisations': 'En büyük piyasa değerleri',
 }

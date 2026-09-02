@@ -2785,4 +2785,9 @@ export const zhPhrases: Phrases = {
   'Contrats dérivés': '衍生品合约',
   'Plateformes de dérivés': '衍生品交易平台',
   'Fiches thématiques': '专题指南',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '已追踪 {n} 项资产',
+  '{n} marchés': '{n} 个市场',
+  'Les plus grandes capitalisations': '市值最大的资产',
 }

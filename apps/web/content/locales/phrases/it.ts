@@ -2792,4 +2792,9 @@ export const itPhrases: Phrases = {
   'Contrats dérivés': 'Contratti derivati',
   'Plateformes de dérivés': 'Piattaforme di derivati',
   'Fiches thématiques': 'Schede tematiche',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} attivi seguiti',
+  '{n} marchés': '{n} mercati',
+  'Les plus grandes capitalisations': 'Le maggiori capitalizzazioni',
 }

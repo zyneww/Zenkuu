@@ -2799,4 +2799,9 @@ export const esPhrases: Phrases = {
   'Contrats dérivés': 'Contratos derivados',
   'Plateformes de dérivés': 'Plataformas de derivados',
   'Fiches thématiques': 'Fichas temáticas',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} activos seguidos',
+  '{n} marchés': '{n} mercados',
+  'Les plus grandes capitalisations': 'Las mayores capitalizaciones',
 }

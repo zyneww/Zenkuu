@@ -2792,4 +2792,9 @@ export const nlPhrases: Phrases = {
   'Contrats dérivés': 'Derivatencontracten',
   'Plateformes de dérivés': 'Derivatenplatforms',
   'Fiches thématiques': 'Themafiches',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} gevolgde activa',
+  '{n} marchés': '{n} markten',
+  'Les plus grandes capitalisations': 'De grootste kapitalisaties',
 }

@@ -2804,4 +2804,9 @@ export const enPhrases: Phrases = {
   'Contrats dérivés': 'Derivative contracts',
   'Plateformes de dérivés': 'Derivative venues',
   'Fiches thématiques': 'Topic guides',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} assets tracked',
+  '{n} marchés': '{n} markets',
+  'Les plus grandes capitalisations': 'The largest capitalisations',
 }

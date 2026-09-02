@@ -2792,4 +2792,9 @@ export const ruPhrases: Phrases = {
   'Contrats dérivés': 'Производные контракты',
   'Plateformes de dérivés': 'Площадки деривативов',
   'Fiches thématiques': 'Тематические карточки',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} отслеживаемых активов',
+  '{n} marchés': '{n} рынков',
+  'Les plus grandes capitalisations': 'Крупнейшие капитализации',
 }

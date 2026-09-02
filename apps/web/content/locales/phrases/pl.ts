@@ -2792,4 +2792,9 @@ export const plPhrases: Phrases = {
   'Contrats dérivés': 'Kontrakty pochodne',
   'Plateformes de dérivés': 'Platformy instrumentów pochodnych',
   'Fiches thématiques': 'Karty tematyczne',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} śledzonych aktywów',
+  '{n} marchés': '{n} rynków',
+  'Les plus grandes capitalisations': 'Największe kapitalizacje',
 }

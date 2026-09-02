@@ -2792,4 +2792,9 @@ export const viPhrases: Phrases = {
   'Contrats dérivés': 'Hợp đồng phái sinh',
   'Plateformes de dérivés': 'Sàn phái sinh',
   'Fiches thématiques': 'Phiếu chuyên đề',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} tài sản được theo dõi',
+  '{n} marchés': '{n} thị trường',
+  'Les plus grandes capitalisations': 'Những vốn hóa lớn nhất',
 }

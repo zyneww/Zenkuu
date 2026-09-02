@@ -2792,4 +2792,9 @@ export const ptBRPhrases: Phrases = {
   'Contrats dérivés': 'Contratos derivativos',
   'Plateformes de dérivés': 'Plataformas de derivativos',
   'Fiches thématiques': 'Fichas temáticas',
+
+  // ── GRAPHIQUES — bande d'agrégats ──
+  '{n} actifs suivis': '{n} ativos acompanhados',
+  '{n} marchés': '{n} mercados',
+  'Les plus grandes capitalisations': 'As maiores capitalizações',
 }
