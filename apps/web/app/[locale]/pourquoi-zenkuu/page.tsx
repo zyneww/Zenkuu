@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Link } from '@/i18n/navigation'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { Check, Minus } from 'lucide-react'
 import { emphasise } from '@/components/locale/emphasise'
@@ -251,7 +250,6 @@ export default async function PourquoiZenkuuPage() {
         <ButtonLink
           href="/bien-demarrer"
         >{t('Bien démarrer')}</ButtonLink>
-        <Link href="/apprendre" className="text-sm text-ink hover:underline">{t('Apprendre à lire les chiffres')}</Link>
       </section>
     </div>
   )

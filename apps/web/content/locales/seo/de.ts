@@ -6,12 +6,8 @@ export const deSeo: SeoDescriptions = {
     'ZENKUU ist eine Multi-Asset-Plattform zur Marktanalyse, rein lesend: kein Broker, keine Handelsplattform, kein Anlageberater.',
   '/aide':
     'Häufige Fragen zu den Daten von ZENKUU, ihrer Aktualität, den Charts und den Grenzen dessen, was die Website anzeigt.',
-  '/apprendre':
-    'Verstehen, was Sie vor sich haben: Marktkapitalisierung, Volumen, Angebot, Kerzen, gleitende Durchschnitte und Stimmungsindizes — ohne Fachjargon erklärt.',
   '/bien-demarrer':
     'ZENKUU in wenigen Minuten kennenlernen: einen Wert finden, sein Datenblatt lesen, die Währung wechseln und die Grenzen der angezeigten Daten verstehen.',
-  '/blog':
-    'Der Blog von ZENKUU — Methode, Produkt, Markt und Hintergründe. Wie die Zahlen erhoben, geprüft und angezeigt werden.',
   '/classements':
     'Größte Gewinner, größte Verlierer, höchste Volumen und stärkster Umschlag, von 1 Stunde bis 30 Tage.',
   '/comparateur':

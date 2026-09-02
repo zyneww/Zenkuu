@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { getLocale } from 'next-intl/server'
 
 import { glossaryByLetter } from '@/content/glossaire'
-import { Link } from '@/i18n/navigation'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -86,20 +85,17 @@ export default async function GlossaryPage() {
                 >
                   <dt className="text-sm font-semibold text-ink">
                     {t(entry.term)}
-                    {/* `inline-flex min-h-8` : le plancher tactile du site repose sur
-                        `min-height`, sans effet sur une boîte en ligne. Le libellé
-                        s'allonge aussi — « fiche » seul ne dit pas où il mène. */}
-                    {entry.lesson ? (
-                      <>
-                        {' '}
-                        <Link
-                          href={`/apprendre/${entry.lesson}`}
-                          className="inline-flex min-h-8 items-center px-1 text-xs font-normal text-ink hover:underline"
-                        >
-                          {t('voir la fiche')}
-                        </Link>
-                      </>
-                    ) : null}
+                    {/* ⚠️ LE RENVOI « VOIR LA FICHE » A ÉTÉ RETIRÉ AVEC `/apprendre`.
+
+                        Chaque terme du glossaire pouvait pointer vers sa fiche
+                        pédagogique. Ces fiches ont été supprimées, sans redirection :
+                        le lien mènerait donc à un 404, depuis la page même où l'on
+                        vient chercher une définition — l'endroit où un lien mort coûte
+                        le plus cher.
+
+                        Le champ `lesson` reste dans les données du glossaire. Le
+                        retirer demanderait de toucher chaque entrée pour un gain nul,
+                        et il redeviendrait utile si des fiches revenaient un jour. */}
                   </dt>
                   <dd className="text-sm leading-relaxed text-ink-muted">{t(entry.definition)}</dd>
                 </div>

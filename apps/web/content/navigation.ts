@@ -19,7 +19,6 @@ import {
   Landmark,
   TrendingUp,
   Newspaper,
-  PenLine,
   Rocket,
   Recycle,
   Scale,
@@ -408,15 +407,6 @@ export const NAV_MENUS: NavMenu[] = [
       {
         items: [
           {
-            /* Le menu s'appelle « Apprendre » et son entrée aussi : deux fois le
-               même mot, sans dire ce qu'on y trouve. La page porte des FICHES. */
-            label: 'Fiches thématiques',
-            description: 'Les notions du marché, expliquées',
-            icon: GraduationCap,
-            href: '/apprendre',
-            ready: true,
-          },
-          {
             label: 'Bien démarrer',
             description: 'Par où commencer quand on arrive',
             icon: Rocket,
@@ -428,13 +418,6 @@ export const NAV_MENUS: NavMenu[] = [
             description: 'Ce qui bouge, et chez quel éditeur',
             icon: Newspaper,
             href: '/actualites',
-            ready: true,
-          },
-          {
-            label: 'Blog',
-            description: 'Nos analyses de fond',
-            icon: PenLine,
-            href: '/blog',
             ready: true,
           },
           {

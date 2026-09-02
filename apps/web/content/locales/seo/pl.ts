@@ -6,12 +6,8 @@ export const plSeo: SeoDescriptions = {
     'ZENKUU to platforma analizy rynku wielu klas aktywów, wyłącznie do odczytu: nie jest brokerem, giełdą ani doradcą inwestycyjnym.',
   '/aide':
     'Najczęstsze pytania o dane ZENKUU, ich świeżość, wykresy oraz granice tego, co serwis pokazuje.',
-  '/apprendre':
-    'Zrozumieć to, na co patrzysz: kapitalizacja, wolumen, podaż, świece, średnie kroczące i wskaźniki nastrojów — wyjaśnione bez żargonu.',
   '/bien-demarrer':
     'Poznaj ZENKUU w kilka minut: znajdź aktywo, przeczytaj jego kartę, zmień walutę i zrozum granice prezentowanych danych.',
-  '/blog':
-    'Blog ZENKUU — metoda, produkt, rynek i kulisy. Jak liczby są zbierane, sprawdzane i pokazywane.',
   '/classements':
     'Największe wzrosty, największe spadki, najwyższe wolumeny i najsilniejsza rotacja, od 1 godziny do 30 dni.',
   '/comparateur':

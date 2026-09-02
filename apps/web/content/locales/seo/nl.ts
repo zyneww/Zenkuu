@@ -6,12 +6,8 @@ export const nlSeo: SeoDescriptions = {
     'ZENKUU is een multi-asset platform voor marktanalyse, uitsluitend lezend: geen makelaar, geen handelsplatform, geen beleggingsadviseur.',
   '/aide':
     'Veelgestelde vragen over de gegevens van ZENKUU, hoe vers ze zijn, de grafieken en de grenzen van wat de site toont.',
-  '/apprendre':
-    'Begrijpen wat u ziet: marktkapitalisatie, volume, aanbod, candlesticks, voortschrijdende gemiddelden en sentimentindices — uitgelegd zonder jargon.',
   '/bien-demarrer':
     'ZENKUU in enkele minuten leren gebruiken: een activum vinden, de fiche lezen, van valuta wisselen en de grenzen van de getoonde gegevens begrijpen.',
-  '/blog':
-    'De blog van ZENKUU — methode, product, markt en achtergrond. Hoe de cijfers worden verzameld, gecontroleerd en getoond.',
   '/classements':
     'Grootste stijgers, grootste dalers, hoogste volumes en sterkste omloop, van 1 uur tot 30 dagen.',
   '/comparateur':

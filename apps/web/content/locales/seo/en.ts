@@ -15,12 +15,8 @@ export const enSeo: SeoDescriptions = {
     'ZENKUU is a read-only multi-asset market analysis platform: not a broker, not an exchange, not an investment adviser.',
   '/aide':
     'Frequently asked questions about ZENKUU data, how fresh it is, the charts, and the limits of what the site displays.',
-  '/apprendre':
-    'Understand what you are looking at: market cap, volume, supply, candlesticks, moving averages and sentiment indices — explained without jargon.',
   '/bien-demarrer':
     'Get started with ZENKUU in a few minutes: find an asset, read its page, switch currency, and understand the limits of the data on display.',
-  '/blog':
-    'The ZENKUU blog — method, product, markets and behind the scenes. How the numbers are collected, checked and displayed.',
   '/classements':
     'Biggest gainers, biggest losers, highest volumes and strongest turnover, from 1 hour to 30 days.',
   '/comparateur':

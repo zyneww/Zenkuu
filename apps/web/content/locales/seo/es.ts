@@ -6,12 +6,8 @@ export const esSeo: SeoDescriptions = {
     'ZENKUU es una plataforma de análisis de mercado multiactivo, de solo lectura: ni bróker, ni plataforma de intercambio, ni asesor de inversiones.',
   '/aide':
     'Preguntas frecuentes sobre los datos de ZENKUU, su actualidad, los gráficos y los límites de lo que el sitio muestra.',
-  '/apprendre':
-    'Comprender lo que está viendo: capitalización, volumen, oferta, velas, medias móviles e índices de sentimiento — explicados sin jerga.',
   '/bien-demarrer':
     'Empiece a usar ZENKUU en unos minutos: encontrar un activo, leer su ficha, cambiar de moneda y entender los límites de los datos mostrados.',
-  '/blog':
-    'El blog de ZENKUU — método, producto, mercado y entre bastidores. Cómo se recogen, verifican y muestran las cifras.',
   '/classements':
     'Mayores subidas, mayores bajadas, volúmenes más altos y mayor rotación, de 1 hora a 30 días.',
   '/comparateur':

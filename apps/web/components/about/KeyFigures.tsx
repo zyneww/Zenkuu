@@ -1,7 +1,6 @@
 import { ASSET_CLASSES, SUPPORTED_CURRENCIES, YAHOO_UNIVERSE } from '@zenkuu/data'
 
 import { HELP_ARTICLES } from '@/content/aide'
-import { LESSONS } from '@/content/apprendre'
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -57,7 +56,11 @@ const FIGURES: { value: string; label: string; detail: string }[] = [
     detail: 'Durée de cache la plus courte. Certains agrégats sont rafraîchis toutes les 30 minutes.',
   },
   {
-    value: String(HELP_ARTICLES.length + LESSONS.length),
+    /* ⚠️ LES FICHES PÉDAGOGIQUES NE COMPTENT PLUS : `/apprendre` a été supprimé, et
+       ce chiffre annonçait la somme des articles d'aide ET des fiches. Le laisser
+       aurait affiché un total dont la moitié ne mène plus nulle part — exactement le
+       genre de nombre qu'un lecteur vérifie en cliquant. */
+    value: String(HELP_ARTICLES.length),
     label: 'articles publiés',
     detail: 'Fiches pédagogiques et articles d’aide rédigés pour ZENKUU, sans contenu généré de remplissage.',
   },

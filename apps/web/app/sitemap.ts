@@ -9,8 +9,6 @@ import {
 } from '@zenkuu/data'
 
 import { HELP_ARTICLES } from '@/content/aide'
-import { LESSONS } from '@/content/apprendre'
-import { ARTICLES } from '@/content/blog'
 import { absoluteUrl, languageAlternates } from '@/lib/site'
 
 /**
@@ -80,7 +78,6 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/convertisseur', changeFrequency: 'daily', priority: 0.6 },
   { path: '/heatmap', changeFrequency: 'daily', priority: 0.6 },
   { path: '/sentiment', changeFrequency: 'daily', priority: 0.6 },
-  { path: '/apprendre', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/aide', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/pourquoi-zenkuu', changeFrequency: 'monthly', priority: 0.6 },
   // Priorité haute pour une page qui ne bouge presque jamais : « tarif » est la
@@ -150,27 +147,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
-  for (const lesson of LESSONS) {
-    entries.push({
-      url: absoluteUrl(`/apprendre/${lesson.slug}`),
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    })
-  }
 
   // Articles du blog. La boucle ne produit rien tant qu'aucun n'est publié, et se
   // remplit d'elle-même à la première parution : `lastModified` reprend la date de
   // révision réelle plutôt que l'heure de génération, sans quoi chaque
   // reconstruction du site annoncerait à tort que tous les articles ont changé.
-  for (const article of ARTICLES) {
-    entries.push({
-      url: absoluteUrl(`/blog/${article.slug}`),
-      lastModified: new Date(article.updatedAt ?? article.publishedAt),
-      changeFrequency: 'yearly',
-      priority: 0.6,
-    })
-  }
 
   for (const { assetClass, segment } of YAHOO_ROUTES) {
     for (const entry of YAHOO_UNIVERSE[assetClass]) {

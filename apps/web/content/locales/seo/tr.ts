@@ -6,12 +6,8 @@ export const trSeo: SeoDescriptions = {
     'ZENKUU, yalnızca okunabilir çok varlıklı bir piyasa analiz platformudur: aracı kurum değil, borsa değil, yatırım danışmanı değil.',
   '/aide':
     'ZENKUU verileri, tazelikleri, grafikler ve sitenin gösterdiklerinin sınırları hakkında sık sorulan sorular.',
-  '/apprendre':
-    'Baktığınız şeyi anlayın: piyasa değeri, hacim, arz, mumlar, hareketli ortalamalar ve duyarlılık endeksleri — jargonsuz anlatıldı.',
   '/bien-demarrer':
     'ZENKUU’yu birkaç dakikada kavrayın: bir varlık bulun, sayfasını okuyun, para birimini değiştirin ve gösterilen verilerin sınırlarını anlayın.',
-  '/blog':
-    'ZENKUU blogu — yöntem, ürün, piyasa ve perde arkası. Sayılar nasıl toplanıyor, nasıl doğrulanıyor, nasıl gösteriliyor.',
   '/classements':
     'En çok yükselenler, en çok düşenler, en yüksek hacimler ve en güçlü devir, 1 saatten 30 güne.',
   '/comparateur':

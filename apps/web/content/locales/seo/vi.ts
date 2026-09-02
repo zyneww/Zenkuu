@@ -6,12 +6,8 @@ export const viSeo: SeoDescriptions = {
     'ZENKUU là nền tảng phân tích thị trường đa tài sản, chỉ đọc: không phải môi giới, không phải sàn giao dịch, không phải cố vấn đầu tư.',
   '/aide':
     'Câu hỏi thường gặp về dữ liệu ZENKUU, độ mới của dữ liệu, các biểu đồ và giới hạn của những gì trang hiển thị.',
-  '/apprendre':
-    'Hiểu điều bạn đang xem: vốn hoá, khối lượng, nguồn cung, nến, đường trung bình động và chỉ số tâm lý — giải thích không thuật ngữ rối rắm.',
   '/bien-demarrer':
     'Làm quen ZENKUU trong vài phút: tìm một tài sản, đọc trang của nó, đổi đơn vị tiền tệ và hiểu giới hạn của dữ liệu hiển thị.',
-  '/blog':
-    'Blog của ZENKUU — phương pháp, sản phẩm, thị trường và hậu trường. Các con số được thu thập, kiểm chứng và hiển thị ra sao.',
   '/classements':
     'Tăng mạnh nhất, giảm mạnh nhất, khối lượng cao nhất và vòng quay lớn nhất, từ 1 giờ đến 30 ngày.',
   '/comparateur':

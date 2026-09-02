@@ -124,11 +124,9 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     label: 'Apprendre',
     links: [
-      { label: 'Fiches thématiques', href: '/apprendre' },
       { label: 'Bien démarrer', href: '/bien-demarrer' },
       { label: 'Glossaire', href: '/glossaire' },
       { label: 'Actualités', href: '/actualites' },
-      { label: 'Blog', href: '/blog' },
     ],
   },
   {

@@ -46,12 +46,6 @@ const STEPS = [
     linkLabel: 'Voir une fiche d’exemple',
   },
   {
-    title: 'Choisir une représentation graphique',
-    body: 'Aire, ligne, chandeliers, barres ou écart, avec volume, moyenne mobile et extrêmes en option. Les vues indisponibles pour une source donnée sont retirées du sélecteur plutôt que laissées inertes.',
-    href: '/apprendre/lire-des-chandeliers',
-    linkLabel: 'Comprendre les chandeliers',
-  },
-  {
     title: 'Régler langue et devise',
     body: 'Le sélecteur en forme de globe, dans l’en-tête, fixe la devise d’affichage pour tout le site. Les montants convertis affichent la devise d’origine et la date du taux appliqué.',
     href: '/aide/devise-affichage',

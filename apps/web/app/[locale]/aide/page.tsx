@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { BookOpen, FlaskConical, Newspaper } from 'lucide-react'
+import { FlaskConical, Newspaper } from 'lucide-react'
 
 import { InstagramGlyph } from '@/components/BrandIcons'
 import { Link } from '@/i18n/navigation'
@@ -271,12 +271,6 @@ const ELSEWHERE: readonly {
     title: 'À propos de ZENKUU',
     description:
       'Ce que le site fait, ce qu’il ne fait pas, et les limites que nous écrivons plutôt que de les dissimuler.',
-  },
-  {
-    href: '/apprendre',
-    icon: BookOpen,
-    title: 'Apprendre',
-    description: 'Les notions de marché expliquées, pour lire les pages sans dictionnaire.',
   },
   {
     href: '/actualites',

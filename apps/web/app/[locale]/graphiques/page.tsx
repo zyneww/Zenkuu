@@ -26,7 +26,6 @@ import { SectionRule, StatCard } from '@/components/charts/StatCard'
 import { GlobalChartCard } from '@/components/market/GlobalChartCard'
 import { AltseasonCard } from '@/components/market/views/AltseasonSection'
 import { BasketSection } from '@/components/market/views/BasketSection'
-import { ARTICLES, formatArticleDate, sortedArticles } from '@/content/blog'
 import { getPhrase } from '@/lib/content'
 
 export const revalidate = 180
@@ -523,37 +522,15 @@ function Separator() {
 async function LatestReading() {
   const t = await getPhrase()
 
-  if (ARTICLES.length > 0) {
-    const articles = sortedArticles().slice(0, 4)
-    return (
-      <section className="space-y-4" aria-labelledby="lectures-titre">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 id="lectures-titre" className="display-sm text-ink">
-            {t('Derniers articles de recherche')}
-          </h2>
-          <Link href="/blog" className="text-sm text-ink hover:underline">
-            {t('Tous les articles')}
-          </Link>
-        </div>
+  /* ⚠️ LE REPLI EST DEVENU LA SEULE VOIE, ET C'EST UNE SIMPLIFICATION.
 
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {articles.map((article) => (
-            <li key={article.slug}>
-              <Link
-                href={`/blog/${article.slug}`}
-                className="block rounded-card border border-border-subtle bg-surface px-4 py-3 transition-colors hover:border-brand/40 hover:bg-surface-muted"
-              >
-                <p className="text-sm font-semibold text-ink">{article.title}</p>
-                <p className="mt-1 text-xs text-ink-muted">
-                  {formatArticleDate(article.publishedAt)}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )
-  }
+     Ce bloc choisissait entre NOS articles et les actualités de presse, au cas où la
+     rédaction maison se remplirait un jour. Elle ne s'est jamais remplie — `ARTICLES`
+     était un tableau VIDE depuis toujours — et `/blog` vient d'être supprimé.
+
+     La condition n'avait donc jamais qu'une issue possible. La retirer ne change rien
+     à ce que la page affiche ; elle retire un embranchement que personne n'a jamais
+     pris et que le prochain lecteur aurait cherché à comprendre. */
 
   const news = await getNews(4)
   if (!news.ok || news.data.length === 0) return null
