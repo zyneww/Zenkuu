@@ -9,6 +9,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { RailFade } from '@/components/home/RailFade'
+import { useCarousel } from '@/components/ui/carousel'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -62,11 +63,34 @@ export function NewsRail({
       aria-label={label}
       className="relative flex min-w-0 items-center gap-2"
     >
-      <CarouselPrevious
-        variant="outline"
-        className="static size-8 shrink-0 translate-y-0"
-        aria-label={previousLabel}
-      />
+      {/* ══════════════════════════════════════════════════════════════════════
+          LES FLÈCHES S'EFFACENT EN BOUT DE COURSE, ELLES NE SE CONTENTENT PAS
+          DE SE DÉSACTIVER
+
+          `CarouselPrevious` se grise tout seul au début du rail — c'est déjà juste,
+          et c'était l'état précédent. Mais un bouton grisé occupe toujours sa place
+          et invite encore au clic : on l'essaie, il ne se passe rien, et on se demande
+          si l'interface est en panne.
+
+          ── POURQUOI `opacity` ET NON UN DÉMONTAGE ────────────────────────────
+
+          Retirer le bouton du DOM ferait sauter la mise en page de 40 px à chaque
+          bout de course — le rail se décalerait sous le curseur au moment précis où
+          l'on vise la flèche opposée.
+
+          `opacity-0` avec `w-0` et `-mr-2` retire sa LARGEUR sans le démonter : la
+          transition porte alors sur les deux à la fois, et le rail glisse au lieu de
+          sauter. `pointer-events-none` empêche de cliquer un bouton invisible, et
+          `aria-hidden` le retire de la synthèse vocale — un bouton effacé qu'un
+          lecteur d'écran annoncerait encore serait pire qu'un bouton grisé.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <FlecheEffacable cote="prev">
+        <CarouselPrevious
+          variant="outline"
+          className="static size-8 shrink-0 translate-y-0"
+          aria-label={previousLabel}
+        />
+      </FlecheEffacable>
 
       {/* ── LE FONDU DE BORD ENVELOPPE LE RAIL ────────────────────────────────
 
@@ -80,11 +104,41 @@ export function NewsRail({
         <CarouselContent className="-ml-5">{children}</CarouselContent>
       </RailFade>
 
-      <CarouselNext
-        variant="outline"
-        className="static size-8 shrink-0 translate-y-0"
-        aria-label={nextLabel}
-      />
+      <FlecheEffacable cote="next">
+        <CarouselNext
+          variant="outline"
+          className="static size-8 shrink-0 translate-y-0"
+          aria-label={nextLabel}
+        />
+      </FlecheEffacable>
     </Carousel>
+  )
+}
+
+/**
+ * Enveloppe une flèche pour l'effacer quand elle ne sert plus.
+ *
+ * Elle lit `canScrollPrev` / `canScrollNext` dans le contexte d'embla — la même source
+ * que le fondu de bord et que l'état désactivé du bouton lui-même. Les trois disent
+ * donc toujours la même chose, sans qu'aucun état ne soit tenu en double.
+ */
+function FlecheEffacable({ cote, children }: { cote: 'prev' | 'next'; children: ReactNode }) {
+  const { canScrollPrev, canScrollNext } = useCarousel()
+  const utile = cote === 'prev' ? canScrollPrev : canScrollNext
+
+  return (
+    <div
+      aria-hidden={!utile}
+      /* `w-0` retire la largeur, `-mr-2`/`-ml-2` absorbe la gouttière que le parent
+         pose encore : sans elle, une flèche effacée laisserait huit pixels de vide.
+         La transition porte sur les deux, donc le rail GLISSE au lieu de sauter. */
+      className={`overflow-hidden transition-all duration-200 ease-[var(--ease-standard)] motion-reduce:transition-none ${
+        utile
+          ? 'w-8 opacity-100'
+          : `pointer-events-none w-0 opacity-0 ${cote === 'prev' ? '-mr-2' : '-ml-2'}`
+      }`}
+    >
+      {children}
+    </div>
   )
 }
