@@ -220,7 +220,15 @@ export function AssetMarketDrawer({ currentId }: { currentId?: string }) {
           suspend — et l'on veut pouvoir continuer à lire ce qu'il laisse voir. */}
       <div
         aria-hidden="true"
-        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-200 ${
+        /* ⚠️ 50 % ET NON 40 % : c'est la valeur des QUATRE autres voiles du site —
+           `dialog`, `sheet`, `drawer`, `alert-dialog`. Ce tiroir-ci était le seul à
+           assombrir moins fort, sans raison écrite nulle part ; deux surfaces modales
+           d'une même page se seraient donc détachées différemment de leur fond.
+
+           Le voile n'est pas une surface de la rampe et n'a pas de jeton : c'est un
+           NOIR TRANSPARENT, la même chose dans les deux thèmes. Ce qu'il doit être,
+           c'est identique à lui-même partout. */
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
