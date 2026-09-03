@@ -26,7 +26,13 @@ import {
 } from '@zenkuu/db'
 
 import { MAILER_ENABLED, loginCodeEmail, sendMail } from '@/lib/mailer'
-import { hashPassword, judgePassword, needsRehash, verifyPassword } from '@/lib/password'
+import {
+  DECOY_HASH,
+  hashPassword,
+  judgePassword,
+  needsRehash,
+  verifyPassword,
+} from '@/lib/password'
 import {
   ACCOUNTS_ENABLED,
   IDENTITY_COOKIE,
@@ -307,8 +313,8 @@ export async function signInWithPassword(
     const account = found.data
 
     if (!account || !account.passwordHash) {
-      /* Voir la note : on paie le même temps que sur un compte réel. */
-      await verifyPassword(password, LEURRE)
+      /* Voir `DECOY_HASH` : on paie le même temps que sur un compte réel. */
+      await verifyPassword(password, DECOY_HASH)
       return { ok: false, reason: 'bad-credentials' }
     }
 
@@ -336,14 +342,6 @@ export async function signInWithPassword(
   }
 }
 
-/**
- * Condensat FACTICE, dérivé d'une valeur qui n'est le mot de passe de personne.
- *
- * Il ne protège rien par lui-même : son unique rôle est de donner à `verifyPassword`
- * de quoi travailler le même temps que sur un vrai compte. Voir la note ci-dessus.
- */
-const LEURRE =
-  'pbkdf2$sha256$600000$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 
 /**
  * Pose ou remplace le mot de passe du compte CONNECTÉ.

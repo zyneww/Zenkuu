@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  DECOY_HASH,
   PASSWORD_MAX,
   PASSWORD_MIN,
   hashPassword,
@@ -130,5 +131,41 @@ describe('needsRehash', () => {
     expect(needsRehash('pbkdf2$sha256$1000$c2Vs$Y2xl')).toBe(true)
     expect(needsRehash('bcrypt$12$sel$cle$x')).toBe(true)
     expect(needsRehash('')).toBe(true)
+  })
+})
+
+describe('DECOY_HASH', () => {
+  it('se lit comme un vrai condensat et coûte une vraie dérivation', async () => {
+    /*
+     * ══════════════════════════════════════════════════════════════════════════
+     * CE TEST GARDE UNE PROPRIÉTÉ DE SÉCURITÉ, PAS UNE VALEUR
+     * ══════════════════════════════════════════════════════════════════════════
+     *
+     * Le leurre sert à ce qu'un échec de connexion coûte le MÊME TEMPS qu'un succès.
+     * S'il devenait illisible — un caractère de trop dans le sel, un format modifié —
+     * `verifyPassword` le rejetterait à la lecture, donc en microsecondes, et la durée
+     * de la réponse recommencerait à dire si l'adresse est inscrite.
+     *
+     * ⚠️ CE DÉFAUT SERAIT INVISIBLE : la connexion continuerait de refuser correctement,
+     * tous les autres tests passeraient, et seule une mesure au chronomètre le
+     * révélerait. D'où ce test.
+     */
+    const debut = Date.now()
+    expect(await verifyPassword('un mot de passe quelconque', DECOY_HASH)).toBe(false)
+    const duree = Date.now() - debut
+
+    /* 15 ms est un plancher volontairement bas : il ne mesure pas la performance de la
+       machine, seulement le fait qu'une dérivation a EU LIEU. Un rejet au format
+       reviendrait en moins d'une milliseconde. */
+    expect(duree).toBeGreaterThan(15)
+  })
+
+  it('porte le même nombre d’itérations que les condensats neufs', () => {
+    /* Un leurre à mille itérations reviendrait six cents fois plus vite qu'un vrai
+       condensat : il donnerait l'écart de temps qu'il existe pour supprimer. */
+    const leurre = DECOY_HASH.split('$')[2]
+    const vrai = 'pbkdf2$sha256$600000$x$y'.split('$')[2]
+    expect(leurre).toBe(vrai)
+    expect(needsRehash(DECOY_HASH)).toBe(false)
   })
 })

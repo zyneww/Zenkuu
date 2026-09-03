@@ -147,6 +147,32 @@ async function derive(
   return new Uint8Array(bits)
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE CONDENSAT LEURRE — POUR QUE L'ÉCHEC COÛTE LE MÊME TEMPS QUE LE SUCCÈS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Il n'est le mot de passe de personne, et il ne protège rien par lui-même. Son unique
+ * rôle est de donner à `verifyPassword` de quoi travailler quand le compte visé
+ * n'existe pas, ou n'a pas de mot de passe.
+ *
+ * ⚠️ SANS LUI, LA DURÉE DE LA RÉPONSE DIT SI L'ADRESSE EST INSCRITE. Une adresse
+ * inconnue répondrait en une milliseconde là où une adresse connue paie une dérivation
+ * PBKDF2 de plusieurs dizaines de millisecondes. L'écart se mesure au chronomètre
+ * depuis n'importe où, et rétablit exactement l'oracle que `bad-credentials` existe
+ * pour éviter.
+ *
+ * ⚠️ IL DOIT RESTER PARSABLE ET AU MÊME NOMBRE D'ITÉRATIONS QUE LES VRAIS. Un leurre
+ * mal formé serait rejeté par la lecture du format — donc en microsecondes — et le
+ * défaut reviendrait sans que rien ne le signale. Un test l'atteste.
+ *
+ * Sel de 16 octets, clé de 32, tous deux à zéro : ils n'ont aucun secret à porter,
+ * seulement la bonne LONGUEUR.
+ */
+export const DECOY_HASH = `pbkdf2$sha256$${ITERATIONS}$${toBase64Url(
+  new Uint8Array(SALT_BYTES),
+)}$${toBase64Url(new Uint8Array(KEY_BYTES))}`
+
 /** Dérive un condensat neuf, avec un sel tiré d'une source cryptographique. */
 export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES))
