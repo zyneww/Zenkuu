@@ -43,6 +43,7 @@ import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
+import { AssetSeriesCards } from '@/components/asset/AssetSeriesCards'
 import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 import { AssetIdentity } from '@/components/asset/AssetIdentity'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
@@ -552,6 +553,25 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
 
               Rien n'a donc disparu de la fiche : c'est le doublon qui part, et le
               graphique gagne la hauteur d'une rangée. */}
+
+          {/* ══════════════════════════════════════════════════════════════════
+              LES CARTES DE SÉRIES, SOUS LE GRAPHIQUE
+              ══════════════════════════════════════════════════════════════════
+
+              La forme de `blockworks.com/price/…`, sur les séries que ZENKUU possède.
+              Elles lisent LES MÊMES POINTS que le graphique du dessus — ceux de
+              `history` — donc aucun appel réseau de plus : le volume et la
+              capitalisation voyagent déjà dans cette réponse et n'étaient tracés nulle
+              part.
+
+              ⚠️ ELLES NE SUIVENT PAS LA PÉRIODE CHOISIE DANS LA BARRE D'OUTILS, et il
+              faut le savoir : cet état vit dans `AssetWorkspace`, côté client, et le
+              faire remonter jusqu'ici transformerait la fiche entière en composant
+              client. Les cartes montrent donc la fenêtre servie par le serveur, que
+              leur propre sélecteur de granularité suffit à parcourir. */}
+          {history.ok && history.data.points.length > 1 ? (
+            <AssetSeriesCards points={history.data.points} />
+          ) : null}
 
           {history.ok ? (
             <SourceNote
