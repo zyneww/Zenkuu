@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { FlaskConical, Newspaper } from 'lucide-react'
+import { ChevronRight, FlaskConical, Newspaper } from 'lucide-react'
 
 import { InstagramGlyph } from '@/components/BrandIcons'
 import { Link } from '@/i18n/navigation'
@@ -72,28 +72,26 @@ export default async function AidePage() {
 
   return (
     <div className="space-y-14 pb-4">
-      {/* ══ 1. LE BANDEAU DE RECHERCHE ══════════════════════════════════════ */}
+      {/* ══ 1. LE BANDEAU DE RECHERCHE ══════════════════════════════════════
+
+          ⚠️ ALIGNÉ À GAUCHE, ET NON PLUS CENTRÉ. La note précédente défendait le
+          centrage par un argument juste — « sur une page d'aide, l'action attendue est
+          de CHERCHER » — mais qui vaut pour la TAILLE du champ, pas pour son axe.
+
+          `help.hellobonsai.com`, relevé au navigateur, aligne les deux à gauche sur la
+          colonne de contenu : titre de 28 px, champ de 960 px juste dessous. C'est ce
+          qui les rattache à la grille de cartes qui suit, laquelle commence au même
+          bord. Centrés, les deux formaient un bloc à part, et l'œil devait revenir à
+          gauche pour lire la première carte.
+      */}
       <section className="bleed bg-surface-muted">
-        <div className="shell flex flex-col items-center gap-6 py-14 text-center">
-          {/* ── LE HÉROS EST CENTRÉ, COMME CELUI DE LA RÉFÉRENCE ──────────────
+        <div className="shell flex flex-col gap-5 py-12">
+          <h1 className="display-lg text-ink">{t('Comment pouvons-nous vous aider ?')}</h1>
 
-              Kraken centre son titre, sa phrase et sa grande barre de recherche sur
-              l'axe de la page. Ce n'est pas de l'esthétique : sur une page d'aide,
-              l'action attendue est de CHERCHER, et un champ centré sous un titre
-              centré est la seule chose que l'œil rencontre. Aligné à gauche, il
-              partage l'attention avec la marge droite vide.
-
-              Leur titre fait 58 px ; `display-xl` en fait 40. Je garde le nôtre —
-              58 px sur un titre d'un mot passe la moitié de la hauteur d'écran à dire
-              « Aide », et notre page a du contenu à montrer juste dessous. */}
-          <h1 className="display-xl text-ink">
-            {t('Comment pouvons-nous vous aider ?')}
-          </h1>
-
-          {/* `max-w-2xl` : le champ du modèle est large mais pas pleine largeur — un
-              champ de deux mille pixels fait perdre le curseur de vue quand on tape à
-              gauche et que le bouton est à droite. */}
-          <div className="w-full max-w-2xl">
+          {/* `max-w-3xl` : le champ de la référence est large sans être pleine largeur.
+              Un champ de deux mille pixels fait perdre le curseur de vue quand on tape
+              à gauche et que le bouton est à droite. */}
+          <div className="w-full max-w-3xl">
             <HelpSearch
               suggestions={['devise', 'graphique', 'liste de suivi', 'source', 'conseil']}
             />
@@ -101,32 +99,49 @@ export default async function AidePage() {
         </div>
       </section>
 
-      {/* ══ 2. LES RUBRIQUES ════════════════════════════════════════════════ */}
-      <HelpCategoryGrid />
+      {/* ══ 2. À LIRE EN PREMIER ════════════════════════════════════════════
 
-      {/* ══ 3. À LIRE EN PREMIER ════════════════════════════════════════════
-          Sélection ÉDITORIALE, et le titre le dit. « Les plus consultés »
-          supposerait une mesure d'audience que ZENKUU ne fait pas (§5). */}
-      <section className="bleed bg-surface-muted" aria-labelledby="a-lire-en-premier">
-        <div className="shell py-12">
-          <h2 id="a-lire-en-premier" className="display-sm text-ink">
+          Le « Popular Articles » de la référence : une carte posée AVANT la grille,
+          portant trois liens sur une rangée.
+
+          ⚠️ LE TITRE N'EST PAS « LES PLUS CONSULTÉS », et l'écart n'est pas cosmétique.
+          ZENKUU ne mesure pas l'audience de ses pages ; annoncer une popularité qu'on
+          ne mesure pas serait une donnée inventée comme une autre (§5). Cette sélection
+          est éditoriale et le dit.
+
+          Elle passe DEVANT la grille parce que c'est l'entrée la plus courte : trois
+          questions nommées valent mieux que six rubriques à parcourir quand on arrive
+          sans savoir où chercher. */}
+      <section aria-labelledby="a-lire-en-premier">
+        <div className="rounded-card border border-border-subtle bg-surface p-5">
+          <h2 id="a-lire-en-premier" className="text-sm font-semibold text-ink">
             {t('À lire en premier')}
           </h2>
 
-          <ul className="mt-6 grid gap-x-10 gap-y-3 sm:grid-cols-2">
+          {/* Trois pistes égales sur écran large, empilées en dessous. La chevron
+              termine chaque entrée : sans elle, trois textes gris alignés se lisent
+              comme une phrase coupée plutôt que comme trois destinations. */}
+          <ul className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-3">
             {starters.map((article) => (
               <li key={article.slug}>
                 <Link
                   href={`/aide/${article.slug}`}
-                  className="text-sm text-ink transition-colors duration-150 hover:text-brand"
+                  className="group flex items-start justify-between gap-3 text-sm leading-snug text-ink transition-colors duration-150 hover:text-brand"
                 >
                   {t(article.title)}
+                  <ChevronRight
+                    className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted transition-colors duration-150 group-hover:text-brand"
+                    aria-hidden="true"
+                  />
                 </Link>
               </li>
             ))}
           </ul>
         </div>
       </section>
+
+      {/* ══ 3. LES RUBRIQUES ════════════════════════════════════════════════ */}
+      <HelpCategoryGrid />
 
       {/* ══ 4. ANNONCES ═════════════════════════════════════════════════════
           La référence pose ici une section « Announcements » — listings, maintenances,
