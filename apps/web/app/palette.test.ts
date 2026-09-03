@@ -125,6 +125,10 @@ const PAIRS: readonly [foreground: string, background: string, minimum: number][
   ['--color-ink-muted', '--color-surface-muted', 4.5],
   ['--color-ink', '--color-surface-hover', 4.5],
   ['--color-ink-muted', '--color-surface-hover', 4.5],
+  /* L4 porte l'aplat de TOUTE option active du site depuis `SegmentedControl` :
+     paliers de période, grandeur tracée, vues de marché. Il n'était pas testé — il
+     ne servait auparavant qu'à quelques pastilles isolées. */
+  ['--color-ink', '--color-surface-active', 4.5],
   ['--color-brand', '--color-canvas', 4.5],
   ['--color-brand', '--color-surface', 4.5],
   ['--color-on-brand', '--color-brand', 4.5],
