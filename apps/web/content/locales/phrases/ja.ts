@@ -2917,4 +2917,5 @@ export const jaPhrases: Phrases = {
   '{n} sur {total} lignes': '{total} 行中 {n} 行',
   'Afficher {n} de plus': 'さらに {n} 件を表示',
   'Auto': '自動',
+  'À propos de : {nom}': '{nom} について',
 }

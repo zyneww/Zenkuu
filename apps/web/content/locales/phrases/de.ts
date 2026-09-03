@@ -2925,4 +2925,5 @@ export const dePhrases: Phrases = {
   '{n} sur {total} lignes': '{n} von {total} Zeilen',
   'Afficher {n} de plus': '{n} weitere anzeigen',
   'Auto': 'Auto',
+  'À propos de : {nom}': 'Über: {nom}',
 }

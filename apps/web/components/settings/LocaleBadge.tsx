@@ -60,15 +60,17 @@ export function LocaleBadge({ hint }: { hint: string }) {
           passe maintenant par le `Tooltip` de shadcn/ui, qui s'ouvre au survol ET au
           focus — l'explication devient réellement atteignable.
 
-          ⚠️ `asChild` A DISPARU avec Radix : `Tooltip.Trigger` de HeroUI accroche
-          directement son enfant, sans rendre de bouton autour. */}
+          ⚠️ PAS DE `Tooltip.Trigger` AUTOUR DU BOUTON. La note qui tenait ici affirmait
+          que HeroUI « accroche directement son enfant, sans rendre de bouton autour » :
+          mesuré, il rend un `<div role="button" tabindex="0">` SANS nom accessible, ce
+          qui donne deux arrêts de tabulation dont le premier est muet. Un élément déjà
+          interactif se pose en enfant direct. Voir `IconButton`, où le même défaut a
+          été relevé et où la démonstration est écrite en entier. */}
       <Tooltip>
-        <Tooltip.Trigger>
-          <Button size="sm" variant="outline" onClick={() => setTab('language')}>
-            <Globe />
-            {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}
-          </Button>
-        </Tooltip.Trigger>
+        <Button size="sm" variant="outline" onClick={() => setTab('language')}>
+          <Globe />
+          {LANGUAGE_LABELS[language] ?? 'Français'} · {currency}
+        </Button>
         <Tooltip.Content placement="top">{hint}</Tooltip.Content>
       </Tooltip>
 

@@ -350,7 +350,18 @@ function Card({
           ) : (
             <span className="truncate">{card.label}</span>
           )}
-          <InfoTip content={card.help} label={`À propos de : ${card.label}`} />
+          {/* ⚠️ LE LIBELLÉ PASSE PAR LA TABLE, ET IL NE LE FAISAIT PAS.
+
+              Il s'écrivait `` `À propos de : ${label}` `` — un gabarit français dans un
+              `aria-label`, donc invisible à l'œil et lu tel quel par toute synthèse
+              vocale, quelle que soit la langue du site. Relevé sur la page anglaise :
+              quinze occurrences de « À propos de : Market cap » sur la seule fiche
+              d'actif.
+
+              C'est exactement la famille de défauts que le projet dit avoir éliminée —
+              « les libellés passés en attribut ou en ternaire rejoignent la table » —
+              et elle avait survécu ici parce qu'un attribut ne se relit jamais. */}
+          <InfoTip content={card.help} label={t('À propos de : {nom}').replace('{nom}', card.label)} />
         </span>
       }
       headingLevel="h4"

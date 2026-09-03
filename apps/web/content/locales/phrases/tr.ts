@@ -2917,4 +2917,5 @@ export const trPhrases: Phrases = {
   '{n} sur {total} lignes': '{total} satırdan {n} tanesi',
   'Afficher {n} de plus': '{n} tane daha göster',
   'Auto': 'Otomatik',
+  'À propos de : {nom}': 'Hakkında: {nom}',
 }

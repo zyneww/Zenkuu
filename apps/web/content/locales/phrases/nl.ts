@@ -2917,4 +2917,5 @@ export const nlPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} van {total} rijen',
   'Afficher {n} de plus': 'Nog {n} tonen',
   'Auto': 'Auto',
+  'À propos de : {nom}': 'Over: {nom}',
 }

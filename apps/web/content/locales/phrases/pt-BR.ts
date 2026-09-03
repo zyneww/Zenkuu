@@ -2917,4 +2917,5 @@ export const ptBRPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} de {total} linhas',
   'Afficher {n} de plus': 'Mostrar mais {n}',
   'Auto': 'Automático',
+  'À propos de : {nom}': 'Sobre: {nom}',
 }

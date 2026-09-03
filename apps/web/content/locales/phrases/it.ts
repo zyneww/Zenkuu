@@ -2917,4 +2917,5 @@ export const itPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} di {total} righe',
   'Afficher {n} de plus': 'Mostra altre {n}',
   'Auto': 'Auto',
+  'À propos de : {nom}': 'Informazioni su: {nom}',
 }

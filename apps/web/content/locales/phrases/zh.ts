@@ -2910,4 +2910,5 @@ export const zhPhrases: Phrases = {
   '{n} sur {total} lignes': '{total} 行中的 {n} 行',
   'Afficher {n} de plus': '再显示 {n} 条',
   'Auto': '自动',
+  'À propos de : {nom}': '关于：{nom}',
 }

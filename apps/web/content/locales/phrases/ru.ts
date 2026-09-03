@@ -2917,4 +2917,5 @@ export const ruPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} из {total} строк',
   'Afficher {n} de plus': 'Показать ещё {n}',
   'Auto': 'Авто',
+  'À propos de : {nom}': 'О показателе: {nom}',
 }

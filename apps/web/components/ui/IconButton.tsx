@@ -90,12 +90,37 @@ export function IconButton({
 
   return (
     <Tooltip>
-      {/* ⚠️ PLUS DE `asChild`, ET LE PIÈGE QU'IL DÉSAMORÇAIT A DISPARU AVEC LUI.
-          Radix rendait son PROPRE `<button>` autour du nôtre sans cet attribut : deux
-          boutons imbriqués, HTML invalide, que le navigateur remonte en frères — la
-          mise en page cassait sans qu'aucune erreur ne soit levée.
-          `Tooltip.Trigger` de HeroUI accroche directement son enfant. */}
-      <Tooltip.Trigger>{button}</Tooltip.Trigger>
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        ⚠️ LE BOUTON EST ENFANT DIRECT, SANS `Tooltip.Trigger` AUTOUR
+        ══════════════════════════════════════════════════════════════════════
+
+        Une note tenait ici que « `Tooltip.Trigger` de HeroUI accroche directement son
+        enfant, sans rendre de bouton autour ». C'est FAUX, et la mesure le dit :
+
+            <div class="tooltip__trigger" role="button" tabindex="0">   ← sans nom
+              <button aria-label="Ne plus suivre Bitcoin" tabindex="0">
+                <svg aria-hidden />
+              </button>
+            </div>
+
+        Deux conséquences, aucune visible à l'œil :
+
+          · DEUX ARRÊTS DE TABULATION pour un seul bouton. Au clavier, on passe par un
+            élément muet avant d'atteindre celui qui agit.
+          · LE PREMIER N'A AUCUN NOM ACCESSIBLE. Un lecteur d'écran annonce « bouton »
+            et rien d'autre — c'est le défaut exact que l'en-tête de ce fichier dit
+            vouloir rendre impossible.
+
+        La documentation de HeroUI est sans ambiguïté : un élément DÉJÀ interactif se
+        pose en enfant direct de `Tooltip`, et `Tooltip.Trigger` est réservé aux
+        déclencheurs qui ne le sont pas — un avatar, une pastille, une icône nue — à qui
+        il faut justement fabriquer un rôle et un nom.
+
+        Ici le `<Button>` porte déjà son rôle, son nom et son arrêt de tabulation. Il
+        n'a besoin de rien autour de lui.
+      */}
+      {button}
       <Tooltip.Content placement={side}>{tooltip ?? label}</Tooltip.Content>
     </Tooltip>
   )

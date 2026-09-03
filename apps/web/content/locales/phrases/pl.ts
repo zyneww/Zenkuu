@@ -2917,4 +2917,5 @@ export const plPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} z {total} wierszy',
   'Afficher {n} de plus': 'Pokaż jeszcze {n}',
   'Auto': 'Auto',
+  'À propos de : {nom}': 'O: {nom}',
 }

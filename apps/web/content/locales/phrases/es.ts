@@ -2924,4 +2924,5 @@ export const esPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} de {total} filas',
   'Afficher {n} de plus': 'Mostrar {n} más',
   'Auto': 'Auto',
+  'À propos de : {nom}': 'Acerca de: {nom}',
 }

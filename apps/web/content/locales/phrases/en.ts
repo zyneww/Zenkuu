@@ -2929,4 +2929,5 @@ export const enPhrases: Phrases = {
   '{n} sur {total} lignes': '{n} of {total} rows',
   'Afficher {n} de plus': 'Show {n} more',
   'Auto': 'Auto',
+  'À propos de : {nom}': 'About: {nom}',
 }
