@@ -28,32 +28,73 @@ class RateLimiter {
     private readonly minIntervalMs: number,
   ) {}
 
-  /** Attend son tour. Les appels concurrents sont sérialisés dans l'ordre d'arrivée. */
-  acquire(): Promise<void> {
-    const turn = this.queue.then(() => this.reserve())
+  /**
+   * Attend son tour. Les appels concurrents sont sérialisés dans l'ordre d'arrivée.
+   *
+   * ⚠️ L'ATTENTE EST BORNÉE, ET ELLE NE L'ÉTAIT PAS.
+   *
+   * `reserve()` bouclait sans limite : tant que la fenêtre restait pleine, elle
+   * dormait et recommençait. Sous rafale, une page ne bloquait donc pas sur le
+   * RÉSEAU mais dans cette file, et pour aussi longtemps qu'il fallait.
+   *
+   * Mesuré : après un audit qui a saturé le quota du fournisseur, `/crypto/bitcoin`
+   * n'avait toujours rien rendu au bout de cent trente secondes, quand `/crypto` et
+   * `/categories` — qui essuient le même refus — dégradaient proprement en moins de
+   * deux cents millisecondes. La différence ne venait pas du fournisseur : elle
+   * venait d'ici.
+   *
+   * C'est le pire des deux comportements possibles. Un `ProviderError` remonte au
+   * `DataResult` que toute la couche de données sait déjà traiter, et la page
+   * s'affiche sans la donnée manquante (§5 : dégrader, jamais inventer). Une attente
+   * sans fin, elle, ne remonte rien : le lecteur regarde un onglet qui tourne.
+   *
+   * L'échéance est celle de la requête elle-même, `timeoutMs`. Le budget total d'un
+   * appel reste donc borné et lisible : au pire, l'attente du tour plus la requête.
+   */
+  acquire(deadlineMs?: number): Promise<void> {
+    const turn = this.queue.then(() => this.reserve(deadlineMs))
     // On neutralise le rejet sur la chaîne interne : une erreur d'un appelant ne
     // doit pas bloquer définitivement la file pour les suivants.
     this.queue = turn.catch(() => undefined)
     return turn
   }
 
-  private async reserve(): Promise<void> {
+  private async reserve(deadlineMs?: number): Promise<void> {
+    const echeance = deadlineMs === undefined ? undefined : Date.now() + deadlineMs
     for (;;) {
       const now = Date.now()
+      if (echeance !== undefined && now >= echeance) {
+        /* `retryable` : ce n'est pas un refus du fournisseur, c'est notre propre file
+           qui déborde. Le même appel réussira dès que la pression retombe. */
+        throw new Error('FILE_SATUREE')
+      }
 
       while (this.timestamps.length > 0 && now - (this.timestamps[0] as number) >= this.windowMs) {
         this.timestamps.shift()
       }
 
+      /*
+       * ⚠️ CHAQUE SIESTE EST PLAFONNÉE PAR CE QUI RESTE DU BUDGET.
+       *
+       * Le contrôle d'échéance en tête de boucle ne suffisait pas : quand la fenêtre
+       * est pleine, l'attente calculée vaut ce qui reste de la MINUTE. On dormait donc
+       * soixante secondes avant de revoir l'échéance — la borne existait, elle n'était
+       * simplement jamais atteinte à temps.
+       *
+       * En plafonnant, le réveil tombe exactement sur l'échéance, le tour de boucle
+       * suivant la constate, et l'appel rend la main.
+       */
+      const restant = echeance === undefined ? Number.POSITIVE_INFINITY : echeance - now
+
       const last = this.timestamps[this.timestamps.length - 1]
       if (last !== undefined && now - last < this.minIntervalMs) {
-        await sleep(this.minIntervalMs - (now - last))
+        await sleep(Math.min(this.minIntervalMs - (now - last), restant))
         continue
       }
 
       if (this.timestamps.length >= this.maxPerWindow) {
         const oldest = this.timestamps[0] as number
-        await sleep(this.windowMs - (now - oldest) + 10)
+        await sleep(Math.min(this.windowMs - (now - oldest) + 10, restant))
         continue
       }
 
@@ -269,7 +310,24 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
   ): Promise<T> {
     const url = buildUrl(path, query)
 
-    await limiter.acquire()
+    /*
+     * ⚠️ L'ATTENTE DU TOUR EST BORNÉE PAR LE MÊME BUDGET QUE LA REQUÊTE.
+     *
+     * Le sentinelle est traduite ici, où `providerId` est connu, en le
+     * `ProviderError` retryable que toute la couche de données sait déjà traiter :
+     * la page s'affiche sans la donnée, au lieu de ne pas s'afficher du tout.
+     */
+    try {
+      await limiter.acquire(timeoutMs)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'FILE_SATUREE') {
+        throw new ProviderError(providerId, `File d'attente saturée après ${timeoutMs} ms`, {
+          retryable: true,
+        })
+      }
+      throw error
+    }
+
     try {
       return await attempt<T>(url, as, revalidateOverrideSeconds, bypassForThisCall)
     } catch (error) {
@@ -294,7 +352,15 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       // rapidement plutôt que faire patienter l'utilisateur (§5, §9).
       const hint = error.cause as { retryAfterMs?: number } | undefined
       await sleep(hint?.retryAfterMs ?? 1_000)
-      await limiter.acquire()
+      /* La reprise attend son tour comme la première tentative, et renonce de même :
+         sans borne ici, la seconde tentative rouvrirait exactement l'attente sans fin
+         que la première vient d'éviter. */
+      try {
+        await limiter.acquire(timeoutMs)
+      } catch (attente) {
+        if (attente instanceof Error && attente.message === 'FILE_SATUREE') throw error
+        throw attente
+      }
       /* La reprise DOIT reporter le contournement : sans lui, la seconde tentative
          repasserait par le cache de Next et rejouerait le refus d'écriture que la
          première venait d'éviter. */
