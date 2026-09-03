@@ -2713,4 +2713,6 @@ export const ptBRPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Queda de mais de 5 % em vinte e quatro horas',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'A fonte não publica o histórico de {grandeur} deste ativo.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'O preço está a {pct} % da faixa de 24 horas',
+  'Rechercher parmi {n} indicateurs': 'Buscar entre {n} indicadores',
+  'Retirer {nom} de la comparaison': 'Remover {nom} da comparação',
 }

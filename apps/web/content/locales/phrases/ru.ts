@@ -2713,4 +2713,6 @@ export const ruPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Падение более чем на 5 % за двадцать четыре часа',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Источник не публикует историю «{grandeur}» для этого актива.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Цена находится на отметке {pct} % диапазона за 24 часа',
+  'Rechercher parmi {n} indicateurs': 'Поиск среди {n} показателей',
+  'Retirer {nom} de la comparaison': 'Убрать {nom} из сравнения',
 }

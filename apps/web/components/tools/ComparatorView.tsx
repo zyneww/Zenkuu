@@ -595,7 +595,11 @@ function SlotCard({
             size="icon-xs"
             variant="ghost"
             icon={X}
-            label={`Retirer ${asset.name} de la comparaison`}
+            /* ⚠️ CE LIBELLÉ N'EST JAMAIS ÉCRIT À L'ÉCRAN : il devient l'`aria-label`
+               du bouton de retrait, dont le contenu visible est une croix. C'est
+               exactement le genre de texte qu'aucune relecture ne rattrape — il
+               n'apparaît que dans une synthèse vocale. */
+            label={t('Retirer {nom} de la comparaison').replace('{nom}', asset.name)}
             tooltip={false}
             onClick={onRemove}
             className="shrink-0"

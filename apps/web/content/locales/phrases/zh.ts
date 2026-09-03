@@ -2706,4 +2706,6 @@ export const zhPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': '二十四小时内跌幅超过5%',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': '数据来源未发布该资产的{grandeur}历史。',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': '价格处于24小时区间的{pct}%位置',
+  'Rechercher parmi {n} indicateurs': '在{n}项指标中搜索',
+  'Retirer {nom} de la comparaison': '从对比中移除{nom}',
 }

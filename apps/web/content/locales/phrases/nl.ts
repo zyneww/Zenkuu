@@ -2713,4 +2713,6 @@ export const nlPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Daling van meer dan 5 % in vierentwintig uur',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'De bron publiceert geen {grandeur}-historiek voor dit activum.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'De koers staat op {pct} % van de 24-uursrange',
+  'Rechercher parmi {n} indicateurs': 'Zoek in {n} indicatoren',
+  'Retirer {nom} de la comparaison': '{nom} uit de vergelijking halen',
 }

@@ -213,7 +213,13 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder={`Rechercher parmi ${ENTRIES.length} indicateurs`}
+          /* ⚠️ UN GABARIT LITTÉRAL RESTE DU FRANÇAIS, MÊME AVEC UNE VARIABLE DEDANS.
+             Le nombre change, la phrase non : elle sortait telle quelle sur la page
+             anglaise. Une clé à jeton la traduit sans figer le compte. */
+          placeholder={t('Rechercher parmi {n} indicateurs').replace(
+            '{n}',
+            String(ENTRIES.length),
+          )}
           aria-label={t('Rechercher un indicateur macroéconomique')}
           /* `appearance-none` retire la croix native de `type="search"`, qui vide le
              champ sans prévenir le composant sur certains moteurs. */

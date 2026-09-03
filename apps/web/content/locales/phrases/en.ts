@@ -2725,4 +2725,6 @@ export const enPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Down more than 5% over twenty-four hours',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'The source publishes no {grandeur} history for this asset.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'The price sits at {pct}% of the 24-hour range',
+  'Rechercher parmi {n} indicateurs': 'Search {n} indicators',
+  'Retirer {nom} de la comparaison': 'Remove {nom} from the comparison',
 }

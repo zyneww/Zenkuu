@@ -2721,4 +2721,6 @@ export const dePhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Rückgang von über 5 % in vierundzwanzig Stunden',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Die Quelle veröffentlicht keine {grandeur}-Historie für diesen Wert.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Der Kurs liegt bei {pct} % der 24-Stunden-Spanne',
+  'Rechercher parmi {n} indicateurs': '{n} Indikatoren durchsuchen',
+  'Retirer {nom} de la comparaison': '{nom} aus dem Vergleich entfernen',
 }

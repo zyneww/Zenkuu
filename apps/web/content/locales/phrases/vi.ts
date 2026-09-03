@@ -2713,4 +2713,6 @@ export const viPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Giảm hơn 5 % trong hai mươi tư giờ',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Nguồn không công bố lịch sử {grandeur} cho tài sản này.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Giá đang ở mức {pct} % của biên độ 24 giờ',
+  'Rechercher parmi {n} indicateurs': 'Tìm trong {n} chỉ báo',
+  'Retirer {nom} de la comparaison': 'Bỏ {nom} khỏi phần so sánh',
 }

@@ -2713,4 +2713,6 @@ export const plPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Spadek o ponad 5 % w ciągu dwudziestu czterech godzin',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Źródło nie publikuje historii {grandeur} dla tego aktywa.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Kurs znajduje się na poziomie {pct} % zakresu 24-godzinnego',
+  'Rechercher parmi {n} indicateurs': 'Szukaj wśród {n} wskaźników',
+  'Retirer {nom} de la comparaison': 'Usuń {nom} z porównania',
 }

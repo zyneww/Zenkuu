@@ -2713,4 +2713,6 @@ export const trPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': 'Yirmi dört saatte %5’ten fazla düşüş',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Kaynak bu varlık için {grandeur} geçmişi yayımlamıyor.',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Fiyat, 24 saatlik aralığın %{pct} seviyesinde',
+  'Rechercher parmi {n} indicateurs': '{n} gösterge içinde ara',
+  'Retirer {nom} de la comparaison': '{nom} öğesini karşılaştırmadan çıkar',
 }

@@ -2713,4 +2713,6 @@ export const jaPhrases: Phrases = {
   'Recul de plus de 5 % sur vingt-quatre heures': '24時間で5%を超える下落',
   'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'このアセットの{grandeur}履歴は提供元が公開していません。',
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': '価格は24時間レンジの{pct}%の位置にあります',
+  'Rechercher parmi {n} indicateurs': '{n}件の指標を検索',
+  'Retirer {nom} de la comparaison': '{nom}を比較から外す',
 }
