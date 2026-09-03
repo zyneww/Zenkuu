@@ -321,7 +321,30 @@ export function AssetLayoutFrame({
         de chiffres ne soit distendu. Le rail flotte désormais (voir plus bas), et un
         flottant ne s'étire pas.
       */}
-      <div className="flex items-stretch gap-6 pt-4">
+      {/*
+        ⚠️ `overflow-x: clip` — DIX-HUIT PIXELS QUI COUPAIENT LA LANGUETTE EN DEUX.
+
+        Mesuré sur un Galaxy S24 (360 px), fiches devises, indices et matières
+        premières : `documentElement.scrollWidth` valait 378. La page ne défilait pas
+        pour autant — `html` porte déjà `overflow-x: clip` — mais la languette
+        « Actualités », posée en `fixed right-0`, se retrouvait à cheval sur ce bord
+        élargi : la moitié de sa largeur passait hors de l'écran.
+
+        Le défaut est CIRCULAIRE, et c'est ce qui le rendait difficile à lire. Un
+        débordement de dix-huit pixels dans cette rangée élargit le cadre initial ;
+        `right-0` s'accroche à ce cadre élargi ; la languette sort donc de l'écran.
+        Déplacer la languette dans le corps du document ne change rien — vérifié au
+        navigateur, `scrollWidth` reste à 378 — parce qu'elle n'est pas la cause mais
+        la victime.
+
+        `clip` et NON `hidden` : `hidden` crée un conteneur de défilement, ce qui
+        supprimerait la course dont `position: sticky` a besoin — précisément le
+        comportement que le commentaire ci-dessus s'attache à préserver. `clip` ne
+        crée ni conteneur de défilement ni bloc conteneur pour les éléments fixes : la
+        languette continue de s'ancrer au viewport, et se pose désormais exactement à
+        son bord (mesuré : 360, contre 378 avant).
+      */}
+      <div className="flex items-stretch gap-6 overflow-x-clip pt-4">
         {/*
           ── LA GRILLE A CÉDÉ LA PLACE À UN FLOTTANT ───────────────────────────
 

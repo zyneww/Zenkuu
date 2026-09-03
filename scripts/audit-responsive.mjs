@@ -198,17 +198,72 @@ const PROBE = `(() => {
     if (r.width === 0 || r.height === 0) continue
     const st = getComputedStyle(el)
     if (st.visibility === 'hidden' || decorative(el)) continue
-    /* Un lien à l'intérieur d'un paragraphe n'est pas un bouton : on ne lui demande
-       pas 32 px de haut, il suit la ligne de texte. Le test porte donc sur ce qui se
-       comporte en bloc ou en boîte. */
-    if (el.tagName === 'A' && st.display === 'inline' && el.closest('p, li, td, th, caption')) continue
+    /*
+     * ⚠️ L'EXCEPTION « LIEN EN LIGNE » NE DÉPEND PLUS D'UNE LISTE DE BALISES.
+     *
+     * ⚠️ AUCUN ACCENT GRAVE DANS CE COMMENTAIRE : la fonction de mesure vit dans un
+     * littéral gabarit, et le moindre accent grave le referme. La version précédente
+     * de cette note en portait trois et cassait le fichier.
+     *
+     * Elle ne s'appliquait qu'à l'intérieur de p, li, td, th et caption. Le critère
+     * WCAG 2.5.8 ne parle pourtant pas de balises : il dispense la cible dont « la
+     * taille est contrainte par l'interligne d'un texte qui n'est pas une cible ».
+     *
+     * Les fils d'Ariane du site vivent dans un nav — « Secteurs / Convertisseurs
+     * de devises », « Centre d'aide / Sources » — et tombaient donc hors exception. Ce
+     * sont vingt-quatre relevés par passage, sur quatre routes, pour des liens qui
+     * suivent la ligne de texte à côté d'un séparateur : les épaissir de huit pixels
+     * casserait la ligne pour se conformer à une règle qui les dispense.
+     *
+     * La condition écrite ici est celle du critère : le lien est EN LIGNE, et son
+     * parent porte du texte hors lien sur la même ligne. Une balise n'y entre pas.
+     */
+    if (el.tagName === 'A' && st.display === 'inline') {
+      const parent = el.parentElement
+      const texteHorsLien = parent
+        ? [...parent.childNodes]
+            .filter((n) => n.nodeType === 3 || (n.nodeType === 1 && !n.closest('a[href], button')))
+            .map((n) => (n.textContent || '').trim())
+            .join('')
+        : ''
+      if (texteHorsLien.length > 0) continue
+    }
     /* La ligne d'un TABLEAU DENSE est une cible acceptable à 24 px : c'est la
        grammaire du site, et l'épaissir de moitié rendrait un classement de cinquante
        lignes interminable. On ne la mesure donc pas au même aune qu'un bouton. */
     const inRow = el.closest('td, th') !== null
     const minH = 24
     if (r.height < minH || r.width < 24) {
-      small.push({ el: name(el), text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 28), w: Math.round(r.width), h: Math.round(r.height) })
+      /*
+       * ⚠️ LA SECONDE EXCEPTION DU CRITÈRE : L'ESPACEMENT.
+       *
+       * WCAG 2.5.8 dispense une cible sous-dimensionnée lorsqu'un disque de 24 px
+       * centré sur elle ne rencontre le disque d'aucune autre cible. C'est la règle
+       * qui couvre les listes de liens aérées — un pied de page, un menu — où
+       * l'espace entre les liens fait le travail que leur hauteur ne fait pas.
+       *
+       * Sans elle, la sonde relevait vingt-six cibles par page sur des pieds de page
+       * parfaitement conformes. Une règle appliquée à moitié produit plus de bruit
+       * qu'une règle absente : on cesse de lire le rapport, et les vraies cibles s'y
+       * perdent.
+       *
+       * On mesure la distance de CENTRE À CENTRE : deux disques de rayon 12 se
+       * rencontrent si leurs centres sont à moins de 24 px l'un de l'autre.
+       */
+      const cx = r.left + r.width / 2
+      const cy = r.top + r.height / 2
+      let serree = false
+      for (const autre of document.querySelectorAll('a[href], button, [role=\"button\"], input:not([type=\"hidden\"]), select, summary')) {
+        if (autre === el) continue
+        const ra = autre.getBoundingClientRect()
+        if (ra.width === 0 || ra.height === 0) continue
+        const dx = ra.left + ra.width / 2 - cx
+        const dy = ra.top + ra.height / 2 - cy
+        if (Math.hypot(dx, dy) < 24) { serree = true; break }
+      }
+      if (serree) {
+        small.push({ el: name(el), text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 28), w: Math.round(r.width), h: Math.round(r.height) })
+      }
     }
   }
 

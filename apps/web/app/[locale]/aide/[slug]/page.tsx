@@ -93,7 +93,19 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </div>
 
       <footer className="border-t border-border-subtle pt-4">
-        <Link href="/aide" className="text-sm text-ink hover:underline">
+        {/*
+          ⚠️ `inline-flex min-h-6` — VINGT-QUATRE PIXELS, LE PLANCHER DU WCAG 2.5.8.
+
+          Ce lien mesurait dix-sept pixels de haut, la hauteur de sa ligne. Il est
+          SEUL dans son pied de page : l'exception qui dispense un lien en ligne — sa
+          taille est contrainte par l'interligne d'un texte voisin — ne s'y applique
+          pas, faute de texte voisin. Les fils d'Ariane des mêmes pages, eux, en
+          relèvent bien et restent tels quels.
+        */}
+        <Link
+          href="/aide"
+          className="inline-flex min-h-6 items-center text-sm text-ink hover:underline"
+        >
           {t('← Retour au centre d’aide')}
         </Link>
       </footer>
