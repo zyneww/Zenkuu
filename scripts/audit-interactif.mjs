@@ -33,6 +33,9 @@ import { chromium } from 'playwright'
 import { routesAudit } from './routes-audit.mjs'
 
 const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3000'
+
+/** `--theme=clair` ou `--theme=sombre` ; sombre par défaut, c'est celui du site. */
+const THEME = (process.argv.find((a) => a.startsWith('--theme=')) ?? '--theme=sombre').slice(8)
 const OUT = new URL('../.audit/', import.meta.url).pathname
 
 
@@ -90,6 +93,22 @@ async function auditerRoute(page, route) {
     waitUntil: 'domcontentloaded',
     timeout: 120_000,
   })
+  /*
+   * ⚠️ LE THÈME EST IMPOSÉ, PARCE QUE LE LAISSER AU HASARD REVENAIT À N'EN MESURER
+   * QU'UN SEUL SANS SAVOIR LEQUEL.
+   *
+   * `ThemeScript` choisit selon la préférence du système, et Playwright annonce
+   * `light` par défaut. Sans cette ligne, l'audit mesurait donc le thème CLAIR —
+   * en croyant mesurer « le site ». Le sombre, celui que la rampe d'obsidienne
+   * décrit sur trois cents lignes, n'était jamais passé sous la sonde.
+   *
+   * On pose la classe APRÈS le chargement : `ThemeScript` s'exécute au premier
+   * rendu et écraserait un réglage posé avant lui.
+   */
+  await page.evaluate((t) => {
+    document.documentElement.classList.toggle('dark', t === 'sombre')
+  }, THEME)
+
   /* Le site hydrate puis charge ses séries : sans cette attente, on mesure un
      squelette et l'on conclut que rien ne répond au survol. */
   await page.waitForTimeout(6000)
@@ -285,8 +304,8 @@ async function main() {
   }
 
   await navigateur.close()
-  await writeFile(OUT + 'interactif.json', JSON.stringify(rapports, null, 2), 'utf8')
-  console.log('\nRapport : ' + OUT + 'interactif.json')
+  await writeFile(OUT + `interactif-${THEME}.json`, JSON.stringify(rapports, null, 2), 'utf8')
+  console.log(`\nRapport (${THEME}) : ${OUT}interactif-${THEME}.json`)
 }
 
 main()
