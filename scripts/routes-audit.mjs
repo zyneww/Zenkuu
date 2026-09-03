@@ -159,5 +159,22 @@ export async function routesAudit(page, base = 'http://localhost:3000') {
     /* Un cache qu'on ne peut pas écrire ne doit pas faire échouer l'audit. */
   }
 
-  return { routes: [...utiles.sort(), ...trouvees.sort()], manquantes }
+  /*
+   * ⚠️ LES MOTIFS SORTENT AVEC LE RESTE, ET CE N'EST PAS UN DÉTAIL D'API.
+   *
+   * `audit-liens` doit replier mille sept cents adresses sur les quelques FORMES
+   * qu'elles occupent. Il l'a d'abord fait à l'estime — « un segment qui contient un
+   * chiffre ou trois traits d'union est un identifiant » — et cette devinette a rendu
+   * 1 145 formes pour 1 725 adresses : « bitcoin », « uniswap », « arbitrum » ne
+   * ressemblent à rien de particulier.
+   *
+   * Les vraies formes ne se devinent pas : elles sont écrites dans `app/[locale]`, et
+   * ce module vient de les lire. Les rendre ici remplace l'heuristique par la source.
+   */
+  return {
+    routes: [...utiles.sort(), ...trouvees.sort()],
+    manquantes,
+    statiques: utiles,
+    motifs: motifs.map((m) => ({ motif: m, exp: versExpression(m) })),
+  }
 }

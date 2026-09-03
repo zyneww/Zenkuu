@@ -47,6 +47,7 @@ const page = await (await navigateur.newContext({ viewport: { width: 1440, heigh
    plus un exemplaire vivant de chaque motif dynamique, pêché dans les liens rendus. */
 const decouverte = await routesAudit(page, BASE)
 ROUTES = decouverte.routes
+const MOTIFS = decouverte.motifs
 if (decouverte.manquantes.length)
   console.log('motifs sans exemplaire vivant : ' + decouverte.manquantes.join(', '))
 console.log(ROUTES.length + ' routes à parcourir.\n')
@@ -101,21 +102,27 @@ await navigateur.close()
  */
 const PAR_FORME = 3
 
-function forme(chemin) {
-  return chemin
-    .split('/')
-    .map((segment) =>
-      /^[a-z0-9]+(-[a-z0-9]+){2,}$/i.test(segment) || /\d/.test(segment) || segment.length > 24
-        ? '*'
-        : segment,
-    )
-    .join('/')
+/*
+ * ⚠️ LA FORME D'UNE ADRESSE EST LUE, PAS DEVINÉE.
+ *
+ * Première version : « un segment qui contient un chiffre, ou trois traits d'union,
+ * ou plus de vingt-quatre caractères, est un identifiant. » Résultat mesuré :
+ * 1 145 formes pour 1 725 adresses — c'est-à-dire presque aucun repliement. Les
+ * identifiants de ce site s'appellent « bitcoin », « uniswap », « arbitrum » : rien
+ * ne les distingue d'un segment fixe, et rien ne le pouvait.
+ *
+ * Les formes réelles sont écrites dans `app/[locale]`, et `routes-audit` les lit
+ * déjà pour découvrir les routes. On s'en sert.
+ */
+function formeDe(chemin, motifs) {
+  const trouve = motifs.find((m) => m.exp.test(chemin))
+  return trouve ? trouve.motif : chemin
 }
 
 const parForme = new Map()
 const echantillon = []
 for (const [dest, depuis] of [...destinations].sort()) {
-  const f = forme(dest)
+  const f = formeDe(dest, MOTIFS)
   const vus = parForme.get(f) ?? 0
   if (vus >= PAR_FORME) continue
   parForme.set(f, vus + 1)
