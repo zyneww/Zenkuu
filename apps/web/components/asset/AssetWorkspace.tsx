@@ -226,6 +226,14 @@ interface AssetWorkspaceProps {
    * qui ouvre « Ce symbole n'existe pas ». Voir `tradingview-symbol.ts`.
    */
   tradingViewSymbol?: string | null
+  /**
+   * Symbole TradingView de la CAPITALISATION, quand il en existe un.
+   *
+   * `null` partout sauf en crypto : voir `tradingViewMarketCapSymbol`. C'est ce `null`
+   * qui grise le sélecteur de grandeur pendant que le moteur externe a la main — un
+   * choix qui ne changerait rien vaut moins qu'un choix visiblement indisponible.
+   */
+  tradingViewMarketCapSymbol?: string | null
 }
 
 /**
@@ -244,6 +252,7 @@ export function AssetWorkspace({
   rates,
   compareOptions = [],
   tradingViewSymbol = null,
+  tradingViewMarketCapSymbol = null,
 }: AssetWorkspaceProps) {
   const t = usePhrase()
   const [days, setDays] = useState(initialDays)
@@ -1401,10 +1410,24 @@ export function AssetWorkspace({
                * pas ici », là où l'absence laissait croire que le site n'en avait
                * jamais entendu parler. Voir `ChartToolbar`, qui rend l'état inerte.
                */
+              /*
+                ⚠️ EN MODE TRADINGVIEW, LA DISPONIBILITÉ CHANGE DE SOURCE.
+
+                Hors de ce mode, une grandeur est disponible si NOTRE source publie sa
+                série — c'est `metricAvailable`, calculé plus haut.
+
+                Sous TradingView, notre série ne sert plus à rien : c'est le widget qui
+                trace, et il trace un SYMBOLE. La capitalisation n'est donc atteignable
+                que là où il en existe un — `CRYPTOCAP:BTC` en crypto, rien ailleurs.
+                Laisser le bouton actif sur une action ferait cliquer dans le vide.
+              */
               metricOptions={METRICS.map((entry) => ({
                 key: entry.key,
                 label: t(METRIC_LABELS[entry.key]),
-                available: metricAvailable[entry.key],
+                available:
+                  view === 'tradingview'
+                    ? entry.key === 'price' || tradingViewMarketCapSymbol !== null
+                    : metricAvailable[entry.key],
               }))}
               onMetricChange={(key) => selectMetric(key as ChartMetric)}
               compareIds={compareIds}
@@ -1522,7 +1545,18 @@ export function AssetWorkspace({
                 `renderOptions` : le cadre ne peut donc pas être monté avec un symbole
                 que TradingView ne connaît pas. */}
             {view === 'tradingview' && tradingViewSymbol ? (
-              <TradingViewChart symbol={tradingViewSymbol} />
+              /* Le SYMBOLE suit la grandeur choisie : `CRYPTOCAP:BTC` quand on demande
+                 la capitalisation, la paire de cotation sinon. Le repli sur le prix
+                 couvre le cas où la grandeur est restée sur « capitalisation » en
+                 arrivant depuis une fiche qui la traçait — le sélecteur est alors grisé,
+                 mais l'état, lui, a voyagé. */
+              <TradingViewChart
+                symbol={
+                  metric === 'marketCap' && tradingViewMarketCapSymbol
+                    ? tradingViewMarketCapSymbol
+                    : tradingViewSymbol
+                }
+              />
             ) : view === 'depth' ? (
               <AssetDepthChart symbol={asset.symbol} />
             ) : (

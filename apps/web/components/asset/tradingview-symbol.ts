@@ -179,6 +179,38 @@ const INDICES: Record<string, string> = {
  * @param tickers Les places qui cotent l'actif. Indispensable pour la crypto, ignoré
  *   pour les cinq autres classes, qui se nomment sans elles. Voir le cas 1 de l'en-tête.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA CAPITALISATION A SON PROPRE SYMBOLE, ET SEULEMENT EN CRYPTO
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * TradingView trace un SYMBOLE, pas une grandeur : lui demander « la capitalisation de
+ * Bitcoin » n'a de sens que s'il existe un symbole qui la cote. Il en existe un, et un
+ * seul jeu — `CRYPTOCAP:BTC`, `CRYPTOCAP:ETH` — que TradingView calcule lui-même.
+ *
+ * ⚠️ IL N'Y A AUCUN ÉQUIVALENT AILLEURS. Ni pour les actions, ni pour les ETF, les
+ * indices, les devises ou les matières premières : la capitalisation d'une entreprise
+ * n'est pas un instrument coté. La barre grise donc son sélecteur sur ces classes
+ * pendant que le moteur externe a la main, plutôt que de proposer un choix qui ne
+ * changerait rien — voir `AssetWorkspace`.
+ *
+ * Le symbole est bâti sur le CODE de l'actif et non sur ses places de cotation : c'est
+ * un agrégat mondial, il n'appartient à aucune bourse. Un code que TradingView ne
+ * couvre pas affiche son propre message dans le cadre, comme pour tout symbole inconnu
+ * — la limite est la même que celle décrite dans `TradingViewChart`.
+ */
+export function tradingViewMarketCapSymbol(
+  assetClass: AssetClass,
+  symbol: string,
+): string | null {
+  if (assetClass !== 'crypto') return null
+  const raw = symbol.trim().toUpperCase()
+  /* Le jeu `CRYPTOCAP` n'emploie que des lettres et des chiffres. Un code portant un
+     tiret ou un point n'y figure pas, et le préfixer produirait un symbole introuvable
+     plutôt qu'un `null` franc. */
+  return /^[A-Z0-9]{1,12}$/.test(raw) ? `CRYPTOCAP:${raw}` : null
+}
+
 export function tradingViewSymbol(
   assetClass: AssetClass,
   symbol: string,

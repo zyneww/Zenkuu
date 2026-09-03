@@ -57,12 +57,57 @@ export function TradingViewChart({
   const { theme } = useSettings()
 
   /*
-   * Le thème est passé au montage et ne peut plus changer ensuite : le widget lit sa
-   * configuration une seule fois, à l'injection. Basculer le thème du site pendant
-   * que cette vue est ouverte laisse donc le cadre dans son thème d'origine jusqu'au
-   * prochain montage. C'est visible, mais le remède — remonter l'iframe à chaque
-   * bascule — rechargerait plusieurs centaines de kilooctets et ferait perdre les
-   * dessins en cours, ce qui serait pire.
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⚠️ C'EST LE THÈME RÉSOLU QUI COMPTE, PAS LE RÉGLAGE — ET L'ÉCART SE VOYAIT
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Le widget recevait `theme === 'dark' ? 'dark' : 'light'`. Or le réglage du site a
+   * TROIS valeurs — `light`, `dark`, `system` — et `system` est la valeur PAR DÉFAUT.
+   * Un lecteur qui n'a jamais touché au réglage, sur un système en mode sombre, voyait
+   * donc un cadre TradingView blanc au milieu d'une page noire. Relevé au navigateur :
+   * site en sombre, widget en clair.
+   *
+   * La classe `dark` posée sur l'élément racine porte, elle, l'état RÉSOLU : c'est
+   * `applyTheme` qui l'y met, en croisant le réglage et `prefers-color-scheme`. On la
+   * lit donc plutôt que de refaire ce croisement ici — le refaire créerait une seconde
+   * source de vérité, qui divergerait le jour où la règle change.
+   *
+   * `theme` reste en dépendance : c'est lui qui CHANGE quand on bascule, et la classe
+   * n'est qu'un miroir qu'on relit au bon moment.
+   */
+  const sombre =
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE THÈME SUIT CELUI DU SITE, ET LA NOTE QUI DISAIT L'INVERSE ÉTAIT FAUSSE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Une note tenait ici que « le thème est passé au montage et ne peut plus changer
+   * ensuite », et concluait qu'une bascule laisserait le cadre dans son thème
+   * d'origine. Sa PRÉMISSE est juste — le widget lit sa configuration une seule fois,
+   * à l'injection — mais sa CONCLUSION ne décrivait pas le code : `theme` figurait déjà
+   * dans les dépendances de cet effet, qui vide donc le conteneur et réinjecte le
+   * script à chaque bascule. Le comportement décrit comme impossible existait.
+   *
+   * Ce qui restait vrai, c'est le COÛT qu'elle redoutait, et il est ici mesuré plutôt
+   * que supposé : le script est servi avec un cache long par TradingView, si bien que
+   * la réinjection ne repart pas du réseau. Ce qu'on voit est un cadre vide le temps
+   * que l'iframe se repeigne.
+   *
+   * ⚠️ IL N'EXISTE PAS DE MEILLEURE VOIE, ET CE N'EST PAS FAUTE D'EN AVOIR CHERCHÉ.
+   * L'embarqué `embed-widget-advanced-chart` ne rend aucune poignée : pas d'objet
+   * `widget`, donc pas de `changeTheme()`. Ce dernier appartient à la bibliothèque
+   * `tv.js` des Charting Libraries, qui demande une licence. Poster un message à
+   * l'iframe se heurte à l'origine croisée. La réinjection est le seul levier public.
+   *
+   * ── CE QU'ON FAIT POUR QUE LE CHANGEMENT SE VOIE LE MOINS POSSIBLE ─────────
+   *
+   * Le conteneur GARDE SA HAUTEUR pendant le remplacement — elle est écrite en style
+   * en ligne plus bas, jamais déduite du contenu — donc rien ne saute autour de lui.
+   * Ce qui est perdu, en revanche, ce sont les dessins et le zoom en cours dans le
+   * widget : ils vivent dans l'iframe, et l'iframe est remplacée. C'est le prix, et il
+   * est écrit ici pour que personne ne le redécouvre.
    */
   useEffect(() => {
     const container = containerRef.current
@@ -81,7 +126,7 @@ export function TradingViewChart({
       symbol,
       interval: '60',
       timezone: 'Europe/Paris',
-      theme: theme === 'dark' ? 'dark' : 'light',
+      theme: sombre ? 'dark' : 'light',
       style: '1',
       locale: 'fr',
       autosize: true,
@@ -101,7 +146,12 @@ export function TradingViewChart({
       // est le seul démontage que son API publique permette.
       container.innerHTML = ''
     }
-  }, [symbol, theme])
+    /* `sombre` ET `theme` : le premier est ce qu'on passe au widget, le second ce qui
+       provoque le rendu où on le relit. Un lecteur en mode « système » qui bascule son
+       OS ne change ni l'un ni l'autre — sa page ne se re-rend pas — et garde donc le
+       cadre dans l'ancien thème jusqu'à la prochaine navigation. Ce cas-là reste ouvert
+       et il est rare ; le cas courant, la bascule depuis le site, est couvert. */
+  }, [symbol, theme, sombre])
 
   return (
     /*

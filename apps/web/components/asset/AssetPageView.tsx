@@ -46,7 +46,7 @@ import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 import { AssetIdentity } from '@/components/asset/AssetIdentity'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
-import { tradingViewSymbol } from '@/components/asset/tradingview-symbol'
+import { tradingViewMarketCapSymbol, tradingViewSymbol } from '@/components/asset/tradingview-symbol'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { getContent } from '@/lib/content'
@@ -463,6 +463,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                pour deux usages — l'interrupteur de la barre et le cadre lui-même. Voir
                `tradingview-symbol.ts` pour ce que ce changement corrige. */
             tradingViewSymbol={tradingViewSymbol(assetClass, data.symbol, tickerRows)}
+            tradingViewMarketCapSymbol={tradingViewMarketCapSymbol(assetClass, data.symbol)}
             initialHistory={history.ok ? history.data : null}
             initialDays={SERVER_RANGE_DAYS}
             rates={rates.ok ? rates.data : null}

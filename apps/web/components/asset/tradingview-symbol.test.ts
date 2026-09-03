@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { AssetTicker } from '@zenkuu/data'
 
-import { tradingViewSymbol } from './tradingview-symbol'
+import { tradingViewMarketCapSymbol, tradingViewSymbol } from './tradingview-symbol'
 
 /**
  * Le contrôle porte d'abord sur les cas qui doivent rendre `null`.
@@ -125,5 +125,46 @@ describe('cas limites', () => {
 
   it('ne rend rien pour une classe que TradingView ne cote pas', () => {
     expect(tradingViewSymbol('nft', 'punks')).toBeNull()
+  })
+})
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE SYMBOLE DE CAPITALISATION — ET SURTOUT LES CLASSES QUI N'EN ONT PAS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Le contrôle porte d'abord sur les `null`, pour la raison écrite en tête de fichier :
+ * un symbole inventé n'échoue pas côté code, il affiche « symbole inconnu » dans un
+ * cadre de six cents pixels et se lit comme une panne du site.
+ *
+ * Ici le risque est précis : `CRYPTOCAP` n'existe QUE pour les cryptomonnaies. Le
+ * préfixer à un code d'action produirait `CRYPTOCAP:AAPL`, qui a toutes les apparences
+ * d'un symbole valide et n'en est pas un.
+ */
+describe('tradingViewMarketCapSymbol', () => {
+  it('préfixe le code des cryptomonnaies', () => {
+    expect(tradingViewMarketCapSymbol('crypto', 'btc')).toBe('CRYPTOCAP:BTC')
+    expect(tradingViewMarketCapSymbol('crypto', 'ETH')).toBe('CRYPTOCAP:ETH')
+  })
+
+  it('ne rend rien pour les six autres classes', () => {
+    /* Aucune ne cote sa capitalisation comme un instrument : celle d'une entreprise se
+       déduit d'un cours et d'un nombre d'actions, elle ne se négocie pas. */
+    for (const classe of ['stock', 'etf', 'index', 'commodity', 'forex', 'nft'] as const) {
+      expect(tradingViewMarketCapSymbol(classe, 'AAPL')).toBeNull()
+    }
+  })
+
+  it('écarte les codes que le jeu CRYPTOCAP ne peut pas porter', () => {
+    /* Un tiret, un point ou un espace n'y figurent pas. Rendre `null` fait griser le
+       sélecteur ; préfixer produirait un symbole introuvable, donc un cadre en erreur. */
+    expect(tradingViewMarketCapSymbol('crypto', 'BRK-B')).toBeNull()
+    expect(tradingViewMarketCapSymbol('crypto', 'EUR=X')).toBeNull()
+    expect(tradingViewMarketCapSymbol('crypto', '')).toBeNull()
+  })
+
+  it('accepte les codes numériques et longs, dans la limite du jeu', () => {
+    expect(tradingViewMarketCapSymbol('crypto', '1inch')).toBe('CRYPTOCAP:1INCH')
+    expect(tradingViewMarketCapSymbol('crypto', 'abcdefghijklm')).toBeNull()
   })
 })
