@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect, useState, useTransition } from 'react'
 
 import { LoginOverlay } from '@/components/account/LoginOverlay'
+import { PasswordCard } from '@/components/settings/PasswordCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -107,10 +108,13 @@ export function SettingsAccount() {
     <section className="space-y-4">
       <Heading
         title={t('Compte')}
-        description={t('Ce que ZENKUU sait de vous tient en deux lignes : une adresse et un pseudonyme. Il n’y a ni mot de passe, ni profil, ni identité vérifiée.')}
+        description={t('Ce que ZENKUU sait de vous tient en deux lignes : une adresse et un pseudonyme. Il n’y a ni profil, ni identité vérifiée.')}
       />
 
       <HandleCard handle={identity.handle} email={identity.email} />
+      {/* Le mot de passe suit l'identité et précède les sessions : c'est ce qui
+          PROTÈGE le compte, là où les sessions disent seulement où il est ouvert. */}
+      <PasswordCard />
       <SessionsCard />
       <DangerCard />
     </section>

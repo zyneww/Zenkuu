@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail } from 'lucide-react'
+
+import { PasswordForm } from '@/components/account/PasswordForm'
+import { ZenkuuMark } from '@/components/BrandMark'
 
 import { LoginForm } from '@/components/account/LoginForm'
 import { SocialButtons } from '@/components/account/SocialButtons'
 import type { AuthMode } from '@/components/account/auth-mode'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -72,13 +73,30 @@ export function AuthDialog({
   const t = usePhrase()
 
   /*
-   * Le champ d'adresse est-il déplié ?
+   * ══════════════════════════════════════════════════════════════════════════
+   * TROIS ÉCRANS, ET LE MOT DE PASSE EST LE PREMIER
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * L'état est REMIS À ZÉRO à la fermeture par la `key` posée sur le contenu (voir
-   * plus bas) : rouvrir la fenêtre doit remontrer les fournisseurs, pas le champ que
-   * la visite précédente avait ouvert.
+   *   `password`  adresse et mot de passe — l'écran de la capture ;
+   *   `code`      le parcours par courriel, recours de « oublié ou jamais défini » ;
+   *   `providers` rien de plus : les fournisseurs sont TOUJOURS visibles, sous le
+   *               formulaire, quel que soit l'écran.
+   *
+   * ⚠️ L'ORDRE S'INVERSE PAR RAPPORT À LA VERSION PRÉCÉDENTE, qui montrait les
+   * fournisseurs d'abord et cachait le champ derrière un bouton « Continuer par
+   * e-mail ». Sa note disait vrai : « un champ ouvert impose une saisie à qui venait
+   * cliquer sur Google ».
+   *
+   * Cet argument tombe dès lors qu'un mot de passe existe. Le formulaire n'est plus une
+   * demande d'adresse suivie d'une attente de courriel — c'est une connexion complète,
+   * en deux champs, que les gestionnaires de mot de passe remplissent d'eux-mêmes. Le
+   * cacher ferait chercher la porte principale derrière un bouton.
+   *
+   * L'état est REMIS À ZÉRO à la fermeture par la `key` posée sur le contenu : rouvrir
+   * la fenêtre doit revenir au mot de passe, pas au code que la visite précédente avait
+   * demandé.
    */
-  const [showEmail, setShowEmail] = useState(false)
+  const [ecran, setEcran] = useState<'password' | 'code'>('password')
 
   return (
     <Dialog
@@ -89,46 +107,66 @@ export function AuthDialog({
     >
       <DialogContent
         key={open ? 'ouverte' : 'fermée'}
-        /* HAUT DE L'ÉCRAN, PAS CENTRÉE — comme la référence. Le centrage vertical
-           par défaut de la fenêtre la fait descendre à mesure qu'elle grandit : le
-           titre part vers le milieu de l'écran quand le champ d'adresse se déplie, et
-           le regard doit le suivre. Ancrée en haut (`top-[8vh]`, translation verticale
-           annulée), elle grandit vers le bas et son titre ne bouge plus.
-           `max-h`/`overflow-y-auto` : filet pour les petits écrans en paysage. */
-        className="top-[8vh] max-h-[84vh] max-w-[26rem] translate-y-0 overflow-y-auto border-border-subtle bg-overlay p-6 shadow-overlay sm:max-w-[26rem]"
+        /* ⚠️ CENTRÉE, ET NON PLUS ANCRÉE EN HAUT (demande explicite).
+
+           La note précédente justifiait `top-[8vh]` par un défaut réel : « le titre
+           part vers le milieu de l'écran quand le champ d'adresse se déplie ». Il
+           n'existe plus, parce que le formulaire ne se déplie plus — il est là dès
+           l'ouverture, et la fenêtre garde donc sa hauteur du début à la fin.
+
+           `max-h`/`overflow-y-auto` : filet pour les petits écrans en paysage, où même
+           une fenêtre de hauteur fixe peut dépasser. */
+        className="max-h-[90vh] max-w-[26rem] overflow-y-auto border-border-subtle bg-overlay p-6 shadow-overlay sm:max-w-[26rem]"
       >
-        {/* Titre et sous-titre CENTRÉS, toujours comme la référence : sans le
-            `pr-8` qui compensait la croix de fermeture, le bloc n'est plus décalé. */}
-        <DialogHeader className="space-y-1 text-center sm:text-center">
-          <DialogTitle className="display-sm text-ink">{t('Bienvenue sur ZENKUU')}</DialogTitle>
+        <DialogHeader className="space-y-2 text-center sm:text-center">
+          {/* ── LA PASTILLE DE MARQUE ────────────────────────────────────────
+              Elle vient de la capture, et elle fait deux choses qu'un titre seul ne
+              fait pas : elle dit À QUEL SITE on donne son mot de passe — ce qu'une
+              fenêtre flottante, détachée de la page, cesse de rendre évident — et elle
+              donne au bloc un point de départ vertical.
+
+              Le monogramme du site, pas un pictogramme générique : un cadenas ou une
+              clé décriraient l'action, que le titre dit déjà. */}
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-pill bg-brand-soft">
+            <ZenkuuMark className="h-6 w-6 text-brand-strong" />
+          </span>
+
+          <DialogTitle className="display-sm text-ink">
+            {mode === 'signup' ? t('Créer un compte') : t('Connexion')}
+          </DialogTitle>
           <DialogDescription className="text-xs leading-relaxed text-ink-muted">
-            {mode === 'signup'
-              ? t('Inscrivez-vous ou connectez-vous en quelques secondes.')
-              : t('Connectez-vous ou inscrivez-vous en quelques secondes.')}
+            {ecran === 'code'
+              ? t('Entrez votre adresse : un code à usage unique vous sera envoyé.')
+              : t('Entrez vos identifiants pour vous connecter.')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-5">
-          <SocialButtons mode={mode} configured={socialProviders} />
+          {ecran === 'password' ? (
+            <PasswordForm visible={open} onForgot={() => setEcran('code')} />
+          ) : (
+            /* `hideHeading` : la fenêtre porte déjà son titre, et deux titres empilés
+               se contrediraient — « Connexion » suivi de « Se connecter ». */
+            <LoginForm visible={open} density="overlay" hideHeading />
+          )}
         </div>
+
+        {/* Le retour, offert seulement depuis l'écran de code : l'aller a son propre
+            lien, contre l'intitulé du champ. Sans lui, on ne reviendrait au mot de
+            passe qu'en refermant la fenêtre. */}
+        {ecran === 'code' ? (
+          <button
+            type="button"
+            onClick={() => setEcran('password')}
+            className="mt-3 w-full text-center text-xs text-ink-muted underline underline-offset-2 transition-colors duration-150 hover:text-brand"
+          >
+            {t('Revenir au mot de passe')}
+          </button>
+        ) : null}
 
         <FieldSeparator className="my-5">{t('ou')}</FieldSeparator>
 
-        {showEmail ? (
-          /* `hideHeading` : la fenêtre porte déjà son titre, et deux titres empilés se
-             contrediraient — « Bienvenue » suivi de « Se connecter ». */
-          <LoginForm visible={open} density="overlay" hideHeading />
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 w-full justify-center"
-            onClick={() => setShowEmail(true)}
-          >
-            <Mail aria-hidden="true" />
-            {t('Continuer par e-mail')}
-          </Button>
-        )}
+        <SocialButtons mode={mode} configured={socialProviders} />
 
         {/*
           ⚠️ LA RÉFÉRENCE RENVOIE VERS SES CONDITIONS ET SA POLITIQUE DE

@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { AppleLogo, GoogleLogo, XLogo } from '@/components/account/social-logos'
+import { GoogleLogo, XLogo } from '@/components/account/social-logos'
 import { Button } from '@/components/ui/button'
 import type { AuthMode } from '@/components/account/auth-mode'
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -10,14 +10,20 @@ import { usePhrase } from '@/components/locale/ContentProvider'
  * Fournisseurs proposés, DANS L'ORDRE D'USAGE RÉEL.
  *
  * Google d'abord — c'est, de loin, le compte que le plus grand nombre possède déjà.
- * X ensuite, dont la population recoupe fortement celle d'un site de marchés. Apple
- * ferme la marche et reste INACTIF : son programme développeur coûte 99 dollars par
- * an, et rien ne justifie cette dépense avant que le site ait des utilisateurs.
+ * X ensuite, dont la population recoupe fortement celle d'un site de marchés.
  *
- * Le bouton est tout de même AFFICHÉ. Le masquer donnerait à croire que la connexion
- * Apple n'est pas prévue, et il faudrait alors réapprendre au visiteur qu'elle existe
- * le jour de son activation. Grisé avec sa mention, il annonce un chemin qui arrive —
- * ce qui est l'état exact des choses (§5).
+ * ⚠️ APPLE A ÉTÉ RETIRÉ DE CETTE TABLE (demande explicite). Il y figurait grisé, avec
+ * la mention « bientôt », et la note défendait cet affichage ainsi : « le masquer
+ * donnerait à croire que la connexion Apple n'est pas prévue ».
+ *
+ * L'argument suppose qu'elle EST prévue. Elle ne l'est pas : elle demande un programme
+ * développeur à 99 dollars par an qui n'est pas souscrit, et aucune date n'existe.
+ * « Bientôt » annonçait donc un chemin dont personne ne sait s'il arrivera — c'est
+ * exactement la promesse que le §5 interdit, et elle coûtait en plus un tiers de la
+ * hauteur du bloc à ne rien offrir.
+ *
+ * Le tracé du logo reste dans `social-logos.tsx`, et il suffit de rendre cette ligne à
+ * la table le jour où les clés existent.
  *
 
  * Le logotype est porté par la table plutôt que choisi par un `switch` : ajouter un
@@ -28,7 +34,6 @@ import { usePhrase } from '@/components/locale/ContentProvider'
 const PROVIDERS = [
   { id: 'google', label: 'Google', Logo: GoogleLogo },
   { id: 'x', label: 'X', Logo: XLogo },
-  { id: 'apple', label: 'Apple', Logo: AppleLogo },
 ] as const
 
 /**
