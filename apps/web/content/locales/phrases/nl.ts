@@ -2916,4 +2916,5 @@ export const nlPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'Van de eerste tot de laatste meting van elke periode.',
   '{n} sur {total} lignes': '{n} van {total} rijen',
   'Afficher {n} de plus': 'Nog {n} tonen',
+  'Auto': 'Auto',
 }

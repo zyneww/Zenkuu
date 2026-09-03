@@ -2923,4 +2923,5 @@ export const esPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'Del primer al último registro de cada período.',
   '{n} sur {total} lignes': '{n} de {total} filas',
   'Afficher {n} de plus': 'Mostrar {n} más',
+  'Auto': 'Auto',
 }

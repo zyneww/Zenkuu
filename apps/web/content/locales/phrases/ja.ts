@@ -2916,4 +2916,5 @@ export const jaPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': '各期間の最初の値から最後の値まで。',
   '{n} sur {total} lignes': '{total} 行中 {n} 行',
   'Afficher {n} de plus': 'さらに {n} 件を表示',
+  'Auto': '自動',
 }

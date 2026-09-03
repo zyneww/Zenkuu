@@ -2916,4 +2916,5 @@ export const trPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'Her dönemin ilk ölçümünden son ölçümüne.',
   '{n} sur {total} lignes': '{total} satırdan {n} tanesi',
   'Afficher {n} de plus': '{n} tane daha göster',
+  'Auto': 'Otomatik',
 }

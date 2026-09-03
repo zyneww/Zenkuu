@@ -2916,4 +2916,5 @@ export const ruPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'От первого до последнего замера каждого периода.',
   '{n} sur {total} lignes': '{n} из {total} строк',
   'Afficher {n} de plus': 'Показать ещё {n}',
+  'Auto': 'Авто',
 }

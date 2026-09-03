@@ -2928,4 +2928,5 @@ export const enPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'From the first to the last reading of each period.',
   '{n} sur {total} lignes': '{n} of {total} rows',
   'Afficher {n} de plus': 'Show {n} more',
+  'Auto': 'Auto',
 }

@@ -2916,4 +2916,5 @@ export const plPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'Od pierwszego do ostatniego odczytu każdego okresu.',
   '{n} sur {total} lignes': '{n} z {total} wierszy',
   'Afficher {n} de plus': 'Pokaż jeszcze {n}',
+  'Auto': 'Auto',
 }

@@ -13,6 +13,7 @@ import { IconButton } from '@/components/ui/IconButton'
 import { InfoTip } from '@/components/ui/InfoTip'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { GRAINS, autoGrain, groupBy, type Grain } from '@/components/market/chart-grain'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -127,6 +128,7 @@ export function GlobalChartCard({
      page anglaise se remarque autant qu'un titre non traduit. */
   const locale = useLocale()
   const [rangeId, setRangeId] = useState(defaultRange)
+  const [grain, setGrain] = useState<Grain>('auto')
 
   /*
    * ══════════════════════════════════════════════════════════════════════════
@@ -168,8 +170,14 @@ export function GlobalChartCard({
      * présent — et de plusieurs sur une série de marché fermé le week-end.
      */
     const preset = RANGES.find((entry) => entry.id === active)
-    return windowOf(points, preset?.days ?? null)
-  }, [points, active])
+    const fenetre = windowOf(points, preset?.days ?? null)
+
+    /* ⚠️ LE REGROUPEMENT VIENT APRÈS LE DÉCOUPAGE, ET L'ORDRE COMPTE. Grouper d'abord
+       puis découper ferait porter la fenêtre sur des points AGRÉGÉS : demander « 7J »
+       sur un pas mensuel ne rendrait qu'un seul point, celui du mois en cours, et le
+       cadre serait vide. Découper puis grouper laisse toujours la fenêtre demandée. */
+    return groupBy(fenetre, grain === 'auto' ? autoGrain(fenetre) : grain)
+  }, [points, active, grain])
 
   const first = shown[0]?.y
   const last = shown[shown.length - 1]?.y
@@ -311,10 +319,43 @@ export function GlobalChartCard({
             ))}
           </div>
 
+          {/* ── LA GRANULARITÉ, QUAND ELLE CHANGE QUELQUE CHOSE ───────────────
+
+              ⚠️ LE SÉLECTEUR NE PARAÎT PAS SUR LES SÉRIES COURTES, et c'est délibéré.
+              En dessous d'une trentaine de points, grouper par semaine ou par mois
+              n'en laisse que quatre ou un : le contrôle serait offert pour dégrader la
+              figure. Une commande qui ne peut qu'empirer les choses vaut moins que pas
+              de commande.
+
+              Le repli sur `<select>` natif plutôt qu'un menu maison : c'est le contrôle
+              que le système habille lui-même sur mobile — une roue à trois entrées,
+              atteignable au pouce — et qui n'a besoin d'aucun code de clavier. La
+              référence emploie le même. */}
+          {points.length > 30 ? (
+            <label className="flex items-center">
+              <span className="sr-only">{t('Granularité')}</span>
+              <select
+                value={grain}
+                onChange={(event) => setGrain(event.target.value as Grain)}
+                className="h-7 rounded-control border border-border-subtle bg-surface-muted px-1.5 text-micro font-medium text-ink-muted transition-colors duration-150 hover:text-ink focus:border-brand focus:outline-none"
+              >
+                {GRAINS.map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {t(entry.label)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           {/* ── EXPORT ET INTÉGRATION, comme sur la référence ─────────────────
               L'export porte sur la FENÊTRE AFFICHÉE et non sur la série entière :
               c'est ce qu'on regarde, et un fichier qui contiendrait autre chose que
-              le graphique d'où on l'a tiré serait un piège. */}
+              le graphique d'où on l'a tiré serait un piège.
+
+              ⚠️ IL SUIT DONC AUSSI LA GRANULARITÉ : demander le CSV d'une courbe
+              mensuelle rend douze lignes par an, pas trois cent soixante-cinq. C'est
+              acquis sans rien changer — `shown` est déjà la série regroupée. */}
           <IconButton
             size="icon-xs"
             variant="ghost"

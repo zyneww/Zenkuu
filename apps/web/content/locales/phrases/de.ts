@@ -2924,4 +2924,5 @@ export const dePhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'Vom ersten bis zum letzten Messwert jedes Zeitraums.',
   '{n} sur {total} lignes': '{n} von {total} Zeilen',
   'Afficher {n} de plus': '{n} weitere anzeigen',
+  'Auto': 'Auto',
 }

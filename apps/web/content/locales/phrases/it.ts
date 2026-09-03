@@ -2916,4 +2916,5 @@ export const itPhrases: Phrases = {
   'Du premier au dernier relevé de chaque période.': 'Dalla prima all’ultima rilevazione di ogni periodo.',
   '{n} sur {total} lignes': '{n} di {total} righe',
   'Afficher {n} de plus': 'Mostra altre {n}',
+  'Auto': 'Auto',
 }
