@@ -171,8 +171,9 @@ repris ; les valeurs de la rampe claire sont dérivées.
       crosshair pointillé, la grille et le filigrane, dans `globals.css`.
 - [x] `components/charts/asxn.tsx` — puces de série, bascule « tout afficher / masquer »,
       sélecteur de période (encadré **et** souligné), filigrane, rampe d'empilement.
-- [x] Filigrane posé sur les trois grandes figures (`BasketCharts`, `ComparatorView`,
-      `GlobalChartCard` en grande taille). **Vérifié au navigateur** : filigrane en
+- [x] Filigrane posé sur les grandes figures (`ComparatorView`, `GlobalChartCard` en
+      grande taille). ⚠️ `BasketCharts` figurait ici et n'existe plus : il faisait
+      partie des cinquante composants qu'aucun fichier n'importait. **Vérifié au navigateur** : filigrane en
       trame derrière la courbe, infobulle translucide à date en tête et pastille de
       couleur, crosshair vertical au point survolé.
 

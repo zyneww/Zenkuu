@@ -791,7 +791,7 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Secteurs refondus** — bandeau de tête, grille/tableau filtrable | `components/categories/` |
 | **Actualités refondues** — cartes, article en tête, filtres de rubrique | `components/news/NewsFeed.tsx` |
 | **4 flux RSS, 3 rubriques réelles** (crypto, marchés, économie) | `packages/data/src/providers/news.ts` |
-| **Fiches actif** — statistiques clés hors onglets, historique daté | `components/asset/{AssetKeyStats,PriceHistoryTable}.tsx` |
+| **Fiches actif** — statistiques clés hors onglets, historique daté | `components/asset/{AssetMetricGrid,PriceHistoryTable}.tsx` |
 | **Aide** — tuiles de rubriques + pages `/aide/rubrique/[id]` | `app/aide/`, `content/aide.ts` |
 | **Apprendre** — parcours conseillé, recherche, sommaire des thèmes | `app/apprendre/`, `components/learn/` |
 | **Pourquoi ZENKUU** — garanties, sections alternées, tableau comparatif | `app/pourquoi-zenkuu/page.tsx` |
@@ -803,7 +803,7 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Attribution CoinGecko conforme aux CGU** | `components/Footer.tsx`, `app/embed/ticker/page.tsx` |
 | **Tests** — Vitest sur la logique de classement | `packages/data/src/queries.test.ts` |
 | **Alertes de prix par courriel** — fenêtre de création complète (sens, seuil, récurrence, échéance, nom, message), tâche planifiée 15 min, Resend, page `/alertes`, quota 100 | `packages/db/src/alerts.ts`, `app/api/cron/alertes/`, `lib/mailer.ts`, `components/alerts/` |
-| **Listes de suivi multiples et nommées** — renommer, déplacer, supprimer ; 10 listes × 200 actifs | `packages/db/src/watchlist.ts`, `components/watchlist/WatchlistBoard.tsx` |
+| **Listes de suivi multiples et nommées** — renommer, déplacer, supprimer ; 10 listes × 200 actifs | `packages/db/src/watchlist.ts`, `components/watchlist/WatchlistStar.tsx`, `app/[locale]/tableau-de-bord/page.tsx` |
 | **Export 5 formats** — CSV, **Excel (.xlsx écrit à la main, sans bibliothèque)**, JSON, Markdown, presse-papiers | `lib/export-formats.ts`, `components/tools/ExportMenu.tsx` |
 | **Écrans de screener enregistrés** — nommés, rappelés en un clic, critères revalidés à la relecture | `packages/db/src/screens.ts`, `lib/screen-actions.ts`, `components/tools/SavedScreens.tsx` |
 | **Plafonds serveur** — listes, actifs suivis, alertes armées ; identiques pour tout le monde | `lib/limits.ts`, `lib/watchlist-actions.ts`, `lib/alert-actions.ts` |

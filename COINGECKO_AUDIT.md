@@ -519,7 +519,17 @@ traduit en français, comme `/en/glossary` et `/learn`.
   `PriceChartInteractive`/`PriceChartAm`/`TradingViewChart` (graphique),
   `AssetTickers` (bloc Marchés), `AssetTreasuries` (bloc Trésoreries),
   `AssetSimilarRail` (Monnaies connexes), `AssetNewsRail` (Actualités),
-  `AssetFaq`, `AssetSentiment`. Écart structurel le plus net : `AssetSections.tsx`
+  `AssetFaq`, `AssetSentiment`.
+
+  > ⚠️ **RELEVÉ DU 2026-08-30, ANNOTÉ ET NON RÉÉCRIT.** Trois des composants nommés
+  > ci-dessus — `AssetKeyStats`, `AssetConverter`, `AssetSimilarRail` — ont depuis
+  > été supprimés : plus aucun fichier ne les importait. Les rubriques qu'ils
+  > portaient existent toujours, sous d'autres composants ; c'est leur ancienne
+  > implémentation qui a disparu. Le paragraphe reste tel quel parce qu'il porte une
+  > DATE et décrit une comparaison faite ce jour-là : le corriger en silence
+  > effacerait ce qu'il documente.
+
+  Écart structurel le plus net : `AssetSections.tsx`
   documente le retrait délibéré d'une barre d'onglets collante à sommaire — ZENKUU
   a choisi la fiche en défilement continu avec ancres (`#analyse`, `#places`) plutôt
   que la navigation par onglet de CoinGecko (onglet principal à soulignement ET
