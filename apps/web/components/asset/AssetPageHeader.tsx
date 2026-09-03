@@ -2,9 +2,9 @@ import type { ComponentType } from 'react'
 
 import { getTranslations } from 'next-intl/server'
 
-import { ChevronDown, Code, Compass, FileText, Globe, MessageCircle, Send, Users } from 'lucide-react'
+import { ChevronDown, Code, Compass, FileText, Globe, MessageCircle, Users } from 'lucide-react'
 
-import { XGlyph } from '@/components/BrandIcons'
+import { DiscordGlyph, RedditGlyph, TelegramGlyph, XGlyph } from '@/components/BrandIcons'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,12 +32,24 @@ import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
  * la bulle générique : c'est le comportement voulu le jour où la source en ajoute
  * une, plutôt qu'une case vide ou une icône fausse.
  *
- * ⚠️ `lucide` A RETIRÉ SES LOGOS DE MARQUE, et les quatre destinations ne peuvent
- * donc pas être servies de la même façon. X a le sien, tracé dans `BrandIcons` —
- * c'est le lien que la référence met en avant, et quatre bulles identiques dans une
- * rangée de sept icônes ne distinguent rien. Les trois autres prennent le
- * pictogramme qui décrit leur NATURE : l'avion en papier de Telegram, la bulle de
- * Reddit, le groupe d'un forum.
+ * ⚠️ `lucide` A RETIRÉ SES LOGOS DE MARQUE, et les destinations ne peuvent donc pas
+ * être servies par lui. Elles l'étaient par des REMPLAÇANTS décrivant leur nature :
+ * l'avion en papier de `Send` pour Telegram, la bulle de `MessageCircle` pour Reddit.
+ *
+ * C'était le mieux disponible, et c'était insuffisant : une bulle ne dit pas Reddit,
+ * elle dit « discussion » — or la rangée d'une fiche en porte plusieurs, et deux
+ * pictogrammes voisins qui se ressemblent ne distinguent plus rien.
+ *
+ * Telegram, Reddit et Discord portent désormais leur vraie marque, tracée dans
+ * `BrandIcons` d'après `nexticons.in` (MIT, grille 24, la même que lucide). Voir ce
+ * fichier pour la raison du remplissage plein — une silhouette de marque ne survit
+ * pas à une réduction en contours de 1,5 px.
+ *
+ * `Forum` garde son groupe de personnes : ce n'est pas une marque mais un GENRE de
+ * destination, et aucune silhouette ne le désigne.
+ *
+ * Une clé inconnue retombe sur la bulle générique : c'est le comportement voulu le
+ * jour où la source en ajoute une, plutôt qu'une case vide ou une icône fausse.
  *
  * Le nom exact reste porté par `aria-label` et par l'infobulle dans tous les cas.
  */
@@ -48,8 +60,9 @@ import { AssetRangeBar } from '@/components/asset/AssetRangeBar'
 type LinkIcon = ComponentType<{ className?: string }>
 
 const COMMUNITY_ICONS: Record<string, LinkIcon> = {
-  Telegram: Send,
-  Reddit: MessageCircle,
+  Telegram: TelegramGlyph,
+  Reddit: RedditGlyph,
+  Discord: DiscordGlyph,
   X: XGlyph,
   Forum: Users,
 }

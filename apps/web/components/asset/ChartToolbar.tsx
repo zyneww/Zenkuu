@@ -30,6 +30,7 @@ import { usePresence } from '@/components/nav/usePresence'
 import { DateRangeCalendar } from '@/components/ui/DateRangeCalendar'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
 
 /**
  * Barre d'outils du graphique — UNE SEULE RANGÉE.
@@ -661,67 +662,48 @@ export function ChartToolbar(props: ChartToolbarProps) {
           est hors de portée : c'est le couple « prix ou capitalisation » qui porte le
           sens, et le montrer amputé de sa seconde moitié ne dirait plus rien. */}
       {props.metricOptions.length > 1 ? (
-        <span
-          role="group"
-          aria-label={t('Grandeur tracée')}
-          /* ⚠️ `rounded-control` (8px) ET NON `rounded-pill`. Les quatre groupes de la
-             barre partagent la MÊME forme — mêler deux familles de rayons se lit comme
-             un oubli — et cette forme est le coin ADOUCI, pas la pilule.
+        /*
+          ══════════════════════════════════════════════════════════════════════
+          LE SEGMENT PASSE AU COMPOSANT PARTAGÉ, ET SON APLAT GLISSE
+          ══════════════════════════════════════════════════════════════════════
 
-             La pilule a été essayée : elle transforme chaque groupe en gélule, ce qui
-             convient à une étiquette close (une pastille de catégorie) et non à un
-             conteneur de commandes. La référence arrondit d'un cran, pas jusqu'au
-             demi-cercle. Voir `--radius-control` dans `globals.css`. */
-          /* ⚠️ 36 PIXELS, ET LE CHIFFRE EST MESURÉ — PAS DÉDUIT.
+          Il était écrit ici en classes : un `<span role="group">`, une boucle de
+          `<button aria-pressed>`, et le couple d'états actif/inactif recopié. Le même
+          motif vivait dans trois autres fichiers avec ses propres valeurs — corriger le
+          contraste de l'aplat actif a demandé de les retrouver tous.
 
-             La pastille de droite est la référence de la rangée. On l'a d'abord crue à
-             32 px en lisant son balisage : `py-1` autour de paliers `h-6`. Faux — elle
-             contient AUSSI le calendrier, le lien et l'export, qui sont des `h-7`, et
-             c'est le plus haut de son contenu qui fixe la boîte. Relevé au navigateur :
-             36 px.
+          `SegmentedControl` porte désormais la forme ET la sémantique : Radix rend un
+          `role="radiogroup"` que la synthèse vocale annonce « un parmi deux », avec les
+          flèches directionnelles et un seul arrêt de tabulation — trois choses que
+          `aria-pressed` sur des boutons indépendants ne donnait pas.
 
-             D'où `p-1` autour de boutons `h-7` ici : 28 + 4 + 4. Refaire la mesure
-             plutôt que relire le balisage est la leçon de ce réglage — trois passes
-             ont été perdues à corriger une valeur supposée. */
-          className="flex min-w-0 items-center gap-0.5 rounded-control bg-surface-muted p-1"
-        >
-          {props.metricOptions.map((entry) => {
+          Ce qu'il ajoute, repris d'Opensource UI : l'aplat NE SAUTE PLUS d'une case à
+          l'autre, il glisse. Voir son fichier pour la raison de la mesure — leur table
+          de décalages écrite à la main s'arrête à cinq options et suppose des largeurs
+          égales, deux hypothèses fausses ici.
+
+          ⚠️ LES DEUX RÉGLAGES CONSERVÉS SONT L'ÉTAT GRISÉ ET SON MOTIF. Une grandeur
+          dont la source ne publie pas d'historique reste montrée mais inerte, et
+          l'infobulle dit POURQUOI — sans elle, un bouton mort ressemble à une panne.
+        */
+        <SegmentedControl
+          label={t('Grandeur tracée')}
+          value={props.metric}
+          onChange={props.onMetricChange}
+          options={props.metricOptions.map((entry) => ({
+            key: entry.key,
+            label: entry.label,
             /* `undefined` vaut DISPONIBLE : les appelants qui ne renseignent pas le
                champ n'ont pas de grandeur manquante à signaler, et leur imposer
                `available: true` partout serait du bruit. */
-            const usable = entry.available !== false
-
-            return (
-            <button
-              key={entry.key}
-              type="button"
-              disabled={!usable}
-              title={
-                usable
-                  ? undefined
-                  : `La source ne publie pas d’historique de ${entry.label.toLowerCase()} pour cet actif.`
-              }
-              onClick={() => props.onMetricChange(entry.key)}
-              aria-pressed={entry.key === props.metric}
-              className={`flex h-7 items-center justify-center whitespace-nowrap rounded-[6px] px-2.5 text-xs font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-ink-muted ${
-                entry.key === props.metric
-                  /* ⚠️ `bg-surface-active` (L4) ET NON `bg-overlay`. Les deux jetons se valaient
-                     tant que `overlay` était #1b232d, un cran au-dessus des cartes ; il vaut
-                     désormais #14151b, EXACTEMENT le ton de la surface qui porte cette barre —
-                     la pastille active devenait donc invisible.
-
-                     DESIGN_BACKPACK.md range précisément cet état sur L4, « onglets actifs et
-                     boutons segmentés » : #383a45. C'est aussi ce que fait Dropstab, mesuré sur
-                     leur fiche Bitcoin — rgb(63, 63, 70) sur un fond nettement plus sombre. */
-                  ? 'bg-surface-active text-ink shadow-sm'
-                  : 'text-ink-muted hover:text-ink'
-              }`}
-            >
-              {entry.label}
-            </button>
-            )
-          })}
-        </span>
+            ...(entry.available === false
+              ? {
+                  disabled: true,
+                  title: `La source ne publie pas d’historique de ${entry.label.toLowerCase()} pour cet actif.`,
+                }
+              : {}),
+          }))}
+        />
       ) : null}
 
 
