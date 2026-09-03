@@ -1130,12 +1130,28 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           </aside>
         }
       >
-        {/* L'aperçu n'est plus enveloppé dans un `<section id="apercu">` : cet
-            identifiant n'existait que pour être visé par la barre de sommaire.
-            `PanelVisibilityProvider` reste, et vaut désormais `true` sans condition —
-            il servait à ne charger une section qu'à son approche, ce qui n'a plus de
-            sens pour la seule section de la page, visible dès l'ouverture. */}
-        <PanelVisibilityProvider visible>{overview}</PanelVisibilityProvider>
+        {/* ⚠️ `asset-section` EST INDISPENSABLE, ET SON ABSENCE A ÉTÉ VUE AVANT DE
+            L'ÊTRE COMPRISE : le graphique se dessinait PAR-DESSUS le rail de chiffres.
+
+            Le rail n'est pas une colonne de grille — il FLOTTE. À partir de `lg`,
+            `globals.css` lui pose un `float: left` de 19,5 rem, et c'est
+            `display: flow-root` sur la section voisine qui ouvre le contexte de
+            formatage lui faisant longer le flottant plutôt que couler dessous.
+
+            Cette classe était posée par `AssetSections`, sur chacune des quatre
+            sections qu'il rendait. Elle est partie avec lui. Mesuré au navigateur :
+            la toile amCharts s'étendait de 457 à 1713 px alors que le rail occupe
+            457 → 720 — les deux se superposaient exactement sur sa largeur.
+
+            L'aperçu n'a en revanche PAS besoin d'un `<section id>` : cet identifiant
+            n'existait que pour être visé par la barre de sommaire.
+
+            `PanelVisibilityProvider` vaut `true` sans condition — il ne chargeait une
+            section qu'à son approche, ce qui n'a plus de sens pour la seule section de
+            la page, visible dès l'ouverture. */}
+        <div className="asset-section">
+          <PanelVisibilityProvider visible>{overview}</PanelVisibilityProvider>
+        </div>
       </AssetLayoutFrame>
 
       {/* ⚠️ LE BANDEAU « INFORMATION » A ÉTÉ RETIRÉ DE LA FICHE (demande explicite).
