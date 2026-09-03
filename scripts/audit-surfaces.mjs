@@ -59,23 +59,51 @@ let ROUTES = []
 
 const mesurer = (page) =>
   page.evaluate(() => {
-    const racine = getComputedStyle(document.documentElement)
-    /* Toutes les propriétés `--color-*` déclarées, quelles qu'elles soient : c'est le
-       design system lui-même qui dit ce qui est une teinte légitime. */
-    const jetons = [...racine].filter((nom) => nom.startsWith('--color-'))
-
     const sonde = document.createElement('span')
     sonde.style.display = 'none'
     document.body.appendChild(sonde)
-    const rampe = new Set()
-    for (const j of jetons) {
-      const v = racine.getPropertyValue(j).trim()
-      if (!v) continue
-      sonde.style.backgroundColor = ''
-      sonde.style.backgroundColor = v
-      const peint = getComputedStyle(sonde).backgroundColor
-      if (peint && peint !== 'rgba(0, 0, 0, 0)') rampe.add(peint)
+
+    /** Les teintes que le design system déclare dans l'état courant du document. */
+    function lireRampe() {
+      const racine = getComputedStyle(document.documentElement)
+      /* Toutes les propriétés `--color-*` déclarées, quelles qu'elles soient : c'est
+         le design system lui-même qui dit ce qui est une teinte légitime. */
+      const jetons = [...racine].filter((nom) => nom.startsWith('--color-'))
+      const teintes = new Set()
+      for (const j of jetons) {
+        const v = racine.getPropertyValue(j).trim()
+        if (!v) continue
+        sonde.style.backgroundColor = ''
+        sonde.style.backgroundColor = v
+        const peint = getComputedStyle(sonde).backgroundColor
+        if (peint && peint !== 'rgba(0, 0, 0, 0)') teintes.add(peint)
+      }
+      return teintes
     }
+
+    /*
+     * ⚠️ LA RAMPE DE RÉFÉRENCE RÉUNIT LES DEUX THÈMES, ET C'EST VOULU.
+     *
+     * Deux surfaces du site sont NOCTURNES dans les deux thèmes, chacune pour une
+     * raison écrite dans son fichier : le panneau de connexion, parce qu'un ciel
+     * étoilé sur fond crème n'est pas un ciel ; le cadre de la carte thermique, parce
+     * que ses tuiles portent une encre blanche des deux côtés et qu'un conteneur clair
+     * montrerait un quadrillage blanc entre elles.
+     *
+     * Mesurées en thème clair, elles tombaient hors rampe — non parce qu'elles sont
+     * hors du design system, mais parce que la rampe lue était celle du seul thème
+     * affiché. Ce sont L0 et L1 de l'obsidienne, employés délibérément.
+     *
+     * Réunir les deux rampes fait donc exactement la bonne distinction : une teinte
+     * du système reste acceptée quel que soit le thème où elle apparaît, et une
+     * teinte qui n'appartient à aucun des deux ressort toujours.
+     */
+    const etaitSombre = document.documentElement.classList.contains('dark')
+    const rampe = new Set(lireRampe())
+    document.documentElement.classList.toggle('dark', !etaitSombre)
+    for (const t of lireRampe()) rampe.add(t)
+    document.documentElement.classList.toggle('dark', etaitSombre)
+
     sonde.remove()
 
     const hors = {}
@@ -99,6 +127,23 @@ const mesurer = (page) =>
       const alpha = Number(apresBarre?.[1] ?? quatrieme?.[1] ?? 1)
       if (Number.isFinite(alpha) && alpha < 1) continue
       if (rampe.has(fond)) continue
+
+      /*
+       * ⚠️ UN FOND POSÉ EN LIGNE N'EST PAS UN NIVEAU DE LA RAMPE.
+       *
+       * Les tuiles de carte thermique et les jauges macro interpolent une teinte
+       * CONTINUE entre deux bornes du design system : chaque tuile reçoit sa propre
+       * valeur, calculée en JavaScript et écrite dans son attribut `style`. Aucune ne
+       * peut donc tomber sur un jeton, par construction — ce sont soixante lignes de
+       * relevé qui ne décrivent aucun défaut, et qui noient celles qui en décrivent un.
+       *
+       * Le critère retenu distingue les deux cas à la source, sans nommer aucun
+       * composant : une surface du design system vient d'une CLASSE, une teinte
+       * interpolée vient d'un `style` écrit à l'exécution. Une liste de classes à
+       * ignorer — `heat-tile`, puis la suivante — aurait été à refaire à chaque
+       * nouvelle figure.
+       */
+      if (el.style && el.style.backgroundColor) continue
       const r = el.getBoundingClientRect()
       if (r.width < 24 || r.height < 16) continue
       const cle = fond + '  ' + el.tagName.toLowerCase() + '.' +
