@@ -1,10 +1,11 @@
 import { getPhrase } from '@/lib/content'
 import type { Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 
 import { searchAssets } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
+import { redirect } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Link } from '@/i18n/navigation'
@@ -130,9 +131,13 @@ export async function generateMetadata({
   }
 }
 
-export default async function Page({ params }: { params: Promise<{ terme: string }> }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ locale: string; terme: string }>
+}) {
   const t = await getPhrase()
-  const { terme } = await params
+  const { locale, terme } = await params
   const query = decodeURIComponent(terme).trim()
 
   // Sous deux caractères, la recherche ne part pas en réseau (voir `MIN_QUERY_LENGTH`)
@@ -151,7 +156,20 @@ export default async function Page({ params }: { params: Promise<{ terme: string
    * l'appariement par symbole que `listing-match.ts` refuse.
    */
   const target = found.crypto[0]
-  if (target) redirect(assetHref(target.assetClass, target.id))
+  /*
+   * ⚠️ `redirect` VIENT DE `@/i18n/navigation`, PAS DE `next/navigation`.
+   *
+   * Celui de Next redirige vers le chemin BRUT. `assetHref` rend
+   * `/crypto/justice-for-heehaw` ; avec un préfixe `as-needed`, ce chemin nu EST la
+   * version française. Un lecteur venu de `/en/resoudre/…` basculait donc en français
+   * au milieu de sa navigation, sans que rien ne le signale — et c'est invisible en
+   * français, la locale par défaut n'ayant pas de préfixe à perdre.
+   *
+   * L'en-tête de `i18n/navigation.ts` décrit ce défaut exactement, pour les liens et
+   * `router.push()`. Cette page était le dernier endroit du site à importer encore
+   * `redirect` de `next/navigation`.
+   */
+  if (target) redirect({ href: assetHref(target.assetClass, target.id), locale })
 
   /*
    * ── ÉCHEC : ON CHERCHE DES CANDIDATS, ON NE LES SUIT PAS ──────────────────
