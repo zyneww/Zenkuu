@@ -1,4 +1,3 @@
-import { Activity, LayoutGrid, Shapes, Store } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import {
   Breadcrumb as UiBreadcrumb,
@@ -35,10 +34,8 @@ import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetNewsAside } from '@/components/asset/AssetNewsAside'
 import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
-import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
-import { AssetOwnership } from '@/components/asset/AssetOwnership'
+import { AssetProfileRail } from '@/components/asset/AssetHoldings'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
-import { AssetSectors } from '@/components/asset/AssetSectors'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
 import { AssetHeadline, AssetPriceCard } from '@/components/asset/AssetPageHeader'
@@ -46,16 +43,11 @@ import { AssetSentiment } from '@/components/asset/AssetSentiment'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
-import { AssetSections, type AssetTab } from '@/components/asset/AssetSections'
+import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
+import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 import { AssetIdentity } from '@/components/asset/AssetIdentity'
-import { AssetContractTable } from '@/components/asset/AssetContractTable'
-import { AssetTickers } from '@/components/asset/AssetTickers'
-import { AssetTokenizedStocks } from '@/components/asset/AssetTokenizedStocks'
-import { AssetTreasuries } from '@/components/asset/AssetTreasuries'
-import { AssetTradingVenue } from '@/components/asset/AssetTradingVenue'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { tradingViewSymbol } from '@/components/asset/tradingview-symbol'
-import { AssetTabFiller } from '@/components/asset/AssetTabFiller'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { getContent } from '@/lib/content'
@@ -152,15 +144,6 @@ const SERVER_RANGE_DAYS = 7
  */
 const RAIL_GROUPS = ['market', 'range', 'change'] as const satisfies readonly MetricGroup[]
 
-/**
- * Classes pour lesquelles `AssetTradingVenue` rend quelque chose.
- *
- * ⚠️ DOUBLON ASSUMÉ de sa table `HEADINGS`, et il n'y a pas d'alternative : un parent
- * ne peut pas savoir si son enfant a rendu. La copie sert UNIQUEMENT à décider si
- * l'onglet « Places » se retrouverait vide — voir son repli. La divergence est bornée :
- * elle ferait apparaître un repli en trop, jamais un onglet vide.
- */
-const VENUE_CLASSES: readonly AssetClass[] = ['stock', 'etf', 'index', 'commodity']
 
 /**
  * Références proposées en tête de liste de comparaison.
@@ -340,12 +323,6 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    */
   const tickerRows = tickers.ok ? tickers.data : []
 
-  /* Ce que l'onglet « Places » peut rendre, testé ICI parce qu'un parent ne peut pas
-     savoir si son enfant a rendu quelque chose. Les deux valeurs recopient le contrat
-     des composants concernés — voir la note du repli, plus bas. */
-  const contractCount = Object.entries(data.contracts ?? {}).filter(
-    ([chain, address]) => chain && address,
-  ).length
 
   /* Un profil manquant n'est PAS une panne de la fiche : le cours, le graphique et
      l'historique viennent d'un autre endpoint. Les sections qu'il alimente disparaissent
@@ -673,216 +650,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
     </div>
   )
 
-  /*
-   * ── PLACES ────────────────────────────────────────────────────────────────
-   *
-   * L'onglet s'appelait « Marchés » et portait TROIS sujets : le carnet d'ordres,
-   * la table des places et la grille des actifs comparables. Les comparables en
-   * sortent — ils ne décrivent pas où cet actif se négocie, mais à quoi il
-   * ressemble, ce qui est une autre question et désormais un autre onglet.
-   */
-  const venues = (
-    <div className="space-y-8">
-      {/*
-        ⚠️ LE CARNET D'ORDRES A ÉTÉ RETIRÉ, ET AVEC LUI LE FLUX DES TRANSACTIONS.
 
-        Il ouvrait cette section : les offres et demandes Binance à gauche, les dernières
-        transactions à droite. Retiré sur demande. Ce que cela retire vraiment, dit
-        clairement : la fiche ne montre plus l'instant d'une place unique — elle décrit
-        l'actif sur la durée, ce que fait déjà la table ci-dessous. Ce qu'elle y gagne :
-        le carnet tenait seul un sondage permanent vers Binance derrière un contenu situé
-        à plusieurs écrans de défilement, et une section atteinte n'est jamais relâchée
-        (voir `AssetTabs`) — il sondait donc jusqu'à la fermeture de l'onglet.
-      */}
-
-      {/*
-        L'ONGLET N'EST PLUS VIDE POUR UNE VALEUR BOURSIÈRE.
-
-        Il affichait « Aucune place de cotation publiée », ce qui était exact au mot
-        près et faux dans ce qu'on en comprenait : une action n'a pas des places, elle
-        en a UNE, connue et réglementée. Le message décrivait une absence de données là
-        où il y a une différence de nature entre deux marchés — voir
-        `AssetTradingVenue`, qui rend désormais la place, la devise et la séance.
-
-        Le composant se retire de lui-même pour la crypto et le forex, dont l'onglet
-        garde son tableau de plateformes.
-      */}
-      <AssetTradingVenue asset={data} assetClass={assetClass} />
-
-      {/*
-        ══════════════════════════════════════════════════════════════════════════
-        ⚠️ LA TABLE DES PLACES A DÉMÉNAGÉ DANS L'ONGLET « ANALYSE »
-        ══════════════════════════════════════════════════════════════════════════
-
-        Elle occupait le cœur de cet onglet. Elle ouvre désormais « Analyse », où elle
-        forme la première des trois tables de la référence — Marchés, Jetons,
-        Trésoreries — qui se lisent ensemble.
-
-        Ce qui reste ici répond toujours à « où cet actif existe-t-il » : la place de
-        cotation officielle pour une valeur boursière, et les CONTRATS par chaîne pour un
-        jeton. Ce sont deux faits d'identité, pas des cours ; ils n'ont rien à faire au
-        milieu d'une analyse de liquidité.
-
-        Ce que cela coûte, et il faut le dire : l'onglet est plus court qu'avant, et sur
-        une cryptomonnaie sans contrat publié il ne porte plus rien — d'où le bouche-trou
-        ci-dessous, qui couvrait déjà ce cas.
-      */}
-
-      {/* Sur quelles CHAÎNES ce jeton existe, et à quelle adresse. Se retire d'elle-même
-          sous deux contrats — voir son en-tête, où le seuil est motivé. */}
-      <AssetContractTable asset={data} />
-
-      {/*
-        ⚠️ CETTE CONDITION TESTE CE QUI EST RÉELLEMENT RENDU, ET C'EST TOUT L'ENJEU.
-
-        Elle portait sur `tickerRows.length`, ce qui n'a plus de sens depuis que la
-        table des places a rejoint « Analyse » : sur une cryptomonnaie à soixante-dix
-        places et UN SEUL contrat — Hyperliquid, mesuré au navigateur — les deux
-        composants ci-dessus se retiraient d'eux-mêmes, le test passait à faux, et
-        l'onglet rendait une section de HAUTEUR NULLE. Un onglet cliquable qui ne mène
-        à rien est pire qu'un onglet absent.
-
-        Les deux conditions sont donc recopiées depuis les composants qu'elles décrivent
-        — la classe pour la place de cotation, le seuil de deux chaînes pour la table de
-        contrats. C'est un doublon assumé : un parent ne peut pas savoir si son enfant a
-        rendu quelque chose, et le seul moyen de l'éviter serait de faire remonter les
-        deux tests, ce qui déplacerait la logique sans la supprimer.
-      */}
-      {!VENUE_CLASSES.includes(assetClass) && contractCount < 2 ? (
-        tickerRows.length > 0 ? /* ⚠️ LE RENVOI « N PLACES COTENT … » A ÉTÉ RETIRÉ (demande explicite).
-             Il annonçait que la table des places vit dans « Analyse ». La barre de
-             sommaire porte déjà ce renvoi, et la table est à un onglet de là. */
-        null : (
-          <>
-            <EmptyState
-              title={t('Aucune place de cotation publiée')}
-              description={t('La source ne renseigne pas les places qui cotent cet actif.')}
-              compact
-            />
-            <AssetTabFiller asset={data} />
-          </>
-        )
-      ) : null}
-    </div>
-  )
-
-  /*
-   * ── ÉCOSYSTÈME : LE TERRAIN DE L'ACTIF, SOUS QUATRE ANGLES ────────────────
-   *
-   * Deux onglets ont d'abord fusionné ici, « Similaires » et « Trésorerie ». Ils
-   * posaient la même question sous deux angles — qui d'autre occupe ce terrain, et qui
-   * en détient — et aucun des deux ne remplissait un onglet à lui seul : le premier
-   * tient en une grille de six vignettes, le second n'a AUCUNE donnée à montrer, quelle
-   * que soit la fiche. Deux onglets à moitié vides coûtent plus cher qu'un onglet plein.
-   *
-   * Deux sections s'y ajoutent, et elles répondent au reproche que la fusion laissait
-   * intact : l'onglet restait le plus maigre des cinq — six vignettes et un encadré
-   * d'absence.
-   *
-   *   SECTEURS. Les narratifs auxquels la source rattache l'actif, avec la taille de
-   *   chacun et la part qu'il y occupe. C'est ce qui donne son échelle au reste de la
-   *   page : soixante milliards ne veut pas la même chose selon qu'ils pèsent deux
-   *   pour cent d'un secteur ou soixante. Gratuit — `getCategories` est déjà en cache
-   *   pour tout le site.
-   *
-   *   POOLS DE LIQUIDITÉ. Notre équivalent honnête de l'« App ecosystem » de la
-   *   référence : elle liste les applications déployées sur une chaîne, nous listons
-   *   les réserves où le jeton s'échange sans intermédiaire. Chargés à l'ouverture de
-   *   l'onglet seulement, et jamais rendus pour un actif sans contrat.
-   *
-   * L'ORDRE va du plus large au plus étroit : le secteur situe l'actif dans le marché,
-   * les comparables le situent parmi ses pairs, les pools disent où il change de mains,
-   * et les détentions institutionnelles — que personne ne publie — ferment la marche.
-   */
-  const ecosystem = (
-    <div className="space-y-10">
-      {assetClass === 'crypto' ? <AssetSectors asset={data} /> : null}
-
-      {/*
-        LA COMPOSITION D'UN FONDS OCCUPE ICI LA PLACE DES SECTEURS D'UNE CRYPTO.
-
-        Les deux répondent à la même question — « de quoi ce terrain est-il fait » —
-        avec la donnée que chaque classe publie réellement : des narratifs pondérés pour
-        un jeton, des positions et des secteurs pour un tracker. Aucune fiche ne montre
-        les deux, et aucune n'affiche de section vide : le composant se retire quand la
-        source n'a rien livré.
-      */}
-      {profile ? <AssetHoldings profile={profile} assetName={data.name} /> : null}
-
-      <section className="space-y-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="display-sm text-ink">{fr.asset.similarTitle}</h2>
-          <Link
-            href={marketHref(assetClass)}
-            className="shrink-0 text-xs font-medium text-ink hover:underline"
-          >
-            {fr.home.seeAll}
-          </Link>
-        </div>
-
-        {comparables.length > 0 ? (
-          <AssetPeerGrid peers={comparables.slice(0, 6)} />
-        ) : (
-          <EmptyState title={fr.states.unavailableTitle} compact />
-        )}
-      </section>
-
-      {/*
-        ⚠️ « TENDANCES DU MOMENT » A QUITTÉ CET ONGLET POUR LE PIED DE PAGE.
-
-        Elle s'y trouvait comme SECONDE rangée, sous les comparables : ceux-ci disent
-        « qui d'autre occupe ce terrain », elle disait « que regarde-t-on en ce moment ».
-        Deux lectures voisines, et c'est justement ce qui la rendait déplacée ici —
-        l'onglet décrit l'ÉCOSYSTÈME DE CET ACTIF, et elle est le seul bloc de la fiche
-        qui ne parle pas de lui.
-
-        Elle vit désormais après « À propos » et la FAQ, à la place qui lui revient :
-        celle du « et ensuite ? ». Voir la fin de ce composant.
-      */}
-      {/*
-        ⚠️ LES POOLS DE LIQUIDITÉ ONT ÉTÉ RETIRÉS.
-
-        Ils listaient les réserves on-chain du jeton — paire, prix, réserve, volume,
-        acheteurs/vendeurs — chargées à l'approche de la section. Retirés sur demande.
-
-        Ce que cela retire : la seule vue on-chain de la fiche. Ce qui la remplace : rien
-        ici. La table des places de cotation, deux sections plus haut, répond déjà à
-        « où cet actif change-t-il de mains », et `/marches/pool` garde la vue complète
-        pour qui la cherche. La section perd aussi son appel réseau propre.
-      */}
-
-      {/*
-        ── QUI DÉTIENT L'ACTIF ─────────────────────────────────────────────────
-
-        DEUX RÉPONSES, ET UNE SEULE S'AFFICHE.
-
-        Cette section a longtemps annoncé qu'elle était vide : « Détentions
-        institutionnelles — non publiées par nos sources ». C'était une position
-        assumée, et elle reste exacte POUR LA CRYPTO — ni CoinGecko sur son palier
-        gratuit, ni Binance ne publient les trésoreries d'entreprise exposées à un
-        jeton, et les déduire de la répartition de l'offre reviendrait à publier une
-        estimation maison sous couvert de fait (§5).
-
-        Elle était en revanche fausse pour la bourse. La donnée y est réglementaire,
-        déclarée trimestriellement, et elle voyage dans la MÊME requête que les ratios
-        déjà chargés : nous ne l'avions simplement jamais demandée. `AssetOwnership`
-        la rend, et l'aveu d'ignorance ne subsiste que là où il dit vrai.
-
-        ── L'AVEU D'IGNORANCE A ÉTÉ RETIRÉ ──────────────────────────────────
-
-        Il occupait un titre de section et un encadré de cent pixels sur TOUTES les
-        fiches crypto, pour dire qu'il n'y avait rien à dire. Un lecteur y voyait une
-        section vide, jamais une position éditoriale. Quand la donnée manque, la
-        section n'existe pas — c'est la règle du reste de la page (`AssetHoldings`,
-        `AssetPools`, `AssetOwnership` se retirent tous de la même façon).
-      */}
-      {profile?.ownership ? <AssetOwnership profile={profile} assetName={data.name} /> : null}
-
-      {/* Le bouche-trou ne subsiste que si la grille des comparables est vide elle
-          aussi — c'est-à-dire quand l'onglet entier n'aurait rien à montrer. */}
-      {comparables.length === 0 ? <AssetTabFiller asset={data} /> : null}
-    </div>
-  )
 
   /*
    * ── ACTUALITÉS : UNE COLONNE, PLUS UNE SECTION ────────────────────────────
@@ -1021,130 +789,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
    *            consulte ponctuellement, sans lesquels le raisonnement de gauche tient
    *            debout — d'où la colonne étroite.
    */
-  /*
-   * ══════════════════════════════════════════════════════════════════════════════
-   * ⚠️ L'ONGLET ANALYSE A ÉTÉ REMPLACÉ UNE SECONDE FOIS — TROIS TABLES DE MARCHÉ
-   * ══════════════════════════════════════════════════════════════════════════════
-   *
-   * ── CE QUI EN SORT, ET IL FAUT LE NOMMER ────────────────────────────────────
-   *
-   * Quatre blocs, retirés sur demande au profit des trois tables de la référence :
-   *
-   *   `AssetVsTradFi`          — l'actif comparé aux repères de la finance classique.
-   *   `AssetPerformanceMatrix` — sa performance face à trois comparables.
-   *   `AssetConverter`         — le convertisseur multi-devises.
-   *   `AssetPriceHistoryCard`  — les extrêmes historiques en carte.
-   *
-   * Les quatre composants restent au dépôt et n'ont plus d'appelant sur la fiche. Ce
-   * que la page perd est réel : la mise à l'échelle contre l'or et le S&P, et la
-   * lecture relative face aux pairs. Ce qu'elle gagne est ce qui manquait — où l'actif
-   * s'échange réellement, et qui le détient.
-   *
-   * ── LES TROIS TABLES, ET CE QUI DÉCIDE LAQUELLE S'AFFICHE ───────────────────
-   *
-   *   MARCHÉS      les places qui cotent l'actif. Servies par la donnée déjà chargée
-   *                pour la fiche, donc SANS appel de plus. Elles ouvraient l'onglet
-   *                « Places » ; elles ouvrent celui-ci.
-   *
-   *   JETONS       les versions tokenisées d'une action ou d'un ETF, avec leur écart au
-   *                cours du titre. Chargées à l'approche de la section.
-   *
-   *   TRÉSORERIES  les sociétés cotées qui détiennent la cryptomonnaie à leur bilan.
-   *                Chargées à l'approche de la section.
-   *
-   * Chacune se retire d'elle-même quand sa source ne publie rien — une devise n'a ni
-   * jetons ni trésoreries, et son onglet se réduit alors à ses places de cotation.
-   */
-  const analysis = (
-    <div className="space-y-10">
-      {tickerRows.length > 0 ? (
-        <AssetTickers
-          tickers={tickerRows}
-          assetName={data.name}
-          exchangeImages={exchangeImages}
-          title={`${t('Marchés')} ${data.name}`}
-        />
-      ) : null}
 
-      {/* Les deux tables tokenisées ne concernent que les titres : une cryptomonnaie
-          n'a pas de version tokenisée d'elle-même, et un indice ne s'émet pas. */}
-      {assetClass === 'stock' || assetClass === 'etf' ? (
-        <AssetTokenizedStocks
-          symbol={data.symbol}
-          assetName={data.name}
-          {...(data.price !== undefined ? { referencePrice: data.price } : {})}
-          referenceCurrency={data.currency}
-        />
-      ) : null}
-
-      {assetClass === 'crypto' ? (
-        <AssetTreasuries assetId={data.id} assetName={data.name} symbol={data.symbol} />
-      ) : null}
-
-      {/* Le bouche-trou ne subsiste que si AUCUNE des trois tables ne peut se rendre :
-          c'est le cas d'une devise ou d'un indice, dont aucune source ne publie ni
-          places, ni jetons, ni détenteurs. */}
-      {tickerRows.length === 0 && assetClass !== 'crypto' && assetClass !== 'stock' && assetClass !== 'etf' ? (
-        <AssetTabFiller asset={data} />
-      ) : null}
-    </div>
-  )
-
-  /*
-   * ── LES CINQ ONGLETS ──────────────────────────────────────────────────────
-   *
-   * Ils étaient sept. La rangée est une NAVIGATION, pas un sommaire : sa longueur se
-   * paie à chaque visite, en temps de lecture avant le premier clic, et sur un
-   * téléphone en défilement latéral. Sept onglets dont deux ne remplissaient pas leur
-   * écran coûtaient donc deux fois — une rangée plus longue, et deux déceptions à
-   * l'ouverture.
-   *
-   * Les deux annexes ont rejoint le voisin dont elles répondaient déjà à la question :
-   *
-   *   Aperçu       le graphique et les chiffres qui l'accompagnent
-   *   Places       où l'actif se négocie — carnet et table des paires
-   *   Analyse      indicateurs, mesures de risque · ET la série jour par jour
-   *   Actualités   le fil d'articles qui mentionnent l'actif
-   *   Écosystème   les comparables de sa catégorie · ET les détenteurs
-   *
-   * Aucun contenu n'a disparu dans l'opération : « Historique » et « Trésorerie » sont
-   * des SECTIONS titrées de leur onglet d'accueil, atteignables au défilement là où
-   * elles l'étaient au clic.
-   *
-   * L'ORDRE n'est pas celui de la référence, et c'est délibéré. Elle range par
-   * familiarité décroissante ; on range par PROXIMITÉ AU COURS. « Places » suit
-   * « Aperçu » parce que la question qui vient après « combien » est « où », et
-   * « Analyse » prend le troisième rang — chez la référence il n'existe pas, et le
-   * reléguer en fin de rangée aurait caché le seul onglet que les concurrents n'ont
-   * pas.
-   *
-   * Icônes à 14px et trait de 1,5 : à 16px avec un trait de 2, un pictogramme posé à
-   * côté d'un libellé de 14px paraît plus gras que le mot qu'il accompagne.
-   */
-  const tabs: AssetTab[] = [
-    { id: 'apercu', label: t('Aperçu'), icon: <LayoutGrid size={14} strokeWidth={1.5} />, panel: overview },
-    { id: 'places', label: t('Places'), icon: <Store size={14} strokeWidth={1.5} />, panel: venues },
-    { id: 'analyse', label: t('Analyse'), icon: <Activity size={14} strokeWidth={1.5} />, panel: analysis },
-    /*
-     * ── L'ONGLET « ACTUALITÉS » A ÉTÉ RETIRÉ ──────────────────────────
-     *
-     * Il rendait « Articles mentionnant X » sur toute la largeur : une vignette de
-     * trois cents pixels, un article en vedette, puis une grille de cartes. Le
-     * PANNEAU DROIT porte désormais le même fil, au même instant, en colonne
-     * permanente — c'est-à-dire lisible EN REGARDANT le graphique, ce qui est
-     * l'usage réel : on rattache un décrochage à un événement daté.
-     *
-     * Garder les deux aurait donné les mêmes articles à deux endroits, dont l'un
-     * exigeait de quitter la courbe pour les lire. `AssetNewsPanel` reste dans le
-     * dépôt : c'est son emploi EN SECTION qui ne se justifiait plus.
-     */
-    {
-      id: 'ecosysteme',
-      label: t('Écosystème'),
-      icon: <Shapes size={14} strokeWidth={1.5} />,
-      panel: ecosystem,
-    },
-  ]
 
   return (
     /* `space-y-3` et non 5 : cette valeur ne sépare que DEUX choses — l'en-tête
@@ -1340,8 +985,25 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           des deux côtés, sans quoi il se lit comme le soulignement de la ligne de
           liens plutôt que comme une frontière.
           ══════════════════════════════════════════════════════════════════════ */}
-      <AssetSections
-        tabs={tabs}
+      {/* ══════════════════════════════════════════════════════════════════════
+          LE CADRE EST APPELÉ DIRECTEMENT — IL N'Y A PLUS QU'UNE SECTION
+          ══════════════════════════════════════════════════════════════════════
+
+          `AssetSections` posait une barre de sommaire au-dessus de QUATRE sections
+          empilées, et suivait au défilement celle qu'on lisait. Trois de ces quatre
+          sections ont été retirées de la fiche (demande explicite) : « Places »,
+          « Analyse » et « Écosystème ».
+
+          Une barre de sommaire à une seule entrée ne renseigne sur rien et ne mène
+          nulle part — elle désignerait la page depuis la page. Le composant n'a donc
+          plus d'objet ici : la fiche appelle `AssetLayoutFrame`, qui est ce que
+          `AssetSections` enveloppait, et lui passe l'aperçu comme unique enfant.
+
+          Les trois props qui restent — l'identité flottante, le rail de chiffres, la
+          colonne d'actualités — traversaient déjà `AssetSections` sans qu'il les
+          touche. Elles vont maintenant droit au cadre.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <AssetLayoutFrame
         aside={newsAside}
         /* LA BANDE D'IDENTITÉ ENTRE DANS LE CADRE — voir la prop `headline` de
            `AssetLayoutFrame`.
@@ -1470,7 +1132,14 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <AssetMarketSheet asset={data} assetClass={assetClass} profile={profile} />
           </aside>
         }
-      />
+      >
+        {/* L'aperçu n'est plus enveloppé dans un `<section id="apercu">` : cet
+            identifiant n'existait que pour être visé par la barre de sommaire.
+            `PanelVisibilityProvider` reste, et vaut désormais `true` sans condition —
+            il servait à ne charger une section qu'à son approche, ce qui n'a plus de
+            sens pour la seule section de la page, visible dès l'ouverture. */}
+        <PanelVisibilityProvider visible>{overview}</PanelVisibilityProvider>
+      </AssetLayoutFrame>
 
       {/* ⚠️ LE BANDEAU « INFORMATION » A ÉTÉ RETIRÉ DE LA FICHE (demande explicite).
           La clause « aucun ordre ici » reste écrite dans le pied de page, où elle vaut
