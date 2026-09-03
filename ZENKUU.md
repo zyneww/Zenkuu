@@ -791,7 +791,7 @@ Fil narratif à filer dans les micro-textes : la métaphore de l'ascension et du
 | **Secteurs refondus** — bandeau de tête, grille/tableau filtrable | `components/categories/` |
 | **Actualités refondues** — cartes, article en tête, filtres de rubrique | `components/news/NewsFeed.tsx` |
 | **4 flux RSS, 3 rubriques réelles** (crypto, marchés, économie) | `packages/data/src/providers/news.ts` |
-| **Fiches actif** — statistiques clés hors onglets, historique daté | `components/asset/{AssetMetricGrid,PriceHistoryTable}.tsx` |
+| **Fiches actif** — statistiques clés hors onglets, historique daté | `components/asset/{AssetMetricRail,PriceHistoryTable}.tsx` |
 | **Aide** — tuiles de rubriques + pages `/aide/rubrique/[id]` | `app/aide/`, `content/aide.ts` |
 | **Apprendre** — parcours conseillé, recherche, sommaire des thèmes | `app/apprendre/`, `components/learn/` |
 | **Pourquoi ZENKUU** — garanties, sections alternées, tableau comparatif | `app/pourquoi-zenkuu/page.tsx` |
