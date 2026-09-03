@@ -42,19 +42,28 @@ const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3000'
  */
 let ROUTES = []
 
-/* Les jetons qui décrivent une surface. Les autres — encre, bordures, accents —
-   n'ont rien à faire dans un fond, et leur présence serait elle-même un défaut. */
-const JETONS = [
-  '--color-canvas', '--color-surface', '--color-surface-muted',
-  '--color-surface-raised', '--color-overlay', '--color-hover',
-  '--color-active', '--color-brand', '--color-up', '--color-down',
-]
+/*
+ * ⚠️ LA RAMPE N'EST PLUS UNE LISTE, ELLE EST ÉNUMÉRÉE SUR LA PAGE.
+ *
+ * Dix jetons étaient nommés ici à la main. Le site en déclare plus de cent, et le
+ * premier passage a signalé comme « hors rampe » `bg-brand-soft` (102 fois sur
+ * `/actualites`), `--color-border-subtle` employé en fond, et les variantes douces
+ * de hausse et de baisse. Tous appartiennent au design system ; c'était ma liste qui
+ * ne le connaissait pas.
+ *
+ * C'est la troisième fois dans cette session qu'une énumération écrite à la main
+ * remplace une source lisible — après la liste des routes et la « forme » d'une
+ * adresse. La règle qui s'en dégage : quand le programme peut LIRE ce qu'il vérifie,
+ * l'écrire à la main n'est pas une simplification, c'est un second bogue en attente.
+ */
 
 const mesurer = (page) =>
-  page.evaluate((jetons) => {
+  page.evaluate(() => {
     const racine = getComputedStyle(document.documentElement)
-    /* La rampe de référence est LUE, jamais recopiée : le contrôle suit le design
-       system au lieu d'en figer une copie qui dériverait sans qu'on le voie. */
+    /* Toutes les propriétés `--color-*` déclarées, quelles qu'elles soient : c'est le
+       design system lui-même qui dit ce qui est une teinte légitime. */
+    const jetons = [...racine].filter((nom) => nom.startsWith('--color-'))
+
     const sonde = document.createElement('span')
     sonde.style.display = 'none'
     document.body.appendChild(sonde)
@@ -62,6 +71,7 @@ const mesurer = (page) =>
     for (const j of jetons) {
       const v = racine.getPropertyValue(j).trim()
       if (!v) continue
+      sonde.style.backgroundColor = ''
       sonde.style.backgroundColor = v
       const peint = getComputedStyle(sonde).backgroundColor
       if (peint && peint !== 'rgba(0, 0, 0, 0)') rampe.add(peint)
@@ -73,9 +83,21 @@ const mesurer = (page) =>
       const s = getComputedStyle(el)
       const fond = s.backgroundColor
       if (!fond || fond === 'rgba(0, 0, 0, 0)') continue
-      /* Un voile est un effet, pas un niveau : sa couleur peinte dépend de ce
-         qu'il recouvre et ne peut pas tomber sur une valeur de jeton. */
-      if (/^rgba\(.*,\s*(0(\.\d+)?)\)$/.test(fond)) continue
+      /*
+       * Un voile est un effet, pas un niveau : sa couleur peinte dépend de ce qu'il
+       * recouvre et ne peut pas tomber sur une valeur de jeton.
+       *
+       * ⚠️ LE TEST NE PEUT PAS SUPPOSER LA SYNTAXE `rgba()`. Chrome rend les couleurs
+       * issues d'un mélange en `oklab(L a b / α)` — c'est sous cette forme que les
+       * fonds translucides du site sont revenus, et l'ancien test, qui n'attendait que
+       * `rgba(…)`, les laissait tous passer pour des écarts. On cherche donc l'alpha
+       * là où il se trouve dans les DEUX écritures : après une barre oblique, ou en
+       * quatrième argument.
+       */
+      const apresBarre = fond.match(/\/\s*([\d.]+)\s*\)/)
+      const quatrieme = fond.match(/^rgba?\([^)]*,\s*([\d.]+)\s*\)$/)
+      const alpha = Number(apresBarre?.[1] ?? quatrieme?.[1] ?? 1)
+      if (Number.isFinite(alpha) && alpha < 1) continue
       if (rampe.has(fond)) continue
       const r = el.getBoundingClientRect()
       if (r.width < 24 || r.height < 16) continue
@@ -84,7 +106,7 @@ const mesurer = (page) =>
       hors[cle] = (hors[cle] ?? 0) + 1
     }
     return { rampe: [...rampe], hors: Object.entries(hors).sort((a, b) => b[1] - a[1]).slice(0, 5) }
-  }, JETONS)
+  })
 
 const navigateur = await chromium.launch()
 const contexte = await navigateur.newContext({ viewport: { width: 1440, height: 900 } })

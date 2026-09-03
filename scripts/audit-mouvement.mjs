@@ -80,7 +80,20 @@ let total = 0
 for (const route of ROUTES) {
   const url = BASE + '/en' + (route === '/' ? '' : route)
   const opts = { waitUntil: 'domcontentloaded', timeout: 120_000 }
-  await Promise.all([pNeutre.goto(url, opts), pSobre.goto(url, opts)])
+  /*
+   * ⚠️ UN DÉLAI DÉPASSÉ N'INTERROMPT PLUS LE PASSAGE.
+   *
+   * Sans ce filet, la première page lente emportait tout : `page.goto` levait, et les
+   * QUARANTE-HUIT routes suivantes n'étaient jamais mesurées. C'est le pire mode de
+   * défaillance pour un audit — il ne rend pas un rapport partiel, il n'en rend aucun,
+   * et le travail des vingt minutes précédentes part avec.
+   */
+  try {
+    await Promise.all([pNeutre.goto(url, opts), pSobre.goto(url, opts)])
+  } catch (error) {
+    console.log(route.padEnd(20) + 'ÉCHEC ' + String(error.message).slice(0, 60))
+    continue
+  }
   await pNeutre.waitForTimeout(6000)
 
   const [a, b] = await Promise.all([releve(pNeutre), releve(pSobre)])
