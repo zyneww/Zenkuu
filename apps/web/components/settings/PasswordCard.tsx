@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
-import { PASSWORD_MIN } from '@/lib/password'
+/* ⚠️ `password-rules` ET NON `password` : le second porte la dérivation PBKDF2, la
+   table des mots de passe courants et le condensat leurre, et l'importer ici les
+   embarquerait dans le paquet du navigateur pour un simple entier. */
+import { PASSWORD_MIN } from '@/lib/password-rules'
 import { hasPassword, removeOwnPassword, setOwnPassword } from '@/lib/auth-actions'
 import { Button } from '@/components/ui/button'
 import { usePhrase } from '@/components/locale/ContentProvider'

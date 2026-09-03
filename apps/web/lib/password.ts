@@ -45,14 +45,25 @@ const SALT_BYTES = 16
 /** 32 octets, la taille native de SHA-256 — en demander plus n'ajoute aucune entropie. */
 const KEY_BYTES = 32
 
-/**
- * ⚠️ LE PLAFOND N'EST PAS UNE COQUETTERIE. Sans lui, une chaîne d'un mégaoctet fait
- * dériver le serveur pendant plusieurs secondes, et quelques requêtes simultanées
- * suffisent à le saturer : la lenteur qui protège devient l'arme. 128 caractères
- * laissent la place à toute phrase de passe raisonnable.
+/*
+ * Les deux bornes vivent dans `password-rules.ts` et sont RÉEXPORTÉES ici.
+ *
+ * ⚠️ ELLES SONT LA SEULE PART DE CE MODULE QUE LE NAVIGATEUR A LE DROIT DE CONNAÎTRE :
+ * un champ de saisie doit pouvoir écrire « au moins 10 caractères ». Tout le reste —
+ * table des mots de passe courants, dérivation, comparaison à temps constant, leurre —
+ * est du code serveur, et l'importer côté client l'embarquerait entier dans le paquet
+ * pour un entier.
+ *
+ * La réexportation garde ce fichier comme point d'entrée unique pour le serveur, qui
+ * n'a donc rien à savoir de cette séparation.
+ *
+ * ⚠️ L'IMPORT EST RELATIF ET NON EN `@/` : l'outil de test ne résout pas l'alias du
+ * projet, et un `@/lib/…` fait échouer le fichier entier à l'analyse d'import — avant
+ * la moindre assertion. Les deux fichiers étant voisins, `./` marche des deux côtés.
  */
-export const PASSWORD_MIN = 10
-export const PASSWORD_MAX = 128
+export { PASSWORD_MAX, PASSWORD_MIN } from './password-rules'
+
+import { PASSWORD_MAX, PASSWORD_MIN } from './password-rules'
 
 /**
  * Les mots de passe qu'on refuse d'emblée.
