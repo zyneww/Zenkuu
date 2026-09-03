@@ -236,8 +236,22 @@ export async function AssetMetricRail({
             il ne mène plus là où il prétend.
 
             Les pages de métrique elles-mêmes SUBSISTENT sous
-            `/{classe}/{id}/metriques/{slug}` : elles sont indexées et partagées. Ce
-            qui disparaît est leur mise en avant depuis ce rail, pas leur existence.
+            `/{classe}/{id}/metriques/{slug}`. Ce qui disparaît est leur mise en avant
+            depuis ce rail, pas leur existence.
+
+            ⚠️ CETTE NOTE DISAIT « ELLES SONT INDEXÉES ET PARTAGÉES ». C'EST FAUX, ET
+            ÇA L'ÉTAIT DÉJÀ QUAND ELLE A ÉTÉ ÉCRITE. Vérifié : aucun lien du site n'y
+            mène — la sonde qui pêche les routes dans les liens rendus n'en a trouvé
+            aucune — et `app/sitemap.ts` ne les déclare pas. Une page sans lien
+            entrant ni entrée de plan n'est pas indexée : un moteur n'a aucun chemin
+            pour l'atteindre. Elles ne sont donc joignables qu'en tapant leur adresse.
+
+            Elles ne sont PAS ajoutées au plan de site pour autant : dix-sept mesures
+            fois cent actifs font mille sept cents URL très minces, et un plan gonflé
+            de pages sans profondeur dessert les pages qui comptent. Le choix à faire
+            — les relier depuis la fiche, ou les retirer — revient à l'exploitant ;
+            ce qui ne pouvait pas rester, c'est une note qui affirmait le contraire de
+            l'état réel.
           */}
 
         </RailSection>

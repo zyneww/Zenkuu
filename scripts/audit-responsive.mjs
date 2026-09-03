@@ -117,7 +117,10 @@ const VIEWPORTS = [
  * exemplaire par motif dynamique, ce qui replie bien les douze fiches en deux.
  */
 const ETATS = [
-  '/marches?vue=derives',
+  /* ⚠️ `/marches?vue=derives` A ÉTÉ RETIRÉ : `/marches` rend un 308 vers `/crypto`
+     et la chaîne de requête se perd en route. L'audit mesurait donc `/crypto` une
+     seconde fois en croyant mesurer les dérivés. */
+  '/crypto?vue=derives',
   '/crypto/bitcoin?onglet=places',
 ]
 

@@ -375,8 +375,10 @@ Alignement sur l'audit [CHARTS_AUDIT.md](file:///home/ok/Documents/zenkuu/CHARTS
 ### Critères de non-régression — mesurés
 
 1. `bun run typecheck` et `bun run lint` : **passent**.
-2. Tests Vitest : **406 sur 34 fichiers**, tous verts. Le plan annonçait 496 ; ce
-   chiffre n'a jamais correspondu à rien de mesuré et il est corrigé ici.
+2. Tests Vitest : **537 sur 47 fichiers**, tous verts, à la racine du dépôt.
+   ⚠️ Compter depuis `apps/web` en rend 406 sur 34 : c'est la mesure du seul
+   paquet web, et elle laisse de côté `packages/`. Le plan annonçait 496, un
+   chiffre plausible pour une suite qui a depuis grandi.
 3. `audit-responsive.mjs` : **aucun débordement horizontal** sur six formats.
 4. Contraste WCAG AA dans les deux thèmes : tenu par `app/palette.test.ts`, qui
    refuse toute paire sous 4,5:1 — les écarts assumés y sont déclarés un par un,

@@ -37,19 +37,22 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/categories', changeFrequency: 'daily', priority: 0.7 },
 
   /*
-   * ── LES SIX PAGES DE CLASSE ONT QUITTÉ CE PLAN ──────────────────────────
+   * ── LES SIX PAGES DE CLASSE, ET LE SENS DE LA REDIRECTION ───────────────
    *
-   * `/crypto`, `/actions`, `/etf`, `/indices`, `/devises` et `/matieres-premieres` y
-   * figuraient une par une. Elles sont désormais des REDIRECTIONS vers l'onglet
-   * correspondant de `/marches`, et un plan de site qui déclare une redirection est un
-   * défaut, pas une précaution : le robot suit le lien, arrive ailleurs que là où on
-   * l'annonçait, et retient que ce fichier décrit mal le site. Google le signale
-   * explicitement comme une erreur d'exploration.
+   * ⚠️ CETTE NOTE DISAIT L'INVERSE DE CE QUE FAIT LE SITE, ET LE CODE SOUS ELLE
+   * LA CONTREDISAIT DÉJÀ.
    *
-   * Les onglets de `/marches` ne les remplacent PAS un pour un dans ce plan : ils ne
-   * diffèrent que par une chaîne de requête, et un moteur les regroupe de toute façon
-   * sous l'URL canonique de la page. Une seule entrée, à la priorité qu'avait la plus
-   * haute des sept.
+   * Elle expliquait que ces six pages avaient « quitté ce plan » parce qu'elles
+   * redirigeaient vers les onglets de `/marches` — et les six lignes suivantes les
+   * déclaraient quand même. Mesuré : c'est `/marches` qui rend aujourd'hui un 308
+   * vers `/crypto`. La redirection a changé de sens, la note est restée.
+   *
+   * Le raisonnement qu'elle portait vaut toujours, et c'est pourquoi il est gardé :
+   * un plan de site qui déclare une redirection est un défaut, pas une précaution.
+   * Le robot suit le lien, arrive ailleurs qu'annoncé, et retient que ce fichier
+   * décrit mal le site — Google le compte comme une erreur d'exploration. C'est
+   * exactement pour cela que `/marches` NE FIGURE PAS ici, et que les six pages,
+   * qui répondent 200, y figurent.
    */
   { path: '/crypto', changeFrequency: 'hourly', priority: 0.9 },
   { path: '/actions', changeFrequency: 'hourly', priority: 0.7 },
@@ -69,7 +72,25 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: '/classements/baisses', changeFrequency: 'hourly', priority: 0.6 },
   { path: '/classements/volumes', changeFrequency: 'hourly', priority: 0.6 },
   { path: '/classements/rotation', changeFrequency: 'hourly', priority: 0.6 },
+  /*
+   * ⚠️ LES CINQ PAGES FILLES DE `/graphiques` ET `/glossaire` MANQUAIENT ICI.
+   *
+   * Elles répondent 200, portent du contenu propre, et n'étaient déclarées nulle
+   * part. Une page absente d'un plan de site n'est pas invisible — un lien interne
+   * suffit à la faire trouver — mais elle est explorée plus tard et moins souvent,
+   * et c'est le genre d'omission qui ne se signale jamais : rien ne casse, la page
+   * s'affiche, elle attend simplement un robot qui met des mois à venir.
+   *
+   * `/tableau-de-bord`, `/parametres`, `/connexion` et `/inscription` restent
+   * volontairement dehors : ce sont des pages de compte, sans contenu à indexer.
+   */
+  { path: '/glossaire', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/graphiques', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/graphiques/dominance', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/graphiques/saison-altcoins', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/graphiques/tresoreries', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/graphiques/actifs-reels', changeFrequency: 'daily', priority: 0.6 },
+  { path: '/graphiques/nft', changeFrequency: 'daily', priority: 0.6 },
   { path: '/nouvelles-cotations', changeFrequency: 'daily', priority: 0.6 },
   { path: '/actualites', changeFrequency: 'hourly', priority: 0.7 },
   { path: '/screener', changeFrequency: 'daily', priority: 0.6 },
