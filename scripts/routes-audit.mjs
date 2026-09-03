@@ -28,7 +28,7 @@
  * que du bruit.
  */
 
-import { readdir } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const APP = new URL('../apps/web/app/[locale]/', import.meta.url).pathname
@@ -69,6 +69,26 @@ function versExpression(motif) {
  */
 export async function routesAudit(page, base = 'http://localhost:3000') {
   const { statiques, motifs } = await parcourir(APP)
+
+  /*
+   * ⚠️ LA PÊCHE EST MISE EN CACHE, ET CE N'EST PAS UNE OPTIMISATION GRATUITE.
+   *
+   * Elle coûte une vingtaine de chargements — douze viviers, puis les fiches de la
+   * seconde passe — dont plusieurs sur des pages jamais visitées, que le serveur de
+   * développement compile à la demande. Comptez une dizaine de minutes. Quatre sondes
+   * qui la refont chacune, c'est quarante minutes passées à retrouver les mêmes
+   * adresses, et une trousse d'audit trop lente pour qu'on la lance.
+   *
+   * ⚠️ SEULES LES ROUTES DYNAMIQUES SONT MISES EN CACHE. Les statiques sont relues
+   * dans `app/[locale]` à chaque appel — c'est gratuit, et c'est ce qui garantit
+   * qu'une page ajoutée entre deux audits soit vue immédiatement. Un cache qui
+   * couvrirait tout ferait exactement le défaut qu'il vient corriger : une liste qui
+   * ne suit plus l'application.
+   *
+   * `--redecouvrir` force la pêche quand un identifiant a changé de main.
+   */
+  const CACHE = new URL('../.audit/routes-dynamiques.json', import.meta.url).pathname
+  const forcer = process.argv.includes('--redecouvrir')
   const utiles = statiques.filter((r) => !r.startsWith('/embed'))
   const aTrouver = motifs.filter((m) => !m.startsWith('/embed')).map((m) => ({ motif: m, exp: versExpression(m), url: null }))
 
@@ -90,6 +110,15 @@ export async function routesAudit(page, base = 'http://localhost:3000') {
       }
     } catch {
       /* Un vivier muet n'est pas une erreur : les autres suffisent en général. */
+    }
+  }
+
+  if (!forcer) {
+    try {
+      const garde = JSON.parse(await readFile(CACHE, 'utf8'))
+      for (const m of aTrouver) if (garde[m.motif]) m.url = garde[m.motif]
+    } catch {
+      /* Pas de cache, ou illisible : on pêche, c'est le cas normal du premier appel. */
     }
   }
 
@@ -118,5 +147,17 @@ export async function routesAudit(page, base = 'http://localhost:3000') {
 
   const trouvees = aTrouver.filter((m) => m.url).map((m) => m.url)
   const manquantes = aTrouver.filter((m) => !m.url).map((m) => m.motif)
+
+  try {
+    await mkdir(new URL('../.audit/', import.meta.url).pathname, { recursive: true })
+    await writeFile(
+      CACHE,
+      JSON.stringify(Object.fromEntries(aTrouver.filter((m) => m.url).map((m) => [m.motif, m.url])), null, 2),
+      'utf8',
+    )
+  } catch {
+    /* Un cache qu'on ne peut pas écrire ne doit pas faire échouer l'audit. */
+  }
+
   return { routes: [...utiles.sort(), ...trouvees.sort()], manquantes }
 }

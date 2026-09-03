@@ -51,6 +51,7 @@
  */
 
 import { chromium, firefox, webkit, devices } from 'playwright'
+import { routesAudit } from './routes-audit.mjs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
@@ -87,51 +88,37 @@ const VIEWPORTS = [
  * Chaque gabarit est représenté par sa page la PLUS CHARGÉE : c'est là que le
  * responsive casse, jamais sur la variante vide.
  */
-const ROUTES = [
-  /*
-   * ⚠️ TOUTES CES ROUTES RÉPONDENT 200, ET C'EST À VÉRIFIER QUAND ON ÉTEND LA LISTE.
-   *
-   * Elle en portait DIX qui répondaient 404 — sondées une par une contre le serveur.
-   * Deux venaient d'être supprimées (`/blog`, `/apprendre`), les huit autres n'ont
-   * jamais été construites : `/crypto/mouvements`, `/crypto/highlights`, `/suivi`,
-   * `/alertes`, `/tarifs`, `/methodologie`, `/developpeurs`, `/widgets`.
-   *
-   * L'audit les visitait, recevait un 404, et rapportait « 1 erreur console » sur
-   * chacune. Le coût n'est pas le temps perdu : c'est que dix lignes de bruit rendent
-   * le rapport illisible, et qu'on finit par ne plus le lire du tout. Un audit auquel
-   * on ne croit plus ne sert à rien.
-   *
-   * ⚠️ ET LE DISQUE NE SUFFIT PAS À LE VÉRIFIER. J'ai d'abord testé l'existence d'un
-   * dossier sous `app/[locale]/` : cela écarte à tort `/crypto/bitcoin` et
-   * `/actions/aapl`, qui passent par un segment dynamique `[id]`. Seul le SERVEUR sait
-   * ce qui répond.
-   */
-  '/',
-  '/marches',
+/**
+ * ⚠️ ÉTATS À PARAMÈTRES — LE SEUL MORCEAU DE LISTE ENCORE ÉCRIT ICI.
+ *
+ * Ces adresses ouvrent une page sur un état que sa route nue ne montre pas : un
+ * autre onglet, une autre vue. Elles ne peuvent pas être découvertes par la lecture
+ * de `app/[locale]`, qui ne connaît que des chemins, ni par la pêche aux liens, qui
+ * rendrait autant de variantes qu'il existe d'onglets.
+ *
+ * Le reste — toutes les routes statiques, plus un exemplaire vivant de chaque motif
+ * dynamique — vient de `routes-audit.mjs`.
+ *
+ * ── POURQUOI LA LISTE PAR GABARIT A ÉTÉ ABANDONNÉE ─────────────────────────
+ *
+ * Elle tenait vingt-six routes, au motif que les cinquante-huit se rangeaient « en
+ * une quinzaine de gabarits ». Vérification faite en lisant les vues importées par
+ * chaque `page.tsx` : SEULES QUATORZE routes en partagent une. Les six fiches
+ * d'actif partagent `AssetPageView`, les six pages de métrique `MetricPageView`,
+ * `/connexion` et `/inscription` `AuthPageView` — et c'est tout. Les quarante-six
+ * autres composent leur mise en page sur place.
+ *
+ * Le raisonnement était bon, sa prémisse fausse : une vingtaine de mises en page
+ * distinctes n'étaient mesurées à aucun format. Or c'est précisément sur les pages
+ * de contenu — `/glossaire`, `/macro`, `/rachats` — qu'un tableau large ou une
+ * chaîne insécable déborde.
+ *
+ * Le regroupement subsiste là où il est VRAI : `routes-audit.mjs` ne rend qu'un seul
+ * exemplaire par motif dynamique, ce qui replie bien les douze fiches en deux.
+ */
+const ETATS = [
   '/marches?vue=derives',
-  '/crypto',
-  '/crypto/bitcoin',
   '/crypto/bitcoin?onglet=places',
-  '/crypto/all-coins',
-  '/crypto/graphiques',
-  '/crypto/nouvelles',
-  '/actions',
-  '/actions/aapl',
-  '/categories',
-  '/comparateur',
-  '/convertisseur',
-  '/screener',
-  '/actualites',
-  '/heatmap',
-  '/sentiment',
-  '/tableau-de-bord',
-  '/aide',
-  '/bien-demarrer',
-  '/pourquoi-zenkuu',
-  '/a-propos',
-  '/nouveautes',
-  '/parametres',
-  '/connexion',
 ]
 
 /** Sonde exécutée DANS la page. Elle ne voit que le DOM, jamais notre code. */
@@ -262,12 +249,28 @@ async function main() {
   const only = arg('device', null)
   const viewports = only ? VIEWPORTS.filter((v) => v.id === only) : VIEWPORTS
   const routesArg = arg('routes', null)
-  const routes = routesArg ? routesArg.split(',') : ROUTES
   const shot = arg('shot', null)
 
   await mkdir(OUT, { recursive: true })
 
   const browser = await engine.launch()
+
+  /* La découverte a besoin d'une page : on l'ouvre dans un contexte de bureau, le
+     seul format où tous les liens sont rendus — un menu replié sous téléphone
+     cacherait la moitié des fiches à pêcher. */
+  let routes
+  if (routesArg) {
+    routes = routesArg.split(',')
+  } else {
+    const bureau = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+    const sonde = await bureau.newPage()
+    const decouverte = await routesAudit(sonde, BASE)
+    await bureau.close()
+    routes = [...decouverte.routes, ...ETATS]
+    if (decouverte.manquantes.length)
+      console.log('motifs sans exemplaire vivant : ' + decouverte.manquantes.join(', '))
+    console.log(`${routes.length} routes × ${viewports.length} formats\n`)
+  }
   const report = []
 
   for (const viewport of viewports) {
