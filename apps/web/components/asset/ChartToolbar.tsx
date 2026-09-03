@@ -738,6 +738,54 @@ export function ChartToolbar(props: ChartToolbarProps) {
 
       {/*
         ══════════════════════════════════════════════════════════════════════
+        « TRADINGVIEW » EN TOUTES LETTRES, ET DANS LE GROUPE DE GAUCHE
+        ══════════════════════════════════════════════════════════════════════
+
+        ── D'ABORD, POURQUOI IL EST NOMMÉ ────────────────────────────────────
+
+        Le choix du moteur était un segment de DEUX pictogrammes nus — une courbe, un
+        chandelier — libellé en infobulle. La note qui défendait cette forme avait
+        raison sur la place gagnée, et tort sur le reste : une courbe et un chandelier
+        se lisent comme un choix de TRACÉ, alors qu'ils changent de MOTEUR — le second
+        remplace tout le cadre par celui de TradingView, avec ses propres périodes et
+        ses propres outils.
+
+        ── ENSUITE, POURQUOI IL EST ICI ET NON EN BOUT DE RANGÉE ─────────────
+
+        Il a séjourné à droite, après les paliers, sur le modèle de Blockworks. Le
+        relevé de `coingecko.com/en/coins/hyperliquid` tranche autrement, et la mesure
+        est nette : leur rangée porte « Price ▾ », « Compare ▾ », PUIS les deux icônes
+        de moteur — les trois collés à gauche — tandis que la droite ne reçoit que le
+        cadrage (périodes, calendrier) et la sortie (lien, « ⋮ »).
+
+        Cette grammaire est la bonne, et elle explique pourquoi : le moteur décide de
+        CE QU'ON TRACE, comme la grandeur et la comparaison. Les périodes, le
+        calendrier, les réglages et l'export décident de ce qu'on fait du résultat.
+        Posé à droite, le moteur se lisait comme une commande de sortie — voisin de
+        l'export, alors qu'il ne produit aucun fichier.
+
+        ⚠️ IL RESTE VISIBLE EN MODE EXTERNE, contrairement à ses voisins de droite. Il
+        est le SEUL chemin de retour : replié avec le reste du cadrage, il faudrait
+        recharger la page pour revenir au tracé maison.
+      */}
+      {props.renderOptions.some((entry) => entry.view === 'tradingview') ? (
+        <button
+          type="button"
+          onClick={() => props.onViewChange(external ? 'original' : 'tradingview')}
+          aria-pressed={external}
+          className={`flex h-7 shrink-0 items-center gap-1.5 rounded-control px-2.5 text-xs font-medium transition-colors duration-150 ${
+            external
+              ? 'bg-surface-active text-ink shadow-sm'
+              : 'bg-surface-muted text-ink-muted hover:text-ink'
+          }`}
+        >
+          <CandlestickChart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          TradingView
+        </button>
+      ) : null}
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════
         LE RENDU REVIENT DANS LA RANGÉE, EN UN SEUL BOUTON-ICÔNE
         ══════════════════════════════════════════════════════════════════════
 
@@ -1050,48 +1098,6 @@ export function ChartToolbar(props: ChartToolbarProps) {
         })}
       </div>
 
-      {/*
-        ══════════════════════════════════════════════════════════════════════
-        « TRADINGVIEW » EN TOUTES LETTRES, À DROITE, ET NON DEUX ICÔNES AU MILIEU
-        ══════════════════════════════════════════════════════════════════════
-
-        Le choix du moteur était un segment de DEUX pictogrammes nus — une courbe
-        et un chandelier — posé à gauche entre la grandeur et « Comparer », son
-        libellé relégué en infobulle. La note qui défendait cette forme disait
-        vrai sur un point : deux mots complets prenaient 203 pixels au milieu de
-        la barre.
-
-        Ce qu'elle manquait, c'est que le pictogramme ne dit pas ce que fait le
-        bouton. Une courbe et un chandelier se lisent comme un choix de TRACÉ
-        — ligne ou bougies — alors qu'ils changent de MOTEUR : le second remplace
-        tout le cadre par celui de TradingView, avec ses propres périodes et ses
-        propres outils. Deux lecteurs sur trois cliquaient en croyant changer la
-        forme de la courbe.
-
-        La référence (`blockworks.com/price/hyperliquid`) le nomme, et le pose à
-        droite après les paliers : c'est la dernière chose de la rangée, comme
-        « on quitte cette barre ». La place gagnée à gauche va à « Comparer ».
-
-        ⚠️ CE BOUTON RESTE VISIBLE EN MODE EXTERNE, CONTRAIREMENT À SES VOISINS.
-        Il est le SEUL chemin de retour : replié avec le reste du cadrage, il
-        faudrait recharger la page pour revenir au tracé maison. C'est pour cette
-        raison qu'il vit hors du groupe qui s'efface, et non dedans.
-      */}
-      {props.renderOptions.some((entry) => entry.view === 'tradingview') ? (
-        <button
-          type="button"
-          onClick={() => props.onViewChange(external ? 'original' : 'tradingview')}
-          aria-pressed={external}
-          className={`flex h-7 shrink-0 items-center gap-1.5 rounded-control px-2.5 text-xs font-medium transition-colors duration-150 ${
-            external
-              ? 'bg-surface-active text-ink shadow-sm'
-              : 'bg-surface-muted text-ink-muted hover:text-ink'
-          }`}
-        >
-          <CandlestickChart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          TradingView
-        </button>
-      ) : null}
 
       <DateRangePicker
         value={props.customRange}
