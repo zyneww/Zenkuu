@@ -230,11 +230,78 @@ export function ChartNavigator({
                    `medium`, et l'encre à `ink` au lieu de `ink-muted`. Le trait vertical
                    ancre l'étiquette à SA position — sans lui, un texte centré sur un
                    fond continu ne désigne rien de précis. */
-                className="pointer-events-none absolute inset-y-0 flex flex-col items-center justify-end gap-0.5"
+                /*
+                  ⚠️ `-translate-x-1/2` : SANS LUI, LE REPÈRE ENTIER EST DÉCALÉ.
+
+                  `left: X%` pose le BORD GAUCHE de cette boîte sur l'instant visé. Or
+                  la boîte prend la largeur de son plus large enfant — l'étiquette, une
+                  cinquantaine de pixels — et `items-center` centre le trait vertical
+                  DEDANS. Le trait se retrouvait donc vingt-cinq pixels à droite de la
+                  date qu'il prétend désigner, et l'étiquette entièrement à sa droite.
+
+                  Mesuré sur `/actions/aapl` : repère annoncé à 99,57 % d'une bande de
+                  944 px, soit x = 1429 ; le trait était peint à 1454.
+
+                  La demi-largeur ramène le CENTRE de la boîte sur l'instant, ce qui
+                  remet le trait sur sa date et centre l'étiquette dessus — état que le
+                  décalage ci-dessous suppose pour faire son travail aux extrémités.
+                */
+                className="pointer-events-none absolute inset-y-0 flex -translate-x-1/2 flex-col items-center justify-end gap-0.5"
                 style={{ left: `${tick.at * 100}%` }}
               >
                 <span className="w-px flex-1 bg-border-subtle" />
-                <span className="-translate-x-0 whitespace-nowrap px-1 text-[0.6875rem] font-medium leading-none text-ink">
+                {/*
+                  ══════════════════════════════════════════════════════════════
+                  ⚠️ LA DERNIÈRE ÉTIQUETTE ÉTAIT COUPÉE EN DEUX
+                  ══════════════════════════════════════════════════════════════
+
+                  Relevé par `audit-responsive` sur `/actions/aapl`, aux SIX formats :
+                  une étiquette de 54 px posée à 97,4 % de la bande débordait de 26 px,
+                  et l'ancêtre qui rogne la faisait finir à mi-mot.
+
+                  La classe qui tenait ici, `-translate-x-0`, était un décalage resté à
+                  zéro — la trace d'une intention jamais terminée. Elle ne faisait rien.
+
+                  Le décalage est maintenant CALCULÉ. `items-center` centre déjà
+                  l'étiquette sur son repère ; on y ajoute une fraction de sa propre
+                  largeur, non nulle seulement dans les quinze pour cent extrêmes :
+
+                      repère à   0 %  →  +50 %  l'étiquette part vers l'intérieur,
+                                                son bord gauche sur le repère
+                      repère à  10 %  →  +50 %  la rampe SATURE ici
+                      repère à  15 %  →    0 %  centrée, comme celles du milieu
+                      repère à  85 %  →    0 %
+                      repère à  90 %  →  −50 %  saturée dans l'autre sens
+                      repère à 100 %  →  −50 %  son bord droit sur le repère
+
+                  ⚠️ LA RAMPE SATURE, ET C'EST LA CORRECTION D'UN PREMIER JET TROP
+                  DOUX. Une rampe linéaire de 85 % à 100 % ne donnait que −41 % au
+                  repère de 97,4 %, ce qui suffisait à 390 px mais laissait encore
+                  quatre pixels dehors à 320 — relevé par un second passage de l'audit.
+                  Une demi-étiquette fait environ 27 px, soit 8,4 % d'une bande de
+                  320 : le décalage doit donc être ENTIER dès 90 %, pas seulement à
+                  100 %.
+
+                  ⚠️ LE TRAIT VERTICAL, LUI, NE BOUGE PAS. C'est lui qui désigne
+                  l'instant ; le décaler ferait mentir la frise pour sauver un mot. Seul
+                  le texte se range, et il reste rattaché par le trait qu'il touche.
+
+                  La transition est CONTINUE et non un basculement à trois positions :
+                  deux repères voisins près du bord sauteraient sinon d'un alignement à
+                  l'autre, ce qui se lit comme un défaut de rendu.
+                */}
+                <span
+                  className="whitespace-nowrap px-1 text-[0.6875rem] font-medium leading-none text-ink"
+                  style={{
+                    transform: `translateX(${
+                      (tick.at < 0.15
+                        ? 0.5 * Math.min(1, (0.15 - tick.at) / 0.05)
+                        : tick.at > 0.85
+                          ? -0.5 * Math.min(1, (tick.at - 0.85) / 0.05)
+                          : 0) * 100
+                    }%)`,
+                  }}
+                >
                   {tick.label}
                 </span>
               </span>
