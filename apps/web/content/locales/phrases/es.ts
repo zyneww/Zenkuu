@@ -2925,4 +2925,5 @@ export const esPhrases: Phrases = {
   'Afficher {n} de plus': 'Mostrar {n} más',
   'Auto': 'Auto',
   'À propos de : {nom}': 'Acerca de: {nom}',
+  'Ouvrir la liste': 'Abrir la lista',
 }

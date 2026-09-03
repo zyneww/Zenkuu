@@ -2911,4 +2911,5 @@ export const zhPhrases: Phrases = {
   'Afficher {n} de plus': '再显示 {n} 条',
   'Auto': '自动',
   'À propos de : {nom}': '关于：{nom}',
+  'Ouvrir la liste': '打开列表',
 }

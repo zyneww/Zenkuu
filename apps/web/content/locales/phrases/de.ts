@@ -2926,4 +2926,5 @@ export const dePhrases: Phrases = {
   'Afficher {n} de plus': '{n} weitere anzeigen',
   'Auto': 'Auto',
   'À propos de : {nom}': 'Über: {nom}',
+  'Ouvrir la liste': 'Liste öffnen',
 }

@@ -238,7 +238,14 @@ export function PreferenceOverlay({
           onValueChange={(next) => onTabChange(next as PreferenceTab)}
           className="gap-0"
         >
-          <DialogTitle className="sr-only">{isCurrency ? 'Devise' : 'Langue'}</DialogTitle>
+          {/* ⚠️ CES DEUX MOTS NE PASSAIENT PAS PAR LA TABLE, et c'est un `sr-only` :
+              personne ne l'aurait vu à l'écran. Une synthèse vocale annonçait donc
+              « Devise » à un lecteur anglais, allemand ou japonais. Relevé par
+              `audit-interactif` sur /actualites et /graphiques, où cette fenêtre est
+              montée par le bandeau de préférences. */}
+          <DialogTitle className="sr-only">
+            {isCurrency ? t('Devise') : t('Langue')}
+          </DialogTitle>
 
           {/* Onglets, et non deux fenêtres séparées : langue et devise sont les deux
               réglages d'affichage que l'on ajuste souvent l'un après l'autre. */}
@@ -249,7 +256,11 @@ export function PreferenceOverlay({
                 value={entry}
                 className="rounded-none border-0 border-b-2 border-transparent bg-transparent pb-2 text-base font-semibold text-ink-muted shadow-none data-[state=active]:border-brand data-[state=active]:bg-transparent data-[state=active]:text-ink data-[state=active]:shadow-none"
               >
-                {entry === 'language' ? 'Langue' : 'Devise'}
+                {/* Le libellé VISIBLE de l'onglet, resté français lui aussi. Le
+                    ternaire est ce qui l'a fait passer entre les mailles : un relevé
+                    de textes non traduits cherche des chaînes posées en enfant, pas
+                    des branches d'expression. */}
+                {entry === 'language' ? t('Langue') : t('Devise')}
               </TabsTrigger>
             ))}
           </TabsList>

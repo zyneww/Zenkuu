@@ -2918,4 +2918,5 @@ export const nlPhrases: Phrases = {
   'Afficher {n} de plus': 'Nog {n} tonen',
   'Auto': 'Auto',
   'À propos de : {nom}': 'Over: {nom}',
+  'Ouvrir la liste': 'De lijst openen',
 }

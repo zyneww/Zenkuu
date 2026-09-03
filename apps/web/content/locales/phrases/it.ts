@@ -2918,4 +2918,5 @@ export const itPhrases: Phrases = {
   'Afficher {n} de plus': 'Mostra altre {n}',
   'Auto': 'Auto',
   'À propos de : {nom}': 'Informazioni su: {nom}',
+  'Ouvrir la liste': 'Apri l’elenco',
 }

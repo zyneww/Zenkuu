@@ -5,6 +5,7 @@ import { Combobox as ComboboxPrimitive } from "@base-ui/react"
 import { CheckIcon, ChevronDownIcon, Search, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { usePhrase } from "@/components/locale/ContentProvider"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -36,9 +37,32 @@ function ComboboxTrigger({
   showIcon = true,
   ...props
 }: ComboboxPrimitive.Trigger.Props & { showIcon?: boolean }) {
+  const t = usePhrase()
+
   return (
     <ComboboxPrimitive.Trigger
       data-slot="combobox-trigger"
+      /*
+        ⚠️ UN NOM PAR DÉFAUT, PARCE QUE CE BOUTON N'EN AVAIT AUCUN.
+
+        Son seul contenu est un chevron marqué `aria-hidden` : rien à lire. Une synthèse
+        vocale annonçait donc « bouton », sans dire ce qu'il fait. Relevé par
+        `audit-interactif` sur /categories, où il ouvre le champ de filtre des secteurs.
+
+        « Ouvrir la liste » et non « Chevron » ou « Menu » : le nom d'un contrôle dit ce
+        qu'il FAIT, jamais à quoi il ressemble. C'est aussi la seule information utile —
+        la forme du pictogramme, un lecteur d'écran ne la voit pas.
+
+        ⚠️ IL PASSE PAR LA TABLE DE PHRASES. L'écrire en dur aurait refait exactement le
+        défaut corrigé dans le même passage : un `aria-label` français lu tel quel par
+        toute synthèse vocale, invisible à l'œil donc jamais relu. Une primitive de
+        bibliothèque n'échappe pas à cette règle.
+
+        ⚠️ ET IL EST POSÉ AVANT `{...props}`, DÉLIBÉRÉMENT : un appelant qui donne son
+        propre `aria-label` — parce qu'il sait de quelle liste il s'agit — doit gagner.
+        Écrit après, ce défaut écraserait tous les noms précis du site.
+      */
+      aria-label={t('Ouvrir la liste')}
       className={cn("[&_svg:not([class*='size-'])]:size-4", className)}
       {...props}
     >

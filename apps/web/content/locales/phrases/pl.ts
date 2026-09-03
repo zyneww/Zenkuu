@@ -2918,4 +2918,5 @@ export const plPhrases: Phrases = {
   'Afficher {n} de plus': 'Pokaż jeszcze {n}',
   'Auto': 'Auto',
   'À propos de : {nom}': 'O: {nom}',
+  'Ouvrir la liste': 'Otwórz listę',
 }

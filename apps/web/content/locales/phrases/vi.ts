@@ -2918,4 +2918,5 @@ export const viPhrases: Phrases = {
   'Afficher {n} de plus': 'Hiện thêm {n}',
   'Auto': 'Tự động',
   'À propos de : {nom}': 'Giới thiệu: {nom}',
+  'Ouvrir la liste': 'Mở danh sách',
 }

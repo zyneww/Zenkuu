@@ -117,13 +117,82 @@ async function auditerRoute(page, route) {
   })
 
   // ── TEXTES NON TRADUITS ───────────────────────────────────────────────────
+  /*
+   * ⚠️ TROIS PRÉCAUTIONS, CHACUNE POUR UN FAUX POSITIF RÉELLEMENT RENCONTRÉ.
+   *
+   * La version naïve — `document.body.innerText.includes(mot)` — a signalé trois
+   * fois du français sur des pages anglaises correctes :
+   *
+   *   · « Annuler une partie de la dette française… » : un TITRE DE PRESSE. ZENKUU
+   *     agrège des rédactions françaises ; leurs titres restent dans leur langue,
+   *     traduire l'article d'un tiers serait le réécrire. D'où l'exclusion des
+   *     sous-arbres `<article>`, l'élément que le site emploie déjà pour eux.
+   *   · « Investing.com Devises » : un NOM DE SOURCE. Un nom propre ne se traduit pas.
+   *     C'est aussi pourquoi la recherche porte désormais sur le MOT ENTIER — « Devise »
+   *     ne doit pas s'accrocher à l'intérieur de « Devises ».
+   *   · Le contenu de `<script>`, où les charges utiles de Next.js transportent les
+   *     chaînes françaises du site : jamais peintes, jamais lues par personne.
+   *
+   * ⚠️ ET LE RAPPORT PORTE L'EXTRAIT, PAS SEULEMENT LE MOT. Sans lui il a fallu, pour
+   * chacun des trois, relancer un script de localisation pour découvrir qu'il n'y avait
+   * rien à corriger. Un relevé qui ne se juge pas d'un coup d'œil coûte plus cher que
+   * le défaut qu'il cherche.
+   */
   rapport.francais = await page.evaluate((mots) => {
-    const txt = document.body.innerText
-    return mots.filter((m) => txt.includes(m))
+    const trouves = []
+    const marcheur = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    let noeud
+    while ((noeud = marcheur.nextNode())) {
+      const parent = noeud.parentElement
+      if (!parent || parent.closest('script, style, article')) continue
+      const texte = (noeud.nodeValue || '').trim()
+      if (!texte) continue
+      for (const mot of mots) {
+        const entier = new RegExp('(^|[^\\p{L}])' + mot + '($|[^\\p{L}])', 'u')
+        if (entier.test(texte)) trouves.push(mot + ' — « ' + texte.slice(0, 44) + ' »')
+      }
+    }
+    return [...new Set(trouves)].slice(0, 6)
   }, MOTS_FRANCAIS)
 
   // ── SURVOL ET FOCUS ───────────────────────────────────────────────────────
-  const cibles = await page.$$('a[href], button:not([disabled])')
+  /*
+   * ⚠️ LE LIEN D'ÉVITEMENT EST ÉCARTÉ, ET C'EST UN FAUX POSITIF CORRIGÉ.
+   *
+   * « Skip to main content » était signalé « sans réponse au survol » sur les
+   * VINGT-CINQ routes du premier passage. C'est son fonctionnement même : il vit hors
+   * de l'écran et n'apparaît qu'au focus. On ne peut pas survoler ce qu'on ne peut pas
+   * atteindre à la souris, et un survol qui ne fait rien est ici la bonne réponse.
+   *
+   * Vingt-cinq lignes de bruit rendent un rapport illisible, et l'on finit par ne plus
+   * le lire — c'est le raisonnement déjà écrit dans `audit-responsive.mjs` à propos des
+   * dix routes en 404 qu'il visitait.
+   *
+   * Le contrôle du FOCUS, lui, continue de porter sur ce lien : c'est là qu'il doit
+   * répondre, et il répond.
+   */
+  const cibles = (await page.$$('a[href], button:not([disabled])')).slice()
+  const horsSurvol = new Set()
+  for (const c of cibles) {
+    const horsEcran = await c
+      .evaluate((el) => {
+        const r = el.getBoundingClientRect()
+        /*
+          ⚠️ LES BORNES SONT LARGES (`<=`, `>=`), ET C'EST LE POINT.
+
+          Mesuré, le lien d'évitement occupe `top:-1 left:-1 w:1 h:1` : son bord bas
+          tombe exactement à 0. Un `< 0` strict le manquait d'un pixel et le rapport
+          continuait de le citer sur chaque route — la correction ne servait à rien.
+
+          On couvre les quatre côtés, pas seulement deux : un `sr-only` peut aussi être
+          rejeté sous le pli ou à droite du cadre selon la technique retenue.
+        */
+        return r.bottom <= 0 || r.right <= 0 ||
+          r.top >= innerHeight || r.left >= innerWidth
+      })
+      .catch(() => false)
+    if (horsEcran) horsSurvol.add(c)
+  }
   /* Douze par page : au-delà, on repasse sur des variantes du même composant, et le
      coût par élément (survol, transition, mesure) rend l'audit inutilisable. */
   for (const cible of cibles.slice(0, 12)) {
@@ -139,7 +208,7 @@ async function auditerRoute(page, route) {
     await cible.hover({ timeout: 4000 }).catch(() => {})
     await page.waitForTimeout(320)
     const survol = await styles(cible).catch(() => null)
-    if (survol && !differe(repos, survol)) rapport.sansSurvol.push(nom)
+    if (survol && !differe(repos, survol) && !horsSurvol.has(cible)) rapport.sansSurvol.push(nom)
 
     await page.mouse.move(0, 0)
     await page.waitForTimeout(150)

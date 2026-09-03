@@ -2930,4 +2930,5 @@ export const enPhrases: Phrases = {
   'Afficher {n} de plus': 'Show {n} more',
   'Auto': 'Auto',
   'À propos de : {nom}': 'About: {nom}',
+  'Ouvrir la liste': 'Open the list',
 }
