@@ -164,10 +164,21 @@ export default async function SentimentPage() {
         {fr.sentiment.disclaimer}
       </p>
 
+      {/*
+        ⚠️ LE SECOND RENVOI POINTAIT VERS `/apprendre`, QUI N'EXISTE PLUS.
+
+        La route a été supprimée et `/glossaire` a repris son rôle — c'est écrit dans
+        l'en-tête de `glossaire/page.tsx`. Le lien, lui, est resté : il rendait un 404
+        depuis cette page, et rien ne le signalait, puisqu'il vivait à l'intérieur
+        d'une chaîne de traduction et non dans un `href` que l'on puisse relire.
+
+        C'est le seul lien mort du site, trouvé en interrogeant les destinations
+        RENDUES plutôt que celles écrites en clair dans le code.
+      */}
       <p className="text-sm text-ink-muted">
         {weave(
           t(
-            'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [apprendre à lire les chiffres](/apprendre)',
+            'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)',
           ),
           (href, label, key) => (
             <Link key={key} href={href} className="text-ink hover:underline">

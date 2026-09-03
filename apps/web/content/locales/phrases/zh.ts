@@ -2134,7 +2134,6 @@ export const zhPhrases: Phrases = {
   /* ── PHRASES ENTIÈRES — notes de méthode — ajouté le 2026-08-31 ── */
   '{n} positions. Surface : valeur au cours du jour. Couleur : **plus-value latente** — l’écart entre cette valeur et le coût d’acquisition déclaré, rapporté à ce coût. Ce n’est ni un résultat réalisé ni une performance boursière : la position n’a pas été vendue. Une tuile **grise** signale une société qui n’a pas communiqué son coût d’entrée — l’absence est affichée comme telle, jamais remplacée par zéro. Ce registre recense enfin des positions **déclarées**, à la date de leur annonce : une société qui aurait vendu sans le publier y figure encore. Montants en dollars.': '{n} 项持仓。面积：按当日价格计的价值。颜色：**浮动盈亏**——该价值与申报取得成本之差，相对于该成本。这既不是已实现损益，也不是股市回报：仓位并未卖出。**灰色**方块表示该公司未披露入场成本——缺失就按缺失显示，绝不以零代替。最后，本登记收录的是**已申报**的持仓，以其公告日期为准：卖出却未公告的公司仍会留在其中。金额以美元计。',
   'Pour le détail des cours : [cotations](/crypto) · [heatmap sectorielle](/heatmap)': '价格详情：[行情](/crypto) · [板块热力图](/heatmap)',
-  'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [apprendre à lire les chiffres](/apprendre)': '把这些变动放进市场来看：[市场排行](/classements) · [学会读懂这些数字](/apprendre)',
   'Registre **déclaratif** : il recense ce que des sociétés cotées ont annoncé détenir, à la date de leur annonce. Ce n’est ni une lecture on-chain, ni un état vérifié — une société qui aurait vendu sans le publier y figure encore. La plus-value affichée est **latente** : rien n’a été réalisé.': '这是一份**申报制**登记：它列出上市公司公告持有的内容，以其公告日期为准。它既不是链上读数，也不是经核验的状态——卖出却未公告的公司仍会留在其中。所示收益为**浮动**收益：并未实现任何盈亏。',
   'Surface : capitalisation de la collection. Couleur : variation du **prix plancher** sur 24 heures — la seule variation que la source publie ici, et qui n’est pas celle de la capitalisation : le nombre d’exemplaires en vente bouge lui aussi. Les surfaces se partagent **notre sélection**, pas le marché NFT : voir la note en bas de page. Montants en dollars.': '面积：该系列的市值。颜色：24 小时内**地板价**的变动——这是数据源在此唯一公布的变动，并非市值的变动：在售数量同样会变。这些面积瓜分的是**我们的选样**，而不是整个 NFT 市场：见页脚注释。金额以美元计。',
   'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.': '关注资产或保存筛选视图**不需要**账号。账号的作用是让你在另一台设备上找回同一份列表。',
@@ -2708,4 +2707,5 @@ export const zhPhrases: Phrases = {
   'Le cours se situe à {pct} % de l’amplitude des 24 heures': '价格处于24小时区间的{pct}%位置',
   'Rechercher parmi {n} indicateurs': '在{n}项指标中搜索',
   'Retirer {nom} de la comparaison': '从对比中移除{nom}',
+  'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': '要在市场中定位这些波动：[市场排行](/classements) · [术语表](/glossaire)',
 }
