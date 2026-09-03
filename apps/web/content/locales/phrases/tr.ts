@@ -2914,4 +2914,6 @@ export const trPhrases: Phrases = {
   'Capitalisation par période': 'Döneme göre piyasa değeri',
   'Variation par période': 'Döneme göre değişim',
   'Du premier au dernier relevé de chaque période.': 'Her dönemin ilk ölçümünden son ölçümüne.',
+  '{n} sur {total} lignes': '{total} satırdan {n} tanesi',
+  'Afficher {n} de plus': '{n} tane daha göster',
 }

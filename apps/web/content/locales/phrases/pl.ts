@@ -2914,4 +2914,6 @@ export const plPhrases: Phrases = {
   'Capitalisation par période': 'Kapitalizacja według okresu',
   'Variation par période': 'Zmiana według okresu',
   'Du premier au dernier relevé de chaque période.': 'Od pierwszego do ostatniego odczytu każdego okresu.',
+  '{n} sur {total} lignes': '{n} z {total} wierszy',
+  'Afficher {n} de plus': 'Pokaż jeszcze {n}',
 }

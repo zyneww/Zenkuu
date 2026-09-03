@@ -2914,4 +2914,6 @@ export const ptBRPhrases: Phrases = {
   'Capitalisation par période': 'Capitalização por período',
   'Variation par période': 'Variação por período',
   'Du premier au dernier relevé de chaque période.': 'Do primeiro ao último registro de cada período.',
+  '{n} sur {total} lignes': '{n} de {total} linhas',
+  'Afficher {n} de plus': 'Mostrar mais {n}',
 }

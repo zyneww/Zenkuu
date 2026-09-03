@@ -2914,4 +2914,6 @@ export const jaPhrases: Phrases = {
   'Capitalisation par période': '期間別の時価総額',
   'Variation par période': '期間別の変動',
   'Du premier au dernier relevé de chaque période.': '各期間の最初の値から最後の値まで。',
+  '{n} sur {total} lignes': '{total} 行中 {n} 行',
+  'Afficher {n} de plus': 'さらに {n} 件を表示',
 }

@@ -2926,4 +2926,6 @@ export const enPhrases: Phrases = {
   'Capitalisation par période': 'Market capitalisation by period',
   'Variation par période': 'Change by period',
   'Du premier au dernier relevé de chaque période.': 'From the first to the last reading of each period.',
+  '{n} sur {total} lignes': '{n} of {total} rows',
+  'Afficher {n} de plus': 'Show {n} more',
 }

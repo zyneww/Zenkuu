@@ -2922,4 +2922,6 @@ export const dePhrases: Phrases = {
   'Capitalisation par période': 'Marktkapitalisierung je Zeitraum',
   'Variation par période': 'Veränderung je Zeitraum',
   'Du premier au dernier relevé de chaque période.': 'Vom ersten bis zum letzten Messwert jedes Zeitraums.',
+  '{n} sur {total} lignes': '{n} von {total} Zeilen',
+  'Afficher {n} de plus': '{n} weitere anzeigen',
 }

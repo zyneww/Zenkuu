@@ -2907,4 +2907,6 @@ export const zhPhrases: Phrases = {
   'Capitalisation par période': '各期间市值',
   'Variation par période': '各期间涨跌',
   'Du premier au dernier relevé de chaque période.': '从各期间的首个读数到末个读数。',
+  '{n} sur {total} lignes': '{total} 行中的 {n} 行',
+  'Afficher {n} de plus': '再显示 {n} 条',
 }

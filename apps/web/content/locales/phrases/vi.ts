@@ -2914,4 +2914,6 @@ export const viPhrases: Phrases = {
   'Capitalisation par période': 'Vốn hóa theo kỳ',
   'Variation par période': 'Biến động theo kỳ',
   'Du premier au dernier relevé de chaque période.': 'Từ số liệu đầu đến số liệu cuối của mỗi kỳ.',
+  '{n} sur {total} lignes': '{n} trên {total} dòng',
+  'Afficher {n} de plus': 'Hiện thêm {n}',
 }

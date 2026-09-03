@@ -23,7 +23,6 @@ import type {
   ScreenerMarket,
   ScreenerRow,
 } from '@/components/tools/screener-markets'
-import { TablePagination } from '@/components/ui/TablePagination'
 import type { ScreenCriteria } from '@/lib/screen-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { ScreenerFilterPanel } from '@/components/tools/ScreenerFilterPanel'
@@ -168,8 +167,33 @@ export function ScreenerView({
      que la table contient réellement, plutôt que de laisser chaque lecteur deviner. */
   const [thresholds, setThresholds] = useState<Record<string, Seuil>>({})
 
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(50)
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * CHARGEMENT PROGRESSIF, ET NON PAGINATION
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Le tableau était paginé — cinquante lignes, un pied avec numéros de page et un
+   * sélecteur de densité. C'est la forme juste pour une LISTE qu'on consulte, et la
+   * mauvaise pour un CRIBLE qu'on parcourt, ce qui est la différence entre les deux
+   * usages :
+   *
+   *   · ON NE SAUTE PAS À LA PAGE 7 D'UN SCREENER. On descend jusqu'à ce qu'on ait
+   *     assez vu. Les numéros de page servaient donc une navigation que personne
+   *     n'exerce ici.
+   *
+   *   · LA PAGINATION FAIT PERDRE CE QU'ON VIENT DE LIRE. Comparer la douzième ligne
+   *     à la cinquante-troisième demande deux allers-retours, et à chacun l'écran
+   *     recommence en haut. Un ajout à la suite garde les deux à l'écran.
+   *
+   * C'est aussi ce que font TradingView et Backpack, dont la référence a été demandée.
+   *
+   * ⚠️ TOUT RESTE EN MÉMOIRE, IL N'Y A AUCUN APPEL RÉSEAU DERRIÈRE CE BOUTON. Les
+   * lignes sont déjà toutes là — le serveur les a servies avec la page. Le bouton ne
+   * fait qu'en dévoiler davantage, et c'est pourquoi il n'a ni état d'attente ni
+   * message d'erreur : il ne peut pas échouer.
+   */
+  const PAS = 50
+  const [affichees, setAffichees] = useState(PAS)
   const [columnSetId, setColumnSetId] = useState(market.columnSets[0]!.id)
 
   /*
@@ -287,26 +311,25 @@ export function ScreenerView({
   }
 
   /*
-   * RETOUR EN PAGE 1 QUAND LES CRITÈRES CHANGENT.
+   * LA FENÊTRE SE REFERME QUAND LES CRITÈRES CHANGENT.
    *
-   * Chaque curseur peut réduire le résultat à trois lignes. Rester en page 4
-   * afficherait alors un tableau vide — le lecteur croirait que son critère ne retient
-   * rien, alors qu'il regarde au-delà du dernier résultat.
+   * Sans cela, quelqu'un qui a déplié six cents lignes puis resserre un filtre garde
+   * six cents lignes dépliées sur un résultat qui en compte douze — le bouton
+   * disparaît, mais la position de défilement, elle, reste à mi-hauteur d'un tableau
+   * qui n'existe plus.
    *
    * L'ajustement se fait PENDANT LE RENDU plutôt que dans un effet : un effet
-   * peindrait d'abord le tableau vide avant de le corriger.
+   * peindrait d'abord l'ancien état avant de le corriger.
    */
   const signature = `${market.id}|${preset}|${query.trim()}|${JSON.stringify(thresholds)}|${sort?.key ?? ''}${sort?.direction ?? ''}`
   const [lastSignature, setLastSignature] = useState(signature)
   if (signature !== lastSignature) {
     setLastSignature(signature)
-    setPage(1)
+    setAffichees(PAS)
   }
 
-  const pageCount = Math.max(1, Math.ceil(sortedRows.length / perPage))
-  const currentPage = Math.min(page, pageCount)
-  const start = (currentPage - 1) * perPage
-  const visible = sortedRows.slice(start, start + perPage)
+  const visible = sortedRows.slice(0, affichees)
+  const reste = sortedRows.length - visible.length
 
   function reset() {
     setPreset('tout')
@@ -611,7 +634,9 @@ export function ScreenerView({
                       source n'aurait aucun sens après un tri par frais de gestion, et
                       la plupart de nos marchés n'en publient pas. */}
                   <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                    {start + index + 1}
+                    {/* Le décalage a disparu avec la pagination : la fenêtre commence
+                        toujours à la première ligne, `index` EST le rang. */}
+                    {index + 1}
                   </td>
 
                   <th scope="row" className="px-3 py-2.5 text-left font-normal">
@@ -634,17 +659,29 @@ export function ScreenerView({
       )}
 
       {sortedRows.length > 0 ? (
-        <TablePagination
-          page={currentPage}
-          perPage={perPage}
-          total={sortedRows.length}
-          unit="ligne"
-          onPageChange={setPage}
-          onPerPageChange={(size) => {
-            setPerPage(size)
-            setPage(1)
-          }}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+          {/* LE DÉCOMPTE RESTE, et il est plus utile qu'avant : il dit à la fois où
+              l'on en est et combien il reste, ce que des numéros de page ne disaient
+              qu'indirectement. */}
+          <p className="text-xs text-ink-muted">
+            {t('{n} sur {total} lignes')
+              .replace('{n}', String(visible.length))
+              .replace('{total}', String(sortedRows.length))}
+          </p>
+
+          {reste > 0 ? (
+            <button
+              type="button"
+              onClick={() => setAffichees((precedent) => precedent + PAS)}
+              className="h-9 rounded-control border border-border-subtle px-4 text-xs font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand"
+            >
+              {/* Le nombre EXACT qui va s'ajouter, et non « Afficher plus » : sur un
+                  reste de douze lignes, promettre cinquante serait faux, et sur un reste
+                  de mille, ne rien dire laisse ignorer qu'on est loin du bout. */}
+              {t('Afficher {n} de plus').replace('{n}', String(Math.min(PAS, reste)))}
+            </button>
+          ) : null}
+        </div>
       ) : null}
         </div>
 

@@ -2914,4 +2914,6 @@ export const ruPhrases: Phrases = {
   'Capitalisation par période': 'Капитализация по периодам',
   'Variation par période': 'Изменение по периодам',
   'Du premier au dernier relevé de chaque période.': 'От первого до последнего замера каждого периода.',
+  '{n} sur {total} lignes': '{n} из {total} строк',
+  'Afficher {n} de plus': 'Показать ещё {n}',
 }

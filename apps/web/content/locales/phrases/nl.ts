@@ -2914,4 +2914,6 @@ export const nlPhrases: Phrases = {
   'Capitalisation par période': 'Marktkapitalisatie per periode',
   'Variation par période': 'Verandering per periode',
   'Du premier au dernier relevé de chaque période.': 'Van de eerste tot de laatste meting van elke periode.',
+  '{n} sur {total} lignes': '{n} van {total} rijen',
+  'Afficher {n} de plus': 'Nog {n} tonen',
 }
