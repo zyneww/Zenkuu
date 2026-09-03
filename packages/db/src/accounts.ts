@@ -94,6 +94,14 @@ export async function upsertAccount(
     id: crypto.randomUUID(),
     email: normalized,
     handle: defaultHandle(normalized),
+    /* ⚠️ UN COMPTE NAÎT SANS MOT DE PASSE, ET C'EST L'ÉTAT NORMAL. Cette fonction sert
+       le parcours par CODE : l'adresse suffit à créer le compte. Le mot de passe est
+       posé plus tard, depuis les réglages, par qui le veut. Le mettre ici obligerait à
+       en demander un pour recevoir un code, ce qui ferait de l'inscription un
+       formulaire là où c'est aujourd'hui une adresse. */
+    passwordHash: null,
+    passwordAttempts: 0,
+    passwordLockedUntil: null,
     createdAt: now,
     lastSeenAt: now,
   }
@@ -306,6 +314,130 @@ export async function consumeLoginCode(
 
   await db.delete(loginCodes).where(eq(loginCodes.id, row.id))
   return { ok: true, data: { status: 'ok' } }
+}
+
+/* ── Mots de passe ────────────────────────────────────────────────────────── */
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE PLAFOND D'ESSAIS, ET POURQUOI IL NE FERME PAS LE COMPTE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Dix essais, puis quinze minutes de refus. Les deux valeurs sont un compromis, et
+ * elles sont écrites ici plutôt que devinées à l'appel :
+ *
+ *   · DIX plutôt que trois. Une faute de frappe sur une phrase de passe longue est
+ *     banale, et trois essais transforment une maladresse en incident. Dix laissent
+ *     respirer sans rien offrir : à ce rythme, essayer un dictionnaire de mille mots
+ *     demande vingt-cinq heures.
+ *
+ *   · QUINZE MINUTES plutôt qu'un verrou définitif. Un verrou qui ne se lève pas seul
+ *     est un outil de nuisance : n'importe qui connaissant une adresse pourrait fermer
+ *     ce compte à son titulaire en se trompant dix fois.
+ *
+ * ⚠️ LE VERROU NE FERME QUE LA PORTE DU MOT DE PASSE. La connexion par code à usage
+ * unique reste ouverte pendant toute sa durée, et une connexion réussie par ce chemin
+ * remet le compteur à zéro. Quelqu'un qui prouve son identité par courriel n'a pas à
+ * rester puni des essais qu'un tiers a faits sur son compte.
+ */
+export const PASSWORD_MAX_ATTEMPTS = 10
+export const PASSWORD_LOCK_MINUTES = 15
+
+/** Pose ou remplace le condensat. Le compteur d'essais repart de zéro avec lui. */
+export async function setAccountPassword(
+  id: string,
+  passwordHash: string,
+): Promise<WatchlistResult<{ set: true }>> {
+  const db = getDb()
+  if (!db) return { ok: false, reason: UNAVAILABLE }
+
+  try {
+    await db
+      .update(accounts)
+      .set({ passwordHash, passwordAttempts: 0, passwordLockedUntil: null })
+      .where(eq(accounts.id, id))
+    return { ok: true, data: { set: true } }
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message }
+  }
+}
+
+/** Retire le mot de passe. Le compte reste joignable par code — c'est le point. */
+export async function clearAccountPassword(
+  id: string,
+): Promise<WatchlistResult<{ cleared: true }>> {
+  const db = getDb()
+  if (!db) return { ok: false, reason: UNAVAILABLE }
+
+  try {
+    await db
+      .update(accounts)
+      .set({ passwordHash: null, passwordAttempts: 0, passwordLockedUntil: null })
+      .where(eq(accounts.id, id))
+    return { ok: true, data: { cleared: true } }
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message }
+  }
+}
+
+/**
+ * Enregistre un essai infructueux, et pose le verrou au dixième.
+ *
+ * Rend le nombre d'essais RESTANTS, que l'appelant peut choisir de montrer ou non.
+ * ⚠️ Il ne doit PAS l'être avant que le compte ne soit connu et le mot de passe posé :
+ * un décompte affiché sur une adresse inconnue dirait qu'elle existe.
+ */
+export async function recordPasswordFailure(
+  id: string,
+  now: Date = new Date(),
+): Promise<WatchlistResult<{ left: number; locked: boolean }>> {
+  const db = getDb()
+  if (!db) return { ok: false, reason: UNAVAILABLE }
+
+  try {
+    const [row] = await db
+      .select({ attempts: accounts.passwordAttempts })
+      .from(accounts)
+      .where(eq(accounts.id, id))
+      .limit(1)
+
+    const attempts = (row?.attempts ?? 0) + 1
+    const locked = attempts >= PASSWORD_MAX_ATTEMPTS
+
+    await db
+      .update(accounts)
+      .set({
+        passwordAttempts: attempts,
+        /* Le verrou est posé à l'instant du dixième essai, jamais avant : une date
+           calculée d'avance se périmerait entre deux tentatives espacées. */
+        passwordLockedUntil: locked
+          ? new Date(now.getTime() + PASSWORD_LOCK_MINUTES * 60_000)
+          : null,
+      })
+      .where(eq(accounts.id, id))
+
+    return { ok: true, data: { left: Math.max(0, PASSWORD_MAX_ATTEMPTS - attempts), locked } }
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message }
+  }
+}
+
+/** Remet le compteur à zéro. Appelé par TOUTE connexion réussie, quel qu'en soit le chemin. */
+export async function clearPasswordFailures(
+  id: string,
+): Promise<WatchlistResult<{ cleared: true }>> {
+  const db = getDb()
+  if (!db) return { ok: false, reason: UNAVAILABLE }
+
+  try {
+    await db
+      .update(accounts)
+      .set({ passwordAttempts: 0, passwordLockedUntil: null })
+      .where(eq(accounts.id, id))
+    return { ok: true, data: { cleared: true } }
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message }
+  }
 }
 
 /* ── Sessions ─────────────────────────────────────────────────────────────── */

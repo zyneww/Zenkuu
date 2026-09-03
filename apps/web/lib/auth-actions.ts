@@ -7,20 +7,26 @@ import {
   CODE_MAX_ATTEMPTS,
   DB_ENABLED,
   claimAnonymousData,
+  clearAccountPassword,
+  clearPasswordFailures,
   consumeLoginCode,
   countRecentCodes,
   createSession,
   deleteAccount,
   deleteAccountSessions,
   deleteSession,
+  findAccountByEmail,
   hashToken,
   normalizeEmail,
+  recordPasswordFailure,
   renameAccount,
+  setAccountPassword,
   storeLoginCode,
   upsertAccount,
 } from '@zenkuu/db'
 
 import { MAILER_ENABLED, loginCodeEmail, sendMail } from '@/lib/mailer'
+import { hashPassword, judgePassword, needsRehash, verifyPassword } from '@/lib/password'
 import {
   ACCOUNTS_ENABLED,
   IDENTITY_COOKIE,
@@ -71,8 +77,19 @@ export type AuthResult =
         | 'code-wrong'
         | 'signed-out'
         | 'error'
+        /* ── Mot de passe ──────────────────────────────────────────────────
+           ⚠️ `bad-credentials` NE DISTINGUE PAS « adresse inconnue » de « mot de
+           passe faux », et surtout pas de « ce compte n'a pas de mot de passe ».
+           Les trois répondent la même chose pour la raison écrite en tête : sans
+           cela, le formulaire devient un oracle qui dit qui est inscrit ici. */
+        | 'bad-credentials'
+        | 'locked'
+        | 'weak-password'
+        | 'not-signed-in'
       /** Essais restants — renseigné pour `code-wrong` seulement. */
       left?: number
+      /** Motif du refus de robustesse — renseigné pour `weak-password` seulement. */
+      weakness?: 'trop-court' | 'trop-long' | 'trop-courant' | 'contient-adresse'
     }
 
 /** Motif volontairement permissif : on écarte l'absurde, on ne prouve rien. */
@@ -178,51 +195,210 @@ export async function verifyLoginCode(rawEmail: string, rawCode: string): Promis
     const account = await upsertAccount(email)
     if (!account.ok) return { ok: false, reason: 'unavailable' }
 
-    /*
-     * Ce que le visiteur avait rassemblé ANONYMEMENT le suit dans son compte.
-     * L'échec de cette étape n'annule pas la connexion : la liste anonyme reste alors
-     * accessible en se déconnectant, ce qui est récupérable, là où refuser la session
-     * ne le serait pas.
-     */
-    const visitor = await readVisitorId()
-    if (visitor) await claimAnonymousData(visitor, account.data.id)
+    return await openSession(account.data)
+  } catch {
+    return { ok: false, reason: 'error' }
+  }
+}
 
-    const token = crypto.randomUUID() + crypto.randomUUID()
-    const opened = await createSession({
-      tokenHash: await hashToken(token),
-      accountId: account.data.id,
-      expiresAt: new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000),
-    })
-    if (!opened.ok) return { ok: false, reason: 'unavailable' }
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * L'OUVERTURE DE SESSION, EN UN SEUL ENDROIT
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Ce bloc vivait DANS `verifyLoginCode`, seul chemin de connexion à l'époque. Il y en
+ * a deux depuis que le mot de passe existe, et recopier ces quarante lignes aurait
+ * garanti que les deux divergent — sur des sujets où diverger coûte cher : la durée du
+ * cookie, son `httpOnly`, la reprise des données anonymes.
+ *
+ * ⚠️ TOUTE CONNEXION RÉUSSIE REMET LE COMPTEUR D'ESSAIS À ZÉRO, y compris celle par
+ * code. C'est délibéré : quelqu'un qui prouve son identité par courriel n'a pas à
+ * rester puni des essais qu'un tiers a faits sur son compte.
+ */
+async function openSession(account: { id: string; handle: string; email: string }): Promise<AuthResult> {
+  /*
+   * Ce que le visiteur avait rassemblé ANONYMEMENT le suit dans son compte.
+   * L'échec de cette étape n'annule pas la connexion : la liste anonyme reste alors
+   * accessible en se déconnectant, ce qui est récupérable, là où refuser la session
+   * ne le serait pas.
+   */
+  const visitor = await readVisitorId()
+  if (visitor) await claimAnonymousData(visitor, account.id)
 
-    const jar = await cookies()
-    jar.set(SESSION_COOKIE, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: SESSION_MAX_AGE_SECONDS,
-      path: '/',
-    })
+  await clearPasswordFailures(account.id)
 
-    /* Le cookie d'AFFICHAGE, lisible par la page — voir `IDENTITY_COOKIE`. Il ne
-       porte aucun pouvoir : le fabriquer à la main ne fait qu'écrire un autre nom
-       dans son propre en-tête, puisque toute lecture de données passe par le jeton
-       `httpOnly` ci-dessus. */
-    jar.set(IDENTITY_COOKIE, encodeIdentity(account.data.handle, account.data.email), {
-      httpOnly: false,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: SESSION_MAX_AGE_SECONDS,
-      path: '/',
-    })
+  const token = crypto.randomUUID() + crypto.randomUUID()
+  const opened = await createSession({
+    tokenHash: await hashToken(token),
+    accountId: account.id,
+    expiresAt: new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000),
+  })
+  if (!opened.ok) return { ok: false, reason: 'unavailable' }
 
-    /* La page entière est revalidée : l'en-tête, la liste de suivi et le tableau de bord
-       affichent tous quelque chose de différent une fois connecté. */
-    revalidatePath('/', 'layout')
+  const jar = await cookies()
+  jar.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: SESSION_MAX_AGE_SECONDS,
+    path: '/',
+  })
+
+  /* Le cookie d'AFFICHAGE, lisible par la page — voir `IDENTITY_COOKIE`. Il ne
+     porte aucun pouvoir : le fabriquer à la main ne fait qu'écrire un autre nom
+     dans son propre en-tête, puisque toute lecture de données passe par le jeton
+     `httpOnly` ci-dessus. */
+  jar.set(IDENTITY_COOKIE, encodeIdentity(account.handle, account.email), {
+    httpOnly: false,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: SESSION_MAX_AGE_SECONDS,
+    path: '/',
+  })
+
+  /* La page entière est revalidée : l'en-tête, la liste de suivi et le tableau de bord
+     affichent tous quelque chose de différent une fois connecté. */
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CONNEXION PAR MOT DE PASSE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── UN SEUL MOTIF D'ÉCHEC POUR TROIS CAUSES, ET C'EST LE POINT ─────────────
+ *
+ * `bad-credentials` couvre indistinctement :
+ *
+ *   · l'adresse est inconnue ;
+ *   · l'adresse est connue mais n'a pas de mot de passe ;
+ *   · l'adresse est connue, a un mot de passe, et ce n'est pas celui-là.
+ *
+ * Les distinguer donnerait à qui essaie une liste d'adresses inscrites sur le site,
+ * et pire, la liste de celles qui n'ont pas encore de mot de passe — précisément les
+ * comptes qu'il suffirait d'attaquer par le courriel. C'est la règle déjà tenue par
+ * `requestLoginCode`, appliquée à l'autre porte.
+ *
+ * ⚠️ LE VERROU EST LE SEUL ÉTAT DISTINGUÉ, et il le faut : refuser sans le dire un
+ * mot de passe correct pendant quinze minutes serait incompréhensible. Il ne révèle
+ * rien de plus — pour l'atteindre, il a fallu dix essais sur cette adresse, donc
+ * savoir déjà qu'on s'acharne dessus.
+ *
+ * ── LA DÉRIVATION A LIEU MÊME QUAND LE COMPTE N'EXISTE PAS ─────────────────
+ *
+ * Sans cela, une adresse inconnue répondrait en une milliseconde là où une adresse
+ * connue demande la durée d'un PBKDF2 : la différence est mesurable au chronomètre et
+ * rétablit exactement l'oracle qu'on vient d'éviter. On vérifie donc contre un
+ * condensat FACTICE, dont le résultat est jeté.
+ */
+export async function signInWithPassword(
+  rawEmail: string,
+  password: string,
+): Promise<AuthResult> {
+  if (!ACCOUNTS_ENABLED) return { ok: false, reason: 'unavailable' }
+
+  const email = normalizeEmail(rawEmail)
+  if (!EMAIL.test(email) || email.length > 254) return { ok: false, reason: 'invalid-email' }
+
+  try {
+    const found = await findAccountByEmail(email)
+    if (!found.ok) return { ok: false, reason: 'unavailable' }
+    const account = found.data
+
+    if (!account || !account.passwordHash) {
+      /* Voir la note : on paie le même temps que sur un compte réel. */
+      await verifyPassword(password, LEURRE)
+      return { ok: false, reason: 'bad-credentials' }
+    }
+
+    if (account.passwordLockedUntil && account.passwordLockedUntil > new Date()) {
+      return { ok: false, reason: 'locked' }
+    }
+
+    if (!(await verifyPassword(password, account.passwordHash))) {
+      const failure = await recordPasswordFailure(account.id)
+      if (failure.ok && failure.data.locked) return { ok: false, reason: 'locked' }
+      return { ok: false, reason: 'bad-credentials' }
+    }
+
+    /* Le rattrapage de dérivation : c'est le SEUL instant où le site détient le mot de
+       passe en clair et peut donc le re-hacher au coût du jour. Sans lui, relever les
+       itérations ne protégerait que les comptes créés ensuite. Son échec n'empêche pas
+       la connexion — le condensat en place reste valide. */
+    if (needsRehash(account.passwordHash)) {
+      await setAccountPassword(account.id, await hashPassword(password))
+    }
+
+    return await openSession(account)
+  } catch {
+    return { ok: false, reason: 'error' }
+  }
+}
+
+/**
+ * Condensat FACTICE, dérivé d'une valeur qui n'est le mot de passe de personne.
+ *
+ * Il ne protège rien par lui-même : son unique rôle est de donner à `verifyPassword`
+ * de quoi travailler le même temps que sur un vrai compte. Voir la note ci-dessus.
+ */
+const LEURRE =
+  'pbkdf2$sha256$600000$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+
+/**
+ * Pose ou remplace le mot de passe du compte CONNECTÉ.
+ *
+ * ⚠️ IL N'Y A PAS DE PARCOURS « MOT DE PASSE OUBLIÉ » SÉPARÉ, ET C'EST DÉLIBÉRÉ. Le
+ * site sait déjà prouver qu'on tient une adresse : le code à usage unique le fait.
+ * « Oublié » renvoie donc à ce chemin — on se connecte par code, puis on pose un
+ * nouveau mot de passe ici.
+ *
+ * Ce que cela évite : une seconde famille de jetons, sa table, sa durée de validité,
+ * son gabarit de courriel, et le risque propre à tout lien de réinitialisation qui
+ * traîne dans une boîte. Le code existant est plus court à vivre et déjà plafonné.
+ */
+export async function setOwnPassword(password: string): Promise<AuthResult> {
+  if (!ACCOUNTS_ENABLED) return { ok: false, reason: 'unavailable' }
+
+  const account = await currentAccount()
+  if (!account) return { ok: false, reason: 'not-signed-in' }
+
+  const verdict = judgePassword(password, account.email)
+  if (!verdict.ok) return { ok: false, reason: 'weak-password', weakness: verdict.reason }
+
+  try {
+    const stored = await setAccountPassword(account.id, await hashPassword(password))
+    if (!stored.ok) return { ok: false, reason: 'unavailable' }
     return { ok: true }
   } catch {
     return { ok: false, reason: 'error' }
   }
+}
+
+/**
+ * Retire le mot de passe du compte connecté.
+ *
+ * Le compte reste joignable par code — c'est ce qui rend ce geste sûr. Sans ce second
+ * chemin, retirer son mot de passe reviendrait à se fermer la porte.
+ */
+export async function removeOwnPassword(): Promise<AuthResult> {
+  if (!ACCOUNTS_ENABLED) return { ok: false, reason: 'unavailable' }
+
+  const account = await currentAccount()
+  if (!account) return { ok: false, reason: 'not-signed-in' }
+
+  try {
+    const cleared = await clearAccountPassword(account.id)
+    return cleared.ok ? { ok: true } : { ok: false, reason: 'unavailable' }
+  } catch {
+    return { ok: false, reason: 'error' }
+  }
+}
+
+/** Ce compte a-t-il un mot de passe ? Sert aux réglages, pour dire « poser » ou « changer ». */
+export async function hasPassword(): Promise<boolean> {
+  const account = await currentAccount()
+  return Boolean(account?.passwordHash)
 }
 
 export async function signOut(): Promise<AuthResult> {

@@ -140,18 +140,32 @@ export const savedScreens = sqliteTable(
  * Le raisonnement était juste tant que le fournisseur existait. Il a été retiré du
  * site, et il ne reste donc qu'une source possible : celle-ci.
  *
- * ── CE QU'ELLE NE CONTIENT PAS, ET C'EST L'ESSENTIEL ──────────────────────────
+ * ── DEUX CHEMINS DE CONNEXION, ET LE MOT DE PASSE EST FACULTATIF ─────────────
  *
- * Aucun mot de passe, aucun condensat de mot de passe, aucune question secrète. La
- * connexion se fait par CODE À USAGE UNIQUE envoyé par courriel (`login_codes`) : il
- * n'y a donc pas de secret durable à stocker, donc rien à faire fuir, rien à saler,
- * rien à faire tourner le jour où l'algorithme de hachage vieillit.
+ * Cette note tenait qu'il n'y aurait « aucun mot de passe, aucun condensat, aucune
+ * question secrète », et défendait ce choix par un arbitrage juste : ne jamais détenir
+ * le secret d'un visiteur, c'est n'avoir rien à faire fuir.
  *
- * C'est un arbitrage, pas une simplification gratuite. On perd la connexion hors
- * ligne et la connexion instantanée ; on gagne de ne jamais détenir le secret d'un
- * visiteur — sur un site qui ne fait que publier des cours, la balance est nette.
+ * Le mot de passe a été demandé explicitement, et la table le porte désormais. Ce qui
+ * suit décrit comment il cohabite avec l'existant plutôt que de le remplacer.
  *
- * Une adresse, un pseudonyme. Rien d'autre : ce site n'a besoin de rien d'autre.
+ * ⚠️ `passwordHash` EST NULLABLE, ET CE N'EST PAS UNE COMMODITÉ DE MIGRATION. Le code
+ * à usage unique reste un chemin de connexion À PART ENTIÈRE : un compte peut n'avoir
+ * jamais posé de mot de passe et fonctionner entièrement. C'est aussi ce qui rend le
+ * parcours « mot de passe oublié » trivial — on se connecte par code, puis on en pose
+ * un nouveau, sans jeton de réinitialisation ni table supplémentaire.
+ *
+ * Le condensat est produit par `lib/password.ts`, seule porte du site pour cela, et
+ * porte son algorithme et ses paramètres DANS la chaîne. Aucune constante du code
+ * n'est nécessaire pour relire un condensat ancien.
+ *
+ * ── LES DEUX COLONNES DE PLAFONNEMENT ────────────────────────────────────────
+ *
+ * Un mot de passe se devine, contrairement à un code à six chiffres qui expire en
+ * quinze minutes : il lui faut donc son propre compteur d'essais. Il vit ICI et non en
+ * mémoire, pour la raison déjà écrite pour `login_codes` — le site tourne sur des
+ * instances sans état, et un compteur local repartirait de zéro à chaque requête
+ * servie par une autre.
  */
 export const accounts = sqliteTable(
   'accounts',
@@ -177,6 +191,31 @@ export const accounts = sqliteTable(
      * l'initiale qu'on en tire pour l'avatar de l'en-tête.
      */
     handle: text('handle').notNull(),
+    /**
+     * Condensat du mot de passe, ou `null` quand le compte n'en a jamais posé.
+     *
+     * ⚠️ NE JAMAIS LE FAIRE SORTIR DE LA COUCHE DE DONNÉES. Il n'a rien à faire dans
+     * une réponse, un journal ou un état client : `findAccountByEmail` le rend parce
+     * que la vérification en a besoin côté serveur, et c'est le seul usage légitime.
+     */
+    passwordHash: text('password_hash'),
+    /**
+     * Essais infructueux consécutifs sur le mot de passe.
+     *
+     * Remis à zéro par toute connexion réussie, quel que soit le chemin emprunté :
+     * quelqu'un qui prouve son identité par courriel n'a pas à rester puni des essais
+     * qu'un tiers a faits sur son compte.
+     */
+    passwordAttempts: integer('password_attempts').notNull().default(0),
+    /**
+     * Instant jusqu'auquel le mot de passe est refusé, quel qu'il soit.
+     *
+     * ⚠️ LE VERROU NE FERME PAS LE COMPTE, IL NE FERME QUE CETTE PORTE. La connexion
+     * par code reste ouverte pendant toute sa durée — sans quoi un tiers pourrait
+     * verrouiller n'importe qui hors de son propre compte en se trompant dix fois, ce
+     * qui transformerait une protection en outil de nuisance.
+     */
+    passwordLockedUntil: integer('password_locked_until', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .$defaultFn(() => new Date()),

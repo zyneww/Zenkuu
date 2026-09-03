@@ -54,6 +54,12 @@ export {
   renameAccount,
   storeLoginCode,
   upsertAccount,
+  PASSWORD_LOCK_MINUTES,
+  PASSWORD_MAX_ATTEMPTS,
+  clearAccountPassword,
+  clearPasswordFailures,
+  recordPasswordFailure,
+  setAccountPassword,
 } from './accounts'
 export type { CodeCheck } from './accounts'
 

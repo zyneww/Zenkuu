@@ -22,6 +22,13 @@
       "when": 1786851832002,
       "tag": "0002_cold_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788414636771,
+      "tag": "0003_dry_sage",
+      "breakpoints": true
     }
   ]
 }
