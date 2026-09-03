@@ -2717,4 +2717,8 @@ export const dePhrases: Phrases = {
   'Auto': 'Auto',
   'À propos de : {nom}': 'Über: {nom}',
   'Ouvrir la liste': 'Liste öffnen',
+  'Progression sur 24 h et sur 7 j': 'Anstieg über 24 Std. und 7 Tage',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Rückgang von über 5 % in vierundzwanzig Stunden',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Die Quelle veröffentlicht keine {grandeur}-Historie für diesen Wert.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Der Kurs liegt bei {pct} % der 24-Stunden-Spanne',
 }

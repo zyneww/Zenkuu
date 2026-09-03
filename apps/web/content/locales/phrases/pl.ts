@@ -2709,4 +2709,8 @@ export const plPhrases: Phrases = {
   'Auto': 'Auto',
   'À propos de : {nom}': 'O: {nom}',
   'Ouvrir la liste': 'Otwórz listę',
+  'Progression sur 24 h et sur 7 j': 'Wzrost w 24 godz. i 7 dni',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Spadek o ponad 5 % w ciągu dwudziestu czterech godzin',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Źródło nie publikuje historii {grandeur} dla tego aktywa.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Kurs znajduje się na poziomie {pct} % zakresu 24-godzinnego',
 }

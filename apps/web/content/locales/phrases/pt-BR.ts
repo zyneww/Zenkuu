@@ -2709,4 +2709,8 @@ export const ptBRPhrases: Phrases = {
   'Auto': 'Automático',
   'À propos de : {nom}': 'Sobre: {nom}',
   'Ouvrir la liste': 'Abrir a lista',
+  'Progression sur 24 h et sur 7 j': 'Alta em 24 h e 7 d',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Queda de mais de 5 % em vinte e quatro horas',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'A fonte não publica o histórico de {grandeur} deste ativo.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'O preço está a {pct} % da faixa de 24 horas',
 }

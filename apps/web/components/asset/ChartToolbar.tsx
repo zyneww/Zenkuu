@@ -698,7 +698,17 @@ export function ChartToolbar(props: ChartToolbarProps) {
             ...(entry.available === false
               ? {
                   disabled: true,
-                  title: `La source ne publie pas d’historique de ${entry.label.toLowerCase()} pour cet actif.`,
+                  /*
+                    ⚠️ LA PHRASE ÉTAIT À MOITIÉ TRADUITE, CE QUI EST PIRE QUE PAS DU TOUT.
+                    `entry.label` passait déjà par la table — d'où, sur la fiche anglaise
+                    d'une action, « La source ne publie pas d'historique de market cap
+                    pour cet actif. » : une phrase française avec un mot anglais dedans.
+                    La phrase entière est désormais une clé, et la grandeur son jeton.
+                  */
+                  title: t('La source ne publie pas d’historique de {grandeur} pour cet actif.').replace(
+                    '{grandeur}',
+                    entry.label.toLowerCase(),
+                  ),
                 }
               : {}),
           }))}
@@ -1059,7 +1069,24 @@ export function ChartToolbar(props: ChartToolbarProps) {
                 props.onRangeChange(preset)
               }}
               aria-pressed={active}
-              {...(preset.title ? { title: preset.title, 'aria-label': preset.title } : {})}
+              /*
+                ⚠️ `t(preset.title)` ET NON `preset.title`. Le libellé visible du bouton
+                est un sigle — « YTD », « 24H » — que rien ne traduit ; son `title`, lui,
+                est une phrase française posée dans `RANGE_PRESETS`. Elle sortait telle
+                quelle sur les pages anglaises : « Depuis le 1ᵉʳ janvier » en infobulle
+                ET en `aria-label`, c'est-à-dire lue par toute synthèse vocale.
+
+                ⚠️ ET LE COMMENTAIRE EST NU, SANS ACCOLADES. Dans une LISTE D'ATTRIBUTS,
+                un commentaire entouré d'accolades est une EXPRESSION JSX, donc une erreur
+                de syntaxe : les accolades n'y sont permises qu'autour d'une valeur. Entre
+                deux attributs, seul le commentaire de bloc ordinaire passe.
+
+                (Écrire la forme fautive ici, entre guillemets obliques, refermerait ce
+                commentaire à sa deuxième ligne — d'où la description en toutes lettres.)
+              */
+              {...(preset.title
+                ? { title: t(preset.title), 'aria-label': t(preset.title) }
+                : {})}
               /*
                 LE PALIER ACTIF PORTE UN FOND, PLUS UNE BORDURE.
 

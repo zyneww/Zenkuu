@@ -21,6 +21,47 @@ interface ChangeBadgeProps {
    * pour cette raison, et c'est le seul endroit où ça vaut la place.
    */
   showPeriod?: boolean
+  /**
+   * Les mots de l'`aria-label` et de l'infobulle.
+   *
+   * ⚠️ POURQUOI UNE PROPRIÉTÉ ET NON UN APPEL AU TRADUCTEUR.
+   *
+   * `packages/ui` ne connaît aucune locale : il ne dépend ni de `next-intl`, ni de la
+   * table de phrases, qui vivent dans `apps/web`. C'est la contrainte qui a produit le
+   * défaut — ces deux textes étaient écrits en français DANS le composant, et
+   * sortaient tels quels sur les pages anglaises. Un utilisateur de synthèse vocale
+   * anglophone entendait « en hausse de 2,34 % sur 24 heures ».
+   *
+   * C'est aussi le patron déjà retenu ailleurs dans ce paquet : `EmptyState` reçoit
+   * son titre et sa description en propriétés, traduits par l'appelant. Le composant
+   * dessine, l'application parle.
+   *
+   * ⚠️ LES DÉFAUTS RESTENT FRANÇAIS, DÉLIBÉRÉMENT. Le français est la langue source du
+   * site : un défaut vide ferait un badge muet, un défaut anglais mentirait sur les
+   * pages françaises, qui sont la majorité. Un appelant qui passe `libelles` corrige
+   * sa page ; un appelant qui ne le fait pas retrouve exactement le comportement
+   * d'avant, ce qui permet de traiter les quarante-huit points d'appel un par un.
+   */
+  libelles?: {
+    hausse: string
+    baisse: string
+    stable: string
+    moins: string
+    periodeDefaut: string
+    variation: string
+    absente: string
+  }
+}
+
+/** Les mots d'origine — la langue source du site. */
+const LIBELLES_FR: NonNullable<ChangeBadgeProps['libelles']> = {
+  hausse: 'en hausse de',
+  baisse: 'en baisse de',
+  stable: 'stable,',
+  moins: 'moins ',
+  periodeDefaut: 'sur 24 heures',
+  variation: 'Variation',
+  absente: 'Donnée non fournie par la source',
 }
 
 /**
@@ -37,13 +78,14 @@ export function ChangeBadge({
   size = 'md',
   filled = false,
   showPeriod = false,
+  libelles = LIBELLES_FR,
 }: ChangeBadgeProps) {
   const formatted = formatPercent(value)
 
   // Donnée absente : on le montre comme tel, sans jamais afficher « 0,00 % » (§5).
   if (formatted === null || value === undefined) {
     return (
-      <span className="text-ink-muted" title="Donnée non fournie par la source">
+      <span className="text-ink-muted" title={libelles.absente}>
         —
       </span>
     )
@@ -75,7 +117,9 @@ export function ChangeBadge({
   const spacing = filled ? 'rounded-md px-1.5 py-0.5' : ''
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm'
 
-  const readable = `${direction === 'up' ? 'en hausse de' : direction === 'down' ? 'en baisse de' : 'stable,'} ${formatted.replace('−', 'moins ').replace('+', '')} ${periodLabel ?? 'sur 24 heures'}`
+  const readable = `${
+    direction === 'up' ? libelles.hausse : direction === 'down' ? libelles.baisse : libelles.stable
+  } ${formatted.replace('−', libelles.moins).replace('+', '')} ${periodLabel ?? libelles.periodeDefaut}`
 
   return (
     // `whitespace-nowrap` en complément de l'espace insécable posée par
@@ -90,7 +134,7 @@ export function ChangeBadge({
          suffit — les épaissir en plus disait deux fois la même chose. */
       className={`tabular inline-flex items-center gap-1 whitespace-nowrap font-medium ${textSize} ${tone} ${spacing}`}
       aria-label={readable}
-      title={periodLabel ? `Variation ${periodLabel}` : 'Variation sur 24 heures'}
+      title={`${libelles.variation} ${periodLabel ?? libelles.periodeDefaut}`}
     >
       <span aria-hidden="true" className="text-[0.7em]">
         {chevron}

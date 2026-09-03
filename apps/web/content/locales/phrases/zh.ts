@@ -2702,4 +2702,8 @@ export const zhPhrases: Phrases = {
   'Auto': '自动',
   'À propos de : {nom}': '关于：{nom}',
   'Ouvrir la liste': '打开列表',
+  'Progression sur 24 h et sur 7 j': '24小时与7天涨幅',
+  'Recul de plus de 5 % sur vingt-quatre heures': '二十四小时内跌幅超过5%',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': '数据来源未发布该资产的{grandeur}历史。',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': '价格处于24小时区间的{pct}%位置',
 }

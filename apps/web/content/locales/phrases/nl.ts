@@ -2709,4 +2709,8 @@ export const nlPhrases: Phrases = {
   'Auto': 'Auto',
   'À propos de : {nom}': 'Over: {nom}',
   'Ouvrir la liste': 'De lijst openen',
+  'Progression sur 24 h et sur 7 j': 'Stijging over 24 u en 7 d',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Daling van meer dan 5 % in vierentwintig uur',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'De bron publiceert geen {grandeur}-historiek voor dit activum.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'De koers staat op {pct} % van de 24-uursrange',
 }

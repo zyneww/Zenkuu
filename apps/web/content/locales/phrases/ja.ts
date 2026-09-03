@@ -2709,4 +2709,8 @@ export const jaPhrases: Phrases = {
   'Auto': '自動',
   'À propos de : {nom}': '{nom} について',
   'Ouvrir la liste': '一覧を開く',
+  'Progression sur 24 h et sur 7 j': '24時間・7日間の上昇',
+  'Recul de plus de 5 % sur vingt-quatre heures': '24時間で5%を超える下落',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'このアセットの{grandeur}履歴は提供元が公開していません。',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': '価格は24時間レンジの{pct}%の位置にあります',
 }

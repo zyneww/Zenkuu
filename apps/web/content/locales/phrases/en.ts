@@ -2721,4 +2721,8 @@ export const enPhrases: Phrases = {
   'Auto': 'Auto',
   'À propos de : {nom}': 'About: {nom}',
   'Ouvrir la liste': 'Open the list',
+  'Progression sur 24 h et sur 7 j': 'Gains over 24h and 7d',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Down more than 5% over twenty-four hours',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'The source publishes no {grandeur} history for this asset.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'The price sits at {pct}% of the 24-hour range',
 }

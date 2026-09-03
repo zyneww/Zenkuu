@@ -67,7 +67,16 @@ export async function AssetRangeBar({ asset, isRate }: { asset: MarketAsset; isR
           className="h-full rounded-pill bg-brand"
           style={{ width: `${position}%` }}
           role="img"
-          aria-label={`Le cours se situe à ${Math.round(position)} % de l’amplitude des 24 heures`}
+          /*
+            ⚠️ CE LIBELLÉ ÉTAIT LE SEUL TEXTE FRANÇAIS DE CE FICHIER.
+            Le titre visible, douze lignes plus haut, passe par `t()` depuis toujours.
+            Celui-ci était un gabarit littéral — et c'est la règle du défaut : ce qu'on
+            voit se corrige à la première relecture, ce qu'on n'entend pas survit.
+          */
+          aria-label={t('Le cours se situe à {pct} % de l’amplitude des 24 heures').replace(
+            '{pct}',
+            String(Math.round(position)),
+          )}
         />
         <span
           aria-hidden="true"

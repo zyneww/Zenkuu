@@ -2709,4 +2709,8 @@ export const ruPhrases: Phrases = {
   'Auto': 'Авто',
   'À propos de : {nom}': 'О показателе: {nom}',
   'Ouvrir la liste': 'Открыть список',
+  'Progression sur 24 h et sur 7 j': 'Рост за 24 ч и 7 дней',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Падение более чем на 5 % за двадцать четыре часа',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Источник не публикует историю «{grandeur}» для этого актива.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Цена находится на отметке {pct} % диапазона за 24 часа',
 }

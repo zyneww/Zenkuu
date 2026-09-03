@@ -2709,4 +2709,8 @@ export const trPhrases: Phrases = {
   'Auto': 'Otomatik',
   'À propos de : {nom}': 'Hakkında: {nom}',
   'Ouvrir la liste': 'Listeyi aç',
+  'Progression sur 24 h et sur 7 j': '24 sa ve 7 g yükseliş',
+  'Recul de plus de 5 % sur vingt-quatre heures': 'Yirmi dört saatte %5’ten fazla düşüş',
+  'La source ne publie pas d’historique de {grandeur} pour cet actif.': 'Kaynak bu varlık için {grandeur} geçmişi yayımlamıyor.',
+  'Le cours se situe à {pct} % de l’amplitude des 24 heures': 'Fiyat, 24 saatlik aralığın %{pct} seviyesinde',
 }
