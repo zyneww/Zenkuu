@@ -128,7 +128,7 @@ async function auditerRoute(page, route) {
     return [...new Set(nu)].slice(0, 8)
   })
 
-  // ── TEXTES NON TRADUITS ───────────────────────────────────────────────────
+  // ── TEXTES ET ATTRIBUTS NON TRADUITS ──────────────────────────────────────
   /*
    * ⚠️ TROIS PRÉCAUTIONS, CHACUNE POUR UN FAUX POSITIF RÉELLEMENT RENCONTRÉ.
    *
@@ -164,7 +164,37 @@ async function auditerRoute(page, route) {
         if (entier.test(texte)) trouves.push(mot + ' — « ' + texte.slice(0, 44) + ' »')
       }
     }
-    return [...new Set(trouves)].slice(0, 6)
+    /*
+     * ⚠️ LES ATTRIBUTS AUSSI, ET C'EST LE POINT AVEUGLE QUI A COÛTÉ LE PLUS CHER.
+     *
+     * `.notes/bugs-a-traiter.md` le décrit sous le point 4 : le comparateur fr/en
+     * de l'époque découpait le HTML sur les balises et ne regardait JAMAIS dans les
+     * attributs. Tout `aria-label`, `title` et `placeholder` en dur lui a échappé.
+     *
+     * Or ce sont exactement les libellés qu'une synthèse vocale annonce. Un
+     * utilisateur japonais entendait « Fermer », « Repères chiffrés »,
+     * « Regroupement plus fin » : la seule partie du site non traduite était celle
+     * qui compte le plus pour qui ne voit pas l'écran. Un texte français visible se
+     * remarque à la première relecture ; un `aria-label` français ne se remarque
+     * jamais — il n'y a rien à voir.
+     *
+     * ⚠️ `alt` EST EXCLU. Les vignettes d'actualité portent le titre de l'article,
+     * en français chez les rédactions françaises : c'est du contenu, pas de
+     * l'interface, et le traduire reviendrait à réécrire l'article d'autrui.
+     */
+    for (const el of document.querySelectorAll('[aria-label], [title], [placeholder]')) {
+      for (const attribut of ['aria-label', 'title', 'placeholder']) {
+        const valeur = (el.getAttribute(attribut) || '').trim()
+        if (!valeur) continue
+        for (const mot of mots) {
+          const entier = new RegExp('(^|[^\\p{L}])' + mot + '($|[^\\p{L}])', 'u')
+          if (entier.test(valeur))
+            trouves.push(`${mot} — ${attribut}="${valeur.slice(0, 40)}"`)
+        }
+      }
+    }
+
+    return [...new Set(trouves)].slice(0, 8)
   }, MOTS_FRANCAIS)
 
   // ── SURVOL ET FOCUS ───────────────────────────────────────────────────────

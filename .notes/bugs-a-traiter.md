@@ -44,12 +44,17 @@ Corrigé À LA SOURCE : le silence est devenu explicite (`quiet`, réservé aux
 treize langues. Un appelant qui oublie le garde obtient une explication, pas un
 trou.
 
-## 2 bis. Reste à voir — « Capitalisation mondiale » annonce 3 relevés sans tracer
+## 2 bis. RÉSOLU — le compte et le seuil partagent enfin leur source
 
-La carte affiche « Courbe en cours de constitution — 3 relevés enregistrés » alors
-que `MetricCard` trace dès deux points. Le compte affiché et la série transmise ne
-viennent donc pas de la même source. Sans gravité — la carte n'est plus muette —
-mais l'incohérence mérite un coup d'œil.
+La carte affichait « Courbe en cours de constitution — 3 relevés enregistrés »
+alors que `MetricCard` traçait dès deux points : le nombre annoncé et la série
+transmise ne venaient pas du même endroit.
+
+`MetricCard` n'existe plus, et `DominanceView` a été réécrit. Il compare
+`points.length` à `MIN_POINTS_FOR_CHART`, importé de `@zenkuu/data` — un seul
+seuil, partagé — et n'affiche plus AUCUN compte tant que la série n'est pas prête
+(`series.ready ? … : null`). L'incohérence ne peut donc plus se produire : il n'y a
+plus deux chiffres à faire diverger, il n'y en a qu'un, et il ne sort pas.
 
 ## 3. Les cartes de mesure réservent la place d'une courbe absente
 
@@ -69,6 +74,19 @@ chiffrés », « Regroupement plus fin ». C'est la seule partie du site qui n'a
 été traduite, et c'est celle qui compte le plus pour qui ne voit pas l'écran.
 
 À mesurer avec un scanner d'ATTRIBUTS, non de texte.
+
+**Le scanner existe désormais.** `scripts/audit-interactif.mjs` lit `aria-label`,
+`title` et `placeholder` sur chaque page anglaise, en cherchant le MOT ENTIER pour
+qu'un « Devise » ne s'accroche pas dans « Devises ». Deux défauts de cette famille
+ont déjà été pris et corrigés par ce moyen : le titre de la fenêtre des préférences,
+resté « Devise » et « Langue » en dur alors que le composant tenait son traducteur
+douze lignes plus haut ; et le chevron du champ de filtre des catégories, qui
+n'avait aucun nom du tout.
+
+⚠️ `alt` reste HORS du champ, délibérément. Les vignettes d'actualité portent le
+titre de l'article, en français chez les rédactions françaises : c'est du contenu,
+pas de l'interface. Le traduire reviendrait à réécrire l'article d'autrui — c'est
+la même raison qui écarte les sous-arbres `<article>` du contrôle de texte.
 
 ## 5. Temps de réponse mesurés (serveur de développement)
 
