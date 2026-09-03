@@ -317,37 +317,74 @@ Alignement sur l'audit [CHARTS_AUDIT.md](file:///home/ok/Documents/zenkuu/CHARTS
 
 ---
 
-## 10. Plan de migration pas-à-pas & critères d'acceptation
+## 10. État de la migration — relevé, et non plan
 
-### Phase 1 : Rénovation des jetons dans `globals.css`
-- [ ] Remplacer les valeurs de `@theme` par la palette d'obsidienne étagée (`L0` à `L4`).
-- [ ] Configurer les variables d'accentuation (Azur Zenkuu `#91d7e3` + Vert Backpack `#00c278` + Rouge Backpack `#ea383b`).
-- [ ] Ajouter les classes utilitaires de lueur (`glow-brand`, `glow-subtle`) et de brillance (`card-sheen`).
+> ⚠️ **CETTE SECTION ÉTAIT UN PLAN ; ELLE EST DEVENUE UN RELEVÉ.**
+>
+> Elle portait vingt cases à cocher, écrites avant l'implémentation et jamais
+> relues depuis. Les cocher aurait menti deux fois : sur ce qui n'a pas été fait,
+> et — plus grave — sur ce qui a été fait AUTREMENT. Le brief CoinGecko est arrivé
+> après ce plan et l'a remplacé sur plusieurs points ; une case cochée aurait
+> effacé la trace de ce choix.
+>
+> Chaque ligne dit donc ce que le code fait aujourd'hui, vérifié dans le code, avec
+> l'écart quand il y en a un.
 
-### Phase 2 : Refonte des composants de base (`packages/ui` et `components/ui`)
-- [ ] Mettre à jour `Button.tsx` (variante pillule `rounded-full`, secondaire `bg-surface-hover`).
-- [ ] Aligner `Card.tsx` / `Panel` (coins 16 px, fond `L1`, filet supérieur `card-sheen`).
-- [ ] Raffiner `ChangeBadge.tsx` (fonds translucides à 8-10 %, texte vif, police tabulaire).
-- [ ] Intégrer les segmented buttons dans `Tabs.tsx`.
+### Phase 1 — Jetons de `globals.css`
 
-### Phase 3 : Refonte de la barre de navigation haute (`NavBar.tsx`)
-- [ ] Intégrer la pilule de navigation centrale flottante avec `backdrop-blur-md`.
-- [ ] Rénover le bouton de recherche avec raccourci clavier `/`.
-- [ ] Tester le comportement sous mobile (tiroir latéral avec le même fond `L1` et boutons espacés).
+| Prévu | État |
+|---|---|
+| Palette d'obsidienne étagée `L0`–`L4` | **Fait.** `--color-canvas` `#0e0f14`, `--color-surface` `#14151b`, `--color-surface-muted`, `--color-surface-hover` `#202127`, `--color-surface-active`. |
+| Accents `#91d7e3` / `#00c278` / `#ea383b` | **Fait en thème sombre** — `--color-brand`, `--color-up`, `--color-down`. Le thème CLAIR emploie `#00794b` et `#d20032` : le vert et le rouge d'origine ne tiennent pas 4,5:1 sur un fond crème, et `app/palette.test.ts` refuserait la paire. L'accent, lui, est le même des deux côtés. |
+| Utilitaires `glow-brand`, `glow-subtle`, `card-sheen` | **Deux sur trois.** `glow-brand` et `card-sheen` existent et servent. `glow-subtle` n'a jamais eu d'appelant : une classe que personne n'emploie est du poids mort dans une feuille de style chargée à chaque page, et son absence n'est pas une dette. |
 
-### Phase 4 : Harmonisation des tableaux de cotation (`MarketTable.tsx`)
-- [ ] Ajuster la hauteur de ligne à 44 px.
-- [ ] Retirer les bordures verticales résiduelles.
-- [ ] Passer le survol de ligne en `#202127`.
-- [ ] Appliquer les tailles typographiques 13 px (ticker) / 11 px (nom).
+### Phase 2 — Composants de base
 
-### Phase 5 : Modernisation de la fiche d'actif (`AssetWorkspace.tsx`)
-- [ ] Réorganiser l'en-tête de cours avec le flash de tick live.
-- [ ] Encapsuler les métriques clés dans des tuiles `L2` arrondies.
-- [ ] Polir les sélecteurs de période amCharts et Recharts.
+| Prévu | État |
+|---|---|
+| `Button.tsx` en pillule | **Sans objet sous cette forme.** Il n'y a pas de `components/ui/Button.tsx` : les boutons viennent de HeroUI, habillés par les jetons. La pillule `rounded-full` a été écartée avec la direction Backpack — CoinGecko emploie des angles courts, et c'est cette référence qui prime. |
+| `Card.tsx` : coins, fond `L1`, `card-sheen` | **Fait.** `packages/ui/src/Card.tsx` porte `card-sheen rounded-card border border-border-subtle bg-surface`. |
+| `ChangeBadge.tsx` : fonds translucides, police tabulaire | **Fait.** `packages/ui/src/ChangeBadge.tsx` porte `tabular` et `rounded-md` en variante pleine. |
+| Segmented buttons dans `Tabs.tsx` | **Fait ailleurs.** Il n'y a pas de `Tabs.tsx` ; le contrôle segmenté vit dans `components/ui/SegmentedControl.tsx`, avec un indicateur glissant MESURÉ (`offsetLeft` / `offsetWidth` + `ResizeObserver`) plutôt que la table de translations d'Opensource UI, qui plafonne à cinq options et suppose des largeurs égales. |
 
-### Critères de succès & non-régression
-1. `bun run typecheck` et `bun run lint` passent à 100 % sans aucune erreur.
-2. Les 496 tests Vitest actuels continuent de passer.
-3. Les scripts d'audit (`audit-overflow.mjs`, `audit-responsive.mjs`) confirment 0 débordement horizontal aux 3 points de rupture (375 px, 768 px, 1440 px).
-4. Le thème clair et le thème sombre respectent tous deux les critères de contraste WCAG AA sur l'ensemble des textes et contrôles.
+### Phase 3 — Navigation haute
+
+| Prévu | État |
+|---|---|
+| Pilule centrale flottante `backdrop-blur-md` | **Écarté avec la direction Backpack.** L'en-tête suit désormais la structure CoinGecko : barre pleine largeur, deux niveaux, méga-menus. Le `backdrop-blur-md` subsiste là où il a un sens — la barre d'onglets mobile (`MobileTabBar.tsx`), posée par-dessus le contenu qui défile. |
+| Raccourci clavier `/` sur la recherche | **Fait.** `components/search/HeaderSearch.tsx`. |
+| Tiroir mobile sur fond `L1` | **Fait.** `MobileNav.tsx`. |
+
+### Phase 4 — Tableaux de cotation
+
+| Prévu | État |
+|---|---|
+| Hauteur de ligne 44 px | **Obtenue autrement.** `py-2` de part et d'autre plutôt qu'une hauteur figée : une ligne dont le contenu passe à deux lignes en écran étroit doit grandir, et une hauteur fixe la tronquerait. |
+| Aucune bordure verticale | **Fait.** Seules des bordures horizontales entre lignes. |
+| Survol `#202127` | **Fait**, par `hover:bg-surface-hover`, dont c'est la valeur. |
+| Tailles 13 px / 11 px | **Remplacées par l'échelle CoinGecko** — `--v2-text-2xs` et `text-xs`. Deux tailles écrites en dur auraient échappé au thème et à la mise à l'échelle typographique. |
+
+### Phase 5 — Fiche d'actif
+
+| Prévu | État |
+|---|---|
+| En-tête de cours et flash de tick | **Fait**, puis REFAIT : l'en-tête a pris la forme Blockworks demandée après ce plan. |
+| Tuiles `L2` pour les métriques | **Fait.** `components/asset/AssetMetricGrid.tsx`. |
+| Sélecteurs de période amCharts et Recharts | **Fait**, et la barre d'outils a depuis été refondue sur le modèle Dropstab. |
+
+### Critères de non-régression — mesurés
+
+1. `bun run typecheck` et `bun run lint` : **passent**.
+2. Tests Vitest : **406 sur 34 fichiers**, tous verts. Le plan annonçait 496 ; ce
+   chiffre n'a jamais correspondu à rien de mesuré et il est corrigé ici.
+3. `audit-responsive.mjs` : **aucun débordement horizontal** sur six formats.
+4. Contraste WCAG AA dans les deux thèmes : tenu par `app/palette.test.ts`, qui
+   refuse toute paire sous 4,5:1 — les écarts assumés y sont déclarés un par un,
+   avec leur raison.
+5. `audit-interactif.mjs` : survol, focus, noms accessibles, infobulles et
+   erreurs de console sur les vingt-six routes.
+6. `audit-surfaces.mjs` : chaque fond peint appartient à la rampe, dans les deux
+   thèmes, la rampe de référence étant LUE sur la page plutôt que recopiée ici.
+7. `audit-mouvement.mjs` : `prefers-reduced-motion` coupe effectivement le
+   mouvement, mesuré sur les durées calculées et non sur les règles écrites.
+8. `audit-liens.mjs` : chaque destination interne RENDUE répond.

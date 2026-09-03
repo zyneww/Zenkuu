@@ -187,6 +187,12 @@ function ZenkuuShield({ label }: { label: string }) {
       {/*
         Le monogramme, en creux : la teinte du fond du panneau, pas du noir pur.
 
+        ⚠️ #0e0f14, COMME LE PANNEAU — ET C'EST TOUT L'INTÉRÊT DE CE CREUX. Il est
+        resté à #05070d quand le fond, lui, a rejoint L0 : la note ci-dessus disait
+        « la teinte du fond du panneau » et ne la portait plus. Deux noirs proches
+        mais distincts, l'un dans la rampe et l'autre non, et la gravure cessait
+        d'être une gravure — elle redevenait une forme sombre posée par-dessus.
+
         ⚠️ `fontSize` EST UN ATTRIBUT SVG, PAS UNE CLASSE. Une classe `text-[54px]`
         poserait 54 pixels CSS — donc une taille fixe qui ne suivrait pas la mise à
         l'échelle du `viewBox`, et qui n'a de toute façon rien à faire sur l'échelle
@@ -198,7 +204,7 @@ function ZenkuuShield({ label }: { label: string }) {
         y="132"
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="#05070d"
+        fill="#0e0f14"
         fillOpacity="0.82"
         fontSize="54"
         fontWeight="700"

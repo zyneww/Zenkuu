@@ -187,6 +187,16 @@ export function PriceChartAm({
    * L'APPARENCE COURANTE, ET POURQUOI ELLE DOIT ÊTRE UNE DÉPENDANCE
    * ══════════════════════════════════════════════════════════════════════════
    *
+   * ⚠️ LES VALEURS DE REPLI SONT CELLES DU THÈME SOMBRE, ET PLUS DES GRIS ORPHELINS.
+   *
+   * Elles ne servent que si `getComputedStyle` rend une chaîne vide — un graphique
+   * construit avant que la feuille de style ne soit résolue. Ce chemin est rare, mais
+   * il existe, et il peignait #8a8a8a, #383838 et #0c0c0c : trois teintes qui
+   * n'appartenaient à AUCUN des deux thèmes. Le repli d'un jeton doit être la valeur
+   * que ce jeton prend le plus souvent, sans quoi il introduit une quatrième palette
+   * que personne n'a choisie — et il le fait précisément au moment où l'on ne peut
+   * pas la voir venir.
+   *
    * `readToken` résout les jetons CSS en couleurs à la CONSTRUCTION : amCharts peint en
    * canevas et `am5.color` attend une valeur, pas une référence (voir sa note). La
    * conséquence est écrite depuis toujours dans ce fichier — « le graphique doit être
@@ -295,7 +305,7 @@ export function PriceChartAm({
     })
     xRenderer.grid.template.setAll({ visible: false })
     xRenderer.labels.template.setAll({
-      fill: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
+      fill: am5.color(readToken('--color-ink-muted', '#969faf')),
       /* ⚠️ 11 px ÉTAIT TROP PETIT — voir la note de l'axe des prix, juste en dessous.
          Les deux axes montent ensemble : deux corps différents sur les deux bords du
          même cadre se verraient. */
@@ -341,11 +351,11 @@ export function PriceChartAm({
       strokeOpacity: 0,
     })
     yRenderer.grid.template.setAll({
-      stroke: am5.color(readToken('--color-border-subtle', '#383838')),
+      stroke: am5.color(readToken('--color-border-subtle', '#1c1e26')),
       strokeOpacity: 1,
     })
     yRenderer.labels.template.setAll({
-      fill: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
+      fill: am5.color(readToken('--color-ink-muted', '#969faf')),
       fontSize: AXIS_LABEL_SIZE,
     })
 
@@ -427,7 +437,7 @@ export function PriceChartAm({
         }),
       )
       volumeSeries.columns.template.setAll({
-        fill: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
+        fill: am5.color(readToken('--color-ink-muted', '#969faf')),
         fillOpacity: 0.3,
         strokeOpacity: 0,
         width: am5.percent(70),
@@ -596,7 +606,7 @@ export function PriceChartAm({
        cadence de tirets que `--chart-crosshair-dash`, pour que les tracés Recharts du
        site et celui-ci ne montrent pas deux pointillés différents. */
     cursor.lineX.setAll({
-      stroke: am5.color(readToken('--color-ink-muted', '#8a8a8a')),
+      stroke: am5.color(readToken('--color-ink-muted', '#969faf')),
       strokeDasharray: [3, 3],
       strokeOpacity: 0.55,
     })
@@ -615,7 +625,7 @@ export function PriceChartAm({
         radius: 4,
         fill: am5.color(readToken(color, color)),
         fillOpacity: 1,
-        stroke: am5.color(readToken('--color-canvas', '#0c0c0c')),
+        stroke: am5.color(readToken('--color-canvas', '#0e0f14')),
         strokeWidth: 2,
         forceHidden: true,
       }),
@@ -633,7 +643,7 @@ export function PriceChartAm({
           radius: 4,
           fill: am5.color(readToken(entry.color, entry.color)),
           fillOpacity: 1,
-          stroke: am5.color(readToken('--color-canvas', '#0c0c0c')),
+          stroke: am5.color(readToken('--color-canvas', '#0e0f14')),
           strokeWidth: 2,
           forceHidden: true,
         }),
@@ -730,7 +740,7 @@ export function PriceChartAm({
     const lastLabel = lastItem.get('label')
     lastLabel?.setAll({
       visible: false,
-      fill: am5.color(readToken('--color-canvas', '#0c0c0c')),
+      fill: am5.color(readToken('--color-canvas', '#0e0f14')),
       background: am5.RoundedRectangle.new(root, {
         fill: am5.color(readToken(color, color)),
         cornerRadiusTL: 4,
@@ -846,7 +856,7 @@ function styleTooltip(root: am5.Root, tooltip: am5.Tooltip | undefined): void {
        JavaScript puis de re-peindre à chaque bascule — ce que ce fichier évite
        partout ailleurs. */
     fillOpacity: 0.86,
-    stroke: am5.color(readToken('--color-border-subtle', '#383838')),
+    stroke: am5.color(readToken('--color-border-subtle', '#1c1e26')),
     strokeOpacity: 0.5,
   })
   tooltip.label.setAll({
