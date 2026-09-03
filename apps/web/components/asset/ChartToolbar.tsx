@@ -17,9 +17,9 @@ import {
   CandlestickChart,
   Check,
   Download,
-  Link2,
+  Search,
   PlusCircle,
-  Settings2,
+  Settings,
 } from 'lucide-react'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
@@ -422,7 +422,6 @@ interface ChartToolbarProps {
   }[]
   onSettingChange: (id: string, next: boolean) => void
 
-  onCopyLink: () => void
   onExport: (format: ExportFormat) => void
 
   /*
@@ -1103,11 +1102,13 @@ export function ChartToolbar(props: ChartToolbarProps) {
           se suivent sur la même ligne et qu'aucun blanc ne distinguerait. */}
       <Separator orientation="vertical" className="mx-0.5 h-4 bg-border-subtle" />
 
-        <IconButton
-          label={t('Copier le lien de cette vue')}
-          onClick={props.onCopyLink}
-          icon={<Link2 className="h-3.5 w-3.5" aria-hidden="true" />}
-        />
+      {/* ⚠️ LE BOUTON « COPIER LE LIEN DE CETTE VUE » A ÉTÉ RETIRÉ (demande explicite).
+
+          Ce qu'il faisait n'est pas perdu : l'adresse de la barre porte déjà la période,
+          la grandeur et les comparaisons — c'est ce qui rend une vue partageable — et le
+          navigateur sait copier son propre champ d'adresse. Le bouton doublait une
+          commande que tout navigateur porte déjà, dans une rangée où chaque pixel
+          disputait sa place aux périodes. */}
 
         {/*
           ══════════════════════════════════════════════════════════════════════
@@ -1191,7 +1192,12 @@ export function ChartToolbar(props: ChartToolbarProps) {
                 title={t('Réglages du graphique')}
                 className="flex h-7 items-center gap-1 rounded-control border border-border-subtle px-2 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-[state=open]:bg-surface-muted"
               >
-                <Settings2 className="h-3.5 w-3.5" aria-hidden="true" />
+                {/* ⚠️ `Settings` ET NON `Settings2`. Le second est un jeu de CURSEURS
+                    — trois glissières horizontales — qui promet des réglages continus :
+                    une opacité, une épaisseur. Ce menu ne contient que des
+                    interrupteurs. La roue dentée est le pictogramme des réglages en
+                    général, et c'est celui de la référence (capture Dropstab). */}
+                <Settings className="h-3.5 w-3.5" aria-hidden="true" />
               </MenubarTrigger>
 
               <MenubarContent align="end" className="min-w-[15rem] border-border-subtle bg-overlay">
@@ -1216,6 +1222,29 @@ export function ChartToolbar(props: ChartToolbarProps) {
                       </MenubarLabel>
 
                       {entries.map((setting) => (
+                        /*
+                          ══════════════════════════════════════════════════════════
+                          UN INTERRUPTEUR À DROITE, PLUS UNE COCHE À GAUCHE
+                          ══════════════════════════════════════════════════════════
+
+                          La rangée portait la coche de `MenubarCheckboxItem` : un
+                          crochet qui APPARAÎT à gauche du libellé quand l'option est
+                          active, et laisse un vide sinon. Une liste à moitié cochée s'y
+                          lit comme une liste trouée, et rien ne dit qu'une rangée
+                          éteinte est ACTIVABLE — un vide ne promet rien.
+
+                          Un interrupteur montre les deux états dans le même objet :
+                          éteint, il occupe la même place et se voit. C'est la forme de
+                          la référence (capture Dropstab), et celle des préférences du
+                          site.
+
+                          ⚠️ `MenubarCheckboxItem` EST CONSERVÉ SOUS L'APPARENCE. Il
+                          porte `role="menuitemcheckbox"`, l'état `aria-checked` et la
+                          navigation aux flèches — trois choses qu'un `<div>` avec un
+                          interrupteur peint dedans ne donnerait pas. Seul son INDICATEUR
+                          est masqué (`[&>span:first-child]:hidden`), et le rembourrage
+                          gauche qu'il réservait rendu au libellé.
+                        */
                         <MenubarCheckboxItem
                           key={setting.id}
                           checked={setting.checked}
@@ -1231,8 +1260,28 @@ export function ChartToolbar(props: ChartToolbarProps) {
                             event.preventDefault()
                             props.onSettingChange(setting.id, !setting.checked)
                           }}
+                          className="justify-between gap-4 pl-2 [&>span:first-child]:hidden"
                         >
-                          {t(setting.label)}
+                          <span className="min-w-0 flex-1 truncate">{t(setting.label)}</span>
+
+                          {/* La piste et son pouce, dessinés ici plutôt qu'empruntés au
+                              `Switch` du site : celui-ci est un bouton à part entière,
+                              et l'imbriquer dans une rangée de menu donnerait deux
+                              cibles cliquables concentriques dont l'une avalerait le
+                              clic de l'autre. Ici la RANGÉE reste la cible unique, et
+                              ceci n'est qu'un témoin. */}
+                          <span
+                            aria-hidden="true"
+                            className={`relative h-4 w-7 shrink-0 rounded-pill transition-colors duration-150 ${
+                              setting.checked ? 'bg-brand' : 'bg-surface-active'
+                            }`}
+                          >
+                            <span
+                              className={`absolute top-0.5 h-3 w-3 rounded-pill bg-canvas transition-[left] duration-150 ${
+                                setting.checked ? 'left-3.5' : 'left-0.5'
+                              }`}
+                            />
+                          </span>
                         </MenubarCheckboxItem>
                       ))}
                     </Fragment>
@@ -1448,13 +1497,76 @@ function ComparePanel({
   const used = ids.length + metrics.length
   const full = used >= COMPARE_MAX
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE CHAMP DE RECHERCHE REVIENT, ET L'OBJECTION QUI L'AVAIT RETIRÉ EST LEVÉE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Un champ existait, et la note qui a justifié son retrait disait vrai : « la
+   * recherche faisait sauter le cadre à chaque frappe ». Le défaut venait de la
+   * HAUTEUR FIXE de la liste — 192 px, six rangées — qui se réajustait à chaque
+   * filtrage. Cette hauteur est devenue un PLAFOND depuis (`max-h-64`), et la liste ne
+   * saute donc plus : elle raccourcit dans une boîte dont le haut ne bouge pas.
+   *
+   * Il revient parce qu'une liste de tendances, si utile soit-elle, ne contient pas
+   * l'actif qu'on a en tête. Sans champ, comparer à un actif absent des sept premières
+   * lignes était simplement impossible.
+   *
+   * ⚠️ LA RECHERCHE FILTRE CE QUI EST CHARGÉ, ELLE N'INTERROGE PAS LE SERVEUR. La
+   * distinction est écrite dans l'état vide : « Aucun actif de cette liste » et non
+   * « aucun résultat », qui laisserait croire que l'actif n'existe pas.
+   */
+  const [query, setQuery] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  /* La rangée désignée au clavier. `-1` = aucune, ce qui est l'état au montage et
+     après chaque frappe : le curseur ne doit pas survivre à un changement de liste. */
+  const [marked, setMarked] = useState(-1)
+  const listRef = useRef<HTMLDivElement>(null)
+
   /* Tendances d'abord, pairs de la fiche en repli — et l'intitulé suit, sans quoi une
      liste de secteur s'annoncerait « En tendance ». */
   const { entries, fallback } = useMemo(() => {
     if (trending === null) return { entries: [] as CompareOption[], fallback: false }
     const list = trending.filter((entry) => entry.id !== selfId)
-    return list.length > 0 ? { entries: list, fallback: false } : { entries: options, fallback: true }
-  }, [trending, options, selfId])
+    const base = list.length > 0 ? list : options
+    const isFallback = list.length === 0
+
+    const terme = query.trim()
+    if (terme === '') return { entries: base, fallback: isFallback }
+
+    /* `normalise` retire les diacritiques ET la casse : « éther » doit trouver
+       « Ether », et « BTC » « btc ». La comparaison porte sur le symbole ET sur le
+       nom — on tape l'un ou l'autre selon ce dont on se souvient. */
+    const normalise = (value: string) =>
+      value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+    const cible = normalise(terme)
+
+    return {
+      entries: base.filter(
+        (entry) =>
+          normalise(entry.label).includes(cible) ||
+          (entry.symbol ? normalise(entry.symbol).includes(cible) : false),
+      ),
+      fallback: isFallback,
+    }
+  }, [trending, options, selfId, query])
+
+  /* Le champ prend le focus à l'ouverture — c'est ce qu'on vient y faire. Le report
+     d'une image laisse au panneau le temps d'être posé : `focus()` sur un nœud pas
+     encore peint est sans effet. */
+  useEffect(() => {
+    if (!open) return
+    const image = requestAnimationFrame(() => searchRef.current?.focus())
+    return () => cancelAnimationFrame(image)
+  }, [open])
+
+  /* La rangée désignée reste visible quand on descend au-delà du cadre. */
+  useEffect(() => {
+    if (marked < 0) return
+    const noeud = listRef.current?.querySelectorAll('button')[marked]
+    noeud?.scrollIntoView({ block: 'nearest' })
+  }, [marked])
 
   function toggleAsset(entry: CompareOption) {
     if (ids.includes(entry.id)) {
@@ -1551,8 +1663,68 @@ function ComparePanel({
           */
           className="menu-panel absolute left-0 top-full z-50 mt-1.5 w-64 rounded-card border border-border-subtle bg-overlay p-2 shadow-overlay"
         >
-          <p className="px-2 pb-1 pt-1 text-micro font-semibold uppercase tracking-wide text-ink-muted">
-            {fallback ? t('Comparables') : t('En tendance')}
+          {/*
+            ── LE CHAMP, ET LES QUATRE TOUCHES QU'IL PORTE ────────────────────
+
+            Les flèches déplacent le curseur, Entrée retient l'actif désigné, Échap
+            ferme. Le champ garde le focus tout du long : c'est ce qui permet
+            d'enchaîner « btc ↓ Entrée » sans lâcher le clavier.
+
+            ⚠️ `preventDefault` SUR LES FLÈCHES EST INDISPENSABLE. Sans lui, la flèche
+            bas déplace le CURSEUR DE TEXTE dans le champ et fait défiler la page
+            derrière le panneau — deux effets parasites pour un geste de navigation.
+          */}
+          <div className="relative mb-1.5">
+            <Search
+              className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted"
+              aria-hidden="true"
+            />
+            <input
+              ref={searchRef}
+              type="search"
+              value={query}
+              /* ⚠️ LES DEUX ÉTATS CHANGENT ENSEMBLE, ET NON DANS UN EFFET. Une
+                 remise à zéro du curseur écrite en `useEffect([query])` est refusée par
+                 le linter — « cascading renders » — et il a raison : ce n'est pas une
+                 réaction à un rendu, c'est une conséquence directe de la frappe. Garder
+                 le curseur désignerait une rangée que le filtrage a déplacée. */
+              onChange={(event) => {
+                setQuery(event.target.value)
+                setMarked(-1)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowDown') {
+                  event.preventDefault()
+                  setMarked((precedent) => Math.min(precedent + 1, entries.length - 1))
+                  return
+                }
+                if (event.key === 'ArrowUp') {
+                  event.preventDefault()
+                  setMarked((precedent) => Math.max(precedent - 1, -1))
+                  return
+                }
+                if (event.key === 'Enter') {
+                  const entree = entries[marked]
+                  if (!entree) return
+                  event.preventDefault()
+                  /* Le garde est le même que celui du clic : une entrée non retenue
+                     n'est pas ajoutable quand les quatre places sont prises. */
+                  if (!ids.includes(entree.id) && full) return
+                  toggleAsset(entree)
+                }
+              }}
+              placeholder={t('Rechercher un actif…')}
+              aria-label={t('Rechercher un actif à comparer')}
+              className="h-8 w-full rounded-control border border-border-subtle bg-surface-muted pl-8 pr-2 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+            />
+          </div>
+
+          <p className="px-2 pb-1 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+            {query.trim() !== ''
+              ? t('Résultats')
+              : fallback
+                ? t('Comparables')
+                : t('En tendance')}
           </p>
 
           {/*
@@ -1566,19 +1738,28 @@ function ComparePanel({
             `thin-scrollbar` : un ascenseur de 6 px au pouce discret. Sans lui, le
             navigateur en pose un de 15 px qui mange le quart droit des libellés.
           */}
-          <div className="thin-scrollbar max-h-64 overflow-y-auto overscroll-contain">
+          <div ref={listRef} className="thin-scrollbar max-h-64 overflow-y-auto overscroll-contain">
             {trending === null ? (
               <p className="px-2 py-3 text-center text-xs text-ink-muted">{t('Chargement…')}</p>
             ) : null}
 
             {trending !== null && entries.length === 0 ? (
+              /* ⚠️ « DE CETTE LISTE » ET NON « AUCUN RÉSULTAT ». Le champ filtre ce qui
+                 est chargé, il n'interroge pas le serveur : dire « aucun résultat »
+                 laisserait croire que l'actif n'existe pas, alors qu'il est seulement
+                 hors des tendances du moment. */
               <p className="px-2 py-3 text-center text-xs text-ink-muted">
-                {t('Aucun actif à comparer.')}
+                {query.trim() !== ''
+                  ? t('Aucun actif de cette liste ne correspond.')
+                  : t('Aucun actif à comparer.')}
               </p>
             ) : null}
 
-            {entries.map((entry) => {
+            {entries.map((entry, index) => {
               const selected = ids.includes(entry.id)
+              /* La rangée désignée au clavier porte le fond de survol : un lecteur qui
+                 passe de la souris au clavier retrouve le même repère visuel. */
+              const designe = index === marked
               return (
                 <button
                   key={entry.id}
@@ -1608,7 +1789,9 @@ function ComparePanel({
                     */
                     if (event.detail > 0) event.currentTarget.blur()
                   }}
-                  className="flex h-8 w-full items-center gap-2 rounded-control px-2 text-left text-sm text-ink transition-colors duration-150 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
+                  className={`flex h-8 w-full items-center gap-2 rounded-control px-2 text-left text-sm text-ink transition-colors duration-150 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40 ${
+                    designe ? 'bg-surface-muted' : ''
+                  }`}
                 >
                   {/*
                     ⚠️ `AssetLogo` ET NON UNE BALISE `<img>` NUE.
@@ -1797,32 +1980,3 @@ function compactRange(range: { from: string; to: string }): string {
 }
 
 
-/**
- * Bouton-icône de la barre — un pictogramme, et un nom accessible obligatoire.
- *
- * `label` alimente À LA FOIS `title` et `aria-label` : le premier sert la souris, le
- * second les lecteurs d'écran, et aucun des deux ne remplace l'autre. C'est le point
- * sur lequel les boutons-icônes se ratent le plus souvent — une icône sans nom est un
- * bouton muet pour qui ne voit pas la page.
- */
-function IconButton({
-  label,
-  icon,
-  onClick,
-}: {
-  label: string
-  icon: React.ReactNode
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      className="flex h-7 w-7 items-center justify-center rounded-control text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
-    >
-      {icon}
-    </button>
-  )
-}

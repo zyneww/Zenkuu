@@ -387,8 +387,6 @@ export function AssetWorkspace({
   /** Palier actif. Distinct de `days` : « Depuis janv. » et « Max » varient en jours. */
   const [rangeId, setRangeId] = useState('7d')
   const [customRange, setCustomRange] = useState<{ from: string; to: string } | null>(null)
-  /** Accusé de copie, effacé de lui-même — voir l'effet plus bas. */
-  const [linkCopied, setLinkCopied] = useState(false)
   /**
    * Série comparée, ÉTIQUETÉE de l'identifiant qui l'a produite.
    *
@@ -409,14 +407,6 @@ export function AssetWorkspace({
   /** Poignée de capture, fournie par le graphique une fois monté. */
   const chartHandle = useRef<ChartHandle | null>(null)
 
-  /* L'accusé de copie s'efface seul au bout de deux secondes. Le laisser à l'écran
-     ferait croire, au réglage suivant, que le lien copié correspond à la nouvelle
-     vue — alors qu'il porte encore l'ancienne. */
-  useEffect(() => {
-    if (!linkCopied) return
-    const timer = setTimeout(() => setLinkCopied(false), 2000)
-    return () => clearTimeout(timer)
-  }, [linkCopied])
 
   /**
    * Facteur de conversion vers la devise choisie.
@@ -1338,31 +1328,6 @@ export function AssetWorkspace({
     })
   }
 
-  /**
-   * Copie l'adresse de la VUE COURANTE, pas celle de la page.
-   *
-   * Sans les paramètres, un lien partagé rouvre la fiche dans son état par défaut :
-   * le destinataire ne voit pas ce que l'expéditeur regardait. Les quatre réglages
-   * qui changent ce qu'on voit — grandeur, période, type, comparaison — sont donc
-   * inscrits dans l'adresse.
-   *
-   * `catch` silencieux : l'écriture dans le presse-papiers est refusée hors HTTPS et
-   * dans certains navigateurs intégrés. Échouer sans bruit vaut mieux que lever une
-   * exception dans la console pour une commande de confort.
-   */
-  function copyLink() {
-    const url = new URL(window.location.href)
-    url.searchParams.set('metrique', metric)
-    url.searchParams.set('jours', String(days))
-    url.searchParams.set('type', kind)
-    if (compareIds.length > 0) url.searchParams.set('comparer', compareIds.join(','))
-    else url.searchParams.delete('comparer')
-
-    void navigator.clipboard?.writeText(url.toString()).then(
-      () => setLinkCopied(true),
-      () => undefined,
-    )
-  }
 
   return (
     /*
@@ -1537,17 +1502,8 @@ export function AssetWorkspace({
               onRangeChange={selectPreset}
               customRange={customRange}
               onCustomRange={applyCustomRange}
-              onCopyLink={copyLink}
               onExport={(format) => void handleExport(format)}
             />
-
-            {/* Accusé de copie — une ligne discrète plutôt qu'une notification
-                flottante : la commande a réussi, ce n'est pas un événement. */}
-            {linkCopied ? (
-              <p className="mb-2 text-[0.6875rem] text-ink" role="status">
-                {t('Lien de cette vue copié.')}
-              </p>
-            ) : null}
 
             {/*
               AIGUILLAGE DES VUES.
