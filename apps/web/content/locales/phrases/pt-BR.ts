@@ -1965,6 +1965,7 @@ export const ptBRPhrases: Phrases = {
   'Plus bas historique': 'Mínima histórica',
   'depuis le plus bas': 'desde a mínima',
   'jusqu’au plus haut': 'até a máxima',
+  'Amplitude 24 h': 'Faixa de 24 horas',
   'Amplitude 7 jours': 'Intervalo de 7 dias',
   'Amplitude 30 jours': 'Intervalo de 30 dias',
   'Analyse indisponible': 'Análise indisponível',

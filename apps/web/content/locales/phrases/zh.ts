@@ -1958,6 +1958,7 @@ export const zhPhrases: Phrases = {
   'Plus bas historique': '历史最低价',
   'depuis le plus bas': '自最低点起',
   'jusqu’au plus haut': '至最高点',
+  'Amplitude 24 h': '24小时区间',
   'Amplitude 7 jours': '7 日区间',
   'Amplitude 30 jours': '30 日区间',
   'Analyse indisponible': '分析不可用',

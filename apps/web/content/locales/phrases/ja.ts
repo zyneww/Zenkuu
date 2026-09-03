@@ -1965,6 +1965,7 @@ export const jaPhrases: Phrases = {
   'Plus bas historique': '過去最安値',
   'depuis le plus bas': '安値から',
   'jusqu’au plus haut': '高値まで',
+  'Amplitude 24 h': '24時間の変動幅',
   'Amplitude 7 jours': '7日間のレンジ',
   'Amplitude 30 jours': '30日間のレンジ',
   'Analyse indisponible': '分析を表示できません',

@@ -1965,6 +1965,7 @@ export const itPhrases: Phrases = {
   'Plus bas historique': 'Minimo storico',
   'depuis le plus bas': 'dal minimo',
   'jusqu’au plus haut': 'fino al massimo',
+  'Amplitude 24 h': 'Intervallo di 24 ore',
   'Amplitude 7 jours': 'Intervallo a 7 giorni',
   'Amplitude 30 jours': 'Intervallo a 30 giorni',
   'Analyse indisponible': 'Analisi non disponibile',

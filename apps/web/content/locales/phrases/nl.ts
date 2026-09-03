@@ -1965,6 +1965,7 @@ export const nlPhrases: Phrases = {
   'Plus bas historique': 'Laagste ooit',
   'depuis le plus bas': 'vanaf het dieptepunt',
   'jusqu’au plus haut': 'tot het hoogtepunt',
+  'Amplitude 24 h': '24-uursbereik',
   'Amplitude 7 jours': 'Bereik over 7 dagen',
   'Amplitude 30 jours': 'Bereik over 30 dagen',
   'Analyse indisponible': 'Analyse niet beschikbaar',

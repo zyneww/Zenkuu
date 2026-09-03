@@ -1972,6 +1972,7 @@ export const esPhrases: Phrases = {
   'Plus bas historique': 'Mínimo histórico',
   'depuis le plus bas': 'desde el mínimo',
   'jusqu’au plus haut': 'hasta el máximo',
+  'Amplitude 24 h': 'Rango de 24 horas',
   'Amplitude 7 jours': 'Rango de 7 días',
   'Amplitude 30 jours': 'Rango de 30 días',
   'Analyse indisponible': 'Análisis no disponible',

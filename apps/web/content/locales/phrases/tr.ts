@@ -1965,6 +1965,7 @@ export const trPhrases: Phrases = {
   'Plus bas historique': 'Tüm zamanların dibi',
   'depuis le plus bas': 'dipten itibaren',
   'jusqu’au plus haut': 'zirveye kadar',
+  'Amplitude 24 h': '24 saatlik aralık',
   'Amplitude 7 jours': '7 günlük aralık',
   'Amplitude 30 jours': '30 günlük aralık',
   'Analyse indisponible': 'Analiz kullanılamıyor',

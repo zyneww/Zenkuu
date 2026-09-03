@@ -1977,6 +1977,7 @@ export const enPhrases: Phrases = {
   'Plus bas historique': 'All-time low',
   'depuis le plus bas': 'from the low',
   'jusqu’au plus haut': 'to the high',
+  'Amplitude 24 h': '24-hour range',
   'Amplitude 7 jours': '7-day range',
   'Amplitude 30 jours': '30-day range',
   'Analyse indisponible': 'Analysis unavailable',

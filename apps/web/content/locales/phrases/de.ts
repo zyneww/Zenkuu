@@ -1973,6 +1973,7 @@ export const dePhrases: Phrases = {
   'Plus bas historique': 'Allzeittief',
   'depuis le plus bas': 'seit dem Tief',
   'jusqu’au plus haut': 'bis zum Hoch',
+  'Amplitude 24 h': '24-Stunden-Spanne',
   'Amplitude 7 jours': '7-Tage-Spanne',
   'Amplitude 30 jours': '30-Tage-Spanne',
   'Analyse indisponible': 'Analyse nicht verfügbar',

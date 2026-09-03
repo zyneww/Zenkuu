@@ -29,7 +29,6 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { Money } from '@/components/locale/Money'
 import { LiveBinancePrice } from '@/components/asset/LiveBinancePrice'
 import { AssetMetricRail } from '@/components/asset/AssetMetricRail'
-import { AssetChangeGrid } from '@/components/asset/AssetChangeGrid'
 import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetNewsAside } from '@/components/asset/AssetNewsAside'
@@ -538,22 +537,20 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             ]}
           />
 
-          {/*
-            LA GRILLE DE VARIATIONS, COLLÉE SOUS LE GRAPHIQUE.
+          {/* ⚠️ LE BANDEAU DE VARIATIONS A ÉTÉ RETIRÉ D'ICI (demande explicite).
 
-            C'est le trait le plus reconnaissable de la référence, et il n'était pas
-            repris : ces six fenêtres — 1 h, 24 h, 7 j, 14 j, 30 j, 1 an — vivaient
-            dans un sous-onglet « Performances » du plan de travail, c'est-à-dire
-            derrière un clic.
+              Il portait six fenêtres — 1 h, 24 h, 7 j, 14 j, 30 j, 1 an — sur une
+              rangée collée sous le graphique. La note qui défendait sa place disait
+              vrai de l'usage : « la question "et sur une semaine ?" se pose en
+              regardant la courbe ».
 
-            Le composant existait DÉJÀ et n'était appelé nulle part. Les six valeurs
-            arrivent dans la même réponse que le cours : la rangée ne coûte aucun
-            appel réseau, elle exploite des champs jusqu'ici jetés.
+              Mais elle omettait que le RAIL DE GAUCHE porte déjà ces six mêmes
+              valeurs, sous le titre « Variations », en face du graphique et non
+              sous lui. Les deux blocs lisaient les mêmes champs de la même réponse
+              et les écrivaient à deux endroits de la même page.
 
-            Sa place est ici et pas ailleurs : la question « et sur une semaine ? »
-            se pose en regardant la courbe, pas après l'avoir quittée.
-          */}
-          <AssetChangeGrid asset={data} />
+              Rien n'a donc disparu de la fiche : c'est le doublon qui part, et le
+              graphique gagne la hauteur d'une rangée. */}
 
           {history.ok ? (
             <SourceNote

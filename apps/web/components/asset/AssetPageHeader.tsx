@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 
 import { ChevronDown, Code, Compass, FileText, Globe, MessageCircle, Send, Users } from 'lucide-react'
 
@@ -16,10 +16,8 @@ import { getPhrase } from '@/lib/content'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
 import { getCategories } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
-import { AssetBenchmarkRatio } from '@/components/asset/AssetBenchmarkRatio'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { assetName } from '@/components/locale/assetName'
 import { AssetMarketStatus } from '@/components/asset/AssetMarketStatus'
@@ -134,6 +132,31 @@ function hostLabel(url: string): string {
  * et n'exécute rien : l'emplacement revient au suivi et à l'alerte, qui répondent à
  * la même intention — garder un œil — sans rien promettre qu'on ne fait pas.
  */
+/**
+ * La NATURE de l'instrument, pour l'intitulé « BTC / JETON » de la carte de cours.
+ *
+ * Les six libellés existent déjà dans les tables de traduction : ils servent au rail
+ * de `AssetMarketSheet`, qui les affiche sous le même besoin — dire ce qu'on regarde
+ * quand la mise en page est la même pour six classes d'actifs.
+ *
+ * ⚠️ LA TABLE EST COMPLÈTE, ET C'EST `Record` QUI L'EXIGE. Celle de `AssetMarketSheet`
+ * est un `Partial` — la crypto y est absente, parce que ce rail-là ne sert pas les
+ * cryptomonnaies. Ici l'intitulé se rend pour les six, et un `Partial` laisserait un
+ * « BTC / » suivi de rien sur la classe qu'on aurait oubliée.
+ */
+const NATURES: Record<AssetClass, string> = {
+  crypto: 'Jeton',
+  stock: 'Action',
+  etf: 'Fonds indiciel coté',
+  index: 'Indice boursier',
+  commodity: 'Contrat à terme',
+  forex: 'Paire de devises',
+  /* « Collection NFT » et non « NFT » seul : la fiche porte une COLLECTION
+     (Bored Apes, Punks) et non un exemplaire, et son cours est un prix plancher.
+     La clé existait déjà — elle sert au titre de la page qui les liste. */
+  nft: 'Collections NFT',
+}
+
 /**
  * ══════════════════════════════════════════════════════════════════════════════
  * ⚠️ CE BLOC N'EST PLUS UNE RANGÉE À LUI — IL EN OCCUPE UNE, AVEC LES ONGLETS
@@ -288,8 +311,19 @@ export async function AssetHeadline({
             dépasse du disque, et un `overflow-hidden` posé un jour sur un ancêtre la
             trancherait en deux. Aucun n'existe aujourd'hui sur ce chemin.
           */}
-          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-pill border border-border-subtle bg-surface">
-            <AssetLogo asset={asset} size={28} />
+          {/* ⚠️ 56 px DE DISQUE ET 36 DE LOGO, contre 44 et 28 (demande explicite).
+
+              Le rapport entre les deux est conservé — le logo occupe les deux tiers
+              du disque dans les deux mesures — parce que c'est lui qui donne l'anneau
+              de fond régulier autour de la marque. Le remplir davantage collerait le
+              dessin au bord ; le remplir moins ferait une pastille vide.
+
+              56 px cale le disque sur trois lignes de l'en-tête plutôt que deux : le
+              nom (18 px), le code et la rangée d'étiquettes tiennent désormais en
+              face de lui, ce qui donne au bloc un bord haut et un bord bas communs
+              au lieu d'une icône flottant à mi-hauteur. */}
+          <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-pill border border-border-subtle bg-surface">
+            <AssetLogo asset={asset} size={36} />
 
             {asset.rank !== undefined ? (
               /* `bg-canvas` et non `bg-surface` : la pastille chevauche le bord du
@@ -555,6 +589,11 @@ export async function AssetPriceCard({
   price: React.ReactNode
 }) {
   const t = await getTranslations('metric')
+  /* Deux traducteurs, et il en faut deux : `t` lit le catalogue next-intl, dont
+     les clés sont des chemins (`metric.price.label`) ; `phrase` lit la table de
+     phrases, dont les clés SONT le français. Les six natures d'instrument vivent
+     dans la seconde — elles y étaient déjà pour `AssetMarketSheet`. */
+  const phrase = await getPhrase()
   const isForex = assetClass === 'forex'
 
   /*
@@ -590,17 +629,6 @@ export async function AssetPriceCard({
       ? null
       : asset.price - asset.price / (1 + asset.change24h / 100)
 
-  /* L'horodatage de la source, dans le fuseau du serveur. Il dit QUAND ce cours a été
-     relevé — la question que pose immédiatement un chiffre qui bouge. */
-  const stamp = Number.isNaN(Date.parse(asset.lastUpdated))
-    ? null
-    : new Intl.DateTimeFormat(await getLocale(), {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: 'numeric',
-        month: 'long',
-        timeZoneName: 'shortOffset',
-      }).format(new Date(asset.lastUpdated))
 
   return (
     /*
@@ -640,12 +668,33 @@ export async function AssetPriceCard({
           n'avait pas, au lieu de la faire descendre sous tout le reste. */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
-      <div className="flex items-center gap-2">
-        <AssetLogo asset={asset} size={18} />
-        <h2 className="text-sm font-semibold text-ink">
-          {t('price.label')} {asset.symbol.toUpperCase()}
-        </h2>
-      </div>
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        « BTC / JETON » — LE CODE PUIS LA NATURE, EN CAPITALES ATTÉNUÉES
+        ══════════════════════════════════════════════════════════════════════
+
+        Forme relevée sur `blockworks.com/price/hyperliquid` : « HYPE / TOKEN »,
+        11 px, gris, au-dessus du grand prix.
+
+        Ce qui part avec l'ancienne ligne : un SECOND logo. L'en-tête d'identité
+        en porte déjà un, à 36 px, cinquante pixels plus haut — celui-ci le
+        répétait à 18 px pour la même marque, sur la même page, sans rien ajouter.
+
+        Ce qui arrive : la NATURE de l'instrument. « Price BTC » disait deux fois
+        ce que le grand chiffre dessous dit déjà (c'est un prix, c'est du BTC).
+        « BTC / JETON » dit ce que la page ne disait nulle part au-dessus du cours :
+        qu'on regarde une cryptomonnaie et non une action, distinction qui compte
+        sur un site qui sert six classes d'actifs sous la même mise en page.
+
+        Les six libellés existaient déjà dans les tables de traduction — ils
+        servent au rail de `AssetMarketSheet` — et n'ont donc rien coûté.
+      */}
+      <p className="text-micro font-medium uppercase tracking-wide text-ink-muted">
+        {asset.symbol.toUpperCase()}
+        <span aria-hidden="true"> / </span>
+        <span className="sr-only">, </span>
+        {phrase(NATURES[assetClass])}
+      </p>
 
       {/*
         ══════════════════════════════════════════════════════════════════════
@@ -663,44 +712,54 @@ export async function AssetPriceCard({
         visuellement au cours qu'il qualifie, et sa teinte donne le sens avant la
         lecture du signe.
       */}
-      <p className="figure flex flex-wrap items-center gap-x-2.5 gap-y-1 leading-none">
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        LE COURS SEUL SUR SA LIGNE, LA VARIATION SOUS LUI EN TEXTE NU
+        ══════════════════════════════════════════════════════════════════════
+
+        Le bloc portait le cours et une PASTILLE PLEINE de pourcentage sur la même
+        ligne, puis une seconde ligne grise avec l'écart en monnaie, l'horodatage
+        et le rapport à l'actif de référence.
+
+        La référence pose les deux nombres l'un sous l'autre, tous deux en texte
+        nu : « $81.66 » puis « -$1.02 ↓1.25% ». C'est plus juste que la pastille
+        pour une raison simple — l'écart en monnaie et le pourcentage disent LA
+        MÊME chose sous deux unités, et les séparer (l'un dans un aplat contre le
+        cours, l'autre en gris une ligne plus bas) cassait la paire. Réunis, ils se
+        lisent d'un seul regard, et leur couleur commune porte le sens.
+
+        ⚠️ CE QUI DISPARAÎT NE DISPARAÎT PAS DU SITE. L'horodatage est écrit sous
+        le graphique par `SourceNote`, avec la source qui l'a publié — c'est-à-dire
+        au bon endroit, contre la donnée qu'il date. Le rapport à l'actif de
+        référence part, lui, sans repli : la référence ne le porte pas.
+
+        La flèche est CALCULÉE, pas écrite : `↓` et `↑` selon le signe, doublée du
+        signe arithmétique sur l'écart. La couleur ne porte jamais seule (§9).
+      */}
+      <p className="figure leading-none">
         <span className="sr-only">{t('price.label')} : </span>
         <span className="text-3xl font-bold text-ink">{price}</span>
-
-        {asset.change24h !== undefined ? <ChangeBadge value={asset.change24h} filled /> : null}
       </p>
 
-      {/*
-        LA SECONDE LIGNE PORTE CE QUI QUALIFIE LE COURS SANS ÊTRE LE COURS :
-        de combien il a bougé en monnaie, et de quand il date. Les deux en gris,
-        sur une seule ligne, parce qu'aucun des deux ne se lit avant le chiffre.
-
-        ⚠️ L'ÉCART PASSE PAR `Money`, ET IL LE FAUT. Le code de devise du serveur
-        (`asset.currency`) NE DÉCRIT PAS ce qui est affiché : le cours est rendu
-        soit par `LiveBinancePrice` — qui cote en dollars — soit par `Money`, qui
-        convertit dans la devise choisie par le lecteur, côté client. Formater
-        l'écart avec `asset.currency` écrivait « $0.005069 … +€0.00005953 » sur la
-        même ligne : deux devises pour un seul cours, relevé au navigateur.
-      */}
-      <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs text-ink-muted">
+      <p
+        className={`tabular flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs font-medium ${
+          (asset.change24h ?? 0) >= 0 ? 'text-up' : 'text-down'
+        }`}
+      >
         {absoluteChange !== null ? (
-          <span
-            className={`tabular font-medium ${
-              (asset.change24h ?? 0) >= 0 ? 'text-up' : 'text-down'
-            }`}
-          >
-            {absoluteChange >= 0 ? '+' : ''}
-            <Money value={absoluteChange} from={asset.currency} />
+          <span>
+            {absoluteChange >= 0 ? '+' : '−'}
+            <Money value={Math.abs(absoluteChange)} from={asset.currency} />
           </span>
         ) : null}
 
-        {stamp ? <span>{t('price.asOf', { stamp })}</span> : null}
-
-        {/* Le rapport en actif de référence ferme la ligne : l'écart absolu,
-            l'horodatage et lui disent tous les trois « voici le même cours sous un
-            autre angle ». Ils se lisent en enfilade, en gris, après le chiffre. */}
-        <AssetBenchmarkRatio asset={asset} />
-        </p>
+        {asset.change24h !== undefined ? (
+          <span>
+            <span aria-hidden="true">{asset.change24h >= 0 ? '↑' : '↓'} </span>
+            {Math.abs(asset.change24h).toFixed(2)} %
+          </span>
+        ) : null}
+      </p>
         </div>
 
         {/* `sm:w-56` : une largeur FIXE et non une fraction. La barre porte deux

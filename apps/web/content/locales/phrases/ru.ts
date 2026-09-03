@@ -1965,6 +1965,7 @@ export const ruPhrases: Phrases = {
   'Plus bas historique': 'Исторический минимум',
   'depuis le plus bas': 'от минимума',
   'jusqu’au plus haut': 'до максимума',
+  'Amplitude 24 h': 'Диапазон за 24 часа',
   'Amplitude 7 jours': 'Диапазон за 7 дней',
   'Amplitude 30 jours': 'Диапазон за 30 дней',
   'Analyse indisponible': 'Анализ недоступен',

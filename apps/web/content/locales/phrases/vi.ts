@@ -1965,6 +1965,7 @@ export const viPhrases: Phrases = {
   'Plus bas historique': 'Đáy lịch sử',
   'depuis le plus bas': 'so với đáy',
   'jusqu’au plus haut': 'đến đỉnh',
+  'Amplitude 24 h': 'Biên độ 24 giờ',
   'Amplitude 7 jours': 'Biên độ 7 ngày',
   'Amplitude 30 jours': 'Biên độ 30 ngày',
   'Analyse indisponible': 'Không có phân tích',

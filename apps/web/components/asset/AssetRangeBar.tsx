@@ -37,46 +37,60 @@ export async function AssetRangeBar({ asset, isRate }: { asset: MarketAsset; isR
 
       {/*
         ══════════════════════════════════════════════════════════════════════════
-        LES BORNES SONT NOMMÉES, ET L'INTITULÉ CENTRAL A DISPARU
+        LA PISTE PASSE AU-DESSUS, ET LES TROIS LIBELLÉS DESSOUS
         ══════════════════════════════════════════════════════════════════════════
 
-        La légende s'écrivait « 77,20 · Amplitude 24 h · 83,40 » : deux nombres
-        encadrant un titre. Trois éléments pour dire une chose, et le plus long des
-        trois — l'intitulé — était celui qui n'apportait rien : une barre bornée par
-        deux montants EST une amplitude, personne n'a besoin qu'on le lui écrive.
+        Forme relevée sur `blockworks.com/price/hyperliquid` : une piste pleine
+        largeur, un curseur triangulaire posé dessus, et sous elle trois libellés
+        — la borne basse à gauche, le nom de la fenêtre au centre, la borne haute
+        à droite.
 
-        Ce qui manquait, en revanche, c'est LEQUEL EST LEQUEL. Sur un actif dont les
-        deux bornes se ressemblent (77,20 et 83,40, ou pire 2,24 et 2,88), rien ne
-        disait quel côté était le plus bas — il fallait comparer les chiffres. Les
-        mots « Bas » et « Haut » collés à chaque montant répondent avant la lecture.
+        Ce qui change par rapport à la rangée précédente (« Bas 76 250 ▬▬▬ Haut
+        77 669 ») n'est pas décoratif. La piste y était COINCÉE entre deux textes
+        de longueur variable : sur un actif à quatre chiffres elle faisait deux
+        cents pixels, sur un actif à sept elle en faisait cent vingt, et la même
+        position de curseur ne se lisait donc pas pareil d'une fiche à l'autre.
+        Sortie des textes, elle prend toujours la même largeur.
 
-        C'est ce que fait la référence, et la place gagnée par l'intitulé retiré est
-        exactement celle que prennent les deux mots.
+        L'intitulé central reprend en outre la place que les mots « Bas » et
+        « Haut » occupaient — et il dit quelque chose qu'eux ne disaient pas :
+        SUR QUELLE FENÊTRE porte l'amplitude. Le haut et le bas restent lisibles
+        sans eux, puisque la gauche d'une piste est son minimum.
+
+        ⚠️ LE CURSEUR EST EN `border`, PAS EN CARACTÈRE. Un « ▼ » textuel dépend de
+        la police installée et se décale d'un demi-pixel selon la ligne de base ;
+        quatre bordures transparentes et une pleine dessinent le même triangle à
+        la même place partout.
       */}
-      <div className="flex items-center gap-2 text-xs">
-        <span className="shrink-0 text-ink-muted">
-          {t('Bas')}{' '}
-          <span className="tabular font-medium text-ink">
-            <Money value={low24h} from={asset.currency} asRate={isRate} />
-          </span>
+      <div className="relative h-1 w-full rounded-pill bg-surface-active">
+        <div
+          className="h-full rounded-pill bg-brand"
+          style={{ width: `${position}%` }}
+          role="img"
+          aria-label={`Le cours se situe à ${Math.round(position)} % de l’amplitude des 24 heures`}
+        />
+        <span
+          aria-hidden="true"
+          className="absolute top-full h-0 w-0 -translate-x-1/2 border-x-[3px] border-t-[4px] border-x-transparent border-t-brand"
+          style={{ left: `${position}%` }}
+        />
+      </div>
+
+      {/* `justify-between` et non une grille : les deux montants tiennent leurs
+          bords, l'intitulé flotte entre eux. Une grille à trois pistes égales
+          décalerait le centre dès que les deux nombres n'ont pas la même longueur. */}
+      <div className="flex items-baseline justify-between gap-2 text-micro">
+        <span className="tabular font-medium text-ink">
+          <Money value={low24h} from={asset.currency} asRate={isRate} />
         </span>
 
-        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-pill bg-surface-muted">
-          <div
-            className="h-full rounded-pill bg-brand"
-            style={{ width: `${position}%` }}
-            role="img"
-            aria-label={`Le cours se situe à ${Math.round(position)} % de l’amplitude des 24 heures`}
-          />
-        </div>
+        <span className="text-ink-muted">{t('Amplitude 24 h')}</span>
 
-        <span className="shrink-0 text-ink-muted">
-          {t('Haut')}{' '}
-          <span className="tabular font-medium text-ink">
-            <Money value={high24h} from={asset.currency} asRate={isRate} />
-          </span>
+        <span className="tabular font-medium text-ink">
+          <Money value={high24h} from={asset.currency} asRate={isRate} />
         </span>
       </div>
+
     </section>
   )
 }

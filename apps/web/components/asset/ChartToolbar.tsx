@@ -1,6 +1,5 @@
 'use client'
 
-import { ToggleButton, ToggleButtonGroup } from '@heroui/react'
 
 import { Separator } from '@/components/ui/separator'
 import {
@@ -18,7 +17,6 @@ import {
   CandlestickChart,
   Check,
   Download,
-  LineChart,
   Link2,
   PlusCircle,
   Settings2,
@@ -463,25 +461,6 @@ interface ChartToolbarProps {
  */
 const OHLC_TOOLBAR_KINDS: ReadonlySet<string> = new Set(['candles', 'bars'])
 
-/**
- * Les deux moteurs de tracé, dans l'ordre du segment.
- *
- * Déclaré hors du composant : ces entrées sont constantes, et les recréer à chaque rendu
- * ferait deux allocations par frappe de clavier dans la barre — même raison que
- * `OHLC_TOOLBAR_KINDS` juste au-dessus.
- *
- * ⚠️ « Original » n'est PAS traduit par `usePhrase` et c'est délibéré : c'est le nom
- * propre que le reste du code donne déjà à cette vue (`ChartView`), face à un autre nom
- * propre — TradingView. Traduire l'un sans l'autre romprait la paire.
- */
-const CHART_ENGINES: readonly {
-  view: ChartView
-  label: string
-  icon: typeof LineChart
-}[] = [
-  { view: 'original', label: 'Original', icon: LineChart },
-  { view: 'tradingview', label: 'TradingView', icon: CandlestickChart },
-]
 
 export function ChartToolbar(props: ChartToolbarProps) {
   const t = usePhrase()
@@ -745,114 +724,6 @@ export function ChartToolbar(props: ChartToolbarProps) {
         </span>
       ) : null}
 
-      {/*
-        ── LE SEGMENT DE MOTEUR REJOINT LA GAUCHE, ENTRE LA GRANDEUR ET LA COMPARAISON
-
-        Il occupait la piste CENTRALE de la grille, seul, ce qui lui donnait le milieu
-        de la barre — la place la plus en vue pour un réglage qu'on pose une fois. La
-        référence le met à gauche, collé au segment de grandeur : les deux disent
-        « qu'est-ce qui est tracé, et par quoi », et se lisent d'un seul balayage.
-
-        La piste centrale de la grille n'a donc plus de contenu ; la barre garde ses
-        trois pistes, la médiane servant désormais de gouttière entre les deux groupes.
-      */}
-      {props.renderOptions.some((entry) => entry.view === 'tradingview') ? (
-        /*
-          ── LE PREMIER COMPOSANT HEROUI DU SITE, ET LE CHOIX EST MOTIVÉ ───────
-
-          Ce segment était fait à la main : un `<span role="group">` et deux `<button
-          aria-pressed>`. Il marchait. Ce que HeroUI apporte n'est pas l'apparence — le
-          pont de `globals.css` fait que les deux rendent la MÊME chose — mais la
-          SÉMANTIQUE et le clavier. Relevé au navigateur sur cette barre :
-
-            · `selectionMode="single"` rend un `role="radiogroup"` dont les options
-              portent `role="radio"`. Un lecteur d'écran annonce donc « un parmi deux »,
-              là où deux `aria-pressed` indépendants annonçaient deux interrupteurs sans
-              rapport — alors qu'activer l'un éteint bel et bien l'autre ;
-            · les flèches gauche/droite déplacent le focus d'une option à l'autre et
-              s'arrêtent aux extrémités. Notre version n'en avait aucune.
-
-          ⚠️ Ce que ce composant ne donne PAS, contrairement à ce qu'on attendrait du
-          motif : les deux boutons gardent `tabIndex=0`, il n'y a donc pas de tabulation
-          « roving » qui ferait du groupe un seul arrêt. Vérifié, et noté ici pour que
-          personne ne le repropose comme un acquis.
-
-          `disallowEmptySelection` est ce qui garde l'invariant : un graphique est
-          toujours dessiné par UN moteur, jamais par zéro. Sans lui, recliquer l'option
-          active la désélectionnerait et laisserait la barre dans un état que la vue ne
-          peut pas représenter.
-
-          La sélection est DÉRIVÉE de `props.view` à chaque rendu, jamais tenue ici : le
-          segment ne peut donc pas annoncer « TradingView » pendant que le graphique est
-          revenu au tracé maison.
-        */
-        <ToggleButtonGroup
-          aria-label={t('Moteur du graphique')}
-          selectionMode="single"
-          disallowEmptySelection
-          size="sm"
-          selectedKeys={[props.view === 'tradingview' ? 'tradingview' : 'original']}
-          onSelectionChange={(keys) => {
-            const next = [...keys][0]
-            if (next === 'original' || next === 'tradingview') props.onViewChange(next)
-          }}
-          /* HeroUI rend son propre cadre : on lui impose le rayon de la famille,
-             et `[&>*]:rounded-pill` le propage à ses deux boutons — sans quoi les
-             pastilles internes gardent des coins droits dans un cadre arrondi. */
-          /*
-            ── CE GROUPE EST ALIGNÉ SUR LE SEGMENT VOISIN, EN TROIS TEMPS ────────
-
-            1. LA HAUTEUR. Elle est imposée plutôt que laissée à `size="sm"`, dont la
-               boîte ne correspond à aucune autre commande de la rangée. `h-9` sur le
-               cadre et `p-1` : les mêmes valeurs que le segment de grandeur et que la
-               pastille de cadrage, qui est la référence. `[&>*]:h-7` sur les boutons —
-               sans quoi ils gardent leur hauteur d'origine et débordent du cadre.
-
-            2. LE FOND. C'est ce qui restait, et c'est ce qu'on VOIT : mesuré au
-               navigateur, les deux groupes faisaient déjà 28 pixels exactement, et le
-               moteur paraissait pourtant plus gros. La cause n'était pas la taille mais
-               le CREUX — le segment de grandeur porte `bg-surface-muted`, ses deux
-               positions se détachant à l'intérieur ; le groupe de moteur n'en avait
-               pas, si bien que ses deux boutons posaient leur propre aplat directement
-               sur la page. Deux pastilles pleines côte à côte pèsent plus lourd qu'une
-               pastille creusée, à dimensions rigoureusement égales.
-
-            3. L'INACTIF S'EFFACE. `aria-checked=false` remet le bouton non retenu à
-               transparent et sans ombre : dans un creux, c'est le SEUL actif qui porte
-               un aplat. Sans cette règle, HeroUI teinte les deux et le groupe redevient
-               une paire de boutons plutôt qu'un interrupteur.
-          */
-          className="h-9 shrink-0 rounded-control bg-surface-muted p-1 [&>*]:h-7 [&>*]:min-w-8 [&>*]:rounded-[6px] [&>*]:px-2 [&>*[aria-checked=false]]:bg-transparent [&>*[aria-checked=false]]:shadow-none"
-        >
-          {CHART_ENGINES.map((engine) => {
-            const Icon = engine.icon
-            return (
-              /*
-                ── DEUX PICTOGRAMMES NUS, ET LE LIBELLÉ PASSE EN INFOBULLE ────────
-
-                Le segment portait « ⌁ Original » et « ⌁ TradingView » en toutes lettres,
-                soit 203 pixels au milieu de la barre pour un réglage à deux positions.
-                La référence n'y met que deux icônes carrées, et c'est ce qui rend le
-                groupe lisible d'un coup d'œil : la forme du pictogramme dit le moteur,
-                l'aplat dit lequel est actif.
-
-                ⚠️ LE LIBELLÉ N'EST PAS PERDU, il devient accessible autrement — `title`
-                pour la souris, `aria-label` pour les lecteurs d'écran. Une icône seule
-                sans nom accessible serait un bouton muet, ce qui est le défaut classique
-                de ce motif et la raison pour laquelle il est si souvent mal fait.
-              */
-              <ToggleButton key={engine.view} id={engine.view} aria-label={engine.label}>
-                {/* `title` sur le `<span>` et non sur le bouton : `ToggleButton` de
-                    HeroUI ne l'accepte pas dans son type de props, et l'infobulle
-                    native se déclenche de toute façon sur le survol de l'enfant. */}
-                <span title={engine.label} className="flex items-center justify-center">
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                </span>
-              </ToggleButton>
-            )
-          })}
-        </ToggleButtonGroup>
-      ) : null}
 
       {/*
         ══════════════════════════════════════════════════════════════════════
@@ -1197,6 +1068,49 @@ export function ChartToolbar(props: ChartToolbarProps) {
           )
         })}
       </div>
+
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        « TRADINGVIEW » EN TOUTES LETTRES, À DROITE, ET NON DEUX ICÔNES AU MILIEU
+        ══════════════════════════════════════════════════════════════════════
+
+        Le choix du moteur était un segment de DEUX pictogrammes nus — une courbe
+        et un chandelier — posé à gauche entre la grandeur et « Comparer », son
+        libellé relégué en infobulle. La note qui défendait cette forme disait
+        vrai sur un point : deux mots complets prenaient 203 pixels au milieu de
+        la barre.
+
+        Ce qu'elle manquait, c'est que le pictogramme ne dit pas ce que fait le
+        bouton. Une courbe et un chandelier se lisent comme un choix de TRACÉ
+        — ligne ou bougies — alors qu'ils changent de MOTEUR : le second remplace
+        tout le cadre par celui de TradingView, avec ses propres périodes et ses
+        propres outils. Deux lecteurs sur trois cliquaient en croyant changer la
+        forme de la courbe.
+
+        La référence (`blockworks.com/price/hyperliquid`) le nomme, et le pose à
+        droite après les paliers : c'est la dernière chose de la rangée, comme
+        « on quitte cette barre ». La place gagnée à gauche va à « Comparer ».
+
+        ⚠️ CE BOUTON RESTE VISIBLE EN MODE EXTERNE, CONTRAIREMENT À SES VOISINS.
+        Il est le SEUL chemin de retour : replié avec le reste du cadrage, il
+        faudrait recharger la page pour revenir au tracé maison. C'est pour cette
+        raison qu'il vit hors du groupe qui s'efface, et non dedans.
+      */}
+      {props.renderOptions.some((entry) => entry.view === 'tradingview') ? (
+        <button
+          type="button"
+          onClick={() => props.onViewChange(external ? 'original' : 'tradingview')}
+          aria-pressed={external}
+          className={`flex h-7 shrink-0 items-center gap-1.5 rounded-control px-2.5 text-xs font-medium transition-colors duration-150 ${
+            external
+              ? 'bg-surface-active text-ink shadow-sm'
+              : 'bg-surface-muted text-ink-muted hover:text-ink'
+          }`}
+        >
+          <CandlestickChart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          TradingView
+        </button>
+      ) : null}
 
       <DateRangePicker
         value={props.customRange}
