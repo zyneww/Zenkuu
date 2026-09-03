@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { formatAxisMoney } from '@zenkuu/ui'
 
@@ -392,6 +392,70 @@ export function PriceChartInteractive({
     return base
   }, [points, rate, indexed, overlays, showMovingAverage])
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA MOLETTE ZOOME, ET ELLE PILOTE LA BANDE PLUTÔT QUE LE GRAPHIQUE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── POURQUOI PAS `wheelY: 'zoomX'` D'amCHARTS ──────────────────────────────
+   *
+   * La bibliothèque sait zoomer seule, et `PriceChartAm` le refusait explicitement.
+   * L'objection écrite là-bas était juste : « un coup de molette involontaire
+   * décadrerait le graphique sans qu'aucun bouton ne dise comment revenir ».
+   *
+   * Elle vise le zoom INTERNE d'amCharts, qui tient son état dans l'axe — invisible
+   * du reste de l'interface. La bande de navigation continuerait d'annoncer la période
+   * entière pendant qu'on regarderait six heures, et rien ne permettrait de revenir
+   * autrement qu'en rechargeant.
+   *
+   * Le zoom passe donc par `navWindow`, l'état QUE LA BANDE AFFICHE DÉJÀ. Ses deux
+   * poignées se resserrent sous la molette, la tranche visible suit, et l'objection
+   * tombe : la position est montrée, et on revient en tirant les poignées.
+   *
+   * ── LE ZOOM EST CENTRÉ SUR LE CURSEUR ──────────────────────────────────────
+   *
+   * `ratio` est l'abscisse du pointeur rapportée à la largeur du cadre. Le point sous
+   * le curseur garde sa fraction de fenêtre : on resserre les deux bornes VERS LUI, et
+   * non vers le milieu. C'est ce qui permet de plonger sur un décrochage sans le
+   * perdre de vue à chaque cran.
+   *
+   * ── DEUX BORNES, ET LA SECONDE EST LA MOINS ÉVIDENTE ───────────────────────
+   *
+   * ⚠️ UNE LARGEUR MINIMALE EST INDISPENSABLE. Sans elle, quelques crans réduisent la
+   * fenêtre à quelques points : `rows` retombe alors sur `allRows` par son garde
+   * `slice.length > 1`, et le graphique SAUTE d'un coup à la période entière — le
+   * contraire de ce que le geste demandait. `MIN_SPAN` la tient à 2 % de la série,
+   * soit une trentaine de points sur une fenêtre de 24 h.
+   *
+   * ⚠️ `preventDefault` DEMANDE `passive: false`, ET LE LISTENER DOIT DONC ÊTRE POSÉ
+   * À LA MAIN. React attache ses `onWheel` en mode passif : appeler `preventDefault`
+   * dedans est ignoré, avec un avertissement en console, et la PAGE défile pendant
+   * qu'on zoome.
+   */
+  const cadreTrace = useRef<HTMLDivElement>(null)
+
+  /*
+   * ⚠️ DEUX VALEURS LUES PAR RÉFÉRENCE, ET C'EST DÉLIBÉRÉ.
+   *
+   * L'effet du zoom ne dépend que de `overview` : il pose un écouteur natif, et le
+   * reposer à chaque rendu ferait perdre le geste en cours. Mais son rappel a besoin
+   * de la fenêtre chargée et du gestionnaire de période, qui changent tous deux
+   * souvent. Les lire dans une référence donne la valeur du moment SANS remettre
+   * l'effet dans la liste des dépendances.
+   */
+  const overviewWindowRef = useRef<{ from: number; to: number } | null>(null)
+  const onOverviewRangeRef = useRef(onOverviewRange)
+
+  /* ⚠️ L'AFFECTATION VIT DANS UN EFFET, PAS DANS LE CORPS DU RENDU. Le compilateur
+     React refuse l'écriture d'une référence pendant le rendu — « Cannot access refs
+     during render », relevé par le linter — parce qu'un rendu doit pouvoir être rejoué
+     sans effet de bord. Un effet sans tableau de dépendances s'exécute après CHAQUE
+     rendu, ce qui donne exactement la fraîcheur recherchée. */
+  useEffect(() => {
+    onOverviewRangeRef.current = onOverviewRange
+  })
+
+
   /* La tranche visible. `navWindow` est en fractions : deux poignées, pas deux index —
      c'est ce qui permet à la bande de rester juste quand la série change de longueur.
 
@@ -424,29 +488,54 @@ export function PriceChartInteractive({
 
   /*
    * ══════════════════════════════════════════════════════════════════════════
-   * LE TRACÉ EST BLEU, QUELLE QUE SOIT LA TENDANCE
+   * AZUR À LA HAUSSE, ROUGE À LA BAISSE — ET LE VERT NE REVIENT PAS
    * ══════════════════════════════════════════════════════════════════════════
    *
-   * Il prenait le vert quand la période finissait plus haut qu'elle n'avait commencé,
-   * le rouge sinon. La couleur du tracé était donc une SIXIÈME façon de dire ce que
-   * disent déjà le signe, la flèche, le badge de variation, la couleur de ce badge et
-   * la pente de la courbe elle-même.
+   * ── CE QUI PRÉCÉDAIT, ET CE QUI EN EST GARDÉ ───────────────────────────────
    *
-   * ── ET ELLE DISAIT PARFOIS LE CONTRAIRE DE CE QU'ON REGARDE ─────────────
+   * Le tracé a d'abord été vert-ou-rouge, puis TOUJOURS bleu. La note qui défendait le
+   * bleu unique tenait deux arguments, et l'un des deux reste vrai :
    *
-   * Le pire cas n'est pas la redondance, c'est la CONTRADICTION. Sur une fenêtre d'un
-   * an où l'actif finit en hausse, le tracé est vert — y compris sur les six mois de
-   * chute qu'il traverse au milieu. On lit une descente peinte en vert.
+   *   · LA REDONDANCE. Le signe, la flèche, le badge de variation et la pente disent
+   *     déjà la tendance. Une cinquième façon de la dire n'apprend rien — argument
+   *     valable, mais c'est un argument d'économie, pas de justesse.
    *
-   * En bleu, la courbe ne prétend plus rien : elle montre. La hausse et la baisse
-   * restent dites par ce qui est fait pour cela — le badge de variation, qui garde
-   * son vert et son rouge.
+   *   · LA CONTRADICTION. Sur une fenêtre d'un an qui finit en hausse, un tracé vert
+   *     peignait aussi les six mois de chute traversés au milieu. On lisait une
+   *     descente en vert.
    *
-   * `--color-brand-strong` et non `--color-brand` : l'azur pâle de la marque tient
-   * 1,5:1 sur le canvas clair, ce qui suffit à un aplat mais pas à un TRAIT d'un
-   * pixel et demi. Sa déclinaison assombrie passe AA et reste la même couleur.
+   * Le second est celui qui comptait, et il vaut toujours. La demande explicite
+   * rétablit néanmoins la couleur de tendance, et la forme retenue en tient compte :
+   *
+   * ⚠️ LE VERT NE REVIENT PAS. Seul le ROUGE est rendu. Une hausse garde l'azur de la
+   * marque. C'est ce qui distingue cette version de celle qui avait été retirée : le
+   * vert d'une hausse était la moitié REDONDANTE du couple — il répétait quatre
+   * signaux déjà présents — tandis que le rouge d'une baisse est ce qu'on cherche
+   * d'un coup d'œil dans une grille de fiches ouvertes.
+   *
+   * La contradiction subsiste sur les longues fenêtres, et elle est ATTÉNUÉE par le
+   * fait qu'elle ne joue plus que dans un sens : un an rouge peut contenir des mois de
+   * hausse peints en rouge, mais plus l'inverse — et la couleur d'alerte qui déborde
+   * est moins trompeuse qu'une couleur de confort qui déborde.
+   *
+   * ── LE CALCUL PORTE SUR CE QUI EST TRACÉ, PAS SUR CE QUI A ÉTÉ DEMANDÉ ─────
+   *
+   * `rows` et non `allRows` : la frise de navigation découpe dans la série, et une
+   * fenêtre de sept jours tirée sur un mois baissier peut être haussière. La couleur
+   * doit décrire LE SEGMENT VISIBLE, sinon elle contredit la pente qu'on regarde —
+   * ce qui est exactement le défaut qu'on cherche à ne pas reproduire.
+   *
+   * ⚠️ EN MODE INDEXÉ, LA COMPARAISON RESTE JUSTE : `rows` porte alors les valeurs
+   * ramenées à 100, et le rapport entre la première et la dernière est le même.
    */
-  const trendColor = 'var(--color-brand-strong)'
+  const trendColor = useMemo(() => {
+    const first = rows[0]?.price
+    const last = rows[rows.length - 1]?.price
+    /* Repli sur l'azur quand la série est vide ou d'un seul point : une tendance ne se
+       lit pas sur un point, et peindre en rouge par défaut alarmerait sans motif. */
+    if (first === undefined || last === undefined) return 'var(--color-brand-strong)'
+    return last < first ? 'var(--color-down)' : 'var(--color-brand-strong)'
+  }, [rows])
 
   /**
    * Formateur de l'ÉCHELLE — et il porte désormais l'UNITÉ.
@@ -729,6 +818,113 @@ export function PriceChartInteractive({
     return { from: clamp((start - first) / span), to: clamp((end - first) / span) }
   }, [overview, points])
 
+  /* Voir la note des références plus haut : l'écouteur de molette lit celle-ci pour
+     connaître la fenêtre chargée sans en faire une dépendance de son effet. */
+  useEffect(() => {
+    overviewWindowRef.current = overviewWindow
+  }, [overviewWindow])
+
+  /* Le report de la demande de période, en régime « historique complet ». Une
+     référence et non un état : le changer ne doit rien redessiner. */
+  const reportRange = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const boite = cadreTrace.current
+    if (!boite) return
+
+    const MIN_SPAN = 0.02
+
+    /* Le pas est MULTIPLICATIF : un cran retire toujours la même PROPORTION, si bien
+       que la vitesse ressentie ne change pas selon la profondeur atteinte. Un pas
+       additif deviendrait imperceptible une fois la fenêtre resserrée. */
+    const resserrer = (
+      fenetre: { from: number; to: number },
+      deltaY: number,
+      ratio: number,
+    ) => {
+      const span = fenetre.to - fenetre.from
+      const facteur = deltaY > 0 ? 1.15 : 1 / 1.15
+      const suivant = Math.min(Math.max(span * facteur, MIN_SPAN), 1)
+      if (suivant === span) return null
+
+      /* Le point sous le curseur garde son abscisse absolue. */
+      const ancrage = fenetre.from + span * ratio
+      let from = ancrage - suivant * ratio
+      let to = from + suivant
+
+      /* Recadrage aux bornes SANS changer la largeur : on glisse la fenêtre plutôt que
+         de la rogner, sinon un zoom près d'un bord zoomerait moins qu'au centre. */
+      if (from < 0) { from = 0; to = suivant }
+      if (to > 1) { to = 1; from = 1 - suivant }
+      return { from, to }
+    }
+
+    const onWheel = (event: WheelEvent) => {
+      /* Un défilement horizontal — pavé tactile, souris à molette latérale — n'est pas
+         un geste de zoom. On le laisse à la page. */
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+      event.preventDefault()
+
+      const rect = boite.getBoundingClientRect()
+      if (rect.width <= 0) return
+      const ratio = Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1)
+
+      /*
+       * ── DEUX RÉGIMES, ET LE SECOND DEMANDE DES DONNÉES ────────────────────
+       *
+       * Sans `overview`, la bande découpe dans les points déjà en mémoire : resserrer
+       * `navWindow` suffit, l'effet est immédiat et gratuit.
+       *
+       * Avec `overview`, la fenêtre DÉCRIT la période chargée, et la déplacer en
+       * demande une autre au serveur. Le geste reprend donc exactement le protocole en
+       * deux temps du glissement de poignée : `dragWindow` suit le mouvement pour que
+       * la bande réponde tout de suite, et `onOverviewRange` n'est appelé qu'UNE FOIS,
+       * la molette arrêtée.
+       *
+       * ⚠️ SANS CE REPORT, CHAQUE CRAN DÉCLENCHERAIT UNE REQUÊTE. Un geste ordinaire
+       * en produit une dizaine ; les réponses reviendraient dans le désordre et la
+       * dernière affichée ne serait pas la dernière demandée.
+       */
+      if (overview) {
+        setDragWindow((precedent) => {
+          /*
+           * ⚠️ LE REPLI SUR LA FENÊTRE ENTIÈRE EST INDISPENSABLE, ET IL A ÉTÉ TROUVÉ
+           * AU NAVIGATEUR. `overviewWindow` vaut `null` tant que la frise n'a pas reçu
+           * ses horodatages — ce qui est le cas à l'ouverture d'une fiche, et sur
+           * `/crypto/bitcoin` de façon durable. Sans ce repli, la molette y était
+           * INERTE : le rappel lisait `null` et rendait l'état inchangé, sans rien
+           * signaler. Relevé en lisant l'état React après le geste, pas en le
+           * supposant.
+           *
+           * `{ from: 0, to: 1 }` est la valeur JUSTE et non un pis-aller : quand la
+           * position de la période dans l'histoire n'est pas connue, ce qui est chargé
+           * EST tout ce qu'on connaît, donc la fenêtre entière.
+           */
+          const base = precedent ?? overviewWindowRef.current ?? { from: 0, to: 1 }
+          const suivant = resserrer(base, event.deltaY, ratio)
+          if (!suivant) return precedent
+
+          if (reportRange.current) clearTimeout(reportRange.current)
+          reportRange.current = setTimeout(() => {
+            setDragWindow(null)
+            onOverviewRangeRef.current?.(suivant.from, suivant.to)
+          }, 320)
+
+          return suivant
+        })
+        return
+      }
+
+      setNavWindow((precedent) => resserrer(precedent, event.deltaY, ratio) ?? precedent)
+    }
+
+    boite.addEventListener('wheel', onWheel, { passive: false })
+    return () => {
+      boite.removeEventListener('wheel', onWheel)
+      if (reportRange.current) clearTimeout(reportRange.current)
+    }
+  }, [overview])
+
   /*
    * ── LA CAPTURE D'ÉCRAN ────────────────────────────────────────────────────
    *
@@ -777,7 +973,14 @@ export function PriceChartInteractive({
         cette taille est écrite — le style en ligne ci-dessous. La règle CSS qui la
         surchargeait en plein écran est partie avec le plein écran lui-même.
       */}
-      <div className="chart-plot relative min-h-0" style={{ height }}>
+      <div
+        ref={cadreTrace}
+        /* `overscroll-contain` : quand la fenêtre atteint sa borne, le geste ne
+           « déborde » plus sur le défilement de la page. Sans lui, un cran de trop
+           fait sauter la page pendant qu'on croit encore zoomer. */
+        className="chart-plot relative min-h-0 overscroll-contain"
+        style={{ height }}
+      >
         <PriceChartAm
           data={amData}
           height={height}
