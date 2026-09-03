@@ -247,7 +247,7 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Chaînes',
             description: 'Les écosystèmes, et ce qui s’y déploie',
             icon: Globe2,
-            href: '/categories/ecosystemes',
+            href: '/categories?vue=ecosystemes',
             ready: true,
           },
           {

@@ -275,6 +275,12 @@ const config: NextConfig = {
     const removed: [string, string][] = [
       ['/marches/pool/:network/:address', '/pool/:network/:address'],
       ['/marches', '/crypto'],
+      /* `/categories/ecosystemes` A FUSIONNÉ DANS `/categories`.
+         Elle rendait le même composant sur la même requête, avec un filtre initial
+         pour seule différence — un écosystème EST une catégorie chez la source. La
+         vue survit en paramètre de requête, donc l'adresse reste adressable et cette
+         redirection mène EXACTEMENT au même écran qu'avant. */
+      ['/categories/ecosystemes', '/categories?vue=ecosystemes'],
     ]
 
     /*

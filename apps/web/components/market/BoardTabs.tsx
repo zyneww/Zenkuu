@@ -152,7 +152,9 @@ export const BOARD_VIEWS: BoardView[] = [
  */
 export const BOARD_LINKS: { href: string; label: string }[] = [
   { href: '/categories', label: 'Catégories' },
-  { href: '/categories/ecosystemes', label: 'Écosystèmes' },
+  /* La vue vit en paramètre de requête depuis que les deux routes ont fusionné :
+     voir `app/[locale]/categories/page.tsx`. */
+  { href: '/categories?vue=ecosystemes', label: 'Écosystèmes' },
 ]
 
 /**

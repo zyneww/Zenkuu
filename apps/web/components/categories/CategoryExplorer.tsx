@@ -1,6 +1,5 @@
 'use client'
 
-import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 
@@ -11,7 +10,6 @@ import {
   ComboboxItem,
   ComboboxList,
 } from '@/components/ui/combobox'
-import { InputGroupAddon } from '@/components/ui/input-group'
 
 import type { MarketCategory } from '@zenkuu/data'
 import { ChangeBadge, EmptyState } from '@zenkuu/ui'
@@ -179,16 +177,23 @@ export function CategoryExplorer({
             au navigateur) et REFUSE d'ouvrir : le clic ne produisait rien du tout.
             L'état `open` étant contrôlé, le poser nous-mêmes passe outre.
           */}
+          {/* ⚠️ AUCUN ENFANT ICI — LA LOUPE APPARAISSAIT EN DOUBLE.
+
+              Ce champ passait un `InputGroupAddon` portant une loupe. `ComboboxInput`
+              en rend DÉJÀ une, à gauche, depuis qu'elle a été posée dans le composant
+              partagé ; les deux se sont retrouvées côte à côte dans la même gouttière.
+
+              C'est la deuxième fois que ce défaut se produit, et toujours de la même
+              façon : une décoration montée dans la primitive laisse les appelants qui
+              la portaient déjà avec un doublon silencieux — rien ne casse, la ligne
+              paraît seulement deux fois. `AssetPicker` a été corrigé pour la même
+              raison. Ce sont les deux seuls appelants de `ComboboxInput`. */}
           <ComboboxInput
             placeholder={t('Filtrer les catégories…')}
             aria-label={t('Filtrer les secteurs par nom ou par définition')}
             className="h-8 w-full max-w-[16rem] text-sm"
             onClick={() => setPanelOpen(true)}
-          >
-            <InputGroupAddon align="inline-start">
-              <Search className="h-3.5 w-3.5 text-ink-muted" />
-            </InputGroupAddon>
-          </ComboboxInput>
+          />
 
           <ComboboxContent className="border border-border-subtle bg-overlay shadow-overlay">
             <ComboboxList className="max-h-72">

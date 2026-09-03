@@ -11,8 +11,20 @@ import { getLocale } from 'next-intl/server'
 import { StatCard } from '@/components/charts/StatCard'
 
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
+import { LinkTabs } from '@/components/ui/LinkTabs'
 import { getContent } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
+
+/**
+ * Mot sur lequel la vue « Écosystèmes » ouvre la liste.
+ *
+ * ⚠️ EN ANGLAIS, ET C'EST VOULU. Les noms de catégories viennent de CoinGecko et ne
+ * sont pas traduits : « Solana Ecosystem », « Ethereum Ecosystem », « Cosmos
+ * Ecosystem ». Chercher « écosystème » ne trouverait rien. Le filtre porte sur la
+ * donnée telle qu'elle est publiée, pas sur la langue de l'interface — et le lecteur
+ * voit le mot dans le champ, où il peut l'effacer.
+ */
+const ECOSYSTEM_TERM = 'Ecosystem'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -25,8 +37,29 @@ void _ttlGuard
  * peut pas connaître la locale de la requête, et servait donc un titre français sur
  * les pages anglaises. `generateMetadata` est appelée par requête.
  */
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ vue?: string }>
+}): Promise<Metadata> {
   const fr = await getContent()
+  const t = await getPhrase()
+  const { vue } = await searchParams
+
+  /* ⚠️ LA CANONIQUE PORTE LE PARAMÈTRE POUR LA VUE FILTRÉE, et l'omet pour l'autre.
+     Sans cela les deux vues déclareraient la même adresse canonique, et un moteur
+     rangerait « Écosystèmes » comme un doublon de « Catégories » — c'est-à-dire
+     exactement le défaut que la route séparée évitait. */
+  if (vue === 'ecosystemes') {
+    return {
+      title: t('Écosystèmes'),
+      description: t(
+        'Les écosystèmes de la blockchain, classés par capitalisation : Ethereum, Solana, BNB Chain, Cosmos et les autres.',
+      ),
+      alternates: { canonical: '/categories?vue=ecosystemes' },
+    }
+  }
+
   return {
     title: fr.pages.categories,
     description: fr.categories.subtitle,
@@ -65,9 +98,36 @@ export async function generateMetadata(): Promise<Metadata> {
  * livre, plus la dominance — qui, elle, est un rapport exact entre deux valeurs
  * publiées.
  */
-export default async function CategoriesPage() {
+export default async function CategoriesPage({
+  searchParams,
+}: {
+  /*
+    ⚠️ `Promise` ET NON UN OBJET NU : depuis Next 15, `searchParams` est asynchrone.
+    Le lire sans `await` renvoie la promesse elle-même, et `?.vue` y vaut toujours
+    `undefined` — un défaut silencieux, la page rendant simplement la vue par défaut.
+  */
+  searchParams: Promise<{ vue?: string }>
+}) {
   const t = await getPhrase()
   const fr = await getContent()
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * DEUX VUES POUR UNE SEULE PAGE — LES ÉCOSYSTÈMES ONT REJOINT LES SECTEURS
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `/categories/ecosystemes` était une ROUTE À PART, et n'aurait jamais dû l'être :
+   * elle rendait le MÊME composant, sur la MÊME requête, avec un filtre initial pour
+   * seule différence. Un écosystème EST une catégorie chez la source — « Solana
+   * Ecosystem » arrive dans la même réponse que « Layer 1 » et porte les mêmes champs.
+   *
+   * Deux routes obligeaient à maintenir deux en-têtes, deux jeux de métadonnées, deux
+   * entrées de navigation et deux lignes de plan de site pour un `filter()`. Elles ont
+   * fusionné : la vue vit dans un paramètre de requête, ce qui la garde ADRESSABLE —
+   * indexable, partageable, ouvrable au clic milieu — sans dupliquer la page.
+   */
+  const { vue } = await searchParams
+  const ecosystemes = vue === 'ecosystemes'
 
   /* En DOLLARS, et c'est la condition de la colonne de dominance : la source ne
      publie ses agrégats sectoriels qu'en dollars, et un rapport entre une
@@ -104,13 +164,45 @@ export default async function CategoriesPage() {
   return (
     <div className="space-y-8">
       <CategoriesHeading
-        title={fr.categories.title}
-        lede={t(
-          'Les catégories décrivent les grandes familles d’actifs du marché. Un même actif peut relever de plusieurs d’entre elles — Bitcoin est à la fois « Layer 1 » et « Proof of Work » — si bien que les capitalisations de ce tableau ne s’additionnent pas.',
-        )}
-        note={t(
-          '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
-        ).replace('{n}', String(listed.length))}
+        title={ecosystemes ? t('Écosystèmes') : fr.categories.title}
+        lede={
+          ecosystemes
+            ? t(
+                'Les grandes familles de jetons regroupées par la chaîne sur laquelle ils vivent. Un même actif peut relever de plusieurs écosystèmes, si bien que les capitalisations de ce tableau ne s’additionnent pas.',
+              )
+            : t(
+                'Les catégories décrivent les grandes familles d’actifs du marché. Un même actif peut relever de plusieurs d’entre elles — Bitcoin est à la fois « Layer 1 » et « Proof of Work » — si bien que les capitalisations de ce tableau ne s’additionnent pas.',
+              )
+        }
+        /* ⚠️ LA NOTE DE LA VUE « ÉCOSYSTÈMES » NE COMPTE PAS LES LIGNES AFFICHÉES.
+           Le filtre est appliqué DANS `CategoryExplorer`, côté client, et cette page ne
+           sait donc pas combien de secteurs portent le mot. Annoncer un nombre qu'on n'a
+           pas mesuré serait un chiffre inventé (§5) : la note dit à la place SUR QUOI
+           porte la sélection, et comment l'effacer. */
+        note={
+          ecosystemes
+            ? t(
+                'La liste retient les catégories dont le nom publié par la source mentionne « Ecosystem ». Effacez le filtre pour retrouver l’ensemble des secteurs.',
+              )
+            : t(
+                '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
+              ).replace('{n}', String(listed.length))
+        }
+      />
+
+      {/* Deux LIENS et non deux boutons : chaque vue est une adresse. Voir `LinkTabs`,
+          dont le trait glisse d'un onglet à l'autre parce que le nœud survit à la
+          navigation — la barre est identique de part et d'autre. */}
+      <LinkTabs
+        active={ecosystemes ? 'ecosystemes' : 'secteurs'}
+        tabs={[
+          { id: 'secteurs', href: '/categories', label: t('Tous les secteurs') },
+          {
+            id: 'ecosystemes',
+            href: '/categories?vue=ecosystemes',
+            label: t('Écosystèmes'),
+          },
+        ]}
       />
 
       {/* ── LA BANDE DE TÊTE ────────────────────────────────────────────────
@@ -158,6 +250,7 @@ export default async function CategoriesPage() {
       <CategoryExplorer
         categories={listed}
         totalMarketCap={globalStats.ok ? globalStats.data.totalMarketCap : null}
+        {...(ecosystemes ? { defaultQuery: ECOSYSTEM_TERM } : {})}
       />
 
       {/* La source ne publie ces agrégats QU'EN DOLLARS, et c'est ce que nomme cette
