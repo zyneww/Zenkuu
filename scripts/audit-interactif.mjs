@@ -30,18 +30,11 @@
 
 import { mkdir, writeFile } from 'node:fs/promises'
 import { chromium } from 'playwright'
+import { routesAudit } from './routes-audit.mjs'
 
 const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3000'
 const OUT = new URL('../.audit/', import.meta.url).pathname
 
-const ROUTES = [
-  '/', '/marches', '/crypto', '/crypto/bitcoin', '/crypto/all-coins',
-  '/crypto/graphiques', '/crypto/nouvelles', '/actions', '/actions/aapl',
-  '/categories', '/comparateur', '/convertisseur', '/screener', '/actualites',
-  '/heatmap', '/sentiment', '/tableau-de-bord', '/aide', '/bien-demarrer',
-  '/pourquoi-zenkuu', '/a-propos', '/nouveautes', '/parametres', '/connexion',
-  '/graphiques', '/places',
-]
 
 /**
  * ⚠️ CES MOTS SONT DES MOTS FRANÇAIS QUI N'EXISTENT PAS EN ANGLAIS.
@@ -243,13 +236,32 @@ async function auditerRoute(page, route) {
 }
 
 async function main() {
-  const seul = process.argv.find((a) => a.startsWith('--routes='))
-  const routes = seul ? seul.slice(9).split(',') : ROUTES
-
   await mkdir(OUT, { recursive: true })
   const navigateur = await chromium.launch()
   const contexte = await navigateur.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await contexte.newPage()
+
+  /*
+   * ⚠️ LA LISTE N'EST PLUS ÉCRITE ICI, ET C'ÉTAIT UN DÉFAUT DE FOND.
+   *
+   * Celle qui vivait dans ce fichier comptait vingt-six routes quand l'application en
+   * sert soixante. Onze pages entières — `/derives`, `/devises`, `/etf`, `/glossaire`,
+   * `/indices`, `/macro`, `/perpetuels`, `/rachats` et les cinq de `/graphiques` —
+   * n'avaient jamais été mesurées, et l'audit les déclarait saines par omission. Un
+   * relevé qui ne visite pas une page ne dit rien d'elle ; il ne le dit pas non plus.
+   *
+   * `routes-audit.mjs` les lit dans `app/[locale]` : la liste ne peut plus diverger.
+   */
+  const seul = process.argv.find((a) => a.startsWith('--routes='))
+  let routes
+  if (seul) {
+    routes = seul.slice(9).split(',')
+  } else {
+    const decouverte = await routesAudit(page, BASE)
+    routes = decouverte.routes
+    if (decouverte.manquantes.length)
+      console.log('motifs sans exemplaire vivant : ' + decouverte.manquantes.join(', ') + '\n')
+  }
 
   const rapports = []
   for (const route of routes) {

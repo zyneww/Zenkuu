@@ -27,20 +27,29 @@
  */
 
 import { chromium } from 'playwright'
+import { routesAudit } from './routes-audit.mjs'
 
 const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3000'
 
-const ROUTES = [
-  '/', '/marches', '/crypto', '/crypto/bitcoin', '/crypto/all-coins',
-  '/crypto/nouvelles', '/actions', '/actions/aapl', '/categories',
-  '/comparateur', '/convertisseur', '/screener', '/actualites', '/heatmap',
-  '/sentiment', '/tableau-de-bord', '/aide', '/bien-demarrer',
-  '/pourquoi-zenkuu', '/a-propos', '/nouveautes', '/parametres', '/connexion',
-  '/graphiques', '/places', '/classements',
-]
+/*
+ * ⚠️ LA LISTE VIENT DE `routes-audit.mjs`, ET N'EST PAS RECOPIÉE ICI.
+ *
+ * Une liste écrite à la main ne suit pas une application qui grandit : celle qui
+ * vivait dans ces fichiers en couvrait moins de la moitié, et l'omission ne se
+ * signale pas — une page non visitée passe pour saine.
+ */
+let ROUTES = []
 
 const navigateur = await chromium.launch()
 const page = await (await navigateur.newContext({ viewport: { width: 1440, height: 900 } })).newPage()
+
+/* La liste est découverte à l'ouverture : routes statiques lues dans `app/[locale]`,
+   plus un exemplaire vivant de chaque motif dynamique, pêché dans les liens rendus. */
+const decouverte = await routesAudit(page, BASE)
+ROUTES = decouverte.routes
+if (decouverte.manquantes.length)
+  console.log('motifs sans exemplaire vivant : ' + decouverte.manquantes.join(', '))
+console.log(ROUTES.length + ' routes à parcourir.\n')
 
 const destinations = new Map()
 for (const route of ROUTES) {

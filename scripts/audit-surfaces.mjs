@@ -29,14 +29,18 @@
  */
 
 import { chromium } from 'playwright'
+import { routesAudit } from './routes-audit.mjs'
 
 const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3000'
 
-const ROUTES = [
-  '/', '/marches', '/crypto/bitcoin', '/categories', '/actualites',
-  '/graphiques', '/screener', '/heatmap', '/parametres', '/connexion',
-  '/comparateur', '/aide',
-]
+/*
+ * ⚠️ LA LISTE VIENT DE `routes-audit.mjs`, ET N'EST PAS RECOPIÉE ICI.
+ *
+ * Une liste écrite à la main ne suit pas une application qui grandit : celle qui
+ * vivait dans ces fichiers en couvrait moins de la moitié, et l'omission ne se
+ * signale pas — une page non visitée passe pour saine.
+ */
+let ROUTES = []
 
 /* Les jetons qui décrivent une surface. Les autres — encre, bordures, accents —
    n'ont rien à faire dans un fond, et leur présence serait elle-même un défaut. */
@@ -85,6 +89,14 @@ const mesurer = (page) =>
 const navigateur = await chromium.launch()
 const contexte = await navigateur.newContext({ viewport: { width: 1440, height: 900 } })
 const page = await contexte.newPage()
+
+/* La liste est découverte à l'ouverture : routes statiques lues dans `app/[locale]`,
+   plus un exemplaire vivant de chaque motif dynamique, pêché dans les liens rendus. */
+const decouverte = await routesAudit(page, BASE)
+ROUTES = decouverte.routes
+if (decouverte.manquantes.length)
+  console.log('motifs sans exemplaire vivant : ' + decouverte.manquantes.join(', '))
+console.log(ROUTES.length + ' routes à parcourir.\n')
 
 let total = 0
 for (const theme of ['sombre', 'clair']) {
