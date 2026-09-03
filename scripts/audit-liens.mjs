@@ -76,9 +76,58 @@ for (const route of ROUTES) {
 
 await navigateur.close()
 
-console.log(`\n${destinations.size} destinations internes distinctes — vérification…\n`)
-const casses = []
+/*
+ * ⚠️ ON NE VÉRIFIE PAS LES MILLE SEPT CENTS DESTINATIONS, ET C'EST DÉLIBÉRÉ.
+ *
+ * Une première version les interrogeait toutes. Deux raisons de ne plus le faire, la
+ * seconde étant la vraie :
+ *
+ *   · LA DURÉE. Presque toutes sont des fiches d'actif, et chacune demande à son
+ *     fournisseur une cotation que le serveur ne tient pas en cache. Comptez une
+ *     heure pour un contrôle qui n'apprend rien de plus.
+ *   · LE COÛT CHEZ LE FOURNISSEUR. Mille sept cents requêtes vers CoinGecko en
+ *     rafale, c'est un quota consommé pour rien — et un quota atteint dégrade le
+ *     SITE, pas seulement l'audit. Une sonde qui casse ce qu'elle mesure est pire
+ *     qu'une sonde absente.
+ *
+ * Ce qu'on cherche ici, ce sont des liens MORTS, et un lien mort l'est par sa FORME :
+ * un préfixe disparu, un segment renommé, une route supprimée. Trois exemplaires de
+ * `/crypto/{id}` répondent exactement la même chose que mille sept cents.
+ *
+ * On garde donc, pour chaque forme d'adresse — le chemin dont chaque segment
+ * ressemblant à un identifiant est remplacé par une étoile — au plus TROIS
+ * exemplaires. Les routes fixes, elles, passent toutes : elles sont peu nombreuses,
+ * et ce sont précisément celles qu'une migration casse.
+ */
+const PAR_FORME = 3
+
+function forme(chemin) {
+  return chemin
+    .split('/')
+    .map((segment) =>
+      /^[a-z0-9]+(-[a-z0-9]+){2,}$/i.test(segment) || /\d/.test(segment) || segment.length > 24
+        ? '*'
+        : segment,
+    )
+    .join('/')
+}
+
+const parForme = new Map()
+const echantillon = []
 for (const [dest, depuis] of [...destinations].sort()) {
+  const f = forme(dest)
+  const vus = parForme.get(f) ?? 0
+  if (vus >= PAR_FORME) continue
+  parForme.set(f, vus + 1)
+  echantillon.push([dest, depuis])
+}
+
+console.log(
+  `\n${destinations.size} destinations, ${parForme.size} formes distinctes — ` +
+    `${echantillon.length} vérifiées (au plus ${PAR_FORME} par forme)\n`,
+)
+const casses = []
+for (const [dest, depuis] of echantillon) {
   try {
     const r = await fetch(BASE + dest, { redirect: 'follow' })
     if (!r.ok) casses.push(`${r.status}  ${dest.padEnd(40)} (rendu sur ${depuis})`)
