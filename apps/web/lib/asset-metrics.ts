@@ -1,5 +1,7 @@
+import type { AppHref } from '@/i18n/navigation'
+import { assetHref } from '@/lib/asset-routes'
 import { marketCapToFdvShare } from '@/lib/heatmap-metrics'
-import type { AssetDetail } from '@zenkuu/data'
+import type { AssetClass, AssetDetail } from '@zenkuu/data'
 
 /**
  * Registre des métriques d'une fiche actif.
@@ -245,6 +247,27 @@ export function availableMetrics(asset: AssetDetail): MetricDef[] {
 }
 
 /** Lien vers la page dédiée d'une métrique. */
-export function metricHref(assetSegment: string, id: string, slug: string): string {
-  return `/${assetSegment}/${encodeURIComponent(id)}/metriques/${slug}`
+export function metricHref(assetClass: AssetClass, id: string, slug: string): AppHref {
+  /*
+   * ⚠ La CLASSE remplace le SEGMENT en argument. La fonction composait
+   * `/${segment}/${id}/metriques/${slug}` — une chaîne, donc une adresse française
+   * quelle que soit la langue rendue. La route se DÉSIGNE désormais, et `Link` la
+   * traduit : `/stocks/aapl/metrics/…` en anglais.
+   *
+   * `nft` est la seule classe sans fiche, donc sans page de métrique : elle retombe
+   * sur la page NFT, comme `assetHref`.
+   */
+  const route = METRIC_ROUTE[assetClass]
+  return route ? { pathname: route, params: { id, metrique: slug } } : assetHref(assetClass, id)
 }
+
+/** Route de la page d'une métrique, par classe. Voir `lib/asset-routes.ts`. */
+const METRIC_ROUTE = {
+  crypto: '/crypto/[id]/metriques/[metrique]',
+  forex: '/devises/[id]/metriques/[metrique]',
+  stock: '/actions/[id]/metriques/[metrique]',
+  etf: '/etf/[id]/metriques/[metrique]',
+  commodity: '/matieres-premieres/[id]/metriques/[metrique]',
+  index: '/indices/[id]/metriques/[metrique]',
+  nft: null,
+} as const satisfies Record<AssetClass, string | null>

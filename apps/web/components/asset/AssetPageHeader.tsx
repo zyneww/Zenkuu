@@ -437,7 +437,7 @@ export async function AssetHeadline({
                   return id ? (
                     <Link
                       key={category}
-                      href={`/categories/${id}`}
+                      href={{ pathname: '/categories/[id]', params: { id: id } }}
                       className="min-w-0 truncate rounded-pill border border-border-subtle px-2 py-0.5 font-medium transition-colors hover:border-brand hover:text-brand"
                     >
                       {category}

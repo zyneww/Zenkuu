@@ -8,7 +8,7 @@ import {
   volatilityScaleSwatches,
   volatilityTone,
 } from '@/components/tools/treemap'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 /**
  * Cette figure ne connaît qu'un seul fond — celui de `heatTone`, toujours saturé — et
@@ -48,8 +48,26 @@ export interface TreemapTile {
   value: number
   /** Teinte. Absente, la tuile reste neutre : une lacune n'est pas une stabilité. */
   change?: number
-  /** Destination du clic. Absente, la tuile n'est pas cliquable. */
-  href?: string
+  /**
+   * Destination INTERNE du clic. Absente, la tuile n'est pas cliquable — sauf si
+   * `externalHref` est présent.
+   */
+  href?: AppHref
+  /**
+   * Destination SORTANTE, quand la tuile mène hors du site (le site officiel d'une
+   * collection NFT, par exemple).
+   *
+   * ── POURQUOI UN SECOND CHAMP PLUTÔT QUE `href.startsWith('http')` ──────────
+   *
+   * C'est ce que faisait la figure : un seul champ, et un test sur ses premières
+   * lettres pour décider entre `<a>` et `<Link>`. Le test marchait, mais il déduisait
+   * une INTENTION d'une orthographe — et depuis que les adresses internes s'écrivent
+   * aussi en objet, il n'y a plus de premières lettres à tester.
+   *
+   * Deux champs disent la même chose sans rien deviner, et le type interdit d'envoyer
+   * une URL absolue dans un `<Link>`.
+   */
+  externalHref?: string
   /** Nom complet, pour l'infobulle et les lecteurs d'écran. */
   title?: string
   /**
@@ -398,6 +416,27 @@ export function TreemapFigure({
             règle que les liens de places de cotation. `noopener noreferrer` ferme
             l'accès à notre fenêtre depuis la page ouverte.
         */
+        const tileClass = TILE_CLASS + ' transition-opacity duration-150 hover:opacity-80'
+
+        /* Trois sorties écrites l'une après l'autre plutôt qu'en ternaires imbriqués :
+           chaque `return` restreint ce qui reste, si bien que le dernier sait que
+           `tile.href` est défini sans qu'on ait à l'affirmer. */
+        if (tile.externalHref !== undefined) {
+          return (
+            <a
+              key={box.id}
+              href={tile.externalHref}
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+              title={caption}
+              className={tileClass}
+              style={style}
+            >
+              {body}
+            </a>
+          )
+        }
+
         if (tile.href === undefined) {
           return (
             <div key={box.id} title={caption} className={TILE_CLASS} style={style}>
@@ -406,21 +445,7 @@ export function TreemapFigure({
           )
         }
 
-        const tileClass = TILE_CLASS + ' transition-opacity duration-150 hover:opacity-80'
-
-        return tile.href.startsWith('http') ? (
-          <a
-            key={box.id}
-            href={tile.href}
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            title={caption}
-            className={tileClass}
-            style={style}
-          >
-            {body}
-          </a>
-        ) : (
+        return (
           <Link key={box.id} href={tile.href} title={caption} className={tileClass} style={style}>
             {body}
           </Link>

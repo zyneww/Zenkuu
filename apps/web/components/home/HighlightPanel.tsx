@@ -1,4 +1,4 @@
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 import type { MarketAsset } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
@@ -18,7 +18,7 @@ interface HighlightPanelProps {
    * ce qu'il vient d'annoncer traite son lecteur en débutant permanent.
    */
   hint?: string
-  href?: string
+  href?: AppHref
   unavailableReason?: string
   /**
    * Nombre de lignes affichées.

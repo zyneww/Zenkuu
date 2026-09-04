@@ -10,7 +10,7 @@ import { useMemo, useState } from 'react'
 import type { NewListing } from '@zenkuu/data'
 import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
 import { DateRangeCalendar } from '@/components/ui/DateRangeCalendar'
 import { TablePagination } from '@/components/ui/TablePagination'
@@ -375,9 +375,12 @@ function Identity({ listing, match }: { listing: NewListing; match?: ListingMatc
    * n'a qu'un candidat, « MUMU » en a plusieurs, et la recherche renverrait alors le
    * plus gros plutôt que celui qu'on a cliqué.
    */
-  const href = match
-    ? `/crypto/${match.id}`
-    : `/resoudre/${encodeURIComponent(listing.name)}`
+  /* L'encodage de `terme` n'est plus fait ici : next-intl encode les paramètres qu'on
+     lui confie, et le faire deux fois transformerait « Yield Basis » en
+     « Yield%2520Basis ». */
+  const href: AppHref = match
+    ? { pathname: '/crypto/[id]', params: { id: match.id } }
+    : { pathname: '/resoudre/[terme]', params: { terme: listing.name } }
 
   return (
     <Link

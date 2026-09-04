@@ -77,7 +77,7 @@ export function HelpCategoryGrid() {
         return (
           <li key={category.id}>
             <Link
-              href={`/aide/rubrique/${category.id}`}
+              href={{ pathname: '/aide/rubrique/[id]', params: { id: category.id } }}
               /* `h-full` : les deux cartes d'une rangée s'alignent sur la plus haute.
                  Sans lui, une description courte laisse un bord bas décalé de son
                  voisin, ce qui se lit comme un défaut de gabarit.

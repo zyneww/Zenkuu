@@ -210,7 +210,7 @@ export function SpotExchangesTable({
                         au bon endroit, toujours en `nofollow`.
                       */}
                       <Link
-                        href={`/places/${exchange.id}`}
+                        href={{ pathname: '/places/[id]', params: { id: exchange.id } }}
                         /*
                           PRÉCHARGEMENT COUPÉ, ET C'EST MESURÉ.
 

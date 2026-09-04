@@ -102,7 +102,7 @@ export default async function ScreenerPage({
         {SCREENER_MARKETS.map((entry) => (
           <Link
             key={entry.id}
-            href={`/screener?marche=${entry.id}`}
+            href={{ pathname: '/screener', query: { marche: entry.id } }}
             aria-current={entry.id === market.id ? 'page' : undefined}
             className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors duration-150 ${
               entry.id === market.id

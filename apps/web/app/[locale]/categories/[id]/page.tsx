@@ -140,7 +140,7 @@ export default async function CategoryPage({
               // croire à un tri du secteur alors qu'il rechargerait autre chose.
               sortable={false}
               paginated={false}
-              basePath={`/categories/${category.id}`}
+              basePath={{ pathname: '/categories/[id]', params: { id: category.id } }}
               /* `cotations` — le jeu de la grille de marché, celui de l'accueil.
                  Leur page de catégorie reprend le gabarit de leur accueil, et ce jeu
                  apporte la capitalisation, la FDV et le ratio qu'`apercu` n'avait pas.

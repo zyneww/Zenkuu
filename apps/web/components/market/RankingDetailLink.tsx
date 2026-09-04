@@ -40,7 +40,7 @@ export function RankingDetailLink({
   const t = usePhrase()
   return (
     <Link
-      href={`/classements/${type}?periode=${period}`}
+      href={{ pathname: '/classements/[type]', params: { type }, query: { periode: period } }}
       className="group inline-flex shrink-0 items-center gap-1 rounded-control border border-border-subtle px-2 py-1 text-[0.6875rem] font-medium text-ink-muted transition-colors duration-150 hover:border-brand hover:text-ink"
     >
       {t('Voir en détail')}

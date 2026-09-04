@@ -86,7 +86,7 @@ export default async function HistoriquePage({ params }: { params: Promise<{ id:
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
-        <Link href={`/crypto/${id}`} className="transition-colors hover:text-ink">
+        <Link href={{ pathname: '/crypto/[id]', params: { id: id } }} className="transition-colors hover:text-ink">
           {asset.data.name}
         </Link>
         <span className="mx-1.5" aria-hidden="true">

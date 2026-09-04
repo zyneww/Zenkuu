@@ -147,7 +147,7 @@ export default async function MacroPage({
             return (
               <Link
                 key={entry.id}
-                href={`/macro?indicateur=${entry.id}`}
+                href={{ pathname: '/macro', query: { indicateur: entry.id } }}
                 aria-current={entry.id === indicator.id ? 'page' : undefined}
                 className={`rounded-control border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
                   entry.id === indicator.id

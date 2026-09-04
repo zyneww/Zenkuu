@@ -241,7 +241,7 @@ export function MarketHeatmap({
           ...(category.marketCapChange24h !== undefined
             ? { change: category.marketCapChange24h }
             : {}),
-          href: `/categories/${category.id}`,
+          href: { pathname: '/categories/[id]', params: { id: category.id } },
         }))
     }
 
@@ -332,7 +332,7 @@ export function MarketHeatmap({
             ? { change }
             : {}),
           ...(asset.image ? { image: asset.image } : {}),
-          href: `/crypto/${asset.id}`,
+          href: { pathname: '/crypto/[id]', params: { id: asset.id } },
         }
       })
   }, [mode, assets, categories, count, period, sizeBy, universe, threshold, volatility])

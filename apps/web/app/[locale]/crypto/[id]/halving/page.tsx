@@ -64,7 +64,10 @@ export default async function HalvingPage({ params }: { params: Promise<{ id: st
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
-        <Link href="/crypto/bitcoin" className="transition-colors hover:text-ink">
+        <Link
+          href={{ pathname: '/crypto/[id]', params: { id: 'bitcoin' } }}
+          className="transition-colors hover:text-ink"
+        >
           Bitcoin
         </Link>
         <span className="mx-1.5" aria-hidden="true">

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 import { getContent, getSeo } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
@@ -32,7 +32,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * absence de guide : il fait douter de tout le reste.
  */
 
-const STEPS = [
+const STEPS: readonly {
+  title: string
+  body: string
+  href: AppHref
+  linkLabel: string
+}[] = [
   {
     title: 'Trouver un actif',
     body: 'La loupe de l’en-tête cherche simultanément dans toutes les classes d’actifs. Tapez un nom ou un symbole — « Bitcoin », « BTC », « CAC » — et le résultat mène directement à la fiche.',
@@ -42,13 +47,13 @@ const STEPS = [
   {
     title: 'Lire une fiche',
     body: 'Une fiche réunit le cours, ses variations, un graphique et les statistiques de marché. Les onglets remplacent le contenu sur place : vous ne perdez jamais l’en-tête de prix de vue.',
-    href: '/crypto/bitcoin',
+    href: { pathname: '/crypto/[id]', params: { id: 'bitcoin' } },
     linkLabel: 'Voir une fiche d’exemple',
   },
   {
     title: 'Régler langue et devise',
     body: 'Le sélecteur en forme de globe, dans l’en-tête, fixe la devise d’affichage pour tout le site. Les montants convertis affichent la devise d’origine et la date du taux appliqué.',
-    href: '/aide/devise-affichage',
+    href: { pathname: '/aide/[slug]', params: { slug: 'devise-affichage' } },
     linkLabel: 'En savoir plus sur les conversions',
   },
   {

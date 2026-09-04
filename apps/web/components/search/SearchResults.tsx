@@ -4,7 +4,7 @@ import { Flame } from 'lucide-react'
 
 import { ChangeBadge } from '@zenkuu/ui'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
@@ -288,7 +288,7 @@ function ResultRow({
   query,
   onNavigate,
 }: {
-  href: string
+  href: AppHref
   name: string
   symbol: string
   image?: string

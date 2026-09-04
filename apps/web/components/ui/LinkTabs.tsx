@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 /**
  * Rangée d'onglets-LIENS, avec un trait qui glisse d'un onglet à l'autre.
@@ -37,7 +37,7 @@ import { Link } from '@/i18n/navigation'
 export interface LinkTab {
   /** Clé stable, distincte du libellé — deux onglets peuvent porter le même mot. */
   id: string
-  href: string
+  href: AppHref
   label: string
 }
 

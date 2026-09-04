@@ -68,7 +68,7 @@ export async function NftOverview({ collections }: { collections: NftCollection[
       rend l'ajout sûr — aucune tuile ne peut se casser faute de champ.
     */
     ...(collection.image ? { image: collection.image } : {}),
-    ...(collection.homepage ? { href: collection.homepage } : {}),
+    ...(collection.homepage ? { externalHref: collection.homepage } : {}),
   }))
 
   return (

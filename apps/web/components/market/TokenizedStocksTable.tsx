@@ -97,7 +97,7 @@ export function TokenizedStocksTable({ tokens }: { tokens: TokenizedStock[] }) {
                       />
                     ) : null}
                     <Link
-                      href={`/crypto/${token.id}`}
+                      href={{ pathname: '/crypto/[id]', params: { id: token.id } }}
                       className="inline-flex items-center text-ink transition-colors hover:text-brand hover:underline"
                     >
                       {token.name}

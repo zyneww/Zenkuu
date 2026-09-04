@@ -88,7 +88,7 @@ export function buildSectors(
     sectors.push({
       id: category.id,
       name: category.name,
-      href: `/categories/${category.id}`,
+      href: { pathname: '/categories/[id]', params: { id: category.id } },
       marketCap: own.reduce((sum, asset) => sum + asset.marketCap, 0),
       volume24h: own.reduce((sum, asset) => sum + (asset.volume24h ?? 0), 0),
       assets: own,

@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 
 import { InstagramGlyph } from '@/components/BrandIcons'
+import type { AppHref } from '@/i18n/navigation'
 
 /**
  * Contenu du pied de page.
@@ -13,15 +14,34 @@ import { InstagramGlyph } from '@/components/BrandIcons'
  * un site d'information.
  */
 
-export interface FooterLink {
-  label: string
-  href: string
+/**
+ * Un lien du pied de page — interne OU sortant, et le type le sait.
+ *
+ * ── POURQUOI UNE UNION PLUTÔT QU'UN DRAPEAU ──────────────────────────────────
+ *
+ * `external` existait déjà, mais comme simple booléen à côté d'un `href: string` :
+ * rien n'empêchait d'écrire une URL absolue sans le drapeau, ni l'inverse. Le
+ * composant devait alors faire confiance au drapeau pour choisir entre `<Link>` et
+ * `<a>`, et une entrée mal renseignée produisait un `<Link>` vers `https://…` —
+ * c'est-à-dire une navigation interne vers une adresse qui n'existe pas.
+ *
+ * En union discriminée, les deux branches sont indissociables : une URL absolue OBLIGE
+ * à `external: true`, et TypeScript rétrécit lui-même `href` dans chaque branche du
+ * rendu. Le composant n'a plus rien à supposer.
+ */
+export type FooterLink =
+  | { label: string; href: AppHref; external?: false; ready?: boolean }
   /** Lien sortant : ouvre dans un nouvel onglet et porte rel="noopener". */
-  external?: boolean
-  ready?: boolean
-}
+  | { label: string; href: `https://${string}`; external: true; ready?: boolean }
 
-export interface SocialLink extends FooterLink {
+/**
+ * Un compte social — toujours la branche SORTANTE de `FooterLink`.
+ *
+ * `Extract` plutôt que l'union entière : un compte social vit par définition sur un
+ * autre domaine. Le déclarer ainsi dispense le pied de page de rétrécir le type à
+ * chaque rendu, et interdit d'écrire ici une route interne par distraction.
+ */
+export type SocialLink = Extract<FooterLink, { external: true }> & {
   /** Glyphe du réseau — cf. `components/BrandIcons.tsx`. */
   icon: ComponentType<{ className?: string }>
   /** Identifiant du compte, affiché à côté de l'icône. */

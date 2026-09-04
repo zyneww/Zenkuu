@@ -1,5 +1,6 @@
 import type { DexPool, MarketAsset, SpotExchange, YahooScreenRow } from '@zenkuu/data'
 
+import type { AppHref } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 
 /**
@@ -46,7 +47,7 @@ export interface ScreenerRow {
   symbol: string
   name: string
   /** Fiche interne, quand nous en avons une. Absente = la ligne n'est pas cliquable. */
-  href?: string
+  href?: AppHref
   image?: string
   /** Devise des montants de cette ligne. Absente = grandeur sans unité monétaire. */
   currency?: string
@@ -326,7 +327,7 @@ export function rowsFromExchanges(exchanges: SpotExchange[]): ScreenerRow[] {
     id: exchange.id,
     symbol: exchange.id.toUpperCase(),
     name: exchange.name,
-    href: `/places/${exchange.id}`,
+    href: { pathname: '/places/[id]', params: { id: exchange.id } },
     ...(exchange.image ? { image: exchange.image } : {}),
     ...(exchange.country ? { meta: exchange.country } : {}),
     values: {
@@ -356,7 +357,11 @@ export function rowsFromPools(pools: DexPool[]): ScreenerRow[] {
       id: pool.id,
       symbol: pool.name,
       name: pool.name,
-      href: `/pools/${pool.network}/${pool.address}`,
+      /* ⚠️ C'ÉTAIT `/pools/…` AU PLURIEL, ET LA ROUTE EST `/pool/…`. Chaque ligne
+         de pool du sélecteur menait donc à un 404. Écrite en forme objet, la faute
+         n'est plus possible : `'/pool/[network]/[address]'` est vérifié à la
+         compilation contre la table des routes. */
+      href: { pathname: '/pool/[network]/[address]', params: { network: pool.network, address: pool.address } },
       /* Le RÉSEAU en seconde ligne, et non le protocole : deux pools de même nom sur
          deux chaînes différentes ne sont pas le même marché, et c'est la première
          chose à distinguer. Le protocole vit dans une colonne. */

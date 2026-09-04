@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
+import type { AppHref } from '@/i18n/navigation'
 import {
   Pagination,
   PaginationContent,
@@ -116,7 +117,7 @@ type Extent =
  */
 type Nav =
   | { onPageChange: (page: number) => void; hrefFor?: never }
-  | { onPageChange?: never; hrefFor: (page: number) => string }
+  | { onPageChange?: never; hrefFor: (page: number) => AppHref }
   | { onPageChange?: never; hrefFor?: never }
 
 type TablePaginationProps = Extent &
@@ -493,7 +494,7 @@ function Step({
   target: number
   disabled: boolean
   onPageChange?: ((page: number) => void) | undefined
-  hrefFor?: ((page: number) => string) | undefined
+  hrefFor?: ((page: number) => AppHref) | undefined
   children: React.ReactNode
 }) {
   /*

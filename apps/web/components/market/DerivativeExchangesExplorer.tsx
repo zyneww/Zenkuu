@@ -305,7 +305,7 @@ export function DerivativeExchangesExplorer({
                             l'opérateur : ce tableau situe l'activité, il n'y donne pas
                             accès (§1). Le lien sortant, lui, vit sur la fiche. */}
                         <Link
-                          href={`/places/${row.id}`}
+                          href={{ pathname: '/places/[id]', params: { id: row.id } }}
                           /* `prefetch={false}` — liste dense : chaque ligne mène à un rendu
                              serveur qui interroge la source, sur le limiteur de la page en
                              cours. Un clic au plus sera fait. Voir OPTIMISATION.md,

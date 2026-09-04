@@ -157,7 +157,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
     setOpen(false)
     setQuery('')
     inputRef.current?.blur()
-    router.push(`/macro?indicateur=${id}`)
+    router.push({ pathname: '/macro', query: { indicateur: id } })
   }
 
   function onKeyDown(event: React.KeyboardEvent) {

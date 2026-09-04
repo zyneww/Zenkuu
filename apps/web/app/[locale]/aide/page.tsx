@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { ChevronRight, FlaskConical, Newspaper } from 'lucide-react'
 
 import { InstagramGlyph } from '@/components/BrandIcons'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { HelpCategoryGrid } from '@/components/help/HelpCategoryGrid'
 import { HelpSearch } from '@/components/help/HelpSearch'
 import { HELP_ARTICLES, HELP_STARTING_POINTS } from '@/content/aide'
@@ -125,7 +125,7 @@ export default async function AidePage() {
             {starters.map((article) => (
               <li key={article.slug}>
                 <Link
-                  href={`/aide/${article.slug}`}
+                  href={{ pathname: '/aide/[slug]', params: { slug: article.slug } }}
                   className="group flex items-start justify-between gap-3 text-sm leading-snug text-ink transition-colors duration-150 hover:text-brand"
                 >
                   {t(article.title)}
@@ -204,7 +204,7 @@ export default async function AidePage() {
             )
 
             return (
-              <li key={entry.href}>
+              <li key={entry.title}>
                 {entry.external ? (
                   <a
                     href={entry.href}
@@ -280,14 +280,17 @@ export default async function AidePage() {
  * change d'une carte à l'autre est le contenu, et une table rend impossible d'en
  * déclarer une sans son pictogramme ou sans sa phrase.
  */
-const ELSEWHERE: readonly {
-  href: string
-  /** Lien SORTANT : nouvelle fenêtre et `rel="noopener"`. Absent = route interne. */
-  external?: boolean
+type Ailleurs = {
   icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' }>
   title: string
   description: string
-}[] = [
+} & (
+  | { href: AppHref; external?: false }
+  /** Lien SORTANT : nouvelle fenêtre et `rel="noopener"`. */
+  | { href: `https://${string}`; external: true }
+)
+
+const ELSEWHERE: readonly Ailleurs[] = [
   {
     /* La carte visait `/methodologie`, supprimée sur demande explicite. Elle pointe
        désormais vers « À propos », qui porte ce que cette page disait de tenable sans

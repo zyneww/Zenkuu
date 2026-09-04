@@ -6,6 +6,7 @@ import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { AreaSpark } from '@/components/charts/AreaSpark'
 import { Link } from '@/i18n/navigation'
+import { assetHref } from '@/lib/asset-routes'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -63,7 +64,18 @@ export function MarketPulseCards({ assets }: { assets: MarketAsset[] }) {
         return (
           <li key={`${asset.assetClass}:${asset.id}`}>
             <Link
-              href={`/${asset.assetClass}/${asset.id}`}
+              /* ⚠️ C'ÉTAIT `/${asset.assetClass}/${asset.id}`, ET CELA MENAIT AU VIDE.
+
+                 La CLASSE n'est pas le SEGMENT : la classe `stock` s'écrit `actions`
+                 dans l'URL, `forex` s'écrit `devises`, `commodity` s'écrit
+                 `matieres-premieres`. Quatre des sept classes rendaient donc un lien
+                 vers une route inexistante — `/stock/aapl`, `/index/gspc` — et seule
+                 la crypto, dont la classe et le segment se confondent, fonctionnait.
+
+                 Le défaut est resté invisible parce que ces cartes servent surtout la
+                 crypto. `assetHref` connaît la correspondance depuis toujours ; il
+                 fallait l'appeler plutôt que de la refaire. */
+              href={assetHref(asset.assetClass, asset.id)}
               className="flex h-full flex-col rounded-card border border-border-subtle bg-surface p-3 transition-colors duration-150 hover:border-brand"
             >
               <span className="flex items-center gap-2">

@@ -121,7 +121,7 @@ export function HelpSearch({
               {results.map((article) => (
                 <li key={article.slug}>
                   <Link
-                    href={`/aide/${article.slug}`}
+                    href={{ pathname: '/aide/[slug]', params: { slug: article.slug } }}
                     className="block rounded-card border border-border-subtle bg-surface p-3 transition-colors hover:border-brand"
                   >
                     <span className="text-[0.6875rem] font-medium uppercase tracking-wide text-ink-muted">

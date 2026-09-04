@@ -278,7 +278,7 @@ export function ExchangeTickersTable({
 
                         {ticker.coinId ? (
                           <Link
-                            href={`/crypto/${ticker.coinId}`}
+                            href={{ pathname: '/crypto/[id]', params: { id: ticker.coinId } }}
                             className="font-medium text-ink transition-colors hover:text-brand"
                           >
                             {ticker.base}

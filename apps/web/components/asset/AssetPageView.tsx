@@ -52,7 +52,7 @@ import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { getContent } from '@/lib/content'
 import { mentioning } from '@/lib/mentions'
-import { assetHref, marketHref } from '@/lib/asset-routes'
+import { assetPath, marketHref, marketPath } from '@/lib/asset-routes'
 import type { MetricGroup } from '@/lib/asset-metrics'
 import { getWatchlistState } from '@/lib/watchlist-actions'
 import { getLocale } from 'next-intl/server'
@@ -844,7 +844,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         <AssetJsonLd
           name={data.name}
           symbol={data.symbol}
-          path={assetHref(assetClass, data.id)}
+          path={assetPath(assetClass, data.id)}
           description={data.description}
           sourceName={asset.source.label}
           sourceUrl={asset.source.attributionUrl}
@@ -855,8 +855,8 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
       <BreadcrumbJsonLd
         items={[
           { name: fr.nav.home, path: '/' },
-          { name: fr.assetClass[assetClass], path: marketHref(assetClass) },
-          { name: data.name, path: assetHref(assetClass, data.id) },
+          { name: fr.assetClass[assetClass], path: marketPath(assetClass) },
+          { name: data.name, path: assetPath(assetClass, data.id) },
         ]}
       />
 
@@ -1048,7 +1048,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                   assetId={data.id}
                   label={data.name}
                   {...(data.symbol ? { symbol: data.symbol } : {})}
-                  path={assetHref(assetClass, data.id)}
+                  path={assetPath(assetClass, data.id)}
                   initialFollowing={watchlist.following}
                   available={watchlist.available}
                 />

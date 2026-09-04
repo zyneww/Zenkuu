@@ -520,7 +520,7 @@ function CategoryTable({
                 <span className="flex items-center gap-2">
                   <TopAssets category={category} />
                   <Link
-                    href={`/categories/${category.id}`}
+                    href={{ pathname: '/categories/[id]', params: { id: category.id } }}
                     /* `inline-flex items-center` et non le `inline` par défaut : le
                        plancher tactile de globals.css repose sur `min-height`, qui n'a
                        AUCUN effet sur une boîte en ligne. */
@@ -603,7 +603,7 @@ export function TopAssets({ category }: { category: MarketCategory }) {
         return id ? (
           <Link
             key={`${category.id}-${id}`}
-            href={`/crypto/${id}`}
+            href={{ pathname: '/crypto/[id]', params: { id: id } }}
             className="transition-opacity hover:opacity-75"
           >
             {image}

@@ -28,7 +28,7 @@ export async function NarrativesPanel({ result }: { result: DataResult<MarketCat
           <ul className="divide-y divide-border-subtle">
             {result.data.map((category) => (
               <li key={category.id} className="flex items-center justify-between gap-3 py-2">
-                <Link href={`/categories/${category.id}`} className="min-w-0 group">
+                <Link href={{ pathname: '/categories/[id]', params: { id: category.id } }} className="min-w-0 group">
                   <span className="block truncate text-sm text-ink group-hover:text-brand">
                     {category.name}
                   </span>

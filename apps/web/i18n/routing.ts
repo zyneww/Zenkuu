@@ -2,6 +2,8 @@ import { defineRouting } from 'next-intl/routing'
 
 import { DEFAULT_LOCALE, TRANSLATED_LOCALES } from '@/components/settings/languages'
 
+import { PATHNAMES } from './pathnames'
+
 /**
  * Routage multilingue.
  *
@@ -33,6 +35,19 @@ export const routing = defineRouting({
   locales: TRANSLATED_LOCALES,
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'as-needed',
+
+  /**
+   * Adresses publiques par langue — la table vit dans `pathnames.ts`, qui explique
+   * pourquoi les chemins internes restent français et pourquoi seul l'anglais est
+   * traduit.
+   *
+   * ⚠️ SA PRÉSENCE DURCIT LE TYPAGE DE `Link`. Sans elle, `href` accepte n'importe
+   * quelle chaîne ; avec elle, il n'accepte que les clés de la table, et une route à
+   * paramètre s'écrit `href={{ pathname: '/crypto/[id]', params: { id } }}` plutôt
+   * qu'en gabarit. C'est plus verbeux d'un cran, et c'est ce qui garantit qu'aucun
+   * lien ne pointe vers une adresse qui n'existe dans aucune langue.
+   */
+  pathnames: PATHNAMES,
 
   /**
    * ══════════════════════════════════════════════════════════════════════════

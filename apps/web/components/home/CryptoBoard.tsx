@@ -114,7 +114,7 @@ export async function CryptoBoard() {
           actions: {
             assets: stocks.data,
             assetClass: 'stock' as const,
-            basePath: '/actions',
+            basePath: '/actions' as const,
             /* `catalogue` et non `apercu` : une action n'a ni offre en circulation ni
                courbe de sept jours, et la grille crypto lui alignerait des tirets. */
             columnSet: 'catalogue' as const,
@@ -126,7 +126,7 @@ export async function CryptoBoard() {
           devises: {
             assets: forex.data,
             assetClass: 'forex' as const,
-            basePath: '/devises',
+            basePath: '/devises' as const,
             columnSet: 'catalogue' as const,
           },
         }

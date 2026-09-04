@@ -1,3 +1,5 @@
+import type { AppRoute } from '@/i18n/navigation'
+
 /**
  * ══════════════════════════════════════════════════════════════════════════════
  * LA NAVIGATION DES GRAPHIQUES GLOBAUX
@@ -54,7 +56,7 @@ export type ChartNavIcon =
 
 export interface ChartNavEntry {
   label: string
-  href: string
+  href: AppRoute
   icon?: ChartNavIcon
 }
 
@@ -63,7 +65,7 @@ export interface ChartNavGroup {
   label: string
   icon: ChartNavIcon
   /** Adresse du groupe lui-même, quand il en a une (« Coins » mène à la vue générale). */
-  href?: string
+  href?: AppRoute
   entries: ChartNavEntry[]
 }
 

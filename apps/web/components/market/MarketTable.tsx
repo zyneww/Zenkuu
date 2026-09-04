@@ -16,7 +16,7 @@
  * ne recrée l'ambiguïté.
  */
 
-import { Link, useRouter } from '@/i18n/navigation'
+import { Link, useRouter, type AppHref } from '@/i18n/navigation'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
@@ -55,7 +55,7 @@ interface MarketTableProps {
   sortable: boolean
   /** Pagination masquée pour les univers courts (devises, indices…). */
   paginated: boolean
-  basePath: string
+  basePath: AppHref
   /**
    * Période de variation à afficher, quand la page en propose un sélecteur.
    *
@@ -201,16 +201,40 @@ interface MarketTableProps {
 }
 
 function buildHref(
-  basePath: string,
+  basePath: AppHref,
   params: { page: number; sortBy: MarketSort; direction: SortDirection },
-): string {
-  const query = new URLSearchParams()
-  if (params.page > 1) query.set('page', String(params.page))
-  if (params.sortBy !== 'marketCap') query.set('tri', 'volume')
-  if (params.direction !== 'desc') query.set('sens', 'asc')
+): AppHref {
+  /*
+   * ⚠️ L'ADRESSE N'EST PLUS CONCATÉNÉE, ELLE EST DÉCRITE.
+   *
+   * On rendait `${basePath}?${search}`. Ça marchait tant qu'une route s'écrivait
+   * pareil dans toutes les langues ; depuis `i18n/pathnames.ts`, `/actions` s'affiche
+   * `/stocks` en anglais et `/fr/actions` en français. Une chaîne bâtie ici ne
+   * connaît pas la langue de la page, et aurait renvoyé le lecteur anglais vers une
+   * adresse française à chaque changement de tri.
+   *
+   * En forme objet, c'est `Link` qui traduit — il est le seul à savoir dans quelle
+   * langue il est rendu.
+   */
+  const query: Record<string, string> = {}
+  if (params.page > 1) query.page = String(params.page)
+  if (params.sortBy !== 'marketCap') query.tri = 'volume'
+  if (params.direction !== 'desc') query.sens = 'asc'
 
-  const search = query.toString()
-  return search ? `${basePath}?${search}` : basePath
+  /*
+   * La base arrive sous deux formes : une route nue (`'/crypto'`) ou une route à
+   * paramètre déjà remplie (`{ pathname: '/categories/[id]', params: { id } }`, ce
+   * qu'envoie la page d'une catégorie). Les deux se ramènent à un objet auquel on
+   * ajoute la requête.
+   *
+   * ⚠️ LA CONVERSION FINALE EST INÉVITABLE, et elle est sûre. `AppHref` est une UNION
+   * de formes — une par route — et TypeScript ne sait pas répartir un `...base` dont
+   * le `pathname` est lui-même une union sur les branches correspondantes. La valeur
+   * produite est pourtant exactement l'une d'elles : on n'a rien ajouté d'autre qu'une
+   * requête, et `basePath` a déjà été vérifié à l'appel.
+   */
+  const base = typeof basePath === 'string' ? { pathname: basePath } : basePath
+  return { ...base, query } as AppHref
 }
 
 export function MarketTable({
@@ -441,6 +465,19 @@ export function MarketTable({
       buildHref(basePath, { page: 1, sortBy: key as MarketSort, direction: nextDirection }),
     )
   }
+
+  /*
+   * Le chemin que le suivi d'un actif fait réexplorer au cache.
+   *
+   * `revalidatePath()` raisonne en ROUTES et veut une chaîne ; `basePath` est
+   * désormais une adresse traduisible, parfois écrite en objet. On en reprend donc la
+   * seule part qui désigne une route.
+   *
+   * ⚠️ CE CHEMIN IGNORE LA LANGUE, et c'est un défaut ANTÉRIEUR à cette table : il
+   * n'a jamais porté de préfixe, si bien que suivre un actif ne rafraîchit le cache
+   * que d'une langue sur treize. Le noter ici plutôt que l'élargir en passant.
+   */
+  const revalidationPath = typeof basePath === 'string' ? basePath : basePath.pathname
 
   const urlSortState = { key: sortBy as string, direction }
 
@@ -1203,7 +1240,7 @@ export function MarketTable({
                         assetId={asset.id}
                         label={asset.name}
                         symbol={asset.symbol}
-                        path={basePath}
+                        path={revalidationPath}
                         initialFollowing={followed.has(asset.id)}
                         available={watchlist.available}
                       />

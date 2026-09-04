@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState, useTransition } from 'react'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import type { AuthMode } from '@/components/account/auth-mode'
 import { Avatar } from '@heroui/react'
 import { Button } from '@/components/ui/button'
@@ -602,7 +602,7 @@ function MenuLink({
   onNavigate,
   children,
 }: {
-  href: string
+  href: AppHref
   icon: React.ReactNode
   onNavigate: () => void
   children: React.ReactNode

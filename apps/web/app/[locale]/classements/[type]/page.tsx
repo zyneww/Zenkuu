@@ -195,7 +195,7 @@ export default async function Page({ params, searchParams }: RouteParams) {
           {MOVERS_PERIODS.map((key) => (
             <Link
               key={key}
-              href={`/classements/${type}?periode=${key}`}
+              href={{ pathname: '/classements/[type]', params: { type }, query: { periode: key } }}
               aria-current={key === period ? 'page' : undefined}
               className={`tabular rounded-control px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
                 key === period

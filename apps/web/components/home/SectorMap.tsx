@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 
 import { formatShare } from '@zenkuu/ui'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { Money } from '@/components/locale/Money'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { squarify } from '@/components/tools/treemap'
@@ -15,7 +15,7 @@ export interface SectorAsset {
   id: string
   symbol: string
   name: string
-  href: string
+  href: AppHref
   image?: string
   marketCap: number
   volume24h?: number
@@ -26,7 +26,7 @@ export interface SectorAsset {
 export interface SectorNode {
   id: string
   name: string
-  href: string
+  href: AppHref
   marketCap: number
   volume24h?: number
   assets: SectorAsset[]
@@ -138,7 +138,7 @@ export function SectorMap({
   note,
 }: {
   sectors: SectorNode[]
-  moreHref: string
+  moreHref: AppHref
   /** Ce que la figure ne dit pas d'elle-même, en pied. Voir l'appelant. */
   note?: string
 }) {

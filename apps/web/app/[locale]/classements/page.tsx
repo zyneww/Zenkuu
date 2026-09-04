@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { emphasise, weave } from '@/components/locale/emphasise'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 import {
   CACHE_TTL_SECONDS,
@@ -34,10 +34,10 @@ void _ttlGuard
 const CRYPTO_UNIVERSE = 250
 
 /** Lien d'un onglet de classe — la page reste la même, seul `?classe=` change. */
-function rankingHref(assetClass: AssetClass): string {
+function rankingHref(assetClass: AssetClass): AppHref {
   return assetClass === 'crypto'
     ? '/classements'
-    : `/classements?classe=${ASSET_CLASS_SEGMENT[assetClass]}`
+    : { pathname: '/classements', query: { classe: ASSET_CLASS_SEGMENT[assetClass] } }
 }
 
 export async function generateMetadata({

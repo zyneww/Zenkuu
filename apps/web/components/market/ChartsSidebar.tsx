@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppRoute } from '@/i18n/navigation'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { CHART_GROUPS, CHART_INDICATORS, CHART_LINKS } from '@/components/market/charts-nav'
 import { matchRange } from '@/components/search/match-range'
@@ -44,7 +44,7 @@ import { matchRange } from '@/components/search/match-range'
  * groupe — dit tout ce que l'œil a besoin de savoir.
  */
 
-type Entree = { label: string; href: string }
+type Entree = { label: string; href: AppRoute }
 type Groupe = { titre: string; entrees: Entree[] }
 
 export function ChartsSidebar({ current }: { current: string }) {

@@ -172,10 +172,27 @@ export async function Footer() {
             {/* `gap-2.5` = 10 px, l'écart mesuré entre deux de leurs liens. */}
             <ul className="flex flex-col gap-2.5">
               {column.links.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="text-xs text-ink-muted hover:text-ink">
-                    {t(link.label)}
-                  </Link>
+                /* La clé passe du `href` au libellé : un `href` n'est plus forcément
+                   une chaîne — une route à paramètre s'écrit en objet — et les
+                   libellés sont uniques dans une colonne. */
+                <li key={link.label}>
+                  {/* Le branchement suit l'union de `FooterLink` : c'est lui qui
+                      rétrécit `href`, et c'est pourquoi une URL absolue ne peut plus
+                      atterrir dans un `<Link>`. */}
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-ink-muted hover:text-ink"
+                    >
+                      {t(link.label)}
+                    </a>
+                  ) : (
+                    <Link href={link.href} className="text-xs text-ink-muted hover:text-ink">
+                      {t(link.label)}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

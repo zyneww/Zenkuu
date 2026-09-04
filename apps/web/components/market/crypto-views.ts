@@ -1,5 +1,7 @@
 import type { MarketAsset } from '@zenkuu/data'
 
+import type { AppHref } from '@/i18n/navigation'
+
 /**
  * Vocabulaire partagé de la page de cotation crypto.
  *
@@ -65,14 +67,16 @@ export function periodMeta(period: ChangePeriod) {
 
 /** Construit une URL de la page en ne gardant que les paramètres non par défaut. */
 export function cryptoHref(
-  basePath: string,
+  basePath: AppHref,
   params: { view?: CryptoView; period?: ChangePeriod; page?: number },
-): string {
-  const query = new URLSearchParams()
-  if (params.view && params.view !== 'populaires') query.set('vue', params.view)
-  if (params.period && params.period !== '24h') query.set('periode', params.period)
-  if (params.page && params.page > 1) query.set('page', String(params.page))
+): AppHref {
+  /* Adresse DÉCRITE et non concaténée — même raison que `buildHref` dans
+     `MarketTable` : une chaîne bâtie ici ignorerait la langue de la page. */
+  const query: Record<string, string> = {}
+  if (params.view && params.view !== 'populaires') query.vue = params.view
+  if (params.period && params.period !== '24h') query.periode = params.period
+  if (params.page && params.page > 1) query.page = String(params.page)
 
-  const search = query.toString()
-  return search ? `${basePath}?${search}` : basePath
+  const base = typeof basePath === 'string' ? { pathname: basePath } : basePath
+  return { ...base, query } as AppHref
 }

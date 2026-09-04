@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import type { AppHref } from '@/i18n/navigation'
+
 /**
  * Rend une phrase traduite dont une portion est mise en évidence.
  *
@@ -99,9 +101,22 @@ export function fill(
   return nodes
 }
 
+/**
+ * ⚠️ LE SEUL ENDROIT DU SITE OÙ UNE ADRESSE N'EST PAS VÉRIFIÉE À LA COMPILATION.
+ *
+ * L'adresse voyage À L'INTÉRIEUR de la phrase traduite — `[cotations](/crypto)` — et
+ * n'existe donc qu'à l'exécution. Aucun type ne peut l'atteindre : la table des
+ * phrases est une table de chaînes, et les treize traductions la remplissent.
+ *
+ * On assume la conversion ici plutôt qu'aux huit endroits qui appellent `weave`, et le
+ * contrôle perdu est rendu ailleurs : `content/locales/phrases/phrases.test.ts` relit
+ * chaque phrase des treize langues et refuse toute cible qui ne soit pas une route
+ * déclarée. Une traduction qui « corrige » `/crypto` en `/krypto` fait donc échouer la
+ * suite, au lieu de produire un 404 que personne ne voit avant des semaines.
+ */
 export function weave(
   text: string,
-  link: (href: string, label: string, key: number) => ReactNode,
+  link: (href: AppHref, label: string, key: number) => ReactNode,
   className = 'text-ink',
 ): ReactNode[] {
   const nodes: ReactNode[] = []
@@ -114,7 +129,7 @@ export function weave(
     if (match.index > last) nodes.push(...emphasise(text.slice(last, match.index), className))
     /* Les deux groupes sont obligatoires dans le motif ; `noUncheckedIndexedAccess`
        l'ignore, d'où le repli sur la chaîne vide plutôt qu'une assertion. */
-    nodes.push(link(match[2] ?? '', match[1] ?? '', key++))
+    nodes.push(link((match[2] ?? '/') as AppHref, match[1] ?? '', key++))
     last = match.index + match[0].length
   }
   if (last < text.length) nodes.push(...emphasise(text.slice(last), className))

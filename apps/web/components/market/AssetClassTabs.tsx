@@ -1,5 +1,6 @@
 import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 
+import type { AppHref } from '@/i18n/navigation'
 import { LinkTabs, TabsBar, type LinkTab } from '@/components/ui/LinkTabs'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
@@ -48,7 +49,7 @@ export async function AssetClassTabs({
    * serveur à des endroits qu'il ne connaît pas, et deviner sa propre URL est
    * exactement le genre de couplage qui casse au premier déplacement de route.
    */
-  hrefFor?: (assetClass: AssetClass) => string
+  hrefFor?: (assetClass: AssetClass) => AppHref
 }) {
   const fr = await getContent()
 

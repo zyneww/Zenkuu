@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -171,7 +171,7 @@ export const BOARD_VIEWS: BoardView[] = [
  * Un bouton qui navigue est un lien déguisé — il perd le clic milieu, le survol qui
  * annonce la destination, et l'indexation.
  */
-export const BOARD_LINKS: { href: string; label: string }[] = [
+export const BOARD_LINKS: { href: AppHref; label: string }[] = [
   /*
    * ── POURQUOI CELLE-CI NE PEUT PAS FILTRER LE TABLEAU ──────────────────────
    *
@@ -399,7 +399,7 @@ export function BoardViewMenu({
   views: BoardView[]
   active: string
   onSelect: (key: string) => void
-  links?: { href: string; label: string }[]
+  links?: { href: AppHref; label: string }[]
 }) {
   const t = usePhrase()
   const current = views.find((view) => view.key === active) ?? views[0]!
@@ -444,7 +444,7 @@ export function BoardViewMenu({
         {links.length > 0 ? <DropdownMenuSeparator /> : null}
 
         {links.map((link) => (
-          <DropdownMenuItem key={link.href} asChild>
+          <DropdownMenuItem key={link.label} asChild>
             <Link href={link.href} className="flex items-center justify-between gap-2">
               {t(link.label)}
               <ArrowUpRight aria-hidden="true" className="size-3.5 text-ink-muted" />

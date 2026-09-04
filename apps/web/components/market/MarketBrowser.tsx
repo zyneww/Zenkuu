@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
+import type { AppHref } from '@/i18n/navigation'
 import { BoardCurrency } from '@/components/market/BoardCurrency'
 import {
   BOARD_VIEWS,
@@ -79,7 +80,7 @@ interface MarketBrowserProps {
   direction: SortDirection
   sortable: boolean
   paginated: boolean
-  basePath: string
+  basePath: AppHref
   /**
    * Nombre total d'actifs du classement, quand il est CONNU.
    *
@@ -213,7 +214,7 @@ interface MarketBrowserProps {
       {
         assets: MarketAsset[]
         assetClass: AssetClass
-        basePath: string
+        basePath: AppHref
         columnSet: BoardColumnSet
       }
     >

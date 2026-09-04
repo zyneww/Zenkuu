@@ -79,7 +79,7 @@ export default async function SettingsPage({
             {SECTIONS.map((section) => (
               <li key={section.id}>
                 <Link
-                  href={`/parametres?rubrique=${section.id}`}
+                  href={{ pathname: '/parametres', query: { rubrique: section.id } }}
                   aria-current={active === section.id ? 'page' : undefined}
                   title={t(section.hint)}
                   /* ══════════════════════════════════════════════════════════

@@ -172,7 +172,7 @@ function SpreadList({
               className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-2 last:border-b-0"
             >
               <Link
-                href={`/crypto/${asset.id}`}
+                href={{ pathname: '/crypto/[id]', params: { id: asset.id } }}
                 className="min-w-0 flex-1 truncate text-sm text-ink hover:text-brand"
               >
                 {asset.name} <span className="text-xs uppercase text-ink-muted">{asset.symbol}</span>

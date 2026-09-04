@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { PATHNAMES } from '../../../i18n/pathnames'
+
 import { dePhrases } from './de'
 import { enPhrases } from './en'
 import { esPhrases } from './es'
@@ -99,5 +101,54 @@ describe('table de phrases', () => {
       .map(([key]) => key)
 
     expect(broken).toEqual([])
+  })
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LES ADRESSES ÉCRITES DANS LES PHRASES DOIVENT ÊTRE DES ROUTES RÉELLES
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Certaines phrases portent un lien Markdown — `[cotations](/crypto)` — que
+   * `weave()` transforme en `<Link>`. C'est le SEUL endroit du site où une adresse
+   * échappe au typage : elle vit dans une chaîne, donc `i18n/pathnames.ts` ne peut
+   * pas la vérifier à la compilation. Voir la note en tête de `weave`.
+   *
+   * Deux fautes deviennent alors possibles, et aucune ne se voit à la lecture :
+   *
+   *   · une phrase FRANÇAISE qui vise une page supprimée ou renommée. Mesuré en
+   *     écrivant ce test : `/points-marquants` et `/mouvements` figuraient encore
+   *     dans des entrées, alors que ces routes n'existent plus ;
+   *   · une TRADUCTION qui « corrige » l'adresse en la traduisant. Le chemin interne
+   *     reste français dans les treize langues — c'est next-intl qui le traduit à
+   *     l'affichage — et un `/krypto` bien intentionné ferait un 404.
+   *
+   * On lit donc les clés ET les valeurs des douze tables.
+   */
+  /**
+   * Les routes, en expressions — un segment `[id]` accepte n'importe quelle valeur.
+   *
+   * `/aide/pas-de-conseil` doit passer : la route est `/aide/[slug]`, et le slug est
+   * une donnée. Comparer les chaînes brutes rejetterait toutes les pages à paramètre.
+   */
+  const ROUTES = Object.keys(PATHNAMES).map(
+    (route) =>
+      new RegExp(`^${route.replace(/\[[^\]]+\]/g, '[^/]+').replace(/\//g, '\\/')}$`),
+  )
+
+  /** Un chemin de phrase peut porter une requête ou une ancre ; la route est devant. */
+  const routeOf = (href: string) => href.split(/[?#]/)[0] ?? href
+
+  it.each(locales)('%s ne vise que des routes déclarées', (locale) => {
+    const unknown = new Set<string>()
+
+    for (const [key, text] of Object.entries(TABLES[locale])) {
+      for (const phrase of [key, text]) {
+        for (const [, href] of phrase.matchAll(/\[[^\]]+\]\((\/[^)]*)\)/g)) {
+          if (href && !ROUTES.some((route) => route.test(routeOf(href)))) unknown.add(href)
+        }
+      }
+    }
+
+    expect([...unknown]).toEqual([])
   })
 })

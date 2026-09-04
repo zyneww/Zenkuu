@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { ChevronDown } from 'lucide-react'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 
 import {
   CACHE_TTL_SECONDS,
@@ -231,7 +231,7 @@ function RelatedCard({
   title,
   description,
 }: {
-  href: string
+  href: AppHref
   title: string
   description: string
 }) {

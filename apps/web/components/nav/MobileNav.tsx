@@ -94,9 +94,17 @@ export function MobileNav({
    * paraîtrait se déplier tout seul sous les yeux du lecteur.
    */
   const [expanded, setExpanded] = useState<string[]>(() => {
+    /* `usePathname()` rend le chemin INTERNE, gabarit compris (`/crypto/[id]`), et
+       c'est aussi la forme des entrées du menu — les deux se comparent donc
+       directement, sans avoir à traduire l'un vers l'autre. Une entrée à paramètre
+       arrive en objet : on en reprend le seul champ comparable. */
     const active = NAV_MENUS.find((menu) =>
       menu.sections.some((section) =>
-        section.items.some((item) => item.href && pathname.startsWith(item.href)),
+        section.items.some((item) => {
+          if (!item.href) return false
+          const route = typeof item.href === 'string' ? item.href : item.href.pathname
+          return pathname.startsWith(route)
+        }),
       ),
     )
     return active ? [active.label] : []

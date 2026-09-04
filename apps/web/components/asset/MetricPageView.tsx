@@ -19,7 +19,7 @@ import {
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import { InfoTip } from '@/components/ui/InfoTip'
-import { ASSET_CLASS_SEGMENT, assetHref, marketHref } from '@/lib/asset-routes'
+import { assetHref, marketHref } from '@/lib/asset-routes'
 import {
   availableMetrics,
   extremeMessage,
@@ -117,7 +117,6 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
 
   const label = t(`${message}.label`)
   const help = t(`${message}.help`)
-  const segment = ASSET_CLASS_SEGMENT[assetClass]
   const isForex = assetClass === 'forex'
 
   // Points de la série demandée. `filter` et non `map` avec zéro : un point dont la
@@ -287,7 +286,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
               return (
                 <li key={entry.slug}>
                   <Link
-                    href={metricHref(segment, data.id, entry.slug)}
+                    href={metricHref(assetClass, data.id, entry.slug)}
                     className="flex items-baseline justify-between gap-2 py-2 transition-opacity hover:opacity-75"
                   >
                     <span className="min-w-0 flex-1 truncate text-xs text-ink-muted">

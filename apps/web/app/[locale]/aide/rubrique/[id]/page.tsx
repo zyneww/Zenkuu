@@ -70,7 +70,7 @@ export default async function RubriquePage({ params }: { params: Promise<{ id: s
         {category.articles.map((article) => (
           <li key={article.slug}>
             <Link
-              href={`/aide/${article.slug}`}
+              href={{ pathname: '/aide/[slug]', params: { slug: article.slug } }}
               className="block rounded-card border border-border-subtle bg-surface p-4 transition-colors hover:border-brand"
             >
               <span className="block text-sm font-medium text-ink">{t(article.title)}</span>

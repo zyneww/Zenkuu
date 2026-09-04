@@ -5,7 +5,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Reveal } from '@/components/motion/Reveal'
 import { ROWS } from '@/components/home/overview-rows'
 import { Money } from '@/components/locale/Money'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 import { buildListingIndex, matchListing, type ListingMatch } from '@/lib/listing-match'
 import { getPhrase } from '@/lib/content'
@@ -127,7 +127,7 @@ export async function MarketRibbon() {
         <Card
           title={t('Les plus échangées')}
           linkLabel={t('Tout voir')}
-          href="/classements/volumes"
+          href={{ pathname: '/classements/[type]', params: { type: 'volumes' } }}
           empty={t('Volumes indisponibles')}
         >
           {traded.map((asset) => (
@@ -138,7 +138,7 @@ export async function MarketRibbon() {
         <Card
           title={t('Plus fortes hausses')}
           linkLabel={t('Tout voir')}
-          href="/classements/hausses"
+          href={{ pathname: '/classements/[type]', params: { type: 'hausses' } }}
           empty={t('Palmarès indisponible')}
         >
           {gainers.map((asset) => (
@@ -301,7 +301,7 @@ function Card({
   title: string
   unit?: string
   linkLabel: string
-  href: string
+  href: AppHref
   empty: string
   children: React.ReactNode
 }) {
@@ -387,7 +387,9 @@ function ListingRow({
   index: Map<string, ListingMatch>
 }) {
   const match = matchListing(listing, index)
-  const href = match ? `/crypto/${match.id}` : `/resoudre/${encodeURIComponent(listing.name)}`
+  const href: AppHref = match
+    ? { pathname: '/crypto/[id]', params: { id: match.id } }
+    : { pathname: '/resoudre/[terme]', params: { terme: listing.name } }
   const source = match?.image ?? listing.logo
 
   return (

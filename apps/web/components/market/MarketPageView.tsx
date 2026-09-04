@@ -2,6 +2,7 @@ import type { AssetClass } from '@zenkuu/data'
 import { getCryptoGlobalStats, getRanking, YAHOO_UNIVERSE } from '@zenkuu/data'
 import { EmptyState, SourceNote } from '@zenkuu/ui'
 
+import type { AppHref } from '@/i18n/navigation'
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
 import { AssetClassTabs } from '@/components/market/AssetClassTabs'
 import { MarketBrowser } from '@/components/market/MarketBrowser'
@@ -85,9 +86,9 @@ export interface MarketPageViewProps {
   /** Surcharge la taille de page par défaut de la classe (voir `/classements`). */
   perPage?: number
   /** Surcharge la base des liens de tri et de pagination, pour les pages dérivées. */
-  basePath?: string
+  basePath?: AppHref
   /** Destination des onglets de classe — voir `AssetClassTabs`. */
-  classHref?: (assetClass: AssetClass) => string
+  classHref?: (assetClass: AssetClass) => AppHref
   /**
    * Barre d'onglets de REMPLACEMENT.
    *

@@ -11,7 +11,7 @@ import { EmptyState } from '@zenkuu/ui'
 
 import { RelativeTime } from '@/components/home/RelativeTime'
 import { Thumbnail } from '@/components/news/NewsFeed'
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { getContent, getPhrase } from '@/lib/content'
 
 // Les actualités se renouvellent plus vite que les cours : régénération à 3 minutes,
@@ -243,7 +243,7 @@ export default async function NewsPage({
         <CategoryRow
           key={section.category}
           label={section.label}
-          href={`/actualites?rubrique=${section.category}`}
+          href={{ pathname: '/actualites', query: { rubrique: section.category } }}
           seeAll={t('Tout voir')}
           articles={section.articles.slice(0, 8)}
         />
@@ -296,7 +296,7 @@ function SectionHeading({
   seeAll,
 }: {
   label: string
-  href?: string
+  href?: AppHref
   seeAll?: string
 }) {
   return (
@@ -337,7 +337,7 @@ function CategoryRow({
   articles,
 }: {
   label: string
-  href: string
+  href: AppHref
   seeAll: string
   articles: NewsItem[]
 }) {

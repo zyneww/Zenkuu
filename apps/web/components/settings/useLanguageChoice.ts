@@ -1,5 +1,6 @@
 'use client'
 
+import { useParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
 
 import { TRANSLATED_LOCALES } from '@/components/settings/languages'
@@ -83,6 +84,7 @@ export function useLanguageChoice(): {
 } {
   const locale = useLocale()
   const pathname = usePathname()
+  const params = useParams()
   const router = useRouter()
   const remember = useSettings((state) => state.setLanguage)
 
@@ -96,7 +98,24 @@ export function useLanguageChoice(): {
       /* `replace` et non `push` : changer de langue n'est pas un pas de navigation
          qu'on veut pouvoir défaire à la flèche « retour ». Le lecteur qui revient en
          arrière s'attend à la page PRÉCÉDENTE, pas à sa traduction. */
-      router.replace(pathname, { locale: code as (typeof TRANSLATED_LOCALES)[number] })
+      /*
+       * ⚠️ LES PARAMÈTRES DOIVENT VOYAGER AVEC LE CHEMIN, SANS QUOI LA FICHE SE PERD.
+       *
+       * Depuis que `i18n/pathnames.ts` existe, `usePathname()` ne rend plus l'adresse
+       * affichée mais le GABARIT interne : sur `/crypto/bitcoin`, il vaut
+       * `/crypto/[id]`. Le passer seul enverrait le lecteur sur une adresse contenant
+       * littéralement « [id] » — c'est-à-dire nulle part.
+       *
+       * `useParams()` porte les valeurs de la page courante ; les deux ensemble
+       * reconstituent l'adresse dans la langue demandée.
+       */
+      router.replace(
+        // @ts-expect-error — TypeScript vérifie que les `params` correspondent au
+        // `pathname` déclaré. Ici les deux viennent de la MÊME page rendue : ils
+        // s'accordent par construction, et aucune paire arbitraire n'est possible.
+        { pathname, params },
+        { locale: code as (typeof TRANSLATED_LOCALES)[number] },
+      )
     },
   }
 }

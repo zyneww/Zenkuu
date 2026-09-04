@@ -28,6 +28,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+import type { AppHref } from '@/i18n/navigation'
+
 /**
  * Structure de la navigation principale.
  *
@@ -65,7 +67,7 @@ export interface NavItem {
   label: string
   description: string
   icon: LucideIcon
-  href?: string
+  href?: AppHref
   ready: boolean
 }
 
@@ -96,7 +98,7 @@ export interface NavMenu {
    * `sections` reste alors VIDE, et c'est ce vide qui déclenche le rendu en lien.
    * Un menu qui porterait les deux serait ambigu : cliquer navigue-t-il, ou ouvre-t-il ?
    */
-  href?: string
+  href?: AppHref
   sections: NavSection[]
 }
 
@@ -187,7 +189,7 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Hausses et baisses',
             description: 'Les deux bouts du classement, sur la même fenêtre',
             icon: TrendingUp,
-            href: '/classements/hausses',
+            href: { pathname: '/classements/[type]', params: { type: 'hausses' } },
             ready: true,
           },
           {
@@ -203,7 +205,7 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Écart au plus haut',
             description: 'Ce qui sépare chaque actif de son plus haut historique',
             icon: Trophy,
-            href: '/classements/sommet',
+            href: { pathname: '/classements/[type]', params: { type: 'sommet' } },
             ready: true,
           },
           {
@@ -221,14 +223,14 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Historique des cours',
             description: 'La clôture de chaque journée, jour par jour',
             icon: LineChart,
-            href: '/crypto/bitcoin/historique',
+            href: { pathname: '/crypto/[id]/historique', params: { id: 'bitcoin' } },
             ready: true,
           },
           {
             label: 'Halving du bitcoin',
             description: 'Le calendrier des divisions par deux de la récompense de bloc',
             icon: Recycle,
-            href: '/crypto/bitcoin/halving',
+            href: { pathname: '/crypto/[id]/halving', params: { id: 'bitcoin' } },
             ready: true,
           },
         ],
@@ -247,7 +249,7 @@ export const NAV_MENUS: NavMenu[] = [
             label: 'Chaînes',
             description: 'Les écosystèmes, et ce qui s’y déploie',
             icon: Globe2,
-            href: '/categories?vue=ecosystemes',
+            href: { pathname: '/categories', query: { vue: 'ecosystemes' } },
             ready: true,
           },
           {
