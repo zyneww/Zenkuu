@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -86,6 +87,8 @@ export function ChartNavigator({
   onCommit?: (from: number, to: number) => void
   height?: number
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const rootRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState<DragMode | null>(null)
@@ -217,7 +220,7 @@ export function ChartNavigator({
             Elles ne sont posées QUE dans le second régime : sur la période chargée, la
             même information est déjà sous le graphique, à la graduation près. */}
         {timestamps && timestamps.length > 1
-          ? navigatorTicks(timestamps).map((tick) => (
+          ? navigatorTicks(timestamps, locale).map((tick) => (
               <span
                 key={tick.at}
                 aria-hidden="true"
@@ -426,7 +429,7 @@ export function ChartNavigator({
  * régulières de l'intervalle : « 2023 » posé au 1ᵉʳ janvier 2023 est un repère, « 2023 »
  * posé au 7 avril ment sur ce qu'il désigne.
  */
-function navigatorTicks(timestamps: number[]): { at: number; label: string }[] {
+function navigatorTicks(timestamps: number[], locale: string): { at: number; label: string }[] {
   const first = timestamps[0]
   const last = timestamps[timestamps.length - 1]
   if (first === undefined || last === undefined || last <= first) return []
@@ -448,13 +451,13 @@ function navigatorTicks(timestamps: number[]): { at: number; label: string }[] {
     const start = new Date(first)
     for (let step = 1; step <= 12; step += 1) {
       const date = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + step * 3, 1))
-      push(date.getTime(), date.toLocaleString('fr-FR', { month: 'short', year: '2-digit' }))
+      push(date.getTime(), date.toLocaleString(locale, { month: 'short', year: '2-digit' }))
     }
   } else {
     const start = new Date(first)
     for (let step = 1; step <= 12; step += 1) {
       const date = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + step, 1))
-      push(date.getTime(), date.toLocaleString('fr-FR', { month: 'short' }))
+      push(date.getTime(), date.toLocaleString(locale, { month: 'short' }))
     }
   }
 

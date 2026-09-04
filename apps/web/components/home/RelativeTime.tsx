@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useSyncExternalStore } from 'react'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
@@ -71,6 +72,7 @@ function getServerSnapshot(): number | null {
 }
 
 export function RelativeTime({ iso }: { iso: string }) {
+  const locale = useLocale()
   const t = usePhrase()
   const minute = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
@@ -80,7 +82,7 @@ export function RelativeTime({ iso }: { iso: string }) {
   return (
     <time dateTime={iso}>
       {minute === null
-        ? new Date(at).toLocaleDateString('fr-FR', {
+        ? new Date(at).toLocaleDateString(locale, {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',

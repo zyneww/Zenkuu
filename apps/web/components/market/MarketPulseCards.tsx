@@ -1,12 +1,13 @@
 'use client'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { AreaSpark } from '@/components/charts/AreaSpark'
 import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -42,6 +43,8 @@ import { assetHref } from '@/lib/asset-routes'
  * passer un trou de source pour un actif immobile (§5).
  */
 export function MarketPulseCards({ assets }: { assets: MarketAsset[] }) {
+  const nombres = useFormatters()
+
   if (assets.length === 0) return null
 
   return (
@@ -89,7 +92,7 @@ export function MarketPulseCards({ assets }: { assets: MarketAsset[] }) {
               <span className="mt-2 flex items-end justify-between gap-3">
                 <span className="min-w-0">
                   <span className="tabular block truncate text-base font-semibold text-ink">
-                    {formatCurrency(asset.price, asset.currency)}
+                    {nombres.currency(asset.price, asset.currency)}
                   </span>
                   <span className="mt-1 block">
                     <ChangeBadge value={change} />

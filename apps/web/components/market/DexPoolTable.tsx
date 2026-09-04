@@ -1,16 +1,18 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useMemo, useState } from 'react'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { DexPool } from '@zenkuu/data'
-import { ChangeBadge, formatCompact } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { DEFAULT_ROWS } from '@/lib/limits'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Tableau de POOLS DE LIQUIDITÉ.
@@ -46,6 +48,10 @@ export function DexPoolTable({
   pools: DexPool[]
   showNetwork?: boolean
 }) {
+  const locale = useLocale()
+
+  const nombres = useFormatters()
+
   /*
    * `h24` ET NON LA MOYENNE DES FENÊTRES.
    *
@@ -161,7 +167,7 @@ export function DexPoolTable({
                     <span className="block truncate text-[0.6875rem] text-ink-muted">
                       {pool.dex}
                       {pool.feePercent !== undefined
-                        ? ` · ${pool.feePercent.toString().replace('.', ',')} %`
+                        ? ` · ${nombres.number(pool.feePercent) ?? '—'} %`
                         : ''}
                     </span>
                   ) : null}
@@ -177,7 +183,7 @@ export function DexPoolTable({
               ) : null}
 
               <td className="tabular px-3 py-2 text-right text-ink">
-                {pool.priceUsd !== undefined ? formatPrice(pool.priceUsd) : '—'}
+                {pool.priceUsd !== undefined ? formatPrice(pool.priceUsd, locale) : '—'}
               </td>
 
               <td className="px-3 py-2 text-right">
@@ -185,11 +191,11 @@ export function DexPoolTable({
               </td>
 
               <td className="tabular px-3 py-2 text-right text-ink">
-                {pool.liquidityUsd !== undefined ? formatCompact(pool.liquidityUsd) : '—'}
+                {pool.liquidityUsd !== undefined ? nombres.compact(pool.liquidityUsd) : '—'}
               </td>
 
               <td className="tabular hidden px-3 py-2 text-right text-ink md:table-cell">
-                {pool.volume24hUsd !== undefined ? formatCompact(pool.volume24hUsd) : '—'}
+                {pool.volume24hUsd !== undefined ? nombres.compact(pool.volume24hUsd) : '—'}
               </td>
 
               <td className="tabular hidden px-3 py-2 text-right text-ink-muted md:table-cell">
@@ -235,9 +241,9 @@ export function DexPoolTable({
  * d'erreur qu'un site de marché ne peut pas se permettre. On monte donc jusqu'à huit
  * décimales significatives quand le prix descend sous le centième.
  */
-function formatPrice(value: number): string {
+function formatPrice(value: number, locale: string): string {
   const digits = value >= 1 ? 2 : value >= 0.01 ? 4 : 8
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: digits,
   }).format(value)

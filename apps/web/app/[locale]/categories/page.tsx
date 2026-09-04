@@ -5,8 +5,7 @@ import {
   getCategories,
   getCryptoGlobalStats,
 } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatCurrency, formatShare } from '@zenkuu/ui'
-import { getLocale } from 'next-intl/server'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { StatCard } from '@/components/charts/StatCard'
 
@@ -14,6 +13,7 @@ import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
 import { getContent } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
+import { getFormatters } from '@/lib/formatters'
 
 /*
  * Le mot « Ecosystem » servait ICI à pré-remplir le champ de recherche. Il vit
@@ -38,6 +38,7 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<{ vue?: string }>
 }): Promise<Metadata> {
+
   const fr = await getContent()
   const { vue } = await searchParams
 
@@ -102,6 +103,8 @@ export default async function CategoriesPage({
   */
   searchParams: Promise<{ vue?: string }>
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const fr = await getContent()
 
@@ -153,7 +156,6 @@ export default async function CategoriesPage({
   /* Le secteur de tête, tel que le tableau l'ordonne — donc par capitalisation. Il
      n'est pas choisi ici : c'est la première ligne de ce qui s'affiche en dessous. */
   const premier = listed[0]
-  const locale = await getLocale()
 
   return (
     <div className="space-y-8">
@@ -206,16 +208,13 @@ export default async function CategoriesPage({
             label={t('Premier secteur')}
             value={premier.name}
             change24h={premier.marketCapChange24h}
-            note={formatCurrency(premier.marketCap, 'USD', { compact: true }) ?? undefined}
+            note={nombres.currency(premier.marketCap, 'USD', { compact: true }) ?? undefined}
           />
           {globalStats.ok && premier.marketCap ? (
             <StatCard
               label={t('Sa part du marché')}
               value={
-                formatShare(
-                  (premier.marketCap / globalStats.data.totalMarketCap) * 100,
-                  locale,
-                ) ?? '—'
+                nombres.share((premier.marketCap / globalStats.data.totalMarketCap) * 100) ?? '—'
               }
               note={t('Rapportée à la capitalisation totale')}
             />

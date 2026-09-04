@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { Plus, X } from 'lucide-react'
 import { IconButton } from '@/components/ui/IconButton'
 import { Link } from '@/i18n/navigation'
@@ -7,7 +8,7 @@ import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, formatPercent } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { COMPARE_LIMIT } from '@/lib/limits'
@@ -26,6 +27,7 @@ import {
 } from '@/components/tools/compare-series'
 import { assetHref } from '@/lib/asset-routes'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Comparateur de deux à six actifs, TOUTES CLASSES CONFONDUES.
@@ -88,6 +90,9 @@ import { usePhrase } from '@/components/locale/ContentProvider'
 type Scope = 'always' | 'sameClass'
 
 export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
+  const locale = useLocale()
+  const nombres = useFormatters()
+
   const t = usePhrase()
   /* Un seul plafond désormais : l'abonnement qui en distinguait deux a été retiré
      du site. Voir `lib/limits.ts`. */
@@ -358,11 +363,11 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
             grid
             yDomain={domain}
             referenceLines={[100]}
-            formatY={(value) => value.toFixed(1).replace('.', ',')}
+            formatY={(value) => nombres.fixed(value, 1) ?? '—'}
             formatX={offsetTick}
             formatTooltipX={offsetLabel}
             formatTooltipY={(value) =>
-              `${value.toFixed(1).replace('.', ',')} (${formatPercent(value - 100)})`
+              `${nombres.fixed(value, 1) ?? '—'} (${nombres.percent(value - 100)})`
             }
           />
 
@@ -470,7 +475,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {(asset.marketCap ?? 0) > 0 && asset.volume24h !== undefined
-                    ? `${((asset.volume24h / (asset.marketCap as number)) * 100).toFixed(1).replace('.', ',')} %`
+                    ? `${nombres.fixed((asset.volume24h / (asset.marketCap as number)) * 100, 1) ?? '—'} %`
                     : '—'}
                 </Cell>
               ))}
@@ -520,7 +525,7 @@ export function ComparatorView({ assets }: { assets: MarketAsset[] }) {
               {chosen.map((asset) => (
                 <Cell key={asset.id}>
                   {asset.circulatingSupply !== undefined
-                    ? new Intl.NumberFormat('fr-FR', {
+                    ? new Intl.NumberFormat(locale, {
                         notation: 'compact',
                         maximumFractionDigits: 1,
                       }).format(asset.circulatingSupply)

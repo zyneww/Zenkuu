@@ -75,9 +75,9 @@ interface SavedConversion {
  * Deux décimales l'écriraient « 0,00 », c'est-à-dire un zéro affiché là où il y a une
  * valeur. La précision suit donc la grandeur, jusqu'à huit décimales.
  */
-function formatUnit(value: number): string {
+function formatUnit(value: number, locale: string): string {
   const digits = value >= 100 ? 2 : value >= 1 ? 4 : 8
-  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: digits }).format(value)
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value)
 }
 
 export function ConverterView({
@@ -144,7 +144,7 @@ export function ConverterView({
   const formattedResult =
     result === undefined
       ? ''
-      : new Intl.NumberFormat('fr-FR', {
+      : new Intl.NumberFormat(locale, {
           maximumFractionDigits: result >= 100 ? 2 : 8,
         }).format(result)
 
@@ -254,9 +254,9 @@ export function ConverterView({
             que le montant n'est pas 1. */}
         {unitPrice !== undefined && unitPrice > 0 ? (
           <p className="tabular mt-3 text-center text-xs text-ink-muted">
-            1 {asset.symbol.toUpperCase()} ≈ {formatUnit(unitPrice)} {currency}
+            1 {asset.symbol.toUpperCase()} ≈ {formatUnit(unitPrice, locale)} {currency}
             <span className="mx-2 text-border-subtle">·</span>1 {currency} ≈{' '}
-            {formatUnit(1 / unitPrice)} {asset.symbol.toUpperCase()}
+            {formatUnit(1 / unitPrice, locale)} {asset.symbol.toUpperCase()}
           </p>
         ) : null}
 
@@ -282,7 +282,7 @@ export function ConverterView({
           UNE clé, avec ses trous nommés remplis après traduction — `emphasise` porte le
           gras du nom de l'actif, qui ne peut pas voyager dans une chaîne.
 
-          Les dates suivaient `'fr-FR'` en dur : un lecteur allemand voyait « 1 sept. »
+          Les dates suivaient `locale` en dur : un lecteur allemand voyait « 1 sept. »
           au milieu d'une phrase allemande. Elles suivent maintenant le locale affiché. */}
       <div className="mx-auto max-w-md text-xs leading-relaxed text-ink-muted">
         <p>
@@ -378,6 +378,7 @@ function LocalHistory({
   history: SavedConversion[]
   onClear: () => void
 }) {
+  const locale = useLocale()
   const t = usePhrase()
   if (history.length === 0) return null
 
@@ -401,15 +402,15 @@ function LocalHistory({
         {history.map((entry) => (
           <li key={entry.id} className="flex items-baseline justify-between gap-3 px-3 py-2">
             <span className="tabular min-w-0 flex-1 truncate text-sm text-ink">
-              {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 8 }).format(entry.amount)}{' '}
+              {new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(entry.amount)}{' '}
               {entry.from} ={' '}
-              {new Intl.NumberFormat('fr-FR', {
+              {new Intl.NumberFormat(locale, {
                 maximumFractionDigits: entry.result >= 100 ? 2 : 8,
               }).format(entry.result)}{' '}
               {entry.to}
             </span>
             <span className="shrink-0 text-xs text-ink-muted">
-              {new Date(entry.at).toLocaleString('fr-FR', {
+              {new Date(entry.at).toLocaleString(locale, {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',

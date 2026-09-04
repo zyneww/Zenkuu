@@ -1,3 +1,4 @@
+import { getLocale } from 'next-intl/server'
 import type { PriceHistory } from '@zenkuu/data'
 import { ChangeBadge } from '@zenkuu/ui'
 
@@ -33,6 +34,8 @@ export async function PriceHistoryTable({
   /** Sert à nommer le fichier exporté et l'onglet du classeur. */
   assetName: string
 }) {
+  const locale = await getLocale()
+
   const t = await getPhrase()
   const days = toDailyCloses(history)
   if (days.length < 2) return null
@@ -102,7 +105,7 @@ export async function PriceHistoryTable({
               return (
                 <tr key={row.day} className="transition-colors hover:bg-surface-muted/60">
                   <th scope="row" className="px-3 py-2 text-left font-normal text-ink-muted">
-                    <time dateTime={row.day}>{formatDay(row.day)}</time>
+                    <time dateTime={row.day}>{formatDay(row.day, locale)}</time>
                   </th>
                   <td className="tabular px-3 py-2 text-right font-medium text-ink">
                     <Money value={row.price} from={currency} asRate={isRate} />
@@ -145,10 +148,10 @@ function toDailyCloses(history: PriceHistory): { day: string; price: number }[] 
     .map(([day, entry]) => ({ day, price: entry.price }))
 }
 
-function formatDay(iso: string): string {
+function formatDay(iso: string, locale: string): string {
   const date = new Date(`${iso}T00:00:00Z`)
   if (Number.isNaN(date.getTime())) return iso
-  return date.toLocaleDateString('fr-FR', {
+  return date.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

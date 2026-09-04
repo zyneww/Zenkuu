@@ -1,3 +1,4 @@
+import { getLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { getMarketCapSeriesState, MIN_POINTS_FOR_CHART } from '@zenkuu/data'
 import type { GlobalMarketStats, MarketCapPoint, SentimentIndex } from '@zenkuu/data'
@@ -42,6 +43,7 @@ export async function GlobalStatsBar({
   stats: GlobalMarketStats | null
   sentiment?: SentimentIndex | null
 }) {
+  const locale = await getLocale()
   const fr = await getContent()
   const t = await getPhrase()
 
@@ -140,7 +142,7 @@ export async function GlobalStatsBar({
       ) : null}
 
       <Stat label={t('Cryptomonnaies')}>
-        <span className="tabular">{stats.activeAssets.toLocaleString('fr-FR')}</span>
+        <span className="tabular">{stats.activeAssets.toLocaleString(locale)}</span>
       </Stat>
 
       {sentiment ? (

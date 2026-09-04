@@ -1,10 +1,11 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { ExternalLink } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { ExchangeTicker } from '@zenkuu/data'
-import { EmptyState, formatCompact, formatPercent } from '@zenkuu/ui'
+import { EmptyState } from '@zenkuu/ui'
 
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Link } from '@/i18n/navigation'
@@ -13,6 +14,7 @@ import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui
 import { ExpandingSearch } from '@/components/ui/ExpandingSearch'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * PAIRES COTÉES SUR UNE PLACE.
@@ -49,6 +51,10 @@ export function ExchangeTickersTable({
   /** Décide du jeu de colonnes — voir l'en-tête. */
   derivatives: boolean
 }) {
+  const locale = useLocale()
+
+  const nombres = useFormatters()
+
   const t = usePhrase()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -314,14 +320,14 @@ export function ExchangeTickersTable({
                     </th>
 
                     <td className="tabular px-3 py-2.5 text-right font-medium text-ink">
-                      {ticker.last > 0 ? formatPrice(ticker.last) : '—'}
+                      {ticker.last > 0 ? formatPrice(ticker.last, locale) : '—'}
                     </td>
 
                     {derivatives ? (
                       <>
                         <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
                           {ticker.openInterestUsd !== undefined
-                            ? formatCompact(ticker.openInterestUsd)
+                            ? nombres.compact(ticker.openInterestUsd)
                             : '—'}
                         </td>
                         <td
@@ -334,7 +340,7 @@ export function ExchangeTickersTable({
                           }`}
                         >
                           {ticker.fundingRate !== undefined
-                            ? formatPercent(ticker.fundingRate)
+                            ? nombres.percent(ticker.fundingRate)
                             : '—'}
                         </td>
                       </>
@@ -342,7 +348,7 @@ export function ExchangeTickersTable({
                       <>
                         <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
                           {ticker.spreadPercentage !== undefined
-                            ? `${ticker.spreadPercentage.toFixed(2).replace('.', ',')} %`
+                            ? `${nombres.fixed(ticker.spreadPercentage, 2) ?? '—'} %`
                             : '—'}
                         </td>
                         {hasTrust ? (
@@ -355,9 +361,9 @@ export function ExchangeTickersTable({
 
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
                       {ticker.volumeUsd !== undefined
-                        ? `${formatCompact(ticker.volumeUsd)} $`
+                        ? `${nombres.compact(ticker.volumeUsd)} $`
                         : ticker.volume !== undefined
-                          ? formatCompact(ticker.volume)
+                          ? nombres.compact(ticker.volume)
                           : '—'}
                     </td>
 
@@ -367,7 +373,7 @@ export function ExchangeTickersTable({
                             préfixe d'un « + » toute valeur positive, ce qui ferait lire
                             « +12,40 % » comme une hausse au lieu d'une proportion. */}
                         {ticker.volumeUsd !== undefined
-                          ? `${((ticker.volumeUsd / totalVolumeUsd) * 100).toFixed(2).replace('.', ',')} %`
+                          ? `${nombres.fixed(((ticker.volumeUsd / totalVolumeUsd) * 100), 2) ?? '—'} %`
                           : '—'}
                       </td>
                     ) : null}
@@ -409,9 +415,9 @@ export function ExchangeTickersTable({
  * Le nombre de décimales suit l'ordre de grandeur : « 0,00 » sur un jeton coté un
  * millionième de dollar n'apprend rien, « 63 150,04837 » sur le bitcoin est du bruit.
  */
-function formatPrice(value: number): string {
+function formatPrice(value: number, locale: string): string {
   const digits = value >= 1000 ? 2 : value >= 1 ? 4 : 8
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: digits,
   }).format(value)

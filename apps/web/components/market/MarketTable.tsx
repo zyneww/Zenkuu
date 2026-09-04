@@ -16,11 +16,12 @@
  * ne recrée l'ambiguïté.
  */
 
+import { useLocale } from 'next-intl'
 import { Link, useRouter, type AppHref } from '@/i18n/navigation'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, Sparkline, formatCompact, formatShare } from '@zenkuu/ui'
+import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
@@ -33,6 +34,7 @@ import { useContent } from '@/components/locale/ContentProvider'
 import { assetHref } from '@/lib/asset-routes'
 import { fullyDilutedValuation, marketCapToFdvShare } from '@/lib/heatmap-metrics'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 export type MarketSort = 'marketCap' | 'volume24h'
 export type SortDirection = 'asc' | 'desc'
@@ -260,6 +262,10 @@ export function MarketTable({
   columnSet = 'apercu',
   columnSource,
 }: MarketTableProps) {
+  const locale = useLocale()
+
+  const nombres = useFormatters()
+
   const fr = useContent()
   const t = usePhrase()
 
@@ -1386,7 +1392,7 @@ export function MarketTable({
                   {shows.athDate ? (
                     <td className="tabular hidden px-2 py-2 @min-[790px]:px-3 text-right text-xs text-ink-muted @min-[1100px]:table-cell">
                       {asset.athDate ? (
-                        <time dateTime={asset.athDate}>{monthYear(asset.athDate)}</time>
+                        <time dateTime={asset.athDate}>{monthYear(asset.athDate, locale)}</time>
                       ) : (
                         '—'
                       )}
@@ -1452,7 +1458,7 @@ export function MarketTable({
                     <td
                       className={`tabular px-2 py-2 @min-[790px]:px-3 text-right text-ink-muted ${supplyClass}`}
                     >
-                      {formatShare(marketCapToFdvShare(asset)) ?? '—'}
+                      {nombres.share(marketCapToFdvShare(asset)) ?? '—'}
                     </td>
                   ) : null}
 
@@ -1466,7 +1472,7 @@ export function MarketTable({
                     >
                       {asset.circulatingSupply !== undefined ? (
                         <>
-                          {formatCompact(asset.circulatingSupply)}
+                          {nombres.compact(asset.circulatingSupply)}
                           <span className="ml-1 text-xs uppercase">{asset.symbol}</span>
                         </>
                       ) : (
@@ -1663,10 +1669,10 @@ function athGap(asset: MarketAsset): number | undefined {
  * navigateur dont les données de localisation diffèrent — React signalerait l'écart.
  * C'est le choix déjà fait par les autres tableaux du site.
  */
-function monthYear(iso: string): string {
+function monthYear(iso: string, locale: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+  return date.toLocaleDateString(locale, { month: 'short', year: 'numeric' })
 }
 
 /*

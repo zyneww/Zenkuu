@@ -3,12 +3,12 @@
 import { useState } from 'react'
 
 import type { TokenizedStock } from '@zenkuu/data'
-import { formatCurrency } from '@zenkuu/ui'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { Link } from '@/i18n/navigation'
 import { DEFAULT_ROWS } from '@/lib/limits'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Le catalogue des actions tokenisées, PAR PAGES.
@@ -37,6 +37,8 @@ import { DEFAULT_ROWS } from '@/lib/limits'
  * les chaînes.
  */
 export function TokenizedStocksTable({ tokens }: { tokens: TokenizedStock[] }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
 
   const [page, setPage] = useState(1)
@@ -109,13 +111,13 @@ export function TokenizedStocksTable({ tokens }: { tokens: TokenizedStock[] }) {
                   {token.issuer ?? '—'}
                 </td>
                 <td className="tabular px-3 py-2.5 text-right text-ink">
-                  {formatCurrency(token.priceUsd, 'USD') ?? '—'}
+                  {nombres.currency(token.priceUsd, 'USD') ?? '—'}
                 </td>
                 <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
-                  {formatCurrency(token.volume24hUsd, 'USD', { compact: true }) ?? '—'}
+                  {nombres.currency(token.volume24hUsd, 'USD', { compact: true }) ?? '—'}
                 </td>
                 <td className="tabular px-3 py-2.5 text-right text-ink">
-                  {formatCurrency(token.marketCapUsd, 'USD', { compact: true }) ?? '—'}
+                  {nombres.currency(token.marketCapUsd, 'USD', { compact: true }) ?? '—'}
                 </td>
               </tr>
             ))}

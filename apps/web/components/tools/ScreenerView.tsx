@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-import { ChangeBadge, EmptyState, formatCompact, formatCurrency, formatNumber } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState, type Formatters } from '@zenkuu/ui'
 
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
@@ -27,6 +27,7 @@ import type { ScreenCriteria } from '@/lib/screen-actions'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { ScreenerFilterPanel } from '@/components/tools/ScreenerFilterPanel'
 import { emphasise } from '@/components/locale/emphasise'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -88,8 +89,12 @@ function isActive(filter: ScreenerFilter, value: Seuil): boolean {
   return value !== neutre
 }
 
-function compactAmount(value: number): string {
-  return formatCompact(value) ?? String(value)
+/* `nombres` en argument : ces deux aides vivent hors du composant — `displayThreshold`
+   est appelée depuis le rendu d'un curseur, mais aussi récursivement pour chaque borne
+   d'une fourchette. Un crochet y serait illégal ; le paramètre rend visible dans la
+   signature que la mise en forme suit la langue. */
+function compactAmount(value: number, nombres: Formatters): string {
+  return nombres.compact(value) ?? String(value)
 }
 
 /**
@@ -103,6 +108,7 @@ function displayThreshold(
   filter: ScreenerFilter,
   value: Seuil,
   currency: string,
+  nombres: Formatters,
 ): string {
   if (!isActive(filter, value)) return 'aucun'
 
@@ -111,20 +117,20 @@ function displayThreshold(
      simple, en réentrant ici — sinon les deux affichages divergeraient au premier
      changement d'unité ou de devise. */
   if (Array.isArray(value)) {
-    const borne = (n: number) => displayThreshold(filter, n, currency)
+    const borne = (n: number) => displayThreshold(filter, n, currency, nombres)
     return `${borne(value[0])} – ${borne(value[1])}`
   }
 
   const prefix = filter.direction === 'max' ? '≤ ' : ''
 
   if (filter.currency) {
-    return `${prefix}${formatCurrency(value, currency, { compact: true }) ?? compactAmount(value)}`
+    return `${prefix}${nombres.currency(value, currency, { compact: true }) ?? compactAmount(value, nombres)}`
   }
 
   const unit = filter.unit ?? ''
   const amount = filter.steps
-    ? compactAmount(value)
-    : (formatNumber(value, Number.isInteger(value) ? 0 : 2) ?? String(value))
+    ? compactAmount(value, nombres)
+    : (nombres.number(value, Number.isInteger(value) ? 0 : 2) ?? String(value))
 
   /* Une unité qui commence par une lettre ou un espace se colle sans blanc
      supplémentaire — « 15 ans », « /10 » — là où un symbole en demande un. */
@@ -773,6 +779,8 @@ function Identity({ row }: { row: ScreenerRow }) {
  * `screener-markets.ts`.
  */
 function Cell({ column, row }: { column: ScreenerColumn; row: ScreenerRow }) {
+  const nombres = useFormatters()
+
   const value = row.values[column.key]
   if (value === undefined || !Number.isFinite(value)) {
     return <span className="text-ink-muted">—</span>
@@ -802,13 +810,13 @@ function Cell({ column, row }: { column: ScreenerColumn; row: ScreenerRow }) {
     case 'percent':
       return (
         <>
-          {formatNumber(value, value < 10 ? 2 : 1)} %{unit}
+          {nombres.number(value, value < 10 ? 2 : 1)} %{unit}
         </>
       )
     case 'ratio':
       return (
         <>
-          {formatNumber(value, 2)}
+          {nombres.number(value, 2)}
           {unit}
         </>
       )
@@ -818,7 +826,7 @@ function Cell({ column, row }: { column: ScreenerColumn; row: ScreenerRow }) {
          grandeur suffit. */
       return (
         <>
-          {value < 10_000 ? formatNumber(value, 0) : formatCompact(value)}
+          {value < 10_000 ? nombres.number(value, 0) : nombres.compact(value)}
           {unit}
         </>
       )
@@ -829,7 +837,7 @@ function Cell({ column, row }: { column: ScreenerColumn; row: ScreenerRow }) {
     case 'compact':
       return (
         <>
-          {formatCompact(value)}
+          {nombres.compact(value)}
           {unit}
         </>
       )
@@ -875,6 +883,7 @@ function FilterSlider({
   onChange: (value: Seuil) => void
 }) {
   const t = usePhrase()
+  const nombres = useFormatters()
   const steps = filter.steps
 
   /*
@@ -899,7 +908,7 @@ function FilterSlider({
     <label className="block">
       <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-ink-muted">
         {t(filter.label)}
-        <span className="tabular text-ink">{displayThreshold(filter, value, currency)}</span>
+        <span className="tabular text-ink">{displayThreshold(filter, value, currency, nombres)}</span>
       </span>
       {/* `Slider` de shadcn/ui — même substitution que sur la carte macro, voir la note
           qui y est posée, notamment sur le tableau attendu par `value`. La valeur

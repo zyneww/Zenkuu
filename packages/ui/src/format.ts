@@ -7,24 +7,40 @@
  *
  * ── LOCALE ────────────────────────────────────────────────────────────────────
  *
- * Chaque fonction accepte une locale en dernier argument. Le paramètre est optionnel
- * PAR COMPATIBILITÉ — une quarantaine de sites d'appel existaient avant
- * l'internationalisation — mais toute nouvelle écriture devrait le passer.
+ * Chaque fonction accepte une locale en dernier argument, et l'on ne l'appelle plus
+ * directement : `createFormatters(locale)`, en bas de ce fichier, rend les mêmes
+ * fonctions avec la langue déjà liée. Les composants passent par lui.
  *
- * ⚠️ LE DÉFAUT N'EST PLUS LE MÊME POUR TOUT. Il l'a été : tout retombait sur le
- * français. Les NOMBRES et les MONTANTS retombent désormais sur l'anglo-saxon
- * (« $77,570.30 »), les DATES restent en français. Les deux constantes ci-dessous
- * portent chacune son raisonnement — et la distinction n'est pas un oubli.
+ * ⚠️ LA NOTE QUI TENAIT ICI DISAIT L'INVERSE, ET SON CONSEIL NE MARCHAIT PAS.
+ *
+ * Elle expliquait que le paramètre restait optionnel « par compatibilité », et que
+ * « toute nouvelle écriture devrait le passer ». Mesuré au moment d'écrire ces lignes :
+ * sur cent cinquante sites d'appel, AUCUN ne le passait. Le conseil était juste et
+ * personne ne l'a suivi — parce qu'un paramètre facultatif en fin de signature ne se
+ * réclame jamais de lui-même.
+ *
+ * Les deux constantes ci-dessous ne sont donc plus le régime normal mais un DERNIER
+ * RECOURS, celui d'un appel direct qui aurait échappé à `createFormatters`.
  */
 
 import { currencyDecimals, currencySymbol, getCurrency } from '@zenkuu/data/currencies'
 
 /**
- * Locale des DATES. Le site reste français, et une date américaine (« 8/24/2026 ») y
- * serait lue à l'envers un jour sur deux — le 8 août et le 24 août ne se distinguent
- * qu'à l'ordre des champs.
+ * Locale de dernier recours pour les DATES.
+ *
+ * ⚠️ ELLE VALAIT `'fr-FR'`, ET SON RAISONNEMENT A CESSÉ D'ÊTRE VRAI. La note
+ * expliquait que « le site reste français » et qu'une date américaine y serait lue à
+ * l'envers un jour sur deux. Le site n'est plus français par défaut : `DEFAULT_LOCALE`
+ * de `components/settings/languages.ts` est passé à l'anglais, et servir une date
+ * française sous une interface anglaise fait exactement l'inconvénient que la note
+ * dénonçait, dans l'autre sens.
+ *
+ * Le risque qu'elle décrivait — « 8/24 » lu pour le 8 août — reste réel, et il est
+ * traité mieux qu'ici : `formatDateTime` demande un `dateStyle: 'short'`, qu'`Intl`
+ * rend selon la convention de la langue reçue. La langue étant désormais toujours
+ * passée, la question ne se pose plus qu'ici, sur un appel qui aurait fui.
  */
-const DEFAULT_LOCALE = 'fr-FR'
+const DEFAULT_LOCALE = 'en-US'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -294,6 +310,32 @@ export function formatNumber(
 }
 
 /**
+ * Un nombre à décimales FIXÉES — l'équivalent de `toFixed`, en suivant la langue.
+ *
+ * ── POURQUOI IL NE SUFFIT PAS D'APPELER `formatNumber` ─────────────────────
+ *
+ * Celui-ci ne borne que le MAXIMUM : il rend « 36 » là où `toFixed(1)` écrit « 36,0 ».
+ * Sur une colonne de ratios alignés, la différence se voit — c'est le décalage d'un
+ * chiffre sur une ligne parmi vingt.
+ *
+ * Il existe parce que le site écrivait ces valeurs en `toFixed(n).replace('.', ',')`,
+ * vingt-trois fois. La virgule était posée À LA MAIN, donc française dans les treize
+ * langues : mesuré sur la fiche Apple en anglais, le rapport cours/bénéfice s'affichait
+ * « 36,7 » sous un cours écrit « $328.21 ». Deux conventions dans la même colonne.
+ */
+export function formatFixed(
+  value: number | undefined,
+  digits: number,
+  locale: string = NUMBER_LOCALE,
+): string | null {
+  if (value === undefined || !Number.isFinite(value)) return null
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value)
+}
+
+/**
  * ══════════════════════════════════════════════════════════════════════════════
  * L'ÉCHELLE D'UN GRAPHIQUE DE COURS — « $55.00 », ET NON « 55 $US »
  * ══════════════════════════════════════════════════════════════════════════════
@@ -320,11 +362,12 @@ export function formatAxisMoney(
   value: number | undefined,
   currency: string,
   compact = false,
+  locale: string = NUMBER_LOCALE,
 ): string | null {
   if (value === undefined || !Number.isFinite(value)) return null
 
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
       ...(compact
@@ -338,8 +381,8 @@ export function formatAxisMoney(
     /* Code non monétaire — une crypto en unité de compte : le nombre seul plutôt
        qu'une exception qui mettrait la fiche entière en erreur. */
     return compact
-      ? formatCompactAxis(value, 'en-US')
-      : new Intl.NumberFormat('en-US', { maximumFractionDigits: axisDigits(value) }).format(value)
+      ? formatCompactAxis(value, locale)
+      : new Intl.NumberFormat(locale, { maximumFractionDigits: axisDigits(value) }).format(value)
   }
 }
 
@@ -434,4 +477,69 @@ export function formatDateTime(
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date)
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES MÊMES FONCTIONS, LIÉES À UNE LANGUE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT ÉTAIT UN MENSONGE POLI ─────────────────────────────────────────
+ *
+ * Chaque fonction ci-dessus accepte une locale en dernier argument, et la note
+ * d'en-tête invitait les nouveaux appels à la passer. Mesuré : sur cent cinquante
+ * sites d'appel, AUCUN ne la passait. Le site rendait donc `en-US` dans les treize
+ * langues pour les nombres et `fr-FR` pour les dates, pendant qu'une quarantaine de
+ * composants écrivaient leur propre `Intl.NumberFormat('fr-FR')` par-dessus — d'où
+ * des fiches affichant « $320.38 » au-dessus de « 36,7 ».
+ *
+ * Un paramètre optionnel qu'on peut oublier finit par être oublié : ce ne sont pas
+ * cent cinquante distractions, c'est une friction de trop, cent cinquante fois. Lier
+ * la langue UNE FOIS par composant retire l'occasion de se tromper.
+ *
+ * ── POURQUOI DES NOMS COURTS ─────────────────────────────────────────────────
+ *
+ * `nombres.compact(v)` plutôt que `nombres.formatCompact(v)` : le préfixe `format`
+ * disait « ceci est du formatage » quand la fonction voyageait seule. Rattaché à un
+ * objet qui le dit déjà, il ne porte plus rien.
+ */
+export interface Formatters {
+  currency: (
+    value: number | undefined,
+    currency: string,
+    options?: { compact?: boolean },
+  ) => string | null
+  compact: (value: number | undefined) => string | null
+  compactAxis: (value: number | undefined) => string | null
+  number: (value: number | undefined, maximumFractionDigits?: number) => string | null
+  /** Décimales fixées, comme `toFixed` — voir `formatFixed`. */
+  fixed: (value: number | undefined, digits: number) => string | null
+  axisMoney: (value: number | undefined, currency: string, compact?: boolean) => string | null
+  percent: (value: number | undefined) => string | null
+  share: (value: number | undefined) => string | null
+  rate: (value: number | undefined) => string | null
+  dateTime: (iso: string | undefined) => string | null
+}
+
+/**
+ * ⚠️ À N'APPELER QUE PAR `useFormatters()` ET `getFormatters()`.
+ *
+ * Cette fonction ne SAIT pas quelle langue est rendue — on la lui donne. Les deux
+ * accesseurs de `apps/web` la tiennent de la requête ; l'appeler ailleurs avec une
+ * locale devinée reproduirait exactement le défaut qu'elle corrige.
+ */
+export function createFormatters(locale: string): Formatters {
+  return {
+    currency: (value, code, options) => formatCurrency(value, code, { ...options, locale }),
+    compact: (value) => formatCompact(value, locale),
+    compactAxis: (value) => formatCompactAxis(value, locale),
+    number: (value, maximumFractionDigits) =>
+      formatNumber(value, maximumFractionDigits ?? 2, locale),
+    fixed: (value, digits) => formatFixed(value, digits, locale),
+    axisMoney: (value, code, compact) => formatAxisMoney(value, code, compact, locale),
+    percent: (value) => formatPercent(value, locale),
+    share: (value) => formatShare(value, locale),
+    rate: (value) => formatRate(value, locale),
+    dateTime: (iso) => formatDateTime(iso, locale),
+  }
 }

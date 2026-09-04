@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 
 import type { MarketAsset, MarketCategory } from '@zenkuu/data'
 
-import { formatCurrency } from '@zenkuu/ui'
 
 import { Filter, Grid2x2, Layers, Maximize2, Palette } from 'lucide-react'
 
@@ -23,6 +22,7 @@ import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/too
 import { BACKPACK_CLAMP } from '@/components/tools/treemap'
 import { STABLECOIN_IDS } from '@/lib/altcoin-season'
 import { fullyDilutedValuation } from '@/lib/heatmap-metrics'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * CARTE THERMIQUE À DEUX LECTURES — par pièce, ou par secteur.
@@ -215,6 +215,8 @@ export function MarketHeatmap({
    */
   volatility?: Record<string, number>
 }) {
+  const nombres = useFormatters()
+
   /* Les pièces d'abord : c'est la lecture qu'un lecteur cherche en arrivant sur
      « où le marché bouge-t-il ». */
   const t = usePhrase()
@@ -311,7 +313,7 @@ export function MarketHeatmap({
              grandeur, la teinte une variation, et le prix n'apparaît nulle part. C'est
              pourtant la première chose qu'on cherche en survolant une tuile. Écrit ici,
              où la devise est connue — la figure, elle, ne compte rien. */
-          detail: `${asset.symbol.toUpperCase()} à ${formatCurrency(asset.price, asset.currency) ?? '—'}`,
+          detail: `${asset.symbol.toUpperCase()} à ${nombres.currency(asset.price, asset.currency) ?? '—'}`,
           value: size,
           /*
            * ── LES STABLECOINS RESTENT GRIS ───────────────────────────────────
@@ -335,7 +337,10 @@ export function MarketHeatmap({
           href: { pathname: '/crypto/[id]', params: { id: asset.id } },
         }
       })
-  }, [mode, assets, categories, count, period, sizeBy, universe, threshold, volatility])
+    /* `nombres` en dépendance : la légende de chaque tuile porte un cours formaté. Il
+       est stable d'un rendu à l'autre (voir `useFormatters`), la mémoïsation tient donc
+       tout autant — mais un changement de langue recalcule bien les tuiles. */
+  }, [mode, assets, categories, count, period, sizeBy, universe, threshold, volatility, nombres])
 
   /**
    * Symbole écrit après les montants de la figure.
@@ -479,6 +484,7 @@ export function MarketHeatmap({
       <HeatmapFrame>
         <TreemapFigure
           tiles={tiles}
+          nombres={nombres}
           periodLabel={periodWord}
           /* 600 px pour 1 360 de large au plus : le rapport de la référence. */
           height="min(70vh, 600px)"

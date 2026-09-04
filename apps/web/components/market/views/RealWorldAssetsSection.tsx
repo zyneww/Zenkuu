@@ -1,9 +1,10 @@
 import { getAllTokenizedStocks } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { StatCard } from '@/components/charts/StatCard'
 import { TokenizedStocksTable } from '@/components/market/TokenizedStocksTable'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -32,6 +33,8 @@ import { getPhrase } from '@/lib/content'
  * ne publie pas `platforms`, et l'obtenir demanderait un appel par jeton.
  */
 export async function RealWorldAssetsSection() {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const tokens = await getAllTokenizedStocks()
 
@@ -71,11 +74,11 @@ export async function RealWorldAssetsSection() {
         <StatCard label={t('Jetons cotés')} value={String(listed.length)} />
         <StatCard
           label={t('Capitalisation cumulée')}
-          value={formatCurrency(totalCap, 'USD', { compact: true }) ?? '—'}
+          value={nombres.currency(totalCap, 'USD', { compact: true }) ?? '—'}
         />
         <StatCard
           label={t('Volume 24 h cumulé')}
-          value={formatCurrency(totalVolume, 'USD', { compact: true }) ?? '—'}
+          value={nombres.currency(totalVolume, 'USD', { compact: true }) ?? '—'}
         />
       </div>
 

@@ -4,10 +4,10 @@ import { ChevronDown } from 'lucide-react'
 import { useLocale } from 'next-intl'
 
 import type { AssetDetail } from '@zenkuu/data'
-import { formatCompact, formatCurrency, formatDateTime } from '@zenkuu/ui'
 
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { useCurrency } from '@/components/locale/CurrencyProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Questions fréquentes sur un actif — entièrement DÉRIVÉES de sa donnée réelle.
@@ -38,6 +38,8 @@ import { useCurrency } from '@/components/locale/CurrencyProvider'
  * eu vocation à régler le libellé d'une phrase.
  */
 export function AssetFaq({ asset }: { asset: AssetDetail }) {
+  const nombres = useFormatters()
+
   const fr = useContent()
   const t = usePhrase()
   const locale = useLocale()
@@ -66,7 +68,7 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
      passer par le composant `Money`. La conversion est faite à la main, avec la même
      fonction que lui — une seule source de taux pour toute la page. */
   const money = (value: number, compact = false) =>
-    formatCurrency(convert(value, asset.currency), currency, compact ? { compact: true } : undefined) ??
+    nombres.currency(convert(value, asset.currency), currency, compact ? { compact: true } : undefined) ??
     '—'
 
   const entries: { question: string; answer: string }[] = [
@@ -77,7 +79,7 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
         {
           nom: asset.name,
           cours: money(asset.price),
-          date: formatDateTime(asset.lastUpdated) ?? '—',
+          date: nombres.dateTime(asset.lastUpdated) ?? '—',
         },
       ),
     },
@@ -108,7 +110,7 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
   }
 
   if (asset.maxSupply !== undefined) {
-    const circulante = formatCompact(asset.circulatingSupply)
+    const circulante = nombres.compact(asset.circulatingSupply)
     entries.push({
       question: remplir('Combien d’unités de {nom} existeront au maximum ?', { nom: asset.name }),
       answer: remplir(
@@ -116,7 +118,7 @@ export function AssetFaq({ asset }: { asset: AssetDetail }) {
           ? 'L’offre maximale est de {max} {symbole}, dont {circulante} {symbole} sont actuellement en circulation.'
           : 'L’offre maximale est de {max} {symbole}.',
         {
-          max: formatCompact(asset.maxSupply) ?? '—',
+          max: nombres.compact(asset.maxSupply) ?? '—',
           symbole: asset.symbol,
           circulante: circulante ?? '',
         },

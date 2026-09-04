@@ -165,6 +165,7 @@ export interface AssetPageViewProps {
 }
 
 export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
+
   const t = await getPhrase()
   /* Sert au seul titre « À propos de … », dont l'élision est une règle française —
      voir la note à son endroit de rendu. */

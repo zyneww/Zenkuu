@@ -679,7 +679,14 @@ export type MacroIndicator = (typeof MACRO_INDICATORS)[number]
 export function formatMacroValue(
   value: number,
   scale: 'percent' | 'compact' | 'plain',
-  locale = 'fr-FR',
+  /*
+   * ⚠️ LA LANGUE N'A PLUS DE DÉFAUT, ET C'EST LE POINT.
+   *
+   * Elle valait `'fr-FR'` quand on l'omettait — et les quatre vues macro l'omettaient
+   * toutes. Un paramètre optionnel qu'on peut oublier finit par l'être ; le rendre
+   * obligatoire déplace l'oubli du rendu vers la compilation.
+   */
+  locale: string,
 ): string {
   if (scale === 'compact') {
     return new Intl.NumberFormat(locale, {

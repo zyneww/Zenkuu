@@ -1,8 +1,7 @@
 import { Suspense } from 'react'
 
 import { getCryptoGlobalStats, getMarketCapSeriesState } from '@zenkuu/data'
-import { SourceNote, formatShare } from '@zenkuu/ui'
-import { getLocale } from 'next-intl/server'
+import { SourceNote } from '@zenkuu/ui'
 
 import { StatCard } from '@/components/charts/StatCard'
 
@@ -10,6 +9,7 @@ import { DominanceView } from '@/components/market/DominanceView'
 import { LoadingNote } from '@/components/market/ChartsShell'
 import { BasketSection } from '@/components/market/views/BasketSection'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * LA DOMINANCE, EN DEUX MESURES QUI NE SE CONFONDENT PAS.
@@ -24,8 +24,9 @@ import { getPhrase } from '@/lib/content'
  * le second une mesure approchante sur une fenêtre longue. Chacun dit lequel il est.
  */
 export async function DominanceSection() {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
-  const locale = await getLocale()
   const globalStats = await getCryptoGlobalStats('eur')
   const series = getMarketCapSeriesState('EUR')
 
@@ -50,21 +51,18 @@ export async function DominanceSection() {
         <div className="grid gap-3 sm:grid-cols-3">
           <StatCard
             label={t('Dominance de Bitcoin')}
-            value={formatShare(stats.dominance['btc'], locale) ?? '—'}
+            value={nombres.share(stats.dominance['btc']) ?? '—'}
           />
           {stats.dominance['eth'] !== undefined ? (
             <StatCard
               label={t('Dominance d’Ethereum')}
-              value={formatShare(stats.dominance['eth'], locale) ?? '—'}
+              value={nombres.share(stats.dominance['eth']) ?? '—'}
             />
           ) : null}
           <StatCard
             label={t('Reste du marché')}
             value={
-              formatShare(
-                100 - stats.dominance['btc'] - (stats.dominance['eth'] ?? 0),
-                locale,
-              ) ?? '—'
+              nombres.share(100 - stats.dominance['btc'] - (stats.dominance['eth'] ?? 0)) ?? '—'
             }
             note={t('Toutes les autres cryptomonnaies réunies')}
           />

@@ -3,12 +3,12 @@
 import { Info } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { formatShare } from '@zenkuu/ui'
 
 import { Link, type AppHref } from '@/i18n/navigation'
 import { Money } from '@/components/locale/Money'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { squarify } from '@/components/tools/treemap'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /** Un actif à l'intérieur d'un secteur. Les deux grandeurs sont portées ensemble. */
 export interface SectorAsset {
@@ -142,6 +142,8 @@ export function SectorMap({
   /** Ce que la figure ne dit pas d'elle-même, en pied. Voir l'appelant. */
   note?: string
 }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   const [metric, setMetric] = useState<MetricId>('marketCap')
 
@@ -367,7 +369,7 @@ export function SectorMap({
                       </span>
                       <span className="tabular truncate text-micro text-white/70">
                         <Money value={tile.value} from="EUR" compact />
-                        {share > 0 ? ` (${formatShare(share * 100)})` : ''}
+                        {share > 0 ? ` (${nombres.share(share * 100)})` : ''}
                       </span>
                     </span>
                   ) : (

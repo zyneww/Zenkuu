@@ -3,10 +3,11 @@ import { Link } from '@/i18n/navigation'
 import { SentimentGauge } from '@/components/home/SentimentGauge'
 
 import type { DataResult, MarketCategory, NewsItem, SentimentIndex } from '@zenkuu/data'
-import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
+import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
 
 import type { Content } from '@/content/locales'
 import { getContent, getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Narratifs du jour — équivalent du panneau « Narratives Today » de CoinGecko.
@@ -17,6 +18,8 @@ import { getContent, getPhrase } from '@/lib/content'
  * à +300 %, ce qui ne renseigne en rien sur l'état du marché.
  */
 export async function NarrativesPanel({ result }: { result: DataResult<MarketCategory[]> }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const fr = await getContent()
   return (
@@ -33,7 +36,7 @@ export async function NarrativesPanel({ result }: { result: DataResult<MarketCat
                     {category.name}
                   </span>
                   <span className="tabular block text-[0.6875rem] text-ink-muted">
-                    {formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
+                    {nombres.currency(category.marketCap, 'USD', { compact: true }) ?? '—'}
                   </span>
                 </Link>
                 <ChangeBadge value={category.marketCapChange24h} size="sm" filled />

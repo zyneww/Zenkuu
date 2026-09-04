@@ -1,10 +1,10 @@
 import type { AssetDetail } from '@zenkuu/data'
 import { Progress } from '@/components/ui/progress'
-import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 import { RailSection } from '@/components/ui/RailSection'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Progression de l'offre — la part dérivable de la tokenomique.
@@ -39,6 +39,8 @@ import { getPhrase } from '@/lib/content'
  * « valorisé » ne coïncident pas.
  */
 export async function AssetSupply({ asset }: { asset: AssetDetail }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const { circulatingSupply, totalSupply, maxSupply, marketCap, fdv } = asset
   const symbol = asset.symbol.toUpperCase()
@@ -78,7 +80,7 @@ export async function AssetSupply({ asset }: { asset: AssetDetail }) {
         <Gauge
           label={t(maxSupply !== undefined ? 'Offre émise' : 'Part du total en circulation')}
           share={releasedShare}
-          detail={`${formatCompact(circulatingSupply)} / ${formatCompact(ceiling)} ${symbol}`}
+          detail={`${nombres.compact(circulatingSupply)} / ${nombres.compact(ceiling)} ${symbol}`}
           tone="brand"
         />
       ) : null}
@@ -105,7 +107,7 @@ export async function AssetSupply({ asset }: { asset: AssetDetail }) {
             {maxSupply !== undefined ? t('Reste à émettre') : t('Émis mais hors circulation')}
           </span>
           <span className="tabular text-xs font-medium text-ink">
-            {formatCompact(pending)} {symbol}
+            {nombres.compact(pending)} {symbol}
           </span>
         </div>
       ) : null}
@@ -120,7 +122,7 @@ export async function AssetSupply({ asset }: { asset: AssetDetail }) {
  * filet servant de fond de piste se confond avec les séparateurs de lignes voisins,
  * et la barre paraît alors flotter sans support.
  */
-function Gauge({
+async function Gauge({
   label,
   share,
   detail,
@@ -131,11 +133,13 @@ function Gauge({
   detail: React.ReactNode
   tone: 'brand' | 'accent'
 }) {
+  const nombres = await getFormatters()
+
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-xs text-ink-muted">{label}</span>
-        <span className="tabular text-xs font-semibold text-ink">{formatShare(share)}</span>
+        <span className="tabular text-xs font-semibold text-ink">{nombres.share(share)}</span>
       </div>
 
       {/* ── DEUX JAUGES, DEUX NIVEAUX DE LA MÊME RAMPE ───────────────────

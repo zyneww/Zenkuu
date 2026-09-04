@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { Minus, Plus, RotateCcw } from 'lucide-react'
 import { useEffect, useRef, useState, type RefObject } from 'react'
 
@@ -108,6 +109,8 @@ export function MacroChoropleth({
   /** Remonté au parent, qui en a besoin pour exporter la figure en image. */
   svgRef?: RefObject<SVGSVGElement | null>
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const [countries, setCountries] = useState<CountryFeature[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -353,7 +356,7 @@ export function MacroChoropleth({
                 <title>
                   {country.name}
                   {row
-                    ? ` — ${formatMacroValue(row.value, scale)}${unit ? ` ${unit}` : ''} (${row.year})`
+                    ? ` — ${formatMacroValue(row.value, scale, locale)}${unit ? ` ${unit}` : ''} (${row.year})`
                     : t(' — non publié')}
                 </title>
               </path>

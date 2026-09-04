@@ -1,3 +1,4 @@
+import { getLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { ChevronDown } from 'lucide-react'
 import { Link, type AppHref } from '@/i18n/navigation'
@@ -68,6 +69,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * une cryptomonnaie, une devise.
  */
 export default async function ConverterPage() {
+  const locale = await getLocale()
+
   const t = await getPhrase()
   const [crypto, rates] = await Promise.all([getMoversUniverse(250, 'eur'), getExchangeRates()])
 
@@ -183,7 +186,7 @@ export default async function ConverterPage() {
                         </span>
                       </span>
                       <span className="tabular shrink-0 text-sm text-ink">
-                        {new Intl.NumberFormat('fr-FR', {
+                        {new Intl.NumberFormat(locale, {
                           style: 'currency',
                           currency: 'EUR',
                           maximumFractionDigits: asset.price >= 1 ? 2 : 6,

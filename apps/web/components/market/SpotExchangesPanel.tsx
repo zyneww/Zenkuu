@@ -14,6 +14,7 @@
  * client, que le serveur sait rendre, plutôt que l'inverse.
  */
 
+import { useLocale } from 'next-intl'
 import { ArrowRight } from 'lucide-react'
 
 import type { SpotExchange } from '@zenkuu/data'
@@ -112,6 +113,7 @@ export function SpotExchangesTable({
   sort?: SortState<ExchangeSortKey> | null
   onToggleSort?: (key: ExchangeSortKey) => void
 }) {
+  const locale = useLocale()
   const t = usePhrase()
   const total = shareTotal ?? exchanges.reduce((sum, exchange) => sum + exchange.volume24hBtc, 0)
   if (total <= 0) return null
@@ -239,7 +241,7 @@ export function SpotExchangesTable({
                   </td>
 
                   <td className="tabular px-3 py-2.5 text-right text-ink">
-                    {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(
+                    {new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(
                       exchange.volume24hBtc,
                     )}
                   </td>

@@ -1,5 +1,4 @@
 import type { TreasuryReport } from '@zenkuu/data'
-import { formatCompact } from '@zenkuu/ui'
 
 import { emphasise } from '@/components/locale/emphasise'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
@@ -10,6 +9,7 @@ import {
 } from '@/components/tools/TreemapFigure'
 import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * VUE D'ENSEMBLE DES TRÉSORERIES — quatre nombres et une carte, avant les tableaux.
@@ -75,6 +75,8 @@ export async function TreasuryOverview({
   /** Registres disponibles, un par actif suivi. Un registre en échec n'y figure pas. */
   reports: { coin: string; label: string; unit: string; report: TreasuryReport }[]
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   if (reports.length === 0) return null
 
@@ -126,7 +128,7 @@ export async function TreasuryOverview({
       tiles.push({
         id: `${entry.coin}:${holder.name}`,
         label: holder.ticker?.split('.')[0] ?? holder.name,
-        title: `${holder.name} · ${formatCompact(holder.holdings)} ${entry.unit}`,
+        title: `${holder.name} · ${nombres.compact(holder.holdings)} ${entry.unit}`,
         value,
         ...(gain !== undefined ? { change: gain } : {}),
       })
@@ -151,7 +153,7 @@ export async function TreasuryOverview({
         />
         <Stat
           label={t('Valeur totale')}
-          value={`${formatCompact(totalValueUsd)} $`}
+          value={`${nombres.compact(totalValueUsd)} $`}
           hint={t('au cours du jour')}
         />
       </div>
@@ -173,6 +175,7 @@ export async function TreasuryOverview({
           <HeatmapFrame>
             <TreemapFigure
               tiles={tiles.slice(0, 60)}
+              nombres={nombres}
               periodLabel="l’acquisition"
               height="min(62vh, 520px)"
               valueUnit=" $"

@@ -1,5 +1,5 @@
 import { getCryptoOverview, getNewListings, type MarketAsset, type NewListing } from '@zenkuu/data'
-import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Reveal } from '@/components/motion/Reveal'
@@ -9,6 +9,7 @@ import { Link, type AppHref } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 import { buildListingIndex, matchListing, type ListingMatch } from '@/lib/listing-match'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -379,13 +380,15 @@ function AssetRow({ asset }: { asset: MarketAsset }) {
  * Le montant est en DOLLARS et `formatCurrency` l'écrit comme tel, sans passer par
  * `Money` qui convertirait vers la devise du site — voir la note de la carte.
  */
-function ListingRow({
+async function ListingRow({
   listing,
   index,
 }: {
   listing: NewListing
   index: Map<string, ListingMatch>
 }) {
+  const nombres = await getFormatters()
+
   const match = matchListing(listing, index)
   const href: AppHref = match
     ? { pathname: '/crypto/[id]', params: { id: match.id } }
@@ -416,7 +419,7 @@ function ListingRow({
       <span className="min-w-0 flex-1 truncate font-medium uppercase text-ink group-hover:text-brand">
         {listing.symbol}
       </span>
-      <span className="tabular shrink-0 text-ink">{formatCurrency(listing.price, 'USD')}</span>
+      <span className="tabular shrink-0 text-ink">{nombres.currency(listing.price, 'USD')}</span>
       <span className="tabular w-16 shrink-0 text-right">
         <ChangeBadge value={listing.change24h} periodLabel="sur 24 heures" size="sm" />
       </span>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { getExchangeProfile } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatCompact } from '@zenkuu/ui'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Button } from '@/components/ui/button'
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
@@ -10,6 +10,7 @@ import { ExchangeTickersTable } from '@/components/market/ExchangeTickersTable'
 import { Link } from '@/i18n/navigation'
 import { getPhrase } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
+import { getFormatters } from '@/lib/formatters'
 
 /* Une heure, comme le TTL de la donnée — voir `getExchangeProfile`. */
 export const revalidate = 3600
@@ -19,6 +20,7 @@ interface RouteProps {
 }
 
 export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
+
   const { id } = await params
   const result = await getExchangeProfile(id)
 
@@ -63,6 +65,8 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
  * jugement, pas une mesure, et il n'est pas le nôtre.
  */
 export default async function ExchangePage({ params }: RouteProps) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const { id } = await params
   const result = await getExchangeProfile(id)
@@ -184,12 +188,12 @@ export default async function ExchangePage({ params }: RouteProps) {
           <>
             <Stat
               label={t('Intérêt ouvert')}
-              value={place.openInterestBtc !== undefined ? `${formatCompact(place.openInterestBtc)} ₿` : '—'}
+              value={place.openInterestBtc !== undefined ? `${nombres.compact(place.openInterestBtc)} ₿` : '—'}
               hint={t('positions non dénouées')}
             />
             <Stat
               label={t('Volume 24 h')}
-              value={place.volume24hBtc !== undefined ? `${formatCompact(place.volume24hBtc)} ₿` : '—'}
+              value={place.volume24hBtc !== undefined ? `${nombres.compact(place.volume24hBtc)} ₿` : '—'}
               hint={t('en bitcoin, unité de la source')}
             />
             <Stat
@@ -216,7 +220,7 @@ export default async function ExchangePage({ params }: RouteProps) {
             />
             <Stat
               label={t('Volume 24 h')}
-              value={place.volume24hBtc !== undefined ? `${formatCompact(place.volume24hBtc)} ₿` : '—'}
+              value={place.volume24hBtc !== undefined ? `${nombres.compact(place.volume24hBtc)} ₿` : '—'}
               hint={t('en bitcoin, unité de la source')}
             />
             <Stat

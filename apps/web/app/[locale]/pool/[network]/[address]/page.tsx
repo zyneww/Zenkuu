@@ -1,8 +1,9 @@
+import { getLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { getPool, getPoolsOnNetwork } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, SourceNote, formatCompact } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { fill } from '@/components/locale/emphasise'
@@ -10,6 +11,7 @@ import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { Panel } from '@/components/ui/Panel'
 import { getPhrase } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Une minute, alignée sur le TTL de la source on-chain.
@@ -67,6 +69,10 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
  * classique s'arrête à 24 h ; sur la chaîne, cinq minutes est une éternité.
  */
 export default async function Page({ params }: RouteParams) {
+  const nombres = await getFormatters()
+
+  const locale = await getLocale()
+
   const t = await getPhrase()
   const { network, address } = await params
   const pool = await getPool(network, address)
@@ -122,7 +128,7 @@ export default async function Page({ params }: RouteParams) {
           ) : null}
           {data.feePercent !== undefined ? (
             <span className="rounded-control bg-surface-muted px-2 py-0.5 text-xs text-ink-muted">
-              {t('{taux} % de frais').replace('{taux}', data.feePercent.toString().replace('.', ','))}
+              {t('{taux} % de frais').replace('{taux}', nombres.number(data.feePercent) ?? '—')}
             </span>
           ) : null}
         </div>
@@ -130,7 +136,7 @@ export default async function Page({ params }: RouteParams) {
         <div className="flex flex-wrap items-baseline gap-3">
           <span className="figure text-3xl font-semibold text-ink">
             {data.priceUsd !== undefined
-              ? new Intl.NumberFormat('fr-FR', {
+              ? new Intl.NumberFormat(locale, {
                   style: 'currency',
                   currency: 'USD',
                   maximumFractionDigits: data.priceUsd >= 1 ? 2 : 8,
@@ -220,24 +226,27 @@ const WINDOW_LABEL: Record<string, string> = {
 }
 
 async function Measure({ label, value }: { label: string; value?: number }) {
+  const nombres = await getFormatters()
+
   return (
     <div>
       <dt className="text-xs text-ink-muted">{label}</dt>
       <dd className="tabular mt-0.5 text-base font-medium text-ink">
-        {value !== undefined ? `${formatCompact(value)} $` : '—'}
+        {value !== undefined ? `${nombres.compact(value)} $` : '—'}
       </dd>
     </div>
   )
 }
 
 async function Count({ label, value, tone }: { label: string; value: number; tone: 'up' | 'down' }) {
+  const locale = await getLocale()
   return (
     <div>
       <dt className="text-xs text-ink-muted">{label}</dt>
       <dd
         className={`tabular mt-0.5 text-base font-medium ${tone === 'up' ? 'text-up' : 'text-down'}`}
       >
-        {new Intl.NumberFormat('fr-FR').format(value)}
+        {new Intl.NumberFormat(locale).format(value)}
       </dd>
     </div>
   )

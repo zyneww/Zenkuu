@@ -1,6 +1,7 @@
 import type { DerivativeMarket } from '@zenkuu/data'
-import { ChangeBadge, formatCurrency, formatPercent } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Panneau des produits dérivés — intérêt ouvert et taux de financement.
@@ -37,6 +38,8 @@ function byExchange(markets: DerivativeMarket[]) {
 }
 
 export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[] }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   if (markets.length === 0) return null
 
@@ -64,7 +67,7 @@ export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[
           <h3 className="text-sm font-semibold text-ink">
             {t('Intérêt ouvert par place')}
             <span className="ml-2 font-normal text-ink-muted">
-              {formatCurrency(totalOpenInterest, 'USD', { compact: true })} sur les{' '}
+              {nombres.currency(totalOpenInterest, 'USD', { compact: true })} sur les{' '}
               {exchanges.length} premières
             </span>
           </h3>
@@ -78,7 +81,7 @@ export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="truncate text-sm font-medium text-ink">{entry.market}</span>
                     <span className="tabular shrink-0 text-sm text-ink">
-                      {formatCurrency(entry.openInterest, 'USD', { compact: true })}
+                      {nombres.currency(entry.openInterest, 'USD', { compact: true })}
                     </span>
                   </div>
 
@@ -117,7 +120,9 @@ export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[
   )
 }
 
-function FundingGroup({ title, rows }: { title: string; rows: DerivativeMarket[] }) {
+async function FundingGroup({ title, rows }: { title: string; rows: DerivativeMarket[] }) {
+  const nombres = await getFormatters()
+
   if (rows.length === 0) return null
 
   return (
@@ -140,7 +145,7 @@ function FundingGroup({ title, rows }: { title: string; rows: DerivativeMarket[]
                   (entry.fundingRate ?? 0) >= 0 ? 'text-up' : 'text-down'
                 }`}
               >
-                {formatPercent(entry.fundingRate)}
+                {nombres.percent(entry.fundingRate)}
               </span>
             </span>
           </li>

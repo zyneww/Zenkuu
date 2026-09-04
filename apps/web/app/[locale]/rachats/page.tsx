@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { CACHE_TTL_SECONDS, getRanking, type MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { BUYBACK_FATE_LABEL, BUYBACK_PROGRAMS } from '@/content/buybacks'
@@ -9,12 +9,14 @@ import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 import { getPhrase, getSeo } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
+import { getFormatters } from '@/lib/formatters'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
 void _ttlGuard
 
 export async function generateMetadata(): Promise<Metadata> {
+
   const t = await getPhrase()
   const seo = await getSeo()
   return {
@@ -58,6 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * un cas d'erreur — sa ligne s'affiche, ses colonnes de marché à « — ».
  */
 export default async function Page() {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
 
   const ranking = await getRanking({ assetClass: 'crypto', perPage: 250, currency: 'usd' })
@@ -130,7 +134,7 @@ export default async function Page() {
                 </th>
 
                 <td className="tabular px-4 py-3 text-right text-ink">
-                  {asset ? formatCurrency(asset.price, 'USD') : <Absent />}
+                  {asset ? nombres.currency(asset.price, 'USD') : <Absent />}
                 </td>
                 <td className="px-4 py-3 text-right">
                   {asset?.change24h === undefined ? <Absent /> : <ChangeBadge value={asset.change24h} size="sm" />}
@@ -139,7 +143,7 @@ export default async function Page() {
                   {asset?.marketCap === undefined ? (
                     <Absent />
                   ) : (
-                    formatCurrency(asset.marketCap, 'USD', { compact: true })
+                    nombres.currency(asset.marketCap, 'USD', { compact: true })
                   )}
                 </td>
 

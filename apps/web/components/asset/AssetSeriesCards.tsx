@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useMemo, useState } from 'react'
 
 import { BarFigure } from '@/components/charts/BarFigure'
@@ -50,6 +51,7 @@ import { regrouper, type Grain, type SeriesPoint } from '@/components/asset/seri
 export type { SeriesPoint } from '@/components/asset/series-grouping'
 
 export function AssetSeriesCards({ points }: { points: readonly SeriesPoint[] }) {
+  const locale = useLocale()
   const t = usePhrase()
   const [grain, setGrain] = useState<Grain>('jour')
 
@@ -57,12 +59,14 @@ export function AssetSeriesCards({ points }: { points: readonly SeriesPoint[] })
 
   const format = useMemo(
     () =>
-      new Intl.DateTimeFormat('fr-FR', {
+      new Intl.DateTimeFormat(locale, {
         day: grain === 'mois' ? undefined : 'numeric',
         month: 'short',
         ...(grain === 'mois' ? { year: '2-digit' } : {}),
       }),
-    [grain],
+    /* `locale` en dépendance : le formateur est mémoïsé, sans elle un changement de
+       langue laisserait les dates dans l’ancienne. */
+    [grain, locale],
   )
 
   /* Une carte se retire d'elle-même quand sa série manque : les devises n'ont pas de

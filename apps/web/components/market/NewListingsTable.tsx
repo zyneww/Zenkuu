@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { CalendarDays } from 'lucide-react'
 import { Search } from 'lucide-react'
 
@@ -8,7 +9,7 @@ import { usePhrase } from '@/components/locale/ContentProvider'
 import { useMemo, useState } from 'react'
 
 import type { NewListing } from '@zenkuu/data'
-import { ChangeBadge, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { Link, type AppHref } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'
@@ -17,6 +18,7 @@ import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { DEFAULT_ROWS } from '@/lib/limits'
 import { matchListing, type ListingMatch } from '@/lib/listing-match'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Tableau des cotations récentes.
@@ -76,6 +78,10 @@ export function NewListingsTable({
    */
   index: Map<string, ListingMatch>
 }) {
+  const locale = useLocale()
+
+  const nombres = useFormatters()
+
   const t = usePhrase()
   const [query, setQuery] = useState('')
 
@@ -271,7 +277,7 @@ export function NewListingsTable({
                   <Identity listing={item} match={matchListing(item, index)} />
                 </td>
                 <td className="tabular px-3 py-2.5 text-right text-ink">
-                  {formatCurrency(item.price, 'USD') ?? '—'}
+                  {nombres.currency(item.price, 'USD') ?? '—'}
                 </td>
                 <td className="px-3 py-2.5 text-right">
                   <ChangeBadge value={item.change24h} size="sm" />
@@ -280,13 +286,13 @@ export function NewListingsTable({
                   <ChangeBadge value={item.change7d} size="sm" />
                 </td>
                 <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
-                  {formatCurrency(item.volume24h, 'USD', { compact: true }) ?? '—'}
+                  {nombres.currency(item.volume24h, 'USD', { compact: true }) ?? '—'}
                 </td>
                 <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
-                  {formatCurrency(item.marketCap, 'USD', { compact: true }) ?? '—'}
+                  {nombres.currency(item.marketCap, 'USD', { compact: true }) ?? '—'}
                 </td>
                 <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
-                  {formatListedSince(item.firstDataAt)}
+                  {formatListedSince(item.firstDataAt, locale)}
                 </td>
               </tr>
             ))}
@@ -403,11 +409,11 @@ function Identity({ listing, match }: { listing: NewListing; match?: ListingMatc
  * nouveauté — mais au-delà d'un mois l'écart relatif cesse de parler, et la date
  * reprend l'avantage.
  */
-function formatListedSince(iso: string): string {
+function formatListedSince(iso: string, locale: string): string {
   const days = Math.floor((Date.now() - Date.parse(iso)) / 86_400_000)
   if (!Number.isFinite(days) || days < 0) return '—'
   if (days === 0) return 'aujourd’hui'
   if (days === 1) return 'hier'
   if (days < 31) return `il y a ${days} j`
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }

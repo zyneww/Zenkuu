@@ -2,11 +2,12 @@ import { getTranslations } from 'next-intl/server'
 import { getPhrase } from '@/lib/content'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
-import { ChangeBadge, formatPercent } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { MetricValue } from '@/components/asset/MetricValue'
 import { InfoTip } from '@/components/ui/InfoTip'
 import { RailSection } from '@/components/ui/RailSection'
+import { getFormatters } from '@/lib/formatters'
 import {
   METRICS,
   extremeMessage,
@@ -86,6 +87,8 @@ export async function AssetMetricRail({
    */
   groups?: readonly MetricGroup[]
 }) {
+  const nombres = await getFormatters()
+
   const t = await getTranslations('metric')
   const phrase = await getPhrase()
   const isForex = assetClass === 'forex'
@@ -218,7 +221,7 @@ export async function AssetMetricRail({
                        * le peindre en rouge dirait qu'elle vient de se produire.
                        */
                       <dd className="tabular shrink-0 text-right text-xs text-ink-muted">
-                        {formatPercent(change)}
+                        {nombres.percent(change)}
                       </dd>
                     )
                   ) : null}

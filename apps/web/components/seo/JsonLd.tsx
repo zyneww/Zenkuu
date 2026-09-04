@@ -1,3 +1,5 @@
+import { getLocale } from 'next-intl/server'
+
 import { absoluteUrl } from '@/lib/site'
 
 /**
@@ -29,8 +31,23 @@ function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   )
 }
 
-/** Identité du site, posée une fois pour toutes dans le layout racine. */
-export function OrganizationJsonLd() {
+/**
+ * Identité du site, posée une fois pour toutes dans le layout racine.
+ *
+ * ⚠️ `inLanguage` VALAIT `'fr-FR'` EN DUR DANS LES TROIS COMPOSANTS DE CE FICHIER.
+ *
+ * Les données structurées déclaraient donc du français sur les treize versions du site,
+ * y compris là où tout le texte de la page est anglais ou japonais. Ce n'est pas une
+ * co-quetterie : `inLanguage` est justement ce qu'un moteur lit pour savoir à quel
+ * public servir la page, et il contredisait `<html lang>` à chaque fois.
+ *
+ * Les trois deviennent asynchrones pour lire la langue de la requête. Ce sont des
+ * composants serveur — ils ne rendent qu'une balise `<script>` —, la mutation est donc
+ * sans effet sur ce que le navigateur reçoit.
+ */
+export async function OrganizationJsonLd() {
+  const locale = await getLocale()
+
   return (
     <JsonLdScript
       data={{
@@ -38,7 +55,7 @@ export function OrganizationJsonLd() {
         '@type': 'WebSite',
         name: 'ZENKUU',
         url: absoluteUrl('/'),
-        inLanguage: 'fr-FR',
+        inLanguage: locale,
         description:
           'Plateforme d’information de marché multi-actifs en lecture seule : cryptomonnaies, devises, actions, ETF, matières premières et indices.',
         publisher: {
@@ -69,7 +86,7 @@ interface AssetJsonLdProps {
  * et la date de dernière modification. C'est exactement ce qu'un lecteur — humain ou
  * robot — doit savoir d'un cours affiché.
  */
-export function AssetJsonLd({
+export async function AssetJsonLd({
   name,
   symbol,
   path,
@@ -78,6 +95,8 @@ export function AssetJsonLd({
   sourceUrl,
   updatedAt,
 }: AssetJsonLdProps) {
+  const locale = await getLocale()
+
   return (
     <JsonLdScript
       data={{
@@ -88,7 +107,7 @@ export function AssetJsonLd({
           description ??
           `Cours, variations et statistiques de marché pour ${name} (${symbol}), relayés depuis ${sourceName}.`,
         url: absoluteUrl(path),
-        inLanguage: 'fr-FR',
+        inLanguage: locale,
         isAccessibleForFree: true,
         ...(updatedAt ? { dateModified: updatedAt } : {}),
         creator: { '@type': 'Organization', name: sourceName, url: sourceUrl },
@@ -118,7 +137,7 @@ export function FaqJsonLd({ items }: { items: { question: string; answer: string
 }
 
 /** Article éditorial — aide et fiches Apprendre. */
-export function ArticleJsonLd({
+export async function ArticleJsonLd({
   title,
   description,
   path,
@@ -134,6 +153,8 @@ export function ArticleJsonLd({
   updatedAt?: string
   author?: string
 }) {
+  const locale = await getLocale()
+
   return (
     <JsonLdScript
       data={{
@@ -142,7 +163,7 @@ export function ArticleJsonLd({
         headline: title,
         description,
         url: absoluteUrl(path),
-        inLanguage: 'fr-FR',
+        inLanguage: locale,
         isAccessibleForFree: true,
         // Les dates ne sont émises QUE si elles existent réellement : un
         // `datePublished` inventé pour satisfaire le validateur de données

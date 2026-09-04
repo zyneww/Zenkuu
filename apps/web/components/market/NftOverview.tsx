@@ -1,11 +1,11 @@
 import type { NftCollection } from '@zenkuu/data'
-import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { emphasise } from '@/components/locale/emphasise'
 import { HeatmapFrame } from '@/components/tools/HeatmapFrame'
 import { TreemapFigure, TreemapLegend, type TreemapTile } from '@/components/tools/TreemapFigure'
 import { HEATMAP_CLAMP } from '@/components/tools/treemap'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * VUE D'ENSEMBLE DES COLLECTIONS NFT — trois compteurs et une carte thermique.
@@ -38,6 +38,8 @@ import { getPhrase } from '@/lib/content'
  * la carte se lirait comme une carte de capitalisations colorée par elle-même.
  */
 export async function NftOverview({ collections }: { collections: NftCollection[] }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const ranked = collections
     .filter((collection) => (collection.marketCapUsd ?? 0) > 0)
@@ -76,17 +78,17 @@ export async function NftOverview({ collections }: { collections: NftCollection[
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Stat
           label={t('Capitalisation de la sélection')}
-          value={`${formatCompact(total)} $`}
+          value={`${nombres.compact(total)} $`}
           hint={`${ranked.length} collections suivies`}
         />
         <Stat
           label={t('Volume 24 h')}
-          value={`${formatCompact(volume)} $`}
+          value={`${nombres.compact(volume)} $`}
           hint={t('ventes sur les mêmes collections')}
         />
         <Stat
           label={`Part de ${leader.name}`}
-          value={formatShare(leaderShare) ?? '—'}
+          value={nombres.share(leaderShare) ?? '—'}
           hint={t('de la sélection, pas du marché NFT')}
         />
       </div>
@@ -106,6 +108,7 @@ export async function NftOverview({ collections }: { collections: NftCollection[
         <HeatmapFrame>
           <TreemapFigure
             tiles={tiles}
+            nombres={nombres}
             periodLabel="24 heures"
             /* PLUS HAUTE que les autres cartes : six tuiles seulement, dont les
                vignettes et les noms complets demandent de la place. À 360 pixels, les

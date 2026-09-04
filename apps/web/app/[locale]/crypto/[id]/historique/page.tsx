@@ -47,6 +47,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
+
   const { id } = await params
   const t = await getPhrase()
   const seo = await getSeo()

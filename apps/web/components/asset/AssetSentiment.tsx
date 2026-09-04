@@ -1,10 +1,10 @@
 import { Meter } from '@heroui/react'
 
 import type { AssetDetail } from '@zenkuu/data'
-import { formatShare } from '@zenkuu/ui'
 
 import { RailSection } from '@/components/ui/RailSection'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Vote communautaire haussier / baissier.
@@ -30,6 +30,8 @@ import { getPhrase } from '@/lib/content'
  * niveau, ce qui serait un contresens.
  */
 export async function AssetSentiment({ asset }: { asset: AssetDetail }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const up = asset.sentimentUpPercent
   if (up === undefined) return null
@@ -42,8 +44,8 @@ export async function AssetSentiment({ asset }: { asset: AssetDetail }) {
   return (
     <RailSection title={t('Sentiment')}>
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className="tabular font-semibold text-up">{formatShare(upShare)}</span>
-        <span className="tabular font-semibold text-down">{formatShare(downShare)}</span>
+        <span className="tabular font-semibold text-up">{nombres.share(upShare)}</span>
+        <span className="tabular font-semibold text-down">{nombres.share(downShare)}</span>
       </div>
 
       {/*

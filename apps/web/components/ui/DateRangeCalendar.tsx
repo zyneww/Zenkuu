@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { fr } from 'react-day-picker/locale'
 import { useMemo, useState, useSyncExternalStore } from 'react'
 import type { DateRange } from 'react-day-picker'
@@ -86,6 +87,8 @@ export function DateRangeCalendar({
   value: { from: string; to: string } | null
   onChange: (range: { from: string; to: string } | null) => void
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const today = useMemo(() => new Date(), [])
   const wide = useWideEnoughForTwoMonths()
@@ -149,7 +152,7 @@ export function DateRangeCalendar({
           {draft?.from && !draft.to
             ? t('Choisissez la seconde date')
             : value
-              ? `${formatShortDay(value.from)} → ${formatShortDay(value.to)}`
+              ? `${formatShortDay(value.from, locale)} → ${formatShortDay(value.to, locale)}`
               : t('Choisissez une première date')}
         </p>
 
@@ -199,8 +202,8 @@ function useWideEnoughForTwoMonths(): boolean {
 }
 
 /** « 14 mars 2024 » → « 14 mars », pour le résumé du pied. */
-function formatShortDay(iso: string): string {
+function formatShortDay(iso: string, locale: string): string {
   const date = fromIsoDay(iso)
   if (!date) return iso
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }

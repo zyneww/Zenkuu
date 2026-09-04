@@ -4,7 +4,7 @@ import { Code2, Download } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useLocale } from 'next-intl'
 
-import { ChangeBadge, formatCompact, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
 
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { AGGREGATE_TONE } from '@/components/charts/chart-theme'
@@ -14,6 +14,7 @@ import { InfoTip } from '@/components/ui/InfoTip'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { GRAINS, autoGrain, groupBy, type Grain } from '@/components/market/chart-grain'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -123,6 +124,8 @@ export function GlobalChartCard({
    */
   embedId?: string
 }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   /* Les mois de l'axe suivent la LANGUE lue, pas celle du code : « 24 nov. » sous une
      page anglaise se remarque autant qu'un titre non traduit. */
@@ -219,8 +222,8 @@ export function GlobalChartCard({
       : format === 'percent'
         ? `${last.toFixed(2)} %`
         : format === 'money'
-          ? (formatCurrency(last, currency, { compact: true }) ?? '—')
-          : (formatCompact(last) ?? '—')
+          ? (nombres.currency(last, currency, { compact: true }) ?? '—')
+          : (nombres.compact(last) ?? '—')
 
   /* ── UNE SEULE TEINTE POUR TOUTES LES FIGURES D'AGRÉGAT ────────────────────
 
@@ -422,8 +425,8 @@ export function GlobalChartCard({
             format === 'percent'
               ? `${Math.round(y)} %`
               : format === 'money'
-                ? (formatCurrency(y, currency, { compact: true }) ?? '')
-                : (formatCompact(y) ?? '')
+                ? (nombres.currency(y, currency, { compact: true }) ?? '')
+                : (nombres.compact(y) ?? '')
           }
           formatTooltipX={(x) =>
             new Intl.DateTimeFormat(locale, {
@@ -436,8 +439,8 @@ export function GlobalChartCard({
             format === 'percent'
               ? `${y.toFixed(2)} %`
               : format === 'money'
-                ? (formatCurrency(y, currency, { compact: true }) ?? '')
-                : (formatCompact(y) ?? '')
+                ? (nombres.currency(y, currency, { compact: true }) ?? '')
+                : (nombres.compact(y) ?? '')
           }
         />
       </div>

@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import type { DerivativeExchange } from '@zenkuu/data'
-import { EmptyState, formatCompact } from '@zenkuu/ui'
+import { EmptyState } from '@zenkuu/ui'
 
 import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { Link } from '@/i18n/navigation'
@@ -15,6 +15,7 @@ import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { DEFAULT_ROWS } from '@/lib/limits'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * REGISTRE DES PLACES DE PRODUITS DÉRIVÉS.
@@ -60,6 +61,8 @@ export function DerivativeExchangesExplorer({
 }: {
   exchanges: DerivativeExchange[]
 }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   const [filter, setFilter] = useState<FilterId>('all')
   const [query, setQuery] = useState('')
@@ -328,14 +331,14 @@ export function DerivativeExchangesExplorer({
 
                       <td className="tabular px-3 py-2.5 text-right font-medium text-ink">
                         {row.openInterestBtc !== undefined
-                          ? formatCompact(row.openInterestBtc)
+                          ? nombres.compact(row.openInterestBtc)
                           : '—'}
                       </td>
 
                       {prefs.isVisible('volume') ? (
                         <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted sm:table-cell">
                           {row.volume24hBtc !== undefined
-                            ? formatCompact(row.volume24hBtc)
+                            ? nombres.compact(row.volume24hBtc)
                             : '—'}
                         </td>
                       ) : null}
@@ -343,7 +346,7 @@ export function DerivativeExchangesExplorer({
                       {prefs.isVisible('turnover') ? (
                         <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
                           {rotation !== undefined
-                            ? `${rotation.toFixed(1).replace('.', ',')} ×`
+                            ? `${nombres.fixed(rotation, 1) ?? '—'} ×`
                             : '—'}
                         </td>
                       ) : null}

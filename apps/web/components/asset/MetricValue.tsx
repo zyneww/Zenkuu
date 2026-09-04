@@ -1,8 +1,8 @@
 import type { AssetDetail } from '@zenkuu/data'
-import { formatCompact, formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 import type { MetricDef } from '@/lib/asset-metrics'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Rendu d'une valeur de métrique.
@@ -20,7 +20,7 @@ import type { MetricDef } from '@/lib/asset-metrics'
  * où elle s'affiche. Une quantité est une quantité, qu'elle soit dans une carte ou
  * dans un en-tête.
  */
-export function MetricValue({
+export async function MetricValue({
   metric,
   value,
   asset,
@@ -41,6 +41,8 @@ export function MetricValue({
    */
   compact?: boolean
 }) {
+  const nombres = await getFormatters()
+
   switch (metric.kind) {
     case 'money':
       return (compact ?? metric.group === 'market') ? (
@@ -51,9 +53,9 @@ export function MetricValue({
     case 'quantity':
       // Une quantité n'est PAS un montant : elle ne se convertit pas et ne porte
       // pas de symbole monétaire, mais celui de l'actif.
-      return `${formatCompact(Number(value))} ${asset.symbol.toUpperCase()}`
+      return `${nombres.compact(Number(value))} ${asset.symbol.toUpperCase()}`
     case 'percent':
-      return formatShare(Number(value))
+      return nombres.share(Number(value))
     case 'rank':
       return `#${value}`
     case 'change':

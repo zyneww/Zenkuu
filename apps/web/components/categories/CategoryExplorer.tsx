@@ -540,7 +540,7 @@ function CategoryTable({
               <td className="px-3 py-2.5 text-right">
                 <ChangeBadge value={category.marketCapChange24h} size="sm" />
               </td>
-              {/* `Money` et non `formatCurrency(…, 'USD')` : ce tableau était le seul
+              {/* `Money` et non `nombres.currency(…, 'USD')` : ce tableau était le seul
                   du site à ignorer la devise choisie par le visiteur. La source cote
                   bien en dollars — c'est ce que dit `from` — mais l'affichage suit la
                   préférence, comme partout ailleurs (§5 : l'origine reste nommée). */}

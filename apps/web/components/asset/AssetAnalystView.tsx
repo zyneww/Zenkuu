@@ -1,3 +1,4 @@
+import { getFormatters } from '@/lib/formatters'
 import type { AssetProfile } from '@zenkuu/data'
 
 import { Money } from '@/components/locale/Money'
@@ -64,6 +65,8 @@ export async function AssetAnalystView({
   /** Cours courant, pour situer l'objectif moyen. */
   price: number
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const analyst = profile?.analyst
   if (!analyst) return null
@@ -175,7 +178,7 @@ export async function AssetAnalystView({
                 }`}
               >
                 {upside >= 0 ? '+' : ''}
-                {upside.toFixed(1).replace('.', ',')} %
+                {nombres.fixed(upside, 1) ?? '—'} %
               </span>
             </div>
           ) : null}

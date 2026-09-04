@@ -8,11 +8,12 @@ import {
   getCategoryAssets,
   type MarketCategory,
 } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
+import { ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { MarketTable } from '@/components/market/MarketTable'
 import { getPhrase } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
+import { getFormatters } from '@/lib/formatters'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -42,6 +43,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
+
   const t = await getPhrase()
   const { id } = await params
   const category = await loadCategory(id)
@@ -65,6 +67,8 @@ export default async function CategoryPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const { id } = await params
 
@@ -105,11 +109,11 @@ export default async function CategoryPage({
         <dl className="flex flex-wrap gap-x-12 gap-y-4">
           <Stat
             label={t('Capitalisation du secteur')}
-            value={formatCurrency(category.marketCap, 'USD', { compact: true }) ?? '—'}
+            value={nombres.currency(category.marketCap, 'USD', { compact: true }) ?? '—'}
           />
           <Stat
             label={t('Volume 24 h')}
-            value={formatCurrency(category.volume24h, 'USD', { compact: true }) ?? '—'}
+            value={nombres.currency(category.volume24h, 'USD', { compact: true }) ?? '—'}
           />
           <Stat
             label={t('Actifs listés ici')}

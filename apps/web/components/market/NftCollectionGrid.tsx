@@ -1,6 +1,7 @@
 import { getPhrase } from '@/lib/content'
 import type { NftCollection } from '@zenkuu/data'
-import { ChangeBadge, formatCompact } from '@zenkuu/ui'
+import { ChangeBadge } from '@zenkuu/ui'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Collections NFT suivies — une SÉLECTION, jamais un classement.
@@ -22,6 +23,8 @@ import { ChangeBadge, formatCompact } from '@zenkuu/ui'
  * monde retient.
  */
 export async function NftCollectionGrid({ collections }: { collections: NftCollection[] }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -55,7 +58,7 @@ export async function NftCollectionGrid({ collections }: { collections: NftColle
               <span className="block truncate text-[0.6875rem] text-ink-muted">
                 {collection.symbol ?? '—'}
                 {collection.totalSupply
-                  ? ` · ${formatCompact(collection.totalSupply)} pièces`
+                  ? ` · ${nombres.compact(collection.totalSupply)} pièces`
                   : ''}
               </span>
             </span>
@@ -66,12 +69,12 @@ export async function NftCollectionGrid({ collections }: { collections: NftColle
               <dt className="text-ink-muted">{t('Prix plancher')}</dt>
               <dd className="tabular mt-0.5 font-medium text-ink">
                 {collection.floorPriceNative !== undefined
-                  ? `${collection.floorPriceNative.toFixed(2).replace('.', ',')} ${collection.nativeSymbol ?? ''}`
+                  ? `${nombres.fixed(collection.floorPriceNative, 2) ?? '—'} ${collection.nativeSymbol ?? ''}`
                   : '—'}
               </dd>
               {collection.floorPriceUsd !== undefined ? (
                 <dd className="tabular text-[0.6875rem] text-ink-muted">
-                  {formatCompact(collection.floorPriceUsd)} $
+                  {nombres.compact(collection.floorPriceUsd)} $
                 </dd>
               ) : null}
             </div>
@@ -87,7 +90,7 @@ export async function NftCollectionGrid({ collections }: { collections: NftColle
               <dt className="text-ink-muted">{t('Capitalisation')}</dt>
               <dd className="tabular mt-0.5 text-ink">
                 {collection.marketCapUsd !== undefined
-                  ? `${formatCompact(collection.marketCapUsd)} $`
+                  ? `${nombres.compact(collection.marketCapUsd)} $`
                   : '—'}
               </dd>
             </div>
@@ -99,7 +102,7 @@ export async function NftCollectionGrid({ collections }: { collections: NftColle
                   pas une donnée manquante. */}
               <dd className="tabular mt-0.5 text-ink">
                 {collection.volume24hUsd !== undefined
-                  ? `${formatCompact(collection.volume24hUsd)} $`
+                  ? `${nombres.compact(collection.volume24hUsd)} $`
                   : '—'}
               </dd>
             </div>

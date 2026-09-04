@@ -1,5 +1,6 @@
 'use client'
 
+import { useFormatters } from '@/components/locale/useFormatters'
 import { useMemo } from 'react'
 import {
   PolarAngleAxis,
@@ -72,6 +73,8 @@ export function ComparatorRadar({
   /** Même teinte que la courbe du même actif — c'est ce qui relie les deux figures. */
   colorOf: (id: string) => string
 }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
 
   const rows = useMemo(
@@ -137,7 +140,7 @@ export function ComparatorRadar({
                         className={`tabular font-medium ${numeric >= 0 ? 'text-up' : 'text-down'}`}
                       >
                         {numeric >= 0 ? '+' : '−'}
-                        {Math.abs(numeric).toFixed(2).replace('.', ',')} %
+                        {nombres.fixed(Math.abs(numeric), 2) ?? '—'} %
                       </span>
                     </>
                   )

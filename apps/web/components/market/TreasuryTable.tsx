@@ -5,13 +5,13 @@ import { emphasise } from '@/components/locale/emphasise'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { TreasuryHolder, TreasuryReport } from '@zenkuu/data'
-import { formatCompact } from '@zenkuu/ui'
 
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { DEFAULT_ROWS } from '@/lib/limits'
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Registre des détenteurs institutionnels.
@@ -33,6 +33,8 @@ import { usePhrase } from '@/components/locale/ContentProvider'
 type HolderSortKey = 'name' | 'holdings' | 'currentValue' | 'entryValue' | 'gain' | 'supply'
 
 export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: string }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   /*
    * LA PLUS-VALUE EST CALCULÉE DANS L'EXTRACTEUR, pas stockée sur la ligne.
@@ -214,13 +216,13 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                   </td>
 
                   <td className="tabular px-3 py-2.5 text-right text-ink">
-                    {formatCompact(holder.holdings)}
+                    {nombres.compact(holder.holdings)}
                   </td>
 
                   {prefs.isVisible('currentValue') ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink sm:table-cell">
                       {holder.currentValueUsd !== undefined
-                        ? formatCompact(holder.currentValueUsd)
+                        ? nombres.compact(holder.currentValueUsd)
                         : '—'}
                     </td>
                   ) : null}
@@ -228,7 +230,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                   {prefs.isVisible('entryValue') ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted md:table-cell">
                       {holder.entryValueUsd !== undefined
-                        ? formatCompact(holder.entryValueUsd)
+                        ? nombres.compact(holder.entryValueUsd)
                         : '—'}
                     </td>
                   ) : null}
@@ -241,14 +243,14 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                     >
                       {gain === undefined
                         ? '—'
-                        : `${gain >= 0 ? '+' : ''}${gain.toFixed(1).replace('.', ',')} %`}
+                        : `${gain >= 0 ? '+' : ''}${nombres.fixed(gain, 1) ?? '—'} %`}
                     </td>
                   ) : null}
 
                   {prefs.isVisible('supply') ? (
                     <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
                       {holder.percentOfSupply !== undefined
-                        ? `${holder.percentOfSupply.toFixed(3).replace('.', ',')} %`
+                        ? `${nombres.fixed(holder.percentOfSupply, 3) ?? '—'} %`
                         : '—'}
                     </td>
                   ) : null}

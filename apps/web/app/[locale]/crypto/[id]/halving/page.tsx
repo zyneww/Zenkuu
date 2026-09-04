@@ -1,3 +1,4 @@
+import { getLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -49,6 +50,8 @@ export function generateStaticParams() {
 }
 
 export default async function HalvingPage({ params }: { params: Promise<{ id: string }> }) {
+  const locale = await getLocale()
+
   const { id } = await params
   if (id !== 'bitcoin') notFound()
 
@@ -122,7 +125,7 @@ export default async function HalvingPage({ params }: { params: Promise<{ id: st
                   ) : null}
                 </td>
                 <td className="tabular px-3 py-2.5 text-right text-ink">
-                  {row.height.toLocaleString('fr-FR')}
+                  {row.height.toLocaleString(locale)}
                 </td>
                 <td className="tabular px-3 py-2.5 text-right text-ink-muted">
                   {row.rewardBefore} BTC

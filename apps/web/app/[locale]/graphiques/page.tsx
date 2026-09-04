@@ -15,7 +15,7 @@ import {
   getStablecoinHistory,
   type PriceHistory,
 } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatCompact, formatCurrency, formatPercent, formatShare } from '@zenkuu/ui'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { fill, weave } from '@/components/locale/emphasise'
@@ -28,6 +28,7 @@ import { AltseasonCard } from '@/components/market/views/AltseasonSection'
 import { BasketSection } from '@/components/market/views/BasketSection'
 import { getPhrase } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
+import { getFormatters } from '@/lib/formatters'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -107,6 +108,8 @@ export default async function Page({
 }
 
 async function GlobalView() {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   /*
    * ── LES APPELS SONT TOUS DÉJÀ PAYÉS AILLEURS ──────────────────────────────
@@ -193,17 +196,17 @@ async function GlobalView() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             label={t('Capitalisation totale')}
-            value={formatCurrency(stats.totalMarketCap, stats.currency, { compact: true }) ?? '—'}
+            value={nombres.currency(stats.totalMarketCap, stats.currency, { compact: true }) ?? '—'}
             change24h={stats.marketCapChange24h}
-            note={t('{n} actifs suivis').replace('{n}', formatCompact(stats.activeAssets) ?? '—')}
+            note={t('{n} actifs suivis').replace('{n}', nombres.compact(stats.activeAssets) ?? '—')}
           />
 
           <StatCard
             label={t('Volume sur 24 heures')}
-            value={formatCurrency(stats.totalVolume24h, stats.currency, { compact: true }) ?? '—'}
+            value={nombres.currency(stats.totalVolume24h, stats.currency, { compact: true }) ?? '—'}
             note={
               stats.activeMarkets !== undefined
-                ? t('{n} marchés').replace('{n}', formatCompact(stats.activeMarkets) ?? '—')
+                ? t('{n} marchés').replace('{n}', nombres.compact(stats.activeMarkets) ?? '—')
                 : undefined
             }
           />
@@ -216,12 +219,12 @@ async function GlobalView() {
             label={t('Dominance')}
             value={
               stats.dominance['btc'] !== undefined
-                ? `${formatShare(stats.dominance['btc']) ?? '—'} BTC`
+                ? `${nombres.share(stats.dominance['btc']) ?? '—'} BTC`
                 : '—'
             }
             note={
               stats.dominance['eth'] !== undefined
-                ? `${formatShare(stats.dominance['eth']) ?? '—'} ETH`
+                ? `${nombres.share(stats.dominance['eth']) ?? '—'} ETH`
                 : undefined
             }
           />
@@ -252,17 +255,17 @@ async function GlobalView() {
             {
               cap: (
                 <span className="font-semibold text-ink">
-                  {formatCurrency(stats.totalMarketCap, stats.currency, { compact: true })}
+                  {nombres.currency(stats.totalMarketCap, stats.currency, { compact: true })}
                 </span>
               ),
               change: (
                 <span className={stats.marketCapChange24h >= 0 ? 'text-up' : 'text-down'}>
-                  {formatPercent(stats.marketCapChange24h) ?? '—'}
+                  {nombres.percent(stats.marketCapChange24h) ?? '—'}
                 </span>
               ),
               volume: (
                 <span className="font-semibold text-ink">
-                  {formatCurrency(stats.totalVolume24h, stats.currency, { compact: true })}
+                  {nombres.currency(stats.totalVolume24h, stats.currency, { compact: true })}
                 </span>
               ),
               btc: (
@@ -276,7 +279,7 @@ async function GlobalView() {
                 </span>
               ),
               count: (
-                <span className="font-semibold text-ink">{formatCompact(stats.activeAssets)}</span>
+                <span className="font-semibold text-ink">{nombres.compact(stats.activeAssets)}</span>
               ),
             },
           )}
@@ -320,7 +323,7 @@ async function GlobalView() {
             <span className="inline-flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
               {stats ? (
                 <Total
-                  value={formatCompact(stats.activeAssets) ?? '—'}
+                  value={nombres.compact(stats.activeAssets) ?? '—'}
                   label={t('cryptomonnaies')}
                 />
               ) : null}

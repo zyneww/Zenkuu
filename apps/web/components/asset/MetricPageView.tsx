@@ -10,10 +10,6 @@ import {
   EmptyState,
   PriceChart,
   SourceNote,
-  formatCompact,
-  formatCurrency,
-  formatDateTime,
-  formatShare,
 } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
@@ -28,6 +24,7 @@ import {
   type MetricDef,
 } from '@/lib/asset-metrics'
 import { fr } from '@/content/fr'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Page dédiée à UNE métrique d'UN actif.
@@ -72,6 +69,8 @@ export interface MetricPageViewProps {
 }
 
 export async function MetricPageView({ assetClass, id, slug }: MetricPageViewProps) {
+  const nombres = await getFormatters()
+
   const metric = getMetric(slug)
 
   // Slug inconnu : c'est un 404 au sens propre. La liste des métriques est fermée et
@@ -234,10 +233,10 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
                   label={`${label} · ${data.name}`}
                   formatPrice={(value) =>
                     metric.kind === 'quantity'
-                      ? `${formatCompact(value)} ${data.symbol.toUpperCase()}`
-                      : formatCurrency(value, data.currency, { compact: true })
+                      ? `${nombres.compact(value)} ${data.symbol.toUpperCase()}`
+                      : nombres.currency(value, data.currency, { compact: true })
                   }
-                  formatDate={(timestamp) => formatDateTime(new Date(timestamp).toISOString()) ?? ''}
+                  formatDate={(timestamp) => nombres.dateTime(new Date(timestamp).toISOString()) ?? ''}
                 />
                 {history.ok ? (
                   <SourceNote
@@ -327,7 +326,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
  * Extrait du rail et de la page pour qu'un montant compact reste compact aux deux
  * endroits : deux implémentations divergeraient au premier ajout de métrique.
  */
-function MetricValue({
+async function MetricValue({
   metric,
   value,
   asset,
@@ -338,6 +337,8 @@ function MetricValue({
   asset: { currency: string; symbol: string }
   isForex: boolean
 }) {
+  const nombres = await getFormatters()
+
   switch (metric.kind) {
     case 'money':
       return metric.group === 'market' ? (
@@ -346,9 +347,9 @@ function MetricValue({
         <Money value={Number(value)} from={asset.currency} asRate={isForex} />
       )
     case 'quantity':
-      return <>{`${formatCompact(Number(value))} ${asset.symbol.toUpperCase()}`}</>
+      return <>{`${nombres.compact(Number(value))} ${asset.symbol.toUpperCase()}`}</>
     case 'percent':
-      return <>{formatShare(Number(value))}</>
+      return <>{nombres.share(Number(value))}</>
     case 'rank':
       return <>{`#${value}`}</>
     case 'change':

@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useEffect, useState } from 'react'
 
 import type { AssetDetail } from '@zenkuu/data'
@@ -64,6 +65,8 @@ export function AssetMarketStatus({
   asset: AssetDetail
   showPlace?: boolean
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const session = asset.session
   const [now, setNow] = useState<number | null>(null)
@@ -80,7 +83,7 @@ export function AssetMarketStatus({
      métadonnées. Un « Marché ouvert » par défaut serait une affirmation gratuite. */
   if (!session || now === null) return null
 
-  const state = statusOf(session, now, t)
+  const state = statusOf(session, now, t, locale)
   if (!state) return null
 
   const place = asset.exchange ?? null
@@ -153,12 +156,13 @@ function statusOf(
   session: NonNullable<AssetDetail['session']>,
   now: number,
   t: (text: string) => string,
+  locale: string,
 ): { open: boolean; label: string } | null {
   const opens = session.opensAt ? Date.parse(session.opensAt) : NaN
   const closes = session.closesAt ? Date.parse(session.closesAt) : NaN
 
   const time = (iso: string) =>
-    new Intl.DateTimeFormat('fr-FR', {
+    new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
       timeZone: session.timezone,

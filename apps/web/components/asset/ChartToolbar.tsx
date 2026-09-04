@@ -1,6 +1,7 @@
 'use client'
 
 
+import { useLocale } from 'next-intl'
 import { Separator } from '@/components/ui/separator'
 import {
   Menubar,
@@ -1932,6 +1933,8 @@ function DateRangePicker({
   value: { from: string; to: string } | null
   onChange: (range: { from: string; to: string } | null) => void
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -1975,7 +1978,7 @@ function DateRangePicker({
             qu'un réglage est actif sans dire lequel — et c'est le seul réglage de la
             barre qu'aucun voisin ne peut rappeler, puisque les paliers de durée sont
             tous éteints pendant qu'il commande. */}
-        {value ? <span className="tabular hidden lg:inline">{compactRange(value)}</span> : null}
+        {value ? <span className="tabular hidden lg:inline">{compactRange(value, locale)}</span> : null}
       </button>
 
       {/* ANCRÉ À DROITE : le bouton vit dans le coin droit de la barre, et un panneau
@@ -2000,11 +2003,11 @@ function DateRangePicker({
 }
 
 /** « 3 août → 12 août » — assez court pour tenir sur un bouton de barre d'outils. */
-function compactRange(range: { from: string; to: string }): string {
+function compactRange(range: { from: string; to: string }, locale: string): string {
   const format = (iso: string) => {
     const [year, month, day] = iso.split('-').map(Number)
     if (!year || !month || !day) return iso
-    return new Date(year, month - 1, day, 12).toLocaleDateString('fr-FR', {
+    return new Date(year, month - 1, day, 12).toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
     })

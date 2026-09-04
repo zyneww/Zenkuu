@@ -1,3 +1,4 @@
+import { getLocale } from 'next-intl/server'
 import type { DataResult, GlobalMarketStats } from '@zenkuu/data'
 
 import { GlobalStatsBar } from '@/components/home/GlobalStatsBar'
@@ -33,6 +34,7 @@ import { getPhrase } from '@/lib/content'
  * jour, et une constante figée devient fausse en une semaine.
  */
 export async function PriceHeader({ globals }: { globals: DataResult<GlobalMarketStats> }) {
+  const locale = await getLocale()
   const t = await getPhrase()
 
   const stats = globals.ok ? globals.data : null
@@ -45,7 +47,7 @@ export async function PriceHeader({ globals }: { globals: DataResult<GlobalMarke
           {stats
             ? t(
                 'Suivez le cours de {count} cryptomonnaies, classées par capitalisation boursière. Prix, variations et volumes, rafraîchis toutes les trois minutes.',
-              ).replace('{count}', stats.activeAssets.toLocaleString('fr-FR'))
+              ).replace('{count}', stats.activeAssets.toLocaleString(locale))
             : t(
                 'Suivez le cours des cryptomonnaies, classées par capitalisation boursière. Prix, variations et volumes, rafraîchis toutes les trois minutes.',
               )}

@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { formatCurrency } from '@zenkuu/ui'
 
 import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { Money } from '@/components/locale/Money'
 import { useLiveTicker } from '@/components/asset/useLiveTicker'
 import { flashDirection, type PriceReading } from '@/components/asset/price-flash'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Cours qui TIQUE — complément de `Money`, pas un remplacement.
@@ -103,6 +103,8 @@ export function LiveBinancePrice({
   fallbackValue: number | undefined
   fallbackCurrency: string
 }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   const { currency, convert } = useCurrency()
   const tick = useLiveTicker(symbol)
@@ -110,7 +112,7 @@ export function LiveBinancePrice({
   /* Formaté AVANT le crochet de teinte, et non après : c'est le texte affiché qui décide
      s'il y a mouvement à signaler, pas le cours brut. Voir `usePriceFlash`. */
   const converted = tick === null ? null : convert(tick.price, 'USD')
-  const formatted = converted === null ? null : formatCurrency(converted, currency)
+  const formatted = converted === null ? null : nombres.currency(converted, currency)
   const direction = usePriceFlash(tick?.price ?? null, formatted)
 
   if (tick === null) {

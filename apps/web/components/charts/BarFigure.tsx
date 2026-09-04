@@ -1,6 +1,9 @@
 'use client'
 
 import { useId } from 'react'
+
+import type { Formatters } from '@zenkuu/ui'
+
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import {
   Bar,
@@ -12,10 +15,10 @@ import {
   YAxis,
 } from 'recharts'
 
-import { formatCompactAxis, formatPercent, formatShare } from '@zenkuu/ui'
 
 import { GRID_DASH, GRID_STROKE } from '@/components/charts/chart-theme'
 import { useReducedMotion } from '@/components/charts/useReducedMotion'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -106,13 +109,21 @@ const LEGEND_HEIGHT = 24
 
 const AXIS_TICK = { fill: 'var(--color-ink-muted)', fontSize: 11 }
 
-function render(value: number, format: BarSeries['format']): string {
+/*
+ * `nombres` ARRIVE EN ARGUMENT, ET NON D'UN CROCHET.
+ *
+ * Cette fonction vit hors du composant : elle est appelée par Recharts comme
+ * `tickFormatter`, donc hors de tout rendu React. Un crochet y serait illégal. Le
+ * composant les obtient une fois et les fait suivre — c'est aussi ce qui rend visible,
+ * à la lecture de la signature, que cette mise en forme dépend de la langue.
+ */
+function render(value: number, format: BarSeries['format'], nombres: Formatters): string {
   const rendered =
     format === 'share'
-      ? formatShare(value)
+      ? nombres.share(value)
       : format === 'percent'
-        ? formatPercent(value)
-        : formatCompactAxis(value)
+        ? nombres.percent(value)
+        : nombres.compactAxis(value)
   /* `null` remonte quand la valeur n'est pas finie. On rend un tiret plutôt qu'un
      zéro : une mesure absente reste absente (§5). */
   return rendered ?? '—'
@@ -127,6 +138,8 @@ export function BarFigure({
   grow = false,
   ariaLabel,
 }: BarFigureProps) {
+  const nombres = useFormatters()
+
   const reduced = useReducedMotion()
   /* Un identifiant PAR INSTANCE : deux figures sur la même page partageraient sinon
      leurs dégradés, et la seconde repeindrait les barres de la première. */
@@ -220,7 +233,7 @@ export function BarFigure({
             tickLine={false}
             axisLine={false}
             width={52}
-            tickFormatter={(value: number) => render(value, left?.format)}
+            tickFormatter={(value: number) => render(value, left?.format, nombres)}
           />
 
           {hasRight ? (
@@ -231,7 +244,7 @@ export function BarFigure({
               tickLine={false}
               axisLine={false}
               width={44}
-              tickFormatter={(value: number) => render(value, right?.format)}
+              tickFormatter={(value: number) => render(value, right?.format, nombres)}
             />
           ) : null}
 
@@ -271,7 +284,7 @@ export function BarFigure({
                       />
                       <span className="flex-1 text-ink-muted">{name}</span>
                       <span className="tabular font-medium text-ink">
-                        {render(Number(value), entry?.format)}
+                        {render(Number(value), entry?.format, nombres)}
                       </span>
                     </>
                   )

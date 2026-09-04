@@ -5,10 +5,10 @@ import { Maximize2, Minimize2 } from 'lucide-react'
 import { useState } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
 
-import { formatShare } from '@zenkuu/ui'
 
 import { Money } from '@/components/locale/Money'
 import { ChartContainer } from '@/components/ui/chart'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * Anneau de répartition, sa légende chiffrée et son infobulle au survol.
@@ -101,6 +101,8 @@ export function ShareDonut({
   valueCurrency?: string
   valueHeader?: string
 }) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   const [active, setActive] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
@@ -277,7 +279,7 @@ export function ShareDonut({
                   {hovered.label}
                 </span>
                 <span className="tabular text-base font-semibold text-ink">
-                  {formatShare(hovered.percent)}
+                  {nombres.share(hovered.percent)}
                 </span>
                 {valueCurrency ? (
                   <span className="tabular text-micro text-ink-muted">
@@ -336,7 +338,7 @@ export function ShareDonut({
                   </td>
                 ) : null}
                 <td className="tabular py-1.5 text-right font-medium text-ink">
-                  {formatShare(segment.percent)}
+                  {nombres.share(segment.percent)}
                 </td>
               </tr>
             ))}
@@ -350,7 +352,7 @@ export function ShareDonut({
               {valueCurrency ? (
                 <td className="tabular pt-1.5 text-right text-ink">{<Money value={total} from={valueCurrency} compact />}</td>
               ) : null}
-              <td className="tabular pt-1.5 text-right text-ink">{formatShare(100)}</td>
+              <td className="tabular pt-1.5 text-right text-ink">{nombres.share(100)}</td>
             </tr>
           </tfoot>
         </table>

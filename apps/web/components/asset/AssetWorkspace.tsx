@@ -1,10 +1,11 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AssetClass, AssetDetail, ExchangeRates, PriceHistory } from '@zenkuu/data'
-import { EmptyState, PriceChart, formatAxisMoney } from '@zenkuu/ui'
+import { EmptyState, PriceChart } from '@zenkuu/ui'
 
 import {
   ASSET_CHART_HEIGHT,
@@ -61,6 +62,7 @@ import { appendLivePoint, clipToRange, mergeCandle } from '@/components/asset/li
 import { AssetDepthChart } from '@/components/asset/AssetDepthChart'
 import { TradingViewChart } from '@/components/asset/TradingViewChart'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 import {
   BINANCE_INTERVALS,
   fetchBinanceKlines,
@@ -254,6 +256,7 @@ export function AssetWorkspace({
   tradingViewSymbol = null,
   tradingViewMarketCapSymbol = null,
 }: AssetWorkspaceProps) {
+
   const t = usePhrase()
   const [days, setDays] = useState(initialDays)
   /**
@@ -1695,6 +1698,9 @@ function OverviewTab({
   showTooltipMarketCap: boolean
   showTooltipChange: boolean
 }) {
+  const locale = useLocale()
+  const nombres = useFormatters()
+
   const fr = useContent()
   const t = usePhrase()
   const [interactive, setInteractive] = useState(false)
@@ -1785,9 +1791,9 @@ function OverviewTab({
              graphique interactif écrit désormais « $55.00 » sur son échelle, et ce
              tracé-ci est celui qu'on voit AVANT lui. Deux formats feraient sauter les
              étiquettes au moment de la bascule — c'est tout l'objet de la note. */
-          formatPrice={(value) => formatAxisMoney(value, currency, compactValues)}
+          formatPrice={(value) => nombres.axisMoney(value, currency, compactValues)}
           formatDate={(timestamp) =>
-            new Intl.DateTimeFormat('fr-FR',
+            new Intl.DateTimeFormat(locale,
               days <= 1
                 ? { hour: '2-digit', minute: '2-digit' }
                 : { day: 'numeric', month: 'short' },

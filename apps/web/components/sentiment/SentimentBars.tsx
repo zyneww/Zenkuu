@@ -1,12 +1,13 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useMemo, useRef, useState } from 'react'
 
 import type { SentimentPoint } from '@zenkuu/data'
-import { formatCompactAxis } from '@zenkuu/ui'
 
 import { GRID_DASH, GRID_STROKE } from '@/components/charts/chart-theme'
 import { sentimentBand } from '@/components/sentiment/bands'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -62,6 +63,9 @@ export function SentimentBars({
   prices: PricePoint[]
   height?: number
 }) {
+  const nombres = useFormatters()
+  const locale = useLocale()
+
   const frame = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<number | null>(null)
 
@@ -196,7 +200,7 @@ export function SentimentBars({
               dominantBaseline="middle"
               className="fill-ink-muted text-[11px] tabular-nums"
             >
-              {formatCompactAxis(priceScale.max) ?? ''}
+              {nombres.compactAxis(priceScale.max) ?? ''}
             </text>
             <text
               x={innerRight + 6}
@@ -204,7 +208,7 @@ export function SentimentBars({
               dominantBaseline="middle"
               className="fill-ink-muted text-[11px] tabular-nums"
             >
-              {formatCompactAxis(priceScale.min) ?? ''}
+              {nombres.compactAxis(priceScale.min) ?? ''}
             </text>
           </>
         ) : null}
@@ -218,7 +222,7 @@ export function SentimentBars({
             textAnchor="middle"
             className="fill-ink-muted text-[11px]"
           >
-            {formatDay((points[index] as SentimentPoint).timestamp)}
+            {formatDay((points[index] as SentimentPoint).timestamp, locale)}
           </text>
         ))}
 
@@ -246,7 +250,7 @@ export function SentimentBars({
             left: `${Math.min(94, Math.max(6, ((xAt(hover as number) / WIDTH) * 100)))}%`,
           }}
         >
-          <p className="whitespace-nowrap text-ink-muted">{formatFullDay(active.timestamp)}</p>
+          <p className="whitespace-nowrap text-ink-muted">{formatFullDay(active.timestamp, locale)}</p>
           <p className="whitespace-nowrap font-semibold text-ink">
             {active.value} / 100
             <span
@@ -262,8 +266,8 @@ export function SentimentBars({
   )
 }
 
-function formatDay(timestamp: number): string {
-  return new Intl.DateTimeFormat('fr-FR', {
+function formatDay(timestamp: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     // Fuseau figé : sans lui, un relevé de minuit bascule à la veille pour un
@@ -272,8 +276,8 @@ function formatDay(timestamp: number): string {
   }).format(new Date(timestamp))
 }
 
-function formatFullDay(timestamp: number): string {
-  return new Intl.DateTimeFormat('fr-FR', {
+function formatFullDay(timestamp: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

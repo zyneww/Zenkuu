@@ -1,10 +1,11 @@
 import { getMoversUniverse } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatPercent } from '@zenkuu/ui'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { AltcoinSeasonGauge } from '@/components/market/AltcoinSeasonGauge'
 import { computeAltcoinSeason } from '@/lib/altcoin-season'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * La carte compacte de la vue d'ensemble.
@@ -61,6 +62,8 @@ export async function AltseasonCard() {
 }
 
 export async function AltseasonSection() {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   /* AUCUN APPEL SUPPLÉMENTAIRE : `getMoversUniverse(100)` alimente déjà la carte
      thermique et les classements, et sa clé de cache ne dépend d'aucun actif. La
@@ -128,7 +131,7 @@ export async function AltseasonSection() {
       <p className="text-xs leading-relaxed text-ink-muted">
         {t('Variation de Bitcoin sur la même fenêtre :')}{' '}
         <span className={reference >= 0 ? 'text-up' : 'text-down'}>
-          {formatPercent(reference) ?? '—'}
+          {nombres.percent(reference) ?? '—'}
         </span>
         {'. '}
         <SourceNote
@@ -148,7 +151,7 @@ export async function AltseasonSection() {
  * qui décide de l'indice, et le lire à côté de la variation évite d'avoir à faire la
  * soustraction de tête pour comprendre pourquoi une ligne est là.
  */
-function SpreadList({
+async function SpreadList({
   title,
   rows,
   reference,
@@ -157,6 +160,8 @@ function SpreadList({
   rows: { id: string; name: string; symbol: string; change30d?: number }[]
   reference: number
 }) {
+  const nombres = await getFormatters()
+
   return (
     <section className="rounded-card border border-border-subtle bg-surface">
       <h2 className="border-b border-border-subtle px-4 py-2.5 text-xs font-semibold text-ink">
@@ -182,10 +187,10 @@ function SpreadList({
                 className={`tabular text-sm font-medium ${spread >= 0 ? 'text-up' : 'text-down'}`}
               >
                 {spread >= 0 ? '+' : '−'}
-                {Math.abs(spread).toFixed(1).replace('.', ',')} pts
+                {nombres.fixed(Math.abs(spread), 1) ?? '—'} pts
               </span>
               <span className="tabular w-16 text-right text-xs text-ink-muted">
-                {formatPercent(change) ?? '—'}
+                {nombres.percent(change) ?? '—'}
               </span>
             </li>
           )

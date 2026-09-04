@@ -1,5 +1,9 @@
 'use client'
 
+import type { Formatters } from '@zenkuu/ui'
+
+import { useFormatters } from '@/components/locale/useFormatters'
+import { useLocale } from 'next-intl'
 import { useMemo } from 'react'
 
 import { AreaPlot } from '@/components/charts/AreaPlot'
@@ -27,23 +31,28 @@ import { AreaPlot } from '@/components/charts/AreaPlot'
  */
 export type SparkFormat = 'currency' | 'compact' | 'number' | 'percent'
 
-function formatValue(value: number, format: SparkFormat): string {
+function formatValue(
+  value: number,
+  format: SparkFormat,
+  locale: string,
+  nombres: Formatters,
+): string {
   switch (format) {
     case 'currency':
-      return new Intl.NumberFormat('fr-FR', {
+      return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: 'USD',
         maximumFractionDigits: 2,
       }).format(value)
     case 'compact':
-      return new Intl.NumberFormat('fr-FR', {
+      return new Intl.NumberFormat(locale, {
         notation: 'compact',
         maximumFractionDigits: 1,
       }).format(value)
     case 'percent':
-      return `${value.toFixed(2).replace('.', ',')} %`
+      return `${nombres.fixed(value, 2) ?? '—'} %`
     default:
-      return new Intl.NumberFormat('fr-FR').format(value)
+      return new Intl.NumberFormat(locale).format(value)
   }
 }
 
@@ -60,6 +69,9 @@ export function AreaSpark({
   /** Format de l'infobulle. Absent, aucune infobulle n'est affichée. */
   format?: SparkFormat
 }) {
+  const locale = useLocale()
+  const nombres = useFormatters()
+
   /* Les abscisses arrivent parfois en chaînes (dates déjà mises en forme par
      l'appelant). Le rang dans la série fait alors un axe parfaitement valable :
      ces points sont régulièrement espacés, et rien ici ne les date. */
@@ -88,7 +100,7 @@ export function AreaSpark({
       /* Une étincelle vit dans une cellule de tableau : elle n'a pas la place d'une
          phrase, et le garde ci-dessus l'a déjà écartée quand il n'y a rien à tracer. */
       quiet
-      {...(format ? { formatTooltipY: (value: number) => formatValue(value, format) } : {})}
+      {...(format ? { formatTooltipY: (value: number) => formatValue(value, format, locale, nombres) } : {})}
     />
   )
 }

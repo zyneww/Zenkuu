@@ -1,3 +1,4 @@
+import { getFormatters } from '@/lib/formatters'
 import type { MarketCapSeriesState } from '@zenkuu/data'
 import { MIN_POINTS_FOR_CHART } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
@@ -35,6 +36,8 @@ export async function DominanceView({
   /** Part de marché par symbole, ex. `{ btc: 56.3, eth: 10.1 }`. */
   current?: Record<string, number>
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const points = series.points
     .filter((point) => typeof point.btcDominance === 'number')
@@ -90,7 +93,7 @@ export async function DominanceView({
                   aria-hidden="true"
                 />
                 <dt className="font-medium uppercase text-ink">{symbol}</dt>
-                <dd className="tabular text-ink-muted">{value.toFixed(1).replace('.', ',')} %</dd>
+                <dd className="tabular text-ink-muted">{nombres.fixed(value, 1) ?? '—'} %</dd>
               </div>
             ))}
 
@@ -103,7 +106,7 @@ export async function DominanceView({
                   aria-hidden="true"
                 />
                 <dt className="font-medium text-ink-muted">{t('Autres')}</dt>
-                <dd className="tabular text-ink-muted">{others.toFixed(1).replace('.', ',')} %</dd>
+                <dd className="tabular text-ink-muted">{nombres.fixed(others, 1) ?? '—'} %</dd>
               </div>
             ) : null}
           </dl>

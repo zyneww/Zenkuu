@@ -1,8 +1,9 @@
 import { getMarketCapBasket, type GlobalMarketStats } from '@zenkuu/data'
-import { SourceNote, formatCompact } from '@zenkuu/ui'
+import { SourceNote } from '@zenkuu/ui'
 
 import { GlobalChartCard } from '@/components/market/GlobalChartCard'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * LE GRAND CADRE — le panier, sa part de Bitcoin, et la ligne de totaux.
@@ -37,6 +38,8 @@ export async function BasketSection({
   stats: GlobalMarketStats | null
   footer?: React.ReactNode
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const basket = await getMarketCapBasket('eur', 365)
   if (!basket.ok) return null
@@ -50,7 +53,7 @@ export async function BasketSection({
       {stats ? (
         <>
           {' · '}
-          <span className="font-semibold text-ink">{formatCompact(stats.activeAssets)}</span>{' '}
+          <span className="font-semibold text-ink">{nombres.compact(stats.activeAssets)}</span>{' '}
           {t('cryptomonnaies suivies')}
         </>
       ) : null}

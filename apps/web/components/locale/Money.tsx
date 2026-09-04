@@ -1,8 +1,8 @@
 'use client'
 
-import { formatCompact, formatCurrency, formatRate } from '@zenkuu/ui'
 
 import { BASE_CURRENCY, useCurrency } from '@/components/locale/CurrencyProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 
 interface MoneyProps {
   value: number | undefined
@@ -32,18 +32,20 @@ export function Money({
   asRate = false,
   fallback = '—',
 }: MoneyProps) {
+  const nombres = useFormatters()
+
   const { currency, convert } = useCurrency()
 
   if (value === undefined || !Number.isFinite(value)) return <>{fallback}</>
 
   // Un taux de change ne se convertit pas : « EUR/USD = 1,1535 » est un rapport,
   // pas un montant en euros. Le multiplier par un taux produirait un non-sens.
-  if (asRate) return <Amount>{formatRate(value) ?? fallback}</Amount>
+  if (asRate) return <Amount>{nombres.rate(value) ?? fallback}</Amount>
 
   const converted = convert(value, from)
   const formatted = compact
-    ? formatCurrency(converted, currency, { compact: true })
-    : formatCurrency(converted, currency)
+    ? nombres.currency(converted, currency, { compact: true })
+    : nombres.currency(converted, currency)
 
   return <Amount>{formatted ?? fallback}</Amount>
 }
@@ -74,7 +76,9 @@ export function Quantity({
   suffix?: string
   fallback?: string
 }) {
-  const formatted = formatCompact(value)
+  const nombres = useFormatters()
+
+  const formatted = nombres.compact(value)
   if (formatted === null) return <>{fallback}</>
   return (
     <>

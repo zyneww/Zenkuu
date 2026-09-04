@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import {
   Camera,
   Check,
@@ -88,6 +89,7 @@ export function MacroExplorer({
   /** Année portée par l'URL, pour qu'un lien partagé rouvre la même vue. */
   initialYear: number | null
 }) {
+
   const t = usePhrase()
   const [selected, setSelected] = useState<string | null>(null)
 
@@ -680,13 +682,15 @@ function Scale({
   unit: string
   scale: 'percent' | 'compact' | 'plain'
 }) {
+  const locale = useLocale()
+
   const steps = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
   return (
     <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
       {/* Le « ≤ » et le « ≥ » ne sont pas décoratifs : ils disent que les valeurs
           au-delà des bornes SATURENT au lieu d'être écrêtées ou exclues. */}
-      <span className="tabular">≤ {formatMacroValue(low, scale)}</span>
+      <span className="tabular">≤ {formatMacroValue(low, scale, locale)}</span>
       <span
         className="flex h-2.5 w-32 overflow-hidden rounded-pill border border-border-subtle"
         aria-hidden="true"
@@ -700,7 +704,7 @@ function Scale({
         ))}
       </span>
       <span className="tabular">
-        ≥ {formatMacroValue(high, scale)} {unit}
+        ≥ {formatMacroValue(high, scale, locale)} {unit}
       </span>
     </div>
   )
@@ -777,6 +781,8 @@ function CountryPanel({
   regional: { rank: number; total: number } | null
   onClose: () => void
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const { state, mounted, onTransitionEnd } = usePresence(row !== null)
 
@@ -894,7 +900,7 @@ function CountryPanel({
       <div>
         <p className="text-[0.6875rem] text-ink-muted">{indicatorLabel}</p>
         <p className="figure text-2xl font-bold text-ink">
-          {formatMacroValue(shown.value, scale)}{' '}
+          {formatMacroValue(shown.value, scale, locale)}{' '}
           <span className="text-sm font-medium text-ink-muted">{unit}</span>
         </p>
         {/*
@@ -921,7 +927,7 @@ function CountryPanel({
         ) : null}
 
         {stats?.median != null ? (
-          <Measure label={t('Médiane mondiale')} value={formatMacroValue(stats.median, scale)} />
+          <Measure label={t('Médiane mondiale')} value={formatMacroValue(stats.median, scale, locale)} />
         ) : null}
 
         {/* L'ÉCART À LA MÉDIANE est signé et coloré, parce que c'est une position et
@@ -930,7 +936,7 @@ function CountryPanel({
         {gap !== null ? (
           <Measure
             label={t('Écart à la médiane')}
-            value={`${gap >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(gap), scale)}`}
+            value={`${gap >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(gap), scale, locale)}`}
             tone={gap >= 0 ? 'up' : 'down'}
           />
         ) : null}
@@ -938,7 +944,7 @@ function CountryPanel({
         {stats && stats.change !== null ? (
           <Measure
             label={`Depuis ${stats.firstYear}`}
-            value={`${stats.change >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(stats.change), scale)}`}
+            value={`${stats.change >= 0 ? '+' : '−'}${formatMacroValue(Math.abs(stats.change), scale, locale)}`}
             tone={stats.change >= 0 ? 'up' : 'down'}
           />
         ) : null}
@@ -947,11 +953,11 @@ function CountryPanel({
           <>
             <Measure
               label={`Plus bas · ${stats.minYear}`}
-              value={formatMacroValue(stats.min, scale)}
+              value={formatMacroValue(stats.min, scale, locale)}
             />
             <Measure
               label={`Plus haut · ${stats.maxYear}`}
-              value={formatMacroValue(stats.max, scale)}
+              value={formatMacroValue(stats.max, scale, locale)}
             />
           </>
         ) : null}

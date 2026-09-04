@@ -1,8 +1,8 @@
 import type { AssetDetail } from '@zenkuu/data'
-import { formatCompact } from '@zenkuu/ui'
 
 import { RailSection } from '@/components/ui/RailSection'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Audience et activité de développement.
@@ -87,7 +87,9 @@ export async function AssetCommunity({ asset }: { asset: AssetDetail }) {
   )
 }
 
-function StatList({ rows }: { rows: { label: string; value: number; hint?: string }[] }) {
+async function StatList({ rows }: { rows: { label: string; value: number; hint?: string }[] }) {
+  const nombres = await getFormatters()
+
   return (
     <dl>
       {rows.map((row) => (
@@ -100,7 +102,7 @@ function StatList({ rows }: { rows: { label: string; value: number; hint?: strin
             {row.hint ? <span className="ml-1 opacity-60">· {row.hint}</span> : null}
           </dt>
           <dd className="tabular shrink-0 text-xs font-medium text-ink">
-            {formatCompact(row.value)}
+            {nombres.compact(row.value)}
           </dd>
         </div>
       ))}

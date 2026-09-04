@@ -1,4 +1,5 @@
-import { formatCompact, formatPercent } from '@zenkuu/ui'
+import type { Formatters } from '@zenkuu/ui'
+
 
 import {
   TILE_INK,
@@ -157,11 +158,22 @@ const TILE_CLASS =
 export function TreemapFigure({
   tiles,
   periodLabel,
+  nombres,
   height = 'min(70vh, 560px)',
   valueUnit = '',
   tone = 'change',
 }: {
   tiles: TreemapTile[]
+  /**
+   * Formateurs de la langue rendue.
+   *
+   * ⚠️ EN PROPRIÉTÉ ET NON PAR UN CROCHET, pour la raison exacte que porte déjà
+   * `TreemapLegend` plus bas : cette figure est rendue depuis `MarketHeatmap` (client)
+   * ET depuis `TreasuryOverview` et `NftOverview` (serveur). Un crochet client
+   * échouerait dans les seconds, un `await` dans le premier — la propriété est la seule
+   * forme qui traverse les deux mondes.
+   */
+  nombres: Formatters
   /** Fenêtre décrite par la couleur, reprise dans l'infobulle. */
   periodLabel: string
   height?: string
@@ -235,9 +247,9 @@ export function TreemapFigure({
         const tile = byId.get(box.id)
         if (!tile) return null
 
-        const caption = `${tile.title ?? tile.label} — ${formatCompact(tile.value)}${valueUnit}${
+        const caption = `${tile.title ?? tile.label} — ${nombres.compact(tile.value)}${valueUnit}${
           tile.change !== undefined
-            ? `, ${formatPercent(tile.change)} sur ${periodLabel}`
+            ? `, ${nombres.percent(tile.change)} sur ${periodLabel}`
             : ''
         }${tile.detail ? `, ${tile.detail}` : ''}`
 
@@ -388,7 +400,7 @@ export function TreemapFigure({
             */}
             {hasChange && tile.change !== undefined ? (
               <span className={`tile-value tabular block truncate leading-tight ${INK.value}`}>
-                {formatPercent(tile.change)}
+                {nombres.percent(tile.change)}
               </span>
             ) : null}
           </>

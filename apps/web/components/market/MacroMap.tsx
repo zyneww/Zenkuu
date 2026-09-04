@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import { useMemo, useState } from 'react'
 
 import {
@@ -126,6 +127,8 @@ export function MacroMap({
    */
   valueScale: 'percent' | 'compact' | 'plain'
 }) {
+  const locale = useLocale()
+
   const t = usePhrase()
   const [groupId, setGroupId] = useState(MACRO_GROUPS[0]!.id)
   const group = MACRO_GROUPS.find((entry) => entry.id === groupId) ?? MACRO_GROUPS[0]!
@@ -207,7 +210,7 @@ export function MacroMap({
      dollars. Un `toFixed(1)` universel afficherait « 2800000000000,0 » sur la carte du
      PIB — d'où la mise en forme portée par la série plutôt que par ce composant. */
   const format = (value: number) => {
-    const text = formatMacroValue(value, valueScale)
+    const text = formatMacroValue(value, valueScale, locale)
     return unit ? `${text} ${unit}` : text
   }
 

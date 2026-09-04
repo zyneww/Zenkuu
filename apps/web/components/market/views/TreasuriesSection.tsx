@@ -1,19 +1,20 @@
 import { getTreasuries } from '@zenkuu/data'
-import { EmptyState, SourceNote, formatCompact, formatShare } from '@zenkuu/ui'
-import { getLocale } from 'next-intl/server'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { StatCard } from '@/components/charts/StatCard'
 
 import { TreasuryOverview } from '@/components/market/TreasuryOverview'
 import { TreasuryTable } from '@/components/market/TreasuryTable'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 export async function TreasuriesSection() {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   /* Le locale AFFICHÉ, pour que les milliers se séparent comme la langue lue les
      sépare. Il était écrit `'fr-FR'` en dur, ce qui donnait des points là où
      l'allemand veut des points mais l'anglais des virgules. */
-  const locale = await getLocale()
   /*
    * Les deux registres partent ENSEMBLE, et chacun peut échouer seul : le fournisseur
    * est plafonné à cinq appels par minute, et il est normal que le second attende. Un
@@ -80,13 +81,13 @@ export async function TreasuriesSection() {
           <div className="grid gap-3 sm:grid-cols-2">
             <StatCard
               label={t('Détenu en trésorerie')}
-              value={`${formatCompact(bitcoin.data.totalHoldings, locale) ?? '—'} BTC`}
+              value={`${nombres.compact(bitcoin.data.totalHoldings) ?? '—'} BTC`}
               note={t('{n} détenteurs').replace('{n}', String(bitcoin.data.holders.length))}
             />
             {bitcoin.data.percentOfMarketCap !== undefined ? (
               <StatCard
                 label={t('Part de la capitalisation')}
-                value={formatShare(bitcoin.data.percentOfMarketCap, locale) ?? '—'}
+                value={nombres.share(bitcoin.data.percentOfMarketCap) ?? '—'}
               />
             ) : null}
           </div>
@@ -102,13 +103,13 @@ export async function TreasuriesSection() {
           <div className="grid gap-3 sm:grid-cols-2">
             <StatCard
               label={t('Détenu en trésorerie')}
-              value={`${formatCompact(ethereum.data.totalHoldings, locale) ?? '—'} ETH`}
+              value={`${nombres.compact(ethereum.data.totalHoldings) ?? '—'} ETH`}
               note={t('{n} détenteurs').replace('{n}', String(ethereum.data.holders.length))}
             />
             {ethereum.data.percentOfMarketCap !== undefined ? (
               <StatCard
                 label={t('Part de la capitalisation')}
-                value={formatShare(ethereum.data.percentOfMarketCap, locale) ?? '—'}
+                value={nombres.share(ethereum.data.percentOfMarketCap) ?? '—'}
               />
             ) : null}
           </div>

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { formatAxisMoney } from '@zenkuu/ui'
 
 import { ZenkuuMark } from '@/components/BrandMark'
 import { ChartNavigator } from '@/components/asset/ChartNavigator'
@@ -11,6 +10,7 @@ import { useReducedMotion } from '@/components/charts/useReducedMotion'
 import { useLocale } from 'next-intl'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useFormatters } from '@/components/locale/useFormatters'
 import {
   ASSET_CHART_HEIGHT,
   OHLC_KINDS,
@@ -291,6 +291,8 @@ export function PriceChartInteractive({
   showTooltipMarketCap = false,
   showTooltipChange = false,
 }: PriceChartInteractiveProps) {
+  const nombres = useFormatters()
+
   const t = usePhrase()
   /* Sert la date de l'infobulle, et rien d'autre — voir `formatStamp`. */
   const locale = useLocale()
@@ -555,10 +557,13 @@ export function PriceChartInteractive({
    */
   const formatAxis = useCallback(
     (value: number) => {
-      if (indexed) return formatIndex(value)
-      return formatAxisMoney(value, currency, compactValues) ?? ''
+      if (indexed) return formatIndex(value, locale)
+      return nombres.axisMoney(value, currency, compactValues) ?? ''
     },
-    [indexed, compactValues, currency],
+    /* `locale` et `nombres` entrent aux dépendances : l'échelle s'écrit dans la langue
+       rendue, et sans eux un changement de langue laisserait les graduations dans
+       l'ancienne — le rappel étant mémoïsé, rien ne le recalculerait. */
+    [indexed, compactValues, currency, locale, nombres],
   )
 
   /*
@@ -607,8 +612,8 @@ export function PriceChartInteractive({
     () =>
       rows.map((row) => {
         const money = (value: number) =>
-          `${(indexed ? formatIndex(value) : formatPrice(value))} ${
-            indexed ? '' : currencySign(currency)
+          `${(indexed ? formatIndex(value, locale) : formatPrice(value, locale))} ${
+            indexed ? '' : currencySign(currency, locale)
           }`.trim()
 
         const dot = (color: string) =>
@@ -647,7 +652,7 @@ export function PriceChartInteractive({
            laisserait croire qu'il les concerne toutes. */
         const volume =
           !indexed && typeof row.volume === 'number' && Number.isFinite(row.volume)
-            ? `<div style="opacity:.75;margin-top:4px">${t('Vol :')} ${formatCompact(row.volume)}</div>`
+            ? `<div style="opacity:.75;margin-top:4px">${t('Vol :')} ${compactValue(row.volume, locale)}</div>`
             : ''
 
         /*
@@ -668,7 +673,7 @@ export function PriceChartInteractive({
         */
         const cap =
           showTooltipMarketCap && !indexed && typeof row.cap === 'number' && Number.isFinite(row.cap)
-            ? `<div style="opacity:.75;margin-top:2px">${t('Cap. :')} ${formatCompact(row.cap)} ${currencySign(currency)}</div>`
+            ? `<div style="opacity:.75;margin-top:2px">${t('Cap. :')} ${compactValue(row.cap, locale)} ${currencySign(currency, locale)}</div>`
             : ''
 
         const change =
@@ -677,7 +682,7 @@ export function PriceChartInteractive({
                 const pct = (row.price / anchorPrice - 1) * 100
                 const sign = pct >= 0 ? '+' : '−'
                 const tint = pct >= 0 ? 'var(--color-up)' : 'var(--color-down)'
-                return `<div style="color:${tint};margin-top:2px">${sign}${Math.abs(pct).toFixed(2).replace('.', ',')} %<span style="opacity:.75"> ${t('sur la fenêtre')}</span></div>`
+                return `<div style="color:${tint};margin-top:2px">${sign}${nombres.fixed(Math.abs(pct), 2) ?? '—'} %<span style="opacity:.75"> ${t('sur la fenêtre')}</span></div>`
               })()
             : ''
 
@@ -718,6 +723,7 @@ export function PriceChartInteractive({
       showTooltipChange,
       anchorPrice,
       t,
+      nombres,
     ],
   )
 
@@ -1169,9 +1175,9 @@ async function captureAm(root: Am5Root | null): Promise<HTMLCanvasElement | null
  * et l'on retire ce qui est chiffre, séparateur ou espace. C'est la méthode habituelle,
  * et elle a l'avantage de suivre la locale — « $US » en français, « US$ » ailleurs.
  */
-function currencySign(currency: string): string {
+function currencySign(currency: string, locale: string): string {
   try {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
       maximumFractionDigits: 0,
@@ -1187,6 +1193,11 @@ function currencySign(currency: string): string {
 
 /** Le bandeau « date · O H L C · Variation · Plage · Vol ». */
 function ReadoutStrip({ shown }: { shown: LegendState }) {
+  /* Les cinq aides de mise en forme de ce fichier prennent la langue en argument — elles
+     sont PURES et servent aussi bien le traçé (hors React) que ce bandeau. Le composant
+     est le seul point où la langue s'obtient sans qu'on la lui passe. */
+  const locale = useLocale()
+
   return (
     <div
       /* ⚠️ IL VALAIT 0,6875rem (11 px), ET C'ÉTAIT TROP PETIT.
@@ -1217,7 +1228,7 @@ function ReadoutStrip({ shown }: { shown: LegendState }) {
           <Ohlc label="C" value={shown.price ?? 0} reference={shown.price ?? 0} />
         </span>
       ) : shown.price !== undefined ? (
-        <span className="tabular font-semibold text-ink">{formatPrice(shown.price)}</span>
+        <span className="tabular font-semibold text-ink">{formatPrice(shown.price, locale)}</span>
       ) : null}
 
       {shown.changeAbs !== undefined && shown.changePct !== undefined ? (
@@ -1227,7 +1238,7 @@ function ReadoutStrip({ shown }: { shown: LegendState }) {
         // sautiller l'alignement d'un point à l'autre.
         <span className={`tabular font-medium ${shown.changeAbs >= 0 ? 'text-up' : 'text-down'}`}>
           {shown.changeAbs >= 0 ? '+' : '−'}
-          {formatAgainst(Math.abs(shown.changeAbs), shown.price ?? 0)} (
+          {formatAgainst(Math.abs(shown.changeAbs), shown.price ?? 0, locale)} (
           {shown.changeAbs >= 0 ? '+' : '−'}
           {Math.abs(shown.changePct).toFixed(2)} %)
         </span>
@@ -1241,7 +1252,7 @@ function ReadoutStrip({ shown }: { shown: LegendState }) {
 
       {shown.volume !== undefined ? (
         <span className="tabular text-ink-muted">
-          Vol <span className="text-ink">{formatCompact(shown.volume)}</span>
+          Vol <span className="text-ink">{compactValue(shown.volume, locale)}</span>
         </span>
       ) : null}
     </div>
@@ -1250,10 +1261,12 @@ function ReadoutStrip({ shown }: { shown: LegendState }) {
 
 /** Une paire « libellé valeur » du bandeau OHLC — l'espacement est le même partout. */
 function Ohlc({ label, value, reference }: { label: string; value: number; reference: number }) {
+  const locale = useLocale()
+
   return (
     <>
       <span className="ml-2 first:ml-0">{label} </span>
-      <span className="font-medium text-ink">{formatAgainst(value, reference)}</span>
+      <span className="font-medium text-ink">{formatAgainst(value, reference, locale)}</span>
     </>
   )
 }
@@ -1345,8 +1358,8 @@ function indexSeries(points: ChartPoint[]): number[] {
  * qui descend sous zéro, l'absence de signe fait hésiter une fraction de seconde sur
  * chaque graduation positive, et c'est exactement ce qu'un axe doit éviter.
  */
-function formatIndex(value: number): string {
-  const formatted = value.toLocaleString('fr-FR', {
+function formatIndex(value: number, locale: string): string {
+  const formatted = value.toLocaleString(locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
@@ -1358,8 +1371,8 @@ function formatIndex(value: number): string {
    et ce tracé doivent écrire EXACTEMENT les mêmes étiquettes, sans quoi l'axe saute au
    moment de l'hydratation. C'est la même raison que pour `formatCompactAxis`. */
 
-function formatPrice(value: number): string {
-  return new Intl.NumberFormat('fr-FR', {
+function formatPrice(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     maximumFractionDigits: priceDigits(value),
   }).format(value)
 }
@@ -1388,15 +1401,22 @@ function priceDigits(value: number): number {
  * décimales : sur un actif à 63 000 €, `priceDigits` renverrait zéro et un mouvement
  * de quarante centimes s'afficherait « +0 ».
  */
-function formatAgainst(value: number, reference: number): string {
-  return new Intl.NumberFormat('fr-FR', {
+function formatAgainst(value: number, reference: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: Math.max(2, priceDigits(reference)),
   }).format(value)
 }
 
-function formatCompact(value: number): string {
-  return new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(
+/**
+ * Volume et capitalisation de l'infobulle, en échelle abrégée.
+ *
+ * Homéonyme du `formatCompact` de `@zenkuu/ui` et distinct de lui : celui-ci porte des
+ * unités à une décimale pour tenir dans une bulle de deux lignes, là où le partagé en
+ * met deux. Le nom désambiguïse désormais, puisque les deux se croisent dans ce fichier.
+ */
+function compactValue(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(
     value,
   )
 }

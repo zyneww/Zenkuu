@@ -1,11 +1,12 @@
 import { Link } from '@/i18n/navigation'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, Sparkline, formatCompact, formatCurrency, formatRate } from '@zenkuu/ui'
+import { ChangeBadge, Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { assetHref } from '@/lib/asset-routes'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * Comparables, en cartes plutôt qu'en liste.
@@ -31,6 +32,8 @@ import { getPhrase } from '@/lib/content'
  * de ligne plate de remplacement, qui ferait lire une semaine sans mouvement.
  */
 export async function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   if (peers.length === 0) return null
 
@@ -56,8 +59,8 @@ export async function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
               <div className="min-w-0">
                 <p className="tabular text-sm font-semibold text-ink">
                   {peer.assetClass === 'forex'
-                    ? formatRate(peer.price)
-                    : formatCurrency(peer.price, peer.currency)}
+                    ? nombres.rate(peer.price)
+                    : nombres.currency(peer.price, peer.currency)}
                 </p>
                 <ChangeBadge value={peer.change24h} size="sm" />
               </div>
@@ -79,7 +82,7 @@ export async function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
 
             {peer.marketCap !== undefined ? (
               <p className="tabular border-t border-border-subtle pt-2 text-[0.6875rem] text-ink-muted">
-                {t('Capitalisation')} {formatCompact(peer.marketCap)} {peer.currency}
+                {t('Capitalisation')} {nombres.compact(peer.marketCap)} {peer.currency}
               </p>
             ) : null}
           </Link>

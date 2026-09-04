@@ -1,5 +1,4 @@
 import type { AssetProfile } from '@zenkuu/data'
-import { formatCompact, formatShare } from '@zenkuu/ui'
 
 /* Les DEUX primitives, et ce n'est pas un oubli : ce fichier rend un bloc de contenu
    principal (positions, secteurs — sur 900 pixels, où une carte a du sens) et un bloc
@@ -9,6 +8,7 @@ import { Panel } from '@/components/ui/Panel'
 import { RailSection } from '@/components/ui/RailSection'
 import { ShareDonut, type SharePart } from '@/components/asset/ShareDonut'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * COMPOSITION D'UN FONDS — positions, secteurs, nature des actifs.
@@ -36,6 +36,8 @@ import { getPhrase } from '@/lib/content'
  * retouche.
  */
 export async function AssetHoldings({ profile, assetName }: { profile: AssetProfile; assetName: string }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const holdings = profile.holdings ?? []
   const sectors = profile.sectors ?? []
@@ -65,7 +67,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
         {holdings.length > 0 ? (
           <Panel
             title={t('Principales positions')}
-            subtitle={`${holdings.length} lignes publiées · ${formatShare(topWeight)} du fonds`}
+            subtitle={`${holdings.length} lignes publiées · ${nombres.share(topWeight)} du fonds`}
           >
             <ol className="space-y-1.5">
               {holdings.map((entry, index) => (
@@ -80,7 +82,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
                       {entry.name}
                     </span>
                     <span className="tabular shrink-0 text-xs font-medium text-ink">
-                      {formatShare(entry.weight)}
+                      {nombres.share(entry.weight)}
                     </span>
                   </div>
                   {/*
@@ -104,7 +106,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
             <p className="mt-3 border-t border-border-subtle pt-2 text-micro leading-relaxed text-ink-muted">
               {t(
                 'La source ne publie que les dix premières lignes. Les {part} restants se répartissent entre des positions qu’elle ne détaille pas.',
-              ).replace('{part}', formatShare(Math.max(100 - topWeight, 0)) ?? '—')}
+              ).replace('{part}', nombres.share(Math.max(100 - topWeight, 0)) ?? '—')}
             </p>
           </Panel>
         ) : null}
@@ -129,7 +131,7 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
                   <div key={entry.label} className="flex items-baseline justify-between gap-3">
                     <dt className="text-xs text-ink-muted">{entry.label}</dt>
                     <dd className="tabular text-xs font-medium text-ink">
-                      {formatShare(entry.weight)}
+                      {nombres.share(entry.weight)}
                     </dd>
                   </div>
                 ))}
@@ -156,13 +158,15 @@ export async function AssetHoldings({ profile, assetName }: { profile: AssetProf
  * particuliers — exactement ce que le type commun existe pour éviter.
  */
 export async function AssetProfileRail({ profile }: { profile: AssetProfile }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   const rows: { label: string; value: string; hint?: string }[] = []
 
   /* `formatShare` rend `null` sur une entrée non finie — le cas est déjà écarté par
      l'adaptateur, mais le typage l'ignore. Le repli garde la ligne plutôt que de la
      faire disparaître pour un cas qui ne se produit pas. */
-  const share = (value: number): string => formatShare(value) ?? '—'
+  const share = (value: number): string => nombres.share(value) ?? '—'
 
   if (profile.expenseRatio !== undefined) {
     rows.push({
@@ -172,31 +176,31 @@ export async function AssetProfileRail({ profile }: { profile: AssetProfile }) {
     })
   }
   if (profile.totalAssets !== undefined) {
-    rows.push({ label: t('Encours'), value: formatCompact(profile.totalAssets) ?? '—' })
+    rows.push({ label: t('Encours'), value: nombres.compact(profile.totalAssets) ?? '—' })
   }
   if (profile.yieldPercent !== undefined) {
     rows.push({ label: t('Rendement distribué'), value: share(profile.yieldPercent) })
   }
   if (profile.trailingPE !== undefined) {
-    rows.push({ label: t('Cours / bénéfice'), value: profile.trailingPE.toFixed(1).replace('.', ',') })
+    rows.push({ label: t('Cours / bénéfice'), value: nombres.fixed(profile.trailingPE, 1) ?? '—' })
   }
   if (profile.forwardPE !== undefined) {
     rows.push({
       label: t('C / B prévisionnel'),
-      value: profile.forwardPE.toFixed(1).replace('.', ','),
+      value: nombres.fixed(profile.forwardPE, 1) ?? '—',
       hint: t('sur les bénéfices attendus, donc estimé par le marché'),
     })
   }
   if (profile.priceToBook !== undefined) {
-    rows.push({ label: t('Cours / actif net'), value: profile.priceToBook.toFixed(1).replace('.', ',') })
+    rows.push({ label: t('Cours / actif net'), value: nombres.fixed(profile.priceToBook, 1) ?? '—' })
   }
   if (profile.eps !== undefined) {
-    rows.push({ label: t('Bénéfice par action'), value: profile.eps.toFixed(2).replace('.', ',') })
+    rows.push({ label: t('Bénéfice par action'), value: nombres.fixed(profile.eps, 2) ?? '—' })
   }
   if (profile.beta !== undefined) {
     rows.push({
       label: t('Bêta'),
-      value: profile.beta.toFixed(2).replace('.', ','),
+      value: nombres.fixed(profile.beta, 2) ?? '—',
       hint: t('1 = bouge comme son marché'),
     })
   }

@@ -2,10 +2,10 @@ import { ExternalLink } from 'lucide-react'
 
 import type { AssetClass, AssetDetail, AssetProfile } from '@zenkuu/data'
 import { findUniverseEntryBySymbol } from '@zenkuu/data'
-import { formatCompact } from '@zenkuu/ui'
 
 import { RailSection } from '@/components/ui/RailSection'
 import { getPhrase } from '@/lib/content'
+import { getFormatters } from '@/lib/formatters'
 
 /**
  * FICHE TECHNIQUE D'UNE VALEUR BOURSIÈRE — l'équivalent de celle d'une cryptomonnaie.
@@ -77,6 +77,8 @@ export async function AssetMarketSheet({
   /** Profil de la source. `null` quand elle n'en publie pas — le bloc se réduit alors. */
   profile: AssetProfile | null
 }) {
+  const nombres = await getFormatters()
+
   const t = await getPhrase()
   /* Réservé aux classes boursières : une cryptomonnaie a déjà sa propre fiche
      technique, autrement plus riche (contrats, chaînes, explorateurs). */
@@ -114,7 +116,7 @@ export async function AssetMarketSheet({
   if (profile?.employees !== undefined) {
     rows.push({
       label: t('Effectif'),
-      value: formatCompact(profile.employees) ?? String(profile.employees),
+      value: nombres.compact(profile.employees) ?? String(profile.employees),
       hint: t('salariés à temps plein déclarés'),
     })
   }
