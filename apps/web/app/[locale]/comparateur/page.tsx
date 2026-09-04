@@ -8,6 +8,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { ComparatorView } from '@/components/tools/ComparatorView'
 import { weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -30,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/comparateur',
       'Comparer deux à six actifs de toutes classes — cryptomonnaies, actions, ETF, indices, matières premières, devises : trajectoires ramenées à une base commune, puis les chiffres qui les séparent.',
     ),
-    alternates: { canonical: '/comparateur' },
+    alternates: await pageAlternates('/comparateur'),
   }
 }
 

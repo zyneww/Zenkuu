@@ -6,6 +6,7 @@ import { EmptyState, SourceNote } from '@zenkuu/ui'
 import { DerivativesPanel } from '@/components/market/DerivativesPanel'
 import { InstrumentTabs } from '@/components/market/InstrumentTabs'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/derives',
       'Les contrats perpétuels et à échéance les plus actifs, leur intérêt ouvert et leur taux de financement.',
     ),
-    alternates: { canonical: '/derives' },
+    alternates: await pageAlternates('/derives'),
   }
 }
 

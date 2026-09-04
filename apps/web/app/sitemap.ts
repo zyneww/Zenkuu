@@ -8,8 +8,11 @@ import {
   toSlug,
 } from '@zenkuu/data'
 
+import { DEFAULT_LOCALE } from '@/components/settings/languages'
 import { HELP_ARTICLES } from '@/content/aide'
-import { absoluteUrl, languageAlternates } from '@/lib/site'
+import type { AppHref } from '@/i18n/navigation'
+import { assetHref } from '@/lib/asset-routes'
+import { languageAlternates, localizedUrl } from '@/lib/site'
 
 /**
  * Sitemap dynamique (§9).
@@ -32,7 +35,7 @@ import { absoluteUrl, languageAlternates } from '@/lib/site'
 const CRYPTO_LIMIT = 100
 
 /** Pages éditoriales et de navigation, avec leur rythme de changement réel. */
-const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
+const STATIC_ROUTES: { path: AppHref; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
   { path: '/', changeFrequency: 'hourly', priority: 1 },
   { path: '/categories', changeFrequency: 'daily', priority: 0.7 },
 
@@ -68,10 +71,10 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   /* Les quatre classements complets. Écrits un par un plutôt que dérivés d'une
      boucle : le fichier est une DÉCLARATION lue par un moteur de recherche, et une
      liste explicite se relit sans exécuter le code qui l'engendre. */
-  { path: '/classements/hausses', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/classements/baisses', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/classements/volumes', changeFrequency: 'hourly', priority: 0.6 },
-  { path: '/classements/rotation', changeFrequency: 'hourly', priority: 0.6 },
+  { path: { pathname: '/classements/[type]', params: { type: 'hausses' } }, changeFrequency: 'hourly', priority: 0.6 },
+  { path: { pathname: '/classements/[type]', params: { type: 'baisses' } }, changeFrequency: 'hourly', priority: 0.6 },
+  { path: { pathname: '/classements/[type]', params: { type: 'volumes' } }, changeFrequency: 'hourly', priority: 0.6 },
+  { path: { pathname: '/classements/[type]', params: { type: 'rotation' } }, changeFrequency: 'hourly', priority: 0.6 },
   /*
    * ⚠️ LES CINQ PAGES FILLES DE `/graphiques` ET `/glossaire` MANQUAIENT ICI.
    *
@@ -117,16 +120,47 @@ const YAHOO_ROUTES: { assetClass: keyof typeof YAHOO_UNIVERSE; segment: string }
   { assetClass: 'commodity', segment: 'matieres-premieres' },
 ]
 
+/**
+ * Une entrée du plan, dans la langue par défaut, avec ses douze sœurs déclarées.
+ *
+ * ── ⚠️ LES ADRESSES NE SE COMPOSENT PLUS À LA MAIN ───────────────────────────
+ *
+ * Ce fichier écrivait `absoluteUrl('/places/' + id)`. C'était le chemin INTERNE, qui
+ * n'est plus une adresse depuis `i18n/pathnames.ts` : un lecteur anglais lit
+ * `/exchanges/binance`. Un plan de site qui déclare `/places/binance` annonce au robot
+ * une URL qui répond 308 — et un plan qui pointe vers des redirections est compté
+ * comme une erreur d'exploration, ce que la note des six pages de classe explique
+ * déjà pour `/marches`.
+ *
+ * ── ET LES ALTERNANCES CESSENT D'ÊTRE RÉSERVÉES AUX PAGES FIXES ──────────────
+ *
+ * Seules les routes statiques déclaraient leurs traductions. Les fiches — crypto,
+ * actions, places, articles d'aide — n'en déclaraient aucune, alors qu'elles sont la
+ * MAJORITÉ du plan et qu'elles existent bel et bien dans les treize langues. Le
+ * moteur voyait donc treize pages Bitcoin sans lien entre elles. Passer par un
+ * helper unique les fait toutes entrer, sans qu'on puisse en oublier une.
+ */
+function entree(
+  href: AppHref,
+  lastModified: Date,
+  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'],
+  priority: number,
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: localizedUrl(href, DEFAULT_LOCALE),
+    lastModified,
+    changeFrequency,
+    priority,
+    alternates: { languages: languageAlternates(href) },
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
-  const entries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
-    url: absoluteUrl(route.path),
-    lastModified: now,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-    alternates: { languages: languageAlternates(route.path) },
-  }))
+  const entries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) =>
+    entree(route.path, now, route.changeFrequency, route.priority),
+  )
 
   /*
    * ── LES FICHES DE PLACE ENTRENT AU PLAN, LES DEUX FAMILLES ENSEMBLE ───────
@@ -148,24 +182,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(spotPlaces.ok ? spotPlaces.data : []),
     ...(derivativePlaces.ok ? derivativePlaces.data : []),
   ]) {
-    entries.push({
-      url: absoluteUrl(`/places/${place.id}`),
-      lastModified: now,
-      /* Quotidien : le profil d'une place — pays, année, note — bouge très lentement,
-         et c'est lui que la page revendique. Ses paires changent à la minute, mais un
-         robot n'a pas à repasser toutes les heures pour elles. */
-      changeFrequency: 'daily',
-      priority: 0.5,
-    })
+    /* Quotidien : le profil d'une place — pays, année, note — bouge très lentement,
+       et c'est lui que la page revendique. Ses paires changent à la minute, mais un
+       robot n'a pas à repasser toutes les heures pour elles. */
+    entries.push(
+      entree({ pathname: '/places/[id]', params: { id: place.id } }, now, 'daily', 0.5),
+    )
   }
 
   for (const article of HELP_ARTICLES) {
-    entries.push({
-      url: absoluteUrl(`/aide/${article.slug}`),
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    })
+    entries.push(
+      entree({ pathname: '/aide/[slug]', params: { slug: article.slug } }, now, 'yearly', 0.5),
+    )
   }
 
 
@@ -174,14 +202,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // révision réelle plutôt que l'heure de génération, sans quoi chaque
   // reconstruction du site annoncerait à tort que tous les articles ont changé.
 
-  for (const { assetClass, segment } of YAHOO_ROUTES) {
+  for (const { assetClass } of YAHOO_ROUTES) {
     for (const entry of YAHOO_UNIVERSE[assetClass]) {
-      entries.push({
-        url: absoluteUrl(`/${segment}/${toSlug(entry.symbol)}`),
-        lastModified: now,
-        changeFrequency: 'daily',
-        priority: 0.7,
-      })
+      entries.push(entree(assetHref(assetClass, toSlug(entry.symbol)), now, 'daily', 0.7))
     }
   }
 
@@ -191,12 +214,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   if (ranking.ok) {
     for (const asset of ranking.data) {
-      entries.push({
-        url: absoluteUrl(`/crypto/${asset.id}`),
-        lastModified: now,
-        changeFrequency: 'daily',
-        priority: 0.7,
-      })
+      entries.push(
+        entree({ pathname: '/crypto/[id]', params: { id: asset.id } }, now, 'daily', 0.7),
+      )
     }
   }
 

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { RELEASES, RELEASE_TAG_LABELS } from '@/content/nouveautes'
 import { getContent, getSeo } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     '/nouveautes',
     'Journal des évolutions de ZENKUU : fonctionnalités livrées, sources de données ajoutées et limites connues.',
   ),
-  alternates: { canonical: '/nouveautes' },
+  alternates: await pageAlternates('/nouveautes'),
   }
 }
 

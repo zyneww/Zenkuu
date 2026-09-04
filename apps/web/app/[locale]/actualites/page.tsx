@@ -13,6 +13,7 @@ import { RelativeTime } from '@/components/home/RelativeTime'
 import { Thumbnail } from '@/components/news/NewsFeed'
 import { Link, type AppHref } from '@/i18n/navigation'
 import { getContent, getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 // Les actualités se renouvellent plus vite que les cours : régénération à 3 minutes,
 // alignée sur le TTL propre au fil (`NEWS_TTL_SECONDS`).
@@ -30,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: fr.pages.news,
     description: fr.news.subtitle,
-    alternates: { canonical: '/actualites' },
+    alternates: await pageAlternates('/actualites'),
   }
 }
 

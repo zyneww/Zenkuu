@@ -3,6 +3,7 @@ import { ButtonLink } from '@/components/ui/ButtonLink'
 import { Check, Minus } from 'lucide-react'
 import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/pourquoi-zenkuu',
       'Multi-actifs, gratuit, en lecture seule et sans donnée inventée : les partis pris qui distinguent ZENKUU des plateformes de suivi de marché existantes.',
     ),
-    alternates: { canonical: '/pourquoi-zenkuu' },
+    alternates: await pageAlternates('/pourquoi-zenkuu'),
   }
 }
 

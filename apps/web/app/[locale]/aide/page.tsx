@@ -8,6 +8,7 @@ import { HelpSearch } from '@/components/help/HelpSearch'
 import { HELP_ARTICLES, HELP_STARTING_POINTS } from '@/content/aide'
 import { RELEASES } from '@/content/nouveautes'
 import { getContent, getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/aide',
       'Questions fréquentes sur les données de ZENKUU, leur fraîcheur, les graphiques et les limites de ce que le site affiche.',
     ),
-    alternates: { canonical: '/aide' },
+    alternates: await pageAlternates('/aide'),
   }
 }
 

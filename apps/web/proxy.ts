@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 
+import { internalFromEnglish } from '@/i18n/pathnames'
 import { routing } from '@/i18n/routing'
 
 /**
@@ -119,20 +120,20 @@ function isUnlocalized(pathname: string): boolean {
  * LA LANGUE CHOISIE EST HONORÉE SUR LES ADRESSES SANS PRÉFIXE
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * `localePrefix: 'as-needed'` sert le français sur `/crypto/bitcoin` et l'anglais sur
- * `/en/crypto/bitcoin`. Un lecteur passé en anglais qui revenait par son signet — donc
- * sur une adresse sans préfixe — retombait en français : la décision de langue se prend
- * avant tout JavaScript, et rien dans la requête ne la portait.
+ * `localePrefix: 'as-needed'` sert l'anglais sur `/stocks` et le français sur
+ * `/fr/actions`. Un lecteur passé au français qui revient par son signet — donc sur
+ * une adresse sans préfixe — retomberait en anglais : la décision de langue se prend
+ * avant tout JavaScript, et rien dans la requête ne la porte.
  *
  * Le cookie `NEXT_LOCALE`, écrit par le sélecteur (voir `useLanguageChoice`), la
  * porte. On redirige donc vers la variante préfixée quand TROIS conditions sont
  * réunies — et chacune écarte un cas où la redirection serait nuisible :
  *
  *   1. LE COOKIE EXISTE ET DÉSIGNE UNE LANGUE TRADUITE. Sans cookie, rien ne change :
- *      un robot d'indexation n'en a pas, il continue de voir le français sur les
+ *      un robot d'indexation n'en a pas, il continue de voir l'anglais sur les
  *      adresses sans préfixe, et le classement acquis ne bouge pas.
- *   2. L'ADRESSE N'A PAS DÉJÀ DE PRÉFIXE. `/en/…` est un choix explicite, plus fort
- *      que le cookie : le suivre ferait boucler un lien anglais partagé par quelqu'un
+ *   2. L'ADRESSE N'A PAS DÉJÀ DE PRÉFIXE. `/de/…` est un choix explicite, plus fort
+ *      que le cookie : le suivre ferait boucler un lien allemand partagé par quelqu'un
  *      dont le cookie dit « fr ».
  *   3. C'EST UNE NAVIGATION DE DOCUMENT (`Sec-Fetch-Dest: document`). Les requêtes de
  *      données de Next.js — la navigation côté client, le préchargement — portent le
@@ -167,7 +168,18 @@ export function proxy(request: NextRequest): NextResponse {
     const preferred = preferredLocale(request)
     if (preferred) {
       const target = request.nextUrl.clone()
-      target.pathname = `/${preferred}${pathname === '/' ? '' : pathname}`
+      /*
+       * ⚠️ ON TRADUIT L'ADRESSE, ON NE LA PRÉFIXE PLUS.
+       *
+       * Cette ligne écrivait `/${preferred}${pathname}`. Elle était juste tant qu'une
+       * route s'écrivait pareil dans toutes les langues ; depuis `i18n/pathnames.ts`,
+       * une adresse SANS préfixe est anglaise — `/stocks` — et les douze autres
+       * langues servent le chemin interne. Préfixer aurait produit `/fr/stocks`, qui
+       * n'est l'adresse de rien : un lecteur ayant choisi le français aurait été
+       * envoyé en 404 depuis n'importe quel signet.
+       */
+      const interne = internalFromEnglish(pathname)
+      target.pathname = `/${preferred}${interne === '/' ? '' : interne}`
       return NextResponse.redirect(target, 307)
     }
   }

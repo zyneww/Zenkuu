@@ -4,8 +4,10 @@ import { getTranslations } from 'next-intl/server'
 import type { AssetClass } from '@zenkuu/data'
 import { getAsset } from '@zenkuu/data'
 
-import { extremeMessage, getMetric } from '@/lib/asset-metrics'
+import { extremeMessage, getMetric, metricHref } from '@/lib/asset-metrics'
+import { assetHref } from '@/lib/asset-routes'
 import { getContent } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Métadonnées d'une page d'actif.
@@ -39,6 +41,21 @@ export async function buildAssetMetadata(
     description: description
       ? description.slice(0, 155)
       : `Cours, capitalisation et statistiques de ${name} sur ${fr.site.name}.`,
+    /*
+     * ⚠️ LES FICHES N'AVAIENT NI CANONIQUE NI TRADUCTIONS, ET ELLES SONT LA MAJORITÉ
+     * DU SITE.
+     *
+     * Faute de bloc `alternates`, elles héritaient de celui du layout — dont la table
+     * `languages` est calculée pour `/`. Mesuré sur `/crypto/bitcoin` : la version
+     * française annoncée était `http://…/fr`, l'ACCUEIL. Un moteur à qui l'on désigne
+     * la mauvaise traduction ne relie pas les deux pages ; il conclut simplement que
+     * la déclaration est fausse, et treize fiches Bitcoin restent orphelines les unes
+     * des autres.
+     *
+     * Le défaut existait avant le déménagement de langue — il n'en découle pas — mais
+     * il portait sur des milliers de pages, et c'est ici qu'il se corrige une fois.
+     */
+    alternates: await pageAlternates(assetHref(assetClass, id)),
     openGraph: {
       title: `${fr.site.name} | ${title}`,
       description: `Cours et statistiques de ${name} — plateforme d’analyse en lecture seule.`,
@@ -89,6 +106,8 @@ export async function buildMetricMetadata(
   return {
     title,
     description: t(`${message}.help`).slice(0, 155),
+    /* Même lacune que sur les fiches, même remède — voir la note ci-dessus. */
+    alternates: await pageAlternates(metricHref(assetClass, id, slug)),
     openGraph: {
       title: `${fr.site.name} | ${title}`,
       description: t(`${message}.help`).slice(0, 200),

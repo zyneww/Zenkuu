@@ -64,8 +64,24 @@ export const TRANSLATED_LOCALES = [
 
 export type TranslatedLocale = (typeof TRANSLATED_LOCALES)[number]
 
-/** Langue servie quand aucune préférence n'est exprimée, et seule sans préfixe d'URL. */
-export const DEFAULT_LOCALE: TranslatedLocale = 'fr'
+/**
+ * Langue servie quand aucune préférence n'est exprimée, et seule sans préfixe d'URL.
+ *
+ * ── ELLE ÉTAIT `fr`, ET LE CHANGEMENT SE PAIE UNE FOIS ───────────────────────
+ *
+ * Le français occupait la racine, ce qui préservait les adresses déjà indexées. Le
+ * mandat inverse la priorité : l'anglais est la langue du marché visé, et c'est lui
+ * qui doit tenir les adresses courtes, sans préfixe et en slugs anglais.
+ *
+ * Le coût est réel et se compte une fois : chaque page française change d'adresse,
+ * de `/actions` à `/fr/actions`. `next.config.ts` engendre les redirections
+ * permanentes correspondantes — permanentes, pour que le classement acquis suive.
+ *
+ * ⚠️ CETTE CONSTANTE EST LE SEUL INTERRUPTEUR. Le routage, le plan du site, les
+ * balises `hreflang` et la redirection par cookie en découlent tous. Ne pas la
+ * doubler d'une seconde valeur écrite ailleurs.
+ */
+export const DEFAULT_LOCALE: TranslatedLocale = 'en'
 
 function entry(code: string, label: string, popular: boolean): LanguageEntry {
   return {

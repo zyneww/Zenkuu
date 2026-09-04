@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 
 import { BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { HELP_CATEGORIES } from '@/content/aide'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Page d'une rubrique d'aide.
@@ -33,7 +34,10 @@ export async function generateMetadata({
   return {
     title: t(category.title),
     description: t(category.description),
-    alternates: { canonical: `/aide/rubrique/${category.id}` },
+    alternates: await pageAlternates({
+      pathname: '/aide/rubrique/[id]',
+      params: { id: category.id },
+    }),
   }
 }
 

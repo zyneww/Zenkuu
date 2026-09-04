@@ -12,6 +12,7 @@ import { ChangeBadge, EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
 import { MarketTable } from '@/components/market/MarketTable'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -52,7 +53,10 @@ export async function generateMetadata({
     description:
       category.description?.slice(0, 155) ??
       `Les cryptomonnaies du secteur ${category.name} : capitalisation, volume et variations, classées par capitalisation.`,
-    alternates: { canonical: `/categories/${category.id}` },
+    alternates: await pageAlternates({
+      pathname: '/categories/[id]',
+      params: { id: category.id },
+    }),
   }
 }
 

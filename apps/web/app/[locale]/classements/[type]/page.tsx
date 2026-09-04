@@ -14,6 +14,7 @@ import { Link } from '@/i18n/navigation'
 import { RankingDetailTable } from '@/components/market/RankingDetailTable'
 import { PERIOD_LABELS } from '@/content/movers'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -136,7 +137,7 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
   return {
     title: `${t(entry.title)} — classement complet`,
     description: t(entry.lead),
-    alternates: { canonical: `/classements/${type}` },
+    alternates: await pageAlternates({ pathname: '/classements/[type]', params: { type } }),
   }
 }
 

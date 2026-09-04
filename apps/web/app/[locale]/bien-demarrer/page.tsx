@@ -3,6 +3,7 @@ import { Link, type AppHref } from '@/i18n/navigation'
 
 import { getContent, getSeo } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     '/bien-demarrer',
     'Prendre en main ZENKUU en quelques minutes : trouver un actif, lire sa fiche, changer de devise et comprendre les limites des données affichées.',
   ),
-  alternates: { canonical: '/bien-demarrer' },
+  alternates: await pageAlternates('/bien-demarrer'),
   }
 }
 

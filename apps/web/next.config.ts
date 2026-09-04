@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 import createNextIntlPlugin from 'next-intl/plugin'
 
+import { TRANSLATED_LOCALES } from './components/settings/languages'
+import { ROUTE_ADDRESSES } from './i18n/pathnames'
 import { NEWS_IMAGE_HOSTS } from './lib/news-image-hosts'
 
 /**
@@ -14,6 +16,106 @@ import { NEWS_IMAGE_HOSTS } from './lib/news-image-hosts'
  * ce qui marche ici mais se casse en silence dès qu'on déplace le dossier.
  */
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE DÉMÉNAGEMENT DE LANGUE — LES DEUX FAMILLES D'ADRESSES QU'IL LAISSE
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * L'anglais devient la langue par défaut, donc la langue SANS préfixe, et il reçoit
+ * ses propres slugs. Deux jeux d'adresses cessent alors d'exister, et tous deux sont
+ * indexés :
+ *
+ *   · les ANGLAISES d'hier, préfixées et en slugs français — `/en/actions` ;
+ *   · les FRANÇAISES d'hier, à la racine — `/actions`, que l'anglais occupe
+ *     maintenant sous un autre nom.
+ *
+ * ── POURQUOI DES RÈGLES EXPLICITES ALORS QUE next-intl REDIRIGE DÉJÀ ────────
+ *
+ * Il redirige, mais en 307 — TEMPORAIRE. Mesuré avant d'écrire ces lignes :
+ * `/en/actions` rendait bien 307 vers `/en/stocks`. Une 307 dit au moteur « garde
+ * l'ancienne adresse, elle reviendra peut-être » : le classement acquis reste attaché
+ * à une URL qui n'existe plus. Une 308 le TRANSFÈRE, ce qui est le seul intérêt d'un
+ * déménagement d'adresses. Les règles de ce fichier passent avant le middleware,
+ * elles gagnent donc.
+ *
+ * ── ET POURQUOI ELLES SONT ENGENDRÉES ──────────────────────────────────────
+ *
+ * Cinquante-huit routes fois deux familles font une centaine de règles. Écrites à la
+ * main, elles divergeraient de `i18n/pathnames.ts` dès la première route ajoutée, et
+ * le symptôme serait muet : la page nouvelle répondrait, son ancienne adresse non.
+ *
+ * ⚠️ CE BLOC VIT AU NIVEAU DU MODULE, ET CE N'EST PAS UN CHOIX DE STYLE. Next 16
+ * compile `next.config.ts` en un fichier autonome, et les imports référencés depuis
+ * l'INTÉRIEUR de `redirects()` n'y survivent pas — le serveur tombait sur
+ * « ReferenceError: ROUTE_ADDRESSES is not defined » au démarrage. Évalué ici, à la
+ * charge du module, tout est résolu avant que la fonction n'existe.
+ *
+ * ⚠️ L'ORDRE FAIT TOUT, ET IL EST DÉCROISSANT EN SEGMENTS. Sans lui, `/en/graphiques`
+ * avalerait `/en/graphiques/actifs-reels` et l'enverrait sur `/charts/actifs-reels` —
+ * une adresse qui n'existe dans aucune langue.
+ */
+const parametre = (chemin: string) => chemin.replace(/\[([^\]]+)\]/g, ':$1')
+
+const DEMENAGEMENT = [...ROUTE_ADDRESSES]
+  .sort((a, b) => b[0].split('/').length - a[0].split('/').length)
+  .flatMap(([interne, anglais]) => {
+    /* L'adresse anglaise d'hier : préfixée, en slugs français. */
+    const regles = [
+      { source: `/en${parametre(interne)}`, destination: parametre(anglais), permanent: true },
+    ]
+
+    /* L'adresse française d'hier, à la racine — seulement quand le slug change.
+       `/crypto` s'écrit pareil dans les deux langues : le rediriger vers `/fr/crypto`
+       interdirait au lecteur anglais d'atteindre sa propre page. */
+    if (interne !== anglais) {
+      regles.push({
+        source: parametre(interne),
+        destination: `/fr${parametre(interne)}`,
+        permanent: true,
+      })
+    }
+
+    return regles
+  })
+
+/**
+ * Les douze langues qui gardent un préfixe.
+ *
+ * ⚠️ REMPLACE UN `\w{2}` QUI ATTRAPAIT N'IMPORTE QUEL SEGMENT DE DEUX LETTRES, langue
+ * ou pas. L'anglais est exclu : il n'a plus de préfixe, et ses anciennes adresses
+ * `/en/…` sont traitées par `DEMENAGEMENT`, qui les envoie directement à destination
+ * plutôt qu'en deux sauts.
+ */
+const PREFIXES_DE_LANGUE = TRANSLATED_LOCALES.filter((locale) => locale !== 'en').join('|')
+
+/**
+ * Traduit un chemin INTERNE en son adresse anglaise.
+ *
+ * ── POURQUOI LES ANCIENNES LISTES EN ONT BESOIN ──────────────────────────────
+ *
+ * `['/charts/rwa', '/graphiques/actifs-reels']` était juste tant que la racine servait
+ * le français. Elle ne l'est plus : sans préfixe, `/graphiques/actifs-reels` n'est
+ * l'adresse de rien, et la règle de déménagement l'enverrait ensuite sur `/fr/…`. Un
+ * lecteur qui tape un chemin ANGLAIS de la référence atterrirait donc sur la page
+ * FRANÇAISE, en deux sauts.
+ *
+ * La correspondance se fait par le plus long préfixe : `/graphiques` conviendrait à
+ * `/graphiques/actifs-reels` et donnerait `/charts/actifs-reels`, qui n'existe pas.
+ */
+const ADRESSES_PAR_LONGUEUR = [...ROUTE_ADDRESSES].sort((a, b) => b[0].length - a[0].length)
+
+const versAnglais = (chemin: string): string => {
+  const [route = chemin, requete] = chemin.split(/(?=\?)/)
+
+  for (const [interne, anglais] of ADRESSES_PAR_LONGUEUR) {
+    if (route === interne || route.startsWith(`${interne}/`)) {
+      return `${anglais}${route.slice(interne.length)}${requete ?? ''}`
+    }
+  }
+
+  return chemin
+}
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -254,8 +356,13 @@ const config: NextConfig = {
       ['/crypto/all-coins', '/classements'],
       ['/crypto/classement/:type', '/classements/:type'],
       ['/crypto/nouvelles', '/nouvelles-cotations'],
-      ['/crypto/mouvements', '/mouvements'],
-      ['/crypto/highlights', '/points-marquants'],
+      /* ⚠️ CES DEUX-LÀ VISAIENT `/mouvements` ET `/points-marquants`, QUI N'EXISTENT
+         PAS. Vérifié dossier par dossier dans `app/[locale]/` — comme `/apprendre`
+         plus bas, ces redirections menaient au 404 depuis leur écriture. Leur contenu
+         a fusionné dans les classements, qui portent les quatre palmarès ; c'est la
+         destination honnête, et elle existe. */
+      ['/crypto/mouvements', '/classements'],
+      ['/crypto/highlights', '/classements'],
       ['/crypto/resoudre/:terme', '/resoudre/:terme'],
     ]
 
@@ -298,31 +405,48 @@ const config: NextConfig = {
      * `/en/nft/chains/ethereum` vers une page qui ne filtre pas par chaîne enverrait
      * le visiteur sur autre chose que ce qu'il a demandé — un 404 est plus honnête.
      */
+    /*
+     * ⚠️ SIX ENTRÉES ONT DISPARU DE CETTE LISTE, ET LEUR ABSENCE EST LE POINT.
+     *
+     * Elle contenait `/exchanges`, `/glossary`, `/converter`, `/charts`, `/news` et
+     * `/about` — des chemins de la référence qu'on redirigeait vers leur équivalent
+     * français. Ce sont EXACTEMENT les adresses anglaises que `i18n/pathnames.ts`
+     * vient de créer. Les garder rendait la page anglaise inatteignable : mesuré,
+     * `/en/charts` répondait 308 vers `/en/graphiques` avant même d'atteindre
+     * next-intl.
+     *
+     * Elles ne manquent à personne : ces chemins servent désormais la vraie page.
+     *
+     * ⚠️ `/learn` VISAIT `/apprendre`, QUI N'EXISTE PAS. Vérifié dossier par dossier
+     * dans `app/[locale]/` : la redirection menait à un 404 depuis le début. Elle
+     * pointe sur le centre d'aide, seule page du site qui tienne ce rôle.
+     */
     const reference: [string, string][] = [
       ['/coins/:id', '/crypto/:id'],
       ['/coins/:id/historical_data', '/crypto/:id'],
       ['/coins/bitcoin/bitcoin-halving', '/crypto/bitcoin/halving'],
       ['/all-cryptocurrencies', '/crypto'],
-      ['/exchanges', '/places'],
+      /* ⚠️ CE CHEMIN RECOUVRE MAINTENANT UNE VRAIE ROUTE : `/exchanges/[id]` est
+         l'adresse anglaise d'une fiche de place. Il est gardé quand même, parce que
+         « derivatives » n'est l'identifiant d'aucune place et que le chemin veut dire
+         la même chose des deux côtés — la liste des places de dérivés. */
       ['/exchanges/derivatives', '/derives'],
-      ['/chains', '/categories/ecosystemes'],
+      /* Vers la vue filtrée directement, et non vers `/categories/ecosystemes` qui
+         redirige elle-même : deux redirections en chaîne coûtent une exploration de
+         plus au robot pour arriver au même écran. */
+      ['/chains', '/categories?vue=ecosystemes'],
       ['/treasuries', '/graphiques/tresoreries'],
       ['/nft', '/graphiques/nft'],
-      ['/glossary', '/glossaire'],
-      ['/converter', '/convertisseur'],
       ['/compare-cryptocurrencies', '/comparateur'],
       ['/new-cryptocurrencies', '/nouvelles-cotations'],
       ['/crypto-gainers-losers', '/classements'],
       ['/highlights', '/classements'],
       ['/highlights/all-time-high-crypto', '/classements/sommet'],
       ['/highlights/high-volume', '/classements/volumes'],
-      ['/charts', '/graphiques'],
       ['/charts/bitcoin-dominance', '/graphiques/dominance'],
       ['/charts/crypto-heatmap', '/heatmap'],
       ['/charts/rwa', '/graphiques/actifs-reels'],
-      ['/news', '/actualites'],
-      ['/learn', '/apprendre'],
-      ['/about', '/a-propos'],
+      ['/learn', '/aide'],
       ['/faq', '/aide'],
       ['/portfolio', '/tableau-de-bord'],
     ]
@@ -333,14 +457,17 @@ const config: NextConfig = {
        chemins les plus SEGMENTÉS en tête. */
     reference.sort((a, b2) => b2[0].split('/').length - a[0].split('/').length)
 
-    return [...moved, ...removed, ...reference].flatMap(([source, destination]) => [
-      { source, destination, permanent: true },
-      {
-        source: `/:locale(\\w{2}|pt-BR)${source}`,
-        destination: `/:locale${destination}`,
-        permanent: true,
-      },
-    ])
+    return [
+      ...[...moved, ...removed, ...reference].flatMap(([source, destination]) => [
+        { source, destination: versAnglais(destination), permanent: true },
+        {
+          source: `/:locale(${PREFIXES_DE_LANGUE})${source}`,
+          destination: `/:locale${destination}`,
+          permanent: true,
+        },
+      ]),
+      ...DEMENAGEMENT,
+    ]
   },
 
   images: {

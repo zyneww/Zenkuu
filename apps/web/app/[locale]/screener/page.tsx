@@ -27,6 +27,7 @@ import {
 } from '@/components/tools/screener-markets'
 import { getPhrase } from '@/lib/content'
 import { emphasise, weave } from '@/components/locale/emphasise'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -52,7 +53,7 @@ export async function generateMetadata({
      * (§9). Le paramètre reste dans l'URL, partageable — il n'est simplement pas
      * revendiqué comme une page à part.
      */
-    alternates: { canonical: '/screener' },
+    alternates: await pageAlternates('/screener'),
   }
 }
 

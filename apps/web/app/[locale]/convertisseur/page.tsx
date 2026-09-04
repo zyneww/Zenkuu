@@ -15,6 +15,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { ConverterView } from '@/components/tools/ConverterView'
 import { assetHref } from '@/lib/asset-routes'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -37,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/convertisseur',
       'Convertir un montant entre une cryptomonnaie, une action, un ETF, un indice ou une matière première et cinq devises, au dernier cours reçu.',
     ),
-    alternates: { canonical: '/convertisseur' },
+    alternates: await pageAlternates('/convertisseur'),
   }
 }
 

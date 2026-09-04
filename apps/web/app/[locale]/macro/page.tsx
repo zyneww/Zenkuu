@@ -17,6 +17,7 @@ import { MacroMap, type MacroTone } from '@/components/market/MacroMap'
 import { emphasise } from '@/components/locale/emphasise'
 import { getLocale } from 'next-intl/server'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /** Les cinq séries gardées en accès direct — voir la note sur la rangée de raccourcis. */
 const FEATURED = ['inflation', 'chomage', 'croissance', 'dette', 'interets'] as const
@@ -42,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/macro',
       'Inflation, chômage, croissance, dette publique et taux d’intérêt réels, pays par pays, d’après les séries de la Banque mondiale.',
     ),
-    alternates: { canonical: '/macro' },
+    alternates: await pageAlternates('/macro'),
   }
 }
 

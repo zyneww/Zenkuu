@@ -7,6 +7,7 @@ import { InstrumentTabs } from '@/components/market/InstrumentTabs'
 import { DerivativeExchangesExplorer } from '@/components/market/DerivativeExchangesExplorer'
 import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /* Dix minutes, comme le TTL de la donnée elle-même : l'intérêt ouvert est une
    position, et une position se déplace dans la journée. */
@@ -29,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/perpetuels',
       'Les places de contrats perpétuels classées par intérêt ouvert : exposition portée, volume sur 24 heures, rotation, nombre de contrats. Plateformes décentralisées et dépositaires distinguées. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
     ),
-    alternates: { canonical: '/perpetuels' },
+    alternates: await pageAlternates('/perpetuels'),
   }
 }
 

@@ -3,8 +3,9 @@ import type { Metadata } from 'next'
 import type { AssetClass } from '@zenkuu/data'
 
 import { MarketPageView } from '@/components/market/MarketPageView'
-import { ASSET_CLASS_SEGMENT } from '@/lib/asset-routes'
+import { marketHref, marketPath } from '@/lib/asset-routes'
 import { getContent, getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -69,11 +70,15 @@ export function classMetadata(assetClass: AssetClass): () => Promise<Metadata> {
   return async () => {
     const fr = await getContent()
     const seo = await getSeo()
-    const path = `/${ASSET_CLASS_SEGMENT[assetClass]}`
+    /* Le chemin INTERNE sert deux choses distinctes : il indexe la table des
+       descriptions de référencement, qui est clée par route française, et il désigne
+       la route dont `pageAlternates` tirera l'adresse publique de chaque langue. */
+    const route = marketHref(assetClass)
+    const path = marketPath(assetClass)
     return {
       title: fr.assetClass[assetClass],
       description: seo(path, SUBTITLE[assetClass]),
-      alternates: { canonical: path },
+      alternates: await pageAlternates(route),
     }
   }
 }

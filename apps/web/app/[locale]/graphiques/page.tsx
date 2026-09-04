@@ -27,6 +27,7 @@ import { GlobalChartCard } from '@/components/market/GlobalChartCard'
 import { AltseasonCard } from '@/components/market/views/AltseasonSection'
 import { BasketSection } from '@/components/market/views/BasketSection'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -59,7 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t(TITLE),
     description: t(LEAD),
-    alternates: { canonical: '/graphiques' },
+    alternates: await pageAlternates('/graphiques'),
   }
 }
 

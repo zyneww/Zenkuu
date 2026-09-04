@@ -13,6 +13,7 @@ import { StatCard } from '@/components/charts/StatCard'
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
 import { getContent } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /*
  * Le mot « Ecosystem » servait ICI à pré-remplir le champ de recherche. Il vit
@@ -56,7 +57,7 @@ export async function generateMetadata({
   return {
     title: fr.pages.categories,
     description: fr.categories.subtitle,
-    alternates: { canonical: '/categories' },
+    alternates: await pageAlternates('/categories'),
   }
 }
 

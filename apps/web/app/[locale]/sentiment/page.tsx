@@ -18,6 +18,7 @@ import { SentimentFaq } from '@/components/sentiment/SentimentFaq'
 import { SentimentHistoricalValues } from '@/components/sentiment/SentimentHistoricalValues'
 import { SentimentHistoryView } from '@/components/sentiment/SentimentHistoryView'
 import { getContent, getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 1800
 
@@ -33,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: fr.pages.sentiment,
     description: fr.sentiment.subtitle,
-    alternates: { canonical: '/sentiment' },
+    alternates: await pageAlternates('/sentiment'),
   }
 }
 

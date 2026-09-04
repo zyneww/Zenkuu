@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { DM_Mono, Inter } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
-import { getMessages, setRequestLocale } from 'next-intl/server'
+import { getLocale, getMessages, setRequestLocale } from 'next-intl/server'
 
 import { routing } from '@/i18n/routing'
 import { isRtl } from '@/components/settings/languages'
@@ -160,6 +160,7 @@ const mono = DM_Mono({
  */
 export async function generateMetadata(): Promise<Metadata> {
   const fr = await getContent()
+  const locale = await getLocale()
   return {
   // Sans `metadataBase`, Next.js émet les URL canoniques et les images Open Graph en
   // chemin RELATIF — invalides pour un moteur de recherche comme pour un aperçu de
@@ -201,7 +202,12 @@ export async function generateMetadata(): Promise<Metadata> {
   },
   openGraph: {
     type: 'website',
-    locale: 'fr_FR',
+    /* ⚠️ C'ÉTAIT `'fr_FR'` EN DUR, sur les treize langues. Un aperçu de partage
+       annonçait donc du français au-dessus d'un texte anglais ou japonais — même
+       défaut que la date de l'infobulle des graphiques, et même remède : la langue
+       est connue de la requête, il suffit de la demander. Open Graph attend un
+       identifiant à souligne (`en_US`), non un tiret. */
+    locale: locale.replace('-', '_'),
     siteName: fr.site.name,
     title: `${fr.site.name} | ${fr.site.tagline}`,
     description: fr.site.description,

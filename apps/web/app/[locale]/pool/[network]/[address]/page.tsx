@@ -9,6 +9,7 @@ import { fill } from '@/components/locale/emphasise'
 import { DexPoolTable } from '@/components/market/DexPoolTable'
 import { Panel } from '@/components/ui/Panel'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Une minute, alignée sur le TTL de la source on-chain.
@@ -37,7 +38,10 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
     description:
       `Réserve, volume et transactions du pool ${pool.data.name} sur ${network}. ` +
       'Lecture seule, sans exécution d’ordres.',
-    alternates: { canonical: `/pool/${network}/${address}` },
+    alternates: await pageAlternates({
+      pathname: '/pool/[network]/[address]',
+      params: { network, address },
+    }),
   }
 }
 

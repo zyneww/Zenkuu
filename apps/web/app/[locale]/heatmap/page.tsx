@@ -8,6 +8,7 @@ import { MarketHeatmap } from '@/components/tools/MarketHeatmap'
 import { emphasise, weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
 import { volatility7d } from '@/lib/heatmap-metrics'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -30,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/heatmap',
       'Le marché crypto en une figure, par pièce ou par secteur : la surface porte la capitalisation, la couleur porte la variation.',
     ),
-    alternates: { canonical: '/heatmap' },
+    alternates: await pageAlternates('/heatmap'),
   }
 }
 

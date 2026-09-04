@@ -9,6 +9,7 @@ import { NewListingsTable } from '@/components/market/NewListingsTable'
 import { buildListingIndex } from '@/lib/listing-match'
 import { emphasise, weave } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/nouvelles-cotations',
       'Les cryptomonnaies référencées le plus récemment : cours, capitalisation, volume et date du premier relevé de prix connu.',
     ),
-    alternates: { canonical: '/nouvelles-cotations' },
+    alternates: await pageAlternates('/nouvelles-cotations'),
   }
 }
 

@@ -9,6 +9,7 @@ import { ExchangeLogo } from '@/components/asset/ExchangeLogo'
 import { ExchangeTickersTable } from '@/components/market/ExchangeTickersTable'
 import { Link } from '@/i18n/navigation'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /* Une heure, comme le TTL de la donnée — voir `getExchangeProfile`. */
 export const revalidate = 3600
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
       `Volume, paires cotées et profil de ${place.name}, place de ${kind}` +
       `${place.country ? ` établie ${frenchIn(place.country)}` : ''}. ` +
       'ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
-    alternates: { canonical: `/places/${id}` },
+    alternates: await pageAlternates({ pathname: '/places/[id]', params: { id } }),
   }
 }
 

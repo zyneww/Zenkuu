@@ -8,6 +8,7 @@ import { BUYBACK_FATE_LABEL, BUYBACK_PROGRAMS } from '@/content/buybacks'
 import { Link } from '@/i18n/navigation'
 import { assetHref } from '@/lib/asset-routes'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/rachats',
       'Les protocoles qui consacrent une part de leurs revenus à racheter leur propre jeton : ce qui finance le rachat, ce que devient le jeton racheté, et où le vérifier.',
     ),
-    alternates: { canonical: '/rachats' },
+    alternates: await pageAlternates('/rachats'),
   }
 }
 

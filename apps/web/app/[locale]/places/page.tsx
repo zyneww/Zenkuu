@@ -7,6 +7,7 @@ import { InstrumentTabs } from '@/components/market/InstrumentTabs'
 import { SpotExchangesExplorer } from '@/components/market/SpotExchangesExplorer'
 import { emphasise } from '@/components/locale/emphasise'
 import { getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /*
  * Une heure, comme le TTL de la donnée elle-même (voir `getSpotExchanges`). Régénérer
@@ -32,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/places',
       'Les cent premières places d’échange au comptant classées par note de confiance : volume déclaré sur 24 heures, part du volume affiché, pays. ZENKUU ne référence aucun carnet d’ordres et ne permet aucune transaction.',
     ),
-    alternates: { canonical: '/places' },
+    alternates: await pageAlternates('/places'),
   }
 }
 

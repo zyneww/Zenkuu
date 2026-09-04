@@ -22,14 +22,20 @@ import { PATHNAMES } from './pathnames'
  * « es » à `TRANSLATED_LOCALES` ouvre `/es/…` sans autre changement : le routage, le
  * plan du site et les balises `hreflang` se déduisent tous de cette seule liste.
  *
- * ── POURQUOI LE FRANÇAIS N'A PAS DE PRÉFIXE ───────────────────────────────────
+ * ── POURQUOI L'ANGLAIS N'A PAS DE PRÉFIXE ─────────────────────────────────────
  *
- * `localePrefix: 'as-needed'` laisse le français sur `/crypto/bitcoin` et place
- * l'anglais sur `/en/crypto/bitcoin`. Les URL existantes sont donc PRÉSERVÉES : les
- * liens déjà partagés, les pages déjà indexées et les positions déjà acquises ne
- * bougent pas. Basculer le français sous `/fr/…` aurait imposé une redirection
- * permanente sur chaque page du site, avec la perte de classement transitoire que
- * cela suppose, et sans aucun bénéfice en échange.
+ * `localePrefix: 'as-needed'` sert `DEFAULT_LOCALE` sans préfixe et place les autres
+ * sur `/xx/…`.
+ *
+ * ⚠️ CETTE NOTE DISAIT L'INVERSE, ET SON RAISONNEMENT ÉTAIT JUSTE. Elle expliquait
+ * que le français gardait la racine pour PRÉSERVER les adresses déjà indexées, et que
+ * basculer imposerait une redirection permanente sur chaque page « sans aucun
+ * bénéfice en échange ». Le bénéfice existe désormais et il a été arbitré : l'anglais
+ * est la langue du marché visé, et c'est elle qui doit tenir les adresses courtes.
+ *
+ * Le coût que la note annonçait est réel et il est payé : `next.config.ts` engendre
+ * une 308 par ancienne adresse française, `/actions` → `/fr/actions`. Permanente,
+ * pour que le classement suive plutôt que de rester accroché à une URL morte.
  */
 export const routing = defineRouting({
   locales: TRANSLATED_LOCALES,

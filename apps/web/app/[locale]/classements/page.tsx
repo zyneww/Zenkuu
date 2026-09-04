@@ -18,6 +18,7 @@ import { RankingBoard } from '@/components/market/RankingBoard'
 import { RANKING_SIZE } from '@/components/home/ClassMoversGrid'
 import { assetClassFromSegment, ASSET_CLASS_SEGMENT } from '@/lib/asset-routes'
 import { getContent, getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -67,7 +68,7 @@ export async function generateMetadata({
       '/classements',
       'Plus fortes hausses, plus fortes baisses, volumes les plus élevés et rotation la plus forte, sur 1 heure à 30 jours.',
     ),
-    alternates: { canonical: '/classements' },
+    alternates: await pageAlternates('/classements'),
   }
 }
 

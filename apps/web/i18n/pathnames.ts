@@ -170,7 +170,7 @@ export const PATHNAMES = {
 } as const
 
 /**
- * Les routes dont l'anglais diffère, sous forme `chemin interne → adresse anglaise`.
+ * Chaque route, avec son adresse anglaise — `['/actions', '/stocks']`.
  *
  * ── POURQUOI DÉRIVÉE PLUTÔT QU'ÉCRITE ────────────────────────────────────────
  *
@@ -180,14 +180,65 @@ export const PATHNAMES = {
  * mais son ancienne adresse en 404, ce que personne ne remarque avant de lire un
  * rapport d'indexation.
  *
+ * Les routes dont l'anglais est identique y figurent aussi, avec les deux colonnes
+ * égales : `/en/crypto` est une ancienne adresse comme les autres, et elle a besoin
+ * de sa redirection vers `/crypto` même si le mot ne change pas.
+ *
  * ⚠️ ELLE NE PEUT PAS VIVRE DANS `routing.ts`. `next.config.ts` importe ce
  * module-ci, et `routing.ts` appelle `defineRouting` de next-intl : l'importer depuis
  * la configuration ferait charger next-intl avant que Next n'ait démarré. Ce fichier
  * n'importe donc rien d'autre que la liste des langues.
  */
-export const ENGLISH_SLUGS: ReadonlyArray<readonly [interne: string, anglais: string]> =
-  Object.entries(PATHNAMES).flatMap(([interne, adresses]) =>
-    typeof adresses === 'string' || adresses.en === interne
-      ? []
-      : [[interne, adresses.en] as const],
+export const ROUTE_ADDRESSES: ReadonlyArray<readonly [interne: string, anglais: string]> =
+  Object.entries(PATHNAMES).map(([interne, adresses]) =>
+    typeof adresses === 'string' ? ([interne, adresses] as const) : ([interne, adresses.en] as const),
   )
+
+/**
+ * L'inverse de la table : d'une adresse ANGLAISE concrète vers son chemin interne.
+ *
+ * `/stocks/aapl/metrics/prix` → `/actions/aapl/metriques/prix`
+ *
+ * ── QUI EN A BESOIN, ET POURQUOI ÇA NE PEUT PAS ÊTRE UNE SUBSTITUTION ────────
+ *
+ * `proxy.ts` redirige vers la langue enregistrée en cookie quand l'adresse n'a pas de
+ * préfixe. Une adresse sans préfixe est ANGLAISE ; les douze autres langues servent le
+ * chemin interne. Passer de l'une à l'autre demande donc de traduire, et non de
+ * préfixer : `/fr/stocks` n'existe pas.
+ *
+ * Remplacer le seul premier segment ne suffit pas — `/stocks/aapl/metrics/prix` a deux
+ * segments traduits, séparés par une valeur. La correspondance se fait donc GABARIT
+ * PAR GABARIT, à nombre de segments égal, chaque `[…]` acceptant une valeur qu'on
+ * reporte à la même place dans le chemin interne.
+ *
+ * Une adresse inconnue est rendue telle quelle : le middleware la passera au routage,
+ * qui répondra 404 comme il se doit. Deviner mieux ne ferait qu'inventer.
+ */
+export function internalFromEnglish(adresse: string): string {
+  const recu = adresse.split('/')
+
+  for (const [interne, anglais] of ROUTE_ADDRESSES) {
+    const gabarit = anglais.split('/')
+    if (gabarit.length !== recu.length) continue
+
+    const valeurs: string[] = []
+    const correspond = gabarit.every((segment, index) => {
+      const donne = recu[index] ?? ''
+      if (segment.startsWith('[')) {
+        valeurs.push(donne)
+        return donne.length > 0
+      }
+      return segment === donne
+    })
+
+    if (!correspond) continue
+
+    let reste = 0
+    return interne
+      .split('/')
+      .map((segment) => (segment.startsWith('[') ? (valeurs[reste++] ?? segment) : segment))
+      .join('/')
+  }
+
+  return adresse
+}

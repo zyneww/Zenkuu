@@ -4,6 +4,7 @@ import { AuthPageView } from '@/components/account/AuthPageView'
 import { getSeo } from '@/lib/content'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
 import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
+import { pageAlternates } from '@/lib/site'
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeo()
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/connexion',
       'Connectez-vous à ZENKUU avec un code à six chiffres envoyé par courriel. Aucun mot de passe, et le site s’utilise sans compte.',
     ),
-    alternates: { canonical: '/connexion' },
+    alternates: await pageAlternates('/connexion'),
     /*
      * ── NI INDEXÉE NI SUIVIE, ET C'EST DÉLIBÉRÉ ────────────────────────────
      *

@@ -6,6 +6,7 @@ import { emphasise, weave } from '@/components/locale/emphasise'
 import { setRequestLocale } from 'next-intl/server'
 
 import { getContent, getPhrase, getSeo } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Métadonnées DÉRIVÉES DE LA LANGUE, d'où la fonction plutôt que la constante.
@@ -30,7 +31,7 @@ export async function generateMetadata({
     '/a-propos',
     'ZENKUU est une plateforme d’analyse de marché multi-actifs, en lecture seule : ni courtier, ni plateforme d’échange, ni conseiller en investissement.',
   ),
-  alternates: { canonical: '/a-propos' },
+  alternates: await pageAlternates('/a-propos'),
   }
 }
 

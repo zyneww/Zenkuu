@@ -6,6 +6,7 @@ import { CACHE_TTL_SECONDS } from '@zenkuu/data'
 import { ChartsShell, LoadingNote } from '@/components/market/ChartsShell'
 import { RealWorldAssetsSection } from '@/components/market/views/RealWorldAssetsSection'
 import { getPhrase } from '@/lib/content'
+import { pageAlternates } from '@/lib/site'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t(TITLE),
     description: t(LEAD),
-    alternates: { canonical: '/graphiques/actifs-reels' },
+    alternates: await pageAlternates('/graphiques/actifs-reels'),
   }
 }
 

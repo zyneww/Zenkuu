@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { HELP_ARTICLES, findHelpArticle } from '@/content/aide'
+import { pageAlternates } from '@/lib/site'
 
 /**
  * Une page par article : c'est ce qui rend l'aide indexable.
@@ -36,7 +37,7 @@ export async function generateMetadata({
   return {
     title: t(article.title),
     description: t(article.summary),
-    alternates: { canonical: `/aide/${article.slug}` },
+    alternates: await pageAlternates({ pathname: '/aide/[slug]', params: { slug: article.slug } }),
   }
 }
 

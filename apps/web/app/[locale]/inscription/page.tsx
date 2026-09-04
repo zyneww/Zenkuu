@@ -4,6 +4,7 @@ import { AuthPageView } from '@/components/account/AuthPageView'
 import { getPhrase, getSeo } from '@/lib/content'
 import { ACCOUNTS_ENABLED } from '@/lib/session'
 import { CONFIGURED_PROVIDERS } from '@/lib/oauth'
+import { pageAlternates } from '@/lib/site'
 
 export async function generateMetadata(): Promise<Metadata> {
   const [seo, t] = await Promise.all([getSeo(), getPhrase()])
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
       '/inscription',
       'Créez un compte ZENKUU avec une adresse électronique. Ni mot de passe ni vérification d’identité — le compte ne sert qu’à emporter vos listes de suivi.',
     ),
-    alternates: { canonical: '/inscription' },
+    alternates: await pageAlternates('/inscription'),
     // Même raisonnement que `/connexion` : voir la note qui l'accompagne.
     robots: { index: false, follow: true },
   }
