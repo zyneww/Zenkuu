@@ -8,6 +8,8 @@ import { ZenkuuMark } from '@/components/BrandMark'
 import { ChartNavigator } from '@/components/asset/ChartNavigator'
 import { PriceChartAm, type AmCompare, type AmPoint } from '@/components/asset/PriceChartAm'
 import { useReducedMotion } from '@/components/charts/useReducedMotion'
+import { useLocale } from 'next-intl'
+
 import { usePhrase } from '@/components/locale/ContentProvider'
 import {
   ASSET_CHART_HEIGHT,
@@ -290,6 +292,8 @@ export function PriceChartInteractive({
   showTooltipChange = false,
 }: PriceChartInteractiveProps) {
   const t = usePhrase()
+  /* Sert la date de l'infobulle, et rien d'autre — voir `formatStamp`. */
+  const locale = useLocale()
   const reduced = useReducedMotion()
 
   /**
@@ -608,18 +612,33 @@ export function PriceChartInteractive({
           }`.trim()
 
         const dot = (color: string) =>
-          `<span style="display:inline-block;width:7px;height:7px;border-radius:9999px;background:${color};margin-right:6px;vertical-align:middle"></span>`
+          `<span style="display:inline-block;width:8px;height:8px;border-radius:9999px;background:${color};margin-right:7px;vertical-align:middle"></span>`
 
+        /*
+          ── LA LIGNE DE PRIX EST LA PLUS GROSSE DE LA BULLE ──────────────────
+
+          Elle était à la même taille que la date et le volume — onze pixels pour les
+          trois. C'est ce qu'on vient lire, et c'était typographié comme ce qui
+          l'entoure : à onze pixels sur un fond translucide posé par-dessus un tracé,
+          il faut s'arrêter pour lire un chiffre qu'on devrait saisir en passant.
+
+          Quinze pixels pour le montant, treize pour le reste. L'écart n'est pas
+          décoratif : c'est lui qui dit lequel des trois nombres répond à la question.
+        */
         const lines = [
-          `<div>${dot(trendColor)}<span style="font-weight:600">${label}</span> : <span style="font-weight:600">${money(row.price)}</span></div>`,
+          `<div style="display:flex;align-items:center;gap:2px;font-size:15px;font-weight:600;letter-spacing:-0.01em">${dot(trendColor)}<span>${money(row.price)}</span></div>`,
+          `<div style="opacity:.75;margin-top:1px">${label}</div>`,
         ]
 
         overlays.forEach((entry, index) => {
           const value = row[`${COMPARE_PREFIX}${index}`]
           if (typeof value !== 'number' || !Number.isFinite(value)) return
           const color = COMPARE_COLORS[index % COMPARE_COLORS.length] as string
+          /* Les comparaisons gardent le format « intitulé : montant » sur une ligne :
+             empilées à quinze pixels, cinq courbes feraient une bulle plus haute que le
+             cadre, qu'amCharts rognerait. */
           lines.push(
-            `<div>${dot(color)}<span style="font-weight:600">${entry.label}</span> : <span style="font-weight:600">${money(value)}</span></div>`,
+            `<div style="margin-top:3px">${dot(color)}<span style="opacity:.75">${entry.label}</span> <span style="font-weight:600">${money(value)}</span></div>`,
           )
         })
 
@@ -628,7 +647,7 @@ export function PriceChartInteractive({
            laisserait croire qu'il les concerne toutes. */
         const volume =
           !indexed && typeof row.volume === 'number' && Number.isFinite(row.volume)
-            ? `<div style="opacity:.65;margin-top:2px">${t('Vol :')} ${formatCompact(row.volume)}</div>`
+            ? `<div style="opacity:.75;margin-top:4px">${t('Vol :')} ${formatCompact(row.volume)}</div>`
             : ''
 
         /*
@@ -649,7 +668,7 @@ export function PriceChartInteractive({
         */
         const cap =
           showTooltipMarketCap && !indexed && typeof row.cap === 'number' && Number.isFinite(row.cap)
-            ? `<div style="opacity:.65">${t('Cap. :')} ${formatCompact(row.cap)} ${currencySign(currency)}</div>`
+            ? `<div style="opacity:.75;margin-top:2px">${t('Cap. :')} ${formatCompact(row.cap)} ${currencySign(currency)}</div>`
             : ''
 
         const change =
@@ -658,15 +677,18 @@ export function PriceChartInteractive({
                 const pct = (row.price / anchorPrice - 1) * 100
                 const sign = pct >= 0 ? '+' : '−'
                 const tint = pct >= 0 ? 'var(--color-up)' : 'var(--color-down)'
-                return `<div style="color:${tint}">${sign}${Math.abs(pct).toFixed(2).replace('.', ',')} %<span style="opacity:.65"> ${t('sur la fenêtre')}</span></div>`
+                return `<div style="color:${tint};margin-top:2px">${sign}${Math.abs(pct).toFixed(2).replace('.', ',')} %<span style="opacity:.75"> ${t('sur la fenêtre')}</span></div>`
               })()
             : ''
 
         const point: AmPoint = {
           t: row.t,
           price: row.price,
-          tip: `<div style="font-size:11px;line-height:1.65">
-              <div style="opacity:.65;margin-bottom:3px">${formatStamp(row.t, spanDays)}</div>
+          /* 13 px et non 11, interligne 1,5, et la date détachée du reste par un vrai
+             blanc plutôt que par trois pixels. La bulle grandit d'une dizaine de pixels
+             en hauteur — elle est posée en haut du cadre, où il n'y a rien à masquer. */
+          tip: `<div style="font-size:13px;line-height:1.5;padding:2px 1px">
+              <div style="opacity:.75;margin-bottom:6px;white-space:nowrap">${formatStamp(row.t, spanDays, locale)}</div>
               ${lines.join('')}
               ${change}
               ${cap}
@@ -687,6 +709,7 @@ export function PriceChartInteractive({
       rows,
       indexed,
       currency,
+      locale,
       spanDays,
       overlays,
       trendColor,
@@ -784,8 +807,14 @@ export function PriceChartInteractive({
   const [hoveredAt, setHoveredAt] = useState<number | null>(null)
 
   const shown = useMemo<LegendState>(
-    () => readRow(rows, hoveredAt === null ? rows.length - 1 : nearestRow(rows, hoveredAt), spanDays),
-    [rows, hoveredAt, spanDays],
+    () =>
+      readRow(
+        rows,
+        hoveredAt === null ? rows.length - 1 : nearestRow(rows, hoveredAt),
+        spanDays,
+        locale,
+      ),
+    [rows, hoveredAt, spanDays, locale],
   )
 
   /** Valeurs dessinées dans la bande — l'historique complet s'il est chargé. */
@@ -1237,13 +1266,13 @@ function Ohlc({ label, value, reference }: { label: string; value: number; refer
  * de courbe n'a pas d'ouverture, et la seule variation qu'on puisse lui attribuer est
  * celle du pas qui l'a amené là.
  */
-function readRow(rows: Row[], index: number, days: number): LegendState {
+function readRow(rows: Row[], index: number, days: number, locale: string): LegendState {
   const row = rows[index]
   if (!row) return {}
 
   if (row.open !== undefined && row.high !== undefined && row.low !== undefined) {
     return {
-      time: formatStamp(row.t, days),
+      time: formatStamp(row.t, days, locale),
       open: row.open,
       high: row.high,
       low: row.low,
@@ -1262,7 +1291,7 @@ function readRow(rows: Row[], index: number, days: number): LegendState {
   const previous = rows[index - 1]
 
   return {
-    time: formatStamp(row.t, days),
+    time: formatStamp(row.t, days, locale),
     price: row.price,
     ...(previous && previous.price > 0
       ? {
@@ -1396,11 +1425,15 @@ function formatCompact(value: number): string {
  * (Inde : +5:30, Népal : +5:45) et ne sont pas des cas d'école — d'où la partie
  * fractionnaire, affichée seulement quand elle n'est pas nulle.
  */
-function formatStamp(timestamp: number, days: number): string {
+function formatStamp(timestamp: number, days: number, locale: string): string {
   const date = new Date(timestamp)
 
+  /* ⚠️ LA LANGUE DU SITE, ET NON `fr-FR` EN DUR. La date de cette bulle sortait en
+     français sur les treize langues — « 3 sept. 2026 » à un lecteur japonais. Le défaut
+     ne se voyait pas au relevé automatique : ce n'est pas du texte écrit dans du JSX,
+     c'est un argument passé à `toLocaleString`. */
   const texte = date.toLocaleString(
-    'fr-FR',
+    locale,
     days <= 7
       ? {
           day: 'numeric',
