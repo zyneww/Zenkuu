@@ -110,6 +110,19 @@ export function useAssetSearch({ active }: { active: boolean }) {
   const [trending, setTrending] = useState<MarketAsset[]>([])
   const trendingLoaded = useRef(false)
 
+  /**
+   * État de suivi des tendances — `null` tant qu'on ne l'a pas.
+   *
+   * ⚠️ `null` ET NON UN ENSEMBLE VIDE, ET LA DIFFÉRENCE EST TOUT L'INTÉRÊT.
+   *
+   * Un ensemble vide dit « aucun de ces actifs n'est suivi » ; `null` dit « je ne sais
+   * pas encore ». L'étoile est une BASCULE : rendue à « non suivi » sur un actif déjà
+   * suivi, elle le retirerait au premier clic. Les deux états doivent donc rester
+   * distincts, et la ligne n'affiche rien tant que la réponse n'est pas revenue.
+   */
+  const [followed, setFollowed] = useState<{ available: boolean; ids: Set<string> } | null>(null)
+  const followedLoaded = useRef(false)
+
   /* Une `Map` dans une référence, pas dans un état : y écrire ne doit RIEN redessiner.
      C'est l'affectation de `results` qui provoque le rendu, et elle a déjà lieu. */
   const answers = useRef(new Map<string, SearchResponse>())
@@ -135,6 +148,34 @@ export function useAssetSearch({ active }: { active: boolean }) {
         // Panne des tendances : la recherche reste pleinement utilisable. On
         // réautorise une tentative à la prochaine activation.
         trendingLoaded.current = false
+      })
+  }, [active])
+
+  /**
+   * État de suivi, chargé à la première activation lui aussi.
+   *
+   * Un effet SÉPARÉ de celui des tendances, et non une promesse groupée : les deux
+   * réponses n'ont ni le même coût ni les mêmes conséquences en cas de panne. Les
+   * tendances en panne vident la liste ; le suivi en panne laisse une liste complète
+   * sans étoiles. Les attendre ensemble ferait payer à l'une le délai de l'autre.
+   *
+   * ⚠️ IL N'EST PAS RETENTÉ APRÈS UN ÉCHEC, là où les tendances le sont. Une liste de
+   * suivi indisponible n'empêche RIEN — on cherche, on navigue, on clique — et
+   * relancer l'appel à chaque ouverture de la recherche insisterait sur une panne qui
+   * ne gêne personne.
+   */
+  useEffect(() => {
+    if (!active || followedLoaded.current) return
+    followedLoaded.current = true
+
+    fetch('/api/suivi')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { available: boolean; ids: string[] } | null) => {
+        if (payload) setFollowed({ available: payload.available, ids: new Set(payload.ids) })
+      })
+      .catch(() => {
+        /* Silence assumé : `followed` reste `null`, donc aucune étoile ne s'affiche.
+           Mieux vaut pas d'étoile qu'une étoile qui se trompe de sens. */
       })
   }, [active])
 
@@ -248,6 +289,7 @@ export function useAssetSearch({ active }: { active: boolean }) {
     results,
     loading,
     trending,
+    followed,
     /** Vrai tant que la saisie est trop courte pour interroger le réseau. */
     showTrending: term.length < MIN_QUERY,
     /** Les deux classes réunies, dans l'ordre d'affichage. */

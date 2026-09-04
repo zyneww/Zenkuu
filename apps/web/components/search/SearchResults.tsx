@@ -5,6 +5,7 @@ import { Flame } from 'lucide-react'
 import { ChangeBadge } from '@zenkuu/ui'
 
 import { Link, type AppHref } from '@/i18n/navigation'
+import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
@@ -72,7 +73,7 @@ export function SearchResults({
 }) {
   const fr = useContent()
   const t = usePhrase()
-  const { results, loading, trending, showTrending, found: tous, query } = search
+  const { results, loading, trending, followed, showTrending, found: tous, query } = search
   const term = query.trim()
 
   /* La portée retranche, elle ne cherche pas : le serveur a déjà répondu, et restreindre
@@ -156,6 +157,18 @@ export function SearchResults({
                 ? { price: asset.price, currency: asset.currency }
                 : {})}
               {...(asset.change24h !== undefined ? { change24h: asset.change24h } : {})}
+              /* L'étoile n'apparaît qu'une fois `/api/suivi` revenu ET le suivi
+                 disponible sur cette instance. Voir la note de la propriété : une
+                 étoile dont l'état de départ est faux retire au lieu d'ajouter. */
+              {...(followed?.available
+                ? {
+                    watch: {
+                      assetClass: asset.assetClass,
+                      assetId: asset.id,
+                      following: followed.ids.has(asset.id),
+                    },
+                  }
+                : {})}
               onNavigate={onNavigate}
             />
           ))
@@ -287,6 +300,7 @@ function ResultRow({
   change24h,
   query,
   onNavigate,
+  watch,
 }: {
   href: AppHref
   name: string
@@ -294,6 +308,21 @@ function ResultRow({
   image?: string
   rank?: number
   badge?: string
+  /**
+   * Étoile de suivi, à gauche de la ligne — la référence DropsTab la place là.
+   *
+   * ⚠️ ELLE N'ARRIVE QUE QUAND SON ÉTAT EST CONNU, jamais « par défaut à vide ».
+   * `WatchlistStar` déclenche une BASCULE : rendue à « non suivi » sur un actif déjà
+   * suivi, elle le RETIRERAIT au premier clic. C'est pourquoi la propriété est
+   * facultative et que l'appelant l'omet tant que `/api/suivi` n'a pas répondu —
+   * l'absence d'étoile ne trompe personne, une étoile à l'envers si.
+   *
+   * Les résultats de RECHERCHE n'en portent pas : ils mêlent les sept classes
+   * d'actifs, quand la route de suivi n'en lit qu'une. Promettre l'étoile partout
+   * demanderait sept lectures ou une lecture non filtrée ; les tendances, elles, sont
+   * toutes des cryptomonnaies.
+   */
+  watch?: { assetClass: string; assetId: string; following: boolean }
   /* ── LE COUPLE COURS + VARIATION ─────────────────────────────────────
      Les trois voyagent ENSEMBLE ou pas du tout : un cours sans sa devise n'est
      qu'un nombre, et une variation sans son cours n'a rien à qualifier. Les
@@ -335,89 +364,137 @@ function ResultRow({
       parcourent, elles ne se prennent pas une par une. Voir la doctrine des deux
       familles de rayons dans globals.css.
     */
-    <CommandItem
-      asChild
-      value={`${name} ${symbol}`}
-      className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
-    >
-      <Link href={href} onClick={onNavigate}>
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
-          <img
-            src={image}
-            alt=""
-            width={22}
-            height={22}
-            className="shrink-0 rounded-pill"
-            loading="lazy"
+    /*
+      ── L'ÉTOILE EST POSÉE PAR-DESSUS LA LIGNE, ET NON DEDANS ───────────────
+
+      ⚠️ UN `<button>` DANS UN `<a>` EST DU HTML INVALIDE, et le navigateur ne le répare
+      pas gracieusement : il sort le bouton du lien à l'analyse — ce qui défait la mise
+      en page — et un clic sur l'étoile navigue AUSSI. Or la ligne entière EST le lien :
+      c'est ce que `asChild` obtient, et la note ci-dessus dit pourquoi on y tient.
+
+      L'étoile vit donc en FRÈRE du lien, dans un conteneur positionné, et se superpose
+      à une gouttière que le lien lui réserve. Deux éléments côte à côte dans le DOM,
+      superposés à l'écran : le lien garde sa surface pleine largeur — donc son survol
+      et sa surbrillance de sélection — et le bouton reçoit ses propres clics.
+
+      ⚠️ LA GOUTTIÈRE EST UN ÉLÉMENT, PAS UN `padding`, ET C'EST UN CORRECTIF. Elle
+      s'écrivait `pl-10` sur le `CommandItem`. Mesuré dans le navigateur : le `cn()` de
+      shadcn a laissé coexister `px-2` et `pl-10` dans l'attribut, et la cascade a
+      tranché pour `px-2` — l'étoile se retrouvait posée SUR le logo. Une cale dans le
+      flux ne dépend d'aucun arbitrage : elle occupe sa largeur, le `gap` du lien fait
+      le reste.
+
+      cmdk le tolère, et ce n'est pas un pari : il collecte ses lignes par
+      `querySelectorAll('[cmdk-item]')`, un sélecteur de DESCENDANCE, et sa logique de
+      groupe cherche explicitement `closest('[cmdk-group-items] > *')` — c'est-à-dire
+      qu'elle prévoit un conteneur intermédiaire.
+    */
+    <div className={watch ? 'relative' : undefined}>
+      {watch ? (
+        <span className="absolute left-3 top-1/2 z-10 -translate-y-1/2">
+          <WatchlistStar
+            assetClass={watch.assetClass}
+            assetId={watch.assetId}
+            label={name}
+            symbol={symbol}
+            /* Le chemin que le suivi fait réexplorer au cache. La fiche de l'actif est
+               le seul écran où cet état vient du rendu serveur ; l'overlay, lui, le
+               relira à sa prochaine ouverture. */
+            path={`/crypto/${watch.assetId}`}
+            initialFollowing={watch.following}
+            available
           />
-        ) : (
-          <span
-            className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
-            aria-hidden="true"
-          >
-            {monogram(name, symbol)}
-          </span>
-        )}
-
-        {/*
-          ══════════════════════════════════════════════════════════════════════
-          LE SYMBOLE PASSE DEVANT, LE NOM LE SUIT EN GRIS
-          ══════════════════════════════════════════════════════════════════════
-
-          La ligne s'écrivait « Ethereum … ETH … #2 » : le nom d'abord, le code rejeté
-          à droite, le rang à l'extrême droite. Trois informations d'identité réparties
-          sur toute la largeur, et l'œil devait traverser la ligne pour les réunir.
-
-          Elles sont désormais GROUPÉES à gauche, dans l'ordre où on les reconnaît :
-          `ETH` en gras — c'est ce qu'on tape et ce qu'on retient —, son rang collé
-          contre lui en pastille, puis `Ethereum` en gris dessous. La droite de la
-          ligne est rendue au COURS et à sa variation, qui sont l'autre moitié de ce
-          qu'on vient chercher.
-
-          Deux lignes de texte et non une : sur 26 rem, « Ethereum » à côté de « ETH »
-          plus un cours plus un pourcentage se serait tronqué dès les noms longs.
-        */}
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex items-center gap-1.5">
-            {/* 13 px et graisse 500, mesurés chez Backpack — au lieu de 14 px en
-                600. Le symbole reste la voix la plus forte de la ligne, mais dans une
-                liste dense un demi-gras suffit à le détacher : la casse en capitales
-                fait déjà la moitié du travail. */}
-            <span className="truncate text-[13px] font-medium uppercase text-ink">
-              <HighlightMatch text={symbol} query={query ?? ''} />
-            </span>
-
-            {rank !== undefined ? (
-              <span className="tabular shrink-0 rounded-[4px] bg-surface-muted px-1 text-micro leading-4 text-ink-muted">
-                {rank}
-              </span>
-            ) : badge ? (
-              <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-micro font-normal">
-                {badge}
-              </Badge>
-            ) : null}
-          </span>
-
-          {/* 11 px, mesuré. Le nom est la SECONDE voix : on l'a déjà reconnu par son
-              symbole, il ne sert qu'à lever un doute. */}
-          <span className="truncate text-[11px] text-ink-muted">
-            <HighlightMatch text={name} query={query ?? ''} />
-          </span>
         </span>
+      ) : null}
 
-        {/* Le cours n'apparaît que si la ligne le porte — voir la note des props. Le
-            groupe entier disparaît alors, plutôt que de réserver une colonne vide qui
-            décalerait le nom sur les résultats de recherche. */}
-        {price !== undefined && currency ? (
-          <span className="flex shrink-0 flex-col items-end gap-0.5">
-            <span className="tabular text-sm text-ink">
-              <Money value={price} from={currency} />
+      <CommandItem
+        asChild
+        value={`${name} ${symbol}`}
+        className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+      >
+        <Link href={href} onClick={onNavigate}>
+          {/* La cale de l'étoile : 32 px, sa largeur exacte. `aria-hidden` — c'est du
+              vide, et la synthèse vocale annonce déjà le bouton qui se pose dessus. */}
+          {watch ? <span aria-hidden="true" className="w-8 shrink-0" /> : null}
+
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
+            <img
+              src={image}
+              alt=""
+              width={22}
+              height={22}
+              className="shrink-0 rounded-pill"
+              loading="lazy"
+            />
+          ) : (
+            <span
+              className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
+              aria-hidden="true"
+            >
+              {monogram(name, symbol)}
             </span>
-            {change24h !== undefined ? <ChangeBadge value={change24h} size="sm" /> : null}
+          )}
+
+          {/*
+            ══════════════════════════════════════════════════════════════════════
+            LE SYMBOLE PASSE DEVANT, LE NOM LE SUIT EN GRIS
+            ══════════════════════════════════════════════════════════════════════
+
+            La ligne s'écrivait « Ethereum … ETH … #2 » : le nom d'abord, le code rejeté
+            à droite, le rang à l'extrême droite. Trois informations d'identité réparties
+            sur toute la largeur, et l'œil devait traverser la ligne pour les réunir.
+
+            Elles sont désormais GROUPÉES à gauche, dans l'ordre où on les reconnaît :
+            `ETH` en gras — c'est ce qu'on tape et ce qu'on retient —, son rang collé
+            contre lui en pastille, puis `Ethereum` en gris dessous. La droite de la
+            ligne est rendue au COURS et à sa variation, qui sont l'autre moitié de ce
+            qu'on vient chercher.
+
+            Deux lignes de texte et non une : sur 26 rem, « Ethereum » à côté de « ETH »
+            plus un cours plus un pourcentage se serait tronqué dès les noms longs.
+          */}
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex items-center gap-1.5">
+              {/* 13 px et graisse 500, mesurés chez Backpack — au lieu de 14 px en
+                  600. Le symbole reste la voix la plus forte de la ligne, mais dans une
+                  liste dense un demi-gras suffit à le détacher : la casse en capitales
+                  fait déjà la moitié du travail. */}
+              <span className="truncate text-[13px] font-medium uppercase text-ink">
+                <HighlightMatch text={symbol} query={query ?? ''} />
+              </span>
+
+              {rank !== undefined ? (
+                <span className="tabular shrink-0 rounded-[4px] bg-surface-muted px-1 text-micro leading-4 text-ink-muted">
+                  {rank}
+                </span>
+              ) : badge ? (
+                <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-micro font-normal">
+                  {badge}
+                </Badge>
+              ) : null}
+            </span>
+
+            {/* 11 px, mesuré. Le nom est la SECONDE voix : on l'a déjà reconnu par son
+                symbole, il ne sert qu'à lever un doute. */}
+            <span className="truncate text-[11px] text-ink-muted">
+              <HighlightMatch text={name} query={query ?? ''} />
+            </span>
           </span>
-        ) : null}
-      </Link>
-    </CommandItem>
+
+          {/* Le cours n'apparaît que si la ligne le porte — voir la note des props. Le
+              groupe entier disparaît alors, plutôt que de réserver une colonne vide qui
+              décalerait le nom sur les résultats de recherche. */}
+          {price !== undefined && currency ? (
+            <span className="flex shrink-0 flex-col items-end gap-0.5">
+              <span className="tabular text-sm text-ink">
+                <Money value={price} from={currency} />
+              </span>
+              {change24h !== undefined ? <ChangeBadge value={change24h} size="sm" /> : null}
+            </span>
+          ) : null}
+        </Link>
+      </CommandItem>
+    </div>
   )
 }
