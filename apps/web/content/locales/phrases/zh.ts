@@ -429,6 +429,8 @@ export const zhPhrases: Phrases = {
   Données: '数据',
   Analyse: '分析',
   Actualités: '资讯',
+  'Actualités à la une': '头条新闻',
+  'Afficher l’actualité {n}': '显示第 {n} 条新闻',
 
   Palmarès: '排行榜',
   'Le classement complet, page par page': '完整排行，逐页查看',

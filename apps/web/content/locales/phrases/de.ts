@@ -437,6 +437,8 @@ export const dePhrases: Phrases = {
   Données: 'Daten',
   Analyse: 'Analyse',
   Actualités: 'Nachrichten',
+  'Actualités à la une': 'Schlagzeilen',
+  'Afficher l’actualité {n}': 'Meldung {n} anzeigen',
 
   Palmarès: 'Ranglisten',
   'Le classement complet, page par page': 'Die vollständige Rangliste, Seite für Seite',

@@ -429,6 +429,8 @@ export const viPhrases: Phrases = {
   Données: 'Dữ liệu',
   Analyse: 'Phân tích',
   Actualités: 'Tin tức',
+  'Actualités à la une': 'Tin nổi bật',
+  'Afficher l’actualité {n}': 'Hiện tin {n}',
 
   Palmarès: 'Bảng xếp hạng',
   'Le classement complet, page par page': 'Bảng xếp hạng đầy đủ, từng trang một',

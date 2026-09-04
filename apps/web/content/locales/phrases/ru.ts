@@ -429,6 +429,8 @@ export const ruPhrases: Phrases = {
   Données: 'Данные',
   Analyse: 'Анализ',
   Actualités: 'Новости',
+  'Actualités à la une': 'Главные новости',
+  'Afficher l’actualité {n}': 'Показать новость {n}',
 
   Palmarès: 'Рейтинги',
   'Le classement complet, page par page': 'Полный рейтинг, страница за страницей',

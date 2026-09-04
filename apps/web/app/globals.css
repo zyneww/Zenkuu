@@ -3645,3 +3645,96 @@ html body[data-scroll-locked] {
     transition: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LE FIL D'ACTUALITÉS QUI BOUGE — UNE ARRIVÉE, UN ANNEAU
+   ═══════════════════════════════════════════════════════════════════════════════
+
+   ── L'ARRIVÉE D'UN ARTICLE ────────────────────────────────────────────────────
+
+   `AssetLiveRefresh` rafraîchit les fiches d'actif toutes les quelques minutes par
+   `router.refresh()`. React réconcilie alors la liste : les lignes existantes gardent
+   leur nœud, un article neuf se MONTE au milieu des autres. Sans rien, il apparaît
+   d'un coup et pousse ses voisines d'un cran, sans que rien ne dise pourquoi.
+
+   La classe est posée par `useArrivals`, qui distingue une arrivée réelle du premier
+   rendu de la page — sans quoi les quinze lignes s'animeraient à chaque chargement.
+
+   ⚠️ `max-height` ET NON `grid-template-rows`, ET CE N'EST PAS UN CHOIX DE GOÛT.
+   L'en-tête de `.collapse-height`, juste au-dessus, consigne quatre tentatives
+   mesurées : `0fr → 1fr` en classe, en style en ligne, en `minmax(0, 0fr)`, puis
+   `height: auto` avec `interpolate-size`. AUCUNE n'anime. Ce qui s'anime est une
+   longueur en pixels, et `max-height` en est une.
+
+   Le plafond de 8rem est le prix de ce procédé : une ligne plus haute que lui serait
+   rognée pendant les 420 ms. Mesuré au navigateur sur les deux fils — 68 px sur celui
+   des fiches d'actif (vignette de 48 px), 77 px sur celui de l'accueil (titre borné à
+   deux lignes, puis source et heure). Le plafond en laisse encore cinquante.
+
+   Pas de `both` : le mode de remplissage laisserait `max-height: 8rem` sur la ligne
+   pour toujours, et rognerait le jour où elle grandit. L'animation finie, la ligne
+   revient à sa hauteur naturelle.
+
+   ── L'ANNEAU DE PROGRESSION ───────────────────────────────────────────────────
+
+   Il remplit un cercle pendant les sept secondes que dure un article à la une de
+   l'accueil. C'est aussi L'HORLOGE de la rotation : le composant avance sur
+   `animationend` plutôt que sur un `setTimeout`.
+
+   Ce détail est ce qui rend la pause au survol exacte. Un compteur en JavaScript et
+   une animation CSS côte à côte se désynchronisent dès la première pause — l'anneau
+   reprend là où il s'est arrêté, le compteur repart de zéro. Une seule horloge ne le
+   peut pas : `animation-play-state: paused` fige les deux, puisqu'il n'y en a qu'une.
+
+   Elle donne en prime le bon comportement en arrière-plan, où les animations CSS sont
+   suspendues : un onglet caché ne fait pas défiler sept articles dans le vide.
+
+   ── ET CE QUE `prefers-reduced-motion` FAIT DES DEUX ─────────────────────────
+
+   L'arrivée cesse d'animer, l'article apparaît net. L'anneau cesse d'animer AUSSI, et
+   c'est ce qui arrête la rotation entière : sans fin d'animation, rien n'avance. Les
+   pastilles restent cliquables — le lecteur garde la main, il ne subit plus le
+   défilement.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+@keyframes zenkuu-actu-arrivee {
+  from {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    max-height: 8rem;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.actu-arrivee {
+  overflow: hidden;
+  animation: zenkuu-actu-arrivee 420ms var(--ease-standard);
+}
+
+@keyframes zenkuu-anneau {
+  from {
+    stroke-dashoffset: var(--anneau-course);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.anneau-progression {
+  animation: zenkuu-anneau var(--anneau-duree) linear both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actu-arrivee {
+    overflow: visible;
+    animation: none;
+  }
+
+  .anneau-progression {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

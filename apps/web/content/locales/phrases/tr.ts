@@ -429,6 +429,8 @@ export const trPhrases: Phrases = {
   Données: 'Veriler',
   Analyse: 'Analiz',
   Actualités: 'Haberler',
+  'Actualités à la une': 'Öne çıkan haberler',
+  'Afficher l’actualité {n}': '{n}. haberi göster',
 
   Palmarès: 'Sıralamalar',
   'Le classement complet, page par page': 'Sayfa sayfa tam sıralama',

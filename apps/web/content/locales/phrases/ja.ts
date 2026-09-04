@@ -429,6 +429,8 @@ export const jaPhrases: Phrases = {
   Données: 'データ',
   Analyse: '分析',
   Actualités: 'ニュース',
+  'Actualités à la une': '注目のニュース',
+  'Afficher l’actualité {n}': 'ニュース {n} を表示',
 
   Palmarès: 'ランキング',
   'Le classement complet, page par page': '全銘柄のランキングをページごとに',

@@ -429,6 +429,8 @@ export const nlPhrases: Phrases = {
   Données: 'Gegevens',
   Analyse: 'Analyse',
   Actualités: 'Nieuws',
+  'Actualités à la une': 'Voorpaginanieuws',
+  'Afficher l’actualité {n}': 'Toon bericht {n}',
 
   Palmarès: 'Ranglijsten',
   'Le classement complet, page par page': 'De volledige ranglijst, pagina voor pagina',

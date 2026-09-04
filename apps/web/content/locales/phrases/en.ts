@@ -441,6 +441,8 @@ export const enPhrases: Phrases = {
   Données: 'Data',
   Analyse: 'Analysis',
   Actualités: 'News',
+  'Actualités à la une': 'Top stories',
+  'Afficher l’actualité {n}': 'Show story {n}',
 
   Palmarès: 'Rankings',
   'Le classement complet, page par page': 'The full ranking, page by page',

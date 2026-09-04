@@ -429,6 +429,8 @@ export const ptBRPhrases: Phrases = {
   Données: 'Dados',
   Analyse: 'Análise',
   Actualités: 'Notícias',
+  'Actualités à la une': 'Principais notícias',
+  'Afficher l’actualité {n}': 'Mostrar a notícia {n}',
 
   Palmarès: 'Classificações',
   'Le classement complet, page par page': 'A classificação completa, página a página',

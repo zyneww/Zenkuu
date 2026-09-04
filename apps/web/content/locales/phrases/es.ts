@@ -436,6 +436,8 @@ export const esPhrases: Phrases = {
   Données: 'Datos',
   Analyse: 'Análisis',
   Actualités: 'Noticias',
+  'Actualités à la une': 'Noticias destacadas',
+  'Afficher l’actualité {n}': 'Mostrar la noticia {n}',
 
   Palmarès: 'Clasificaciones',
   'Le classement complet, page par page': 'La clasificación completa, página a página',

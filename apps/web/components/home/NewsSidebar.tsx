@@ -1,11 +1,7 @@
-import { ArrowUpRight } from 'lucide-react'
-
 import type { DataResult, NewsItem } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
-import { RelativeTime } from '@/components/home/RelativeTime'
-import { SourceDot, Thumbnail } from '@/components/news/NewsFeed'
-import { Link } from '@/i18n/navigation'
+import { HomeNewsColumn } from '@/components/home/HomeNewsColumn'
 import { getContent, getPhrase } from '@/lib/content'
 
 /**
@@ -24,14 +20,16 @@ import { getContent, getPhrase } from '@/lib/content'
  *
  * Largeur alignée sur la leur : 288 px, contre 340 auparavant.
  *
- * ── DEUX BLOCS, ET LE PREMIER PREND TOUT CE QUE L'ARTICLE PORTE ────────────
+ * ── CE QUI EST RENDU ICI, ET CE QUI NE L'EST PLUS ──────────────────────────
  *
- *   1. À LA UNE   couverture, source, date, titre, résumé — le dernier article publié
- *   2. LE FIL     les suivants, du plus récent au plus ancien, titre et heure
+ * Ce composant garde ce qui ne dépend d'aucune interaction : l'état vide, le filet,
+ * le collage, l'ascenseur. La une et le fil sont partis dans `HomeNewsColumn`, qui est
+ * un composant CLIENT — la une tourne toutes les sept secondes, se met en pause au
+ * survol, et le fil anime l'arrivée d'un article. Rien de tout cela ne se rend sur le
+ * serveur.
  *
- * Le découpage suit la donnée : `NewsItem` porte une vignette et un résumé, dont
- * l'affichage coûte de la hauteur. Les donner à UN article le distingue ; les donner
- * aux douze ferait une colonne de dix écrans qu'on ne parcourt pas.
+ * Le partage suit la règle du projet : le serveur pose la structure, le client porte
+ * le comportement. `NewsItem` étant sérialisable, la frontière ne coûte rien.
  *
  * ── LES LIENS SORTENT DU SITE, ET LE DISENT ────────────────────────────────
  *
@@ -98,8 +96,6 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
     )
   }
 
-  const [lead, ...rest] = news.data as [NewsItem, ...NewsItem[]]
-
   return (
     <aside
       aria-label={t('Actualités')}
@@ -108,10 +104,10 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
          filet vertical d'un peu plus d'un pixel, sur toute la hauteur, entre le
          classement et le panneau latéral. Relevé sur leur page à `1.25px`.
 
-         Il remplace les contours des deux blocs qu'il contient (voir `Spotlight`), et
-         c'est un échange, pas un ajout : une ligne dit « ceci n'est plus le tableau »
-         mieux que deux cartes posées dans le vide, parce qu'elle le dit UNE fois, sur
-         toute la hauteur, au lieu de le répéter bloc par bloc.
+         Il remplace les contours des deux blocs qu'il contient, et c'est un échange,
+         pas un ajout : une ligne dit « ceci n'est plus le tableau » mieux que deux
+         cartes posées dans le vide, parce qu'elle le dit UNE fois, sur toute la
+         hauteur, au lieu de le répéter bloc par bloc.
 
          `border-l` + `pl-6` et non un `gap` de grille : la gouttière laisserait le
          filet flotter au milieu du vide. Attaché à la colonne, il en marque le bord.
@@ -146,163 +142,16 @@ export async function NewsSidebar({ news }: { news: DataResult<NewsItem[]> }) {
           `scrollbar-none` la retire sans rien retirer au défilement : molette, pavé
           tactile, touches et glisser fonctionnent à l'identique. Ce qui dit que la
           colonne continue reste ce qui le disait déjà — un article coupé par le bas du
-          cadre, ce qu'aucune barre n'était nécessaire pour annoncer.
-
-          `pr-1 -mr-1` PART AVEC ELLE : cette compensation réservait la largeur de la
-          barre pour que le texte ne saute pas à son apparition. Sans barre, elle ne
-          décalait plus que la colonne. */}
+          cadre, ce qu'aucune barre n'était nécessaire pour annoncer. */}
       {/* ⚠️ LE DÉCALAGE RESTE CELUI DE L'EN-TÊTE, ET C'EST UN ÉCART ASSUMÉ. La
           référence colle son panneau à `top: 0` parce que son en-tête défile
           entièrement — rien ne le surplombe une fois la page descendue. Celui de
           ZENKUU est collant : coller le panneau à 0 le glisserait dessous. */}
       <div className="flex flex-col gap-3 lg:sticky lg:top-[calc(var(--header-height)+1rem)] lg:max-h-[calc(100dvh-var(--header-height)-2rem)]">
         <div className="scrollbar-none flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain">
-          <Spotlight
-            article={lead}
-            readLabel={t('Lire l’article')}
-            newWindowLabel={t('(nouvelle fenêtre)')}
-          />
-
-          {rest.length > 0 ? (
-            <Feed articles={rest} title={fr.home.newsTitle} seeAll={fr.home.seeAll} />
-          ) : null}
+          <HomeNewsColumn articles={news.data} />
         </div>
       </div>
     </aside>
-  )
-}
-
-/**
- * Zone BLEUE de la référence : l'article de tête, avec tout ce qu'il porte.
- *
- * ── SANS CADRE, ET C'EST LA RÈGLE DE TOUTE LA COLONNE ──────────────────────
- *
- * Il vivait dans une carte bordée, posée dans une colonne elle-même séparée du tableau
- * par un filet. Relevé sur la référence : les articles de leur colonne latérale n'ont
- * NI bordure, NI fond, NI rayon — mesuré à `0px` sur les trois. Ce qui les délimite
- * est le filet vertical de la colonne, et rien d'autre.
- *
- * Le raisonnement vaut ici : un cadre autour de chaque bloc d'une colonne déjà encadrée
- * empile deux délimitations pour une seule séparation. Le contenu porte alors trois
- * filets entre lui et le tableau — celui de sa carte, celui de la colonne, et la
- * gouttière — là où un seul suffit à dire « ceci n'est plus le tableau ».
- */
-function Spotlight({
-  article,
-  readLabel,
-  newWindowLabel,
-}: {
-  article: NewsItem
-  readLabel: string
-  newWindowLabel: string
-}) {
-  return (
-    <section>
-      <a
-        href={article.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex flex-col gap-3"
-      >
-        {/* La couverture n'est PAS conditionnée à `imageUrl` : `Thumbnail` retombe
-            elle-même sur une tuile portant le nom de l'éditeur quand l'image manque ou
-            qu'elle échoue à charger. Un trou dans la carte de tête se remarquerait
-            plus qu'une tuile de couleur. */}
-        <span className="block overflow-hidden rounded-card">
-          <Thumbnail url={article.imageUrl ?? ''} source={article.source} tall />
-        </span>
-
-        <div className="flex flex-col gap-1.5">
-          <p className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
-            <SourceDot source={article.source} url={article.url} />
-            <span className="truncate font-medium text-ink">{article.source}</span>
-            <span aria-hidden="true">·</span>
-            <RelativeTime iso={article.publishedAt} />
-          </p>
-
-          <h3 className="text-base font-semibold leading-snug text-ink group-hover:text-brand">
-            {article.title}
-          </h3>
-
-          {/* `line-clamp-3` : le résumé donne le sujet, il ne remplace pas l'article.
-              Sans borne, un flux qui publie ses trois premiers paragraphes pousserait
-              le fil du dessous hors de l'écran. */}
-          {article.excerpt ? (
-            <p className="line-clamp-3 text-xs leading-relaxed text-ink-muted">{article.excerpt}</p>
-          ) : null}
-
-          <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-ink">
-            {readLabel}
-            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="sr-only">{newWindowLabel}</span>
-          </span>
-        </div>
-      </a>
-    </section>
-  )
-}
-
-/**
- * Zone VERTE de la référence : le reste du fil, du plus récent au plus ancien.
- *
- * ── PAS DE BOUTON « VOIR PLUS », UN LIEN VERS LA PAGE ──────────────────────
- *
- * Un bouton qui déplie n'aurait rien de plus à montrer : la page ne demande qu'une
- * douzaine d'articles, et en charger davantage au clic demanderait un point de
- * terminaison, un état de chargement et une gestion d'erreur pour économiser un clic
- * vers `/actualites`, qui porte déjà le fil complet avec ses filtres et sa recherche.
- */
-function Feed({
-  articles,
-  title,
-  seeAll,
-}: {
-  articles: NewsItem[]
-  title: string
-  seeAll: string
-}) {
-  return (
-    /* Sans cadre lui non plus — voir `Spotlight`. Ce qui le sépare de l'article de
-       tête n'est plus une bordure de carte mais un FILET, posé au-dessus de son titre :
-       une ligne pour une séparation, au lieu de deux contours pour la même. */
-    <section className="border-t border-border-subtle pt-4">
-      <div className="mb-1 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-ink">{title}</h3>
-        <Link
-          href="/actualites"
-          className="shrink-0 text-xs font-medium text-ink hover:underline"
-        >
-          {seeAll}
-        </Link>
-      </div>
-
-      {/* AUCUN ascenseur ici, et c'est important : la colonne entière en a un
-          désormais. Cette liste en portait un second, imbriqué dans le premier — deux
-          surfaces défilantes l'une dans l'autre, dont la molette ne sait laquelle
-          servir. La liste s'allonge donc librement, et c'est la colonne qui la fait
-          défiler. */}
-      <ol className="divide-y divide-border-subtle">
-        {articles.map((article) => (
-          <li key={article.id}>
-            <a
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col gap-1 py-2.5 pr-1"
-            >
-              <span className="text-xs font-medium leading-snug text-ink group-hover:text-brand">
-                {article.title}
-              </span>
-              <span className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
-                <SourceDot source={article.source} url={article.url} />
-                <span className="truncate">{article.source}</span>
-                <span aria-hidden="true">·</span>
-                <RelativeTime iso={article.publishedAt} />
-              </span>
-            </a>
-          </li>
-        ))}
-      </ol>
-    </section>
   )
 }

@@ -8,6 +8,7 @@ import { IconTile } from '@/components/reui/icon-tile'
 import { SourceDot, Thumbnail } from '@/components/news/NewsFeed'
 import { useRelativeTime } from '@/components/locale/useRelativeTime'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { useArrivals } from '@/components/news/useArrivals'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -150,18 +151,25 @@ function Spotlight({ article }: { article: NewsItem }) {
             <RelativeTime iso={article.publishedAt} />
           </p>
 
-          <h3 className="text-sm font-semibold leading-snug text-ink group-hover:text-brand">
+          {/* Deux lignes bornées ET deux lignes réservées. `line-clamp-2` empêche un
+              titre long de pousser le fil ; `min-h` empêche un titre court de le
+              tirer. Les deux sont nécessaires : `AssetLiveRefresh` remplace la une
+              toutes les quelques minutes, et sans hauteur réservée le remplacement
+              redistribue la colonne entière sous les yeux du lecteur. */}
+          <h3 className="line-clamp-2 min-h-[2.41rem] text-sm font-semibold leading-snug text-ink group-hover:text-brand">
             {article.title}
           </h3>
 
           {/* `line-clamp-3` : le chapeau donne le sujet, il ne remplace pas l'article.
               Sans borne, un flux qui publie ses trois premiers paragraphes pousserait le
-              fil du dessous hors de l'écran. */}
-          {article.excerpt ? (
-            <p className="line-clamp-3 text-xs leading-relaxed text-ink-muted">
-              {article.excerpt}
-            </p>
-          ) : null}
+              fil du dessous hors de l'écran.
+
+              Le `<p>` est TOUJOURS rendu, vide au besoin : le conditionner ferait
+              perdre trois lignes de hauteur dès qu'une source ne fournit pas de
+              chapeau, c'est-à-dire au moment même où l'article change. */}
+          <p className="line-clamp-3 min-h-[3.66rem] text-xs leading-relaxed text-ink-muted">
+            {article.excerpt}
+          </p>
 
           <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-ink">
             {t('Lire l’article')}
@@ -191,13 +199,31 @@ function Spotlight({ article }: { article: NewsItem }) {
  * `aria-hidden`), le lien portant déjà le titre.
  */
 function Feed({ articles }: { articles: NewsItem[] }) {
+  /*
+   * ── L'ARRIVÉE D'UN ARTICLE S'ANIME, LE CHARGEMENT DE LA PAGE NON ─────────
+   *
+   * `AssetLiveRefresh` appelle `router.refresh()` toutes les quelques minutes : React
+   * réconcilie la liste, les lignes existantes gardent leur nœud, un article neuf se
+   * MONTE au milieu des autres. Sans rien, il apparaît d'un coup et pousse ses
+   * voisines d'un cran, sans que rien ne dise pourquoi.
+   *
+   * `useArrivals` distingue cette arrivée du PREMIER rendu — sans quoi les quinze
+   * lignes s'animeraient à chaque chargement de page, ce qui est exactement le
+   * contraire de ce qu'on veut : le mouvement doit signaler du neuf, pas l'existence
+   * de la liste.
+   */
+  const arrivants = useArrivals(articles.map((article) => article.id))
+
   return (
     /* Le filet au-dessus du titre remplace le contour d'une carte : une ligne pour une
        séparation, au lieu de deux contours pour la même. */
     <section className="border-t border-border-subtle pt-3">
       <ol className="divide-y divide-border-subtle">
         {articles.map((article) => (
-          <li key={article.id}>
+          <li
+            key={article.id}
+            className={arrivants.has(article.id) ? 'actu-arrivee' : undefined}
+          >
             <a
               href={article.url}
               target="_blank"
@@ -209,7 +235,17 @@ function Feed({ articles }: { articles: NewsItem[] }) {
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand">
+                {/* `line-clamp-2` borne, `min-h` réserve : toutes les lignes ont alors
+                    la même hauteur, et l'insertion d'un article ne redistribue plus la
+                    colonne. C'est aussi ce qui la garde sous les 8rem que l'animation
+                    d'arrivée sait déplier — voir `globals.css`.
+
+                    ⚠️ PAS DE `block` À CÔTÉ. `line-clamp-2` pose `display:
+                    -webkit-box`, sans quoi le rognage n'a aucun effet ; `block` posait
+                    la même propriété et gagnait dans la cascade. Mesuré : les lignes
+                    allaient de 60 à 131 px, certains titres tenant sur quatre lignes,
+                    et la plus haute dépassait déjà le plafond de l'animation. */}
+                <span className="line-clamp-2 min-h-[2.06rem] text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand">
                   {article.title}
                 </span>
                 <span className="mt-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">

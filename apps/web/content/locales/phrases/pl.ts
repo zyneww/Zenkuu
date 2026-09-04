@@ -429,6 +429,8 @@ export const plPhrases: Phrases = {
   Données: 'Dane',
   Analyse: 'Analiza',
   Actualités: 'Aktualności',
+  'Actualités à la une': 'Najważniejsze wiadomości',
+  'Afficher l’actualité {n}': 'Pokaż wiadomość {n}',
 
   Palmarès: 'Rankingi',
   'Le classement complet, page par page': 'Pełny ranking, strona po stronie',

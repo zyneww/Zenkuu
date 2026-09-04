@@ -429,6 +429,8 @@ export const itPhrases: Phrases = {
   Données: 'Dati',
   Analyse: 'Analisi',
   Actualités: 'Notizie',
+  'Actualités à la une': 'Notizie in primo piano',
+  'Afficher l’actualité {n}': 'Mostra la notizia {n}',
 
   Palmarès: 'Classifiche',
   'Le classement complet, page par page': 'La classifica completa, pagina per pagina',
