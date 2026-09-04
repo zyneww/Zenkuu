@@ -1933,7 +1933,7 @@
       display: flow-root;
       /* Le pendant du rembourrage du rail, de l'autre côté du filet — c'est ce que
          la référence pose sur sa colonne centrale (`padding-left: 16px`), et ce qui
-         rend l'écart symétrique alors que la goutttière vaut zéro.
+         rend l'écart symétrique alors que la gouttière vaut zéro.
 
          Sur les sections qui ont repris toute la largeur (voir `clear: left`
          ci-dessous), ces seize pixels décalent légèrement le contenu vers la droite.

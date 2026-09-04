@@ -133,8 +133,22 @@ export function SegmentedControl<T extends string>({
       /* Le creux porte le groupe ; c'est lui qui fait lire l'aplat actif comme
          POSÉ DEDANS plutôt que comme un bouton isolé — voir DESIGN_BACKPACK.md,
          qui range les deux sur L2 et L4. */
+      /* ⚠️ RAYON 12px ET NON `rounded-control` (8) — MESURÉ LE 2026-09-05.
+
+         Le creux de la référence porte 12px, ses cases 8. Deux rayons distincts, et
+         c'est ce qui fait lire la case comme POSÉE DANS le creux plutôt que
+         découpée dedans : un rayon intérieur égal à l'extérieur donne un contour
+         parallèle, un rayon plus petit donne un objet. Nous avions 8 et 6, même
+         rapport mais deux crans trop serrés.
+
+         ⚠️ LE `!` EST OBLIGATOIRE, ET CE N'EST PAS UNE FACILITÉ. `ToggleGroup` pose
+         `rounded-control` en dur, et `tailwind-merge` ne reconnaît pas ce nom comme
+         appartenant au groupe `rounded` — c'est une clé de thème du projet, pas une
+         valeur de l'échelle par défaut. Les deux classes survivent donc côte à côte
+         et l'ordre de la feuille tranche, ce qui a rendu 8px à la première mesure de
+         vérification. */
       className={cn(
-        'relative flex w-fit max-w-full flex-nowrap items-center rounded-control bg-surface-muted',
+        'relative flex w-fit max-w-full flex-nowrap items-center rounded-[12px]! bg-surface-muted',
         compact ? 'gap-0.5 p-0.5' : 'gap-0.5 p-1',
         className,
       )}
@@ -155,7 +169,7 @@ export function SegmentedControl<T extends string>({
       {cadre ? (
         <span
           aria-hidden="true"
-          className="absolute top-1/2 -translate-y-1/2 rounded-[6px] bg-surface-active shadow-sm transition-[left,width] duration-200 ease-out motion-reduce:transition-none"
+          className="absolute top-1/2 -translate-y-1/2 rounded-control bg-surface-active shadow-sm transition-[left,width] duration-200 ease-out motion-reduce:transition-none"
           style={{ left: cadre.left, width: cadre.width, height: compact ? '1.5rem' : '1.75rem' }}
         />
       ) : null}
@@ -172,8 +186,18 @@ export function SegmentedControl<T extends string>({
 
              `bg-transparent` en toutes lettres : `toggleVariants` peint l'état actif,
              ce qui doublerait l'indicateur d'un second aplat immobile. */
+          /* ⚠️ GRAISSE NORMALE ET NON `font-medium` — MESURÉ SUR LA RÉFÉRENCE.
+
+             Ses cases de période sont en 13px/400, y compris l'active : ce qui la
+             distingue est l'aplat sous elle et son encre pleine, pas sa graisse.
+             Un demi-gras ajoutait un troisième signal là où deux suffisent, et
+             faisait respirer la case active d'un pixel à la sélection. */
+          /* Le `!` du rayon, ici, écarte le `data-[spacing=0]:rounded-none` de
+             `ToggleGroupItem` : ce défaut existe pour le motif « segments joints »,
+             où seules les cases extrêmes sont arrondies. Nos cases sont séparées
+             d'une gouttière, chacune est un objet, chacune porte son rayon. */
           className={cn(
-            'relative shrink-0 whitespace-nowrap rounded-[6px] bg-transparent font-medium transition-colors duration-150 data-[state=on]:bg-transparent',
+            'relative shrink-0 whitespace-nowrap rounded-control! bg-transparent font-normal transition-colors duration-150 data-[state=on]:bg-transparent',
             compact ? 'h-6 px-2 text-micro' : 'h-7 px-2.5 text-xs',
             'text-ink-muted hover:text-ink data-[state=on]:text-ink',
             'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-ink-muted',

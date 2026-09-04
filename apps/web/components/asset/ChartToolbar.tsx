@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/menubar'
 import {
   CalendarDays,
-  CandlestickChart,
+  LineChart,
   Check,
   Download,
   Search,
@@ -780,19 +780,55 @@ export function ChartToolbar(props: ChartToolbarProps) {
         recharger la page pour revenir au tracé maison.
       */}
       {props.renderOptions.some((entry) => entry.view === 'tradingview') ? (
-        <button
-          type="button"
-          onClick={() => props.onViewChange(external ? 'original' : 'tradingview')}
-          aria-pressed={external}
-          className={`flex h-7 shrink-0 items-center gap-1.5 rounded-control px-2.5 text-xs font-medium transition-colors duration-150 ${
-            external
-              ? 'bg-surface-active text-ink shadow-sm'
-              : 'bg-surface-muted text-ink-muted hover:text-ink'
-          }`}
-        >
-          <CandlestickChart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          TradingView
-        </button>
+        /*
+          ══════════════════════════════════════════════════════════════════════
+          DEUX PICTOGRAMMES DANS UN CREUX, ET NON UN INTERRUPTEUR ÉTIQUETÉ
+          ══════════════════════════════════════════════════════════════════════
+
+          C'était UN bouton portant « TradingView » et une icône de chandeliers, qui
+          s'allumait quand le moteur externe prenait la main. Deux choses n'allaient
+          pas, et la référence les corrige toutes deux d'un même geste.
+
+          LE TRACÉ MAISON N'AVAIT PAS DE BOUTON. On quittait TradingView en
+          recliquant celui qui y menait — un interrupteur, pas un choix. Rien à
+          l'écran ne disait qu'il existait deux moteurs ; l'un était l'état normal,
+          l'autre une option cochée.
+
+          L'ICÔNE MENTAIT. Des chandeliers pour un moteur qui trace ce qu'on lui
+          demande, et dont notre propre tracé sait aussi faire des chandeliers.
+
+          La référence pose les deux côte à côte dans un creux : une courbe, un
+          sigle « TV ». Deux moteurs, deux cases, l'aplat sur celui qui rend — et
+          il glisse de l'un à l'autre, comme partout ailleurs dans cette barre.
+
+          ⚠️ LE SIGLE EST UN TEXTE, PAS UN PICTOGRAMME. `lucide` n'a pas de glyphe
+          TradingView, et en dessiner un serait reproduire une marque. « TV » en
+          petites capitales dit la même chose sans rien emprunter ; le nom complet
+          reste au lecteur d'écran par `ariaLabel`, où la place ne coûte rien.
+        */
+        <SegmentedControl
+          label={t('Moteur de tracé')}
+          value={external ? 'tradingview' : 'maison'}
+          onChange={(moteur) =>
+            props.onViewChange(moteur === 'tradingview' ? 'tradingview' : 'original')
+          }
+          options={[
+            {
+              key: 'maison',
+              label: <LineChart className="h-3.5 w-3.5" aria-hidden="true" />,
+              ariaLabel: t('Graphique ZENKUU'),
+              title: t('Graphique ZENKUU'),
+            },
+            {
+              key: 'tradingview',
+              /* `tracking-wide` : deux capitales collées se lisent comme un seul
+                 glyphe illisible à 11px. */
+              label: <span className="text-[0.6875rem] font-semibold tracking-wide">TV</span>,
+              ariaLabel: 'TradingView',
+              title: 'TradingView',
+            },
+          ]}
+        />
       ) : null}
 
       {/*
@@ -1050,81 +1086,54 @@ export function ChartToolbar(props: ChartToolbarProps) {
         </div>
       ) : null}
 
-      <div
-        className="flex min-w-0 flex-wrap items-center gap-0.5"
-        role="group"
-        aria-label={t('Période affichée')}
-      >
-        {RANGE_PRESETS.map((preset) => {
-          // Un palier de durée n'est « actif » que si AUCUN pas ne l'est : sans cette
-          // condition, deux boutons de la barre s'allumeraient en même temps pour
-          // décrire deux cadrages différents.
-          const active = !props.customRange && !props.intervalId && preset.id === props.rangeId
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        LES PALIERS PASSENT AU COMPOSANT PARTAGÉ — SON APLAT GLISSE
+        ══════════════════════════════════════════════════════════════════════
 
-          return (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => {
-                props.onIntervalChange(null)
-                props.onRangeChange(preset)
-              }}
-              aria-pressed={active}
-              /*
-                ⚠️ `t(preset.title)` ET NON `preset.title`. Le libellé visible du bouton
-                est un sigle — « YTD », « 24H » — que rien ne traduit ; son `title`, lui,
-                est une phrase française posée dans `RANGE_PRESETS`. Elle sortait telle
-                quelle sur les pages anglaises : « Depuis le 1ᵉʳ janvier » en infobulle
-                ET en `aria-label`, c'est-à-dire lue par toute synthèse vocale.
+        Ils étaient sept `<button aria-pressed>` écrits ici en classes, avec leur
+        propre couple d'états actif/inactif. `SegmentedControl` existait pourtant
+        déjà, et sa note de tête le disait explicitement écrit pour « les deux
+        segments de `ChartToolbar` » — celui de la grandeur l'avait adopté, celui
+        des paliers était resté en arrière.
 
-                ⚠️ ET LE COMMENTAIRE EST NU, SANS ACCOLADES. Dans une LISTE D'ATTRIBUTS,
-                un commentaire entouré d'accolades est une EXPRESSION JSX, donc une erreur
-                de syntaxe : les accolades n'y sont permises qu'autour d'une valeur. Entre
-                deux attributs, seul le commentaire de bloc ordinaire passe.
+        Ce que le changement apporte, et qui manquait :
 
-                (Écrire la forme fautive ici, entre guillemets obliques, refermerait ce
-                commentaire à sa deuxième ligne — d'où la description en toutes lettres.)
-              */
-              {...(preset.title
-                ? { title: t(preset.title), 'aria-label': t(preset.title) }
-                : {})}
-              /*
-                LE PALIER ACTIF PORTE UN FOND, PLUS UNE BORDURE.
+          · L'APLAT GLISSE d'un palier à l'autre au lieu de sauter. C'est le
+            mécanisme exact de la référence, dont la case active est un
+            `<span>` absolu animé en `transform, width, height` — mesuré.
+          · RADIX EN DESSOUS : `role="radiogroup"` annoncé « un parmi sept »,
+            flèches directionnelles, un seul arrêt de tabulation. Sept boutons
+            indépendants en demandaient sept.
 
-                Il était bordé, faute de mieux : la rangée flottait sur le fond de la
-                page, et un aplat clair sur du clair n'aurait rien délimité. La rangée
-                est désormais une pastille creusée (voir son commentaire), donc le
-                contraste existe — un fond suffit, et c'est exactement ce que fait la
-                référence : « 24H » y ressort en pastille pleine sur le creux.
-
-                `rounded-pill` pour s'accorder au cadre qui les contient, et `h-6` au
-                lieu de `h-7` pour que la pastille du cadre ne grossisse pas la rangée
-                de ses deux pixels de rembourrage.
-              */
-              /* ⚠️ `px-2` ET NON `px-2.5` — CES QUATRE PIXELS DÉCIDENT D'UNE RANGÉE.
-                 Mesuré : la pastille demandait 389 px pour une piste de grille de 358,
-                 et basculait donc sur une seconde rangée alors que la barre avait la
-                 place. Sept paliers à 5 px de rembourrage de moins rendent 28 px, ce qui
-                 suffit à la faire rentrer. Voir la note de la pastille. */
-              className={`flex h-6 items-center justify-center rounded-[6px] px-2 text-xs font-medium transition-colors duration-150 ${
-                active
-                  /* ⚠️ `bg-surface-active` (L4) ET NON `bg-overlay`. Les deux jetons se valaient
-                     tant que `overlay` était #1b232d, un cran au-dessus des cartes ; il vaut
-                     désormais #14151b, EXACTEMENT le ton de la surface qui porte cette barre —
-                     la pastille active devenait donc invisible.
-
-                     DESIGN_BACKPACK.md range précisément cet état sur L4, « onglets actifs et
-                     boutons segmentés » : #383a45. C'est aussi ce que fait Dropstab, mesuré sur
-                     leur fiche Bitcoin — rgb(63, 63, 70) sur un fond nettement plus sombre. */
-                  ? 'bg-surface-active text-ink shadow-sm'
-                  : 'text-ink-muted hover:text-ink'
-              }`}
-            >
-              {preset.label}
-            </button>
-          )
-        })}
-      </div>
+        ⚠️ LA VALEUR DU SEGMENT N'EST PAS `props.rangeId`. Un palier n'est actif
+        que si AUCUN pas de bougie ne l'est et qu'aucune plage sur mesure n'est
+        posée — sans quoi deux commandes de la barre s'allumeraient pour décrire
+        deux cadrages différents. Le segment reçoit donc une chaîne vide dans ces
+        cas, ce que Radix rend comme « aucune option retenue ».
+      */}
+      <SegmentedControl
+        label={t('Période affichée')}
+        value={props.customRange || props.intervalId ? '' : props.rangeId}
+        onChange={(id) => {
+          const preset = RANGE_PRESETS.find((entry) => entry.id === id)
+          if (!preset) return
+          props.onIntervalChange(null)
+          props.onRangeChange(preset)
+        }}
+        options={RANGE_PRESETS.map((preset) => ({
+          key: preset.id,
+          label: preset.label,
+          /*
+            ⚠️ `t(preset.title)` ET NON `preset.title`. Le libellé visible est un
+            sigle — « YTD », « 24H » — que rien ne traduit ; son `title`, lui, est
+            une phrase française posée dans `RANGE_PRESETS`. Elle sortait telle
+            quelle sur les pages anglaises, en infobulle ET en `aria-label`,
+            c'est-à-dire lue par toute synthèse vocale.
+          */
+          ...(preset.title ? { title: t(preset.title), ariaLabel: t(preset.title) } : {}),
+        }))}
+      />
 
 
       <DateRangePicker
