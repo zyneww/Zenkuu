@@ -54,9 +54,28 @@ export function RailSection({
             Dans une carte, il portait 14 pixels et une graisse forte : il devenait
             l'élément le plus visible du bloc, alors qu'il n'est qu'une étiquette de
             rangement — personne ne vient lire le mot « Fondamentaux ». Ce sont les
-            chiffres qu'on vient lire, et ils doivent gagner.
+            chiffres qu'on vient lire, et ils doivent gagner. La référence range son
+            titre de section au même endroit : 12 px, graisse 600, encre atténuée,
+            sous des valeurs de 13.
+
+            ⚠️ NI CAPITALES NI INTERLETTRAGE, ET C'EST UN RELEVÉ QUI TRANCHE.
+            Ce titre portait `uppercase tracking-wide` — mesuré à 11 px, +0,275 px
+            d'interlettrage, tout en capitales. Relevé le 2026-09-04 sur la fiche
+            Bitcoin de CoinGecko : « Bitcoin Price Chart (BTC) » sort en 12/16/600,
+            `letter-spacing: normal`, `text-transform: none`. Aucun texte de sa page
+            n'est en capitales forcées, et aucun ne porte d'interlettrage.
+
+            Le petit intertitre en capitales espacées est la signature la plus
+            reconnaissable d'une interface engendrée par défaut ; elle n'est pas dans
+            la référence, et l'arbitrage retenu pour ce chantier est que la référence
+            l'emporte.
+
+            Le pixel qui reste : 11 chez nous contre 12 chez elle. L'échelle du projet
+            n'a pas de cran de douze — `--text-micro` vaut 11, `--text-xs` vaut 13 — et
+            en ajouter un pour ce seul titre déplacerait toute la grille typographique
+            du site pour un pixel.
           */}
-          <h2 className="text-micro font-semibold uppercase tracking-wide text-ink-muted">
+          <h2 className="text-micro font-semibold text-ink-muted">
             {title}
           </h2>
           {action !== undefined ? <div className="shrink-0">{action}</div> : null}

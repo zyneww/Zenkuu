@@ -384,11 +384,21 @@ export async function AssetHeadline({
               famille d'affichage et un interlettrage négatif que la référence
               n'applique à aucun de ses textes.
             */}
+            {/* ⚠️ `leading-none` A ÉTÉ RETIRÉ DES DEUX, ET C'EST UN RELEVÉ.
+                Le nom sortait en 18/18 et le ticker en 14/14 — l'interligne écrasé sur
+                la taille du glyphe. Mesuré le 2026-09-04 sur la fiche Bitcoin de la
+                référence : « Bitcoin » y est en 18/28/700 et « BTC Price » en
+                14/20/400. Dix pixels d'interligne en plus sur l'un, six sur l'autre.
+
+                Ce sont exactement les valeurs que `--text-lg` et `--text-sm` portent
+                déjà : il suffisait donc de laisser les jetons faire leur travail. Une
+                ligne serrée à la taille du glyphe est ce qui donne à un en-tête son air
+                comprimé, et la référence ne comprime pas le sien. */}
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-              <h1 className="text-lg font-bold leading-none text-ink">
+              <h1 className="text-lg font-bold text-ink">
                 {assetName(asset.name, assetClass, phrase)}
               </h1>
-              <span className="text-sm font-normal uppercase leading-none text-ink-muted">
+              <span className="text-sm font-normal uppercase text-ink-muted">
                 {asset.symbol}
               </span>
               {/* Ni le rang ni l'étoile ne sont ICI : le premier est accroché au bas du
@@ -749,9 +759,14 @@ export async function AssetPriceCard({
         La flèche est CALCULÉE, pas écrite : `↓` et `↑` selon le signe, doublée du
         signe arithmétique sur l'écart. La couleur ne porte jamais seule (§9).
       */}
+      {/* `leading-10` = 40 px. `--text-3xl` porte 44, ce qui est le bon interligne pour
+          un chiffre héros posé dans une carte, entouré de texte. Ici il ouvre une fiche,
+          et la référence le serre : son cours sort en 36/40/700, mesuré le 2026-09-04.
+          Les quatre pixels se voient — ils séparent le cours de la ligne de variation
+          juste dessous, qui doit en rester solidaire. */}
       <p className="figure leading-none">
         <span className="sr-only">{t('price.label')} : </span>
-        <span className="text-3xl font-bold text-ink">{price}</span>
+        <span className="text-3xl font-bold leading-10 text-ink">{price}</span>
       </p>
 
       <p
