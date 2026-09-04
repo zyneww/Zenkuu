@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { DexPool } from '@zenkuu/data'
@@ -9,6 +9,8 @@ import { ChangeBadge, formatCompact } from '@zenkuu/ui'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
+import { TablePagination } from '@/components/ui/TablePagination'
+import { DEFAULT_ROWS } from '@/lib/limits'
 
 /**
  * Tableau de POOLS DE LIQUIDITÉ.
@@ -75,7 +77,27 @@ export function DexPoolTable({
     accessors,
   })
 
+  /*
+   * La page est REMISE À UN quand le tri change, et pour la même raison que partout
+   * ailleurs : la page 4 d'un classement par volume ne désigne pas les mêmes pools que
+   * la page 4 d'un classement par réserve. Y rester dépose le lecteur au hasard.
+   *
+   * L'ajustement se fait PENDANT LE RENDU plutôt que dans un effet : un effet peindrait
+   * d'abord la page 4 du nouveau tri avant de la corriger.
+   */
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState<number>(DEFAULT_ROWS)
+
+  const sortSignature = `${sort?.key ?? ''}${sort?.direction ?? ''}|${pools.length}`
+  const [lastSort, setLastSort] = useState(sortSignature)
+  if (sortSignature !== lastSort) {
+    setLastSort(sortSignature)
+    setPage(1)
+  }
+
   if (pools.length === 0) return null
+
+  const visible = rows.slice((page - 1) * perPage, page * perPage)
 
   return (
     /* `rounded-card` sur l'enveloppe, angles VIFS à l'intérieur : le tableau est un
@@ -125,7 +147,7 @@ export function DexPoolTable({
         </TableHeader>
 
         <TableBody className="divide-y divide-border-subtle">
-          {rows.map((pool) => (
+          {visible.map((pool) => (
             <tr key={pool.id} className="transition-colors hover:bg-surface-muted">
               <td className="px-3 py-2">
                 <Link
@@ -185,6 +207,22 @@ export function DexPoolTable({
           ))}
         </TableBody>
       </Table>
+
+      {/* « paire » et non « pool » : la colonne de gauche porte le NOM DE LA PAIRE
+          (SOL / USDC), et l'unité doit nommer ce que le lecteur voit compter. Les
+          unités reconnues sont énumérées par `TablePagination` — une unité inconnue
+          retombe silencieusement sur « résultat ». */}
+      <TablePagination
+        page={page}
+        perPage={perPage}
+        total={pools.length}
+        unit="paire"
+        onPageChange={setPage}
+        onPerPageChange={(size) => {
+          setPerPage(size)
+          setPage(1)
+        }}
+      />
     </div>
   )
 }

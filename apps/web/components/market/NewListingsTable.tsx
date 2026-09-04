@@ -15,6 +15,7 @@ import { monogram } from '@/components/asset/monogram'
 import { DateRangeCalendar } from '@/components/ui/DateRangeCalendar'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
+import { DEFAULT_ROWS } from '@/lib/limits'
 import { matchListing, type ListingMatch } from '@/lib/listing-match'
 
 /**
@@ -91,7 +92,7 @@ export function NewListingsTable({
   const [range, setRange] = useState<{ from: string; to: string } | null>(null)
 
   const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(25)
+  const [perPage, setPerPage] = useState<number>(DEFAULT_ROWS)
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase()

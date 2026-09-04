@@ -14,6 +14,7 @@ import { TablePagination } from '@/components/ui/TablePagination'
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { DEFAULT_ROWS } from '@/lib/limits'
 
 /**
  * REGISTRE DES PLACES DE PRODUITS DÉRIVÉS.
@@ -45,7 +46,7 @@ type FilterId = 'all' | 'dex' | 'cex' | 'unknown'
 
 type SortKey = 'name' | 'openInterest' | 'volume' | 'turnover' | 'perpetual' | 'year'
 
-const DEFAULT_PER_PAGE = 25
+const DEFAULT_PER_PAGE = DEFAULT_ROWS
 
 /** Volume rapporté à l'intérêt ouvert — voir l'en-tête. */
 function turnover(row: DerivativeExchange): number | undefined {

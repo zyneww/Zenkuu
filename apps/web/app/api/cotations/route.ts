@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getCryptoBoardPage, isSupportedCurrency } from '@zenkuu/data'
 
+import { DEFAULT_ROWS, ROW_CHOICES } from '@/lib/limits'
 import { guard } from '@/lib/rate-limit'
 
 /**
@@ -29,8 +30,10 @@ import { guard } from '@/lib/rate-limit'
  * globalement, ce qui serait impossible depuis les navigateurs.
  */
 
-/** Crans du sélecteur de lignes du tableau. Toute autre valeur est ramenée au plus petit. */
-const ROW_CHOICES = [25, 50, 100]
+/*
+ * Les crans du sélecteur viennent de `lib/limits.ts`, où le tableau les lit aussi.
+ * Toute autre valeur est ramenée au cran par défaut — voir la validation plus bas.
+ */
 
 export async function GET(request: Request) {
   /* Même garde-fou que la recherche, et pour la même raison : chaque combinaison
@@ -42,7 +45,7 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
 
   const page = Number.parseInt(params.get('page') ?? '1', 10)
-  const perPage = Number.parseInt(params.get('lignes') ?? '25', 10)
+  const perPage = Number.parseInt(params.get('lignes') ?? String(DEFAULT_ROWS), 10)
   const currency = (params.get('devise') ?? 'eur').toLowerCase()
 
   /*
@@ -60,7 +63,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ erreur: 'Page invalide' }, { status: 400 })
   }
 
-  const rows = ROW_CHOICES.includes(perPage) ? perPage : (ROW_CHOICES[0] as number)
+  const rows = (ROW_CHOICES as readonly number[]).includes(perPage) ? perPage : DEFAULT_ROWS
 
   if (!isSupportedCurrency(currency)) {
     return NextResponse.json({ erreur: 'Devise inconnue' }, { status: 400 })

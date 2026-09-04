@@ -49,3 +49,25 @@ export const WATCHLIST_COUNT_LIMIT = 10
 
 /** Actifs comparables d'un seul coup dans le comparateur. */
 export const COMPARE_LIMIT = 6
+
+/**
+ * Crans du sélecteur de lignes, communs à TOUS les tableaux du site.
+ *
+ * Ils vivaient en double — une copie dans `TablePagination`, une autre dans
+ * `/api/cotations` — et les deux avaient déjà divergé de la liste affichée par
+ * `SpotExchangesExplorer`. Le doublon n'était pas gênant tant que les trois listes
+ * portaient les mêmes nombres ; il l'est le jour où l'on en change un, parce que la
+ * route valide `lignes` contre SA liste et ramène au plus petit cran toute valeur
+ * absente. Un sélecteur proposant un cran que la route refuse renvoie donc
+ * silencieusement une autre page que celle demandée.
+ *
+ * Leur place ici plutôt que dans le composant tient à cette route : elle s'en sert
+ * comme d'une BORNE de clés de cache — trois crans, donc trois entrées par page, là
+ * où un intervalle libre en ouvrirait deux cent cinquante. C'est un plafond au même
+ * titre que les autres de ce fichier, et un module client ne peut pas être importé
+ * par un gestionnaire de route.
+ */
+export const ROW_CHOICES = [10, 50, 100] as const
+
+/** Cran par défaut : celui que les tableaux ouvrent, et celui que la route suppose. */
+export const DEFAULT_ROWS = 50

@@ -12,6 +12,7 @@ import { Link } from '@/i18n/navigation'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { ColumnHeader, ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { assetHref } from '@/lib/asset-routes'
+import { DEFAULT_ROWS } from '@/lib/limits'
 
 /**
  * Classement COMPLET d'un palmarès — la page derrière « Voir en détail ».
@@ -64,7 +65,7 @@ export function RankingDetailTable({
   showAthDate?: boolean
 }) {
   const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(25)
+  const [perPage, setPerPage] = useState<number>(DEFAULT_ROWS)
 
   const rows = useMemo(
     () => assets.slice((page - 1) * perPage, page * perPage),

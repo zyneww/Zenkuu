@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { emphasise } from '@/components/locale/emphasise'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
@@ -8,6 +8,8 @@ import type { TreasuryHolder, TreasuryReport } from '@zenkuu/data'
 import { formatCompact } from '@zenkuu/ui'
 
 import { SortableHeader, useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
+import { TablePagination } from '@/components/ui/TablePagination'
+import { DEFAULT_ROWS } from '@/lib/limits'
 import { ColumnPicker, useColumnPreferences } from '@/components/ui/table-columns'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
@@ -95,6 +97,21 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
     { id: 'supply', label: t('% de l’offre') },
   ])
 
+  /* Même remise à un que les autres registres triés : la page 3 par plus-value ne
+     désigne pas les mêmes sociétés que la page 3 par avoirs. */
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState<number>(DEFAULT_ROWS)
+
+  const sortSignature = `${sort?.key ?? ''}${sort?.direction ?? ''}|${report.holders.length}`
+  const [lastSort, setLastSort] = useState(sortSignature)
+  if (sortSignature !== lastSort) {
+    setLastSort(sortSignature)
+    setPage(1)
+  }
+
+  const start = (page - 1) * perPage
+  const visible = rows.slice(start, start + perPage)
+
   return (
     <div className="space-y-2">
       <div className="flex justify-end">
@@ -172,7 +189,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
           </TableHeader>
 
           <TableBody className="divide-y divide-border-subtle">
-            {rows.map((holder, index) => {
+            {visible.map((holder, index) => {
               const gain =
                 holder.entryValueUsd !== undefined && holder.currentValueUsd !== undefined
                   ? ((holder.currentValueUsd - holder.entryValueUsd) / holder.entryValueUsd) * 100
@@ -182,7 +199,9 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
                 <tr key={`${holder.name}-${index}`} className="transition-colors hover:bg-surface-muted">
                   {prefs.isVisible('rank') ? (
                     <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                      {index + 1}
+                      {/* Le rang suit la POSITION DANS LE REGISTRE, pas dans la page :
+                          repartir à 1 en page 2 ferait deux premiers détenteurs. */}
+                      {start + index + 1}
                     </td>
                   ) : null}
 
@@ -239,6 +258,18 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
           </TableBody>
         </Table>
       </div>
+
+      <TablePagination
+        page={page}
+        perPage={perPage}
+        total={report.holders.length}
+        unit="société"
+        onPageChange={setPage}
+        onPerPageChange={(size) => {
+          setPerPage(size)
+          setPage(1)
+        }}
+      />
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
         {emphasise(

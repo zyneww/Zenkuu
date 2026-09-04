@@ -11,6 +11,7 @@ import { MarketStatsStrip } from '@/components/market/MarketStatsStrip'
 import type { MarketSort, SortDirection } from '@/components/market/MarketTable'
 import { getContent } from '@/lib/content'
 import { marketHref } from '@/lib/asset-routes'
+import { DEFAULT_ROWS } from '@/lib/limits'
 import { getWatchlistIds } from '@/lib/watchlist-actions'
 import { getPhrase } from '@/lib/content'
 
@@ -61,16 +62,16 @@ const CONFIG: Record<
   AssetClass,
   { perPage: number; sortable: boolean; paginated: boolean; clientPerPage?: number }
 > = {
-  crypto: { perPage: 250, sortable: true, paginated: false, clientPerPage: 25 },
-  forex: { perPage: 40, sortable: false, paginated: false, clientPerPage: 25 },
+  crypto: { perPage: 250, sortable: true, paginated: false, clientPerPage: DEFAULT_ROWS },
+  forex: { perPage: 40, sortable: false, paginated: false, clientPerPage: DEFAULT_ROWS },
   /* Vingt-cinq par page, et c'est une contrainte de la SOURCE : Yahoo n'a pas
      d'appel groupé — un symbole, une requête — et son limiteur plafonne à soixante
      par fenêtre. Les quatre-vingt-dix-neuf actions de l'univers sont donc servies par
      tranches, ce que `listAssets` honore désormais réellement. */
   stock: { perPage: 25, sortable: false, paginated: true },
   etf: { perPage: 25, sortable: false, paginated: true },
-  commodity: { perPage: 20, sortable: false, paginated: false, clientPerPage: 25 },
-  index: { perPage: 30, sortable: false, paginated: false, clientPerPage: 25 },
+  commodity: { perPage: 20, sortable: false, paginated: false, clientPerPage: DEFAULT_ROWS },
+  index: { perPage: 30, sortable: false, paginated: false, clientPerPage: DEFAULT_ROWS },
   nft: { perPage: 20, sortable: false, paginated: false },
 }
 

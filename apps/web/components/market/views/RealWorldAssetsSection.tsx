@@ -1,8 +1,8 @@
-import { getAllTokenizedStocks, type TokenizedStock } from '@zenkuu/data'
+import { getAllTokenizedStocks } from '@zenkuu/data'
 import { EmptyState, SourceNote, formatCurrency } from '@zenkuu/ui'
 
 import { StatCard } from '@/components/charts/StatCard'
-import { Link } from '@/i18n/navigation'
+import { TokenizedStocksTable } from '@/components/market/TokenizedStocksTable'
 import { getPhrase } from '@/lib/content'
 
 /**
@@ -79,7 +79,7 @@ export async function RealWorldAssetsSection() {
         />
       </div>
 
-      <TokenTable tokens={listed} />
+      <TokenizedStocksTable tokens={listed} />
 
       <p className="max-w-3xl text-xs leading-relaxed text-ink-muted">
         <strong className="text-ink">{t('Une famille, pas toutes.')}</strong>{' '}
@@ -94,86 +94,6 @@ export async function RealWorldAssetsSection() {
         label={t('{source} · montants en USD').replace('{source}', `${tokens.source.label}`)}
         href={tokens.source.attributionUrl}
       />
-    </div>
-  )
-}
-
-async function TokenTable({ tokens }: { tokens: TokenizedStock[] }) {
-  const t = await getPhrase()
-
-  return (
-    /* Sans cadre ni filets, comme le tableau des catégories : sur une grille de
-       nombres cadrés à droite, la structure se lit dans les chiffres. */
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm sm:min-w-[640px]">
-        <caption className="sr-only">{t('Actions tokenisées')}</caption>
-        <thead>
-          <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
-            <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
-              #
-            </th>
-            <th scope="col" className="px-3 py-2.5 font-medium">
-              {t('Jeton')}
-            </th>
-            <th scope="col" className="hidden px-3 py-2.5 font-medium md:table-cell">
-              {t('Émetteur')}
-            </th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">
-              {t('Prix')}
-            </th>
-            <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
-              {t('Volume 24 h')}
-            </th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">
-              {t('Capitalisation')}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {tokens.map((token, index) => (
-            <tr key={token.id} className="transition-colors hover:bg-surface-muted/60">
-              <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                {index + 1}
-              </td>
-              <th scope="row" className="px-3 py-2.5 text-left font-medium">
-                <span className="flex items-center gap-2">
-                  {token.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- logos distants
-                    <img
-                      src={token.image}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      width={20}
-                      height={20}
-                      className="h-5 w-5 rounded-pill border border-surface bg-surface-muted object-contain"
-                    />
-                  ) : null}
-                  <Link
-                    href={`/crypto/${token.id}`}
-                    className="inline-flex items-center text-ink transition-colors hover:text-brand hover:underline"
-                  >
-                    {token.name}
-                  </Link>
-                  <span className="text-xs uppercase text-ink-muted">{token.symbol}</span>
-                </span>
-              </th>
-              <td className="hidden px-3 py-2.5 text-ink-muted md:table-cell">
-                {token.issuer ?? '—'}
-              </td>
-              <td className="tabular px-3 py-2.5 text-right text-ink">
-                {formatCurrency(token.priceUsd, 'USD') ?? '—'}
-              </td>
-              <td className="tabular hidden px-3 py-2.5 text-right text-ink-muted lg:table-cell">
-                {formatCurrency(token.volume24hUsd, 'USD', { compact: true }) ?? '—'}
-              </td>
-              <td className="tabular px-3 py-2.5 text-right text-ink">
-                {formatCurrency(token.marketCapUsd, 'USD', { compact: true }) ?? '—'}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   )
 }

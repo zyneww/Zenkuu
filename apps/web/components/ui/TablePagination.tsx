@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Link } from '@/i18n/navigation'
+import { ROW_CHOICES } from '@/lib/limits'
 import { cn } from '@/lib/utils'
 
 /**
@@ -72,8 +73,6 @@ import { cn } from '@/lib/utils'
  * peut PAS éprouver, l'exécuteur de tests refusant d'analyser un fichier qui contient
  * du JSX. C'est un argument de testabilité, pas de rangement.
  */
-
-const ROW_CHOICES = [25, 50, 100] as const
 
 /**
  * Ce que l'on sait de la longueur de la liste.
@@ -404,7 +403,17 @@ export function RowsPerPage({
  * phrase entière : cela coûte trois clés par unité, et les rend justes dans les
  * treize langues.
  */
-const UNITS = ['actif', 'article', 'cotation', 'ligne', 'paire', 'place', 'résultat', 'secteur'] as const
+const UNITS = [
+  'actif',
+  'article',
+  'cotation',
+  'ligne',
+  'paire',
+  'place',
+  'résultat',
+  'secteur',
+  'société',
+] as const
 
 function counterText({
   known,

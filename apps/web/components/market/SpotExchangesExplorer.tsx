@@ -8,9 +8,11 @@ import { SpotExchangesTable } from '@/components/market/SpotExchangesPanel'
 import { TablePagination } from '@/components/ui/TablePagination'
 import { useTableSort, type SortAccessor } from '@/components/ui/SortableTable'
 
-/* 100 en tête, comme la page Exchanges de la référence, qui rend cent plateformes
-   d'un coup. Les deux crans plus petits restent dans le sélecteur. */
-const PAGE_SIZES = [100, 50, 25] as const
+/* Ce registre OUVRE à 100, comme la page Exchanges de la référence qui rend cent
+   plateformes d'un coup — c'est le seul tableau du site dans ce cas. Les crans
+   proposés restent en revanche ceux de tous les autres : une liste à part faisait
+   lire « 25 » ici et « 10 » ailleurs pour le même geste. */
+const OPENS_AT = 100
 
 /** Colonnes triables du registre — les cinq que porte l'en-tête. */
 export type ExchangeSortKey = 'name' | 'volume' | 'share' | 'trust' | 'country'
@@ -46,7 +48,7 @@ export type ExchangeSortKey = 'name' | 'volume' | 'share' | 'trust' | 'country'
  */
 export function SpotExchangesExplorer({ exchanges }: { exchanges: SpotExchange[] }) {
   const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState<number>(PAGE_SIZES[0])
+  const [perPage, setPerPage] = useState<number>(OPENS_AT)
 
   /*
    * Le total sert de dénominateur pour TOUTES les pages : il est calculé une fois sur
@@ -100,7 +102,6 @@ export function SpotExchangesExplorer({ exchanges }: { exchanges: SpotExchange[]
         perPage={perPage}
         total={exchanges.length}
         unit="place"
-        perPageChoices={PAGE_SIZES}
         onPageChange={setPage}
         onPerPageChange={(size) => {
           setPerPage(size)
