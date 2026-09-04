@@ -85,6 +85,7 @@ export const dePhrases: Phrases = {
   'Composition': 'Zusammensetzung',
   'Connexion': 'Anmelden',
   'Connexion à ZENKUU': 'Bei ZENKUU anmelden',
+  'Prix/24 h %': 'Preis/24 h %',
   'Continuer': 'Weiter',
   'Toujours pas connecté ?': 'Anmeldung klappt immer noch nicht?',
   'Contexte indisponible': 'Kontext nicht verfügbar',

@@ -78,6 +78,7 @@ export const nlPhrases: Phrases = {
   'Composition': 'Samenstelling',
   'Connexion': 'Aanmelden',
   'Connexion à ZENKUU': 'Inloggen bij ZENKUU',
+  'Prix/24 h %': 'Prijs/24 u %',
   'Continuer': 'Doorgaan',
   'Toujours pas connecté ?': 'Lukt inloggen nog steeds niet?',
   'Contexte indisponible': 'Context niet beschikbaar',

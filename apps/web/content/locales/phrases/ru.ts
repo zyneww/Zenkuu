@@ -78,6 +78,7 @@ export const ruPhrases: Phrases = {
   'Composition': 'Состав',
   'Connexion': 'Вход',
   'Connexion à ZENKUU': 'Вход в ZENKUU',
+  'Prix/24 h %': 'Цена/24 ч %',
   'Continuer': 'Продолжить',
   'Toujours pas connecté ?': 'Всё ещё не удаётся войти?',
   'Contexte indisponible': 'Контекст недоступен',

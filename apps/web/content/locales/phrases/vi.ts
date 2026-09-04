@@ -78,6 +78,7 @@ export const viPhrases: Phrases = {
   'Composition': 'Thành phần',
   'Connexion': 'Đăng nhập',
   'Connexion à ZENKUU': 'Đăng nhập vào ZENKUU',
+  'Prix/24 h %': 'Giá/24 h %',
   'Continuer': 'Tiếp tục',
   'Toujours pas connecté ?': 'Vẫn không đăng nhập được?',
   'Contexte indisponible': 'Không có bối cảnh',

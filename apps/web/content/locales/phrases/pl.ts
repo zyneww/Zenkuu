@@ -78,6 +78,7 @@ export const plPhrases: Phrases = {
   'Composition': 'Skład',
   'Connexion': 'Zaloguj się',
   'Connexion à ZENKUU': 'Zaloguj się w ZENKUU',
+  'Prix/24 h %': 'Cena/24 h %',
   'Continuer': 'Dalej',
   'Toujours pas connecté ?': 'Nadal nie możesz się zalogować?',
   'Contexte indisponible': 'Kontekst niedostępny',

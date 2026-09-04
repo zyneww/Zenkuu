@@ -89,6 +89,7 @@ export const enPhrases: Phrases = {
   'Composition': 'Composition',
   'Connexion': 'Sign in',
   'Connexion à ZENKUU': 'Sign in to ZENKUU',
+  'Prix/24 h %': 'Price/24h %',
   'Continuer': 'Continue',
   'Toujours pas connecté ?': 'Still can’t sign in?',
   'Contexte indisponible': 'Context unavailable',

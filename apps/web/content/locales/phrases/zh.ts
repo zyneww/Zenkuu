@@ -78,6 +78,7 @@ export const zhPhrases: Phrases = {
   'Composition': '构成',
   'Connexion': '登录',
   'Connexion à ZENKUU': '登录 ZENKUU',
+  'Prix/24 h %': '价格/24 小时 %',
   'Continuer': '继续',
   'Toujours pas connecté ?': '仍然无法登录？',
   'Contexte indisponible': '背景信息不可用',

@@ -86,11 +86,27 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       shouldFilter={false}
       className="max-w-2xl border-border-subtle bg-overlay shadow-overlay sm:max-w-2xl"
     >
+      {/*
+        ── LE CHAMP EST UNE BOÎTE, ET SON FOCUS SE VOIT ─────────────────────────
+
+        Il portait le `border-b` de shadcn/ui : un filet sous le champ, hérité d'une
+        palette de commandes plein écran où le champ EST le haut de la fenêtre. Dans
+        cette fenêtre-ci, il traçait une ligne en travers sans jamais dire que le
+        curseur était dedans.
+
+        La capture montre une boîte complète dont la bordure passe à l'accent au focus,
+        avec un halo. C'est ce que `wrapperClassName` permet de poser sans modifier la
+        primitive partagée avec le champ de l'en-tête — voir sa note.
+
+        `focus-within` et non `focus` : la bordure doit réagir au focus de l'INPUT, qui
+        est un enfant du conteneur qu'on peint.
+      */}
       <CommandInput
         value={search.query}
         onValueChange={search.setQuery}
         placeholder={fr.search.placeholder}
-        className="text-sm"
+        wrapperClassName="m-3 mb-2 h-11 gap-2.5 rounded-control border border-border-subtle px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25"
+        className="h-11 text-sm"
       />
 
       {/* Les onglets sont HORS de `CommandList`, et c'est délibéré : cmdk compte les

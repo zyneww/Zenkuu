@@ -78,6 +78,7 @@ export const trPhrases: Phrases = {
   'Composition': 'Bileşim',
   'Connexion': 'Giriş',
   'Connexion à ZENKUU': 'ZENKUU’ya giriş yap',
+  'Prix/24 h %': 'Fiyat/24 s %',
   'Continuer': 'Devam et',
   'Toujours pas connecté ?': 'Hâlâ giriş yapamıyor musunuz?',
   'Contexte indisponible': 'Bağlam kullanılamıyor',

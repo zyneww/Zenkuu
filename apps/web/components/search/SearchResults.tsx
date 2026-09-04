@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendingUp } from 'lucide-react'
+import { Flame } from 'lucide-react'
 
 import { ChangeBadge } from '@zenkuu/ui'
 
@@ -14,7 +14,6 @@ import { useMemo } from 'react'
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
 import { HighlightMatch } from '@/components/search/HighlightMatch'
-import { ResultPill } from '@/components/search/ResultPill'
 import type { SearchScope } from '@/components/search/SearchScopes'
 import { Spinner } from '@/components/ui/spinner'
 import { assetHref } from '@/lib/asset-routes'
@@ -110,38 +109,56 @@ export function SearchResults({
 
   if (showTrending) {
     return (
-      <CommandGroup heading={<GroupHeading title={fr.search.trendingTitle} hint={fr.search.trendingHint} icon={<TrendingUp className="size-3.5" aria-hidden="true" />} />}>
+      <CommandGroup
+        heading={
+          <GroupHeading
+            title={fr.search.trendingTitle}
+            hint={fr.search.trendingHint}
+            /* La flamme de la référence, et non la courbe ascendante : celle-ci dit
+               « ça monte », qui est faux d'un actif en tendance à la baisse. La flamme
+               dit « on en parle », qui est ce que le classement mesure. */
+            icon={<Flame className="size-3.5" aria-hidden="true" />}
+            columns={t('Prix/24 h %')}
+          />
+        }
+      >
         {/* ══════════════════════════════════════════════════════════════════
-            LES TENDANCES S'AFFICHENT EN PASTILLES, LES RÉSULTATS EN LIGNES
+            LES TENDANCES PASSENT DES PASTILLES AUX LIGNES
 
-            Relevé chez Backpack : leur panneau a DEUX rendus, et ce n'est pas une
-            inconséquence. Champ vide → pastilles, trois par rangée. Champ rempli →
-            lignes pleine largeur.
+            ⚠️ CECI RENVERSE UN CHOIX DOCUMENTÉ, et voici ce qu'il disait : « Relevé
+            chez Backpack : champ vide → pastilles, trois par rangée ; champ rempli →
+            lignes pleine largeur. Une pastille tient sur une demi-ligne : on en voit
+            vingt d'un coup, ce qu'il faut pour PARCOURIR une sélection qu'on n'a pas
+            demandée. »
 
-            Une pastille tient sur une demi-ligne : on en voit vingt d'un coup, ce
-            qu'il faut pour PARCOURIR une sélection qu'on n'a pas demandée. Une ligne
-            porte plus mais n'en montre que huit : ce qu'il faut pour COMPARER des
-            résultats qu'on a cherchés.
+            L'argument se tenait pour Backpack. La référence est désormais DropsTab, et
+            elle fait l'inverse : ses tendances sont des lignes pleine largeur, portant
+            chacune un cours et une variation.
 
-            ⚠️ `flex-wrap` SUR LE GROUPE, ET NON SUR CHAQUE PASTILLE. cmdk empile ses
-            enfants en colonne par défaut ; sans cette classe sur le conteneur, vingt
-            pastilles feraient vingt rangées d'une pastille — c'est-à-dire des lignes
-            étroites, le pire des deux formes.
+            Ce n'est pas qu'un changement de goût. Une pastille ne peut PAS porter de
+            cours — il n'y tient pas —, et un classement de tendances sans prix ne dit
+            que des noms. Les lignes en montrent moins à la fois et disent beaucoup
+            plus de chacune ; c'est le bon échange quand la liste fait huit entrées.
+
+            `ResultRow` les rend sans modification : elle portait déjà le cours et la
+            variation en option, pour cet usage exactement.
             ══════════════════════════════════════════════════════════════════ */}
         {trending.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5 px-1 py-1">
-            {trending.map((asset) => (
-              <ResultPill
-                key={asset.id}
-                href={assetHref(asset.assetClass, asset.id)}
-                name={asset.name}
-                symbol={asset.symbol}
-                image={asset.image}
-                change24h={asset.change24h}
-                onNavigate={onNavigate}
-              />
-            ))}
-          </div>
+          trending.map((asset) => (
+            <ResultRow
+              key={asset.id}
+              href={assetHref(asset.assetClass, asset.id)}
+              name={asset.name}
+              symbol={asset.symbol}
+              image={asset.image}
+              {...(asset.rank !== undefined ? { rank: asset.rank } : {})}
+              {...(asset.price !== undefined
+                ? { price: asset.price, currency: asset.currency }
+                : {})}
+              {...(asset.change24h !== undefined ? { change24h: asset.change24h } : {})}
+              onNavigate={onNavigate}
+            />
+          ))
         ) : (
           <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
         )}
@@ -229,16 +246,31 @@ function GroupHeading({
   title,
   hint,
   icon,
+  /**
+   * Intitulé de la colonne de droite, cadré sur elle.
+   *
+   * Il n'existe que pour les tendances, seules lignes à porter un cours : les
+   * résultats de recherche n'en ont pas, et un en-tête de colonne au-dessus d'une
+   * colonne absente annoncerait une donnée manquante plutôt que de la nommer.
+   */
+  columns,
 }: {
   title: string
   hint?: string
   icon?: React.ReactNode
+  columns?: string
 }) {
   return (
     <span className="flex items-center gap-1.5">
       {icon}
       {title}
       {hint ? <span className="font-normal normal-case tracking-normal">· {hint}</span> : null}
+      {columns ? (
+        /* `ml-auto` plutôt qu'un `justify-between` sur le parent : l'icône, le titre et
+           l'indice doivent rester groupés à gauche, et `justify-between` les aurait
+           répartis sur toute la largeur dès qu'il y a trois enfants. */
+        <span className="ml-auto pr-1 font-normal normal-case tracking-normal">{columns}</span>
+      ) : null}
     </span>
   )
 }

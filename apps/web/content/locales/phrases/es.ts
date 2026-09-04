@@ -84,6 +84,7 @@ export const esPhrases: Phrases = {
   'Composition': 'Composición',
   'Connexion': 'Iniciar sesión',
   'Connexion à ZENKUU': 'Iniciar sesión en ZENKUU',
+  'Prix/24 h %': 'Precio/24 h %',
   'Continuer': 'Continuar',
   'Toujours pas connecté ?': '¿Sigues sin poder entrar?',
   'Contexte indisponible': 'Contexto no disponible',
