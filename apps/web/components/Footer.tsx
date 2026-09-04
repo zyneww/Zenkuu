@@ -1,55 +1,76 @@
 import { ZenkuuWordmark } from '@/components/BrandMark'
 import { Link } from '@/i18n/navigation'
 
-import { FOOTER_COLUMNS, SOCIAL_LINKS } from '@/content/footer'
+import { FOOTER_COLUMNS, LEGAL_LINKS } from '@/content/footer'
 import { getContent, getPhrase } from '@/lib/content'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * PIED DE PAGE — LA MARQUE À GAUCHE, L'ANNUAIRE EN COLONNES À DROITE
+ * PIED DE PAGE — L'IDENTITÉ À GAUCHE, QUATRE COLONNES À DROITE
  * ══════════════════════════════════════════════════════════════════════════════
  *
  * ── D'OÙ VIENT CETTE FORME ──────────────────────────────────────────────────
  *
- * Elle est reprise du modèle demandé (tokenomist.ai) : un bloc d'identité — marque
- * puis une phrase qui dit ce que le site fait — occupant la moitié gauche, et
- * QUATRE colonnes de liens serrées à droite, puis une barre légale séparée d'un
- * filet, droits à gauche et mentions à droite.
+ * De tokenomist.ai, relevé au navigateur le 2026-09-04 : un bloc d'identité — la
+ * marque puis une phrase qui dit ce que le site fait — occupe la gauche, QUATRE
+ * colonnes de liens serrées occupent la droite, et une barre séparée d'un filet
+ * ferme le pied avec les droits à gauche et un lien à droite.
  *
- * ── CE QU'ELLE REMPLACE, ET POURQUOI LE REPLI PART ──────────────────────────
+ * Mesuré chez elle : intitulés de colonne à 14 px / interligne 20 / graisse 500, un
+ * `flex` de conteneur à 128 px de gouttière entre le bloc d'identité et le groupe de
+ * colonnes, et quatre pistes d'environ 166 px. Ce sont ces valeurs qui sont posées
+ * ici — `xl:gap-32` vaut exactement les 128 px du relevé.
  *
- * Le pied précédent tenait sur une bande unique dont chaque rubrique cachait ses
- * liens derrière un panneau ouvert au SURVOL. Deux défauts, et le second est le vrai :
+ * ── POURQUOI UN `flex` ET NON UNE GRILLE UNIQUE ─────────────────────────────
  *
- *   · un panneau au survol n'existe pas au doigt — sur téléphone et sur tablette,
- *     l'annuaire entier était donc inatteignable ;
- *   · un pied de page est l'endroit où l'on va CHERCHER une page dont on ne connaît
- *     pas le chemin. Le replier oblige à savoir sous quelle rubrique regarder avant
- *     d'avoir vu la liste — c'est-à-dire à connaître la réponse pour poser la question.
+ * La version précédente rangeait l'identité et les six colonnes dans UNE grille de
+ * sept pistes égales. C'était juste tant que l'identité ne portait qu'un logo. Elle
+ * porte maintenant un paragraphe, et un paragraphe n'a aucune raison de faire la
+ * largeur d'une colonne de liens : dans une piste de 166 px, la description du site
+ * tomberait sur douze lignes.
  *
- * Les liens sont donc tous VISIBLES. C'est plus haut, et c'est le prix normal d'un
- * annuaire ; la grille à quatre colonnes le contient sans faire défiler.
+ * Deux blocs, donc, avec la gouttière mesurée entre eux — c'est la forme de la
+ * référence, et c'est celle qui laisse le texte respirer.
  *
- * ── LES GROUPES SONT APLATIS ────────────────────────────────────────────────
+ * ── LA COLONNE « PRODUIT » SE REND SUR DEUX PISTES ──────────────────────────
  *
- * `content/footer.ts` range ses liens en colonnes de GROUPES titrés — deux niveaux.
- * Le modèle n'en a qu'un : un titre par colonne, puis la liste. Les groupes sont donc
- * fondus, et c'est l'étiquette de la colonne — jusqu'ici réservée à la synthèse
- * vocale — qui devient le titre visible. Aucun lien n'est perdu ni ajouté.
+ * Elle porte dix-neuf liens contre six, un et deux pour les trois autres ; la note
+ * de `content/footer.ts` explique pourquoi ce déséquilibre est arithmétique et non
+ * un oubli. Dix-neuf lignes d'affilée feraient un pied deux fois plus haut que son
+ * bloc d'identité ; deux pistes de dix l'alignent dessus.
+ *
+ * Le seuil est porté par `PISTES_DOUBLES` plutôt que par un test sur le libellé :
+ * une colonne longue se rendra ainsi correctement le jour où ce n'est plus
+ * « Produit », et une colonne qui raccourcit reviendra seule sur une piste.
  *
  * ── CE QUI RESTE, ET NE PEUT PAS PARTIR ─────────────────────────────────────
  *
- * L'attribution CoinGecko est EXIGÉE par ses conditions d'utilisation (§4.1.4), dans
- * une police d'au moins 10 px, sur tous les paliers y compris gratuit. L'avertissement
- * « lecture seule » est ce qui tient Zenkuu à distance du conseil en investissement.
- * Le premier vit dans la barre légale, le second sert de phrase d'identité sous la
- * marque — c'est-à-dire à l'endroit le plus lu du bloc, et non enterré en dernière
- * ligne.
+ * ⚠️ L'ATTRIBUTION COINGECKO EST CONTRACTUELLE (CGU §4.1.4, police d'au moins 10 px,
+ * tous paliers y compris gratuit). Elle avait DISPARU du pied : la note d'en-tête
+ * affirmait qu'elle vivait dans la barre légale, mais aucun rendu ne la produisait —
+ * seule la page `embed/ticker` la portait encore. Elle est reposée ici, liée vers
+ * coingecko.com comme les conditions l'exigent.
  *
- * La pastille d'état dit ce qu'elle SAIT : la date du dernier relevé réellement
- * enregistré, et non un « All Systems Operational » qu'un site sans supervision ne
- * peut pas affirmer.
+ * L'avertissement « lecture seule » est ce qui tient Zenkuu à distance du conseil en
+ * investissement : il reste dans la barre du bas, sous les droits.
+ *
+ * ── LES ICÔNES SOCIALES DEVIENNENT UNE COLONNE ──────────────────────────────
+ *
+ * Elles formaient une rangée de pastilles à droite de la barre du bas. Le modèle
+ * range ses comptes dans une colonne de liens TEXTE nommée « Social », et
+ * `FOOTER_COLUMNS` cite désormais `SOCIAL_LINKS` pour la remplir. Un compte social
+ * écrit en toutes lettres se lit ; une pastille demande de reconnaître un glyphe.
  */
+
+/**
+ * À partir de combien de liens une colonne se scinde en deux pistes.
+ *
+ * Dix : c'est la hauteur du bloc d'identité — marque plus trois lignes de
+ * description — au-delà de laquelle une colonne commence à tirer le pied vers le bas
+ * toute seule.
+ */
+const PISTES_DOUBLES = 10
+
 export async function Footer() {
   const fr = await getContent()
   const t = await getPhrase()
@@ -59,214 +80,180 @@ export async function Footer() {
        Il portait `bg-surface` : un pavé plus clair que la page, sur toute la
        largeur, à la fin de chaque écran. Relevé le 2026-08-30 sur la référence :
        son `<footer>` n'a AUCUN fond propre — la couleur qu'on y voit est celle du
-       `<body>`, `rgb(13, 18, 23)`, c'est-à-dire le canevas. Ce qui sépare le pied
-       du contenu chez elle est le seul filet, pas un changement de teinte.
+       `<body>`. Ce qui sépare le pied du contenu est le seul filet.
 
-       `border-t-[1.25px]` reprend la valeur mesurée sur ce filet, comme le panneau
-       droit — c'est l'épaisseur qu'elle emploie partout où elle trace un trait. */
+       ⚠️ ET NON UN FOND SOMBRE FIXE. Le brief décrit « fond sombre » parce que la
+       capture est prise sur un site qui n'a qu'un thème. Zenkuu en a deux : un pied
+       toujours sombre poserait un pavé noir en bas d'une page claire. La réponse
+       retenue est de SUIVRE LE THÈME — les jetons ci-dessous le font seuls. */
     <footer className="mt-16 border-t-[1.25px] border-border-subtle">
-      {/* ── LE CORPS ─────────────────────────────────────────────────────────
-          L'ANNUAIRE PASSE À GAUCHE ET L'IDENTITÉ À DROITE, à la manière du bloc
-          « Footer With Big Text » repris ici : les colonnes de liens ouvrent le pied,
-          et le pavé de marque le referme juste au-dessus du grand mot.
+      <div className="shell flex flex-col gap-10 py-12 xl:flex-row xl:items-start xl:gap-32">
+        {/* ── LE BLOC D'IDENTITÉ ─────────────────────────────────────────
+            La marque, puis la phrase qui dit ce que le site fait. C'est la
+            description déjà servie aux moteurs (`site.description`) : la même
+            phrase à l'écran et dans les métadonnées, pas deux formulations qui
+            divergeront.
 
-          `lg:flex-row` et non une grille commune : les deux blocs n'ont pas de largeur
-          partagée — l'identité est un pavé de texte, l'annuaire une grille — et sous
-          `lg` ils doivent s'empiler dans l'ordre du document. */}
-      {/* ══════════════════════════════════════════════════════════════════════
-          UNE SEULE GRILLE À CINQ COLONNES — L'IDENTITÉ EN EST LA PREMIÈRE
-
-          ── CE QUE CELA REMPLACE ────────────────────────────────────────────
-
-          Deux blocs côte à côte en `flex` : l'annuaire à gauche, un pavé d'identité à
-          droite. Sa note disait « les deux blocs n'ont pas de largeur partagée », et
-          c'était vrai — mais c'était aussi le défaut. Les colonnes de liens se
-          partageaient l'espace restant après le pavé, donc leur largeur dépendait de la
-          longueur d'un texte qui n'a rien à voir avec elles.
-
-          ── LA MESURE ───────────────────────────────────────────────────────
-
-          Relevé au navigateur sur openrouter.ai le 2026-09-02 : leur pied est UNE grille
-          de cinq pistes égales de 230,4 px, `gap: 32px`. La première porte le logo et le
-          copyright ; les quatre autres, les liens. Chaque colonne est un `flex` vertical
-          à `gap: 12px`, et l'écart mesuré entre deux liens — 34,7 px — se retrouve
-          exactement : 22,75 px d'interligne plus 12 de gouttière.
-
-          `grid-cols-5` reproduit donc la géométrie, et l'identité cesse d'être un pavé
-          à part pour devenir une colonne comme les autres.
-
-          Sous `sm` : deux colonnes, l'identité prenant les deux — un logo à moitié de
-          largeur d'écran ne se lit pas mieux qu'un logo entier.
-          ══════════════════════════════════════════════════════════════════════ */}
-      {/* SEPT pistes sous `xl` : l'identité, puis les six colonnes de Backpack. Sous
-          `lg`, trois colonnes ; sous `sm`, deux — un annuaire de six colonnes sur un
-          téléphone donne des libellés coupés en trois lignes. */}
-      <div className="shell grid grid-cols-2 gap-8 py-12 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-        {/* ── L'IDENTITÉ, PREMIÈRE COLONNE ───────────────────────────────
-
-            Le logo, et RIEN D'AUTRE. Elle portait aussi la mention de non-conseil et
-            les icônes sociales ; les deux sont descendues dans la barre inférieure,
-            où la référence les met — et où elles ont plus de sens : le haut du pied
-            sert à atteindre une page, le bas à savoir qui parle.
-
-            Cette colonne cesse donc d'être un pavé de texte à côté d'un annuaire, et
-            redevient ce qu'elle est : une signature.
-
-            `col-span-2` sous `sm` : un logo à moitié de largeur d'écran ne se lit pas
-            mieux qu'un logo entier. */}
-        <div className="col-span-2 sm:col-span-3 lg:col-span-4 xl:col-span-1">
+            `max-w-[26rem]` : la mesure de confort typographique, autour de 60
+            signes par ligne. Sans elle, le paragraphe s'étirerait sur toute la
+            largeur restante sous `xl` et deviendrait illisible. */}
+        <div className="flex max-w-[26rem] flex-col gap-4 xl:w-[22rem] xl:shrink-0">
           <ZenkuuWordmark className="h-5 w-auto text-ink" />
+          <p className="text-sm leading-relaxed text-ink-muted">{fr.site.description}</p>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
-            LES QUATRE COLONNES DE LIENS
+            LES QUATRE COLONNES
 
-            ── LA HIÉRARCHIE TIENT EN UNE OPACITÉ ──────────────────────────
+            ── LA HIÉRARCHIE TIENT EN UNE COULEUR ──────────────────────────
 
-            Mesuré chez la référence : le TITRE de colonne est à l'encre pleine
-            (`rgb(252, 252, 254)`), les LIENS à la même encre mais à 62,7 %. Pas deux
-            couleurs — une couleur et sa dilution. C'est ce qui fait qu'on lit d'abord
-            les quatre titres, puis la colonne choisie, au lieu de lire trente liens.
+            Le TITRE est à l'encre pleine, les LIENS à l'encre atténuée. Pas deux
+            teintes sans rapport — une encre et sa dilution, ce que `text-ink` et
+            `text-ink-muted` portent déjà dans les deux thèmes. C'est ce qui fait
+            qu'on lit d'abord les quatre titres, puis la colonne choisie, au lieu
+            de lire vingt-huit liens.
 
-            `text-ink` / `text-ink-muted` portent exactement ce rapport dans les deux
-            thèmes du site, et le portaient déjà : l'ancien pied les avait juste posés à
-            l'envers — titres en `ink-muted`, liens en `ink` —, ce qui donnait quatre
-            en-têtes plus pâles que leur contenu.
+            ── LES PISTES NE SONT PAS ÉGALES ───────────────────────────────
 
-            ── LES AUTRES MESURES ──────────────────────────────────────────
+            `2fr` pour la première, `1fr` pour les trois autres : « Produit » se rend
+            sur deux pistes internes, il lui faut donc deux fois la largeur. Des
+            pistes égales l'auraient écrasé sur des colonnes de 83 px.
 
-            Taille 14 px des deux côtés (`text-sm`), graisse 500 sur le titre, 450 sur
-            les liens — ramenée à `font-normal` ici, 450 n'ayant pas de cran dans
-            l'échelle du projet et la fonte du site n'étant pas variable.
+            ⚠️ LA TRANSITION EST DÉJÀ POSÉE. `color 0.15s` est le filet de sécurité
+            de `globals.css` sur tout `<a>` : rien à écrire ici. */}
+        <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-[2fr_1fr_1fr_1fr] sm:gap-x-12">
+          {FOOTER_COLUMNS.map((column) => {
+            const large = column.links.length >= PISTES_DOUBLES
 
-            `gap-3` = 12 px, la gouttière relevée dans leurs colonnes.
+            return (
+              <nav
+                key={column.label}
+                aria-label={t(column.label)}
+                /* La colonne large prend les deux pistes du téléphone : c'est ce qui
+                   permet à sa liste de s'y rendre elle-même sur deux tracks. */
+                className={`flex flex-col gap-4${large ? ' col-span-2 sm:col-span-1' : ''}`}
+              >
+                {/* `<h2>` malgré l'apparence discrète : la synthèse vocale s'en sert
+                    pour sauter d'une colonne à l'autre, et un texte en encre pleine
+                    n'est pas une structure. La graisse n'a jamais fait le titre — la
+                    balise si. 14 px / graisse 500, les valeurs du relevé. */}
+                <h2 className="text-sm font-medium leading-5 text-ink">{t(column.label)}</h2>
 
-            ⚠️ LEUR TRANSITION EST DÉJÀ LA NÔTRE. `color 0.15s cubic-bezier(0.4, 0, 0.2,
-            1)` mesuré sur leurs liens, c'est `--duration-state` et `--ease-standard` au
-            centième près — la même valeur qu'ASXN, relevée la veille. Le filet de
-            sécurité de `globals.css` la pose déjà sur tout `<a>` : rien à écrire ici.
-            ══════════════════════════════════════════════════════════════════ */}
-        {/* ══════════════════════════════════════════════════════════════════
-            LE TITRE ET LES LIENS ONT LA MÊME TAILLE ET LA MÊME GRAISSE
+                {/* ⚠️ LE SENS DE REMPLISSAGE EST EXPLICITE, ET IL A DÛ L'ÊTRE.
+                    Une grille à deux colonnes remplit EN LIGNE : les dix-neuf liens
+                    de « Produit » se lisaient alors en travers — classes d'actifs et
+                    outils alternant d'une piste à l'autre — alors que l'ordre du
+                    tableau les groupe par famille du haut vers le bas. Mesuré au
+                    navigateur avant correction.
 
-            Mesuré chez Backpack le 2026-09-02, et c'est le relevé qui m'a surpris :
-            titre 12 px graisse 400 en encre pleine, lien 12 px graisse 400 en gris.
-            SEULE LA COULEUR les distingue.
-
-            Mon réflexe — et l'état précédent de ce fichier — mettait le titre en
-            demi-gras et une taille au-dessus. C'est le choix par défaut, et il est
-            plus lourd qu'il n'y paraît : six titres en demi-gras dans un pied de page
-            forment six ancres visuelles qui se disputent l'attention avec le contenu
-            au-dessus.
-
-            L'encre pleine suffit à dire « ceci est un titre ». Le pied redevient ce
-            qu'il doit être — un annuaire qu'on consulte, pas une section qu'on lit.
-            ══════════════════════════════════════════════════════════════════ */}
-        {FOOTER_COLUMNS.map((column) => (
-          <nav key={column.label} aria-label={t(column.label)} className="flex flex-col gap-2.5">
-            {/* `<h2>` malgré l'apparence discrète : la synthèse vocale s'en sert pour
-                sauter d'une colonne à l'autre, et un texte en encre pleine n'est pas
-                une structure. La graisse n'a jamais fait le titre — la balise si. */}
-            <h2 className="text-xs font-normal text-ink">{t(column.label)}</h2>
-
-            {/* `gap-2.5` = 10 px, l'écart mesuré entre deux de leurs liens. */}
-            <ul className="flex flex-col gap-2.5">
-              {column.links.map((link) => (
-                /* La clé passe du `href` au libellé : un `href` n'est plus forcément
-                   une chaîne — une route à paramètre s'écrit en objet — et les
-                   libellés sont uniques dans une colonne. */
-                <li key={link.label}>
-                  {/* Le branchement suit l'union de `FooterLink` : c'est lui qui
-                      rétrécit `href`, et c'est pourquoi une URL absolue ne peut plus
-                      atterrir dans un `<Link>`. */}
-                  {link.external ? (
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-ink-muted hover:text-ink"
-                    >
-                      {t(link.label)}
-                    </a>
-                  ) : (
-                    <Link href={link.href} className="text-xs text-ink-muted hover:text-ink">
-                      {t(link.label)}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
+                    `grid-flow-col` avec un nombre de rangées CALCULÉ remplit la
+                    première piste avant d'entamer la seconde. Le calcul plutôt qu'un
+                    `grid-rows-10` figé : une liste qui grandit passerait sinon à une
+                    troisième piste sans que personne ne le demande. */}
+                <ul
+                  className={
+                    large ? 'grid grid-flow-col gap-x-8 gap-y-3' : 'flex flex-col gap-3'
+                  }
+                  style={
+                    large
+                      ? {
+                          gridTemplateRows: `repeat(${Math.ceil(column.links.length / 2)}, auto)`,
+                        }
+                      : undefined
+                  }
+                >
+                  {column.links.map((link) => (
+                    /* La clé passe du `href` au libellé : un `href` n'est plus
+                       forcément une chaîne — une route à paramètre s'écrit en objet
+                       — et les libellés sont uniques dans une colonne. */
+                    <li key={link.label}>
+                      {/* Le branchement suit l'union de `FooterLink` : c'est lui qui
+                          rétrécit `href`, et c'est pourquoi une URL absolue ne peut
+                          pas atterrir dans un `<Link>`. */}
+                      {link.external ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-ink-muted hover:text-ink"
+                        >
+                          {t(link.label)}
+                        </a>
+                      ) : (
+                        <Link href={link.href} className="text-sm text-ink-muted hover:text-ink">
+                          {t(link.label)}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )
+          })}
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          LA BARRE INFÉRIEURE — COPYRIGHT À GAUCHE, RÉSEAUX À DROITE
+          LA BARRE DU BAS — DROITS À GAUCHE, LIEN À DROITE
 
-          Relevé chez Backpack le 2026-09-02 : « Backpack Exchange © 2026 » en 12 px
-          encre pleine, les liens légaux à sa suite, la mention légale sur une seconde
-          ligne en gris, et les icônes sociales à l'opposé.
+          C'est la forme du modèle. Ce qu'il met à droite est « Terms of Service » ;
+          cette page N'EXISTE PAS ici, et un 404 depuis le pied de page est le pire
+          endroit où en avoir un — c'est là qu'on va quand on cherche justement les
+          conditions. `LEGAL_LINKS` porte donc les pages réelles qui répondent à la
+          question posée à cet endroit.
 
-          ── CE QUI N'Y FIGURE PAS, ET POURQUOI ─────────────────────────────
-
-          ⚠️ PAS DE LIENS « MENTIONS LÉGALES » NI « CONFIDENTIALITÉ ». Le brief les
-          demande, la référence en porte deux — mais ces pages N'EXISTENT PAS dans
-          `app/[locale]/`, vérifié route par route. Les écrire produirait deux liens
-          morts dans le bloc le plus visité du site, et un 404 depuis le pied de page
-          est le pire endroit où en avoir un : c'est là qu'on va quand on cherche
-          justement les conditions.
-
-          Le jour où ces pages existent, elles se posent ici en trois lignes.
-
-          ── LES ICÔNES DESCENDENT DE LA COLONNE D'IDENTITÉ ─────────────────
-
-          Elles vivaient sous le logo. La référence les met ici, et c'est mieux : le
-          haut du pied sert à ATTEINDRE une page, le bas à savoir qui parle. Un compte
-          social ne mène pas à une page du site — il n'a rien à faire dans l'annuaire.
+          L'attribution CoinGecko accompagne les droits plutôt que d'occuper une
+          ligne à elle : les deux disent qui publie, et elle doit rester lisible
+          (10 px minimum contractuels — `text-xs` en fait 12).
           ══════════════════════════════════════════════════════════════════════ */}
       <div className="border-t border-border-subtle">
         <div className="shell flex flex-col gap-4 py-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs text-ink">
-              {t('ZENKUU © {annee}').replace('{annee}', String(new Date().getFullYear()))}
+            <p className="flex flex-wrap items-center gap-x-2 text-xs text-ink">
+              <span>
+                {t('ZENKUU © {annee}').replace('{annee}', String(new Date().getFullYear()))}
+              </span>
+              <span aria-hidden className="text-ink-muted">
+                ·
+              </span>
+              <a
+                href="https://www.coingecko.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink-muted hover:text-ink"
+              >
+                {fr.footer.poweredByCoinGecko}
+              </a>
             </p>
-            {/* La mention de non-conseil descend ici avec le copyright : les deux
-                disent qui parle et à quel titre, elles se lisent ensemble. */}
+            {/* La mention de non-conseil reste avec les droits : les deux disent qui
+                parle et à quel titre, elles se lisent ensemble. */}
             <p className="mt-2 max-w-2xl text-xs leading-relaxed text-ink-muted">
               {fr.footer.disclaimer}
             </p>
           </div>
 
-          {/* La rangée disparaît entièrement si aucun compte n'est ouvert : on
-              n'affiche pas d'icône vers un réseau où le site n'existe pas. */}
-          {SOCIAL_LINKS.length > 0 ? (
-            <ul className="flex shrink-0 items-center gap-2">
-              {SOCIAL_LINKS.map((link) => {
-                const Glyph = link.icon
-
-                return (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      /* Le PSEUDO accompagne le nom du réseau : « Instagram —
-                         @getzenkuu ». On sait alors vers quel compte on part avant de
-                         cliquer, ce qu'un simple « Instagram » ne dit pas. */
-                      aria-label={`${t(link.label)} — ${link.handle}`}
-                      title={`${t(link.label)} · ${link.handle}`}
-                      className="flex size-9 items-center justify-center rounded-control border border-border-subtle text-ink-muted transition-colors duration-150 hover:border-brand hover:text-brand"
-                    >
-                      <Glyph className="h-4 w-4" />
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          ) : null}
+          <ul className="flex shrink-0 items-center gap-4">
+            {LEGAL_LINKS.map((link) => (
+              <li key={link.label}>
+                {link.external ? (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-ink-muted hover:text-ink"
+                  >
+                    {t(link.label)}
+                  </a>
+                ) : (
+                  <Link href={link.href} className="text-xs text-ink-muted hover:text-ink">
+                    {t(link.label)}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-
     </footer>
   )
 }

@@ -77,126 +77,17 @@ export interface FooterColumn {
 }
 
 /**
- * ══════════════════════════════════════════════════════════════════════════════
- * QUATRE COLONNES DE GROUPES, ET NON CINQ LISTES À PLAT
- * ══════════════════════════════════════════════════════════════════════════════
- *
- * ── POURQUOI LE NIVEAU DE GROUPE APPARAÎT ───────────────────────────────────
- *
- * La composition demandée (TradingView) n'empile pas des colonnes titrées : elle
- * empile des GROUPES titrés à l'intérieur de colonnes muettes. La différence n'est pas
- * cosmétique — elle change ce qu'on peut ranger.
- *
- * À plat, chaque famille devait tenir dans exactement une colonne, ce qui forçait des
- * regroupements par défaut : « Actualités » et « Nouvelles cryptomonnaies » vivaient
- * sous « Ressources » faute d'une sixième colonne pour les publications, et les huit
- * entrées de « Marchés » mélangeaient six classes d'actifs avec deux annuaires de
- * places — des objets qui ne répondent pas à la même question.
- *
- * Avec un niveau de groupe, une colonne porte plusieurs familles courtes. Les classes
- * d'actifs se séparent des places, les lectures de marché des indicateurs, les outils
- * de l'espace personnel. Onze intertitres au lieu de cinq, et aucune liste de plus de
- * six lignes : c'est ce qui rend une grille de trente liens lisible.
- *
- * ── LES LIENS EUX-MÊMES N'ONT PAS BOUGÉ ─────────────────────────────────────
- *
- * Aucune adresse n'est ajoutée ni retirée ici : seul le rangement change. Les liens de
- * marché continuent de viser les onglets de `/marches` plutôt que les anciennes pages
- * `/crypto`, `/actions`… supprimées et redirigées — le pied de page est le plus gros
- * émetteur de liens internes du site, et c'est donc l'endroit où une redirection se
- * paie le plus cher, à chaque clic et pour chaque robot.
- */
-export const FOOTER_COLUMNS: FooterColumn[] = [
-  /*
-   * ══════════════════════════════════════════════════════════════════════════
-   * SIX COLONNES PLATES — LA FORME DE BACKPACK, PAS CELLE D'OPENROUTER
-   * ══════════════════════════════════════════════════════════════════════════
-   *
-   * Le pied portait QUATRE colonnes, chacune découpée en deux ou trois sections
-   * titrées : « Marchés » contenait « Classes d'actifs » puis « Places », « Analyse »
-   * contenait « Lectures de marché » puis « Indicateurs ». Deux niveaux de titre.
-   *
-   * Backpack n'en a qu'un : six colonnes, un intitulé chacune, une liste dessous.
-   * Relevé le 2026-09-02 — Company, Help & Support, Products, Crypto Markets, Token
-   * Prices, Stock Prices.
-   *
-   * ── POURQUOI UN SEUL NIVEAU VAUT MIEUX ICI ─────────────────────────────
-   *
-   * Un pied de page se PARCOURT, il ne se lit pas. Deux niveaux obligent à comprendre
-   * la hiérarchie avant de trouver le lien : on lit « Marchés », puis « Classes
-   * d'actifs », puis « Actions ». Trois lectures pour un clic. À plat, l'intitulé de
-   * colonne suffit à situer, et l'œil descend directement à la ligne voulue.
-   *
-   * ⚠️ AUCUNE ADRESSE N'EST INVENTÉE. Chaque `href` ci-dessous existe dans
-   * `app/[locale]/` — vérifié route par route. Un pied de page est le plus gros
-   * émetteur de liens internes du site : un lien mort s'y paie à chaque visite et
-   * pour chaque robot.
-   */
-  {
-    label: 'La société',
-    links: [
-      { label: 'À propos', href: '/a-propos' },
-      { label: 'Pourquoi Zenkuu', href: '/pourquoi-zenkuu' },
-      { label: 'Nouveautés', href: '/nouveautes' },
-      { label: 'Centre d’aide', href: '/aide' },
-    ],
-  },
-  {
-    label: 'Apprendre',
-    links: [
-      { label: 'Bien démarrer', href: '/bien-demarrer' },
-      { label: 'Glossaire', href: '/glossaire' },
-      { label: 'Actualités', href: '/actualites' },
-    ],
-  },
-  {
-    label: 'Outils',
-    links: [
-      { label: 'Recherche filtrée', href: '/screener' },
-      { label: 'Comparateur', href: '/comparateur' },
-      { label: 'Convertisseur', href: '/convertisseur' },
-      { label: 'Widget bandeau', href: '/embed/ticker' },
-    ],
-  },
-  {
-    label: 'Marchés crypto',
-    links: [
-      { label: 'Cryptomonnaies', href: '/crypto' },
-      { label: 'Catégories & secteurs', href: '/categories' },
-      { label: 'Nouvelles cotations', href: '/nouvelles-cotations' },
-      { label: 'Places de cotation', href: '/places' },
-      { label: 'Places de dérivés', href: '/perpetuels' },
-    ],
-  },
-  {
-    label: 'Marchés traditionnels',
-    links: [
-      { label: 'Actions', href: '/actions' },
-      { label: 'ETF', href: '/etf' },
-      { label: 'Indices', href: '/indices' },
-      { label: 'Devises', href: '/devises' },
-      { label: 'Matières premières', href: '/matieres-premieres' },
-    ],
-  },
-  {
-    label: 'Analyses',
-    links: [
-      { label: 'Graphiques globaux', href: '/graphiques' },
-      { label: 'Carte thermique', href: '/heatmap' },
-      { label: 'Indice de sentiment', href: '/sentiment' },
-      { label: 'Macroéconomie', href: '/macro' },
-      { label: 'Tous les palmarès', href: '/classements' },
-    ],
-  },
-]
-
-/**
  * Comptes sociaux réellement ouverts.
  *
  * Un seul pour l'instant, et c'est volontaire : afficher une rangée d'icônes dont
  * la plupart pointeraient vers des profils inexistants serait la même faute que
- * d'inventer un chiffre. On n'affiche que ce qui existe, et le bloc « Communauté »
+ * d'inventer un chiffre. On n'affiche que ce qui existe, et la colonne « Social »
  * disparaît entièrement si ce tableau redevient vide.
+ *
+ * ⚠️ IL EST DÉCLARÉ AVANT `FOOTER_COLUMNS`, ET CE N'EST PAS COSMÉTIQUE : la colonne
+ * « Social » le CITE. Un `const` déclaré plus bas serait dans sa zone morte au moment
+ * où l'initialiseur de `FOOTER_COLUMNS` s'exécute, et le module lèverait un
+ * `ReferenceError` au chargement.
  */
 export const SOCIAL_LINKS: SocialLink[] = [
   {
@@ -205,6 +96,106 @@ export const SOCIAL_LINKS: SocialLink[] = [
     href: 'https://www.instagram.com/getzenkuu/',
     icon: InstagramGlyph,
     external: true,
+  },
+]
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * QUATRE COLONNES — PRODUIT, SOCIÉTÉ, SOCIAL, CONTACT
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE CELA REMPLACE ────────────────────────────────────────────────────
+ *
+ * Six colonnes plates, reprises de Backpack : La société, Apprendre, Outils, Marchés
+ * crypto, Marchés traditionnels, Analyses. La forme demandée est celle de
+ * tokenomist.ai — un bloc d'identité à gauche, QUATRE colonnes à droite — et quatre
+ * intitulés arrêtés : Product, Company, Social, Contact.
+ *
+ * ── LES VINGT-SIX LIENS NE RENTRENT PAS À PARTS ÉGALES, ET C'EST ASSUMÉ ─────
+ *
+ * ⚠️ « Produit » PORTE DIX-NEUF LIENS, « Social » UN SEUL. Le déséquilibre n'est pas
+ * un oubli : il est arithmétique. Vingt-deux des vingt-six adresses du site sont des
+ * marchés, des outils ou des lectures — c'est-à-dire le PRODUIT. Aucune ne devient
+ * une société, un réseau social ou un contact parce qu'on aurait besoin d'y remplir
+ * une colonne.
+ *
+ * Les deux issues étaient : inventer des intitulés que le modèle n'a pas, ou couper
+ * quatorze liens internes. La première contredit le choix explicite de garder les
+ * quatre noms du modèle ; la seconde ampute le plus gros émetteur de liens internes
+ * du site. Le déséquilibre est le moindre des trois maux, et la référence elle-même
+ * porte un « Social » et un « Contact Us » courts en face d'un « Product » long.
+ *
+ * `components/Footer.tsx` rend la liste de « Produit » sur DEUX pistes à partir de
+ * `sm` : dix-neuf lignes d'affilée feraient un pied de page deux fois plus haut que
+ * son bloc d'identité, alors que deux pistes de dix l'alignent dessus.
+ *
+ * ── LES LIENS EUX-MÊMES N'ONT PAS BOUGÉ ─────────────────────────────────────
+ *
+ * Aucune adresse n'est ajoutée ni retirée : seul le rangement change. « À propos »
+ * apparaît deux fois — sous « Société » parce que c'est là qu'on la cherche, et sous
+ * « Contact » parce que c'est la page qui dit à qui parler. Un doublon dans un pied
+ * de page coûte une ligne ; une colonne vide coûte un intitulé qui ment.
+ *
+ * ⚠️ AUCUNE ADRESSE N'EST INVENTÉE. Chaque `href` ci-dessous existe dans
+ * `app/[locale]/` — vérifié route par route. Un pied de page est le plus gros
+ * émetteur de liens internes du site : un lien mort s'y paie à chaque visite et pour
+ * chaque robot.
+ */
+export const FOOTER_COLUMNS: FooterColumn[] = [
+  {
+    label: 'Produit',
+    links: [
+      /* Les six classes d'actifs d'abord — c'est ce que l'on vient chercher. */
+      { label: 'Cryptomonnaies', href: '/crypto' },
+      { label: 'Actions', href: '/actions' },
+      { label: 'ETF', href: '/etf' },
+      { label: 'Indices', href: '/indices' },
+      { label: 'Devises', href: '/devises' },
+      { label: 'Matières premières', href: '/matieres-premieres' },
+      /* Puis les annuaires qui les découpent. */
+      { label: 'Catégories & secteurs', href: '/categories' },
+      { label: 'Nouvelles cotations', href: '/nouvelles-cotations' },
+      { label: 'Places de cotation', href: '/places' },
+      { label: 'Places de dérivés', href: '/perpetuels' },
+      /* Puis les outils, qui prennent ces listes en entrée. */
+      { label: 'Recherche filtrée', href: '/screener' },
+      { label: 'Comparateur', href: '/comparateur' },
+      { label: 'Convertisseur', href: '/convertisseur' },
+      { label: 'Widget bandeau', href: '/embed/ticker' },
+      /* Puis les lectures d'ensemble, qui les surplombent. */
+      { label: 'Graphiques globaux', href: '/graphiques' },
+      { label: 'Carte thermique', href: '/heatmap' },
+      { label: 'Indice de sentiment', href: '/sentiment' },
+      { label: 'Macroéconomie', href: '/macro' },
+      { label: 'Tous les palmarès', href: '/classements' },
+    ],
+  },
+  {
+    label: 'Société',
+    links: [
+      { label: 'À propos', href: '/a-propos' },
+      { label: 'Pourquoi Zenkuu', href: '/pourquoi-zenkuu' },
+      { label: 'Nouveautés', href: '/nouveautes' },
+      /* Les trois pages pédagogiques tiennent ici plutôt que dans « Produit » : elles
+         expliquent le site, elles n'en sont pas une fonctionnalité. */
+      { label: 'Bien démarrer', href: '/bien-demarrer' },
+      { label: 'Glossaire', href: '/glossaire' },
+      { label: 'Actualités', href: '/actualites' },
+    ],
+  },
+  {
+    /* La colonne CITE `SOCIAL_LINKS` au lieu de recopier l'adresse : le compte est
+       aussi affiché ailleurs, et deux copies d'une même URL finissent toujours par
+       diverger. Le tableau vide fait disparaître la colonne — cf. `Footer.tsx`. */
+    label: 'Social',
+    links: SOCIAL_LINKS,
+  },
+  {
+    label: 'Contact',
+    links: [
+      { label: 'Centre d’aide', href: '/aide' },
+      { label: 'À propos', href: '/a-propos' },
+    ],
   },
 ]
 
