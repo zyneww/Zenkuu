@@ -344,7 +344,14 @@ export function AssetLayoutFrame({
         languette continue de s'ancrer au viewport, et se pose désormais exactement à
         son bord (mesuré : 360, contre 378 avant).
       */}
-      <div className="flex items-stretch gap-6 overflow-x-clip pt-4">
+      {/* ⚠️ LA GOUTTIÈRE EST PASSÉE À ZÉRO (elle valait `gap-6`, 24px).
+
+          La référence colle sa colonne latérale au contenu et confie l'écart au filet
+          et au rembourrage de la colonne elle-même : mesuré sur la fiche Bitcoin,
+          1392 de contenu et 288 de colonne se touchent, sans un pixel entre eux.
+          Ces vingt-quatre pixels étaient donc pris à la fois sur le contenu et sur la
+          colonne — voir le calcul complet dans `.asset-rail`. */}
+      <div className="flex items-stretch gap-0 overflow-x-clip pt-4">
         {/*
           ── LA GRILLE A CÉDÉ LA PLACE À UN FLOTTANT ───────────────────────────
 

@@ -1323,7 +1323,14 @@
     width: 100%;
     max-inline-size: 1680px;
     margin-inline: auto;
-    padding-inline: 24px;
+    /* ⚠️ 16px ET NON 24 — REMESURÉ LE 2026-09-05.
+
+       La valeur de 1680px ci-dessus était juste, ce rembourrage ne l'était pas.
+       CoinGecko borne son `.container` à `padding: 0 16px`, mesuré sur la fiche
+       Bitcoin : 1680 de plafond, 1648 de contenu utile. Nous en retirions 48, soit
+       seize pixels de trop, et c'est ce qui empêchait les trois colonnes de tomber
+       sur leurs largeurs de référence — voir `.asset-rail`. */
+    padding-inline: 16px;
     /* ── LE PASSAGE COMPACT ↔ ÉTIRÉ S'ANIME ──────────────────────────────────
        Sans transition, choisir « Étirée » faisait SAUTER toute la page d'un bloc :
        la fiche s'élargissait de sept cents pixels en une image, et l'œil perdait
@@ -1845,11 +1852,48 @@
   @media (min-width: 1024px) {
     .asset-rail {
       float: left;
-      width: 18rem;
-      /* La gouttière est portée par le flottant lui-même : `gap` n'existe pas hors
-         grille et flexbox, et une marge sur les sections s'appliquerait aussi à
-         celles qui ont repris toute la largeur. */
-      margin-right: 1.5rem;
+      /* ═══════════════════════════════════════════════════════════════════════
+         ⚠️ 408px, ET NON 288 — LES DEUX COLONNES DE LA RÉFÉRENCE AVAIENT ÉTÉ
+         INTERVERTIES.
+         ═══════════════════════════════════════════════════════════════════════
+
+         La note du filet, plus bas, affirmait conserver « les 288 pixels utiles du
+         rail, mesurés sur la colonne latérale de la référence ». 288 EST bien une
+         largeur de CoinGecko — celle de la colonne « Insights », À DROITE. Elle
+         avait été appliquée au rail de GAUCHE, dont la vraie largeur est tout autre.
+
+         Remesuré sur `/en/coins/bitcoin`, fenêtre de 2400px, grille `2lg` :
+
+             colonne gauche   424 = 408 utiles + 16 de rembourrage + le filet
+             colonne centrale 936 = 920 utiles + 16 de rembourrage
+             colonne Insights 288
+
+         Le rail perdait donc 120 pixels, que la colonne d'actualités s'appropriait
+         (352 au lieu de 288). Les deux erreurs se compensaient à l'échelle de la
+         page, ce qui rendait la somme juste et chaque colonne fausse.
+
+         L'arithmétique retombe exactement :
+
+             1680 − 32 (rembourrage de `.shell`)      = 1648
+             1648 − 288 (actualités, sans gouttière)  = 1360
+             1360 = 424 (ce rail) + 936 (le contenu)
+
+         ⚠️ CE N'EST PAS QU'UNE QUESTION DE FIDÉLITÉ. Le rail porte vingt et une
+         lignes « libellé … valeur » ; à 288px, les libellés français les plus longs
+         (« Valorisation totalement diluée ») passaient à la ligne et doublaient la
+         hauteur de leur rangée. Cent vingt pixels de plus les tiennent sur une seule.
+
+         ⚠️ 26,5rem ET NON 25,5 : le rembourrage est COMPRIS. Tailwind pose
+         `box-sizing: border-box` sur tout, donc cette largeur inclut le
+         `padding-right` de 16px. 25,5rem ne laissait que 392 pixels utiles — mesuré
+         au navigateur avant correction. 26,5rem = 424 total, dont 408 utiles.
+         ═══════════════════════════════════════════════════════════════════════ */
+      width: 26.5rem;
+      /* La gouttière vaut désormais ZÉRO : la référence colle sa colonne centrale au
+         filet et lui donne son propre rembourrage de 16px (voir `.asset-section`).
+         L'écart de part et d'autre du trait reste donc symétrique — ce que la note du
+         filet exigeait — mais à 16px de chaque côté, et non 24. */
+      margin-right: 0;
 
       /* ─────────────────────────────────────────────────────────────────────
          LE FILET QUI SÉPARE LES CHIFFRES DU CONTENU.
@@ -1864,16 +1908,20 @@
          tableau plutôt que comme une colonne à part. Un filet le dit une fois,
          sur toute sa hauteur.
 
-         Le rembourrage ÉGALE la marge : 24 pixels de chaque côté du trait. Sans
-         lui, les chiffres du rail viendraient s'appuyer contre le filet pendant
-         que le contenu s'en tiendrait à distance — une asymétrie qui se voit
-         d'autant plus que les valeurs du rail sont alignées à droite.
+         Le rembourrage ÉGALE l'écart de l'autre côté du trait. Sans lui, les
+         chiffres du rail viendraient s'appuyer contre le filet pendant que le
+         contenu s'en tiendrait à distance — une asymétrie qui se voit d'autant
+         plus que les valeurs du rail sont alignées à droite.
 
-         La largeur totale passe donc de 18 à 19,5 rem. C'est assumé : les 288
-         pixels utiles du rail, mesurés sur la colonne latérale de la référence,
-         sont conservés intacts.
+         ⚠️ LA PHRASE QUI SUIVAIT ICI PORTAIT L'ERREUR CORRIGÉE PLUS HAUT. Elle
+         disait conserver intacts « les 288 pixels utiles du rail, mesurés sur la
+         colonne latérale de la référence » — en prenant la largeur de la colonne
+         de DROITE pour celle de gauche. Le raisonnement de symétrie, lui, était
+         juste : la référence l'applique aussi, à 16 pixels de chaque côté.
+
+         La largeur totale est donc de 424 pixels : 408 utiles + ce rembourrage.
          ───────────────────────────────────────────────────────────────────── */
-      padding-right: 1.5rem;
+      padding-right: 1rem;
       border-right: 1px solid var(--color-border-subtle);
     }
 
@@ -1883,6 +1931,15 @@
 
     .asset-section {
       display: flow-root;
+      /* Le pendant du rembourrage du rail, de l'autre côté du filet — c'est ce que
+         la référence pose sur sa colonne centrale (`padding-left: 16px`), et ce qui
+         rend l'écart symétrique alors que la goutttière vaut zéro.
+
+         Sur les sections qui ont repris toute la largeur (voir `clear: left`
+         ci-dessous), ces seize pixels décalent légèrement le contenu vers la droite.
+         C'est le comportement de la référence : chez elle aussi, la colonne centrale
+         garde son rembourrage sur toute sa hauteur. */
+      padding-left: 1rem;
     }
 
     /* ─────────────────────────────────────────────────────────────────────────

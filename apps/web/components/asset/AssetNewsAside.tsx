@@ -247,9 +247,17 @@ function expandedColumn(
          court sur toute la hauteur de la fiche au lieu de s'arrêter au dernier
          article. C'est exactement le montage de `NewsSidebar`, sur l'accueil.
 
-         La largeur passe de 20 à 22 rem pour absorber le rembourrage : sans cela,
-         la colonne perdrait 24 pixels de texte au profit du filet. */
-      className="hidden w-[22rem] shrink-0 border-l border-border-subtle pl-6 xl:block"
+         ⚠️ 18 REM (288px) ET NON 22 — REMESURÉ LE 2026-09-05.
+
+         288 est la largeur exacte de la colonne « Insights » de la référence, qui
+         joue ici le même rôle. Nous en prenions 352, soit soixante-quatre de trop,
+         et ces soixante-quatre-là manquaient au rail de gauche : les deux largeurs
+         de la référence avaient été interverties. Le raisonnement complet vit dans
+         `.asset-rail`, `app/globals.css`.
+
+         Le rembourrage passe de 24 à 16 pixels, comme partout ailleurs sur cette
+         page depuis la remesure : la référence n'emploie que ce cran. */
+      className="hidden w-[18rem] shrink-0 border-l border-border-subtle pl-4 xl:block"
       aria-label={t('Actualités de l’actif')}
     >
       {/*
