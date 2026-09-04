@@ -108,66 +108,63 @@ export function PasswordForm({
   const enErreur = (champ: 'email' | 'password') => error?.champ === champ
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
-      <div className="space-y-1.5">
-        <label
-          htmlFor="auth-email"
-          className={`block text-xs font-medium ${enErreur('email') ? 'text-down' : 'text-ink'}`}
-        >
-          {t('Adresse e-mail')}
-        </label>
-        <input
-          ref={emailRef}
-          id="auth-email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value)
-            setError(null)
-          }}
-          /* `aria-invalid` et `aria-describedby` : sans eux, un lecteur d'écran annonce
-             un champ ordinaire et laisse le message d'erreur orphelin plus bas dans le
-             document. La bordure rouge ne porte jamais seule (§9). */
-          aria-invalid={enErreur('email')}
-          aria-describedby={enErreur('email') ? 'auth-email-erreur' : undefined}
-          placeholder={t('vous@exemple.fr')}
-          className={`h-10 w-full rounded-control border bg-surface-muted px-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none ${
-            enErreur('email') ? 'border-down' : 'border-border-subtle focus:border-brand'
-          }`}
-        />
-        {enErreur('email') ? (
-          <p id="auth-email-erreur" role="alert" className="text-xs text-down">
-            {error?.texte}
-          </p>
-        ) : null}
-      </div>
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      {/*
+        ══════════════════════════════════════════════════════════════════════
+        LES DEUX CHAMPS SONT SOUDÉS EN UN SEUL BLOC — LA FORME DE LA CAPTURE
+        ══════════════════════════════════════════════════════════════════════
 
+        Ils étaient deux boîtes distinctes, chacune avec son intitulé au-dessus. La
+        capture les montre empilés dans UN cadre : rayon sur les coins extérieurs
+        seulement, un filet d'un pixel entre les deux, aucun espace.
+
+        Ce n'est pas qu'une affaire de goût. Deux champs qui se touchent se lisent
+        comme UNE saisie en deux temps — ce qu'une connexion est — là où deux boîtes
+        séparées par une gouttière se lisent comme deux questions indépendantes. La
+        différence se voit surtout à l'erreur : un cadre rouge sur le bloc entier dit
+        « cette connexion a échoué », deux cadres rouges disent « ces deux champs sont
+        faux », ce qui n'est pas la même chose et n'est pas vrai.
+
+        ⚠️ `-mt-px` SUR LE SECOND CHAMP, et sans lui les deux bordures s'additionnent :
+        un filet de deux pixels au milieu d'un bloc dont tous les autres traits en font
+        un. Le défaut est invisible tant qu'on ne compare pas.
+      */}
       <div className="space-y-1.5">
-        {/* L'intitulé et le recours SUR LA MÊME LIGNE, comme sur la capture : c'est là
-            qu'on se demande « et si je ne l'ai pas ? », pas en bas du formulaire. */}
-        <div className="flex items-baseline justify-between gap-3">
-          <label
-            htmlFor="auth-password"
-            className={`text-xs font-medium ${enErreur('password') ? 'text-down' : 'text-ink'}`}
-          >
-            {t('Mot de passe')}
-          </label>
-          {/* ⚠️ « OUBLIÉ OU JAMAIS DÉFINI » ET NON « MOT DE PASSE OUBLIÉ ? ». Sur ce
-              site, un compte peut n'en avoir jamais eu — c'est même l'état par défaut,
-              la connexion par code suffisant à tout. Écrire « oublié » laisserait
-              croire à ces comptes-là que ce lien ne les concerne pas. */}
-          <button
-            type="button"
-            onClick={onForgot}
-            className="text-xs text-ink-muted underline underline-offset-2 transition-colors duration-150 hover:text-brand"
-          >
-            {t('Oublié ou jamais défini ?')}
-          </button>
+        <div className="relative">
+          <input
+            ref={emailRef}
+            id="auth-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value)
+              setError(null)
+            }}
+            /* `aria-invalid` et `aria-describedby` : sans eux, un lecteur d'écran annonce
+               un champ ordinaire et laisse le message d'erreur orphelin plus bas dans le
+               document. La bordure rouge ne porte jamais seule (§9). */
+            aria-invalid={enErreur('email')}
+            aria-describedby={enErreur('email') ? 'auth-email-erreur' : undefined}
+            /*
+              ⚠️ `placeholder=" "` — UNE ESPACE, ET C'EST LE PIVOT DE TOUT LE MÉCANISME.
+              `:placeholder-shown` ne s'applique qu'à un champ QUI A un attribut
+              `placeholder` ; sans lui, le sélecteur ne mord jamais et l'intitulé reste
+              collé au milieu du champ par-dessus la saisie. L'espace est invisible et
+              n'est jamais lue — l'intitulé, lui, est un vrai `<label>`.
+            */
+            placeholder=" "
+            className={`peer h-14 w-full rounded-t-control border bg-surface-muted px-3 pb-1.5 pt-6 text-sm text-ink focus:outline-none ${
+              enErreur('email') ? 'z-10 border-down' : 'border-border-subtle focus:z-10 focus:border-brand'
+            }`}
+          />
+          <FloatingLabel htmlFor="auth-email" invalid={enErreur('email')}>
+            {t('Adresse e-mail')}
+          </FloatingLabel>
         </div>
 
-        <div className="relative">
+        <div className="relative -mt-px">
           <input
             id="auth-password"
             type={visiblePassword ? 'text' : 'password'}
@@ -179,22 +176,29 @@ export function PasswordForm({
             }}
             aria-invalid={enErreur('password')}
             aria-describedby={enErreur('password') ? 'auth-password-erreur' : undefined}
-            /* `pr-10` : la place du bouton d'œil, sans quoi les derniers caractères
+            placeholder=" "
+            /* `pr-12` : la place du bouton d'œil, sans quoi les derniers caractères
                passent dessous. */
-            className={`h-10 w-full rounded-control border bg-surface-muted pl-3 pr-10 text-sm text-ink placeholder:text-ink-muted focus:outline-none ${
-              enErreur('password') ? 'border-down' : 'border-border-subtle focus:border-brand'
+            className={`peer h-14 w-full rounded-b-control border bg-surface-muted pb-1.5 pl-3 pr-12 pt-6 text-sm text-ink focus:outline-none ${
+              enErreur('password')
+                ? 'z-10 border-down'
+                : 'border-border-subtle focus:z-10 focus:border-brand'
             }`}
           />
+          <FloatingLabel htmlFor="auth-password" invalid={enErreur('password')}>
+            {t('Mot de passe')}
+          </FloatingLabel>
+
           {/* ⚠️ `tabIndex={-1}` : l'œil ne doit PAS s'intercaler entre le champ et le
-              bouton d'envoi. Au clavier, la tabulation va du mot de passe à « Se
-              connecter » ; qui veut voir ce qu'il tape le fait à la souris, et un
+              bouton d'envoi. Au clavier, la tabulation va du mot de passe à
+              « Continuer » ; qui veut voir ce qu'il tape le fait à la souris, et un
               lecteur d'écran n'a rien à faire d'un bascule d'affichage. */}
           <button
             type="button"
             tabIndex={-1}
             onClick={() => setVisiblePassword((precedent) => !precedent)}
             aria-label={visiblePassword ? t('Masquer le mot de passe') : t('Afficher le mot de passe')}
-            className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center text-ink-muted transition-colors duration-150 hover:text-ink"
+            className="absolute right-0 top-0 z-20 flex h-14 w-12 items-center justify-center text-ink-muted transition-colors duration-150 hover:text-ink"
           >
             {visiblePassword ? (
               <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -204,20 +208,90 @@ export function PasswordForm({
           </button>
         </div>
 
+        {/* Les deux messages vivent SOUS le bloc et non sous chaque champ : le bloc est
+            soudé, glisser un paragraphe entre les deux champs le romprait. Ils restent
+            rattachés à leur champ par `aria-describedby`, qui ne dépend pas de la
+            position dans le document. */}
+        {enErreur('email') ? (
+          <p id="auth-email-erreur" role="alert" className="pt-1 text-xs text-down">
+            {error?.texte}
+          </p>
+        ) : null}
         {enErreur('password') ? (
-          <p id="auth-password-erreur" role="alert" className="text-xs text-down">
+          <p id="auth-password-erreur" role="alert" className="pt-1 text-xs text-down">
             {error?.texte}
           </p>
         ) : null}
       </div>
 
+      {/* ⚠️ « OUBLIÉ OU JAMAIS DÉFINI » ET NON « MOT DE PASSE OUBLIÉ ? ». Sur ce site,
+          un compte peut n'en avoir jamais eu — c'est même l'état par défaut, la
+          connexion par code suffisant à tout. Écrire « oublié » laisserait croire à ces
+          comptes-là que ce lien ne les concerne pas.
+
+          Il passe SOUS le bloc, cadré à gauche comme sur la capture : il ne peut plus
+          vivre contre l'intitulé du mot de passe, puisque cet intitulé est maintenant
+          dans le champ. */}
+      <button
+        type="button"
+        onClick={onForgot}
+        className="block text-left text-xs text-ink-muted transition-colors duration-150 hover:text-brand"
+      >
+        {t('Oublié ou jamais défini ?')}
+      </button>
+
+      {/* Le grand bouton d'accent de la capture : pleine largeur, 48 px, et le libellé
+          « Continuer » plutôt que « Se connecter ». Ce n'est pas un synonyme — ce
+          formulaire peut aussi basculer vers le code par courriel, et « Continuer »
+          couvre les deux issues sans en promettre une. */}
       <button
         type="submit"
         disabled={pending || email.trim() === '' || password === ''}
-        className="h-10 w-full rounded-control bg-brand text-sm font-semibold text-on-brand transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="h-12 w-full rounded-control bg-brand text-sm font-semibold text-on-brand transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {pending ? t('Connexion…') : t('Se connecter')}
+        {pending ? t('Connexion…') : t('Continuer')}
       </button>
     </form>
+  )
+}
+
+/**
+ * L'intitulé qui monte quand le champ se remplit.
+ *
+ * ── POURQUOI PAS UN SIMPLE `placeholder` ────────────────────────────────────
+ *
+ * Parce qu'il disparaît à la première frappe. Un formulaire rempli n'a alors plus
+ * aucun intitulé : on ne peut plus vérifier ce qu'on a mis où, et c'est précisément ce
+ * qu'on veut faire avant d'envoyer un mot de passe. Le défaut est connu, documenté, et
+ * la capture ne le commet pas — son intitulé monte, il ne s'efface pas.
+ *
+ * ── COMMENT IL SAIT QUE LE CHAMP EST VIDE ───────────────────────────────────
+ *
+ * Par `:placeholder-shown`, lu sur le champ voisin grâce à `peer`. Aucun état React
+ * n'est nécessaire : le navigateur connaît déjà la réponse, et la relayer par un
+ * `useState` ferait repeindre le formulaire à chaque caractère pour une information
+ * que le CSS a en permanence.
+ *
+ * `pointer-events-none` : sans lui, l'intitulé posé PAR-DESSUS le champ intercepte le
+ * clic qui visait le champ. Le curseur ne s'y place pas, et rien n'explique pourquoi.
+ */
+function FloatingLabel({
+  htmlFor,
+  invalid,
+  children,
+}: {
+  htmlFor: string
+  invalid: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className={`pointer-events-none absolute left-3 top-2 z-10 text-[0.6875rem] transition-all duration-150 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[0.6875rem] ${
+        invalid ? 'text-down' : 'text-ink-muted peer-focus:text-brand'
+      }`}
+    >
+      {children}
+    </label>
   )
 }

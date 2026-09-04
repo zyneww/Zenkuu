@@ -131,10 +131,27 @@ export function AuthDialog({
             <ZenkuuMark className="h-6 w-6 text-brand-strong" />
           </span>
 
+          {/* « Connexion à ZENKUU » et non « Connexion » : la capture NOMME le site
+              dans son titre, et c'est la seule ligne de la fenêtre qui le fasse en
+              toutes lettres. Sur une fenêtre flottante détachée de la page, savoir à
+              qui l'on donne son mot de passe n'est pas un détail de style. */}
           <DialogTitle className="display-sm text-ink">
-            {mode === 'signup' ? t('Créer un compte') : t('Connexion')}
+            {mode === 'signup' ? t('Créer un compte') : t('Connexion à ZENKUU')}
           </DialogTitle>
-          <DialogDescription className="text-xs leading-relaxed text-ink-muted">
+          {/*
+            ⚠️ LA DESCRIPTION N'EST PLUS AFFICHÉE, mais elle EXISTE toujours.
+
+            La capture n'a rien entre le titre et le premier champ — et pour cause :
+            « Entrez vos identifiants pour vous connecter » ne dit rien que les deux
+            champs juste en dessous ne disent déjà, avec leurs intitulés.
+
+            La supprimer PUREMENT n'était pas une option : `DialogContent` de Radix
+            avertit en console quand aucune description n'est associée, et surtout un
+            lecteur d'écran annonce alors la fenêtre par son seul titre. `sr-only` la
+            garde pour la synthèse vocale et la retire de l'œil, ce qui est exactement
+            la distinction que la capture demande.
+          */}
+          <DialogDescription className="sr-only">
             {ecran === 'code'
               ? t('Entrez votre adresse : un code à usage unique vous sera envoyé.')
               : t('Entrez vos identifiants pour vous connecter.')}
@@ -169,13 +186,42 @@ export function AuthDialog({
         <SocialButtons mode={mode} configured={socialProviders} />
 
         {/*
+          ── LA LIGNE D'AIDE, ET CE QU'ELLE NE PEUT PAS DIRE ──────────────────
+
+          La capture ferme sur « Still can't sign in? Email us », où « Email us » ouvre
+          une adresse de support.
+
+          ⚠️ CE SITE N'EN PUBLIE AUCUNE. Il n'existe ni `mailto:` ni adresse de contact
+          nulle part dans le dépôt, et en inventer une donnerait un lien qui n'aboutit
+          pas — au moment précis où quelqu'un n'arrive pas à se connecter, c'est-à-dire
+          le pire endroit du site pour une promesse creuse.
+
+          Le renvoi va donc au centre d'aide, qui existe et qui répond à la question. À
+          remplacer par l'adresse le jour où il y en a une.
+        */}
+        <p className="mt-5 text-center text-xs text-ink-muted">
+          {t('Toujours pas connecté ?')}{' '}
+          <Link
+            href="/aide"
+            onClick={onClose}
+            className="text-brand underline underline-offset-2 hover:opacity-80"
+          >
+            {t('Centre d’aide')}
+          </Link>
+        </p>
+
+        {/*
           ⚠️ LA RÉFÉRENCE RENVOIE VERS SES CONDITIONS ET SA POLITIQUE DE
           CONFIDENTIALITÉ. Ces deux pages N'EXISTENT PAS ici : les lier produirait deux
           404 au moment précis où l'on demande d'accepter quelque chose. La mention dit
           donc ce que le compte fait réellement, et renvoie vers la méthodologie, qui
           existe. À remplacer par les deux liens le jour où les pages sont écrites.
         */}
-        <p className="mt-5 text-xs leading-relaxed text-ink-muted">
+        {/* La mention de ce qu'un compte apporte passe SOUS la ligne d'aide et se
+            resserre : elle reste utile — c'est le §5 qui impose de dire que le site
+            n'exécute aucun ordre — mais elle n'est plus la dernière chose qu'on lit
+            avant de renoncer. */}
+        <p className="mt-3 text-center text-[0.6875rem] leading-relaxed text-ink-muted">
           {t(
             'Un compte ZENKUU sert à retrouver votre liste de suivi d’un appareil à l’autre. Le site n’exécute aucun ordre et ne détient aucun fonds.',
           )}{' '}
