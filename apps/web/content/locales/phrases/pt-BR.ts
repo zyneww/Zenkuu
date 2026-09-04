@@ -256,6 +256,10 @@ export const ptBRPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Universo da tabela',
   'Vue du tableau': 'Visualização da tabela',
+  'Les plus populaires': 'Mais populares',
+  'Tendances indisponibles': 'Tendências indisponíveis',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'A classificação por popularidade vem de uma fonte externa que não respondeu. As demais visualizações do menu continuam servidas pelas linhas já carregadas.',
+  'Les actifs les plus consultés du moment': 'Os ativos mais consultados do momento',
   'Filtrer les': 'Filtrar os',
   'affichées': 'exibidas',
   'Effacer le filtre': 'Limpar o filtro',

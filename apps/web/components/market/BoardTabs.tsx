@@ -1,9 +1,16 @@
 'use client'
 
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Link } from '@/i18n/navigation'
 
@@ -75,6 +82,14 @@ export interface BoardView {
   columns: BoardColumnSet
   filter: BoardFilter
   hint: string
+  /**
+   * Liste à charger à la demande, quand la vue ne se contente pas de filtrer.
+   *
+   * Absent pour les vues qui travaillent sur les lignes déjà servies — c'est-à-dire
+   * presque toutes. Sa présence est ce qui déclenche l'appel réseau, et son absence
+   * ce qui garantit qu'aucune autre vue n'en fait un.
+   */
+  remote?: 'tendances'
 }
 
 /**
@@ -103,8 +118,8 @@ export interface BoardView {
  */
 export const BOARD_VIEWS: BoardView[] = [
   {
-    key: 'apercu',
-    label: 'Aperçu',
+    key: 'populaire',
+    label: 'Les plus populaires',
     columns: 'cotations',
     filter: 'aucun',
     /* L'indice annonçait « plus haut et plus bas du jour » : ces deux colonnes ont
@@ -113,18 +128,24 @@ export const BOARD_VIEWS: BoardView[] = [
     hint: 'Rang, cours, variations, volume, capitalisation et courbe 7 jours',
   },
   {
-    key: 'performance',
-    label: 'Performance',
-    columns: 'performance',
+    /*
+     * LA SEULE VUE QUI CHANGE LES LIGNES PLUTÔT QUE DE LES FILTRER.
+     *
+     * Les quatre autres travaillent sur la liste déjà servie avec la page. Celle-ci
+     * demande une AUTRE liste — le classement par popularité de la source, que
+     * `coins/markets` ne sait pas rendre et remplacerait par un tri par
+     * capitalisation. D'où `remote`, qui dit à `MarketBrowser` d'aller la chercher.
+     *
+     * Elle n'est chargée qu'à l'ouverture de l'entrée, et une seule fois : un actif
+     * en tendance est le plus souvent une petite capitalisation absente des deux cent
+     * cinquante premières, donc impossible à obtenir en croisant ce qu'on a déjà.
+     */
+    key: 'tendance',
+    label: 'En tendance',
+    columns: 'cotations',
     filter: 'aucun',
-    hint: 'Les cinq fenêtres de variation côte à côte — 1 h, 24 h, 7 j, 30 j, 1 an',
-  },
-  {
-    key: 'ath',
-    label: 'Sommet historique',
-    columns: 'ath',
-    filter: 'aucun',
-    hint: 'Plus haut de tous les temps, sa date, et l’écart qui l’en sépare aujourd’hui',
+    remote: 'tendances',
+    hint: 'Les actifs les plus consultés du moment',
   },
   {
     key: 'gagnants',
@@ -151,10 +172,20 @@ export const BOARD_VIEWS: BoardView[] = [
  * annonce la destination, et l'indexation.
  */
 export const BOARD_LINKS: { href: string; label: string }[] = [
-  { href: '/categories', label: 'Catégories' },
-  /* La vue vit en paramètre de requête depuis que les deux routes ont fusionné :
-     voir `app/[locale]/categories/page.tsx`. */
-  { href: '/categories?vue=ecosystemes', label: 'Écosystèmes' },
+  /*
+   * ── POURQUOI CELLE-CI NE PEUT PAS FILTRER LE TABLEAU ──────────────────────
+   *
+   * Les nouvelles cotations viennent de Coinpaprika, quand le tableau vient de
+   * CoinGecko. Les deux sources numérotent leurs actifs SÉPARÉMENT : un identifiant
+   * de l'une ne désigne rien chez l'autre, et il n'existe pas de correspondance
+   * publiée entre les deux. Verser ces lignes dans ce tableau demanderait donc de
+   * rapprocher des actifs par leur nom — un rapprochement qui se trompe, et qui se
+   * trompe silencieusement.
+   *
+   * L'entrée mène donc à la page qui porte ces données avec leurs propres colonnes.
+   * C'est un LIEN et non un choix de vue, et le menu le rend comme tel.
+   */
+  { href: '/nouvelles-cotations', label: 'Nouvelles cotations' },
 ]
 
 /**
@@ -327,7 +358,39 @@ export function ClassTabs({
   )
 }
 
-export function BoardTabs({
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LE CHOIX DE VUE EST UN MENU, ET NON PLUS UNE RANGÉE D'ONGLETS
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE CELA REMPLACE ────────────────────────────────────────────────────
+ *
+ * Une bande de sept cibles sous les onglets d'univers : cinq vues et deux liens vers
+ * les secteurs. Elle avait deux défauts que le menu supprime ensemble.
+ *
+ * Le premier est une question de RANG. Deux rangées d'onglets empilées se ressemblent
+ * — même forme, même geste — alors qu'elles ne posent pas la même question : celle du
+ * haut choisit l'univers, celle du bas la lecture qu'on en fait. Les distinguer
+ * demandait de jouer sur la taille et la couleur du trait, ce que faisaient les deux
+ * rangées, et cela ne suffisait pas : le lecteur voyait une grille de boutons.
+ *
+ * Le second est une question de PLACE. Sept cibles à 14 px débordent d'un téléphone,
+ * d'où le défilement horizontal — et un contrôle qu'il faut faire défiler pour
+ * découvrir est un contrôle dont on ignore la moitié des options. Le menu les montre
+ * toutes, d'un coup, quelle que soit la largeur.
+ *
+ * ── LE MENU PORTE DEUX ESPÈCES D'ENTRÉES, ET LE DIT ────────────────────────
+ *
+ * Les quatre premières changent la vue SANS quitter la page. La dernière est un lien
+ * : elle mène aux nouvelles cotations, qui viennent d'une autre source et ne peuvent
+ * pas entrer dans ce tableau (voir `BOARD_LINKS`).
+ *
+ * Un séparateur et une flèche les distinguent. Sans eux, une entrée qui navigue au
+ * milieu d'entrées qui filtrent est une surprise — on croit changer de vue, on change
+ * de page. C'est le même souci qui avait déjà fait des liens, et non des boutons, des
+ * entrées `BOARD_LINKS` dans l'ancienne rangée.
+ */
+export function BoardViewMenu({
   views,
   active,
   onSelect,
@@ -339,56 +402,57 @@ export function BoardTabs({
   links?: { href: string; label: string }[]
 }) {
   const t = usePhrase()
+  const current = views.find((view) => view.key === active) ?? views[0]!
 
   return (
-    /*
-      `overflow-x-auto` sur la rangée : huit onglets à 14 px ne tiennent pas sur un
-      téléphone, et les replier sur deux lignes ferait sauter la hauteur du bloc au
-      moment où le tableau se charge.
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={t('Vue du tableau')}
+        /* La flèche pivote à l'ouverture — `data-state` est posé par le déclencheur
+           lui-même. C'est le seul mouvement du contrôle, et il dit ce qu'aucune
+           couleur ne dit : que le panneau vient de là. */
+        /* ⚠️ `self-start` EST OBLIGATOIRE, ET SON ABSENCE NE SE VOIT QU'À L'ÉCRAN.
+           Le menu est l'enfant d'une colonne flex, dont les enfants s'étirent par
+           défaut : `inline-flex` ne l'en empêche pas — l'étirement est décidé par le
+           PARENT. Le bouton faisait donc toute la largeur du tableau, avec son
+           libellé collé à gauche et sa flèche à huit cents pixels de là. */
+        className="group inline-flex w-fit items-center gap-2 self-start rounded-control border border-border-subtle px-3 py-2 text-sm font-medium text-ink transition-colors duration-150 hover:border-brand hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        {t(current.label)}
+        <ChevronDown
+          aria-hidden="true"
+          className="size-4 text-ink-muted transition-transform duration-200 group-hover:text-brand group-data-[state=open]:-rotate-180"
+        />
+      </DropdownMenuTrigger>
 
-      ⚠️ AUCUN DÉCALAGE NÉGATIF ICI. Descendre la bande d'un pixel pour que le trait
-      recouvre le filet ferait apparaître une barre de défilement VERTICALE sur toute
-      la rangée — `overflow-x: auto` force l'autre axe à `auto` lui aussi. Le trait se
-      pose donc SUR le filet plutôt que par-dessus ; à deux pixels contre un, l'œil ne
-      fait pas la différence. Relevé au navigateur, pas déduit : voir la même note
-      dans `LinkTabs`.
-    */
-    <div
-      role="tablist"
-      aria-label={t('Vue du tableau')}
-      className="scrollbar-none flex items-center gap-0.5 overflow-x-auto border-b border-border-subtle"
-    >
-      {views.map((view) => {
-        const selected = view.key === active
-        return (
-          <button
+      <DropdownMenuContent align="start" className="min-w-52">
+        {views.map((view) => (
+          <DropdownMenuItem
             key={view.key}
-            type="button"
-            role="tab"
-            aria-selected={selected}
+            onSelect={() => onSelect(view.key)}
+            /* `aria-current` et non `aria-selected` : les entrées d'un menu ne sont
+               pas des onglets, et un lecteur d'écran annoncerait « non sélectionné »
+               sur les quatre autres au lieu de nommer celle qui est active. */
+            aria-current={view.key === active ? 'true' : undefined}
             title={t(view.hint)}
-            onClick={() => onSelect(view.key)}
-            className={`relative whitespace-nowrap px-3 pb-2.5 pt-2 text-sm transition-colors duration-150 ${
-              selected
-                ? 'font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
-                : 'font-normal text-ink hover:text-brand'
-            }`}
+            className={view.key === active ? 'font-semibold text-brand' : undefined}
           >
             {t(view.label)}
-          </button>
-        )
-      })}
+          </DropdownMenuItem>
+        ))}
 
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className="whitespace-nowrap px-3 pb-2.5 pt-2 text-sm font-normal text-ink transition-colors duration-150 hover:text-brand"
-        >
-          {t(link.label)}
-        </Link>
-      ))}
-    </div>
+        {links.length > 0 ? <DropdownMenuSeparator /> : null}
+
+        {links.map((link) => (
+          <DropdownMenuItem key={link.href} asChild>
+            <Link href={link.href} className="flex items-center justify-between gap-2">
+              {t(link.label)}
+              <ArrowUpRight aria-hidden="true" className="size-3.5 text-ink-muted" />
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

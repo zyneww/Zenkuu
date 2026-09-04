@@ -256,6 +256,10 @@ export const trPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Tablo evreni',
   'Vue du tableau': 'Tablo görünümü',
+  'Les plus populaires': 'En popüler',
+  'Tendances indisponibles': 'Trendler kullanılamıyor',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'Popülerlik sıralaması yanıt vermeyen üçüncü taraf bir kaynaktan geliyor. Menüdeki diğer görünümler zaten yüklenmiş satırlarla çalışmaya devam ediyor.',
+  'Les actifs les plus consultés du moment': 'Şu anda en çok görüntülenen varlıklar',
   'Filtrer les': 'Süz:',
   'affichées': 'gösterilen',
   'Effacer le filtre': 'Filtreyi temizle',

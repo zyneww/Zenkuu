@@ -256,6 +256,10 @@ export const plPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Zakres tabeli',
   'Vue du tableau': 'Widok tabeli',
+  'Les plus populaires': 'Najpopularniejsze',
+  'Tendances indisponibles': 'Trendy niedostępne',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'Ranking popularności pochodzi z zewnętrznego źródła, które nie odpowiedziało. Pozostałe widoki w menu nadal korzystają z już wczytanych wierszy.',
+  'Les actifs les plus consultés du moment': 'Najczęściej oglądane aktywa w tej chwili',
   'Filtrer les': 'Filtruj',
   'affichées': 'wyświetlane',
   'Effacer le filtre': 'Wyczyść filtr',

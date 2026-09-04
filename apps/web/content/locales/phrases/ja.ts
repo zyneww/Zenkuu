@@ -256,6 +256,10 @@ export const jaPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': '表の対象範囲',
   'Vue du tableau': '表の表示',
+  'Les plus populaires': '人気順',
+  'Tendances indisponibles': 'トレンドを取得できません',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': '人気順のランキングは外部ソースから取得しており、応答がありませんでした。メニューの他のビューは、すでに読み込まれた行で引き続き表示されます。',
+  'Les actifs les plus consultés du moment': 'いま最も閲覧されている銘柄',
   'Filtrer les': '絞り込む：',
   'affichées': '表示中',
   'Effacer le filtre': '絞り込みを解除',

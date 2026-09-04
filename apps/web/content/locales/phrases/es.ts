@@ -262,6 +262,10 @@ export const esPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Universo de la tabla',
   'Vue du tableau': 'Vista de la tabla',
+  'Les plus populaires': 'Más populares',
+  'Tendances indisponibles': 'Tendencias no disponibles',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'La clasificación por popularidad procede de una fuente externa que no ha respondido. Las demás vistas del menú siguen sirviéndose de las filas ya cargadas.',
+  'Les actifs les plus consultés du moment': 'Los activos más consultados del momento',
   'Filtrer les': 'Filtrar los',
   'affichées': 'mostradas',
   'Effacer le filtre': 'Borrar el filtro',

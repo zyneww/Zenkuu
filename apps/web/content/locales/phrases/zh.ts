@@ -256,6 +256,10 @@ export const zhPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': '表格范围',
   'Vue du tableau': '表格视图',
+  'Les plus populaires': '最受欢迎',
+  'Tendances indisponibles': '趋势数据不可用',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': '人气排行来自第三方数据源，该数据源未响应。菜单中的其他视图仍由已加载的行提供。',
+  'Les actifs les plus consultés du moment': '当前浏览最多的资产',
   'Filtrer les': '筛选',
   'affichées': '已显示',
   'Effacer le filtre': '清除筛选',

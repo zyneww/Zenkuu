@@ -256,6 +256,10 @@ export const nlPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Bereik van de tabel',
   'Vue du tableau': 'Tabelweergave',
+  'Les plus populaires': 'Populairst',
+  'Tendances indisponibles': 'Trends niet beschikbaar',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'De populariteitsranglijst komt van een externe bron die niet heeft geantwoord. De overige weergaven in het menu worden nog steeds bediend door de al geladen rijen.',
+  'Les actifs les plus consultés du moment': 'De meest bekeken activa van dit moment',
   'Filtrer les': 'Filter de',
   'affichées': 'getoond',
   'Effacer le filtre': 'Filter wissen',

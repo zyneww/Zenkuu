@@ -11,7 +11,7 @@ import {
   BOARD_VIEWS,
   BoardFilters,
   BoardSearch,
-  BoardTabs,
+  BoardViewMenu,
   ClassTabs,
   rangesActive,
   withinRanges,
@@ -257,6 +257,10 @@ export function MarketBrowser({
   const t = usePhrase()
   const [view, setView] = useState<QuickView>('all')
   const [tab, setTab] = useState<string>(BOARD_VIEWS[0]!.key)
+  /* Lu ICI et non plus bas : la vue décide désormais de la LISTE autant que des
+     colonnes — « En tendance » en apporte une autre —, et cette décision doit donc
+     précéder le choix des lignes. */
+  const tabMeta = BOARD_VIEWS.find((entry) => entry.key === tab) ?? BOARD_VIEWS[0]!
   /* L'UNIVERS est un second état, indépendant de l'onglet de vue : « Favoris » et
      « Performance » répondent à deux questions différentes et doivent pouvoir être
      vrais en même temps — voir `ClassTabs`. Les fondre en un seul état, ce que faisait
@@ -277,7 +281,57 @@ export function MarketBrowser({
   const swapped =
     universe === 'actions' || universe === 'devises' ? otherUniverses?.[universe] : undefined
 
-  const assets = swapped?.assets ?? ownAssets
+  /*
+   * ── LA VUE « EN TENDANCE » APPORTE SA PROPRE LISTE ────────────────────────
+   *
+   * C'est la seule des quatre à le faire, et `remote` sur la vue est ce qui le dit.
+   * L'appel part À L'OUVERTURE de l'entrée, jamais au chargement de la page : quatre
+   * lecteurs sur cinq ne l'ouvriront pas, et le classement par popularité coûte un
+   * aller-retour de plus chez la source.
+   *
+   * Il ne part qu'UNE FOIS. `trending !== null` garde aussi bien le succès que
+   * l'échec, ce qui évite qu'une source en panne soit redemandée à chaque va-et-vient
+   * entre deux entrées du menu.
+   */
+  const trendingView = boardTabs && tabMeta.remote === 'tendances'
+  const [trending, setTrending] = useState<{ assets: MarketAsset[]; failed: boolean } | null>(null)
+
+  useEffect(() => {
+    if (!trendingView || trending !== null) return
+
+    /* `cancelled` plutôt qu'un `AbortController` : la réponse est mise en cache par
+       la route, et l'abandonner ferait repayer l'appel à la prochaine ouverture. On
+       laisse donc la requête finir, on ignore seulement son résultat. */
+    let cancelled = false
+
+    fetch('/api/tendances')
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error('HTTP'))))
+      .then((payload: { trending?: MarketAsset[]; indisponible?: boolean }) => {
+        if (cancelled) return
+        setTrending({ assets: payload.trending ?? [], failed: payload.indisponible === true })
+      })
+      .catch(() => {
+        // Une panne est un ÉTAT, pas un vide : sans ce marqueur, le tableau afficherait
+        // « aucun actif ne correspond », ce qui accuse le filtre d'un défaut de réseau.
+        if (!cancelled) setTrending({ assets: [], failed: true })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [trendingView, trending])
+
+  const trendingPending = trendingView && trending === null
+
+  /* MÉMORISÉ, et ce n'est pas une optimisation de confort : la branche « tendances »
+     rend un tableau VIDE tant que la réponse n'est pas là, et un littéral `[]` est un
+     objet neuf à chaque rendu. Deux `useMemo` en aval ont `assets` dans leurs
+     dépendances — ils rejoueraient donc le tri et le filtrage de deux cent cinquante
+     lignes à chaque frappe dans le champ de recherche. */
+  const assets = useMemo(
+    () => (trendingView ? (trending?.assets ?? []) : (swapped?.assets ?? ownAssets)),
+    [trendingView, trending, swapped, ownAssets],
+  )
 
   /* Les onglets réellement proposés. Un univers non fourni n'apparaît pas : mieux
      vaut un onglet absent qu'un onglet menant à un tableau vide. */
@@ -305,7 +359,6 @@ export function MarketBrowser({
    * traité à part : les deux mécanismes portent exactement la même question au même
    * endroit, et les dédoubler ferait deux filtres à tenir d'accord.
    */
-  const tabMeta = BOARD_VIEWS.find((entry) => entry.key === tab) ?? BOARD_VIEWS[0]!
   const columnSet: BoardColumnSet = boardTabs ? tabMeta.columns : (fixedColumns ?? 'apercu')
 
   const filter: QuickView = boardTabs
@@ -484,12 +537,23 @@ export function MarketBrowser({
    *     ferait apparaître des cryptomonnaies dès la page 2 d'un tableau d'actions,
    *     sous des colonnes d'actions. Le compteur redevient donc local dès qu'on
    *     quitte la crypto.
+   *   · ⚠️ LA VUE « EN TENDANCE », pour la même raison que l'univers substitué et
+   *     avec un symptôme plus vicieux. Elle apporte une quinzaine d'actifs, soit
+   *     MOINS qu'une page : `distant` en concluait que la page était incomplète et
+   *     allait chercher la suite dans `/api/cotations`, qui ne connaît que le
+   *     classement par capitalisation. Le menu affichait donc « Trending » au-dessus
+   *     des cent premières capitalisations — un libellé juste sur des lignes fausses,
+   *     c'est-à-dire le défaut le moins visible et le plus trompeur des cinq.
    *
-   * Dans ces quatre cas le tableau retrouve exactement son comportement d'avant :
-   * il pagine ce qu'il a, et le compteur dit ce qu'il compte.
+   * Dans ces cinq cas le tableau retrouve exactement son comportement d'avant : il
+   * pagine ce qu'il a, et le compteur dit ce qu'il compte.
    */
   const catalogue =
-    remoteTotal !== undefined && !filtering && sort === null && swapped === undefined
+    remoteTotal !== undefined &&
+    !filtering &&
+    sort === null &&
+    swapped === undefined &&
+    !trendingView
 
   /*
    * ── LA PAGE COURANTE EST BORNÉE AU RENDU, ET NON REMISE À ZÉRO PAR UN EFFET ──
@@ -651,7 +715,7 @@ export function MarketBrowser({
             favorisAvailable={watchlist?.available === true}
             available={availableUniverses}
           />
-          <BoardTabs views={tabs} active={tab} onSelect={setTab} />
+          <BoardViewMenu views={tabs} active={tab} onSelect={setTab} />
         </div>
       ) : null}
 
@@ -671,7 +735,19 @@ export function MarketBrowser({
         </p>
       ) : null}
 
-      {sorted.length === 0 ? (
+      {trending?.failed ? (
+        /* UNE PANNE DE SOURCE N'EST PAS UN RÉSULTAT VIDE. Le message générique parle du
+           filtre et de la recherche : il enverrait le lecteur corriger une saisie qui
+           n'est pas en cause. */
+        <EmptyState
+          title={t('Tendances indisponibles')}
+          description={t(
+            'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.',
+          )}
+          tone="warning"
+          compact
+        />
+      ) : sorted.length === 0 && !trendingPending ? (
         <EmptyState
           title={t('Aucun actif ne correspond sur cette page')}
           description="Le filtre ne s’applique qu’aux lignes chargées. Utilisez la recherche de l’en-tête pour chercher dans l’ensemble du catalogue."
@@ -687,8 +763,12 @@ export function MarketBrowser({
           `aria-busy` dit aux lecteurs d'écran ce que l'opacité dit à l'œil.
         */
         <div
-          aria-busy={remote.loading || undefined}
-          className={remote.loading ? 'opacity-60 transition-opacity duration-150' : undefined}
+          aria-busy={remote.loading || trendingPending || undefined}
+          className={
+            remote.loading || trendingPending
+              ? 'opacity-60 transition-opacity duration-150'
+              : undefined
+          }
         >
           {/*
             ── LA BASCULE D'UNIVERS EST ANIMÉE, ET LA CLÉ EST CE QUI L'ANIME ────

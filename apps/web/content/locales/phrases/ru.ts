@@ -256,6 +256,10 @@ export const ruPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Охват таблицы',
   'Vue du tableau': 'Вид таблицы',
+  'Les plus populaires': 'Самые популярные',
+  'Tendances indisponibles': 'Тренды недоступны',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'Рейтинг по популярности берётся из стороннего источника, который не ответил. Остальные представления меню по-прежнему работают на уже загруженных строках.',
+  'Les actifs les plus consultés du moment': 'Самые просматриваемые активы сейчас',
   'Filtrer les': 'Фильтровать',
   'affichées': 'показаны',
   'Effacer le filtre': 'Сбросить фильтр',

@@ -263,6 +263,10 @@ export const dePhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Auswahl der Tabelle',
   'Vue du tableau': 'Tabellenansicht',
+  'Les plus populaires': 'Beliebteste',
+  'Tendances indisponibles': 'Trends nicht verfügbar',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'Das Beliebtheits-Ranking stammt von einer externen Quelle, die nicht geantwortet hat. Die übrigen Ansichten des Menüs werden weiterhin aus den bereits geladenen Zeilen bedient.',
+  'Les actifs les plus consultés du moment': 'Die derzeit meistgesehenen Werte',
   'Filtrer les': 'Filtern:',
   'affichées': 'angezeigt',
   'Effacer le filtre': 'Filter löschen',

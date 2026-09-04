@@ -256,6 +256,10 @@ export const viPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Phạm vi bảng',
   'Vue du tableau': 'Chế độ xem bảng',
+  'Les plus populaires': 'Phổ biến nhất',
+  'Tendances indisponibles': 'Không có dữ liệu xu hướng',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'Bảng xếp hạng theo mức phổ biến đến từ một nguồn bên thứ ba đã không phản hồi. Các chế độ xem khác trong menu vẫn dùng những dòng đã tải.',
+  'Les actifs les plus consultés du moment': 'Các tài sản được xem nhiều nhất hiện tại',
   'Filtrer les': 'Lọc',
   'affichées': 'đang hiển thị',
   'Effacer le filtre': 'Xóa bộ lọc',

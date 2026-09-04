@@ -267,6 +267,10 @@ export const enPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Table universe',
   'Vue du tableau': 'Table view',
+  'Les plus populaires': 'Most popular',
+  'Tendances indisponibles': 'Trending unavailable',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'The popularity ranking comes from a third-party source, which did not respond. The menu’s other views are still served by the rows already loaded.',
+  'Les actifs les plus consultés du moment': 'The most-viewed assets right now',
   'Filtrer les': 'Filter the',
   'affichées': 'shown',
   'Effacer le filtre': 'Clear the filter',

@@ -256,6 +256,10 @@ export const itPhrases: Phrases = {
   /* ── TABLEAUX DE MARCHÉ — colonnes, filtres et cartes — ajouté le 2026-08-31 ── */
   'Univers du tableau': 'Universo della tabella',
   'Vue du tableau': 'Vista della tabella',
+  'Les plus populaires': 'Più popolari',
+  'Tendances indisponibles': 'Tendenze non disponibili',
+  'Le classement par popularité vient d’une source tierce, qui n’a pas répondu. Les autres vues du menu restent servies par les lignes déjà chargées.': 'La classifica per popolarità proviene da una fonte esterna che non ha risposto. Le altre viste del menu restano servite dalle righe già caricate.',
+  'Les actifs les plus consultés du moment': 'Gli asset più consultati del momento',
   'Filtrer les': 'Filtra i',
   'affichées': 'mostrate',
   'Effacer le filtre': 'Cancella il filtro',
