@@ -1,7 +1,7 @@
 'use client'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { LiveBinancePrice } from '@/components/asset/LiveBinancePrice'

@@ -8,7 +8,8 @@ import { Link } from '@/i18n/navigation'
 import { RankingDetailLink } from '@/components/market/RankingDetailLink'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, Sparkline } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState, Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'

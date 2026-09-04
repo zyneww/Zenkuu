@@ -3,7 +3,8 @@ import { Link } from '@/i18n/navigation'
 import { SentimentGauge } from '@/components/home/SentimentGauge'
 
 import type { DataResult, MarketCategory, NewsItem, SentimentIndex } from '@zenkuu/data'
-import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { Card, CardHeader, EmptyState, SourceNote } from '@zenkuu/ui'
 
 import type { Content } from '@/content/locales'
 import { getContent, getPhrase } from '@/lib/content'

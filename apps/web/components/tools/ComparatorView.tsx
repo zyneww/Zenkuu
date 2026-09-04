@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { COMPARE_LIMIT } from '@/lib/limits'

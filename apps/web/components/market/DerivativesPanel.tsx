@@ -1,5 +1,5 @@
 import type { DerivativeMarket } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 import { getPhrase } from '@/lib/content'
 import { getFormatters } from '@/lib/formatters'
 

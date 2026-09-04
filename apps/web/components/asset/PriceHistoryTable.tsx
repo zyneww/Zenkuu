@@ -1,6 +1,6 @@
 import { getLocale } from 'next-intl/server'
 import type { PriceHistory } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { HistoryExport, type HistoryRow } from '@/components/asset/HistoryExport'
 import { Money } from '@/components/locale/Money'

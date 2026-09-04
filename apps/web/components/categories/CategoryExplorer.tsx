@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/combobox'
 
 import type { MarketCategory } from '@zenkuu/data'
-import { ChangeBadge, EmptyState } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState } from '@zenkuu/ui'
 
 import { BoardCurrency } from '@/components/market/BoardCurrency'
 import { Money } from '@/components/locale/Money'

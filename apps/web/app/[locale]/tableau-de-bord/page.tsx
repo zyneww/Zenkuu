@@ -4,7 +4,8 @@ import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import { getRanking, type AssetClass, type MarketAsset } from '@zenkuu/data'
 import { DB_ENABLED, listWatchlist } from '@zenkuu/db'
-import { ChangeBadge, EmptyState } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { DashboardPreferences } from '@/components/dashboard/DashboardPreferences'

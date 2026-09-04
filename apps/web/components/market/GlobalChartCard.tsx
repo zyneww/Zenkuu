@@ -4,7 +4,7 @@ import { Code2, Download } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useLocale } from 'next-intl'
 
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { AreaPlot } from '@/components/charts/AreaPlot'
 import { AGGREGATE_TONE } from '@/components/charts/chart-theme'

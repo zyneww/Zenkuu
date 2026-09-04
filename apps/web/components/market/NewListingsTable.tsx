@@ -9,7 +9,7 @@ import { usePhrase } from '@/components/locale/ContentProvider'
 import { useMemo, useState } from 'react'
 
 import type { NewListing } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { Link, type AppHref } from '@/i18n/navigation'
 import { monogram } from '@/components/asset/monogram'

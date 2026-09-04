@@ -8,7 +8,8 @@ import {
   getCategoryAssets,
   type MarketCategory,
 } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { MarketTable } from '@/components/market/MarketTable'
 import { getPhrase } from '@/lib/content'

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════

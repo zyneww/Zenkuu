@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { getPhrase } from '@/lib/content'
 
 import type { AssetClass, AssetDetail } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { MetricValue } from '@/components/asset/MetricValue'
 import { InfoTip } from '@/components/ui/InfoTip'

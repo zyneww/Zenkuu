@@ -2,6 +2,20 @@ import { formatPercent } from './format'
 
 interface ChangeBadgeProps {
   value: number | undefined
+  /**
+   * Langue dans laquelle écrire le pourcentage.
+   *
+   * ⚠️ OBLIGATOIRE, ET C'EST LE CORRECTIF. `formatPercent(value)` était appelé sans
+   * langue : il retombait donc sur le défaut anglo-saxon de `format.ts`, et une page
+   * française affichait « −0,032 $US » à côté de « −13.43% » — deux conventions dans
+   * la même cellule, mesuré sur les tendances de la recherche.
+   *
+   * Elle n'a PAS de défaut, contrairement à `libelles` ci-dessous : un défaut est ce
+   * qui a produit le défaut. Les quarante-sept points d'appel n'ont pourtant rien à
+   * fournir — ils passent tous par l'enveloppe
+   * `apps/web/components/locale/ChangeBadge.tsx`, qui tient la langue de la requête.
+   */
+  locale: string
   /** Période réellement couverte, quand ce n'est pas 24 h (cf. `changePeriodLabel`). */
   periodLabel?: string
   size?: 'sm' | 'md'
@@ -74,13 +88,14 @@ const LIBELLES_FR: NonNullable<ChangeBadgeProps['libelles']> = {
  */
 export function ChangeBadge({
   value,
+  locale,
   periodLabel,
   size = 'md',
   filled = false,
   showPeriod = false,
   libelles = LIBELLES_FR,
 }: ChangeBadgeProps) {
-  const formatted = formatPercent(value)
+  const formatted = formatPercent(value, locale)
 
   // Donnée absente : on le montre comme tel, sans jamais afficher « 0,00 % » (§5).
   if (formatted === null || value === undefined) {

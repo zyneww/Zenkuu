@@ -1,7 +1,7 @@
 'use client'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { AreaSpark } from '@/components/charts/AreaSpark'

@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { getPool, getPoolsOnNetwork } from '@zenkuu/data'
-import { ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { Link } from '@/i18n/navigation'
 import { fill } from '@/components/locale/emphasise'

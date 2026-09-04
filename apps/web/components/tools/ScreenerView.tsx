@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 
-import { ChangeBadge, EmptyState, type Formatters } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState, type Formatters } from '@zenkuu/ui'
 
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 

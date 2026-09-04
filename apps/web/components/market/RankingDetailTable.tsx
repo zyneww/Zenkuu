@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react'
 
 import type { MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, Sparkline } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { usePhrase } from '@/components/locale/ContentProvider'

@@ -5,8 +5,8 @@ import { getTranslations } from 'next-intl/server'
 
 import type { AssetClass } from '@zenkuu/data'
 import { getAsset, getAssetHistory } from '@zenkuu/data'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 import {
-  ChangeBadge,
   EmptyState,
   PriceChart,
   SourceNote,

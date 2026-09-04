@@ -8,7 +8,8 @@ import {
   getSentiment,
   getSentimentHistory,
 } from '@zenkuu/data'
-import { Card, CardHeader, ChangeBadge, EmptyState, SourceNote } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { Card, CardHeader, EmptyState, SourceNote } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
 import { Money } from '@/components/locale/Money'

@@ -8,7 +8,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 
 import { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS, type NewsItem } from '@zenkuu/data'
-import { ChangeBadge, EmptyState } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { EmptyState } from '@zenkuu/ui'
 
 import { useLocale } from 'next-intl'
 

@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { DexPool } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Link } from '@/i18n/navigation'

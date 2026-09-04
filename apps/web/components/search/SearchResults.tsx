@@ -2,7 +2,7 @@
 
 import { Flame } from 'lucide-react'
 
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { Link, type AppHref } from '@/i18n/navigation'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'

@@ -21,7 +21,8 @@ import { Link, useRouter, type AppHref } from '@/i18n/navigation'
 import { Table, TableBody, TableHeader } from '@/components/ui/table'
 
 import type { AssetClass, MarketAsset } from '@zenkuu/data'
-import { ChangeBadge, Sparkline } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { Sparkline } from '@zenkuu/ui'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'

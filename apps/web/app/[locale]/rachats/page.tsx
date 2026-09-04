@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { CACHE_TTL_SECONDS, getRanking, type MarketAsset } from '@zenkuu/data'
-import { ChangeBadge } from '@zenkuu/ui'
+import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
 import { AssetLogo } from '@/components/asset/AssetLogo'
 import { BUYBACK_FATE_LABEL, BUYBACK_PROGRAMS } from '@/content/buybacks'
