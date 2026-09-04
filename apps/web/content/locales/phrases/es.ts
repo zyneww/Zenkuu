@@ -1700,6 +1700,8 @@ export const esPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Resumen',
   'Écosystème': 'Ecosistema',
+  'Type': 'Tipo',
+  'Tous les types': 'Todos los tipos',
   'Fondamentaux': 'Fundamentales',
   'Amplitude': 'Rango',
   'Variations': 'Variaciones',

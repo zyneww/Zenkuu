@@ -1686,6 +1686,8 @@ export const zhPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': '概览',
   'Écosystème': '生态',
+  'Type': '类型',
+  'Tous les types': '所有类型',
   'Fondamentaux': '基本面',
   'Amplitude': '区间',
   'Variations': '涨跌',

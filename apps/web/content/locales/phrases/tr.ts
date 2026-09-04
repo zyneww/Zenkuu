@@ -1693,6 +1693,8 @@ export const trPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Genel bakış',
   'Écosystème': 'Ekosistem',
+  'Type': 'Tür',
+  'Tous les types': 'Tüm türler',
   'Fondamentaux': 'Temeller',
   'Amplitude': 'Aralık',
   'Variations': 'Değişimler',

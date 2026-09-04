@@ -16,11 +16,58 @@ import { ChangeBadge, EmptyState } from '@zenkuu/ui'
 
 import { BoardCurrency } from '@/components/market/BoardCurrency'
 import { Money } from '@/components/locale/Money'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { SortableHeader } from '@/components/ui/SortableTable'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { DEFAULT_ROWS } from '@/lib/limits'
 
 type SortKey = 'marketCap' | 'volume' | 'change' | 'name'
 type Direction = 'asc' | 'desc'
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * SECTEURS ET ÉCOSYSTÈMES SONT DANS LE MÊME TABLEAU — ET C'EST LA SOURCE QUI LE DIT
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE CELA REMPLACE ────────────────────────────────────────────────────
+ *
+ * Deux onglets au-dessus de la page — « Tous les secteurs » et « Écosystèmes » —
+ * menant à deux adresses, deux titres, deux jeux de métadonnées et deux canoniques,
+ * pour une seule et même requête dont la seconde vue n'était qu'un filtre pré-rempli.
+ * Le HTML servi était d'ailleurs IDENTIQUE dans les deux cas, le filtre étant appliqué
+ * côté client : deux canoniques déclaraient donc deux pages là où il n'y en avait
+ * qu'une.
+ *
+ * ── POURQUOI LES DEUX APPARTIENNENT À LA MÊME LISTE ─────────────────────────
+ *
+ * Un écosystème EST une catégorie chez CoinGecko : « Solana Ecosystem » arrive dans la
+ * même réponse que « Layer 1 », avec les mêmes champs et le même mode de calcul. Rien
+ * dans la donnée ne les distingue — sauf le mot dans le nom, qui est précisément ce
+ * que cette fonction lit.
+ *
+ * ── LA DÉTECTION EST TEXTUELLE, ET C'EST SA LIMITE ──────────────────────────
+ *
+ * ⚠️ La source ne publie AUCUN champ de type. Le seul marqueur disponible est le
+ * suffixe « Ecosystem » dans le nom, en anglais, tel que CoinGecko l'écrit. Une
+ * catégorie qui serait un écosystème sans le dire dans son nom serait donc étiquetée
+ * « Secteur ».
+ *
+ * C'est assumé plutôt que masqué : l'étiquette décrit ce que le NOM annonce, ce que le
+ * lecteur peut vérifier d'un coup d'œil sur la même ligne. Inventer un type à partir
+ * d'autre chose — la composition, un annuaire tenu à la main — donnerait un classement
+ * que rien dans la page ne permettrait de contrôler (§5).
+ */
+const ECOSYSTEM_MARKER = 'ecosystem'
+
+export type CategoryKind = 'secteur' | 'ecosysteme'
+
+export function categoryKind(name: string): CategoryKind {
+  return name.toLowerCase().includes(ECOSYSTEM_MARKER) ? 'ecosysteme' : 'secteur'
+}
+
+/** Ce que le filtre de type retient. `tous` ne filtre rien. */
+type KindFilter = 'tous' | CategoryKind
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
@@ -68,40 +115,50 @@ export function CategoryExplorer({
    */
   totalMarketCap,
   /**
-   * Filtre PRÉ-REMPLI à l'ouverture, et modifiable ensuite.
+   * Type PRÉ-SÉLECTIONNÉ à l'ouverture, et modifiable ensuite.
    *
-   * Il sert à `/categories/ecosystemes`, qui n'est pas une autre page mais la même
-   * ouverte sur « Ecosystem ». Une valeur INITIALE et non contrôlée : le lecteur doit
-   * pouvoir l'effacer et retrouver la liste entière sans changer d'adresse — sans quoi
-   * la page pré-filtrée serait une impasse.
+   * Il sert `?vue=ecosystemes`, qui n'ouvre plus une autre page mais la même, avec le
+   * filtre de type déjà posé. Une valeur INITIALE et non contrôlée : le lecteur doit
+   * pouvoir revenir à « Tous les types » sans changer d'adresse — sans quoi la vue
+   * pré-filtrée serait une impasse.
    *
-   * ⚠️ Passer par une prop plutôt que par `?filtre=` dans l'URL est ce qui garde les
-   * deux pages STATIQUES : lire un paramètre de requête ferait basculer la route en
-   * rendu dynamique, et lui coûterait son cache de trois minutes.
+   * ⚠️ Il REMPLACE un `defaultQuery` qui pré-remplissait le champ de recherche avec le
+   * mot « Ecosystem ». Ce montage avait deux défauts : le lecteur voyait un terme de
+   * recherche qu'il n'avait pas tapé, et le filtre portait sur le NOM comme sur la
+   * DESCRIPTION — une catégorie dont la définition mentionnait un écosystème sans en
+   * être un entrait donc dans la liste.
    */
-  defaultQuery = '',
+  defaultKind = 'tous',
 }: {
   categories: MarketCategory[]
   totalMarketCap: number | null
-  defaultQuery?: string
+  defaultKind?: KindFilter
 }) {
   const t = usePhrase()
-  const [query, setQuery] = useState(defaultQuery)
+  const [query, setQuery] = useState('')
+  const [kind, setKind] = useState<KindFilter>(defaultKind)
   const [panelOpen, setPanelOpen] = useState(false)
   const [sort, setSort] = useState<SortKey>('marketCap')
   const [direction, setDirection] = useState<Direction>('desc')
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
+
+    /* Le type filtre AVANT le texte : les deux se composent, et l'ordre ne change pas
+       le résultat — c'est simplement le moins coûteux, le test de type étant une
+       comparaison de chaîne contre une inclusion sur deux champs. */
+    const byKind =
+      kind === 'tous' ? categories : categories.filter((c) => categoryKind(c.name) === kind)
+
     const filtered = needle
-      ? categories.filter(
+      ? byKind.filter(
           (category) =>
             category.name.toLowerCase().includes(needle) ||
             // La recherche couvre aussi la définition du secteur : « prêt » doit
             // trouver « Lending/Borrowing » même si le mot n'est pas dans le nom.
             category.description?.toLowerCase().includes(needle),
         )
-      : categories
+      : byKind
 
     // Copie avant tri : `sort` mute en place, et muter la prop réordonnerait la
     // liste du parent à chaque rendu.
@@ -122,7 +179,22 @@ export function CategoryExplorer({
     })
 
     return direction === 'desc' ? sorted : reverseKeepingMissingLast(sorted, sort)
-  }, [categories, query, sort, direction])
+  }, [categories, query, kind, sort, direction])
+
+  /* La page repart à UN dès que la liste change de contenu ou d'ordre : la page 4 des
+     écosystèmes ne désigne pas les mêmes lignes que la page 4 de tous les types. */
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState<number>(DEFAULT_ROWS)
+
+  const signature = `${kind}|${query.trim()}|${sort}|${direction}`
+  const [lastSignature, setLastSignature] = useState(signature)
+  if (signature !== lastSignature) {
+    setLastSignature(signature)
+    setPage(1)
+  }
+
+  const start = (page - 1) * perPage
+  const paged = visible.slice(start, start + perPage)
 
   function applySort(key: SortKey) {
     if (key === sort) {
@@ -241,9 +313,33 @@ export function CategoryExplorer({
           </ComboboxContent>
         </Combobox>
 
-        {/* Même sélecteur que le tableau de cotations, et même préférence de site :
-            changer de devise ici la change partout (voir `BoardCurrency`). */}
-        <BoardCurrency />
+        <div className="flex flex-wrap items-center gap-3">
+          {/* ── LE FILTRE DE TYPE REMPLACE LA RANGÉE D'ONGLETS ────────────────────
+
+              Il tient dans la bande d'outils du tableau plutôt qu'au-dessus de la
+              page, et c'est ce qui en fait un filtre plutôt qu'une navigation : on
+              reste sur la même liste, on la réduit. Les onglets précédents changeaient
+              d'adresse pour le même résultat.
+
+              Le décompte de chaque option n'est PAS affiché : il changerait avec le
+              filtre texte, et une pastille « 118 » qui bouge à chaque frappe se lit
+              comme un défaut. La ligne de décompte sous la bande le dit une fois. */}
+          <SegmentedControl<KindFilter>
+            value={kind}
+            onChange={setKind}
+            size="sm"
+            label={t('Type')}
+            options={[
+              { key: 'tous', label: t('Tous les types') },
+              { key: 'secteur', label: t('Secteurs') },
+              { key: 'ecosysteme', label: t('Écosystèmes') },
+            ]}
+          />
+
+          {/* Même sélecteur que le tableau de cotations, et même préférence de site :
+              changer de devise ici la change partout (voir `BoardCurrency`). */}
+          <BoardCurrency />
+        </div>
       </div>
 
       {query.trim() ? (
@@ -260,13 +356,32 @@ export function CategoryExplorer({
           compact
         />
       ) : (
-        <CategoryTable
-          categories={visible}
-          totalMarketCap={totalMarketCap}
-          sort={sort}
-          direction={direction}
-          onSort={applySort}
-        />
+        <>
+          <CategoryTable
+            categories={paged}
+            startRank={start}
+            totalMarketCap={totalMarketCap}
+            sort={sort}
+            direction={direction}
+            onSort={applySort}
+          />
+
+          {/* La référence rend ses cent vingt-cinq secteurs d'un seul tenant, et cette
+              page en portait TROIS CENT SOIXANTE-SEPT. La différence n'est pas de
+              degré : à ce volume, le coût n'est plus le défilement mais le HTML émis,
+              l'arbre construit et tout ce que le survol de ligne fait repeindre. */}
+          <TablePagination
+            page={page}
+            perPage={perPage}
+            total={visible.length}
+            unit="secteur"
+            onPageChange={setPage}
+            onPerPageChange={(size) => {
+              setPerPage(size)
+              setPage(1)
+            }}
+          />
+        </>
       )}
     </section>
   )
@@ -299,6 +414,9 @@ function reverseKeepingMissingLast(sorted: MarketCategory[], sort: SortKey): Mar
 
 function CategoryTable({
   categories,
+  /* Le rang porte sur la LISTE FILTRÉE, pas sur la page : repartir à 1 en page 2
+     ferait deux premiers secteurs. */
+  startRank,
   totalMarketCap,
   /*
    * LES EN-TÊTES SONT LA SEULE COMMANDE DE TRI.
@@ -312,6 +430,7 @@ function CategoryTable({
   onSort,
 }: {
   categories: MarketCategory[]
+  startRank: number
   totalMarketCap: number | null
   sort: SortKey
   direction: Direction
@@ -352,6 +471,12 @@ function CategoryTable({
               sort={sortState}
               onToggle={onSort}
             />
+            {/* « Type » n'est PAS triable, et pour la même raison que « Dominance » :
+                le filtre segmenté au-dessus fait déjà ce qu'un tri sur deux valeurs
+                ferait, et mieux — il réduit la liste au lieu de la réordonner. */}
+            <th scope="col" className="hidden px-3 py-2.5 font-medium md:table-cell">
+              {t('Type')}
+            </th>
             <SortableHeader
               label={t('Variation 24 h')}
               sortKey="change"
@@ -384,7 +509,7 @@ function CategoryTable({
           {categories.map((category, index) => (
             <tr key={category.id} className="transition-colors hover:bg-surface-muted/60">
               <td className="tabular hidden px-3 py-2.5 text-xs text-ink-muted sm:table-cell">
-                {index + 1}
+                {startRank + index + 1}
               </td>
               <th scope="row" className="px-3 py-2.5 text-left font-medium">
                 {/* Logos AVANT le nom, comme chez la référence : ils disent en un coup
@@ -405,6 +530,13 @@ function CategoryTable({
                   </Link>
                 </span>
               </th>
+              {/* L'étiquette est DISCRÈTE — encre atténuée, pas de pastille colorée.
+                  Un secteur et un écosystème ne s'opposent pas : l'un n'est ni meilleur
+                  ni plus récent que l'autre, et une couleur laisserait croire à un
+                  état. Elle range, elle n'alerte pas. */}
+              <td className="hidden px-3 py-2.5 text-xs text-ink-muted md:table-cell">
+                {categoryKind(category.name) === 'ecosysteme' ? t('Écosystème') : t('Secteur')}
+              </td>
               <td className="px-3 py-2.5 text-right">
                 <ChangeBadge value={category.marketCapChange24h} size="sm" />
               </td>

@@ -1701,6 +1701,8 @@ export const dePhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Überblick',
   'Écosystème': 'Ökosystem',
+  'Type': 'Typ',
+  'Tous les types': 'Alle Typen',
   'Fondamentaux': 'Kennzahlen',
   'Amplitude': 'Spanne',
   'Variations': 'Veränderungen',

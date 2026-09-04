@@ -1693,6 +1693,8 @@ export const nlPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Overzicht',
   'Écosystème': 'Ecosysteem',
+  'Type': 'Type',
+  'Tous les types': 'Alle typen',
   'Fondamentaux': 'Fundamentals',
   'Amplitude': 'Bereik',
   'Variations': 'Veranderingen',

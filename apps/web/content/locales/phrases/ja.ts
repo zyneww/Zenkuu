@@ -1693,6 +1693,8 @@ export const jaPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': '概要',
   'Écosystème': 'エコシステム',
+  'Type': '種別',
+  'Tous les types': 'すべての種別',
   'Fondamentaux': 'ファンダメンタルズ',
   'Amplitude': 'レンジ',
   'Variations': '変化率',

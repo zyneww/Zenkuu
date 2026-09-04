@@ -1693,6 +1693,8 @@ export const ptBRPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Visão geral',
   'Écosystème': 'Ecossistema',
+  'Type': 'Tipo',
+  'Tous les types': 'Todos os tipos',
   'Fondamentaux': 'Fundamentos',
   'Amplitude': 'Intervalo',
   'Variations': 'Variações',

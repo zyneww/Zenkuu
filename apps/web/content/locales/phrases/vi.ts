@@ -1693,6 +1693,8 @@ export const viPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Tổng quan',
   'Écosystème': 'Hệ sinh thái',
+  'Type': 'Loại',
+  'Tous les types': 'Tất cả các loại',
   'Fondamentaux': 'Cơ bản',
   'Amplitude': 'Biên độ',
   'Variations': 'Biến động',

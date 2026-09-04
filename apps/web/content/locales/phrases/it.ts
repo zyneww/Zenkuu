@@ -1693,6 +1693,8 @@ export const itPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Panoramica',
   'Écosystème': 'Ecosistema',
+  'Type': 'Tipo',
+  'Tous les types': 'Tutti i tipi',
   'Fondamentaux': 'Fondamentali',
   'Amplitude': 'Intervallo',
   'Variations': 'Variazioni',

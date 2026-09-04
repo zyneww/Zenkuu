@@ -1693,6 +1693,8 @@ export const plPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Przegląd',
   'Écosystème': 'Ekosystem',
+  'Type': 'Typ',
+  'Tous les types': 'Wszystkie typy',
   'Fondamentaux': 'Podstawy',
   'Amplitude': 'Zakres',
   'Variations': 'Zmiany',

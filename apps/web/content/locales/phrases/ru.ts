@@ -1693,6 +1693,8 @@ export const ruPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Обзор',
   'Écosystème': 'Экосистема',
+  'Type': 'Тип',
+  'Tous les types': 'Все типы',
   'Fondamentaux': 'Показатели',
   'Amplitude': 'Диапазон',
   'Variations': 'Изменения',

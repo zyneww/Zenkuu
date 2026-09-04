@@ -1705,6 +1705,8 @@ export const enPhrases: Phrases = {
   /* ── Fiche d’actif — libellés visibles ─────────────────────────────────────────── */
   'Aperçu': 'Overview',
   'Écosystème': 'Ecosystem',
+  'Type': 'Type',
+  'Tous les types': 'All types',
   'Fondamentaux': 'Fundamentals',
   'Amplitude': 'Range',
   'Variations': 'Changes',

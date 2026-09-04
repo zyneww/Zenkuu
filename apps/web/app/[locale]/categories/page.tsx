@@ -11,20 +11,15 @@ import { getLocale } from 'next-intl/server'
 import { StatCard } from '@/components/charts/StatCard'
 
 import { CategoryExplorer } from '@/components/categories/CategoryExplorer'
-import { LinkTabs } from '@/components/ui/LinkTabs'
 import { getContent } from '@/lib/content'
 import { getPhrase } from '@/lib/content'
 
-/**
- * Mot sur lequel la vue « Écosystèmes » ouvre la liste.
- *
- * ⚠️ EN ANGLAIS, ET C'EST VOULU. Les noms de catégories viennent de CoinGecko et ne
- * sont pas traduits : « Solana Ecosystem », « Ethereum Ecosystem », « Cosmos
- * Ecosystem ». Chercher « écosystème » ne trouverait rien. Le filtre porte sur la
- * donnée telle qu'elle est publiée, pas sur la langue de l'interface — et le lecteur
- * voit le mot dans le champ, où il peut l'effacer.
+/*
+ * Le mot « Ecosystem » servait ICI à pré-remplir le champ de recherche. Il vit
+ * désormais dans `CategoryExplorer`, qui l'utilise pour ÉTIQUETER chaque ligne plutôt
+ * que pour filtrer un texte — voir `categoryKind`, dont l'en-tête dit pourquoi ce
+ * marqueur est le seul disponible et ce qu'il ne sait pas reconnaître.
  */
-const ECOSYSTEM_TERM = 'Ecosystem'
 
 export const revalidate = 180
 const _ttlGuard: typeof revalidate = CACHE_TTL_SECONDS
@@ -43,22 +38,20 @@ export async function generateMetadata({
   searchParams: Promise<{ vue?: string }>
 }): Promise<Metadata> {
   const fr = await getContent()
-  const t = await getPhrase()
   const { vue } = await searchParams
 
-  /* ⚠️ LA CANONIQUE PORTE LE PARAMÈTRE POUR LA VUE FILTRÉE, et l'omet pour l'autre.
-     Sans cela les deux vues déclareraient la même adresse canonique, et un moteur
-     rangerait « Écosystèmes » comme un doublon de « Catégories » — c'est-à-dire
-     exactement le défaut que la route séparée évitait. */
-  if (vue === 'ecosystemes') {
-    return {
-      title: t('Écosystèmes'),
-      description: t(
-        'Les écosystèmes de la blockchain, classés par capitalisation : Ethereum, Solana, BNB Chain, Cosmos et les autres.',
-      ),
-      alternates: { canonical: '/categories?vue=ecosystemes' },
-    }
-  }
+  /*
+   * ⚠️ UNE SEULE CANONIQUE, ET LE PARAMÈTRE N'EN CRÉE PLUS UNE SECONDE.
+   *
+   * Les deux vues en déclaraient chacune une. C'était défendable tant que l'en-tête
+   * servait deux titres et deux textes ; ça ne l'est plus depuis que le paramètre ne
+   * fait que PRÉ-SÉLECTIONNER un filtre appliqué dans le navigateur. Le HTML rendu
+   * est désormais identique de part et d'autre — deux canoniques déclareraient donc
+   * deux pages là où un moteur n'en trouverait qu'une, dupliquée.
+   *
+   * `vue` reste lu par la page, pour ouvrir le filtre sur les écosystèmes.
+   */
+  void vue
 
   return {
     title: fr.pages.categories,
@@ -163,46 +156,28 @@ export default async function CategoriesPage({
 
   return (
     <div className="space-y-8">
-      <CategoriesHeading
-        title={ecosystemes ? t('Écosystèmes') : fr.categories.title}
-        lede={
-          ecosystemes
-            ? t(
-                'Les grandes familles de jetons regroupées par la chaîne sur laquelle ils vivent. Un même actif peut relever de plusieurs écosystèmes, si bien que les capitalisations de ce tableau ne s’additionnent pas.',
-              )
-            : t(
-                'Les catégories décrivent les grandes familles d’actifs du marché. Un même actif peut relever de plusieurs d’entre elles — Bitcoin est à la fois « Layer 1 » et « Proof of Work » — si bien que les capitalisations de ce tableau ne s’additionnent pas.',
-              )
-        }
-        /* ⚠️ LA NOTE DE LA VUE « ÉCOSYSTÈMES » NE COMPTE PAS LES LIGNES AFFICHÉES.
-           Le filtre est appliqué DANS `CategoryExplorer`, côté client, et cette page ne
-           sait donc pas combien de secteurs portent le mot. Annoncer un nombre qu'on n'a
-           pas mesuré serait un chiffre inventé (§5) : la note dit à la place SUR QUOI
-           porte la sélection, et comment l'effacer. */
-        note={
-          ecosystemes
-            ? t(
-                'La liste retient les catégories dont le nom publié par la source mentionne « Ecosystem ». Effacez le filtre pour retrouver l’ensemble des secteurs.',
-              )
-            : t(
-                '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
-              ).replace('{n}', String(listed.length))
-        }
-      />
+      {/*
+        ── UN SEUL TITRE, QUEL QUE SOIT LE FILTRE ────────────────────────────
 
-      {/* Deux LIENS et non deux boutons : chaque vue est une adresse. Voir `LinkTabs`,
-          dont le trait glisse d'un onglet à l'autre parce que le nœud survit à la
-          navigation — la barre est identique de part et d'autre. */}
-      <LinkTabs
-        active={ecosystemes ? 'ecosystemes' : 'secteurs'}
-        tabs={[
-          { id: 'secteurs', href: '/categories', label: t('Tous les secteurs') },
-          {
-            id: 'ecosystemes',
-            href: '/categories?vue=ecosystemes',
-            label: t('Écosystèmes'),
-          },
-        ]}
+        Le chapeau se dédoublait : « Écosystèmes » avec son propre lede et sa propre
+        note quand `?vue=ecosystemes` était présent, « Catégories » sinon. C'était la
+        dernière trace des deux pages : même requête, même tableau, mais un en-tête qui
+        annonçait deux sujets.
+
+        Le paramètre survit — il pré-sélectionne désormais le filtre de type, ce qui
+        garde vivants les liens entrants et l'entrée « Chaînes » du menu — mais il ne
+        change plus ce que la page DIT d'elle-même. Le lecteur voit un titre, un
+        tableau, et un filtre dont l'état est visible : c'est la même page, ouverte
+        autrement.
+      */}
+      <CategoriesHeading
+        title={fr.categories.title}
+        lede={t(
+          'Les catégories décrivent les grandes familles d’actifs du marché. Un même actif peut relever de plusieurs d’entre elles — Bitcoin est à la fois « Layer 1 » et « Proof of Work » — si bien que les capitalisations de ce tableau ne s’additionnent pas.',
+        )}
+        note={t(
+          '{n} secteurs cotés. La source en publie davantage, mais les autres ne portent aucun actif valorisé.',
+        ).replace('{n}', String(listed.length))}
       />
 
       {/* ── LA BANDE DE TÊTE ────────────────────────────────────────────────
@@ -250,7 +225,7 @@ export default async function CategoriesPage({
       <CategoryExplorer
         categories={listed}
         totalMarketCap={globalStats.ok ? globalStats.data.totalMarketCap : null}
-        {...(ecosystemes ? { defaultQuery: ECOSYSTEM_TERM } : {})}
+        {...(ecosystemes ? { defaultKind: 'ecosysteme' as const } : {})}
       />
 
       {/* La source ne publie ces agrégats QU'EN DOLLARS, et c'est ce que nomme cette
