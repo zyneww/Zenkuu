@@ -1241,7 +1241,30 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                 s'est élargi : une ligne de texte courant cesse d'être lisible
                 au-delà d'environ quatre-vingts caractères, et ce n'est pas parce
                 que la place existe qu'il faut la remplir. */}
-            <p className="max-w-2xl whitespace-pre-line text-base leading-relaxed text-ink-muted">
+            {/* ⚠️ 13 PX ET NON 16 — ET L'INTERLIGNE, LUI, NE SUIT PAS.
+
+                Relevé le 4 septembre 2026 sur la fiche Bitcoin de CoinGecko : ses
+                paragraphes — « Bitcoin was created by an individual… », « Nakamoto
+                actively developed Bitcoin… » — sortent tous en 13/18,525/400. Celui-ci
+                était en 16/26 : trois pixels au-dessus, sur le seul bloc de la page où
+                l'on lit vraiment des phrases.
+
+                La TAILLE suit la référence, c'est ce que le chantier demande.
+                L'INTERLIGNE reste le nôtre : `leading-relaxed` donne 21 px contre leurs
+                18,5. À treize pixels, ces deux points et demi séparent un paragraphe
+                qu'on lit d'un paragraphe qu'on parcourt, et la référence est ici plus
+                serrée que sa propre taille n'appelle. C'est le seul écart volontaire de
+                cette passe, et il porte sur la propriété que le brief ne nomme pas.
+
+                ── ET LA MESURE SUIT LA TAILLE ─────────────────────────────────────
+                `max-w-lg` et non `max-w-2xl`. La note ci-dessus fixe la règle — « une
+                ligne de texte courant cesse d'être lisible au-delà d'environ
+                quatre-vingts caractères » — et la largeur de 672 px la respectait À
+                SEIZE PIXELS. À treize, la même largeur porte une centaine de signes :
+                réduire le corps sans réduire la mesure aurait cassé la règle que le
+                bloc énonce, mesuré au navigateur avant correction. 512 px rendent les
+                quatre-vingts signes. */}
+            <p className="max-w-lg whitespace-pre-line text-xs leading-relaxed text-ink-muted">
               {about.text}
             </p>
 

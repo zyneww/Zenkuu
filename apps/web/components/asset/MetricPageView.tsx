@@ -266,7 +266,10 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
 
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-ink">{tp('definitionTitle')}</h2>
-            <p className="max-w-2xl text-base leading-relaxed text-ink-muted">{help}</p>
+            {/* 13 px, comme le texte courant de la fiche d'actif — même rôle, même relevé.
+            Voir la note de `AssetPageView` pour la mesure et pour l'interligne, qui reste
+            le nôtre. */}
+        <p className="max-w-lg text-xs leading-relaxed text-ink-muted">{help}</p>
           </section>
         </div>
 
