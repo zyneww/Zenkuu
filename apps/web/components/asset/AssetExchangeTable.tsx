@@ -179,7 +179,12 @@ export function AssetExchangeTable({
         page={page}
         perPage={parPage}
         total={triees.length}
-        unit={t('paire')}
+        /* ⚠️ LA CLÉ FRANÇAISE, NON TRADUITE. `TablePagination` compare `unit` à une
+           liste blanche de mots FRANÇAIS avant de composer sa phrase ; lui passer
+           `t('paire')` fonctionne en français — où la clé EST la traduction — et
+           retombe silencieusement sur « résultat » dans les douze autres langues.
+           C'est le composant qui traduit, pas l'appelant. */
+        unit="paire"
         onPageChange={setPage}
         onPerPageChange={(valeur) => {
           setParPage(valeur)

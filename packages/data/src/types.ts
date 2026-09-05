@@ -1042,6 +1042,117 @@ export interface MarketDataProvider {
   search?(query: string, limit?: number): Promise<SearchResult[]>
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES QUATRE FORMES DE LA FINANCE DÉCENTRALISÉE — POUR LES PAGES « ANALYTICS »
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ LE TVL N'EST PAS UNE CAPITALISATION, et ces quatre types en portent partout. Le
+ * TVL compte des capitaux DÉPOSÉS dans un contrat ; la capitalisation compte la valeur
+ * des jetons émis. Les deux se ressemblent en ordre de grandeur et ne se répondent
+ * pas. Les champs s'appellent donc `tvl`, jamais `marketCap`, et l'interface écrit
+ * « valeur immobilisée ».
+ *
+ * Ils vivent ici et non dans leur fournisseur pour la raison qui vaut pour tout ce
+ * fichier : c'est le contrat que l'adaptateur doit satisfaire, et aucune page ne
+ * connaît la forme des réponses de DefiLlama.
+ */
+
+/** Une chaîne et la valeur qui y est immobilisée. */
+export interface DefiChain {
+  name: string
+  /** Jeton natif, quand la source le renseigne — une chaîne peut ne pas en avoir. */
+  symbol?: string
+  /** Valeur immobilisée, en dollars. */
+  tvl: number
+  /**
+   * Identifiant CoinGecko du jeton natif.
+   *
+   * C'est une CLÉ DE JOINTURE avec nos propres fiches : `/crypto/{geckoId}`. Sans
+   * elle, la ligne reste une ligne de tableau ; avec elle, elle mène au cours, à la
+   * courbe et à l'historique du jeton chez nous.
+   */
+  geckoId?: string
+}
+
+/** Un protocole de finance décentralisée, tel que la source le classe. */
+export interface DefiProtocol {
+  name: string
+  slug: string
+  /** Étiquette de la SOURCE — « Dexs », « Lending », « RWA »… Jamais réécrite. */
+  category?: string
+  /** Valeur immobilisée, en dollars. */
+  tvl: number
+  /** Variation du TVL en pourcentage. Absente quand la source ne la publie pas. */
+  change1d?: number
+  change7d?: number
+  /** Chaînes sur lesquelles le protocole est déployé. */
+  chains: string[]
+  logo?: string
+  url?: string
+  geckoId?: string
+}
+
+/**
+ * Un pool de rendement.
+ *
+ * ⚠️ `apy` EST UN TAUX CONSTATÉ, PAS UNE PROMESSE : c'est l'extrapolation annuelle du
+ * rendement récent du pool, telle que la source la calcule. Il n'engage personne et
+ * peut s'effondrer le lendemain. `apyMean30d` existe précisément pour le mettre en
+ * regard — c'est elle qui dit si le taux du jour est représentatif.
+ */
+export interface YieldPool {
+  id: string
+  chain: string
+  /** Protocole qui opère le pool — « lido », « aave-v3 »… */
+  project: string
+  /** Jetons du pool — « STETH », « USDC-WETH ». */
+  symbol: string
+  tvlUsd: number
+  apy: number
+  /** Part du taux venant de l'activité du pool, hors incitations. */
+  apyBase?: number
+  /** Part venant de jetons distribués en récompense — la plus volatile des deux. */
+  apyReward?: number
+  apyMean30d?: number
+  /** Le pool n'est-il composé que de jetons indexés sur une monnaie ? */
+  stablecoin: boolean
+  /** Risque de perte impermanente tel que la source le qualifie — « no », « yes ». */
+  ilRisk?: string
+  /** « single » ou « multi » : à un ou plusieurs jetons. */
+  exposure?: string
+}
+
+/**
+ * Les frais payés à l'ensemble des protocoles suivis.
+ *
+ * ⚠️ FRAIS ET NON REVENUS. Les frais sont ce que les utilisateurs paient ; le revenu
+ * est la part qui reste au protocole une fois les fournisseurs de liquidité payés. La
+ * source distingue les deux et ce point d'entrée ne publie que les premiers.
+ */
+export interface FeeOverview {
+  /** En dollars. */
+  total24h: number
+  total7d?: number
+  total30d?: number
+  total1y?: number
+  /** Variations en pourcentage, publiées par la source. */
+  change1d?: number
+  change7d?: number
+  change30d?: number
+  /** Série quotidienne, du plus ancien au plus récent. */
+  series: { timestamp: number; value: number }[]
+  /** Les protocoles qui encaissent le plus sur 24 h. */
+  protocols: {
+    name: string
+    slug: string
+    total24h: number
+    total30d?: number
+    category?: string
+    logo?: string
+  }[]
+}
+
 /** Erreur normalisée remontée par la couche adaptateur. */
 export class ProviderError extends Error {
   readonly providerId: string

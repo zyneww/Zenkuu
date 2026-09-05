@@ -82,6 +82,10 @@ export {
   getSentiment,
   getSentimentHistory,
   getStablecoinHistory,
+  getDefiChains,
+  getDefiProtocols,
+  getYieldPools,
+  getFeeOverview,
   getTopNarratives,
   getTrendingCrypto,
   getTrendingCryptoAssets,
@@ -160,6 +164,7 @@ export { TREASURY_COINS, TRACKED_NFT_COLLECTIONS } from './providers/coingecko-e
 export type { TokenizedStock, TreasuryCoin } from './providers/coingecko-extras'
 
 export type { StablecoinPoint } from './providers/defillama'
+export { DEFILLAMA_ANALYTICS_SOURCE } from './providers/defillama-analytics'
 
 export { NEWS_CATEGORY_LABELS, NEWS_LANG_LABELS } from './providers/news'
 export type { NewsCategory, NewsLang } from './providers/news'
@@ -172,7 +177,10 @@ export type {
   AssetDetail,
   AssetTicker,
   Candle,
+  DefiChain,
+  DefiProtocol,
   DexPool,
+  FeeOverview,
   GlobalMarketStats,
   ListAssetsParams,
   MarketAsset,
@@ -196,4 +204,5 @@ export type {
   SortDirection,
   SortField,
   TrendingAsset,
+  YieldPool,
 } from './types'

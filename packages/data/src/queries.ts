@@ -51,6 +51,13 @@ import {
   type StablecoinPoint,
 } from './providers/defillama'
 import {
+  DEFILLAMA_ANALYTICS_SOURCE,
+  fetchDefiChains,
+  fetchDefiProtocols,
+  fetchFeeOverview,
+  fetchYieldPools,
+} from './providers/defillama-analytics'
+import {
   SENTIMENT_SOURCE,
   fetchSentiment,
   fetchSentimentHistory,
@@ -71,7 +78,10 @@ import type {
   AssetClass,
   AssetDetail,
   AssetTicker,
+  DefiChain,
+  DefiProtocol,
   DexPool,
+  FeeOverview,
   GlobalMarketStats,
   MarketAsset,
   MarketCategory,
@@ -89,6 +99,7 @@ import type {
   SentimentPoint,
   SortDirection,
   TrendingAsset,
+  YieldPool,
 } from './types'
 import { ProviderError } from './types'
 
@@ -1820,6 +1831,87 @@ export function getStablecoinHistory(): Promise<DataResult<StablecoinPoint[]>> {
     DEFILLAMA_SOURCE,
     fetchStablecoinHistory,
     3_600,
+  )
+}
+
+/*
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LES QUATRE LECTURES DES PAGES « ANALYTICS »
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * TTL d'une heure pour les quatre, et c'est le fournisseur qui l'impose autant que le
+ * sens : ses réponses pèsent plusieurs mégaoctets, et ces pages donnent une
+ * PHOTOGRAPHIE de l'état du marché plutôt qu'un cours qu'on rafraîchit.
+ *
+ * Les bornes passées ici sont des DÉCISIONS DE PAGE, pas des détails de transport :
+ * combien de lignes un tableau porte, et à partir de quelle taille un pool mérite
+ * d'être montré. Elles vivent donc au niveau où on peut les lire à côté de ce
+ * qu'elles servent, et non enfouies dans l'adaptateur.
+ */
+const ANALYTICS_TTL_SECONDS = 3_600
+
+/** Les chaînes classées par valeur immobilisée. */
+export function getDefiChains(limit = 100): Promise<DataResult<DefiChain[]>> {
+  return runStandalone(
+    `defillama:chains:${limit}`,
+    DEFILLAMA_ANALYTICS_SOURCE,
+    () => fetchDefiChains(limit),
+    ANALYTICS_TTL_SECONDS,
+  )
+}
+
+/**
+ * Les protocoles, éventuellement bornés à une catégorie de la source.
+ *
+ * La catégorie entre dans la clé de cache : sans elle, la première page rendue
+ * déciderait de ce que voient les suivantes.
+ */
+export function getDefiProtocols(
+  limit = 100,
+  category?: string,
+): Promise<DataResult<DefiProtocol[]>> {
+  return runStandalone(
+    `defillama:protocols:${category ?? 'all'}:${limit}`,
+    DEFILLAMA_ANALYTICS_SOURCE,
+    () => fetchDefiProtocols(limit, category),
+    ANALYTICS_TTL_SECONDS,
+  )
+}
+
+/**
+ * Les pools de rendement au-dessus d'un plancher de taille.
+ *
+ * ⚠️ LE PLANCHER EST UNE CONDITION DE VÉRACITÉ. Dix-sept mille pools sont publiés et
+ * la plupart pèsent quelques milliers de dollars : sur une telle taille, quelques
+ * centaines de dollars de récompense produisent un taux annualisé à quatre chiffres
+ * qui n'aura plus cours la semaine suivante. Dix millions écartent ce bruit ; la page
+ * annonce le seuil, pour que le lecteur sache ce qu'il ne voit pas.
+ */
+export function getYieldPools(limit = 200, minTvlUsd = 10_000_000): Promise<DataResult<YieldPool[]>> {
+  return runStandalone(
+    `defillama:pools:${minTvlUsd}:${limit}`,
+    DEFILLAMA_ANALYTICS_SOURCE,
+    () => fetchYieldPools(limit, minTvlUsd),
+    ANALYTICS_TTL_SECONDS,
+  )
+}
+
+/**
+ * Les frais payés à l'ensemble des protocoles suivis.
+ *
+ * `seriesDays` à 730 : deux ans. La source en publie huit, mais sur la largeur d'un
+ * tracé de page les six premières années s'écrasent contre l'axe — elles coûtent du
+ * poids sans rien montrer.
+ */
+export function getFeeOverview(
+  seriesDays = 730,
+  topProtocols = 15,
+): Promise<DataResult<FeeOverview>> {
+  return runStandalone(
+    `defillama:fees:${seriesDays}:${topProtocols}`,
+    DEFILLAMA_ANALYTICS_SOURCE,
+    () => fetchFeeOverview(seriesDays, topProtocols),
+    ANALYTICS_TTL_SECONDS,
   )
 }
 

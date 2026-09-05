@@ -288,13 +288,29 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
                 ce qu'une barre de navigation doit être : disponible sans être
                 insistante. C'est la même logique que les intitulés de section des
                 pages de graphiques, corrigés pour la même raison. */}
-            <NavigationMenuLink asChild className="px-2 py-2 text-[13px] font-normal leading-[1.425] text-ink-muted hover:text-ink">
+            {/* ── LA GRAISSE REPASSE À 600, PAR DEMANDE EXPLICITE ────────────────
+
+                La note ci-dessus explique pourquoi elle était retombée à 400 : c'est
+                la mesure de CoinGecko, et six intitulés en demi-gras se disputent
+                l'attention avec le logotype. L'argument tient toujours ; il est
+                simplement arbitré autrement — la demande est de rendre ces titres
+                LISIBLES en premier, pas discrets.
+
+                La TAILLE ne bouge pas. C'est elle qui porte la densité de la barre
+                (13 px, hauteur 56, logo 24) ; seule la graisse change, ce qui laisse
+                intact l'alignement des menus sur la première lettre de leur
+                intitulé, vérifié à zéro pixel d'écart. */}
+            <NavigationMenuLink asChild className="px-2 py-2 text-[13px] font-semibold leading-[1.425] text-ink-muted hover:text-ink">
                 <Link href={menu.href}>{t(menu.label)}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
           ) : (
             <NavigationMenuItem key={menu.label} value={menu.label}>
-              <NavigationMenuTrigger className="bg-transparent px-2 py-2 text-[13px] font-normal leading-[1.425] text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
+              {/* Même graisse que le lien sans panneau, ci-dessus — voir sa note.
+                  Les deux formes vivent sur la MÊME rangée : les départager
+                  reviendrait à signaler par le poids du texte lequel ouvre un
+                  panneau, ce qui n'est pas une information de graisse. */}
+              <NavigationMenuTrigger className="bg-transparent px-2 py-2 text-[13px] font-semibold leading-[1.425] text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
                 {t(menu.label)}
               </NavigationMenuTrigger>
 

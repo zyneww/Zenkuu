@@ -404,6 +404,73 @@ export const NAV_MENUS: NavMenu[] = [
     ],
   },
   {
+    /*
+      ══════════════════════════════════════════════════════════════════════════
+      ANALYTICS — ENTRE « PLACES DE MARCHÉ » ET « COMPRENDRE » (demande explicite)
+      ══════════════════════════════════════════════════════════════════════════
+
+      ⚠️ LE LIBELLÉ N'EST PAS TRADUIT, ET C'EST LA MÊME DÉCISION QUE POUR SA ROUTE.
+      Les quatre pages sont écrites en anglais des deux côtés — chemin interne compris,
+      ce qui n'arrive nulle part ailleurs dans `pathnames.ts`. Un menu français au-dessus
+      d'adresses anglaises ferait diverger ce qu'on lit de ce qu'on atteint, et le mot
+      n'a de toute façon pas de traduction française d'usage dans ce domaine.
+
+      ── DEUX SECTIONS, ET LA COUPURE PORTE UN SENS ─────────────────────────
+
+      La première tient l'aperçu seul : c'est l'entrée de la rubrique, celle qui donne
+      les ordres de grandeur avant qu'on choisisse une lecture. Les trois autres sont
+      des vues DÉTAILLÉES sur une dimension chacune — où l'argent est déposé, ce qu'il
+      représente, ce qu'il rapporte. Les mettre sur un pied d'égalité avec l'aperçu
+      donnerait quatre choix équivalents là où il y a une porte et trois pièces.
+
+      ── AUCUNE ENTRÉE `ready: false` ICI ───────────────────────────────────
+
+      Les quatre pages existent et sont servies par DefiLlama. Le drapeau existe pour
+      annoncer une page à venir ; s'en servir sur une rubrique entière reviendrait à
+      poser un menu décoratif, ce que le cahier des charges interdit.
+    */
+    label: 'Analytics',
+    sections: [
+      {
+        items: [
+          {
+            label: 'Overview',
+            description: 'Ce que la finance décentralisée pèse et encaisse',
+            icon: Activity,
+            href: '/analytics',
+            ready: true,
+          },
+        ],
+      },
+      {
+        label: 'Par dimension',
+        items: [
+          {
+            label: 'Blockchains',
+            description: 'Les chaînes classées par valeur immobilisée',
+            icon: Layers,
+            href: '/analytics/blockchains',
+            ready: true,
+          },
+          {
+            label: 'Tokenized assets',
+            description: 'Les actifs du monde réel portés par un protocole',
+            icon: Landmark,
+            href: '/analytics/tokenized-assets',
+            ready: true,
+          },
+          {
+            label: 'APY',
+            description: 'Les rendements constatés, jamais promis',
+            icon: Sprout,
+            href: '/analytics/apy',
+            ready: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
     label: 'Comprendre',
     sections: [
       {

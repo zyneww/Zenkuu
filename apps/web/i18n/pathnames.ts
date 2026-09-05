@@ -77,6 +77,28 @@ export const PATHNAMES = {
   '/': '/',
 
   '/a-propos': traduit('/a-propos', '/about'),
+
+  /*
+    ── LES SEULES ROUTES DU SITE ÉCRITES EN ANGLAIS DES DEUX CÔTÉS ─────────────
+
+    La note d'en-tête explique pourquoi les chemins internes sont français : c'est la
+    langue SOURCE du dépôt. Ces quatre-ci font exception sur consigne explicite —
+    « anglais par défaut sur toutes les nouvelles interfaces et routes ».
+
+    L'exception coûte peu et se défend : « analytics » et « APY » n'ont pas de
+    traduction française d'usage dans ce domaine, et les deux autres segments sont des
+    termes de métier qu'on rencontre en anglais partout ailleurs. Écrire
+    `/analyses/actifs-tokenises` en interne pour servir `/analytics/tokenized-assets`
+    aurait créé un jeu de noms que personne n'emploie, à seule fin de respecter une
+    convention de nommage de fichiers.
+
+    Une seule chaîne par ligne : l'adresse est donc la même dans les treize langues.
+  */
+  '/analytics': '/analytics',
+  '/analytics/apy': '/analytics/apy',
+  '/analytics/blockchains': '/analytics/blockchains',
+  '/analytics/tokenized-assets': '/analytics/tokenized-assets',
+
   '/actions': traduit('/actions', '/stocks'),
   '/actions/[id]': traduit('/actions/[id]', '/stocks/[id]'),
   '/actions/[id]/metriques/[metrique]': traduit(

@@ -408,10 +408,13 @@ function RowsPerPage({
 const UNITS = [
   'actif',
   'article',
+  'chaîne',
   'cotation',
   'ligne',
   'paire',
   'place',
+  'pool',
+  'protocole',
   'résultat',
   'secteur',
   'société',

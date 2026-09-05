@@ -575,10 +575,17 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               distinguait — la granularité — servait à corriger un défaut de leur propre
               forme, pas à répondre à une question.
 
-              `series-grouping.ts` et `BarFigure` RESTENT au dépôt avec leurs tests :
-              le premier avait justement été extrait du composant pour être éprouvé
-              seul, le second est une figure générique. Ni l'un ni l'autre n'était
-              spécifique aux cartes qui partent.
+              `BarFigure` reste : c'est une figure générique, et la page `/analytics`
+              s'en sert pour ses frais mensuels.
+
+              ⚠️ `series-grouping.ts` A ÉTÉ SUPPRIMÉ, APRÈS AVOIR ÉTÉ GARDÉ. Il l'avait
+              été au motif qu'il était « générique » — il ne l'est pas : son type
+              `SeriesPoint` porte un `price`, un `volume` et une `marketCap`, c'est-à-dire
+              la forme exacte des cartes qui partent. Le seul appelant possible restant,
+              la figure des frais de `/analytics`, aurait dû lui passer un prix nul pour
+              obtenir une somme mensuelle. Ses six tests partent avec lui ; le
+              raisonnement sur « le volume se somme, la capitalisation se prend à la
+              fin » est repris là où il sert encore, dans `FeeSeries`.
 
               ── CE QUI ARRIVE, ET AVEC QUELLE DONNÉE ────────────────────────────
 
