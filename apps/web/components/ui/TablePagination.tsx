@@ -335,18 +335,19 @@ export function TablePagination({
 }
 
 /**
- * LE SÉLECTEUR DE LIGNES, EXTRAIT DE LA BARRE.
+ * LE SÉLECTEUR DE LIGNES — TROISIÈME PISTE DE LA BARRE.
  *
- * Il en occupait le bord droit. Les tableaux de cotations le remontent désormais dans
- * leur RANGÉE D'OUTILS, au-dessus des colonnes — là où vivent les autres réglages
- * d'affichage — ce qui laisse la barre du bas aux deux seules choses qui parlent de la
- * position dans la liste : le compteur et les crans de page.
+ * ⚠️ IL A ÉTÉ EXPORTÉ, PUIS NE L'EST PLUS. `MarketTable` l'avait remonté dans sa
+ * rangée d'outils, au motif que « combien de lignes afficher est un réglage, et les
+ * réglages sont en haut ». Le pied demandé est celui de CoinGecko, qui porte les trois
+ * contrôles ; et le déplacement en coûtait DEUX, pas un — sans troisième piste, la
+ * grille ci-dessus repasse à deux colonnes et les crans de page cessent d'être
+ * centrés.
  *
- * `TablePagination` continue de le rendre lui-même quand on lui passe
- * `onPerPageChange` : les tableaux qui n'ont pas de rangée d'outils — places de
- * cotation, palmarès, carnets — gardent leur pied inchangé.
+ * Il redevient donc un détail d'implémentation de la barre. S'il fallait un jour le
+ * poser ailleurs, c'est l'export qu'il faudrait rétablir, pas la mise en page.
  */
-export function RowsPerPage({
+function RowsPerPage({
   perPage,
   onPerPageChange,
   perPageChoices = ROW_CHOICES,

@@ -28,7 +28,7 @@ import { AssetLogo } from '@/components/asset/AssetLogo'
 import { Money } from '@/components/locale/Money'
 import type { BoardColumnSet } from '@/components/market/BoardTabs'
 import { CHANGE_PERIODS, periodMeta, type ChangePeriod } from '@/components/market/crypto-views'
-import { RowsPerPage, TablePagination } from '@/components/ui/TablePagination'
+import { TablePagination } from '@/components/ui/TablePagination'
 import { ColumnHeader } from '@/components/ui/table-columns'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { useContent } from '@/components/locale/ContentProvider'
@@ -678,31 +678,24 @@ export function MarketTable({
       {/*
         ── LA RANGÉE D'OUTILS ────────────────────────────────────────────────
 
-        Ce que l'appelant y pose à gauche — en pratique les vues rapides — et le
-        SÉLECTEUR DE LIGNES à droite, remonté du pied de tableau à la place qu'y tenait
-        « Personnaliser ».
+        Ce que l'appelant y pose : les vues rapides à gauche, la période à droite.
 
-        C'est un déplacement, pas un ajout : le pied ne porte plus que le compteur et
-        les crans de page, c'est-à-dire les deux seules choses qui disent OÙ L'ON EN
-        EST. Combien de lignes afficher est un réglage, et les réglages sont en haut.
+        ⚠️ LE SÉLECTEUR DE LIGNES N'Y EST PLUS. Il y avait été remonté du pied de
+        tableau ; il y redescend, parce que le pied demandé est celui de CoinGecko et
+        qu'il porte les trois contrôles — voir la note au `TablePagination` plus bas.
 
-        La rangée disparaît ENTIÈREMENT quand elle n'a rien à porter — ni vue rapide,
-        ni période, ni sélecteur de lignes. Une bande vide au-dessus d'un tableau se
-        lit comme un bloc qui n'a pas chargé.
+        La rangée disparaît ENTIÈREMENT quand elle n'a rien à porter. Une bande vide
+        au-dessus d'un tableau se lit comme un bloc qui n'a pas chargé, et depuis ce
+        retrait le cas est devenu courant : un tableau sans vue rapide ni période n'a
+        plus de rangée du tout.
       */}
-      {leadingSlot || trailingSlot || onPerPageChange ? (
+      {leadingSlot || trailingSlot ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
           {/* Le `<span />` de repli n'est pas décoratif : `justify-between` sur un
-              enfant unique collerait le sélecteur de lignes à gauche, alors qu'on le
-              cherche au bord droit. */}
+              enfant unique collerait le bloc de droite à gauche. */}
           {leadingSlot ?? <span />}
 
-          <div className="flex flex-wrap items-center gap-2">
-            {trailingSlot}
-            {onPerPageChange ? (
-              <RowsPerPage perPage={perPage} onPerPageChange={onPerPageChange} />
-            ) : null}
-          </div>
+          <div className="flex flex-wrap items-center gap-2">{trailingSlot}</div>
         </div>
       ) : null}
       {/*
@@ -1587,15 +1580,27 @@ export function MarketTable({
            le compteur écrit « 1 à 25 sur 100 » sans conjecture. Les crans appellent
            l'appelant plutôt que de naviguer — aucune adresse ne change, aucun rendu
            serveur n'est demandé. */
-        /* Le SÉLECTEUR DE LIGNES n'est plus passé ici : il vit dans la rangée d'outils,
-           au-dessus du tableau. Le pied garde le compteur à gauche et les crans à
-           droite — voir `TablePagination`, qui repasse à deux pistes dans ce cas. */
+        /*
+          ── LE SÉLECTEUR DE LIGNES REDESCEND DANS LE PIED (demande explicite) ───
+
+          Il avait été remonté dans la rangée d'outils, et la note qui l'y tenait
+          disait : « combien de lignes afficher est un réglage, et les réglages sont en
+          haut ». L'argument est bon dans l'absolu ; il ne l'emporte pas ici, parce que
+          le pied de tableau demandé est celui de CoinGecko, mesuré : compteur à gauche,
+          crans de page au CENTRE, sélecteur de lignes à droite.
+
+          Le centre est ce qui se perdait. `TablePagination` ne centre les numéros que
+          sur trois pistes ; à deux, il les colle au bord droit — c'est documenté dans
+          son propre fichier. Le sélecteur en haut ne déplaçait donc pas un seul
+          contrôle, il changeait la place de deux.
+        */
         <TablePagination
           page={page}
           perPage={perPage}
           total={total ?? assets.length}
           unit="actif"
           onPageChange={onPageChange}
+          {...(onPerPageChange ? { onPerPageChange } : {})}
         />
       ) : paginated ? (
         /*

@@ -62,12 +62,25 @@ export const COMPARE_LIMIT = 6
  * silencieusement une autre page que celle demandée.
  *
  * Leur place ici plutôt que dans le composant tient à cette route : elle s'en sert
- * comme d'une BORNE de clés de cache — trois crans, donc trois entrées par page, là
+ * comme d'une BORNE de clés de cache — quatre crans, donc quatre entrées par page, là
  * où un intervalle libre en ouvrirait deux cent cinquante. C'est un plafond au même
  * titre que les autres de ce fichier, et un module client ne peut pas être importé
  * par un gestionnaire de route.
+ *
+ * ── LE CRAN 25 A ÉTÉ AJOUTÉ, ET IL COMBLE UN TROU RÉEL ─────────────────────
+ *
+ * Relevé sur `coingecko.com` : leur pied de tableau propose 10, 25, 50 et 100. La
+ * liste d'ici sautait de 10 à 50, et l'écart n'est pas cosmétique — c'est un facteur
+ * cinq entre deux crans voisins, au milieu duquel se trouve précisément la hauteur
+ * d'un écran de portable. Qui trouvait dix lignes trop courtes n'avait d'autre choix
+ * que d'en charger cinquante.
+ *
+ * ⚠️ LE PLAFOND DE CLÉS DE CACHE MONTE AVEC : quatre crans font quatre entrées par
+ * page au lieu de trois. C'est le coût assumé du cran manquant, et il reste borné —
+ * ce que la note ci-dessus protège, c'est l'intervalle LIBRE, pas la longueur de la
+ * liste.
  */
-export const ROW_CHOICES = [10, 50, 100] as const
+export const ROW_CHOICES = [10, 25, 50, 100] as const
 
 /** Cran par défaut : celui que les tableaux ouvrent, et celui que la route suppose. */
 export const DEFAULT_ROWS = 50
