@@ -76,7 +76,7 @@ export async function AssetCommunity({ asset }: { asset: AssetDetail }) {
       {devRows.length > 0 ? (
         <>
           {rows.length > 0 ? (
-            <p className="mb-1.5 mt-4 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+            <p className="mb-1.5 mt-4 text-micro font-semibold text-ink-muted">
               {t('Dépôt public')}
             </p>
           ) : null}

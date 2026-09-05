@@ -615,7 +615,7 @@ function ExportMenu({
           role="menu"
           className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-card border border-border-subtle bg-surface py-1 shadow-lg"
         >
-          <p className="px-3 pb-1 pt-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">{t('Aperçu de la carte')}</p>
+          <p className="px-3 pb-1 pt-1.5 text-micro font-semibold text-ink-muted">{t('Aperçu de la carte')}</p>
 
           <MenuItem icon={<Download className="h-3.5 w-3.5" />} onClick={onDownload}>{t('Télécharger l’image')}</MenuItem>
           <MenuItem icon={<Copy className="h-3.5 w-3.5" />} onClick={onCopyImage}>{t('Copier l’image')}</MenuItem>
@@ -1046,7 +1046,7 @@ function Measure({
 }) {
   return (
     <div>
-      <dt className="text-micro uppercase tracking-wide text-ink-muted">{label}</dt>
+      <dt className="text-micro text-ink-muted">{label}</dt>
       <dd
         className={`tabular text-sm font-semibold ${
           tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : 'text-ink'

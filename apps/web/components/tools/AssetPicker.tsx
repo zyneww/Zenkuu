@@ -252,7 +252,7 @@ export function AssetPicker({
                 {/* En-tête COLLÉ : sur une liste de trois cents entrées, la section
                     courante disparaît en haut du panneau dès le premier défilement,
                     et le lecteur ne sait plus ce qu'il parcourt. */}
-                <ComboboxLabel className="sticky top-0 z-10 bg-overlay px-3 py-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+                <ComboboxLabel className="sticky top-0 z-10 bg-overlay px-3 py-1.5 text-micro font-semibold text-ink-muted">
                   {CLASS_LABELS[assetClass]}
                 </ComboboxLabel>
 

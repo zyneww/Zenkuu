@@ -712,7 +712,7 @@ export async function AssetPriceCard({
         Les six libellés existaient déjà dans les tables de traduction — ils
         servent au rail de `AssetMarketSheet` — et n'ont donc rien coûté.
       */}
-      <p className="text-micro font-medium uppercase tracking-wide text-ink-muted">
+      <p className="text-micro font-medium text-ink-muted">
         {asset.symbol.toUpperCase()}
         <span aria-hidden="true"> / </span>
         <span className="sr-only">, </span>

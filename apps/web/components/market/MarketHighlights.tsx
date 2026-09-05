@@ -214,7 +214,7 @@ function Card({
 }) {
   return (
     <section className="border border-border-subtle bg-surface px-4 py-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{title}</h2>
+      <h2 className="text-xs font-semibold text-ink-muted">{title}</h2>
       {note ? <p className="mt-0.5 text-[0.6875rem] text-ink-muted">{note}</p> : null}
       <ul className="mt-2.5 space-y-2">{children}</ul>
     </section>

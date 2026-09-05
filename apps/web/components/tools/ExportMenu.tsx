@@ -101,7 +101,7 @@ export function ExportMenu<T>({
         {/* Le décompte est un `DropdownMenuLabel` et non un paragraphe libre : Radix
             le sort de l'ordre de tabulation et le marque comme intitulé du groupe, ce
             qui le fait annoncer AVANT les formats plutôt qu'entre deux d'entre eux. */}
-        <DropdownMenuLabel className="text-[0.6875rem] font-normal uppercase tracking-wide text-ink-muted">
+        <DropdownMenuLabel className="text-[0.6875rem] font-normal text-ink-muted">
           {t(rows.length > 1 ? '{n} lignes à exporter' : '{n} ligne à exporter').replace(
             '{n}',
             String(rows.length),

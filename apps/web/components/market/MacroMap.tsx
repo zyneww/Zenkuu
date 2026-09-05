@@ -243,7 +243,7 @@ export function MacroMap({
         <div className="space-y-4">
           {byRegion.map(([region, entries]) => (
             <section key={region}>
-              <h3 className="mb-1.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+              <h3 className="mb-1.5 text-micro font-semibold text-ink-muted">
                 {region}
                 <span className="ml-1.5 font-normal normal-case tracking-normal">
                   {entries.length}
@@ -277,7 +277,7 @@ export function MacroMap({
 
         {/* ── Le classement ─────────────────────────────────────────────── */}
         <aside className="space-y-2">
-          <h3 className="text-micro font-semibold uppercase tracking-wide text-ink-muted">
+          <h3 className="text-micro font-semibold text-ink-muted">
             {t('Classement')}
           </h3>
 

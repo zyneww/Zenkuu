@@ -208,7 +208,7 @@ function MiniTrend({
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-1 basis-36 flex-col gap-1">
-      <span className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">{label}</span>
+      <span className="text-[0.6875rem] text-ink-muted">{label}</span>
       <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-lg font-semibold text-ink">
         {children}
       </span>

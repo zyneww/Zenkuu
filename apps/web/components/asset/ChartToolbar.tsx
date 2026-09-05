@@ -1260,7 +1260,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
                           posé après, il aurait détaché le titre de sa propre liste. */}
                       {index > 0 ? <MenubarSeparator /> : null}
 
-                      <MenubarLabel className="text-micro uppercase tracking-wide text-ink-muted">
+                      <MenubarLabel className="text-micro text-ink-muted">
                         {t(group.label)}
                       </MenubarLabel>
 
@@ -1348,7 +1348,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
                   vectoriel, donc net à l'impression et retouchable ; PDF est ce qu'on
                   joint à une note. Choisir à la place du lecteur reviendrait à décider
                   de l'usage qu'il fera du fichier. */}
-              <MenubarLabel className="text-micro uppercase tracking-wide text-ink-muted">
+              <MenubarLabel className="text-micro text-ink-muted">
                 {t('Exporter')}
               </MenubarLabel>
 
@@ -1762,7 +1762,7 @@ function ComparePanel({
             />
           </div>
 
-          <p className="px-2 pb-1 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+          <p className="px-2 pb-1 text-micro font-semibold text-ink-muted">
             {query.trim() !== ''
               ? t('Résultats')
               : fallback

@@ -303,7 +303,7 @@ export default async function ExchangePage({ params }: RouteProps) {
 async function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
     <div className="rounded-card bg-surface p-3">
-      <p className="text-micro uppercase tracking-wide text-ink-muted">{label}</p>
+      <p className="text-micro text-ink-muted">{label}</p>
       <p className="tabular mt-1 text-lg font-semibold text-ink">{value}</p>
       <p className="text-micro text-ink-muted">{hint}</p>
     </div>

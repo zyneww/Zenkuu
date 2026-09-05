@@ -540,7 +540,7 @@ function ColumnDialog({
         <div className="grid min-h-0 flex-1 gap-5 p-5 sm:grid-cols-2">
           {/* ── VOLET GAUCHE : tout ce qui existe ─────────────────────────── */}
           <section className="flex min-h-0 flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            <h3 className="text-xs font-semibold text-ink-muted">
               {t('Toutes les colonnes')}
             </h3>
 
@@ -621,7 +621,7 @@ function ColumnDialog({
           {/* ── VOLET DROIT : ce que le tableau affichera ─────────────────── */}
           <section className="flex min-h-0 flex-col gap-3">
             <div className="flex items-baseline justify-between gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+              <h3 className="text-xs font-semibold text-ink-muted">
                 {t('Colonnes affichées')} ({selected.length})
               </h3>
               <button

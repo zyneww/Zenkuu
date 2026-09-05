@@ -200,7 +200,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
         </div>
 
         <div className="text-right">
-          <p className="text-[0.6875rem] uppercase tracking-wide text-ink-muted">
+          <p className="text-[0.6875rem] text-ink-muted">
             {tp('currentValue')}
           </p>
           <p className="figure text-3xl font-bold text-ink">

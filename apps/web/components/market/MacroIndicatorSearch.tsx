@@ -260,7 +260,7 @@ export function MacroIndicatorSearch({ current }: { current: string }) {
           ) : (
             groups.map((group) => (
               <div key={group.id} className="pb-1">
-                <p className="px-3 pb-1 pt-2 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+                <p className="px-3 pb-1 pt-2 text-micro font-semibold text-ink-muted">
                   {t(group.label)}
                 </p>
 

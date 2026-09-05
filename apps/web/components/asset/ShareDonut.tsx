@@ -298,7 +298,7 @@ export function ShareDonut({
 
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-border-subtle text-micro uppercase tracking-wide text-ink-muted">
+            <tr className="border-b border-border-subtle text-micro text-ink-muted">
               <th scope="col" className="pb-1 text-left font-medium">
                 {restNoun}
               </th>

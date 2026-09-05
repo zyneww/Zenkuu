@@ -62,7 +62,7 @@ export function AssetStickyBar({
       <span className="hidden min-w-0 truncate text-sm font-semibold text-ink md:block">
         {asset.name}
       </span>
-      <span className="shrink-0 text-micro font-semibold uppercase tracking-wider text-ink-muted">
+      <span className="shrink-0 text-micro font-semibold uppercase text-ink-muted">
         {asset.symbol}
       </span>
 
