@@ -161,7 +161,16 @@ export async function AssetMetricRail({
                       devant « valorisation diluée » est « qu'est-ce que c'est », à
                       laquelle elle répond sur place — pas « montre-moi sa courbe ».
                     */}
-                    <span className="truncate text-xs text-ink-muted">{label}</span>
+                    {/* ⚠️ 14/20/500 ET NON 13/18/400, ET LA MESURE A DÛ ÊTRE REFAITE.
+                        Un premier relevé donnait ces lignes à 12/20/500 pour le libellé
+                        et 13/18,5/400 pour la valeur — il avait attrapé deux éléments
+                        qui ne sont pas ceux-là (une borne d'amplitude et un nœud masqué).
+                        Repris par géométrie sur la colonne gauche de la fiche Bitcoin de
+                        CoinGecko, le 4 septembre 2026 : « Market Cap », « Fully Diluted
+                        Valuation », « 24 Hour Trading Vol », « Circulating Supply »,
+                        « Total Supply » et « Max Supply » sortent TOUTES en 14/20/500,
+                        encre atténuée. Leurs valeurs sortent en 14/20/600. */}
+                    <span className="truncate text-sm font-medium text-ink-muted">{label}</span>
                     {/*
                       L'INFOBULLE EST POSÉE EN PERMANENCE, PAS RÉVÉLÉE AU SURVOL.
                      
@@ -193,7 +202,7 @@ export async function AssetMetricRail({
                   </dt>
 
                   {metric.kind !== 'change' ? (
-                    <dd className="tabular shrink-0 text-xs font-medium text-ink">
+                    <dd className="tabular shrink-0 text-sm font-semibold text-ink">
                       <MetricValue metric={metric} value={value} asset={asset} isForex={isForex} />
                     </dd>
                   ) : null}

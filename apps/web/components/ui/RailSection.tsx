@@ -70,12 +70,17 @@ export function RailSection({
             la référence, et l'arbitrage retenu pour ce chantier est que la référence
             l'emporte.
 
-            Le pixel qui reste : 11 chez nous contre 12 chez elle. L'échelle du projet
-            n'a pas de cran de douze — `--text-micro` vaut 11, `--text-xs` vaut 13 — et
-            en ajouter un pour ce seul titre déplacerait toute la grille typographique
-            du site pour un pixel.
+            ⚠️ ET LE CRAN DE DOUZE EXISTE — j'avais écrit ici qu'il manquait, et qu'il
+            fallait donc s'en tenir aux onze pixels de `--text-micro`. C'est
+            `--v2-text-2xs` (12 px, interligne 16), posé par le sous-projet A des jetons
+            relevés chez la référence, et déjà consommé par les en-têtes de tableau et
+            les cartes de statistiques. `--text-micro` vaut 11, `--text-xs` vaut 13 :
+            c'est en ne regardant que l'ANCIENNE échelle qu'on ne trouve rien entre les
+            deux, et c'est l'erreur que faisait cette note.
+
+            Le titre tombe donc exactement sur la valeur relevée, sans rien déplacer.
           */}
-          <h2 className="text-micro font-semibold text-ink-muted">
+          <h2 className="text-[length:var(--v2-text-2xs)] font-semibold leading-4 text-ink-muted">
             {title}
           </h2>
           {action !== undefined ? <div className="shrink-0">{action}</div> : null}

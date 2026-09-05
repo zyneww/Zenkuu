@@ -197,8 +197,23 @@ export function SegmentedControl<T extends string>({
              où seules les cases extrêmes sont arrondies. Nos cases sont séparées
              d'une gouttière, chacune est un objet, chacune porte son rayon. */
           className={cn(
-            'relative shrink-0 whitespace-nowrap rounded-control! bg-transparent font-normal transition-colors duration-150 data-[state=on]:bg-transparent',
-            compact ? 'h-6 px-2 text-micro' : 'h-7 px-2.5 text-xs',
+            /* ⚠️ `font-semibold` ET NON `font-normal`. Relevé le 4 septembre 2026 sur la
+               fiche Bitcoin de CoinGecko : ses pastilles de période — 24h, 7d, 1y —
+               sortent TOUTES en 12/16/600, actives comme inactives, et ses en-têtes de
+               tableau au même cran. Le `font-normal` posé ici les rendait à 400 : elles
+               se lisaient comme du texte courant tombé dans un cadre, quand une pastille
+               est un LIBELLÉ DE COMMANDE et doit peser comme tel.
+
+               ⚠️ ET LE CRAN DE DOUZE EXISTE — j'avais écrit ici qu'il manquait. C'est
+               `--v2-text-2xs` (12px, interligne 16), posé par le sous-projet A des jetons
+               relevés chez la référence, et déjà consommé par les en-têtes de tableau et
+               les cartes de statistiques. `--text-xs` vaut 13, `--text-micro` vaut 11 :
+               c'est entre les deux qu'on ne trouvait rien en regardant l'ancienne
+               échelle seule. La pastille tombe donc exactement sur la valeur relevée. */
+            'relative shrink-0 whitespace-nowrap rounded-control! bg-transparent font-semibold transition-colors duration-150 data-[state=on]:bg-transparent',
+            compact
+              ? 'h-6 px-2 text-micro'
+              : 'h-7 px-2.5 text-[length:var(--v2-text-2xs)] leading-4',
             'text-ink-muted hover:text-ink data-[state=on]:text-ink',
             'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-ink-muted',
           )}
