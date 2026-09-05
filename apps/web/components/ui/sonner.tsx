@@ -38,6 +38,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme}
       className="toaster group"
+      /* ── CE QUE LE BRIEF EXIGE D'UNE NOTIFICATION ACCESSIBLE ──────────────
+         `closeButton` : une notification doit pouvoir être renvoyée sans attendre
+         sa durée. Le bouton entre dans l'ordre de tabulation, ce qu'aucun geste de
+         balayage ne fait — c'est la fermeture clavier demandée.
+
+         `richColors` : le ton ne passe plus par la seule icône. Une confirmation
+         verte et une erreur rouge se distinguent avant d'être lues, et l'icône
+         reste là pour ceux qui ne perçoivent pas l'écart de teinte — la couleur ne
+         porte jamais seule.
+
+         `sonner` pose lui-même `aria-live` sur sa liste et déplace le focus au
+         raccourci ⌥T ; il n'y a rien à ajouter pour la politesse. */
+      closeButton
+      richColors
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,

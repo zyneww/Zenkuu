@@ -1,6 +1,6 @@
 'use client'
 
-import { BookmarkPlus, Loader2, Trash2 } from 'lucide-react'
+import { BookmarkPlus, Loader2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -16,7 +16,8 @@ import {
 import { ButtonGroup } from '@/components/ui/button-group'
 import { useEffect, useState, useTransition } from 'react'
 
-import { IconButton } from '@/components/ui/IconButton'
+import { DeleteButton } from '@/components/ui/delete-button'
+import { notifierErreur, notifierSucces } from '@/lib/notify'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -124,10 +125,32 @@ export function SavedScreens({
     })
   }
 
-  function drop(id: number) {
+  /*
+   * ── LA SUPPRESSION REND COMPTE, ET ELLE NE LE FAISAIT PAS ──────────────────
+   *
+   * Elle appelait `removeScreen(id)` sans regarder sa réponse, puis rechargeait la
+   * liste. Or `ScreenActionResult` porte un `ok: false` avec un motif — base
+   * indisponible, erreur d'écriture — et l'écran restait alors affiché sans que rien
+   * ne l'explique : le lecteur voyait son clic ne produire aucun effet.
+   *
+   * Le résultat est désormais lu, et les deux issues se disent. C'est aussi ce que
+   * `DeleteButton` réclame par contrat : le brief l'interdit « pour un simple bouton
+   * retirer sans confirmation et feedback toast ».
+   */
+  function drop(id: number, nom: string) {
     startTransition(async () => {
-      await removeScreen(id)
+      const resultat = await removeScreen(id)
+
+      if (!resultat.ok) {
+        notifierErreur(
+          t('L’écran « {nom} » n’a pas pu être supprimé.').replace('{nom}', nom),
+          { description: t('Réessayez dans un instant.') },
+        )
+        return
+      }
+
       setScreens(await listSavedScreens())
+      notifierSucces(t('Écran « {nom} » supprimé.').replace('{nom}', nom))
     })
   }
 
@@ -160,14 +183,21 @@ export function SavedScreens({
             <Button size="xs" variant="ghost" onClick={() => onApply(screen.criteria)}>
               {screen.name}
             </Button>
-            <IconButton
-              size="icon-xs"
-              variant="ghost"
-              onClick={() => drop(screen.id)}
-              disabled={pending}
-              label={`Supprimer l’écran ${screen.name}`}
-              icon={Trash2}
-              className="border-l border-border-subtle hover:text-down"
+            {/* ── `DeleteButton` REMPLACE UNE CORBEILLE SANS FILET ────────────────
+
+                L'`IconButton` posé ici supprimait AU PREMIER CLIC. Un écran de
+                recherche se construit en plusieurs réglages ; le perdre sur un clic
+                mal placé, sans annulation ni confirmation, est le genre de geste
+                qu'on ne pardonne pas à une interface.
+
+                Le composant du registre Rare UI porte sa confirmation dans le bouton
+                lui-même — il s'ouvre, propose de valider ou d'annuler, et respecte
+                `prefers-reduced-motion` par `useReducedMotion`. C'est l'usage exact
+                que le brief lui réserve : « les actions destructives avec
+                confirmation », jamais un simple retrait. */}
+            <DeleteButton
+              onConfirm={() => drop(screen.id, screen.name)}
+              className="border-l border-border-subtle"
             />
           </ButtonGroup>
         ))}
