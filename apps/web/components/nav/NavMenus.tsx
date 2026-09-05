@@ -288,13 +288,13 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
                 ce qu'une barre de navigation doit être : disponible sans être
                 insistante. C'est la même logique que les intitulés de section des
                 pages de graphiques, corrigés pour la même raison. */}
-            <NavigationMenuLink asChild className="px-3 py-2 text-[13px] font-normal text-ink-muted hover:text-ink">
+            <NavigationMenuLink asChild className="px-2 py-2 text-[13px] font-normal leading-[1.425] text-ink-muted hover:text-ink">
                 <Link href={menu.href}>{t(menu.label)}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
           ) : (
             <NavigationMenuItem key={menu.label} value={menu.label}>
-              <NavigationMenuTrigger className="bg-transparent px-3 py-2 text-[13px] font-normal text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
+              <NavigationMenuTrigger className="bg-transparent px-2 py-2 text-[13px] font-normal leading-[1.425] text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
                 {t(menu.label)}
               </NavigationMenuTrigger>
 

@@ -90,7 +90,17 @@
      pixel qui s'ajoute à sa hauteur de boîte ; le décalage du tableau doit donc être
      `calc(var(--header-height) + 1px)`, et c'est ce qu'il écrit. Sans ce pixel, une
      lisière de ligne défilante apparaît au-dessus des intitulés de colonnes. */
-  --header-height: 4rem;
+  /* ⚠️ 3,5rem ET NON 4 — LA DENSITÉ DE LA RÉFÉRENCE, MESURÉE LE 2026-09-05.
+
+     L'en-tête de CoinGecko porte DEUX rangées : un bandeau de statistiques globales,
+     puis la barre de navigation. Le tout fait 118 px, et la seule rangée qui nous
+     concerne — logo, menus, recherche — en occupe environ 52. La nôtre en faisait 65
+     pour le même contenu : treize pixels de vide au-dessus et en dessous des mêmes
+     éléments.
+
+     56 px laissent respirer un logo de 24 et des menus de 36 de haut, sans le blanc
+     qui donnait à la barre son air de bandeau. */
+  --header-height: 3.5rem;
 
   /* ───────────────────────────────────────────────────────────────────────────
      PALETTE COINGECKO — MESURÉE SUR DIX PAGES, REPRISE TELLE QUELLE.

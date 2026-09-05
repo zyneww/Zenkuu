@@ -178,7 +178,11 @@ export function NavBar({
              « Compact » (CoinGecko), étalée bord à bord en « Étirée »
              (CoinMarketCap). Le filet du `<header>` reste traversant dans les deux
              cas. Voir `.shell-header` dans globals.css. */
-          className="shell-header flex h-[var(--header-height)] items-center gap-2 lg:gap-4"
+          /* `lg:gap-6` et non `gap-4` : mesuré chez CoinGecko le 2026-09-05, 32 px
+             séparent le bord droit de leur logo du premier libellé de menu. Le nôtre
+             tombait à 24 une fois le logo resserré — 16 de gouttière plus les 8 de
+             rembourrage gauche du premier menu. 24 + 8 rendent les 32 relevés. */
+          className="shell-header flex h-[var(--header-height)] items-center gap-2 lg:gap-6"
         >
           {/*
             LE TIROIR EST LE PREMIER ÉLÉMENT DE LA BARRE, avant le logo.
@@ -233,16 +237,34 @@ export function NavBar({
               La hauteur seule est fixée : la largeur découle du `viewBox`, ce qui
               interdit toute déformation. Voir components/BrandMark.tsx.
             */}
-            {/* `h-8` et non `h-7` : le logo de CoinGecko fait 32 px de haut, mesuré le
-                2026-09-02, et le nôtre en faisait 28.
+            {/* ⚠️ `h-6` ET NON `h-8` — LA NOTE PRÉCÉDENTE ALIGNAIT LA MAUVAISE COTE.
 
-                ⚠️ SEULE LA HAUTEUR EST REPRISE, PAS LA LARGEUR. Le leur fait 146 px ;
-                le nôtre en fera 176, parce que son `viewBox` (549.86 × 100) impose son
-                rapport et que `w-auto` le respecte. Forcer 146 px écraserait le dessin
-                — c'est exactement ce que la note de `BrandMark` interdit. Deux
-                logotypes de même hauteur se lisent comme deux logotypes de même
-                importance, quelle que soit la longueur du mot. */}
-            <ZenkuuWordmark className="h-8 w-auto shrink-0" />
+                Elle disait : « le logo de CoinGecko fait 32 px de haut, donc le nôtre
+                aussi », et concluait que « deux logotypes de même hauteur se lisent comme
+                deux logotypes de même importance ». C'est vrai de deux logotypes de même
+                COMPOSITION. Les deux ne le sont pas.
+
+                Le leur est d'abord un ROND : un disque de 32 px suivi d'un mot serré. Le
+                nôtre est d'abord un MOT : une petite marque « ZK » suivie de six lettres
+                qui occupent les deux tiers du bloc. Égaliser la hauteur du bloc égalise
+                donc le disque contre nos lettres, et laisse le mot deux fois trop gros.
+
+                ── LA MESURE, LE 2026-09-05 ────────────────────────────────────────
+
+                  eux    bloc 146×32, disque ~32 de large, « coingecko » ≈ 108 pour
+                         neuf lettres → environ 12 px par caractère
+                  nous   bloc 176×32, marque ZK ~51 de large (viewBox 159.83×100),
+                         « zenkuu » ≈ 113 pour six lettres → environ 18,8
+
+                Un rapport de 1,57. À `h-6`, notre mot tombe à ~14 px par caractère et le
+                bloc à 132 px de large, contre leurs 146 : les deux cotes atterrissent à
+                moins de dix pour cent. C'est le meilleur accord simultané — aucune échelle
+                ne fait coïncider À LA FOIS la marque et le mot, puisque les deux blocs ne
+                sont pas composés pareil.
+
+                La hauteur reste la seule cote fixée : la largeur découle du `viewBox` et
+                `w-auto` la respecte, comme l'exige la note de `BrandMark`. */}
+            <ZenkuuWordmark className="h-6 w-auto shrink-0" />
           </Link>
 
           {/*
