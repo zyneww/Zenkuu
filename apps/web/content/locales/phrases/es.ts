@@ -8,6 +8,18 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  'Suivre l’actif': 'Seguir activo',
+  'Actif suivi': 'Siguiendo',
+  'Suivi indisponible': 'Seguimiento no disponible',
+  '{nom} ajouté à votre liste de suivi.': '{nom} añadido a tu lista de seguimiento.',
+  '{nom} retiré de votre liste de suivi.': '{nom} eliminado de tu lista de seguimiento.',
+  'Liste de suivi limitée à {n} actifs.': 'Lista limitada a {n} activos.',
+  'Retirez un actif pour en suivre un autre.': 'Elimina un activo para seguir otro.',
+  'Le suivi n’est pas disponible sur cette instance.': 'El seguimiento no está disponible en esta instancia.',
+  'Le suivi n’a pas pu être enregistré.': 'No se pudo guardar el seguimiento.',
+  'Réessayez dans un instant.': 'Inténtalo de nuevo en un momento.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'No se pudo eliminar la pantalla «{nom}».',
+  'Écran « {nom} » supprimé.': 'Pantalla «{nom}» eliminada.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 d',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  'Suivre l’actif': 'Segui l’asset',
+  'Actif suivi': 'Seguito',
+  'Suivi indisponible': 'Monitoraggio non disponibile',
+  '{nom} ajouté à votre liste de suivi.': '{nom} aggiunto alla tua lista.',
+  '{nom} retiré de votre liste de suivi.': '{nom} rimosso dalla tua lista.',
+  'Liste de suivi limitée à {n} actifs.': 'Lista limitata a {n} asset.',
+  'Retirez un actif pour en suivre un autre.': 'Rimuovi un asset per seguirne un altro.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Il monitoraggio non è disponibile su questa istanza.',
+  'Le suivi n’a pas pu être enregistré.': 'Impossibile salvare il monitoraggio.',
+  'Réessayez dans un instant.': 'Riprova tra un istante.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Impossibile eliminare la schermata «{nom}».',
+  'Écran « {nom} » supprimé.': 'Schermata «{nom}» eliminata.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 g',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

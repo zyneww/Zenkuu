@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  'Suivre l’actif': 'Theo dõi tài sản',
+  'Actif suivi': 'Đang theo dõi',
+  'Suivi indisponible': 'Không thể theo dõi',
+  '{nom} ajouté à votre liste de suivi.': 'Đã thêm {nom} vào danh sách theo dõi.',
+  '{nom} retiré de votre liste de suivi.': 'Đã xóa {nom} khỏi danh sách theo dõi.',
+  'Liste de suivi limitée à {n} actifs.': 'Danh sách giới hạn {n} tài sản.',
+  'Retirez un actif pour en suivre un autre.': 'Hãy bỏ một tài sản để theo dõi tài sản khác.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Tính năng theo dõi không khả dụng trên phiên bản này.',
+  'Le suivi n’a pas pu être enregistré.': 'Không thể lưu theo dõi.',
+  'Réessayez dans un instant.': 'Vui lòng thử lại sau giây lát.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Không thể xóa màn hình “{nom}”.',
+  'Écran « {nom} » supprimé.': 'Đã xóa màn hình “{nom}”.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 ngày',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

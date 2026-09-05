@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  'Suivre l’actif': '銘柄をフォロー',
+  'Actif suivi': 'フォロー中',
+  'Suivi indisponible': 'フォローを利用できません',
+  '{nom} ajouté à votre liste de suivi.': '{nom} をウォッチリストに追加しました。',
+  '{nom} retiré de votre liste de suivi.': '{nom} をウォッチリストから削除しました。',
+  'Liste de suivi limitée à {n} actifs.': 'ウォッチリストは {n} 銘柄までです。',
+  'Retirez un actif pour en suivre un autre.': '別の銘柄をフォローするには 1 件削除してください。',
+  'Le suivi n’est pas disponible sur cette instance.': 'この環境ではフォローを利用できません。',
+  'Le suivi n’a pas pu être enregistré.': 'フォローを保存できませんでした。',
+  'Réessayez dans un instant.': '少し経ってからもう一度お試しください。',
+  'L’écran « {nom} » n’a pas pu être supprimé.': '画面「{nom}」を削除できませんでした。',
+  'Écran « {nom} » supprimé.': '画面「{nom}」を削除しました。',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7日',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

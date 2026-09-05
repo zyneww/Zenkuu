@@ -49,7 +49,7 @@ import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { tradingViewMarketCapSymbol, tradingViewSymbol } from '@/components/asset/tradingview-symbol'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
-import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
+import { FollowAssetButton } from '@/components/watchlist/FollowAssetButton'
 import { getContent } from '@/lib/content'
 import { mentioning } from '@/lib/mentions'
 import { assetPath, marketHref, marketPath } from '@/lib/asset-routes'
@@ -1044,7 +1044,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               assetClass={assetClass}
               rankLabel={fr.asset.stats.rank}
               watchAction={
-                <WatchlistStar
+                <FollowAssetButton
                   assetClass={assetClass}
                   assetId={data.id}
                   label={data.name}

@@ -9,6 +9,18 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  'Suivre l’actif': 'Asset folgen',
+  'Actif suivi': 'Gefolgt',
+  'Suivi indisponible': 'Folgen nicht verfügbar',
+  '{nom} ajouté à votre liste de suivi.': '{nom} zur Merkliste hinzugefügt.',
+  '{nom} retiré de votre liste de suivi.': '{nom} von der Merkliste entfernt.',
+  'Liste de suivi limitée à {n} actifs.': 'Merkliste auf {n} Assets begrenzt.',
+  'Retirez un actif pour en suivre un autre.': 'Entfernen Sie ein Asset, um einem anderen zu folgen.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Folgen ist auf dieser Instanz nicht verfügbar.',
+  'Le suivi n’a pas pu être enregistré.': 'Folgen konnte nicht gespeichert werden.',
+  'Réessayez dans un instant.': 'Versuchen Sie es gleich erneut.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Ansicht „{nom}“ konnte nicht gelöscht werden.',
+  'Écran « {nom} » supprimé.': 'Ansicht „{nom}“ gelöscht.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 Tage',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

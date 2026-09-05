@@ -283,25 +283,23 @@ export async function AssetHeadline({
   return (
         <div className="flex min-w-0 items-start gap-3">
           {/*
-            ── L'ÉTOILE OUVRE LA LIGNE, ELLE NE LA FERME PLUS ──────────────────
+            ⚠️ L'ÉTOILE ISOLÉE A ÉTÉ RETIRÉE D'ICI (demande explicite).
 
-            Elle fermait la ligne de titre, après le symbole. Deux raisons de la
-            déplacer contre le logo, dans cet ordre :
+            Elle ouvrait la rangée, collée au logo, et la note qui la tenait là
+            défendait cette place : « suivre un actif est une action sur L'OBJET, pas
+            sur son nom ». Le raisonnement reste juste ; ce qu'il ne voyait pas, c'est
+            qu'une étoile NUE ne dit pas ce qu'elle fait.
 
-            C'est la place de la référence (zone verte de dropstab.com), et cette
-            place a une logique : suivre un actif est une action sur L'OBJET, pas sur
-            son nom. Posée avant le logo, elle se lit comme la case à cocher d'une
-            ligne de liste — ce qu'elle est.
+            Dans un tableau, l'icône seule se comprend par répétition : cinquante
+            lignes portent la même commande, et la colonne l'explique. En tête de
+            fiche elle est seule de son espèce — rien n'apprend au lecteur ce qu'elle
+            déclenche avant qu'il ne la survole.
 
-            Et la ligne de titre y gagne : sur un nom long — « Wrapped liquid staked
-            Ether 2.0 » — l'étoile passait à la ligne et entraînait le sous-titre de
-            catégories avec elle.
-
-            `mt-2.5` la centre optiquement sur le disque du logo sans la lier à sa
-            hauteur : les deux sont alignés en haut du bloc, pas sur son milieu, parce
-            que le bloc de droite grandit avec le nombre d'étiquettes.
+            `FollowAssetButton` la remplace, nommé en toutes lettres, et se pose à
+            l'AUTRE bout de la rangée — voir `watchAction` plus bas. La ligne
+            d'identité y gagne le geste qu'elle avait perdu : le logo ouvre, le nom
+            suit, l'action ferme.
           */}
-          <span className="mt-2.5 shrink-0">{watchAction}</span>
 
           {/* Le logo dans un disque bordé, et non posé à nu sur le fond : les sources
               livrent des marques aux formes et aux fonds très inégaux — carrées,
@@ -558,6 +556,22 @@ export async function AssetHeadline({
               </div>
             ) : null}
           </div>
+
+          {/* ── LE SUIVI FERME LA RANGÉE, À L'OPPOSÉ DU LOGO ────────────────────
+
+              C'est la zone que la capture 2 entoure en rouge : le bord droit de la
+              ligne d'identité, en face du nom. La place a une logique de lecture —
+              on identifie l'actif à gauche, on agit dessus à droite — et c'est celle
+              qu'occupent les commandes sur les deux références.
+
+              `ml-auto` plutôt qu'un `justify-between` sur le conteneur : la rangée
+              porte trois blocs de largeurs très inégales (logo, identité, action), et
+              un `justify-between` écarterait aussi le logo du nom. Poussé par sa
+              propre marge, le bouton part à droite sans toucher au couple de gauche.
+
+              `mt-1` l'aligne optiquement sur la première ligne de titre plutôt que sur
+              le haut du bloc : le nom est en 18 px, le bouton en fait 32 de haut. */}
+          <div className="ml-auto mt-1 shrink-0">{watchAction}</div>
         </div>
   )
 }

@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  'Suivre l’actif': 'Varlığı takip et',
+  'Actif suivi': 'Takip ediliyor',
+  'Suivi indisponible': 'Takip kullanılamıyor',
+  '{nom} ajouté à votre liste de suivi.': '{nom} takip listenize eklendi.',
+  '{nom} retiré de votre liste de suivi.': '{nom} takip listenizden çıkarıldı.',
+  'Liste de suivi limitée à {n} actifs.': 'Takip listesi {n} varlıkla sınırlı.',
+  'Retirez un actif pour en suivre un autre.': 'Başka bir varlığı takip etmek için birini çıkarın.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Takip bu örnekte kullanılamıyor.',
+  'Le suivi n’a pas pu être enregistré.': 'Takip kaydedilemedi.',
+  'Réessayez dans un instant.': 'Birazdan tekrar deneyin.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': '“{nom}” ekranı silinemedi.',
+  'Écran « {nom} » supprimé.': '“{nom}” ekranı silindi.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 gün',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

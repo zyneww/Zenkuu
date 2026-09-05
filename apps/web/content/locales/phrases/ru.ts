@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  'Suivre l’actif': 'Отслеживать актив',
+  'Actif suivi': 'Отслеживается',
+  'Suivi indisponible': 'Отслеживание недоступно',
+  '{nom} ajouté à votre liste de suivi.': '{nom} добавлен в список отслеживания.',
+  '{nom} retiré de votre liste de suivi.': '{nom} удалён из списка отслеживания.',
+  'Liste de suivi limitée à {n} actifs.': 'Список ограничен {n} активами.',
+  'Retirez un actif pour en suivre un autre.': 'Удалите один актив, чтобы добавить другой.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Отслеживание недоступно в этой среде.',
+  'Le suivi n’a pas pu être enregistré.': 'Не удалось сохранить отслеживание.',
+  'Réessayez dans un instant.': 'Повторите попытку через мгновение.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Не удалось удалить экран «{nom}».',
+  'Écran « {nom} » supprimé.': 'Экран «{nom}» удалён.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 дн',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

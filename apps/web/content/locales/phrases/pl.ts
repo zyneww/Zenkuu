@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  'Suivre l’actif': 'Obserwuj aktywo',
+  'Actif suivi': 'Obserwowane',
+  'Suivi indisponible': 'Obserwowanie niedostępne',
+  '{nom} ajouté à votre liste de suivi.': 'Dodano {nom} do listy obserwowanych.',
+  '{nom} retiré de votre liste de suivi.': 'Usunięto {nom} z listy obserwowanych.',
+  'Liste de suivi limitée à {n} actifs.': 'Lista ograniczona do {n} aktywów.',
+  'Retirez un actif pour en suivre un autre.': 'Usuń jedno aktywo, aby obserwować inne.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Obserwowanie jest niedostępne w tej instancji.',
+  'Le suivi n’a pas pu être enregistré.': 'Nie udało się zapisać obserwacji.',
+  'Réessayez dans un instant.': 'Spróbuj ponownie za chwilę.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Nie udało się usunąć widoku „{nom}”.',
+  'Écran « {nom} » supprimé.': 'Widok „{nom}” usunięty.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 dni',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

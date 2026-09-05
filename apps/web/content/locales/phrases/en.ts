@@ -13,6 +13,18 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  'Suivre l’actif': 'Follow asset',
+  'Actif suivi': 'Following',
+  'Suivi indisponible': 'Following unavailable',
+  '{nom} ajouté à votre liste de suivi.': '{nom} added to your watchlist.',
+  '{nom} retiré de votre liste de suivi.': '{nom} removed from your watchlist.',
+  'Liste de suivi limitée à {n} actifs.': 'Watchlist limited to {n} assets.',
+  'Retirez un actif pour en suivre un autre.': 'Remove an asset to follow another one.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Following is not available on this instance.',
+  'Le suivi n’a pas pu être enregistré.': 'Could not save your follow.',
+  'Réessayez dans un instant.': 'Try again in a moment.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Screen “{nom}” could not be deleted.',
+  'Écran « {nom} » supprimé.': 'Screen “{nom}” deleted.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7d',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

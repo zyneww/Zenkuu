@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  'Suivre l’actif': '关注该资产',
+  'Actif suivi': '已关注',
+  'Suivi indisponible': '关注功能不可用',
+  '{nom} ajouté à votre liste de suivi.': '已将 {nom} 添加到自选列表。',
+  '{nom} retiré de votre liste de suivi.': '已将 {nom} 从自选列表移除。',
+  'Liste de suivi limitée à {n} actifs.': '自选列表最多 {n} 个资产。',
+  'Retirez un actif pour en suivre un autre.': '请移除一个资产后再关注其他资产。',
+  'Le suivi n’est pas disponible sur cette instance.': '该实例不支持关注功能。',
+  'Le suivi n’a pas pu être enregistré.': '关注未能保存。',
+  'Réessayez dans un instant.': '请稍后再试。',
+  'L’écran « {nom} » n’a pas pu être supprimé.': '无法删除视图「{nom}」。',
+  'Écran « {nom} » supprimé.': '已删除视图「{nom}」。',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 天',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

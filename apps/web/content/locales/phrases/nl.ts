@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  'Suivre l’actif': 'Asset volgen',
+  'Actif suivi': 'Gevolgd',
+  'Suivi indisponible': 'Volgen niet beschikbaar',
+  '{nom} ajouté à votre liste de suivi.': '{nom} toegevoegd aan je volglijst.',
+  '{nom} retiré de votre liste de suivi.': '{nom} verwijderd uit je volglijst.',
+  'Liste de suivi limitée à {n} actifs.': 'Volglijst beperkt tot {n} assets.',
+  'Retirez un actif pour en suivre un autre.': 'Verwijder een asset om een andere te volgen.',
+  'Le suivi n’est pas disponible sur cette instance.': 'Volgen is niet beschikbaar op deze instantie.',
+  'Le suivi n’a pas pu être enregistré.': 'Volgen kon niet worden opgeslagen.',
+  'Réessayez dans un instant.': 'Probeer het zo opnieuw.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Scherm “{nom}” kon niet worden verwijderd.',
+  'Écran « {nom} » supprimé.': 'Scherm “{nom}” verwijderd.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 dagen',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */

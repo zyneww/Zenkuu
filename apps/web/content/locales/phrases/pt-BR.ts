@@ -2,6 +2,18 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  'Suivre l’actif': 'Seguir ativo',
+  'Actif suivi': 'Seguindo',
+  'Suivi indisponible': 'Acompanhamento indisponível',
+  '{nom} ajouté à votre liste de suivi.': '{nom} adicionado à sua lista.',
+  '{nom} retiré de votre liste de suivi.': '{nom} removido da sua lista.',
+  'Liste de suivi limitée à {n} actifs.': 'Lista limitada a {n} ativos.',
+  'Retirez un actif pour en suivre un autre.': 'Remova um ativo para seguir outro.',
+  'Le suivi n’est pas disponible sur cette instance.': 'O acompanhamento não está disponível nesta instância.',
+  'Le suivi n’a pas pu être enregistré.': 'Não foi possível salvar o acompanhamento.',
+  'Réessayez dans un instant.': 'Tente novamente em instantes.',
+  'L’écran « {nom} » n’a pas pu être supprimé.': 'Não foi possível excluir a tela “{nom}”.',
+  'Écran « {nom} » supprimé.': 'Tela “{nom}” excluída.',
   /* ── PÉRIODES COURTES — ajouté le 2026-08-31 ── */
   '7 j': '7 d',
   /* ── TEXTES MULTI-LIGNES — chapeaux, notes de méthode et étiquettes — ajouté le 2026-08-31 ── */
