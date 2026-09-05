@@ -112,20 +112,47 @@ const ScrollProgress = ({
   const [openSize, setOpenSize] = React.useState<Size>()
   const [labelWidth, setLabelWidth] = React.useState<number>()
 
+  /*
+   * ── ADAPTÉ DU REGISTRE : LA MESURE BOUCLAIT À L'INFINI ─────────────────────
+   *
+   * ⚠️ LE COMPOSANT NE S'AFFICHAIT PAS DU TOUT, ET LA CONSOLE DISAIT POURQUOI :
+   * « Maximum update depth exceeded », levé depuis cette fonction. React abandonne
+   * alors le sous-arbre — d'où une page où aucun élément `position: fixed` n'existe.
+   *
+   * Le circuit est fermé sur lui-même. `measure()` écrit trois états SANS COMPARER,
+   * et un `ResizeObserver` observe précisément les éléments dont ces états commandent
+   * la taille : chaque écriture provoque un rendu, le rendu une mesure, la mesure une
+   * écriture. Rien n'arrête la chaîne parce que rien ne vérifie que la valeur a
+   * réellement changé.
+   *
+   * Les mises à jour passent donc par une fonction qui rend la MÊME référence quand
+   * la taille est identique. React compare par `Object.is` et renonce au rendu : la
+   * boucle se ferme au premier tour stable, sans rien retirer au comportement voulu —
+   * une taille qui change vraiment est toujours prise en compte.
+   */
   useIsoLayoutEffect(() => {
     const measure = () => {
-      if (labelRef.current) setLabelWidth(labelRef.current.offsetWidth)
+      if (labelRef.current) {
+        const largeur = labelRef.current.offsetWidth
+        setLabelWidth((precedent) => (precedent === largeur ? precedent : largeur))
+      }
       if (collapsedRef.current) {
-        setCollapsedSize({
-          width: collapsedRef.current.offsetWidth,
-          height: collapsedRef.current.offsetHeight,
-        })
+        const width = collapsedRef.current.offsetWidth
+        const height = collapsedRef.current.offsetHeight
+        setCollapsedSize((precedent) =>
+          precedent && precedent.width === width && precedent.height === height
+            ? precedent
+            : { width, height },
+        )
       }
       if (openRef.current) {
-        setOpenSize({
-          width: openRef.current.offsetWidth,
-          height: openRef.current.offsetHeight,
-        })
+        const width = openRef.current.offsetWidth
+        const height = openRef.current.offsetHeight
+        setOpenSize((precedent) =>
+          precedent && precedent.width === width && precedent.height === height
+            ? precedent
+            : { width, height },
+        )
       }
     }
 

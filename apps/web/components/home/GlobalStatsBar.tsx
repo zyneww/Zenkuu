@@ -1,4 +1,3 @@
-import { getLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { getMarketCapSeriesState, MIN_POINTS_FOR_CHART } from '@zenkuu/data'
 import type { GlobalMarketStats, MarketCapPoint, SentimentIndex } from '@zenkuu/data'
@@ -7,6 +6,7 @@ import { Sparkline } from '@zenkuu/ui'
 
 import { classify } from '@/components/home/SidePanels'
 import { StatsBarCollapse } from '@/components/home/StatsBarCollapse'
+import { Counter } from '@/components/locale/Counter'
 import { Money } from '@/components/locale/Money'
 import { getContent, getPhrase } from '@/lib/content'
 
@@ -44,7 +44,9 @@ export async function GlobalStatsBar({
   stats: GlobalMarketStats | null
   sentiment?: SentimentIndex | null
 }) {
-  const locale = await getLocale()
+  /* `getLocale()` a disparu avec le dernier appel qui s'en servait : le dénombrement
+     de cryptomonnaies le consommait pour son `toLocaleString`, et il passe désormais
+     par `Counter`, qui tient la langue lui-même côté client. */
   const fr = await getContent()
   const t = await getPhrase()
 
@@ -142,8 +144,19 @@ export async function GlobalStatsBar({
         </Stat>
       ) : null}
 
+      {/* ── LE SEUL CHIFFRE DE CETTE BARRE QUI SOIT UN DÉNOMBREMENT ──────────
+
+          Les autres — capitalisation, volume, dominance — passent par `Money` en
+          forme compacte : « 2,79 T$ ». Y animer les chiffres demanderait de
+          décomposer le symbole monétaire, le nombre et le suffixe d'échelle, puis de
+          les rassembler ; le compteur perdrait ce que la forme compacte apporte.
+
+          Celui-ci est un entier nu, et il change réellement d'un relevé à l'autre :
+          c'est ce que le brief vise par « compteurs de résultats ». L'animation ne
+          se déclenche donc que sur une variation de donnée, jamais sur un simple
+          re-rendu — c'est la valeur elle-même qui la commande. */}
       <Stat label={t('Cryptomonnaies')}>
-        <span className="tabular">{stats.activeAssets.toLocaleString(locale)}</span>
+        <Counter value={stats.activeAssets} />
       </Stat>
 
       {sentiment ? (

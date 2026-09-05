@@ -37,6 +37,7 @@ import { AssetProfileRail } from '@/components/asset/AssetHoldings'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
+import { ReadingProgress } from '@/components/ui/ReadingProgress'
 import { AssetHeadline, AssetPriceCard } from '@/components/asset/AssetPageHeader'
 import { AssetSentiment } from '@/components/asset/AssetSentiment'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
@@ -1359,6 +1360,17 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           <AssetPeerGrid peers={trending.data.filter((entry) => entry.id !== data.id).slice(0, 6)} />
         </section>
       ) : null}
+
+      {/* ── LA PROGRESSION DE LECTURE FERME LA PAGE ──────────────────────────
+
+          La fiche d'actif est la page la plus longue du site : en-tête, graphique,
+          widgets, « À propos », FAQ et tendances. C'est le premier des types que le
+          brief nomme, et le seul où l'on descend sans savoir combien il reste.
+
+          Elle est posée EN DERNIER dans l'arbre, mais sa position est `fixed` : sa
+          place dans le document n'a d'effet que sur l'ordre de tabulation, où elle
+          arrive après le contenu — ce qui est le bon rang pour un indicateur. */}
+      <ReadingProgress />
     </div>
   )
 }
