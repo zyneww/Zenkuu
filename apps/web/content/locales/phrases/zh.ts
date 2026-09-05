@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** 短语表 — 简体中文。键为法语原文。 */
 export const zhPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': '详细表现',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': '第一行是以显示货币计价的价格变动。下面各行以同一时段对比基准资产：为正表示跑赢，为负表示跑输。',
+  'Records de cours': '价格纪录',
+  'depuis le cours actuel': '相对当前价格',
+  'gagnés depuis ce point': '自该低点上涨',
+  'Convertir {symbole}': '换算 {symbole}',
+  'Cours coté directement en {devise} par la source.': '数据源直接以 {devise} 报价。',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': '按当日汇率从 {base} 换算：数据源未以 {devise} 报价该资产。',
+  'Mis à jour': '更新时间',
+  '{nom} face à ses voisins': '{nom} 与同类资产对比',
+  'Taille relative': '相对规模',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': '最后一列是各同类资产市值除以本资产市值。这是今天测得的规模比例，不是预测。',
   'Suivre l’actif': '关注该资产',
   'Actif suivi': '已关注',
   'Suivi indisponible': '关注功能不可用',

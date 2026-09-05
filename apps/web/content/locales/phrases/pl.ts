@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela fraz — język polski. Kluczami są francuskie ciągi źródłowe. */
 export const plPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Szczegółowe wyniki',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'Pierwszy wiersz to zmiana ceny w wyświetlanej walucie. Kolejne pokazują ten sam okres WZGLĘDEM punktu odniesienia: wartość dodatnia oznacza lepszy wynik, ujemna gorszy.',
+  'Records de cours': 'Rekordy ceny',
+  'depuis le cours actuel': 'od bieżącej ceny',
+  'gagnés depuis ce point': 'zysku od tego punktu',
+  'Convertir {symbole}': 'Przelicz {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Cena podana bezpośrednio w {devise} przez źródło.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Przeliczone z {base} po kursie dnia: źródło nie podaje ceny tego aktywa w {devise}.',
+  'Mis à jour': 'Aktualizacja',
+  '{nom} face à ses voisins': '{nom} na tle podobnych aktywów',
+  'Taille relative': 'Wielkość względna',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'Ostatnia kolumna dzieli kapitalizację każdego z porównywanych aktywów przez kapitalizację tego aktywa. To zmierzony dziś stosunek wielkości, nigdy prognoza.',
   'Suivre l’actif': 'Obserwuj aktywo',
   'Actif suivi': 'Obserwowane',
   'Suivi indisponible': 'Obserwowanie niedostępne',

@@ -13,6 +13,19 @@ import type { Phrases } from '@/content/phrases'
  * included. Ticker symbols and provider names travel the same way.
  */
 export const enPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Detailed performance',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'The first row is the price change in the displayed currency. The rows below read the same period AGAINST a benchmark: positive means the asset beat it, negative means it lagged.',
+  'Records de cours': 'Price records',
+  'depuis le cours actuel': 'from the current price',
+  'gagnés depuis ce point': 'gained since that point',
+  'Convertir {symbole}': 'Convert {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Quoted directly in {devise} by the source.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Converted from {base} at today’s rate: the source does not quote this asset in {devise}.',
+  'Mis à jour': 'Updated',
+  '{nom} face à ses voisins': '{nom} against its peers',
+  'Taille relative': 'Relative size',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'The last column divides each peer’s market cap by this asset’s. It is a size ratio observed today, never a projection.',
   'Suivre l’actif': 'Follow asset',
   'Actif suivi': 'Following',
   'Suivi indisponible': 'Following unavailable',

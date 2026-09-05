@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Bảng câu — tiếng Việt. Khoá là chuỗi gốc tiếng Pháp. */
 export const viPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Hiệu suất chi tiết',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'Hàng đầu tiên là biến động giá theo đơn vị tiền đang hiển thị. Các hàng sau đọc cùng kỳ đó SO VỚI một tài sản chuẩn: dương là vượt trội, âm là kém hơn.',
+  'Records de cours': 'Kỷ lục giá',
+  'depuis le cours actuel': 'từ giá hiện tại',
+  'gagnés depuis ce point': 'tăng kể từ mức đó',
+  'Convertir {symbole}': 'Quy đổi {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Nguồn niêm yết trực tiếp bằng {devise}.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Quy đổi từ {base} theo tỷ giá trong ngày: nguồn không niêm yết tài sản này bằng {devise}.',
+  'Mis à jour': 'Cập nhật',
+  '{nom} face à ses voisins': '{nom} so với các tài sản tương đương',
+  'Taille relative': 'Quy mô tương đối',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'Cột cuối chia vốn hóa của từng tài sản tương đương cho vốn hóa của tài sản này. Đó là tỷ lệ quy mô đo được hôm nay, không phải dự báo.',
   'Suivre l’actif': 'Theo dõi tài sản',
   'Actif suivi': 'Đang theo dõi',
   'Suivi indisponible': 'Không thể theo dõi',

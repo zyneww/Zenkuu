@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Таблица фраз — русский. Ключами служат исходные французские строки. */
 export const ruPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Подробная динамика',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'Первая строка — изменение цены в выбранной валюте. Ниже тот же период читается ОТНОСИТЕЛЬНО эталона: плюс означает, что актив его обогнал, минус — отстал.',
+  'Records de cours': 'Ценовые рекорды',
+  'depuis le cours actuel': 'от текущей цены',
+  'gagnés depuis ce point': 'роста с той отметки',
+  'Convertir {symbole}': 'Конвертировать {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Источник публикует котировку прямо в {devise}.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Пересчитано из {base} по курсу дня: источник не публикует котировку этого актива в {devise}.',
+  'Mis à jour': 'Обновлено',
+  '{nom} face à ses voisins': '{nom} в сравнении с сопоставимыми активами',
+  'Taille relative': 'Относительный размер',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'Последний столбец делит капитализацию каждого сопоставимого актива на капитализацию этого. Это соотношение размеров на сегодня, а не прогноз.',
   'Suivre l’actif': 'Отслеживать актив',
   'Actif suivi': 'Отслеживается',
   'Suivi indisponible': 'Отслеживание недоступно',

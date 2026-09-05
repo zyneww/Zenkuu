@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Zinnentabel — Nederlands. De sleutels zijn de Franse brontekst. */
 export const nlPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Gedetailleerde prestaties',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'De eerste rij is de koersverandering in de getoonde valuta. De rijen daaronder lezen dezelfde periode TEGEN een referentie: positief betekent beter, negatief slechter.',
+  'Records de cours': 'Koersrecords',
+  'depuis le cours actuel': 'vanaf de huidige koers',
+  'gagnés depuis ce point': 'gewonnen sinds dat punt',
+  'Convertir {symbole}': '{symbole} omrekenen',
+  'Cours coté directement en {devise} par la source.': 'Rechtstreeks in {devise} genoteerd door de bron.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Omgerekend vanuit {base} tegen de dagkoers: de bron noteert dit activum niet in {devise}.',
+  'Mis à jour': 'Bijgewerkt',
+  '{nom} face à ses voisins': '{nom} tegenover vergelijkbare activa',
+  'Taille relative': 'Relatieve omvang',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'De laatste kolom deelt de marktkapitalisatie van elk vergelijkbaar activum door die van dit activum. Een vandaag gemeten verhouding, geen prognose.',
   'Suivre l’actif': 'Asset volgen',
   'Actif suivi': 'Gevolgd',
   'Suivi indisponible': 'Volgen niet beschikbaar',

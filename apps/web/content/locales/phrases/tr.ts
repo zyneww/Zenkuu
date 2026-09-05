@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Cümle tablosu — Türkçe. Anahtarlar Fransızca kaynak metinlerdir. */
 export const trPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Ayrıntılı performans',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'İlk satır, gösterilen para birimindeki fiyat değişimidir. Altındaki satırlar aynı dönemi bir ölçüte KARŞI okur: artı değer daha iyi, eksi değer daha kötü demektir.',
+  'Records de cours': 'Fiyat rekorları',
+  'depuis le cours actuel': 'mevcut fiyattan',
+  'gagnés depuis ce point': 'o noktadan bu yana',
+  'Convertir {symbole}': '{symbole} çevir',
+  'Cours coté directement en {devise} par la source.': 'Kaynak doğrudan {devise} cinsinden kote ediyor.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Günün kuruyla {base} biriminden çevrildi: kaynak bu varlığı {devise} cinsinden kote etmiyor.',
+  'Mis à jour': 'Güncellendi',
+  '{nom} face à ses voisins': '{nom} benzerleriyle karşılaştırma',
+  'Taille relative': 'Göreli büyüklük',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'Son sütun, her benzerin piyasa değerini bu varlığınkine böler. Bugün ölçülen bir büyüklük oranıdır, tahmin değildir.',
   'Suivre l’actif': 'Varlığı takip et',
   'Actif suivi': 'Takip ediliyor',
   'Suivi indisponible': 'Takip kullanılamıyor',

@@ -8,6 +8,19 @@ import type { Phrases } from '@/content/phrases'
  * crecer por secciones sin dejar nunca un hueco en una página.
  */
 export const esPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Rendimiento detallado',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'La primera fila es la variación del precio en la moneda mostrada. Las siguientes leen el mismo periodo FRENTE a una referencia: positivo, el activo la superó; negativo, quedó por detrás.',
+  'Records de cours': 'Récords de precio',
+  'depuis le cours actuel': 'desde el precio actual',
+  'gagnés depuis ce point': 'ganados desde ese punto',
+  'Convertir {symbole}': 'Convertir {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Cotizado directamente en {devise} por la fuente.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Convertido desde {base} al tipo del día: la fuente no cotiza este activo en {devise}.',
+  'Mis à jour': 'Actualizado',
+  '{nom} face à ses voisins': '{nom} frente a sus pares',
+  'Taille relative': 'Tamaño relativo',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'La última columna divide la capitalización de cada par entre la de este activo. Es una relación de tamaños observada hoy, nunca una proyección.',
   'Suivre l’actif': 'Seguir activo',
   'Actif suivi': 'Siguiendo',
   'Suivi indisponible': 'Seguimiento no disponible',

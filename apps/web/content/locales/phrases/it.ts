@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabella di frasi — italiano. Le chiavi sono le stringhe francesi di origine. */
 export const itPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Performance dettagliata',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'La prima riga è la variazione del prezzo nella valuta mostrata. Le successive leggono lo stesso periodo CONTRO un riferimento: positivo significa aver fatto meglio, negativo peggio.',
+  'Records de cours': 'Record di prezzo',
+  'depuis le cours actuel': 'dal prezzo attuale',
+  'gagnés depuis ce point': 'guadagnati da quel punto',
+  'Convertir {symbole}': 'Converti {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Quotato direttamente in {devise} dalla fonte.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Convertito da {base} al tasso del giorno: la fonte non quota questo asset in {devise}.',
+  'Mis à jour': 'Aggiornato',
+  '{nom} face à ses voisins': '{nom} rispetto ai suoi pari',
+  'Taille relative': 'Dimensione relativa',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'L’ultima colonna divide la capitalizzazione di ciascun pari per quella di questo asset. È un rapporto di dimensioni osservato oggi, mai una proiezione.',
   'Suivre l’actif': 'Segui l’asset',
   'Actif suivi': 'Seguito',
   'Suivi indisponible': 'Monitoraggio non disponibile',

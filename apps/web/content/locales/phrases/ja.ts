@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** フレーズ表 — 日本語。キーはフランス語の原文です。 */
 export const jaPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': '詳細パフォーマンス',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': '最初の行は表示通貨での価格変動です。以下の行は同じ期間を基準資産に対して読んだもので、プラスなら上回り、マイナスなら下回ったことを示します。',
+  'Records de cours': '価格の記録',
+  'depuis le cours actuel': '現在価格から',
+  'gagnés depuis ce point': 'その時点からの上昇',
+  'Convertir {symbole}': '{symbole} を換算',
+  'Cours coté directement en {devise} par la source.': 'ソースが {devise} 建てで直接提示した価格です。',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': '{base} から当日レートで換算しています。ソースはこの資産を {devise} 建てで提示していません。',
+  'Mis à jour': '更新',
+  '{nom} face à ses voisins': '{nom} と近い規模の銘柄',
+  'Taille relative': '規模比',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': '最後の列は、各銘柄の時価総額をこの資産の時価総額で割った値です。本日時点の規模の比率であり、将来の予測ではありません。',
   'Suivre l’actif': '銘柄をフォロー',
   'Actif suivi': 'フォロー中',
   'Suivi indisponible': 'フォローを利用できません',

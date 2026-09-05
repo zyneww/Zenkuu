@@ -9,6 +9,19 @@ import type { Phrases } from '@/content/phrases'
  * ohne je eine Lücke auf einer Seite zu hinterlassen.
  */
 export const dePhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Detaillierte Performance',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'Die erste Zeile zeigt die Kursveränderung in der angezeigten Währung. Die folgenden lesen denselben Zeitraum GEGEN eine Referenz: positiv heißt besser als sie, negativ schlechter.',
+  'Records de cours': 'Kursrekorde',
+  'depuis le cours actuel': 'ab dem aktuellen Kurs',
+  'gagnés depuis ce point': 'seit diesem Tiefpunkt',
+  'Convertir {symbole}': '{symbole} umrechnen',
+  'Cours coté directement en {devise} par la source.': 'Von der Quelle direkt in {devise} notiert.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Aus {base} zum Tageskurs umgerechnet: Die Quelle notiert diesen Wert nicht in {devise}.',
+  'Mis à jour': 'Aktualisiert',
+  '{nom} face à ses voisins': '{nom} im Vergleich zu seinem Umfeld',
+  'Taille relative': 'Größenverhältnis',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'Die letzte Spalte teilt die Marktkapitalisierung jedes Vergleichswerts durch die dieses Werts. Ein heute gemessenes Größenverhältnis, keine Prognose.',
   'Suivre l’actif': 'Asset folgen',
   'Actif suivi': 'Gefolgt',
   'Suivi indisponible': 'Folgen nicht verfügbar',

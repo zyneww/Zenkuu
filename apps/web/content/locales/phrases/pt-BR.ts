@@ -2,6 +2,19 @@ import type { Phrases } from '@/content/phrases'
 
 /** Tabela de frases — português (Brasil). As chaves são as cadeias francesas de origem. */
 export const ptBRPhrases: Phrases = {
+  /* ── BLOCS DE FICHE FAÇON DROPSTAB — ajouté le 2026-09-05 ── */
+  'Performance détaillée': 'Desempenho detalhado',
+  'La première ligne est la variation du cours dans la devise affichée. Les suivantes disent la même période lue CONTRE un étalon : positive, l’actif a fait mieux que lui ; négative, moins bien.': 'A primeira linha é a variação do preço na moeda exibida. As seguintes leem o mesmo período CONTRA uma referência: positivo, o ativo a superou; negativo, ficou atrás.',
+  'Records de cours': 'Recordes de preço',
+  'depuis le cours actuel': 'a partir do preço atual',
+  'gagnés depuis ce point': 'ganhos desde esse ponto',
+  'Convertir {symbole}': 'Converter {symbole}',
+  'Cours coté directement en {devise} par la source.': 'Cotado diretamente em {devise} pela fonte.',
+  'Converti depuis {base} au taux du jour : la source ne cote pas cet actif en {devise}.': 'Convertido de {base} pela taxa do dia: a fonte não cota este ativo em {devise}.',
+  'Mis à jour': 'Atualizado',
+  '{nom} face à ses voisins': '{nom} diante de seus pares',
+  'Taille relative': 'Tamanho relativo',
+  'La dernière colonne rapporte la capitalisation de chaque voisin à celle de cet actif. C’est un rapport de tailles constaté aujourd’hui, jamais une projection.': 'A última coluna divide a capitalização de cada par pela deste ativo. É uma relação de tamanhos observada hoje, nunca uma projeção.',
   'Suivre l’actif': 'Seguir ativo',
   'Actif suivi': 'Seguindo',
   'Suivi indisponible': 'Acompanhamento indisponível',

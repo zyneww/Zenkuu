@@ -44,7 +44,11 @@ import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
-import { AssetSeriesCards } from '@/components/asset/AssetSeriesCards'
+import { AssetVsPeers } from '@/components/asset/AssetVsPeers'
+import { AssetPerformanceMatrix } from '@/components/asset/AssetPerformanceMatrix'
+import { AssetRecords } from '@/components/asset/AssetRecords'
+import { AssetConverterCard } from '@/components/asset/AssetConverterCard'
+import { AssetExchangeTable } from '@/components/asset/AssetExchangeTable'
 import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { tradingViewMarketCapSymbol, tradingViewSymbol } from '@/components/asset/tradingview-symbol'
@@ -556,23 +560,63 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               graphique gagne la hauteur d'une rangée. */}
 
           {/* ══════════════════════════════════════════════════════════════════
-              LES CARTES DE SÉRIES, SOUS LE GRAPHIQUE
+              LES SIX BLOCS DE dropstab.com, À LA PLACE DES « SÉRIES DU MARCHÉ »
               ══════════════════════════════════════════════════════════════════
 
-              La forme de `blockworks.com/price/…`, sur les séries que ZENKUU possède.
-              Elles lisent LES MÊMES POINTS que le graphique du dessus — ceux de
-              `history` — donc aucun appel réseau de plus : le volume et la
-              capitalisation voyagent déjà dans cette réponse et n'étaient tracés nulle
-              part.
+              ── CE QUI PART ─────────────────────────────────────────────────────
 
-              ⚠️ ELLES NE SUIVENT PAS LA PÉRIODE CHOISIE DANS LA BARRE D'OUTILS, et il
-              faut le savoir : cet état vit dans `AssetWorkspace`, côté client, et le
-              faire remonter jusqu'ici transformerait la fiche entière en composant
-              client. Les cartes montrent donc la fenêtre servie par le serveur, que
-              leur propre sélecteur de granularité suffit à parcourir. */}
-          {history.ok && history.data.points.length > 1 ? (
-            <AssetSeriesCards points={history.data.points} />
-          ) : null}
+              `AssetSeriesCards` : trois figures en barres — volume, capitalisation,
+              variation — regroupables par jour, semaine ou mois. Elles tiraient leur
+              forme de `blockworks.com` et leurs points de la réponse d'historique.
+
+              Retrait DEMANDÉ, et il se défend : les trois séries qu'elles traçaient
+              sont déjà dans le graphique du dessus, qui porte le volume en
+              sous-panneau et les variations dans son bandeau de lecture. Ce qui les
+              distinguait — la granularité — servait à corriger un défaut de leur propre
+              forme, pas à répondre à une question.
+
+              `series-grouping.ts` et `BarFigure` RESTENT au dépôt avec leurs tests :
+              le premier avait justement été extrait du composant pour être éprouvé
+              seul, le second est une figure générique. Ni l'un ni l'autre n'était
+              spécifique aux cartes qui partent.
+
+              ── CE QUI ARRIVE, ET AVEC QUELLE DONNÉE ────────────────────────────
+
+              Cinq des six blocs de la fiche `dropstab.com/coins/…`. Aucun ne coûte un
+              appel de plus : les voisins, les cotations et les prix par devise sont
+              déjà dans le `Promise.all` en tête de ce composant — les places de
+              cotation étaient même chargées pour n'en tirer qu'un symbole TradingView.
+
+              ⚠️ LE SIXIÈME — « ACTIVITIES » — N'EST PAS LIVRÉ, ET C'EST UNE ABSENCE DE
+              SOURCE, PAS UN OUBLI. La référence y liste les campagnes de points et
+              d'airdrops en cours sur le jeton ; c'est une donnée que DropsTab produit
+              et publie lui-même. Aucun fournisseur du registre ne l'expose, et aucune
+              API gratuite ne la couvre pour l'ensemble des actifs de ZENKUU. Un bloc
+              vide, ou rempli d'exemples, serait exactement le placeholder que le cahier
+              des charges interdit.
+
+              ── L'ORDRE EST CELUI DE LA RÉFÉRENCE ───────────────────────────────
+
+              On situe (voisins), on juge (performance), on outille (records et
+              convertisseur), on va voir ailleurs (places). */}
+          <AssetVsPeers asset={data} peers={comparables} />
+
+          <AssetPerformanceMatrix
+            asset={data}
+            benchmarks={comparables.filter((peer) =>
+              BENCHMARK_OPTIONS.some((entry) => entry.id === peer.id),
+            )}
+          />
+
+          {/* Records et convertisseur côte à côte : deux blocs étroits par nature — un
+              couple de chiffres, deux champs — qui laisseraient chacun la moitié de la
+              largeur vide s'ils s'empilaient. */}
+          <div className="grid gap-4 xl:grid-cols-2 [&>*]:min-w-0">
+            <AssetRecords asset={data} assetClass={assetClass} />
+            <AssetConverterCard asset={data} />
+          </div>
+
+          <AssetExchangeTable tickers={tickerRows} logos={exchangeImages} />
 
           {history.ok ? (
             <SourceNote
