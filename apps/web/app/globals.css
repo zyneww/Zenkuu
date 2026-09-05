@@ -627,8 +627,19 @@
   /* Le crosshair : deux traits POINTILLÉS, l'un vertical l'autre horizontal, avec un
      point d'ancrage sur la courbe. Le pointillé plutôt que le plein pour la même raison
      que la grille — un trait plein qui traverse le cadre entre en concurrence avec la
-     courbe qu'il sert à lire. */
-  --chart-crosshair: color-mix(in srgb, var(--color-ink) 32%, transparent);
+     courbe qu'il sert à lire.
+
+     ⚠️ CES DEUX JETONS SONT LA SEULE DÉFINITION DU CROSSHAIR CÔTÉ RECHARTS, mais ils
+     ne sont pas la seule du SITE : la fiche d'actif est tracée par amCharts, qui peint
+     en JavaScript et ne sait pas lire un `color-mix()`. Sa valeur est donc écrite en
+     dur dans `PriceChartAm.tsx` — encre atténuée à 55 %, cadence « 3 3 ».
+
+     La couleur ci-dessous a été RAMENÉE SUR CELLE-LÀ. Elle valait `ink` à 32 %, que
+     `AreaPlot` multipliait encore par une opacité de 0,8 : deux traits de teintes et
+     de densités différentes désignaient le même geste sur deux pages voisines. Le
+     réglage d'`AreaPlot` a été supprimé et la teinte accordée — un seul crosshair,
+     quel que soit le moteur qui le dessine. Toucher l'un demande de toucher l'autre. */
+  --chart-crosshair: color-mix(in srgb, var(--color-ink-muted) 55%, transparent);
   --chart-crosshair-dash: 3 3;
 
   /* Le filigrane derrière le tracé. `oklab(0.708 0 0 / 0.2)` chez eux — un gris à 20 %.

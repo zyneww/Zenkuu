@@ -422,20 +422,23 @@ export function AreaPlot({
             nombre brut vaut moins que pas de survol du tout. */}
         {formatTooltipY ? (
           <ChartTooltip
-            /* ── LA VERTICALE DE VISÉE EST TIRETÉE, ET DANS L'ENCRE ATTÉNUÉE ──
-               Elle était pleine et de la couleur du filet : à ce ton, elle se
-               confondait avec une bordure de carte et on ne la voyait pas bouger.
-               Tiretée, elle se lit comme un REPÈRE — le même vocabulaire que la
-               grille, un cran au-dessus en contraste puisqu'elle, on la cherche.
-               Le motif « 4 4 » est celui du curseur d'amCharts sur la fiche d'actif :
-               les deux graphiques du site désignent l'instant survolé de la même
-               façon. */
-            cursor={{
-              stroke: 'var(--color-ink-muted)',
-              strokeWidth: 1,
-              strokeDasharray: '4 4',
-              strokeOpacity: 0.8,
-            }}
+            /* ── AUCUN RÉGLAGE DE CURSEUR ICI, ET C'EST VOULU ─────────────────
+               Il y en avait quatre — `stroke`, `strokeWidth`, `strokeDasharray`,
+               `strokeOpacity` — et trois ne servaient à RIEN : `.recharts-tooltip-cursor`
+               dans `globals.css` réécrit le trait, sa cadence et son épaisseur. Le
+               `stroke` y porte `!important` ; la cadence gagne sans, parce que
+               `recharts` l'écrit en ATTRIBUT DE PRÉSENTATION et qu'une déclaration
+               d'auteur l'emporte sur un attribut pour les propriétés SVG.
+
+               Le commentaire qui les défendait annonçait un motif « 4 4 » aligné sur
+               le curseur d'amCharts. Ni l'un ni l'autre n'était vrai : la page
+               dessinait « 3 3 » depuis la feuille de style, et amCharts est passé à
+               « 3 3 » de son côté. Trois valeurs mortes et une note fausse valaient
+               moins que rien — elles décrivaient un rendu que personne ne voyait.
+
+               Le curseur reste ACTIF (`cursor` non passé ⇒ `true` chez recharts) ; il
+               est simplement habillé au seul endroit qui le peint vraiment, par les
+               jetons `--chart-crosshair*`. */
             content={
               <ChartTooltipContent
                 className="min-w-[8.5rem] border-border-subtle bg-overlay shadow-overlay"

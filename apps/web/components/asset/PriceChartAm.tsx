@@ -602,9 +602,16 @@ export function PriceChartAm({
     cursor.lineY.set('visible', false)
     /* Le trait suit le relevé ASXN : un pointillé plus SERRÉ (3 3 et non 4 4) et plus
        discret (0,55 et non 0,8). Le crosshair désigne un instant, il ne le souligne
-       pas — à 0,8 il tenait la même présence que la courbe qu'il sert à lire. Même
-       cadence de tirets que `--chart-crosshair-dash`, pour que les tracés Recharts du
-       site et celui-ci ne montrent pas deux pointillés différents. */
+       pas — à 0,8 il tenait la même présence que la courbe qu'il sert à lire.
+
+       ⚠️ CES TROIS VALEURS SONT LE DOUBLON ASSUMÉ de `--chart-crosshair` et
+       `--chart-crosshair-dash` dans `globals.css`, qui habillent le crosshair des
+       tracés Recharts. amCharts ne peut PAS lire les jetons : il construit ses
+       couleurs en JavaScript (`am5.color`), et la valeur du jeton est un
+       `color-mix(…)` que `getPropertyValue` rend sans le résoudre. Le doublon est donc
+       la seule façon d'avoir la même teinte des deux côtés — les jetons ont été
+       ramenés sur CES valeurs-ci, et non l'inverse. Modifier l'un exige de modifier
+       l'autre, sans quoi deux pages voisines désignent l'instant survolé autrement. */
     cursor.lineX.setAll({
       stroke: am5.color(readToken('--color-ink-muted', '#969faf')),
       strokeDasharray: [3, 3],
