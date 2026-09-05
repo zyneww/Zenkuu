@@ -71,7 +71,28 @@ export function InfoTip({
         >
           <Info className="h-3.5 w-3.5" aria-hidden="true" />
         </Tooltip.Trigger>
-        <Tooltip.Content placement="top" className="max-w-64 text-pretty">
+        {/* ⚠️ LA TAILLE EST POSÉE ICI, ET ELLE NE VIENT PAS D'UN RELEVÉ.
+
+            Le brief demande d'aligner les infobulles sur la référence. Six méthodes ont
+            échoué à ouvrir celle de CoinGecko : événements synthétiques (leur contrôleur
+            Stimulus ne les écoute pas), deux survols à la vraie souris, un clic, la
+            lecture du DOM pré-rendu — la bulle n'existe qu'à l'ouverture, son texte vit
+            dans un attribut `data-tooltip` — et la lecture de leurs feuilles de style,
+            inaccessibles depuis une autre origine.
+
+            Je ne l'aligne donc pas sur une valeur que je n'ai pas mesurée. La taille
+            retenue vient de la COHÉRENCE INTERNE, et elle se vérifie sans référence :
+            cette bulle sortait en 16 px, c'est-à-dire PLUS GROS que le libellé de 14
+            qu'elle annote et plus gros que le texte courant de 13 de la même page. Une
+            explication rendue plus grande que ce qu'elle explique inverse la hiérarchie.
+
+            13 px la remet au cran de lecture du site — le même que les paragraphes, ce
+            qu'une bulle contient. `leading-relaxed` parce que deux phrases dans une
+            colonne de 256 px ont besoin d'air. */}
+        <Tooltip.Content
+          placement="top"
+          className="max-w-64 text-pretty text-xs leading-relaxed"
+        >
           {content}
         </Tooltip.Content>
       </Tooltip>

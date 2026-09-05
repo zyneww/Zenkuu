@@ -269,7 +269,7 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
             {/* 13 px, comme le texte courant de la fiche d'actif — même rôle, même relevé.
             Voir la note de `AssetPageView` pour la mesure et pour l'interligne, qui reste
             le nôtre. */}
-        <p className="max-w-lg text-xs leading-relaxed text-ink-muted">{help}</p>
+        <p className="max-w-lg text-xs leading-[1.425] text-ink-muted">{help}</p>
           </section>
         </div>
 

@@ -1253,12 +1253,12 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                 était en 16/26 : trois pixels au-dessus, sur le seul bloc de la page où
                 l'on lit vraiment des phrases.
 
-                La TAILLE suit la référence, c'est ce que le chantier demande.
-                L'INTERLIGNE reste le nôtre : `leading-relaxed` donne 21 px contre leurs
-                18,5. À treize pixels, ces deux points et demi séparent un paragraphe
-                qu'on lit d'un paragraphe qu'on parcourt, et la référence est ici plus
-                serrée que sa propre taille n'appelle. C'est le seul écart volontaire de
-                cette passe, et il porte sur la propriété que le brief ne nomme pas.
+                ⚠️ L'INTERLIGNE SUIT AUSSI, APRÈS AVOIR ÉTÉ GARDÉ. Il est resté un temps
+                à `leading-relaxed` — 21 px contre leurs 18,5 — au motif qu'à treize
+                pixels ces deux points et demi séparent un paragraphe qu'on lit d'un
+                paragraphe qu'on parcourt. C'était une préférence, pas une mesure, et la
+                consigne du chantier est que la référence l'emporte. `leading-[1.425]`
+                rend les 18,525 px relevés.
 
                 ── ET LA MESURE SUIT LA TAILLE ─────────────────────────────────────
                 `max-w-lg` et non `max-w-2xl`. La note ci-dessus fixe la règle — « une
@@ -1268,7 +1268,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                 réduire le corps sans réduire la mesure aurait cassé la règle que le
                 bloc énonce, mesuré au navigateur avant correction. 512 px rendent les
                 quatre-vingts signes. */}
-            <p className="max-w-lg whitespace-pre-line text-xs leading-relaxed text-ink-muted">
+            <p className="max-w-lg whitespace-pre-line text-xs leading-[1.425] text-ink-muted">
               {about.text}
             </p>
 
