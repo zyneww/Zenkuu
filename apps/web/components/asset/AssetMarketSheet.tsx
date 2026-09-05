@@ -3,7 +3,6 @@ import { ExternalLink } from 'lucide-react'
 import type { AssetClass, AssetDetail, AssetProfile } from '@zenkuu/data'
 import { findUniverseEntryBySymbol } from '@zenkuu/data'
 
-import { RailSection } from '@/components/ui/RailSection'
 import { getPhrase } from '@/lib/content'
 import { getFormatters } from '@/lib/formatters'
 
@@ -129,22 +128,72 @@ export async function AssetMarketSheet({
   if (rows.length === 0 && !website) return null
 
   return (
-    <RailSection title={t(title)}>
-      <dl>
+    /*
+     * ══════════════════════════════════════════════════════════════════════════
+     * ELLE A QUITTÉ LE RAIL POUR LA COLONNE PRINCIPALE
+     * ══════════════════════════════════════════════════════════════════════════
+     *
+     * ── CE QUI L'A FAIT BOUGER : UNE MESURE ─────────────────────────────────
+     *
+     * Le brief exige que le rail de gauche s'arrête au plus tard au lien « Revoir
+     * toute la période ». Sur une cryptomonnaie il s'y arrêtait déjà, avec 66 à 176
+     * pixels de marge — mesuré sur Bitcoin et Ethereum, à trois largeurs. Sur une
+     * ACTION, non : la fiche Apple portait un rail de 1023 px pour un budget de 857,
+     * soit 166 px sous la ligne.
+     *
+     * L'écart vient du nombre de blocs. Une crypto en a quatre — Fondamentaux,
+     * Amplitude, Variations, Offre. Une valeur boursière en a deux de plus :
+     * « Valorisation » (les ratios) et cette fiche-ci. C'est pour cela que le défaut
+     * ne se voyait pas sur les deux actifs testés d'abord.
+     *
+     * ── POURQUOI C'EST ELLE QUI PART, ET PAS « VALORISATION » ───────────────
+     *
+     * Le rail se définit lui-même comme ne gardant « que les CHIFFRES » (voir
+     * `AssetPageView`). Les ratios de valorisation sont des chiffres ; place de
+     * cotation, secteur, siège et effectif sont une IDENTITÉ. C'est celle-ci qui
+     * détonne dans une colonne de chiffres, et elle est en prime la plus haute des
+     * deux — 336 px contre 244 — donc la seule dont le départ laisse de la marge.
+     *
+     * ── ET ELLE REMPLACE UN BLOC QU'ELLE CONTENAIT DÉJÀ ─────────────────────
+     *
+     * ⚠️ `AssetIdentity` A ÉTÉ SUPPRIMÉ, ET C'ÉTAIT UN DOUBLON. Il occupait cette
+     * place et rendait exactement deux lignes : « Secteur » (`entry.sector`) et
+     * « Pays du siège » (`entry.country`). Les deux figurent ici — le secteur sous le
+     * même nom, le pays dans la ligne « Siège » — avec la même source et le même
+     * repli. Sur une fiche d'action, le lecteur lisait donc son secteur deux fois, à
+     * deux endroits, sous deux intitulés.
+     *
+     * Sa raison d'être avait disparu sans que personne ne le remarque : son en-tête
+     * disait exister parce que « le bas de sa fiche restait vide » pour une valeur
+     * boursière. Ce bloc-ci a comblé ce vide depuis, en plus riche.
+     *
+     * ── LA PRÉSENTATION SUIT LE DÉMÉNAGEMENT ────────────────────────────────
+     *
+     * `RailSection` servait une colonne de 424 px : un titre minuscule et des lignes
+     * empilées. Dans 936 px, dix lignes empilées laissent les deux tiers de la largeur
+     * vides. La grille à deux colonnes est celle que `AssetIdentity` employait ici même
+     * — c'est la forme que cette place appelle, et elle est reprise plutôt que
+     * réinventée.
+     */
+    <section className="space-y-3">
+      <h2 className="display-sm text-ink">{t(title)}</h2>
+
+      {/* `<dl>` et non un tableau : ce sont des paires libellé/valeur, et c'est ce qui
+          permet à un lecteur d'écran d'annoncer « Secteur : Technologie » plutôt que
+          deux fragments sans lien. */}
+      <dl className="grid grid-cols-1 gap-px border border-border-subtle bg-border-subtle sm:grid-cols-2">
         {rows.map((row) => (
-          <div key={row.label} className="border-b border-border-subtle py-1.5 last:border-0">
-            <div className="flex items-baseline justify-between gap-2">
-              <dt className="shrink-0 text-xs text-ink-muted">{row.label}</dt>
-              {/* La valeur peut être longue — « Consumer Electronics », « SPDR State
-                  Street Global Advisors ». Elle passe donc à la ligne au lieu d'être
-                  tronquée : dans un rail, une valeur coupée à mi-mot n'apprend rien,
-                  et il n'y a pas de survol pour la révéler. */}
-              <dd className="min-w-0 flex-1 text-right text-xs font-medium text-ink">
-                {row.value}
-              </dd>
-            </div>
+          <div key={row.label} className="bg-surface px-4 py-2.5">
+            <dt className="text-micro text-ink-muted">{row.label}</dt>
+            {/* La valeur passe à la ligne au lieu d'être tronquée — « Consumer
+                Electronics », « SPDR State Street Global Advisors ». Dans une grille,
+                une valeur coupée à mi-mot n'apprend rien, et il n'y a pas de survol
+                pour la révéler. */}
+            <dd className="mt-0.5 text-sm font-medium text-ink">{row.value}</dd>
             {row.hint ? (
-              <p className="text-micro leading-snug text-ink-muted opacity-80">{row.hint}</p>
+              <p className="mt-0.5 text-micro leading-snug text-ink-muted opacity-80">
+                {row.hint}
+              </p>
             ) : null}
           </div>
         ))}
@@ -155,13 +204,13 @@ export async function AssetMarketSheet({
           href={website}
           target="_blank"
           rel="nofollow noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-1.5 rounded-card border border-border-subtle px-2.5 py-1.5 text-xs text-ink transition-colors hover:border-brand hover:text-brand"
+          className="inline-flex items-center gap-1.5 rounded-card border border-border-subtle px-2.5 py-1.5 text-xs text-ink transition-colors hover:border-brand hover:text-brand"
         >
           {t('Site officiel')}
           <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span className="sr-only">{t('(nouvelle fenêtre)')}</span>
         </a>
       ) : null}
-    </RailSection>
+    </section>
   )
 }

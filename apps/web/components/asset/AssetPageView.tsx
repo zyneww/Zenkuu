@@ -45,7 +45,6 @@ import { AssetSupply } from '@/components/asset/AssetSupply'
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { AssetSeriesCards } from '@/components/asset/AssetSeriesCards'
 import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
-import { AssetIdentity } from '@/components/asset/AssetIdentity'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { tradingViewMarketCapSymbol, tradingViewSymbol } from '@/components/asset/tradingview-symbol'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
@@ -1148,7 +1147,12 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
 
               Le composant reste dans le dépôt : c'est sa présence sur la fiche qui a
               été retirée, pas son code. */}
-          <AssetMarketSheet asset={data} assetClass={assetClass} profile={profile} />
+          {/* ⚠️ `AssetMarketSheet` A QUITTÉ CE RAIL, ET C'EST CE QUI RÈGLE T2.
+              La fiche technique d'une valeur boursière descend dans la colonne
+              principale, sous « À propos ». Mesuré sur la fiche Apple : le rail faisait
+              1023 px pour un budget de 857 — 166 px sous le lien « Revoir toute la
+              période », que le brief pose comme limite. Son départ le ramène à 663.
+              Voir l'en-tête du composant pour le choix de ce bloc plutôt que d'un autre. */}
           </aside>
         }
       >
@@ -1284,9 +1288,15 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           </section>
         ) : null}
 
-        {/* Identité d'une valeur boursière — secteur, pays, place. Absente pour
-            une cryptomonnaie, qui a sa fiche technique dans le rail de l'aperçu. */}
-        <AssetIdentity asset={data} assetClass={assetClass} />
+        {/* Identité d'une valeur boursière — nature, place, devise, secteur, siège,
+            effectif, site officiel. Le composant se retire seul pour une cryptomonnaie,
+            qui a sa propre fiche technique.
+
+            ⚠️ IL REMPLACE `AssetIdentity`, SUPPRIMÉ, QUI TENAIT CETTE PLACE ET NE
+            RENDAIT QUE DEUX LIGNES — « Secteur » et « Pays du siège » — toutes deux
+            déjà présentes ici, avec la même source et le même repli. Sur une fiche
+            d'action, le secteur s'affichait donc deux fois sous deux intitulés. */}
+        <AssetMarketSheet asset={data} assetClass={assetClass} profile={profile} />
         </div>
 
         {/*
