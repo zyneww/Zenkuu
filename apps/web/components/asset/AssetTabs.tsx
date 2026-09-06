@@ -17,10 +17,30 @@ import type { AssetClass } from '@zenkuu/data'
  * référence : une rangée d'onglets pleine largeur, sous l'en-tête, au-dessus des
  * deux colonnes.
  *
- * Relevé sur tokenomist.ai/bitcoin le 2026-09-06 : rangée de 48 px, fond de
- * panneau, chaque onglet portant `border-b-2 border-transparent` qui devient le
- * filet d'accent à l'état sélectionné, avec l'encre qui suit. Corps 16 px,
- * graisse 400, une icône de 16 px à gauche de l'intitulé.
+ * ⚠️ LA GÉOMÉTRIE A ÉTÉ RELEVÉE DEUX FOIS, SUR DEUX RÉFÉRENCES.
+ *
+ * Sur tokenomist.ai/bitcoin d'abord : rangée de 48 px, corps 16, graisse 400, une
+ * icône de 16 px à gauche de l'intitulé.
+ *
+ * Sur `coingecko.com/en/coins/bitcoin` ensuite, le 2026-09-06, qui redevient la
+ * référence sur demande — et sa rangée est nettement plus serrée :
+ *
+ *     <nav class="flex overflow-x-auto shadow-[inset_0_-1px_0_0_#EFF2F5]">   h=37
+ *       <a class="selected relative z-[1]" p="8px 16px">
+ *         <span class="font-semibold text-sm leading-5">Overview</span>
+ *
+ * Soit 14/20/600 et un rembourrage de 8/16, contre 16/24/400 et 48 px de haut. Onze
+ * pixels de rangée en moins, et un intitulé qui gagne en graisse ce qu'il perd en
+ * taille : c'est le CONTRASTE DE GRAISSE qui désigne l'onglet actif chez elle.
+ *
+ * ⚠️ L'ENCRE ACTIVE PASSE DE LA MARQUE À L'ENCRE PLEINE. Chez la référence, l'onglet
+ * sélectionné sort en `#0f172a` — son encre la plus sombre — et c'est le SOULIGNEMENT
+ * seul qui porte la couleur de marque. L'onglet actif portait ici les deux, ce qui
+ * faisait de la couleur le seul signal et affaiblissait le texte : `brand-strong`
+ * tient AA, mais il tient moins bien que l'encre pleine.
+ *
+ * Le trait, lui, garde l'azur : la référence y met son vert, nous y mettons notre
+ * marque. C'est la seule chose qui ne se copie pas.
  *
  * ── CE QUI N'EST PAS ICI, ET POURQUOI ─────────────────────────────────────────
  *
@@ -129,7 +149,10 @@ export async function AssetTabs({
        boîte. */
     <nav
       aria-label={t('Aperçu')}
-      className="scrollbar-none mb-4 flex items-center gap-6 overflow-x-auto whitespace-nowrap border-b border-border-subtle"
+      /* L'écart entre onglets est passé de `gap-6` au rembourrage de chacun : la
+         référence n'espace pas ses onglets, elle les rembourre, ce qui agrandit la
+         CIBLE au lieu du vide entre deux cibles. */
+      className="scrollbar-none mb-4 flex items-center overflow-x-auto whitespace-nowrap border-b border-border-subtle"
     >
       {tabs.map(({ key, label, icon: Icon, href }) => {
         const selected = key === active
@@ -144,9 +167,12 @@ export async function AssetTabs({
                les APLATS. En texte de 16 px il serait illisible. `brand-strong` passe
                le seuil AA en clair et vaut exactement `brand` en sombre : une seule
                classe, correcte dans les deux thèmes. */
-            className={`-mb-px flex h-12 shrink-0 items-center gap-1.5 border-b-2 text-base transition-colors duration-150 ${
+            /* `py-2 px-4` plutôt qu'une hauteur écrite : c'est le rembourrage de la
+               référence (8/16), et il produit les 37 px de sa rangée sans que personne
+               ait à tenir ce nombre à jour si le corps change. */
+            className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-semibold leading-5 transition-colors duration-150 ${
               selected
-                ? 'border-brand-strong text-brand-strong'
+                ? 'border-brand-strong text-ink'
                 : 'border-transparent text-ink-muted hover:text-ink'
             }`}
           >

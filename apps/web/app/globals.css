@@ -883,7 +883,17 @@
      désormais par son PLAN et son FILET — deux moyens qu'elle n'avait pas quand
      cette note a été écrite, puisque son fond valait alors celui de la page.
      ══════════════════════════════════════════════════════════════════════════ */
-  --radius-card: 8px;
+  /* ── 12 PX, RELEVÉ SUR LA RÉFÉRENCE ──────────────────────────────────────
+
+     Il a valu 16, puis 8. Le passage à 8 venait d'un relevé sur Tokenomist, dont les
+     cartes sont à ce rayon. Sur `coingecko.com/en/coins/bitcoin` le 2026-09-06, le
+     seul objet cerné de la fiche — le tableau des variations, dont les en-têtes sont
+     sur `#f1f5f9` — porte 12 px. C'est cette valeur-là qui revient.
+
+     La différence se voit précisément parce qu'il ne reste presque plus de cartes :
+     quand elles étaient partout, le rayon était une texture ; sur un objet unique,
+     c'est une silhouette. */
+  --radius-card: 12px;
   /* 12 px — le cran EN DESSOUS des cartes, pour ce qui vit à l'intérieur d'elles :
      tuiles de métriques, champs groupés, sous-panneaux. L'échelle du document en
      compte six ; celui-ci manquait, et les sous-cartes empruntaient donc soit le
@@ -923,7 +933,22 @@
      HeroUI v3 dérive le rayon de ses champs par `calc(--radius × 1.5)`, soit 6 px
      — la valeur posée ici. Les deux déclarations se répondent : un champ HeroUI et
      un contrôle Zenkuu tombent sur le même rayon, et c'est voulu. */
-  --radius-control: 6px;
+  /* ── 8 PX — LE RAYON DE TOUS LES CONTRÔLES DE LA RÉFÉRENCE ───────────────
+
+     Relevé le 2026-09-06, et remarquablement constant d'un contrôle à l'autre :
+
+         boutons de période (24H, 7D, 1M…)   h28, r8, p 4px 10px
+         « Add to Portfolio »                h33, r8, p 6px 10px, bord #cbd5e1
+         segmenté « Price » / « Compare »    h36, r8, p 8px 16px, fond #eff2f5
+         pastilles de catégorie              h28, r8, p 6px 10px, fond #eff2f5
+
+     Une seule valeur pour les quatre familles, et c'est ce qui donne à sa barre
+     d'outils son unité. Nous étions à 6, hérité de Tokenomist.
+
+     `--radius-sm` (4 px) reste le rayon de l'encastré, et la pastille de RANG garde
+     6 px chez la référence — un cran en dessous des contrôles, parce qu'elle n'en est
+     pas un : elle ne se clique pas. */
+  --radius-control: 8px;
 
   /* Échelle par défaut de Tailwind, RÉALIGNÉE sur les deux familles ci-dessus pour
      qu'un `rounded`/`rounded-md` isolé dans le code tombe du bon côté du vide sans

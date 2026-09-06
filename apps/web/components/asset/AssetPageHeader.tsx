@@ -515,25 +515,41 @@ export async function AssetHeadline({
                 */}
                 <AssetMarketStatus asset={asset} showPlace={false} />
 
+                {/* ══════════════════════════════════════════════════════════════
+                    LES PASTILLES PASSENT DU CONTOUR À L'APLAT
+
+                    Elles portaient `rounded-pill border border-border-subtle` : un
+                    ovale cerné, transparent. Relevé sur `coingecko.com/en/coins/bitcoin`
+                    le 2026-09-06 : ses pastilles de catégorie sont des RECTANGLES
+                    ARRONDIS PLEINS — fond `#eff2f5`, rayon 8, rembourrage 6/10,
+                    hauteur 28, corps 14 en graisse 600. Aucun bord.
+
+                    L'écart n'est pas décoratif. Un ovale cerné et transparent se lit
+                    comme un jeton d'étiquetage ; un rectangle plein se lit comme une
+                    cible. Ces pastilles MÈNENT quelque part — vers la page de la
+                    catégorie — et la forme pleine le dit mieux.
+
+                    ⚠️ CELLE QUI NE MÈNE NULLE PART GARDE LA MÊME FORME, et c'est
+                    voulu : la distinction se fait au SURVOL, où seule la première
+                    s'éclaire. Deux formes différentes pour deux états de disponibilité
+                    d'une même donnée ferait lire une hiérarchie qui n'existe pas.
+                    ══════════════════════════════════════════════════════════════ */}
                 {categories.map((category) => {
                   const id = categoryIds.get(normalizeLabel(category))
 
-                  /* Deux rendus pour une même pastille, et le survol les distingue :
-                     celle qui mène quelque part s'éclaire, l'autre non. Un lien qui ne
-                     réagit pas au curseur se lit comme un lien cassé. */
+                  const forme =
+                    'min-w-0 truncate rounded-control bg-surface-muted px-2.5 py-1.5 font-semibold leading-4 text-ink-secondary'
+
                   return id ? (
                     <Link
                       key={category}
                       href={{ pathname: '/categories/[id]', params: { id: id } }}
-                      className="min-w-0 truncate rounded-pill border border-border-subtle px-2.5 py-1 font-medium transition-colors hover:border-brand hover:text-brand"
+                      className={`${forme} transition-colors hover:text-brand-strong`}
                     >
                       {category}
                     </Link>
                   ) : (
-                    <span
-                      key={category}
-                      className="min-w-0 truncate rounded-pill border border-border-subtle px-2.5 py-1 font-medium"
-                    >
+                    <span key={category} className={forme}>
                       {category}
                     </span>
                   )
