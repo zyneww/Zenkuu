@@ -6,8 +6,8 @@ import { getAsset } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
 import { ChangeBadge } from '@/components/locale/ChangeBadge'
+import { MetricCatalogue } from '@/components/asset/MetricCatalogue'
 import { MetricValue } from '@/components/asset/MetricValue'
-import { Link } from '@/i18n/navigation'
 import {
   METRIC_GROUP_ORDER,
   METRIC_GROUP_TITLES,
@@ -122,64 +122,38 @@ export async function MetricIndexView({ assetClass, id }: { assetClass: AssetCla
           compact
         />
       ) : (
-        /* Deux colonnes au-delà du téléphone : quatre groupes empilés feraient une
-           page à faire défiler pour une liste qui tient sur un écran. */
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
-          {groupes.map(({ group, rows }) => (
-            <section key={group}>
-              <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                {phrase(METRIC_GROUP_TITLES[group])}
-              </h2>
+        /* ⚠️ LES VALEURS SONT RENDUES ICI, PAS DANS LE CATALOGUE. `MetricValue` et
+           `ChangeBadge` lisent les formateurs de locale, qui sont asynchrones : ce sont
+           des composants SERVEUR, et le catalogue est un composant client (il tient les
+           onglets de filtre). Les nœuds voyagent donc déjà rendus, en propriété — c'est
+           la « fente » habituelle entre les deux mondes, et elle évite de rapatrier toute
+           la mécanique de formatage côté navigateur. */
+        <MetricCatalogue
+          groups={groupes.map(({ group, rows }) => ({
+            key: group,
+            label: phrase(METRIC_GROUP_TITLES[group]),
+            cards: rows.map((metric) => {
+              const message =
+                metric.message === 'ath' || metric.message === 'atl'
+                  ? extremeMessage(metric.message, assetClass)
+                  : metric.message
+              const value = metric.read(data)
 
-              {/* ⚠️ UNE LISTE, PAS UNE LISTE DE DÉFINITIONS. Le rail est un `<dl>` :
-                  il POSE des couples terme/valeur, et rien n'y est cliquable en
-                  entier. Ici chaque rangée est un LIEN, et un `<a>` ne peut pas
-                  contenir le `<dt>`/`<dd>` d'un `<dl>` — la spécification n'autorise
-                  entre eux qu'un `<div>`. Un catalogue de destinations est une liste
-                  de liens ; la valeur y accompagne le nom, elle ne le définit pas. */}
-              <ul>
-                {rows.map((metric) => {
-                  const message =
-                    metric.message === 'ath' || metric.message === 'atl'
-                      ? extremeMessage(metric.message, assetClass)
-                      : metric.message
-                  const value = metric.read(data)
-
-                  return (
-                    <li key={metric.slug} className="border-b border-border-subtle last:border-0">
-                      {/* ── LA LIGNE ENTIÈRE EST LE LIEN, PAS LE SEUL LIBELLÉ ──────
-                          C'est un catalogue : chaque ligne n'a qu'une destination, et
-                          la cible tient alors toute la hauteur de la rangée plutôt
-                          qu'un mot. La même géométrie que le rail — `flex
-                          justify-between py-3`, filet entre deux lignes — pour qu'on
-                          reconnaisse ici ce qu'on a lu là-bas. */}
-                      <Link
-                        href={metricHref(assetClass, data.id, metric.slug)}
-                        className="flex items-baseline justify-between gap-2 py-3 transition-colors hover:text-brand-strong"
-                      >
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-muted">
-                          {t(`${message}.label`)}
-                        </span>
-                        <span className="tabular shrink-0 text-sm font-semibold text-ink-secondary">
-                          {metric.kind === 'change' ? (
-                            <ChangeBadge value={Number(value)} size="sm" />
-                          ) : value !== undefined ? (
-                            <MetricValue
-                              metric={metric}
-                              value={value}
-                              asset={data}
-                              isForex={isForex}
-                            />
-                          ) : null}
-                        </span>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          ))}
-        </div>
+              return {
+                slug: metric.slug,
+                label: t(`${message}.label`),
+                help: t(`${message}.help`),
+                href: metricHref(assetClass, data.id, metric.slug),
+                value:
+                  metric.kind === 'change' ? (
+                    <ChangeBadge value={Number(value)} size="sm" />
+                  ) : value !== undefined ? (
+                    <MetricValue metric={metric} value={value} asset={data} isForex={isForex} />
+                  ) : null,
+              }
+            }),
+          }))}
+        />
       )}
     </div>
   )
