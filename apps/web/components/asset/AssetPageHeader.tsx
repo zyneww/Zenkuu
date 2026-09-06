@@ -972,7 +972,19 @@ export async function AssetPriceCard({
       côté d'un cours de 200 px sur un téléphone donnerait deux colonnes illisibles ;
       `flex-col` par défaut, `sm:flex-row` ensuite.
       ══════════════════════════════════════════════════════════════════════════ */
-    <section className="space-y-2 rounded-card border border-border-subtle bg-panel p-4">
+    /* ── PLUS DE CARTE : LA RÉFÉRENCE POSE SON BLOC PRIX À PLAT ───────────────
+
+       Elle portait `rounded-card border border-border-subtle bg-panel p-4`. Relevé au
+       navigateur sur `coingecko.com/en/coins/hyperliquid` le 2026-09-06 : le nom, le
+       cours, la variation et l'amplitude du jour sont posés directement sur le blanc
+       de la page, sans le moindre bord — la remontée des ancêtres depuis le titre ne
+       rencontre aucune surface opaque avant la racine.
+
+       Le rembourrage part avec le cadre : il n'y a plus de bord dont s'écarter, et le
+       bloc s'aligne alors sur la même verticale que les libellés du rail juste
+       dessous. `pb-4` seul demeure, pour que le filet du premier groupe de repères ne
+       vienne pas se coller sous l'amplitude. */
+    <section className="space-y-2 pb-4">
       {/* L'INTITULÉ PORTE LE LOGO ET LE NOM, comme sur la référence. Il dit de quoi
           ce nombre est le cours — utile dès qu'on arrive par un lien profond, et
           nécessaire une fois que l'en-tête est sorti de l'écran. */}

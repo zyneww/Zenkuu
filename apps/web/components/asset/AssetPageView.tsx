@@ -447,26 +447,23 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
 
             Voir l'appel dans la prop `rail`, plus bas. */}
         <section className="space-y-3">
-          {/* ── LE GRAPHIQUE ENTRE DANS UN PANNEAU ────────────────────────────────
+          {/* ── LE PANNEAU DU GRAPHIQUE A ÉTÉ RETIRÉ, ET SON MOTIF AVEC LUI ───────
 
-              Il était posé nu sur le fond de page pendant que le rail de gauche vient
-              de reprendre ses cartes : deux colonnes côte à côte, l'une cernée et
-              l'autre non. La référence met le sien dans un panneau — relevé le
-              2026-09-06, `bg-background-primary`, rayon 8, et c'est ce panneau qui fait
-              que sa barre d'outils, sa frise et sa légende se lisent comme UN objet.
+              Il venait d'être ajouté, avec cet argument : « le rail de gauche vient de
+              reprendre ses cartes ; deux colonnes côte à côte, l'une cernée et l'autre
+              non ». L'argument était bon et il s'est retourné — le rail a reperdu ses
+              cartes en passant à la référence CoinGecko, et c'est donc le panneau qui
+              dépareillait.
 
-              ⚠️ LE PANNEAU S'ARRÊTE AU GRAPHIQUE, ET NE PREND PAS LA BANDE DE
-              VARIATIONS. Celle-ci porte DÉJÀ sa propre carte (`AssetChangeStrip` :
-              `rounded-card border border-border-subtle bg-panel`). L'envelopper aussi
-              donnerait une carte dans une carte, c'est-à-dire deux filets parallèles à
-              trois pixels l'un de l'autre — le défaut que la note de `RailSection`
-              appelle « une texture ».
+              Relevé au navigateur sur `coingecko.com/en/coins/hyperliquid` le
+              2026-09-06 : aucun élément de sa colonne centrale ne porte de fond ni de
+              bord. La barre d'outils, la courbe et la frise de navigation sont posées
+              à plat sur le blanc de la page, et ce qui les tient ensemble est leur
+              seule proximité.
 
-              `p-3` et non `p-4` : le rembourrage du rail, pour que les deux colonnes
-              respirent du même écart. Vingt-quatre pixels de hauteur en plus, contre
-              vingt de vide mesurés à droite du bas du rail juste avant : les deux
-              colonnes finissent à quatre pixels l'une de l'autre. */}
-          <div className="rounded-card border border-border-subtle bg-surface p-3">
+              La bande de variations, elle, GARDE sa carte : la référence en a une
+              aussi — un tableau à coins arrondis dont les en-têtes sont sur `#f1f5f9`
+              — et c'est le seul objet cerné de sa page. */}
           <AssetWorkspace
             asset={data}
             assetClass={assetClass}
@@ -549,7 +546,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                 })),
             ]}
           />
-          </div>
+          
 
           {/* ── LE BANDEAU DE VARIATIONS REVIENT, SOUS LA COURBE ────────────────
 

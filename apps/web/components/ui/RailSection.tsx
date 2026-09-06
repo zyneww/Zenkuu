@@ -1,61 +1,49 @@
 /**
- * GROUPE DU RAIL — un titre, des lignes, et une carte de nouveau.
+ * GROUPE DU RAIL — un titre, des lignes, et PLUS DE CARTE.
  *
- * ── LA NOTE QUI SUIT EST CONSERVÉE, ET ELLE A ÉTÉ RENVERSÉE ───────────────────
+ * ══════════════════════════════════════════════════════════════════════════════
+ * TROISIÈME ÉTAT DE CE COMPOSANT, ET LES DEUX NOTES PRÉCÉDENTES AVAIENT RAISON
+ * ══════════════════════════════════════════════════════════════════════════════
  *
- * Elle explique pourquoi le rail avait PERDU ses cartes. Son raisonnement est juste
- * et son arithmétique était exacte au jour où elle a été écrite. Ce qui a changé est
- * son point de départ : elle mesurait CoinGecko, dont la colonne latérale est
- * effectivement plate. La référence de ce chantier est Tokenomist, et sa colonne est
- * faite de cartes — relevé le 2026-09-06 : cinq d'entre elles, 480 px de large,
- * rayon 8, rembourrage 16, écart interne 16, fond de panneau.
+ * Il a porté une carte, l'a perdue, l'a reprise, et la reperd. Ce n'est pas une
+ * hésitation : à chaque fois la RÉFÉRENCE avait changé, et chacune des deux notes
+ * disait vrai de la sienne.
  *
- * Son argument de coût méritait d'être revérifié plutôt que cru sur parole. Mesuré
- * sur `/fr/crypto/bitcoin` le 2026-09-06, avant tout changement :
+ *   · sans carte  — la référence était CoinGecko, dont la colonne est plate ;
+ *   · avec carte  — la référence était Tokenomist, dont la colonne est en cartes ;
+ *   · sans carte  — la référence redevient CoinGecko, sur demande explicite.
  *
- *     rail        424 × 778
- *     graphique   912 × 806
+ * ── CE QUE LA RÉFÉRENCE MET RÉELLEMENT ICI ───────────────────────────────────
  *
- * Le rail est donc 28 px PLUS COURT que le graphique, et non « deux écrans plus
- * long ». La note décrivait l'état à sept cartes ; il n'y en a plus que trois
- * groupes de métriques et l'offre. Le coût réel du retour aux cartes :
+ * Relevé au navigateur sur `coingecko.com/en/coins/hyperliquid` le 2026-09-06, en
+ * remontant les ancêtres du libellé « Market Cap » :
  *
- *     4 blocs × (12 haut + 12 bas + 1 filet)      + 100
- *     intervalle entre groupes ramené de 24 à 8    −  48
- *     ─────────────────────────────────────────────────
- *     net                                          +  52
+ *     <div class="grid grid-cols-1 divide-y divide-gray-200">   ← le filet ENTRE
+ *       <div class="flex justify-between py-3">                 ← 12 px haut et bas
+ *         <span class="text-gray-500 font-medium">Market Cap</span>
+ *         <span>$67.007B</span>
  *
- * Cinquante-deux pixels sur une colonne qui en a vingt-huit d'avance : le rail
- * dépasse le graphique d'environ vingt-cinq pixels. C'est sans conséquence ici,
- * parce que le rail FLOTTE (voir `AssetLayoutFrame`) et que le contenu reprend la
- * pleine largeur sous lui — c'est précisément pour cela que le flottant a été choisi
- * contre une grille.
+ * Aucun fond, aucun bord, aucun rayon, aucune ombre. Le seul trait de toute la
+ * colonne est le `divide-y` entre deux lignes, à `#eff2f5`.
  *
- * ⚠️ LE REMBOURRAGE EST 12 ET NON 16, ET C'EST LA SEULE ENTORSE À LA RÉFÉRENCE.
- * Sa colonne fait 480 px, la nôtre 408. Seize de chaque côté y coûtent 6,7 % de la
- * largeur, ici 7,8 %, et surtout 128 px de hauteur au lieu de 96. Douze rend la
- * carte sans le tiers de son coût vertical.
+ * ── L'ARGUMENT DE COÛT DE LA PREMIÈRE NOTE, QUI RESSORT INTACT ───────────────
  *
- * ── CE QUE DISAIT LA NOTE D'ORIGINE, MOT POUR MOT ─────────────────────────────
+ * Elle disait : « Une carte prélève 32 pixels de marge interne, 2 de bordure et 12
+ * d'intervalle. […] Et le bénéfice se payait deux fois : sur 288 pixels, sept
+ * bordures verticales dessinent sept fois le même rectangle. L'œil ne les lit plus
+ * comme des frontières, il les lit comme une texture. »
  *
- * « Une carte prélève 32 pixels de marge interne, 2 de bordure et 12 d'intervalle.
- *   Sept cartes, c'est plus de trois cents pixels de hauteur dépensés en
- *   encadrements — dans la colonne la plus étroite de la page, celle dont tout
- *   l'intérêt est de tenir vingt chiffres dans la hauteur du graphique.
+ * C'est exactement ce que le retrait rend : la colonne regagne la centaine de
+ * pixels que quatre cartes lui prenaient, et la frontière entre deux groupes
+ * redevient du BLANC — ce qui est aussi la façon dont la référence sépare son bloc
+ * de repères de son bloc « Info ».
  *
- *   Et le bénéfice se payait deux fois : sur 288 pixels, sept bordures verticales
- *   dessinent sept fois le même rectangle. L'œil ne les lit plus comme des
- *   frontières, il les lit comme une texture. »
- *
- * Le second point tient toujours, et c'est lui qui borne ce retour en arrière :
- * QUATRE cartes ne font pas une texture, sept oui. Si le rail devait regagner des
- * groupes, c'est cette limite-là qu'il faudrait rouvrir, pas le rembourrage.
- *
- * ── LE FILET SOUS LE TITRE EST PARTI ──────────────────────────────────────────
- *
- * Il séparait le titre des lignes quand rien d'autre ne le faisait. Le bord de la
- * carte tient désormais ce rôle, et la référence n'en met aucun : son en-tête de
- * carte est une rangée de 24 px, puis le corps, sans trait entre les deux.
+ * ⚠️ LE TITRE RESTE, ALORS QUE LA RÉFÉRENCE N'EN A PAS SUR SES REPÈRES. Elle aligne
+ * une seule liste de dix lignes ; nous en avons une vingtaine réparties en quatre
+ * groupes (fondamentaux, amplitude, variations, offre), et une liste de vingt lignes
+ * sans intertitre n'est plus lisible. Elle en pose d'ailleurs un — « Info » — dès
+ * qu'un second bloc commence dans cette colonne : c'est le même motif, appliqué une
+ * fois de plus.
  */
 
 export function RailSection({
@@ -73,12 +61,16 @@ export function RailSection({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-card border border-border-subtle bg-surface p-3">
+    /* Aucune classe de surface : ni fond, ni bord, ni rayon, ni rembourrage. La
+       section n'existe plus que comme regroupement sémantique et comme porteuse de
+       son titre. `mb-5` — 20 px, l'écart que la référence met entre deux blocs de sa
+       colonne (`tw-mb-5` relevé sur le conteneur des repères). */
+    <section className="mb-5 last:mb-0">
       {title !== undefined ? (
         <div className="mb-2 flex items-baseline justify-between gap-2">
           {/*
             Le titre est PLUS PETIT que les valeurs qu'il coiffe, et c'est délibéré.
-            Dans une carte, il portait 14 pixels et une graisse forte : il devenait
+            Il portait 14 pixels et une graisse forte : il devenait
             l'élément le plus visible du bloc, alors qu'il n'est qu'une étiquette de
             rangement — personne ne vient lire le mot « Fondamentaux ». Ce sont les
             chiffres qu'on vient lire, et ils doivent gagner. La référence range son

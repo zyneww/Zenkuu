@@ -322,6 +322,23 @@
      Contraste sur le canvas clair : ink 17,85:1 · ink-muted 4,76:1 — au-dessus du
      seuil AA de 4,5:1. Mesures rejouées par `app/palette.test.ts`. */
   --color-ink: #0f172a;
+  /* ── LE NIVEAU INTERMÉDIAIRE D'ENCRE, QUI MANQUAIT ────────────────────────
+
+     La palette n'avait que deux niveaux : `ink` et `ink-muted`. Toute nuance entre
+     les deux était rendue par du GRAS, ce qui alourdit — le plan de refonte l'avait
+     relevé comme « le seul vrai manque de la palette ».
+
+     `#334155` est le slate-700, et c'est le deuxième gris de la référence : 153
+     relevés, contre 248 pour l'encre pleine et 168 pour l'atténuée. Il porte chez
+     elle les VALEURS des repères chiffrés, là où l'encre pleine porte les titres et
+     le cours.
+
+     ⚠️ EN THÈME SOMBRE IL VAUT `--color-ink`, ET C'EST VOLONTAIRE. La bascule
+     demandée ne concerne que le thème clair ; aliaser plutôt qu'inventer une teinte
+     garantit que le sombre rend exactement ce qu'il rendait avant ce commit. Le jour
+     où le sombre sera relevé à son tour, c'est ici qu'il faudra lui donner sa propre
+     valeur. */
+  --color-ink-secondary: #334155;
   /* ⚠️ ASSOMBRI DE #64748b À #5d606f, ET C'EST LE CANVAS QUI L'IMPOSE.
      Les surfaces claires de Backpack sont plus sombres que notre blanc : le gris
      atténué y tombait à 3,86:1 sur `surface-hover`, sous le seuil AA de 4,5.
@@ -2873,6 +2890,9 @@
   --color-border-subtle: #26282f;
 
   --color-ink: #dfe5ec;
+  /* Alias de l'encre pleine — voir la note du thème clair : le sombre n'est pas
+     touché par la bascule vers la palette de CoinGecko. */
+  --color-ink-secondary: #dfe5ec;
   /* Le gris neutre froid de Backpack. Il tient 6,02:1 au pire (sur L3), très
      au-dessus du seuil : le thème sombre n'avait aucune correction à subir. */
   --color-ink-muted: #969faf;

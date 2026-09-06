@@ -150,7 +150,17 @@ export async function AssetMetricRail({
               return (
                 <div
                   key={metric.slug}
-                  className="group flex items-baseline justify-between gap-1.5 border-b border-border-subtle py-1.5 last:border-0"
+                  /* ── LA GÉOMÉTRIE DE LIGNE EST CELLE DE LA RÉFÉRENCE ──────────
+                     `flex justify-between py-3`, filet entre deux lignes et non sous
+                     chacune — relevé sur `coingecko.com/en/coins/hyperliquid` le
+                     2026-09-06 en remontant les ancêtres de « Market Cap ».
+
+                     `py-1.5` (6 px) devient `py-3` (12 px). Le doublement se paie en
+                     hauteur, et il est financé par le retrait des cartes du rail :
+                     quatre cartes rendaient une centaine de pixels, vingt lignes en
+                     reprennent cent vingt. Le rail finit à peu près où il finissait,
+                     avec des lignes deux fois plus aérées. */
+                  className="group flex items-baseline justify-between gap-1.5 border-b border-border-subtle py-3 last:border-0"
                 >
                   <dt className="flex min-w-0 flex-1 items-center gap-1">
                     {/*
@@ -216,7 +226,12 @@ export async function AssetMetricRail({
                   </dt>
 
                   {metric.kind !== 'change' ? (
-                    <dd className="tabular shrink-0 text-sm font-semibold text-ink">
+                    /* ⚠️ `text-ink-secondary` ET NON `text-ink` — LA RÉFÉRENCE MET
+                       SON ENCRE PLEINE AILLEURS. Ses valeurs de repère sortent en
+                       `#334155` (slate-700), quand `#0f172a` est réservé au nom de
+                       l'actif et au cours. C'est ce qui fait que la colonne ne
+                       concurrence pas le grand chiffre qui la surmonte. */
+                    <dd className="tabular shrink-0 text-sm font-semibold text-ink-secondary">
                       <MetricValue metric={metric} value={value} asset={asset} isForex={isForex} />
                     </dd>
                   ) : null}
