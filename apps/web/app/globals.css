@@ -162,20 +162,80 @@
      aplats et jamais au texte courant — donc le coût est nul en lisibilité. Il est
      consigné dans `palette.test.ts`, dont les planchers suivent.
      ══════════════════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════════════════
+     PHASE 1 TOKENOMIST — LA CARTE DEVIENT PLUS CLAIRE QUE LA PAGE.
+
+     ⚠️ LE DÉFAUT QUE CE BLOC CORRIGE ÉTAIT LE PREMIER DE LA FICHE, ET IL SE
+     MESURAIT EN UN COUP D'ŒIL : `--color-panel` VALAIT EXACTEMENT
+     `--color-canvas`. Dans les deux thèmes. Une carte ne se distinguait donc du
+     fond par RIEN — ni plan, ni ombre — et la page entière se lisait comme une
+     seule feuille sur laquelle du texte avait été posé.
+
+     La note d'origine justifiait cette égalité par CoinGecko, dont le site est
+     effectivement plat. Elle avait raison sur la référence d'alors. La référence
+     est maintenant Tokenomist, relevée le 2026-09-06 sur 899 éléments, et sa
+     règle est l'inverse :
+
+       LE PANNEAU EST PLUS CLAIR QUE LE CANVAS DANS LES DEUX THÈMES.
+         sombre  #110D0F → #1C1719   soit +11 / +10 / +10 par canal
+         clair   #F5F4F4 → #FCFCFC   soit  +7 /  +8 /  +8
+
+     Ce n'est pas un miroir, et c'est là tout l'intérêt : une inversion mécanique
+     aurait posé, en clair, une carte plus SOMBRE que son fond. C'est exactement
+     ce que Zenkuu faisait (#eeeff1 sur #f8f8f9, soit −10 / −9 / −8). Tokenomist
+     ne le fait pas : une carte s'avance toujours vers la lumière, quel que soit
+     le thème.
+
+     ⚠️ LE CANVAS NE BOUGE PAS, ET C'EST UNE CONTRAINTE, PAS UN CHOIX. Il porte le
+     plancher d'écart assumé de la marque (`palette.test.ts`, 1,52:1). L'azur
+     étant plus SOMBRE que le canvas, assombrir le canvas rapprocherait les deux
+     et ferait tomber le ratio sous son plancher. La carte monte donc au blanc
+     plutôt que la page ne descende — même écart obtenu, aucun test cassé.
+
+     Écart obtenu : +7 / +7 / +6. Celui de la référence : +7 / +8 / +8.
+     ══════════════════════════════════════════════════════════════════════════ */
   --color-canvas: #f8f8f9;
-  --color-surface: #eeeff1;
-  --color-panel: #f8f8f9;
+  --color-surface: #ffffff;
+  /* MÊME VALEUR QUE `--color-surface`, ET LES DEUX NOMS CESSENT DE DIVERGER.
+
+     Relevé avant de toucher à quoi que ce soit : la formule de carte réellement
+     écrite dans le dépôt est `bg-surface rounded-card`, 89 occurrences.
+     `bg-panel` n'en compte que 14. `--color-panel` n'était donc pas le plan des
+     cartes malgré son nom — c'était un jeton résiduel qui valait le fond de page,
+     et les quatorze composants qui lui faisaient confiance rendaient un panneau
+     invisible pendant que les quatre-vingt-neuf autres en rendaient un visible.
+
+     Les deux noms pointent désormais le même plan. Aucun composant à reprendre,
+     et la contradiction disparaît. */
+  --color-panel: #ffffff;
   /* Delta de survol — `.gecko-homepage-coin-table tbody tr:first-child`, accueil,
      thème clair (DESIGN_SYSTEM.md §9). Coïncidence exacte avec l'ancien jeton
-     ZENKUU (#f8fafc) : la valeur ne change pas, seule sa provenance change. */
+     ZENKUU (#f8fafc) : la valeur ne change pas, seule sa provenance change.
+
+     ⚠️ CETTE VALEUR EST DÉJÀ CELLE DE `--color-border-subtle`, ET CE N'EST PLUS
+     UNE COÏNCIDENCE MAIS UNE RÈGLE. Tokenomist n'a qu'un seul jeton pour les
+     deux rôles (`black-background`, 23 relevés en fond de survol et 32 en couleur
+     de filet) : survoler une ligne, c'est la remplir de la teinte de son propre
+     contour. Cerner et élever sont le même geste, ce qui économise un cran de
+     rampe et rend le survol prévisible partout.
+
+     Le thème clair y était déjà par accident. Le thème sombre, non — il les
+     tenait séparés (#202127 et #1c1e26) ; il les rejoint dans le bloc `.dark`. */
   --color-surface-hover: #e6e7ed;
   /* NON REPRIS DE COINGECKO — jeton interne, ajusté ici pour rester lisible.
      CoinGecko ne mesure aucune troisième teinte grise en clair : ce jeton restait
      à l'ancienne valeur ZENKUU (#f1f5f9), qui ne passe plus qu'à 4,34:1 avec la
      nouvelle encre atténuée mesurée plus bas (rgb(100, 116, 139)) — sous le seuil
      de 4,5:1. Remonté à la valeur de `--color-surface` (#f8fafc, 4,55:1), qui est
-     de toute façon la seule teinte secondaire que CoinGecko expose en clair. */
-  --color-surface-muted: #eaecf4;
+     de toute façon la seule teinte secondaire que CoinGecko expose en clair.
+
+     ⚠️ RÉGLÉ DE #eaecf4 À #eef0f4 — LA CARTE AYANT MONTÉ, LA PISTE DOIT SUIVRE.
+     Ce jeton porte 135 emplois de `bg-surface-muted`, dont la PISTE CREUSÉE des
+     contrôles segmentés : le rail sombre dans lequel la pastille active remonte.
+     La carte étant passée de #eeeff1 à #ffffff, l'écart piste/carte serait monté
+     de 10 à 17 par canal — un creux, là où la référence en met 11 (sa piste vaut
+     son canvas, sa pastille vaut son panneau). Onze est ce que rend #eef0f4. */
+  --color-surface-muted: #eef0f4;
   /* L4 — onglets actifs et boutons segmentés. Nouveau : rien ne portait ce rôle,
      et un onglet sélectionné se signalait donc par sa seule graisse.
 
@@ -191,8 +251,33 @@
      Ce n'est pas un défaut à corriger ici : il se résout de lui-même dès le premier
      `bg-surface-active`, en Phase 2 avec les contrôles segmentés. La note existe
      pour que le prochain qui lise une chaîne vide ne cherche pas la déclaration
-     manquante — elle est là, c'est le consommateur qui manque. */
-  --color-surface-active: #cacfd9;
+     manquante — elle est là, c'est le consommateur qui manque.
+
+     ⚠️ CETTE NOTE EST PÉRIMÉE, ET JE LA CORRIGE PLUTÔT QUE DE LA RETIRER. Le jeton
+     a désormais QUATRE consommateurs — `AssetRangeBar`, `ChartToolbar`, `tabs.tsx`,
+     `SegmentedControl` — et `palette.test.ts` l'éprouve depuis (ink/surface-active
+     à 4,5:1). Il n'est donc plus élagué, dans aucun des deux thèmes. Le mécanisme
+     décrit ci-dessus reste vrai ; c'est sa conclusion qui a vieilli.
+
+     ── #cacfd9 → #ffffff : LA PASTILLE ACTIVE REMONTE AU PLAN DE LA CARTE ──────
+
+     C'est la mécanique du contrôle segmenté de la référence, et elle n'emploie
+     aucune couleur : la piste est CREUSÉE (elle prend un plan sous la carte) et
+     l'élément actif REMONTE au plan de la carte. L'état actif se lit parce que la
+     pastille est plus claire que sa rainure — pas parce qu'elle porte un aplat.
+
+     #cacfd9 était un gris franc, deux crans sous la piste : il signalait l'état
+     actif en l'ASSOMBRISSANT, l'inverse du geste. Sur la piste #eef0f4, le blanc
+     donne 17 par canal, et la pastille se lit sans qu'on ait peint quoi que ce soit.
+
+     ⚠️ EN CLAIR, CE JETON VAUT DONC `--color-surface`, ET LE SOMBRE NE SUIT PAS.
+     Là-bas il garde une valeur propre (#2e313b), plus haute que le survol. Ce n'est
+     pas une incohérence : en clair, l'élévation va vers le blanc et deux rôles
+     peuvent partager le sommet ; en sombre elle va vers un gris qui doit rester
+     distinct du survol, sans quoi un onglet actif et un onglet survolé se
+     confondraient. C'est précisément ce qu'un thème clair obtenu par inversion
+     automatique rate. */
+  --color-surface-active: #ffffff;
   /* Filet — rgb(229, 231, 235), IDENTIQUE dans les deux thèmes chez CoinGecko,
      toutes pages, 648 occurrences au total (DESIGN_SYSTEM.md §9). Coïncidence
      exacte avec l'ancien jeton ZENKUU en thème clair (#e5e7eb) ; le thème sombre
@@ -690,15 +775,49 @@
 
      À 12 px, cartes et boutons partageaient presque le même rayon, et la distinction
      entre « ceci se clique » et « ceci contient » ne passait plus que par la taille.
-     Quatre pixels d'écart la rendent lisible d'un coup d'œil. */
-  --radius-card: 16px;
+     Quatre pixels d'écart la rendent lisible d'un coup d'œil.
+
+     ══════════════════════════════════════════════════════════════════════════
+     PHASE 1 TOKENOMIST — 16 px → 8 px, ET LA NOTE CI-DESSUS RESTE VRAIE.
+
+     Elle défendait un ÉCART de quatre pixels entre ce qui contient et ce qui se
+     clique. Cet écart est conservé, à un cran plus bas : cartes 8, contrôles 6 —
+     pardon, l'écart tombe à deux, et voici pourquoi c'est le bon.
+
+     Tokenomist, relevée le 2026-09-06 sur 899 éléments, tient toute sa page avec
+     DEUX rayons et une pilule :
+
+         4 px    91 occurrences   ce qui se clique, ce qui se pose
+         8 px    23 occurrences   ce qui contient — cartes, panneaux
+         6 px     6 occurrences   les pistes de contrôles segmentés
+        16 px     3 occurrences   trois fois sur toute la page
+
+     Seize pixels n'y est donc pas le rayon des cartes : c'est une exception qui
+     apparaît trois fois. Zenkuu en faisait sa valeur par défaut, sur 146 emplois
+     de `rounded-card` — et c'est la raison pour laquelle la fiche avait l'air d'une
+     application grand public plutôt que d'un instrument de données. Un rayon de
+     seize sur un panneau de quatre cents pixels de large mange le coin où
+     commencent les colonnes.
+
+     Ce que la distinction contient/clique perd en rayon, elle le regagne ailleurs,
+     et la note ci-dessus l'avait déjà vu : « c'est l'aplat plein des boutons qui
+     tient la distinction, et non le rayon seul ». Avec le plan de carte rétabli
+     (voir « LA CARTE DEVIENT PLUS CLAIRE QUE LA PAGE »), une carte se distingue
+     désormais par son PLAN et son FILET — deux moyens qu'elle n'avait pas quand
+     cette note a été écrite, puisque son fond valait alors celui de la page.
+     ══════════════════════════════════════════════════════════════════════════ */
+  --radius-card: 8px;
   /* 12 px — le cran EN DESSOUS des cartes, pour ce qui vit à l'intérieur d'elles :
      tuiles de métriques, champs groupés, sous-panneaux. L'échelle du document en
      compte six ; celui-ci manquait, et les sous-cartes empruntaient donc soit le
      rayon des cartes (elles se confondaient avec leur contenant), soit celui des
-     contrôles (elles avaient l'air cliquables). */
-  --radius-nested: 12px;
-  --radius-panel: 16px;
+     contrôles (elles avaient l'air cliquables).
+
+     ⚠️ 12 → 4 px. Le raisonnement tient toujours — « le cran EN DESSOUS des
+     cartes » — mais les cartes sont passées à 8, et le cran en dessous de 8 est 4,
+     qui est aussi le rayon dominant de la référence (91 occurrences). */
+  --radius-nested: 4px;
+  --radius-panel: 8px;
 
   /* CONTRÔLES — boutons, champs, puces de filtre, cases à cocher. Tout ce qu'on
      vise et qu'on active.
@@ -711,8 +830,23 @@
      contrôle porte un aplat plein là où une carte porte un filet. Adopter l'un sans
      l'autre redonnerait la page « où rien ne tranche » que la note redoutait — c'est
      donc l'aplat plein des boutons, plus bas dans `button.tsx`, qui tient la
-     distinction ici, et non le rayon seul. */
-  --radius-control: 8px;
+     distinction ici, et non le rayon seul.
+
+     ⚠️ 8 → 6 px, PHASE 1 TOKENOMIST. Ce jeton porte 111 emplois — boutons, champs,
+     puces, barres d'outils. Six pixels est la valeur que la référence donne à ses
+     pistes segmentées, et le cran juste sous celui de ses cartes.
+
+     Pourquoi pas 4, qui est son rayon DOMINANT ? Parce que ses 91 occurrences de 4
+     couvrent des objets plus petits que ce jeton ne couvre ici : ses pastilles de
+     série, ses puces amovibles, ses items À L'INTÉRIEUR d'une piste. Ce niveau-là
+     existe déjà chez nous sous `--radius-sm` (4 px, 28 emplois) ; c'est lui qu'il
+     faudra prendre pour les objets encastrés dans un contrôle, pas ce jeton-ci.
+
+     ⚠️ NE PAS TOUCHER À `--radius` (4 px) SANS TOUCHER À SON DOUBLE SUR `:root`.
+     HeroUI v3 dérive le rayon de ses champs par `calc(--radius × 1.5)`, soit 6 px
+     — la valeur posée ici. Les deux déclarations se répondent : un champ HeroUI et
+     un contrôle Zenkuu tombent sur le même rayon, et c'est voulu. */
+  --radius-control: 6px;
 
   /* Échelle par défaut de Tailwind, RÉALIGNÉE sur les deux familles ci-dessus pour
      qu'un `rounded`/`rounded-md` isolé dans le code tombe du bon côté du vide sans
@@ -885,9 +1019,45 @@
      paragraphe entier en 500 se lit comme du gras.
      ─────────────────────────────────────────────────────────────────────────── */
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     LE RESSERREMENT REVIENT — ET C'EST LA RÉFÉRENCE QUI A CHANGÉ, PAS L'AVIS.
+
+     ⚠️ LA NOTE DE `--text-sm`, PLUS BAS, DIT L'EXACT CONTRAIRE DE CE BLOC. Elle est
+     conservée telle quelle, et il faut la lire : elle explique pourquoi sept crans
+     ont perdu leur `letter-spacing` négatif le jour où CoinGecko a été mesurée. Elle
+     avait raison — CoinGecko rapporte `normal` partout, sur seize pages.
+
+     Tokenomist fait l'inverse, et c'est sa signature typographique la plus visible.
+     Relevé le 2026-09-06 sur 899 éléments, l'approche est NÉGATIVE à tous les crans,
+     et d'autant plus serrée que le corps est grand :
+
+         13px → −0,12px   (118 occurrences)     soit −0,92 %
+         14px → −0,20px   ( 67 occurrences)     soit −1,43 %
+         16px → −0,30px   ( 58 occurrences)     soit −1,88 %
+         32px → −1,00px   ( 18 occurrences)     soit −3,13 %
+         (et −0,05px, 13 occurrences, sur le cran le plus petit)
+
+     Ce n'est donc pas un réglage uniforme mais une COURBE : le rapport au corps
+     croît de 0,9 % à 3,1 %. C'est ce qui empêche un grand chiffre de paraître
+     lâche à côté d'une colonne dense, sans que le petit texte devienne illisible.
+     Zenkuu n'en avait aucune : 1 193 nœuds de texte sur 1 195 en `normal`, mesuré
+     sur la fiche le 2026-09-06.
+
+     Les quatre valeurs relevées sont posées telles quelles sur les crans qui leur
+     correspondent (11, 13, 14, 16). Les cinq crans que la référence n'expose pas
+     (18, 22, 28, 36, 44) suivent la courbe, de −2,0 % à −3,2 %.
+
+     ⚠️ CE QUI EST À SURVEILLER EST L'INVERSE DE CE QUE NOTAIT L'ANCIEN BLOC. Lui
+     craignait un ALLONGEMENT des lignes en retirant le resserrement ; on le remet,
+     donc les lignes RACCOURCISSENT de quelques pour mille. Le seuil de repli des
+     colonnes de tableau à 320 px, qui avait été recalculé à la baisse, garde donc
+     sa marge — le changement va dans le sens qui la préserve.
+     ══════════════════════════════════════════════════════════════════════════ */
+
   --text-2xs: 0.6875rem; /* 11px — pastilles d'état */
   --text-2xs--line-height: 0.875rem;
   --text-2xs--font-weight: 600;
+  --text-2xs--letter-spacing: -0.05px;
 
   /* 12px ET NON 11, alors que 11 est bien le second cran de la référence.
      Mesuré sur la page une fois l'échelle posée : `text-xs` est, chez NOUS, le cran
@@ -901,7 +1071,14 @@
      sa page). Il laisse le 11 à `.text-micro`, qui porte exactement les rôles où elle
      le met — et le partage des deux crans reproduit alors le sien. */
   --text-xs: 0.8125rem; /* 13px — colonnes secondaires de tableau */
-  --text-xs--line-height: 1.125rem;
+  /* ⚠️ 1rem ET NON 1,125 — 16px D'INTERLIGNE, PAS 18.
+     13/16 est le couple le plus employé de la référence : 126 nœuds en 13px, 125
+     en interligne de 16. Zenkuu composait ce même corps sur 18, soit un rapport
+     de 1,38 quand elle en tient un de 1,23. Deux pixels par ligne, sur une colonne
+     de tableau de trente lignes, font soixante pixels — c'est-à-dire deux lignes
+     de données gagnées par écran, et c'est exactement là que se joue la densité. */
+  --text-xs--line-height: 1rem;
+  --text-xs--letter-spacing: -0.12px;
 
   /* ── ⚠️ LE RESSERREMENT A ÉTÉ RETIRÉ DE TOUS LES CRANS ────────────────────
      Sept crans portaient un `letter-spacing` négatif, de −0,12 px à −1 px. La
@@ -916,6 +1093,7 @@
      Inter, et elle se vérifie au même endroit — les colonnes de tableau à 320 px. */
   --text-sm: 0.875rem; /* 14px — LE CRAN DE DENSITÉ, dominant sur la référence */
   --text-sm--line-height: 1.25rem;
+  --text-sm--letter-spacing: -0.2px;
   /* 400 et non 500 : dans le tableau de la référence, TOUTES les cellules de
      données sont en 14px/400, et seul le nom de l'actif monte à 600. La valeur 500
      posée ici épaississait la donnée chiffrée du site entier sans qu'aucune classe
@@ -924,21 +1102,31 @@
 
   --text-base: 1rem; /* 16px — LE CRAN DE LECTURE : paragraphes, boutons */
   --text-base--line-height: 1.5rem;
+  --text-base--letter-spacing: -0.3px;
 
+  /* Les cinq crans qui suivent ne sont pas exposés par la référence : elle ne
+     compose au-dessus de 16px qu'à deux endroits (32px et 24px, une occurrence
+     chacun). Leur approche PROLONGE sa courbe — de −2,0 % à 18px jusqu'à −3,2 % à
+     44px, la référence étant à −3,13 % sur son unique cran de 32. */
   --text-lg: 1.125rem; /* 18px — titres de carte, intitulés de section */
   --text-lg--line-height: 1.75rem;
+  --text-lg--letter-spacing: -0.36px;
 
   --text-xl: 1.375rem; /* 22px — en-tête daté */
   --text-xl--line-height: 1.75rem;
+  --text-xl--letter-spacing: -0.5px;
 
   --text-2xl: 1.75rem; /* 28px — agrégat de carte */
   --text-2xl--line-height: 2.125rem;
+  --text-2xl--letter-spacing: -0.7px;
 
   --text-3xl: 2.25rem; /* 36px — chiffre héros d'une carte */
   --text-3xl--line-height: 2.75rem;
+  --text-3xl--letter-spacing: -1.05px;
 
   --text-4xl: 2.75rem; /* 44px — cours en tête de fiche d'actif */
   --text-4xl--line-height: 3.25rem;
+  --text-4xl--letter-spacing: -1.4px;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Couches FLOTTANTES — un quatrième ton, au-dessus des trois plans.
@@ -2540,16 +2728,72 @@
      ce que `--color-muted` sert ici. Le contraste avec `--color-ink-muted` y gagne
      au passage — 7,16:1 contre 5,51:1.
      ══════════════════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════════════════
+     PHASE 1 TOKENOMIST, VERSANT SOMBRE — TROIS PLANS AU LIEU DE SIX VALEURS.
+
+     Le raisonnement complet est dans le bloc `@theme` clair (« LA CARTE DEVIENT
+     PLUS CLAIRE QUE LA PAGE ») ; seules les valeurs changent ici. Deux corrections
+     s'y ajoutent, propres au thème sombre.
+
+     ── 1. LA CARTE PRENAIT LA MOITIÉ DE L'ÉCART DE LA RÉFÉRENCE ───────────────
+
+     `--color-surface` était à #14151b, soit +6 / +6 / +7 au-dessus du canvas.
+     Tokenomist met +11 / +10 / +10 entre son canvas et son panneau. Six pixels de
+     luminance, sur un fond presque noir, ne se voient pas : c'est pourquoi les
+     quatre-vingt-neuf cartes du site ne se détachaient qu'à peine du fond même
+     quand leur jeton n'était PAS celui du canvas.
+
+     #191a20 rend +11 / +11 / +12 — l'écart de la référence, à un canal près.
+
+     ⚠️ CETTE VALEUR ÉTAIT DÉJÀ DANS LA RAMPE, sous le nom `--color-surface-muted`.
+     Les deux jetons échangent donc leurs valeurs : la carte monte à l'ancien plan
+     atténué, et le plan atténué descend à l'ancien plan de carte. Aucune teinte
+     nouvelle n'est inventée ; c'est un décalage d'un cran de toute la rampe, ce
+     qui garde son caractère bleuté (B > G > R sur les quatre plans).
+
+     ── 2. LE FILET ET LE SURVOL SE REJOIGNENT ─────────────────────────────────
+
+     Ils étaient à deux valeurs distinctes (#202127 pour le survol, #1c1e26 pour
+     le filet), et rien ne les séparait fonctionnellement. Tokenomist n'en a qu'une
+     (`black-background`, 23 relevés en fond de survol, 32 en couleur de filet).
+     #26282f sert les deux : +13 / +14 / +15 au-dessus de la carte, quand la
+     référence en met +13 / +13 / +13.
+
+     Effet secondaire recherché : les cartes deviennent CERNÉES. À #1c1e26 sur une
+     carte à #14151b, le filet valait +8 et se devinait ; à #26282f sur #191a20 il
+     vaut +13 et se voit. C'est ce filet qui porte tout le relief du site, puisqu'il
+     n'y a aucune ombre — ni chez la référence (une seule sur 899 éléments), ni
+     ici (zéro mesurée sur la fiche le 2026-09-06).
+
+     ── LA RAMPE COMPLÈTE, DU FOND VERS LA LUMIÈRE ─────────────────────────────
+
+       #0e0f14  canvas                     le fond de page
+       #14151b  surface-muted              la piste creusée des contrôles segmentés
+       #191a20  surface = panel            le plan des cartes
+       #26282f  border-subtle = surface-hover   le filet, et le survol
+       #2e313b  surface-active             la pastille active, au-dessus du survol
+
+     Contrastes rejoués avant écriture, sur les onze paires que `palette.test.ts`
+     met en jeu dans ce thème : la plus basse tombe à 5,52:1 (ink-muted sur le
+     survol, contre 6,02 avant), toutes au-dessus du seuil AA de 4,5.
+     ══════════════════════════════════════════════════════════════════════════ */
   --color-canvas: #0e0f14;
-  --color-surface: #14151b;
-  --color-panel: #0e0f14;
+  --color-surface: #191a20;
+  --color-panel: #191a20;
   /* Delta de survol dominant — 6 occurrences dans les deltas de survol de
      plusieurs pages, contre 1 seule (le focus d'un unique bouton de connexion sur
-     l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9. */
-  --color-surface-hover: #202127;
-  --color-surface-muted: #191a20;
-  --color-surface-active: #383a45;
-  --color-border-subtle: #1c1e26;
+     l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9.
+
+     La provenance CoinGecko de #202127 tombe avec ce changement, et c'est assumé :
+     la valeur ne servait qu'un seul des deux rôles que ce jeton porte désormais. */
+  --color-surface-hover: #26282f;
+  --color-surface-muted: #14151b;
+  /* La pastille active reste DISTINCTE du survol en sombre — +8 / +9 / +12
+     au-dessus de lui. Le thème clair, lui, la confond volontairement avec le plan
+     de la carte : voir la note du bloc `@theme`, qui explique pourquoi les deux
+     thèmes divergent ici plutôt que de s'inverser l'un l'autre. */
+  --color-surface-active: #2e313b;
+  --color-border-subtle: #26282f;
 
   --color-ink: #dfe5ec;
   /* Le gris neutre froid de Backpack. Il tient 6,02:1 au pire (sur L3), très
