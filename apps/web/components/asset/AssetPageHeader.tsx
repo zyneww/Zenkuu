@@ -727,62 +727,36 @@ export async function AssetHeadline({
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════
- * LA BANDE DE REPÈRES — À LA PLACE DU BOUTON DE SUIVI
+ * LES COMMANDES DE L'EN-TÊTE — CE QU'IL RESTE DE LA BANDE DE REPÈRES
  * ══════════════════════════════════════════════════════════════════════════════
  *
- * Forme demandée, relevée sur `tokenomist.ai/bitcoin` : une bande posée au bord
- * droit de l'en-tête, en face du nom, faite de cellules « intitulé au-dessus,
- * valeur en dessous », séparées par des filets, et fermée par les commandes.
+ * ── CE QU'ELLE PORTAIT, ET OÙ C'EST PARTI ───────────────────────────────────
  *
- * Elle remplace le bouton « Suivre l'actif », qui occupait seul cette place. Le
- * bouton n'est pas supprimé pour autant : il ferme la bande, à droite, comme le
- * « Watchlist » de la référence. C'est la même commande, dans un meilleur cadre.
+ * Trois cellules « intitulé au-dessus, valeur en dessous » — cours, variation 24 h,
+ * amplitude 24 h — relevées sur `tokenomist.ai/bitcoin`, plus les deux commandes.
+ * Les trois cellules existaient parce qu'`AssetPriceCard` avait été retirée de la
+ * fiche et qu'il fallait bien que le cours reste quelque part.
  *
- * ── ELLE REPREND CE QUE LA CARTE DE COURS EMPORTE ────────────────────────────
+ * ⚠️ LA CARTE DE COURS EST RÉTABLIE, EN TÊTE DU RAIL (demande explicite, d'après
+ * `tokenterminal.com/explorer/projects/hyperliquid`, qui pose son bloc « Price » en
+ * haut de colonne gauche). Les trois repères y sont donc retournés — et ils ne
+ * pouvaient pas rester ici en même temps : deux cours à trois cents pixels l'un de
+ * l'autre, dont l'un en direct et l'autre non, posent au lecteur la question de
+ * savoir lequel fait foi.
  *
- * `AssetPriceCard` a été retirée de la fiche (demande explicite, voir sa note).
- * Elle portait le cours, sa variation 24 h et l'amplitude du jour : les trois
- * seraient partis du haut de page avec elle. Les trois sont ici, ce qui fait de
- * cette bande le remplacement de la carte autant que celui du bouton.
+ * Ce qui reste est ce qui n'a pas de meilleure place : les deux COMMANDES. Elles
+ * ferment la ligne d'identité, à droite du nom, comme le « ☆ Watchlist » de la
+ * référence.
  *
- * ══════════════════════════════════════════════════════════════════════════════
- * ⚠️ QUATRE COLONNES DE LA RÉFÉRENCE N'ONT PAS DE SOURCE ICI, ET RESTENT VIDES
- * ══════════════════════════════════════════════════════════════════════════════
- *
- * La bande de Tokenomist porte : Price, Burn, Buyback, Dynamic, Claim, Raise
- * Amount. Seule la première a un équivalent chez nous. Les cinq autres relèvent
- * de la tokenomique — jetons brûlés, rachats, émission dynamique, réclamations,
- * montant levé — et AUCUN fournisseur branché sur ce site ne les publie :
- * `MarketAsset` n'a ni `burn`, ni `buyback`, ni `raiseAmount` (voir
- * `packages/data/src/types.ts`).
- *
- * Elles ne sont donc pas rendues. Les inventer donnerait six colonnes dont
- * quatre mentiraient, et un tiret sous un intitulé emprunté n'est pas plus
- * honnête : il annonce une donnée qu'on n'a pas, à l'endroit où le lecteur
- * s'attend à en trouver une.
- *
- * La bande porte à la place les repères dont NOUS avons la source, dans la forme
- * de la référence : cours, variation 24 h, amplitude 24 h — c'est-à-dire
- * exactement ce que la carte de cours emportait. Le jour où une source de
- * tokenomique est branchée, les colonnes manquantes s'ajoutent ici sans toucher à
- * la mise en page.
+ * ⚠️ « CREATE ALERT » N'EXISTE PAS SUR CE SITE, et n'est donc pas dessiné — la
+ * fonctionnalité d'alerte n'existe pas, et un bouton qui n'arme rien serait pire
+ * qu'un bouton absent. La note d'origine le disait déjà ; elle reste vraie.
  */
 export async function AssetTopBar({
-  asset,
-  assetClass,
-  price,
   watchAction,
   sourceUrl,
 }: {
-  asset: AssetDetail
-  assetClass: AssetClass
-  /**
-   * Le cours, rendu par l'appelant — même contrat que celui d'`AssetPriceCard` :
-   * selon la classe d'actif c'est un composant client branché sur un flux temps
-   * réel ou un simple montant converti, et cette bande sait seulement où le poser.
-   */
-  price: React.ReactNode
-  /** La commande de suivi, qui ferme la bande. */
+  /** La commande de suivi, qui ferme la rangée. */
   watchAction: React.ReactNode
   /**
    * Page de cet actif chez le fournisseur qui publie ses chiffres.
@@ -792,125 +766,24 @@ export async function AssetTopBar({
    */
   sourceUrl?: string
 }) {
-  const t = await getTranslations('metric')
-  /* Deux traducteurs, comme dans `AssetPriceCard` et pour la même raison : `t` lit
-     le catalogue next-intl, dont les clés sont des chemins (`metric.price.label`) ;
-     `phrase` lit la table de phrases, dont les clés SONT le français.
-
-     ⚠️ « Amplitude 24 h » n'a PAS de clé `metric.range24h` — vérifié dans
-     `messages/fr.json`, qui va de `low24h` à `marketCap` sans rien entre les deux.
-     Le libellé vit dans la table de phrases, où `AssetRangeBar` le lit déjà : on
-     reprend LE MÊME plutôt que d'ouvrir une seconde clé pour le même mot. */
+  /* UN SEUL TRADUCTEUR DÉSORMAIS. Il en fallait deux tant que la rangée portait des
+     repères chiffrés : `t` lisait le catalogue next-intl pour leurs intitulés
+     (`metric.price.label`), `phrase` la table de phrases pour le reste. Les repères
+     sont descendus dans le rail avec la carte de cours ; il ne reste ici que du texte
+     d'interface, et la table de phrases le porte seule. */
   const phrase = await getPhrase()
-  const isForex = assetClass === 'forex'
-
-  const hasRange = asset.low24h !== undefined && asset.high24h !== undefined
 
   return (
-    /* `flex-wrap` et non une rangée rigide : la bande partage la ligne du nom, et
-       la colonne principale se resserre déjà de 288 px pour le rail. Sans repli,
-       les cinq cellules poussaient les étiquettes de catégorie hors de l'écran —
-       constaté sur la fiche Bitcoin à 1 280 px de fenêtre.
-
-       `justify-end` : quand elle se replie, la bande reste accrochée au bord
-       droit, sous elle-même, plutôt que de se recentrer sous le nom.
-
-       `sm:flex-nowrap` REND LA LIGNE UNIQUE SUR TOUT ÉCRAN DE BUREAU. Les trois
-       cellules et la commande y tiennent en entier — vérifié au navigateur sur une
-       colonne principale de 910 px, la plus étroite que produise cette fiche avec
-       son rail et sa colonne d'actualités. Le repli ne sert plus qu'au téléphone,
-       où la bande passe sous le nom.
-
-       Elle ne peut pas déborder : chaque cellule porte `min-w-0` et `truncate`,
-       donc elles se contractent avant de pousser quoi que ce soit hors du cadre.
-
-       ══════════════════════════════════════════════════════════════════════════
-       ⚠️ NI CADRE NI FOND — C'EST LE POINT DE LA DEMANDE, ET IL A UN MOTIF
-       ══════════════════════════════════════════════════════════════════════════
-
-       Elle portait `rounded-card border border-border-subtle bg-panel` : un panneau
-       posé au bord droit de l'en-tête. Retirés sur demande explicite, pour coller à
-       `tokenomist.ai/bitcoin`, où la même bande est POSÉE À PLAT sur le fond de la
-       page — aucun trait, aucun aplat, seulement les filets verticaux entre les
-       colonnes.
-
-       Ce n'est pas qu'une préférence : un cadre autour de ces trois valeurs les
-       rangeait au même niveau que les cartes du contenu, alors qu'elles appartiennent
-       à l'EN-TÊTE, comme le nom et les étiquettes à leur gauche — lesquels ne sont
-       pas encadrés non plus. À plat, la ligne d'identité se lit d'un bout à l'autre
-       comme une seule rangée ; encadrée, elle se lisait comme un titre suivi d'un
-       bloc rapporté.
-
-       Le rembourrage part avec le cadre : il n'y a plus de bord dont s'écarter. Seul
-       `py-1` reste, qui donne aux filets verticaux une hauteur un peu supérieure au
-       texte — sans quoi ils s'arrêtent pile sur les lettres et se lisent comme des
-       barres de séparation de texte plutôt que comme des colonnes. */
-    <div className="flex flex-wrap items-center justify-end gap-y-2 py-1 sm:flex-nowrap">
-      <TopBarCell label={t('price.label')}>{price}</TopBarCell>
-
-      {asset.change24h !== undefined ? (
-        <TopBarCell label={asset.changePeriodLabel ?? t('change24h.label')}>
-          {/* La couleur ne porte JAMAIS seule (§9) : la flèche est calculée d'après
-              le signe, et le signe reste écrit sur le nombre. */}
-          <span className={asset.change24h >= 0 ? 'text-up' : 'text-down'}>
-            <span aria-hidden="true">{asset.change24h >= 0 ? '↑' : '↓'} </span>
-            {asset.change24h >= 0 ? '+' : '−'}
-            {Math.abs(asset.change24h).toFixed(2)} %
-          </span>
-        </TopBarCell>
-      ) : null}
-
-      {/* L'amplitude en TEXTE et non en barre. `AssetRangeBar` reste le bon rendu
-          dans une carte de 448 px ; dans une cellule de bande, une jauge de 90 px
-          n'a plus assez de course pour situer le cours entre ses deux bornes, et
-          se lit comme un trait décoratif. Les deux nombres, eux, restent exacts à
-          n'importe quelle largeur. */}
-      {hasRange ? (
-        <TopBarCell label={phrase('Amplitude 24 h')}>
-          <Money value={asset.low24h as number} from={asset.currency} asRate={isForex} />
-          <span aria-hidden="true"> – </span>
-          <span className="sr-only">à </span>
-          <Money value={asset.high24h as number} from={asset.currency} asRate={isForex} />
-        </TopBarCell>
-      ) : null}
-
-      {/* ⚠️ CAPITALISATION ET VOLUME 24 H ONT ÉTÉ ESSAYÉS ICI, PUIS RETIRÉS.
-
-          Ils y étaient pour rapprocher le compte de colonnes de celui de la
-          référence — six chez elle, trois ici. Deux raisons de les enlever, la
-          seconde décisive :
-
-          Ils sont DÉJÀ dans le rail, sous « Fondamentaux », à trois centimètres de
-          là et sur la même ligne d'horizon. La bande les répétait mot pour mot.
-
-          Et surtout, à cinq cellules la bande ne tient plus sur sa ligne : mesuré au
-          navigateur sur une colonne principale de 910 px, les intitulés tombaient à
-          « Capitalisat… » et « Volume 2… », et l'amplitude à « 80 202,26 … ». Une
-          bande de repères tronqués ne renseigne sur rien. À trois cellules elle tient
-          en entier, sans troncature, à toutes les largeurs de bureau.
-
-          Ce qui reste est exactement ce que la carte de cours emportait : le cours,
-          sa variation, l'amplitude du jour. C'est le rôle de cette bande. */}
-
-      {/* ── LES COMMANDES FERMENT LA BANDE ─────────────────────────────────────
-
-          Chez la référence, trois d'affilée : une pastille « Report data », un
-          « ☆ Watchlist » bordé, un « 🔔 Create Alert » plein. Nous en portons deux.
-
-          ⚠️ « CREATE ALERT » N'EXISTE PAS SUR CE SITE, et n'est donc pas dessiné.
-          Le fichier porte déjà la trace de cette décision plus haut : « armer une
-          alerte se fait une fois », et l'emplacement avait été rendu au suivi. Un
-          bouton qui n'arme rien serait pire qu'un bouton absent.
-
-          `ml-3` et non des cellules : ce ne sont pas des repères, et leur donner un
-          intitulé au-dessus les ferait lire comme des mesures de plus. */}
-      <div className="ml-3 flex shrink-0 items-center gap-2">
-        <ReportDataLink
-          {...(sourceUrl ? { href: sourceUrl } : {})}
-          label={phrase('Signaler une donnée')}
-        />
-        {watchAction}
-      </div>
+    /* `shrink-0` et non plus `flex-wrap` : à trois cellules la rangée devait pouvoir
+       se replier sous le nom sur les fenêtres étroites. À deux boutons elle ne peut
+       plus déborder de rien, et le repli n'aurait plus qu'un effet — décrocher les
+       commandes du bord droit sans raison. */
+    <div className="flex shrink-0 items-center gap-2">
+      <ReportDataLink
+        {...(sourceUrl ? { href: sourceUrl } : {})}
+        label={phrase('Signaler une donnée')}
+      />
+      {watchAction}
     </div>
   )
 }
@@ -962,62 +835,6 @@ function ReportDataLink({ href, label }: { href?: string; label: string }) {
     >
       <MessageSquareWarning className="h-4 w-4" aria-hidden="true" />
     </a>
-  )
-}
-
-/**
- * Une cellule de la bande : l'intitulé au-dessus, la valeur en dessous.
- *
- * Le filet est porté par `border-l` sur toutes SAUF la première (`first:border-l-0`)
- * plutôt que par un séparateur rendu entre elles : les cellules disparaissent une à
- * une selon ce que la source renseigne — une paire de devises n'a ni capitalisation
- * ni volume — et des séparateurs autonomes laisseraient alors des traits orphelins.
- * Porté par la cellule, le filet part avec elle.
- */
-function TopBarCell({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    /*
-      ── LES DEUX TAILLES ONT ÉTÉ RELEVÉES : « C'EST SUPER PETIT » ──────────────
-
-      Elles valaient `text-micro` (11 px) pour l'intitulé et `text-xs` (12 px) pour
-      la valeur — un écart d'UN pixel, qui ne hiérarchise rien : les deux lignes se
-      lisaient comme une seule note grise, et le nombre ne ressortait pas.
-
-      Relevé sur `tokenomist.ai/bitcoin` : intitulé ~12 px gris, valeur ~15 px en
-      demi-gras. Un rapport de 1,25, et c'est lui qui fait qu'on voit le nombre
-      avant d'en lire le nom. Les deux valeurs sont reprises telles quelles.
-
-      `text-[15px]` et non `text-sm` (14) : la référence est à 15, et le pixel
-      compte à cette échelle — il met la valeur au-dessus du texte courant du site
-      sans atteindre la taille d'un titre.
-
-      ⚠️ RETOUR À `px-3` APRÈS UN PASSAGE À `px-4`, ET C'EST LA RANGÉE QUI TRANCHE.
-
-      `px-4` reprenait l'espacement de la référence, dont l'en-tête occupe toute la
-      page (1 835 px mesurés). Le nôtre partage sa rangée avec une colonne
-      d'actualités et n'en fait que 1 336. Relevé après l'agrandissement des
-      étiquettes :
-
-        rangée                1 336 px
-        logo + gouttières        80 px
-        bande de repères        695 px
-        reste au bloc d'identité 561 px
-        besoin de la ligne des secteurs, d'un trait   564 px
-
-      Trois pixels manquaient, et la ligne des pastilles de réseau passait dessous —
-      ce qui rendait impossible l'alignement demandé de la bande sur cette ligne.
-
-      Huit pixels rendus par colonne (trois colonnes, deux bords utiles) ramènent la
-      bande à ~671 et donnent 585 au bloc d'identité : la ligne tient d'un trait, avec
-      une vingtaine de pixels de marge. Les filets restent lisibles — c'est le
-      rembourrage qu'ils avaient déjà quand la bande était encadrée.
-    */
-    <div className="min-w-0 border-l border-border-subtle px-3 first:border-l-0 first:pl-0">
-      <p className="truncate text-xs font-medium leading-tight text-ink-muted">{label}</p>
-      <p className="tabular truncate text-[15px] font-semibold leading-tight text-ink">
-        {children}
-      </p>
-    </div>
   )
 }
 
@@ -1159,11 +976,29 @@ export async function AssetPriceCard({
       {/* L'INTITULÉ PORTE LE LOGO ET LE NOM, comme sur la référence. Il dit de quoi
           ce nombre est le cours — utile dès qu'on arrive par un lien profond, et
           nécessaire une fois que l'en-tête est sorti de l'écran. */}
-      {/* La rangée de tête : le titre à gauche, l'amplitude à l'opposé. C'est la
-          disposition de la référence — et elle rend à l'amplitude une place qu'elle
-          n'avait pas, au lieu de la faire descendre sous tout le reste. */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-2">
+      {/* ══════════════════════════════════════════════════════════════════════
+          LE COURS ET L'AMPLITUDE SONT EMPILÉS, ET C'EST LA COLONNE QUI L'IMPOSE
+
+          Ils ont été côte à côte — cours à gauche, amplitude à droite — pendant que
+          cette carte occupait la pleine largeur de la colonne principale. La note
+          d'alors le disait : « cela demande une carte large ».
+
+          ⚠️ ELLE NE L'EST PLUS. La carte est redescendue dans le RAIL, qui fait
+          424 px dont 408 utiles, et 408 ne suffit pas aux deux : mesuré au
+          navigateur avant correction, l'amplitude gardait ses 224 px fixes et il
+          restait 144 px au cours — « 79 920,44 $US » en 30 px n'y tient pas, et la
+          barre se retrouvait écrasée dans le coin.
+
+          C'est donc la géométrie d'AVANT qui redevient juste, et sa note aussi :
+          « c'est une barre avec ses deux bornes, et la couper en deux la briserait ».
+          L'amplitude ferme la carte sous le cours, sur toute la largeur.
+
+          Plus de point de rupture : la carte est dans une colonne étroite à toutes
+          les tailles d'écran, et un `sm:flex-row` ne ferait que rouvrir le défaut sur
+          les fenêtres larges — là où le rail, lui, ne s'élargit pas.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
       {/*
         ══════════════════════════════════════════════════════════════════════
         « BTC / JETON » — LE CODE PUIS LA NATURE, EN CAPITALES ATTÉNUÉES
@@ -1263,13 +1098,11 @@ export async function AssetPriceCard({
       </p>
         </div>
 
-        {/* `sm:w-56` : une largeur FIXE et non une fraction. La barre porte deux
-            montants dont la longueur varie d'un actif à l'autre — « $1.34 » et
-            « $124,651.06 » — et une largeur en pourcentage la ferait respirer
-            différemment sur chaque page. */}
-        <div className="sm:w-56 sm:shrink-0">
-          <AssetRangeBar asset={asset} isRate={isForex} />
-        </div>
+        {/* Aucune largeur imposée : la barre prend celle de la carte, donc celle du
+            rail. Elle portait `sm:w-56` — 224 px fixes — tant qu'elle était à côté du
+            cours et devait lui laisser de la place ; sous lui, cette borne ne ferait
+            que la raccourcir au milieu d'une ligne vide. */}
+        <AssetRangeBar asset={asset} isRate={isForex} />
       </div>
     </section>
   )

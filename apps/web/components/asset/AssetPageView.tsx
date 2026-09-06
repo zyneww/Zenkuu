@@ -38,7 +38,7 @@ import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
 import { ReadingProgress } from '@/components/ui/ReadingProgress'
-import { AssetHeadline, AssetTopBar } from '@/components/asset/AssetPageHeader'
+import { AssetHeadline, AssetPriceCard, AssetTopBar } from '@/components/asset/AssetPageHeader'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
@@ -436,19 +436,16 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             désigne les mêmes bornes que les extrêmes de la courbe, et les deux se
             répondent quand elles se touchent.
             ══════════════════════════════════════════════════════════════════ */}
-        {/* ⚠️ `AssetPriceCard` A ÉTÉ RETIRÉE DE LA FICHE (demande explicite).
+        {/* ⚠️ `AssetPriceCard` N'EST PLUS ICI, ET N'EST PAS PARTIE POUR AUTANT.
 
-            Elle ouvrait cette colonne, juste au-dessus du graphique : « BTC / JETON »,
-            le cours en 36 px, sa variation, et la barre d'amplitude à l'opposé.
+            Elle a ouvert cette colonne — au-dessus du graphique —, puis a été retirée
+            de la fiche, ses trois valeurs remontant dans la bande de l'en-tête. Elle
+            est aujourd'hui RÉTABLIE, mais en tête du RAIL et non ici : c'est la place
+            que lui donne Token Terminal, et c'est aussi celle qui laisse le graphique
+            commencer haut — l'argument qui avait fait descendre la carte depuis
+            l'en-tête vaut encore, il désigne simplement l'autre colonne.
 
-            Les trois informations qu'elle portait sont montées dans la bande de
-            l'en-tête — voir `AssetTopBar` et la prop `watchAction` plus bas. Aucune
-            ne quitte donc la page, et le graphique commence cent vingt pixels plus
-            haut, ce qui était déjà l'argument invoqué pour faire descendre la carte
-            depuis l'en-tête.
-
-            Le composant reste dans le dépôt, comme `AssetTechSheet` et
-            `AssetMarketDrawer` : c'est sa présence sur la fiche qui a été retirée. */}
+            Voir l'appel dans la prop `rail`, plus bas. */}
         <section className="space-y-3">
           {/* ── LE GRAPHIQUE ENTRE DANS UN PANNEAU ────────────────────────────────
 
@@ -1172,30 +1169,17 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                  et le bouton la ferme, à droite, comme le « Watchlist » de la
                  référence. Le suivi n'est donc pas perdu, il est encadré.
 
-                 Le CHAMP `price` est le même nœud que recevait `AssetPriceCard`,
-                 retirée de la fiche juste au-dessus : c'est ce qui fait que le cours
-                 en direct ne quitte pas la page avec elle. Voir `AssetTopBar`, dont
-                 la note dit aussi lesquelles des colonnes de la référence n'ont pas
-                 de source ici. */
+                 ⚠️ ELLE NE PORTE PLUS LE COURS. Il est redescendu dans la carte de
+                 tête du rail, rétablie sur demande d'après Token Terminal, qui pose
+                 son bloc « Price » en haut de colonne gauche. Garder les deux aurait
+                 mis deux cours sur le même écran — l'un en direct, l'autre non —
+                 sans dire lequel fait foi. Voir `AssetTopBar`. */
               watchAction={
                 <AssetTopBar
-                  asset={data}
-                  assetClass={assetClass}
                   /* La source vit sur l'ENVELOPPE de la réponse et non sur `data` —
                      c'est la fiche qui tient les deux, donc c'est elle qui fait le
                      lien. Voir `ReportDataLink`. */
                   {...(asset.source ? { sourceUrl: asset.source.attributionUrl } : {})}
-                  price={
-                    assetClass === 'crypto' ? (
-                      <LiveBinancePrice
-                        symbol={data.symbol}
-                        fallbackValue={data.price}
-                        fallbackCurrency={data.currency}
-                      />
-                    ) : (
-                      <Money value={data.price} from={data.currency} asRate={isForex} />
-                    )
-                  }
                   watchAction={
                     <FollowAssetButton
                       assetClass={assetClass}
@@ -1254,6 +1238,38 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              Commentaire nu : on est dans la prop `rail`, qui n'admet qu'une expression
              — c'est la forme qu'emploient tous les commentaires de ce bloc. */
           <aside className="space-y-2">
+          {/* ══════════════════════════════════════════════════════════════════
+              LA CARTE DE COURS OUVRE LE RAIL — RÉTABLIE SUR DEMANDE
+
+              Elle avait été retirée de la fiche, et ses trois valeurs — cours,
+              variation 24 h, amplitude du jour — étaient montées dans la bande de
+              l'en-tête sous forme de cellules. Token Terminal pose son bloc
+              « Price » en TÊTE DE COLONNE GAUCHE, juste au-dessus de la table de
+              métriques ; c'est cette forme qui a été redemandée.
+
+              ⚠️ LES CELLULES DE LA BANDE SONT PARTIES EN MÊME TEMPS, et c'était la
+              condition. Deux cours sur un même écran, dont l'un branché sur le flux
+              Binance et l'autre figé au rendu, ne se contredisent pas souvent — mais
+              quand ils le font, rien ne dit lequel croire.
+
+              Le cours reste néanmoins visible une fois la page descendue : c'est le
+              rôle d'`AssetStickyBar`, la bande compacte qui apparaît au défilement.
+              ══════════════════════════════════════════════════════════════════ */}
+          <AssetPriceCard
+            asset={data}
+            assetClass={assetClass}
+            price={
+              assetClass === 'crypto' ? (
+                <LiveBinancePrice
+                  symbol={data.symbol}
+                  fallbackValue={data.price}
+                  fallbackCurrency={data.currency}
+                />
+              ) : (
+                <Money value={data.price} from={data.currency} asRate={isForex} />
+              )
+            }
+          />
 
           {/* La colonne empile QUATRE sources de nature différente : le
               registre de métriques, les jauges d'offre, le sondage communautaire et
