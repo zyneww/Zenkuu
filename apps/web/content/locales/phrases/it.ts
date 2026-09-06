@@ -2797,4 +2797,9 @@ export const itPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Cerca fra {n} indicatori',
   'Retirer {nom} de la comparaison': 'Rimuovi {nom} dal confronto',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Per collocare questi movimenti nel mercato: [classifiche di mercato](/classements) · [glossario dei termini](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Nessuna misura è pubblicata per questo asset.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Ogni misura pubblicata per questo asset, con la pagina che la illustra.',
+  'Métriques': 'Metriche',
 }

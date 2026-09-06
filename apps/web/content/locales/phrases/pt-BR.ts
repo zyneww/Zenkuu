@@ -2797,4 +2797,9 @@ export const ptBRPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Buscar entre {n} indicadores',
   'Retirer {nom} de la comparaison': 'Remover {nom} da comparação',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Para situar esses movimentos no mercado: [classificações do mercado](/classements) · [glossário de termos](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Nenhuma medida é publicada para este ativo.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Cada medida publicada para este ativo, com a página que a detalha.',
+  'Métriques': 'Métricas',
 }

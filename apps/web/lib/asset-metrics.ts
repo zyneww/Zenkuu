@@ -235,6 +235,28 @@ export const METRICS: readonly MetricDef[] = [
   { slug: 'variation-1an', message: 'change1y', group: 'change', kind: 'change', read: (a) => a.change1y },
 ]
 
+/**
+ * Ordre des groupes, et leur intitulé.
+ *
+ * ⚠️ ILS VIVAIENT DANS `AssetMetricRail`, ET UN SECOND LECTEUR EST ARRIVÉ. Le
+ * catalogue des métriques groupe exactement de la même façon — c'est ce qui fait
+ * qu'on retrouve dans la page ce qu'on a vu dans le rail. Deux copies auraient
+ * divergé au premier groupe ajouté, ce que ce registre existe précisément pour
+ * empêcher.
+ *
+ * « Fondamentaux » et non « Repères de marché » : le second décrivait la COLONNE
+ * (des repères, dans un rail), le premier décrit son CONTENU — capitalisation,
+ * volume et valorisation diluée sont les fondamentaux d'un actif.
+ */
+export const METRIC_GROUP_ORDER: readonly MetricGroup[] = ['market', 'range', 'supply', 'change']
+
+export const METRIC_GROUP_TITLES: Record<MetricGroup, string> = {
+  market: 'Fondamentaux',
+  range: 'Amplitude',
+  supply: 'Offre',
+  change: 'Variations',
+}
+
 const BY_SLUG = new Map(METRICS.map((metric) => [metric.slug, metric]))
 
 export function getMetric(slug: string): MetricDef | undefined {
@@ -260,6 +282,35 @@ export function metricHref(assetClass: AssetClass, id: string, slug: string): Ap
   const route = METRIC_ROUTE[assetClass]
   return route ? { pathname: route, params: { id, metrique: slug } } : assetHref(assetClass, id)
 }
+
+/**
+ * Lien vers le CATALOGUE des métriques d'un actif.
+ *
+ * ── POURQUOI IL A FALLU UNE SECONDE ADRESSE ─────────────────────────────────
+ *
+ * Vingt et une pages de métrique existaient sans qu'aucune ne soit canonique : la
+ * rangée d'onglets de la fiche notait qu'elle ne pouvait pas les porter, faute d'UNE
+ * destination. Le catalogue est cette destination — il les liste toutes, groupées
+ * comme le rail les groupe, avec la valeur du jour à côté de chaque nom.
+ *
+ * `nft` retombe sur la page de classe, comme partout ailleurs : elle n'a pas de fiche,
+ * donc pas de métrique.
+ */
+export function metricsHref(assetClass: AssetClass, id: string): AppHref {
+  const route = METRIC_INDEX_ROUTE[assetClass]
+  return route ? { pathname: route, params: { id } } : assetHref(assetClass, id)
+}
+
+/** Route du catalogue, par classe. Même table que ci-dessous, moins le segment final. */
+const METRIC_INDEX_ROUTE = {
+  crypto: '/crypto/[id]/metriques',
+  forex: '/devises/[id]/metriques',
+  stock: '/actions/[id]/metriques',
+  etf: '/etf/[id]/metriques',
+  commodity: '/matieres-premieres/[id]/metriques',
+  index: '/indices/[id]/metriques',
+  nft: null,
+} as const satisfies Record<AssetClass, string | null>
 
 /** Route de la page d'une métrique, par classe. Voir `lib/asset-routes.ts`. */
 const METRIC_ROUTE = {

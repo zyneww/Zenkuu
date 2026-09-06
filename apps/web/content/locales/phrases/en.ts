@@ -2809,4 +2809,9 @@ export const enPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Search {n} indicators',
   'Retirer {nom} de la comparaison': 'Remove {nom} from the comparison',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'To place these moves in the wider market: [market rankings](/classements) · [glossary of terms](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'No measure is published for this asset.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Every measure published for this asset, each with the page that details it.',
+  'Métriques': 'Metrics',
 }

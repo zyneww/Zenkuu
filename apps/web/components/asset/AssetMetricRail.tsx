@@ -8,9 +8,13 @@ import { MetricValue } from '@/components/asset/MetricValue'
 import { InfoTip } from '@/components/ui/InfoTip'
 import { RailSection } from '@/components/ui/RailSection'
 import { getFormatters } from '@/lib/formatters'
+import { Link } from '@/i18n/navigation'
 import {
   METRICS,
+  METRIC_GROUP_ORDER,
+  METRIC_GROUP_TITLES,
   extremeMessage,
+  metricHref,
   type MetricDef,
   type MetricGroup,
 } from '@/lib/asset-metrics'
@@ -56,23 +60,13 @@ import {
  * une absence de donnée pour une donnée nulle.
  */
 
-const GROUP_ORDER: MetricGroup[] = ['market', 'range', 'supply', 'change']
-
-const GROUP_TITLES: Record<MetricGroup, string> = {
-  // « Fondamentaux » et non plus « Repères de marché ». Le titre précédent décrivait
-  // la COLONNE (des repères, dans un rail) ; maintenant que chaque groupe est une
-  // carte autonome, il doit décrire SON CONTENU. Capitalisation, volume et
-  // valorisation diluée sont les fondamentaux d'un actif, pas des repères.
-  market: 'Fondamentaux',
-  range: 'Amplitude',
-  supply: 'Offre',
-  change: 'Variations',
-}
+/* L'ordre et les intitulés vivent au registre depuis que le catalogue des métriques
+   les lit lui aussi — voir `METRIC_GROUP_TITLES`. Deux copies auraient divergé. */
 
 export async function AssetMetricRail({
   asset,
   assetClass,
-  groups: requested = GROUP_ORDER,
+  groups: requested = METRIC_GROUP_ORDER,
 }: {
   asset: AssetDetail
   assetClass: AssetClass
@@ -140,7 +134,7 @@ export async function AssetMetricRail({
        fichier la documentait déjà ailleurs — je l'ai refaite quand même. */
     <aside data-rail-group className="space-y-2" aria-label={phrase('Repères chiffrés')}>
       {groups.map(({ group, rows }) => (
-        <RailSection key={group} title={phrase(GROUP_TITLES[group])}>
+        <RailSection key={group} title={phrase(METRIC_GROUP_TITLES[group])}>
           <dl>
             {rows.map(({ metric, value }) => {
               const message = messageOf(metric)
@@ -164,26 +158,25 @@ export async function AssetMetricRail({
                 >
                   <dt className="flex min-w-0 flex-1 items-center gap-1">
                     {/*
-                      ── LE LIBELLÉ N'EST PLUS UN LIEN ─────────────────────────
+                      ── LE LIBELLÉ REDEVIENT UN LIEN, SANS REDEVENIR SOULIGNÉ ─────
 
-                      Chacune des vingt lignes menait à sa page de métrique, sous un
-                      soulignement pointillé. Deux défauts en découlaient, et le second
-                      est le vrai motif.
+                      Il l'avait été, puis ne l'était plus, et la note qui expliquait
+                      le retrait tenait en deux arguments. Le premier — « le rail
+                      devient une colonne de vingt textes soulignés, et l'œil finit
+                      par ignorer le soulignement » — vise le SOULIGNEMENT PERMANENT,
+                      pas le lien : il ne revient pas. La destination ne se signale
+                      qu'à l'approche, par la couleur et par le trait, comme partout
+                      ailleurs sur le site.
 
-                      Le rail devenait une colonne de vingt liens. Sur une page qui en
-                      porte déjà une centaine, vingt destinations alignées dans la
-                      colonne la plus dense ne se lisent plus comme des portes : elles
-                      se lisent comme du texte souligné, et l'œil finit par ignorer le
-                      soulignement.
+                      Le second — « ces pages n'existent plus comme destination de
+                      premier plan » — n'est plus vrai : la fiche porte de nouveau un
+                      onglet « Métriques », et son catalogue est exactement l'endroit
+                      où ces vingt pages sont revendiquées.
 
-                      Surtout, ces pages n'existent PLUS comme destination de premier
-                      plan : le catalogue « Toutes les métriques » a été retiré de la
-                      fiche, et un rail qui continuerait de pointer vingt fois vers lui
-                      enverrait vers une profondeur que la page ne revendique plus.
-
-                      L'INFOBULLE RESTE, et elle suffit : la question qu'on se pose
-                      devant « valorisation diluée » est « qu'est-ce que c'est », à
-                      laquelle elle répond sur place — pas « montre-moi sa courbe ».
+                      L'INFOBULLE RESTE À CÔTÉ, et les deux ne font pas doublon : elle
+                      répond à « qu'est-ce que c'est » sans quitter la page, le lien à
+                      « montre-moi son évolution ». C'est la distinction que la
+                      référence fait aussi.
                     */}
                     {/* ⚠️ 14/20/500 ET NON 13/18/400, ET LA MESURE A DÛ ÊTRE REFAITE.
                         Un premier relevé donnait ces lignes à 12/20/500 pour le libellé
@@ -194,7 +187,12 @@ export async function AssetMetricRail({
                         Valuation », « 24 Hour Trading Vol », « Circulating Supply »,
                         « Total Supply » et « Max Supply » sortent TOUTES en 14/20/500,
                         encre atténuée. Leurs valeurs sortent en 14/20/600. */}
-                    <span className="truncate text-sm font-medium text-ink-muted">{label}</span>
+                    <Link
+                      href={metricHref(assetClass, asset.id, metric.slug)}
+                      className="truncate text-sm font-medium text-ink-muted transition-colors hover:text-brand-strong hover:underline"
+                    >
+                      {label}
+                    </Link>
                     {/*
                       L'INFOBULLE EST POSÉE EN PERMANENCE, PAS RÉVÉLÉE AU SURVOL.
                      
@@ -269,30 +267,24 @@ export async function AssetMetricRail({
           </dl>
 
           {/*
-            ── « EXPLORER TOUTES LES MÉTRIQUES » A ÉTÉ RETIRÉ ──────────────────
+            ── PAS DE LIEN « TOUTES LES MÉTRIQUES » EN PIED DE COLONNE ────────
 
-            Il fermait le dernier groupe et menait au catalogue des dix-sept mesures,
-            lequel a quitté la fiche. Un lien de pied de colonne vers une section
-            supprimée est la pire des deux options : il subsiste, il attire l'œil, et
-            il ne mène plus là où il prétend.
+            Il y en a eu un ; il menait au catalogue, lequel avait quitté la fiche. Le
+            catalogue est revenu — `/{classe}/{id}/metriques` — mais il se rejoint par
+            l'ONGLET, en haut de page, pas par un lien au pied de la quatrième carte
+            d'une colonne qu'il faut dérouler pour atteindre.
 
-            Les pages de métrique elles-mêmes SUBSISTENT sous
-            `/{classe}/{id}/metriques/{slug}`. Ce qui disparaît est leur mise en avant
-            depuis ce rail, pas leur existence.
+            ⚠️ CETTE NOTE DISAIT QUE CES PAGES N'ÉTAIENT JOIGNABLES QU'EN TAPANT LEUR
+            ADRESSE. Ce n'est plus vrai : chaque libellé de ce rail mène désormais à la
+            sienne, et l'onglet mène au catalogue qui les liste toutes. Le constat
+            était juste quand il a été écrit — la sonde qui pêche les routes dans les
+            liens rendus n'en trouvait aucune —, il ne l'est plus.
 
-            ⚠️ CETTE NOTE DISAIT « ELLES SONT INDEXÉES ET PARTAGÉES ». C'EST FAUX, ET
-            ÇA L'ÉTAIT DÉJÀ QUAND ELLE A ÉTÉ ÉCRITE. Vérifié : aucun lien du site n'y
-            mène — la sonde qui pêche les routes dans les liens rendus n'en a trouvé
-            aucune — et `app/sitemap.ts` ne les déclare pas. Une page sans lien
-            entrant ni entrée de plan n'est pas indexée : un moteur n'a aucun chemin
-            pour l'atteindre. Elles ne sont donc joignables qu'en tapant leur adresse.
-
-            Elles ne sont PAS ajoutées au plan de site pour autant : dix-sept mesures
-            fois cent actifs font mille sept cents URL très minces, et un plan gonflé
-            de pages sans profondeur dessert les pages qui comptent. Le choix à faire
-            — les relier depuis la fiche, ou les retirer — revient à l'exploitant ;
-            ce qui ne pouvait pas rester, c'est une note qui affirmait le contraire de
-            l'état réel.
+            Elles ne sont toujours PAS déclarées dans `app/sitemap.ts`, et cette
+            décision-là ne change pas : vingt et une mesures fois cent actifs font deux
+            mille URL très minces, et un plan gonflé de pages sans profondeur dessert
+            les pages qui comptent. Un lien entrant suffit à les rendre atteignables
+            par un robot ; c'est ce qui manquait, pas une entrée de plan.
           */}
 
         </RailSection>

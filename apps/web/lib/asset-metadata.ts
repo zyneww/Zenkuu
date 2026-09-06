@@ -4,9 +4,9 @@ import { getTranslations } from 'next-intl/server'
 import type { AssetClass } from '@zenkuu/data'
 import { getAsset } from '@zenkuu/data'
 
-import { extremeMessage, getMetric, metricHref } from '@/lib/asset-metrics'
+import { extremeMessage, getMetric, metricHref, metricsHref } from '@/lib/asset-metrics'
 import { assetHref } from '@/lib/asset-routes'
-import { getContent } from '@/lib/content'
+import { getContent, getPhrase } from '@/lib/content'
 import { pageAlternates } from '@/lib/site'
 
 /**
@@ -60,6 +60,44 @@ export async function buildAssetMetadata(
       title: `${fr.site.name} | ${title}`,
       description: `Cours et statistiques de ${name} — plateforme d’analyse en lecture seule.`,
     },
+  }
+}
+
+/**
+ * Métadonnées du CATALOGUE des métriques d'un actif.
+ *
+ * Le titre nomme l'actif, jamais la seule mesure : « Métriques — Bitcoin (BTC) »
+ * dit ce que la page contient, là où « Métriques » seul serait le même titre pour
+ * des milliers de pages — le défaut que `buildAssetMetadata` documente juste au-dessus.
+ *
+ * ⚠️ PAS DE `robots` PARTICULIER, ET C'EST UN CHOIX. Ces pages sont minces par nature
+ * — une liste de liens —, mais elles sont le SEUL chemin depuis la fiche vers les
+ * vingt et une pages de métrique, qui, elles, portent du texte durable. Les désindexer
+ * couperait ce chemin pour un robot tout en le laissant ouvert pour un lecteur.
+ */
+export async function buildMetricsIndexMetadata(
+  assetClass: AssetClass,
+  id: string,
+): Promise<Metadata> {
+  const [fr, phrase, asset] = await Promise.all([
+    getContent(),
+    getPhrase(),
+    getAsset(id, assetClass, 'eur'),
+  ])
+
+  if (!asset.ok) return { title: fr.asset.notFoundTitle, robots: { index: false } }
+
+  const { name, symbol } = asset.data
+  const title = `${phrase('Métriques')} — ${name} (${symbol})`
+  const description = phrase(
+    'Chaque mesure publiée pour cet actif, avec la page qui la détaille.',
+  )
+
+  return {
+    title,
+    description,
+    alternates: await pageAlternates(metricsHref(assetClass, id)),
+    openGraph: { title: `${fr.site.name} | ${title}`, description },
   }
 }
 

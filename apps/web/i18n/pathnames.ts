@@ -101,6 +101,9 @@ export const PATHNAMES = {
 
   '/actions': traduit('/actions', '/stocks'),
   '/actions/[id]': traduit('/actions/[id]', '/stocks/[id]'),
+  /* Le catalogue des mesures d'un actif — destination de l'onglet « Métriques » de la
+     fiche, et seule adresse canonique d'un ensemble qui compte vingt et une pages. */
+  '/actions/[id]/metriques': traduit('/actions/[id]/metriques', '/stocks/[id]/metrics'),
   '/actions/[id]/metriques/[metrique]': traduit(
     '/actions/[id]/metriques/[metrique]',
     '/stocks/[id]/metrics/[metrique]',
@@ -124,6 +127,7 @@ export const PATHNAMES = {
   '/crypto/[id]': '/crypto/[id]',
   '/crypto/[id]/halving': '/crypto/[id]/halving',
   '/crypto/[id]/historique': traduit('/crypto/[id]/historique', '/crypto/[id]/history'),
+  '/crypto/[id]/metriques': traduit('/crypto/[id]/metriques', '/crypto/[id]/metrics'),
   '/crypto/[id]/metriques/[metrique]': traduit(
     '/crypto/[id]/metriques/[metrique]',
     '/crypto/[id]/metrics/[metrique]',
@@ -132,6 +136,7 @@ export const PATHNAMES = {
   '/derives': traduit('/derives', '/derivatives'),
   '/devises': traduit('/devises', '/currencies'),
   '/devises/[id]': traduit('/devises/[id]', '/currencies/[id]'),
+  '/devises/[id]/metriques': traduit('/devises/[id]/metriques', '/currencies/[id]/metrics'),
   '/devises/[id]/metriques/[metrique]': traduit(
     '/devises/[id]/metriques/[metrique]',
     '/currencies/[id]/metrics/[metrique]',
@@ -143,6 +148,7 @@ export const PATHNAMES = {
 
   '/etf': '/etf',
   '/etf/[id]': '/etf/[id]',
+  '/etf/[id]/metriques': traduit('/etf/[id]/metriques', '/etf/[id]/metrics'),
   '/etf/[id]/metriques/[metrique]': traduit(
     '/etf/[id]/metriques/[metrique]',
     '/etf/[id]/metrics/[metrique]',
@@ -161,6 +167,7 @@ export const PATHNAMES = {
 
   '/indices': '/indices',
   '/indices/[id]': '/indices/[id]',
+  '/indices/[id]/metriques': traduit('/indices/[id]/metriques', '/indices/[id]/metrics'),
   '/indices/[id]/metriques/[metrique]': traduit(
     '/indices/[id]/metriques/[metrique]',
     '/indices/[id]/metrics/[metrique]',
@@ -171,6 +178,10 @@ export const PATHNAMES = {
 
   '/matieres-premieres': traduit('/matieres-premieres', '/commodities'),
   '/matieres-premieres/[id]': traduit('/matieres-premieres/[id]', '/commodities/[id]'),
+  '/matieres-premieres/[id]/metriques': traduit(
+    '/matieres-premieres/[id]/metriques',
+    '/commodities/[id]/metrics',
+  ),
   '/matieres-premieres/[id]/metriques/[metrique]': traduit(
     '/matieres-premieres/[id]/metriques/[metrique]',
     '/commodities/[id]/metrics/[metrique]',

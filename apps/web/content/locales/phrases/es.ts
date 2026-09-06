@@ -2804,4 +2804,9 @@ export const esPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Buscar entre {n} indicadores',
   'Retirer {nom} de la comparaison': 'Quitar {nom} de la comparación',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Para situar estos movimientos en el mercado: [clasificaciones del mercado](/classements) · [glosario de términos](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'No se publica ninguna medida para este activo.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Cada medida publicada para este activo, con la página que la detalla.',
+  'Métriques': 'Métricas',
 }

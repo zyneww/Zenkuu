@@ -2797,4 +2797,9 @@ export const viPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Tìm trong {n} chỉ báo',
   'Retirer {nom} de la comparaison': 'Bỏ {nom} khỏi phần so sánh',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Để đặt các biến động này vào bối cảnh thị trường: [bảng xếp hạng thị trường](/classements) · [bảng thuật ngữ](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Không có chỉ số nào được công bố cho tài sản này.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Mọi chỉ số được công bố cho tài sản này, kèm trang mô tả chi tiết.',
+  'Métriques': 'Chỉ số',
 }

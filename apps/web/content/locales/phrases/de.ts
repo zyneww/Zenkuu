@@ -2805,4 +2805,9 @@ export const dePhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': '{n} Indikatoren durchsuchen',
   'Retirer {nom} de la comparaison': '{nom} aus dem Vergleich entfernen',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Um diese Bewegungen im Markt einzuordnen: [Marktranglisten](/classements) · [Glossar der Begriffe](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Für diesen Wert wird keine Kennzahl veröffentlicht.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Jede für diesen Wert veröffentlichte Kennzahl, mit der Seite, die sie erläutert.',
+  'Métriques': 'Kennzahlen',
 }

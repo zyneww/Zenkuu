@@ -2797,4 +2797,9 @@ export const ruPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Поиск среди {n} показателей',
   'Retirer {nom} de la comparaison': 'Убрать {nom} из сравнения',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Чтобы соотнести эти движения с рынком: [рыночные рейтинги](/classements) · [глоссарий терминов](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Для этого актива не публикуется ни одного показателя.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Каждый показатель, публикуемый для этого актива, и страница с его описанием.',
+  'Métriques': 'Показатели',
 }

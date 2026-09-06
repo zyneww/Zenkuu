@@ -2797,4 +2797,9 @@ export const trPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': '{n} gösterge içinde ara',
   'Retirer {nom} de la comparaison': '{nom} öğesini karşılaştırmadan çıkar',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Bu hareketleri piyasada konumlandırmak için: [piyasa sıralamaları](/classements) · [terimler sözlüğü](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Bu varlık için hiçbir ölçüt yayımlanmıyor.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Bu varlık için yayımlanan her ölçüt ve onu ayrıntılandıran sayfa.',
+  'Métriques': 'Metrikler',
 }

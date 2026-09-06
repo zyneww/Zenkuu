@@ -2797,4 +2797,9 @@ export const nlPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Zoek in {n} indicatoren',
   'Retirer {nom} de la comparaison': '{nom} uit de vergelijking halen',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Om deze bewegingen in de markt te plaatsen: [marktklassementen](/classements) · [woordenlijst](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Voor dit item wordt geen enkele maatstaf gepubliceerd.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Elke voor dit item gepubliceerde maatstaf, met de pagina die hem toelicht.',
+  'Métriques': 'Statistieken',
 }

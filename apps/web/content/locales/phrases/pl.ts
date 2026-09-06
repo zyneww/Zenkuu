@@ -2797,4 +2797,9 @@ export const plPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': 'Szukaj wśród {n} wskaźników',
   'Retirer {nom} de la comparaison': 'Usuń {nom} z porównania',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'Aby umiejscowić te ruchy na rynku: [rankingi rynkowe](/classements) · [słownik pojęć](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'Dla tego aktywa nie opublikowano żadnej miary.',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Każda miara publikowana dla tego aktywa wraz ze stroną, która ją opisuje.',
+  'Métriques': 'Wskaźniki',
 }

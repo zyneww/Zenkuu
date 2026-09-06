@@ -240,7 +240,17 @@ export async function MetricPageView({ assetClass, id, slug }: MetricPageViewPro
                 />
                 {history.ok ? (
                   <SourceNote
-            strings={{ source: t('Source :'), dated: t('données du {date}') }}
+                    /* ⚠️ `phrase` ET NON `t` — LA NOTE SORTAIT SES CLÉS À L'ÉCRAN.
+                       `t` vaut ici `getTranslations('metric')`, dont les clés vivent
+                       dans `messages/*.json` : « Source : » n'y figure pas, et
+                       next-intl rend alors le chemin de la clé introuvable. La page
+                       affichait littéralement « metric.Source : CoinGecko ·
+                       metric.données du 9/6/26 ». Les deux phrases sont dans la table,
+                       traduites : c'est elle qu'il fallait interroger.
+
+                       Le défaut est antérieur ; il devient visible maintenant que la
+                       fiche mène ici par le rail et par l'onglet. */
+                    strings={{ source: phrase('Source :'), dated: phrase('données du {date}') }}
                     label={history.source.label}
                     href={history.source.attributionUrl}
                     updatedAt={data.lastUpdated}

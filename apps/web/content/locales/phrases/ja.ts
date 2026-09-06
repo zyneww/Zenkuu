@@ -2797,4 +2797,9 @@ export const jaPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': '{n}件の指標を検索',
   'Retirer {nom} de la comparaison': '{nom}を比較から外す',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': 'これらの値動きを市場の中で捉えるには：[市場ランキング](/classements) · [用語集](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': 'この銘柄について公開されている指標はありません。',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'この銘柄について公開されている各指標と、その詳細ページ。',
+  'Métriques': '指標',
 }

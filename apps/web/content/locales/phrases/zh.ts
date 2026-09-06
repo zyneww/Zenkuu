@@ -2790,4 +2790,9 @@ export const zhPhrases: Phrases = {
   'Rechercher parmi {n} indicateurs': '在{n}项指标中搜索',
   'Retirer {nom} de la comparaison': '从对比中移除{nom}',
   'Pour situer ces mouvements dans le marché : [classements du marché](/classements) · [glossaire des termes](/glossaire)': '要在市场中定位这些波动：[市场排行](/classements) · [术语表](/glossaire)',
+
+  /* ── CATALOGUE DES MÉTRIQUES — ajouté le 2026-09-07 ── */
+  'Aucune mesure n’est publiée pour cet actif.': '该资产暂无已公布的指标。',
+  'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': '该资产已公布的每项指标，以及对应的详情页。',
+  'Métriques': '指标',
 }

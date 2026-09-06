@@ -1,10 +1,12 @@
 'use client'
 
-import { History, LineChart, Scissors } from 'lucide-react'
+import { History, LineChart, Scissors, Table2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Link } from '@/i18n/navigation'
+import { Link, type AppHref } from '@/i18n/navigation'
 import { usePhrase } from '@/components/locale/ContentProvider'
+import { assetHref } from '@/lib/asset-routes'
+import { metricsHref } from '@/lib/asset-metrics'
 import type { AssetClass } from '@zenkuu/data'
 
 /**
@@ -62,22 +64,29 @@ import type { AssetClass } from '@zenkuu/data'
  * coordonnées. Le second donnerait des coordonnées d'ÉCRAN, fausses dès que la rangée
  * a défilé horizontalement, ce qui est précisément son comportement sur téléphone.
  *
- * ── CE QUI N'EST PAS ICI, ET POURQUOI ─────────────────────────────────────────
+ * ── L'ONGLET « MÉTRIQUES » EXISTE MAINTENANT, ET IL A FALLU LUI BÂTIR SA PAGE ──
  *
- * ⚠️ PAS D'ONGLET « MÉTRIQUES », ALORS QUE VINGT ET UNE PAGES DE MÉTRIQUE EXISTENT.
- * Elles vivent sous `/crypto/[id]/metriques/[metrique]` : il n'y a donc pas UNE
- * destination mais vingt et une, et aucune n'est canonique.
+ * Cette note disait : « PAS D'ONGLET MÉTRIQUES, alors que vingt et une pages de
+ * métrique existent. Elles vivent sous `/{classe}/[id]/metriques/[metrique]` : il n'y
+ * a donc pas UNE destination mais vingt et une, et aucune n'est canonique. »
+ *
+ * Le constat était juste, la conclusion était provisoire. Ce qui manquait n'était pas
+ * l'onglet mais le CATALOGUE : `/{classe}/[id]/metriques` liste les mesures
+ * renseignées pour l'actif, groupées comme le rail les groupe. L'onglet a désormais
+ * une adresse canonique, et les vingt et une pages un chemin depuis la fiche —
+ * jusqu'ici elles n'étaient joignables qu'en tapant leur URL.
  *
  * ⚠️ PAS D'ONGLETS « TOKENOMICS » NI « UNLOCK EVENTS », que la référence porte.
  * Aucune donnée derrière : ni allocation par catégorie, ni calendrier de
  * déverrouillage, ni courbe d'émission. `AssetSupply` le consigne déjà — les
  * afficher supposerait de les ESTIMER.
  *
- * ── LA RANGÉE NE PARAÎT PAS À UN SEUL ONGLET ──────────────────────────────────
+ * ── LA RANGÉE PARAÎT DÉSORMAIS SUR LES SIX CLASSES ────────────────────────────
  *
- * Les sous-routes n'existent QUE pour la crypto : les cinq autres classes d'actifs
- * n'ont que leur aperçu. Une rangée à un onglet n'est pas une navigation, c'est un
- * titre déguisé en commande — elle ne se rend donc pas.
+ * Elle ne se rendait que pour la crypto, seule classe à porter des sous-routes :
+ * « une rangée à un onglet n'est pas une navigation, c'est un titre déguisé en
+ * commande ». Le catalogue existe pour les six, donc les six ont deux onglets, et le
+ * garde-fou reste écrit — `tabs.length < 2` — plutôt que remplacé par une confiance.
  */
 
 /**
@@ -116,7 +125,7 @@ import type { AssetClass } from '@zenkuu/data'
  */
 let dernierTrait: { left: number; width: number } | null = null
 
-type TabKey = 'apercu' | 'historique' | 'halving'
+type TabKey = 'apercu' | 'metriques' | 'historique' | 'halving'
 
 export function AssetTabs({
   assetClass,
@@ -203,12 +212,14 @@ export function AssetTabs({
     }
   }, [active])
 
-  /* Les sous-routes sont déclarées pour la crypto seule dans `i18n/pathnames.ts` :
-     hors crypto, il n'y a rien à ouvrir, et le typage des routes le dirait de toute
-     façon avant l'exécution. */
-  if (assetClass !== 'crypto') return null
+  /* ⚠️ L'HISTORIQUE ET LE HALVING RESTENT DÉCLARÉS POUR LA CRYPTO SEULE dans
+     `i18n/pathnames.ts` : leurs littéraux de route n'existent pas pour les autres
+     classes, et le typage de `Link` refuserait la compilation avant même l'exécution.
+     C'est pourquoi ces deux-là s'ajoutent sous condition, quand les deux premiers
+     onglets se composent, eux, par les tables de routes. */
+  const crypto = assetClass === 'crypto'
 
-  const tabs = [
+  const tabs: { key: TabKey; label: string; icon: typeof LineChart; href: AppHref }[] = [
     {
       key: 'apercu' as const,
       /* « Aperçu » et « Valeurs historiques » SONT DÉJÀ DANS LA TABLE DE PHRASES, et
@@ -222,18 +233,33 @@ export function AssetTabs({
          d'Ariane de la page elle-même. */
       label: t('Aperçu'),
       icon: LineChart,
-      href: { pathname: '/crypto/[id]' as const, params: { id } },
+      /* `assetHref` plutôt qu'un littéral : la fiche a six routes selon la classe, et
+         la table qui les tient est déjà écrite. */
+      href: assetHref(assetClass, id),
     },
     {
-      key: 'historique' as const,
-      label: t('Valeurs historiques'),
-      icon: History,
-      href: { pathname: '/crypto/[id]/historique' as const, params: { id } },
+      key: 'metriques' as const,
+      /* « Métriques » rejoint la table de phrases, comme « Aperçu » : un intitulé
+         d'onglet se lit dans les treize langues, et `phrases.test.ts` exige les douze
+         traductions avant de laisser passer la clé. */
+      label: t('Métriques'),
+      icon: Table2,
+      href: metricsHref(assetClass, id),
     },
+    ...(crypto
+      ? [
+          {
+            key: 'historique' as const,
+            label: t('Valeurs historiques'),
+            icon: History,
+            href: { pathname: '/crypto/[id]/historique' as const, params: { id } },
+          },
+        ]
+      : []),
     /* Le halving est une règle du protocole du bitcoin, et la route le vérifie :
        `if (id !== 'bitcoin') notFound()`. L'onglet suit la même condition, sinon il
        promettrait une page qui répond 404. */
-    ...(id === 'bitcoin'
+    ...(crypto && id === 'bitcoin'
       ? [
           {
             key: 'halving' as const,
