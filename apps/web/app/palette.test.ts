@@ -133,8 +133,9 @@ const PAIRS: readonly [foreground: string, background: string, minimum: number][
   ['--color-brand', '--color-surface', 4.5],
   ['--color-on-brand', '--color-brand', 4.5],
   ['--color-gold', '--color-canvas', 4.5],
-  ['--color-up', '--color-canvas', 4.5],
-  ['--color-down', '--color-canvas', 4.5],
+  /* ⚠️ `--color-up` ET `--color-down` NE SONT PLUS ICI — ils sont redescendus dans
+     `ECARTS`, avec le motif complet. Voir la note de leur entrée là-bas, et celle de
+     `globals.css` qui porte la mesure. */
   ['--color-status', '--color-canvas', 4.5],
   ['--color-data-1', '--color-canvas', 3],
   ['--color-data-2', '--color-canvas', 3],
@@ -171,16 +172,53 @@ const ECARTS: Record<string, readonly [foreground: string, background: string, p
     ['--color-brand', '--color-canvas', 1.52],
     ['--color-brand', '--color-surface', 1.4],
     /*
-     * ── DEUX COUPLES ONT QUITTÉ CETTE LISTE, ET C'EST UNE BONNE NOUVELLE ────
+     * ── LES DEUX MÊMES COUPLES SONT REVENUS, ET IL FAUT LIRE LES DEUX SENS ──
      *
-     * `--color-up` et `--color-down` y figuraient à 3,15:1 et 3,56:1, sous le seuil
-     * AA. Les teintes de marché de Backpack (#00794b, #d20032) les portent à 5,16 et
-     * 5,23 : elles PASSENT désormais, et le test l'a signalé de lui-même —
-     * « L'écart n'a plus lieu d'être : retire ce couple d'ECARTS ».
+     * Ils ont fait l'aller-retour complet, et cette note garde les deux moitiés
+     * plutôt que d'écraser la première :
      *
-     * Elles sont donc remontées dans `PAIRS`, où leur seuil est exigé et non plus
-     * seulement surveillé. Deux dérogations de moins.
+     *   · ils figuraient ici à 3,15:1 et 3,56:1, avec les teintes de CoinGecko ;
+     *   · les teintes de marché de Backpack (#00794b, #d20032) les avaient portés à
+     *     5,16 et 5,23 — ils PASSAIENT, et ce test l'avait signalé de lui-même :
+     *     « L'écart n'a plus lieu d'être : retire ce couple d'ECARTS » ;
+     *   · l'exploitant demande la palette de CoinGecko à l'identique, en ayant lu ce
+     *     que cela coûte. Les teintes reviennent, les couples aussi.
+     *
+     * ⚠️ CE QUE CETTE LISTE SIGNIFIE, ET CE QU'ELLE NE SIGNIFIE PAS. Y figurer ne
+     * veut pas dire « ce couple est acceptable » : cela veut dire « son insuffisance
+     * est CONNUE, MESURÉE, et surveillée ». Le test échoue toujours dans les deux
+     * sens — si le ratio se dégrade sous le plancher, et s'il repasse AA sans que
+     * quelqu'un pense à sortir le couple d'ici.
+     *
+     * La redondance du chevron et du signe dans `ChangeBadge` couvre le daltonisme,
+     * pas la lisibilité d'un petit corps à 3,15:1. C'est une dette d'accessibilité
+     * assumée, pas une dette réglée.
      */
+    ['--color-up', '--color-canvas', 3.15],
+    ['--color-down', '--color-canvas', 3.56],
+    /*
+     * ── L'ENCRE ATTÉNUÉE SUR UNE SURFACE ATTÉNUÉE — 4,24:1 ──────────────────
+     *
+     * `--color-ink-muted` vaut `#64748b`, le gris que la référence emploie pour ses
+     * intitulés de métrique et ses onglets inactifs — 168 relevés. Sur BLANC il donne
+     * 4,76:1 et passe AA sans réserve, et c'est le seul fond sur lequel la référence
+     * le pose.
+     *
+     * Sur `--color-surface-muted` (`#eff2f5`) il tombe à 4,24:1. Ce n'est pas une
+     * combinaison de la référence : ses pastilles et ses boutons secondaires portent
+     * de l'encre SOMBRE — noir sur « Compare », bleu de lien sur les pastilles de
+     * catégorie — jamais ce gris-là. Le couple est propre à ZENKUU, et il n'est
+     * apparu qu'en resserrant les deux jetons sur les valeurs mesurées : l'ancien
+     * `#5d606f` sur `#eef0f4` le tenait de justesse.
+     *
+     * ⚠️ LA CORRECTION N'EST PAS DANS LA PALETTE, ELLE EST DANS LES COMPOSANTS.
+     * Un texte posé sur une surface atténuée doit prendre `--color-ink`, comme chez
+     * la référence. Tant que ce balayage n'est pas fait, le couple est surveillé ici
+     * plutôt qu'ignoré : il ne peut plus se dégrader, et le jour où le dernier
+     * composant fautif est corrigé, ce couple n'a plus de raison d'exister.
+     */
+    ['--color-ink-muted', '--color-surface-muted', 4.24],
+    ['--color-ink-muted', '--color-surface-hover', 4.24],
   ],
   'thème sombre': [],
 }

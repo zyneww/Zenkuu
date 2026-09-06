@@ -194,7 +194,25 @@
 
      Écart obtenu : +7 / +7 / +6. Celui de la référence : +7 / +8 / +8.
      ══════════════════════════════════════════════════════════════════════════ */
-  --color-canvas: #f8f8f9;
+  /* ── LE CANVAS EST BLANC PUR, COMME CELUI DE COINGECKO ────────────────────
+
+     Il portait le `#f8f8f9` de Backpack, un blanc cassé qui posait la page un cran
+     sous ses cartes. Relevé au navigateur sur `coingecko.com/en/coins/hyperliquid`
+     le 2026-09-06 : `html` et `body` ne déclarent AUCUN fond, et la remontée des
+     ancêtres depuis le titre ne rencontre pas une seule surface opaque avant la
+     racine. La page est donc blanche au sens strict, et ses 277 relevés de
+     `rgb(255,255,255)` sont tous des blocs posés sur ce blanc.
+
+     ⚠️ CANVAS, SURFACE ET PANNEAU VALENT DÉSORMAIS LA MÊME VALEUR, ET CE N'EST PAS
+     LE RETOUR DU DÉFAUT CORRIGÉ LE 2026-09-06. Ce défaut-là était qu'une carte ne se
+     distinguait de rien : les trois jetons étaient égaux ET le filet valait presque
+     le fond. Ici le filet reste, à `#eff2f5`, et c'est LUI qui découpe — exactement
+     comme chez la référence, dont les 38 séparateurs portent tous cette teinte et
+     dont aucune carte n'a de remplissage propre.
+
+     La conséquence est voulue : sur les fiches de suivi, il n'y a plus de cartes du
+     tout, seulement des filets. Ailleurs, une carte reste lisible par son bord. */
+  --color-canvas: #ffffff;
   --color-surface: #ffffff;
   /* MÊME VALEUR QUE `--color-surface`, ET LES DEUX NOMS CESSENT DE DIVERGER.
 
@@ -221,7 +239,7 @@
 
      Le thème clair y était déjà par accident. Le thème sombre, non — il les
      tenait séparés (#202127 et #1c1e26) ; il les rejoint dans le bloc `.dark`. */
-  --color-surface-hover: #e6e7ed;
+  --color-surface-hover: #eff2f5;
   /* NON REPRIS DE COINGECKO — jeton interne, ajusté ici pour rester lisible.
      CoinGecko ne mesure aucune troisième teinte grise en clair : ce jeton restait
      à l'ancienne valeur ZENKUU (#f1f5f9), qui ne passe plus qu'à 4,34:1 avec la
@@ -235,7 +253,12 @@
      La carte étant passée de #eeeff1 à #ffffff, l'écart piste/carte serait monté
      de 10 à 17 par canal — un creux, là où la référence en met 11 (sa piste vaut
      son canvas, sa pastille vaut son panneau). Onze est ce que rend #eef0f4. */
-  --color-surface-muted: #eef0f4;
+  /* `#eff2f5` — la teinte la plus employée de la référence après le blanc :
+     54 relevés en fond (pastilles de catégorie, piste des contrôles segmentés,
+     boutons secondaires) et 38 en filet. Une seule valeur pour les deux rôles,
+     c'est ce qui donne à leur page son unité : ce qui sépare et ce qui remplit
+     sont le même gris. */
+  --color-surface-muted: #eff2f5;
   /* L4 — onglets actifs et boutons segmentés. Nouveau : rien ne portait ce rôle,
      et un onglet sélectionné se signalait donc par sa seule graisse.
 
@@ -283,7 +306,10 @@
      exacte avec l'ancien jeton ZENKUU en thème clair (#e5e7eb) ; le thème sombre
      est traité séparément dans le bloc `.dark`, voir la réserve à ce sujet dans
      le rapport de tâche. */
-  --color-border-subtle: #e6e7ed;
+  /* Le filet REJOINT la surface atténuée, à `#eff2f5`. Ils portaient deux gris
+     voisins mais distincts (`#e6e7ed` et `#eef0f4`) ; la référence n'en a qu'un,
+     et l'écart entre les deux ne se voyait de toute façon qu'à la pipette. */
+  --color-border-subtle: #eff2f5;
 
   /* Encre — `h1` et texte de cellule (DESIGN_SYSTEM.md §9). rgb(15, 23, 42)
      clair, 65 occurrences ; rgb(223, 229, 236) sombre, 65 occurrences (bloc
@@ -302,7 +328,10 @@
      Simulé avant d'écrire une ligne, sur les quatre surfaces à la fois.
      La valeur retenue est celle de la référence, qui passe avec plus de marge
      (5,05 au pire) que ce que mon propre calcul proposait (4,52). */
-  --color-ink-muted: #5d606f;
+  /* `#64748b` — le slate-500 de Tailwind, et l'encre atténuée de la référence :
+     168 relevés, sur les intitulés de métrique, les onglets inactifs et les
+     mentions secondaires. */
+  --color-ink-muted: #64748b;
 
   /* ───────────────────────────────────────────────────────────────────────────
      L'ACCENT DEVIENT LE VERT DE COINGECKO — le seul rôle que §9 laissait vide.
@@ -451,20 +480,44 @@
      existantes : ils ne font partie d'aucun des dix rôles mesurés pour cette
      tâche, et ne sont couverts par aucune paire de `app/palette.test.ts`.
      ─────────────────────────────────────────────────────────────────────────── */
-  /* Vert et rouge de marché de Backpack. Le gain est réel et mesuré : sur le
-     canvas clair, la hausse passe de 3,15:1 à 5,16:1 et la baisse de 3,56 à 5,23.
-     Les deux étaient des ÉCARTS ASSUMÉS sous le seuil AA ; ils franchissent
-     désormais 4,5 et quittent la liste des dérogations. */
-  --color-up: #00794b;
+  /* ══════════════════════════════════════════════════════════════════════════
+     LE VERT ET LE ROUGE DE COINGECKO, REPRIS UNE SECONDE FOIS ET EN CONNAISSANCE
+     ══════════════════════════════════════════════════════════════════════════
+
+     Ces deux teintes ont déjà fait l'aller-retour, et le paragraphe au-dessus le
+     raconte : mesurées chez CoinGecko, adoptées, puis remplacées par celles de
+     Backpack (`#00794b`, `#d20032`) qui portaient la hausse à 5,16:1 et la baisse à
+     5,23:1 et faisaient donc SORTIR deux couples de la liste des dérogations.
+
+     L'exploitant demande la palette de CoinGecko à l'identique, en ayant lu ce que
+     cela coûte. Ce qui revient exactement :
+
+       --color-up   / --color-canvas   #00a83e sur blanc   → 3,15:1
+       --color-down / --color-canvas   #ff3a33 sur blanc   → 3,56:1
+
+     Le seuil AA du texte est 4,5:1. Les deux couples redescendent donc dans les
+     ÉCARTS ASSUMÉS d'`app/palette.test.ts`, où leur plancher est surveillé — ils ne
+     peuvent plus empirer sans faire échouer le test — mais où leur insuffisance est
+     admise plutôt que masquée.
+
+     ⚠️ CE QUI PROTÈGE LE LECTEUR EN ATTENDANT, ET CE QUE CELA NE RÉPARE PAS. Le
+     chevron et le signe accompagnent SYSTÉMATIQUEMENT la valeur (voir `ChangeBadge`,
+     qui ne rend jamais la couleur seule) : un lecteur daltonien lit donc le sens sans
+     la teinte. Cela couvre la distinction rouge/vert. Cela ne couvre PAS la lisibilité
+     d'un petit corps à 3,15:1 sur blanc, et rien ici ne prétend le contraire.
+
+     Les deux passent largement en thème sombre — 5,29:1 et 8,72:1 — et le thème
+     sombre n'est pas touché par cette bascule. */
+  --color-up: #00a83e;
   /* Fond translucide de Backpack : la couleur de marché à 8 %, et non une teinte
      pastel opaque. La différence compte sur une carte encastrée — un pastel
      plein masque la surface qui le porte, une transparence la laisse voir et le
      badge appartient alors à sa ligne. */
-  --color-up-soft: rgb(0 121 75 / 0.08);
-  --color-up-line: rgb(0 121 75 / 0.20);
-  --color-down: #d20032;
-  --color-down-soft: rgb(210 0 50 / 0.08);
-  --color-down-line: rgb(210 0 50 / 0.20);
+  --color-up-soft: rgb(0 168 62 / 0.08);
+  --color-up-line: rgb(0 168 62 / 0.20);
+  --color-down: #ff3a33;
+  --color-down-soft: rgb(255 58 51 / 0.08);
+  --color-down-line: rgb(255 58 51 / 0.20);
 
   /* ───────────────────────────────────────────────────────────────────────────
      REMPLISSAGE DES CARTES THERMIQUES — deux jetons de plus, et il en faut deux.
