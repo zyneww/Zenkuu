@@ -283,7 +283,7 @@ export function TablePagination({
                     asChild
                     isActive
                     size="icon"
-                    className="tabular min-w-9 rounded-xl border-0 bg-brand text-sm font-semibold text-on-brand shadow-none hover:bg-brand hover:text-on-brand"
+                    className="tabular min-w-9 rounded-control border-0 bg-brand text-sm font-semibold text-on-brand shadow-none hover:bg-brand hover:text-on-brand"
                   >
                     <span>{entry}</span>
                   </PaginationLink>
@@ -516,8 +516,19 @@ function Step({
      Le texte passe en `text-ink` : un numéro de page atteignable ne doit pas être
      plus pâle que le compteur qui le commente.
   */
+  /* ── LE RAYON PASSE DE 16 À 8 PIXELS (demande explicite) ───────────────────
+
+     `rounded-xl` vaut 16 px, et sur une case de 36 de côté cela produit un objet que
+     l'œil lit comme un CERCLE — c'est ce que montre la capture. Un numéro de page
+     n'est pas une pastille : c'est un bouton, et les boutons de ce site portent
+     `--radius-control`, qui vaut 8 depuis l'alignement sur la référence.
+
+     Le changement est donc double : il obéit à la demande, et il fait rentrer la
+     pagination dans le système au lieu de la laisser à un rayon qu'aucun autre
+     contrôle n'emploie. Comme `TablePagination` est partagé, les vingt-sept pages qui
+     paginent suivent d'un coup. */
   const shared =
-    'tabular min-w-9 rounded-xl border-0 bg-surface-muted/70 text-sm font-medium text-ink shadow-none hover:bg-surface-muted hover:text-brand'
+    'tabular min-w-9 rounded-control border-0 bg-surface-muted/70 text-sm font-medium text-ink shadow-none hover:bg-surface-muted hover:text-brand'
 
   if (disabled) {
     return (

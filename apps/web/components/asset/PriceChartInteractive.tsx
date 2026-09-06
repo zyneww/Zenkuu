@@ -1079,86 +1079,37 @@ export function PriceChartInteractive({
         )
       ) : null}
 
-      {/*
-        ══════════════════════════════════════════════════════════════════════════
-        LA LÉGENDE FERME LE BLOC, ET ELLE NE SE CACHE PLUS
-        ══════════════════════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════════════════════
+          LE BLOC « GRANDEUR TRACÉE » A ÉTÉ RETIRÉ (demande explicite)
 
-        ⚠️ DEUX CHOSES CHANGENT ICI, ET LA PREMIÈRE EST UNE CORRECTION.
+          Il fermait le graphique : un intitulé en encre tertiaire, puis la liste des
+          séries affichées avec leur pastille de couleur — « ● Cours de Bitcoin ».
 
-        Le commentaire d'origine affirmait : « ELLE EST SOUS LA BANDE DE NAVIGATION, ET
-        NON ENTRE LE GRAPHIQUE ET ELLE. Posée au-dessus, elle sépare le tracé de sa
-        propre frise temporelle, deux pièces qui se lisent ensemble. » Le raisonnement
-        est juste. Le code faisait l'inverse : ce bloc était rendu AVANT `ChartNavigator`,
-        donc au-dessus de lui. La note décrivait une intention, pas l'état du fichier.
-        L'ordre du document suit maintenant ce qu'elle prescrivait.
+          Sa note défendait deux choses, et la première tenait : une légende NUE ne
+          dit rien de plus que la courbe, mais celle-ci nommait la GRANDEUR tracée,
+          information qui ne se lit nulle part ailleurs une fois la barre d'outils
+          quittée des yeux.
 
-        ── LA SECONDE : ELLE N'EST PLUS RÉSERVÉE À LA COMPARAISON ────────────────
+          Elle ne tient plus, parce que la barre d'outils NE SE QUITTE PLUS DES YEUX :
+          son sélecteur segmenté « Prix / Capitalisation » est posé juste au-dessus du
+          graphique et reste visible en permanence. La grandeur tracée y est donc déjà
+          écrite, en toutes lettres et à l'état actif. Le bloc la répétait cinq cents
+          pixels plus bas.
 
-        L'ancienne règle tenait en une phrase, et elle était bonne : « une seule courbe
-        n'a pas besoin de légende — une pastille de couleur unique ne ferait que répéter
-        ce que la courbe montre ». C'est vrai d'une légende NUE.
+          Le second argument — « refermer les quatre-vingt-quatre pixels de blanc à
+          droite du bas du rail » — est caduc depuis que le rail a perdu ses cartes :
+          il s'est raccourci d'une centaine de pixels et c'est LUI qui finit avant le
+          graphique.
 
-        Ce bloc n'en est plus une. Relevé sur tokenomist.ai/bitcoin le 2026-09-06, la
-        zone sous la frise ne répète pas le graphique : elle le DOCUMENTE. Un intitulé
-        de groupe en encre tertiaire, la liste des séries affichées, puis la provenance
-        des chiffres. Ce que le lecteur y trouve avec une seule courbe n'est pas « il y
-        a une courbe » — c'est QUELLE GRANDEUR est tracée, et le graphique en propose
-        plusieurs (cours, capitalisation). Cette information-là ne se lit nulle part
-        ailleurs une fois la barre d'outils quittée des yeux.
+          ⚠️ CE QUI RESTE SOUS LA COURBE EST LA TABLE DES VARIATIONS. C'est ce que la
+          référence pose à cet endroit (`AssetChangeStrip` : 1 h, 24 h, 7 j, 14 j,
+          30 j, 1 an), et c'est de l'information que le graphique ne porte pas.
 
-        C'est aussi ce qui referme un vide mesuré : le rail de gauche fait 890 px quand
-        la colonne du graphique en faisait 806, laissant quatre-vingt-quatre pixels de
-        blanc à droite du bas du rail. Cette zone les occupe avec de l'information de
-        second plan plutôt qu'avec du remplissage.
-
-        ⚠️ « Grandeur tracée » ET NON « Métriques ». La table de phrases est indexée par
-        le texte français et le test exige que les douze locales portent les mêmes clés :
-        un mot nouveau, c'est douze traductions. Celui-ci existe déjà — c'est le
-        vocabulaire de la barre d'outils pour désigner exactement cette chose, et le
-        réemployer garde les deux endroits d'accord.
-
-        Les couleurs viennent de `COMPARE_COLORS` et de `trendColor`, c'est-à-dire des
-        mêmes valeurs que les tracés et que l'infobulle. Une table unique pour trois
-        consommateurs : c'est ce qui garantit qu'aucun des trois ne dérive.
-      */}
-      <div className="mt-3 border-t border-border-subtle pt-3">
-        <p className="text-[length:var(--v2-text-2xs)] font-semibold leading-4 text-ink-muted">
-          {t('Grandeur tracée')}
-        </p>
-
-        {/* ⚠️ ALIGNÉE À GAUCHE, ET NON CENTRÉE. Centrée, la légende n'avait aucun bord
-            commun avec ce qui la précède : chaque entrée qui apparaissait ou
-            disparaissait déplaçait toutes les autres. Alignée sur le bord gauche du
-            cadre, elle partage sa marge avec l'intitulé au-dessus et avec le graphique,
-            et l'ajout d'un comparable ne fait plus bouger le premier élément. */}
-        <ul className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
-          {/* Le SYMBOLE et non le libellé complet : `label` vaut « Cours de
-              Hyperliquid — 7 jours », ce qui décrit le graphique et non la courbe. Dans
-              une légende, chaque entrée doit tenir sur deux ou trois mots pour que la
-              rangée reste lisible — la référence n'y met que « HYPE ». On coupe donc au
-              premier tiret, qui sépare le nom de la période. */}
-          <li className="flex items-center gap-1.5 text-xs text-ink-muted">
-            <span
-              aria-hidden="true"
-              className="h-2 w-2 shrink-0 rounded-pill"
-              style={{ background: trendColor }}
-            />
-            {label.split('—')[0]?.trim() ?? label}
-          </li>
-
-          {overlays.map((entry, index) => (
-            <li key={entry.id} className="flex items-center gap-1.5 text-xs text-ink-muted">
-              <span
-                aria-hidden="true"
-                className="h-2 w-2 shrink-0 rounded-pill"
-                style={{ background: COMPARE_COLORS[index % COMPARE_COLORS.length] }}
-              />
-              {entry.label}
-            </li>
-          ))}
-        </ul>
-      </div>
+          Les pastilles de comparaison partent avec le bloc. Le jour où plusieurs
+          courbes coexistent à l'écran sans que rien ne les nomme, c'est ici qu'il
+          faudra rouvrir la question — le panneau « Comparer » les liste déjà, mais il
+          se referme.
+          ══════════════════════════════════════════════════════════════════════ */}
     </div>
   )
 }

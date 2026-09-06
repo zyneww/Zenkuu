@@ -233,6 +233,49 @@ export function PriceChartAm({
     return () => observer.disconnect()
   }, [])
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE COMPTEUR DE CONSTRUCTION — CE QUI RECOLLE LES DEUX EFFETS
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT QU'IL CORRIGE, ET IL ÉTAIT VISIBLE ─────────────────────────
+   *
+   * Signalé ainsi : « lorsqu'on bascule sur le mode sombre sur les pages de suivi, la
+   * chart prend du temps à s'afficher ou s'affiche pas du tout, et inversement ».
+   *
+   * La cause est la séparation même qui rend ce fichier tenable. Deux effets :
+   *
+   *   · L'EFFET DE STRUCTURE construit le cadre. `dark` est dans ses dépendances,
+   *     parce que les jetons de couleur sont résolus UNE FOIS à la construction : une
+   *     bascule de thème doit donc tout reconstruire. Il détruit (`root.dispose()`),
+   *     remet `chartRef.current` à `null`, puis rebâtit.
+   *   · L'EFFET DE DONNÉES pousse les points, et ne dépend que de `data`.
+   *
+   * À la bascule, le premier se rejoue et le second NON — `data` n'a pas changé. Le
+   * cadre neuf est donc vide, et le reste jusqu'au prochain tic de cours : trois
+   * minutes sur une cryptomonnaie, JAMAIS sur une action hors séance ou une paire de
+   * devises. « Prend du temps ou ne s'affiche pas du tout » décrit exactement ces deux
+   * cas.
+   *
+   * ── POURQUOI UN COMPTEUR ET NON `dark` DANS LES DEUX LISTES ──────────────
+   *
+   * Ajouter `dark` aux dépendances de l'effet de données marcherait aujourd'hui et
+   * casserait au prochain motif de reconstruction : `height`, `logScale`, `showVolume`
+   * et cinq autres valeurs rebâtissent aussi le cadre, et il faudrait penser à les
+   * recopier une à une dans la seconde liste. Deux listes à tenir d'accord finissent
+   * toujours par diverger — c'est ce défaut-ci, sous une autre forme.
+   *
+   * Le compteur, lui, est incrémenté PAR l'effet de structure, à la fin de sa
+   * construction. Il dit « un cadre neuf existe », quelle qu'en soit la raison. L'effet
+   * de données le liste, et se rejoue derrière chaque reconstruction sans avoir à
+   * connaître aucune de leurs causes.
+   *
+   * ⚠️ IL EST POSÉ APRÈS `chartRef.current`, ET L'ORDRE COMPTE : c'est cette
+   * affectation qui rend le cadre atteignable, et l'effet de données abandonne tant
+   * qu'elle n'a pas eu lieu.
+   */
+  const [builds, setBuilds] = useState(0)
+
   const holder = useRef<HTMLDivElement>(null)
   const chartRef = useRef<{
     root: am5.Root
@@ -771,6 +814,13 @@ export function PriceChartAm({
     chartRef.current = { root, series, volume: volumeSeries, compare: compareSeries, priceAxis }
     onReady?.(root)
 
+    /* Voir la note du compteur : c'est ce qui réveille l'effet de données derrière
+       CHAQUE reconstruction du cadre, sans qu'il ait à en connaître les motifs.
+       `setBuilds` avec une fonction plutôt qu'avec `builds + 1` : la valeur lue dans
+       la fermeture serait celle du rendu qui a lancé cet effet, et deux
+       reconstructions rapprochées écriraient alors le même nombre. */
+    setBuilds((n) => n + 1)
+
     return () => {
       onReady?.(null)
       /* Le survol est ANNULÉ au démontage : sans cela, changer de période laisserait le
@@ -819,7 +869,10 @@ export function PriceChartAm({
         text: last ? formatAxis(last.price) : '',
       })
     }
-  }, [data, formatAxis])
+    /* `builds` n'est pas lu dans le corps : il n'est là que pour faire rejouer cet
+       effet après une reconstruction. Le linter l'accepte comme dépendance d'un effet
+       qui ne l'utilise pas — c'est le motif standard de la resynchronisation. */
+  }, [data, formatAxis, builds])
 
   return (
     <div

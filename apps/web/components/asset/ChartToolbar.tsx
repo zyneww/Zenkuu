@@ -1160,9 +1160,13 @@ export function ChartToolbar(props: ChartToolbarProps) {
         onChange={props.onCustomRange}
       />
 
-      {/* Un filet sépare le CADRAGE de ce qu'on fait du résultat — deux familles qui
-          se suivent sur la même ligne et qu'aucun blanc ne distinguerait. */}
-      <Separator orientation="vertical" className="mx-0.5 h-4 bg-border-subtle" />
+      {/* ⚠️ LE FILET VERTICAL A ÉTÉ RETIRÉ (demande explicite).
+
+          Il séparait le CADRAGE — périodes, calendrier — de ce qu'on fait du résultat :
+          réglages et export. La distinction était juste, mais elle est désormais portée
+          par la forme même des deux commandes : elles sont les seules de la rangée à
+          être des icônes NUES, sans bord ni libellé. Un trait de plus n'ajoutait rien
+          qu'un troisième objet vertical dans une barre qui en aligne déjà beaucoup. */}
 
       {/* ⚠️ LE BOUTON « COPIER LE LIEN DE CETTE VUE » A ÉTÉ RETIRÉ (demande explicite).
 
@@ -1248,11 +1252,24 @@ export function ChartToolbar(props: ChartToolbarProps) {
             Le menu ne s'affiche pas si la liste est vide — un réglage à zéro option
             n'est pas un réglage.
           */}
+          {/* ══════════════════════════════════════════════════════════════════
+              LES DEUX DÉCLENCHEURS D'ICÔNE PERDENT LEUR CONTOUR (demande explicite)
+
+              Ils portaient `border border-border-subtle` et un rembourrage horizontal,
+              ce qui en faisait deux boutons bordés au bout d'une rangée qui en compte
+              déjà beaucoup. Le contour ne distinguait rien : ils sont les seules
+              commandes de la barre à n'avoir QUE une icône, et c'est cette nudité qui
+              les distingue.
+
+              `size-7` remplace `h-7 px-2` : une cible carrée de 28 px, centrée sur son
+              pictogramme. La surface de survol reste — c'est elle qui dit que l'objet
+              se clique — mais elle n'apparaît qu'au contact, comme chez la référence.
+              ══════════════════════════════════════════════════════════════════ */}
           {props.settings.length > 0 ? (
             <MenubarMenu>
               <MenubarTrigger
                 title={t('Réglages du graphique')}
-                className="flex h-7 items-center gap-1 rounded-control border border-border-subtle px-2 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-[state=open]:bg-surface-muted"
+                className="flex size-7 items-center justify-center rounded-control text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-[state=open]:bg-surface-muted"
               >
                 {/* ⚠️ `Settings` ET NON `Settings2`. Le second est un jeu de CURSEURS
                     — trois glissières horizontales — qui promet des réglages continus :
@@ -1356,7 +1373,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
           <MenubarMenu>
             <MenubarTrigger
               title={t('Exporter le graphique')}
-              className="flex h-7 items-center gap-1 rounded-control border border-border-subtle px-2 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-[state=open]:bg-surface-muted"
+              className="flex size-7 items-center justify-center rounded-control text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-[state=open]:bg-surface-muted"
             >
               <Download className="h-3.5 w-3.5" aria-hidden="true" />
             </MenubarTrigger>

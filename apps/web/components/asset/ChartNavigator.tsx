@@ -2,7 +2,6 @@
 
 import { useLocale } from 'next-intl'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { usePhrase } from '@/components/locale/ContentProvider'
 
 /**
@@ -189,7 +188,6 @@ export function ChartNavigator({
   const path = areaPath(values, height)
   const leftPct = win.from * 100
   const widthPct = (win.to - win.from) * 100
-  const full = win.from <= 0.001 && win.to >= 0.999
 
   return (
     <div className="mt-1 select-none">
@@ -389,27 +387,18 @@ export function ChartNavigator({
           `variant="link"` : le bouton de shadcn/ui dans sa variante lien — sans fond ni
           bordure, souligné au survol. C'est ce que ce contrôle était déjà, en classes ;
           il gagne l'anneau de focus. */}
-      {!full ? (
-        <Button
-          size="xs"
-          variant="link"
-          data-muted
-          className="mt-1"
-          onClick={() => {
-            onChange({ from: 0, to: 1 })
-            /* En régime « historique complet », changer la fenêtre ne suffit pas : elle
-               DÉCRIT la période chargée au lieu de la découper, et sans validation le
-               bouton remettrait juste la poignée à sa place avant qu'un rendu ne la
-               ramène où elle était. Il demande donc l'histoire entière, comme le palier
-               « MAX » — ce qui est bien ce que son libellé promet. */
-            if (onCommit && timestamps && timestamps.length > 1) {
-              onCommit(timestamps[0] as number, timestamps[timestamps.length - 1] as number)
-            }
-          }}
-        >
-          {t('Revoir toute la période')}
-        </Button>
-      ) : null}
+      {/* ⚠️ « REVOIR TOUTE LA PÉRIODE » A ÉTÉ RETIRÉ (demande explicite).
+
+          C'était un lien sous la frise, visible dès que la fenêtre affichée était plus
+          étroite que l'histoire chargée. Il remettait la poignée aux deux bouts et
+          redemandait l'historique entier.
+
+          Le geste qu'il rendait n'est pas perdu : la frise elle-même se tire aux deux
+          extrémités, et surtout le palier « MAX » de la barre d'outils fait exactement
+          la même chose — c'est d'ailleurs ce que son propre commentaire disait, « il
+          demande donc l'histoire entière, comme le palier MAX ». Deux commandes pour
+          un même effet, dont l'une était un lien en petit corps sous un contrôle qui
+          la porte déjà. */}
     </div>
   )
 }
