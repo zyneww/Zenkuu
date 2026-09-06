@@ -1,5 +1,15 @@
+// `RefObject` VIENT DE REACT, et non plus de `@react-types/shared`.
+//
+// Ce paquet n'a JAMAIS été déclaré dans `apps/web/package.json` : il ne vivait que
+// dans le `node_modules` historique du dépôt principal, où une installation l'avait
+// laissé sans l'inscrire. Un clone neuf — ou un arbre de travail réinstallé — échouait
+// donc au typecheck sur cette seule ligne, avec un TS2307 qui n'accusait aucun code.
+//
+// React 19 publie le même type, et l'usage ici n'en demande rien de plus : le crochet
+// se contente de LIRE `ref.current`. Déclarer la dépendance aurait aussi refermé le
+// défaut ; ne plus en avoir besoin le referme mieux.
 import { useEffect } from "react";
-import type { RefObject } from "@react-types/shared";
+import type { RefObject } from "react";
 
 /**
  * Checks if the ResizeObserver API is supported.

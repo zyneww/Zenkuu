@@ -198,7 +198,17 @@ export async function CryptoBoard() {
              La propriété reste dans `MarketBrowser` : elle n'a plus d'appelant, mais
              c'est le composant qui décide de la rendre, et rien n'y est cassé. */
           boardTabs
-          searchable
+          /* ⚠️ `searchable` A ÉTÉ RETIRÉ, pour le même motif que `currencyPicker`
+             au-dessus : deux champs d'apparence identique et de PORTÉE OPPOSÉE se
+             touchaient sur le premier écran. Celui-ci ne retirait que des lignes
+             DÉJÀ CHARGÉES ; la loupe de l'en-tête, à deux cents pixels de là,
+             interroge les dix-neuf mille actifs du catalogue. Le libellé « Filtrer »
+             et la ligne de décompte disaient l'écart, et ne suffisaient pas à le
+             faire lire.
+
+             La propriété reste offerte par `MarketBrowser` : les six pages de classe
+             la passent toujours (voir `MarketPageView`), et là elle est seule de son
+             espèce sur la page. */
           otherUniverses={otherUniverses}
           {...(catalogue !== undefined ? { remoteTotal: catalogue } : {})}
         />

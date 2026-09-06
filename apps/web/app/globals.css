@@ -3393,59 +3393,6 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   LA PISTE DU BANDEAU D'ACCUEIL — MÊME BOUCLE, MAIS ELLE S'ARRÊTE
-
-   ── CE QU'ELLE REMPLACE ─────────────────────────────────────────────────────
-
-   Une bande FIXE, et son commentaire expliquait longuement pourquoi : une bande qui
-   se déplace toute seule ne peut être ni lue au rythme du lecteur, ni sélectionnée à
-   la souris, ni parcourue au clavier sans que le focus fuie sous le curseur.
-
-   Les trois objections étaient justes. Elles sont traitées ici plutôt qu'écartées.
-
-   ── L'ARRÊT EST LA MOITIÉ DU MÉCANISME ──────────────────────────────────────
-
-   `animation-play-state: paused` au survol ET au focus clavier. Ce n'est pas un
-   raffinement : c'est ce qui rend la bande lisible, cliquable et tabulable. Le survol
-   couvre la souris, `focus-within` couvre le clavier — et il couvre la traversée
-   ENTIÈRE, pas seulement l'instant où le focus entre, donc aucun lien ne se dérobe
-   sous la touche de tabulation.
-
-   Le sélecteur vise `.group:hover` plutôt que `.ruban-piste:hover` : la piste bouge,
-   et suspendre au survol d'un élément mouvant dépendrait de la position exacte du
-   pointeur d'une image à l'autre. C'est la BANDE, immobile, qui reçoit le geste.
-
-   ── LA DURÉE ────────────────────────────────────────────────────────────────
-
-   60 secondes pour une piste double. Assez lent pour qu'on lise un cours au passage
-   sans avoir à s'arrêter, assez vivant pour que la bande ne paraisse pas figée. En
-   `linear` et non en `ease` : une bande qui accélère et ralentit à chaque tour se
-   remarquerait comme un défaut.
-
-   `will-change: transform` monte la piste sur sa propre couche de composition. Sans
-   lui, chaque image repeint la bande sur le fil principal — celui qui tient déjà un
-   tableau de cent lignes.
-   ───────────────────────────────────────────────────────────────────────────── */
-.ruban-piste {
-  animation: zenkuu-ticker 60s linear infinite;
-  will-change: transform;
-}
-
-.group:hover .ruban-piste,
-.group:focus-within .ruban-piste {
-  animation-play-state: paused;
-}
-
-/* La bande redevient exactement ce qu'elle était : fixe, et qu'on fait glisser au
-   doigt. C'est la version que l'ancienne note voulait servir à tout le monde ; elle
-   reste servie à qui la demande. */
-@media (prefers-reduced-motion: reduce) {
-  .ruban-piste {
-    animation: none;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
    ASCENSEUR FIN — POUR LES LISTES QUI VIVENT DANS UN PANNEAU
 
    ── POURQUOI UNE RÈGLE ET NON UN UTILITAIRE TAILWIND ────────────────────────

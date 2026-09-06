@@ -59,7 +59,8 @@ export async function generateMetadata() {
  *                      palmarès, places, carte
  *                      thermique, extrêmes, dérivés
  *
- * Le point 2 reprend la tête de page de MEXC — un bandeau de cours puis trois cartes
+ * Le point 2 reprend la tête de page de MEXC — trois cartes de trois lignes ; le
+ * bandeau de cours défilant qui les précédait a été retiré le 2026-09-06
  * — et le point 4 la disposition de CRYPTORANK. Les deux tournent sur les sources de
  * Zenkuu : voir `MarketRibbon` et `MarketWidgets`, dont les en-têtes justifient bloc
  * par bloc ce qui est repris tel quel et ce qui est substitué faute de source.
@@ -158,19 +159,24 @@ export default async function HomePage() {
         <PriceHeader globals={globals} />
 
       {/* ── LA HAUTEUR DU SUBSTITUT EST MESURÉE, PLUS DEVINÉE ───────────────
-          Elle valait 210 px, avec cette note : « un substitut plus haut que ce qu'il
-          remplace fait remonter la page au moment où le bloc arrive, ce qui est le
-          défaut que ces hauteurs écrites à la main servent précisément à éviter ».
-          Le diagnostic était juste, la valeur ne l'était pas.
+          Elle a valu 210 px, puis 149. Les deux notes précédentes avaient le bon
+          diagnostic — « un substitut plus haut que ce qu'il remplace fait remonter la
+          page au moment où le bloc arrive » — et comparaient la mauvaise chose.
 
-          Mesuré au navigateur le 2026-08-31 : le ruban rend 149 px. Le substitut
-          était donc 61 px TROP GRAND, et la page remontait d'autant à l'arrivée du
-          contenu — un décalage de 0,125 au CLS, au-dessus du seuil de 0,1.
+          ⚠️ CE NOMBRE N'EST PAS LA HAUTEUR DU RUBAN, C'EST CELLE DU CADRE SEUL.
+          `BlockSkeleton` empile une ligne de titre (`h-5`, 20 px) et un écart
+          (`gap-3`, 12 px) AVANT le cadre : son total vaut donc la valeur écrite ici
+          plus 32 px. Écrire 149 pour un ruban de 149 px laissait 32 px de décalage,
+          soit exactement ce que la note d'avant croyait avoir refermé.
 
-          ⚠️ C'EST LE SEUL DÉCALAGE MESURABLE DE LA PAGE. Les deux autres relevés
-          valent 0. Une hauteur écrite à la main n'est juste que le jour où on la
-          mesure : celle-ci l'a été, et un changement de contenu du ruban la
-          rendrait fausse à nouveau. */}
+          Relevé au navigateur le 2026-09-06, après le retrait du bandeau défilant :
+          le ruban rend 94 px — trois cartes, plus de bande de cours au-dessus.
+          94 − 20 − 12 = 62.
+
+          Vérifié après coup : `document.scrollingElement` ne bouge plus à l'arrivée
+          du bloc. Une hauteur écrite à la main n'est juste que le jour où on la
+          mesure : celle-ci l'a été, et tout changement du contenu du ruban la rendra
+          fausse à nouveau. */}
       {/* ══════════════════════════════════════════════════════════════════════
           L'ACCUEIL SE RAFRAÎCHIT SEUL, COMME LES FICHES
 
@@ -188,7 +194,7 @@ export default async function HomePage() {
           ══════════════════════════════════════════════════════════════════════ */}
       <AssetLiveRefresh />
 
-      <Suspense fallback={<BlockSkeleton height="h-[149px]" />}>
+      <Suspense fallback={<BlockSkeleton height="h-[62px]" />}>
         <MarketRibbon />
       </Suspense>
 

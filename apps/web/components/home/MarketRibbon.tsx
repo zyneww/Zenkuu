@@ -103,8 +103,6 @@ export async function MarketRibbon() {
 
   return (
     <section className="flex flex-col gap-4" aria-label={t('Repères du marché')}>
-      <Ticker assets={universe.slice(0, 12)} />
-
       {/*
         TROIS CARTES ÉGALES, ET NON UNE GRILLE PONDÉRÉE. Contrairement à la rangée de
         repères qu'elles remplacent — dont les quatre colonnes portaient des contenus
@@ -172,113 +170,6 @@ export async function MarketRibbon() {
         </Card>
       </Reveal>
     </section>
-  )
-}
-
-/* ── LE BANDEAU ────────────────────────────────────────────────────────────── */
-
-/**
- * Bandeau de cours, à défilement continu.
- *
- * ── IL DÉFILE DÉSORMAIS, ET LA NOTE PRÉCÉDENTE AVAIT RAISON SUR LE FOND ────
- *
- * Elle disait : une bande qui se déplace toute seule ne peut être ni lue au rythme du
- * lecteur, ni sélectionnée à la souris, ni parcourue au clavier sans que le focus fuie
- * sous le curseur — et `prefers-reduced-motion` obligerait de toute façon à servir une
- * version fixe à une partie du public. Elle en concluait qu'il fallait servir la
- * version fixe à tout le monde.
- *
- * L'exploitant a demandé le défilement. Les objections restent VRAIES, alors elles sont
- * traitées une par une plutôt qu'écartées :
- *
- *   · lue au rythme du lecteur — l'animation s'ARRÊTE au survol et au focus clavier
- *     (`group-hover`/`group-focus-within` sur la piste). Qui veut lire s'arrête dessus,
- *     et la bande l'attend ;
- *   · sélectionnable à la souris — même mécanisme : le pointeur qui entre fige la piste,
- *     et un lien immobile se clique ;
- *   · le focus qui fuit — `focus-within` gèle la piste pendant toute la traversée au
- *     clavier, donc le lien tabulé ne se dérobe pas ;
- *   · `prefers-reduced-motion` — la règle vit dans `globals.css` et coupe l'animation
- *     net. Le bandeau redevient alors exactement ce qu'il était : une bande fixe qu'on
- *     fait glisser au doigt.
- *
- * ── POURQUOI CSS ET NON JAVASCRIPT ─────────────────────────────────────────
- *
- * Une `translate3d` animée par le compositeur tient le 60 im/s sans réveiller le fil
- * principal. La même boucle en `requestAnimationFrame` recalculerait une position à
- * chaque image, sur un fil qui a déjà un tableau de cent lignes à tenir.
- *
- * ── LA PISTE EST ÉCRITE DEUX FOIS ──────────────────────────────────────────
- *
- * C'est ce qui rend la boucle invisible : la copie glisse jusqu'à −50 %, instant où le
- * second exemplaire occupe exactement la place que le premier occupait au départ. Le
- * retour à zéro ne se voit pas parce qu'il n'y a rien à voir. Le doublon est
- * `aria-hidden` — il ne doit pas faire lire douze cours vingt-quatre fois.
- */
-function Ticker({ assets }: { assets: MarketAsset[] }) {
-  if (assets.length === 0) return null
-
-  const suite = (clone: boolean) =>
-    assets.map((asset) => (
-      <Link
-        key={`${clone ? 'copie' : 'piste'}-${asset.id}`}
-        href={assetHref(asset.assetClass, asset.id)}
-        prefetch={false}
-        /* `transition-colors` et non un simple changement de couleur : la teinte de
-           survol arrive en 150 ms, ce qui la rend perceptible comme une réponse plutôt
-           que comme un clignotement. */
-        className="group/actif flex shrink-0 items-center gap-2 px-3 text-sm transition-colors duration-150"
-        {...(clone ? { tabIndex: -1, 'aria-hidden': true } : {})}
-      >
-        <AssetLogo asset={asset} size={18} />
-        <span className="font-medium uppercase text-ink transition-colors duration-150 group-hover/actif:text-brand">
-          {asset.symbol}
-        </span>
-        <span className="tabular text-ink">
-          <Money value={asset.price} from={asset.currency} />
-        </span>
-        {/* Pas de `filled` : un aplat coloré répété douze fois sur une seule bande
-            en ferait la ligne la plus bruyante de la page. Le chevron et le signe
-            portent déjà le sens sans la couleur (§9). */}
-        <ChangeBadge value={asset.change24h} periodLabel="sur 24 heures" size="sm" />
-      </Link>
-    ))
-
-  return (
-    <div
-      /* Les deux filets et non un cadre : le bandeau est une BANDE qui traverse la
-         page, pas une carte. Un contour fermé en ferait un huitième bloc dans une
-         page qui en aligne déjà beaucoup.
-
-         `overflow-hidden` remplace `overflow-x-auto` : la piste est deux fois plus
-         large que la bande par construction, et une gouttière de défilement sous une
-         piste qui avance déjà proposerait deux façons contradictoires de la parcourir.
-
-         `group` : c'est LUI que le survol et le focus visent, et la piste à l'intérieur
-         qui s'arrête. Poser l'arrêt sur la piste elle-même le rendrait tributaire de la
-         position exacte du pointeur sur un élément qui bouge. */
-      className="group scrollbar-none relative flex overflow-hidden border-y border-border-subtle py-2.5"
-    >
-      {/* Les deux voiles de bord : la bande ne se termine pas par une coupure nette mais
-          s'efface, ce qui dit « ça continue » sans l'écrire. `pointer-events-none` les
-          empêche d'intercepter le clic des liens qui passent dessous. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-canvas to-transparent"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-canvas to-transparent"
-      />
-
-      {/* `ruban-piste` porte l'animation, la pause au survol et la coupure sous
-         `prefers-reduced-motion` — voir `globals.css`. `w-max` pour que la piste prenne
-         la largeur de ses deux exemplaires et non celle de la bande. */}
-      <div className="ruban-piste flex w-max items-center">
-        {suite(false)}
-        {suite(true)}
-      </div>
-    </div>
   )
 }
 
