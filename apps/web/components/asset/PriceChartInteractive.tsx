@@ -1056,29 +1056,83 @@ export function PriceChartInteractive({
       </div>
 
       {/*
+        ── LA BANDE, DANS L'UN OU L'AUTRE DE SES DEUX RÉGIMES ────────────────
+
+        Avec `overview`, elle porte l'histoire complète : sa fenêtre décrit la période
+        chargée, la déplacer en demande une autre. Sans, elle garde son régime d'origine
+        et découpe dans les points en mémoire. Voir `ChartNavigator`.
+      */}
+      {showNavigator ? (
+        overview && overviewWindow ? (
+          <ChartNavigator
+            values={navValues}
+            timestamps={overview.timestamps}
+            window={dragWindow ?? overviewWindow}
+            onChange={setDragWindow}
+            onCommit={(from, to) => {
+              setDragWindow(null)
+              onOverviewRange?.(from, to)
+            }}
+          />
+        ) : (
+          <ChartNavigator values={navValues} window={navWindow} onChange={setNavWindow} />
+        )
+      ) : null}
+
+      {/*
         ══════════════════════════════════════════════════════════════════════════
-        LA LÉGENDE — ELLE N'APPARAÎT QU'EN COMPARAISON, ET C'EST LA RÈGLE
+        LA LÉGENDE FERME LE BLOC, ET ELLE NE SE CACHE PLUS
         ══════════════════════════════════════════════════════════════════════════
 
-        Une seule courbe n'a pas besoin de légende : le titre de la page dit déjà de
-        quel actif il s'agit, et une pastille de couleur unique sous le graphique ne
-        ferait que répéter ce que la courbe elle-même montre.
+        ⚠️ DEUX CHOSES CHANGENT ICI, ET LA PREMIÈRE EST UNE CORRECTION.
 
-        À partir de deux, elle devient nécessaire. Les couleurs sont le SEUL lien entre
-        une courbe et son nom : sans légende, il faut survoler pour savoir laquelle est
-        laquelle, ce qui est exactement le travail que la comparaison doit épargner.
+        Le commentaire d'origine affirmait : « ELLE EST SOUS LA BANDE DE NAVIGATION, ET
+        NON ENTRE LE GRAPHIQUE ET ELLE. Posée au-dessus, elle sépare le tracé de sa
+        propre frise temporelle, deux pièces qui se lisent ensemble. » Le raisonnement
+        est juste. Le code faisait l'inverse : ce bloc était rendu AVANT `ChartNavigator`,
+        donc au-dessus de lui. La note décrivait une intention, pas l'état du fichier.
+        L'ordre du document suit maintenant ce qu'elle prescrivait.
 
-        ⚠️ ELLE EST SOUS LA BANDE DE NAVIGATION, ET NON ENTRE LE GRAPHIQUE ET ELLE.
-        Posée au-dessus, elle sépare le tracé de sa propre frise temporelle, deux
-        pièces qui se lisent ensemble. La référence la met tout en bas, après la
-        navigation, où elle ferme le bloc.
+        ── LA SECONDE : ELLE N'EST PLUS RÉSERVÉE À LA COMPARAISON ────────────────
+
+        L'ancienne règle tenait en une phrase, et elle était bonne : « une seule courbe
+        n'a pas besoin de légende — une pastille de couleur unique ne ferait que répéter
+        ce que la courbe montre ». C'est vrai d'une légende NUE.
+
+        Ce bloc n'en est plus une. Relevé sur tokenomist.ai/bitcoin le 2026-09-06, la
+        zone sous la frise ne répète pas le graphique : elle le DOCUMENTE. Un intitulé
+        de groupe en encre tertiaire, la liste des séries affichées, puis la provenance
+        des chiffres. Ce que le lecteur y trouve avec une seule courbe n'est pas « il y
+        a une courbe » — c'est QUELLE GRANDEUR est tracée, et le graphique en propose
+        plusieurs (cours, capitalisation). Cette information-là ne se lit nulle part
+        ailleurs une fois la barre d'outils quittée des yeux.
+
+        C'est aussi ce qui referme un vide mesuré : le rail de gauche fait 890 px quand
+        la colonne du graphique en faisait 806, laissant quatre-vingt-quatre pixels de
+        blanc à droite du bas du rail. Cette zone les occupe avec de l'information de
+        second plan plutôt qu'avec du remplissage.
+
+        ⚠️ « Grandeur tracée » ET NON « Métriques ». La table de phrases est indexée par
+        le texte français et le test exige que les douze locales portent les mêmes clés :
+        un mot nouveau, c'est douze traductions. Celui-ci existe déjà — c'est le
+        vocabulaire de la barre d'outils pour désigner exactement cette chose, et le
+        réemployer garde les deux endroits d'accord.
 
         Les couleurs viennent de `COMPARE_COLORS` et de `trendColor`, c'est-à-dire des
         mêmes valeurs que les tracés et que l'infobulle. Une table unique pour trois
         consommateurs : c'est ce qui garantit qu'aucun des trois ne dérive.
       */}
-      {overlays.length > 0 ? (
-        <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+      <div className="mt-3 border-t border-border-subtle pt-3">
+        <p className="text-[length:var(--v2-text-2xs)] font-semibold leading-4 text-ink-muted">
+          {t('Grandeur tracée')}
+        </p>
+
+        {/* ⚠️ ALIGNÉE À GAUCHE, ET NON CENTRÉE. Centrée, la légende n'avait aucun bord
+            commun avec ce qui la précède : chaque entrée qui apparaissait ou
+            disparaissait déplaçait toutes les autres. Alignée sur le bord gauche du
+            cadre, elle partage sa marge avec l'intitulé au-dessus et avec le graphique,
+            et l'ajout d'un comparable ne fait plus bouger le premier élément. */}
+        <ul className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
           {/* Le SYMBOLE et non le libellé complet : `label` vaut « Cours de
               Hyperliquid — 7 jours », ce qui décrit le graphique et non la courbe. Dans
               une légende, chaque entrée doit tenir sur deux ou trois mots pour que la
@@ -1104,31 +1158,7 @@ export function PriceChartInteractive({
             </li>
           ))}
         </ul>
-      ) : null}
-
-      {/*
-        ── LA BANDE, DANS L'UN OU L'AUTRE DE SES DEUX RÉGIMES ────────────────
-
-        Avec `overview`, elle porte l'histoire complète : sa fenêtre décrit la période
-        chargée, la déplacer en demande une autre. Sans, elle garde son régime d'origine
-        et découpe dans les points en mémoire. Voir `ChartNavigator`.
-      */}
-      {showNavigator ? (
-        overview && overviewWindow ? (
-          <ChartNavigator
-            values={navValues}
-            timestamps={overview.timestamps}
-            window={dragWindow ?? overviewWindow}
-            onChange={setDragWindow}
-            onCommit={(from, to) => {
-              setDragWindow(null)
-              onOverviewRange?.(from, to)
-            }}
-          />
-        ) : (
-          <ChartNavigator values={navValues} window={navWindow} onChange={setNavWindow} />
-        )
-      ) : null}
+      </div>
     </div>
   )
 }

@@ -449,6 +449,26 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             Le composant reste dans le dépôt, comme `AssetTechSheet` et
             `AssetMarketDrawer` : c'est sa présence sur la fiche qui a été retirée. */}
         <section className="space-y-3">
+          {/* ── LE GRAPHIQUE ENTRE DANS UN PANNEAU ────────────────────────────────
+
+              Il était posé nu sur le fond de page pendant que le rail de gauche vient
+              de reprendre ses cartes : deux colonnes côte à côte, l'une cernée et
+              l'autre non. La référence met le sien dans un panneau — relevé le
+              2026-09-06, `bg-background-primary`, rayon 8, et c'est ce panneau qui fait
+              que sa barre d'outils, sa frise et sa légende se lisent comme UN objet.
+
+              ⚠️ LE PANNEAU S'ARRÊTE AU GRAPHIQUE, ET NE PREND PAS LA BANDE DE
+              VARIATIONS. Celle-ci porte DÉJÀ sa propre carte (`AssetChangeStrip` :
+              `rounded-card border border-border-subtle bg-panel`). L'envelopper aussi
+              donnerait une carte dans une carte, c'est-à-dire deux filets parallèles à
+              trois pixels l'un de l'autre — le défaut que la note de `RailSection`
+              appelle « une texture ».
+
+              `p-3` et non `p-4` : le rembourrage du rail, pour que les deux colonnes
+              respirent du même écart. Vingt-quatre pixels de hauteur en plus, contre
+              vingt de vide mesurés à droite du bas du rail juste avant : les deux
+              colonnes finissent à quatre pixels l'une de l'autre. */}
+          <div className="rounded-card border border-border-subtle bg-surface p-3">
           <AssetWorkspace
             asset={data}
             assetClass={assetClass}
@@ -531,6 +551,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
                 })),
             ]}
           />
+          </div>
 
           {/* ── LE BANDEAU DE VARIATIONS REVIENT, SOUS LA COURBE ────────────────
 
@@ -1217,7 +1238,16 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
              ⚠️ Un commentaire JSX `{/* … *​/}` serait une SECONDE expression dans cette
              prop, qui n'en admet qu'une : d'où la forme bloc, comme les autres
              commentaires de ce bloc. */
-          <aside className="space-y-6">
+          /* ⚠️ `space-y-2` ET NON 6, POUR LA MÊME RAISON QU'À L'INTÉRIEUR DU RAIL.
+             Cet écart séparait des blocs SANS bord ; ils en ont repris un. Huit pixels
+             est l'écart que la référence met entre les cartes de sa colonne, et le
+             garder à vingt-quatre ferait ici deux frontières superposées — le bord de
+             la carte, puis un couloir de blanc trois fois plus large que le
+             rembourrage de la carte elle-même. Voir `RailSection`.
+
+             Commentaire nu : on est dans la prop `rail`, qui n'admet qu'une expression
+             — c'est la forme qu'emploient tous les commentaires de ce bloc. */
+          <aside className="space-y-2">
 
           {/* La colonne empile QUATRE sources de nature différente : le
               registre de métriques, les jauges d'offre, le sondage communautaire et

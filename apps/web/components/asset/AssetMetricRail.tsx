@@ -124,7 +124,21 @@ export async function AssetMetricRail({
       `display: contents`, ce qui rend ses trois sections à la grille sans rien changer
       ailleurs. Voir `AssetLayoutFrame`.
     */
-    <aside data-rail-group className="space-y-6" aria-label={phrase('Repères chiffrés')}>
+    /* ⚠️ `space-y-2` ET NON 6 — LES GROUPES ONT REPRIS LEUR BORD, LE BLANC PEUT RENDRE.
+
+       Vingt-quatre pixels séparaient deux listes nues, faute de quoi elles n'en
+       faisaient qu'une de vingt lignes (voir la note d'origine de `RailSection`).
+       Les groupes portant de nouveau une carte, la frontière est géométrique et le
+       blanc n'a plus à la porter seul : huit pixels suffisent, et c'est l'écart que
+       la référence met entre les blocs de sa colonne. Les seize pixels rendus
+       financent le rembourrage des cartes — voir l'arithmétique dans `RailSection`.
+
+       ⚠️ COMMENTAIRE NU ET NON `{​/* … *​/}`, comme les autres commentaires de ce
+       fichier placés en position d'expression : à l'intérieur d'un `return (…)`, les
+       accolades ouvriraient une SECONDE expression là où une seule est admise. C'est
+       l'erreur qui a mis la page en 500 au premier essai de ce changement, et le
+       fichier la documentait déjà ailleurs — je l'ai refaite quand même. */
+    <aside data-rail-group className="space-y-2" aria-label={phrase('Repères chiffrés')}>
       {groups.map(({ group, rows }) => (
         <RailSection key={group} title={phrase(GROUP_TITLES[group])}>
           <dl>
