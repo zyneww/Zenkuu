@@ -5,12 +5,9 @@ import type { AssetClass } from '@zenkuu/data'
 import { getAsset } from '@zenkuu/data'
 import { EmptyState } from '@zenkuu/ui'
 
-import { AssetLogo } from '@/components/asset/AssetLogo'
-import { AssetTabs } from '@/components/asset/AssetTabs'
 import { ChangeBadge } from '@/components/locale/ChangeBadge'
 import { MetricValue } from '@/components/asset/MetricValue'
 import { Link } from '@/i18n/navigation'
-import { assetHref, marketHref } from '@/lib/asset-routes'
 import {
   METRIC_GROUP_ORDER,
   METRIC_GROUP_TITLES,
@@ -88,37 +85,34 @@ export async function MetricIndexView({ assetClass, id }: { assetClass: AssetCla
 
   return (
     <div className="space-y-6">
-      <nav aria-label={phrase('Fil d’Ariane')} className="text-xs text-ink-muted">
-        <Link href={marketHref(assetClass)} className="transition-colors hover:text-ink">
-          {fr.assetClass[assetClass]}
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <Link href={assetHref(assetClass, data.id)} className="transition-colors hover:text-ink">
-          {data.name}
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <span className="text-ink">{phrase('Métriques')}</span>
-      </nav>
+      {/* ⚠️ LE FIL D'ARIANE, LA RANGÉE D'ONGLETS ET LE LOGO ONT QUITTÉ CETTE VUE.
 
-      {/* La même rangée que sur la fiche, avec CETTE page pour onglet actif — sans
-          elle, on arrive ici par un onglet et il ne reste que le fil d'Ariane pour
-          repartir. Voir `AssetTabs`. */}
-      <AssetTabs assetClass={assetClass} id={data.id} active="metriques" />
+          Elle les rendait elle-même, d'une autre main que l'aperçu : fil plus court, pas
+          d'étiquettes, pas d'étoile de suivi. Changer d'onglet remplaçait donc l'identité
+          de l'actif par une autre — c'est le défaut que `AssetShell` corrige, en les
+          rendant UNE FOIS pour les quatre onglets depuis le `layout.tsx` de la fiche.
 
-      <header className="flex items-center gap-3">
-        <AssetLogo asset={data} size={40} />
-        <div>
-          <h1 className="display-xl text-ink">
-            {phrase('Métriques')} — {data.name}
-          </h1>
-          <p className="text-sm text-ink-muted">
-            {phrase('Chaque mesure publiée pour cet actif, avec la page qui la détaille.')}
-          </p>
-        </div>
+          Le titre reste, sans le logo : le bandeau au-dessus porte déjà le logo, le nom
+          et les étiquettes. Répéter la vignette à quarante pixels d'elle-même ne dirait
+          rien de plus, et c'est aussi ce que fait la référence — son panneau « Metrics »
+          ouvre sur un titre nu. */}
+      {/* ⚠️ `h2` ET NON `h1`, ET LE RELEVÉ L'A IMPOSÉ. Le bandeau persistant porte déjà
+          le `h1` de la page — le nom de l'actif, rendu par `AssetHeadline`. Cette vue en
+          posait un second : constaté au navigateur, `document.querySelectorAll('h1')`
+          rendait « Bitcoin » ET « Métriques — Bitcoin » sur la même page.
+
+          Le plan du document suit maintenant la structure réelle : l'actif est le titre,
+          l'onglet en est une section. C'est aussi celle de la référence, dont le panneau
+          s'intitule « All metrics » sous un bandeau qui nomme le projet.
+
+          Le nom de l'actif quitte l'intitulé pour la même raison : il est écrit trois
+          lignes plus haut, en gros. Le `<title>` de l'onglet de navigateur, lui, le
+          garde — voir `buildMetricsIndexMetadata`. */}
+      <header>
+        <h2 className="display-xl text-ink">{phrase('Métriques')}</h2>
+        <p className="text-sm text-ink-muted">
+          {phrase('Chaque mesure publiée pour cet actif, avec la page qui la détaille.')}
+        </p>
       </header>
 
       {groupes.length === 0 ? (

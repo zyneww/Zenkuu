@@ -3,9 +3,7 @@ import { EmptyState } from '@zenkuu/ui'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { AssetTabs } from '@/components/asset/AssetTabs'
 import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
-import { Link } from '@/i18n/navigation'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -81,31 +79,18 @@ export default async function HistoriquePage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-6">
-      <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
-        <Link href="/crypto" className="transition-colors hover:text-ink">
-          {t('Cryptomonnaies')}
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <Link href={{ pathname: '/crypto/[id]', params: { id: id } }} className="transition-colors hover:text-ink">
-          {asset.data.name}
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <span className="text-ink">{t('Historique')}</span>
-      </nav>
+      {/* ⚠️ LE FIL D'ARIANE ET LA RANGÉE D'ONGLETS ONT QUITTÉ CETTE PAGE.
 
-      {/* La rangée d'onglets de la fiche, avec CETTE page pour onglet actif. Sans
-          elle, on arrive ici par un onglet et on n'a plus que le fil d'Ariane pour
-          repartir : la navigation ne serait réversible que dans un sens. */}
-      <AssetTabs assetClass="crypto" id={id} active="historique" />
-
+          Elle les rendait elle-même, et son fil n'était pas celui de l'aperçu : trois
+          maillons au lieu de quatre, sans le maillon d'accueil, et écrit à la main
+          plutôt qu'avec le composant de fil du site. Changer d'onglet remplaçait donc
+          l'en-tête par un autre — c'est le défaut que `AssetShell` corrige, en les
+          rendant une seule fois pour les quatre onglets. */}
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">
-          {t('Historique des cours')} — {asset.data.name}
-        </h1>
+        {/* ⚠️ `h2` ET NON `h1` : le bandeau persistant porte déjà celui de la page — le
+            nom de l'actif. Deux `h1` cohabitaient, relevés au navigateur. Le nom quitte
+            l'intitulé pour la même raison : il est écrit juste au-dessus. */}
+        <h2 className="display-xl text-ink">{t('Historique des cours')}</h2>
         <p className="text-lg leading-relaxed text-ink-muted">
           {t(
             'La clôture de chaque journée, et l’écart avec la veille. Le graphique montre une forme ; ce tableau donne les nombres.',

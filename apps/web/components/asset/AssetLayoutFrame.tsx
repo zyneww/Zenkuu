@@ -107,27 +107,19 @@ export function AssetLayoutFrame({
   rail,
   identity,
   aside,
-  headline,
-  tabs,
   children,
 }: {
   rail: React.ReactNode
-  /**
-   * Rangée d'onglets de la fiche — pleine largeur, au-dessus des deux colonnes.
+  /*
+   * ⚠️ DEUX PROPS ONT DISPARU D'ICI : `tabs` ET `headline`.
    *
-   * ⚠️ UNE PROP `tabsBar` A DÉJÀ EXISTÉ ICI, ET CELLE-CI N'EST PAS SON RETOUR.
-   * L'ancienne portait une barre de SOMMAIRE — des ancres vers les sections d'une
-   * page qu'on descendait — et elle est partie avec le sommaire lui-même, dont la
-   * note ci-dessous explique la disparition. Celle-ci porte une NAVIGATION : chaque
-   * onglet mène à une route distincte. Voir `AssetTabs`.
+   * Elles portaient la rangée d'onglets et la bande d'identité. Les deux sont montées
+   * dans `AssetShell`, rendu par le `layout.tsx` de la fiche : elles survivent donc à
+   * un changement d'onglet, alors que ce cadre est démonté avec l'aperçu qu'il tient.
    *
-   * Elle est rendue AVANT la rangée à deux colonnes, et non dans la colonne du
-   * graphique. Une note plus bas dans ce fichier situe la rangée d'onglets « à
-   * gauche, en tête de la colonne du graphique » d'après CoinGecko ; la référence de
-   * ce chantier la met sur toute la largeur — mesuré le 2026-09-06 : rangée de
-   * 1 600 px au-dessus d'une grille de 480 + 1 112.
+   * C'est TOUT l'objet du correctif — voir l'en-tête d'`AssetShell` pour le défaut
+   * qu'elles causaient ici, et pour le motif du layout plutôt que de panneaux clients.
    */
-  tabs?: React.ReactNode
   /**
    * Identité compacte de l'actif — montrée quand la page a été défilée.
    *
@@ -180,26 +172,6 @@ export function AssetLayoutFrame({
    * qu'on descend vers « Places », c'est-à-dire au moment où l'on continue de lire.
    */
   aside?: React.ReactNode
-  /**
-   * La bande d'identité — fil d'Ariane, nom, code, étiquettes.
-   *
-   * ── POURQUOI ELLE ENTRE DANS LE CADRE PLUTÔT QUE DE LE PRÉCÉDER ─────────
-   *
-   * Elle était rendue AU-DESSUS de ce composant, sur toute la largeur. La colonne
-   * d'actualités commençait donc sous elle, et la fiche s'ouvrait sur deux cents
-   * pixels de vide en haut à droite — la place exacte de la bande, à côté d'elle.
-   *
-   * Passée ici, elle est le premier enfant de la colonne PRINCIPALE. La colonne
-   * d'actualités est la sœur de celle-ci dans la même rangée `flex` : leurs deux
-   * hauts s'alignent donc d'eux-mêmes, sans décalage négatif ni hauteur recopiée.
-   * La première actualité monte au niveau du nom de l'actif, et le vide disparaît.
-   *
-   * Le filet qui la souligne s'arrête désormais au bord de la colonne principale au
-   * lieu de traverser la page. C'est la conséquence voulue : il sépare l'identité du
-   * graphique qui la suit, et il n'a rien à séparer sous la colonne d'actualités,
-   * qui commence à sa hauteur.
-   */
-  headline?: React.ReactNode
   children: React.ReactNode
 }) {
   /* Déstructuré ICI, et non lu par `stuck.xxx` au fil du rendu : le compilateur React
@@ -407,8 +379,6 @@ export function AssetLayoutFrame({
           dépasseraient leur colonne au lieu de défiler.
         */}
         <div className="min-w-0 flex-1 [display:flow-root]">
-          {/* La bande d'identité — voir la note de la prop `headline`. Elle occupe la
-              colonne principale entière : le rail flotte SOUS elle, pas à côté. */}
           {/* ⚠️ ENVELOPPÉ, POUR LA MÊME RAISON QUE LA COLONNE D'ACTUALITÉS.
 
               Trois des quatre éléments reçus en prop étaient déjà enveloppés —
@@ -422,26 +392,16 @@ export function AssetLayoutFrame({
 
               `contents` retire la boîte de la mise en page : l'enfant se pose
               exactement comme avant, sans nœud visible ni règle de style à reprendre. */}
-          <div className="contents">{headline}</div>
+          {/* ⚠⚠ LA BANDE D'IDENTITÉ ET LA RANGÉE D'ONGLETS ÉTAIENT ICI, EN PROPS.
 
-          {/* ── LA RANGÉE D'ONGLETS, SOUS L'IDENTITÉ ET AU-DESSUS DES COLONNES ────
+              Elles sont montées dans `AssetShell`, que le `layout.tsx` de la fiche rend
+              AU-DESSUS de ce cadre : c'est ce qui les fait survivre à un changement
+              d'onglet, là où ce cadre est démonté avec l'aperçu.
 
-              C'est l'ordre de la référence, relevé le 2026-09-06 : bandeau d'identité,
-              puis rangée d'onglets, puis le contenu à deux colonnes. Un premier essai
-              l'avait posée AVANT la rangée à deux colonnes, donc au-dessus de
-              l'identité : on choisissait la vue d'un actif avant de savoir lequel.
-
-              ⚠️ ELLE PREND LA COLONNE PRINCIPALE, PAS LA PAGE ENTIÈRE, et cela diverge
-              de la mesure. Chez la référence, la rangée fait 1 600 px — toute la largeur
-              — parce qu'il n'y a rien d'autre sur la ligne. Ici, la colonne d'actualités
-              occupe la droite : une rangée qui la traverserait ferait croire que ses
-              onglets commandent aussi ce qui s'y affiche, ce qui est faux. Elle s'arrête
-              donc où s'arrête ce qu'elle gouverne.
-
-              Posée ici, elle est AVANT le rail flottant dans le flux : elle occupe donc
-              la colonne entière, comme la bande d'identité juste au-dessus, et le rail
-              commence sous elle. */}
-          <div className="contents">{tabs}</div>
+              Deux notes de ce fichier en découlaient et sont devenues fausses : celle
+              qui alignait la première actualité sur le nom de l'actif (la colonne
+              commence maintenant sous le bandeau, comme le rail), et celle qui plaçait
+              la rangée d'onglets en tête de la colonne principale. */}
 
           {/* La SENTINELLE de la rangée collante — voir l'en-tête. Un pixel de haut,
               dans le flux, JUSTE APRÈS la bande d'identité : c'est sa sortie de l'écran

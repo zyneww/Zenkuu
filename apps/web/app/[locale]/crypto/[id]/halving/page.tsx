@@ -2,9 +2,7 @@ import { getLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { AssetTabs } from '@/components/asset/AssetTabs'
 import { halvingSchedule } from '@/content/halving'
-import { Link } from '@/i18n/navigation'
 import { getPhrase, getSeo } from '@/lib/content'
 
 /**
@@ -61,31 +59,16 @@ export default async function HalvingPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6">
-      <nav aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
-        <Link href="/crypto" className="transition-colors hover:text-ink">
-          {t('Cryptomonnaies')}
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <Link
-          href={{ pathname: '/crypto/[id]', params: { id: 'bitcoin' } }}
-          className="transition-colors hover:text-ink"
-        >
-          Bitcoin
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <span className="text-ink">{t('Halving')}</span>
-      </nav>
+      {/* ⚠️ LE FIL D'ARIANE ET LA RANGÉE D'ONGLETS ONT QUITTÉ CETTE PAGE.
 
-      {/* Même rangée que sur la fiche et sur l'historique — voir `AssetTabs`. L'actif
-          est forcément le bitcoin ici : la route l'a vérifié plus haut. */}
-      <AssetTabs assetClass="crypto" id="bitcoin" active="halving" />
-
+          Elle les rendait elle-même, avec un fil écrit à la main qui n'était pas celui
+          de l'aperçu. Changer d'onglet remplaçait donc l'en-tête par un autre — c'est le
+          défaut que `AssetShell` corrige, en les rendant une seule fois pour les quatre
+          onglets depuis le `layout.tsx` de la fiche. */}
       <header className="max-w-3xl space-y-3">
-        <h1 className="display-xl text-ink">{t('Halving du bitcoin')}</h1>
+        {/* ⚠️ `h2` ET NON `h1` : le bandeau persistant porte déjà celui de la page — le
+            nom de l'actif. Deux `h1` cohabitaient, relevés au navigateur. */}
+        <h2 className="display-xl text-ink">{t('Halving du bitcoin')}</h2>
         <p className="text-lg leading-relaxed text-ink-muted">
           {t(
             'Tous les 210 000 blocs, la récompense versée aux mineurs est divisée par deux. C’est une règle du protocole, pas une décision : elle borne l’émission totale à 21 millions de bitcoins.',

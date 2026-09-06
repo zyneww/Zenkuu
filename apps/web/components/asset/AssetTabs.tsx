@@ -1,12 +1,10 @@
 'use client'
 
-import { History, LineChart, Scissors, Table2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Link, type AppHref } from '@/i18n/navigation'
+import { Link } from '@/i18n/navigation'
+import { useAssetTabs } from '@/components/asset/asset-tabs'
 import { usePhrase } from '@/components/locale/ContentProvider'
-import { assetHref } from '@/lib/asset-routes'
-import { metricsHref } from '@/lib/asset-metrics'
 import type { AssetClass } from '@zenkuu/data'
 
 /**
@@ -125,19 +123,16 @@ import type { AssetClass } from '@zenkuu/data'
  */
 let dernierTrait: { left: number; width: number } | null = null
 
-type TabKey = 'apercu' | 'metriques' | 'historique' | 'halving'
-
-export function AssetTabs({
-  assetClass,
-  id,
-  active,
-}: {
-  assetClass: AssetClass
-  id: string
-  /** L'onglet de la page qui rend cette rangée. */
-  active: TabKey
-}) {
+export function AssetTabs({ assetClass, id }: { assetClass: AssetClass; id: string }) {
   const t = usePhrase()
+
+  /* ⚠️ LA PROP `active` A DISPARU, ET C'EST LE BANDEAU PERSISTANT QUI L'A EMPORTÉE.
+     Chaque page passait son propre onglet — trois occasions de mentir, et surtout trois
+     rendus de cette rangée. Elle n'est plus rendue qu'UNE FOIS, par le layout partagé,
+     qui ne sait pas quelle sous-route il enveloppe : l'onglet actif se lit donc dans le
+     segment de route. Voir `asset-tabs.ts`. */
+  const { tabs, active } = useAssetTabs(assetClass, id)
+  const activeKey = active?.segment ?? 'apercu'
 
   const listRef = useRef<HTMLElement>(null)
   const linkRefs = useRef(new Map<string, HTMLAnchorElement>())
@@ -167,7 +162,7 @@ export function AssetTabs({
     if (!list) return
 
     function measure() {
-      const link = linkRefs.current.get(active)
+      const link = linkRefs.current.get(activeKey)
       if (!link) return
       const left = link.offsetLeft
       const width = link.offsetWidth
@@ -210,67 +205,12 @@ export function AssetTabs({
       cancelAnimationFrame(frame)
       observer.disconnect()
     }
-  }, [active])
+  }, [activeKey])
 
-  /* ⚠️ L'HISTORIQUE ET LE HALVING RESTENT DÉCLARÉS POUR LA CRYPTO SEULE dans
-     `i18n/pathnames.ts` : leurs littéraux de route n'existent pas pour les autres
-     classes, et le typage de `Link` refuserait la compilation avant même l'exécution.
-     C'est pourquoi ces deux-là s'ajoutent sous condition, quand les deux premiers
-     onglets se composent, eux, par les tables de routes. */
-  const crypto = assetClass === 'crypto'
-
-  const tabs: { key: TabKey; label: string; icon: typeof LineChart; href: AppHref }[] = [
-    {
-      key: 'apercu' as const,
-      /* « Aperçu » et « Valeurs historiques » SONT DÉJÀ DANS LA TABLE DE PHRASES, et
-         c'est la raison de ce choix d'intitulés. La table est indexée par le texte
-         français et `phrases.test.ts` exige que les douze locales portent exactement
-         les mêmes clés : un mot inventé ici, ce sont douze traductions à écrire, ou
-         un onglet qui sort en français sur les onze autres langues.
-
-         « Halving » n'y est pas, et reste tel quel : c'est le terme employé sans
-         traduction dans la plupart des langues, et c'est déjà celui qu'affiche le fil
-         d'Ariane de la page elle-même. */
-      label: t('Aperçu'),
-      icon: LineChart,
-      /* `assetHref` plutôt qu'un littéral : la fiche a six routes selon la classe, et
-         la table qui les tient est déjà écrite. */
-      href: assetHref(assetClass, id),
-    },
-    {
-      key: 'metriques' as const,
-      /* « Métriques » rejoint la table de phrases, comme « Aperçu » : un intitulé
-         d'onglet se lit dans les treize langues, et `phrases.test.ts` exige les douze
-         traductions avant de laisser passer la clé. */
-      label: t('Métriques'),
-      icon: Table2,
-      href: metricsHref(assetClass, id),
-    },
-    ...(crypto
-      ? [
-          {
-            key: 'historique' as const,
-            label: t('Valeurs historiques'),
-            icon: History,
-            href: { pathname: '/crypto/[id]/historique' as const, params: { id } },
-          },
-        ]
-      : []),
-    /* Le halving est une règle du protocole du bitcoin, et la route le vérifie :
-       `if (id !== 'bitcoin') notFound()`. L'onglet suit la même condition, sinon il
-       promettrait une page qui répond 404. */
-    ...(crypto && id === 'bitcoin'
-      ? [
-          {
-            key: 'halving' as const,
-            label: t('Halving'),
-            icon: Scissors,
-            href: { pathname: '/crypto/[id]/halving' as const, params: { id } },
-          },
-        ]
-      : []),
-  ]
-
+  /* ⚠️ LE GARDE-FOU RESTE ÉCRIT, MÊME S'IL NE SE DÉCLENCHE PLUS. Le catalogue de
+     métriques existe pour les six classes, donc la rangée en a toujours deux au moins.
+     Une rangée à UN onglet n'est pas une navigation mais un titre déguisé en commande,
+     et la règle doit survivre au retrait d'un onglet plutôt que d'être redécouverte. */
   if (tabs.length < 2) return null
 
   return (
@@ -293,11 +233,19 @@ export function AssetTabs({
        c'est depuis elle que `offsetLeft` est compté. */
     <nav
       ref={listRef}
-      aria-label={t('Aperçu')}
+      /* ⚠️ IL DISAIT `t('Aperçu')`, C'EST-À-DIRE LE NOM D'UN DE SES ONGLETS. Une
+         synthèse vocale annonçait donc « navigation Aperçu » sur les quatre pages, y
+         compris celle des métriques. `Sections de la fiche` existait déjà dans la
+         table — c'est le libellé qu'y portait la barre de sommaire supprimée, et il
+         nomme exactement ce que cette rangée parcourt. */
+      aria-label={t('Sections de la fiche')}
       className="scrollbar-none relative mb-4 flex items-center overflow-x-auto whitespace-nowrap border-b border-border-subtle"
     >
-      {tabs.map(({ key, label, icon: Icon, href }) => {
-        const selected = key === active
+      {tabs.map(({ segment, label, icon: Icon, href }) => {
+        /* `?? 'apercu'` des deux côtés : l'aperçu n'a pas de segment de route, et
+           `null` ne fait pas une clé de `Map` lisible. */
+        const key = segment ?? 'apercu'
+        const selected = key === activeKey
         return (
           <Link
             key={key}

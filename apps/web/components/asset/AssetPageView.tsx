@@ -1,12 +1,5 @@
+import { AssetPriceCard } from '@/components/asset/AssetPageHeader'
 import { Link } from '@/i18n/navigation'
-import {
-  Breadcrumb as UiBreadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { notFound } from 'next/navigation'
 
 import type { AssetClass } from '@zenkuu/data'
@@ -38,11 +31,9 @@ import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
 import { ReadingProgress } from '@/components/ui/ReadingProgress'
-import { AssetHeadline, AssetPriceCard, AssetTopBar } from '@/components/asset/AssetPageHeader'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
-import { AssetTabs } from '@/components/asset/AssetTabs'
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { AssetChangeStrip } from '@/components/asset/AssetChangeStrip'
 import { AssetVsPeers } from '@/components/asset/AssetVsPeers'
@@ -54,12 +45,10 @@ import { PanelVisibilityProvider } from '@/components/asset/panel-visibility'
 import { AssetWorkspace } from '@/components/asset/AssetWorkspace'
 import { tradingViewMarketCapSymbol, tradingViewSymbol } from '@/components/asset/tradingview-symbol'
 import { AssetJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
-import { FollowAssetButton } from '@/components/watchlist/FollowAssetButton'
 import { getContent } from '@/lib/content'
 import { mentioning } from '@/lib/mentions'
 import { assetPath, marketHref, marketPath } from '@/lib/asset-routes'
 import type { MetricGroup } from '@/lib/asset-metrics'
-import { getWatchlistState } from '@/lib/watchlist-actions'
 import { getLocale } from 'next-intl/server'
 
 import { getPhrase } from '@/lib/content'
@@ -346,7 +335,6 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
 
   // État de suivi lu au rendu serveur : le bouton arrive déjà dans le bon état,
   // au lieu de basculer visiblement une fois la page hydratée.
-  const watchlist = await getWatchlistState(assetClass, data.id)
 
   /*
    * ── TEXTE DE PRÉSENTATION : TROIS ORIGINES, UNE SEULE SECTION ───────────────
@@ -972,40 +960,10 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         ]}
       />
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          ⚠️ L'EN-TÊTE N'EST PLUS UNE RANGÉE — IL A REJOINT CELLE DES ONGLETS.
-
-          Il occupait ici une rangée pleine largeur : identité à gauche, cours à droite.
-          La rangée de sommaire venait dessous, avec quatre onglets centrés laissant
-          plusieurs centaines de pixels de vide de chaque côté.
-
-          Les deux ont fusionné. Ses deux moitiés — `AssetHeadline` et `AssetQuote` —
-          sont passées à `AssetTabs` plus bas, qui les place aux deux bouts de sa rangée
-          collante. Le vide latéral du sommaire est comblé, et la fiche gagne toute la
-          hauteur de la rangée supprimée.
-
-          Ne subsiste ICI que le FIL D'ARIANE : il ne défile pas avec la rangée collante
-          et n'a donc rien à y faire. Il garde sa ligne propre, au-dessus de tout.
-          ══════════════════════════════════════════════════════════════════════ */}
-      {/*
-        ── LE FIL D'ARIANE RESPIRE PLUS EN HAUT QU'EN BAS, ET C'EST VOULU ─────────
-
-        Il était collé au filet de l'en-tête du site : douze pixels sous lui, aucun
-        au-dessus. Un fil d'Ariane n'appartient ni à la barre de navigation ni au titre
-        qui le suit — c'est une ligne de situation, et elle a besoin d'un blanc de
-        chaque côté pour se lire comme telle.
-
-        `pt-5` contre `pb-3` : le blanc du haut est plus large parce qu'il sépare deux
-        CHOSES DIFFÉRENTES — la barre du site et la page — quand celui du bas sépare
-        deux parties d'un même en-tête. Un interligne symétrique rattacherait
-        visuellement le fil à la barre.
-
-        Mesuré : le texte tombe à 109 px du haut de la fenêtre, soit 44 px sous le
-        filet de l'en-tête.
-      */}
-      <div className="pb-3 pt-5">
-        <Breadcrumb assetClass={assetClass} name={data.name} />
-      </div>
+      {/* ⚠️ LE FIL D'ARIANE, L'IDENTITÉ ET LA RANGÉE D'ONGLETS ONT QUITTÉ CETTE VUE.
+          Ils sont rendus par `AssetShell`, que le `layout.tsx` de la fiche pose au-dessus
+          des quatre onglets — c'est ce qui les empêche d'être redessinés à chaque
+          bascule. Les notes qui expliquaient leur géométrie les ont suivis. */}
 
       {/*
         LE TIROIR DES MARCHÉS A ÉTÉ RETIRÉ.
@@ -1135,64 +1093,11 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           ══════════════════════════════════════════════════════════════════════ */}
       <AssetLayoutFrame
         aside={newsAside}
-        /* La rangée d'onglets rend joignables `/historique` et, pour le bitcoin,
-           `/halving` — deux routes écrites, servies, et vers lesquelles aucun lien ne
-           menait. Elle ne paraît pas hors crypto ni à un seul onglet : voir `AssetTabs`,
-           qui dit aussi pourquoi il n'y a ni « Métriques » ni « Tokenomics ». */
-        tabs={<AssetTabs assetClass={assetClass} id={id} active="apercu" />}
-        /* LA BANDE D'IDENTITÉ ENTRE DANS LE CADRE — voir la prop `headline` de
-           `AssetLayoutFrame`.
-
-           Elle était rendue juste au-dessus de cet appel, sur toute la largeur de la
-           page. La colonne d'actualités, elle, naît DANS le cadre : elle commençait donc
-           sous la bande, et la fiche s'ouvrait sur la hauteur de cette bande en vide,
-           en haut à droite.
-
-           Passée en prop, elle devient le premier enfant de la colonne principale, dont
-           la colonne d'actualités est la sœur dans la même rangée. Les deux hauts
-           s'alignent d'eux-mêmes : la première actualité arrive au niveau du nom de
-           l'actif. Aucune hauteur n'est recopiée, aucun décalage négatif n'est posé —
-           c'est la rangée qui aligne, comme elle le fait déjà pour le rail. */
-        headline={
-          <div className="mb-5 border-b border-border-subtle pb-5">
-            <AssetHeadline
-              asset={data}
-              assetClass={assetClass}
-              rankLabel={fr.asset.stats.rank}
-              /* ── LE BOUTON SEUL A CÉDÉ LA PLACE À LA BANDE DE REPÈRES ─────────
-
-                 Cette prop ne portait que `FollowAssetButton`. Elle porte désormais
-                 `AssetTopBar`, la bande demandée d'après `tokenomist.ai/bitcoin` —
-                 et le bouton la ferme, à droite, comme le « Watchlist » de la
-                 référence. Le suivi n'est donc pas perdu, il est encadré.
-
-                 ⚠️ ELLE NE PORTE PLUS LE COURS. Il est redescendu dans la carte de
-                 tête du rail, rétablie sur demande d'après Token Terminal, qui pose
-                 son bloc « Price » en haut de colonne gauche. Garder les deux aurait
-                 mis deux cours sur le même écran — l'un en direct, l'autre non —
-                 sans dire lequel fait foi. Voir `AssetTopBar`. */
-              watchAction={
-                <AssetTopBar
-                  /* La source vit sur l'ENVELOPPE de la réponse et non sur `data` —
-                     c'est la fiche qui tient les deux, donc c'est elle qui fait le
-                     lien. Voir `ReportDataLink`. */
-                  {...(asset.source ? { sourceUrl: asset.source.attributionUrl } : {})}
-                  watchAction={
-                    <FollowAssetButton
-                      assetClass={assetClass}
-                      assetId={data.id}
-                      label={data.name}
-                      {...(data.symbol ? { symbol: data.symbol } : {})}
-                      path={assetPath(assetClass, data.id)}
-                      initialFollowing={watchlist.following}
-                      available={watchlist.available}
-                    />
-                  }
-                />
-              }
-            />
-          </div>
-        }
+        /* ⚠️ LES PROPS `tabs` ET `headline` ONT DISPARU DE CET APPEL, avec les deux
+           blocs qu'elles portaient : la rangée d'onglets et la bande d'identité. Elles
+           vivent dans `AssetShell`, au-dessus des quatre onglets — voir le `layout.tsx`
+           de la fiche. Ce cadre n'enveloppe plus que l'APERÇU, ce qui est aussi la
+           raison pour laquelle il commence désormais sous le filet d'identité. */
         /* L'IDENTITÉ COMPACTE EST LE SEUL CONTENU DE LA BANDE D'ACCOMPAGNEMENT.
 
            Elle vivait dans le rail, où sa sentinelle — son premier enfant — définissait
@@ -1601,50 +1506,3 @@ function frenchOf(name: string): string {
  * le texte affiché, et un lien sur cinq tomberait sur une page inexistante.
  */
 
-/**
- * Le fil d'Ariane de la fiche.
- *
- * ── CE QUE `Breadcrumb` DE SHADCN/UI APPORTE À TROIS `<li>` ─────────────────
- *
- * La structure était déjà correcte — un `<nav aria-label>`, une `<ol>`, un
- * `aria-current="page"` sur le dernier maillon. Ce que la version maison n'avait pas,
- * et qui se remarque à l'oreille plus qu'à l'œil :
- *
- *   · LE SÉPARATEUR N'EST PLUS UN CARACTÈRE. C'était un `<li aria-hidden>/</li>` :
- *     une barre oblique dans le flux du texte, que certaines synthèses vocales lisent
- *     malgré `aria-hidden` lorsqu'elles parcourent caractère par caractère.
- *     `BreadcrumbSeparator` rend un chevron SVG, marqué `presentation`.
- *   · LE DERNIER MAILLON EST UN `BreadcrumbPage`, c'est-à-dire un `<span
- *     role="link" aria-disabled>` : il est annoncé comme un lien COURANT et non
- *     comme du texte ordinaire, ce qui situe la page dans la hiérarchie.
- *
- * ⚠️ `asChild` SUR CHAQUE MAILLON. `BreadcrumbLink` rend un `<a>` en dur ; le site
- * sert treize langues et ses chemins sont préfixés par la locale, que seul le `Link`
- * de next-intl pose. Sans `asChild`, chaque maillon renverrait le lecteur anglophone
- * vers la version française de la page.
- */
-async function Breadcrumb({ assetClass, name }: { assetClass: AssetClass; name: string }) {
-  const t = await getPhrase()
-  const fr = await getContent()
-  return (
-    <UiBreadcrumb aria-label={t('Fil d’Ariane')} className="text-xs text-ink-muted">
-      <BreadcrumbList className="gap-1.5 text-xs sm:gap-1.5">
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild className="hover:text-brand">
-            <Link href="/">{fr.nav.home}</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild className="hover:text-brand">
-            <Link href={marketHref(assetClass)}>{fr.assetClass[assetClass]}</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage className="font-medium text-ink">{name}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </UiBreadcrumb>
-  )
-}
