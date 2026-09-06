@@ -290,7 +290,39 @@ export async function AssetHeadline({
   }
 
   return (
-        <div className="flex min-w-0 items-start gap-3">
+        /* ══════════════════════════════════════════════════════════════════════
+            ⚠️ `flex-wrap` — LE BLOC D'IDENTITÉ TOMBAIT À ZÉRO PIXEL SUR TÉLÉPHONE.
+
+            Mesuré à 375 px de large, avant correction :
+
+              rangée                          343 px
+              bloc d'identité (min-w-0 flex-1)  0 px   ← disparu
+              pastille « Smart Contract Platform » 22 px, tronquée à « S »
+
+            Le mécanisme : `flex-1` vaut `flex: 1 1 0%`, donc une base NULLE. Le bloc
+            ne réclame rien de lui-même et n'obtient que ce que ses voisins laissent.
+            À côté, la bande de repères (`AssetTopBar`) demande plusieurs centaines de
+            pixels pour ses cinq colonnes de cours ; sur une rangée qui n'en a que 343,
+            elle prend tout et l'identité reçoit zéro. Le nom, les étiquettes et les
+            liens étaient rendus dans une boîte de largeur nulle, d'où les pastilles
+            réduites à leur première lettre et les pictogrammes empilés à la verticale.
+
+            ⚠️ CE N'EST PAS LE `shrink-0` RETIRÉ DE LA BANDE QUI EST EN CAUSE, et la
+            note de cette prop plus bas reste juste : sans son retrait, la bande
+            poussait le nom HORS de la colonne. Elle cède désormais — mais céder ne
+            suffit pas quand le voisin a une base nulle et qu'on est à 375 px : les
+            deux se partagent alors un espace où ni l'un ni l'autre ne tient.
+
+            `flex-wrap` sur la rangée, `basis-72` sur le bloc : en dessous d'environ
+            288 px disponibles pour l'identité, la bande passe à la ligne suivante au
+            lieu de l'écraser. C'est l'ordre demandé pour le téléphone — identité, puis
+            cours — et sur grand écran rien ne change : les deux tiennent sur la rangée,
+            `flex-1` reprend la main et la base ne sert plus.
+
+            Commentaire NU et non `{​/* … *​/}` : on est juste après `return (`, où les
+            accolades ouvriraient une seconde expression. C'est la forme qu'emploient
+            les autres commentaires de ce fichier placés en position d'expression. */
+        <div className="flex min-w-0 flex-wrap items-start gap-3">
           {/*
             ⚠️ L'ÉTOILE ISOLÉE A ÉTÉ RETIRÉE D'ICI (demande explicite).
 
@@ -378,8 +410,16 @@ export async function AssetHeadline({
               `flex-1` les lui rend : la ligne redevient unique, donc alignable avec la
               bande (voir `self-end` plus bas). Le repli reste possible pour un actif à
               étiquettes longues — c'est le comportement voulu, décrit plus bas — il
-              n'est simplement plus déclenché par du blanc inutilisé. */}
-          <div className="min-w-0 flex-1">
+              n'est simplement plus déclenché par du blanc inutilisé.
+
+              ⚠️ `basis-72` S'AJOUTE À `flex-1`, ET NE LE CONTREDIT PAS. `flex-1` vaut
+              `flex: 1 1 0%` : la base nulle est ce qui a fait tomber ce bloc à zéro
+              pixel sur téléphone (voir la note de la rangée, plus haut). La classe de
+              base arrive APRÈS dans la déclaration et remplace ce `0%` par 18 rem —
+              le bloc réclame donc 288 px avant de partager le reste. Au-dessus de
+              cette largeur, la croissance et la contraction restent celles de
+              `flex-1`, et la mesure ci-dessus tient inchangée. */}
+          <div className="min-w-0 flex-1 basis-72">
             {/*
               LE NOM ET LE CODE SUR LA MÊME LIGNE, ce que la colonne étroite interdisait.
 

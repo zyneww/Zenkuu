@@ -112,9 +112,24 @@ export async function AssetTabs({
        qui fait que l'onglet sélectionné semble découpé dans la ligne plutôt que posé
        dessus — et c'est la seule bordure de 2 px du site, parce qu'elle porte un ÉTAT
        et non une séparation. */
+    /* ⚠️ LA RANGÉE DÉFILE PLUTÔT QUE DE SE REPLIER, ET C'EST UN DÉFAUT MESURÉ.
+       À 375 px, « Valeurs historiques » passait sur deux lignes et « Halving »
+       sortait du cadre : la rangée faisait deux hauteurs, et son filet du bas ne
+       soulignait plus que la seconde. Un onglet coupé en deux n'est plus une cible,
+       et un onglet hors cadre n'existe pas.
+
+       `overflow-x-auto` + `whitespace-nowrap` : la rangée garde UNE hauteur et se
+       fait glisser au doigt, ce qui est le geste attendu d'une rangée d'onglets sur
+       téléphone. `scrollbar-none` retire la barre — le débordement se voit au
+       troisième onglet tronqué, qui est l'indice habituel.
+
+       ⚠️ `shrink-0` SUR CHAQUE ONGLET EST INDISPENSABLE : sans lui, un conteneur
+       défilant comprime quand même ses enfants flexibles jusqu'à leur contenu, et
+       `whitespace-nowrap` n'empêche que la coupure des mots, pas l'écrasement de la
+       boîte. */
     <nav
       aria-label={t('Aperçu')}
-      className="mb-4 flex items-center gap-6 border-b border-border-subtle"
+      className="scrollbar-none mb-4 flex items-center gap-6 overflow-x-auto whitespace-nowrap border-b border-border-subtle"
     >
       {tabs.map(({ key, label, icon: Icon, href }) => {
         const selected = key === active
@@ -129,7 +144,7 @@ export async function AssetTabs({
                les APLATS. En texte de 16 px il serait illisible. `brand-strong` passe
                le seuil AA en clair et vaut exactement `brand` en sombre : une seule
                classe, correcte dans les deux thèmes. */
-            className={`-mb-px flex h-12 items-center gap-1.5 border-b-2 text-base transition-colors duration-150 ${
+            className={`-mb-px flex h-12 shrink-0 items-center gap-1.5 border-b-2 text-base transition-colors duration-150 ${
               selected
                 ? 'border-brand-strong text-brand-strong'
                 : 'border-transparent text-ink-muted hover:text-ink'
