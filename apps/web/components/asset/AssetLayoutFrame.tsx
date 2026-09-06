@@ -351,7 +351,22 @@ export function AssetLayoutFrame({
           1392 de contenu et 288 de colonne se touchent, sans un pixel entre eux.
           Ces vingt-quatre pixels étaient donc pris à la fois sur le contenu et sur la
           colonne — voir le calcul complet dans `.asset-rail`. */}
-      <div className="flex items-stretch gap-0 overflow-x-clip pt-4">
+      {/* ⚠️ LA GOUTTIÈRE REVIENT À 24 px, ET LA NOTE CI-DESSUS AVAIT TORT SUR UN POINT.
+
+          Elle justifiait `gap-0` par la référence : « 1392 de contenu et 288 de colonne
+          se touchent, sans un pixel entre eux ». La mesure était juste, la conclusion
+          incomplète — chez elle, l'écart est rendu par le FILET GAUCHE de la colonne
+          latérale et son rembourrage interne. Notre colonne d'actualités n'en porte
+          pas : les deux blocs se touchaient donc vraiment, et le premier titre
+          d'article venait au contact du bord droit du graphique (signalé, capture 1).
+
+          `gap-6` plutôt qu'un filet ajouté à la colonne : un trait vertical de
+          plusieurs milliers de pixels le long d'une page qui n'en porte aucun autre
+          se lirait comme une frontière de cadre, là où il ne s'agit que de séparer
+          deux lectures. Vingt-quatre pixels de blanc disent la même chose sans
+          ajouter de matière — c'est déjà l'écart des grilles de la fiche (`gap-4`
+          entre cartes, `gap-6` entre groupes du rail). */}
+      <div className="flex items-stretch gap-6 overflow-x-clip pt-4">
         {/*
           ── LA GRILLE A CÉDÉ LA PLACE À UN FLOTTANT ───────────────────────────
 

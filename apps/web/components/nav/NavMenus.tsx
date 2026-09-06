@@ -300,7 +300,40 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
                 (13 px, hauteur 56, logo 24) ; seule la graisse change, ce qui laisse
                 intact l'alignement des menus sur la première lettre de leur
                 intitulé, vérifié à zéro pixel d'écart. */}
-            <NavigationMenuLink asChild className="px-2 py-2 text-[13px] font-semibold leading-[1.425] text-ink-muted hover:text-ink">
+            {/* ── `pt-[9px] pb-[7px]` ET NON `py-2` — UN PIXEL, ET IL SE VOIT ────
+
+                Signalé à l'œil : la rangée de menus flotte au-dessus du reste de la
+                barre. Les BOÎTES, elles, sont parfaitement centrées — toutes à 0,00 px
+                du milieu, hauteur 36, haut à 10. Ce n'est donc pas un défaut de
+                disposition, c'est la position du GLYPHE dans sa boîte.
+
+                Relevé sur les pixels réellement peints, rendu à 3,2× le 2026-09-05,
+                en comparant les blocs de hauteur d'x — le seul repère optique valable
+                entre deux corps différents :
+
+                  menus, 13 px       bloc d'x 77→99    centre 88,50   axe −1,09
+                  « S'inscrire », 14 bloc d'x 79→103   centre 91,50   axe +1,91
+
+                Trois pixels appareil d'écart, soit 0,94 px CSS : la rangée de menus
+                est bien plus haute que ses voisines, et d'un pixel.
+
+                ⚠️ LA HAUTEUR DE LIGNE N'Y CHANGE RIEN, et je l'ai vérifié plutôt que
+                supposé : forcée à 20 px comme celle des boutons, l'encre ne bouge PAS
+                d'un pixel. C'est normal — la boîte de ligne est centrée dans la boîte
+                de contenu, et la boîte de glyphes est centrée dans la boîte de ligne,
+                donc le centre du glyphe ne dépend pas de l'interligne. Seul le corps
+                de la fonte le décide, et il diffère entre 13 et 14 px.
+
+                Reste à déplacer la BOÎTE DE CONTENU. `h-9` fixe la hauteur à 36 px, le
+                rembourrage la répartit : 9 en haut et 7 en bas descendent le contenu —
+                texte ET chevron ensemble — d'un pixel, sans toucher à la boîte du
+                bouton, donc sans décaler son fond de survol ni son anneau de focus.
+
+                Un ENTIER, et pas 0,94 : à la densité 1, où est la majorité, un pixel
+                tombe juste et une fraction s'arrondirait au hasard. À 3,2× il dépasse
+                d'un pixel appareil, soit 0,31 px CSS — trois fois moins que l'écart
+                qu'il corrige. */}
+            <NavigationMenuLink asChild className="px-2 pt-[9px] pb-[7px] text-[13px] font-semibold leading-[1.425] text-ink-muted hover:text-ink">
                 <Link href={menu.href}>{t(menu.label)}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
@@ -310,7 +343,11 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
                   Les deux formes vivent sur la MÊME rangée : les départager
                   reviendrait à signaler par le poids du texte lequel ouvre un
                   panneau, ce qui n'est pas une information de graisse. */}
-              <NavigationMenuTrigger className="bg-transparent px-2 py-2 text-[13px] font-semibold leading-[1.425] text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
+              {/* Même rembourrage dissymétrique que le lien sans panneau ci-dessus —
+                  voir sa note pour la mesure. Les deux formes vivent sur la MÊME
+                  rangée : en corriger une seule remplacerait un défaut d'alignement
+                  par un autre, à l'intérieur de la rangée cette fois. */}
+              <NavigationMenuTrigger className="bg-transparent px-2 pt-[9px] pb-[7px] text-[13px] font-semibold leading-[1.425] text-ink-muted hover:bg-transparent hover:text-ink focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-ink">
                 {t(menu.label)}
               </NavigationMenuTrigger>
 

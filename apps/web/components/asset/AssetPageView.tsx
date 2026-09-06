@@ -38,12 +38,12 @@ import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
 import { ReadingProgress } from '@/components/ui/ReadingProgress'
-import { AssetHeadline, AssetPriceCard } from '@/components/asset/AssetPageHeader'
-import { AssetSentiment } from '@/components/asset/AssetSentiment'
+import { AssetHeadline, AssetTopBar } from '@/components/asset/AssetPageHeader'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
+import { AssetChangeStrip } from '@/components/asset/AssetChangeStrip'
 import { AssetVsPeers } from '@/components/asset/AssetVsPeers'
 import { AssetPerformanceMatrix } from '@/components/asset/AssetPerformanceMatrix'
 import { AssetRecords } from '@/components/asset/AssetRecords'
@@ -420,7 +420,7 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
   // 224px pour un libellé, une valeur et parfois un écart — d'où les « Plus haut
   // hi… » tronqués. La colonne s'élargit de la largeur exactement perdue, plus une
   // marge.
-  const overview = (
+  const overviewChart = (
     <div className="space-y-5">
         {/* ══════════════════════════════════════════════════════════════════
             LA CARTE DE COURS OUVRE LA COLONNE, JUSTE AU-DESSUS DE LA COURBE
@@ -435,31 +435,19 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             désigne les mêmes bornes que les extrêmes de la courbe, et les deux se
             répondent quand elles se touchent.
             ══════════════════════════════════════════════════════════════════ */}
-        <AssetPriceCard
-          asset={data}
-          assetClass={assetClass}
-          price={
-            <>
-              {/* Binance en complément côté client — voir l'en-tête de
-                  `LiveBinancePrice` : ce n'est PAS une seconde source de vérité, juste
-                  un cours qui tique sans jamais toucher notre quota CoinGecko. Réservé
-                  au marché crypto (§5 — Binance ne cote ni forex, ni actions, ni ETF). */}
-              {assetClass === 'crypto' ? (
-                <LiveBinancePrice
-                  symbol={data.symbol}
-                  fallbackValue={data.price}
-                  fallbackCurrency={data.currency}
-                />
-              ) : (
-                <Money value={data.price} from={data.currency} asRate={isForex} />
-              )}
-              {isForex ? (
-                <span className="ml-1 text-base font-medium text-ink-muted">{data.currency}</span>
-              ) : null}
-            </>
-          }
-        />
+        {/* ⚠️ `AssetPriceCard` A ÉTÉ RETIRÉE DE LA FICHE (demande explicite).
 
+            Elle ouvrait cette colonne, juste au-dessus du graphique : « BTC / JETON »,
+            le cours en 36 px, sa variation, et la barre d'amplitude à l'opposé.
+
+            Les trois informations qu'elle portait sont montées dans la bande de
+            l'en-tête — voir `AssetTopBar` et la prop `watchAction` plus bas. Aucune
+            ne quitte donc la page, et le graphique commence cent vingt pixels plus
+            haut, ce qui était déjà l'argument invoqué pour faire descendre la carte
+            depuis l'en-tête.
+
+            Le composant reste dans le dépôt, comme `AssetTechSheet` et
+            `AssetMarketDrawer` : c'est sa présence sur la fiche qui a été retirée. */}
         <section className="space-y-3">
           <AssetWorkspace
             asset={data}
@@ -544,6 +532,55 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             ]}
           />
 
+          {/* ── LE BANDEAU DE VARIATIONS REVIENT, SOUS LA COURBE ────────────────
+
+              Demandé d'après capture, dans la forme de CoinGecko : six fenêtres en
+              rangée, l'intitulé au-dessus de sa variation.
+
+              Il est posé ICI, dans `overviewChart`, et pas dans la moitié basse : sa
+              raison d'être est d'être lu SANS quitter le graphique des yeux. Le
+              descendre sous la coupure le mettrait à la place qu'occupe déjà le rail,
+              c'est-à-dire loin. Voir l'en-tête de `AssetChangeStrip` pour le doublon
+              assumé avec le bloc « Variations » du rail. */}
+          <AssetChangeStrip asset={data} />
+        </section>
+    </div>
+  )
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * TOUT CE QUI SUIT LE GRAPHIQUE PREND LA LARGEUR ENTIÈRE (demande explicite)
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * L'aperçu était UN SEUL nœud, rendu dans une boîte `.asset-section`. Cette
+   * classe pose `display: flow-root`, ce qui ouvre un contexte de formatage : la
+   * boîte se range À CÔTÉ du rail flottant et garde cette largeur réduite sur
+   * TOUTE sa hauteur — y compris des milliers de pixels plus bas, là où le rail
+   * s'est arrêté depuis longtemps.
+   *
+   * Résultat mesuré sur la fiche Bitcoin : sous « Bitcoin face à ses voisins », la
+   * colonne de gauche est vide sur toute la hauteur restante pendant que les
+   * tableaux se serrent dans les deux tiers de droite. C'est ce que montre la
+   * capture 2.
+   *
+   * L'aperçu est donc coupé en DEUX nœuds :
+   *
+   *   `overviewChart`   le graphique seul, qui doit rester à côté du rail — c'est
+   *                     tout l'intérêt d'un rail, lire les chiffres EN REGARDANT
+   *                     la courbe.
+   *   `overviewBelow`   tout le reste, rendu hors du contexte de formatage et
+   *                     dégagé du flottant : il commence sous le rail et prend la
+   *                     largeur de la colonne principale.
+   *
+   * ⚠️ LA LARGEUR S'ARRÊTE À LA COLONNE D'ACTUALITÉS, ET C'EST VOULU. Celle-ci est
+   * la SŒUR de la colonne principale dans la rangée `flex` du cadre, pas un
+   * flottant : rien ne peut passer dessous. La demande dit « jusqu'à en dessous du
+   * panel gauche » — c'est bien le rail de gauche qui est récupéré, pas la colonne
+   * de droite.
+   */
+  const overviewBelow = (
+    <div className="space-y-5">
+        <section className="space-y-3">
           {/* ⚠️ LE BANDEAU DE VARIATIONS A ÉTÉ RETIRÉ D'ICI (demande explicite).
 
               Il portait six fenêtres — 1 h, 24 h, 7 j, 14 j, 30 j, 1 an — sur une
@@ -658,18 +695,25 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
         */}
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 [&>*]:min-w-0">
           {/*
-            DEUX BLOCS SYMÉTRIQUES, UN PAR MONDE.
+            ⚠️ `AssetSentiment` A ÉTÉ RETIRÉ DE LA FICHE (demande explicite).
 
-            `AssetSentiment` rend le sondage d'audience d'une cryptomonnaie ;
-            `AssetAnalystView` rend le consensus d'analystes d'une action. Les deux
-            répondent à « qu'en pensent les autres ? » avec la donnée que chaque marché
-            publie réellement, et chacun se retire de lui-même quand la sienne manque —
-            il n'y a donc aucune condition de classe à écrire ici.
+            Il rendait le sondage d'audience d'une cryptomonnaie : une barre à deux
+            parts, « 78,9 % haussier / 21,1 % baissier », et la mise en garde qui
+            l'accompagnait — « vote des visiteurs de la source, et non une mesure de
+            marché ».
 
-            Le second ne coûte AUCUN appel supplémentaire : ses deux modules voyagent
-            dans la même requête que les ratios déjà chargés au-dessus.
+            Cette mise en garde disait déjà l'essentiel : la donnée mesure un vote
+            d'audience, pas une position. Elle vivait à côté du consensus d'analystes,
+            qui répond à la même question sur une base autrement établie, et les deux
+            se lisaient au même rang.
+
+            Il ne reste donc que `AssetAnalystView`. La grille garde `xl:grid-cols-2` :
+            elle se referme d'elle-même sur ce qui reste, et c'est déjà le comportement
+            décrit plus haut pour les actifs dont un bloc manque.
+
+            Le composant reste dans le dépôt — c'est sa présence sur la fiche qui a
+            été retirée. Son import part en revanche, sans quoi le lint le signale.
           */}
-          <AssetSentiment asset={data} />
           <AssetAnalystView profile={profile} currency={data.currency} price={data.price} />
 
           <AssetCommunity asset={data} />
@@ -1094,15 +1138,48 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
               asset={data}
               assetClass={assetClass}
               rankLabel={fr.asset.stats.rank}
+              /* ── LE BOUTON SEUL A CÉDÉ LA PLACE À LA BANDE DE REPÈRES ─────────
+
+                 Cette prop ne portait que `FollowAssetButton`. Elle porte désormais
+                 `AssetTopBar`, la bande demandée d'après `tokenomist.ai/bitcoin` —
+                 et le bouton la ferme, à droite, comme le « Watchlist » de la
+                 référence. Le suivi n'est donc pas perdu, il est encadré.
+
+                 Le CHAMP `price` est le même nœud que recevait `AssetPriceCard`,
+                 retirée de la fiche juste au-dessus : c'est ce qui fait que le cours
+                 en direct ne quitte pas la page avec elle. Voir `AssetTopBar`, dont
+                 la note dit aussi lesquelles des colonnes de la référence n'ont pas
+                 de source ici. */
               watchAction={
-                <FollowAssetButton
+                <AssetTopBar
+                  asset={data}
                   assetClass={assetClass}
-                  assetId={data.id}
-                  label={data.name}
-                  {...(data.symbol ? { symbol: data.symbol } : {})}
-                  path={assetPath(assetClass, data.id)}
-                  initialFollowing={watchlist.following}
-                  available={watchlist.available}
+                  /* La source vit sur l'ENVELOPPE de la réponse et non sur `data` —
+                     c'est la fiche qui tient les deux, donc c'est elle qui fait le
+                     lien. Voir `ReportDataLink`. */
+                  {...(asset.source ? { sourceUrl: asset.source.attributionUrl } : {})}
+                  price={
+                    assetClass === 'crypto' ? (
+                      <LiveBinancePrice
+                        symbol={data.symbol}
+                        fallbackValue={data.price}
+                        fallbackCurrency={data.currency}
+                      />
+                    ) : (
+                      <Money value={data.price} from={data.currency} asRate={isForex} />
+                    )
+                  }
+                  watchAction={
+                    <FollowAssetButton
+                      assetClass={assetClass}
+                      assetId={data.id}
+                      label={data.name}
+                      {...(data.symbol ? { symbol: data.symbol } : {})}
+                      path={assetPath(assetClass, data.id)}
+                      initialFollowing={watchlist.following}
+                      available={watchlist.available}
+                    />
+                  }
                 />
               }
             />
@@ -1228,7 +1305,28 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
             section qu'à son approche, ce qui n'a plus de sens pour la seule section de
             la page, visible dès l'ouverture. */}
         <div className="asset-section">
-          <PanelVisibilityProvider visible>{overview}</PanelVisibilityProvider>
+          <PanelVisibilityProvider visible>{overviewChart}</PanelVisibilityProvider>
+        </div>
+
+        {/* ── LA MOITIÉ BASSE, HORS DU CONTEXTE DE FORMATAGE ────────────────────
+
+            Pas de `asset-section` ici, et c'est TOUT le correctif : cette classe
+            pose `flow-root`, et c'est `flow-root` qui tenait ces blocs à côté du
+            rail au lieu de les laisser reprendre la largeur sous lui. Voir la note
+            de `overviewBelow`.
+
+            `clear-left` plutôt que rien : sans lui, un rail plus HAUT que le
+            graphique — le cas d'une grande cryptomonnaie, dont le rail empile
+            fondamentaux, amplitude, variations, offre et fiche — laisserait ces
+            blocs commencer À CÔTÉ de sa fin, dans une largeur amputée, puis
+            s'élargir en cours de route. Une section dont la largeur change au
+            milieu se lit comme un défaut de rendu. Dégagée, elle commence sous le
+            rail et garde une seule largeur.
+
+            `mt-5` reprend l'écart que `space-y-5` posait entre ces deux moitiés
+            quand elles vivaient dans le même parent : la coupe ne doit pas se voir. */}
+        <div className="clear-left mt-5">
+          <PanelVisibilityProvider visible>{overviewBelow}</PanelVisibilityProvider>
         </div>
       </AssetLayoutFrame>
 

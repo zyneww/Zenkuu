@@ -1025,7 +1025,26 @@ export function ChartToolbar(props: ChartToolbarProps) {
           filet faisait un second cadre à quatre pixels du premier — deux bordures
           concentriques, défaut visible dès qu'on regarde le coin droit. Le fond
           creusé reste : c'est lui qui porte la pastille du palier actif. */}
-      <div className="flex min-w-0 flex-wrap items-center gap-0.5 rounded-control bg-surface-muted px-1 py-1">
+      {/* ⚠️ `py-1` A ÉTÉ RETIRÉ — C'ÉTAIT UN SECOND REMBOURRAGE SUR LA MÊME PASTILLE.
+
+          Signalé : « les boutons à droite ne sont pas de la même taille que ceux à
+          gauche ». Mesuré au navigateur, la rangée entière :
+
+            gauche   « Prix | Capitalisation »   36 px, haut 271,4
+                     « Comparer »                36 px, haut 271,4
+                     « graphique | TV »          36 px, haut 271,4
+            droite   « 24H … MAX »               43,9 px, haut 267,5
+
+          Huit pixels d'écart, et une pastille qui dépassait de quatre au-dessus et
+          en dessous de ses voisines. La cause n'était pas la taille des BOUTONS —
+          ils font 28 partout — mais un emboîtement : ce conteneur posait `py-1`
+          autour d'un `ToggleGroup` qui rend DÉJÀ sa propre pastille de 36. Quatre
+          pixels ajoutés de chaque côté d'un cadre qui n'en demandait pas.
+
+          Le rembourrage HORIZONTAL reste : lui n'est pas doublé, et c'est ce qui
+          sépare le dernier palier des trois icônes qui suivent dans la même
+          pastille. */}
+      <div className="flex min-w-0 flex-wrap items-center gap-0.5 rounded-control bg-surface-muted px-1">
 
       {/*
         DEUX FAÇONS DE CADRER LE TEMPS, ET ELLES NE RÉPONDENT PAS À LA MÊME QUESTION.
