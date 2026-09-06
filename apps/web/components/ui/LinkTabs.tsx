@@ -142,7 +142,7 @@ export function LinkTabs({
                      horizontal de 10 px, rayon 6 px, fond #202020 — c'est-à-dire
                      notre L2. L'actif se distingue par son ENCRE et sa bordure, pas
                      par un souligné : ces onglets n'ont pas de filet sous eux. */
-                  `whitespace-nowrap rounded-[6px] border px-2.5 py-1.5 text-xs font-bold transition-colors duration-150 ${
+                  `whitespace-nowrap rounded-control border px-2.5 py-1.5 text-xs font-bold transition-colors duration-150 ${
                     selected
                       ? 'border-border-subtle bg-surface-muted text-ink'
                       : 'border-transparent text-ink-muted hover:text-ink'

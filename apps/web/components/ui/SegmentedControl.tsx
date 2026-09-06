@@ -148,7 +148,7 @@ export function SegmentedControl<T extends string>({
          et l'ordre de la feuille tranche, ce qui a rendu 8px à la première mesure de
          vérification. */
       className={cn(
-        'relative flex w-fit max-w-full flex-nowrap items-center rounded-[12px]! bg-surface-muted',
+        'relative flex w-fit max-w-full flex-nowrap items-center rounded-card! bg-surface-muted',
         compact ? 'gap-0.5 p-0.5' : 'gap-0.5 p-1',
         className,
       )}

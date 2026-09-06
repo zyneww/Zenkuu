@@ -281,7 +281,7 @@ export function GlobalChartCard({
           sans séparer, et ce qui ressort est le tracé.
 
           C'est la « transparence » qui manquait, et elle tient en un mot retiré. */
-    <section className="flex flex-col gap-2 rounded-[14px] border border-border-subtle p-5">
+    <section className="flex flex-col gap-2 rounded-card border border-border-subtle p-5">
       {/* ── EN-TÊTE : LE TITRE À GAUCHE, LES PALIERS À DROITE ────────────────
           C'est la disposition de la référence, et elle tient parce que les paliers
           n'appartiennent qu'à CE cadre : les poser ailleurs ferait croire qu'ils

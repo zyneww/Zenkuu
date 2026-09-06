@@ -75,7 +75,7 @@ export function StatsBarCollapse({
               ? t('Afficher {bandeau}').replace('{bandeau}', label)
               : t('Masquer {bandeau}').replace('{bandeau}', label)
           }
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-card text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-sm text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
         >
           <ChevronDown
             /* MÊME durée que le bandeau, et non 150 ms. Deux gestes simultanés qui

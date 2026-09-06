@@ -450,7 +450,7 @@ function MenuColumns({ menu }: { menu: NavMenu }) {
                        * qui sait déjà où il va.
                        */
                       title={t(item.description)}
-                      className="group flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-surface-muted"
+                      className="group flex items-center gap-2.5 rounded-control px-3 py-2 transition-colors duration-150 hover:bg-surface-muted"
                     >
                       <Icon
                         className="h-4 w-4 shrink-0 text-ink-muted transition-colors duration-150 group-hover:text-brand"
@@ -463,7 +463,7 @@ function MenuColumns({ menu }: { menu: NavMenu }) {
                        qu'aucun clic ni aucune tabulation ne mène nulle part. */
                     <span
                       title={t(item.description)}
-                      className="flex cursor-default items-center gap-2.5 rounded-lg px-3 py-2 opacity-55"
+                      className="flex cursor-default items-center gap-2.5 rounded-control px-3 py-2 opacity-55"
                     >
                       <Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
                       <span className="truncate text-sm font-medium text-ink">{t(item.label)}</span>

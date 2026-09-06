@@ -69,7 +69,7 @@ export function StatCard({
           sans séparer, et ce qui ressort est le tracé.
 
           C'est la « transparence » qui manquait, et elle tient en un mot retiré. */
-    <div className="relative overflow-hidden rounded-[14px] border border-border-subtle p-5">
+    <div className="relative overflow-hidden rounded-card border border-border-subtle p-5">
       {children ? (
         /* La courbe passe SOUS le texte et n'intercepte rien. Elle est de l'ambiance,
            pas une figure : on ne la survole pas, on ne la lit pas — elle dit

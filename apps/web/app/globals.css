@@ -653,6 +653,25 @@
   --color-tile-ground: #0a0a0a;
 
   /* ───────────────────────────────────────────────────────────────────────────
+     LE FOND D'UN TREEMAP — voisin du précédent, et distinct de lui.
+
+     `TreemapFigure` portait `bg-[#14151b]` écrit en dur : la seule couleur du site à
+     n'avoir aucun jeton, relevée par l'audit de style. Elle prend le sien ici, à
+     l'identique — l'apparence ne change pas, c'est la traçabilité qui manquait.
+
+     ⚠️ ELLE NE SE CONFOND PAS AVEC `--color-tile-ground`, ET LA DIFFÉRENCE EST
+     VOULUE. Celui-ci est le noir dans lequel on VERSE une teinte de secteur ; un
+     mélange demande un fond aussi neutre que possible, d'où le #0a0a0a presque pur.
+     Celui-là est un fond qu'on REGARDE, derrière des tuiles déjà teintées : son
+     bleu-nuit très sourd le sépare du noir des tuiles au lieu de s'y fondre.
+
+     Comme son voisin, il ne bascule pas d'un thème à l'autre. Un treemap est sombre
+     dans les deux, pour la raison écrite plus haut : ses tuiles portent toujours du
+     texte blanc.
+     ─────────────────────────────────────────────────────────────────────────── */
+  --color-treemap-ground: #14151b;
+
+  /* ───────────────────────────────────────────────────────────────────────────
      VERT DE STATUT — celui de la pastille d'offre, et de rien d'autre.
 
      Il ne réutilise PAS `--color-up`, et la distinction n'est pas cosmétique. Le

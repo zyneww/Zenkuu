@@ -240,7 +240,7 @@ export function TreemapFigure({
          quadrillage, là où l'écart doit se lire comme du fond.
 
          `#14151b`, mesuré chez eux, et leur rayon de 12 px. */
-      className="relative w-full overflow-hidden rounded-[12px] border border-border-subtle bg-[#14151b] p-2"
+      className="relative w-full overflow-hidden rounded-card border border-border-subtle bg-treemap-ground p-2"
       style={{ height }}
     >
       {boxes.map((box) => {

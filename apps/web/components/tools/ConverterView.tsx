@@ -172,6 +172,21 @@ export function ConverterView({
     persist([entry, ...history].slice(0, HISTORY_MAX))
   }
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     ⚠️ LES QUATRE CONTRÔLES ÉTAIENT DES PASTILLES, ET DEUX SORTAIENT EN 16 px.
+
+     Relevé au navigateur avant correction : cette page ne portait AUCUN rayon de
+     contrôle. Ses seuls rayons étaient ceux de ses cartes, et ses quatre commandes
+     étaient entièrement arrondies — `h34 pill 16px`, `h36 pill 16px`, `h36 pill 14px`.
+
+     Le socle réserve la pastille aux VIGNETTES et aux étiquettes de catégorie ; ce
+     qu'on clique porte 8 px. Deux des quatre n'avaient par ailleurs aucune classe de
+     taille : elles héritaient du 16 px du corps de page, c'est-à-dire du cran de
+     LECTURE, et sortaient donc plus grosses que le texte qu'elles commandent.
+
+     Voir `COINGECKO_STYLE_TOKENS.md` §2 et §5, et le relevé complet dans
+     `SITE_STYLE_AUDIT.md` §B.
+     ══════════════════════════════════════════════════════════════════════════ */
   /* Le sélecteur d'actif et celui de devise, rendus à l'une ou l'autre place selon le
      sens : c'est le bouton d'inversion qui les échange, et non deux jeux de champs. */
   const picker = (
@@ -179,7 +194,7 @@ export function ConverterView({
       assets={assets}
       selectedIds={[asset.id]}
       onSelect={(entry) => setAssetId(entry.id)}
-      triggerClassName="flex items-center gap-2 rounded-pill bg-surface px-2.5 py-1.5 text-left transition-colors hover:bg-surface-muted"
+      triggerClassName="flex items-center gap-2 rounded-control bg-surface px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-surface-muted"
     >
       {(open) => (
         <>
@@ -233,7 +248,7 @@ export function ConverterView({
                 setAmount('1')
               }}
               aria-label={t('Inverser le sens de conversion')}
-              className="flex size-9 items-center justify-center rounded-pill border border-border-subtle bg-surface text-ink-muted transition-colors hover:border-brand hover:text-brand"
+              className="flex size-9 items-center justify-center rounded-control border border-border-subtle bg-surface text-sm text-ink-muted transition-colors hover:border-brand hover:text-brand"
             >
               <ArrowUpDown className="size-4" aria-hidden="true" />
             </button>
@@ -265,7 +280,7 @@ export function ConverterView({
             type="button"
             onClick={save}
             disabled={result === undefined}
-            className="inline-flex min-h-9 items-center gap-2 rounded-pill border border-border-subtle px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-9 items-center gap-2 rounded-control border border-border-subtle px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
           >
             <BookmarkPlus className="size-4" aria-hidden="true" />
             Garder ce calcul
@@ -452,7 +467,7 @@ function CurrencySelect({
       aria-label={t('Devise')}
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="h-9 w-auto rounded-pill border-0 bg-surface pl-3 pr-8 text-sm font-semibold text-ink"
+      className="h-9 w-auto rounded-control border-0 bg-surface pl-3 pr-8 text-sm font-semibold text-ink"
     >
       {currencies.map((code) => {
         const missing = code !== 'EUR' && rates?.rates[code] === undefined
