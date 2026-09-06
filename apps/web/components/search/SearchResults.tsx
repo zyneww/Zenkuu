@@ -15,6 +15,7 @@ import { useCallback, useMemo } from 'react'
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
 import { SearchRecent } from '@/components/search/SearchRecent'
+import { SearchWatchlist } from '@/components/search/SearchWatchlist'
 import { useRecentSearches } from '@/components/search/recent-searches'
 import { HighlightMatch } from '@/components/search/HighlightMatch'
 import type { SearchScope } from '@/components/search/SearchScopes'
@@ -154,20 +155,29 @@ export function SearchResults({
             hiérarchie se dit par l'ordre. */}
         <SearchRecent entries={recent.entries} onClear={recent.clear} onNavigate={onNavigate} />
 
-      <CommandGroup
-        heading={
-          <GroupHeading
-            title={fr.search.trendingTitle}
-            hint={fr.search.trendingHint}
-            /* La flamme de la référence, et non la courbe ascendante : celle-ci dit
+        {/* ── PUIS CE QU'IL SUIT, AVANT CE QUE TOUT LE MONDE REGARDE ───────
+            Même échelle que ci-dessus : l'historique est ce que CE lecteur a fait,
+            sa liste de suivi ce qu'il a CHOISI de garder, les tendances ce que les
+            autres consultent. Du plus personnel au plus général.
+
+            C'est la seule des trois à se montrer VIDE : un panneau qui tairait la
+            liste de suivi à qui n'en a pas ne lui apprendrait jamais qu'elle existe. */}
+        <SearchWatchlist followed={followed} onNavigate={onNavigate} />
+
+        <CommandGroup
+          heading={
+            <GroupHeading
+              title={fr.search.trendingTitle}
+              hint={fr.search.trendingHint}
+              /* La flamme de la référence, et non la courbe ascendante : celle-ci dit
                « ça monte », qui est faux d'un actif en tendance à la baisse. La flamme
                dit « on en parle », qui est ce que le classement mesure. */
-            icon={<Flame className="size-3.5" aria-hidden="true" />}
-            columns={t('Prix/24 h %')}
-          />
-        }
-      >
-        {/* ══════════════════════════════════════════════════════════════════
+              icon={<Flame className="size-3.5" aria-hidden="true" />}
+              columns={t('Prix/24 h %')}
+            />
+          }
+        >
+          {/* ══════════════════════════════════════════════════════════════════
             LES TENDANCES PASSENT DES PASTILLES AUX LIGNES
 
             ⚠️ CECI RENVERSE UN CHOIX DOCUMENTÉ, et voici ce qu'il disait : « Relevé
@@ -188,38 +198,38 @@ export function SearchResults({
             `ResultRow` les rend sans modification : elle portait déjà le cours et la
             variation en option, pour cet usage exactement.
             ══════════════════════════════════════════════════════════════════ */}
-        {trending.length > 0 ? (
-          trending.map((asset) => (
-            <ResultRow
-              key={asset.id}
-              href={assetHref(asset.assetClass, asset.id)}
-              name={asset.name}
-              symbol={asset.symbol}
-              image={asset.image}
-              {...(asset.rank !== undefined ? { rank: asset.rank } : {})}
-              {...(asset.price !== undefined
-                ? { price: asset.price, currency: asset.currency }
-                : {})}
-              {...(asset.change24h !== undefined ? { change24h: asset.change24h } : {})}
-              /* L'étoile n'apparaît qu'une fois `/api/suivi` revenu ET le suivi
+          {trending.length > 0 ? (
+            trending.map((asset) => (
+              <ResultRow
+                key={asset.id}
+                href={assetHref(asset.assetClass, asset.id)}
+                name={asset.name}
+                symbol={asset.symbol}
+                image={asset.image}
+                {...(asset.rank !== undefined ? { rank: asset.rank } : {})}
+                {...(asset.price !== undefined
+                  ? { price: asset.price, currency: asset.currency }
+                  : {})}
+                {...(asset.change24h !== undefined ? { change24h: asset.change24h } : {})}
+                /* L'étoile n'apparaît qu'une fois `/api/suivi` revenu ET le suivi
                  disponible sur cette instance. Voir la note de la propriété : une
                  étoile dont l'état de départ est faux retire au lieu d'ajouter. */
-              {...(followed?.available
-                ? {
-                    watch: {
-                      assetClass: asset.assetClass,
-                      assetId: asset.id,
-                      following: followed.ids.has(asset.id),
-                    },
-                  }
-                : {})}
-              onNavigate={onNavigate}
-            />
-          ))
-        ) : (
-          <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
-        )}
-      </CommandGroup>
+                {...(followed?.available
+                  ? {
+                      watch: {
+                        assetClass: asset.assetClass,
+                        assetId: asset.id,
+                        following: followed.ids.has(asset.id),
+                      },
+                    }
+                  : {})}
+                onNavigate={onNavigate}
+              />
+            ))
+          ) : (
+            <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
+          )}
+        </CommandGroup>
       </>
     )
   }
@@ -287,8 +297,8 @@ export function SearchResults({
   return (
     <CommandEmpty className="px-3 py-6 text-center text-xs text-ink-muted">
       {results?.cryptoIndisponible
-          ? fr.search.cryptoUnavailable
-          : t('Aucun actif ne correspond à « {requete} ».').replace('{requete}', query)}
+        ? fr.search.cryptoUnavailable
+        : t('Aucun actif ne correspond à « {requete} ».').replace('{requete}', query)}
     </CommandEmpty>
   )
 }

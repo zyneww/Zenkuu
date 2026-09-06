@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { MarketAsset, SearchResult } from '@zenkuu/data'
+import type { AssetClass, MarketAsset, SearchResult } from '@zenkuu/data'
 
 export interface SearchResponse {
   crypto: SearchResult[]
@@ -120,7 +120,18 @@ export function useAssetSearch({ active }: { active: boolean }) {
    * suivi, elle le retirerait au premier clic. Les deux états doivent donc rester
    * distincts, et la ligne n'affiche rien tant que la réponse n'est pas revenue.
    */
-  const [followed, setFollowed] = useState<{ available: boolean; ids: Set<string> } | null>(null)
+  const [followed, setFollowed] = useState<{
+    available: boolean
+    ids: Set<string>
+    /**
+     * Les lignes de la liste de suivi, pour la section du panneau.
+     *
+     * Servies par la MÊME réponse que les identifiants — voir `/api/suivi`, où les
+     * deux lectures partagent une seule requête de base. Un second appel pour la même
+     * liste aurait été payé par chaque ouverture du panneau.
+     */
+    entries: { assetClass: AssetClass; assetId: string; label: string; symbol: string }[]
+  } | null>(null)
   const followedLoaded = useRef(false)
 
   /* Une `Map` dans une référence, pas dans un état : y écrire ne doit RIEN redessiner.
@@ -170,9 +181,28 @@ export function useAssetSearch({ active }: { active: boolean }) {
 
     fetch('/api/suivi')
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { available: boolean; ids: string[] } | null) => {
-        if (payload) setFollowed({ available: payload.available, ids: new Set(payload.ids) })
-      })
+      .then(
+        (
+          payload: {
+            available: boolean
+            ids: string[]
+            /* Une classe inconnue ne peut pas arriver ici : `/api/suivi` écarte les
+               lignes dont la classe ne mène à aucune page. Voir `getWatchlistEntries`. */
+            entries?: { assetClass: AssetClass; assetId: string; label: string; symbol: string }[]
+          } | null,
+        ) => {
+          if (payload)
+            setFollowed({
+              available: payload.available,
+              ids: new Set(payload.ids),
+              /* `?? []` : une réponse antérieure au champ `entries` — servie par un
+                 cache de navigateur, ou par un déploiement en cours de bascule — ne
+                 doit pas faire tomber la section. Elle s'affiche vide, ce qui est
+                 aussi ce qu'elle montre à qui ne suit rien. */
+              entries: payload.entries ?? [],
+            })
+        },
+      )
       .catch(() => {
         /* Silence assumé : `followed` reste `null`, donc aucune étoile ne s'affiche.
            Mieux vaut pas d'étoile qu'une étoile qui se trompe de sens. */

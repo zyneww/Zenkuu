@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { ASSET_CLASSES, type AssetClass } from '@zenkuu/data'
 import {
   DB_ENABLED,
   DEFAULT_WATCHLIST,
@@ -188,6 +189,67 @@ export async function getWatchlistIds(
   return {
     available: true,
     ids: result.data.filter((item) => item.assetClass === assetClass).map((item) => item.assetId),
+  }
+}
+
+/**
+ * Les actifs suivis, AVEC de quoi les afficher.
+ *
+ * ── POURQUOI ELLE EXISTE À CÔTÉ DE `getWatchlistIds` ────────────────────────
+ *
+ * Celle-là ne rend que des identifiants, ce qui suffit à une ÉTOILE : la ligne est
+ * déjà à l'écran, l'étoile n'a besoin que de savoir si elle est pleine ou vide.
+ *
+ * Le panneau de recherche, lui, doit DESSINER les lignes — nom, symbole, classe — et
+ * n'a rien d'autre sous la main. Les recharger depuis la source coûterait un appel
+ * réseau pour des libellés que la base porte déjà : `label` et `symbol` sont écrits en
+ * même temps que l'actif est suivi, précisément pour ce cas.
+ *
+ * ⚠️ SANS VIGNETTE, ET C'EST UNE ABSENCE DE DONNÉE. La table ne stocke pas l'adresse
+ * du logo — elle changerait chez la source sans que rien ne la mette à jour. Les
+ * lignes tombent donc sur le monogramme, ce que `AssetThumb` fait déjà pour tout actif
+ * sans image.
+ */
+export async function getWatchlistEntries(): Promise<{
+  available: boolean
+  entries: {
+    assetClass: AssetClass
+    assetId: string
+    label: string
+    symbol: string
+  }[]
+}> {
+  if (!DB_ENABLED) return { available: false, entries: [] }
+
+  const userId = await ownerId()
+  if (!userId) return { available: true, entries: [] }
+
+  const result = await listWatchlist(userId)
+  if (!result.ok) return { available: false, entries: [] }
+
+  return {
+    available: true,
+    /* `listWatchlist` rend déjà les lignes de la plus récente à la plus ancienne
+       (`orderBy(desc(createdAt))`) : c'est l'ordre qu'un panneau « ma liste » doit
+       avoir, et le retrier ici le contredirait. */
+    entries: result.data.flatMap((item) => {
+      /* ⚠️ LA COLONNE EST UN `text` LIBRE, PAS UNE ÉNUMÉRATION, et cette lecture est
+         la première à en TIRER UN LIEN. `assetHref` interroge une table indexée par
+         classe : une valeur qu'elle ne connaît pas rendrait une adresse `undefined`,
+         donc une ligne cliquable qui ne mène nulle part. Une ligne écrite par une
+         version antérieure du site suffirait à la produire. On la laisse tomber
+         plutôt que de la servir cassée. */
+      if (!ASSET_CLASSES.includes(item.assetClass as AssetClass)) return []
+
+      return [
+        {
+          assetClass: item.assetClass as AssetClass,
+          assetId: item.assetId,
+          label: item.label,
+          symbol: item.symbol ?? item.label,
+        },
+      ]
+    }),
   }
 }
 

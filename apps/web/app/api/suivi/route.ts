@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getWatchlistIds } from '@/lib/watchlist-actions'
+import { getWatchlistEntries, getWatchlistIds } from '@/lib/watchlist-actions'
 
 /**
  * Les actifs suivis, servis à la demande pour l'étoile de l'overlay de recherche.
@@ -35,18 +35,32 @@ import { getWatchlistIds } from '@/lib/watchlist-actions'
  * en a besoin, la question se posera avec son cas d'usage sous les yeux.
  */
 export async function GET() {
-  const suivi = await getWatchlistIds('crypto')
+  /*
+   * DEUX LECTURES, UNE SEULE REQUÊTE DE BASE. Les deux fonctions appellent
+   * `listWatchlist`, que `cache()` de React mémorise pour la durée de la requête : le
+   * second appel ne touche donc pas la base. Les servir ensemble évite au panneau de
+   * recherche de faire deux allers-retours pour deux facettes de la même liste.
+   *
+   * `ids` alimente les ÉTOILES des tendances, `entries` la SECTION « ma liste ». La
+   * première est bornée à la crypto — seules les tendances en portent —, la seconde ne
+   * l'est pas : une liste de suivi peut mêler les classes, et la masquer par classe y
+   * cacherait des lignes que le lecteur a lui-même ajoutées.
+   */
+  const [suivi, liste] = await Promise.all([getWatchlistIds('crypto'), getWatchlistEntries()])
 
-  return NextResponse.json(suivi, {
-    /*
-     * `private` : cette réponse dépend du cookie du visiteur. Un cache partagé qui la
-     * retiendrait servirait la liste de suivi d'un inconnu à un autre.
-     *
-     * `no-store` plutôt qu'une courte durée : le lecteur qui suit un actif depuis un
-     * tableau, puis ouvre la recherche, doit y voir son étoile pleine. Une fenêtre de
-     * quelques secondes suffirait à la montrer vide, et c'est précisément le cas où
-     * l'étoile ment.
-     */
-    headers: { 'Cache-Control': 'private, no-store' },
-  })
+  return NextResponse.json(
+    { ...suivi, entries: liste.entries },
+    {
+      /*
+       * `private` : cette réponse dépend du cookie du visiteur. Un cache partagé qui la
+       * retiendrait servirait la liste de suivi d'un inconnu à un autre.
+       *
+       * `no-store` plutôt qu'une courte durée : le lecteur qui suit un actif depuis un
+       * tableau, puis ouvre la recherche, doit y voir son étoile pleine. Une fenêtre de
+       * quelques secondes suffirait à la montrer vide, et c'est précisément le cas où
+       * l'étoile ment.
+       */
+      headers: { 'Cache-Control': 'private, no-store' },
+    },
+  )
 }
