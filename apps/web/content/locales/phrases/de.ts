@@ -1896,6 +1896,7 @@ export const dePhrases: Phrases = {
   'Lire l’article': 'Artikel lesen',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Cours en {unite}': 'Kurs in {unite}',
   'Cours en direct (Binance)': 'Live-Kurs (Binance)',
   'Capitalisation $': 'Marktkapitalisierung $',
   'Volume 24 h $': 'Volumen 24 Std. $',

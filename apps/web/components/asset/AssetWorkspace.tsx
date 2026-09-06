@@ -163,6 +163,19 @@ type ChartMetric = (typeof METRICS)[number]['key']
  * Sept jours : au-delà, la source publie au mieux un point par heure, et souvent un
  * par jour. Voir l'effet qui les utilise.
  */
+/**
+ * Unités proposées par le menu du graphique, dans l'ordre de la référence.
+ *
+ * Relevé sur `dropstab.com/coins/solana` le 2026-09-06 : « Price in USD », « Price in
+ * BTC », « Price in ETH ». Trois entrées, pas davantage — ce n'est pas un catalogue de
+ * devises mais le choix d'une UNITÉ DE COMPTE, et les trois qui comptent sur un site
+ * de cotations crypto sont le dollar et les deux plus grosses capitalisations.
+ *
+ * Le catalogue complet reste dans `packages/data/src/currencies.ts` ; il alimente le
+ * sélecteur global, qui ne propose plus que les devises courantes.
+ */
+const DENOMINATORS = ['USD', 'BTC', 'ETH'] as const
+
 const REFRESH_INTERVAL_MS = 60_000
 const REFRESH_MAX_DAYS = 7
 
@@ -282,8 +295,44 @@ export function AssetWorkspace({
    * l'axe annonce correctement.
    */
   const { currency: siteCurrency } = useCurrency()
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE DÉNOMINATEUR DU GRAPHIQUE — « COURS EN USD / BTC / ETH »
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `null` veut dire « suivre le site ». C'est l'état de départ et celui vers lequel
+   * on revient en décochant : le graphique reste alors solidaire du reste de la page,
+   * ce qu'il a toujours fait.
+   *
+   * ── POURQUOI CE SÉLECTEUR REVIENT, APRÈS AVOIR ÉTÉ RETIRÉ ────────────────
+   *
+   * La note au-dessus raconte son retrait : un sélecteur de devise LOCAL faisait
+   * cohabiter deux codes à l'écran — « le bandeau de l'actif en euros, sa courbe en
+   * dollars, sans que rien ne rapproche les deux ». L'argument tenait tant que le
+   * sélecteur GLOBAL proposait les mêmes devises : deux commandes pour un réglage.
+   *
+   * Il ne les propose plus. `DisplaySettings` a été ramené au seul groupe « Devises
+   * courantes » (demande explicite), et BTC comme ETH en sont sortis. Ces trois
+   * entrées ne doublent donc plus rien : elles sont le SEUL chemin vers une courbe
+   * libellée en bitcoin, et c'est ce que la référence met à cet endroit.
+   *
+   * ⚠️ ELLES SONT EXCLUSIVES, ET LE MENU LE MONTRE. Relevé sur
+   * `dropstab.com/coins/solana` le 2026-09-06 : « Price in USD » allumé, « Price in
+   * BTC » et « Price in ETH » éteints. Ce n'est pas une pile d'interrupteurs
+   * indépendants mais un choix d'unité — cocher l'un éteint les autres, et décocher
+   * celui qui est allumé rend la main au réglage du site.
+   *
+   * Le repli sur la devise de la série reste en vigueur : sans taux disponible, on ne
+   * convertit rien plutôt que d'écrire des euros sous une étiquette « BTC ».
+   */
+  const [chartCurrency, setChartCurrency] = useState<string | null>(null)
+
+  const wantedCurrency = chartCurrency ?? siteCurrency
   const currency =
-    siteCurrency === asset.currency || rates?.rates[siteCurrency] ? siteCurrency : asset.currency
+    wantedCurrency === asset.currency || rates?.rates[wantedCurrency]
+      ? wantedCurrency
+      : asset.currency
   const [history, setHistory] = useState<PriceHistory | null>(initialHistory)
   const [loading, setLoading] = useState(false)
 
@@ -1484,6 +1533,25 @@ export function AssetWorkspace({
                 },
                 { id: 'log', group: 'chart', label: 'Échelle logarithmique', checked: logScale },
 
+                /* ── LE DÉNOMINATEUR, EN TROIS ENTRÉES EXCLUSIVES ─────────
+                   Voir la note de `chartCurrency`. `available` teste la présence
+                   RÉELLE du taux : sans lui, cocher « BTC » laisserait la courbe en
+                   euros sous une étiquette fausse, ce que le repli de `currency`
+                   évite déjà mais qu'une case allumée démentirait. */
+                ...DENOMINATORS.map((code) => ({
+                  id: `denom-${code}`,
+                  group: 'chart' as const,
+                  /* ⚠️ LE LIBELLÉ PASSE PAR LA TABLE DE PHRASES, ET IL LE FAUT.
+                     Écrit en gabarit littéral — `Cours en ${code}` — il n'aurait
+                     correspondu à aucune clé, et `translate()` aurait rendu le texte
+                     d'entrée : « Cours en BTC » dans les douze langues. La clé
+                     paramétrée est posée dans les douze fichiers de phrases, et le
+                     code de l'unité y est substitué après traduction. */
+                  label: t('Cours en {unite}').replace('{unite}', code),
+                  checked: currency === code,
+                  available: code === asset.currency || Boolean(rates?.rates[code]),
+                })),
+
                 /* ── SECTION « INFOBULLE » ────────────────────────────────
                    Elle ne change RIEN au tracé : ces deux-là ajoutent une ligne à la
                    bulle qui suit le curseur. C'est le partage du modèle, et il tient
@@ -1515,6 +1583,12 @@ export function AssetWorkspace({
                 else if (id === 'log') setLogScale(next)
                 else if (id === 'tip-cap') setTooltipMarketCap(next)
                 else if (id === 'tip-change') setTooltipChange(next)
+                else if (id.startsWith('denom-')) {
+                  /* Cocher CHOISIT l'unité — les deux autres s'éteignent d'elles-mêmes
+                     puisque `checked` compare à `currency`. Décocher rend la main au
+                     réglage du site plutôt que de laisser le graphique sans devise. */
+                  setChartCurrency(next ? id.slice('denom-'.length) : null)
+                }
               }}
               kind={effectiveKind}
               onKindChange={(key) => setKind(key as ChartKind)}

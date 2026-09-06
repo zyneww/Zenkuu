@@ -1888,6 +1888,7 @@ export const ruPhrases: Phrases = {
   'Lire l’article': 'Читать статью',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Cours en {unite}': 'Цена в {unite}',
   'Cours en direct (Binance)': 'Цена в реальном времени (Binance)',
   'Capitalisation $': 'Капитализация $',
   'Volume 24 h $': 'Объём 24 ч $',

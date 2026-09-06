@@ -1881,6 +1881,7 @@ export const zhPhrases: Phrases = {
   'Lire l’article': '阅读文章',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Cours en {unite}': '以 {unite} 计价',
   'Cours en direct (Binance)': '实时价格（币安）',
   'Capitalisation $': '市值 $',
   'Volume 24 h $': '24 小时成交额 $',

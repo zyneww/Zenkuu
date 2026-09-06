@@ -43,7 +43,37 @@ const GROUP_LABELS: Record<CurrencyGroup, string> = {
   commodity: 'Matières premières',
 }
 
-const GROUP_ORDER: CurrencyGroup[] = ['suggested', 'fiat', 'crypto', 'bitcoin', 'commodity']
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * UN SEUL GROUPE EST PROPOSÉ : LES DEVISES COURANTES (demande explicite)
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Le panneau en offrait cinq — courantes, monnaies, cryptomonnaies, unités bitcoin,
+ * matières premières — soit une soixantaine d'entrées dans une liste qui se parcourt
+ * au doigt depuis l'en-tête.
+ *
+ * ⚠️ LA FENÊTRE `/parametres` AVAIT DÉJÀ FAIT CE CHOIX, ET LES DEUX DIVERGEAIENT.
+ * `PreferenceOverlay` porte `CURRENCY_GROUP_ORDER = ['suggested']` depuis une
+ * décision antérieure, avec sa propre note. Le panneau de l'en-tête, lui, était resté
+ * complet : le même site proposait donc soixante devises à un endroit et dix à un
+ * autre. Les deux disent désormais la même chose.
+ *
+ * ⚠️ CE QUE CELA RETIRE VRAIMENT, ET IL FAUT LE SAVOIR EN LISANT CE FICHIER.
+ *
+ * Ce n'est pas un repli d'affichage : les autres devises deviennent INATTEIGNABLES,
+ * y compris par la recherche, qui ne filtre que ce que les groupes ci-dessous
+ * produisent. BTC et ETH en font partie — c'est ce qui rend leur place légitime dans
+ * les réglages du GRAPHIQUE, où l'exploitant les a demandés : ils n'y font plus
+ * doublon avec un sélecteur global qui ne les propose plus.
+ *
+ * Les taux, eux, restent chargés et convertibles : c'est bien un choix d'INTERFACE,
+ * et le rétablir consiste à remettre une ou plusieurs clés dans le tableau ci-dessous.
+ * Rien d'autre n'a à changer.
+ *
+ * La table `GROUP_LABELS` reste COMPLÈTE au-dessus : elle décrit le catalogue, pas le
+ * panneau, et `CurrencyGroup` exige de toute façon ses cinq clés.
+ */
+const GROUP_ORDER: CurrencyGroup[] = ['suggested']
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════

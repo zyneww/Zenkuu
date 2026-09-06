@@ -1888,6 +1888,7 @@ export const itPhrases: Phrases = {
   'Lire l’article': 'Leggi l\'articolo',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Cours en {unite}': 'Prezzo in {unite}',
   'Cours en direct (Binance)': 'Quotazione in diretta (Binance)',
   'Capitalisation $': 'Capitalizzazione $',
   'Volume 24 h $': 'Volume 24 h $',

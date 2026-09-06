@@ -1888,6 +1888,7 @@ export const nlPhrases: Phrases = {
   'Lire l’article': 'Lees het artikel',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Cours en {unite}': 'Koers in {unite}',
   'Cours en direct (Binance)': 'Livekoers (Binance)',
   'Capitalisation $': 'Marktkapitalisatie $',
   'Volume 24 h $': 'Volume 24 u $',

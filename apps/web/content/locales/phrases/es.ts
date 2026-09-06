@@ -1895,6 +1895,7 @@ export const esPhrases: Phrases = {
   'Lire l’article': 'Leer el artículo',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Cours en {unite}': 'Precio en {unite}',
   'Cours en direct (Binance)': 'Cotización en directo (Binance)',
   'Capitalisation $': 'Capitalización $',
   'Volume 24 h $': 'Volumen 24 h $',
