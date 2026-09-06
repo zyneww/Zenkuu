@@ -108,9 +108,26 @@ export function AssetLayoutFrame({
   identity,
   aside,
   headline,
+  tabs,
   children,
 }: {
   rail: React.ReactNode
+  /**
+   * Rangée d'onglets de la fiche — pleine largeur, au-dessus des deux colonnes.
+   *
+   * ⚠️ UNE PROP `tabsBar` A DÉJÀ EXISTÉ ICI, ET CELLE-CI N'EST PAS SON RETOUR.
+   * L'ancienne portait une barre de SOMMAIRE — des ancres vers les sections d'une
+   * page qu'on descendait — et elle est partie avec le sommaire lui-même, dont la
+   * note ci-dessous explique la disparition. Celle-ci porte une NAVIGATION : chaque
+   * onglet mène à une route distincte. Voir `AssetTabs`.
+   *
+   * Elle est rendue AVANT la rangée à deux colonnes, et non dans la colonne du
+   * graphique. Une note plus bas dans ce fichier situe la rangée d'onglets « à
+   * gauche, en tête de la colonne du graphique » d'après CoinGecko ; la référence de
+   * ce chantier la met sur toute la largeur — mesuré le 2026-09-06 : rangée de
+   * 1 600 px au-dessus d'une grille de 480 + 1 112.
+   */
+  tabs?: React.ReactNode
   /**
    * Identité compacte de l'actif — montrée quand la page a été défilée.
    *
@@ -406,6 +423,25 @@ export function AssetLayoutFrame({
               `contents` retire la boîte de la mise en page : l'enfant se pose
               exactement comme avant, sans nœud visible ni règle de style à reprendre. */}
           <div className="contents">{headline}</div>
+
+          {/* ── LA RANGÉE D'ONGLETS, SOUS L'IDENTITÉ ET AU-DESSUS DES COLONNES ────
+
+              C'est l'ordre de la référence, relevé le 2026-09-06 : bandeau d'identité,
+              puis rangée d'onglets, puis le contenu à deux colonnes. Un premier essai
+              l'avait posée AVANT la rangée à deux colonnes, donc au-dessus de
+              l'identité : on choisissait la vue d'un actif avant de savoir lequel.
+
+              ⚠️ ELLE PREND LA COLONNE PRINCIPALE, PAS LA PAGE ENTIÈRE, et cela diverge
+              de la mesure. Chez la référence, la rangée fait 1 600 px — toute la largeur
+              — parce qu'il n'y a rien d'autre sur la ligne. Ici, la colonne d'actualités
+              occupe la droite : une rangée qui la traverserait ferait croire que ses
+              onglets commandent aussi ce qui s'y affiche, ce qui est faux. Elle s'arrête
+              donc où s'arrête ce qu'elle gouverne.
+
+              Posée ici, elle est AVANT le rail flottant dans le flux : elle occupe donc
+              la colonne entière, comme la bande d'identité juste au-dessus, et le rail
+              commence sous elle. */}
+          <div className="contents">{tabs}</div>
 
           {/* La SENTINELLE de la rangée collante — voir l'en-tête. Un pixel de haut,
               dans le flux, JUSTE APRÈS la bande d'identité : c'est sa sortie de l'écran

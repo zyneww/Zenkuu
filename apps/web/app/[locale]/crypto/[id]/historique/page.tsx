@@ -3,6 +3,7 @@ import { EmptyState } from '@zenkuu/ui'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { AssetTabs } from '@/components/asset/AssetTabs'
 import { PriceHistoryTable } from '@/components/asset/PriceHistoryTable'
 import { Link } from '@/i18n/navigation'
 import { getPhrase, getSeo } from '@/lib/content'
@@ -95,6 +96,11 @@ export default async function HistoriquePage({ params }: { params: Promise<{ id:
         </span>
         <span className="text-ink">{t('Historique')}</span>
       </nav>
+
+      {/* La rangée d'onglets de la fiche, avec CETTE page pour onglet actif. Sans
+          elle, on arrive ici par un onglet et on n'a plus que le fil d'Ariane pour
+          repartir : la navigation ne serait réversible que dans un sens. */}
+      <AssetTabs assetClass="crypto" id={id} active="historique" />
 
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">

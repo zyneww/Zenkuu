@@ -2,6 +2,7 @@ import { getLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { AssetTabs } from '@/components/asset/AssetTabs'
 import { halvingSchedule } from '@/content/halving'
 import { Link } from '@/i18n/navigation'
 import { getPhrase, getSeo } from '@/lib/content'
@@ -78,6 +79,10 @@ export default async function HalvingPage({ params }: { params: Promise<{ id: st
         </span>
         <span className="text-ink">{t('Halving')}</span>
       </nav>
+
+      {/* Même rangée que sur la fiche et sur l'historique — voir `AssetTabs`. L'actif
+          est forcément le bitcoin ici : la route l'a vérifié plus haut. */}
+      <AssetTabs assetClass="crypto" id="bitcoin" active="halving" />
 
       <header className="max-w-3xl space-y-3">
         <h1 className="display-xl text-ink">{t('Halving du bitcoin')}</h1>

@@ -42,6 +42,7 @@ import { AssetHeadline, AssetTopBar } from '@/components/asset/AssetPageHeader'
 import { AssetLiveRefresh } from '@/components/asset/AssetLiveRefresh'
 import { AssetStickyBar } from '@/components/asset/AssetStickyBar'
 import { AssetSupply } from '@/components/asset/AssetSupply'
+import { AssetTabs } from '@/components/asset/AssetTabs'
 import { AssetLayoutFrame } from '@/components/asset/AssetLayoutFrame'
 import { AssetChangeStrip } from '@/components/asset/AssetChangeStrip'
 import { AssetVsPeers } from '@/components/asset/AssetVsPeers'
@@ -1140,6 +1141,11 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           ══════════════════════════════════════════════════════════════════════ */}
       <AssetLayoutFrame
         aside={newsAside}
+        /* La rangée d'onglets rend joignables `/historique` et, pour le bitcoin,
+           `/halving` — deux routes écrites, servies, et vers lesquelles aucun lien ne
+           menait. Elle ne paraît pas hors crypto ni à un seul onglet : voir `AssetTabs`,
+           qui dit aussi pourquoi il n'y a ni « Métriques » ni « Tokenomics ». */
+        tabs={<AssetTabs assetClass={assetClass} id={id} active="apercu" />}
         /* LA BANDE D'IDENTITÉ ENTRE DANS LE CADRE — voir la prop `headline` de
            `AssetLayoutFrame`.
 
