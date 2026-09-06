@@ -387,17 +387,17 @@
      côtés — ce que le vert n'était pas. */
   --color-on-brand: #0a2429;
 
-  /* ── LA LUEUR DES ÉTATS ACTIFS ────────────────────────────────────────────
-     Une ombre portée SANS décalage ni flou étendu : c'est la diffusion d'un
-     phosphore, pas une ombre de carte. Elle sert d'accent visuel là où l'accent
-     n'est plus une couleur, et elle ne doit apparaître que sur ce que le lecteur
-     a choisi ou survole — jamais en décoration.
+  /* ── `--glow` A ÉTÉ RETIRÉ, DES DEUX THÈMES ───────────────────────────────
+     Il déclarait « une ombre portée SANS décalage ni flou étendu : la diffusion d'un
+     phosphore, pas une ombre de carte », pour marquer « ce que le lecteur a choisi ou
+     survole ».
 
-     La teinte suit `--color-brand` : azurine depuis le 2026-09-01, après un vert
-     qui avait lui-même remplacé un cyan. Deux valeurs parce que la lumière ne se
-     comporte pas pareil des deux côtés : sur fond sombre elle rayonne, sur fond
-     clair elle ne peut que densifier. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 12px rgb(145 215 227 / 0.24);
+     Il n'a jamais eu un seul consommateur — ni utilitaire, ni `var(--glow)`, dans
+     aucun des trois dossiers de sources. Et il est désormais en contradiction avec la
+     règle du site : l'état choisi se signale par le PLAN (la pastille remonte au plan
+     de la carte), le survol par la surface élevée, et la référence ne porte qu'une
+     seule ombre réelle sur ses 899 éléments. Une lueur ajouterait un troisième moyen
+     de dire ce que deux disent déjà. */
 
   /* ── L'OR RESTE, PARCE QU'IL SIGNIFIE ─────────────────────────────────────
      La doctrine de l'accent réserve la couleur à ce que le site mesure. L'or n'y
@@ -596,7 +596,14 @@
      il doit se lire comme un état stable, pas comme une variation.
      ─────────────────────────────────────────────────────────────────────────── */
   --color-status: #0e7490;
-  --color-status-soft: #dcf1f7;
+  /* ⚠️ `--color-status-soft` A ÉTÉ RETIRÉ DES DEUX THÈMES, ET SA RÈGLE LE REMPLACE.
+     Il portait un aplat pâle pour les pastilles d'état, sans un seul consommateur.
+     La règle de la référence rend ce jeton inutile : TOUT fond doux est sa propre
+     teinte à ~10 % d'alpha — relevé le 2026-09-06, `.13` pour l'accent, `.098` pour
+     l'alerte et l'information. Une pastille de statut s'écrit donc
+     `bg-status/10 text-status`, ce qui vaut dans les deux thèmes sans seconde
+     déclaration, là où un jeton figé en demandait deux. C'est déjà la forme
+     qu'emploient `--color-up-soft` et `--color-down-soft`. */
 
   /* ───────────────────────────────────────────────────────────────────────────
      Palette de DONNÉES — distincte de la palette d'interface.
@@ -853,9 +860,15 @@
      avoir à être traqué composant par composant. */
   --radius: 4px;
   --radius-md: 6px;
+  /* ⚠️ CES DEUX-LÀ RESTENT À 16 px, ET NE SUIVENT PAS LES CARTES À 8.
+     Ce sont les noms Tailwind natifs, pas les rôles Zenkuu : ils ne servent qu'à
+     rattraper un `rounded-2xl` isolé écrit à la main — trois occurrences pour l'un,
+     quatre pour l'autre. Les aligner sur 8 rendrait `rounded-2xl` indiscernable de
+     `rounded-card`, donc un nom pour rien ; les laisser à 16 garde disponible le
+     rayon d'exception que la référence emploie trois fois sur toute sa page.
+     `--radius-4xl` a été RETIRÉ : aucun consommateur, ni utilitaire ni `var()`. */
   --radius-2xl: 16px;
   --radius-3xl: 16px;
-  --radius-4xl: 16px;
 
   /* ───────────────────────────────────────────────────────────────────────────
      Système repris de kraken/DESIGN.md.
@@ -923,10 +936,12 @@
      Un rayon de 8px sur une barre de 6px de haut ne se voit pas. */
   --radius-pill: 9999px;
 
-  /* Rythme éditorial. L'échelle de 4px du §3.1 est conservée ; on ajoute le cran
-     de respiration entre bandes de contenu, absent jusqu'ici. */
-  --spacing-section: 96px;
-  --spacing-band: 64px;
+  /* ⚠️ `--spacing-section` (96 px) ET `--spacing-band` (64 px) ONT ÉTÉ RETIRÉS.
+     Ils devaient porter « le cran de respiration entre bandes de contenu ». Aucun
+     consommateur, jamais — et l'écart le plus large que la référence emploie entre
+     deux blocs est 24 px, relevé sept fois. Un cran de 96 px dans un système dont le
+     rythme dominant est 4 n'aurait pas été une respiration mais une rupture ; c'est
+     probablement pourquoi personne ne l'a employé. */
 
   /* Police tabulaire dédiée aux nombres. Un chiffre aligné dans une colonne de
      cotation ne se lit pas comme du texte courant : la largeur fixe évite le
@@ -1266,8 +1281,13 @@
   --v2-text-2xs: 0.75rem; /* 12px, interligne 16px */
 
   /* Rythme d'espacement — DESIGN_SYSTEM.md §3, agrégé toutes pages. ZENKUU n'avait
-     aucune échelle de contrôle (seulement les macros --spacing-section 96px et
-     --spacing-band 64px) ; ces sept paliers, tous ≥30 occurrences, la constituent. */
+     aucune échelle de contrôle (seulement les macros `--spacing-section` 96px et
+     `--spacing-band` 64px) ; ces sept paliers, tous ≥30 occurrences, la constituent.
+
+     ⚠️ LES DEUX MACROS CITÉES CI-DESSUS N'EXISTENT PLUS — retirées faute de
+     consommateur, voir leur note dans le bloc `@theme`. La phrase est gardée parce
+     qu'elle explique POURQUOI cette échelle a été relevée : c'est le vide qu'elle
+     comblait, et ce vide était réel. */
   --v2-space-1: 4px; /* #embed et petits écarts internes — 126 occ. */
   --v2-space-2: 6px; /* #use-app-btn button (haut/bas) et boutons similaires — 340 occ. */
   --v2-space-3: 8px; /* .gecko-tab-underline-item.selected (haut/bas) — 58 occ., gardé distinct de --v2-space-2 : deux tailles de contrôle réelles */
@@ -1318,25 +1338,29 @@
   --color-input: var(--color-border-subtle);
   --color-ring: var(--color-brand);
 
-  /* Les séries de graphique. shadcn/ui les numérote de 1 à 5, Zenkuu en tient six
-     — la sixième reste disponible sous son nom Zenkuu pour les tracés maison. */
-  --color-chart-1: var(--color-data-1);
-  --color-chart-2: var(--color-data-2);
-  --color-chart-3: var(--color-data-3);
-  --color-chart-4: var(--color-data-4);
-  --color-chart-5: var(--color-data-5);
+  /* ── TREIZE JETONS DE PONT ONT ÉTÉ RETIRÉS D'ICI ──────────────────────────
+     `--color-chart-1` à `-5` et les huit `--color-sidebar-*`.
 
-  /* La colonne latérale de shadcn/ui a son propre jeu de rôles, pour pouvoir se
-     détacher du canvas sans toucher au reste. Elle se pose ici sur `surface`, le
-     cran intermédiaire entre le canvas et un panneau. */
-  --color-sidebar: var(--color-surface);
-  --color-sidebar-foreground: var(--color-ink);
-  --color-sidebar-primary: var(--color-brand);
-  --color-sidebar-primary-foreground: var(--color-on-brand);
-  --color-sidebar-accent: var(--color-surface-muted);
-  --color-sidebar-accent-foreground: var(--color-ink);
-  --color-sidebar-border: var(--color-border-subtle);
-  --color-sidebar-ring: var(--color-brand);
+     Ils traduisaient deux familles de rôles shadcn/ui vers la palette Zenkuu, et
+     aucune des deux n'a jamais eu de consommateur. Vérifié avant de les retirer, sur
+     `components/`, `app/` et `packages/ui/src`, en cherchant les DEUX formes qu'un
+     jeton peut prendre — l'utilitaire (`bg-chart-1`, `text-sidebar-foreground`…) et
+     l'appel explicite (`var(--color-chart-1)`) : zéro occurrence de l'une comme de
+     l'autre, et aucun littéral `chart-1` nulle part dans les sources.
+
+     ⚠️ LE CAS DES SÉRIES MÉRITAIT LA VÉRIFICATION, et c'est pourquoi elle a été
+     faite plutôt que supposée : `components/ui/chart.tsx` est l'enveloppe Recharts
+     de shadcn, et cette enveloppe compose habituellement ses couleurs à l'exécution
+     en concaténant `--color-chart-${index}` — une forme qu'aucun grep de source ne
+     verrait. Elle ne le fait pas ici : ses couleurs viennent de la `config` que
+     l'appelant lui passe, et tous les appelants passent `--color-data-*`.
+
+     La sixième série n'existait de toute façon pas dans ce pont, shadcn n'en
+     numérotant que cinq : `--color-data-1` à `-6` restent la seule table de séries
+     du site, et elles sont éprouvées par `palette.test.ts` à 3:1 sur le canvas.
+
+     La colonne latérale, elle, n'a jamais été construite. Le jour où elle le sera,
+     ces huit lignes se réécrivent en huit lignes. */
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -2818,9 +2842,7 @@
   --color-brand: #91d7e3;
   --color-brand-strong: #91d7e3;
   --color-brand-soft: #152b30;
-  /* Sur fond sombre la lueur RAYONNE : portée plus large. La teinte suit
-     `--color-brand`, azurine depuis le 2026-09-01. */
-  --glow: 0 0 0 1px var(--color-brand), 0 0 16px rgb(145 215 227 / 0.38);
+  /* `--glow` a été retiré des deux thèmes — voir la note du bloc `@theme` clair. */
 
   /* Vert TRÈS FONCÉ sur le vert clair — REMESURÉ le 2026-08-30 : `#use-app-btn
      button` rend `rgb(11, 97, 0)` sur `rgb(128, 224, 56)` en thème sombre. La
@@ -2900,7 +2922,8 @@
      marque, dont il se distingue par la saturation et par les objets qu'il touche —
      jamais un contrôle, seulement une pastille d'état. */
   --color-status: #22d3ee;
-  --color-status-soft: #0d2f3a;
+  /* `--color-status-soft` retiré des deux thèmes — voir la note du bloc `@theme`
+     clair : la règle du fond doux à 10 % d'alpha remplace le jeton. */
 
   /* Couche flottante : ici elle MONTE nettement au-dessus du fond, alors qu'en
      thème clair elle descend à peine. Sur un quasi-noir, c'est la clarté qui dit
