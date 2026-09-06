@@ -57,6 +57,26 @@ Depuis une page défilée à **490 px**, la bascule laisse le défilement à **4
 saut, ce que la demande exigeait explicitement. Vérifié aussi en thème sombre et sur
 `/fr/actions/aapl` (deux onglets).
 
+### Le comportement étroit
+
+La protection des deux rangées d'onglets — `overflow-x-auto` + `whitespace-nowrap` — ne
+dépend d'**aucune requête média** : contraindre la largeur de leur conteneur la teste
+exactement comme le ferait un écran étroit. Mesuré à 375 px puis à 320 px :
+
+| Largeur | Rangée de la fiche | Rangée de filtres |
+|---|---|---|
+| 375 px | **37 px de haut**, défile | **38 px de haut**, défile |
+| 320 px | **37 px de haut**, défile | **38 px de haut**, défile |
+
+Une seule hauteur dans les deux cas, donc aucun repli sur deux lignes — c'est le défaut
+que les notes du code décrivent (« à 375 px, *Valeurs historiques* passait sur deux
+lignes et le filet du bas ne soulignait plus que la seconde »).
+
+⚠️ **La grille de cartes n'a pas pu être vérifiée en étroit.** Ses colonnes viennent de
+`sm:` et `lg:`, qui lisent la fenêtre et non le conteneur ; or la fenêtre du navigateur
+piloté a refusé le redimensionnement (2400 px effectifs après une demande à 390). Les
+trois colonnes relevées sont donc celles du grand écran.
+
 ### Trois défauts trouvés en chemin
 
 - **Deux `<h1>` par page.** Le bandeau porte désormais le seul `h1` — le nom de l'actif —
