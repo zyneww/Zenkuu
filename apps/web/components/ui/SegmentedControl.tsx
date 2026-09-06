@@ -166,10 +166,21 @@ export function SegmentedControl<T extends string>({
         `motion-reduce:transition-none` : un lecteur qui a demandé moins de mouvement
         obtient un saut, pas un glissement.
       */}
+      {/* ⚠️ `shadow-sm` A ÉTÉ RETIRÉ — LE PLAN PORTE L'ÉTAT, PAS L'OMBRE.
+
+          C'est la mécanique de la référence, et elle n'emploie aucune ombre : la piste
+          est CREUSÉE (elle prend un plan sous la carte) et la pastille active REMONTE
+          au plan de la carte. Relevé le 2026-09-06 sur 899 éléments — UNE seule ombre
+          réelle sur toute la page, et pas à cet endroit.
+
+          L'ombre était là quand `--color-surface-active` valait un gris franc deux
+          crans SOUS la piste : elle rattrapait un état qui s'ASSOMBRISSAIT au lieu de
+          s'élever. Le jeton a été retourné en Phase 1 ; l'ombre n'a plus rien à
+          rattraper, et elle contredisait la règle du reste du site. */}
       {cadre ? (
         <span
           aria-hidden="true"
-          className="absolute top-1/2 -translate-y-1/2 rounded-control bg-surface-active shadow-sm transition-[left,width] duration-200 ease-out motion-reduce:transition-none"
+          className="absolute top-1/2 -translate-y-1/2 rounded-control bg-surface-active transition-[left,width] duration-200 ease-out motion-reduce:transition-none"
           style={{ left: cadre.left, width: cadre.width, height: compact ? '1.5rem' : '1.75rem' }}
         />
       ) : null}

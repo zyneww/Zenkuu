@@ -313,7 +313,10 @@ export function GlobalChartCard({
                 onClick={() => setRangeId(preset.id)}
                 className={`rounded-control px-2 py-1 text-micro font-semibold transition-colors duration-150 ${
                   preset.id === active
-                    ? 'bg-surface text-ink shadow-sm'
+                    /* Sans ombre, et sur `surface-active` : le plan porte l'état seul,
+                       comme dans les deux `SegmentedControl` du dépôt — voir la note
+                       de `components/ui/SegmentedControl.tsx`. */
+                    ? 'bg-surface-active text-ink'
                     : 'text-ink-muted hover:text-ink'
                 }`}
               >

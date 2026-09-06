@@ -65,10 +65,18 @@ export function SegmentedControl<T extends string>({
       className={`relative isolate flex shrink-0 items-center rounded-sm bg-surface-muted p-0.5 ${className}`}
     >
       {/* Le curseur. `-z-10` le range SOUS les libellés sans les sortir du flux :
-          posé au-dessus, il masquerait le texte du segment actif. */}
+          posé au-dessus, il masquerait le texte du segment actif.
+
+          `bg-surface-active` et non `bg-surface`, sans ombre : c'est le jeton fait pour
+          ce rôle, et c'est celui qu'emploie l'autre `SegmentedControl` du dépôt
+          (`components/ui/`). Les deux composants rendent le même motif et divergeaient
+          sur ce point — voir la note d'ombre là-bas pour le raisonnement complet.
+
+          ⚠️ ILS RESTENT DEUX, et c'est une dette relevée mais non traitée ici : les
+          réunir touche des consommateurs dans deux familles de pages à la fois. */}
       <span
         aria-hidden="true"
-        className="motion-safe:transition-transform pointer-events-none absolute inset-y-0.5 left-0.5 -z-10 rounded-xs bg-surface shadow-sm duration-200 ease-out"
+        className="motion-safe:transition-transform pointer-events-none absolute inset-y-0.5 left-0.5 -z-10 rounded-xs bg-surface-active duration-200 ease-out"
         style={{
           width: `calc((100% - 0.25rem) / ${options.length})`,
           transform: `translateX(${index * 100}%)`,
