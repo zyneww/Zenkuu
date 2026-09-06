@@ -12,6 +12,7 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useContent } from '@/components/locale/ContentProvider'
 import { SearchResults } from '@/components/search/SearchResults'
 import { SearchScopes, useSearchScopes } from '@/components/search/SearchScopes'
+import { SearchShortcutLinks } from '@/components/search/SearchShortcutLinks'
 import { useAssetSearch } from '@/components/search/useAssetSearch'
 import { cn } from '@/lib/utils'
 
@@ -268,6 +269,12 @@ export function HeaderSearch({ onOpenOverlay }: { onOpenOverlay: () => void }) {
               counts={portee.counts}
             />
 
+            {/* ── LES RACCOURCIS N'APPARAISSENT QUE SUR LE PANNEAU VIDE ────────
+                Une fois qu'on a tapé, ce qu'on cherche est à l'écran : cinq liens vers
+                des classements pousseraient alors les résultats vers le bas sans
+                répondre à la question posée. Ils occupent l'espace tant que la
+                question n'est pas posée, et se retirent dès qu'elle l'est. */}
+            {search.showTrending ? <SearchShortcutLinks onNavigate={close} /> : null}
             <CommandList className="max-h-[70vh] overscroll-contain">
               <SearchResults search={search} scope={portee.active} onNavigate={close} />
             </CommandList>

@@ -1888,6 +1888,9 @@ export const viPhrases: Phrases = {
   'Lire l’article': 'Đọc bài viết',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Tìm kiếm gần đây',
+  'Effacer l’historique': 'Xóa lịch sử',
+  'Vous ne suivez encore aucun actif.': 'Bạn chưa theo dõi tài sản nào.',
   'Cours en {unite}': 'Giá theo {unite}',
   'Cours en direct (Binance)': 'Giá trực tiếp (Binance)',
   'Capitalisation $': 'Vốn hóa $',

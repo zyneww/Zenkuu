@@ -1888,6 +1888,9 @@ export const ptBRPhrases: Phrases = {
   'Lire l’article': 'Ler o artigo',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Buscas recentes',
+  'Effacer l’historique': 'Limpar histórico',
+  'Vous ne suivez encore aucun actif.': 'Você ainda não segue nenhum ativo.',
   'Cours en {unite}': 'Preço em {unite}',
   'Cours en direct (Binance)': 'Cotação ao vivo (Binance)',
   'Capitalisation $': 'Capitalização $',

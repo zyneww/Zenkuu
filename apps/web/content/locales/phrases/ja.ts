@@ -1888,6 +1888,9 @@ export const jaPhrases: Phrases = {
   'Lire l’article': '記事を読む',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': '最近の検索',
+  'Effacer l’historique': '履歴を消去',
+  'Vous ne suivez encore aucun actif.': 'まだ銘柄をフォローしていません。',
   'Cours en {unite}': '{unite} 建て価格',
   'Cours en direct (Binance)': 'リアルタイム価格（Binance）',
   'Capitalisation $': '時価総額 $',

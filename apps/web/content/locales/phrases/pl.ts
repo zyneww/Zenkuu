@@ -1888,6 +1888,9 @@ export const plPhrases: Phrases = {
   'Lire l’article': 'Przeczytaj artykuł',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Ostatnie wyszukiwania',
+  'Effacer l’historique': 'Wyczyść historię',
+  'Vous ne suivez encore aucun actif.': 'Nie obserwujesz jeszcze żadnego aktywa.',
   'Cours en {unite}': 'Kurs w {unite}',
   'Cours en direct (Binance)': 'Kurs na żywo (Binance)',
   'Capitalisation $': 'Kapitalizacja $',

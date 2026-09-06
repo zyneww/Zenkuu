@@ -1888,6 +1888,9 @@ export const trPhrases: Phrases = {
   'Lire l’article': 'Yazıyı oku',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Son aramalar',
+  'Effacer l’historique': 'Geçmişi temizle',
+  'Vous ne suivez encore aucun actif.': 'Henüz hiçbir varlığı takip etmiyorsunuz.',
   'Cours en {unite}': '{unite} cinsinden fiyat',
   'Cours en direct (Binance)': 'Canlı fiyat (Binance)',
   'Capitalisation $': 'Piyasa değeri $',

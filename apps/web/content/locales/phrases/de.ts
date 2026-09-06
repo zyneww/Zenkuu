@@ -1896,6 +1896,9 @@ export const dePhrases: Phrases = {
   'Lire l’article': 'Artikel lesen',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Letzte Suchen',
+  'Effacer l’historique': 'Verlauf löschen',
+  'Vous ne suivez encore aucun actif.': 'Sie verfolgen noch keinen Wert.',
   'Cours en {unite}': 'Kurs in {unite}',
   'Cours en direct (Binance)': 'Live-Kurs (Binance)',
   'Capitalisation $': 'Marktkapitalisierung $',

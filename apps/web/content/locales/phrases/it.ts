@@ -1888,6 +1888,9 @@ export const itPhrases: Phrases = {
   'Lire l’article': 'Leggi l\'articolo',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Ricerche recenti',
+  'Effacer l’historique': 'Cancella cronologia',
+  'Vous ne suivez encore aucun actif.': 'Non segui ancora nessun asset.',
   'Cours en {unite}': 'Prezzo in {unite}',
   'Cours en direct (Binance)': 'Quotazione in diretta (Binance)',
   'Capitalisation $': 'Capitalizzazione $',

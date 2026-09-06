@@ -12,6 +12,7 @@ import { Kbd } from '@/components/ui/kbd'
 import { useContent } from '@/components/locale/ContentProvider'
 import { SearchResults } from '@/components/search/SearchResults'
 import { SearchScopes, useSearchScopes } from '@/components/search/SearchScopes'
+import { SearchShortcutLinks } from '@/components/search/SearchShortcutLinks'
 import { useAssetSearch } from '@/components/search/useAssetSearch'
 
 interface SearchOverlayProps {
@@ -119,6 +120,16 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         onSelect={portee.setScope}
         counts={portee.counts}
       />
+
+      {/* ── LES RACCOURCIS N'APPARAISSENT QUE SUR LE PANNEAU VIDE ────────────
+          Une fois qu'on a tapé, ce qu'on cherche est à l'écran : cinq liens vers des
+          classements pousseraient alors les résultats vers le bas sans répondre à la
+          question posée. Ils occupent l'espace tant que la question n'est pas posée,
+          et se retirent dès qu'elle l'est.
+
+          HORS de `CommandList`, comme la rangée de portées et la légende des touches :
+          cmdk traite ses descendants comme des lignes sélectionnables au clavier. */}
+      {search.showTrending ? <SearchShortcutLinks onNavigate={onClose} /> : null}
 
       <CommandList className="max-h-[60vh] p-2">
         <SearchResults search={search} scope={portee.active} onNavigate={onClose} />

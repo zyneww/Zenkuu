@@ -1888,6 +1888,9 @@ export const ruPhrases: Phrases = {
   'Lire l’article': 'Читать статью',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Недавние запросы',
+  'Effacer l’historique': 'Очистить историю',
+  'Vous ne suivez encore aucun actif.': 'Вы пока не следите ни за одним активом.',
   'Cours en {unite}': 'Цена в {unite}',
   'Cours en direct (Binance)': 'Цена в реальном времени (Binance)',
   'Capitalisation $': 'Капитализация $',

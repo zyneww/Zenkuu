@@ -1900,6 +1900,9 @@ export const enPhrases: Phrases = {
   'Lire l’article': 'Read the article',
 
   /* ── Fiche d’actif — cours en direct et secteurs ─────────────────────────────────────────── */
+  'Recherches récentes': 'Recent searches',
+  'Effacer l’historique': 'Clear history',
+  'Vous ne suivez encore aucun actif.': 'You aren\'t following any asset yet.',
   'Cours en {unite}': 'Price in {unite}',
   'Cours en direct (Binance)': 'Live price (Binance)',
   'Capitalisation $': 'Market cap $',

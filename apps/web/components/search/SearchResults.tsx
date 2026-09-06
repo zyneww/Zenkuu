@@ -11,9 +11,11 @@ import { monogram } from '@/components/asset/monogram'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
 import type { AssetClass } from '@zenkuu/data'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
+import { SearchRecent } from '@/components/search/SearchRecent'
+import { useRecentSearches } from '@/components/search/recent-searches'
 import { HighlightMatch } from '@/components/search/HighlightMatch'
 import type { SearchScope } from '@/components/search/SearchScopes'
 import { Spinner } from '@/components/ui/spinner'
@@ -73,6 +75,39 @@ export function SearchResults({
 }) {
   const fr = useContent()
   const t = usePhrase()
+
+  /* L'historique vit dans le navigateur, pas dans le crochet de recherche : il ne
+     dépend d'aucune requête et survit à la fermeture du panneau. Voir
+     `recent-searches.ts`. */
+  const recent = useRecentSearches()
+  const { remember } = recent
+
+  /*
+   * ── CE QU'ON MÉMORISE : L'ACTIF OUVERT, PAS LA REQUÊTE TAPÉE ──────────────
+   *
+   * « bit », « bitc », « bitco » sont trois requêtes qui mènent au même endroit ; une
+   * liste qui les garderait toutes serait une liste de frappes plutôt qu'une liste de
+   * destinations. On retient donc la LIGNE CHOISIE, ce qui rend aussi l'historique
+   * immédiatement cliquable — il porte des actifs, pas des chaînes à retaper.
+   *
+   * ⚠️ SEULS LES RÉSULTATS DE RECHERCHE ALIMENTENT L'HISTORIQUE. Ouvrir une tendance
+   * ou une ligne de l'historique lui-même ne l'enrichit pas : on n'a rien CHERCHÉ, on
+   * a suivi une suggestion, et la remonter en tête chasserait une recherche réelle de
+   * la liste.
+   */
+  const ouvrirResultat = useCallback(
+    (item: { id: string; assetClass: AssetClass; name: string; symbol: string; image?: string }) => {
+      remember({
+        id: item.id,
+        assetClass: item.assetClass,
+        name: item.name,
+        symbol: item.symbol,
+        ...(item.image ? { image: item.image } : {}),
+      })
+      onNavigate()
+    },
+    [remember, onNavigate],
+  )
   const { results, loading, trending, followed, showTrending, found: tous, query } = search
   const term = query.trim()
 
@@ -110,6 +145,15 @@ export function SearchResults({
 
   if (showTrending) {
     return (
+      <>
+        {/* ── L'HISTORIQUE PASSE AVANT LES TENDANCES ────────────────────────
+            Ce que le lecteur a lui-même consulté vaut mieux qu'un classement
+            général : c'est la seule liste du panneau qui lui soit propre. La
+            référence fait le même partage — l'historique d'un côté, les plus
+            consultés de l'autre —, et notre panneau étant en une colonne, la
+            hiérarchie se dit par l'ordre. */}
+        <SearchRecent entries={recent.entries} onClear={recent.clear} onNavigate={onNavigate} />
+
       <CommandGroup
         heading={
           <GroupHeading
@@ -176,6 +220,7 @@ export function SearchResults({
           <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
         )}
       </CommandGroup>
+      </>
     )
   }
 
@@ -224,7 +269,7 @@ export function SearchResults({
                 image={item.image}
                 rank={item.rank}
                 query={term}
-                onNavigate={onNavigate}
+                onNavigate={() => ouvrirResultat(item)}
               />
             ))}
           </CommandGroup>
