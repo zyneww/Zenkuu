@@ -87,7 +87,12 @@ export default async function AidePage() {
       */}
       <section className="bleed bg-surface-muted">
         <div className="shell flex flex-col gap-5 py-12">
-          <h1 className="display-lg text-ink">{t('Comment pouvons-nous vous aider ?')}</h1>
+          {/* ⚠️ `display-xl` ET NON `display-lg` — LE SEUL TITRE DE PAGE HORS BARÈME.
+              Relevé au navigateur : 36 px ici, 24 px sur les trente-huit autres titres
+              du site. `display-xl` porte le cran mesuré sur quarante `h1` de la
+              référence, et sa note le dit ; `display-lg` est un « Section Heading »
+              resté de l'échelle précédente, dont c'était le dernier usage en titre. */}
+          <h1 className="display-xl text-ink">{t('Comment pouvons-nous vous aider ?')}</h1>
 
           {/* `max-w-3xl` : le champ de la référence est large sans être pleine largeur.
               Un champ de deux mille pixels fait perdre le curseur de vue quand on tape
