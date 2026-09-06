@@ -122,6 +122,13 @@ interface PriceChartInteractiveProps {
    * moins significative. Le logarithme rend les VARIATIONS RELATIVES comparables,
    * ce qui est la seule lecture qui ait un sens sur longue période.
    */
+  /**
+   * Relevés quotidiens de l'indice de peur et d'avidité, à superposer.
+   *
+   * Vide ou absent : aucune courbe, aucun axe. C'est l'appelant qui décide de les
+   * charger — voir `AssetWorkspace`, où la case du menu déclenche l'appel.
+   */
+  sentiment?: { timestamp: number; value: number }[]
   logScale?: boolean
   /** Repères historiques (plus haut / plus bas de tous les temps). */
   referenceLines?: ChartReferenceLine[]
@@ -280,6 +287,7 @@ export function PriceChartInteractive({
   showVolume = false,
   showMovingAverage = false,
   showPriceLines = false,
+  sentiment,
   logScale = false,
   referenceLines,
   handleRef,
@@ -305,6 +313,42 @@ export function PriceChartInteractive({
    * point, et la courbe serait une horizontale à 100. On les écarte ICI plutôt qu'à
    * l'affichage : c'est ce décompte qui décide de l'unité de l'axe.
    */
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * L'INDICE DE PEUR, RAPPROCHÉ DES POINTS DE COURS PAR LA JOURNÉE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── LE RAPPROCHEMENT SE FAIT SUR LE JOUR, ET C'EST LA SEULE JOINTURE HONNÊTE ──
+   *
+   * L'indice est QUOTIDIEN — un relevé par jour, horodaté à minuit UTC. Le cours peut
+   * être horaire, voire à cinq minutes sous un jour. Les deux séries n'ont donc
+   * presque aucun horodatage en commun, et il n'existe pas de correspondance point à
+   * point.
+   *
+   * On indexe l'indice par sa JOURNÉE, et chaque point de cours reçoit la valeur de
+   * SA journée. Un point de 14 h et un point de 3 h du même jour portent donc le même
+   * indice, ce qui est exact : c'est une mesure quotidienne, elle vaut pour la
+   * journée entière.
+   *
+   * ⚠️ AUCUNE INTERPOLATION, ET C'EST UNE RÈGLE HÉRITÉE. Le fournisseur de sentiment
+   * refuse déjà de combler ses propres trous : « une interpolation inventerait un
+   * sentiment qui n'a pas été mesuré ». Une journée sans relevé laisse donc ses
+   * points sans valeur, et la courbe s'interrompt — `connect: false` côté amCharts
+   * traduit ce trou à l'écran plutôt que de le masquer par une droite.
+   *
+   * La clé est calculée en UTC (`Math.floor(t / JOUR_MS)`) et non par
+   * `toDateString()` : ce dernier passe par le fuseau du navigateur, et deux lecteurs
+   * de part et d'autre d'une frontière horaire rattacheraient le même point à deux
+   * journées différentes.
+   */
+  const sentimentParJour = useMemo(() => {
+    if (!sentiment || sentiment.length === 0) return null
+    const JOUR_MS = 86_400_000
+    const table = new Map<number, number>()
+    for (const point of sentiment) table.set(Math.floor(point.timestamp / JOUR_MS), point.value)
+    return table
+  }, [sentiment])
+
   const overlays = useMemo(
     () => (compare ?? []).filter((entry) => entry.points.length > 1),
     [compare],
@@ -383,6 +427,18 @@ export function PriceChartInteractive({
       })
     }
 
+    /* La colonne `fear` n'existe que sur les points dont la journée porte un relevé.
+       Les autres n'ont pas la clé du tout — `undefined` est ce qu'amCharts lit comme
+       « pas de valeur ici », et c'est ce qui ouvre le trou plutôt qu'un zéro qui
+       plongerait la courbe au bas du cadre. */
+    if (sentimentParJour) {
+      const JOUR_MS = 86_400_000
+      for (const row of base) {
+        const valeur = sentimentParJour.get(Math.floor(row.t / JOUR_MS))
+        if (valeur !== undefined) row.fear = valeur
+      }
+    }
+
     if (showMovingAverage) {
       const period = smaPeriod(base.length)
       if (base.length >= period) {
@@ -396,7 +452,7 @@ export function PriceChartInteractive({
     }
 
     return base
-  }, [points, rate, indexed, overlays, showMovingAverage])
+  }, [points, rate, indexed, overlays, showMovingAverage, sentimentParJour])
 
   /*
    * ══════════════════════════════════════════════════════════════════════════
@@ -707,6 +763,18 @@ export function PriceChartInteractive({
           if (typeof value === 'number') point[`${COMPARE_PREFIX}${index}`] = value
         }
         if (typeof row.ma === 'number') point.ma = row.ma
+
+        /* ⚠️ L'INDICE DE PEUR DOIT ÊTRE RECOPIÉ ICI, ET SON OUBLI NE SE VOYAIT PAS.
+           `amData` ne PROPAGE PAS les lignes : il en reconstruit une neuve, champ par
+           champ, parce que chaque point porte une infobulle en HTML qu'il faut
+           composer. Une colonne ajoutée en amont — dans la table `base` — n'arrive
+           donc jamais au graphique si elle n'est pas nommée dans cette liste.
+
+           Relevé au navigateur : les 366 lignes atteignaient bien `PriceChartAm`, la
+           prop `overlay` était correctement posée, la série et son axe étaient
+           construits, et pas une seule ligne ne portait `fear`. Le défaut ne
+           produisait aucune erreur — seulement une courbe absente. */
+        if (typeof row.fear === 'number') point.fear = row.fear
 
         return point
       }),
@@ -1025,6 +1093,21 @@ export function PriceChartInteractive({
           showVolume={showVolume}
           logScale={logScale}
           compare={amCompare}
+          /* L'axe de la superposition est borné à 0–100 : ce sont les deux extrémités
+             que l'indice ne franchit pas, et une échelle fixe est ce qui rend deux
+             fenêtres comparables. `--color-gold` plutôt qu'une teinte de marché : ni
+             hausse ni baisse, l'indice ne dit pas un sens mais un climat. */
+        {...(sentimentParJour
+          ? {
+              overlay: {
+                key: 'fear',
+                label: t('Indice de peur et d’avidité'),
+                color: '--color-gold',
+                min: 0,
+                max: 100,
+              },
+            }
+          : {})}
           referenceLines={amReferenceLines}
           reducedMotion={reduced}
           onReady={onReady}

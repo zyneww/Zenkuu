@@ -328,6 +328,62 @@ export function AssetWorkspace({
    */
   const [chartCurrency, setChartCurrency] = useState<string | null>(null)
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════
+   * L'INDICE DE PEUR ET D'AVIDITÉ — CHARGÉ À LA PREMIÈRE ACTIVATION
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── POURQUOI PAS AVEC LA FICHE ──────────────────────────────────────────
+   *
+   * Quatre lecteurs sur cinq n'ouvriront jamais ce menu. Charger la série avec chaque
+   * fiche ferait payer un aller-retour — et une part du quota de vingt requêtes par
+   * fenêtre du fournisseur — pour une courbe que presque personne n'affiche.
+   *
+   * ── UNE SEULE FOIS PAR SESSION ──────────────────────────────────────────
+   *
+   * `sentiment !== null` garde aussi bien le succès QUE l'échec, et c'est
+   * délibéré : sans cela, une source en panne serait redemandée à chaque
+   * décochage-recochage. C'est le même motif que la vue « En tendance » du tableau
+   * d'accueil, dont l'en-tête porte le raisonnement.
+   *
+   * ⚠️ LA PROFONDEUR DEMANDÉE EST FIXE — 365 jours — ALORS QUE LE GRAPHIQUE CHANGE DE
+   * PÉRIODE. C'est un choix, pas un oubli : la série quotidienne d'une année pèse
+   * trois cent soixante-cinq points, et le rapprochement par journée ne garde que ce
+   * dont la fenêtre a besoin. Redemander à chaque changement de période coûterait un
+   * appel par clic pour une donnée déjà en main.
+   *
+   * ⚠️ CRYPTO SEULEMENT, ET IL FAUT LE DIRE. L'indice mesure le climat du marché
+   * CRYPTO dans son ensemble ; le superposer au cours d'une action ou d'une paire de
+   * devises rapprocherait deux choses sans rapport. L'entrée du menu ne se rend donc
+   * pas hors crypto — voir plus bas.
+   */
+  const [showFear, setShowFear] = useState(false)
+  const [sentiment, setSentiment] = useState<
+    { points: { timestamp: number; value: number }[]; failed: boolean } | null
+  >(null)
+
+  useEffect(() => {
+    if (!showFear || sentiment !== null) return
+
+    /* `cancelled` plutôt qu'un `AbortController` : la réponse est mise en cache par la
+       route, et l'abandonner ferait repayer l'appel à la prochaine activation. */
+    let cancelled = false
+
+    fetch('/api/sentiment?jours=365')
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error('HTTP'))))
+      .then((payload: { points?: { timestamp: number; value: number }[]; indisponible?: boolean }) => {
+        if (cancelled) return
+        setSentiment({ points: payload.points ?? [], failed: payload.indisponible === true })
+      })
+      .catch(() => {
+        if (!cancelled) setSentiment({ points: [], failed: true })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [showFear, sentiment])
+
   const wantedCurrency = chartCurrency ?? siteCurrency
   const currency =
     wantedCurrency === asset.currency || rates?.rates[wantedCurrency]
@@ -1533,6 +1589,23 @@ export function AssetWorkspace({
                 },
                 { id: 'log', group: 'chart', label: 'Échelle logarithmique', checked: logScale },
 
+                /* ── L'INDICE DE PEUR, SUR LES SEULES CRYPTOMONNAIES ───────
+                   `available` et non une absence : l'entrée grisée dit « cette lecture
+                   existe, pas sur cette classe d'actif », là où la faire disparaître
+                   laisserait croire à un oubli. C'est le traitement déjà réservé au
+                   volume et à la capitalisation.
+
+                   Elle passe aussi à `false` quand la source n'a pas répondu : une
+                   case cochée sans courbe accuserait le graphique d'un défaut de
+                   réseau. */
+                {
+                  id: 'fear',
+                  group: 'chart' as const,
+                  label: t('Indice de peur et d’avidité'),
+                  checked: showFear,
+                  available: assetClass === 'crypto' && sentiment?.failed !== true,
+                },
+
                 /* ── LE DÉNOMINATEUR, EN TROIS ENTRÉES EXCLUSIVES ─────────
                    Voir la note de `chartCurrency`. `available` teste la présence
                    RÉELLE du taux : sans lui, cocher « BTC » laisserait la courbe en
@@ -1581,6 +1654,7 @@ export function AssetWorkspace({
                 else if (id === 'ma') setShowMovingAverage(next)
                 else if (id === 'lines') setShowPriceLines(next)
                 else if (id === 'log') setLogScale(next)
+                else if (id === 'fear') setShowFear(next)
                 else if (id === 'tip-cap') setTooltipMarketCap(next)
                 else if (id === 'tip-change') setTooltipChange(next)
                 else if (id.startsWith('denom-')) {
@@ -1650,6 +1724,12 @@ export function AssetWorkspace({
                 showNavigator={navigatorWanted}
                 showMovingAverage={showMovingAverage}
                 showPriceLines={showPriceLines}
+          /* Décocher retire la courbe sans jeter la série, qui reste en mémoire
+             pour un recochage immédiat. Une source en panne ne passe rien :
+             l'entrée du menu se grise, elle ne ment pas par une case cochée. */
+          {...(showFear && sentiment && !sentiment.failed
+            ? { sentiment: sentiment.points }
+            : {})}
                 logScale={logScale}
                 referenceLines={referenceLines}
                 handleRef={chartHandle}
@@ -1735,6 +1815,7 @@ function OverviewTab({
   showNavigator,
   showMovingAverage,
   showPriceLines,
+  sentiment,
   logScale,
   referenceLines,
   handleRef,
@@ -1758,6 +1839,14 @@ function OverviewTab({
   showNavigator: boolean
   showMovingAverage: boolean
   showPriceLines: boolean
+  /**
+   * Relevés de l'indice de peur, DÉJÀ filtrés par l'état de la case.
+   *
+   * L'onglet ne connaît ni le réglage ni son chargement : il reçoit une série ou
+   * rien. C'est `AssetWorkspace` qui décide, parce que c'est lui qui tient l'état du
+   * menu et l'appel réseau.
+   */
+  sentiment?: { timestamp: number; value: number }[]
   logScale: boolean
   referenceLines: ChartReferenceLine[]
   handleRef: React.MutableRefObject<ChartHandle | null>
@@ -1839,6 +1928,10 @@ function OverviewTab({
           showMovingAverage={showMovingAverage}
           showPriceLines={showPriceLines}
           logScale={logScale}
+          /* Les points ne sont passés QUE si la case est cochée : décocher retire la
+             courbe sans jeter la série, qui reste en mémoire pour un recochage
+             immédiat. `failed` est traité par l'entrée du menu, qui se grise. */
+          {...(sentiment ? { sentiment } : {})}
           referenceLines={referenceLines}
           handleRef={handleRef}
           overview={overview ?? undefined}

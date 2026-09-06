@@ -93,6 +93,31 @@ export interface PriceChartAmProps {
   logScale: boolean
   /** Courbes superposées, en base 100. */
   compare: AmCompare[]
+  /**
+   * Série superposée sur SON PROPRE AXE, bornée — aujourd'hui l'indice de peur et
+   * d'avidité, de 0 à 100.
+   *
+   * ── POURQUOI PAS UNE ENTRÉE DE `compare` ────────────────────────────────────
+   *
+   * Les courbes de comparaison partagent l'axe des prix parce qu'elles sont ramenées
+   * à une VARIATION : elles vivent toutes sur la même échelle de pourcentage. Un
+   * indice de sentiment n'est ni un prix ni une variation — c'est un nombre entre 0
+   * et 100. Le poser sur l'axe des prix l'écraserait contre le bas du cadre d'un
+   * actif à quatre-vingt mille dollars, ou noierait le cours d'un actif à 0,3.
+   *
+   * Il lui faut donc son propre axe, borné à ses deux extrémités connues. Les
+   * graduations en sont MASQUÉES : deux échelles chiffrées face à face sur un même
+   * cadre demandent au lecteur de deviner laquelle commande quelle courbe. La sienne
+   * est déjà dite par son nom.
+   */
+  overlay?: {
+    /** Clé de la colonne dans les points — voir `AmPoint`. */
+    key: string
+    label: string
+    color: string
+    min: number
+    max: number
+  }
   /** Repères horizontaux — extrêmes de la fenêtre, records historiques. */
   referenceLines: { value: number; label: string; color: string }[]
   /** Animations désactivées quand le système le demande. */
@@ -146,6 +171,7 @@ export function PriceChartAm({
   showVolume,
   logScale,
   compare,
+  overlay,
   referenceLines,
   reducedMotion,
   onReady,
@@ -282,6 +308,7 @@ export function PriceChartAm({
     series: am5xy.LineSeries
     volume: am5xy.ColumnSeries | null
     compare: am5xy.LineSeries[]
+    overlay: am5xy.LineSeries | null
     priceAxis: am5xy.ValueAxis<am5xy.AxisRenderer>
   } | null>(null)
 
@@ -595,6 +622,68 @@ export function PriceChartAm({
       return line
     })
 
+    /*
+     * ── LA SÉRIE SUPERPOSÉE ET SON AXE PROPRE ───────────────────────────────
+     *
+     * `min` et `max` sont IMPOSÉS plutôt que déduits des données : l'indice va de 0 à
+     * 100 par définition, et le laisser se recadrer sur la fenêtre ferait varier
+     * l'amplitude apparente d'une période à l'autre — une même valeur de 60 serait
+     * haute sur une semaine calme et basse sur un mois agité. Une échelle fixe est ce
+     * qui rend deux fenêtres comparables.
+     *
+     * `strokeDasharray` : le même tireté que les courbes de comparaison, et pour la
+     * même raison — il dit « ceci n'est pas le cours », et il reste lisible pour qui
+     * ne perçoit pas les couleurs.
+     *
+     * ⚠️ AUCUN REMPLISSAGE. La courbe principale porte déjà son dégradé ; deux aires
+     * superposées se salissent l'une l'autre, ce que la note du dégradé dit déjà des
+     * comparaisons.
+     */
+    let overlaySeries: am5xy.LineSeries | null = null
+
+    if (overlay) {
+      const overlayRenderer = am5xy.AxisRendererY.new(root, {
+        opposite: true,
+        strokeOpacity: 0,
+      })
+      overlayRenderer.grid.template.setAll({ visible: false })
+      overlayRenderer.labels.template.setAll({ visible: false })
+
+      const overlayAxis = chart.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+          renderer: overlayRenderer,
+          min: overlay.min,
+          max: overlay.max,
+          strictMinMax: true,
+          /* La bande de volume, quand elle est là, occupe le bas du cadre : l'axe de
+             la superposition doit se cantonner à la même hauteur que celui des prix,
+             sinon la courbe traverserait l'histogramme. */
+          ...(showVolume
+            ? { height: am5.percent(100 - VOLUME_SHARE) }
+            : {}),
+        }),
+      )
+
+      overlaySeries = chart.series.push(
+        am5xy.LineSeries.new(root, {
+          name: overlay.label,
+          xAxis,
+          yAxis: overlayAxis,
+          valueXField: 't',
+          valueYField: overlay.key,
+          stroke: am5.color(readToken(overlay.color, overlay.color)),
+          /* ⚠️ `connect: false` — LA SÉRIE A DES TROUS, ET ILS SONT SIGNIFIANTS.
+             L'indice est QUOTIDIEN quand le cours peut être horaire : la plupart des
+             points n'en portent pas. Les relier ferait tracer une droite entre deux
+             relevés, c'est-à-dire une interpolation — précisément ce que le
+             fournisseur de sentiment refuse de faire chez lui (« une interpolation
+             inventerait un sentiment qui n'a pas été mesuré »). */
+          connect: false,
+        }),
+      )
+      overlaySeries.strokes.template.setAll({ strokeWidth: 1.5, strokeDasharray: [5, 3] })
+    }
+
     /* ── LES REPÈRES HORIZONTAUX ────────────────────────────────────────────
        Hors du domaine tracé, amCharts les place au bord ; on les laisse à l'appelant,
        qui ne passe que ceux qui ont un sens dans la fenêtre. */
@@ -811,7 +900,14 @@ export function PriceChartAm({
       centerY: am5.p50,
     })
 
-    chartRef.current = { root, series, volume: volumeSeries, compare: compareSeries, priceAxis }
+    chartRef.current = {
+      root,
+      series,
+      volume: volumeSeries,
+      compare: compareSeries,
+      overlay: overlaySeries,
+      priceAxis,
+    }
     onReady?.(root)
 
     /* Voir la note du compteur : c'est ce qui réveille l'effet de données derrière
@@ -840,6 +936,14 @@ export function PriceChartAm({
     onReady,
     compareKey,
     referenceKey,
+    /* L'objet est reconstruit à chaque rendu du parent ; on dépend donc de ses champs
+       plutôt que de sa référence, faute de quoi le cadre serait rebâti à chaque tic
+       de cours. Même motif que `compareKey` juste au-dessus. */
+    overlay?.key,
+    overlay?.color,
+    overlay?.min,
+    overlay?.max,
+    overlay?.label,
     /* Voir la note de `dark` : c'est ce qui fait repeindre le cadre à la bascule de
        thème, les jetons étant résolus une fois pour toutes à la construction. */
     dark,
@@ -855,6 +959,7 @@ export function PriceChartAm({
     current.series.data.setAll(data)
     current.volume?.data.setAll(data)
     for (const line of current.compare) line.data.setAll(data)
+    current.overlay?.data.setAll(data)
 
     /* L'étiquette de dernière valeur suit le dernier point. Elle est masquée quand la
        série est vide — une pastille posée sur zéro serait un chiffre inventé. */
