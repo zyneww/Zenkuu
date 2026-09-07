@@ -1,5 +1,6 @@
 'use client'
 
+import { useRestitutionDuFocus } from '@/components/ui/focus-restitution'
 import { useState } from 'react'
 
 import { PasswordForm } from '@/components/account/PasswordForm'
@@ -98,6 +99,8 @@ export function AuthDialog({
    */
   const [ecran, setEcran] = useState<'password' | 'code'>('password')
 
+  const restitution = useRestitutionDuFocus()
+
   return (
     <Dialog
       open={open}
@@ -107,6 +110,10 @@ export function AuthDialog({
     >
       <DialogContent
         key={open ? 'ouverte' : 'fermée'}
+        /* Rend le focus au bouton qui a ouvert cette fenêtre : elle est CONTRÔLÉE et
+           n'a pas de `DialogTrigger`, donc Radix ne sait pas à qui le rendre et le
+           laisse sur `<body>`. Voir `useRestitutionDuFocus`. */
+        {...restitution}
         /* ⚠️ CENTRÉE, ET NON PLUS ANCRÉE EN HAUT (demande explicite).
 
            La note précédente justifiait `top-[8vh]` par un défaut réel : « le titre

@@ -1,5 +1,6 @@
 'use client'
 
+import { useRestitutionDuFocus } from '@/components/ui/focus-restitution'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
@@ -41,9 +42,18 @@ import { LoginForm } from '@/components/account/LoginForm'
  */
 export function LoginOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = usePhrase()
+
+  const restitution = useRestitutionDuFocus()
+
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-w-sm border-border-subtle bg-overlay shadow-overlay sm:max-w-sm">
+      <DialogContent
+        /* Rend le focus au bouton qui a ouvert cette fenêtre : elle est CONTRÔLÉE et
+           n'a pas de `DialogTrigger`, donc Radix ne sait pas à qui le rendre et le
+           laisse sur `<body>`. Voir `useRestitutionDuFocus`. */
+        {...restitution}
+        className="max-w-sm border-border-subtle bg-overlay shadow-overlay sm:max-w-sm"
+      >
         <DialogTitle className="sr-only">{t('Connexion')}</DialogTitle>
         <LoginForm visible={open} />
       </DialogContent>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useRestitutionDuFocus } from '@/components/ui/focus-restitution'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { Check } from 'lucide-react'
 import { Search } from 'lucide-react'
@@ -192,6 +193,11 @@ export function PreferenceOverlay({
       .filter((group) => group.items.length > 0)
   }, [groups, query])
 
+  /* ⚠️ AVANT LE RETOUR ANTICIPÉ CI-DESSOUS : un crochet doit être appelé au même
+     rang à chaque rendu, et `if (!tab) return null` en fait un appel conditionnel.
+     Le linter l'a refusé, à juste titre. */
+  const restitution = useRestitutionDuFocus()
+
   if (!tab) return null
 
   const isCurrency = tab === 'currency'
@@ -217,7 +223,13 @@ export function PreferenceOverlay({
       {/* Plus large que les 2xl d'origine : la grille de quatre colonnes de la
           référence a besoin de place, et une liste de soixante devises sur deux
           colonnes obligerait à défiler trois fois plus. */}
-      <DialogContent className="max-w-4xl gap-0 border-border-subtle bg-overlay p-0 shadow-overlay sm:max-w-4xl">
+      <DialogContent
+        /* Rend le focus au bouton qui a ouvert cette fenêtre : elle est CONTRÔLÉE et
+           n'a pas de `DialogTrigger`, donc Radix ne sait pas à qui le rendre et le
+           laisse sur `<body>`. Voir `useRestitutionDuFocus`. */
+        {...restitution}
+        className="max-w-4xl gap-0 border-border-subtle bg-overlay p-0 shadow-overlay sm:max-w-4xl"
+      >
         {/*
           ── LES ONGLETS SONT CEUX DE RADIX, ET LE `role="tablist"` MANUEL PART ──
 
