@@ -2825,4 +2825,11 @@ export const dePhrases: Phrases = {
   'porteurs': 'Halter',
   'Répartitions': 'Aufteilungen',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Wie sich Volumen und Kapital tatsächlich verteilen — nur nach den Aufteilungen, die unsere Quellen mit Gewichten veröffentlichen.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'gestiegen um',
+  'en baisse de': 'gefallen um',
+  'stable,': 'unverändert,',
+  'moins': 'minus',
+  'Donnée non fournie par la source': 'Wert von der Quelle nicht bereitgestellt',
 }

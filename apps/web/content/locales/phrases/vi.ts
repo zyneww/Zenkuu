@@ -2817,4 +2817,11 @@ export const viPhrases: Phrases = {
   'porteurs': 'bên nắm giữ',
   'Répartitions': 'Phân bổ',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Khối lượng và vốn thực sự phân bổ ra sao, chỉ theo những cách chia mà nguồn của chúng tôi công bố kèm trọng số.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'tăng',
+  'en baisse de': 'giảm',
+  'stable,': 'đi ngang,',
+  'moins': 'trừ',
+  'Donnée non fournie par la source': 'Nguồn không cung cấp dữ liệu',
 }

@@ -2817,4 +2817,11 @@ export const jaPhrases: Phrases = {
   'porteurs': '保有者',
   'Répartitions': '内訳',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': '出来高と資本が実際にどう分かれているか。ソースが重みとともに公開している区分のみを用いています。',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': '上昇',
+  'en baisse de': '下落',
+  'stable,': '横ばい、',
+  'moins': 'マイナス',
+  'Donnée non fournie par la source': 'ソースから提供されていないデータ',
 }

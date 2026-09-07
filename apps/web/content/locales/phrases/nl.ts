@@ -2817,4 +2817,11 @@ export const nlPhrases: Phrases = {
   'porteurs': 'houders',
   'Répartitions': 'Verdelingen',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Hoe volume en kapitaal werkelijk verdeeld zijn, met alleen de opsplitsingen die onze bronnen met gewichten publiceren.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'gestegen met',
+  'en baisse de': 'gedaald met',
+  'stable,': 'ongewijzigd,',
+  'moins': 'min',
+  'Donnée non fournie par la source': 'Gegeven niet geleverd door de bron',
 }

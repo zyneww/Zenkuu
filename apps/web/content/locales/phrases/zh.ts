@@ -2810,4 +2810,11 @@ export const zhPhrases: Phrases = {
   'porteurs': '持有者',
   'Répartitions': '构成分布',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': '成交量与资本的真实分布，仅采用我们的数据源公布并带有权重的划分方式。',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': '上涨',
+  'en baisse de': '下跌',
+  'stable,': '持平，',
+  'moins': '负',
+  'Donnée non fournie par la source': '数据源未提供该数据',
 }

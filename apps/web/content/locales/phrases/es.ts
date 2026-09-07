@@ -2824,4 +2824,11 @@ export const esPhrases: Phrases = {
   'porteurs': 'tenedores',
   'Répartitions': 'Distribuciones',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Cómo se reparten realmente el volumen y el capital, con los únicos desgloses que nuestras fuentes publican con sus pesos.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'al alza de',
+  'en baisse de': 'a la baja de',
+  'stable,': 'estable,',
+  'moins': 'menos',
+  'Donnée non fournie par la source': 'Dato no facilitado por la fuente',
 }

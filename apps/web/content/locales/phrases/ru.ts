@@ -2817,4 +2817,11 @@ export const ruPhrases: Phrases = {
   'porteurs': 'держатели',
   'Répartitions': 'Распределения',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Как на самом деле распределяются объём и капитал — только по тем разрезам, которые наши источники публикуют с весами.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'рост на',
+  'en baisse de': 'снижение на',
+  'stable,': 'без изменений,',
+  'moins': 'минус',
+  'Donnée non fournie par la source': 'Данные не предоставлены источником',
 }

@@ -2817,4 +2817,11 @@ export const ptBRPhrases: Phrases = {
   'porteurs': 'detentores',
   'Répartitions': 'Distribuições',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Como volume e capital realmente se distribuem, com os únicos recortes que nossas fontes publicam com seus pesos.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'em alta de',
+  'en baisse de': 'em baixa de',
+  'stable,': 'estável,',
+  'moins': 'menos',
+  'Donnée non fournie par la source': 'Dado não fornecido pela fonte',
 }

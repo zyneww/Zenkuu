@@ -2817,4 +2817,11 @@ export const itPhrases: Phrases = {
   'porteurs': 'detentori',
   'Répartitions': 'Ripartizioni',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Come si ripartiscono davvero volume e capitale, con le sole suddivisioni che le nostre fonti pubblicano con i relativi pesi.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'in rialzo di',
+  'en baisse de': 'in ribasso di',
+  'stable,': 'stabile,',
+  'moins': 'meno',
+  'Donnée non fournie par la source': 'Dato non fornito dalla fonte',
 }

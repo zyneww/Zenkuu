@@ -2829,4 +2829,11 @@ export const enPhrases: Phrases = {
   'porteurs': 'holders',
   'Répartitions': 'Breakdowns',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'How volume and capital actually break down, using only the splits our sources publish with their weights.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'up by',
+  'en baisse de': 'down by',
+  'stable,': 'flat,',
+  'moins': 'minus',
+  'Donnée non fournie par la source': 'Data not provided by the source',
 }

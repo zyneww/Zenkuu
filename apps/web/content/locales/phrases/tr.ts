@@ -2817,4 +2817,11 @@ export const trPhrases: Phrases = {
   'porteurs': 'sahipler',
   'Répartitions': 'Dağılımlar',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Hacim ve sermayenin gerçekte nasıl dağıldığı — yalnızca kaynaklarımızın ağırlıklarıyla yayımladığı kırılımlarla.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'yükseliş',
+  'en baisse de': 'düşüş',
+  'stable,': 'yatay,',
+  'moins': 'eksi',
+  'Donnée non fournie par la source': 'Veri kaynak tarafından sağlanmadı',
 }

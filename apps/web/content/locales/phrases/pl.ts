@@ -2817,4 +2817,11 @@ export const plPhrases: Phrases = {
   'porteurs': 'posiadacze',
   'Répartitions': 'Podziały',
   'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Jak naprawdę rozkładają się wolumen i kapitał — wyłącznie według podziałów, które nasze źródła publikują wraz z wagami.',
+
+  /* ── LECTURE VOCALE DE LA VARIATION — ajouté le 2026-09-07 ── */
+  'en hausse de': 'wzrost o',
+  'en baisse de': 'spadek o',
+  'stable,': 'bez zmian,',
+  'moins': 'minus',
+  'Donnée non fournie par la source': 'Dane nieudostępnione przez źródło',
 }
