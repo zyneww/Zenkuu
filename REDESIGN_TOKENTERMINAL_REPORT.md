@@ -214,10 +214,15 @@ exactement cela, sans engager aucune touche.
 - Audit final : **zéro** `role="tablist"` ou `role="tab"` écrit à la main dans le
   balisage. Les occurrences restantes sont des commentaires qui expliquent la décision.
 
-⚠️ **`SectorMap` n'a pas pu être vérifié à l'écran : le composant n'a aucun appelant.**
-Seul son type `SectorNode` est importé, par `explorer-sectors.ts`. Ce sont 393 lignes de
-code mort — la migration y est correcte mais invisible, et le fichier mériterait d'être
-retiré une fois son type déplacé.
+⚠️ **`SectorMap` n'a pas pu être vérifié à l'écran : le composant n'avait aucun
+appelant.** Seul son type `SectorNode` était importé, par `explorer-sectors.ts`, lui-même
+importé par son seul test. Un triangle fermé de 657 lignes que rien n'atteignait — la
+migration y était correcte et invisible.
+
+**Les trois fichiers ont été supprimés** dans la foulée. La doctrine que portait
+`drift()` — une variation calculée depuis nos propres points n'est légitime que si elle
+dit sur quelle profondeur elle porte — survit dans `GlobalChartCard` et
+`PriceHistoryTable`, qui la mettent en œuvre pour de vrai.
 
 ### Ce qui n'a pas été migré, et c'est un choix
 
@@ -321,7 +326,7 @@ doit se faire **d'un seul tenant**.
 |---|---|
 | `bunx tsc --noEmit` | propre |
 | `bun run lint` | propre |
-| `bun run test` | **550 tests, 48 fichiers** — passent |
+| `bun run test` | **542 tests, 47 fichiers** — passent |
 | Fiche crypto, français | `/fr/crypto/bitcoin` — grille, onglets, bloc prix |
 | Fiche action, français | `/fr/actions/aapl` — capital et premiers porteurs |
 | Fiche crypto, anglais | `/crypto/bitcoin` — « Breakdowns », « Volume by venue » |
@@ -333,22 +338,24 @@ doit se faire **d'un seul tenant**.
 | Onglets d'univers au clavier | `→` déplace focus **et** sélection ; `tabindex` roulant `[-1,0,-1,-1]` |
 | Projection macro au clavier | `→` bascule Carte → Globe, `aria-checked` suit |
 | `role="tab"` écrits à la main | **0** restant dans le balisage |
+| Lecture vocale de la variation | `/crypto/bitcoin` en anglais : « down by minus 0.57% over 24 hours » |
 
 ---
 
 ## 9. Ce qui reste à faire
 
 1. **T5 — autoriser le MCP GitBook** dans une session interactive, puis y porter
-   `docs/guide`. C'est le seul blocage restant.
-2. **`SectorMap` est du code mort** — 393 lignes sans appelant, dont seul le type
-   `SectorNode` est importé. À retirer une fois ce type déplacé.
-3. **Un correctif hérité, non traité** : `ChangeBadge` ne reçoit jamais sa prop
-   `libelles`, si bien que son `aria-label` et son infobulle sortent **en français dans
-   les treize langues**. Le corriger tient en un seul endroit — sept phrases × douze
-   langues.
-4. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
+   `docs/guide`. C'est le seul blocage restant, et il demande une action humaine.
+2. **`periodLabel` reste en français** quand un appelant en passe un. Il vient soit d'une
+   chaîne écrite dans le code appelant, soit de `changePeriodLabel`, que le fournisseur
+   publie — deux sources distinctes, toutes deux hors de l'enveloppe qui vient de
+   traduire le reste du badge. Sans `periodLabel`, le repli est bien traduit.
+3. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
    navigateur, mais la navigation au clavier n'a pas été éprouvée route par route sur les
    64 pages.
+4. **Chercher les autres orphelins.** Le triangle `SectorMap` / `explorer-sectors` a été
+   trouvé par accident, en cherchant où vérifier une migration. Rien ne dit qu'il était
+   le seul — un balayage des composants sans appelant vaudrait le détour.
 
 ---
 
