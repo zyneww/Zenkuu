@@ -2802,4 +2802,19 @@ export const trPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Bu varlık için hiçbir ölçüt yayımlanmıyor.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Bu varlık için yayımlanan her ölçüt ve onu ayrıntılandıran sayfa.',
   'Métriques': 'Metrikler',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': '24 saat boyunca, kaynağın yayımladığı kote paritelere göre',
+  'places': 'borsalar',
+  'Volume par contrepartie': 'Karşı birime göre hacim',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': '24 saat boyunca, varlığın karşısında işlem gördüğü birime göre',
+  'contreparties': 'karşı birimler',
+  'Autres détenteurs': 'Diğer sahipler',
+  'D’après {n} déclarations réglementaires trimestrielles': '{n} üç aylık düzenleyici bildirime göre',
+  'D’après les déclarations réglementaires trimestrielles': 'Üç aylık düzenleyici bildirimlere göre',
+  'Premiers porteurs institutionnels': 'Başlıca kurumsal sahipler',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Her birinin bu grup içindeki ağırlığı, toplam sermayedeki payı değil',
+  'porteurs': 'sahipler',
+  'Répartitions': 'Dağılımlar',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Hacim ve sermayenin gerçekte nasıl dağıldığı — yalnızca kaynaklarımızın ağırlıklarıyla yayımladığı kırılımlarla.',
 }

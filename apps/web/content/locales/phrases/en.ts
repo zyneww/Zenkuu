@@ -2814,4 +2814,19 @@ export const enPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'No measure is published for this asset.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Every measure published for this asset, each with the page that details it.',
   'Métriques': 'Metrics',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'Over 24 hours, from the quoted pairs the source publishes',
+  'places': 'venues',
+  'Volume par contrepartie': 'Volume by counterparty',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'Over 24 hours, by the unit the asset trades against',
+  'contreparties': 'counterparties',
+  'Autres détenteurs': 'Other holders',
+  'D’après {n} déclarations réglementaires trimestrielles': 'From {n} quarterly regulatory filings',
+  'D’après les déclarations réglementaires trimestrielles': 'From quarterly regulatory filings',
+  'Premiers porteurs institutionnels': 'Top institutional holders',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Each holder’s weight within this group, not its share of total capital',
+  'porteurs': 'holders',
+  'Répartitions': 'Breakdowns',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'How volume and capital actually break down, using only the splits our sources publish with their weights.',
 }

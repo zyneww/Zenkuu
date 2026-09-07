@@ -2802,4 +2802,19 @@ export const nlPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Voor dit item wordt geen enkele maatstaf gepubliceerd.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Elke voor dit item gepubliceerde maatstaf, met de pagina die hem toelicht.',
   'Métriques': 'Statistieken',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'Over 24 uur, op basis van de genoteerde paren die de bron publiceert',
+  'places': 'handelsplaatsen',
+  'Volume par contrepartie': 'Volume per tegenpartij',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'Over 24 uur, per eenheid waartegen het activum wordt verhandeld',
+  'contreparties': 'tegenpartijen',
+  'Autres détenteurs': 'Overige houders',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Op basis van {n} kwartaalrapportages aan de toezichthouder',
+  'D’après les déclarations réglementaires trimestrielles': 'Op basis van kwartaalrapportages aan de toezichthouder',
+  'Premiers porteurs institutionnels': 'Grootste institutionele houders',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Gewicht van elk binnen deze groep, niet het aandeel in het totale kapitaal',
+  'porteurs': 'houders',
+  'Répartitions': 'Verdelingen',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Hoe volume en kapitaal werkelijk verdeeld zijn, met alleen de opsplitsingen die onze bronnen met gewichten publiceren.',
 }

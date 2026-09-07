@@ -2802,4 +2802,19 @@ export const itPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Nessuna misura è pubblicata per questo asset.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Ogni misura pubblicata per questo asset, con la pagina che la illustra.',
   'Métriques': 'Metriche',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'Su 24 ore, dalle coppie quotate che la fonte pubblica',
+  'places': 'sedi',
+  'Volume par contrepartie': 'Volume per controparte',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'Su 24 ore, per unità contro cui l’attività è scambiata',
+  'contreparties': 'controparti',
+  'Autres détenteurs': 'Altri detentori',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Da {n} dichiarazioni regolamentari trimestrali',
+  'D’après les déclarations réglementaires trimestrielles': 'Dalle dichiarazioni regolamentari trimestrali',
+  'Premiers porteurs institutionnels': 'Primi detentori istituzionali',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Peso di ciascuno all’interno di questo gruppo, non quota del capitale totale',
+  'porteurs': 'detentori',
+  'Répartitions': 'Ripartizioni',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Come si ripartiscono davvero volume e capitale, con le sole suddivisioni che le nostre fonti pubblicano con i relativi pesi.',
 }

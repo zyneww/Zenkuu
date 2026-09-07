@@ -2795,4 +2795,19 @@ export const zhPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': '该资产暂无已公布的指标。',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': '该资产已公布的每项指标，以及对应的详情页。',
   'Métriques': '指标',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': '24 小时内，基于数据源公布的挂牌交易对',
+  'places': '交易所',
+  'Volume par contrepartie': '按计价单位划分的成交量',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': '24 小时内，按该资产的计价单位划分',
+  'contreparties': '计价单位',
+  'Autres détenteurs': '其他持有者',
+  'D’après {n} déclarations réglementaires trimestrielles': '依据 {n} 份季度监管申报',
+  'D’après les déclarations réglementaires trimestrielles': '依据季度监管申报',
+  'Premiers porteurs institutionnels': '主要机构持有者',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': '各方在本组内的权重，而非占总股本的比例',
+  'porteurs': '持有者',
+  'Répartitions': '构成分布',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': '成交量与资本的真实分布，仅采用我们的数据源公布并带有权重的划分方式。',
 }

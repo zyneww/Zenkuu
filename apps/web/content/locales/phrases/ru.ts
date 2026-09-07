@@ -2802,4 +2802,19 @@ export const ruPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Для этого актива не публикуется ни одного показателя.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Каждый показатель, публикуемый для этого актива, и страница с его описанием.',
   'Métriques': 'Показатели',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'За 24 часа, по котируемым парам, которые публикует источник',
+  'places': 'площадки',
+  'Volume par contrepartie': 'Объём по контрвалюте',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'За 24 часа, по единице, против которой торгуется актив',
+  'contreparties': 'контрвалюты',
+  'Autres détenteurs': 'Прочие держатели',
+  'D’après {n} déclarations réglementaires trimestrielles': 'По данным {n} квартальных регуляторных отчётов',
+  'D’après les déclarations réglementaires trimestrielles': 'По данным квартальных регуляторных отчётов',
+  'Premiers porteurs institutionnels': 'Крупнейшие институциональные держатели',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Вес каждого внутри этой группы, а не доля в общем капитале',
+  'porteurs': 'держатели',
+  'Répartitions': 'Распределения',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Как на самом деле распределяются объём и капитал — только по тем разрезам, которые наши источники публикуют с весами.',
 }

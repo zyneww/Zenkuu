@@ -26,7 +26,8 @@ import { AssetCommunity } from '@/components/asset/AssetCommunity'
 import { AssetFaq } from '@/components/asset/AssetFaq'
 import { AssetNewsAside } from '@/components/asset/AssetNewsAside'
 import { AssetNewsRail } from '@/components/asset/AssetNewsRail'
-import { AssetProfileRail } from '@/components/asset/AssetHoldings'
+import { AssetHoldings, AssetProfileRail } from '@/components/asset/AssetHoldings'
+import { AssetDistributions } from '@/components/asset/AssetDistributions'
 import { AssetPeerGrid } from '@/components/asset/AssetPeerGrid'
 import { AssetAnalystView } from '@/components/asset/AssetAnalystView'
 import { AssetMarketSheet } from '@/components/asset/AssetMarketSheet'
@@ -665,6 +666,33 @@ export async function AssetPageView({ assetClass, id }: AssetPageViewProps) {
           </div>
 
           <AssetExchangeTable tickers={tickerRows} logos={exchangeImages} />
+
+          {/* ── LES RÉPARTITIONS SUIVENT LA TABLE QU'ELLES RÉSUMENT ─────────────
+
+              La grille du bas de Token Terminal, dans les seules découpes dont nous
+              ayons les poids : volume par place et par contrepartie en crypto,
+              capital déclaré pour une action. Elle est posée APRÈS la table des
+              places, et l'ordre compte — la table détaille ligne à ligne ce que les
+              anneaux résument, et on lit le résumé mieux quand on vient de voir le
+              détail. Voir l'en-tête du composant pour les trois découpes écartées. */}
+          <AssetDistributions
+            assetClass={assetClass}
+            tickers={tickerRows}
+            profile={profile}
+            currency={data.currency}
+          />
+
+          {/* ── LA COMPOSITION D'UN FONDS, ENFIN RENDUE ─────────────────────────
+
+              `AssetHoldings` était ÉCRIT et n'était appelé nulle part : la fiche
+              n'importait de son fichier que `AssetProfileRail`, son voisin. Il porte
+              les trois découpes que Yahoo publie pour un ETF — premières lignes,
+              secteurs, natures d'actif — avec ses barres, son anneau et sa table de
+              pondérations, et il se retire de lui-même quand les trois manquent.
+
+              Il n'entre pas dans `AssetDistributions` : ce n'est pas une carte mais
+              une SECTION entière, et l'y verser aurait mis une grille dans une grille. */}
+          {profile ? <AssetHoldings profile={profile} assetName={data.name} /> : null}
 
           {history.ok ? (
             <SourceNote

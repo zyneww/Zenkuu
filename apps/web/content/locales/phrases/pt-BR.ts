@@ -2802,4 +2802,19 @@ export const ptBRPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Nenhuma medida é publicada para este ativo.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Cada medida publicada para este ativo, com a página que a detalha.',
   'Métriques': 'Métricas',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'Em 24 horas, a partir dos pares cotados que a fonte publica',
+  'places': 'corretoras',
+  'Volume par contrepartie': 'Volume por contraparte',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'Em 24 horas, pela unidade contra a qual o ativo é negociado',
+  'contreparties': 'contrapartes',
+  'Autres détenteurs': 'Outros detentores',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Segundo {n} declarações regulatórias trimestrais',
+  'D’après les déclarations réglementaires trimestrielles': 'Segundo as declarações regulatórias trimestrais',
+  'Premiers porteurs institutionnels': 'Principais detentores institucionais',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Peso de cada um dentro deste grupo, e não parcela do capital total',
+  'porteurs': 'detentores',
+  'Répartitions': 'Distribuições',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Como volume e capital realmente se distribuem, com os únicos recortes que nossas fontes publicam com seus pesos.',
 }

@@ -2802,4 +2802,19 @@ export const viPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Không có chỉ số nào được công bố cho tài sản này.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Mọi chỉ số được công bố cho tài sản này, kèm trang mô tả chi tiết.',
   'Métriques': 'Chỉ số',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'Trong 24 giờ, theo các cặp niêm yết mà nguồn công bố',
+  'places': 'sàn',
+  'Volume par contrepartie': 'Khối lượng theo đơn vị đối ứng',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'Trong 24 giờ, theo đơn vị mà tài sản được giao dịch đối ứng',
+  'contreparties': 'đơn vị đối ứng',
+  'Autres détenteurs': 'Người nắm giữ khác',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Theo {n} báo cáo quy định hằng quý',
+  'D’après les déclarations réglementaires trimestrielles': 'Theo các báo cáo quy định hằng quý',
+  'Premiers porteurs institutionnels': 'Những tổ chức nắm giữ lớn nhất',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Trọng số của từng bên trong nhóm này, không phải tỷ lệ trên tổng vốn',
+  'porteurs': 'bên nắm giữ',
+  'Répartitions': 'Phân bổ',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Khối lượng và vốn thực sự phân bổ ra sao, chỉ theo những cách chia mà nguồn của chúng tôi công bố kèm trọng số.',
 }

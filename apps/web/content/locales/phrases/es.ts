@@ -2809,4 +2809,19 @@ export const esPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'No se publica ninguna medida para este activo.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Cada medida publicada para este activo, con la página que la detalla.',
   'Métriques': 'Métricas',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'En 24 horas, según los pares cotizados que publica la fuente',
+  'places': 'mercados',
+  'Volume par contrepartie': 'Volumen por contraparte',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'En 24 horas, por unidad contra la que se negocia el activo',
+  'contreparties': 'contrapartes',
+  'Autres détenteurs': 'Otros tenedores',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Según {n} declaraciones regulatorias trimestrales',
+  'D’après les déclarations réglementaires trimestrielles': 'Según las declaraciones regulatorias trimestrales',
+  'Premiers porteurs institutionnels': 'Principales tenedores institucionales',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Peso de cada uno dentro de este grupo, no su parte del capital total',
+  'porteurs': 'tenedores',
+  'Répartitions': 'Distribuciones',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Cómo se reparten realmente el volumen y el capital, con los únicos desgloses que nuestras fuentes publican con sus pesos.',
 }

@@ -2802,4 +2802,19 @@ export const jaPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'この銘柄について公開されている指標はありません。',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'この銘柄について公開されている各指標と、その詳細ページ。',
   'Métriques': '指標',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': '24時間、ソースが公開する上場ペアに基づく',
+  'places': '取引所',
+  'Volume par contrepartie': '対価通貨別の出来高',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': '24時間、資産が取引される対価単位別',
+  'contreparties': '対価通貨',
+  'Autres détenteurs': 'その他の保有者',
+  'D’après {n} déclarations réglementaires trimestrielles': '{n}件の四半期規制報告に基づく',
+  'D’après les déclarations réglementaires trimestrielles': '四半期規制報告に基づく',
+  'Premiers porteurs institutionnels': '主要な機関投資家',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'このグループ内での各社の比重であり、総資本に対する割合ではありません',
+  'porteurs': '保有者',
+  'Répartitions': '内訳',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': '出来高と資本が実際にどう分かれているか。ソースが重みとともに公開している区分のみを用いています。',
 }

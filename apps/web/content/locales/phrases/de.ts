@@ -2810,4 +2810,19 @@ export const dePhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Für diesen Wert wird keine Kennzahl veröffentlicht.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Jede für diesen Wert veröffentlichte Kennzahl, mit der Seite, die sie erläutert.',
   'Métriques': 'Kennzahlen',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'Über 24 Stunden, nach den von der Quelle veröffentlichten Handelspaaren',
+  'places': 'Handelsplätze',
+  'Volume par contrepartie': 'Volumen nach Gegenwährung',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'Über 24 Stunden, nach der Einheit, gegen die der Wert gehandelt wird',
+  'contreparties': 'Gegenwährungen',
+  'Autres détenteurs': 'Weitere Halter',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Laut {n} vierteljährlichen aufsichtsrechtlichen Meldungen',
+  'D’après les déclarations réglementaires trimestrielles': 'Laut vierteljährlichen aufsichtsrechtlichen Meldungen',
+  'Premiers porteurs institutionnels': 'Größte institutionelle Halter',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Gewicht jedes Einzelnen in dieser Gruppe, nicht Anteil am Gesamtkapital',
+  'porteurs': 'Halter',
+  'Répartitions': 'Aufteilungen',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Wie sich Volumen und Kapital tatsächlich verteilen — nur nach den Aufteilungen, die unsere Quellen mit Gewichten veröffentlichen.',
 }

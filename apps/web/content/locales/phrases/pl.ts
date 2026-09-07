@@ -2802,4 +2802,19 @@ export const plPhrases: Phrases = {
   'Aucune mesure n’est publiée pour cet actif.': 'Dla tego aktywa nie opublikowano żadnej miary.',
   'Chaque mesure publiée pour cet actif, avec la page qui la détaille.': 'Każda miara publikowana dla tego aktywa wraz ze stroną, która ją opisuje.',
   'Métriques': 'Wskaźniki',
+
+  /* ── RÉPARTITIONS DE LA FICHE D'ACTIF — ajouté le 2026-09-07 ── */
+  'Sur 24 heures, d’après les paires cotées que la source publie': 'W ciągu 24 godzin, na podstawie par notowanych publikowanych przez źródło',
+  'places': 'giełdy',
+  'Volume par contrepartie': 'Wolumen według drugiej waluty',
+  'Sur 24 heures, par unité contre laquelle l’actif s’échange': 'W ciągu 24 godzin, według jednostki, wobec której aktywo jest wymieniane',
+  'contreparties': 'drugie waluty',
+  'Autres détenteurs': 'Pozostali posiadacze',
+  'D’après {n} déclarations réglementaires trimestrielles': 'Na podstawie {n} kwartalnych sprawozdań regulacyjnych',
+  'D’après les déclarations réglementaires trimestrielles': 'Na podstawie kwartalnych sprawozdań regulacyjnych',
+  'Premiers porteurs institutionnels': 'Najwięksi inwestorzy instytucjonalni',
+  'Poids de chacun au sein de ce groupe, et non part du capital total': 'Waga każdego w tej grupie, a nie udział w całym kapitale',
+  'porteurs': 'posiadacze',
+  'Répartitions': 'Podziały',
+  'Comment le volume et le capital se répartissent réellement, d’après les seules découpes que nos sources publient avec leurs poids.': 'Jak naprawdę rozkładają się wolumen i kapitał — wyłącznie według podziałów, które nasze źródła publikują wraz z wagami.',
 }
