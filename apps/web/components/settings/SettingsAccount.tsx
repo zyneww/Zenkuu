@@ -188,7 +188,7 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
             Enregistrer
           </Button>
         </div>
-        <span className="mt-1.5 block text-[0.6875rem] text-ink-muted">
+        <span className="mt-1.5 block text-micro text-ink-muted">
           {saved
             ? 'Enregistré. L’initiale de l’en-tête suit.'
             : 'Sert à l’affichage et à l’initiale de l’avatar. Il n’est ni unique ni public.'}
@@ -205,7 +205,7 @@ function HandleCard({ handle, email }: { handle: string; email: string }) {
           <Mail className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
           {email}
         </p>
-        <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">{t('Elle identifie le compte et ne se modifie donc pas. Se connecter avec une autre adresse ouvre un autre compte, avec sa propre liste.')}</p>
+        <p className="mt-1.5 text-micro leading-relaxed text-ink-muted">{t('Elle identifie le compte et ne se modifie donc pas. Se connecter avec une autre adresse ouvre un autre compte, avec sa propre liste.')}</p>
       </div>
     </div>
   )

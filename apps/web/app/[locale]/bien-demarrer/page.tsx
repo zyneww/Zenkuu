@@ -113,7 +113,7 @@ export default async function BienDemarrerPage() {
           aria-label={t('Sommaire')}
           className="rounded-card border border-border-subtle bg-surface p-3 lg:sticky lg:top-20"
         >
-          <p className="mb-2 px-1 text-[0.6875rem] font-semibold text-ink-muted">{t('Les cinq étapes')}</p>
+          <p className="mb-2 px-1 text-micro font-semibold text-ink-muted">{t('Les cinq étapes')}</p>
           <ol className="space-y-0.5">
             {STEPS.map((step, index) => (
               <li key={t(step.title)}>

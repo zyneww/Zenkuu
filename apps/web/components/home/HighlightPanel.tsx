@@ -62,7 +62,7 @@ export async function HighlightPanel({
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
-          {hint ? <p className="mt-0.5 text-[0.6875rem] text-ink-muted">{hint}</p> : null}
+          {hint ? <p className="mt-0.5 text-micro text-ink-muted">{hint}</p> : null}
         </div>
         {href ? (
           <Link

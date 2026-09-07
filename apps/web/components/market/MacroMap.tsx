@@ -261,7 +261,7 @@ export function MacroMap({
                       className="rounded-sm border border-border-subtle/60 px-2 py-1.5"
                       style={{ backgroundColor: colorOf(entry.value) }}
                     >
-                      <p className="truncate text-[0.6875rem] font-medium text-ink">
+                      <p className="truncate text-micro font-medium text-ink">
                         {entry.country}
                       </p>
                       <p className="tabular text-xs font-semibold text-ink">

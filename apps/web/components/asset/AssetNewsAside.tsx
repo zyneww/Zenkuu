@@ -158,7 +158,7 @@ export function AssetNewsAside({
           className="fixed right-0 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-card border border-r-0 border-border-subtle bg-surface px-2 py-3 text-ink-muted shadow-overlay transition-colors duration-150 hover:text-ink xl:hidden"
         >
           <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
-          <span className="text-[0.6875rem] font-medium [writing-mode:vertical-rl]">
+          <span className="text-micro font-medium [writing-mode:vertical-rl]">
             {t('Actualités')}
             {count > 0 ? ` · ${count}` : ''}
           </span>
@@ -218,7 +218,7 @@ function collapsedTab(t: (text: string) => string, toggle: () => void, count: nu
           <PanelRight className="h-4 w-4" aria-hidden="true" />
           {/* Le texte tourne d'un quart de tour : dans 40 pixels de large, c'est la
               seule façon d'écrire un mot entier plutôt qu'une icône seule. */}
-          <span className="text-[0.6875rem] font-medium [writing-mode:vertical-rl]">
+          <span className="text-micro font-medium [writing-mode:vertical-rl]">
             {t('Actualités')}
             {count > 0 ? ` · ${count}` : ''}
           </span>

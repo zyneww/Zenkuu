@@ -180,7 +180,7 @@ export function LoginForm({
             <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
               {t('Se connecter')}
             </h2>
-            <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne correspond à aucun compte, il en crée un.')}</p>
+            <p className="text-micro leading-relaxed text-ink-muted">{t('Pas de mot de passe : nous envoyons un code à six chiffres. Si l’adresse ne correspond à aucun compte, il en crée un.')}</p>
           </div>
         )}
 
@@ -257,7 +257,7 @@ export function LoginForm({
           menu n'a pas la place de développer.
         */}
         {compact ? (
-          <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
+          <p className="text-micro leading-relaxed text-ink-muted">
             {emphasise(
               t(
                 'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran. Il sert à retrouver la même liste sur un autre appareil.',
@@ -266,7 +266,7 @@ export function LoginForm({
             )}
           </p>
         ) : (
-          <p className="rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5 text-[0.6875rem] leading-relaxed text-ink-muted">
+          <p className="rounded-card border border-border-subtle bg-surface-muted px-3 py-2.5 text-micro leading-relaxed text-ink-muted">
             {emphasise(
               t(
                 'Un compte n’est **pas nécessaire** pour suivre un actif ou enregistrer un écran : ces fonctions marchent déjà sans lui, rangées dans votre navigateur. Il sert à retrouver la même liste sur un autre appareil, et à ce qu’un nettoyage du navigateur ne l’efface pas.',
@@ -294,7 +294,7 @@ export function LoginForm({
         <h2 className={compact ? 'text-sm font-semibold text-ink' : 'display-sm text-ink'}>
           {t('Votre code')}
         </h2>
-        <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
+        <p className="text-micro leading-relaxed text-ink-muted">
           {fill(t('Envoyé à {adresse}. Il expire dans quinze minutes.'), {
             adresse: <span className="font-medium text-ink">{email}</span>,
           })}
@@ -347,7 +347,7 @@ export function LoginForm({
         {pending ? t('Vérification…') : t('Se connecter')}
       </Button>
 
-      <p className="flex items-start gap-1.5 text-[0.6875rem] leading-relaxed text-ink-muted">
+      <p className="flex items-start gap-1.5 text-micro leading-relaxed text-ink-muted">
         <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />{t('Ce que vous avez déjà suivi ou surveillé depuis ce navigateur rejoindra votre compte.')}</p>
     </form>
   )

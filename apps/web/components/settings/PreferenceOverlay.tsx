@@ -405,7 +405,7 @@ function Group({
               }`}
             >
               <span
-                className={`w-12 shrink-0 text-[0.6875rem] font-medium uppercase ${
+                className={`w-12 shrink-0 text-micro font-medium uppercase ${
                   item.selected ? 'text-brand-strong' : 'text-ink-muted'
                 }`}
               >

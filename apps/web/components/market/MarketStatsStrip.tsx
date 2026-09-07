@@ -46,7 +46,7 @@ export async function MarketStatsStrip({
       <Cell label={t("En baisse")} value={String(losers)} tone="down" />
 
       <div className="col-span-2 bg-surface px-3 py-2 sm:col-span-4">
-        <p className="text-[0.6875rem] text-ink-muted">
+        <p className="text-micro text-ink-muted">
           {/* UNE SEULE PHRASE, avec un emplacement nommé, et non deux fragments
               collés autour de la variable. L'ordre des mots change d'une langue à
               l'autre : « Calculé sur X » se dit « X 上で計算 » en japonais, et deux
@@ -74,7 +74,7 @@ function Cell({
 }) {
   return (
     <div className="bg-surface px-3 py-2.5">
-      <dt className="text-[0.6875rem] text-ink-muted">{label}</dt>
+      <dt className="text-micro text-ink-muted">{label}</dt>
       <dd
         className={`mt-0.5 text-sm font-semibold ${
           tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : 'text-ink'

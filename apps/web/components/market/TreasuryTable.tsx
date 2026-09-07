@@ -209,7 +209,7 @@ export function TreasuryTable({ report, unit }: { report: TreasuryReport; unit: 
 
                   <td className="px-3 py-2.5">
                     <span className="block truncate font-medium text-ink">{holder.name}</span>
-                    <span className="block truncate text-[0.6875rem] text-ink-muted">
+                    <span className="block truncate text-micro text-ink-muted">
                       {holder.ticker ?? '—'}
                       {holder.country ? ` · ${holder.country}` : ''}
                     </span>

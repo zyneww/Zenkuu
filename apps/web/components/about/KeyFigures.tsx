@@ -89,7 +89,7 @@ export async function KeyFigures() {
         ))}
       </dl>
 
-      <p className="text-[0.6875rem] leading-relaxed text-ink-muted">
+      <p className="text-micro leading-relaxed text-ink-muted">
         {t(
           'Ces chiffres décrivent le produit, pas une audience. Vous ne trouverez ici ni nombre d’utilisateurs ni volume échangé : ZENKUU n’exécute aucune transaction, et publier des métriques invérifiables contredirait la règle qui interdit d’afficher une donnée qu’on ne peut pas sourcer.',
         )}

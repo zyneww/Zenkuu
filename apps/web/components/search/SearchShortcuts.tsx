@@ -40,7 +40,7 @@ export function SearchShortcuts({
          de cmdk, qui portent leur propre convention de navigation. Lui lire en plus
          « TAB flèche bas flèche haut » ajouterait du bruit à chaque ouverture. */
       aria-hidden="true"
-      className="mt-1.5 hidden items-center gap-3 border-t border-border-subtle px-2 pt-2 text-[0.6875rem] text-ink-muted sm:flex"
+      className="mt-1.5 hidden items-center gap-3 border-t border-border-subtle px-2 pt-2 text-micro text-ink-muted sm:flex"
     >
       <span className="flex items-center gap-1">
         <Kbd className="text-micro">Tab</Kbd>

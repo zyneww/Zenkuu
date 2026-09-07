@@ -124,7 +124,7 @@ export function HelpSearch({
                     href={{ pathname: '/aide/[slug]', params: { slug: article.slug } }}
                     className="block rounded-card border border-border-subtle bg-surface p-3 transition-colors hover:border-brand"
                   >
-                    <span className="text-[0.6875rem] font-medium text-ink-muted">
+                    <span className="text-micro font-medium text-ink-muted">
                       {t(article.categoryTitle)}
                     </span>
                     <span className="block text-sm font-medium text-ink">{t(article.title)}</span>

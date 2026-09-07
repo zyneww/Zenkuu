@@ -135,7 +135,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         <SearchResults search={search} scope={portee.active} onNavigate={onClose} />
       </CommandList>
 
-      <div className="flex items-center justify-between gap-4 border-t border-border-subtle px-4 py-2 text-[0.6875rem] text-ink-muted">
+      <div className="flex items-center justify-between gap-4 border-t border-border-subtle px-4 py-2 text-micro text-ink-muted">
         <span>{fr.search.hint}</span>
         <Kbd>{t('Échap')}</Kbd>
       </div>

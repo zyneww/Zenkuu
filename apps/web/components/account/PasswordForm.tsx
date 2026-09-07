@@ -287,7 +287,7 @@ function FloatingLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className={`pointer-events-none absolute left-3 top-2 z-10 text-[0.6875rem] transition-all duration-150 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[0.6875rem] ${
+      className={`pointer-events-none absolute left-3 top-2 z-10 text-micro transition-all duration-150 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-micro ${
         invalid ? 'text-down' : 'text-ink-muted peer-focus:text-brand'
       }`}
     >

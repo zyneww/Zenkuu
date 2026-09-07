@@ -63,7 +63,19 @@ export async function AnalyticsShell({
       {/* Le titre avant les onglets — l'ordre de `ChartsShell`, et celui de la question
           qu'on se pose : où suis-je, de quoi s'agit-il, que puis-je voir d'autre. */}
       <header className="space-y-1">
-        <h1 className="text-[1.375rem] font-semibold leading-tight text-ink">{t(title)}</h1>
+        {/* ⚠️ `display-xl` ET NON `text-[1.375rem] font-semibold`, POUR DEUX RAISONS.
+
+        La première est une règle : `text-[1.375rem]` est une valeur ARBITRAIRE, et
+        le socle n'en admet aucune — l'échelle porte le cran de titre de page, mesuré
+        sur quarante `h1` de la référence, et il vaut 24/700. Trente-huit titres du
+        site l'emploient ; ces deux coques faisaient 22/600 à part.
+
+        La seconde est un défaut visible. Relevé au navigateur sur `/fr/analytics` :
+        `h1` ET `h2` sortaient tous deux en 22/600 — le titre de la page ne primait
+        donc pas sur ses sections, et rien à l'œil ne disait lequel contenait
+        l'autre. Les sections restent en `display-sm` (22/600), qui passe désormais
+        proprement SOUS le titre. */}
+        <h1 className="display-xl text-ink">{t(title)}</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-ink-muted">{t(lead)}</p>
       </header>
 

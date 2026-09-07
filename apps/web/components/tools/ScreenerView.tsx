@@ -765,7 +765,7 @@ function Identity({ row }: { row: ScreenerRow }) {
           {row.name}
         </span>
         {row.meta ? (
-          <span className="block truncate text-[0.6875rem] text-ink-muted">{row.meta}</span>
+          <span className="block truncate text-micro text-ink-muted">{row.meta}</span>
         ) : null}
       </span>
       <span className="shrink-0 text-right text-xs uppercase text-ink-muted">{row.symbol}</span>

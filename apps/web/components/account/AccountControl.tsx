@@ -440,7 +440,7 @@ function AccountHeader({ account }: { account: AccountSummary }) {
         )}
 
         <div className="mt-0.5 flex items-center gap-1">
-          <span className="min-w-0 flex-1 truncate text-[0.6875rem] text-ink-muted">
+          <span className="min-w-0 flex-1 truncate text-micro text-ink-muted">
             {account.email}
           </span>
           <IconButton
@@ -491,7 +491,7 @@ function SecurityRow({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="rounded-card bg-surface-muted p-2">
-      <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{t('Fermer toutes les sessions, y compris celle-ci ?')}</p>
+      <p className="text-micro leading-relaxed text-ink-muted">{t('Fermer toutes les sessions, y compris celle-ci ?')}</p>
       {/* Les deux paires « confirmer / annuler » de ce panneau — celle-ci et celle de
           la suppression — sont désormais le `Button` de shadcn/ui en taille `xs`, la
           plus petite de son échelle. Elles portaient chacune deux chaînes de classes
@@ -566,7 +566,7 @@ function DangerRow() {
 
   return (
     <div className="rounded-card border border-down/40 bg-down-soft p-2">
-      <p className="text-[0.6875rem] leading-relaxed text-ink">{t('Supprime définitivement le compte, la liste de suivi et les écrans enregistrés.')}</p>
+      <p className="text-micro leading-relaxed text-ink">{t('Supprime définitivement le compte, la liste de suivi et les écrans enregistrés.')}</p>
       <div className="mt-2 flex gap-1">
         <Button
           size="xs"

@@ -270,7 +270,7 @@ const ATTRIBUTION =
   'ZENKUU agrège des titres publiés par des éditeurs tiers et renvoie vers leurs articles. Aucun texte intégral n’est republié, et ZENKUU n’est l’auteur d’aucun de ces contenus.'
 
 function Attribution({ note }: { note: string }) {
-  return <p className="text-[0.6875rem] leading-relaxed text-ink-muted">{note}</p>
+  return <p className="text-micro leading-relaxed text-ink-muted">{note}</p>
 }
 
 /**
@@ -387,11 +387,11 @@ function Badges({ article }: { article: NewsItem }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {label ? (
-        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[0.6875rem] font-medium text-brand-strong">
+        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-micro font-medium text-brand-strong">
           {label}
         </span>
       ) : null}
-      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[0.6875rem] font-medium text-ink-muted">
+      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-micro font-medium text-ink-muted">
         {article.source}
       </span>
     </div>

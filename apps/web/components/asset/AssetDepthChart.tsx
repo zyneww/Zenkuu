@@ -144,7 +144,7 @@ export function AssetDepthChart({ symbol }: { symbol: string }) {
         />
       </svg>
 
-      <figcaption className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[0.6875rem] text-ink-muted">
+      <figcaption className="mt-2 flex flex-wrap items-center justify-between gap-2 text-micro text-ink-muted">
         <span>
           {fill(t('{achat} à l’achat · {vente} à la vente, à ±{ecart} % du cours'), {
             achat: <span className="font-medium text-up">{formatQuantity(shape.bidTotal)}</span>,

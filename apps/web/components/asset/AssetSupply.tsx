@@ -169,7 +169,7 @@ async function Gauge({
         indicatorClassName={tone === 'brand' ? 'bg-brand' : 'bg-ink-muted'}
       />
 
-      <p className="tabular mt-1.5 text-[0.6875rem] text-ink-muted">{detail}</p>
+      <p className="tabular mt-1.5 text-micro text-ink-muted">{detail}</p>
     </div>
   )
 }

@@ -144,7 +144,7 @@ function Spotlight({ article }: { article: NewsItem }) {
         </span>
 
         <div className="flex flex-col gap-1.5">
-          <p className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
+          <p className="flex items-center gap-1.5 text-micro text-ink-muted">
             <SourceDot source={article.source} url={article.url} />
             <span className="truncate font-medium text-ink">{article.source}</span>
             <span aria-hidden="true">·</span>
@@ -248,7 +248,7 @@ function Feed({ articles }: { articles: NewsItem[] }) {
                 <span className="line-clamp-2 min-h-[2.06rem] text-xs font-medium leading-snug text-ink transition-colors group-hover:text-brand">
                   {article.title}
                 </span>
-                <span className="mt-1 flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
+                <span className="mt-1 flex items-center gap-1.5 text-micro text-ink-muted">
                   <SourceDot source={article.source} url={article.url} />
                   <span className="truncate">{article.source}</span>
                   <span aria-hidden="true">·</span>

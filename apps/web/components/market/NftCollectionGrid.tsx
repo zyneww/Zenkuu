@@ -55,7 +55,7 @@ export async function NftCollectionGrid({ collections }: { collections: NftColle
               <span className="block truncate text-sm font-semibold text-ink">
                 {collection.name}
               </span>
-              <span className="block truncate text-[0.6875rem] text-ink-muted">
+              <span className="block truncate text-micro text-ink-muted">
                 {collection.symbol ?? '—'}
                 {collection.totalSupply
                   ? ` · ${nombres.compact(collection.totalSupply)} pièces`
@@ -73,7 +73,7 @@ export async function NftCollectionGrid({ collections }: { collections: NftColle
                   : '—'}
               </dd>
               {collection.floorPriceUsd !== undefined ? (
-                <dd className="tabular text-[0.6875rem] text-ink-muted">
+                <dd className="tabular text-micro text-ink-muted">
                   {nombres.compact(collection.floorPriceUsd)} $
                 </dd>
               ) : null}

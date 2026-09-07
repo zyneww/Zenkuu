@@ -823,7 +823,7 @@ export function ChartToolbar(props: ChartToolbarProps) {
               key: 'tradingview',
               /* `tracking-wide` : deux capitales collées se lisent comme un seul
                  glyphe illisible à 11px. */
-              label: <span className="text-[0.6875rem] font-semibold tracking-wide">TV</span>,
+              label: <span className="text-micro font-semibold tracking-wide">TV</span>,
               ariaLabel: 'TradingView',
               title: 'TradingView',
             },

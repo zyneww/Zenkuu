@@ -95,12 +95,12 @@ export async function AssetSentiment({ asset }: { asset: AssetDetail }) {
         </Meter.Track>
       </Meter>
 
-      <div className="mt-2 flex items-baseline justify-between gap-3 text-[0.6875rem] text-ink-muted">
+      <div className="mt-2 flex items-baseline justify-between gap-3 text-micro text-ink-muted">
         <span>{t('Haussier')}</span>
         <span>{t('Baissier')}</span>
       </div>
 
-      <p className="mt-3 text-[0.6875rem] leading-relaxed text-ink-muted">
+      <p className="mt-3 text-micro leading-relaxed text-ink-muted">
         {t('Vote des visiteurs de la source, et non une mesure de marché : rien ne garantit qu’un vote corresponde à une position détenue.')}
       </p>
     </RailSection>

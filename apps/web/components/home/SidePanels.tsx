@@ -36,7 +36,7 @@ export async function NarrativesPanel({ result }: { result: DataResult<MarketCat
                   <span className="block truncate text-sm text-ink group-hover:text-brand">
                     {category.name}
                   </span>
-                  <span className="tabular block text-[0.6875rem] text-ink-muted">
+                  <span className="tabular block text-micro text-ink-muted">
                     {nombres.currency(category.marketCap, 'USD', { compact: true }) ?? '—'}
                   </span>
                 </Link>
@@ -99,7 +99,7 @@ export async function NewsPanel({
                   <span className="block text-xs leading-snug text-ink group-hover:text-brand">
                     {item.title}
                   </span>
-                  <span className="mt-0.5 block text-[0.6875rem] text-ink-muted">
+                  <span className="mt-0.5 block text-micro text-ink-muted">
                     {item.source} · {relativeTime(item.publishedAt)}
                   </span>
                 </a>
@@ -119,7 +119,7 @@ export async function NewsPanel({
             bloc. `<details>` satisfait les deux : la liste reste dans le document —
             donc lisible, sélectionnable, indexable — sans peser sur la mise en page.
           */}
-          <details className="mt-3 text-[0.6875rem] text-ink-muted">
+          <details className="mt-3 text-micro text-ink-muted">
             <summary className="cursor-pointer list-none transition-colors hover:text-ink">
               {t('Sources · les articles s’ouvrent chez leur éditeur')}
             </summary>
@@ -192,14 +192,14 @@ export async function SentimentPanel({ result }: { result: DataResult<SentimentI
         <p className={`text-sm font-medium ${tone}`}>{label}</p>
 
         {previousValue !== undefined ? (
-          <p className="mt-1 text-[0.6875rem] text-ink-muted">
+          <p className="mt-1 text-micro text-ink-muted">
             Veille : {previousValue} ({value > previousValue ? '+' : ''}
             {value - previousValue})
           </p>
         ) : null}
       </div>
 
-      <p className="mt-3 text-[0.6875rem] leading-relaxed text-ink-muted">
+      <p className="mt-3 text-micro leading-relaxed text-ink-muted">
         {fr.sentiment.disclaimer}
       </p>
       <SourceNote

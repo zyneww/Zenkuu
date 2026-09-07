@@ -152,7 +152,7 @@ export default async function Page({ params }: RouteParams) {
             de le laisser le chercher. */}
         <p className="text-xs text-ink-muted">
           {fill(t('Adresse du pool {adresse} · lecture seule, aucun ordre ne part d’ici.'), {
-            adresse: <code className="text-[0.6875rem]">{data.address}</code>,
+            adresse: <code className="text-micro">{data.address}</code>,
           })}
         </p>
       </header>
@@ -176,7 +176,7 @@ export default async function Page({ params }: RouteParams) {
           <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border-subtle bg-border-subtle sm:grid-cols-6">
             {(['m5', 'm15', 'm30', 'h1', 'h6', 'h24'] as const).map((window) => (
               <div key={window} className="bg-surface px-3 py-2 text-center">
-                <dt className="text-[0.6875rem] uppercase text-ink-muted">{t(WINDOW_LABEL[window]!)}</dt>
+                <dt className="text-micro uppercase text-ink-muted">{t(WINDOW_LABEL[window]!)}</dt>
                 <dd className="mt-0.5">
                   <ChangeBadge value={data.priceChange?.[window]} size="sm" />
                 </dd>

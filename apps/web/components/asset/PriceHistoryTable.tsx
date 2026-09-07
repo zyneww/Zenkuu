@@ -124,7 +124,7 @@ export async function PriceHistoryTable({
         </table>
       </div>
 
-      <p className="text-[0.6875rem] text-ink-muted">
+      <p className="text-micro text-ink-muted">
         {t('Dernière valeur reçue pour chaque journée. La variation est calculée d’une journée à la précédente au sein de cette série.')}
       </p>
     </section>

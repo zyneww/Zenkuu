@@ -292,7 +292,7 @@ export function ChartNavigator({
                   l'autre, ce qui se lit comme un défaut de rendu.
                 */}
                 <span
-                  className="whitespace-nowrap px-1 text-[0.6875rem] font-medium leading-none text-ink"
+                  className="whitespace-nowrap px-1 text-micro font-medium leading-none text-ink"
                   style={{
                     transform: `translateX(${
                       (tick.at < 0.15

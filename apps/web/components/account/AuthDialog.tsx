@@ -228,7 +228,7 @@ export function AuthDialog({
             resserre : elle reste utile — c'est le §5 qui impose de dire que le site
             n'exécute aucun ordre — mais elle n'est plus la dernière chose qu'on lit
             avant de renoncer. */}
-        <p className="mt-3 text-center text-[0.6875rem] leading-relaxed text-ink-muted">
+        <p className="mt-3 text-center text-micro leading-relaxed text-ink-muted">
           {t(
             'Un compte ZENKUU sert à retrouver votre liste de suivi d’un appareil à l’autre. Le site n’exécute aucun ordre et ne détient aucun fonds.',
           )}{' '}

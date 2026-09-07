@@ -82,7 +82,7 @@ export async function AssetPeerGrid({ peers }: { peers: MarketAsset[] }) {
             </div>
 
             {peer.marketCap !== undefined ? (
-              <p className="tabular border-t border-border-subtle pt-2 text-[0.6875rem] text-ink-muted">
+              <p className="tabular border-t border-border-subtle pt-2 text-micro text-ink-muted">
                 {t('Capitalisation')} {nombres.compact(peer.marketCap)} {peer.currency}
               </p>
             ) : null}

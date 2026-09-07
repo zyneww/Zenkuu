@@ -760,7 +760,7 @@ function CoverTag({ article }: { article: NewsItem }) {
   if (!article.category) return null
 
   return (
-    <span className="absolute left-3 top-3 rounded-pill bg-canvas/70 px-2.5 py-1 text-[0.6875rem] font-medium text-ink backdrop-blur-md">
+    <span className="absolute left-3 top-3 rounded-pill bg-canvas/70 px-2.5 py-1 text-micro font-medium text-ink backdrop-blur-md">
       {categoryLabel(article.category)}
     </span>
   )
@@ -924,7 +924,7 @@ function ArticleByline({ article }: { article: NewsItem }) {
   const locale = useLocale()
 
   return (
-    <p className="flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
+    <p className="flex items-center gap-1.5 text-micro text-ink-muted">
       <SourceDot source={article.source} url={article.url} />
       <span className="truncate font-medium text-ink">{article.author ?? article.source}</span>
       <span aria-hidden="true">·</span>

@@ -92,7 +92,7 @@ export async function DerivativesPanel({ markets }: { markets: DerivativeMarket[
                     <div className="h-1 flex-1 overflow-hidden rounded-pill bg-surface-muted">
                       <div className="h-full rounded-pill bg-brand" style={{ width: `${share}%` }} />
                     </div>
-                    <span className="tabular w-20 shrink-0 text-right text-[0.6875rem] text-ink-muted">
+                    <span className="tabular w-20 shrink-0 text-right text-micro text-ink-muted">
                       {entry.contracts} contrat{entry.contracts > 1 ? 's' : ''}
                     </span>
                   </div>

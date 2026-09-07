@@ -170,16 +170,32 @@ un écart : il suit le nombre de colonnes, et le socle le dit désormais explici
 Relevé final : `th 12/600` et `td 14/400` sur `/crypto`, `/categories`, `/screener`,
 `/places` et `/analytics`.
 
-### Ce qui reste, avec le motif
+### Les trois derniers points ouverts — traités
 
-- **Deux `SegmentedControl`** de même nom, l'un dans `ui/`, l'autre dans `settings/`. Ils
-  rendent des formes différentes ; les fondre demande de choisir laquelle le site garde.
-- **L'accueil est deux crans plus petit** — 11 px sur quarante nœuds contre 14 ailleurs.
-  Écart d'emploi, pas de jeton ; le corriger rallonge la page. Arbitrage de produit.
-- **`/analytics` et les graphiques globaux titrent en 22/600** quand le reste du site
-  titre en 24/700. C'est cohérent à l'intérieur de leur famille ; l'aligner demande de
-  relever d'abord leurs sous-titres, sous peine de décaler la hiérarchie au lieu de
-  l'aligner.
+**Les deux `SegmentedControl` n'étaient pas des doublons.** `ui/SegmentedControl` est un
+`ToggleGroup` de Radix, de largeur de contenu, dont l'indicateur est mesuré au pixel :
+c'est ce qu'il faut à une barre d'outils. L'autre est un `role="radiogroup"` de vraies
+cases `role="radio"`, toutes de largeur égale : c'est le motif ARIA d'un réglage exclusif,
+où une synthèse vocale annonce « 2 sur 3 ». Les fondre aurait coûté l'un ou l'autre. Le
+second devient **`SegmentedRadioGroup`**, et les deux en-têtes portent la règle de choix
+en vis-à-vis.
+
+**Les titres analytics étaient un vrai défaut, et pire qu'annoncé.** Relevé : `h1` ET
+`h2` sortaient tous deux en **22/600** sur `/fr/analytics` — le titre de la page ne
+primait donc pas sur ses sections. La cause était une valeur arbitraire,
+`text-[1.375rem] font-semibold`, dans `AnalyticsShell` et `ChartsShell`. Les deux passent
+à `display-xl` : `h1` 24/700 au-dessus de `h2` 22/600, hiérarchie rétablie et valeur
+arbitraire supprimée.
+
+**L'accueil à 11 px ne l'était pas.** Le détail des cinquante-sept nœuds : dix-sept
+libellés de statistique, vingt-six horodatages d'actualité, neuf noms de source. Tous des
+micro-libellés — exactement l'emploi que le socle prévoit pour ce cran. Aucun n'est du
+texte courant. L'audit avait compté sans regarder quoi.
+
+**Mais le vrai écart était derrière, et il touchait tout le site :** quatre-vingts
+littéraux `text-[0.6875rem]` dans quarante-sept fichiers écrivaient à la main la valeur
+que `.text-micro` porte déjà. Migrés — cinquante-sept nœuds à 11 px avant comme après,
+zéro classe arbitraire restante.
 
 **Le balayage est terminé** : onze familles sondées, plus les fiches d'actif qui servent
 de référence. Les trois dernières — carte thermique, changelog, comparateur — portent le
@@ -202,7 +218,7 @@ attendus. Le tableau dit ce qui a été **vérifié sur le rendu** et ce qui ne 
 | **Slider** | **conforme** | 12 sur `/screener`, tous natifs `input[type=range]`, tous étiquetés, `aria-valuetext` renseigné |
 | **Button group** | **conforme** | le sélecteur de thème est un `role="radiogroup"` nommé « Thème » portant 3 `role="radio"` |
 | **Button** | **corrigé** | aucun bouton visible sans nom accessible sur les cinq pages sondées ; géométrie ramenée au socle (voir T2) |
-| **Modal** | **corrigé (style), non vérifié (comportement)** | `rounded-card` + `shadow-overlay`. ⚠️ **Le comportement n'a pas pu être mesuré** : ni clic réel, ni clic synthétique, ni `Entrée` n'ouvrent les surfaces Radix sous automatisation — `aria-expanded` reste `false`. Le dépôt consignait déjà cette limite. Le piège de focus, `Échap` et la restitution du focus viennent de Radix Dialog par construction, mais **je ne les ai pas constatés** |
+| **Modal** | **corrigé, et vérifié** | Une `Dialog` s'ouvre au clic réel — c'est le `DropdownMenu` de l'engrenage qui résistait, pas les fenêtres. Constaté : `role="dialog"`, nommée par `aria-labelledby`, champs étiquetés, **piège de focus** (neuf tabulations sur sept éléments, le focus a bouclé sans sortir), `Échap` ferme, **fond retiré de l'arbre** (`aria-hidden` sur en-tête, nav, main et pied). ⚠️ **Un défaut réel trouvé et corrigé** : le focus retombait sur `<body>` au lieu de revenir au déclencheur — trois fenêtres sur quatre sont CONTRÔLÉES, sans `DialogTrigger`, donc Radix n'avait aucun nœud à qui le rendre. `useRestitutionDuFocus` le retient et le lui rend ; vérifié par marqueur d'identité sur deux fenêtres |
 | **Dropdown menu** | **corrigé (style), non vérifié** | même limite. `aria-haspopup="menu"` présent sur le déclencheur |
 | **Empty state** | **corrigé** | conteneur en `rounded-card`, vignette en `rounded-control` |
 | **Card** | **corrigé** | `rounded-card` partout, filet plutôt qu'ombre |
@@ -283,12 +299,21 @@ après relevé.
 
 ## Ce que ce chantier n'a pas fait
 
-- **Le comportement des surfaces superposées** (modale, mégamenu, sélecteur) n'a pas pu
-  être constaté : elles ne s'ouvrent sous aucune automatisation disponible ici. C'est la
-  seule lacune de vérification du rapport, et elle est structurelle, pas un oubli.
-- **T2 n'est pas terminé** : cinq familles de pages n'ont pas été sondées, et les trois
-  écarts de fond (densité de tableau, doublon de `SegmentedControl`, cran de l'accueil)
-  restent ouverts avec leur motif écrit.
+- **Les MENUS Radix** — le `DropdownMenu` de l'engrenage, les mégamenus de l'en-tête — ne
+  s'ouvrent sous aucune automatisation disponible ici : `aria-expanded` reste `false`
+  après un clic réel comme après `Entrée`. Le dépôt consignait déjà cette limite ailleurs.
+  Les FENÊTRES, elles, s'ouvrent — c'est ce qui a permis de vérifier le motif « Modal »,
+  et d'y trouver un défaut.
+- **`SegmentedRadioGroup` n'a pas pu être rendu** : son unique consommateur vit dans ce
+  même menu d'engrenage. Le renommage est pur, et typecheck, lint et tests le confirment.
 - **Aucun contrôle d'accessibilité automatisé** (axe-core, Lighthouse) n'a été exécuté :
   aucun n'est installé dans le dépôt. Tout ce qui figure au tableau vient d'une sonde
   écrite pour ce chantier et rejouée page par page.
+- **La grille de cartes n'a pas pu être vérifiée en étroit** : la fenêtre du navigateur
+  piloté refuse le redimensionnement (2400 px effectifs après une demande à 390).
+
+⚠️ **QUATRE FOIS, MES PROPRES MESURES ONT EU TORT**, et les quatre sont consignées dans
+`SITE_STYLE_AUDIT.md` pour qu'aucune ne soit « corrigée » plus tard : l'échantillonnage
+de la première cellule d'un tableau, les liens d'un `<details>` replié, les tuiles
+nommées par `title`, et le compte des nœuds à 11 px de l'accueil. Trois ont quand même
+mené à une amélioration réelle. Une mesure automatique est un indice, pas un verdict.

@@ -164,7 +164,7 @@ export function DexPoolTable({
                     {pool.name}
                   </span>
                   {pool.dex ? (
-                    <span className="block truncate text-[0.6875rem] text-ink-muted">
+                    <span className="block truncate text-micro text-ink-muted">
                       {pool.dex}
                       {pool.feePercent !== undefined
                         ? ` · ${nombres.number(pool.feePercent) ?? '—'} %`
@@ -176,7 +176,7 @@ export function DexPoolTable({
 
               {showNetwork ? (
                 <td className="hidden px-3 py-2 sm:table-cell">
-                  <span className="rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.6875rem] uppercase text-ink-muted">
+                  <span className="rounded-control bg-surface-muted px-1.5 py-0.5 text-micro uppercase text-ink-muted">
                     {pool.network}
                   </span>
                 </td>

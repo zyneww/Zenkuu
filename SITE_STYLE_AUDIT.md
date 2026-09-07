@@ -163,11 +163,33 @@ le plus large.
 une famille entière dont l'échelle interne se tient ; le faire sans relever d'abord ses
 sous-titres reviendrait à décaler la hiérarchie plutôt qu'à l'aligner.
 
-### G. L'accueil est deux crans plus petit que le reste du site
+### G. L'accueil à 11 px — ⚠️ CETTE SECTION DISAIT FAUX ELLE AUSSI
 
-Corps dominant : **11 px sur 40 nœuds**, contre 14 px partout ailleurs. Ce n'est pas un
-écart de jeton — `--text-2xs` existe et vaut 11 px — mais un écart d'EMPLOI : la page
-d'accueil emploie comme cran courant ce que le socle réserve aux pastilles d'état.
+**Ce qu'elle affirmait :** « Corps dominant : 11 px sur 40 nœuds, contre 14 px partout
+ailleurs. […] un écart d'EMPLOI : la page d'accueil emploie comme cran courant ce que le
+socle réserve aux pastilles d'état. »
+
+**Elle comptait sans regarder QUOI.** Le détail des cinquante-sept nœuds concernés :
+
+| Forme | Nombre | Ce que c'est |
+|---|---|---|
+| `SPAN.truncate.font-medium` | 17 | les libellés au-dessus des grands chiffres — « Capitalisation totale », « Dominance BTC » |
+| `TIME` | 26 | les horodatages des actualités — « il y a 1 h » |
+| `SPAN.truncate` | 9 | les noms de source et d'auteur |
+| autres | 5 | même nature |
+
+Ce sont **tous** des micro-libellés : exactement l'emploi que le socle prévoit pour ce
+cran. Aucun n'est du texte courant. L'accueil ne « lit pas plus petit », il porte
+simplement beaucoup de légendes — c'est une page de tableau de bord.
+
+**Le vrai écart était ailleurs, et il touchait tout le site :** quatre-vingts littéraux
+`text-[0.6875rem]` dans quarante-sept fichiers écrivaient à la main la valeur que
+`.text-micro` porte déjà. Le socle n'admet aucune valeur arbitraire, et le dépôt avait
+déjà fait exactement cette migration une fois — trente-huit `text-[0.625rem]`, dont la
+note de `globals.css` garde la trace.
+
+**Migrés.** Vérifié au navigateur : cinquante-sept nœuds à 11 px avant comme après, zéro
+classe arbitraire restante dans le rendu.
 
 ---
 

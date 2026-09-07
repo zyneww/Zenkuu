@@ -57,7 +57,7 @@ export function AssetRow({
       className="group -mx-2 flex items-center gap-2 rounded-control px-2 py-2 transition-colors duration-150 hover:bg-surface-muted/60"
     >
       {rank !== undefined ? (
-        <span className="tabular w-3 shrink-0 text-[0.6875rem] text-ink-muted">{rank}</span>
+        <span className="tabular w-3 shrink-0 text-micro text-ink-muted">{rank}</span>
       ) : null}
       <AssetLogo asset={asset} size={20} />
       {/* Le TICKER suit le nom, en gris et en capitales — la forme exacte de

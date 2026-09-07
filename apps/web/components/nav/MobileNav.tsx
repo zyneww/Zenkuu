@@ -285,7 +285,7 @@ export function MobileNav({
                             section.label ? (
                               <li
                                 key={`${menu.label}-titre-${sectionIndex}`}
-                                className="px-1 pb-1 pt-2 text-[0.6875rem] font-semibold text-ink-muted/70"
+                                className="px-1 pb-1 pt-2 text-micro font-semibold text-ink-muted/70"
                               >
                                 {t(section.label)}
                               </li>

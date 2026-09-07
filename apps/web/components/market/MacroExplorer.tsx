@@ -376,7 +376,7 @@ export function MacroExplorer({
             onValueChange={([next]) => setYear(Number(next))}
           />
 
-          <div className="tabular flex justify-between text-[0.6875rem] text-ink-muted">
+          <div className="tabular flex justify-between text-micro text-ink-muted">
             <span>{years[0]}</span>
             {/*
               LE DÉCOMPTE DES PAYS EST AFFICHÉ, et il varie beaucoup d'une année à
@@ -632,7 +632,7 @@ function ExportMenu({
       {done || failed ? (
         <p
           role="status"
-          className={`absolute right-0 top-9 z-20 flex items-center gap-1 whitespace-nowrap rounded-control px-2 py-1 text-[0.6875rem] ${
+          className={`absolute right-0 top-9 z-20 flex items-center gap-1 whitespace-nowrap rounded-control px-2 py-1 text-micro ${
             failed ? 'bg-down/15 text-down' : 'bg-surface text-ink'
           }`}
         >
@@ -687,7 +687,7 @@ function Scale({
   const steps = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
   return (
-    <div className="flex items-center gap-2 text-[0.6875rem] text-ink-muted">
+    <div className="flex items-center gap-2 text-micro text-ink-muted">
       {/* Le « ≤ » et le « ≥ » ne sont pas décoratifs : ils disent que les valeurs
           au-delà des bornes SATURENT au lieu d'être écrêtées ou exclues. */}
       <span className="tabular">≤ {formatMacroValue(low, scale, locale)}</span>
@@ -884,7 +884,7 @@ function CountryPanel({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold text-ink">{shown.country}</h2>
-          <p className="text-[0.6875rem] text-ink-muted">{shown.region}</p>
+          <p className="text-micro text-ink-muted">{shown.region}</p>
         </div>
         <IconButton
           size="icon-xs"
@@ -898,7 +898,7 @@ function CountryPanel({
       </div>
 
       <div>
-        <p className="text-[0.6875rem] text-ink-muted">{indicatorLabel}</p>
+        <p className="text-micro text-ink-muted">{indicatorLabel}</p>
         <p className="figure text-2xl font-bold text-ink">
           {formatMacroValue(shown.value, scale, locale)}{' '}
           <span className="text-sm font-medium text-ink-muted">{unit}</span>
@@ -912,7 +912,7 @@ function CountryPanel({
           croirait lire 2024 pour tout le monde — ce que la note de la page annonce,
           mais que le panneau doit rappeler là où le chiffre se lit.
         */}
-        <p className="text-[0.6875rem] text-ink-muted">
+        <p className="text-micro text-ink-muted">
           Observation {shown.year}
           {activeYear !== null && activeYear !== shown.year
             ? ` (curseur sur ${activeYear})`
@@ -966,7 +966,7 @@ function CountryPanel({
       {history.length > 1 && stats ? (
         <div className="space-y-1">
           <div className="flex items-baseline justify-between gap-2">
-            <p className="text-[0.6875rem] font-medium text-ink">{t('Historique')}</p>
+            <p className="text-micro font-medium text-ink">{t('Historique')}</p>
             {/* LE DÉCOMPTE D'ANNÉES PUBLIÉES, et il varie énormément d'un pays à
                 l'autre : la Banque mondiale renseigne la France depuis 1960 et le
                 Soudan du Sud depuis 2011. Sans lui, une courbe courte se lirait comme

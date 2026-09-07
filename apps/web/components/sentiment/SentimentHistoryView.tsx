@@ -112,7 +112,7 @@ export function SentimentHistoryView({
 function Cell({ label, value }: { label: string; value: number }) {
   return (
     <div className="bg-surface px-3 py-2.5">
-      {/* `text-micro` et non `text-[0.6875rem]` : c'est exactement le même cran, mais
+      {/* `text-micro` et non `text-micro` : c'est exactement le même cran, mais
           nommé par le design system plutôt que réécrit en littéral. */}
       <dt className="text-micro text-ink-muted">{label}</dt>
       <dd className="tabular mt-0.5 text-lg font-semibold text-ink">{value}</dd>

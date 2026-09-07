@@ -288,7 +288,7 @@ export function SearchResults({
         {/* Panne de la source crypto : on le dit au lieu de laisser croire qu'aucune
             cryptomonnaie ne correspond à la recherche (§5). */}
         {results.cryptoIndisponible ? (
-          <p className="px-3 py-2 text-[0.6875rem] text-ink-muted">{fr.search.cryptoUnavailable}</p>
+          <p className="px-3 py-2 text-micro text-ink-muted">{fr.search.cryptoUnavailable}</p>
         ) : null}
       </>
     )

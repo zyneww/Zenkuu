@@ -290,7 +290,7 @@ export function SectorMap({
               {group.header > 0 ? (
                 <Link
                   href={group.href}
-                  className="absolute inset-x-0 top-0 flex items-center gap-1.5 truncate px-1.5 text-[0.6875rem] font-medium text-white/85 transition-colors hover:text-white"
+                  className="absolute inset-x-0 top-0 flex items-center gap-1.5 truncate px-1.5 text-micro font-medium text-white/85 transition-colors hover:text-white"
                   style={{ height: `${group.header}%` }}
                 >
                   <span
@@ -363,7 +363,7 @@ export function SectorMap({
                             className="h-3.5 w-3.5 shrink-0 rounded-pill"
                           />
                         ) : null}
-                        <span className="truncate text-[0.6875rem] font-medium text-white">
+                        <span className="truncate text-micro font-medium text-white">
                           {tile.asset.name}
                         </span>
                       </span>

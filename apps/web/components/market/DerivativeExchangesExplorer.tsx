@@ -174,7 +174,7 @@ export function DerivativeExchangesExplorer({
               }`}
             >
               {t(entry.label)}
-              <span className="tabular text-[0.6875rem] opacity-70">{counts[entry.id]}</span>
+              <span className="tabular text-micro opacity-70">{counts[entry.id]}</span>
             </button>
           ))}
         </div>
