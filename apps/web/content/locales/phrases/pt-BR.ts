@@ -143,6 +143,7 @@ export const ptBRPhrases: Phrases = {
   'Connexion': 'Entrar',
   'Connexion à ZENKUU': 'Entrar no ZENKUU',
   'Prix/24 h %': 'Preço/24 h %',
+  'Catégories en vue': 'Categorias em destaque',
   'Continuer': 'Continuar',
   'Toujours pas connecté ?': 'Ainda não consegue entrar?',
   'Contexte indisponible': 'Contexto indisponível',

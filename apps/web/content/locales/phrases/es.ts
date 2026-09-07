@@ -149,6 +149,7 @@ export const esPhrases: Phrases = {
   'Connexion': 'Iniciar sesión',
   'Connexion à ZENKUU': 'Iniciar sesión en ZENKUU',
   'Prix/24 h %': 'Precio/24 h %',
+  'Catégories en vue': 'Categorías destacadas',
   'Continuer': 'Continuar',
   'Toujours pas connecté ?': '¿Sigues sin poder entrar?',
   'Contexte indisponible': 'Contexto no disponible',

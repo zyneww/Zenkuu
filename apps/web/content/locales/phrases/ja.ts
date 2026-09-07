@@ -143,6 +143,7 @@ export const jaPhrases: Phrases = {
   'Connexion': 'ログイン',
   'Connexion à ZENKUU': 'ZENKUU にログイン',
   'Prix/24 h %': '価格/24時間 %',
+  'Catégories en vue': '注目のカテゴリー',
   'Continuer': '続ける',
   'Toujours pas connecté ?': 'まだログインできませんか？',
   'Contexte indisponible': '背景情報を取得できません',

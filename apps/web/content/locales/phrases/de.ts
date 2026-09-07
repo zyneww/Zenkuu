@@ -150,6 +150,7 @@ export const dePhrases: Phrases = {
   'Connexion': 'Anmelden',
   'Connexion à ZENKUU': 'Bei ZENKUU anmelden',
   'Prix/24 h %': 'Preis/24 h %',
+  'Catégories en vue': 'Kategorien im Fokus',
   'Continuer': 'Weiter',
   'Toujours pas connecté ?': 'Anmeldung klappt immer noch nicht?',
   'Contexte indisponible': 'Kontext nicht verfügbar',

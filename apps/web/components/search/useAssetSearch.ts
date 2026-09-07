@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { AssetClass, MarketAsset, SearchResult } from '@zenkuu/data'
+import type { AssetClass, MarketAsset, MarketCategory, SearchResult } from '@zenkuu/data'
 
 export interface SearchResponse {
   crypto: SearchResult[]
@@ -108,6 +108,10 @@ export function useAssetSearch({ active }: { active: boolean }) {
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [trending, setTrending] = useState<MarketAsset[]>([])
+  /* Servies par la MÊME réponse que les tendances — voir `/api/tendances`, où les
+     deux lectures partagent un seul aller-retour. Un état séparé quand même, parce
+     que les deux sections tombent indépendamment : l'une peut être vide sans l'autre. */
+  const [categories, setCategories] = useState<MarketCategory[]>([])
   const trendingLoaded = useRef(false)
 
   /**
@@ -154,6 +158,7 @@ export function useAssetSearch({ active }: { active: boolean }) {
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
         if (payload?.trending) setTrending(payload.trending as MarketAsset[])
+        if (payload?.categories) setCategories(payload.categories as MarketCategory[])
       })
       .catch(() => {
         // Panne des tendances : la recherche reste pleinement utilisable. On
@@ -319,6 +324,7 @@ export function useAssetSearch({ active }: { active: boolean }) {
     results,
     loading,
     trending,
+    categories,
     followed,
     /** Vrai tant que la saisie est trop courte pour interroger le réseau. */
     showTrending: term.length < MIN_QUERY,

@@ -1,6 +1,6 @@
 'use client'
 
-import { Flame } from 'lucide-react'
+import { Flame, TrendingUp } from 'lucide-react'
 
 import { ChangeBadge } from '@/components/locale/ChangeBadge'
 
@@ -10,7 +10,8 @@ import { Money } from '@/components/locale/Money'
 import { monogram } from '@/components/asset/monogram'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
-import type { AssetClass } from '@zenkuu/data'
+import type { AssetClass, MarketCategory } from '@zenkuu/data'
+import { useFormatters } from '@/components/locale/useFormatters'
 import { useCallback, useMemo } from 'react'
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
@@ -109,7 +110,7 @@ export function SearchResults({
     },
     [remember, onNavigate],
   )
-  const { results, loading, trending, followed, showTrending, found: tous, query } = search
+  const { results, loading, trending, categories, followed, showTrending, found: tous, query } = search
   const term = query.trim()
 
   /* La portée retranche, elle ne cherche pas : le serveur a déjà répondu, et restreindre
@@ -230,6 +231,71 @@ export function SearchResults({
             <p className="px-3 py-4 text-xs text-ink-muted">{fr.search.trendingEmpty}</p>
           )}
         </CommandGroup>
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            LA SECONDE SECTION — RELEVÉE SUR LA RECHERCHE D'UNISWAP
+            ══════════════════════════════════════════════════════════════════════
+
+            Leur panneau ouvre sur DEUX listes : « Popular tokens » puis « Popular NFT
+            collections », chacune précédée d'une icône de tendance, chaque ligne
+            portant un logo rond, un nom, une mention grise dessous et une valeur
+            cadrée à droite.
+
+            ── POURQUOI PAS DES COLLECTIONS NFT, QUI SERAIT LA COPIE EXACTE ───────
+
+            Parce que ZENKUU ne peut pas en publier un CLASSEMENT. L'endpoint qui
+            classe les collections par volume (`/nfts/markets`) est réservé à l'offre
+            payante de la source — il répond `error_code 10005`, vérifié, et c'est
+            consigné dans `coingecko-extras.ts`. Ce site n'a qu'une SÉLECTION arrêtée
+            de six collections, lues une par une.
+
+            Intituler « populaires » une liste écrite à la main serait faux, et six
+            appels séquencés derrière un limiteur ouvriraient le panneau en plusieurs
+            secondes au lieu d'un instant.
+
+            ── CE QUE LA SECTION PORTE À LA PLACE ────────────────────────────────
+
+            Les catégories, qui sont un VRAI classement : `getTopNarratives` trie les
+            secteurs par ampleur du mouvement sur vingt-quatre heures, au-dessus d'un
+            milliard de capitalisation. Un seul appel, déjà partagé avec le panneau
+            « Narratifs » de l'accueil, et servi dans la même réponse que les
+            tendances ci-dessus.
+
+            La grammaire de ligne est celle de ce panneau d'accueil — nom, puis
+            capitalisation en gris dessous, variation à droite — transposée dans la
+            géométrie des lignes de recherche. C'est exactement la disposition de la
+            capture : le nom, un fait de TAILLE en gris dessous (chez eux « 8,888
+            items »), et la valeur à droite.
+
+            ⚠️ LA CAPITALISATION RESTE EN DOLLARS, ET N'EST PAS CONVERTIE. La source
+            ne la publie qu'ainsi pour les catégories — c'est la même réserve que porte
+            `NarrativesPanel`, et la convertir donnerait un montant juste au change du
+            jour mais faussement précis sur une donnée déjà agrégée.
+            ══════════════════════════════════════════════════════════════════════ */}
+        {categories.length > 0 ? (
+          <CommandGroup
+            heading={
+              <GroupHeading
+                title={t('Catégories en vue')}
+                /* La courbe ascendante, et non la flamme des tendances. Ici elle est
+                   JUSTE : `getTopNarratives` classe par ampleur du mouvement, ce qui
+                   est bien une variation. La flamme, elle, dit « on en parle » — ce
+                   que mesure le classement des tendances, et pas celui-ci. */
+                icon={<TrendingUp className="size-3.5" aria-hidden="true" />}
+                /* PAS d'intitulé de colonne, contrairement aux tendances au-dessus.
+                   Là-haut il en faut un : deux colonnes se suivent à droite, un cours
+                   et une variation, et rien ne dit laquelle est laquelle. Ici la
+                   droite ne porte qu'une pastille colorée signée — elle se décrit
+                   seule, et un « 24 h % » de plus n'aurait fait qu'allonger un titre
+                   déjà long dans un panneau de 26 rem. */
+              />
+            }
+          >
+            {categories.map((category) => (
+              <CategoryRow key={category.id} category={category} onNavigate={onNavigate} />
+            ))}
+          </CommandGroup>
+        ) : null}
       </>
     )
   }
@@ -551,5 +617,90 @@ function ResultRow({
         </Link>
       </CommandItem>
     </div>
+  )
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * LA LIGNE D'UNE CATÉGORIE — PROCHE DE `ResultRow`, MAIS PAS LA MÊME
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI UN COMPOSANT SÉPARÉ PLUTÔT QUE TROIS PROPRIÉTÉS DE PLUS ─────────
+ *
+ * `ResultRow` porte déjà onze propriétés, dont trois liées entre elles par un
+ * commentaire (« cours, devise et variation voyagent ensemble ou pas du tout ») et
+ * une quatrième — l'étoile de suivi — qui l'oblige à s'envelopper dans un conteneur
+ * positionné. Une catégorie n'a AUCUNE de ces quatre : pas de symbole, pas de rang,
+ * pas de cours convertible, et rien à suivre.
+ *
+ * L'y faire entrer aurait demandé de rendre facultatif ce qui ne l'est pas — le
+ * symbole, qui est la voix principale de sa première ligne — et de brancher chaque
+ * bloc sur son absence. Vingt lignes ici coûtent moins qu'un composant qui rend deux
+ * objets différents selon ce qu'on ne lui passe pas.
+ *
+ * ── CE QUI EST DÉLIBÉRÉMENT PARTAGÉ ─────────────────────────────────────────
+ *
+ * La GÉOMÉTRIE, à la classe près : mêmes `gap-3 rounded-control px-3 py-2`, même
+ * vignette de 22 px, mêmes corps de 13 et 11 px, même surbrillance de sélection. Les
+ * deux sections doivent se parcourir comme une seule liste — c'est ce que fait la
+ * capture d'Uniswap, dont les deux sections ont exactement la même ossature de ligne.
+ */
+function CategoryRow({
+  category,
+  onNavigate,
+}: {
+  category: MarketCategory
+  onNavigate: () => void
+}) {
+  const nombres = useFormatters()
+  const t = usePhrase()
+
+  /* Le premier logo représentatif publié par la source (`top_3_coins`). Il ne coûte
+     aucun appel — il arrive dans la même réponse que la catégorie. */
+  const logo = category.topAssets?.[0]
+
+  return (
+    <CommandItem
+      asChild
+      /* Voir `ResultRow` : `value` est l'identité de ligne pour cmdk. Le nom seul
+         suffit ici — deux secteurs homonymes n'existent pas dans cette source. */
+      value={category.name}
+      className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+    >
+      <Link
+        href={{ pathname: '/categories/[id]', params: { id: category.id } }}
+        onClick={onNavigate}
+      >
+        {logo ? (
+          // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
+          <img src={logo} alt="" width={22} height={22} className="shrink-0 rounded-pill" loading="lazy" />
+        ) : (
+          <span
+            className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
+            aria-hidden="true"
+          >
+            {monogram(category.name, category.name)}
+          </span>
+        )}
+
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          {/* Pas de capitales ici, contrairement au symbole d'un actif : « Real World
+              Assets » en capitales se lirait comme un sigle. */}
+          <span className="truncate text-[13px] font-medium text-ink">{category.name}</span>
+
+          {/* Le fait de TAILLE, en gris — la place qu'occupe « 8,888 items » dans la
+              capture. En dollars et non converti : voir la réserve de la section. */}
+          <span className="tabular truncate text-[11px] text-ink-muted">
+            {nombres.currency(category.marketCap, 'USD', { compact: true }) ?? '—'}
+            {/* Sans ce mot, la synthèse vocale lit « Real World Assets, 12 Md $ »
+                sans dire de QUOI parle le montant — un cours ? un volume ? À l'œil la
+                colonne se devine par sa place ; à l'oreille il n'y a pas de colonne. */}
+            <span className="sr-only"> {t('Capitalisation')}</span>
+          </span>
+        </span>
+
+        <ChangeBadge value={category.marketCapChange24h} size="sm" />
+      </Link>
+    </CommandItem>
   )
 }

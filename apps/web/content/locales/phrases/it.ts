@@ -143,6 +143,7 @@ export const itPhrases: Phrases = {
   'Connexion': 'Accedi',
   'Connexion à ZENKUU': 'Accedi a ZENKUU',
   'Prix/24 h %': 'Prezzo/24 h %',
+  'Catégories en vue': 'Categorie in evidenza',
   'Continuer': 'Continua',
   'Toujours pas connecté ?': 'Ancora impossibile accedere?',
   'Contexte indisponible': 'Contesto non disponibile',
