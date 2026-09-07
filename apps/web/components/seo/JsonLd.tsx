@@ -17,6 +17,28 @@ import { absoluteUrl } from '@/lib/site'
  * `FAQPage` / `Article` là où le contenu s'y prête vraiment.
  */
 
+/**
+ * ⚠️ REACT AVERTIT SUR CETTE BALISE, ET L'AVERTISSEMENT NE S'APPLIQUE PAS ICI.
+ *
+ * Relevé en console : « Encountered a script tag while rendering React component.
+ * Scripts inside React components are never executed when rendering on the client.
+ * Consider using template tag instead. »
+ *
+ * Il vise les scripts EXÉCUTABLES, et celui-ci n'en est pas un : `application/ld+json`
+ * n'est pas un type MIME de JavaScript, donc aucun navigateur ne l'exécute — ni au
+ * rendu serveur, ni au rendu client. C'est un bloc de DONNÉES, lu par les robots dans
+ * le HTML servi.
+ *
+ * ⚠️ NE PAS LE « CORRIGER » EN `next/script`. Ce composant sert à charger et exécuter du
+ * code ; il déplacerait la balise, changerait son moment d'insertion et pourrait la
+ * sortir du HTML initial — c'est-à-dire exactement de l'endroit où un robot la lit. La
+ * suggestion de `<template>` est pire encore : son contenu est inerte et invisible aux
+ * analyseurs de données structurées.
+ *
+ * `ThemeScript`, lui, porte du code qui DOIT s'exécuter avant la première peinture, et
+ * passe donc bien par `next/script` en `beforeInteractive` — voir sa note. Les deux
+ * cas se ressemblent et ne se traitent pas pareil.
+ */
 function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   return (
     <script
