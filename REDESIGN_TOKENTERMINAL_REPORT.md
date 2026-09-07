@@ -17,12 +17,12 @@ Point de retour antérieur au chantier Tokenomist : `avant-ui/ux-tokenomist` (`f
 | **T2** — recherche globale | **fait** | Pastilles de raccourcis, recherches récentes, liste de suivi, tendances classées, légende clavier. |
 | **T3** — nettoyage accueil | **fait** | Ticker défilant, menu « Les plus populaires » et champ « Filtrer » retirés, avec leur machinerie. |
 | **T4** — Headless UI | **fait** | Les quatre rangées à contrat ARIA rompu sont traitées : deux `RadioGroup`, un `TabGroup` restructuré, un filtre remis en `aria-pressed`. |
-| **T5** — documentation | **partiel** | Guide écrit et publié sur `main`, MCP autorisé, `.gitbook.yaml` en place. Reste **une étape d'interface** : finir l'installation Git Sync. Voir §5. |
+| **T5** — documentation | **fait** | Git Sync actif sur `zyneww/Zenkuu@main`, 7 pages et 3 groupes importés. Reste **la mise en ligne**, qui est une décision. Voir §5. |
 | **T6** — Font Awesome | **fait, sans remplacement** | Câblé et vérifié ; l'audit n'a trouvé aucune icône incohérente à remplacer. Voir §6. |
 
-⚠️ **Une seule tâche n'est pas close** — T5, et son dernier obstacle n'est plus une
-autorisation mais **un réglage d'interface** que l'API GitBook n'expose pas. Le §5 donne
-la marche à suivre en quatre points. Le reste est en place et vérifié au navigateur.
+⚠️ **Les six tâches sont faites.** Il reste UNE décision, pas un blocage : le site de
+documentation est synchronisé et vérifié, mais `published: false` — le mettre en ligne
+appartient à l'exploitant. Le §5 dit où en est chaque pièce.
 
 ---
 
@@ -257,36 +257,52 @@ que le blocage n'avait jamais été là où je le croyais.
 | `.gitbook.yaml` | ✔ racine `./docs/guide/`, `readme: README.md`, `summary: SUMMARY.md` |
 | Publication sur `main` | ✔ `7179104..624bbf0`, avance rapide pure — le sync a désormais quelque chose à tirer |
 
-### ⚠️ Ce qui reste, et pourquoi je ne peux pas le faire
+### ⚠️ Le fichier attendu n'était pas celui que j'avais posé
 
-L'espace est en **`editMode: "locked"`**, et la cause est nommée par l'API elle-même :
+L'assistant de configuration refusait de démarrer : « `gitbook-docs.yaml` does not exist
+on this branch ». Le dépôt portait `.gitbook.yaml`, à la racine. Bon fichier, **mauvais
+étage** — ce sont deux configurations distinctes :
 
-    "gitSync": { "installationProvider": "github", "installationStatus": "pending" }
+| Fichier | Étage | Où |
+|---|---|---|
+| `gitbook-docs.yaml` | **le site** — quels espaces, à quelle adresse, quel dossier les alimente | racine du dépôt |
+| `.gitbook.yaml` | **un espace** — où sont son accueil et son sommaire | dans `docs/guide/` |
 
-**Une installation Git Sync a été commencée le 2026-09-06 et jamais terminée.** GitBook
-verrouille un espace dès qu'un dépôt en devient la source ; la synchronisation étant
-restée `pending`, l'espace est verrouillé *sans* recevoir de contenu. C'est l'impasse que
-le commit `c4acf2d` avait constatée en écrivant « l'espace GitBook est verrouillé ».
+Le montage est celui d'un **site**, donc `gitbook-docs.yaml` est requis et `.gitbook.yaml`
+descend dans le dossier de l'espace, sa `root` passant de `./docs/guide/` à `./`.
 
-Le guide d'usage du serveur est formel : « **Git Sync setup is not available through this
-server.** » Aucun outil MCP ne termine une installation GitHub — c'est une étape de
-l'interface, et écrire les pages par l'API à la place serait un contresens : cela ferait
-de GitBook la source de vérité contre le dépôt, exactement ce que `.gitbook.yaml` met en
-garde de ne pas faire.
+Le schéma publié autorise un espace au premier niveau — « a site either uses sections […]
+or lists its spaces at the top level, never both » —, donc pas de section : elles n'ont
+de sens qu'à partir de trois espaces.
 
-### La marche à suivre — quatre points
+### Le résultat, vérifié par l'API
 
-1. Ouvrir l'espace : `https://app.gitbook.com/o/VNNShnnbfRfr9IjBTiL3/s/H92Om9ArW2NG9kLIhWoi/`
-2. Dans **Integrations → Git Sync**, finir l'installation de l'app GitHub et choisir le
-   dépôt **`zyneww/Zenkuu`**, branche **`main`**.
-3. ⚠️ **Choisir le sens Git → GitBook pour le premier échange.** L'inverse écraserait
-   `docs/guide` avec le contenu de l'espace, qui est vide. Ce sens-là est irréversible
-   dans ses effets : il n'y a rien à récupérer une fois le dossier remplacé.
-4. `.gitbook.yaml` étant à la racine du dépôt, GitBook lira `docs/guide/` seul. Les autres
-   documents de `docs/` — plans, audits, relevés — restent hors ligne, ce qui est voulu.
+| Contrôle | Résultat |
+|---|---|
+| `installationStatus` | **`active`** (était `pending`) |
+| Dépôt et branche | `zyneww/Zenkuu`, `tree/main` |
+| Sens du premier échange | `direction: "import"` — **Git → GitBook**, comme voulu |
+| État de l'opération | `state: "success"` |
+| Commit synchronisé | `939b167f` |
+| Contenu importé | **7 pages, 3 groupes**, exactement le `SUMMARY.md` |
+| Correspondance des fichiers | chaque page porte le `git.path` de son fichier source |
+| Rendu | tableau, `<kbd>`, liens internes réécrits vers les chemins GitBook |
+| Langue | `fr`, reprise de `content.language` |
 
-Une fois l'échange passé, `get_site_structure` montrera les pages importées et l'espace
-sortira de `locked`.
+⚠️ **`editMode` reste `locked`, et c'est désormais correct** : un espace synchronisé est
+verrouillé parce que le dépôt en est la source. Ce n'est plus le symptôme d'une impasse,
+c'est la marque du bon montage.
+
+### Ce qui reste — deux décisions, pas des blocages
+
+1. **Le site n'est pas en ligne** : `published: false`. Le contenu est là et consultable
+   en aperçu (`https://sites.gitbook.com/preview/site_bFvaH/`), mais publier rend la
+   documentation visible de tous — c'est une décision d'exploitant, pas une étape
+   technique.
+2. **L'ancien espace « Untitled » subsiste, détaché** (`H92Om9ArW2NG9kLIhWoi`) : sans
+   synchronisation, sans contenu, hors du site. C'est exactement le comportement que
+   `gitbook-docs.yaml` documente à propos de `key` — déclarer une clé neuve crée un
+   espace et détache l'ancien. Le supprimer est irréversible et n'a rien d'urgent.
 
 ---
 
@@ -404,9 +420,8 @@ l'aurait refermé aussi, en retirant soixante-dix-huit lignes au lieu d'en ajout
 
 ## 9. Ce qui reste à faire
 
-1. **T5 — finir l'installation Git Sync** dans l'interface GitBook, en Git → GitBook.
-   **C'est le seul blocage restant, et l'API ne l'expose pas.** Le §5 donne les quatre
-   points. Tout le reste de T5 est fait : contenu, configuration, publication sur `main`.
+1. **Mettre le site de documentation en ligne** — `published: false` aujourd'hui. Tout
+   le reste de T5 est fait et vérifié ; c'est une décision, pas un blocage.
 2. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
    navigateur, mais la navigation au clavier n'a pas été éprouvée route par route sur les
    64 pages.
