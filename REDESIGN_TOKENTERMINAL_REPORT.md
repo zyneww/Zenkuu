@@ -304,6 +304,34 @@ doit se faire **d'un seul tenant**.
 
 ---
 
+## 6 bis. Deux dettes héritées, refermées en chemin
+
+**La synthèse vocale parlait français dans les treize langues.** `ChangeBadge` construit
+un `aria-label` et une infobulle que l'œil ne voit jamais : les deux étaient écrits en
+français et sortaient tels quels partout, sur un badge présent dans trente-deux fichiers.
+Le composant prévoyait pourtant une prop `libelles`, jamais passée. L'enveloppe
+`components/locale/ChangeBadge` injecte déjà `locale` pour les quarante-sept appels ;
+elle injecte désormais aussi les mots et la période, par le même chemin et sans qu'aucun
+appel ne change.
+
+⚠️ **Une note de ce rapport attribuait la moitié du défaut au fournisseur** — via
+`changePeriodLabel`. C'était inexact : ce champ n'est écrit qu'à un seul endroit du
+dépôt, `providers/frankfurter.ts`, par notre propre code. Rien ne venait du dehors, donc
+rien n'était hors de portée.
+
+**Le code mort a été balayé.** Le triangle `SectorMap` ayant été trouvé par accident, les
+six dossiers de `apps/web` ont été passés au crible. Trente-quatre candidats, **cinq
+vrais** — les autres étant des catalogues chargés par `import()` explicite, une
+convention next-intl, un module lu par `next.config.ts`, et un nom de deux lettres à
+quarante appelants. 329 lignes de plus retirées, chaque symbole vérifié un par un.
+
+⚠️ **J'avais réparé du code mort.** `hooks/use-resize-observer.ts` est de la partie :
+c'est le fichier dont j'ai corrigé l'import `@react-types/shared` en début de chantier.
+Le défaut était réel — tout clone neuf échouait au typecheck — mais le supprimer
+l'aurait refermé aussi, en retirant soixante-dix-huit lignes au lieu d'en ajouter dix.
+
+---
+
 ## 7. Décisions prises, et par qui
 
 | Décision | Arbitrée par |
@@ -339,23 +367,23 @@ doit se faire **d'un seul tenant**.
 | Projection macro au clavier | `→` bascule Carte → Globe, `aria-checked` suit |
 | `role="tab"` écrits à la main | **0** restant dans le balisage |
 | Lecture vocale de la variation | `/crypto/bitcoin` en anglais : « down by minus 0.57% over 24 hours » |
+| Périodes lues à voix haute | accueil en anglais : « over 24 hours / 1 hour / 7 days / 30 days » |
+| Code mort restant | balayage de six dossiers : 5 orphelins retirés, 329 lignes |
 
 ---
 
 ## 9. Ce qui reste à faire
 
 1. **T5 — autoriser le MCP GitBook** dans une session interactive, puis y porter
-   `docs/guide`. C'est le seul blocage restant, et il demande une action humaine.
-2. **`periodLabel` reste en français** quand un appelant en passe un. Il vient soit d'une
-   chaîne écrite dans le code appelant, soit de `changePeriodLabel`, que le fournisseur
-   publie — deux sources distinctes, toutes deux hors de l'enveloppe qui vient de
-   traduire le reste du badge. Sans `periodLabel`, le repli est bien traduit.
-3. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
+   `docs/guide`. **C'est le seul blocage restant, et il demande une action humaine.**
+2. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
    navigateur, mais la navigation au clavier n'a pas été éprouvée route par route sur les
    64 pages.
-4. **Chercher les autres orphelins.** Le triangle `SectorMap` / `explorer-sectors` a été
-   trouvé par accident, en cherchant où vérifier une migration. Rien ne dit qu'il était
-   le seul — un balayage des composants sans appelant vaudrait le détour.
+3. **`AssetSentiment` est mort et reste** — 109 lignes dont la seule mention du dépôt est
+   un commentaire disant « A ÉTÉ RETIRÉ DE LA FICHE (demande explicite) ». Même statut
+   qu'`AssetPriceCard`, retirée puis **rétablie** ce mois-ci. Un composant gardé exprès
+   n'est pas un orphelin, et le supprimer ferait de la prochaine demande une réécriture.
+   À trancher par l'exploitant, pas par un balayage.
 
 ---
 
