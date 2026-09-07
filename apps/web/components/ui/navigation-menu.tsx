@@ -136,7 +136,32 @@ function NavigationMenuViewport({
         pour un gain nul.
       */
       className={cn(
-        "absolute top-full left-[var(--nav-viewport-center,50%)] isolate z-50 flex justify-start"
+        "absolute top-full left-[var(--nav-viewport-center,50%)] isolate z-50 flex justify-start",
+        /* ── LE GLISSEMENT D'UN MENU À L'AUTRE ─────────────────────────────
+
+           `left` changeait sans transition : le panneau se TÉLÉPORTAIT sous le bouton
+           suivant. Mesuré sur wrangle.ai le 2026-09-07, leur panneau interpole au
+           contraire `left` en gardant `opacity: 1` et `transform: none` — il se
+           déforme au lieu de disparaître puis de reparaître.
+
+           ⚠️ CONDITIONNÉ À `data-shifting`, posé par `NavMenus` uniquement quand un
+           panneau était DÉJÀ ouvert. Sans cette garde, la première ouverture ferait
+           traverser la barre au panneau depuis sa position précédente.
+
+           ⚠️ LA COURBE N'EST PAS CELLE DE L'ENTRÉE, ET C'EST UNE MESURE, PAS UN GOÛT.
+           Relevé sur la même référence, les deux gestes ont deux profils :
+
+             repère   |  leur entrée  |  leur passage
+             ─────────+──────────────+──────────────
+              50 %    |     11 %      |     15 %
+              90 %    |     34 %      |     47 %
+
+           Le passage est plus DOUX que l'entrée : le panneau est déjà sous les yeux,
+           il n'a pas à se faire remarquer. Appliquer ici l'`easeOutExpo` de l'entrée
+           donnait 50 % à 7 % et 90 % à 30 % — mesuré sur cette page, deux fois trop
+           nerveux. `cubic-bezier(0.25, 1, 0.5, 1)` (easeOutQuart) rend 16 % et 44 %. */
+        "group-data-[shifting=true]/navigation-menu:transition-[left] group-data-[shifting=true]/navigation-menu:duration-200 group-data-[shifting=true]/navigation-menu:ease-[cubic-bezier(0.25,1,0.5,1)]",
+        "motion-reduce:transition-none"
       )}
     >
       <NavigationMenuPrimitive.Viewport
@@ -178,12 +203,63 @@ function NavigationMenuViewport({
 
            Le geste retiré venait d'OKX, comme la palette sombre venait de Dropstab et
            l'ombre des panneaux flottants — dernier de la série. */
-        "origin-top-left relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-overlay md:w-[var(--radix-navigation-menu-viewport-width)]",
-          /* L'entrée : opacité et 4 px de glissement vertical, jamais la taille.
+        "origin-[var(--nav-origin-x,0px)_0] relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-overlay md:w-[var(--radix-navigation-menu-viewport-width)]",
+          /* La hauteur suit `left` : c'est l'autre moitié de la déformation mesurée
+             chez la référence, où `width` et `height` interpolent avec la position.
+             La LARGEUR, elle, est constante ici (voir `PANEL_TOTAL_WIDTH`) — il n'y a
+             donc rien à y animer. */
+          "group-data-[shifting=true]/navigation-menu:transition-[height] group-data-[shifting=true]/navigation-menu:duration-200 group-data-[shifting=true]/navigation-menu:ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none",
+          /* ── L'ENTRÉE, MESURÉE À L'IMAGE PRÈS SUR WRANGLE.AI LE 2026-09-07 ─────
+
+             Échantillonnage `rAF` du style en ligne de leur panneau, du premier bond
+             au repos :
+
+               `opacity 0→1` · `translateY(-8px)→0` · `scaleX(0.96)→1` · `scaleY(0.94)→1`
+
+             Repères de la courbe : 50 % à 24 ms, 90 % à 74 ms, 99 % à 130 ms, repos à
+             215 ms, SANS DÉPASSEMENT. C'est un ressort critique ; `cubic-bezier(0.16,
+             1, 0.3, 1)` sur 200 ms en est l'équivalent en CSS pur — mêmes repères à
+             quelques millisecondes près, et pas de moteur d'animation à installer.
+
+             ⚠️ L'AGRANDISSEMENT EST DE RETOUR, ET CE N'EST PAS UN OUBLI. La note du
+             viewport dit que `zoom-in-90` avait été retiré parce qu'un agrandissement
+             « déplace le texte sous le curseur — on vise un lien, il bouge, on clique à
+             côté ». L'objection tenait pour 10 % ; elle ne tient pas ici, pour deux
+             raisons vérifiables :
+
+               · 5 % ET NON 10 %. Sur un panneau de 284 px, `zoom-in-95` déplace son
+                 bord de 7 px, contre 14 pour `zoom-in-90`. Mesuré chez la référence :
+                 0,96 en largeur et 0,94 en hauteur — `zoom-in-95` tombe entre les
+                 deux, à moins de 3 px d'écart sur toute la boîte.
+               · PENDANT L'ENTRÉE, LE CURSEUR EST SUR LE BOUTON. Le panneau naît
+                 au-dessous de lui ; il n'y a aucun lien sous le pointeur à rater. Le
+                 défaut décrit exigeait un panneau qui bouge alors qu'on le VISE.
+
+             L'origine (`--nav-origin-x`, posée par `NavMenus`) est le milieu de
+             l'intitulé, comme chez eux : le panneau s'ouvre sous le mot survolé.
+
+             ⚠️ LA SORTIE N'A PAS PU ÊTRE MESURÉE. Leur animation est pilotée en
+             `requestAnimationFrame`, que Chrome coupe dès que l'onglet passe en
+             arrière-plan — la fermeture ne se JOUE tout simplement pas sous
+             automatisation. Les valeurs de sortie ci-dessous restent donc celles du
+             projet : plus courtes que l'entrée, sans agrandissement. Elles ne
+             prétendent à aucun relevé.
+
              `motion-reduce:animate-none` — un panneau qui glisse est exactement ce
              qu'un utilisateur sensible au mouvement demande à ne pas voir, et il n'a
              rien à y perdre : le panneau apparaît, simplement. */
-          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:duration-150 data-[state=closed]:duration-100 motion-reduce:animate-none",
+          /* ⚠️ `[animation-*]` ET NON `duration-*` / `ease-*`, ET C'EST UN DÉFAUT
+             MESURÉ, PAS UN GOÛT DE SYNTAXE. Ces deux utilitaires de Tailwind posent
+             `animation-…` ET `transition-…` à la fois. Comme le viewport reste
+             `data-[state=open]` PENDANT le glissement, la courbe d'entrée écrasait
+             celle du glissement : relevé au navigateur, `transition-timing-function`
+             valait `cubic-bezier(0.16, 1, 0.3, 1)` sur `height` alors que `left`
+             glissait en `cubic-bezier(0.25, 1, 0.5, 1)` — les deux moitiés de la même
+             déformation se désynchronisaient. Visées sur `animation-…` seul, elles ne
+             touchent plus rien d'autre. */
+          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-2 data-[state=open]:zoom-in-95 data-[state=open]:[animation-duration:200ms] data-[state=open]:[animation-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+          "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-1 data-[state=closed]:[animation-duration:100ms]",
+          "motion-reduce:animate-none",
           className
         )}
         {...props}

@@ -130,6 +130,36 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
   }
 
   /*
+   * ══════════════════════════════════════════════════════════════════════════════
+   * « GLISSER » ET « APPARAÎTRE » SONT DEUX GESTES, ET UN SEUL DRAPEAU LES SÉPARE
+   * ══════════════════════════════════════════════════════════════════════════════
+   *
+   * Relevé sur wrangle.ai le 2026-09-07, à l'image près (échantillonnage `rAF` du
+   * style en ligne de leur panneau) :
+   *
+   *   · OUVERTURE depuis rien — `opacity 0→1`, `translateY(-8px)→0`,
+   *     `scaleX(0.96)→1`, `scaleY(0.94)→1`.
+   *   · PASSAGE d'un menu à l'autre — l'opacité reste à 1.000 D'UN BOUT À L'AUTRE et
+   *     `transform` reste à `none`. Seuls `left`, `width` et `height` interpolent.
+   *
+   * Autrement dit : leur panneau ne se ferme JAMAIS pour se rouvrir ailleurs, il se
+   * DÉFORME. C'est ce qui donne la fluidité, et c'est ce qui manquait ici — `left` et
+   * `height` changeaient sans transition, donc le panneau se téléportait d'un bouton
+   * au suivant.
+   *
+   * ⚠️ LES DEUX GESTES NE DOIVENT PAS SE CUMULER. Une transition permanente sur
+   * `left` ferait glisser le panneau depuis la position du menu précédent au moment
+   * même où il apparaît — il traverserait la barre alors qu'on vient d'entrer dedans.
+   * D'où ce drapeau, vrai uniquement quand un panneau était DÉJÀ ouvert.
+   */
+  const [shifting, setShifting] = useState(false)
+
+  const changeValue = (next: string) => {
+    setShifting(value !== '' && next !== '')
+    setValue(next)
+  }
+
+  /*
    * ── LE PANNEAU SE CENTRE SOUS SON PROPRE BOUTON ─────────────────────────────
    *
    * Il était centré sur la BARRE entière (`left-1/2` dans `NavigationMenuViewport`).
@@ -149,7 +179,12 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
    * du bord au lieu de déborder.
    */
   const rootRef = useRef<HTMLDivElement>(null)
-  const [center, setCenter] = useState<number | null>(null)
+  /*
+   * Les deux valeurs voyagent ENSEMBLE, dans un seul état. Séparées, le calcul de
+   * l'une puis de l'autre produirait deux rendus, et le premier peindrait un panneau
+   * déjà déplacé mais grandissant encore depuis l'ancienne origine.
+   */
+  const [geom, setGeom] = useState<{ left: number; originX: number } | null>(null)
 
   useLayoutEffect(() => {
     const root = rootRef.current
@@ -191,7 +226,23 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
     const min = GUTTER - rootLeft
     const max = window.innerWidth - GUTTER - PANEL_TOTAL_WIDTH - rootLeft
 
-    setCenter(max < min ? min : Math.min(Math.max(desired, min), max))
+    const left = max < min ? min : Math.min(Math.max(desired, min), max)
+
+    /*
+     * ── L'ORIGINE DE L'AGRANDISSEMENT EST LE MILIEU DE L'INTITULÉ ───────────
+     *
+     * Relevé chez la référence : `transform-origin: 48.5px 0px` sur un bouton de
+     * 97 px de large — exactement sa moitié. Le panneau ne grandit donc pas depuis
+     * son coin, il s'ouvre SOUS LE MOT qu'on vient de survoler.
+     *
+     * La soustraction de `left` est ce qui rend la valeur juste quand le panneau a
+     * été ramené contre un bord : `transform-origin` se compte depuis le coin du
+     * panneau, et le bouton n'est alors plus au-dessus de ce coin.
+     */
+    setGeom({
+      left,
+      originX: triggerRect.left - rootLeft + triggerRect.width / 2 - left,
+    })
   }, [value, menus])
 
   return (
@@ -235,9 +286,12 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
     */
     <NavigationMenu
       value={value}
-      onValueChange={setValue}
+      onValueChange={changeValue}
       delayDuration={0}
       skipDelayDuration={140}
+      /* Lu par `NavigationMenuViewport` : c'est lui qui porte les transitions, et
+         elles ne s'activent que sur un passage d'un menu à l'autre. Voir `shifting`. */
+      data-shifting={shifting ? 'true' : 'false'}
       /*
         ⚠️ LA LARGEUR EST IMPOSÉE AU VIEWPORT, ET NON MESURÉE SUR LE CONTENU.
 
@@ -257,9 +311,12 @@ export function NavMenus({ menus }: { menus: NavMenu[] }) {
       style={
         {
           '--radix-navigation-menu-viewport-width': `${PANEL_TOTAL_WIDTH}px`,
-          /* Voir la note sur `center` plus haut : le centre du bouton ouvert, en
-             pixels relatifs à la barre. `50%` tant qu'aucun menu n'a été ouvert. */
-          '--nav-viewport-center': center === null ? '50%' : `${center}px`,
+          /* Voir la note plus haut : le bord gauche du bouton ouvert, en pixels
+             relatifs à la barre. `50%` tant qu'aucun menu n'a été ouvert. */
+          '--nav-viewport-center': geom === null ? '50%' : `${geom.left}px`,
+          /* Le milieu de l'intitulé, compté depuis le coin du panneau. `0px` de repli :
+             c'est l'`origin-top-left` d'avant, donc aucun saut si la mesure manque. */
+          '--nav-origin-x': geom === null ? '0px' : `${geom.originX}px`,
         } as React.CSSProperties
       }
       className="hidden shrink-0 xl:flex"
