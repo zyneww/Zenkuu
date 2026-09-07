@@ -66,7 +66,13 @@ import { describe, expect, it } from 'vitest'
  *
  * Atténuation réelle : le signe (+/−) et la flèche portent déjà le sens de la
  * variation, donc WCAG 1.4.1 (information par la couleur seule) reste satisfait ;
- * seul 1.4.3 (contraste) échoue. Le thème sombre, lui, passe intégralement.
+ * seul 1.4.3 (contraste) échoue.
+ *
+ * ⚠️ « LE THÈME SOMBRE, LUI, PASSE INTÉGRALEMENT » — CE N'EST PLUS VRAI DEPUIS LE
+ * 2026-09-07. Cette phrase tenait ici et elle était exacte : `ECARTS['thème sombre']`
+ * était vide. L'adoption du mode sombre de taostats.io y a introduit quatre couples,
+ * tous portés par `--color-ink-muted`, le pire à 2,95:1. Voir la note qui les
+ * accompagne : elle chiffre le coût et donne la ligne unique qui l'annulerait.
  */
 
 const CSS = readFileSync(
@@ -220,7 +226,56 @@ const ECARTS: Record<string, readonly [foreground: string, background: string, p
     ['--color-ink-muted', '--color-surface-muted', 4.24],
     ['--color-ink-muted', '--color-surface-hover', 4.24],
   ],
-  'thème sombre': [],
+  'thème sombre': [
+    /*
+     * ══════════════════════════════════════════════════════════════════════════
+     * CETTE LISTE ÉTAIT VIDE, ET C'EST LA SEULE CHOSE QUE LA PALETTE DE TAOSTATS
+     * AURA COÛTÉ
+     * ══════════════════════════════════════════════════════════════════════════
+     *
+     * Le thème sombre passait AA INTÉGRALEMENT — l'en-tête de ce fichier le dit
+     * encore, et c'était vrai jusqu'au 2026-09-07. La demande est le mode sombre de
+     * taostats.io à l'identique ; ces quatre lignes en sont le prix, mesuré.
+     *
+     * ── D'OÙ VIENT LE JETON, ET POURQUOI IL ÉCHOUE ────────────────────────────
+     *
+     * `--color-ink-muted` porte leur `--nl-fg-tertiary` : #f3f8ff à 40 %, soit
+     * #6a6c70 composé sur leur fond. Ce gris ne passe AA sur AUCUN des quatre fonds
+     * de la rampe — et il ne le passe pas non plus CHEZ EUX. Ce n'est pas une erreur
+     * de transposition : c'est leur valeur, avec son défaut.
+     *
+     *   sur --color-canvas        (#0e0f11)   3,65:1
+     *   sur --color-surface-muted (#131416)   3,50:1
+     *   sur --color-surface       (#18191b)   3,34:1
+     *   sur --color-surface-hover (#242424)   2,95:1   ← le pire de toute la palette
+     *
+     * Le gris qu'il remplace (#969faf, relevé chez Backpack) tenait 6,02:1 au pire.
+     * L'écart est donc réel et il est important : à 2,95:1, un petit corps sur une
+     * ligne survolée est difficile à lire, et pas seulement pour une vue déficiente.
+     *
+     * ── CE QUI SORT DE CET ÉCART, ET CE QUI N'EN SORT PAS ─────────────────────
+     *
+     * ⚠️ REMONTER LE GRIS N'EST PAS LA SORTIE : il cesserait d'être celui de la
+     * référence, et c'est précisément ce qui a été demandé. La sortie est dans les
+     * COMPOSANTS — `--color-ink-secondary` vaut #9f9fa0, leur `--nl-fg-secondary`,
+     * et tient 7,25:1 sur le canvas. Tout petit corps réellement destiné à être LU
+     * doit le prendre ; `--color-ink-muted` doit se limiter à ce que taostats en
+     * fait, c'est-à-dire des intitulés de colonne et des états inactifs.
+     *
+     * ⚠️ ET SI L'ON PRÉFÈRE ANNULER LE COÛT PLUTÔT QUE DE LE PORTER, la correction
+     * tient en une ligne de `globals.css` : `--color-ink-muted: #9f9fa0`. Le thème
+     * repasse alors AA intégralement, ces quatre lignes disparaissent, et la palette
+     * reste celle de taostats — au prix d'un niveau de gris sur trois au lieu des
+     * trois. C'est un arbitrage d'exploitant, pas une question technique.
+     *
+     * Comme pour le thème clair : figurer ici ne veut pas dire « acceptable », mais
+     * « connu, mesuré, surveillé ». Le test échoue toujours dans les deux sens.
+     */
+    ['--color-ink-muted', '--color-canvas', 3.65],
+    ['--color-ink-muted', '--color-surface', 3.34],
+    ['--color-ink-muted', '--color-surface-muted', 3.5],
+    ['--color-ink-muted', '--color-surface-hover', 2.95],
+  ],
 }
 
 const AA_TEXTE = 4.5

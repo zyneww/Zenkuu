@@ -2905,72 +2905,118 @@
 
      ── LA RAMPE COMPLÈTE, DU FOND VERS LA LUMIÈRE ─────────────────────────────
 
-       #0e0f14  canvas                     le fond de page
-       #14151b  surface-muted              la piste creusée des contrôles segmentés
-       #191a20  surface = panel            le plan des cartes
-       #26282f  border-subtle = surface-hover   le filet, et le survol
-       #2e313b  surface-active             la pastille active, au-dessus du survol
+     ⚠️ TOUTE LA RAMPE VIENT DÉSORMAIS DE TAOSTATS.IO, relevée le 2026-09-07 sur
+     leur accueil, variable par variable (`--nl-*` lues résolues sur `<html>`, donc
+     leurs valeurs SOMBRES et non celles déclarées en clair dans la feuille).
 
-     Contrastes rejoués avant écriture, sur les onze paires que `palette.test.ts`
-     met en jeu dans ce thème : la plus basse tombe à 5,52:1 (ink-muted sur le
-     survol, contre 6,02 avant), toutes au-dessus du seuil AA de 4,5.
+       #0e0f11  canvas          --nl-bg-primary / --nl-app-bg
+       #131416  surface-muted   --nl-bg-quaternarry, blanc à 2 % aplati sur le canvas
+       #18191b  surface = panel --nl-card-surface
+       #1c1d1f  border-subtle   --nl-border-primary, aplati (voir ci-dessous)
+       #242424  surface-hover   --nl-gray-highlight, leur survol de ligne de tableau
+       #2e2e2e  surface-active  --nl-bg-input-primary
+
+     ── DEUX CHOSES QUE CE RELEVÉ CHANGE, ET QUI NE SONT PAS DES DÉTAILS ───────
+
+     · LES NEUTRES SONT FROIDS, ET LE RESTENT JUSQU'EN HAUT. #0e0f11 a R < G < B.
+       Ce n'est pas un gris : c'est un noir très légèrement bleuté, et c'est ce qui
+       distingue leur fond d'un #121212 ordinaire. La rampe ci-dessus conserve cette
+       inclinaison en bas, et la perd volontairement à partir de #242424 — parce que
+       leurs deux niveaux hauts SONT neutres (36/36/36 et 46/46/46), mesurés tels
+       quels. Ne pas « corriger » cette asymétrie : elle est chez eux.
+
+     · LE FILET ET LE SURVOL NE SONT PLUS LE MÊME JETON. Ils étaient confondus sur
+       #26282f. Chez taostats ce sont deux valeurs distinctes — le filet est un
+       BLANC BLEUTÉ à très faible alpha (#f3f8ff à 6 %), le survol un gris opaque
+       (#242424). Un filet translucide sur un fond variable ne rend pas la même
+       chose qu'un aplat, et c'est pour cela qu'ils les séparent.
+
+     ⚠️ POURQUOI DES VALEURS APLATIES PLUTÔT QUE LEURS ALPHAS. Leurs jetons de filet
+     et d'encre atténuée sont des couleurs À CANAL ALPHA (#f3f8ff0f, #fff9…).
+     `palette.test.ts` ne sait lire que du hex à six chiffres : un jeton écrit
+     `rgb(… / α)` DISPARAÎTRAIT silencieusement de sa table, donc de ses assertions,
+     et l'invariant « une déclaration ajoutée d'un côté sans son pendant de l'autre
+     fait échouer ce test » cesserait de tenir pour lui. Les valeurs ci-dessus sont
+     donc les leurs composées sur leur propre fond — même couleur rendue, test intact.
+
+     Contrastes rejoués sur les onze paires que `palette.test.ts` met en jeu ici :
+     dix passent, et une seule tombe — l'encre atténuée. Voir la note qui la porte,
+     et l'écart inscrit dans le test.
      ══════════════════════════════════════════════════════════════════════════ */
-  --color-canvas: #0e0f14;
-  --color-surface: #191a20;
-  --color-panel: #191a20;
-  /* Delta de survol dominant — 6 occurrences dans les deltas de survol de
-     plusieurs pages, contre 1 seule (le focus d'un unique bouton de connexion sur
-     l'accueil, rgb(33, 45, 59)) pour l'autre candidat relevé par §9.
+  --color-canvas: #0e0f11;
+  --color-surface: #18191b;
+  --color-panel: #18191b;
+  /* `--nl-gray-highlight`, que leur tableau emploie en `--ts-ag-hover-color` : c'est
+     littéralement la couleur d'une ligne survolée chez eux. */
+  --color-surface-hover: #242424;
+  --color-surface-muted: #131416;
+  /* La pastille active reste DISTINCTE du survol en sombre. Chez taostats les deux
+     rôles tombent sur deux jetons différents — le survol de ligne (#242424) et le
+     fond de champ (#2e2e2e) — et l'écart de dix points entre eux est exactement ce
+     que ce jeton demandait. Le thème clair, lui, la confond volontairement avec le
+     plan de la carte : voir la note du bloc `@theme`. */
+  --color-surface-active: #2e2e2e;
+  --color-border-subtle: #1c1d1f;
 
-     La provenance CoinGecko de #202127 tombe avec ce changement, et c'est assumé :
-     la valeur ne servait qu'un seul des deux rôles que ce jeton porte désormais. */
-  --color-surface-hover: #26282f;
-  --color-surface-muted: #14151b;
-  /* La pastille active reste DISTINCTE du survol en sombre — +8 / +9 / +12
-     au-dessus de lui. Le thème clair, lui, la confond volontairement avec le plan
-     de la carte : voir la note du bloc `@theme`, qui explique pourquoi les deux
-     thèmes divergent ici plutôt que de s'inverser l'un l'autre. */
-  --color-surface-active: #2e313b;
-  --color-border-subtle: #26282f;
+  --color-ink: #ffffff;
+  /* ⚠️ CE N'EST PLUS UN ALIAS DE L'ENCRE PLEINE, et c'est un gain. Il valait
+     #dfe5ec, la même valeur que `--color-ink` — donc un niveau nommé mais inexistant.
+     taostats en a trois pour de bon : blanc plein, blanc à 60 %, blanc bleuté à 40 %.
+     Celui-ci prend le deuxième (`--nl-fg-secondary`, #fff à 60 % sur leur fond), et
+     tient 7,25:1 — très au-dessus du seuil. */
+  --color-ink-secondary: #9f9fa0;
+  /* ⚠️ CE JETON EST LE SEUL DE LA PALETTE À NE PLUS PASSER AA, ET C'EST SU.
 
-  --color-ink: #dfe5ec;
-  /* Alias de l'encre pleine — voir la note du thème clair : le sombre n'est pas
-     touché par la bascule vers la palette de CoinGecko. */
-  --color-ink-secondary: #dfe5ec;
-  /* Le gris neutre froid de Backpack. Il tient 6,02:1 au pire (sur L3), très
-     au-dessus du seuil : le thème sombre n'avait aucune correction à subir. */
-  --color-ink-muted: #969faf;
+     C'est `--nl-fg-tertiary` : #f3f8ff à 40 %, soit #6a6c70 une fois composé sur
+     leur fond. Il tombe à 3,65:1 sur le canvas et 3,34:1 sur le plan des cartes,
+     contre 6,02:1 au pire pour le gris de Backpack qu'il remplace.
 
-  /* VERT COINGECKO, sombre — rgb(128, 224, 56), mesuré à la fois comme fond du
-     bouton d'action (`#use-app-btn button`) et comme texte de l'onglet
-     sélectionné (`.gecko-tab-chip-item.selected`) : une seule valeur sert les
-     deux usages en sombre, contre deux légèrement différentes en clair. Voir la
-     note complète dans le bloc `@theme` (le rôle, les deux teintes clair, le
-     choix retenu).
+     Le thème sombre passait AA INTÉGRALEMENT avant ce changement — `ECARTS['thème
+     sombre']` était vide, et il ne l'est plus. La demande est la palette de taostats
+     à l'identique ; le prix est chiffré ci-dessus et inscrit dans le test, où il ne
+     peut plus se dégrader sans faire échouer la suite.
 
-     Contraste sur le canvas sombre : 11,32:1 — largement au-dessus du seuil AA,
-     y compris en texte de lien. `--color-brand-strong`/`-soft` restent dérivés
-     ICI pour `-soft` seul. `--color-brand-strong` EST mesuré depuis le
-     2026-08-30 : l'onglet sélectionné de `/fr/highlights` rend `rgb(128, 224, 56)`
-     en sombre, soit `primary-400` — la MÊME valeur que `--color-brand`. Ce n'est
-     pas une erreur de recopie : CoinGecko emploie `primary-600` en clair et
-     `primary-400` en sombre pour son vert d'emphase, et `primary-400` sert aussi
-     d'aplat de bouton en sombre. Les deux rôles coïncident de ce côté. */
-  --color-brand: #91d7e3;
-  --color-brand-strong: #91d7e3;
-  --color-brand-soft: #152b30;
+     ⚠️ LA SORTIE DE CET ÉCART N'EST PAS DANS LA PALETTE. Remonter ce gris le
+     ferait cesser d'être celui de la référence. C'est aux composants qui posent du
+     petit corps sur fond de carte de prendre `--color-ink-secondary`, qui lui passe
+     largement — c'est sa raison d'exister. */
+  --color-ink-muted: #6a6c70;
+
+  /* ⚠️ TURQUOISE TAOSTATS — rgb(0, 219, 188), relevé le 2026-09-07. Ce jeton portait
+     le vert de CoinGecko, puis un cyan pâle ; il porte désormais `--nl-fg-brand`.
+
+     ── UNE SEULE TEINTE POUR QUATRE RÔLES, ET C'EST LEUR CHOIX ────────────────
+
+     Chez eux, #00dbbc est SIMULTANÉMENT `--nl-fg-brand`, `--nl-border-brand`,
+     `--nl-fg-success` et `--nl-positive-trend`. La marque et la hausse sont la même
+     couleur — voir la réserve portée par `--color-up` plus bas, qui est la
+     conséquence à connaître et la seule de tout ce relevé qui coûte quelque chose.
+
+     Contraste sur le canvas sombre : 10,83:1. Très au-dessus du seuil AA, y compris
+     en texte de lien — c'est même la valeur la plus confortable de la palette après
+     le blanc.
+
+     `--color-brand-strong` reste ÉGAL à `--color-brand`, comme avant : taostats n'a
+     qu'un seul niveau de marque en sombre. Le jeton garde sa raison d'être dans le
+     thème CLAIR, où les deux divergent pour tenir AA. */
+  --color-brand: #00dbbc;
+  --color-brand-strong: #00dbbc;
+  /* `--nl-bg-brand-secondary`, #00dbbc à 12 %, composé sur le canvas. */
+  --color-brand-soft: #0c2826;
   /* `--glow` a été retiré des deux thèmes — voir la note du bloc `@theme` clair. */
 
-  /* Vert TRÈS FONCÉ sur le vert clair — REMESURÉ le 2026-08-30 : `#use-app-btn
-     button` rend `rgb(11, 97, 0)` sur `rgb(128, 224, 56)` en thème sombre. La
-     valeur précédente (#000000) venait du même artefact qu'en clair — l'ancien
-     outil lisait le `<button>`, sans texte propre, au lieu de son enfant porteur.
+  /* Leur `--nl-fg-contrast` : le fond d'application lui-même, posé sur le turquoise.
+     10,83:1 — le même ratio que l'inverse, et de très loin au-dessus du seuil. Le
+     thème sombre de taostats est ici bien plus confortable que ne l'était celui de
+     CoinGecko, qui tenait à 4,70:1. */
+  --color-on-brand: #0e0f11;
 
-     Contrairement au thème clair, celui-ci PASSE : 4,70:1, au-dessus de 4,5:1.
-     Le thème sombre de CoinGecko est ici plus accessible que son thème clair. */
-  --color-on-brand: #0a2429;
-
-  --color-gold: #fbbf24;
+  /* `--nl-fg-yellow` de taostats en sombre, rgb(250, 204, 21) — à trois points de
+     l'ambre précédent (#fbbf24). L'écart est invisible à l'œil ; il est repris quand
+     même, parce qu'une palette « à l'identique » qui garde une valeur voisine sans
+     raison finit par ne plus savoir laquelle vient d'où. `-strong` et `-soft` restent
+     ceux du projet : la référence n'expose qu'un seul jaune en sombre. */
+  --color-gold: #facc15;
   --color-gold-strong: #fcd34d;
   --color-gold-soft: #3a2a0f;
 
@@ -3004,41 +3050,74 @@
   --chart-stack-4: #c5c4c4;
   --chart-stack-5: #f2f1f1;
 
-  /* L'orange d'origine : sur fond sombre il passe largement, et c'est la valeur
-     exacte relevée sur leur courbe cumulée. */
-  --chart-overlay: #ff8c00;
+  /* `--nl-fire` / `--nl-fg-orange` de taostats, rgb(247, 124, 54) — la même teinte
+     sert les deux chez eux. Elle remplace le #ff8c00 relevé sur la courbe cumulée
+     d'ASXN : sur fond sombre elle passe tout aussi largement, et elle appartient
+     désormais à la même famille que le reste de la palette. */
+  --chart-overlay: #f77c36;
 
-  /* ⚠️ LA VALEUR EST CELLE DE DESIGN_BACKPACK.md (§ infobulle de graphique), PLUS
-     CELLE DE COINGECKO. La note qui tenait ici disait « telle qu'ils la servent, à la
-     valeur près » — et rgb(11 11 13) était bien leur mesure. Mais ce noir-là ne
-     provient d'aucun niveau de l'obsidienne étagée : c'est un gris neutre plus sombre
-     que le canvas, adopté avant que la palette ne change de référence.
+  /* ⚠️ LA VALEUR EST CELLE DE TAOSTATS — `--nl-bg-tooltip-bg`, #25262a à 85 %,
+     relevé le 2026-09-07.
 
-     La spécification demande le canvas lui-même à 85 % — #0e0f14 — sous un flou
-     d'arrière-plan. Une infobulle n'a pas à inventer un noir : elle reprend le fond de
-     la page et laisse le flou faire la séparation. */
-  --chart-tooltip-bg: rgb(14 15 20 / 0.85);
-  --chart-tooltip-border: rgb(255 255 255 / 0.1);
+     Les deux notes précédentes se sont succédé ici : CoinGecko servait rgb(11 11 13),
+     puis DESIGN_BACKPACK.md demandait le canvas lui-même à 85 %. La règle de la
+     seconde — « une infobulle n'a pas à inventer un noir » — est celle que taostats
+     ENFREINT, et sciemment : leur infobulle est nettement PLUS CLAIRE que leur fond
+     (#25262a contre #0e0f11), là où la règle voulait qu'elle le reprenne.
 
-  /* Hausse et baisse — valeurs EXACTES de CoinGecko, sombre. `.gecko-up` mesure
-     rgb(50, 202, 91), `.gecko-down` rgb(255, 58, 51) (identique au clair, voir le
-     bloc `@theme`). Les deux passent confortablement sur ce canvas : 8,72:1 et
-     5,29:1 — contrairement au clair, où les deux mêmes rôles échouent (voir la
-     réserve dans `@theme`).
-     `-soft` restent aux valeurs ZENKUU existantes, hors des dix rôles mesurés. */
-  --color-up: #00c278;
-  --color-up-soft: rgb(0 194 120 / 0.10);
-  --color-up-line: rgb(0 194 120 / 0.25);
-  --color-down: #ea383b;
-  --color-down-soft: rgb(234 56 59 / 0.10);
-  --color-down-line: rgb(234 56 59 / 0.30);
+     C'est cohérent avec le reste de leur sombre : chez eux une couche qui flotte
+     MONTE, elle ne se fond pas. Le flou seul ne suffirait pas à séparer une infobulle
+     d'un graphique dont les aplats sont déjà quasi noirs. */
+  --chart-tooltip-bg: rgb(37 38 42 / 0.85);
+  /* Leur `--nl-border-secondary` : #f3f8ff à 8 %. Le filet d'infobulle est le blanc
+     BLEUTÉ de la palette, pas du blanc pur — même teinte que `--color-border-subtle`,
+     un cran plus appuyée. */
+  --chart-tooltip-border: rgb(243 248 255 / 0.08);
 
-  /* Teinte de statut — voir le thème clair. C'est un CYAN et non un vert : décalé
-     franchement par rapport au vert de hausse voisin, pour que les deux ne se
-     confondent pas dans la barre d'en-tête. Il partage sa famille avec la menthe de
-     marque, dont il se distingue par la saturation et par les objets qu'il touche —
-     jamais un contrôle, seulement une pastille d'état. */
-  --color-status: #22d3ee;
+  /* ⚠️ HAUSSE ET BAISSE — `--nl-positive-trend` et `--nl-negative-trend`, relevés le
+     2026-09-07. Les deux passent confortablement sur ce canvas : 10,83:1 et 5,53:1,
+     contre 8,72 et 5,29 avec les teintes de CoinGecko. Le thème sombre y GAGNE.
+
+     ⚠️ LA HAUSSE EST EXACTEMENT LA COULEUR DE MARQUE, ET C'EST LA SEULE CHOSE QUE CE
+     RELEVÉ COÛTE. #00dbbc sert les deux rôles chez taostats. Conséquence à connaître :
+     un chiffre en hausse et un élément de marque ne se distinguent plus par la
+     couleur sur une même page — un lien turquoise et un « +2,4 % » turquoise sont la
+     même encre.
+
+     Ce n'est PAS un défaut d'accessibilité : `ChangeBadge` porte déjà le signe et le
+     chevron, donc WCAG 1.4.1 (information par la couleur seule) reste satisfait, et
+     le contraste est excellent. C'est un choix de LISIBILITÉ SÉMANTIQUE, assumé parce
+     que la demande est la palette de taostats à l'identique. Le jour où l'on veut les
+     séparer, c'est `--color-brand` qui doit bouger, pas `--color-up` : la hausse est
+     le rôle dont la teinte est lue par un tableau entier.
+
+     Les alphas des `-soft` et `-line` suivent les leurs : `--nl-bg-brand-secondary`
+     à 12 % et `--nl-bg-error-secondary` à 11 %. Les `-line`, qu'ils n'exposent pas,
+     gardent les rapports ZENKUU existants. */
+  --color-up: #00dbbc;
+  --color-up-soft: rgb(0 219 188 / 0.12);
+  --color-up-line: rgb(0 219 188 / 0.25);
+  --color-down: #ff3d57;
+  --color-down-soft: rgb(255 61 87 / 0.11);
+  --color-down-line: rgb(255 61 87 / 0.30);
+
+  /* ⚠️ CE JETON A DÛ CHANGER PARCE QUE LA HAUSSE A CHANGÉ, ET C'EST SA NOTE QUI LE
+     DIT. Elle exigeait un ton « décalé franchement par rapport au vert de hausse
+     voisin, pour que les deux ne se confondent pas dans la barre d'en-tête ».
+
+     La règle tenait tant que la hausse était VERTE. Elle est turquoise depuis le
+     relevé de taostats, et #22d3ee — un cyan — se serait retrouvé à quelques degrés
+     de teinte de `--color-up`. La condition que cette note pose se serait inversée en
+     silence, exactement comme celle de la couche flottante juste en dessous l'avait
+     fait avant elle.
+
+     `--nl-fg-dark-blue` de taostats, rgb(36, 156, 255), est un BLEU franc : il rétablit
+     l'écart que la note demande, et c'est une valeur de la référence, pas un
+     rattrapage inventé. Leur `--nl-fg-blue` (#47c6eb) aurait eu le défaut qu'on
+     corrige ici — trop près du turquoise.
+
+     Contraste sur le canvas : 6,64:1. Toujours au-dessus du seuil. */
+  --color-status: #249cff;
   /* `--color-status-soft` retiré des deux thèmes — voir la note du bloc `@theme`
      clair : la règle du fond doux à 10 % d'alpha remplace le jeton. */
 
@@ -3076,7 +3155,18 @@
      La spécification range « menus volants, tiroirs, modales » sur L1, le niveau des
      cartes : #14151b en sombre, #ffffff en clair. Une surface qui flotte n'a pas
      besoin d'une teinte à elle — elle se détache par son ombre et son filet. */
-  --color-overlay: #14151b;
+  /* ⚠️ #18191b — `--nl-card-surface` DE TAOSTATS, et la règle énoncée plus haut est
+     enfin vérifiée au lieu d'être espérée. Elle demande que la couche flottante passe
+     au-dessus du canvas et SOUS le filet. Avec la rampe de taostats :
+
+       canvas #0e0f11  <  couche flottante #18191b  <  filet #1c1d1f
+
+     Les deux notes ci-dessus racontent chacune une inversion silencieuse de cette
+     condition — le panneau devenu plus clair que son propre contour. Elle tient de
+     nouveau, et cette fois les trois valeurs viennent d'un seul relevé, ce qui est la
+     seule façon de ne pas la reperdre : chez eux aussi, menus et cartes partagent le
+     même niveau. */
+  --color-overlay: #18191b;
   /* ⚠️ L'OMBRE N'EST PLUS RENFORCÉE EN SOMBRE, ET C'EST MESURÉ. La note qui tenait
      ici raisonnait ainsi : « sur un fond aussi sombre, une ombre à 0,6 n'a pas assez
      de noir sous elle pour se voir » — donc on la poussait à 0,70 sur 60 px de flou.
