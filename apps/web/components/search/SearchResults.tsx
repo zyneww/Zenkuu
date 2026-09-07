@@ -8,6 +8,7 @@ import { Link, type AppHref } from '@/i18n/navigation'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { Money } from '@/components/locale/Money'
 import { AssetThumb } from '@/components/search/AssetThumb'
+import { SEARCH_ROW_CLASS } from '@/components/search/row-style'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
 import type { AssetClass, MarketCategory } from '@zenkuu/data'
@@ -531,7 +532,7 @@ function ResultRow({
       <CommandItem
         asChild
         value={`${name} ${symbol}`}
-        className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+        className={SEARCH_ROW_CLASS}
       >
         <Link href={href} onClick={onNavigate}>
           {/* La cale de l'étoile : 32 px, sa largeur exacte. `aria-hidden` — c'est du
@@ -651,7 +652,7 @@ function CategoryRow({
       /* Voir `ResultRow` : `value` est l'identité de ligne pour cmdk. Le nom seul
          suffit ici — deux secteurs homonymes n'existent pas dans cette source. */
       value={category.name}
-      className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+      className={SEARCH_ROW_CLASS}
     >
       <Link
         href={{ pathname: '/categories/[id]', params: { id: category.id } }}

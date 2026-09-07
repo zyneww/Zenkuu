@@ -4,6 +4,7 @@ import { Clock } from 'lucide-react'
 
 import { Link } from '@/i18n/navigation'
 import { AssetThumb } from '@/components/search/AssetThumb'
+import { SEARCH_ROW_CLASS } from '@/components/search/row-style'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { CommandGroup, CommandItem } from '@/components/ui/command'
 import { assetHref } from '@/lib/asset-routes'
@@ -76,7 +77,7 @@ export function SearchRecent({
              tendances, et cmdk se sert de `value` comme identité de ligne. Deux lignes
              de même valeur se confondraient à la sélection. */
           value={`recent ${entry.name} ${entry.symbol}`}
-          className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+          className={SEARCH_ROW_CLASS}
         >
           <Link href={assetHref(entry.assetClass, entry.id)} onClick={onNavigate}>
             <AssetThumb

@@ -76,6 +76,30 @@ pendant que `height` suivait `cubic-bezier(0.16, 1, 0.3, 1)`. Les deux moitiés 
 déformation se désynchronisaient. Les utilitaires d'entrée sont désormais visés sur
 `[animation-duration]` / `[animation-timing-function]` seuls.
 
+### Les observations que le prompt demandait nommément, complétées le 2026-09-08
+
+| Observation demandée | Résultat mesuré |
+|---|---|
+| **Décalage d'apparition (stagger) entre les entrées du menu** | **AUCUN.** Les cinq entrées rendent `transitionDelay: 0s`, `animationDelay: 0s`, `animationName: none`, `opacity: 1`, `transform: none`. Le panneau s'anime d'un bloc ; ses enfants ne s'animent pas individuellement. Leur seule transition est le `all 0.2s` de leur propre survol. |
+| **Fermeture — sortie du survol** | Ferme. `aria-expanded` repasse à `false`, et le panneau reste MONTÉ à `opacity: 0`, figé sur l'état de sortie (`translateY(-8px) scaleX(0.96) scaleY(0.94)`). |
+| **Fermeture — clic extérieur** | Ferme. |
+| **Fermeture — Échap** | **NE FERME PAS.** Vérifié deux fois. |
+| **Clavier — focus seul** | N'ouvre pas. C'est le bon comportement : ouvrir au focus piège qui tabule. |
+| **Clavier — Entrée** | Ouvre. |
+| **Clavier — Tab depuis le déclencheur ouvert** | **N'ENTRE PAS dans le panneau.** Le focus reste sur le bouton ; les cinq liens ne sont pas atteints. |
+
+⚠️ **UNE CORRECTION DE MÉTHODE, parce qu'elle a failli me faire écrire l'inverse.** Mon
+premier détecteur d'ouverture cherchait la PRÉSENCE du panneau dans le DOM. Il répondait
+donc « ouvert » en permanence, y compris huit secondes après être sorti du survol, ce qui
+m'a d'abord fait conclure que leur menu ne se fermait jamais. Le bon critère est
+`aria-expanded` : leur panneau reste MONTÉ une fois fermé, exactement comme le viewport
+de ZENKUU. Toutes les lignes du tableau ci-dessus ont été rejouées avec le bon critère.
+
+Deux de ces résultats confirment que **l'accessibilité de la référence ne devait pas être
+copiée**, et cette fois par la mesure du COMPORTEMENT et non plus par l'inspection des
+attributs : chez eux Échap ne ferme pas et Tab n'entre pas. Chez ZENKUU, Échap ferme et
+rend le focus au déclencheur — vérifié.
+
 ### Ce qui n'a pas pu être mesuré
 
 **La fermeture.** Motion l'anime en `requestAnimationFrame`, que Chrome coupe dès qu'un
@@ -130,6 +154,13 @@ variation ne peuvent pas tous crier.
 `DUOLINGO_STYLE_TOKENS.md` porte le relevé complet (typographie, couleurs, anatomie du
 bouton à tranche) **et le tri** — un relevé sans tri serait une invitation à tout
 appliquer.
+
+⚠️ **`refero.design` a finalement été exploré, et j'y avais écrit une chose fausse.**
+J'avais annoncé que ses pages exigeaient un compte sans les avoir ouvertes. Elles
+s'ouvrent : 12 des 235 captures et 3 des 21 flux sont visibles sans inscription. Mais
+elles sont servies depuis `images.refero.design/screenshots/duolingo.com/**desktop**/…` —
+ce sont des captures du site public, celui-là même mesuré en direct. La conclusion tient
+donc toujours ; elle tient pour la bonne raison, pas pour celle que j'avais avancée.
 
 Une seule surface l'emprunte : **`EmptyState` dans sa forme pleine**. Un état vide n'est
 pas une ligne de données, c'est un message. Marque 28 → 44 px, titre 14 px/500 →
@@ -195,6 +226,57 @@ La question a été posée, et la réponse retenue est **« Catégories en vue �
 - Deux phrases sur trois ont été évitées : `Capitalisation` existait déjà dans les douze
   tables, et l'intitulé de colonne a été supprimé — à droite il n'y a qu'une pastille
   signée, elle se décrit seule. Une seule clé nouvelle, traduite dans les douze langues.
+
+### La référence a été mesurée en direct, pas seulement lue sur la capture
+
+`app.uniswap.org` s'ouvre **sans authentification** : le panneau a donc été mesuré le
+2026-09-08 plutôt que déduit de l'image.
+
+Première surprise : **leur panneau a changé depuis la capture**. Il porte désormais une
+rangée d'onglets de portée (All / Tokens / Pools / Wallets) et TROIS sections — « Stocks
+by 24H volume », « Tokens by 24H volume », « Pools by 24H volume ». Les onglets de portée
+existent déjà chez ZENKUU (`SearchScopes`), relevés en leur temps sur Backpack.
+
+| Propriété mesurée | Valeur |
+|---|---|
+| Hauteur de ligne | 80 px |
+| Rayon de ligne | 20 px |
+| Rembourrage | `16px 24px 16px 16px`, `gap: 16px` |
+| Transition de ligne | `background-color, transform` — **0,125 s ease-in** |
+| Intitulé de section | 16 px, graisse 485, `rgba(255,255,255,0.65)`, sans capitales |
+| **Filet entre les sections** | **AUCUN** — `border-top: 0px` sur toutes |
+
+Deux enseignements pour les deux exigences de la capture :
+
+1. **« Séparation nette entre les deux sections »** ne passe PAS par un filet chez eux.
+   Elle se fait par l'espacement (12 px de rembourrage haut) et par l'intitulé lui-même.
+   C'est déjà ce que fait ZENKUU avec ses `CommandGroup` — rien à changer, et le vérifier
+   a évité d'ajouter un trait que la référence n'a pas.
+2. **« Hover net sur chaque ligne »** : leurs lignes sont transitionnées sur 125 ms. Les
+   nôtres le sont déjà — **à 150 ms**, par la règle globale de `globals.css` qui couvre
+   `[role="option"]`, ce que cmdk pose sur chaque ligne. 25 ms d'écart, et voir la
+   réserve ci-dessous.
+
+⚠️ **UNE TENTATIVE DE RÉGLAGE QUI N'A RIEN FAIT, ET CE QU'ELLE A RÉVÉLÉ.** J'ai d'abord
+posé `duration-[125ms] ease-in` sur les lignes. Mesuré ensuite au navigateur : sans le
+moindre effet, `transition-duration` valait toujours `0.15s`. La règle globale n'est dans
+**aucune couche de cascade**, et du CSS hors couche l'emporte sur tout CSS en couche —
+donc sur l'intégralité des utilitaires Tailwind, quel que soit l'ordre du fichier.
+
+La note de cette règle affirmait précisément l'inverse (« toute classe utilitaire posée
+sur l'élément la remplace »). Elle a été corrigée sur place : une note qui ment sur le
+comportement du CSS coûte plus cher que pas de note. Le correctif réel — ranger le bloc
+dans `@layer base` — rendrait leur effet d'un coup à toutes les classes `transition-*` du
+site, y compris celles écrites en croyant agir. C'est un chantier à part, confié à une
+tâche séparée, et pas quelque chose à déclencher pour 25 ms sur une liste.
+
+### Une duplication trouvée en chemin, et refermée
+
+La chaîne de classes d'une ligne était recopiée **quatre fois** — deux dans
+`SearchResults`, une dans `SearchRecent`, une dans `SearchWatchlist`. Or le panneau
+empile jusqu'à quatre sections dont les lignes s'aboutent : elles doivent avoir la même
+hauteur et la même surbrillance, sans quoi la liste paraît cassée à la jointure. Quatre
+copies rendent cette égalité invérifiable. Elles passent à `SEARCH_ROW_CLASS`.
 
 ### Navigation au clavier
 
@@ -295,7 +377,8 @@ intact** : seul le bloc `.dark` a été touché.
 | `eslint` sur les fichiers touchés | ✅ propre |
 | Tests | ✅ **974 passent** |
 | `bun run build` | ✅ **1 tâche réussie, 1 min 40** |
-| Thème clair / sombre | ✅ les deux vérifiés au navigateur |
+| Thème sombre — menus et panneau | ✅ vérifiés au navigateur |
+| Thème clair — menus et panneau | ✅ vérifiés au navigateur ; jetons clairs intacts (`#fff`, `#91d7e3`, `#00a83e`) |
 | Responsive — 375 px | ✅ la fenêtre de recherche du téléphone rend la nouvelle section |
 | Clavier (menus) | ✅ Entrée, Échap, focus rendu |
 | `prefers-reduced-motion` | ✅ règles présentes dans le CSS compilé |
@@ -360,9 +443,11 @@ n'échoue.
 4. **Le bouton à tranche de Duolingo** mériterait d'exister si un parcours d'inscription
    ou d'onboarding est construit. L'ajouter aujourd'hui serait une variante que rien
    n'emploie.
-5. **`refero.design`** n'a pas été exploré : ses pages exigent un compte, et le relevé au
-   navigateur sur `duolingo.com` a suffi. Une capture d'écran n'aurait de toute façon pas
-   donné un style calculé.
+5. **La règle globale de transition de `globals.css` neutralise silencieusement toutes les
+   classes `transition-*` du site** sur les liens, boutons, champs, onglets et options.
+   Elle n'est dans aucune couche de cascade ; sa propre note affirmait le contraire. La
+   note est corrigée, le correctif (`@layer base`) est confié à une tâche séparée parce
+   qu'il rendrait leur effet d'un coup à des classes écrites en croyant agir.
 6. **La divergence d'hydratation du bandeau de marché**, préexistante et documentée
    ci-dessus. Elle ne bloque rien — React régénère l'arbre côté client — mais elle coûte
    un rendu complet à chaque visite de l'accueil.

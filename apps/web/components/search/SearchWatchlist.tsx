@@ -3,6 +3,7 @@
 import { Star } from 'lucide-react'
 
 import { AssetThumb } from '@/components/search/AssetThumb'
+import { SEARCH_ROW_CLASS } from '@/components/search/row-style'
 import { Link } from '@/i18n/navigation'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { CommandGroup, CommandItem } from '@/components/ui/command'
@@ -120,7 +121,7 @@ export function SearchWatchlist({
           /* Préfixé, comme l'historique : un actif peut figurer dans la liste de suivi
              ET dans les tendances, et cmdk se sert de `value` comme identité de ligne. */
           value={`suivi ${entry.label} ${entry.symbol}`}
-          className="gap-3 rounded-control px-3 py-2 data-[selected=true]:bg-surface-muted"
+          className={SEARCH_ROW_CLASS}
         >
           <Link href={assetHref(entry.assetClass, entry.assetId)} onClick={onNavigate}>
             {/* Sans image : la table ne stocke pas l'adresse du logo — elle changerait

@@ -3670,10 +3670,26 @@
    classe. C'est le piège classique de ce genre de règle, et c'est pourquoi les
    propriétés sont énumérées.
 
-   Elle ne l'impose pas non plus : `transition-property` est une propriété comme une
-   autre, et toute classe utilitaire posée sur l'élément — `transition-transform`,
-   `duration-300` — la remplace. Les composants qui savent ce qu'ils veulent gardent
-   la main ; les autres cessent de sauter.
+   ⚠️ ELLE S'IMPOSE, ET CETTE NOTE DISAIT LE CONTRAIRE. Elle affirmait : « toute classe
+   utilitaire posée sur l'élément — `transition-transform`, `duration-300` — la
+   remplace. Les composants qui savent ce qu'ils veulent gardent la main. » C'est FAUX,
+   et c'est mesuré : une ligne du panneau de recherche portant `duration-[125ms]`
+   rendait `transition-duration: 0.15s` au navigateur le 2026-09-08.
+
+   La raison n'est pas la spécificité — elle est égale — mais la CASCADE PAR COUCHES.
+   Tailwind 4 émet ses utilitaires dans `@layer utilities` ; cette règle-ci n'est dans
+   aucune couche, et du CSS hors couche l'emporte sur tout CSS en couche, quel que soit
+   l'ordre du fichier. Les composants ne gardent donc PAS la main sur la durée, la
+   courbe ni la liste de propriétés, sur tout ce qui est lien, bouton, champ, onglet
+   ou option.
+
+   ── CE QU'IL FAUDRAIT POUR TENIR LA PROMESSE ────────────────────────────────
+
+   Ranger ce bloc dans `@layer base`. Une ligne, et les utilitaires reprennent la main
+   partout. Ce n'est pas fait ici parce que cela rendrait d'un seul coup leur effet à
+   toutes les classes `transition-*` du site, y compris celles qui ont été écrites en
+   croyant agir et qui ne changeaient rien : le rendu bougerait à des endroits qu'il
+   faudrait revoir un par un. C'est un chantier à part, pas un correctif de passage.
 
    ── L'ARRÊT ─────────────────────────────────────────────────────────────────
 

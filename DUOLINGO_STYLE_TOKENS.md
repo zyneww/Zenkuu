@@ -128,7 +128,24 @@ exactement la frontière que l'option 1 trace : Duolingo s'arrête où la densit
   L'ajouter aujourd'hui serait une variante que rien n'emploie.
 - **L'état enfoncé de Duolingo** reste à mesurer si le navigateur permet un jour de
   forcer `:active` sur leur page.
-- **`refero.design`** (galeries de captures et de flux Duolingo, citées par le prompt)
-  n'a pas été exploré : ses pages exigent un compte, et le relevé au navigateur sur la
-  source de première main a suffi à établir les valeurs ci-dessus. Une capture d'écran
-  n'aurait de toute façon pas donné un style calculé.
+- **`refero.design`** a été exploré le 2026-09-08, et ce qui était écrit ici avant était
+  faux : j'avais annoncé que « ses pages exigent un compte » sans les avoir ouvertes.
+  Elles s'ouvrent. Voici ce qu'on y trouve réellement :
+
+  | Galerie | Total | Visible sans compte |
+  |---|---|---|
+  | `search?site_id[id][]=147` (captures) | 235 pages | **12** |
+  | `search/flows?site_id[id][]=147` (flux) | 21 flux | **3** |
+
+  Le reste est derrière l'inscription (« 223 more pages hidden », « 18 more flows
+  hidden »).
+
+  ⚠️ **CE QUE CELA N'APPORTE PAS, ET C'EST LE POINT.** Les images visibles sont servies
+  depuis `images.refero.design/screenshots/duolingo.com/**desktop**/…` — ce sont des
+  captures du SITE PUBLIC, celui-là même qui a été mesuré en direct plus haut. Elles ne
+  montrent pas l'application, et une capture ne donne de toute façon aucun style
+  calculé : ni durée, ni courbe, ni valeur exacte de couleur.
+
+  La conclusion tient donc toujours — le relevé au navigateur sur la source de première
+  main était la bonne méthode — mais elle tient pour la bonne raison, pas pour celle
+  que j'avais avancée.
