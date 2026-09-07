@@ -2824,4 +2824,8 @@ export const ruPhrases: Phrases = {
   'stable,': 'без изменений,',
   'moins': 'минус',
   'Donnée non fournie par la source': 'Данные не предоставлены источником',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'от исторического максимума',
+  'depuis le taux BCE précédent': 'с предыдущего курса ЕЦБ',
 }

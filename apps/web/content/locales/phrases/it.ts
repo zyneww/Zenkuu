@@ -2824,4 +2824,8 @@ export const itPhrases: Phrases = {
   'stable,': 'stabile,',
   'moins': 'meno',
   'Donnée non fournie par la source': 'Dato non fornito dalla fonte',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'dal suo massimo storico',
+  'depuis le taux BCE précédent': 'dal precedente tasso BCE',
 }

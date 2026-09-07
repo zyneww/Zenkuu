@@ -2817,4 +2817,8 @@ export const zhPhrases: Phrases = {
   'stable,': '持平，',
   'moins': '负',
   'Donnée non fournie par la source': '数据源未提供该数据',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': '距历史最高价',
+  'depuis le taux BCE précédent': '自上一次欧洲央行汇率以来',
 }

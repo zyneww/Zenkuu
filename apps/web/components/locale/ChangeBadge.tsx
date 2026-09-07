@@ -53,11 +53,25 @@ import { usePhrase } from '@/components/locale/ContentProvider'
  * langue — une clé « moins » avec une espace invisible au bout serait un piège pour
  * les douze traducteurs, et la première à sauter au premier nettoyage d'éditeur.
  *
- * ⚠️ CE QUI RESTE NON TRADUIT, ET QUI NE SE CORRIGE PAS ICI : `periodLabel`, quand
- * l'appelant en passe un. Il vient soit d'une chaîne écrite en français dans le code
- * appelant, soit de `changePeriodLabel`, que le FOURNISSEUR publie. Le défaut a donc
- * deux sources distinctes, et celle-ci vit hors de cette enveloppe. Sans `periodLabel`,
- * le repli `periodeDefaut` — lui — est bien traduit.
+ * ── `periodLabel` EST TRADUIT ICI AUSSI, ET C'EST LA TABLE QUI LE PERMET ─────
+ *
+ * Il restait français quand un appelant en passait un — dix-neuf points d'appel, et le
+ * repli traduit ne servait qu'aux autres. Une première note attribuait la moitié du
+ * défaut au FOURNISSEUR, via `changePeriodLabel` : **c'était inexact**. Ce champ n'est
+ * écrit qu'à un seul endroit de tout le dépôt, `providers/frankfurter.ts`, et c'est
+ * notre propre code qui y met « depuis le taux BCE précédent ». Rien ne venait du
+ * dehors, donc rien n'était hors de portée.
+ *
+ * La table de phrases étant INDEXÉE PAR LE TEXTE FRANÇAIS, lui passer une chaîne
+ * française est exactement le mécanisme prévu : `t()` rend la traduction si la clé
+ * existe, et la chaîne d'entrée sinon. Une ligne couvre donc les dix-neuf appels, et
+ * un libellé futur sans clé retombe sur le comportement d'aujourd'hui plutôt que de
+ * casser.
+ *
+ * ⚠️ TOUS LES `periodLabel` NE PASSENT PAS PAR ICI. `TreemapFigure` en reçoit un aussi
+ * et compose « sur {periodLabel} » de son côté, sans toucher à ce badge — d'où
+ * « l'acquisition » dans `TreasuryOverview`, qui n'a pas de sens hors de cette phrase
+ * et n'a donc pas de clé.
  */
 export function ChangeBadge(props: Omit<ComponentProps<typeof Badge>, 'locale' | 'libelles'>) {
   const locale = useLocale()
@@ -67,6 +81,7 @@ export function ChangeBadge(props: Omit<ComponentProps<typeof Badge>, 'locale' |
     <Badge
       {...props}
       locale={locale}
+      {...(props.periodLabel !== undefined ? { periodLabel: t(props.periodLabel) } : {})}
       libelles={{
         hausse: t('en hausse de'),
         baisse: t('en baisse de'),

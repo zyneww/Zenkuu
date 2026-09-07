@@ -2824,4 +2824,8 @@ export const viPhrases: Phrases = {
   'stable,': 'đi ngang,',
   'moins': 'trừ',
   'Donnée non fournie par la source': 'Nguồn không cung cấp dữ liệu',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'so với đỉnh lịch sử',
+  'depuis le taux BCE précédent': 'kể từ tỷ giá ECB trước',
 }

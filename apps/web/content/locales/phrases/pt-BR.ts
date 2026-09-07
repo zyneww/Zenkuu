@@ -2824,4 +2824,8 @@ export const ptBRPhrases: Phrases = {
   'stable,': 'estável,',
   'moins': 'menos',
   'Donnée non fournie par la source': 'Dado não fornecido pela fonte',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'desde sua máxima histórica',
+  'depuis le taux BCE précédent': 'desde a taxa anterior do BCE',
 }

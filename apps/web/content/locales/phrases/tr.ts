@@ -2824,4 +2824,8 @@ export const trPhrases: Phrases = {
   'stable,': 'yatay,',
   'moins': 'eksi',
   'Donnée non fournie par la source': 'Veri kaynak tarafından sağlanmadı',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'tüm zamanların zirvesinden',
+  'depuis le taux BCE précédent': 'önceki AMB kurundan bu yana',
 }

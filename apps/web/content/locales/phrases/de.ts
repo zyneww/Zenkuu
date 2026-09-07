@@ -2832,4 +2832,8 @@ export const dePhrases: Phrases = {
   'stable,': 'unverändert,',
   'moins': 'minus',
   'Donnée non fournie par la source': 'Wert von der Quelle nicht bereitgestellt',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'seit seinem Allzeithoch',
+  'depuis le taux BCE précédent': 'seit dem vorherigen EZB-Kurs',
 }

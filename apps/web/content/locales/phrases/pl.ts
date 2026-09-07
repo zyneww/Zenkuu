@@ -2824,4 +2824,8 @@ export const plPhrases: Phrases = {
   'stable,': 'bez zmian,',
   'moins': 'minus',
   'Donnée non fournie par la source': 'Dane nieudostępnione przez źródło',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'od historycznego szczytu',
+  'depuis le taux BCE précédent': 'od poprzedniego kursu EBC',
 }

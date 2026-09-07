@@ -2824,4 +2824,8 @@ export const nlPhrases: Phrases = {
   'stable,': 'ongewijzigd,',
   'moins': 'min',
   'Donnée non fournie par la source': 'Gegeven niet geleverd door de bron',
+
+  /* ── PÉRIODES DE VARIATION LUES À VOIX HAUTE — ajouté le 2026-09-07 ── */
+  'depuis son plus haut historique': 'sinds de hoogste koers ooit',
+  'depuis le taux BCE précédent': 'sinds de vorige ECB-koers',
 }
