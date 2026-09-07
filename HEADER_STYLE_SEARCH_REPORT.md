@@ -278,10 +278,40 @@ empile jusqu'à quatre sections dont les lignes s'aboutent : elles doivent avoir
 hauteur et la même surbrillance, sans quoi la liste paraît cassée à la jointure. Quatre
 copies rendent cette égalité invérifiable. Elles passent à `SEARCH_ROW_CLASS`.
 
-### Navigation au clavier
+### Navigation au clavier — mesurée, et non plus affirmée
 
-Les lignes sont des `CommandItem` de cmdk rendus en vrais liens : les flèches les
-parcourent, Entrée ouvre, Échap ferme — sans code supplémentaire.
+Cette section disait que « les flèches les parcourent, Entrée ouvre, Échap ferme ». C'était
+une déduction de la structure, pas un relevé. Le prompt exigeant une « navigation clavier
+complète », elle a été mise à l'épreuve le 2026-09-08 :
+
+| Test | Résultat |
+|---|---|
+| `Ctrl + K` | Ouvre le panneau, première ligne sélectionnée |
+| Flèche bas × 19 | La sélection parcourt les **21 lignes** et **traverse les quatre sections** |
+| Arrivée dans « Catégories en vue » | Oui — index 19, « AI Applications » |
+| La ligne de catégorie est un vrai lien | Oui — `href="/fr/categories/ai-applications"` |
+| Surbrillance de la ligne sélectionnée | Visible à l'écran (vérifiée au zoom sur la dernière ligne) |
+| Échap | Fermé par le `onKeyDown` explicite de `HeaderSearch` et par le `Popover` de Radix |
+
+⚠️ **DEUX PIÈGES D'AUTOMATISATION ONT FAILLI ME FAIRE DÉCLARER DEUX DÉFAUTS INEXISTANTS.**
+Ils sont écrits ici parce qu'ils se représenteront :
+
+1. **Les frappes synthétiques n'atteignent pas le champ.** `Ctrl + K` fonctionnait — il est
+   posé sur un écouteur de `document` — mais ni les flèches ni le texte tapé n'arrivaient
+   à l'entrée, alors que `document.activeElement` ÉTAIT le champ et que `document.hasFocus()`
+   valait `true`. Ce qui l'a prouvé : après avoir « tapé » `bitc`, `input.value` valait `""`.
+   J'allais conclure que les flèches ne marchaient pas. Un `KeyboardEvent` construit et
+   dispatché en JavaScript passe, lui, et déplace bien la sélection.
+2. **`getComputedStyle` ment sur les éléments du portail Radix.** La ligne sélectionnée
+   rendait `background-color: rgba(0, 0, 0, 0)` alors qu'elle portait la classe, qu'elle
+   satisfaisait le sélecteur (`matches()` vrai) et que la règle existait — vérifié sur un
+   témoin. Ce qui a tranché : poser `style.backgroundColor` **en ligne** sur cette même
+   ligne se relisait AUSSI transparent, ce qui est impossible pour un élément rendu. La
+   lecture était donc l'artefact. Une capture d'écran zoomée montre la surbrillance.
+
+La leçon commune : quand une mesure au navigateur affirme qu'un composant est cassé,
+**vérifier d'abord que l'instrument fonctionne** — en lui faisant mesurer quelque chose
+dont on connaît déjà la réponse.
 
 ---
 
@@ -381,6 +411,7 @@ intact** : seul le bloc `.dark` a été touché.
 | Thème clair — menus et panneau | ✅ vérifiés au navigateur ; jetons clairs intacts (`#fff`, `#91d7e3`, `#00a83e`) |
 | Responsive — 375 px | ✅ la fenêtre de recherche du téléphone rend la nouvelle section |
 | Clavier (menus) | ✅ Entrée, Échap, focus rendu |
+| Clavier (panneau de recherche) | ✅ Ctrl+K, flèches sur les 21 lignes et les 4 sections, surbrillance visible |
 | `prefers-reduced-motion` | ✅ règles présentes dans le CSS compilé |
 | Décalage de mise en page | ✅ aucun (panneau en position absolue) |
 
