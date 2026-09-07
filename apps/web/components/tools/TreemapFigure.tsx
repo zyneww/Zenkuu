@@ -441,6 +441,8 @@ export function TreemapFigure({
               target="_blank"
               rel="nofollow noopener noreferrer"
               title={caption}
+              /* Voir la note d'`aria-label` sur la tuile interne, plus bas. */
+              aria-label={caption}
               className={tileClass}
               style={style}
             >
@@ -457,8 +459,32 @@ export function TreemapFigure({
           )
         }
 
+        /*
+          ⚠️ `aria-label` EN PLUS DE `title`, ET LE SECOND NE SUFFISAIT PAS.
+
+          Une note plus haut dit que les chiffres écartés de la tuile « restent dans le
+          `title` — donc au survol et pour les lecteurs d'écran ». L'intention est juste,
+          le moyen est le plus faible qui soit : `title` n'est retenu comme nom accessible
+          qu'en DERNIER RECOURS, plusieurs lecteurs d'écran ne l'annoncent pas sans
+          réglage, et il n'existe pas du tout sur écran tactile.
+
+          Relevé au navigateur : quarante-deux tuiles de la carte thermique dont le seul
+          nom venait de là. La chaîne existait déjà — `caption` —, la donner aussi en
+          `aria-label` ne coûte rien et rend le nom fiable.
+
+          Le `title` RESTE : c'est lui qui produit l'infobulle native au survol, que
+          l'`aria-label` ne fait pas. Les deux portent le même texte, donc aucun risque
+          de contradiction.
+        */
         return (
-          <Link key={box.id} href={tile.href} title={caption} className={tileClass} style={style}>
+          <Link
+            key={box.id}
+            href={tile.href}
+            title={caption}
+            aria-label={caption}
+            className={tileClass}
+            style={style}
+          >
             {body}
           </Link>
         )

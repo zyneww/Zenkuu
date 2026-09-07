@@ -25,6 +25,12 @@ classes annoncent. Thème clair, fenêtre 1568 px, 2026-09-07.
 | `/analytics` | 8 ×9, 12 ×4 | 4 blancs | 14/400 | `h36 r8 14px`, `h32 r8 14px` |
 | `/graphiques/dominance` | 8 ×13, 12 ×6 | 4 gris, 2 blancs | 13/400 | — |
 | `/aide` | 12 ×10, 4 ×6, 8 ×1 | — | 14/600 | `h26 pill 13px` *(mots-clés, légitime)* |
+| `/heatmap` | 5 ×50 *(tuiles)*, 8 ×6 | — | 14/500 | `h32 r8 14px`, `h24 r8 14px` |
+| `/nouveautes` | 8 ×11 | — | 14/400 | — |
+| `/comparateur` | 12 ×1 | — | — | — |
+
+**Le balayage est complet** : onze familles sondées, plus les fiches d'actif qui servent
+de référence.
 
 ---
 
@@ -175,8 +181,17 @@ d'accueil emploie comme cran courant ce que le socle réserve aux pastilles d'é
   différentes (l'un des segments à filet, l'autre un curseur qui glisse). Les fondre
   demande de choisir laquelle des deux formes le site garde.
 
-⚠️ **DEUX FOIS, LA SONDE A EU TORT ET LE CODE AVAIT RAISON.** Une fois sur les tableaux
-(§E), où elle échantillonnait la première cellule ; une fois sur les liens de
-`/graphiques/dominance`, qu'elle disait sans nom accessible — ils sont dans un
-`<details>` replié, donc ni cliquables ni focalisables, et le navigateur les écarte déjà.
-Une mesure automatique est un indice, pas un verdict.
+⚠️ **TROIS FOIS, LA SONDE A EU TORT ET LE CODE AVAIT RAISON.**
+
+1. **Les tableaux** (§E) : elle échantillonnait la première cellule, qui est presque
+   toujours une colonne secondaire.
+2. **Les liens de `/graphiques/dominance`**, dits sans nom accessible : ils sont dans un
+   `<details>` replié, donc ni cliquables ni focalisables. Le navigateur les écarte déjà.
+3. **Les quarante-deux tuiles de `/heatmap`**, dites sans nom : elles en ont un, par
+   `title`. Le défaut de la sonde était ici dans son propre code — son contrôle des
+   BOUTONS lisait `title`, celui des LIENS ne le lisait pas.
+
+Une mesure automatique est un indice, pas un verdict. **Mais le troisième indice était
+bon quand même** : `title` est le nom accessible de dernier recours — plusieurs lecteurs
+d'écran ne l'annoncent pas sans réglage, et il n'existe pas sur écran tactile. Les tuiles
+portent désormais aussi un `aria-label`, avec la même chaîne.

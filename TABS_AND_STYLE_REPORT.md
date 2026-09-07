@@ -180,7 +180,11 @@ Relevé final : `th 12/600` et `td 14/400` sur `/crypto`, `/categories`, `/scree
   titre en 24/700. C'est cohérent à l'intérieur de leur famille ; l'aligner demande de
   relever d'abord leurs sous-titres, sous peine de décaler la hiérarchie au lieu de
   l'aligner.
-- **Familles non sondées** : carte thermique, changelog, comparateur.
+
+**Le balayage est terminé** : onze familles sondées, plus les fiches d'actif qui servent
+de référence. Les trois dernières — carte thermique, changelog, comparateur — portent le
+socle sans écart. Les rayons de 5 px des cinquante tuiles de la carte thermique sont des
+données peintes, hors barème par nature (§10 du socle).
 
 ---
 
@@ -205,6 +209,8 @@ attendus. Le tableau dit ce qui a été **vérifié sur le rendu** et ce qui ne 
 | **Badge / pill** | **conforme** | la pastille reste réservée aux étiquettes et vignettes — les cinq de `/aide` sont des mots-clés, pas des commandes |
 | **Pagination** | **conforme** | `rounded-control` sur toutes les cases (chantier précédent) |
 | **Carousel** | **noté** | puces de 20 × 20 px, pas de **24 px centre à centre** : la dérogation d'espacement de WCAG 2.2 §2.5.8 est tenue — deux disques de 24 px qui se touchent sans se recouvrir. Limite basse, non corrigée |
+| **Card** *(tuile de treemap)* | **corrigé** | les 50 tuiles de la carte thermique ne portaient de nom que par `title` — le nom accessible de DERNIER RECOURS, que plusieurs lecteurs d'écran n'annoncent pas et qui n'existe pas sur tactile. Elles portent désormais aussi un `aria-label`, avec la même chaîne. Vérifié : 50 tuiles, 0 sans nom |
+| **Image** | **corrigé** | la mascotte se déclarait carrée (`width={size} height={size}`) alors que le fichier fait 638 × 640 — rendu mesuré à `180 × 180,703` pour des attributs « 180 × 180 ». Hauteur déduite du rapport, et `priority` posé : elle était en `lazy` alors qu'elle est le plus grand élément peint, à 145 px du haut |
 | **Fieldset** | **conforme** | aucun champ sans étiquette sur les pages sondées |
 | **List** | **conforme** | aucun lien visible sans nom accessible |
 | **Footer** | **conforme** | hiérarchie de titres correcte, `nav` nommés |
