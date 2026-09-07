@@ -1,0 +1,15 @@
+# Ce que GitBook publie de ce dépôt.
+#
+# ⚠️ LA RACINE EST `docs/guide/`, ET NON `docs/`. Le dossier `docs/` porte aussi des
+# documents de TRAVAIL — plans de lot, spécifications, relevés d'audit — écrits pour
+# l'équipe et non pour les visiteurs. Publier `docs/` entier les mettrait en ligne.
+#
+# ⚠️ LE CÂBLAGE DE LA SYNCHRONISATION NE SE FAIT PAS ICI. Ce fichier dit à GitBook OÙ
+# lire une fois la synchro établie ; l'établir se fait dans l'interface GitBook, et le
+# sens du premier échange s'y choisit. Il doit être Git → GitBook : l'inverse écraserait
+# ce dossier avec le contenu de l'espace, qui est vide.
+root: ./docs/guide/
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md

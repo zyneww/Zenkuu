@@ -223,6 +223,58 @@ et Radix ne l'émet pas. Aucune correction n'était due.
 
 ---
 
+## Les deux tâches du cahier des charges initial qui restaient
+
+### T5 — La documentation GitBook
+
+**Livrée**, sous la forme que la configuration existante impose.
+
+L'organisation « Zenkuu » existe et le serveur répond. Mais son unique espace est
+**verrouillé en édition** (`editMode: "locked"`) et déjà câblé à une synchronisation Git
+GitHub au statut **`pending`**. Le contenu doit donc venir du **dépôt** : écrire dans
+l'espace par l'API se battrait avec la synchro, et la doctrine du serveur est explicite
+— « Git Sync wiring is UI-only ».
+
+Ce qui est écrit :
+
+```
+.gitbook.yaml              racine = docs/guide/, pas docs/
+docs/guide/SUMMARY.md      le sommaire
+docs/guide/README.md       Prise en main
+  ce-que-zenkuu-fait.md    lecture seule, données absentes, compte facultatif
+  fiche-actif/             le bandeau · les onglets · le rail · le graphique
+  suivre-des-actifs.md
+  chercher-filtrer-comparer.md
+  d-ou-viennent-les-chiffres.md
+```
+
+⚠️ **La racine est `docs/guide/`, pas `docs/`.** Le dossier `docs/` porte aussi des
+documents de travail — plans de lot, spécifications, relevés d'audit — écrits pour
+l'équipe. Publier `docs/` entier les mettrait en ligne.
+
+⚠️ **Deux gestes restent à faire dans l'interface GitBook, et je ne peux pas les faire :**
+terminer le câblage de la synchronisation, et choisir le sens du premier échange. Il doit
+être **Git → GitBook** ; l'inverse écraserait `docs/guide/` avec le contenu de l'espace,
+qui est vide.
+
+Les chiffres du guide sont **vérifiés dans le code**, pas supposés : sources par classe
+d'actif lues dans le registre, treize langues lues dans la table, plafond du comparateur
+à six et celui du graphique à quatre lus dans `lib/limits.ts` et `ChartToolbar` — je les
+avais d'abord écrits tous deux à quatre.
+
+### T6 — Font Awesome : **non intégré, sur décision**
+
+Le site emploie **57 icônes lucide sur 65 fichiers**, et les marques que lucide ne couvre
+pas — X, Telegram, Reddit, Discord — sont **déjà tracées à la main** dans `BrandIcons`,
+sur la grille 24 de lucide, avec le motif écrit sur place (« une silhouette de marque ne
+survit pas à une réduction en contours de 1,5 px »).
+
+Font Awesome n'apportait donc aucun cas non couvert, et un second jeu d'icônes
+contredirait directement le socle de cohérence de T2. Décision prise avec l'utilisateur
+après relevé.
+
+---
+
 ## Ce que ce chantier n'a pas fait
 
 - **Le comportement des surfaces superposées** (modale, mégamenu, sélecteur) n'a pas pu
