@@ -18,7 +18,7 @@ import { useCurrency } from '@/components/locale/CurrencyProvider'
 import { usePhrase } from '@/components/locale/ContentProvider'
 import { currencyFlag, languageFlag } from '@/components/settings/flags'
 import { getLanguage, LANGUAGES } from '@/components/settings/languages'
-import { SegmentedControl } from '@/components/settings/SegmentedControl'
+import { SegmentedRadioGroup } from '@/components/settings/SegmentedRadioGroup'
 import { useLanguageChoice } from '@/components/settings/useLanguageChoice'
 import { useSettings, type LayoutMode, type ThemeMode } from '@/lib/stores/settings'
 import { getCurrency, type CurrencyGroup } from '@zenkuu/data'
@@ -236,7 +236,7 @@ export function DisplaySettings({
         {/* L'état ACTIF suit le réglage MÉMORISÉ, pas la couleur affichée : c'est le
             seul moyen de distinguer « Sombre » de « Système sur un appareil sombre »,
             qui donnent la même page. */}
-        <SegmentedControl
+        <SegmentedRadioGroup
           ariaLabel={t('Apparence')}
           value={theme}
           onChange={setTheme}
@@ -267,7 +267,7 @@ export function DisplaySettings({
         </span>
         <span className="flex-1 text-left">{t('Affichage')}</span>
 
-        <SegmentedControl
+        <SegmentedRadioGroup
           ariaLabel={t('Affichage')}
           value={layout}
           onChange={setLayout}

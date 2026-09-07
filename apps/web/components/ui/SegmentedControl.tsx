@@ -16,6 +16,19 @@ import { cn } from '@/lib/utils'
  * rembourrage et de rayon, et corriger le contraste de l'état actif demandait de les
  * retrouver toutes — ce qui vient d'arriver.
  *
+ * ⚠️ « UN SEUL » VAUT POUR CE MOTIF-CI, ET IL EN EXISTE UN SECOND :
+ * `settings/SegmentedRadioGroup`. Les deux ont longtemps porté le MÊME NOM, ce qu'un
+ * audit de style a relevé comme une variante improvisée — à tort : ce sont deux
+ * composants différents, et c'est le nom qui mentait.
+ *
+ * Celui-ci est un `ToggleGroup` de Radix, de largeur de CONTENU, dont l'indicateur est
+ * mesuré au pixel : c'est ce qu'il faut à une barre d'outils, où les libellés ont des
+ * longueurs libres et où la mesure encaisse ce qu'une translation par pas ne peut pas.
+ *
+ * L'autre est un `role="radiogroup"` de vraies cases `role="radio"`, toutes de largeur
+ * ÉGALE : c'est le motif ARIA d'un RÉGLAGE mutuellement exclusif, où une synthèse
+ * vocale doit annoncer « 2 sur 3 ». Voir son en-tête pour le choix entre les deux.
+ *
  * ── CE QUI EST REPRIS D'OPENSOURCE UI, ET CE QUI NE L'EST PAS ──────────────
  *
  * Leur `segmented-toggle-button` apporte une IDÉE juste : l'aplat de l'option active

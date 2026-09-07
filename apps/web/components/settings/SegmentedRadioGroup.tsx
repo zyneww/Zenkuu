@@ -25,9 +25,35 @@
  *
  * `prefers-reduced-motion` retire la transition — un curseur qui glisse est
  * exactement le genre de mouvement que ce réglage existe pour supprimer.
+ *
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ IL S'APPELAIT `SegmentedControl`, COMME CELUI DE `components/ui/`
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Deux composants du même nom dans deux dossiers : un audit de style l'a relevé comme
+ * une « variante locale improvisée ». Ce n'en est pas une — ce sont DEUX composants
+ * différents, et c'est le nom qui mentait. Il dit maintenant ce qui les sépare.
+ *
+ *   `ui/SegmentedControl`      un `ToggleGroup` de Radix, largeur de CONTENU, indicateur
+ *                              mesuré au pixel. Pour une barre d'outils, où les libellés
+ *                              ont des longueurs libres — périodes, types de tracé.
+ *
+ *   `SegmentedRadioGroup`      un `role="radiogroup"` de vraies cases `role="radio"`,
+ *   (celui-ci)                 toutes de LARGEUR ÉGALE, curseur translaté par pas
+ *                              identiques. Pour un réglage, où le choix est exclusif et
+ *                              où les cases doivent se répartir un bloc.
+ *
+ * ── LEQUEL PRENDRE ─────────────────────────────────────────────────────────
+ *
+ * Celui-ci quand le choix est un RÉGLAGE mutuellement exclusif : `radiogroup`/`radio`
+ * est le motif ARIA de ce cas, et une synthèse vocale annonce alors « 2 sur 3 ». Un
+ * `ToggleGroup` annonce des boutons à bascule, ce qui est plus faible.
+ *
+ * L'autre quand les cases sont des COMMANDES d'affichage dont les libellés varient en
+ * longueur : sa mesure au pixel encaisse ce que la translation par pas ne peut pas.
  */
 
-export interface SegmentedOption<T extends string> {
+export interface SegmentedRadioOption<T extends string> {
   value: T
   /** Libellé visible. Absent pour un segment purement iconographique. */
   label?: string
@@ -36,7 +62,7 @@ export interface SegmentedOption<T extends string> {
   icon?: React.ReactNode
 }
 
-export function SegmentedControl<T extends string>({
+export function SegmentedRadioGroup<T extends string>({
   ariaLabel,
   options,
   value,
@@ -44,7 +70,7 @@ export function SegmentedControl<T extends string>({
   className = '',
 }: {
   ariaLabel: string
-  options: readonly SegmentedOption<T>[]
+  options: readonly SegmentedRadioOption<T>[]
   value: T
   onChange: (value: T) => void
   className?: string
@@ -68,12 +94,8 @@ export function SegmentedControl<T extends string>({
           posé au-dessus, il masquerait le texte du segment actif.
 
           `bg-surface-active` et non `bg-surface`, sans ombre : c'est le jeton fait pour
-          ce rôle, et c'est celui qu'emploie l'autre `SegmentedControl` du dépôt
-          (`components/ui/`). Les deux composants rendent le même motif et divergeaient
-          sur ce point — voir la note d'ombre là-bas pour le raisonnement complet.
-
-          ⚠️ ILS RESTENT DEUX, et c'est une dette relevée mais non traitée ici : les
-          réunir touche des consommateurs dans deux familles de pages à la fois. */}
+          ce rôle, et c'est celui qu'emploie `ui/SegmentedControl`. Voir sa note d'ombre
+          pour le raisonnement complet. */}
       <span
         aria-hidden="true"
         className="motion-safe:transition-transform pointer-events-none absolute inset-y-0.5 left-0.5 -z-10 rounded-xs bg-surface-active duration-200 ease-out"
