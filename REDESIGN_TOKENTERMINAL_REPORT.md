@@ -16,12 +16,13 @@ Point de retour antérieur au chantier Tokenomist : `avant-ui/ux-tokenomist` (`f
 | **T1** — fiches de suivi | **fait** | Rangée d'onglets, bloc prix en tête de rail, libellés de métriques reliés, grille de répartitions en bas de page. |
 | **T2** — recherche globale | **fait** | Pastilles de raccourcis, recherches récentes, liste de suivi, tendances classées, légende clavier. |
 | **T3** — nettoyage accueil | **fait** | Ticker défilant, menu « Les plus populaires » et champ « Filtrer » retirés, avec leur machinerie. |
-| **T4** — Headless UI | **partiel** | Installé et employé pour un jeu d'onglets. Huit autres rangées attendent, pour une raison structurelle exposée au §4. |
+| **T4** — Headless UI | **fait** | Les quatre rangées à contrat ARIA rompu sont traitées : deux `RadioGroup`, un `TabGroup` restructuré, un filtre remis en `aria-pressed`. |
 | **T5** — documentation | **partiel** | Guide écrit dans `docs/guide`. Le MCP GitBook est installé mais **non autorisé** : voir §5. |
 | **T6** — Font Awesome | **fait, sans remplacement** | Câblé et vérifié ; l'audit n'a trouvé aucune icône incohérente à remplacer. Voir §6. |
 
-⚠️ **Deux tâches ne sont pas closes** — T4 et T5 — et les §4 et §5 disent exactement ce
-qui manque et pourquoi. Le reste est en place et vérifié au navigateur.
+⚠️ **Une seule tâche n'est pas close** — T5, bloquée sur une autorisation OAuth que
+cette session ne peut pas donner. Le §5 dit exactement quoi faire. Le reste est en place
+et vérifié au navigateur.
 
 ---
 
@@ -152,37 +153,81 @@ les deux notes précédentes comparaient la valeur au ruban entier, alors que
 
 ---
 
-## 4. T4 — Headless UI : ce qui est fait, et pourquoi le reste ne l'est pas
+## 4. T4 — Headless UI
 
-`@headlessui/react` 2.2.10 est installé et employé dans **`MetricCatalogue`**
-(`TabGroup / TabList / Tab / TabPanels / TabPanel`).
+⚠️ **CE PARAGRAPHE A DIT FAUX DANS SA PREMIÈRE VERSION, ET LA CAUSE MÉRITE D'ÊTRE
+ÉCRITE.** Il annonçait « neuf fichiers déclarent `role="tablist"`, aucun ne gère les
+flèches ». Le compte venait d'un `grep` sur le nom du rôle, qui ramenait aussi les
+fichiers où il n'apparaît que **dans un commentaire expliquant pourquoi on ne l'emploie
+pas** — `AuthPageView`, `AssetShell`, `PreferenceOverlay` et `ScreenerView` avaient déjà
+tranché correctement, et `MetricCatalogue` était déjà sur Headless UI. Mesurer un défaut
+sur le texte plutôt que sur le balisage l'avait multiplié par deux.
 
-### Le défaut réel, mesuré
+**Le compte réel était quatre.** Ils sont tous traités.
 
-Neuf fichiers déclarent `role="tablist"`. **Aucun ne gère les flèches.** Un
-`role="tab"` sans navigation aux flèches est un contrat ARIA rompu : la synthèse vocale
-annonce « onglet 2 sur 5 » et les flèches ne font rien. C'est exactement la cible que la
-consigne désigne — « prioriser les composants où l'accessibilité clavier est faible ou
-absente ».
+### Le défaut, et ce qu'il coûtait
 
-### Pourquoi les huit autres n'ont pas été migrés
+Quatre éléments portaient `role="tablist"` et `role="tab"` **écrits à la main, sans une
+seule touche câblée**. Le motif ARIA des onglets impose au composant de gérer lui-même
+les flèches et l'index roulant : la synthèse vocale annonçait « onglet 2 sur 4 » et les
+flèches ne déplaçaient rien. Un rôle qui promet ce que le code ne tient pas est **pire
+qu'un bouton nu**, qui au moins n'annonce rien.
 
-Le partage n'est pas uniforme, et le forcer casserait quelque chose :
+Aucun des quatre n'était lié à l'URL — le deep-linking n'était donc jamais en jeu, contre
+ce que la première version de ce paragraphe affirmait aussi.
 
-- **Rangées à état local** (`ClassTabs`, `SearchScopes`, `PreferenceOverlay`,
-  `AssetShell`) — migrables, **mais** Headless UI exige que le panneau vive **dans** le
-  `TabGroup` pour poser `aria-controls`. Or le panneau est ici un frère rendu par le
-  parent : le tableau pour `ClassTabs`, la liste de résultats pour `SearchScopes`. La
-  migration demande donc de restructurer chaque parent, pas de remplacer une balise.
-- **Rangées liées à l'URL** (`SectorMap`, `MacroExplorer`) — elles **ne doivent pas**
-  devenir des `Tab` Headless UI : ce sont des liens, et la consigne interdit de régresser
-  le deep-linking. Le bon correctif y est l'inverse — **retirer** le `role="tablist"`
-  abusif au profit d'un `<nav>` et d'`aria-current`, comme `CryptoViewControls` le fait
-  déjà correctement.
+### Ce qui a été fait, cas par cas
 
-Migrer les quatre premières et corriger l'ARIA des deux autres est un chantier de
-plusieurs fichiers avec un vrai risque de régression, qui n'a pas été engagé dans cette
-session. **C'est la principale dette laissée par ce rapport.**
+| Composant | Traitement | Pourquoi celui-là |
+|---|---|---|
+| **`ClassTabs`** + `MarketBrowser` | `TabGroup / TabList / Tab / TabPanels / TabPanel` | Seul vrai jeu d'onglets : chaque entrée sert **un autre jeu de lignes**. |
+| **`MacroExplorer`** (Carte / Globe) | `RadioGroup / Radio` | Ne révèle pas un panneau parmi deux : change la **projection** du même contenu. |
+| **`SectorMap`** (grandeur mesurée) | `RadioGroup / Radio` | Choisit la grandeur qui **colore** la carte ; le contenu ne change pas de nature. |
+| **`SearchScopes`** | `role="group"` + `aria-pressed` | **Pas** de Headless UI, et c'est délibéré — voir ci-dessous. |
+
+**`ClassTabs` est le seul cas où le groupe a dû être restructuré.** `aria-controls` ne
+peut relier un onglet à un panneau que si les deux vivent sous le même `TabGroup` : la
+rangée était rendue seule, plus haut, et ne pouvait donc rien désigner. Le groupe
+enveloppe désormais la rangée **et** le tableau. Un panneau par onglet, mais **un seul
+tableau monté** — seul le panneau sélectionné reçoit le contenu, les trois autres restent
+vides : la structure est juste pour la synthèse vocale, le coût reste celui d'un tableau.
+La liste d'univers est extraite dans `visibleUniverses()` et partagée entre les onglets et
+les panneaux, ce qui rend impossible le décalage d'un cran.
+
+**⚠️ `SearchScopes` n'a volontairement pas reçu Headless UI.** Cette rangée vit dans un
+`Command` de cmdk, qui possède déjà `↑` et `↓` pour parcourir les résultats. `TabGroup`
+comme `RadioGroup` réclament ces mêmes touches dès que le focus entre dans le groupe : on
+aurait échangé un défaut d'accessibilité contre un conflit de raccourcis. Et le composant
+n'est de toute façon pas un jeu d'onglets — c'est un **filtre**, qui retranche des lignes
+de la seule liste existante. Des bascules exclusives avec `aria-pressed` décrivent
+exactement cela, sans engager aucune touche.
+
+### Vérifié au clavier, au navigateur
+
+- **`ClassTabs`** — clic sur « Crypto » (index 1), `→` porte focus **et** sélection sur
+  « Actions » (index 2), et le panneau rempli devient le n° 2. `tabindex` roulant
+  relevé : `[-1, 0, -1, -1]`.
+- **`MacroExplorer`** — clic sur « Carte », `→` bascule sur « Globe », `aria-checked`
+  suit, et le globe se dessine.
+- **`SearchScopes`** — `role="group"`, quatre boutons, `aria-pressed` correct, plus aucun
+  `aria-selected` orphelin.
+- Audit final : **zéro** `role="tablist"` ou `role="tab"` écrit à la main dans le
+  balisage. Les occurrences restantes sont des commentaires qui expliquent la décision.
+
+⚠️ **`SectorMap` n'a pas pu être vérifié à l'écran : le composant n'a aucun appelant.**
+Seul son type `SectorNode` est importé, par `explorer-sectors.ts`. Ce sont 393 lignes de
+code mort — la migration y est correcte mais invisible, et le fichier mériterait d'être
+retiré une fois son type déplacé.
+
+### Ce qui n'a pas été migré, et c'est un choix
+
+`Listbox`, `Menu`, `Combobox`, `Select` et `Button` **n'ont pas** remplacé l'existant.
+Le dépôt porte déjà `radix-ui`, `@base-ui/react`, `@heroui/react` et `cmdk` ; les menus et
+listes en place sont bâtis sur Radix, qui gère déjà clavier, focus et positionnement. Les
+remplacer n'apporterait **aucun gain d'accessibilité** et ajouterait une **quatrième**
+bibliothèque d'interface sur des composants qui vont bien — ce que la consigne
+elle-même interdit : « ne pas remplacer un composant qui fonctionne déjà bien sans
+bénéfice d'accessibilité ou de cohérence clair ».
 
 Les autres composants nommés par la consigne — `Listbox`, `Menu`, `Combobox`, `Select`,
 `Button` — n'ont **pas** été migrés, et c'est un choix : le dépôt porte déjà
@@ -285,23 +330,25 @@ doit se faire **d'un seul tenant**.
 | Débordement horizontal | 0 à 1 565 px et 773 px |
 | Thèmes clair et sombre | vérifiés sur l'accueil |
 | Treize libellés neufs | traduits dans les douze locales |
+| Onglets d'univers au clavier | `→` déplace focus **et** sélection ; `tabindex` roulant `[-1,0,-1,-1]` |
+| Projection macro au clavier | `→` bascule Carte → Globe, `aria-checked` suit |
+| `role="tab"` écrits à la main | **0** restant dans le balisage |
 
 ---
 
 ## 9. Ce qui reste à faire
 
-1. **T4 — les huit rangées d'onglets** : migrer les quatre à état local vers Headless UI
-   (en remontant le panneau dans le `TabGroup`), et retirer le `role="tablist"` abusif des
-   deux rangées liées à l'URL. C'est la dette principale.
-2. **T5 — autoriser le MCP GitBook** dans une session interactive, puis y porter
-   `docs/guide`.
+1. **T5 — autoriser le MCP GitBook** dans une session interactive, puis y porter
+   `docs/guide`. C'est le seul blocage restant.
+2. **`SectorMap` est du code mort** — 393 lignes sans appelant, dont seul le type
+   `SectorNode` est importé. À retirer une fois ce type déplacé.
 3. **Un correctif hérité, non traité** : `ChangeBadge` ne reçoit jamais sa prop
    `libelles`, si bien que son `aria-label` et son infobulle sortent **en français dans
    les treize langues**. Le corriger tient en un seul endroit — sept phrases × douze
    langues.
-4. **Vérification clavier de bout en bout** : le contraste est couvert par
-   `palette.test.ts` dans les deux thèmes et le focus visible est global, mais la
-   navigation au clavier n'a pas été éprouvée route par route.
+4. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
+   navigateur, mais la navigation au clavier n'a pas été éprouvée route par route sur les
+   64 pages.
 
 ---
 

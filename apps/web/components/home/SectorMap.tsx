@@ -1,5 +1,6 @@
 'use client'
 
+import { Radio, RadioGroup } from '@headlessui/react'
 import { Info } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -242,24 +243,44 @@ export function SectorMap({
     <div className="rounded-panel border border-border-subtle bg-panel">
       {/* ── EN-TÊTE : les onglets à gauche, la sortie à droite ─────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 pb-3 pt-3">
-        <div className="flex items-center gap-1" role="tablist" aria-label={t('Grandeur mesurée')}>
+        {/*
+          ══════════════════════════════════════════════════════════════════════
+          ⚠️ C'ÉTAIT UN `role="tablist"` SANS CLAVIER — C'EST UN CHOIX, PAS DES ONGLETS
+          ══════════════════════════════════════════════════════════════════════
+
+          Le rôle promettait le motif ARIA des onglets, qui impose au composant de gérer
+          lui-même les flèches et l'index roulant. Rien ne le faisait : la synthèse vocale
+          annonçait « onglet 1 sur 2 » et les flèches ne déplaçaient rien.
+
+          Et le rôle était de toute façon le mauvais. Ces deux boutons ne révèlent pas un
+          panneau parmi deux : ils choisissent LA GRANDEUR qui colore la même carte. C'est
+          un choix exclusif, donc un groupe de boutons radio — le seul motif qui décrive à
+          la fois l'exclusivité et le fait que le contenu, lui, ne change pas de nature.
+
+          `RadioGroup` de Headless UI câble ce que le code ne faisait pas : les quatre
+          flèches parcourent les options, l'index roulant ne laisse qu'une seule tabulation
+          pour tout le groupe, et `aria-checked` remplace un `aria-selected` qui n'avait
+          rien à quoi se rapporter.
+
+          `data-checked` et `data-focus` remplacent la comparaison manuelle sur `active` :
+          l'état vient du composant, il n'est plus recalculé à côté de lui.
+        */}
+        <RadioGroup
+          value={active}
+          onChange={setMetric}
+          aria-label={t('Grandeur mesurée')}
+          className="flex items-center gap-1"
+        >
           {(hasVolume ? METRICS : METRICS.slice(0, 1)).map((entry) => (
-            <button
+            <Radio
               key={entry.id}
-              type="button"
-              role="tab"
-              aria-selected={active === entry.id}
-              onClick={() => setMetric(entry.id)}
-              className={`rounded-control px-2.5 py-1 text-xs font-medium transition-colors duration-150 ${
-                active === entry.id
-                  ? 'bg-surface-muted text-ink'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-              }`}
+              value={entry.id}
+              className="cursor-pointer rounded-control px-2.5 py-1 text-xs font-medium text-ink-muted transition-colors duration-150 hover:bg-surface-muted hover:text-ink data-checked:bg-surface-muted data-checked:text-ink data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-brand"
             >
               {t(entry.label)}
-            </button>
+            </Radio>
           ))}
-        </div>
+        </RadioGroup>
 
         <Link
           href={moreHref}

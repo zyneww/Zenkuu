@@ -1,5 +1,6 @@
 'use client'
 
+import { Radio, RadioGroup } from '@headlessui/react'
 import { useLocale } from 'next-intl'
 import {
   Camera,
@@ -232,12 +233,27 @@ export function MacroExplorer({
           Deux boutons et non deux liens : la vue ne vit pas dans l'URL (voir l'état
           `view`), et un lien qui ne change pas d'adresse est un lien menteur.
 
-          `role="tablist"` avec `aria-selected` plutôt qu'un groupe de boutons nus :
-          ce sont deux vues EXCLUSIVES d'un même contenu, ce que le motif d'onglets
-          décrit exactement — et une synthèse vocale annonce alors « onglet 1 sur 2 »
-          au lieu de deux boutons sans rapport apparent. */}
-      <div
-        role="tablist"
+          ⚠️ `role="tablist"` A ÉTÉ RETIRÉ, ET LA NOTE QUI LE JUSTIFIAIT AVAIT À MOITIÉ
+          RAISON. Elle disait : « ce sont deux vues EXCLUSIVES d'un même contenu, ce que
+          le motif d'onglets décrit exactement ». L'exclusivité était juste ; le motif ne
+          l'était pas, pour deux raisons.
+
+          D'abord le clavier : `role="tab"` n'en câble aucun. Le motif ARIA impose au
+          composant de gérer les flèches et l'index roulant, et rien ici ne le faisait —
+          la synthèse vocale annonçait « onglet 1 sur 2 » et les flèches ne bougeaient
+          rien. Un rôle qui promet ce que le code ne tient pas est pire qu'un bouton nu.
+
+          Ensuite le sens : un onglet révèle un PANNEAU parmi plusieurs. Ici les deux
+          entrées ne changent pas de contenu, elles changent la PROJECTION du même — mêmes
+          données, même cadre, même légende. C'est un choix exclusif, donc des boutons
+          radio, et c'est aussi ce que la forme dit déjà : une piste creusée et une
+          pastille pleine, jamais un souligné d'onglet.
+
+          `RadioGroup` de Headless UI apporte les quatre flèches et l'index roulant.
+          `data-checked` remplace la comparaison manuelle sur `view`. */}
+      <RadioGroup
+        value={view}
+        onChange={setView}
         aria-label={t('Projection de la carte')}
         className="inline-flex rounded-control border border-border-subtle p-0.5"
       >
@@ -245,22 +261,15 @@ export function MacroExplorer({
           ['carte', t('Carte')],
           ['globe', t('Globe')],
         ] as const).map(([id, label]) => (
-          <button
+          <Radio
             key={id}
-            type="button"
-            role="tab"
-            aria-selected={view === id}
-            onClick={() => setView(id)}
-            className={`rounded-control px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
-              view === id
-                ? 'bg-brand text-on-brand'
-                : 'text-ink-muted hover:text-ink'
-            }`}
+            value={id}
+            className="cursor-pointer rounded-control px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors duration-150 hover:text-ink data-checked:bg-brand data-checked:text-on-brand data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-brand"
           >
             {label}
-          </button>
+          </Radio>
         ))}
-      </div>
+      </RadioGroup>
 
       {/*
         ══════════════════════════════════════════════════════════════════════

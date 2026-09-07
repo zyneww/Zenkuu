@@ -1,5 +1,6 @@
 'use client'
 
+import { Tab, TabList } from '@headlessui/react'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -113,17 +114,45 @@ export type BoardColumnSet = 'apercu' | 'cotations' | 'catalogue' | 'performance
  */
 export type BoardUniverse = 'crypto' | 'favoris' | 'actions' | 'devises'
 
+/**
+ * Les univers réellement proposés, dans l'ordre.
+ *
+ * EXTRAIT DE `ClassTabs` PARCE QUE DEUX ENDROITS EN ONT BESOIN : la rangée d'onglets
+ * pour les rendre, et `MarketBrowser` pour poser un panneau par onglet et faire
+ * correspondre l'index choisi à l'univers. Recalculer la liste des deux côtés
+ * garantirait qu'elles divergent — et un décalage d'un cran entre onglets et panneaux
+ * afficherait les devises sous l'onglet « Actions » sans que rien ne le signale.
+ */
+export function visibleUniverses(
+  available: BoardUniverse[],
+  favorisAvailable: boolean,
+): BoardUniverse[] {
+  return available.filter((id) => id !== 'favoris' || favorisAvailable)
+}
+
+/**
+ * ⚠️ CETTE RANGÉE EST DEVENUE UN `TabList` DE HEADLESS UI, ET ELLE NE COMMANDE PLUS.
+ *
+ * Elle portait `role="tablist"` et `role="tab"` à la main, avec `aria-selected` — et
+ * RIEN d'autre. Le motif ARIA des onglets impose au composant de câbler lui-même les
+ * flèches et l'index roulant : la synthèse vocale annonçait donc « onglet 2 sur 4 »,
+ * et les flèches ne déplaçaient rien. Le rôle promettait un clavier qui n'existait pas.
+ *
+ * `TabGroup` apporte les deux, plus le lien `aria-controls`/`aria-labelledby` entre
+ * chaque onglet et son panneau — impossible à tenir tant que la rangée ignorait où
+ * vivait le tableau.
+ *
+ * LA CONSÉQUENCE EST QUE LE PARENT TIENT DÉSORMAIS L'ÉTAT : le `TabGroup` est ouvert
+ * par `MarketBrowser`, qui rend aussi les panneaux. `onSelect` a donc disparu d'ici —
+ * un composant qui n'est plus qu'une liste ne décide plus de la sélection.
+ */
 export function ClassTabs({
   active,
-  onSelect,
-  favorisAvailable,
-  available,
+  tabs,
 }: {
   active: BoardUniverse
-  onSelect: (next: BoardUniverse) => void
-  favorisAvailable: boolean
-  /** Univers réellement disponibles. Un absent n'est pas rendu. */
-  available: BoardUniverse[]
+  /** Déjà filtrés par `visibleUniverses` — voir la note de cette fonction. */
+  tabs: BoardUniverse[]
 }) {
   const t = usePhrase()
   const listRef = useRef<HTMLDivElement>(null)
@@ -136,8 +165,6 @@ export function ClassTabs({
     actions: { label: 'Actions', hint: 'Les actions cotées suivies par le site' },
     devises: { label: 'Devises', hint: 'Les principales paires de change' },
   }
-
-  const tabs = available.filter((id) => id !== 'favoris' || favorisAvailable)
 
   /*
    * ── LE TRAIT GLISSE, IL NE CLIGNOTE PAS ───────────────────────────────────
@@ -178,9 +205,8 @@ export function ClassTabs({
   }, [active, tabs.length])
 
   return (
-    <div
+    <TabList
       ref={listRef}
-      role="tablist"
       aria-label={t('Univers du tableau')}
       /*
         ── LA GÉOMÉTRIE EST RELEVÉE, PAS DEVINÉE ────────────────────────────
@@ -195,28 +221,23 @@ export function ClassTabs({
       */
       className="scrollbar-none relative flex items-center gap-6 overflow-x-auto"
     >
-      {tabs.map((id) => {
-        const selected = id === active
-        return (
-          <button
-            key={id}
-            ref={(node) => {
-              if (node) tabRefs.current.set(id, node)
-              else tabRefs.current.delete(id)
-            }}
-            type="button"
-            role="tab"
-            aria-selected={selected}
-            title={t(LABELS[id].hint)}
-            onClick={() => onSelect(id)}
-            className={`whitespace-nowrap px-1 pb-2 pt-1 text-xl font-medium transition-colors duration-150 ${
-              selected ? 'text-ink' : 'text-ink-muted hover:text-ink'
-            }`}
-          >
-            {t(LABELS[id].label)}
-          </button>
-        )
-      })}
+      {tabs.map((id) => (
+        <Tab
+          key={id}
+          ref={(node: HTMLButtonElement | null) => {
+            if (node) tabRefs.current.set(id, node)
+            else tabRefs.current.delete(id)
+          }}
+          title={t(LABELS[id].hint)}
+          /* `data-selected` remplace la comparaison sur `active` : l'état vient du
+             composant, il n'est plus recalculé à côté de lui. `data-focus` rend le
+             focus clavier visible — il ne l'était pas, la rangée n'étant jamais
+             atteignable aux flèches. */
+          className="whitespace-nowrap px-1 pb-2 pt-1 text-xl font-medium text-ink-muted transition-colors duration-150 hover:text-ink data-selected:text-ink data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-brand"
+        >
+          {t(LABELS[id].label)}
+        </Tab>
+      ))}
 
       {/* ⚠️ EN `bg-ink` ET NON `bg-brand`, contrairement à la rangée du dessous. Ce
           n'est pas une incohérence : deux rangées d'onglets empilées doivent se
@@ -231,7 +252,7 @@ export function ClassTabs({
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
       ) : null}
-    </div>
+    </TabList>
   )
 }
 

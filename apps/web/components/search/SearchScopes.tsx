@@ -66,16 +66,40 @@ export function SearchScopes({
 
   return (
     /*
-      `role="tablist"` et non une simple rangée de boutons : la synthèse vocale annonce
-      alors « onglet 2 sur 5 », et les flèches gauche/droite y naviguent nativement.
+      ══════════════════════════════════════════════════════════════════════════
+      ⚠️ `role="tablist"` A ÉTÉ RETIRÉ : IL PROMETTAIT UN CLAVIER QUI N'EXISTAIT PAS
+      ══════════════════════════════════════════════════════════════════════════
+
+      La note d'origine disait : « la synthèse vocale annonce alors "onglet 2 sur 5", et
+      les flèches gauche/droite y naviguent nativement ». La première moitié était vraie,
+      la seconde fausse. `role="tab"` ne câble AUCUNE touche : le motif ARIA impose au
+      composant de gérer lui-même les flèches et l'index roulant, et rien ici ne le
+      faisait. Le rôle annonçait donc un contrat que le code ne tenait pas — pire qu'un
+      bouton nu, qui au moins ne promet rien.
+
+      ── POURQUOI PAS LES ONGLETS DE HEADLESS UI, QUI RÉGLERAIENT LE CLAVIER ────
+
+      Parce que cette rangée vit DANS un `Command` de cmdk, qui possède déjà les flèches :
+      ↑ et ↓ déplacent la sélection dans la liste de résultats, depuis le champ de saisie.
+      `TabGroup` et `RadioGroup` réclament ces deux mêmes touches dès que le focus entre
+      dans le groupe. Le lecteur qui tabule jusqu'aux portées puis appuie sur ↓ changerait
+      alors de portée au lieu de descendre dans les résultats — on aurait échangé un
+      défaut d'accessibilité contre un conflit de raccourcis.
+
+      ── CE QUE C'EST VRAIMENT ─────────────────────────────────────────────────
+
+      Pas des onglets : un FILTRE. Il ne révèle pas un panneau parmi plusieurs, il
+      retranche des lignes de la seule liste qui existe. Le rôle juste est donc un groupe
+      de bascules exclusives — `aria-pressed` sur chacune, ce qui n'engage aucune touche
+      et décrit exactement ce que le bouton fait.
 
       ⚠️ `gap-5` = 20 px, mesuré chez eux. Et pas de filet sous la barre : le leur est à
-      zéro, l'onglet actif se signale par sa GRAISSE et son encre, pas par un souligné.
+      zéro, l'entrée active se signale par sa GRAISSE et son encre, pas par un souligné.
       Un souligné ajouterait une ligne horizontale de plus dans un panneau qui en a
       déjà — le champ au-dessus, les intitulés de section en dessous.
     */
     <div
-      role="tablist"
+      role="group"
       aria-label={t('Portée de la recherche')}
       className="flex flex-wrap items-center gap-5 px-3 pb-2 pt-1"
     >
@@ -87,8 +111,11 @@ export function SearchScopes({
           <button
             key={scope}
             type="button"
-            role="tab"
-            aria-selected={selected}
+            /* `aria-pressed` et non `aria-selected` : celui-ci n'a de sens que dans une
+               liste d'options ou un jeu d'onglets, et la synthèse vocale le lit
+               « non sélectionné » sur toutes les portées inactives — un bruit de plus à
+               chaque frappe. `aria-pressed` dit « bascule enfoncée », qui est le fait. */
+            aria-pressed={selected}
             onClick={() => onSelect(scope)}
             /* La transition ne porte que sur la COULEUR. Animer la graisse ferait
                bouger la largeur du mot, et toute la barre se décalerait à chaque

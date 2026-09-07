@@ -1,5 +1,7 @@
 'use client'
 
+import { TabGroup, TabPanel, TabPanels } from '@headlessui/react'
+
 import { Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -12,6 +14,7 @@ import {
   BoardFilters,
   BoardSearch,
   ClassTabs,
+  visibleUniverses,
   rangesActive,
   withinRanges,
   type BoardColumnSet,
@@ -640,49 +643,18 @@ export function MarketBrowser({
       tableProps.trailingSlot
     )
 
-  return (
-    <div className="space-y-3">
-      {/*
-        ── LA RANGÉE D'ONGLETS OUVRE LE BLOC ───────────────────────────────────
+  /*
+   * ── LE CONTENU EST EXTRAIT, PARCE QU'IL A DEUX LOGEMENTS ──────────────────
+   *
+   * Sous `boardTabs`, il vit dans un `TabPanel` de Headless UI — c'est ce qui relie
+   * enfin chaque onglet à ce qu'il commande, par `aria-controls`. Sans onglets, il est
+   * rendu tel quel. Le recopier aurait fait diverger les deux au premier correctif.
+   */
+  /* La MÊME liste sert les onglets et les panneaux — voir `visibleUniverses`. */
+  const tabsUnivers = visibleUniverses(availableUniverses, watchlist?.available === true)
 
-        Elle est posée ICI et non dans `MarketTable` parce qu'elle commande la LISTE
-        autant que les colonnes : le filtre « Gagnants » retire des lignes, et c'est ce
-        composant qui les tient. Le tableau ne reçoit que le verdict — un jeu de
-        colonnes et une liste déjà filtrée.
-      */}
-      {boardTabs ? (
-        <div className="flex flex-col gap-1">
-          {/* L'UNIVERS D'ABORD, LA VUE ENSUITE — c'est l'ordre de lecture de la
-              référence, et c'est aussi l'ordre logique : on choisit ce qu'on regarde
-              avant de choisir sous quel angle. Les deux rangées ne portent ni la même
-              taille ni le même trait, sans quoi elles se liraient comme une grille de
-              huit boutons de même rang. */}
-          <ClassTabs
-            active={universe}
-            onSelect={setUniverse}
-            favorisAvailable={watchlist?.available === true}
-            available={availableUniverses}
-          />
-        </div>
-      ) : null}
-
-      {/*
-        ── CE QUE LE DÉCOMPTE DOIT DIRE, ET SEULEMENT QUAND IL LE DOIT ─────────
-
-        Il n'apparaît que sous filtre, et il nomme sa PORTÉE. Un « 12 sur 250 » sans
-        cette précision se lirait comme « 12 cryptomonnaies dans tout le catalogue »,
-        alors que douze mille autres n'ont simplement pas été chargées. La loupe de
-        l'en-tête, elle, interroge tout le catalogue — c'est là qu'on renvoie.
-      */}
-      {filtering ? (
-        <p className="text-xs text-ink-muted" aria-live="polite">
-          {t('{n} sur {total} lignes chargées. Le filtre ne porte pas sur l’ensemble du catalogue.')
-            .replace('{n}', String(sorted.length))
-            .replace('{total}', String(assets.length))}
-        </p>
-      ) : null}
-
-      {sorted.length === 0 ? (
+  const contenu =
+    sorted.length === 0 ? (
         <EmptyState
           title={t('Aucun actif ne correspond sur cette page')}
           description="Le filtre ne s’applique qu’aux lignes chargées. Utilisez la recherche de l’en-tête pour chercher dans l’ensemble du catalogue."
@@ -816,6 +788,79 @@ export function MarketBrowser({
             </p>
           ) : null}
         </div>
+      )
+
+  return (
+    <div className="space-y-3">
+      {/*
+        ── LA RANGÉE D'ONGLETS OUVRE LE BLOC ───────────────────────────────────
+
+        Elle est posée ICI et non dans `MarketTable` parce qu'elle commande la LISTE
+        autant que les colonnes : le filtre « Gagnants » retire des lignes, et c'est ce
+        composant qui les tient. Le tableau ne reçoit que le verdict — un jeu de
+        colonnes et une liste déjà filtrée.
+      */}
+
+      {/*
+        ── CE QUE LE DÉCOMPTE DOIT DIRE, ET SEULEMENT QUAND IL LE DOIT ─────────
+
+        Il n'apparaît que sous filtre, et il nomme sa PORTÉE. Un « 12 sur 250 » sans
+        cette précision se lirait comme « 12 cryptomonnaies dans tout le catalogue »,
+        alors que douze mille autres n'ont simplement pas été chargées. La loupe de
+        l'en-tête, elle, interroge tout le catalogue — c'est là qu'on renvoie.
+      */}
+      {filtering ? (
+        <p className="text-xs text-ink-muted" aria-live="polite">
+          {t('{n} sur {total} lignes chargées. Le filtre ne porte pas sur l’ensemble du catalogue.')
+            .replace('{n}', String(sorted.length))
+            .replace('{total}', String(assets.length))}
+        </p>
+      ) : null}
+
+      {boardTabs ? (
+        /*
+          ══════════════════════════════════════════════════════════════════════
+          LE GROUPE D'ONGLETS ENVELOPPE LA RANGÉE **ET** LE TABLEAU
+          ══════════════════════════════════════════════════════════════════════
+
+          C'est la condition pour que le motif ARIA tienne : `aria-controls` relie un
+          onglet à un panneau du MÊME document, et le lien ne peut se poser que si les
+          deux vivent sous le même groupe. Tant que la rangée était rendue seule, plus
+          haut, elle ne pouvait rien désigner — d'où le `role="tab"` sans panneau, qui
+          annonçait une relation inexistante.
+
+          ⚠️ UN PANNEAU PAR ONGLET, MAIS UN SEUL TABLEAU MONTÉ. Headless UI attend
+          autant de `TabPanel` que de `Tab` ; remplir les quatre monterait quatre
+          tableaux de deux cent cinquante lignes avec leurs courbes. Seul le panneau
+          sélectionné reçoit le contenu, les autres restent vides — la structure est
+          juste pour la synthèse vocale, le coût reste celui d'un seul tableau.
+
+          `selectedIndex`/`onChange` traduisent l'index de Headless UI en univers : la
+          liste vient de `visibleUniverses`, la même que celle des onglets, ce qui rend
+          le décalage impossible.
+        */
+        <TabGroup
+          selectedIndex={Math.max(tabsUnivers.indexOf(universe), 0)}
+          onChange={(index) => {
+            const suivant = tabsUnivers[index]
+            if (suivant) setUniverse(suivant)
+          }}
+        >
+          {/* L'UNIVERS D'ABORD, LA VUE ENSUITE — c'est l'ordre de lecture de la
+              référence, et c'est aussi l'ordre logique : on choisit ce qu'on regarde
+              avant de choisir sous quel angle. */}
+          <ClassTabs active={universe} tabs={tabsUnivers} />
+
+          <TabPanels className="pt-3">
+            {tabsUnivers.map((id) => (
+              <TabPanel key={id} className="focus:outline-none">
+                {id === universe ? contenu : null}
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </TabGroup>
+      ) : (
+        contenu
       )}
     </div>
   )
