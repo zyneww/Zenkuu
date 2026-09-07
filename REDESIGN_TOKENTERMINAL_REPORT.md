@@ -17,12 +17,12 @@ Point de retour antérieur au chantier Tokenomist : `avant-ui/ux-tokenomist` (`f
 | **T2** — recherche globale | **fait** | Pastilles de raccourcis, recherches récentes, liste de suivi, tendances classées, légende clavier. |
 | **T3** — nettoyage accueil | **fait** | Ticker défilant, menu « Les plus populaires » et champ « Filtrer » retirés, avec leur machinerie. |
 | **T4** — Headless UI | **fait** | Les quatre rangées à contrat ARIA rompu sont traitées : deux `RadioGroup`, un `TabGroup` restructuré, un filtre remis en `aria-pressed`. |
-| **T5** — documentation | **partiel** | Guide écrit dans `docs/guide`. Le MCP GitBook est installé mais **non autorisé** : voir §5. |
+| **T5** — documentation | **partiel** | Guide écrit et publié sur `main`, MCP autorisé, `.gitbook.yaml` en place. Reste **une étape d'interface** : finir l'installation Git Sync. Voir §5. |
 | **T6** — Font Awesome | **fait, sans remplacement** | Câblé et vérifié ; l'audit n'a trouvé aucune icône incohérente à remplacer. Voir §6. |
 
-⚠️ **Une seule tâche n'est pas close** — T5, bloquée sur une autorisation OAuth que
-cette session ne peut pas donner. Le §5 dit exactement quoi faire. Le reste est en place
-et vérifié au navigateur.
+⚠️ **Une seule tâche n'est pas close** — T5, et son dernier obstacle n'est plus une
+autorisation mais **un réglage d'interface** que l'API GitBook n'expose pas. Le §5 donne
+la marche à suivre en quatre points. Le reste est en place et vérifié au navigateur.
 
 ---
 
@@ -243,20 +243,50 @@ d'interface sur des composants qui vont bien — ce que la consigne elle-même i
 
 ---
 
-## 5. T5 — Documentation : le MCP GitBook est installé, pas autorisé
+## 5. T5 — Documentation : tout est prêt sauf une étape d'interface
 
-- Le connecteur `claude.ai GitBook MCP` répond « ✔ Connected » au contrôle de santé
-  mais **n'expose aucun outil** à cette session.
-- Un serveur `gitbook` a donc été ajouté en configuration utilisateur
-  (`https://mcp.gitbook.com/mcp`). Il répond **`! Needs authentication`**.
-- La session est **non interactive** : le flux OAuth ne peut pas y être exécuté.
+L'autorisation OAuth **a été donnée** et le serveur répond. L'inspection a alors montré
+que le blocage n'avait jamais été là où je le croyais.
 
-**Pour débloquer :** lancer `claude` dans un terminal interactif et autoriser le serveur
-via `/mcp` — ou l'autoriser depuis les réglages de connecteurs claude.ai. T5 reprendra
-sur un vrai espace GitBook à ce moment-là.
+### Ce qui est en place
 
-**En attendant**, le guide d'usage est écrit dans le dépôt, sous `docs/guide`, dans une
-structure transposable telle quelle vers GitBook.
+| Élément | État |
+|---|---|
+| MCP GitBook | ✔ connecté — organisation **Zenkuu** (`VNNShnnbfRfr9IjBTiL3`), site **Zenkuu Docs** (`site_bFvaH`), espace `H92Om9ArW2NG9kLIhWoi` |
+| Contenu du guide | ✔ 8 fichiers, 427 lignes, en français, sous `docs/guide` |
+| `.gitbook.yaml` | ✔ racine `./docs/guide/`, `readme: README.md`, `summary: SUMMARY.md` |
+| Publication sur `main` | ✔ `7179104..624bbf0`, avance rapide pure — le sync a désormais quelque chose à tirer |
+
+### ⚠️ Ce qui reste, et pourquoi je ne peux pas le faire
+
+L'espace est en **`editMode: "locked"`**, et la cause est nommée par l'API elle-même :
+
+    "gitSync": { "installationProvider": "github", "installationStatus": "pending" }
+
+**Une installation Git Sync a été commencée le 2026-09-06 et jamais terminée.** GitBook
+verrouille un espace dès qu'un dépôt en devient la source ; la synchronisation étant
+restée `pending`, l'espace est verrouillé *sans* recevoir de contenu. C'est l'impasse que
+le commit `c4acf2d` avait constatée en écrivant « l'espace GitBook est verrouillé ».
+
+Le guide d'usage du serveur est formel : « **Git Sync setup is not available through this
+server.** » Aucun outil MCP ne termine une installation GitHub — c'est une étape de
+l'interface, et écrire les pages par l'API à la place serait un contresens : cela ferait
+de GitBook la source de vérité contre le dépôt, exactement ce que `.gitbook.yaml` met en
+garde de ne pas faire.
+
+### La marche à suivre — quatre points
+
+1. Ouvrir l'espace : `https://app.gitbook.com/o/VNNShnnbfRfr9IjBTiL3/s/H92Om9ArW2NG9kLIhWoi/`
+2. Dans **Integrations → Git Sync**, finir l'installation de l'app GitHub et choisir le
+   dépôt **`zyneww/Zenkuu`**, branche **`main`**.
+3. ⚠️ **Choisir le sens Git → GitBook pour le premier échange.** L'inverse écraserait
+   `docs/guide` avec le contenu de l'espace, qui est vide. Ce sens-là est irréversible
+   dans ses effets : il n'y a rien à récupérer une fois le dossier remplacé.
+4. `.gitbook.yaml` étant à la racine du dépôt, GitBook lira `docs/guide/` seul. Les autres
+   documents de `docs/` — plans, audits, relevés — restent hors ligne, ce qui est voulu.
+
+Une fois l'échange passé, `get_site_structure` montrera les pages importées et l'espace
+sortira de `locked`.
 
 ---
 
@@ -374,8 +404,9 @@ l'aurait refermé aussi, en retirant soixante-dix-huit lignes au lieu d'en ajout
 
 ## 9. Ce qui reste à faire
 
-1. **T5 — autoriser le MCP GitBook** dans une session interactive, puis y porter
-   `docs/guide`. **C'est le seul blocage restant, et il demande une action humaine.**
+1. **T5 — finir l'installation Git Sync** dans l'interface GitBook, en Git → GitBook.
+   **C'est le seul blocage restant, et l'API ne l'expose pas.** Le §5 donne les quatre
+   points. Tout le reste de T5 est fait : contenu, configuration, publication sur `main`.
 2. **Vérification clavier des autres routes** : les quatre rangées traitées l'ont été au
    navigateur, mais la navigation au clavier n'a pas été éprouvée route par route sur les
    64 pages.
