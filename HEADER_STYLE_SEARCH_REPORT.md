@@ -294,10 +294,50 @@ intact** : seul le bloc `.dark` a été touché.
 | `tsc --noEmit` | ✅ propre |
 | `eslint` sur les fichiers touchés | ✅ propre |
 | Tests | ✅ **974 passent** |
+| `bun run build` | ✅ **1 tâche réussie, 1 min 40** |
 | Thème clair / sombre | ✅ les deux vérifiés au navigateur |
+| Responsive — 375 px | ✅ la fenêtre de recherche du téléphone rend la nouvelle section |
 | Clavier (menus) | ✅ Entrée, Échap, focus rendu |
 | `prefers-reduced-motion` | ✅ règles présentes dans le CSS compilé |
 | Décalage de mise en page | ✅ aucun (panneau en position absolue) |
+
+Le build a été lancé **serveur de développement arrêté** : les faire tourner ensemble
+corrompt le cache Turbopack et met le site en 500.
+
+### Un défaut trouvé en vérifiant le responsive, et corrigé
+
+À 375 px, la catégorie « Robinhood Chain Meme » affichait **l'icône d'image cassée** du
+navigateur. Elle porte bien une URL de logo, mais la source publie ces vignettes par
+identifiant d'actif et un actif retiré laisse son URL en 404 — cas normal, pas une panne.
+Le repli en monogramme ne se déclenchait que sur une URL **absente**.
+
+La correction est allée dans `AssetThumb` plutôt qu'à l'endroit où le défaut se montrait,
+et c'est la deuxième moitié du sujet : ce composant existe précisément parce que le bloc
+vignette avait été écrit deux fois. J'en avais écrit une **troisième** copie dans
+`CategoryRow` sans le voir, et `ResultRow` en gardait une quatrième depuis avant. Les deux
+passent à `AssetThumb` : le défaut est réglé partout d'un coup, et vingt-six lignes
+disparaissent.
+
+### Un défaut trouvé en vérifiant, et NON corrigé — il préexiste
+
+Un chargement propre de l'accueil produit **deux erreurs d'hydratation** React. La pile
+d'appels, relevée dans la surcouche de Next :
+
+    components/locale/Money.tsx (66:10) @ Amount
+    components/home/MarketRibbon.tsx (251:9 ← 133:13 ← 132:19)
+    app/[locale]/page.tsx (198:9)
+
+**Aucun de ces trois fichiers n'a été touché de la session.** Le bandeau de cours de
+l'accueil ne rend pas le même texte côté serveur et côté client — piste la plus probable :
+`Money` convertit via `useCurrency()`, et la devise ou le taux disponibles au rendu serveur
+diffèrent de ceux que le client lit. C'est hors du périmètre de cette session ; une tâche
+séparée a été proposée, avec la pile et la piste.
+
+⚠️ **Méthode, pour qui reprendra** : la console du navigateur est CUMULATIVE sur la vie de
+l'onglet — un onglet réutilisé mélange les erreurs de tous les chargements précédents, et
+m'a d'abord fait croire que le défaut venait de mes propres manipulations. La surcouche de
+Next, elle, se remet à zéro à chaque chargement et donne le compte juste. C'est un onglet
+NEUF qui a tranché.
 
 **Réserve sur les tests :** 36 fichiers échouent, tous sous `.claude/worktrees/` — des
 worktrees périmés dont les dépendances ne sont pas installées et qui ne compilent pas.
@@ -323,6 +363,9 @@ n'échoue.
 5. **`refero.design`** n'a pas été exploré : ses pages exigent un compte, et le relevé au
    navigateur sur `duolingo.com` a suffi. Une capture d'écran n'aurait de toute façon pas
    donné un style calculé.
-6. **Les palettes catégorielles** (`--color-data-*`, `--color-sentiment-*`,
+6. **La divergence d'hydratation du bandeau de marché**, préexistante et documentée
+   ci-dessus. Elle ne bloque rien — React régénère l'arbre côté client — mais elle coûte
+   un rendu complet à chaque visite de l'accueil.
+7. **Les palettes catégorielles** (`--color-data-*`, `--color-sentiment-*`,
    `--chart-stack-*`) n'ont pas été alignées sur taostats : ils n'exposent pas
    d'équivalent, et en inventer un aurait été fabriquer un relevé.
