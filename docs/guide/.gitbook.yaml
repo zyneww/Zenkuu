@@ -1,0 +1,20 @@
+# Ce que GitBook lit DANS CET ESPACE.
+#
+# ⚠️ CE FICHIER A ÉTÉ DÉPLACÉ DEPUIS LA RACINE DU DÉPÔT, et sa `root` a changé avec
+# lui. Il y portait `root: ./docs/guide/`, ce qui était juste tant qu'on visait une
+# synchronisation d'ESPACE. Le montage retenu est celle d'un SITE : c'est
+# `gitbook-docs.yaml`, à la racine, qui dit désormais quel dossier alimente quel
+# espace — et la spécification veut que `.gitbook.yaml` vive dans le dossier de
+# l'espace, pas au-dessus.
+#
+# La racine est donc `./`, c'est-à-dire `docs/guide/` lui-même. Laisser l'ancien
+# chemin ferait chercher `docs/guide/docs/guide/`.
+#
+# ⚠️ LE CHOIX DU DOSSIER PUBLIÉ N'EST PLUS ICI. Il est dans `gitbook-docs.yaml`, sous
+# `content.directory`. C'est là qu'on empêche `docs/` — qui porte aussi des plans et
+# des relevés d'audit écrits pour l'équipe — de partir en ligne.
+root: ./
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md

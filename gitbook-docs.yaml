@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://api.gitbook.com/gitbook-docs.yaml
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LA STRUCTURE DU SITE GITBOOK — CE QUE LE DÉPÔT IMPOSE À L'ESPACE
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# ── POURQUOI CE FICHIER, ALORS QUE `.gitbook.yaml` EXISTAIT DÉJÀ ──────────────
+#
+# Ce ne sont pas deux versions du même fichier : ils décrivent deux étages.
+#
+#     gitbook-docs.yaml   LE SITE       quels espaces, à quelle adresse, et quel
+#     (ici, à la racine)                dossier du dépôt alimente chacun
+#
+#     .gitbook.yaml       UN ESPACE     dans le dossier de cet espace : où sont son
+#     (dans docs/guide/)                accueil et son sommaire
+#
+# Le Git Sync configuré ici est celui d'un SITE, et c'est ce fichier-là qu'il
+# réclame. `.gitbook.yaml` a donc été DÉPLACÉ de la racine vers `docs/guide/` : la
+# spécification dit qu'il « vit dans le dossier de l'espace », et à la racine il
+# décrivait un étage qui n'est pas le sien.
+#
+# ⚠️ CE FICHIER ÉCRASE LA STRUCTURE DU SITE À CHAQUE SYNCHRONISATION. L'interface
+# GitBook le dit en toutes lettres avant de lancer l'échange. Ce qui est écrit ici
+# gagne sur ce qui a été composé à la main dans l'application.
+#
+# ── ⚠️ `key` EST PERMANENTE, `title` ET `path` NE LE SONT PAS ─────────────────
+#
+# La clé est ce qui identifie l'espace d'une synchronisation à l'autre. La changer ne
+# renomme pas l'espace : GitBook en CRÉE UN NOUVEAU et détache l'ancien, qui reste en
+# place avec son contenu et son adresse. Pour renommer, on touche `title` ; pour
+# déplacer, `path`. Jamais `key` une fois le site en ligne.
+#
+# ── UN SEUL ESPACE, ET PAS DE SECTION ────────────────────────────────────────
+#
+# Le schéma autorise les espaces au premier niveau — « a site either uses sections
+# […] or lists its spaces at the top level, never both ». Les sections sont la rangée
+# de navigation supérieure : elles n'ont de sens qu'à partir de trois espaces. Avec un
+# seul guide, elles ajouteraient une barre qui ne propose rien.
+#
+# Le jour où la documentation se scinde — un guide utilisateur et une référence
+# d'API, par exemple —, c'est ici que le second espace s'ajoute, avec son propre
+# dossier.
+
+site:
+  title: Zenkuu Docs
+  structure:
+    - type: space
+      key: guide
+      title: Guide
+      path: guide
+      default: true
+      content:
+        # ⚠️ `docs/guide` ET NON `docs`. Le dossier `docs/` porte aussi des documents
+        # de TRAVAIL — plans de lot, spécifications, relevés d'audit — écrits pour
+        # l'équipe et non pour les visiteurs. Le publier entier les mettrait en ligne.
+        directory: ./docs/guide
+        language: fr
