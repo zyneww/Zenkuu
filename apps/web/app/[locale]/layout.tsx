@@ -31,6 +31,33 @@ import { SITE_URL, languageAlternates } from '@/lib/site'
 // dépend d'aucune langue.
 import '@/app/globals.css'
 
+/*
+ * ══════════════════════════════════════════════════════════════════════════════
+ * FONT AWESOME — LE CÂBLAGE, SANS LEQUEL LES ICÔNES SORTENT ÉNORMES
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * `@fortawesome/fontawesome-svg-core` injecte normalement sa feuille de style lui-même,
+ * en posant un `<style>` dans le `<head>` au premier rendu d'icône. Next.js BLOQUE cette
+ * injection : sans la feuille, chaque SVG s'affiche à sa taille intrinsèque, c'est-à-dire
+ * plein écran. C'est le défaut que la documentation officielle traite en premier.
+ *
+ * Les deux lignes vont donc ensemble et dans cet ordre : on importe la feuille nous-mêmes,
+ * puis on coupe l'injection automatique devenue inutile. Retirer l'une sans l'autre
+ * ramène le défaut.
+ *
+ * ⚠️ AUCUNE ICÔNE FONT AWESOME N'EST ENCORE POSÉE SUR LE SITE, et c'est délibéré :
+ * l'audit d'iconographie n'a trouvé AUCUN jeu incohérent à remplacer. Les cinq jeux
+ * maison existent tous pour une raison écrite dans leur propre en-tête — la charte de
+ * Google interdit son logotype monochrome sur un bouton de connexion, les vignettes de
+ * matières premières sont des carrés colorés que Font Awesome ne sait pas rendre. Le
+ * câblage est ici pour que `/add-icon` fonctionne et que la PROCHAINE icône du site soit
+ * une Font Awesome ; il ne sert pas à en remplacer une qui va bien. Voir `.font-awesome.md`.
+ */
+import { config } from '@fortawesome/fontawesome-svg-core'
+import '@fortawesome/fontawesome-svg-core/styles.css'
+
+config.autoAddCss = false
+
 /**
  * Police d'INTERFACE ET D'AFFICHAGE — Inter.
  *
