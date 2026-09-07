@@ -1,3 +1,7 @@
+'use client'
+
+import { useState } from 'react'
+
 import { monogram } from '@/components/asset/monogram'
 
 /**
@@ -27,7 +31,27 @@ export function AssetThumb({
   symbol: string
   image?: string
 }) {
-  if (image) {
+  /*
+   * ═══════════════════════════════════════════════════════════════════════
+   * UNE URL PRÉSENTE N'EST PAS UNE IMAGE QUI S'AFFICHE
+   * ═══════════════════════════════════════════════════════════════════════
+   *
+   * Le repli en monogramme ne se déclenchait que sur une URL ABSENTE. Vu à l'écran le
+   * 2026-09-08, dans la fenêtre de recherche du téléphone : la catégorie « Robinhood
+   * Chain Meme » portait bien une URL, et affichait l'icône d'image cassée du
+   * navigateur — une vignette déchirée au milieu d'une liste propre.
+   *
+   * La source publie ces logos par identifiant d'actif ; un actif retiré laisse son URL
+   * dans la réponse et 404 sur l'image. C'est donc un cas NORMAL, pas une panne.
+   *
+   * `onError` couvre l'écart entre « l'URL existe » et « l'image se charge », et il le
+   * fait ICI plutôt que dans chaque appelant — c'est exactement la raison d'être de ce
+   * composant, énoncée plus haut : le repli doit rester d'accord entre toutes les
+   * lignes du panneau, sans quoi deux listes voisines n'auront pas la même allure.
+   */
+  const [rompue, setRompue] = useState(false)
+
+  if (image && !rompue) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
       <img
@@ -37,6 +61,7 @@ export function AssetThumb({
         height={22}
         className="shrink-0 rounded-pill"
         loading="lazy"
+        onError={() => setRompue(true)}
       />
     )
   }

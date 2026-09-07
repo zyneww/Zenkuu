@@ -7,7 +7,7 @@ import { ChangeBadge } from '@/components/locale/ChangeBadge'
 import { Link, type AppHref } from '@/i18n/navigation'
 import { WatchlistStar } from '@/components/watchlist/WatchlistStar'
 import { Money } from '@/components/locale/Money'
-import { monogram } from '@/components/asset/monogram'
+import { AssetThumb } from '@/components/search/AssetThumb'
 import { useContent, usePhrase } from '@/components/locale/ContentProvider'
 import { Badge } from '@/components/ui/badge'
 import type { AssetClass, MarketCategory } from '@zenkuu/data'
@@ -538,24 +538,10 @@ function ResultRow({
               vide, et la synthèse vocale annonce déjà le bouton qui se pose dessus. */}
           {watch ? <span aria-hidden="true" className="w-8 shrink-0" /> : null}
 
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
-            <img
-              src={image}
-              alt=""
-              width={22}
-              height={22}
-              className="shrink-0 rounded-pill"
-              loading="lazy"
-            />
-          ) : (
-            <span
-              className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
-              aria-hidden="true"
-            >
-              {monogram(name, symbol)}
-            </span>
-          )}
+          {/* `AssetThumb` et non le bloc recopié qui tenait ici : c'est le composant
+              qui porte le repli en monogramme ET, depuis le 2026-09-08, celui sur image
+              rompue. Le bloc local ne connaissait que le premier des deux. */}
+          <AssetThumb name={name} symbol={symbol} {...(image ? { image } : {})} />
 
           {/*
             ══════════════════════════════════════════════════════════════════════
@@ -671,17 +657,19 @@ function CategoryRow({
         href={{ pathname: '/categories/[id]', params: { id: category.id } }}
         onClick={onNavigate}
       >
-        {logo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- vignettes 22px hors domaines optimisés
-          <img src={logo} alt="" width={22} height={22} className="shrink-0 rounded-pill" loading="lazy" />
-        ) : (
-          <span
-            className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-pill bg-brand-soft text-[0.5625rem] font-bold text-brand-strong"
-            aria-hidden="true"
-          >
-            {monogram(category.name, category.name)}
-          </span>
-        )}
+        {/* ⚠️ `AssetThumb`, ET C'EST UNE CORRECTION. Ce bloc était recopié ici — la
+            TROISIÈME copie, alors que l'en-tête de ce composant explique qu'il existe
+            justement parce qu'il avait été écrit deux fois. La catégorie « Robinhood
+            Chain Meme » a montré le coût : elle porte une URL de logo qui 404, et la
+            copie locale affichait l'icône d'image cassée du navigateur.
+
+            Le symbole vaut le nom, faute de mieux : une catégorie n'en a pas, et
+            `monogram` s'en sert pour tirer ses initiales. */}
+        <AssetThumb
+          name={category.name}
+          symbol={category.name}
+          {...(logo ? { image: logo } : {})}
+        />
 
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           {/* Pas de capitales ici, contrairement au symbole d'un actif : « Real World
