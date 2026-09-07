@@ -463,8 +463,17 @@ function CategoryTable({
       <table className="w-full border-collapse text-sm sm:min-w-[720px]">
         <caption className="sr-only">{t('Secteurs de marché')}</caption>
         <thead>
-          <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
-            <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">#</th>
+            {/* ⚠️ `[&>th]:font-semibold` ET NON `font-semibold` SEUL, ET LA MESURE
+                L'A IMPOSÉ. La feuille de l'agent utilisateur porte `th { font-weight:
+                bold }` : une règle qui vise LE `th`, donc elle bat toute graisse héritée
+                de cette rangée. Relevé au navigateur après un premier essai — les
+                en-têtes sortaient en 700 quand leurs voisins triables, qui posent la
+                classe sur eux-mêmes, sortaient en 600.
+
+                La taille et l'encre, elles, s'héritent normalement : elles restent sur
+                la rangée. */}
+          <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] [&>th]:font-semibold text-ink-muted">
+            <th scope="col" className="hidden px-3 py-2.5 sm:table-cell">#</th>
             <SortableHeader
               label={t('Secteur')}
               sortKey="name"
@@ -475,7 +484,7 @@ function CategoryTable({
             {/* « Type » n'est PAS triable, et pour la même raison que « Dominance » :
                 le filtre segmenté au-dessus fait déjà ce qu'un tri sur deux valeurs
                 ferait, et mieux — il réduit la liste au lieu de la réordonner. */}
-            <th scope="col" className="hidden px-3 py-2.5 font-medium md:table-cell">
+            <th scope="col" className="hidden px-3 py-2.5 md:table-cell">
               {t('Type')}
             </th>
             <SortableHeader
@@ -501,7 +510,7 @@ function CategoryTable({
                 par une constante, donc le même ordre que la colonne voisine. Deux
                 en-têtes qui produisent le même classement laisseraient croire à deux
                 critères. */}
-            <th scope="col" className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
+            <th scope="col" className="hidden px-3 py-2.5 text-right lg:table-cell">
               {t('Dominance')}
             </th>
           </tr>

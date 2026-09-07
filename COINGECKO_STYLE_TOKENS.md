@@ -144,13 +144,23 @@ sections d'un rail) et par un titre en petites capitales atténuées.
 
 | Ce qu'on mesure | Valeur retenue |
 |---|---|
-| `th` | 12 px / 600, rembourrage `8px 4px` |
-| `td` | 14 px / 400, rembourrage `8px 4px` |
+| `th` | **12 px / 600**, encre atténuée |
+| `td` | **14 px / 400** |
+| Rembourrage vertical | 10 px en-tête, 8 à 10 px cellule |
+| Rembourrage horizontal | **suit le nombre de colonnes** — 12 px sur un tableau de marché, 16 px sur un tableau à sept colonnes larges |
 | Filet | sous chaque ligne, `--color-border-subtle` |
 | Rayon | aucun (`--radius-dense`) : les rangées s'aboutent |
 
-C'est la densité de `/fr/crypto`, le tableau de marché de référence. L'audit a trouvé une
-seconde densité (`10px 12px`, `td` à 13 px) sur d'autres tableaux du site.
+⚠️ **LA GRAISSE D'UN `th` NE S'HÉRITE PAS.** La feuille de l'agent utilisateur porte
+`th { font-weight: bold }` — une règle qui vise LE `th`, donc elle bat toute graisse
+posée sur `<tr>`. Un en-tête qui n'a pas sa propre classe sort en 700, pas en 600. La
+forme qui marche est `[&>th]:font-semibold` sur la rangée : elle vise le `th` à son tour
+tout en gardant la déclaration en un seul endroit. La taille et l'encre, elles,
+s'héritent normalement et restent sur la rangée.
+
+⚠️ **LE REMBOURRAGE HORIZONTAL N'EST PAS UNIFORME, ET NE DOIT PAS L'ÊTRE.** Neuf colonnes
+serrées ne peuvent pas respirer comme sept colonnes larges. C'est la seule dimension d'un
+tableau que ce socle laisse au jugement de chaque page.
 
 ---
 

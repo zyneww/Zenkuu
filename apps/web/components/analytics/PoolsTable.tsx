@@ -106,23 +106,42 @@ export function PoolsTable({ pools }: { pools: YieldPool[] }) {
       <div className="overflow-x-auto rounded-card border border-border-subtle bg-surface">
         <table className="w-full min-w-[46rem] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-border-subtle">
-              <th scope="col" className="px-4 py-2.5 text-left font-medium text-ink-muted">
+            {/* ⚠️ LA RANGÉE D'EN-TÊTE NE PORTAIT NI TAILLE NI GRAISSE, et ses cellules
+                sortaient donc en 14 px — LA TAILLE EXACTE DES DONNÉES qu'elles
+                surmontent. Relevé au navigateur : sept en-têtes à 14/500 au-dessus de
+                cent soixante-quinze cellules à 14/400. Seule la graisse les
+                distinguait, ce qui ne suffit pas à faire lire une ligne comme un
+                en-tête.
+
+                Les quatre autres tableaux du site posent taille, graisse et encre SUR
+                LA RANGÉE — 12 px, 600, encre atténuée. Celui-ci les rejoint, et ses
+                `<th>` cessent de redéclarer chacun sa graisse et son encre. */}
+            {/* ⚠️ `[&>th]:font-semibold` ET NON `font-semibold` SEUL, ET LA MESURE
+                L'A IMPOSÉ. La feuille de l'agent utilisateur porte `th { font-weight:
+                bold }` : une règle qui vise LE `th`, donc elle bat toute graisse héritée
+                de cette rangée. Relevé au navigateur après un premier essai — les
+                en-têtes sortaient en 700 quand leurs voisins triables, qui posent la
+                classe sur eux-mêmes, sortaient en 600.
+
+                La taille et l'encre, elles, s'héritent normalement : elles restent sur
+                la rangée. */}
+            <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] [&>th]:font-semibold text-ink-muted">
+              <th scope="col" className="px-4 py-2.5 text-left">
                 {t('Pool')}
               </th>
-              <th scope="col" className="px-4 py-2.5 text-left font-medium text-ink-muted">
+              <th scope="col" className="px-4 py-2.5 text-left">
                 {t('Protocole')}
               </th>
-              <th scope="col" className="px-4 py-2.5 text-left font-medium text-ink-muted">
+              <th scope="col" className="px-4 py-2.5 text-left">
                 {t('Chaîne')}
               </th>
-              <th scope="col" className="px-4 py-2.5 text-right font-medium text-ink-muted">
+              <th scope="col" className="px-4 py-2.5 text-right">
                 {t('Valeur immobilisée')}
               </th>
-              <th scope="col" className="px-4 py-2.5 text-right font-medium text-ink-muted">
+              <th scope="col" className="px-4 py-2.5 text-right">
                 {t('Taux du jour')}
               </th>
-              <th scope="col" className="px-4 py-2.5 text-right font-medium text-ink-muted">
+              <th scope="col" className="px-4 py-2.5 text-right">
                 {t('Moyenne 30 j')}
               </th>
             </tr>

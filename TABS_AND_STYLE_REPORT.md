@@ -105,7 +105,7 @@ n'a publiée.
 ## T2 — Le socle de style
 
 Deux documents livrés : **`COINGECKO_STYLE_TOKENS.md`** (le contrat, extrait de ce qui est
-appliqué aux fiches) et **`SITE_STYLE_AUDIT.md`** (le relevé, sept familles de pages).
+appliqué aux fiches) et **`SITE_STYLE_AUDIT.md`** (le relevé, onze familles de pages).
 
 Méthode : une sonde exécutée dans le navigateur compte, parmi les éléments **réellement
 peints**, les rayons, les ombres, les fonds, les filets et la géométrie de chaque bouton.
@@ -141,16 +141,46 @@ et tous ses boutons en `r8 14px` ; accueil sans `h32 r12 16px`.
 
 Une sonde qui compte des rayons ne sait pas cela ; les fichiers, si.
 
+### Les tableaux — ⚠️ MON PREMIER AUDIT DISAIT FAUX
+
+Il annonçait « deux densités de tableau » et les décrivait précisément. C'était une
+**erreur de mesure** : la sonde lisait `querySelector('th')` et `querySelector('td')`,
+donc la **première** cellule du document — or la première colonne d'un tableau de marché
+est presque toujours secondaire (une étoile de suivi, un rang), plus étroite et plus
+petite que le corps du tableau.
+
+Une seconde sonde, qui rend la **distribution** de toutes les cellules, montre un site
+bien plus cohérent qu'annoncé : une seule densité verticale, un seul corps de cellule.
+Deux écarts réels subsistaient, et sont corrigés :
+
+| Écart | Avant | Après |
+|---|---|---|
+| `/analytics` : en-têtes à la taille des données | `14/500` au-dessus de 175 cellules `14/400` | `12/600` |
+| `/categories`, `/screener` : deux graisses dans la même rangée | `12/600` ×4 + `12/500` ×3 | `12/600` ×7 |
+
+⚠️ **La correction a demandé deux passes, et la première a empiré les choses.** Retirer
+`font-medium` a fait passer ces en-têtes à **700**, pas à 600 : la feuille de l'agent
+utilisateur porte `th { font-weight: bold }`, une règle qui vise LE `th` et bat donc
+toute graisse héritée de la rangée. Il a fallu `[&>th]:font-semibold`. C'est la sonde
+rejouée après coup qui l'a montré — pas la relecture du diff.
+
+Le rembourrage horizontal (12 px sur un tableau de marché, 16 px sur analytics) n'est PAS
+un écart : il suit le nombre de colonnes, et le socle le dit désormais explicitement.
+
+Relevé final : `th 12/600` et `td 14/400` sur `/crypto`, `/categories`, `/screener`,
+`/places` et `/analytics`.
+
 ### Ce qui reste, avec le motif
 
-- **Deux densités de tableau.** `/crypto` sert `pad 8/4`, `/categories` et `/screener`
-  `pad 10/12`. Les colonnes des seconds sont dimensionnées pour leur densité : le
-  changement est large et demande un relevé de débordement après coup.
-- **Deux `SegmentedControl`** de même nom, l'un dans `ui/`, l'autre dans `settings/`.
+- **Deux `SegmentedControl`** de même nom, l'un dans `ui/`, l'autre dans `settings/`. Ils
+  rendent des formes différentes ; les fondre demande de choisir laquelle le site garde.
 - **L'accueil est deux crans plus petit** — 11 px sur quarante nœuds contre 14 ailleurs.
   Écart d'emploi, pas de jeton ; le corriger rallonge la page. Arbitrage de produit.
-- **Familles non sondées** : places de cotation, carte thermique, graphiques globaux,
-  analytics, changelog.
+- **`/analytics` et les graphiques globaux titrent en 22/600** quand le reste du site
+  titre en 24/700. C'est cohérent à l'intérieur de leur famille ; l'aligner demande de
+  relever d'abord leurs sous-titres, sous peine de décaler la hiérarchie au lieu de
+  l'aligner.
+- **Familles non sondées** : carte thermique, changelog, comparateur.
 
 ---
 

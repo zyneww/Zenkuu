@@ -571,11 +571,20 @@ export function ScreenerView({
               )}
             </caption>
             <thead>
-              <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] font-semibold text-ink-muted">
-                <th scope="col" className="hidden px-3 py-2.5 font-medium sm:table-cell">
+            {/* ⚠️ `[&>th]:font-semibold` ET NON `font-semibold` SEUL, ET LA MESURE
+                L'A IMPOSÉ. La feuille de l'agent utilisateur porte `th { font-weight:
+                bold }` : une règle qui vise LE `th`, donc elle bat toute graisse héritée
+                de cette rangée. Relevé au navigateur après un premier essai — les
+                en-têtes sortaient en 700 quand leurs voisins triables, qui posent la
+                classe sur eux-mêmes, sortaient en 600.
+
+                La taille et l'encre, elles, s'héritent normalement : elles restent sur
+                la rangée. */}
+              <tr className="border-b border-border-subtle text-left text-[length:var(--v2-text-2xs)] [&>th]:font-semibold text-ink-muted">
+                <th scope="col" className="hidden px-3 py-2.5 sm:table-cell">
                   #
                 </th>
-                <th scope="col" className="px-3 py-2.5 font-medium">
+                <th scope="col" className="px-3 py-2.5">
                   {market.id === 'dex' ? t('Pool') : market.id === 'cex' ? t('Place') : t('Actif')}
                 </th>
 
@@ -588,7 +597,7 @@ export function ScreenerView({
                       aria-sort={
                         active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'
                       }
-                      className={`px-3 py-2.5 text-right font-medium ${hiddenClass(column)}`}
+                      className={`px-3 py-2.5 text-right ${hiddenClass(column)}`}
                     >
                       {/*
                         L'en-tête ENTIER est le bouton, et non une icône posée à côté du

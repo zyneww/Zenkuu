@@ -21,6 +21,10 @@ classes annoncent. Thème clair, fenêtre 1568 px, 2026-09-07.
 | `/screener` | 8 ×11, **16 ×11** | 9 blancs | 14/400 | **cinq géométries**, dont `h29 r0` et `h20 r0`, et trois à **13 px** |
 | `/convertisseur` | **12 ×11, aucun 8** | 10 blancs | 14/400 | **toutes pastilles**, `h34 pill 16px`, `h36 pill 16px` |
 | `/parametres` | pill ×3, 8 ×3, **6 ×1** | 2 gris, 2 blancs | 14/500 | **`r8`, `r6` et `r0` sur la même page** |
+| `/places` | 4 ×5, 12 ×1, 8 ×1 | 5 blancs | 13/400 | `h32 r8 14px`, `h20 r4 12px` |
+| `/analytics` | 8 ×9, 12 ×4 | 4 blancs | 14/400 | `h36 r8 14px`, `h32 r8 14px` |
+| `/graphiques/dominance` | 8 ×13, 12 ×6 | 4 gris, 2 blancs | 13/400 | — |
+| `/aide` | 12 ×10, 4 ×6, 8 ×1 | — | 14/600 | `h26 pill 13px` *(mots-clés, légitime)* |
 
 ---
 
@@ -84,12 +88,49 @@ Total : **14 déclarations hors barème** contre 144 `rounded-card` et 117
 `components/tools/TreemapFigure.tsx` : `bg-[#14151b]`. Aucun jeton ne porte cette valeur,
 et elle ne suit donc pas le thème.
 
-### E. Deux densités de tableau
+### E. Les tableaux — ⚠️ CETTE SECTION DISAIT FAUX, ET LE MOTIF EST INSTRUCTIF
 
-`/crypto` sert `th 12/600 pad 8px 4px` et `td 14/400`. `/categories` et `/screener`
-servent `th 12/500 pad 10px 12px` et `td 13/400`. Deux tableaux de marché, deux
-densités : c'est l'écart le plus visible à l'œil nu, et le plus coûteux à corriger
-puisqu'il touche la largeur des colonnes.
+**Ce qu'elle affirmait :** « `/crypto` sert `th 12/600 pad 8px 4px` et `td 14/400`.
+`/categories` et `/screener` servent `th 12/500 pad 10px 12px` et `td 13/400`. Deux
+tableaux de marché, deux densités. »
+
+**C'était une erreur de mesure, pas d'observation.** La première sonde lisait
+`querySelector('th')` et `querySelector('td')` — c'est-à-dire la **première** cellule du
+document. Or la première colonne d'un tableau de marché est presque toujours une colonne
+secondaire : une étoile de suivi, un rang. Elle est donc plus étroite et plus petite que
+le corps du tableau, et la prendre pour sa densité est faux.
+
+Une seconde sonde, qui rend la **distribution** de toutes les cellules, donne :
+
+| Page | `th` | `td` |
+|---|---|---|
+| `/crypto` | `12/600 pad 10/12` ×8 *(+1 à `8/4` : la colonne d'étoiles)* | `14/400 pad 8/12` ×700 |
+| `/categories` | `12/600` ×4 **+ `12/500` ×3** | `14/400` ×200, `13/400` ×100 *(colonnes secondaires)* |
+| `/places` | `12/600 pad 10/12` | `14/400 pad 10/12` |
+| `/screener` | `12/600` + `12/500` | `14/400` ×300 |
+| `/analytics` | **`14/500 pad 10/16`** | `14/400 pad 10/16` |
+
+Le site était donc **beaucoup plus cohérent** que l'audit ne le disait : une seule
+densité verticale, un seul corps de cellule. Deux écarts réels subsistaient :
+
+1. **`/analytics` : en-têtes à 14 px**, exactement la taille des 175 cellules qu'ils
+   surmontent. Seule la graisse les distinguait, ce qui ne suffit pas à faire lire une
+   ligne comme un en-tête.
+2. **`/categories` et `/screener` : deux graisses d'en-tête dans la même rangée** — les
+   en-têtes triables héritaient de 600, les trois écrits à la main portaient
+   `font-medium` et sortaient à 500.
+
+Le rembourrage horizontal (12 px sur les tableaux de marché, 16 px sur analytics) n'est
+PAS un écart : il suit le nombre de colonnes. Sept colonnes larges respirent là où neuf
+colonnes serrées ne le peuvent pas.
+
+**Les deux écarts sont corrigés.** ⚠️ Et la correction a elle-même demandé deux passes :
+retirer `font-medium` a fait passer les en-têtes à **700**, pas à 600. La feuille de
+l'agent utilisateur porte `th { font-weight: bold }` — une règle qui vise LE `th`, donc
+elle bat toute graisse héritée de la rangée. Il a fallu `[&>th]:font-semibold`, qui vise
+le `th` à son tour tout en gardant la déclaration en un seul endroit par tableau.
+
+Relevé après correction : `th 12/600` et `td 14/400` sur les cinq pages.
 
 ### F. Deux composants de même nom
 
@@ -97,6 +138,24 @@ puisqu'il touche la largeur des colonnes.
 coexistent. Le premier sert la barre d'outils du graphique, les catégories et les pools ;
 le second, les réglages d'affichage. C'est exactement la « variante locale improvisée »
 que le socle interdit.
+
+### G bis. Trois tailles de titre de page
+
+| Page | `h1` |
+|---|---|
+| fiches d'actif | **18 px / 700** — c'est le nom de l'actif dans son bandeau d'identité, pas un titre de page. Délibéré, comme chez la référence |
+| accueil, `/crypto`, `/categories`, `/screener`, `/places`, `/parametres` | **24 px / 700** (`display-xl`) — le cran mesuré sur quarante `h1` de la référence |
+| `/analytics`, `/graphiques/*` | **22 px / 600** (`display-sm`) |
+| `/aide` | **36 px / 700** (`display-lg`) |
+
+`/aide` est **corrigé** : c'était le dernier usage de `display-lg` en titre, et l'écart
+le plus large.
+
+⚠️ **`/analytics` et les graphiques globaux ne le sont PAS**, et c'est délibéré : leur
+22/600 est le cran `display-sm`, employé de façon cohérente sur toute la famille
+« analytics ». Les uniformiser à 24/700 est un geste d'une ligne par page, mais il touche
+une famille entière dont l'échelle interne se tient ; le faire sans relever d'abord ses
+sous-titres reviendrait à décaler la hiérarchie plutôt qu'à l'aligner.
 
 ### G. L'accueil est deux crans plus petit que le reste du site
 
@@ -108,8 +167,16 @@ d'accueil emploie comme cran courant ce que le socle réserve aux pastilles d'é
 
 ## Ce que cet audit ne tranche pas
 
-- **La densité de tableau à retenir** (§E) : le socle a inscrit celle de `/crypto`, mais
-  les colonnes de `/categories` et `/screener` sont dimensionnées pour l'autre. Le
-  changement est mécanique et large ; il demande un relevé de débordement après coup.
 - **Le cran de l'accueil** (§G) : passer 40 nœuds de 11 à 13 px rallonge la page. C'est
   un arbitrage de produit, pas une correction de jeton.
+- **Le titre des pages analytics** (§G bis) : 22/600 est cohérent à l'intérieur de sa
+  famille ; l'aligner sur 24/700 demande de relever d'abord ses sous-titres.
+- **Le doublon de `SegmentedControl`** (§F) : les deux fichiers rendent des formes
+  différentes (l'un des segments à filet, l'autre un curseur qui glisse). Les fondre
+  demande de choisir laquelle des deux formes le site garde.
+
+⚠️ **DEUX FOIS, LA SONDE A EU TORT ET LE CODE AVAIT RAISON.** Une fois sur les tableaux
+(§E), où elle échantillonnait la première cellule ; une fois sur les liens de
+`/graphiques/dominance`, qu'elle disait sans nom accessible — ils sont dans un
+`<details>` replié, donc ni cliquables ni focalisables, et le navigateur les écarte déjà.
+Une mesure automatique est un indice, pas un verdict.
