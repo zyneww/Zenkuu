@@ -26,9 +26,26 @@ build/
 .turbo/
 *.tsbuildinfo
 
-# Environnement — les clés d'API ne doivent JAMAIS être committées (§9)
+# Environnement.
+#
+# ⚠️ `.env.local` EST VERSIONNÉ, ET C'EST UNE EXCEPTION DÉLIBÉRÉE À LA RÈGLE DU §9.
+#
+# Le cahier des charges dit que les clés d'API ne doivent JAMAIS être committées, et
+# cette ligne a longtemps porté ce commentaire. L'exploitant a demandé le contraire en
+# toute connaissance de cause, le 2026-09-08, pour un dépôt PRIVÉ.
+#
+# Ce que cela implique, pour qui lira ceci plus tard et croira à un oubli :
+#
+#   · le fichier porte des secrets RÉELS — clé secrète Clerk, jeton Turso, `CRON_SECRET`,
+#     clés d'envoi de courriel — c'est-à-dire des accès compte et base de données ;
+#   · un secret entré dans l'historique Git y RESTE, même si le fichier est retiré
+#     ensuite : il reste lisible dans chaque clone, chaque fork et chaque sauvegarde ;
+#   · le remède, si le dépôt devient public ou si un accès fuite, n'est pas de supprimer
+#     le fichier mais de FAIRE TOURNER toutes les clés qu'il contient.
+#
+# Les deux autres motifs restent ignorés : un `.env` de production ou un
+# `.env.production.local` n'a aucune raison de suivre le même chemin.
 .env
-.env.local
 .env.*.local
 
 # Logs

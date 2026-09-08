@@ -90,9 +90,10 @@ quota.
 
 | Document | Contenu |
 |---|---|
+| [`ZENKUU.md`](ZENKUU.md) | Cahier des charges produit et technique — les « §N » cités dans le code |
+| [`DESIGN.md`](DESIGN.md) | Jetons, échelles et règles du design system |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture détaillée, budget de requêtes, conventions |
-| [`HEADER_STYLE_SEARCH_REPORT.md`](HEADER_STYLE_SEARCH_REPORT.md) | Relevés d'interface mesurés au navigateur |
-| [`DUOLINGO_STYLE_TOKENS.md`](DUOLINGO_STYLE_TOKENS.md) | Direction esthétique et arbitrages |
+| [`docs/guide/`](docs/guide/) | Guide d'utilisation du site |
 
 ## Licence
 
